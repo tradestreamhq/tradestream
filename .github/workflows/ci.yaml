@@ -19,11 +19,6 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-      - name: Start Minikube
-        run: |
-          minikube start --driver=docker
-          kubectl cluster-info
-
       - name: Install Top-Level Helm Chart
         run: |
           helm dependency update charts/tradestream
