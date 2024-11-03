@@ -1,0 +1,6 @@
+# charts/tradestream/Chart.yaml
+apiVersion: v2
+name: tradestream
+description: Parent chart for deploying TradeStream's Kafka in KRaft mode.
+version: 0.1.0
+appVersion: "3.0.0"  # Ensure this matches your Kafka version or higher
