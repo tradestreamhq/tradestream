@@ -1,0 +1,13 @@
+# .gitignore
+node_modules/
+.idea/
+*.log
+*.tgz
+*.lock
+helm-test/
+bazel-*
+charts/**/charts/
+charts/**/templates/*.yaml
+bazel-bin/
+bazel-out/
+bazel-testlogs/
