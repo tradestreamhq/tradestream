@@ -1,10 +1,12 @@
+# charts/tradestream/templates/kafka-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: kafka
+  name: kafka-headless
   labels:
     app: kafka
 spec:
+  clusterIP: None
   ports:
     - port: 9092
       name: client
@@ -12,4 +14,20 @@ spec:
       name: controller
   selector:
     app: kafka
-  type: LoadBalancer
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  labels:
+    app: kafka
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9092
+      targetPort: 9092
+      name: client
+  selector:
+    app: kafka
