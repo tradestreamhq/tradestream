@@ -17,25 +17,3 @@ To deploy the **TradeStream** platform locally on a Kubernetes cluster:
 
 ```bash
 helm install my-tradestream charts/tradestream --namespace tradestream-namespace --create-namespace
-```
-
-This command deploys the entire **TradeStream** platform, including Kafka configured in KRaft mode, into the `tradestream-namespace`.
-
-## CI/CD Pipeline
-
-The GitHub Actions workflow for this repository:
-
-- Sets up Minikube and Helm.
-- Installs the `tradestream` chart to verify its deployment.
-- Checks that all pods are running correctly using `kubectl`.
-
-## TODOs
-
-- [ ] Add more Helm charts for additional components of the TradeStream platform.
-- [ ] Enhance resource requests and limits for production-ready deployments.
-- [ ] Integrate monitoring and logging for better observability.
-- [ ] Expand the CI pipeline to include functional and integration tests.
-
-## Contributing
-
-Contributions are welcome! Feel free to open an issue or submit a pull request to help improve the project.
