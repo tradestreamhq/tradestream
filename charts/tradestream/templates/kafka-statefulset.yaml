@@ -1,4 +1,3 @@
-# charts/tradestream/templates/kafka-statefulset.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
