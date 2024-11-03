@@ -1,4 +1,3 @@
-# charts/tradestream/Chart.yaml
 apiVersion: v2
 name: tradestream
 description: Parent chart for deploying TradeStream's Kafka in KRaft mode.
