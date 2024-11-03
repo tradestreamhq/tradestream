@@ -1,0 +1,33 @@
+# .github/workflows/ci.yaml
+name: CI Workflow
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  install-helm-charts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+  
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Install TradeStream Helm Chart
+        run: |
+          helm install my-tradestream charts/tradestream --namespace tradestream-namespace --create-namespace
+
+      - name: Wait for All Pods to be Ready
+        run: |
+          kubectl wait --for=condition=Ready pods --all -n tradestream-namespace --timeout=600s
+
+      - name: Verify Installations
+        run: |
+          kubectl get pods -n tradestream-namespace
