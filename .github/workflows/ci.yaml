@@ -1,3 +1,4 @@
+# .github/workflows/ci.yaml
 name: CI Workflow
 
 on:
@@ -12,16 +13,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Start minikube
-        uses: medyagh/setup-minikube@latest
+      - name: Set up Minikube
+        uses: manusa/actions-setup-minikube@v2
+        with:
+          minikube-version: 'latest'
+          kubernetes-version: 'v1.24.0'
 
       - name: Install Helm
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-      - name: Install Top-Level Helm Chart
+      - name: Start Minikube
         run: |
-          helm dependency update charts/tradestream
+          minikube start --driver=docker
+          kubectl cluster-info
+
+      - name: Install TradeStream Helm Chart
+        run: |
           helm install my-tradestream charts/tradestream --namespace tradestream-namespace --create-namespace
 
       - name: Verify Installations
