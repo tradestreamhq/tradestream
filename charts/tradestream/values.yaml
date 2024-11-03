@@ -7,17 +7,20 @@ kafka:
 
   config:
     # KRaft-specific configuration
-    process.roles: broker,controller
-    node.id: 1  # Node ID, ensure unique IDs for multiple replicas
-    controller.quorum.voters: 1@localhost:9093  # Adjust for multi-node setup
+    processRoles: broker,controller
+    # The node ID will be set dynamically in the StatefulSet
+    controllerQuorumVoters: |
+      0@kafka-0.kafka-headless.tradestream-namespace.svc.cluster.local:9093,\
+      1@kafka-1.kafka-headless.tradestream-namespace.svc.cluster.local:9093,\
+      2@kafka-2.kafka-headless.tradestream-namespace.svc.cluster.local:9093
     listeners: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-    listener.security.protocol.map: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-    inter.broker.listener.name: PLAINTEXT
-    controller.listener.names: CONTROLLER
-    log.dirs: /var/lib/kafka/data
-    offset.storage: kafka
-    transaction.state.log.replication.factor: 1
-    transaction.state.log.min.isr: 1
+    listenerSecurityProtocolMap: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+    interBrokerListenerName: PLAINTEXT
+    controllerListenerNames: CONTROLLER
+    logDirs: /var/lib/kafka/data
+    offsetStorage: kafka
+    transactionStateLogReplicationFactor: 3
+    transactionStateLogMinIsr: 2
 
   resources:
     requests:
