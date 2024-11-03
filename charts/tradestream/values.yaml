@@ -1,8 +1,8 @@
 kafka:
   replicaCount: 3
   image:
-    repository: confluentinc/cp-kafka
-    tag: 7.0.0  # Version compatible with Kafka 3.x for KRaft mode
+    repository: bitnami/kafka  # Known to have ARM support
+    tag: 3.4.0-debian-11-r0  # Ensure this version is compatible with Kafka 3.x for KRaft mode
 
   config:
     # KRaft-specific configuration
