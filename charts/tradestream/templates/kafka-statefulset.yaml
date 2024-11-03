@@ -1,3 +1,4 @@
+# charts/tradestream/templates/kafka-statefulset.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -5,7 +6,7 @@ metadata:
   labels:
     app: kafka
 spec:
-  serviceName: kafka
+  serviceName: kafka-headless
   replicas: {{ .Values.kafka.replicaCount }}
   selector:
     matchLabels:
@@ -20,33 +21,42 @@ spec:
           image: "{{ .Values.kafka.image.repository }}:{{ .Values.kafka.image.tag }}"
           ports:
             - containerPort: 9092
+              name: client
             - containerPort: 9093
+              name: controller
           env:
-            - name: KAFKA_BROKER_ID
-              value: "{{ .Values.kafka.config.node.id }}"
+            - name: KAFKA_NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
             - name: KAFKA_PROCESS_ROLES
-              value: "{{ .Values.kafka.config.process.roles }}"
+              value: "{{ .Values.kafka.config.processRoles }}"
             - name: KAFKA_CONTROLLER_QUORUM_VOTERS
-              value: "{{ .Values.kafka.config.controller.quorum.voters }}"
+              value: "{{ .Values.kafka.config.controllerQuorumVoters }}"
             - name: KAFKA_LISTENERS
               value: "{{ .Values.kafka.config.listeners }}"
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-              value: "{{ .Values.kafka.config.listener.security.protocol.map }}"
+              value: "{{ .Values.kafka.config.listenerSecurityProtocolMap }}"
             - name: KAFKA_INTER_BROKER_LISTENER_NAME
-              value: "{{ .Values.kafka.config.inter.broker.listener.name }}"
+              value: "{{ .Values.kafka.config.interBrokerListenerName }}"
             - name: KAFKA_CONTROLLER_LISTENER_NAMES
-              value: "{{ .Values.kafka.config.controller.listener.names }}"
+              value: "{{ .Values.kafka.config.controllerListenerNames }}"
             - name: KAFKA_LOG_DIRS
-              value: "{{ .Values.kafka.config.log.dirs }}"
+              value: "{{ .Values.kafka.config.logDirs }}"
             - name: KAFKA_OFFSET_STORAGE
-              value: "{{ .Values.kafka.config.offset.storage }}"
+              value: "{{ .Values.kafka.config.offsetStorage }}"
             - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
-              value: "{{ .Values.kafka.config.transaction.state.log.replication.factor }}"
+              value: "{{ .Values.kafka.config.transactionStateLogReplicationFactor }}"
             - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
-              value: "{{ .Values.kafka.config.transaction.state.log.min.isr }}"
+              value: "{{ .Values.kafka.config.transactionStateLogMinIsr }}"
           volumeMounts:
             - name: kafka-data
               mountPath: /var/lib/kafka/data
-      volumes:
-        - name: kafka-data
-          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: kafka-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
