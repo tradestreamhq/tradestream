@@ -1,0 +1,25 @@
+# charts/tradestream/values.yaml
+kafka:
+  replicaCount: 3
+  image:
+    repository: confluentinc/cp-kafka
+    tag: 7.0.0  # Version compatible with Kafka 3.x for KRaft mode
+
+  config:
+    # KRaft-specific configuration
+    process.roles: broker,controller
+    node.id: 1  # Node ID, ensure unique IDs for multiple replicas
+    controller.quorum.voters: 1@localhost:9093  # Adjust for multi-node setup
+    listeners: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+    listener.security.protocol.map: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+    inter.broker.listener.name: PLAINTEXT
+    controller.listener.names: CONTROLLER
+    log.dirs: /var/lib/kafka/data
+    offset.storage: kafka
+    transaction.state.log.replication.factor: 1
+    transaction.state.log.min.isr: 1
+
+  resources:
+    requests:
+      memory: 2048Mi
+      cpu: 1000m
