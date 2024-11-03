@@ -16,9 +16,12 @@ spec:
       labels:
         app: kafka
     spec:
+      nodeSelector:
+        kubernetes.io/arch: arm64
       containers:
         - name: kafka
           image: "{{ .Values.kafka.image.repository }}:{{ .Values.kafka.image.tag }}"
+          imagePullPolicy: "{{ .Values.kafka.image.pullPolicy }}"
           ports:
             - containerPort: 9092
               name: client
