@@ -24,9 +24,9 @@ jobs:
         run: |
           helm install my-tradestream charts/tradestream --namespace tradestream-namespace --create-namespace
 
-      - name: Wait for Pods to be Ready
+      - name: Wait for All Pods to be Ready
         run: |
-          kubectl rollout status statefulset/kafka -n tradestream-namespace --timeout=600s
+          kubectl wait --for=condition=Ready pods --all -n tradestream-namespace --timeout=600s
 
       - name: Verify Installations
         run: |
