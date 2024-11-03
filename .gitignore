@@ -1,13 +1,20 @@
-# .gitignore
+# Binaries and build outputs
+bazel-bin/
+bazel-out/
+bazel-testlogs/
+bazel-*
+
+# Helm artifacts
+charts/**/charts/
+charts/**/templates/*.yaml
+
+# General
 node_modules/
 .idea/
 *.log
 *.tgz
 *.lock
 helm-test/
-bazel-*
-charts/**/charts/
-charts/**/templates/*.yaml
-bazel-bin/
-bazel-out/
-bazel-testlogs/
+
+# MacOS
+.DS_Store
