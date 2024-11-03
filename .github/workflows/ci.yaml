@@ -12,21 +12,13 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-
-      - name: Set up Minikube
-        uses: manusa/actions-setup-minikube@v2
-        with:
-          minikube-version: 'latest'
-          kubernetes-version: 'v1.24.0'
+  
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
 
       - name: Install Helm
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
-      - name: Start Minikube
-        run: |
-          minikube start --driver=docker
-          kubectl cluster-info
 
       - name: Install TradeStream Helm Chart
         run: |
