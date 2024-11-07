@@ -6,15 +6,15 @@ load("@rules_oci//oci:defs.bzl", "oci_image")
 package(default_visibility = ["//visibility:public"])
 
 java_binary(
-    name = "realtime-data-ingestion",
-    srcs = ["RealtimeDataIngestion.java"],
+    name = "real-time-data-ingestion",
+    srcs = ["RealTimeDataIngestion.java"],
     main_class = "com.verlumen.tradestream.ingestion.RealTimeDataIngestion",
     deps = ["@maven//:com_google_guava_guava"],
 )
 
 tar(
     name = "layer",
-    srcs = ["realtime-data-ingestion_deploy.jar"],
+    srcs = ["real-time-data-ingestion_deploy.jar"],
 )
 
 oci_image(
@@ -23,7 +23,7 @@ oci_image(
     entrypoint = [
         "java",
         "-jar",
-        "/realtime-data-ingestion-deploy.jar",
+        "/real-time-data-ingestion-deploy.jar",
     ],
     tars = [":layer"],
 )
