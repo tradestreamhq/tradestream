@@ -1,6 +1,6 @@
 apiVersion: v2
 name: tradestream
-description: Parent chart for deploying TradeStream's Kafka in KRaft mode.
+description: Chart for deploying TradeStream.
 version: 0.1.0
 appVersion: "3.0.0"
 dependencies:
