@@ -1,8 +1,8 @@
 kafka:
   replicaCount: 3
   image:
-    repository: bitnami/kafka  # Known to have ARM support
-    tag: 3.8.1  # Ensure this version is compatible with Kafka 3.x for KRaft mode
+    repository: bitnami/kafka@sha256
+    tag: fa8682647a5ab2a57fc76b88a47d22fe7992a8275281d9b812813079236e39f6  # Known to have ARM support
     pullPolicy: Always  # Ensures that the image is pulled each time a pod is created
 
   config:
