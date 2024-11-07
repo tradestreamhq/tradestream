@@ -7,7 +7,6 @@ import marketdata.Marketdata.Trade;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.knowm.xchange.currency.CurrencyPair;
-import org.knowm.xchange.dto.marketdata.Trade as XChangeTrade;
 import org.knowm.xchange.stream.core.StreamingExchange;
 import org.knowm.xchange.stream.kraken.KrakenStreamingExchange;
 import org.knowm.xchange.stream.core.StreamingExchangeFactory;
