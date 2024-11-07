@@ -1,5 +1,5 @@
-# load("@protobuf//bazel:proto_library.bzl", "proto_library")
-load("@rules_proto//proto:defs.bzl", "proto_library", "java_proto_library")
+load("@rules_proto//java:defs.bzl", "java_proto_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 
 proto_library(
     name = "marketdata_proto",
