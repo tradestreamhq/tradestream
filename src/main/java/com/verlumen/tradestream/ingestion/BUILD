@@ -5,11 +5,19 @@ load("@rules_oci//oci:defs.bzl", "oci_image")
 
 package(default_visibility = ["//visibility:public"])
 
+java_library(
+    name = "candle-key",
+    srcs = ["CandleKey.java"]
+)
+
 java_binary(
     name = "real-time-data-ingestion",
     srcs = ["RealTimeDataIngestion.java"],
     main_class = "com.verlumen.tradestream.ingestion.RealTimeDataIngestion",
-    deps = ["@maven//:com_google_guava_guava"],
+    deps = [
+        ":candle-key",
+        "@maven//:com_google_guava_guava",
+    ],
 )
 
 tar(
