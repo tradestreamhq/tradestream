@@ -1,5 +1,9 @@
 apiVersion: v2
 name: tradestream
-description: Parent chart for deploying TradeStream's Kafka in KRaft mode.
+description: Chart for deploying TradeStream.
 version: 0.1.0
-appVersion: "3.0.0"  # Ensure this matches your Kafka version or higher
+appVersion: "3.0.0"
+dependencies:
+  - name: kafka
+    version: 30.1.8
+    repository: https://charts.bitnami.com/bitnami

@@ -1,28 +1,24 @@
 kafka:
   replicaCount: 3
-  image:
-    repository: bitnami/kafka  # Known to have ARM support
-    tag: 3.8.1  # Ensure this version is compatible with Kafka 3.x for KRaft mode
-    pullPolicy: Always  # Ensures that the image is pulled each time a pod is created
-
-  config:
-    # KRaft-specific configuration
-    processRoles: broker,controller
-    # The node ID will be set dynamically in the StatefulSet
-    controllerQuorumVoters: |
-      0@kafka-0.kafka-headless.tradestream-namespace.svc.cluster.local:9093,\
-      1@kafka-1.kafka-headless.tradestream-namespace.svc.cluster.local:9093,\
-      2@kafka-2.kafka-headless.tradestream-namespace.svc.cluster.local:9093
-    listeners: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-    listenerSecurityProtocolMap: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-    interBrokerListenerName: PLAINTEXT
-    controllerListenerNames: CONTROLLER
-    logDirs: /var/lib/kafka/data
-    offsetStorage: kafka
-    transactionStateLogReplicationFactor: 3
-    transactionStateLogMinIsr: 2
-
-  resources:
-    requests:
-      memory: 2048Mi
-      cpu: 1000m
+  nodeSelector:
+    kubernetes.io/arch: arm64
+  persistence:
+    enabled: true
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+  auth:
+    enabled: true
+    saslMechanisms:
+      - scram-sha-256
+  configuration: |
+    process.roles=broker,controller
+    controller.quorum.voters=0@${HOSTNAME}:9093,1@${HOSTNAME}:9093,2@${HOSTNAME}:9093
+    listeners=PLAINTEXT://:9092,CONTROLLER://:9093
+    listener.security.protocol.map=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+    inter.broker.listener.name=PLAINTEXT
+    controller.listener.names=CONTROLLER
+    log.dirs=/var/lib/kafka/data
+    offset.storage=raft
+    transaction.state.log.replication.factor=3
+    transaction.state.log.min.isr=2
