@@ -10,12 +10,19 @@ bazel_dep(name = "rules_java", version = "7.11.1")
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     artifacts = [
-        "junit:junit:4.12",
-        "com.google.guava:guava:28.0-jre",
+        "org.knowm.xchange:xchange-stream-core:5.0.9",
+        "org.knowm.xchange:xchange-kraken:5.0.9",
+        "io.reactivex.rxjava2:rxjava:2.2.21",
+        "com.google.guava:guava:31.1-jre",
+        "com.google.protobuf:protobuf-java:3.21.12",
+        "org.apache.kafka:kafka-clients:3.5.1",
+        "org.slf4j:slf4j-api:2.0.9",
+        "junit:junit:4.13.2",  # For unit testing
+        "org.mockito:mockito-core:4.8.1",  # For mocking in tests
     ],
     fetch_sources = True,
     repositories = [
-        "http://uk.maven.org/maven2",
+        "https://repo1.maven.org/maven2",
         "https://jcenter.bintray.com/",
     ],
 )
