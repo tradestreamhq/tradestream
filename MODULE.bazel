@@ -10,8 +10,10 @@ bazel_dep(name = "rules_java", version = "7.11.1")
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     artifacts = [
-        "org.knowm.xchange:xchange-stream-core:5.0.9",
+        "org.knowm.xchange:xchange-core:5.0.9",
         "org.knowm.xchange:xchange-kraken:5.0.9",
+        "org.knowm.xchange:xchange-stream-core:5.0.9",
+        "org.knowm.xchange:xchange-stream-kraken:5.0.9",
         "io.reactivex.rxjava2:rxjava:2.2.21",
         "com.google.guava:guava:31.1-jre",
         "com.google.protobuf:protobuf-java:3.21.12",
