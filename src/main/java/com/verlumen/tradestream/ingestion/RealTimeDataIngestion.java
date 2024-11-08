@@ -12,9 +12,9 @@ import org.knowm.xchange.stream.kraken.KrakenStreamingExchange;
 import org.knowm.xchange.stream.core.StreamingExchangeFactory;
 import org.knowm.xchange.stream.service.StreamingMarketDataService;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Real-time data ingestion module using XChange Streaming API.
@@ -256,6 +256,6 @@ public class RealTimeDataIngestion {
         streamingExchange.disconnect().blockingAwait();
 
         // Close the Kafka producer
-        kafkaProducer.close(5, TimeUnit.SECONDS);
+        kafkaProducer.close(Duration.ofSeconds(5));
     }
 }
