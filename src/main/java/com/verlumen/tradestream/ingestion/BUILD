@@ -42,10 +42,11 @@ oci_image(
     entrypoint = [
         "java",
         "-jar",
-        "/real-time-data-ingestion-deploy.jar",
+        "/real-time-data-ingestion_deploy.jar",
     ],
     tars = [":layer"],
 )
+
 
 container_structure_test(
     name = "container_test",
