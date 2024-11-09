@@ -28,11 +28,11 @@ public class AppTest {
   
   @Test
   public void run_callsMarketDataIngestionStart() {
-      // Act
-      app.run();
+    // Act
+    app.run();
   
-      // Assert
-      verify(mockMarketDataIngestion).start();
+    // Assert
+    verify(mockMarketDataIngestion).start();
   }
 
 }
