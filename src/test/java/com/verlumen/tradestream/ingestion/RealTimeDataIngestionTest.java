@@ -248,7 +248,7 @@ public class RealTimeDataIngestionTest {
         double lastPrice = realTimeDataIngestion.getLastKnownPrice(currencyPair);
 
         // Assert
-        assertThat(Double.isNaN(lastPrice)).isTrue();
+        assertThat(lastPrice).isNaN();
     }
 
     /** Tests shutdown closes Kafka producer and disconnects exchange. */
