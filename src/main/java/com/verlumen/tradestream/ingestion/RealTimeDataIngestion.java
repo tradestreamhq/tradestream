@@ -257,4 +257,8 @@ public class RealTimeDataIngestion {
         // Close the Kafka producer
         kafkaProducer.close(Duration.ofSeconds(5));
     }
+
+    public static void main(String args[]) {
+        System.out.println("Static method");
+    }
 }
