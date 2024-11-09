@@ -83,5 +83,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         run: |
           git add charts/tradestream/values.yaml
-          git commit -m "Update values.yaml: Set ${{ env.SECTION_KEY }} image to ${{ steps.create_image_tag.outputs.image_tag }}" || echo "No changes to commit"
+          git commit -m "Update values.yaml: Set ${{ env.DATA_INGESTION_SECTION_KEY }} image to ${{ steps.create_image_tag.outputs.image_tag }}" || echo "No changes to commit"
           git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
