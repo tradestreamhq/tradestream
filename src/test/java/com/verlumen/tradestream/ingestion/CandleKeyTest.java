@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
-import com.google.common.truth.Truth;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import org.junit.Test;
@@ -34,7 +35,7 @@ public final class CandleKeyTest {
         CandleKey candleKey = testCase.createCandleKey();
 
         // Act & Assert
-        Truth.assertThat(candleKey.equals(candleKey)).isTrue();
+        assertThat(candleKey.equals(candleKey)).isTrue();
     }
 
     @Test
@@ -45,7 +46,7 @@ public final class CandleKeyTest {
         CandleKey candleKey2 = testCase.createCandleKey();
 
         // Act & Assert
-        Truth.assertThat(candleKey1).isEqualTo(candleKey2);
+        assertThat(candleKey1).isEqualTo(candleKey2);
     }
 
     @Test
@@ -61,7 +62,7 @@ public final class CandleKeyTest {
         CandleKey candleKey2 = testCase2.createCandleKey();
 
         // Act & Assert
-        Truth.assertThat(candleKey1).isNotEqualTo(candleKey2);
+        assertThat(candleKey1).isNotEqualTo(candleKey2);
     }
 
     @Test
@@ -72,7 +73,7 @@ public final class CandleKeyTest {
         CandleKey candleKey2 = testCase.createCandleKey();
 
         // Act & Assert
-        Truth.assertThat(candleKey1.hashCode()).isEqualTo(candleKey2.hashCode());
+        assertThat(candleKey1.hashCode()).isEqualTo(candleKey2.hashCode());
     }
 
     @Test
@@ -88,7 +89,7 @@ public final class CandleKeyTest {
         CandleKey candleKey2 = testCase2.createCandleKey();
 
         // Act & Assert
-        Truth.assertThat(candleKey1.hashCode()).isNotEqualTo(candleKey2.hashCode());
+        assertThat(candleKey1.hashCode()).isNotEqualTo(candleKey2.hashCode());
     }
 
     @Test
@@ -98,7 +99,7 @@ public final class CandleKeyTest {
         CandleKey candleKey = testCase.createCandleKey();
 
         // Act & Assert
-        Truth.assertThat(candleKey.getTradeId()).isEqualTo(testCase.tradeId);
-        Truth.assertThat(candleKey.getMinuteTimestamp()).isEqualTo(testCase.minuteTimestamp);
+        assertThat(candleKey.getTradeId()).isEqualTo(testCase.tradeId);
+        assertThat(candleKey.getMinuteTimestamp()).isEqualTo(testCase.minuteTimestamp);
     }
 }
