@@ -22,3 +22,7 @@ kafka:
     offset.storage=raft
     transaction.state.log.replication.factor=3
     transaction.state.log.min.isr=2
+data-ingestion:
+  image:
+    repository: ""
+    tag: v0.0.16-develop
