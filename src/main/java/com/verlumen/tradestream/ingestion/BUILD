@@ -32,7 +32,6 @@ java_binary(
 tar(
     name = "layer",
     srcs = [":real-time-data-ingestion_deploy.jar"],
-    package_dir = "/app",
 )
 
 oci_image(
@@ -41,7 +40,7 @@ oci_image(
     entrypoint = [
         "java",
         "-jar",
-        "/app/real-time-data-ingestion_deploy.jar",
+        "/real-time-data-ingestion_deploy.jar",
     ],
     tars = [":layer"],
 )
