@@ -26,7 +26,7 @@ java_binary(
 
 tar(
     name = "layer",
-    srcs = [":real-time-data-ingestion.jar"],
+    srcs = [":real-time-data-ingestion_deploy.jar"],
 )
 
 oci_image(
