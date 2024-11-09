@@ -15,10 +15,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Real-time data ingestion module using XChange Streaming API.
- */
-public class RealTimeDataIngestion {
+final class RealTimeDataIngestion {
 
     private final StreamingExchange streamingExchange;
     private final StreamingMarketDataService streamingMarketDataService;
@@ -44,7 +41,7 @@ public class RealTimeDataIngestion {
     /**
      * Starts the data ingestion process.
      */
-    public void start() {
+    void start() {
         // Connect to the exchange
         streamingExchange.connect().blockingAwait();
 
