@@ -26,3 +26,7 @@ kafka:
   image:
     repository: ""
     tag: v0.0.6-develop
+data-ingestion:
+  image:
+    repository: tradestreamhq/tradestream-data-ingestion
+    tag: v0.0.7-develop
