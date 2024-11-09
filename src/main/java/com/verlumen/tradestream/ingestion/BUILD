@@ -35,7 +35,7 @@ oci_image(
     entrypoint = [
         "java",
         "-jar",
-        "/real-time-data-ingestion_deploy.jar",
+        "/src/main/java/com/verlumen/tradestream/ingestion/real-time-data-ingestion_deploy.jar",
     ],
     tars = [":layer"],
 )
