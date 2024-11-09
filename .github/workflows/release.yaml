@@ -14,23 +14,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract Branch Name
-        id: extract_branch
-        shell: bash
-        run: |
-          echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-
-      - name: Determine Suffix
-        id: determine_suffix
-        run: |
-          if [ "${{ steps.extract_branch.outputs.branch }}" == "develop" ]; then
-            echo "suffix=-develop" >> $GITHUB_ENV
-          elif [ "${{ steps.extract_branch.outputs.branch }}" == "main" ]; then
-            echo "suffix=-prod" >> $GITHUB_ENV
-          else
-            echo "suffix=" >> $GITHUB_ENV
-          fi
-
       - name: Semantic Version
         id: version
         uses: paulhatch/semantic-version@v5.3.0
@@ -38,7 +21,7 @@ jobs:
           tag_prefix: "v"
           major_pattern: "(MAJOR)"
           minor_pattern: "(MINOR)"
-          version_format: "${major}.${minor}.${patch}${{ env.suffix }}-prerelease${increment}"
+          version_format: "${major}.${minor}.${patch}-prerelease${increment}"
           enable_prerelease_mode: true
 
       - name: Set up Git
