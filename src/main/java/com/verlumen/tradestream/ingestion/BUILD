@@ -26,7 +26,7 @@ java_binary(
 
 java_library(
     name = "java-maven-lib",
-    srcs = glob(["src/main/java/com/example/myproject/*.java"]),
+    srcs = ["App.java"],
     deps = ["@maven//:com_google_guava_guava"],
 )
 
