@@ -6,24 +6,12 @@ load("@rules_oci//oci:defs.bzl", "oci_image")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
-    name = "candle-key",
-    srcs = ["CandleKey.java"],
-)
-
-java_library(
-    name = "real-time-data-ingestion",
-    srcs = ["RealTimeDataIngestion.java"],
-    deps = [
-        "@maven//:com_google_inject_guice",
-    ]
-)
-
-java_library(
     name = "app-lib",
     srcs = ["App.java"],
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
+        ":ingestion_module",
         ":real-time-data-ingestion",
     ],
 )
@@ -34,9 +22,16 @@ java_binary(
     runtime_deps = [":app-lib"],
 )
 
-tar(
-    name = "layer",
-    srcs = [":app_deploy.jar"],
+java_library(
+    name = "candle-key",
+    srcs = ["CandleKey.java"],
+)
+
+container_structure_test(
+    name = "container_test",
+    configs = ["container-structure-test.yaml"],
+    image = ":image",
+    tags = ["requires-docker"],
 )
 
 oci_image(
@@ -50,9 +45,31 @@ oci_image(
     tars = [":layer"],
 )
 
-container_structure_test(
-    name = "container_test",
-    configs = ["container-structure-test.yaml"],
-    image = ":image",
-    tags = ["requires-docker"],
+java_library(
+    name = "ingestion_module",
+    srcs = ["IngestionModule.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        ":market-data-ingestion",
+        ":real-time-data-ingestion",
+    ],
+)
+
+java_library(
+    name = "market-data-ingestion",
+    srcs = ["MarketDataIngestion.java"],
+)
+
+tar(
+    name = "layer",
+    srcs = [":app_deploy.jar"],
+)
+
+java_library(
+    name = "real-time-data-ingestion",
+    srcs = ["RealTimeDataIngestion.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        ":market-data-ingestion",
+    ]
 )
