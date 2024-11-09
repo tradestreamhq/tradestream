@@ -31,9 +31,11 @@ java_binary(
 
 tar(
     name = "layer",
-    srcs = [
+    srcs = ["real-time-data-ingestion_deploy.jar"],
+    files = [
         "real-time-data-ingestion_deploy.jar",
     ],
+    mode = "0755",  # Set executable permissions
 )
 
 oci_image(
