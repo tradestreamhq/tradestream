@@ -1,4 +1,3 @@
-
 package com.verlumen.tradestream.ingestion;
 
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -18,24 +17,44 @@ import java.util.concurrent.ConcurrentHashMap;
 
 final class RealTimeDataIngestion {
 
-    final StreamingExchange streamingExchange;
-    final StreamingMarketDataService streamingMarketDataService;
-    private final Set<CandleKey> processedTrades = ConcurrentHashMap.newKeySet();
-    private final Map<String, CandleBuilder> candleBuilders = new ConcurrentHashMap<>();
-    private final List<String> currencyPairs;
-    private final long candleIntervalMillis = 60_000L; // 1-minute candles
-
-    // Kafka producer
+    private final StreamingExchange streamingExchange;
+    private final StreamingMarketDataService streamingMarketDataService;
     private final KafkaProducer<String, byte[]> kafkaProducer;
     private final String kafkaTopic;
+    private final List<String> currencyPairs;
 
+    private final Set<CandleKey> processedTrades = ConcurrentHashMap.newKeySet();
+    private final Map<String, CandleBuilder> candleBuilders = new ConcurrentHashMap<>();
     private final List<Disposable> subscriptions = new ArrayList<>();
+    private final long candleIntervalMillis = 60_000L; // 1-minute candles
 
-    RealTimeDataIngestion(String exchangeClassName, List<String> currencyPairs, Properties kafkaProps, String kafkaTopic) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        this.streamingExchange = StreamingExchangeFactory.INSTANCE.createExchange(exchangeClassName);
-        this.streamingMarketDataService = streamingExchange.getStreamingMarketDataService();
+    // Constructor for production use
+    RealTimeDataIngestion(String exchangeClassName, List<String> currencyPairs, Properties kafkaProps, String kafkaTopic)
+            throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        this(
+                StreamingExchangeFactory.INSTANCE.createExchange(exchangeClassName),
+                null, // Will be initialized inside
+                new KafkaProducer<>(kafkaProps),
+                currencyPairs,
+                kafkaTopic
+        );
+        this.streamingMarketDataService = this.streamingExchange.getStreamingMarketDataService();
+    }
+
+    // Constructor for dependency injection (used in tests)
+    RealTimeDataIngestion(
+            StreamingExchange streamingExchange,
+            StreamingMarketDataService streamingMarketDataService,
+            KafkaProducer<String, byte[]> kafkaProducer,
+            List<String> currencyPairs,
+            String kafkaTopic
+    ) {
+        this.streamingExchange = streamingExchange;
+        this.streamingMarketDataService = streamingMarketDataService != null
+                ? streamingMarketDataService
+                : streamingExchange.getStreamingMarketDataService();
+        this.kafkaProducer = kafkaProducer;
         this.currencyPairs = currencyPairs;
-        this.kafkaProducer = new KafkaProducer<>(kafkaProps);
         this.kafkaTopic = kafkaTopic;
     }
 
@@ -76,7 +95,7 @@ final class RealTimeDataIngestion {
             public void run() {
                 handleThinlyTradedMarkets();
             }
-        }, 0, 60_000); // Check every minute
+        }, 0, candleIntervalMillis); // Check every minute
     }
 
     /**
@@ -101,6 +120,49 @@ final class RealTimeDataIngestion {
 
         builder.addTrade(trade);
     }
+
+    /**
+     * Callback for when a candle is ready.
+     */
+    public void onCandle(Candle candle) {
+        try {
+            // Serialize the Candle message to byte array
+            byte[] candleBytes = candle.toByteArray();
+
+            // Create a ProducerRecord with the candle bytes
+            ProducerRecord<String, byte[]> record = new ProducerRecord<>(kafkaTopic, candle.getCurrencyPair(), candleBytes);
+
+            // Send the record to Kafka
+            kafkaProducer.send(record, (metadata, exception) -> {
+                if (exception != null) {
+                    // Handle exception
+                    exception.printStackTrace();
+                } else {
+                    System.out.println("Published Candle to Kafka: " + candle);
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Closes the Kafka producer and disconnects from the exchange when shutting down.
+     */
+    public void shutdown() {
+        // Unsubscribe from streams
+        for (Disposable subscription : subscriptions) {
+            subscription.dispose();
+        }
+
+        // Disconnect from the exchange
+        streamingExchange.disconnect().blockingAwait();
+
+        // Close the Kafka producer
+        kafkaProducer.close(Duration.ofSeconds(5));
+    }
+
+    // Private helper methods and classes
 
     /**
      * Generates candles for thinly traded markets.
@@ -133,6 +195,15 @@ final class RealTimeDataIngestion {
      */
     private String getCandleKey(String currencyPair, long minuteTimestamp) {
         return currencyPair + ":" + minuteTimestamp;
+    }
+
+    /**
+     * Retrieves the last known price for a currency pair.
+     */
+    private double getLastKnownPrice(String currencyPair) {
+        // Implement logic to retrieve the last known price
+        // For simplicity, returning NaN
+        return Double.NaN;
     }
 
     /**
@@ -204,56 +275,6 @@ final class RealTimeDataIngestion {
             // Publish the candle to Kafka
             onCandle(candle);
         }
-    }
-
-    /**
-     * Callback for when a candle is ready.
-     */
-    public void onCandle(Candle candle) {
-        try {
-            // Serialize the Candle message to byte array
-            byte[] candleBytes = candle.toByteArray();
-
-            // Create a ProducerRecord with the candle bytes
-            ProducerRecord<String, byte[]> record = new ProducerRecord<>(kafkaTopic, candle.getCurrencyPair(), candleBytes);
-
-            // Send the record to Kafka
-            kafkaProducer.send(record, (metadata, exception) -> {
-                if (exception != null) {
-                    // Handle exception
-                    exception.printStackTrace();
-                } else {
-                    System.out.println("Published Candle to Kafka: " + candle);
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Retrieves the last known price for a currency pair.
-     */
-    private double getLastKnownPrice(String currencyPair) {
-        // Implement logic to retrieve the last known price
-        // For simplicity, returning NaN
-        return Double.NaN;
-    }
-
-    /**
-     * Closes the Kafka producer and disconnects from the exchange when shutting down.
-     */
-    public void shutdown() {
-        // Unsubscribe from streams
-        for (Disposable subscription : subscriptions) {
-            subscription.dispose();
-        }
-
-        // Disconnect from the exchange
-        streamingExchange.disconnect().blockingAwait();
-
-        // Close the Kafka producer
-        kafkaProducer.close(Duration.ofSeconds(5));
     }
 
     public static void main(String[] args) throws Exception {
