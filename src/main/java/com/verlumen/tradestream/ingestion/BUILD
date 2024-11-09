@@ -7,7 +7,7 @@ package(default_visibility = ["//visibility:public"])
 
 java_library(
     name = "candle-key",
-    srcs = ["CandleKey.java"]
+    srcs = ["CandleKey.java"],
 )
 
 java_library(
