@@ -1,4 +1,4 @@
-package com.example.marketdata;
+package com.verlumen.tradestream.ingestion;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.reactivex.disposables.Disposable;
