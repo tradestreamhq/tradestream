@@ -56,14 +56,21 @@ java_library(
     ],
 )
 
+tar(
+    name = "layer",
+    srcs = [":app_deploy.jar"],
+)
+
 java_library(
     name = "market-data-ingestion",
     srcs = ["MarketDataIngestion.java"],
 )
 
-tar(
-    name = "layer",
-    srcs = [":app_deploy.jar"],
+oci_push(
+    name = "push_image",
+    image = ":image",
+    remote_tags = ["latest"],
+    repository = "tradestreamhq/tradestream-data-ingestion",
 )
 
 java_library(
