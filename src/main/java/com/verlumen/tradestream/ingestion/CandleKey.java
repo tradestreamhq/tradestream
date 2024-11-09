@@ -7,7 +7,7 @@ final class CandleKey {
     private final String tradeId;
     private final long minuteTimestamp;
 
-    public CandleKey(String tradeId, long minuteTimestamp) {
+    CandleKey(String tradeId, long minuteTimestamp) {
         this.tradeId = tradeId;
         this.minuteTimestamp = minuteTimestamp;
     }
