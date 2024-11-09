@@ -28,5 +28,6 @@ java_test(
         "@maven//:junit_junit",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle-key",
+        "//src/main/java/com/verlumen/tradestream/ingestion:real-time-data-ingestion",
     ],
 )
