@@ -65,12 +65,9 @@ jobs:
           sudo chmod +x /usr/bin/yq
 
       - name: Get data ingestion image repository from file
-        shell: bash
-        run: echo "repo=$(src/main/java/com/verlumen/tradestream/ingestion/repository.txt)" >> $GITHUB_OUTPUT
         id: get_data_ingestion_repo
-
-      - name: Log repository name
         run: |
+          echo "repo=$(cat src/main/java/com/verlumen/tradestream/ingestion/repository.txt)" >> $GITHUB_OUTPUT
           echo "Repository name from file: ${{ steps.get_data_ingestion_repo.outputs.repo }}"
 
       - name: Update values.yaml with new image tag
