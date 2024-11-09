@@ -18,8 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 final class RealTimeDataIngestion {
 
-    private final StreamingExchange streamingExchange;
-    private final StreamingMarketDataService streamingMarketDataService;
+    final StreamingExchange streamingExchange;
+    final StreamingMarketDataService streamingMarketDataService;
     private final Set<CandleKey> processedTrades = ConcurrentHashMap.newKeySet();
     private final Map<String, CandleBuilder> candleBuilders = new ConcurrentHashMap<>();
     private final List<String> currencyPairs;
