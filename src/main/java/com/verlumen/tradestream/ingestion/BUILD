@@ -14,6 +14,7 @@ java_binary(
     name = "real-time-data-ingestion",
     srcs = ["RealTimeDataIngestion.java"],
     main_class = "com.verlumen.tradestream.ingestion.RealTimeDataIngestion",
+    create_executable = False,
     deps = [
         "@maven//:org_knowm_xchange_xchange_coinbasepro",
         "@maven//:org_knowm_xchange_xchange_core",
@@ -31,7 +32,11 @@ java_binary(
 
 tar(
     name = "layer",
-    srcs = ["real-time-data-ingestion_deploy.jar"],
+    srcs = [
+        "real-time-data-ingestion_deploy.jar",
+    ],
+    # Add a directory prefix in the tar archive
+    dest_dir = "/",  # Ensures the jar is placed at the root
 )
 
 oci_image(
