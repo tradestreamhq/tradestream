@@ -10,6 +10,7 @@ java_test(
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
+        "@maven//:org.mockito:mockito-core",
         "//src/main/java/com/verlumen/tradestream/ingestion:app-lib",
     ],
 )
