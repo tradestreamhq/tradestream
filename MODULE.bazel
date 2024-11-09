@@ -12,8 +12,8 @@ maven.install(
     artifacts = [
         "org.knowm.xchange:xchange-core:5.0.9",
         "org.knowm.xchange:xchange-kraken:5.0.9",
-        "org.knowm.xchange:xchange-stream:5.0.9",
-        "org.knowm.xchange:xchange-kraken-stream:5.0.9",
+        "org.knowm.xchange:xchange-stream-core:5.0.9",
+        "org.knowm.xchange:xchange-stream-kraken:5.0.9",
         "io.reactivex.rxjava2:rxjava:2.2.21",
         "com.google.guava:guava:31.1-jre",
         "com.google.protobuf:protobuf-java:3.21.12",
