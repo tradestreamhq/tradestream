@@ -28,7 +28,6 @@ final class RealTimeDataIngestion {
     private final List<Disposable> subscriptions = new ArrayList<>();
     private final long candleIntervalMillis = 60_000L; // 1-minute candles
 
-    // Constructor for production use
     RealTimeDataIngestion(String exchangeClassName, List<String> currencyPairs, Properties kafkaProps, String kafkaTopic)
             throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         this(
