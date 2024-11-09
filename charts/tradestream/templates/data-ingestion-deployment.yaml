@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-data-ingestion
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: data-ingestion
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.data-ingestion.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "tradestream.name" . }}
+      component: data-ingestion
+  template:
+    metadata:
+      labels:
+        app: {{ include "tradestream.name" . }}
+        component: data-ingestion
+    spec:
+      containers:
+        - name: data-ingestion
+          image: "{{ .Values.data-ingestion.image.repository }}:{{ .Values.data-ingestion.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.data-ingestion.service.port }}
