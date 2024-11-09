@@ -14,11 +14,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Determine Suffix
-        id: suffix
+      - name: Extract Branch Name
+        id: extract_branch
+        shell: bash
         run: |
-          if [[ "${{ github.ref_name }}" == "develop" ]]; then
+          echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+
+      - name: Determine Suffix
+        id: determine_suffix
+        run: |
+          if [ "${{ steps.extract_branch.outputs.branch }}" == "develop" ]; then
             echo "suffix=-develop" >> $GITHUB_ENV
+          elif [ "${{ steps.extract_branch.outputs.branch }}" == "main" ]; then
+            echo "suffix=-prod" >> $GITHUB_ENV
           else
             echo "suffix=" >> $GITHUB_ENV
           fi
