@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
