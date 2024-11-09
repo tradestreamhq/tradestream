@@ -27,7 +27,10 @@ java_binary(
 java_library(
     name = "java-maven-lib",
     srcs = ["App.java"],
-    deps = ["@maven//:com_google_guava_guava"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
+    ],
 )
 
 java_binary(
