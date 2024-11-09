@@ -13,6 +13,7 @@ final class App {
 
   void run() {
     System.out.println("Starting real-time data ingestion...");
+    marketDataIngestion.start();
   }
 
   public static void main(String... args) throws Exception {

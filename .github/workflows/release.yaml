@@ -1,5 +1,4 @@
-name: Semantic Version and Publish
-
+name: Release Tradestream Artifacts
 on:
   push:
     branches:
@@ -28,12 +27,6 @@ jobs:
         run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
-
-      - name: Commit Changes
-        run: |
-          git add hubitat_lock_manager/version.py
-          git commit -m "chore: update version to ${{ steps.version.outputs.version_tag }}"
-          git push origin main
 
       - name: Push Tag
         env:
