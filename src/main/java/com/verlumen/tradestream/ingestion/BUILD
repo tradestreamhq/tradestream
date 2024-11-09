@@ -30,7 +30,7 @@ java_library(
 
 java_binary(
     name = "app",
-    main_class = "com.example.myproject.App",
+    main_class = "com.verlumen.tradestream.ingestion.App",
     runtime_deps = [":app-lib"],
 )
 
