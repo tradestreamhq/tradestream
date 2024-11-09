@@ -66,7 +66,7 @@ jobs:
 
       - name: Get data ingestion image repository from file
         shell: bash
-        run: echo "repo=$(<path/to/file/data_ingestion_repo.txt)" >> $GITHUB_OUTPUT
+        run: echo "repo=$(src/main/java/com/verlumen/tradestream/ingestion/data_ingestion_repo.txt)" >> $GITHUB_OUTPUT
         id: get_data_ingestion_repo
 
       - name: Update values.yaml with new image tag
