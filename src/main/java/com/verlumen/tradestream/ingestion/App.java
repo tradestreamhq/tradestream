@@ -12,6 +12,7 @@ final class App {
   }
 
   public static void main(String... args) throws Exception {
+    RealTimeDataIngestion realTimeDataIngestion = new RealTimeDataIngestion();
     App app = new App(realTimeDataIngestion);
     System.out.println("Starting real-time data ingestion...");
   }
