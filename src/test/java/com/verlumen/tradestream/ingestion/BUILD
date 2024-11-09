@@ -13,3 +13,17 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/ingestion:candle-key",
     ],
 )
+
+java_test(
+    name = "RealTimeDataIngestionTest",
+    srcs = [
+      "RealTimeDataIngestionTest.java"
+    ],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle-key",
+    ],
+)
