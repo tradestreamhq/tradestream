@@ -15,7 +15,6 @@ java_binary(
     srcs = ["RealTimeDataIngestion.java"],
     main_class = "com.verlumen.tradestream.ingestion.RealTimeDataIngestion",
     deps = [
-        ":candle-key",
         "@maven//:org_knowm_xchange_xchange_core",
         "@maven//:org_knowm_xchange_xchange_stream_core",
         "@maven//:org_knowm_xchange_xchange_kraken",
@@ -24,7 +23,9 @@ java_binary(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_apache_kafka_kafka_clients",
-        "@maven//:org_slf4j_slf4j_api",        
+        "@maven//:org_slf4j_slf4j_api",
+        "//proto:marketdata_java_proto",
+        ":candle-key",
     ],
 )
 
