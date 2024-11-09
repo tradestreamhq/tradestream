@@ -8,6 +8,9 @@ on:
 jobs:
   version:
     runs-on: ubuntu-latest
+    env:
+      DATA_INGESTION_SECTION_KEY: data-ingestion
+      IMAGE_REPOSITORY: tradestreamhq/tradestream-data-ingestion
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -66,8 +69,8 @@ jobs:
         run: |
           yq eval-all '
             . as $item ireduce ({}; . * $item ) |
-            .["${{ env.SECTION_KEY }}"].image.repository = "${{ env.IMAGE_REPOSITORY }}" |
-            .["${{ env.SECTION_KEY }}"].image.tag = "${{ steps.create_image_tag.outputs.image_tag }}"
+            .["${{ env.DATA_INGESTION_SECTION_KEY }}"].image.repository = "${{ env.IMAGE_REPOSITORY }}" |
+            .["${{ env.DATA_INGESTION_SECTION_KEY }}"].image.tag = "${{ steps.create_image_tag.outputs.image_tag }}"
           ' charts/tradestream/values.yaml > charts/tradestream/values.yaml.tmp
           mv charts/tradestream/values.yaml.tmp charts/tradestream/values.yaml
 
