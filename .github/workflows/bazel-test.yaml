@@ -16,4 +16,4 @@ jobs:
       with:
         path: "~/.cache/bazel"
         key: bazel
-    - run: bazel test //... --verbose_failures
+    - run: bazel test //... --test_output=all
