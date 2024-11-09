@@ -24,9 +24,21 @@ java_binary(
     runtime_deps = [":real-time-data-ingestion-lib"],
 )
 
+java_library(
+    name = "java-maven-lib",
+    srcs = ["App.java"],
+    deps = ["@maven//:com_google_guava_guava"],
+)
+
+java_binary(
+    name = "java-maven",
+    main_class = "com.example.myproject.App",
+    runtime_deps = [":java-maven-lib"],
+)
+
 tar(
     name = "layer",
-    srcs = [":real-time-data-ingestion_deploy.jar"],
+    srcs = [":java-maven_deploy.jar"],
 )
 
 oci_image(
