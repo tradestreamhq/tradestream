@@ -4,4 +4,4 @@ commandTests:
   - name: test
     command: java
     args: ['-jar', '/real-time-data-ingestion_deploy.jar']
-    expectedOutput: ['Success: 1']
+    expectedOutput: ['Starting real-time data ingestion...']
