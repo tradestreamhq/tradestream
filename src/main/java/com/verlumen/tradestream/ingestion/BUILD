@@ -6,26 +6,12 @@ load("@rules_oci//oci:defs.bzl", "oci_image")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
-    name = "candle-key",
-    srcs = ["CandleKey.java"],
-)
-
-java_library(
-    name = "real-time-data-ingestion",
-    srcs = ["RealTimeDataIngestion.java"],
-    deps = [
-        "@maven//:com_google_inject_guice",
-        ":market-data-ingestion",
-    ]
-)
-
-java_library(
     name = "app-lib",
     srcs = ["App.java"],
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
-        ":ingestion-module",
+        ":ingestion_module",
         ":real-time-data-ingestion",
     ],
 )
@@ -34,6 +20,29 @@ java_binary(
     name = "app",
     main_class = "com.verlumen.tradestream.ingestion.App",
     runtime_deps = [":app-lib"],
+)
+
+java_library(
+    name = "candle-key",
+    srcs = ["CandleKey.java"],
+)
+
+container_structure_test(
+    name = "container_test",
+    configs = ["container-structure-test.yaml"],
+    image = ":image",
+    tags = ["requires-docker"],
+)
+
+oci_image(
+    name = "image",
+    base = "@distroless_java",
+    entrypoint = [
+        "java",
+        "-jar",
+        "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
+    ],
+    tars = [":layer"],
 )
 
 java_library(
@@ -56,20 +65,11 @@ tar(
     srcs = [":app_deploy.jar"],
 )
 
-oci_image(
-    name = "image",
-    base = "@distroless_java",
-    entrypoint = [
-        "java",
-        "-jar",
-        "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
-    ],
-    tars = [":layer"],
-)
-
-container_structure_test(
-    name = "container_test",
-    configs = ["container-structure-test.yaml"],
-    image = ":image",
-    tags = ["requires-docker"],
+java_library(
+    name = "real-time-data-ingestion",
+    srcs = ["RealTimeDataIngestion.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        ":market-data-ingestion",
+    ]
 )
