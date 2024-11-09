@@ -11,9 +11,8 @@ java_library(
 )
 
 java_library(
-    name = "real-time-data-ingestion-lib",
+    name = "real-time-data-ingestion",
     srcs = ["RealTimeDataIngestion.java"],
-    main_class = "com.verlumen.tradestream.ingestion.RealTimeDataIngestion",
     deps = [
         "@maven//:org_knowm_xchange_xchange_coinbasepro",
         "@maven//:org_knowm_xchange_xchange_core",
@@ -28,12 +27,6 @@ java_library(
         "//protos:marketdata_java_proto",
         ":candle-key",
     ],
-)
-
-java_binary(
-    name = "real-time-data-ingestion",
-    main_class = "com.verlumen.tradestream.RealTimeDataIngestion",
-    runtime_deps = [":real-time-data-ingestion-lib"],
 )
 
 java_library(
