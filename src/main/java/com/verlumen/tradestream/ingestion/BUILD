@@ -47,7 +47,7 @@ oci_image(
     entrypoint = [
         "java",
         "-jar",
-        "/src/main/java/com/verlumen/tradestream/java-maven-deploy.jar",
+        "/src/main/java/com/verlumen/tradestream/java-maven_deploy.jar",
     ],
     tars = [":layer"],
 )
