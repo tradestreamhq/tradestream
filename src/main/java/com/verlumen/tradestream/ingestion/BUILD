@@ -38,7 +38,7 @@ java_binary(
 
 tar(
     name = "layer",
-    srcs = [":java-maven_deploy.jar"],
+    srcs = [":real-time-data-ingestion.jar"],
 )
 
 oci_image(
