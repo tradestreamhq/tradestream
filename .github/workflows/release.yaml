@@ -1,5 +1,4 @@
-name: Semantic Version and Publish
-
+name: Release Tradestream Artifacts
 on:
   push:
     branches:
