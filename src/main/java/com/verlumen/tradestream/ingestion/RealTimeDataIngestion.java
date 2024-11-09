@@ -1,16 +1,14 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import info.bitrich.xchangestream.core.StreamingExchangeFactory;
+import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.disposables.Disposable;
 import marketdata.Marketdata.Candle;
 import marketdata.Marketdata.Trade;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.knowm.xchange.currency.CurrencyPair;
-import org.knowm.xchange.stream.kraken.KrakenStreamingExchange;
-import org.knowm.xchange.streaming.StreamingExchange;
-import org.knowm.xchange.streaming.StreamingExchangeFactory;
-import org.knowm.xchange.streaming.marketdata.StreamingMarketDataService;
 
 import java.time.Duration;
 import java.util.*;
@@ -34,7 +32,7 @@ public class RealTimeDataIngestion {
 
     private final List<Disposable> subscriptions = new ArrayList<>();
 
-    public RealTimeDataIngestion(String exchangeClassName, List<String> currencyPairs, Properties kafkaProps, String kafkaTopic) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    RealTimeDataIngestion(String exchangeClassName, List<String> currencyPairs, Properties kafkaProps, String kafkaTopic) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         this.streamingExchange = StreamingExchangeFactory.INSTANCE.createExchange(exchangeClassName);
         this.streamingMarketDataService = streamingExchange.getStreamingMarketDataService();
         this.currencyPairs = currencyPairs;
