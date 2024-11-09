@@ -17,6 +17,7 @@ maven.install(
         "org.slf4j:slf4j-api:2.0.9",
         "junit:junit:4.13.2",  # For unit testing
         "org.mockito:mockito-core:4.8.1",  # For mocking in tests
+        "com.google.truth:truth:1.4.4",
     ],
     fetch_sources = True,
     repositories = [
