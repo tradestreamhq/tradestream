@@ -25,6 +25,7 @@ java_test(
         "@maven//:com_google_truth_truth",
         "@maven//:io_reactivex_rxjava3_rxjava",
         "@maven//:junit_junit",
+        "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle-key",
     ],
 )
