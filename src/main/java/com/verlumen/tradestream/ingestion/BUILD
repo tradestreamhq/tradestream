@@ -34,6 +34,21 @@ java_binary(
     runtime_deps = [":app-lib"],
 )
 
+java_library(
+    name = "ingestion_module",
+    srcs = ["IngestionModule.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        ":market-data-ingestion",
+        ":real-time-data-ingestion",
+    ],
+)
+
+java_library(
+    name = "market-data-ingestion",
+    srcs = ["MarketDataIngestion.java"],
+)
+
 tar(
     name = "layer",
     srcs = [":app_deploy.jar"],
