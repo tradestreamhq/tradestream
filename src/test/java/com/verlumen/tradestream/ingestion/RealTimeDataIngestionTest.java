@@ -19,7 +19,7 @@ import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
-import com.google.testing.junit.testparameterinjector.TestParameterInjector.TestParameter;
+import com.google.testing.junit.testparameterinjector.TestParameter;
 
 import java.time.Duration;
 import java.util.Properties;
