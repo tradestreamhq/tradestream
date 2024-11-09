@@ -14,9 +14,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AppTest {
-  
-  @Rule public MockitoRule rule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
-  
+
   @Bind @Mock
   private MarketDataIngestion mockMarketDataIngestion;
 
