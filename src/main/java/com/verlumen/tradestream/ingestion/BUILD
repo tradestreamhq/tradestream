@@ -70,7 +70,7 @@ oci_push(
     name = "push_image",
     image = ":image",
     remote_tags = ["latest"],
-    repository_file = ":data_ingestion_repo.txt",
+    repository_file = ":repository.txt",
 )
 
 java_library(
