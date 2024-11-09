@@ -1,111 +1,104 @@
 package com.verlumen.tradestream.ingestion;
 
-import com.google.common.testing.EqualsTester;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import com.google.common.truth.Truth;
+import com.google.testing.junit.testparameterinjector.TestParameter;
+import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Objects;
-
-import static com.google.common.truth.Truth.assertThat;
-
-@RunWith(DataProviderRunner.class)
+@RunWith(TestParameterInjector.class)
 public final class CandleKeyTest {
-    @DataProvider
-    public static Object[][] equalCandleKeys() {
-        return new Object[][]{
-                {"trade-1", 1678886400000L},
-                {"trade-2", 1678886460000L},
-                {"trade-3", 1700000000000L}
-        };
-    }
 
+    enum CandleKeyTestCase {
+        CASE1("trade-1", 1678886400000L),
+        CASE2("trade-2", 1678886460000L),
+        CASE3("trade-3", 1700000000000L);
 
-    @Test
-    @UseDataProvider("equalCandleKeys")
-    public void equals_sameInstance_isTrue(String tradeId, long minuteTimestamp) {
-        // Arrange
-        CandleKey candleKey = new CandleKey(tradeId, minuteTimestamp);
+        final String tradeId;
+        final long minuteTimestamp;
 
-        // Act
-        boolean isEqual = candleKey.equals(candleKey);
+        CandleKeyTestCase(String tradeId, long minuteTimestamp) {
+            this.tradeId = tradeId;
+            this.minuteTimestamp = minuteTimestamp;
+        }
 
-        // Assert
-        assertThat(isEqual).isTrue();
-    }
-
-
-    @Test
-    @UseDataProvider("equalCandleKeys")
-    public void equals_equivalentInstance_isTrue(String tradeId, long minuteTimestamp) {
-        // Arrange
-        CandleKey candleKey1 = new CandleKey(tradeId, minuteTimestamp);
-        CandleKey candleKey2 = new CandleKey(tradeId, minuteTimestamp);
-
-
-        // Act
-        boolean isEqual = candleKey1.equals(candleKey2);
-
-        // Assert
-        assertThat(isEqual).isTrue();
+        CandleKey createCandleKey() {
+            return new CandleKey(tradeId, minuteTimestamp);
+        }
     }
 
     @Test
-    public void equals_differentInstance_isFalse() {
+    public void equals_sameInstance_isTrue(
+            @TestParameter CandleKeyTestCase testCase) {
         // Arrange
-        CandleKey candleKey1 = new CandleKey("trade-1", 1678886400000L);
-        CandleKey candleKey2 = new CandleKey("trade-2", 1678886400000L);
-        CandleKey candleKey3 = new CandleKey("trade-1", 1678886460000L);
-        CandleKey candleKey4 = new CandleKey("trade-2", 1678886460000L);
+        CandleKey candleKey = testCase.createCandleKey();
 
         // Act & Assert
-        new EqualsTester()
-                .addEqualityGroup(candleKey1)
-                .addEqualityGroup(candleKey2)
-                .addEqualityGroup(candleKey3)
-                .addEqualityGroup(candleKey4)
-                .testEquals();
-    }
-
-
-    @Test
-    @UseDataProvider("equalCandleKeys")
-    public void hashCode_equalObjects_haveSameHashCode(String tradeId, long minuteTimestamp) {
-        // Arrange
-        CandleKey candleKey1 = new CandleKey(tradeId, minuteTimestamp);
-        CandleKey candleKey2 = new CandleKey(tradeId, minuteTimestamp);
-
-        // Act & Assert
-        assertThat(candleKey1.hashCode()).isEqualTo(candleKey2.hashCode());
+        Truth.assertThat(candleKey.equals(candleKey)).isTrue();
     }
 
     @Test
-    public void hashCode_consistentWithEquals() {
+    public void equals_equivalentInstance_isTrue(
+            @TestParameter CandleKeyTestCase testCase) {
         // Arrange
-        CandleKey candleKey1 = new CandleKey("trade-1", 1678886400000L);
-        CandleKey candleKey2 = new CandleKey("trade-2", 1678886400000L);
-        CandleKey candleKey3 = new CandleKey("trade-1", 1678886460000L);
-        CandleKey candleKey4 = new CandleKey("trade-2", 1678886460000L);
+        CandleKey candleKey1 = testCase.createCandleKey();
+        CandleKey candleKey2 = testCase.createCandleKey();
 
         // Act & Assert
-        new EqualsTester()
-                .addEqualityGroup(candleKey1)
-                .addEqualityGroup(candleKey2)
-                .addEqualityGroup(candleKey3)
-                .addEqualityGroup(candleKey4)
-                .testEquals();
+        Truth.assertThat(candleKey1).isEqualTo(candleKey2);
     }
 
     @Test
-    @UseDataProvider("equalCandleKeys")
-    public void getters_returnExpectedValues(String tradeId, long minuteTimestamp) {
+    public void equals_differentInstance_isFalse(
+            @TestParameter CandleKeyTestCase testCase1,
+            @TestParameter CandleKeyTestCase testCase2) {
+        if (testCase1 == testCase2) {
+            return; // Skip identical test cases
+        }
+
         // Arrange
-        CandleKey candleKey = new CandleKey(tradeId, minuteTimestamp);
+        CandleKey candleKey1 = testCase1.createCandleKey();
+        CandleKey candleKey2 = testCase2.createCandleKey();
 
         // Act & Assert
-        assertThat(candleKey.getTradeId()).isEqualTo(tradeId);
-        assertThat(candleKey.getMinuteTimestamp()).isEqualTo(minuteTimestamp);
+        Truth.assertThat(candleKey1).isNotEqualTo(candleKey2);
+    }
+
+    @Test
+    public void hashCode_equalObjects_haveSameHashCode(
+            @TestParameter CandleKeyTestCase testCase) {
+        // Arrange
+        CandleKey candleKey1 = testCase.createCandleKey();
+        CandleKey candleKey2 = testCase.createCandleKey();
+
+        // Act & Assert
+        Truth.assertThat(candleKey1.hashCode()).isEqualTo(candleKey2.hashCode());
+    }
+
+    @Test
+    public void hashCode_differentObjects_haveDifferentHashCodes(
+            @TestParameter CandleKeyTestCase testCase1,
+            @TestParameter CandleKeyTestCase testCase2) {
+        if (testCase1 == testCase2) {
+            return; // Skip identical test cases
+        }
+
+        // Arrange
+        CandleKey candleKey1 = testCase1.createCandleKey();
+        CandleKey candleKey2 = testCase2.createCandleKey();
+
+        // Act & Assert
+        Truth.assertThat(candleKey1.hashCode()).isNotEqualTo(candleKey2.hashCode());
+    }
+
+    @Test
+    public void getters_returnExpectedValues(
+            @TestParameter CandleKeyTestCase testCase) {
+        // Arrange
+        CandleKey candleKey = testCase.createCandleKey();
+
+        // Act & Assert
+        Truth.assertThat(candleKey.getTradeId()).isEqualTo(testCase.tradeId);
+        Truth.assertThat(candleKey.getMinuteTimestamp()).isEqualTo(testCase.minuteTimestamp);
     }
 }
