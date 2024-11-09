@@ -29,6 +29,7 @@ java_library(
     srcs = ["App.java"],
     deps = [
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
     ],
 )
 
