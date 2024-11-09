@@ -1,5 +1,5 @@
 kafka:
-  replicaCount: 3
+  replicaCount: 2
   nodeSelector:
     kubernetes.io/arch: arm64
   persistence:
