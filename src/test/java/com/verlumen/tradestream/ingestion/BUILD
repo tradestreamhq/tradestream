@@ -21,6 +21,7 @@ java_test(
     ],
     deps = [
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:com_google_truth_truth",
         "@maven//:io_reactivex_rxjava3_rxjava",
