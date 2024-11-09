@@ -9,6 +9,7 @@ jobs:
   version:
     runs-on: ubuntu-latest
     env:
+      DATA_INGESTION_REPO: tradestreamhq/tradestream-data-ingestion
       DATA_INGESTION_SECTION_KEY: data-ingestion
     steps:
       - name: Checkout
@@ -64,17 +65,11 @@ jobs:
           sudo wget -O /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64
           sudo chmod +x /usr/bin/yq
 
-      - name: Get data ingestion image repository from file
-        id: get_data_ingestion_repo
-        run: |
-          echo "repo=$(cat src/main/java/com/verlumen/tradestream/ingestion/repository.txt)" >> $GITHUB_OUTPUT
-          echo "Repository name from file: ${{ steps.get_data_ingestion_repo.outputs.repo }}"
-
       - name: Update values.yaml with new image tag
         run: |
           yq eval-all '
             . as $item ireduce ({}; . * $item ) |
-            .["${{ env.DATA_INGESTION_SECTION_KEY }}"].image.repository = "${{ steps.get_data_ingestion_repo.outputs.repo }}" |
+            .["${{ env.DATA_INGESTION_SECTION_KEY }}"].image.repository = "${{ env.DATA_INGESTION_REPO }}" |
             .["${{ env.DATA_INGESTION_SECTION_KEY }}"].image.tag = "${{ steps.create_image_tag.outputs.image_tag }}"
           ' charts/tradestream/values.yaml > charts/tradestream/values.yaml.tmp
           mv charts/tradestream/values.yaml.tmp charts/tradestream/values.yaml
