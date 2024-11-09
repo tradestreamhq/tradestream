@@ -34,7 +34,6 @@ tar(
     srcs = [
         "real-time-data-ingestion_deploy.jar",
     ],
-    strip_prefix = "",  # Ensures files are placed at the root
 )
 
 oci_image(
