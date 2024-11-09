@@ -13,6 +13,9 @@ java_library(
 java_binary(
     name = "real-time-data-ingestion",
     srcs = ["RealTimeDataIngestion.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+    ]
 )
 
 tar(
