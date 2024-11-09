@@ -1,4 +1,4 @@
-package com.example.myproject;
+package com.verlumen.tradestream.ingestion;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
