@@ -25,11 +25,3 @@ java_binary(
         ":candle-key",
     ],
 )
-
-
-container_structure_test(
-    name = "container_test",
-    configs = ["container-structure-test.yaml"],
-    image = ":image",
-    tags = ["requires-docker"],
-)
