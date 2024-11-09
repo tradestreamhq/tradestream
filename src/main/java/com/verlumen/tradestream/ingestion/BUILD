@@ -52,6 +52,14 @@ oci_image(
     tars = [":layer"],
 )
 
+load("@rules_oci//oci:defs.bzl", "oci_tarball")
+
+oci_tarball(
+    name = "app_tarball",
+    image = ":image",
+    repo_tags = ["app:latest"]
+)
+
 container_structure_test(
     name = "container_test",
     configs = ["container-structure-test.yaml"],
