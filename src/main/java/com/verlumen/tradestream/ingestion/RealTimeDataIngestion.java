@@ -258,7 +258,7 @@ public class RealTimeDataIngestion {
         kafkaProducer.close(Duration.ofSeconds(5));
     }
 
-    public static void main(String args[]) {
+    public static void main(String[] args) throws Exception {
         System.out.println("Static method");
     }
 }
