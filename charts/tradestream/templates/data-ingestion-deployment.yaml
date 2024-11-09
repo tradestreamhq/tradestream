@@ -1,0 +1,40 @@
+{{- define "tradestream.fullname" -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "tradestream.name" -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- $name -}}
+{{- end -}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-data-ingestion
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: data-ingestion
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.dataIngestion.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "tradestream.name" . }}
+      component: data-ingestion
+  template:
+    metadata:
+      labels:
+        app: {{ include "tradestream.name" . }}
+        component: data-ingestion
+    spec:
+      containers:
+        - name: data-ingestion
+          image: "{{ .Values.dataIngestion.image.repository }}:{{ .Values.dataIngestion.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.dataIngestion.service.port }}

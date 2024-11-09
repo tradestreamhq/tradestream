@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DATA_INGESTION_REPO: tradestreamhq/tradestream-data-ingestion
-      DATA_INGESTION_SECTION_KEY: data-ingestion
+      DATA_INGESTION_SECTION_KEY: dataIngestion
     steps:
       - name: Checkout
         uses: actions/checkout@v2
