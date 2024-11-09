@@ -6,3 +6,8 @@ java_library(
     name = "candle-key",
     srcs = ["CandleKey.java"]
 )
+
+java_binary(
+    name = "real-time-data-ingestion",
+    srcs = ["RealTimeDataIngestion.java"],
+)
