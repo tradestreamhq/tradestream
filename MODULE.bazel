@@ -17,7 +17,7 @@ maven.install(
         # Make sure we use RxJava 3.x as that's what xchange-stream uses
         "io.reactivex.rxjava3:rxjava:3.1.6",
         "com.google.guava:guava:31.1-jre",
-        "com.google.inject:guice:jar:7.0.0",
+        "com.google.inject:guice:7.0.0",
         "com.google.protobuf:protobuf-java:3.21.12",
         "org.apache.kafka:kafka-clients:3.6.1",
         "org.slf4j:slf4j-api:2.0.12",
