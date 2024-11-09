@@ -13,7 +13,6 @@ java_library(
 java_binary(
     name = "real-time-data-ingestion",
     srcs = ["RealTimeDataIngestion.java"],
-    main_class = "com.verlumen.tradestream.ingestion.RealTimeDataIngestion",
     deps = [
         "@maven//:org_knowm_xchange_xchange_coinbasepro",
         "@maven//:org_knowm_xchange_xchange_core",
