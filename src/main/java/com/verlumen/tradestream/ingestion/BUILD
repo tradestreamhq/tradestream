@@ -24,7 +24,7 @@ java_binary(
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:org_slf4j_slf4j_api",
-        "//proto:marketdata_java_proto",
+        "//protos:marketdata_java_proto",
         ":candle-key",
     ],
 )
