@@ -3,5 +3,5 @@ schemaVersion: 2.0.0
 commandTests:
   - name: test
     command: java
-    args: ['-jar', '/real-time-data-ingestion_deploy.jar']
+    args: ['-jar', '/src/main/java/com/verlumen/tradestream/ingestion/real-time-data-ingestion_deploy.jar']
     expectedOutput: ['Starting real-time data ingestion...']
