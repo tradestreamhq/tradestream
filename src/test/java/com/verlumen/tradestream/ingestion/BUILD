@@ -6,7 +6,7 @@ java_test(
       "AppTest.java"
     ],
     deps = [
-        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
         "//src/main/java/com/verlumen/tradestream/ingestion:app-lib",
