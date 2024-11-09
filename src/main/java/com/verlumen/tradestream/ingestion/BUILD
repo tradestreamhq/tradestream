@@ -16,9 +16,9 @@ java_binary(
     main_class = "com.verlumen.tradestream.ingestion.RealTimeDataIngestion",
     deps = [
         "@maven//:org_knowm_xchange_xchange_core",
-        "@maven//:org_knowm_xchange_xchange_kraken",
         "@maven//:org_knowm_xchange_xchange_stream_core",
-        "@maven//:org_knowm_xchange_xchange_stream_kraken",
+        "@maven//:org_knowm_xchange_xchange_coinbasepro",
+        "@maven//:org_knowm_xchange_xchange_coinbasepro_stream",
         "@maven//:io_reactivex_rxjava2_rxjava",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
