@@ -7,7 +7,6 @@ java_test(
     ],
     deps = [
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
         "//src/main/java/com/verlumen/tradestream/ingestion:app-lib",
