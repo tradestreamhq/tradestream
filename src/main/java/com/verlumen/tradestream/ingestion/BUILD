@@ -1,7 +1,7 @@
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
-load("@rules_oci//oci:defs.bzl", "oci_image")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_push")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -56,14 +56,21 @@ java_library(
     ],
 )
 
+tar(
+    name = "layer",
+    srcs = [":app_deploy.jar"],
+)
+
 java_library(
     name = "market-data-ingestion",
     srcs = ["MarketDataIngestion.java"],
 )
 
-tar(
-    name = "layer",
-    srcs = [":app_deploy.jar"],
+oci_push(
+    name = "push_image",
+    image = ":image",
+    remote_tags = ["latest"],
+    repository = "tradestreamhq/tradestream-data-ingestion",
 )
 
 java_library(
