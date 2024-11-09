@@ -23,7 +23,7 @@ public class AppTest {
   
   @Before
   public void setUp() {
-      Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+    Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
   }
   
   @Test
