@@ -70,7 +70,7 @@ oci_push(
     name = "push_image",
     image = ":image",
     remote_tags = ["latest"],
-    repository_file = ":repository.txt",
+    repository = "tradestreamhq/tradestream-data-ingestion",
 )
 
 java_library(
