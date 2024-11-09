@@ -214,11 +214,11 @@ public class RealTimeDataIngestionTest {
 
         // Assert
         Candle candle = candleBuilder.buildCandle();
-        assertEquals(50000.0, candle.getOpen(), 0.0001);
-        assertEquals(51000.0, candle.getHigh(), 0.0001);
-        assertEquals(49000.0, candle.getLow(), 0.0001);
-        assertEquals(49000.0, candle.getClose(), 0.0001);
-        assertEquals(4.5, candle.getVolume(), 0.0001);
+        assertThat(candle.getOpen()).isEqualTo(50000.0);
+        assertThat(candle.getHigh()).isEqualTo(51000.0);
+        assertThat(candle.getLow()).isEqualTo(49000.0);
+        assertThat(candle.getClose()).isEqualTo(49000.0);
+        assertThat(candle.getVolume()).isEqualTo(4.5);
     }
 
     /** Tests handleThinlyTradedMarkets generates empty candles when needed. */
@@ -233,7 +233,7 @@ public class RealTimeDataIngestionTest {
 
         // Assert
         int candleBuildersSize = realTimeDataIngestion.candleBuilders.size();
-        assertEquals(1, candleBuildersSize);
+        assertThat(candleBuildersSize).isEqualTo(1);
     }
 
     /** Tests getLastKnownPrice returns NaN when not implemented. */
@@ -246,7 +246,7 @@ public class RealTimeDataIngestionTest {
         double lastPrice = realTimeDataIngestion.getLastKnownPrice(currencyPair);
 
         // Assert
-        assertTrue(Double.isNaN(lastPrice));
+        assertThat(Double.isNaN(lastPrice)).isTrue();
     }
 
     /** Tests shutdown closes Kafka producer and disconnects exchange. */
@@ -286,6 +286,5 @@ public class RealTimeDataIngestionTest {
 
         // Assert
         // No exception should be thrown
-        assertTrue(true);
     }
 }
