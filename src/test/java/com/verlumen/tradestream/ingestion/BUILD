@@ -20,6 +20,10 @@ java_test(
       "RealTimeDataIngestionTest.java"
     ],
     deps = [
+        "@maven//:org_mockito_mockito_core",
+        "@maven//:org_apache_kafka_kafka_clients",
+        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
