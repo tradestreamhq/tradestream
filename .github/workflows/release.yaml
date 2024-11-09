@@ -56,3 +56,25 @@ jobs:
         run: |
           bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image -- \
             --tag ${{ steps.create_image_tag.outputs.image_tag }}
+
+      - name: Install yq
+        run: |
+          sudo wget -O /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64
+          sudo chmod +x /usr/bin/yq
+
+      - name: Update values.yaml with new image tag
+        run: |
+          yq eval-all '
+            . as $item ireduce ({}; . * $item ) |
+            .["${{ env.SECTION_KEY }}"].image.repository = "${{ env.IMAGE_REPOSITORY }}" |
+            .["${{ env.SECTION_KEY }}"].image.tag = "${{ steps.create_image_tag.outputs.image_tag }}"
+          ' charts/tradestream/values.yaml > charts/tradestream/values.yaml.tmp
+          mv charts/tradestream/values.yaml.tmp charts/tradestream/values.yaml
+
+      - name: Commit updated values.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        run: |
+          git add charts/tradestream/values.yaml
+          git commit -m "Update values.yaml: Set ${{ env.SECTION_KEY }} image to ${{ steps.create_image_tag.outputs.image_tag }}" || echo "No changes to commit"
+          git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
