@@ -38,7 +38,7 @@ java_binary(
 
 tar(
     name = "layer",
-    srcs = ["//src/main/java/com/verlumen/tradestream/ingestion:java-maven_deploy.jar"],
+    srcs = [":java-maven_deploy.jar"],
 )
 
 oci_image(
