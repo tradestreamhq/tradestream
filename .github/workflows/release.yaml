@@ -49,4 +49,4 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push the base Docker image
-        run: bazel run //myimage:push -- --tag ${{ steps.version.outputs.version_tag }}
+        run: bazel run //src/main/java/com/verlumen/tradestream/ingestion:push -- --tag ${{ steps.version.outputs.version_tag }}
