@@ -7,8 +7,8 @@ java_test(
     ],
     # test_class = "com.verlumen.tradestream.ingestion.CandleKeyTest",
     deps = [
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle-key",
         "@maven//:com_google_guava_guava",
         "@maven//:junit_junit",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle-key",
     ],
 )
