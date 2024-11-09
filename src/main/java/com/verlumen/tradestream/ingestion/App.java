@@ -11,11 +11,12 @@ final class App {
     this.realTimeDataIngestion = realTimeDataIngestion;
   }
 
-  void run() {}
+  void run() {
+    System.out.println("Starting real-time data ingestion...");
+  }
 
   public static void main(String... args) throws Exception {
     App app = Guice.createInjector().getInstance(App.class);
-    System.out.println("Starting real-time data ingestion...");
     app.run();
   }
 
