@@ -11,17 +11,11 @@ java_library(
 )
 
 java_library(
-    name = "real-time-data-ingestion-lib",
+    name = "real-time-data-ingestion",
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
         "@maven//:com_google_inject_guice",
     ]
-)
-
-java_binary(
-    name = "real-time-data-ingestion",
-    main_class = "com.verlumen.tradestream.RealTimeDataIngestion",
-    runtime_deps = [":real-time-data-ingestion-lib"],
 )
 
 java_library(
@@ -30,12 +24,13 @@ java_library(
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
+        ":real-time-data-ingestion",
     ],
 )
 
 java_binary(
     name = "app",
-    main_class = "com.example.myproject.App",
+    main_class = "com.verlumen.tradestream.ingestion.App",
     runtime_deps = [":app-lib"],
 )
 
