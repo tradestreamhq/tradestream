@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
@@ -40,7 +41,7 @@ final class RealTimeDataIngestion {
         this.streamingMarketDataService = this.streamingExchange.getStreamingMarketDataService();
     }
 
-    // Constructor for dependency injection (used in tests)
+    @Inject
     RealTimeDataIngestion(
             StreamingExchange streamingExchange,
             StreamingMarketDataService streamingMarketDataService,
