@@ -5,7 +5,6 @@ java_test(
     srcs = [
       "CandleKeyTest.java"
     ],
-    # test_class = "com.verlumen.tradestream.ingestion.CandleKeyTest",
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
