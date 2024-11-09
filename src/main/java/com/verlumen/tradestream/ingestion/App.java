@@ -16,7 +16,7 @@ final class App {
   }
 
   public static void main(String... args) throws Exception {
-    App app = Guice.createInjector().getInstance(App.class);
+    App app = Guice.createInjector(new IngestionModule()).getInstance(App.class);
     app.run();
   }
 
