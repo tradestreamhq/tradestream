@@ -25,20 +25,22 @@ java_binary(
 )
 
 java_library(
-    name = "java-maven-lib",
+    name = "app-lib",
     srcs = ["App.java"],
-    deps = ["@maven//:com_google_guava_guava"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+    ],
 )
 
 java_binary(
-    name = "java-maven",
+    name = "app",
     main_class = "com.example.myproject.App",
-    runtime_deps = [":java-maven-lib"],
+    runtime_deps = [":app-lib"],
 )
 
 tar(
     name = "layer",
-    srcs = [":java-maven_deploy.jar"],
+    srcs = [":app_deploy.jar"],
 )
 
 oci_image(
@@ -47,7 +49,7 @@ oci_image(
     entrypoint = [
         "java",
         "-jar",
-        "/src/main/java/com/verlumen/tradestream/ingestion/java-maven_deploy.jar",
+        "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
     ],
     tars = [":layer"],
 )
