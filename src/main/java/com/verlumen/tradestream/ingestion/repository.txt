@@ -1,1 +1,0 @@
-tradestreamhq/tradestream-data-ingestion
