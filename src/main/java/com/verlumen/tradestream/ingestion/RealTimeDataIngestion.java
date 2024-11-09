@@ -2,7 +2,7 @@ package com.verlumen.tradestream.ingestion;
 
 import com.google.inject.Inject;
 
-final class RealTimeDataIngestion {
+public final class RealTimeDataIngestion {
       @Inject
       RealTimeDataIngestion() {}
       
