@@ -25,6 +25,7 @@ java_library(
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
+        ":ingestion-module",
         ":real-time-data-ingestion",
     ],
 )
