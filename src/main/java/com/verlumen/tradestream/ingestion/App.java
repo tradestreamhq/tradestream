@@ -4,11 +4,11 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 
 final class App {
-  private final RealTimeDataIngestion realTimeDataIngestion;
+  private final MarketDataIngestion marketDataIngestion;
 
   @Inject
-  App(RealTimeDataIngestion realTimeDataIngestion) {
-    this.realTimeDataIngestion = realTimeDataIngestion;
+  App(MarketDataIngestion marketDataIngestion) {
+    this.marketDataIngestion = marketDataIngestion;
   }
 
   void run() {

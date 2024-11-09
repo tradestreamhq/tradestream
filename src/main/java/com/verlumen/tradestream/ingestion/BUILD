@@ -18,6 +18,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":ingestion_module",
+        ":market-data-ingestion",
         ":real-time-data-ingestion",
     ],
 )
