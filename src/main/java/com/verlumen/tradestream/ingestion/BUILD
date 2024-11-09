@@ -31,9 +31,8 @@ java_binary(
 
 tar(
     name = "layer",
-    srcs = ["real-time-data-ingestion_deploy.jar"],
-    # Remove 'files' attribute
-    # Remove 'mode' attribute or set it correctly if needed
+    srcs = [":real-time-data-ingestion_deploy.jar"],
+    package_dir = "/app",
 )
 
 oci_image(
@@ -42,11 +41,10 @@ oci_image(
     entrypoint = [
         "java",
         "-jar",
-        "/real-time-data-ingestion_deploy.jar",
+        "/app/real-time-data-ingestion_deploy.jar",
     ],
     tars = [":layer"],
 )
-
 
 container_structure_test(
     name = "container_test",
