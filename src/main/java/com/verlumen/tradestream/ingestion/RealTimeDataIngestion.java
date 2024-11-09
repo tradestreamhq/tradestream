@@ -277,7 +277,6 @@ final class RealTimeDataIngestion {
     }
 
     public static void main(String[] args) throws Exception {
-        // Put your initialization and start logic here
         System.out.println("Starting real-time data ingestion...");
     }
 }

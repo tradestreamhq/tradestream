@@ -18,6 +18,7 @@ java_binary(
         "@maven//:org_knowm_xchange_xchange_stream_coinbasepro",
         "@maven//:io_reactivex_rxjava3_rxjava",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:org_slf4j_slf4j_api",
