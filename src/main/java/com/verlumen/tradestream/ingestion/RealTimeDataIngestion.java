@@ -7,10 +7,10 @@ import marketdata.Marketdata.Trade;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.knowm.xchange.currency.CurrencyPair;
-import org.knowm.xchange.stream.core.StreamingExchange;
 import org.knowm.xchange.stream.kraken.KrakenStreamingExchange;
-import org.knowm.xchange.stream.core.StreamingExchangeFactory;
-import org.knowm.xchange.stream.service.StreamingMarketDataService;
+import org.knowm.xchange.streaming.StreamingExchange;
+import org.knowm.xchange.streaming.StreamingExchangeFactory;
+import org.knowm.xchange.streaming.marketdata.StreamingMarketDataService;
 
 import java.time.Duration;
 import java.util.*;
