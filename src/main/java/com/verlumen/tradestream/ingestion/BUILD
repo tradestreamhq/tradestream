@@ -47,7 +47,7 @@ oci_image(
     entrypoint = [
         "java",
         "-jar",
-        "java-maven_deploy.jar",
+        "/java-maven_deploy.jar",
     ],
     tars = [":layer"],
 )
