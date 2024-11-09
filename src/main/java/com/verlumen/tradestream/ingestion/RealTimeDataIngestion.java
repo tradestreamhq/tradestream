@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.rxjava3.disposables.Disposable;
