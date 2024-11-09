@@ -22,7 +22,7 @@ kafka:
     offset.storage=raft
     transaction.state.log.replication.factor=3
     transaction.state.log.min.isr=2
-data-ingestion:
+dataIngestion:
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
