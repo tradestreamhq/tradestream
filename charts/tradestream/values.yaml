@@ -25,4 +25,4 @@ kafka:
 data-ingestion:
   image:
     repository: ""
-    tag: v0.0.16-develop
+    tag: v0.0.18-develop
