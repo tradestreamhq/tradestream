@@ -2,10 +2,7 @@ package com.verlumen.tradestream.ingestion;
 
 import java.util.Objects;
 
-/**
- * Composite key for identifying unique trades within a candle interval.
- */
-public final class CandleKey {
+final class CandleKey {
 
     private final String tradeId;
     private final long minuteTimestamp;
