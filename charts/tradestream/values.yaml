@@ -25,4 +25,4 @@ kafka:
 data-ingestion:
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
-    tag: v0.0.20-develop
+    tag: v0.0.22-develop
