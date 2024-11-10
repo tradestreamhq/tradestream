@@ -45,8 +45,8 @@ config_setting(
 
 java_runtime(
     name = "jdk_linux_amd64",
-    srcs = ["@rules_java//:jdk_linux_amd64"],
-    java_home = "@rules_java//:jdk_linux_amd64",
+    srcs = ["@rules_java//jdk:jdk_linux_amd64"],
+    java_home = "@rules_java//jdk:jdk_linux_amd64",
     visibility = ["//visibility:public"],
 )
 
@@ -55,20 +55,5 @@ java_toolchain(
     source_version = "11",
     target_version = "11",
     java_runtime = ":jdk_linux_amd64",
-    visibility = ["//visibility:public"],
-)
-
-java_runtime(
-    name = "jdk_linux_arm64",
-    srcs = ["@rules_java//:jdk_linux_arm64"],
-    java_home = "@rules_java//:jdk_linux_arm64",
-    visibility = ["//visibility:public"],
-)
-
-java_toolchain(
-    name = "jdk_toolchain_linux_arm64",
-    source_version = "11",
-    target_version = "11",
-    java_runtime = ":jdk_linux_arm64",
     visibility = ["//visibility:public"],
 )
