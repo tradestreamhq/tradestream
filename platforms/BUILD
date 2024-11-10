@@ -1,6 +1,6 @@
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 
-package(default_visibility = ["//examples:__subpackages__"])
+package(default_visibility = ["//:__subpackages__"])
 
 native_binary(
     name = "docker_cli",
