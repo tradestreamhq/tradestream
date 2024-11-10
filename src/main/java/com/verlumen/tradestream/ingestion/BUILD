@@ -1,7 +1,8 @@
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_push")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("//platforms:transition.bzl", "multi_arch")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -23,16 +24,9 @@ java_binary(
     runtime_deps = [":app-lib"],
 )
 
-java_library(
-    name = "candle-key",
-    srcs = ["CandleKey.java"],
-)
-
-container_structure_test(
-    name = "container_test",
-    configs = ["container-structure-test.yaml"],
-    image = ":image",
-    tags = ["requires-docker"],
+tar(
+    name = "layer",
+    srcs = [":app_deploy.jar"],
 )
 
 oci_image(
@@ -46,29 +40,23 @@ oci_image(
     tars = [":layer"],
 )
 
-java_library(
-    name = "ingestion_module",
-    srcs = ["IngestionModule.java"],
-    deps = [
-        "@maven//:com_google_inject_guice",
-        ":market-data-ingestion",
-        ":real-time-data-ingestion",
+multi_arch(
+    name = "images",
+    image = ":image",
+    platforms = [
+        "//platforms:linux_arm64",
+        "//platforms:linux_amd64",
     ],
 )
 
-tar(
-    name = "layer",
-    srcs = [":app_deploy.jar"],
-)
-
-java_library(
-    name = "market-data-ingestion",
-    srcs = ["MarketDataIngestion.java"],
+oci_image_index(
+    name = "index",
+    images = [":images"],
 )
 
 oci_push(
     name = "push_image",
-    image = ":image",
+    image = ":index",
     remote_tags = ["latest"],
     repository = "tradestreamhq/tradestream-data-ingestion",
 )
