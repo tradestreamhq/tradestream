@@ -32,14 +32,7 @@ java_library(
 container_structure_test(
     name = "container_test_amd64",
     configs = ["container-structure-test.yaml"],
-    image = ":image_amd64",
-    tags = ["requires-docker"],
-)
-
-container_structure_test(
-    name = "container_test_arm64",
-    configs = ["container-structure-test.yaml"],
-    image = ":image_arm64",
+    image = ":image",
     tags = ["requires-docker"],
 )
 
