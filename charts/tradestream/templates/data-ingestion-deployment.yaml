@@ -16,6 +16,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "tradestream.fullname" . }}-data-ingestion
+  namespace: {{ .Release.Namespace }}
   labels:
     app: {{ include "tradestream.name" . }}
     component: data-ingestion
