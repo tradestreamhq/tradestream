@@ -1,13 +1,14 @@
-"a rule transitioning an oci_image to multiple platforms"
+# platforms/transition.bzl
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
-def _multiarch_transition(settings, attr):
+def _multiarch_transition_impl(settings, attr):
     return [
         {"//command_line_option:platforms": str(platform)}
         for platform in attr.platforms
     ]
 
 multiarch_transition = transition(
-    implementation = _multiarch_transition,
+    implementation = _multiarch_transition_impl,
     inputs = [],
     outputs = ["//command_line_option:platforms"],
 )
