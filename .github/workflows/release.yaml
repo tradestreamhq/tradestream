@@ -60,6 +60,16 @@ jobs:
           bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image -- \
             --tag ${{ steps.create_image_tag.outputs.image_tag }}
 
+      - uses: uraimo/run-on-arch-action@v2
+        name: Push the arm Data Ingestion image
+        with:
+          arch: armv7
+          distro: ubuntu22.04
+
+          run: |
+            bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image -- \
+              --tag ${{ steps.create_image_tag.outputs.image_tag }}
+
       - name: Install yq
         run: |
           sudo wget -O /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64
