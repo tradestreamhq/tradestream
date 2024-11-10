@@ -6,6 +6,7 @@ bazel_dep(name = "container_structure_test", version = "1.16.0")
 bazel_dep(name = "protobuf", version = "28.3")
 bazel_dep(name = "rules_jvm_external", version = "5.3")
 bazel_dep(name = "rules_oci", version = "1.4.0")
+bazel_dep(name = "rules_proto", version = "7.0.1")
 bazel_dep(name = "rules_java", version = "7.11.1")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
