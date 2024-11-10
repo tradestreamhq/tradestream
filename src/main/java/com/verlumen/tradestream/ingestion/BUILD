@@ -29,14 +29,20 @@ java_library(
     srcs = ["CandleKey.java"],
 )
 
-# container_structure_test(
-#     name = "container_test",
-#     configs = ["container-structure-test.yaml"],
-#     image = ":image",
-#     tags = ["requires-docker"],
-# )
+container_structure_test(
+    name = "container_test_amd64",
+    configs = ["container-structure-test.yaml"],
+    image = ":image_amd64",
+    tags = ["requires-docker"],
+)
 
-# ARM64 image
+container_structure_test(
+    name = "container_test_arm64",
+    configs = ["container-structure-test.yaml"],
+    image = ":image_arm64",
+    tags = ["requires-docker"],
+)
+
 oci_image(
     name = "image_arm64",
     base = "@distroless_java",
@@ -46,10 +52,13 @@ oci_image(
         "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
     ],
     tars = [":layer"],
-    platform = "//platforms:linux_arm64",
+    # Use architecture constraint instead of platform attribute
+    target_platform = select({
+        "@platforms//cpu:arm64": "linux/arm64/v8",
+        "//conditions:default": "linux/arm64",
+    }),
 )
 
-# AMD64 image
 oci_image(
     name = "image_amd64",
     base = "@distroless_java",
@@ -59,10 +68,13 @@ oci_image(
         "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
     ],
     tars = [":layer"],
-    platform = "//platforms:linux_amd64",
+    # Use architecture constraint instead of platform attribute
+    target_platform = select({
+        "@platforms//cpu:x86_64": "linux/amd64",
+        "//conditions:default": "linux/amd64",
+    }),
 )
 
-# Multi-arch index
 oci_image_index(
     name = "index",
     images = {
