@@ -1,11 +1,11 @@
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "register_toolchains")
-load("@rules_jdk//jdk:defs.bzl", "java_runtime", "java_toolchain")
+load("@rules_java//jdk:defs.bzl", "java_runtime", "java_toolchain")
 
 def define_jdk_toolchains():
     java_runtime(
         name = "jdk_linux_amd64",
-        srcs = ["@rules_jdk//:jdk_linux_amd64"],
-        java_home = "@rules_jdk//:jdk_linux_amd64",
+        srcs = ["@rules_java//:jdk_linux_amd64"],
+        java_home = "@rules_java//:jdk_linux_amd64",
         visibility = ["//visibility:public"],
     )
 
@@ -18,8 +18,8 @@ def define_jdk_toolchains():
 
     java_runtime(
         name = "jdk_linux_arm64",
-        srcs = ["@rules_jdk//:jdk_linux_arm64"],
-        java_home = "@rules_jdk//:jdk_linux_arm64",
+        srcs = ["@rules_java//:jdk_linux_arm64"],
+        java_home = "@rules_java//:jdk_linux_arm64",
         visibility = ["//visibility:public"],
     )
 
