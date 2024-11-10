@@ -47,6 +47,15 @@ oci_image(
     tars = [":layer"],
 )
 
+multi_arch(
+    name = "images",
+    image = ":image",
+    platforms = [
+        "//platforms:linux_arm64",
+        "//platforms:linux_amd64",
+    ],
+)
+
 java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
