@@ -43,44 +43,32 @@ container_structure_test(
     tags = ["requires-docker"],
 )
 
+# Base image target
 oci_image(
-    name = "image_arm64",
+    name = "image",
     base = "@distroless_java",
-    entrypoint = [
+    cmd = [
         "java",
         "-jar",
         "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
     ],
     tars = [":layer"],
-    # Use architecture constraint instead of platform attribute
-    target_platform = select({
-        "@platforms//cpu:arm64": "linux/arm64/v8",
-        "//conditions:default": "linux/arm64",
-    }),
 )
 
-oci_image(
-    name = "image_amd64",
-    base = "@distroless_java",
-    entrypoint = [
-        "java",
-        "-jar",
-        "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
-    ],
-    tars = [":layer"],
-    # Use architecture constraint instead of platform attribute
-    target_platform = select({
-        "@platforms//cpu:x86_64": "linux/amd64",
-        "//conditions:default": "linux/amd64",
-    }),
-)
-
+# Multi-arch index
 oci_image_index(
     name = "index",
-    images = {
-        "linux/arm64": ":image_arm64",
-        "linux/amd64": ":image_amd64",
-    },
+    images = select({
+        "//platforms:linux_arm64": {
+            "linux/arm64": ":image",
+        },
+        "//platforms:linux_amd64": {
+            "linux/amd64": ":image",
+        },
+        "//conditions:default": {
+            "linux/amd64": ":image",
+        },
+    }),
 )
 
 java_library(
