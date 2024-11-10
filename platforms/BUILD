@@ -54,7 +54,7 @@ java_toolchain(
     name = "jdk_toolchain_linux_amd64",
     source_version = "11",
     target_version = "11",
-    runtime = ":jdk_linux_amd64",
+    java_runtime = ":jdk_linux_amd64",
     visibility = ["//visibility:public"],
 )
 
@@ -69,6 +69,6 @@ java_toolchain(
     name = "jdk_toolchain_linux_arm64",
     source_version = "11",
     target_version = "11",
-    runtime = ":jdk_linux_arm64",
+    java_runtime = ":jdk_linux_arm64",
     visibility = ["//visibility:public"],
 )
