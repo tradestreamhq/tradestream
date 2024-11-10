@@ -1,3 +1,4 @@
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "register_toolchains")
 load("@rules_jdk//jdk:defs.bzl", "java_runtime", "java_toolchain")
 
 def define_jdk_toolchains():
