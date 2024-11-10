@@ -2,6 +2,7 @@ load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_push")
+load("//platforms:transition.bzl", "multi_arch")
 
 package(default_visibility = ["//visibility:public"])
 
