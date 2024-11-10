@@ -55,6 +55,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Install QEMU for cross-platform support
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
       - name: Push the Data Ingestion image
         run: |
           bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image -- \
