@@ -1,4 +1,3 @@
-# platforms/transition.bzl
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 def _multiarch_transition_impl(settings, attr):
