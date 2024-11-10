@@ -1,5 +1,4 @@
-load("@bazel_tools//tools/build_defs/repo:utils.bzl", "register_toolchains")
-load("@rules_java//jdk:defs.bzl", "java_runtime", "java_toolchain")
+load("@rules_java//java:defs.bzl", "java_runtime", "java_toolchain")
 
 def define_jdk_toolchains():
     java_runtime(
@@ -30,7 +29,7 @@ def define_jdk_toolchains():
         runtime = ":jdk_linux_arm64",
     )
 
-    register_toolchains(
+    native.register_toolchains(
         ":jdk_toolchain_linux_amd64",
         ":jdk_toolchain_linux_arm64",
     )
