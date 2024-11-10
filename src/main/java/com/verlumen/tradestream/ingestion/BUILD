@@ -52,10 +52,10 @@ oci_image(
 oci_image_index(
     name = "index",
     images = select({
-        "//platforms:linux_arm64": {
+        "@platforms//cpu:arm64": {
             "linux/arm64": ":image",
         },
-        "//platforms:linux_amd64": {
+        "@platforms//cpu:x86_64": {
             "linux/amd64": ":image",
         },
         "//conditions:default": {
