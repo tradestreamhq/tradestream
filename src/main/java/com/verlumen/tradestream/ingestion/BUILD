@@ -50,8 +50,8 @@ multi_arch(
     name = "images",
     image = ":image",
     platforms = [
-        "//examples:linux_arm64",
-        "//examples:linux_amd64",
+        "//platforms:linux_arm64",
+        "//platforms:linux_amd64",
     ],
 )
 
