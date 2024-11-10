@@ -46,6 +46,30 @@ oci_image(
     tars = [":layer"],
 )
 
+multi_arch(
+    name = "images",
+    image = ":image",
+    platforms = [
+        "//examples:linux_arm64",
+        "//examples:linux_amd64",
+    ],
+)
+
+oci_image_index(
+    name = "index",
+    images = [
+        ":images",
+    ],
+)
+
+genrule(
+    name = "hash",
+    srcs = [":index"],
+    outs = ["sha256.sum"],
+    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
+    toolchains = ["@jq_toolchains//:resolved_toolchain"],
+)
+
 java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
