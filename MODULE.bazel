@@ -43,3 +43,8 @@ oci.pull(
     image = "gcr.io/distroless/java17",
 )
 use_repo(oci, "distroless_java")
+
+bazel_lib = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
+bazel_lib.jq()
+bazel_lib.tar()
+use_repo(bazel_lib, "bsd_tar_toolchains", "jq_toolchains")
