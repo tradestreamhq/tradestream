@@ -56,6 +56,13 @@ multi_arch(
     ],
 )
 
+oci_image_index(
+    name = "index",
+    images = [
+        ":images",
+    ],
+)
+
 java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
