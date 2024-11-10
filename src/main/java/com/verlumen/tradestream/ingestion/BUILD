@@ -92,7 +92,7 @@ java_library(
 
 oci_push(
     name = "push_image",
-    image = ":image",
+    image = ":index",
     remote_tags = ["latest"],
     repository = "tradestreamhq/tradestream-data-ingestion",
 )
