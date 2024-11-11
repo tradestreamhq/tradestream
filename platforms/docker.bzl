@@ -48,8 +48,8 @@ def setup_docker_deps():
 
     http_archive(
         name = "docker_cli_linux_arm64",
-        urls = ["https://download.docker.com/linux/static/stable/arm64/docker-23.0.0.tgz"],
-        integrity = "sha256-<INSERT_CORRECT_SHA256_HASH_HERE>",
+        urls = ["https://download.docker.com/linux/static/stable/aarch64/docker-23.0.0.tgz"],
+        integrity = "sha256-2919ff3448187d4f13cfbe2332707cff3f6dcf2baaac42a34bea8dd21f434f4a",
         strip_prefix = "docker",
         build_file_content = 'exports_files(["docker"])',
     )
