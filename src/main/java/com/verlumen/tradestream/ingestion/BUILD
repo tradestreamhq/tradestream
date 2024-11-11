@@ -30,14 +30,22 @@ java_library(
 )
 
 container_structure_test(
-    name = "container_test",
+    name = "container_test_amd64",
     configs = ["container-structure-test.yaml"],
-    image = ":image",
+    image = ":image_amd64",
     tags = ["requires-docker"],
 )
 
+container_structure_test(
+    name = "container_test_arm64",
+    configs = ["container-structure-test.yaml"],
+    image = ":image_arm64",
+    tags = ["requires-docker"],
+)
+
+# Define platform-specific images
 oci_image(
-    name = "image",
+    name = "image_amd64",
     base = "@distroless_java",
     entrypoint = [
         "java",
@@ -45,14 +53,27 @@ oci_image(
         "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
     ],
     tars = [":layer"],
+    platform = "//platforms:linux_amd64",
 )
 
-multi_arch(
-    name = "images",
-    image = ":image",
-    platforms = [
-        "//platforms:linux_arm64",
-        "//platforms:linux_amd64",
+oci_image(
+    name = "image_arm64",
+    base = "@distroless_java",
+    entrypoint = [
+        "java",
+        "-jar",
+        "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
+    ],
+    tars = [":layer"],
+    platform = "//platforms:linux_arm64",
+)
+
+# Create image index for multi-arch support
+oci_image_index(
+    name = "index",
+    images = [
+        ":image_amd64",
+        ":image_arm64",
     ],
 )
 
