@@ -6,6 +6,7 @@ native_binary(
     name = "docker_cli",
     src = select({
         "@bazel_tools//src/conditions:linux_x86_64": "@docker_cli_linux_amd64//:docker",
+        "@bazel_tools//src/conditions:linux_aarch64": "@docker_cli_linux_arm64//:docker",
         "@bazel_tools//src/conditions:darwin_arm64": "@docker_cli_darwin_arm64//:docker",
         "@bazel_tools//src/conditions:darwin_x86_64": "@docker_cli_darwin_amd64//:docker",
     }),
