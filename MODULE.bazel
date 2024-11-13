@@ -50,6 +50,8 @@ maven.install(
 )
 use_repo(maven, "maven")
 
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+
 # Pull distroless for both architectures
 oci.pull(
     name = "distroless_java_amd64",
