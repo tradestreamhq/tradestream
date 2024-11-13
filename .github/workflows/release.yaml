@@ -58,7 +58,10 @@ jobs:
 
       - name: Push the Data Ingestion image
         run: |
-          bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image -- \
+          bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
+            --verbose_failures \
+            --sandbox_debug \
+            -- \
             --tag ${{ steps.create_image_tag.outputs.image_tag }}
 
       - name: Inspect Docker Manifest
