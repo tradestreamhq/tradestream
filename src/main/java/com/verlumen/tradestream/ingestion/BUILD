@@ -52,7 +52,7 @@ multi_arch(
     image = ":image",
     platforms = [
         "//platforms:linux_arm64",
-        # "//platforms:linux_amd64",
+        "//platforms:linux_amd64",
     ],
 )
 
