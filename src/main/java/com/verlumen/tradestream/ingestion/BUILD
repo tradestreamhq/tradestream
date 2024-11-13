@@ -29,21 +29,6 @@ java_library(
     srcs = ["CandleKey.java"],
 )
 
-# Create separate container structure tests for each architecture
-container_structure_test(
-    name = "container_test_amd64",
-    configs = ["container-structure-test.yaml"],
-    image = ":image_amd64",
-    tags = ["requires-docker"],
-)
-
-container_structure_test(
-    name = "container_test_arm64",
-    configs = ["container-structure-test.yaml"],
-    image = ":image_arm64",
-    tags = ["requires-docker"],
-)
-
 # Create separate images for each architecture
 oci_image(
     name = "image_amd64",
@@ -71,21 +56,35 @@ oci_image(
     os = "linux",
 )
 
-# Create an image index that includes all architectures
+# Create an image index that includes both architectures
 oci_image_index(
-    name = "index",
+    name = "image_index",
     images = [
         ":image_amd64",
         ":image_arm64",
     ],
 )
 
-# Push rule remains the same but points to the index
+# Push rule for the multi-arch image
 oci_push(
     name = "push_image",
-    image = ":index",
-    remote_tags = ["latest"],
+    image = ":image_index",  # Updated to reference the renamed index
     repository = "tradestreamhq/tradestream-data-ingestion",
+)
+
+# Create separate container structure tests for each architecture
+container_structure_test(
+    name = "container_test_amd64",
+    configs = ["container-structure-test.yaml"],
+    image = ":image_amd64",
+    tags = ["requires-docker"],
+)
+
+container_structure_test(
+    name = "container_test_arm64",
+    configs = ["container-structure-test.yaml"],
+    image = ":image_arm64",
+    tags = ["requires-docker"],
 )
 
 genrule(
