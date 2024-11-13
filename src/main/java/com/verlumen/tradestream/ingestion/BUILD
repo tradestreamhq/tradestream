@@ -32,7 +32,7 @@ java_library(
 # Create separate images for each architecture
 oci_image(
     name = "image_amd64",
-    base = "@distroless_java_amd64",
+    base = "@openjdk_java",
     entrypoint = [
         "java",
         "-jar",
@@ -43,7 +43,7 @@ oci_image(
 
 oci_image(
     name = "image_arm64",
-    base = "@distroless_java_arm64",
+    base = "@openjdk_java",
     entrypoint = [
         "java",
         "-jar",
