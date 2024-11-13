@@ -29,78 +29,45 @@ java_library(
     srcs = ["CandleKey.java"],
 )
 
-# Create separate images for each architecture
-oci_image(
-    name = "image_amd64",
-    base = "@openjdk_java",
-    entrypoint = [
-        "java",
-        "-jar",
-        "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
-    ],
-    tars = [":layer"],
-)
-
-oci_image(
-    name = "image_arm64",
-    base = "@openjdk_java",
-    entrypoint = [
-        "java",
-        "-jar",
-        "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
-    ],
-    tars = [":layer"],
-)
-
-# Create an image index that includes both architectures
-oci_image_index(
-    name = "multi_arch_image",
-    images = [
-        ":image_amd64",
-        ":image_arm64",
-    ],
-)
-
-# Single push rule for the multi-arch image
-oci_push(
-    name = "push_image",
-    image = ":multi_arch_image",
-    repository = "tradestreamhq/tradestream-data-ingestion",
-)
-
-# Test rules
 container_structure_test(
-    name = "container_test_amd64",
-    configs = ["container-structure-test.yaml"],
-    image = ":image_amd64",
-    tags = ["requires-docker"],
-)
-
-container_structure_test(
-    name = "container_test_arm64",
-    configs = ["container-structure-test.yaml"],
-    image = ":image_arm64",
-    tags = ["requires-docker"],
-)
-
-test_suite(
     name = "container_test",
-    tests = [
-        ":container_test_amd64",
-        ":container_test_arm64",
+    configs = ["container-structure-test.yaml"],
+    image = ":image",
+    tags = ["requires-docker"],
+)
+
+oci_image(
+    name = "image",
+    base = "@openjdk_java",
+    entrypoint = [
+        "java",
+        "-jar",
+        "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
+    ],
+    tars = [":layer"],
+)
+
+multi_arch(
+    name = "images",
+    image = ":image",
+    platforms = [
+        "//platforms:linux_arm64",
+        "//platforms:linux_amd64",
     ],
 )
 
-tar(
-    name = "layer",
-    srcs = [":app_deploy.jar"],
+oci_image_index(
+    name = "index",
+    images = [
+        ":images",
+    ],
 )
 
 genrule(
     name = "hash",
-    srcs = [":multi_arch_image"],
+    srcs = [":index"],
     outs = ["sha256.sum"],
-    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :multi_arch_image)/index.json > $@",
+    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
     toolchains = ["@jq_toolchains//:resolved_toolchain"],
 )
 
@@ -114,9 +81,21 @@ java_library(
     ],
 )
 
+tar(
+    name = "layer",
+    srcs = [":app_deploy.jar"],
+)
+
 java_library(
     name = "market-data-ingestion",
     srcs = ["MarketDataIngestion.java"],
+)
+
+oci_push(
+    name = "push_image",
+    image = ":index",
+    remote_tags = ["latest"],
+    repository = "tradestreamhq/tradestream-data-ingestion",
 )
 
 java_library(
