@@ -58,7 +58,7 @@ oci_image(
 
 # Create an image index that includes both architectures
 oci_image_index(
-    name = "multi_arch_image",  # Renamed from image_index
+    name = "multi_arch_image",
     images = [
         ":image_amd64",
         ":image_arm64",
@@ -102,9 +102,9 @@ tar(
 
 genrule(
     name = "hash",
-    srcs = [":image_index"],
+    srcs = [":multi_arch_image"],
     outs = ["sha256.sum"],
-    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :image_index)/index.json > $@",
+    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :multi_arch_image)/index.json > $@",
     toolchains = ["@jq_toolchains//:resolved_toolchain"],
 )
 
