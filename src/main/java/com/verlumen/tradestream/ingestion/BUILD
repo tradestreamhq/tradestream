@@ -104,7 +104,7 @@ genrule(
     name = "hash",
     srcs = [":image_index"],
     outs = ["sha256.sum"],
-    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
+    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :image_index)/index.json > $@",
     toolchains = ["@jq_toolchains//:resolved_toolchain"],
 )
 
