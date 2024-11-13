@@ -53,7 +53,7 @@ use_repo(maven, "maven")
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 
 oci.pull(
-    name = "openjdk",
+    name = "openjdk_java",
     digest = "sha256:b76af3b248acbcd94ffae671900e9fa8e2f869688598e5733a5fb6e983e51928",
     image = "docker.io/library/openjdk",
     platforms = [
