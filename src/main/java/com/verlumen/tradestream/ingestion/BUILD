@@ -58,21 +58,21 @@ oci_image(
 
 # Create an image index that includes both architectures
 oci_image_index(
-    name = "image_index",
+    name = "multi_arch_image",  # Renamed from image_index
     images = [
         ":image_amd64",
         ":image_arm64",
     ],
 )
 
-# Push rule for the multi-arch image
+# Single push rule for the multi-arch image
 oci_push(
     name = "push_image",
-    image = ":image_index",  # Updated to reference the renamed index
+    image = ":multi_arch_image",
     repository = "tradestreamhq/tradestream-data-ingestion",
 )
 
-# Create separate container structure tests for each architecture
+# Test rules
 container_structure_test(
     name = "container_test_amd64",
     configs = ["container-structure-test.yaml"],
@@ -87,9 +87,22 @@ container_structure_test(
     tags = ["requires-docker"],
 )
 
+test_suite(
+    name = "container_test",
+    tests = [
+        ":container_test_amd64",
+        ":container_test_arm64",
+    ],
+)
+
+tar(
+    name = "layer",
+    srcs = [":app_deploy.jar"],
+)
+
 genrule(
     name = "hash",
-    srcs = [":index"],
+    srcs = [":image_index"],
     outs = ["sha256.sum"],
     cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
     toolchains = ["@jq_toolchains//:resolved_toolchain"],
@@ -105,21 +118,9 @@ java_library(
     ],
 )
 
-tar(
-    name = "layer",
-    srcs = [":app_deploy.jar"],
-)
-
 java_library(
     name = "market-data-ingestion",
     srcs = ["MarketDataIngestion.java"],
-)
-
-oci_push(
-    name = "push_image",
-    image = ":index",
-    remote_tags = ["latest"],
-    repository = "tradestreamhq/tradestream-data-ingestion",
 )
 
 java_library(
