@@ -125,3 +125,13 @@ java_library(
         ":market-data-ingestion",
     ]
 )
+
+java_library(
+    name = "trade-processor",
+    srcs = ["TradeProcessor.java"],
+    deps = [
+        ":candle-key",
+        "//protos:marketdata_java_proto",
+    ],
+    visibility = ["//visibility:public"],
+)
