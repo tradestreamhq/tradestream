@@ -17,7 +17,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 final class RealTimeDataIngestion {
-
     private final StreamingExchange streamingExchange;
     private final StreamingMarketDataService streamingMarketDataService;
     private final KafkaProducer<String, byte[]> kafkaProducer;
@@ -29,6 +28,7 @@ final class RealTimeDataIngestion {
     private final List<Disposable> subscriptions = new ArrayList<>();
     private final long candleIntervalMillis = 60_000L; // 1-minute candles
 
+    @Inject
     RealTimeDataIngestion(String exchangeClassName, List<String> currencyPairs, Properties kafkaProps, String kafkaTopic)
             throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         this(
