@@ -99,11 +99,6 @@ oci_push(
 )
 
 java_library(
-    name = "market-data-ingestion",
-    srcs = ["MarketDataIngestion.java"],
-)
-
-java_library(
     name = "real-time-data-ingestion",
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
