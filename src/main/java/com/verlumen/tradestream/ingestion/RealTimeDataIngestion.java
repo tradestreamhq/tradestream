@@ -8,7 +8,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
 
     @Override
     public void start() {}
-      
+
     @Override
     public void shutdown() {}
 }
