@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
-public interface MarketDataIngestion {
+interface MarketDataIngestion {
     void start();
     void shutdown();
 }
