@@ -81,11 +81,6 @@ oci_image_index(
     ],
 )
 
-java_library(
-    name = "price-tracker",
-    srcs = ["PriceTracker.java"],
-)
-
 genrule(
     name = "hash",
     srcs = [":index"],
