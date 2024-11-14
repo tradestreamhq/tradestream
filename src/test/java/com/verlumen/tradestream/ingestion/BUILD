@@ -56,6 +56,17 @@ java_test(
 )
 
 java_test(
+    name = "PriceTrackerTest",
+    srcs = ["PriceTrackerTest.java"],
+    deps = [
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "//src/main/java/com/verlumen/tradestream/ingestion:price-tracker",
+    ],
+)
+
+java_test(
     name = "TradeProcessorTest",
     srcs = ["TradeProcessorTest.java"],
     deps = [

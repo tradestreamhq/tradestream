@@ -109,6 +109,12 @@ java_library(
     srcs = ["MarketDataIngestion.java"],
 )
 
+java_library(
+    name = "price-tracker",
+    srcs = ["PriceTracker.java"],
+    visibility = ["//visibility:public"],
+)
+
 oci_push(
     name = "push_image",
     image = ":index",
