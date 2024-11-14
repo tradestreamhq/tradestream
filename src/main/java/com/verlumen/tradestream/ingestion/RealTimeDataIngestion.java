@@ -11,8 +11,4 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
       
     @Override
     public void shutdown() {}
-      
-      public static void main(String[] args) throws Exception {
-        System.out.println("Starting real-time data ingestion...");
-      }
 }
