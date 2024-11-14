@@ -3,12 +3,12 @@ package com.verlumen.tradestream.ingestion;
 import com.google.inject.Inject;
 
 final class RealTimeDataIngestion implements MarketDataIngestion {
-      @Inject
-      RealTimeDataIngestion() {}
+    @Inject
+    RealTimeDataIngestion() {}
 
-      @Override
-      public void start() {}
+    @Override
+    public void start() {}
 
-      @Override
-      public void shutdown() {}
+    @Override
+    public void shutdown() {}
 }
