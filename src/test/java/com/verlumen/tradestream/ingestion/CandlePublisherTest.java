@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import java.time.Duration; 
 
 @RunWith(TestParameterInjector.class)
 public class CandlePublisherTest {
