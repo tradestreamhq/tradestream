@@ -20,11 +20,11 @@ java_test(
     name = "CandleBuilderTest",
     srcs = ["CandleBuilderTest.java"],
     deps = [
-        ":candle-builder",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle-builder",
     ],
 )
 
