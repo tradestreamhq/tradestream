@@ -4,7 +4,7 @@ import marketdata.Marketdata.Trade;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class TradeProcessor {
+class TradeProcessor {
     private final Set<CandleKey> processedTrades = ConcurrentHashMap.newKeySet();
     private final long candleIntervalMillis;
 
