@@ -31,23 +31,21 @@ java_test(
 )
 
 java_test(
-    name = "RealTimeDataIngestionTest",
-    srcs = [
-      "RealTimeDataIngestionTest.java"
-    ],
+    name = "RealTimeDataIngestionIntegrationTest",
+    srcs = ["RealTimeDataIngestionIntegrationTest.java"],
     deps = [
+        ":real-time-data-ingestion",
+        ":candle-manager",
+        ":trade-processor",
+        ":candle-publisher",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",
-        "@maven//:org_apache_kafka_kafka_clients",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:com_google_guava_guava",
         "@maven//:org_knowm_xchange_xchange_core",
         "@maven//:org_knowm_xchange_xchange_stream_core",
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:com_google_testparameterinjector_test_parameter_injector",
-        "@maven//:com_google_truth_truth",
         "@maven//:io_reactivex_rxjava3_rxjava",
-        "@maven//:junit_junit",
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle-key",
-        "//src/main/java/com/verlumen/tradestream/ingestion:real-time-data-ingestion",
     ],
 )
