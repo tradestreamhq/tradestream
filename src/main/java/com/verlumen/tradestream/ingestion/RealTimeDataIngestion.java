@@ -9,7 +9,7 @@ import org.knowm.xchange.currency.CurrencyPair;
 
 import java.util.*;
 
-public class RealTimeDataIngestion {
+class RealTimeDataIngestion implements MarketDataIngestion {
     private final StreamingExchange exchange;
     private final StreamingMarketDataService marketDataService;
     private final List<String> currencyPairs;
@@ -20,7 +20,7 @@ public class RealTimeDataIngestion {
     private Timer thinMarketTimer;
 
     @Inject
-    public RealTimeDataIngestion(
+    RealTimeDataIngestion(
             StreamingExchange exchange,
             StreamingMarketDataService marketDataService,
             List<String> currencyPairs,
@@ -35,6 +35,7 @@ public class RealTimeDataIngestion {
         this.publisher = publisher;
     }
 
+    @Override
     public void start() {
         exchange.connect().blockingAwait();
         subscribeToTradeStreams();
@@ -66,6 +67,7 @@ public class RealTimeDataIngestion {
         }
     }
 
+    @Override
     public void shutdown() {
         for (Disposable subscription : subscriptions) {
             subscription.dispose();
