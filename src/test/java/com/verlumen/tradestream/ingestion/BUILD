@@ -29,3 +29,15 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/ingestion:candle-key",
     ],
 )
+
+java_test(
+    name = "TradeProcessorTest",
+    srcs = ["TradeProcessorTest.java"],
+    deps = [
+        ":trade-processor",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "//protos:marketdata_java_proto",
+    ],
+)
