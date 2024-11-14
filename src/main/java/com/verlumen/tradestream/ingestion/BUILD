@@ -25,8 +25,37 @@ java_library(
 )
 
 java_library(
+    name = "candle-builder",
+    srcs = ["CandleBuilder.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+    ],
+)
+
+java_library(
     name = "candle-key",
     srcs = ["CandleKey.java"],
+)
+
+java_library(
+    name = "candle-manager",
+    srcs = ["CandleManager.java"],
+    deps = [
+        ":candle-builder",
+        ":candle-publisher",
+        ":price-tracker",
+        "//protos:marketdata_java_proto",
+    ],
+)
+
+java_library(
+    name = "candle-publisher",
+    srcs = ["CandlePublisher.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "@maven//:org_apache_kafka_kafka_clients",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 container_structure_test(
@@ -91,6 +120,12 @@ java_library(
     srcs = ["MarketDataIngestion.java"],
 )
 
+java_library(
+    name = "price-tracker",
+    srcs = ["PriceTracker.java"],
+    visibility = ["//visibility:public"],
+)
+
 oci_push(
     name = "push_image",
     image = ":index",
@@ -111,4 +146,14 @@ java_library(
         "@maven//:io_reactivex_rxjava3_rxjava",
         "//protos:marketdata_java_proto",
     ],
+)
+
+java_library(
+    name = "trade-processor",
+    srcs = ["TradeProcessor.java"],
+    deps = [
+        ":candle-key",
+        "//protos:marketdata_java_proto",
+    ],
+    visibility = ["//visibility:public"],
 )

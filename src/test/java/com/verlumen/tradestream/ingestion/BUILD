@@ -17,6 +17,18 @@ java_test(
 )
 
 java_test(
+    name = "CandleBuilderTest",
+    srcs = ["CandleBuilderTest.java"],
+    deps = [
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle-builder",
+    ],
+)
+
+java_test(
     name = "CandleKeyTest",
     srcs = [
       "CandleKeyTest.java"
@@ -31,21 +43,53 @@ java_test(
 )
 
 java_test(
-    name = "RealTimeDataIngestionIntegrationTest",
-    srcs = ["RealTimeDataIngestionIntegrationTest.java"],
+    name = "CandleManagerTest",
+    srcs = ["CandleManagerTest.java"],
     deps = [
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:com_google_guava_guava",
-        "@maven//:org_knowm_xchange_xchange_core",
-        "@maven//:org_knowm_xchange_xchange_stream_core",
-        "@maven//:io_reactivex_rxjava3_rxjava",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle-manager",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle-publisher",
-        "//src/main/java/com/verlumen/tradestream/ingestion:real-time-data-ingestion",
+        "//src/main/java/com/verlumen/tradestream/ingestion:price-tracker",
+    ],
+)
+
+java_test(
+    name = "CandlePublisherTest",
+    srcs = ["CandlePublisherTest.java"],
+    deps = [
+        "@maven//:org_mockito_mockito_core",
+        "@maven//:junit_junit",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:org_apache_kafka_kafka_clients",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle-publisher",
+    ],
+)
+
+java_test(
+    name = "PriceTrackerTest",
+    srcs = ["PriceTrackerTest.java"],
+    deps = [
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "//src/main/java/com/verlumen/tradestream/ingestion:price-tracker",
+    ],
+)
+
+java_test(
+    name = "TradeProcessorTest",
+    srcs = ["TradeProcessorTest.java"],
+    deps = [
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:trade-processor",
     ],
 )
