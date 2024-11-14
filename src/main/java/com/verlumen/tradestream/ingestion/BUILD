@@ -37,6 +37,16 @@ java_library(
     srcs = ["CandleKey.java"],
 )
 
+java_library(
+    name = "candle-publisher",
+    srcs = ["CandlePublisher.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "@maven//:org_apache_kafka_kafka_clients",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 container_structure_test(
     name = "container_test",
     configs = ["container-structure-test.yaml"],
