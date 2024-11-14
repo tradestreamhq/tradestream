@@ -34,10 +34,6 @@ java_test(
     name = "RealTimeDataIngestionIntegrationTest",
     srcs = ["RealTimeDataIngestionIntegrationTest.java"],
     deps = [
-        ":real-time-data-ingestion",
-        ":candle-manager",
-        ":trade-processor",
-        ":candle-publisher",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",
@@ -47,5 +43,9 @@ java_test(
         "@maven//:org_knowm_xchange_xchange_stream_core",
         "@maven//:io_reactivex_rxjava3_rxjava",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle-manager",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle-publisher",
+        "//src/main/java/com/verlumen/tradestream/ingestion:real-time-data-ingestion",
+        "//src/main/java/com/verlumen/tradestream/ingestion:trade-processor",
     ],
 )
