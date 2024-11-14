@@ -46,13 +46,13 @@ java_test(
     name = "CandleManagerTest",
     srcs = ["CandleManagerTest.java"],
     deps = [
-        ":candle-manager",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:com_google_guava_guava",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle-manager",
     ],
 )
 
