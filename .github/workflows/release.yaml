@@ -1,4 +1,5 @@
 name: Release Tradestream Artifacts
+
 on:
   push:
     branches:
@@ -13,7 +14,7 @@ jobs:
       DATA_INGESTION_SECTION_KEY: dataIngestion
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -55,10 +56,27 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Push the Data Ingestion image
         run: |
-          bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image -- \
+          bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
+            --verbose_failures \
+            --sandbox_debug \
+            -- \
             --tag ${{ steps.create_image_tag.outputs.image_tag }}
+
+      - name: Inspect Docker Manifest
+        run: |
+          docker manifest inspect tradestreamhq/tradestream-data-ingestion:${{ steps.create_image_tag.outputs.image_tag }}
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
 
       - name: Install yq
         run: |

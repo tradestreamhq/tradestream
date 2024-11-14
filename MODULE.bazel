@@ -1,11 +1,26 @@
-"Bazel dependencies"
-
 bazel_dep(name = "aspect_bazel_lib", version = "2.8.1")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "container_structure_test", version = "1.16.0")
-bazel_dep(name = "protobuf", version = "28.3")
-bazel_dep(name = "rules_jvm_external", version = "5.3")
-bazel_dep(name = "rules_oci", version = "1.4.0")
-bazel_dep(name = "rules_java", version = "7.11.1")
+bazel_dep(name = "rules_jvm_external", version = "6.5")
+bazel_dep(name = "rules_oci", version = "2.0.1")
+bazel_dep(name = "rules_java", version = "8.3.1")
+
+# Add Java toolchain configuration
+JAVA_LANGUAGE_LEVEL = "17"
+
+java = use_extension("@rules_java//java:extensions.bzl", "java")
+java.toolchain(
+    name = "java",
+    java_runtime = "@rules_java//toolchains:remotejdk_17",
+    source_version = JAVA_LANGUAGE_LEVEL,
+    target_version = JAVA_LANGUAGE_LEVEL,
+)
+use_repo(java, "java_tools")
+
+# Register the toolchain
+register_toolchains(
+    "@rules_java//toolchains:all",
+)
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
@@ -22,9 +37,9 @@ maven.install(
         "org.apache.kafka:kafka-clients:3.6.1",
         "org.slf4j:slf4j-api:2.0.12",
         "junit:junit:4.13.2",
-        "org.mockito:mockito-core:4.8.1",
+        "org.mockito:mockito-core:4.3.1",
         "com.google.inject.extensions:guice-testlib:7.0.0",
-        "com.google.truth:truth:1.4.4",
+        "com.google.truth:truth:1.1.2",
         "com.google.testparameterinjector:test-parameter-injector:1.9",
     ],
     fetch_sources = True,
@@ -36,9 +51,20 @@ maven.install(
 use_repo(maven, "maven")
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+
 oci.pull(
-    name = "distroless_java",
-    digest = "sha256:161a1d97d592b3f1919801578c3a47c8e932071168a96267698f4b669c24c76d",
-    image = "gcr.io/distroless/java17",
+    name = "openjdk_java",
+    digest = "sha256:b76af3b248acbcd94ffae671900e9fa8e2f869688598e5733a5fb6e983e51928",
+    image = "docker.io/library/openjdk",
+    platforms = [
+        "linux/amd64",
+        "linux/arm64/v8",
+    ],
 )
-use_repo(oci, "distroless_java")
+
+use_repo(oci, "openjdk_java")
+
+bazel_lib = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
+bazel_lib.jq()
+bazel_lib.tar()
+use_repo(bazel_lib, "bsd_tar_toolchains", "jq_toolchains")
