@@ -8,7 +8,7 @@ class TradeProcessor {
     private final Set<CandleKey> processedTrades = ConcurrentHashMap.newKeySet();
     private final long candleIntervalMillis;
 
-    public TradeProcessor(long candleIntervalMillis) {
+    TradeProcessor(long candleIntervalMillis) {
         this.candleIntervalMillis = candleIntervalMillis;
     }
 
