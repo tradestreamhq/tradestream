@@ -1,7 +1,8 @@
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
-load("@rules_oci//oci:defs.bzl", "oci_image")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("//platforms:transition.bzl", "multi_arch")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -37,13 +38,37 @@ container_structure_test(
 
 oci_image(
     name = "image",
-    base = "@distroless_java",
+    base = "@openjdk_java",
     entrypoint = [
         "java",
         "-jar",
         "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
     ],
     tars = [":layer"],
+)
+
+multi_arch(
+    name = "images",
+    image = ":image",
+    platforms = [
+        "//platforms:linux_arm64",
+        "//platforms:linux_amd64",
+    ],
+)
+
+oci_image_index(
+    name = "index",
+    images = [
+        ":images",
+    ],
+)
+
+genrule(
+    name = "hash",
+    srcs = [":index"],
+    outs = ["sha256.sum"],
+    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
+    toolchains = ["@jq_toolchains//:resolved_toolchain"],
 )
 
 java_library(
@@ -59,6 +84,18 @@ java_library(
 tar(
     name = "layer",
     srcs = [":app_deploy.jar"],
+)
+
+java_library(
+    name = "market-data-ingestion",
+    srcs = ["MarketDataIngestion.java"],
+)
+
+oci_push(
+    name = "push_image",
+    image = ":index",
+    remote_tags = ["latest"],
+    repository = "tradestreamhq/tradestream-data-ingestion",
 )
 
 java_library(
