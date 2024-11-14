@@ -43,6 +43,19 @@ java_test(
 )
 
 java_test(
+    name = "CandlePublisherTest",
+    srcs = ["CandlePublisherTest.java"],
+    deps = [
+        "@maven//:org_mockito_mockito_core",
+        "@maven//:junit_junit",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:org_apache_kafka_kafka_clients",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle-publisher",
+    ],
+)
+
+java_test(
     name = "TradeProcessorTest",
     srcs = ["TradeProcessorTest.java"],
     deps = [
