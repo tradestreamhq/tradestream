@@ -12,9 +12,7 @@ java_test(
         "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",
         "//src/main/java/com/verlumen/tradestream/ingestion:app-lib",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle-publisher",
         "//src/main/java/com/verlumen/tradestream/ingestion:market-data-ingestion",
-        "//src/main/java/com/verlumen/tradestream/ingestion:price-tracker",
     ],
 )
 
@@ -55,6 +53,8 @@ java_test(
         "@maven//:com_google_guava_guava",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle-manager",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle-publisher",
+        "//src/main/java/com/verlumen/tradestream/ingestion:price-tracker",
     ],
 )
 
