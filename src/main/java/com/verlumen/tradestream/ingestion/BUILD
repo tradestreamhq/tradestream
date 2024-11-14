@@ -137,6 +137,7 @@ java_library(
     name = "real-time-data-ingestion",
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
+        ":market-data-ingestion",
         ":candle-manager",
         ":trade-processor",
         ":candle-publisher",
