@@ -3,6 +3,9 @@ package com.verlumen.tradestream.ingestion;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import marketdata.Marketdata.Candle;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -10,8 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+
 import java.time.Duration; 
 
 @RunWith(TestParameterInjector.class)
@@ -25,7 +27,6 @@ public class CandlePublisherImplTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
