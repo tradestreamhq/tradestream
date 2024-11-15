@@ -18,14 +18,15 @@ import java.time.Duration;
 public class CandlePublisherImplTest {
     private static final String TEST_TOPIC = "test-topic";
     
-    @Mock
+    @Mock @Bind
     private KafkaProducer<String, byte[]> mockProducer;
-    private CandlePublisher publisher;
+    @Inject
+    private CandlePublisherImpl publisher;
 
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        publisher = new CandlePublisher(mockProducer, TEST_TOPIC);
+        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
     @Test
