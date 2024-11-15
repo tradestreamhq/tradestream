@@ -15,7 +15,7 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import java.time.Duration; 
 
 @RunWith(TestParameterInjector.class)
-public class CandlePublisherTest {
+public class CandlePublisherImplTest {
     private static final String TEST_TOPIC = "test-topic";
     
     @Mock
