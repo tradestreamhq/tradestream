@@ -50,7 +50,7 @@ java_library(
 
 java_library(
     name = "candle_publisher",
-    srcs = "CandlePublisher.java",
+    srcs = ["CandlePublisher.java"],
     deps = [
         "//protos:marketdata_java_proto",        
     ]
