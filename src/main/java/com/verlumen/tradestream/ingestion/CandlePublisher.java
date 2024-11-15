@@ -9,4 +9,8 @@ interface CandlePublisher {
     void publishCandle(Candle candle) {}
 
     void close() {}
+
+    interface Factory {
+        CandlePublisher create(String topic);
+    }
 }
