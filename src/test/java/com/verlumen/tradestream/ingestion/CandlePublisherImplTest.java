@@ -13,11 +13,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.time.Duration; 
 
 @RunWith(TestParameterInjector.class)
 public class CandlePublisherImplTest {
+    @Rule public MockitoRule rule = MockitoJUnit.rule();
+
     private static final String TEST_TOPIC = "test-topic";
     
     @Mock @Bind
