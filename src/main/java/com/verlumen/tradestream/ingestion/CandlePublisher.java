@@ -8,5 +8,5 @@ import java.time.Duration;
 interface CandlePublisher {
     void publishCandle(Candle candle) {}
 
-    public void close() {}
+    void close() {}
 }
