@@ -3,7 +3,7 @@ package com.verlumen.tradestream.ingestion;
 import marketdata.Marketdata.Candle;
 import marketdata.Marketdata.Trade;
 
-class CandleBuilder {
+final class CandleBuilder {
     private final String currencyPair;
     private final long timestamp;
     private double open = Double.NaN;
