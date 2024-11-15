@@ -4,21 +4,27 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 class PriceTracker {
+    static PriceTracker create() {
+        return new PriceTracker();        
+    }
+
     private final Map<String, Double> lastPrices = new ConcurrentHashMap<>();
 
-    public void updateLastPrice(String currencyPair, double price) {
+    private PriceTracker() {}
+
+    void updateLastPrice(String currencyPair, double price) {
         lastPrices.put(currencyPair, price);
     }
 
-    public double getLastPrice(String currencyPair) {
+    double getLastPrice(String currencyPair) {
         return lastPrices.getOrDefault(currencyPair, Double.NaN);
     }
 
-    public boolean hasPrice(String currencyPair) {
+    boolean hasPrice(String currencyPair) {
         return lastPrices.containsKey(currencyPair);
     }
 
-    public void clear() {
+    void clear() {
         lastPrices.clear();
     }
 }
