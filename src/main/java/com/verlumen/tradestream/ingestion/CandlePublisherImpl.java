@@ -12,7 +12,10 @@ final class CandlePublisherImpl implements CandlePublisher {
     private final String topic;
 
     @AutoFactory(implementing = CandlePublisher.Factory.class)
-    CandlePublisherImpl(KafkaProducer<String, byte[]> kafkaProducer, String topic) {
+    CandlePublisherImpl(
+        String topic,
+        @Provided KafkaProducer<String, byte[]> kafkaProducer
+    ) {
         this.kafkaProducer = kafkaProducer;
         this.topic = topic;
     }
