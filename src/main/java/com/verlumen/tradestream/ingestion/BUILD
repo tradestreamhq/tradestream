@@ -61,6 +61,7 @@ java_library(
     srcs = ["CandlePublisherImpl.java"],
     deps = [
         ":candle_publisher",
+        "//:autofactory",
         "//protos:marketdata_java_proto",
         "@maven//:org_apache_kafka_kafka_clients",
     ],
