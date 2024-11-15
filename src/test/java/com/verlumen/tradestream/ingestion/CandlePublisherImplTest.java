@@ -27,7 +27,7 @@ public class CandlePublisherImplTest {
     @Mock @Bind
     private KafkaProducer<String, byte[]> mockProducer;
     @Inject
-    private CandlePublisherImpl publisher;
+    private CandlePublisherImplFactory factory;
 
     @Before
     public void setUp() {
@@ -36,19 +36,25 @@ public class CandlePublisherImplTest {
 
     @Test
     public void publishCandle_sendsToKafka() {
+        // Arrange
         Candle candle = Candle.newBuilder()
             .setCurrencyPair("BTC/USD")
             .setTimestamp(System.currentTimeMillis())
             .build();
 
-        publisher.publishCandle(candle);
+        // Act
+        factory.create(TEST_TOPIC).publishCandle(candle);
 
+        // Assert
         verify(mockProducer).send(any(ProducerRecord.class), any());
     }
 
     @Test
     public void close_closesProducer() {
-        publisher.close();
+        // Act
+        factory.create(TEST_TOPIC).close();
+
+        // Assert
         verify(mockProducer).close(any(Duration.class));
     }
 }
