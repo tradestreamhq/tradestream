@@ -52,7 +52,7 @@ java_library(
     name = "candle_publisher",
     srcs = "CandlePublisher.java",
     deps = [
-        
+        "//protos:marketdata_java_proto",        
     ]
 )
 
@@ -63,7 +63,6 @@ java_library(
         "//protos:marketdata_java_proto",
         "@maven//:org_apache_kafka_kafka_clients",
     ],
-    visibility = ["//visibility:public"],
 )
 
 container_structure_test(
