@@ -1,16 +1,15 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.inject.Inject;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 class PriceTracker {
-    static PriceTracker create() {
-        return new PriceTracker();        
-    }
-
     private final Map<String, Double> lastPrices = new ConcurrentHashMap<>();
 
-    private PriceTracker() {}
+    @Inject
+    PriceTracker() {}
 
     void updateLastPrice(String currencyPair, double price) {
         lastPrices.put(currencyPair, price);
