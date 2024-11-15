@@ -14,7 +14,7 @@ final class TradeProcessor {
     }
 
     boolean isProcessed(Trade trade) {
-        CandleKey key = new CandleKey(trade.getTradeId(), getMinuteTimestamp(trade.getTimestamp()));
+        CandleKey key = CandleKey.create(trade.getTradeId(), getMinuteTimestamp(trade.getTimestamp()));
         return !processedTrades.add(key);
     }
 
