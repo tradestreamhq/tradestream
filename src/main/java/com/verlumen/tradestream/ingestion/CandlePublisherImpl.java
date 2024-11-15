@@ -9,7 +9,7 @@ class CandlePublisherImpl {
     private final KafkaProducer<String, byte[]> kafkaProducer;
     private final String topic;
 
-    CandlePublisher(KafkaProducer<String, byte[]> kafkaProducer, String topic) {
+    CandlePublisherImpl(KafkaProducer<String, byte[]> kafkaProducer, String topic) {
         this.kafkaProducer = kafkaProducer;
         this.topic = topic;
     }
