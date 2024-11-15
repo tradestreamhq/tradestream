@@ -65,6 +65,8 @@ java_test(
     deps = [
         "@maven//:org_mockito_mockito_core",
         "@maven//:junit_junit",
+        "@maven//:com_google_inject_extensions_guice_testlib",
+        "@maven//:com_google_inject_guice",        
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:org_apache_kafka_kafka_clients",
         "//protos:marketdata_java_proto",
