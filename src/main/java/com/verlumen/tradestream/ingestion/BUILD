@@ -123,7 +123,9 @@ java_library(
 java_library(
     name = "price-tracker",
     srcs = ["PriceTracker.java"],
-    visibility = ["//visibility:public"],
+    deps = [
+        "@maven//:com_google_inject_guice",        
+    ],
 )
 
 oci_push(
