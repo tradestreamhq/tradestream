@@ -3,7 +3,7 @@ package com.verlumen.tradestream.ingestion;
 import marketdata.Marketdata.Candle;
 import marketdata.Marketdata.Trade;
 
-public class CandleBuilder {
+class CandleBuilder {
     private final String currencyPair;
     private final long timestamp;
     private double open = Double.NaN;
@@ -13,12 +13,12 @@ public class CandleBuilder {
     private double volume = 0.0;
     private boolean hasTrades = false;
 
-    public CandleBuilder(String currencyPair, long timestamp) {
+    CandleBuilder(String currencyPair, long timestamp) {
         this.currencyPair = currencyPair;
         this.timestamp = timestamp;
     }
 
-    public void addTrade(Trade trade) {
+    void addTrade(Trade trade) {
         double price = trade.getPrice();
         double tradeVolume = trade.getVolume();
 
@@ -36,11 +36,11 @@ public class CandleBuilder {
         hasTrades = true;
     }
 
-    public boolean hasTrades() {
+    boolean hasTrades() {
         return hasTrades;
     }
 
-    public Candle build() {
+    Candle build() {
         return Candle.newBuilder()
                 .setTimestamp(timestamp)
                 .setCurrencyPair(currencyPair)
