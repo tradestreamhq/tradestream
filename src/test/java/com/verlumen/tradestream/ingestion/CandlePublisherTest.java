@@ -11,8 +11,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoJUnit;
-import org.mockito.MockitoRule;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import java.time.Duration; 
 
