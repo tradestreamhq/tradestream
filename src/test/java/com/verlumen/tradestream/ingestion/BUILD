@@ -70,7 +70,6 @@ java_test(
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:org_apache_kafka_kafka_clients",
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher_impl",
     ],
 )
