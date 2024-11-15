@@ -23,7 +23,7 @@ public class CandleManagerTest {
     private static final long CANDLE_INTERVAL = 60000L;
     private static final String TEST_PAIR = "BTC/USD";
     
-    @Mock private CandlePublisher mockPublisher;
+    @Mock private CandlePublisherImpl mockPublisher;
     @Mock private PriceTracker mockPriceTracker;
     private CandleManager manager;
 

@@ -9,10 +9,10 @@ import java.util.concurrent.ConcurrentHashMap;
 class CandleManager {
     private final Map<String, CandleBuilder> candleBuilders = new ConcurrentHashMap<>();
     private final long candleIntervalMillis;
-    private final CandlePublisher publisher;
+    private final CandlePublisherImpl publisher;
     private final PriceTracker priceTracker;
 
-    CandleManager(long candleIntervalMillis, CandlePublisher publisher, PriceTracker priceTracker) {
+    CandleManager(long candleIntervalMillis, CandlePublisherImpl publisher, PriceTracker priceTracker) {
         this.candleIntervalMillis = candleIntervalMillis;
         this.publisher = publisher;
         this.priceTracker = priceTracker;
