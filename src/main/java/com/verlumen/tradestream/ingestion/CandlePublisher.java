@@ -7,6 +7,6 @@ interface CandlePublisher {
     public void close();
 
     interface Factory {
-        CandlePublisher create();
+        CandlePublisher create(String topic);
     }
 }
