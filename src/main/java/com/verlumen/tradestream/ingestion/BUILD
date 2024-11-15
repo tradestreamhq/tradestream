@@ -42,20 +42,19 @@ java_library(
     srcs = ["CandleManager.java"],
     deps = [
         ":candle-builder",
-        ":candle-publisher",
+        ":candle_publisher_impl",
         ":price-tracker",
         "//protos:marketdata_java_proto",
     ],
 )
 
 java_library(
-    name = "candle-publisher",
-    srcs = ["CandlePublisher.java"],
+    name = "candle_publisher_impl",
+    srcs = ["CandlePublisherImpl.java"],
     deps = [
         "//protos:marketdata_java_proto",
         "@maven//:org_apache_kafka_kafka_clients",
     ],
-    visibility = ["//visibility:public"],
 )
 
 container_structure_test(
