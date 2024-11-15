@@ -8,14 +8,18 @@ import com.google.common.collect.ImmutableList;
 import marketdata.Marketdata.Trade;
 import marketdata.Marketdata.Candle;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 
 @RunWith(TestParameterInjector.class)
 public class CandleManagerTest {
+    @Rule public MockitoRule rule = MockitoJUnit.rule();
+    
     private static final long CANDLE_INTERVAL = 60000L;
     private static final String TEST_PAIR = "BTC/USD";
     
@@ -25,7 +29,6 @@ public class CandleManagerTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
         manager = new CandleManager(CANDLE_INTERVAL, mockPublisher, mockPriceTracker);
     }
 
