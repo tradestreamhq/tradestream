@@ -20,12 +20,12 @@ public class CandlePublisherImplTest {
     
     @Mock
     private KafkaProducer<String, byte[]> mockProducer;
-    private CandlePublisher publisher;
+    private CandlePublisherImpl publisher;
 
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        publisher = new CandlePublisher(mockProducer, TEST_TOPIC);
+        publisher = new CandlePublisherImpl(mockProducer, TEST_TOPIC);
     }
 
     @Test
