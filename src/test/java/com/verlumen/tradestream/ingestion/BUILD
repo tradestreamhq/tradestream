@@ -53,21 +53,21 @@ java_test(
         "@maven//:com_google_guava_guava",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle-manager",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle-publisher",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher_impl",
         "//src/main/java/com/verlumen/tradestream/ingestion:price-tracker",
     ],
 )
 
 java_test(
-    name = "CandlePublisherTest",
-    srcs = ["CandlePublisherTest.java"],
+    name = "CandlePublisherImplTest",
+    srcs = ["CandlePublisherImplTest.java"],
     deps = [
         "@maven//:org_mockito_mockito_core",
         "@maven//:junit_junit",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:org_apache_kafka_kafka_clients",
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle-publisher",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher_impl",
     ],
 )
 

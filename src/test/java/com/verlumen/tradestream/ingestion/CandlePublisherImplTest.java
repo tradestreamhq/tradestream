@@ -7,28 +7,25 @@ import marketdata.Marketdata.Candle;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.MockitoAnnotations;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import java.time.Duration; 
 
 @RunWith(TestParameterInjector.class)
-public class CandlePublisherTest {
-    @Rule public MockitoRule mocks = MockitoJUnit.rule();
-
+public class CandlePublisherImplTest {
     private static final String TEST_TOPIC = "test-topic";
     
     @Mock
     private KafkaProducer<String, byte[]> mockProducer;
-    private CandlePublisher publisher;
+    private CandlePublisherImpl publisher;
 
     @Before
     public void setUp() {
-        publisher = new CandlePublisher(mockProducer, TEST_TOPIC);
+        MockitoAnnotations.openMocks(this);
+        publisher = new CandlePublisherImpl(mockProducer, TEST_TOPIC);
     }
 
     @Test
