@@ -11,12 +11,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import java.time.Duration; 
 
+
+import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+
 @RunWith(TestParameterInjector.class)
 public class CandlePublisherImplTest {
+    @Rule public MockitoRule rule = MockitoJUnit.rule();
+
     private static final String TEST_TOPIC = "test-topic";
     
     @Mock
@@ -25,7 +31,6 @@ public class CandlePublisherImplTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
         publisher = new CandlePublisherImpl(mockProducer, TEST_TOPIC);
     }
 
