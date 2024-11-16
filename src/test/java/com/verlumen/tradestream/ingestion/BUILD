@@ -54,6 +54,7 @@ java_test(
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:org_mockito_mockito_core",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher_impl",
     ],
 )
