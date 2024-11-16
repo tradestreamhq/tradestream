@@ -31,7 +31,7 @@ public class CandlePublisherImplTest {
 
     @Before
     public void setUp() {
-        publisher = new CandlePublisherImpl(mockProducer, TEST_TOPIC);
+        publisher = new CandlePublisherImpl(TEST_TOPIC, mockProducer);
     }
 
     @Test
