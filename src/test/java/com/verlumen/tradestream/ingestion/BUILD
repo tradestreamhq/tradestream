@@ -39,7 +39,7 @@ java_test(
         "@maven//:com_google_guava_guava",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher_impl",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
         "//src/main/java/com/verlumen/tradestream/ingestion:price_tracker",
     ],
 )

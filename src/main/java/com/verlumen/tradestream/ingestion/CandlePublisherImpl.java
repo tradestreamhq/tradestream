@@ -1,18 +1,23 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.auto.factory.AutoFactory;
+import com.google.auto.factory.Provided;
 import marketdata.Marketdata.Candle;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import java.time.Duration;
 
-class CandlePublisherImpl implements CandlePublisher {
+final class CandlePublisherImpl implements CandlePublisher {
     private final KafkaProducer<String, byte[]> kafkaProducer;
     private final String topic;
 
-    CandlePublisherImpl(KafkaProducer<String, byte[]> kafkaProducer, String topic) {
-        this.kafkaProducer = kafkaProducer;
+    @AutoFactory
+    CandlePublisherImpl(
+        String topic,
+        @Provided KafkaProducer<String, byte[]> kafkaProducer
+    ) {
         this.topic = topic;
+        this.kafkaProducer = kafkaProducer;
     }
 
     public void publishCandle(Candle candle) {
