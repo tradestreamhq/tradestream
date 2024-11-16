@@ -105,6 +105,8 @@ java_library(
     srcs = ["IngestionModule.java"],
     deps = [
         "@maven//:com_google_inject_guice",
+        ":candle_publisher",
+        ":candle_publisher_impl",
         ":market_data_ingestion",
         ":real_time_data_ingestion",
     ],
