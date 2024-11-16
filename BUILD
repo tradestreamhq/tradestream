@@ -66,6 +66,7 @@ java_plugin(
         "@maven//:com_google_guava_guava",
         "@maven//:com_squareup_javapoet",
         "@maven//:com_google_auto_factory_auto_factory",
+        "@maven//:javax_inject_javax_inject",
     ],
 )
 
