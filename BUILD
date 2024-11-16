@@ -1,98 +1,70 @@
-package(default_visibility = ["//visibility:public"])
-
 java_library(
-    name = "common",
-    exports = ["@maven//:com_google_auto_auto_common"],
-)
-
-java_plugin(
-    name = "auto_value_processor",
-    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
-    visibility = ["//visibility:private"],
-    deps = [
-        ":common",
-        ":service",
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_auto_value_auto_value",
+    name = "autofactory",
+    exported_plugins = [
+        ":autofactory_plugin",
     ],
-)
-
-java_plugin(
-    name = "auto_annotation_processor",
-    processor_class = "com.google.auto.value.processor.AutoAnnotationProcessor",
-    visibility = ["//visibility:private"],
-    deps = [
-        ":common",
-        ":service",
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_auto_value_auto_value",
-    ],
-)
-
-java_plugin(
-    name = "auto_oneof_processor",
-    processor_class = "com.google.auto.value.processor.AutoOneOfProcessor",
-    visibility = ["//visibility:private"],
-    deps = [
-        ":common",
-        ":service",
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_auto_value_auto_value",
+    neverlink = 1,
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_auto_auto_common",
+        "@maven//:com_google_auto_factory_auto_factory",
+        "@maven//:javax_annotation_javax_annotation_api",
+        "@maven//:javax_inject_javax_inject",
     ],
 )
 
 java_library(
     name = "autovalue",
     exported_plugins = [
-        ":auto_annotation_processor",
-        ":auto_oneof_processor",
-        ":auto_value_processor",
+        ":autovalue_plugin",
     ],
-    tags = ["maven:compile_only"],
+    neverlink = 1,
+    visibility = ["//visibility:public"],
     exports = [
-        # "//third_party/java/jsr250_annotations",  # TODO(ronshapiro) Can this be removed?
+        "@maven//:com_google_auto_value_auto_value",
         "@maven//:com_google_auto_value_auto_value_annotations",
     ],
 )
 
+java_library(
+    name = "autovalue_gson",
+    exported_plugins = [
+        ":autovalue_gson_plugin",
+    ],
+    neverlink = 1,
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_code_gson_gson",
+        "@maven//:com_ryanharter_auto_value_auto_value_gson",
+        "@maven//:com_ryanharter_auto_value_auto_value_gson_annotations",
+        "@maven//:com_ryanharter_auto_value_auto_value_gson_factory",
+    ],
+)
+
 java_plugin(
-    name = "auto_factory_processor",
-    generates_api = 1,
+    name = "autofactory_plugin",
     processor_class = "com.google.auto.factory.processor.AutoFactoryProcessor",
-    visibility = ["//visibility:private"],
     deps = [
-        ":common",
-        ":service",
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_squareup_javapoet",
+        "@maven//:com_google_auto_auto_common",
         "@maven//:com_google_auto_factory_auto_factory",
+        "@maven//:javax_annotation_javax_annotation_api",
         "@maven//:javax_inject_javax_inject",
     ],
 )
 
-java_library(
-    name = "autofactory",
-    exported_plugins = [":auto_factory_processor"],
-    exports = [
-        "@maven//:com_google_auto_factory_auto_factory",
-        "@maven//:javax_inject_javax_inject",        
+java_plugin(
+    name = "autovalue_plugin",
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    deps = [
+        "@maven//:com_google_auto_value_auto_value",
+        "@maven//:com_ryanharter_auto_value_auto_value_gson_factory",
     ],
 )
 
 java_plugin(
-    name = "auto_service_processor",
-    processor_class = "com.google.auto.service.processor.AutoServiceProcessor",
-    visibility = ["//visibility:private"],
+    name = "autovalue_gson_plugin",
+    processor_class = "com.ryanharter.auto.value.gson.factory.AutoValueGsonAdapterFactoryProcessor",
     deps = [
-        ":common",
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_auto_service_auto_service",
+        "@maven//:com_ryanharter_auto_value_auto_value_gson",
     ],
-)
-
-java_library(
-    name = "service",
-    exported_plugins = [":auto_service_processor"],
-    tags = ["maven:compile_only"],
-    exports = ["@maven//:com_google_auto_service_auto_service"],
 )
