@@ -14,7 +14,7 @@ java_binary(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":ingestion_module",
-        ":market-data-ingestion",
+        ":market_data_ingestion",
         ":real_time_data_ingestion",
     ],
 )
