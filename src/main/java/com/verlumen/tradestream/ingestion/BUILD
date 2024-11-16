@@ -143,10 +143,10 @@ java_library(
         "@maven//:org_knowm_xchange_xchange_stream_core",
         "@maven//:io_reactivex_rxjava3_rxjava",
         "//protos:marketdata_java_proto",
-        ":candle-manager",
-        ":candle-publisher",
-        ":market-data-ingestion",
-        ":trade-processor",
+        ":candle_manager",
+        ":candle_publisher",
+        ":market_data-ingestion",
+        ":trade_processor",
     ],
 )
 
