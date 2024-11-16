@@ -47,7 +47,6 @@ java_test(
     name = "CandlePublisherImplTest",
     srcs = ["CandlePublisherImplTest.java"],
     deps = [
-        "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:org_mockito_mockito_core",
