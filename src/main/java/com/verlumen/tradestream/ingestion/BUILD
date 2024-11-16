@@ -33,11 +33,6 @@ java_library(
 )
 
 java_library(
-    name = "candle-key",
-    srcs = ["CandleKey.java"],
-)
-
-java_library(
     name = "candle-manager",
     srcs = ["CandleManager.java"],
     deps = [
@@ -52,8 +47,8 @@ java_library(
     name = "candle_publisher",
     srcs = ["CandlePublisher.java"],
     deps = [
-        "//protos:marketdata_java_proto",        
-    ]
+        "//protos:marketdata_java_proto",
+    ],
 )
 
 java_library(
@@ -154,10 +149,10 @@ java_library(
 )
 
 java_library(
-    name = "trade-processor",
+    name = "trade_processor",
     srcs = ["TradeProcessor.java"],
     deps = [
-        ":candle-key",
+        "//:autovalue",
         "//protos:marketdata_java_proto",
     ],
     visibility = ["//visibility:public"],
