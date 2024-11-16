@@ -5,11 +5,17 @@ import marketdata.Marketdata.Candle;
 import java.time.Duration;
 
 interface CandlePublisher {
-    void publishCandle(Candle candle);
+    void publishCandle(PublishParams params);
 
     void close();
 
-    interface Factory {
-        CandlePublisher create(String topic);
+    @AutoValue
+    abstract class PublishParams {
+        static PublishParams create(String topic, Candle candle) {
+            return new AutoValue_CandlePublisher_PublishParams(topic, candle);
+        }
+
+        abstract String topic();
+        abstract Candle candle();
     }
 }
