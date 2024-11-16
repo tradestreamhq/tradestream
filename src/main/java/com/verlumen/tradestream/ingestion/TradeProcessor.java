@@ -21,4 +21,14 @@ final class TradeProcessor {
     long getMinuteTimestamp(long timestamp) {
         return (timestamp / candleIntervalMillis) * candleIntervalMillis;
     }
+
+    @AutoValue
+    abstract static class CandleKey {
+        private static CandleKey create(String tradeId, long minuteTimestamp) {
+            return new AutoValue_TradeProcessor_CandleKey(tradeId, minuteTimestamp);
+        }
+    
+        abstract String tradeId();
+        abstract long minuteTimestamp();
+    }
 }
