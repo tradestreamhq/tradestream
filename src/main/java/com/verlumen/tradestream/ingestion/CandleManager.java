@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.Inject;
 import marketdata.Marketdata.Trade;
 import marketdata.Marketdata.Candle;
 import java.util.List;
@@ -12,8 +14,12 @@ class CandleManager {
     private final CandlePublisher publisher;
     private final PriceTracker priceTracker;
 
-    CandleManager(long candleIntervalMillis, CandlePublisher publisher,
-                  PriceTracker priceTracker) {
+    @Inject
+    CandleManager(
+        CandlePublisher publisher,
+        PriceTracker priceTracker,
+        @Assisted long candleIntervalMillis
+    ) {
         this.candleIntervalMillis = candleIntervalMillis;
         this.publisher = publisher;
         this.priceTracker = priceTracker;
