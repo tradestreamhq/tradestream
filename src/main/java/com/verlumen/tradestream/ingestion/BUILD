@@ -6,22 +6,17 @@ load("//platforms:transition.bzl", "multi_arch")
 
 package(default_visibility = ["//visibility:public"])
 
-java_library(
-    name = "app-lib",
+java_binary(
+    name = "app",
     srcs = ["App.java"],
+    main_class = "com.verlumen.tradestream.ingestion.App",
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":ingestion_module",
         ":market-data-ingestion",
-        ":real-time-data-ingestion",
+        ":real_time_data_ingestion",
     ],
-)
-
-java_binary(
-    name = "app",
-    main_class = "com.verlumen.tradestream.ingestion.App",
-    runtime_deps = [":app-lib"],
 )
 
 java_library(
@@ -110,7 +105,7 @@ java_library(
     deps = [
         "@maven//:com_google_inject_guice",
         ":market-data-ingestion",
-        ":real-time-data-ingestion",
+        ":real_time_data_ingestion",
     ],
 )
 
@@ -140,7 +135,7 @@ oci_push(
 )
 
 java_library(
-    name = "real-time-data-ingestion",
+    name = "real_time_data_ingestion",
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
         "@maven//:com_google_inject_guice",
