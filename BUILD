@@ -68,7 +68,6 @@ java_plugin(
         "@maven//:com_google_auto_factory_auto_factory",
         "@maven//:javax_inject_javax_inject",
     ],
-    visibility = ["//visibility:public"],
 )
 
 java_library(
