@@ -30,19 +30,25 @@ public class CandlePublisherImplTest {
 
     @Test
     public void publishCandle_sendsToKafka() {
+        // Arrange
         Candle candle = Candle.newBuilder()
             .setCurrencyPair("BTC/USD")
             .setTimestamp(System.currentTimeMillis())
             .build();
 
+        // Act
         publisher.publishCandle(candle);
 
+        // Assert
         verify(mockProducer).send(any(ProducerRecord.class), any());
     }
 
     @Test
     public void close_closesProducer() {
+        // Act
         publisher.close();
+
+        // Assert
         verify(mockProducer).close(any(Duration.class));
     }
 }
