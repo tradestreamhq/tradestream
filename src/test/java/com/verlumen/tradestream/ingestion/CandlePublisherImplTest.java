@@ -3,6 +3,7 @@ package com.verlumen.tradestream.ingestion;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.google.inject.Guice;
 import com.google.inject.Inject;
 import marketdata.Marketdata.Candle;
 import org.apache.kafka.clients.producer.KafkaProducer;
