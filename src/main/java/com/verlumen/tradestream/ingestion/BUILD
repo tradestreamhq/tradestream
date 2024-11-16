@@ -20,7 +20,7 @@ java_binary(
 )
 
 java_library(
-    name = "candle-builder",
+    name = "candle_builder",
     srcs = ["CandleBuilder.java"],
     deps = [
         "//protos:marketdata_java_proto",
@@ -31,7 +31,7 @@ java_library(
     name = "candle-manager",
     srcs = ["CandleManager.java"],
     deps = [
-        ":candle-builder",
+        ":candle_builder",
         ":candle_publisher",
         ":price-tracker",
         "//protos:marketdata_java_proto",
