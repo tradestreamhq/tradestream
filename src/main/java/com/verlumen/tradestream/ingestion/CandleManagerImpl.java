@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.inject.assistedinject.Assisted;
 import com.google.inject.Inject;
 import marketdata.Marketdata.Trade;
 import marketdata.Marketdata.Candle;
