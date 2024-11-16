@@ -25,6 +25,7 @@ public class CandlePublisherImplTest {
     
     @Mock private KafkaProducer<String, byte[]> mockProducer;
     @Inject private CandlePublisherImpl publisher;
+    private CandlePublisherImplFactory factory;
 
     @Before
     public void setUp() {
