@@ -114,6 +114,15 @@ java_library(
     ],
 )
 
+java_library(
+    name = "kafka_producer_provider",
+    srcs = ["KafkaProducerProvider.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_apache_kafka_kafka_clients",
+    ],    
+)
+
 tar(
     name = "layer",
     srcs = [":app_deploy.jar"],
