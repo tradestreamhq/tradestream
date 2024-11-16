@@ -3,6 +3,7 @@ package com.verlumen.tradestream.ingestion;
 import static com.google.common.truth.Truth.assertThat;
 
 import marketdata.Marketdata.Trade;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
@@ -11,9 +12,15 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 public class TradeProcessorTest {
     private static final long CANDLE_INTERVAL = 60000L;
 
+    TradeProcessor processor = new TradeProcessor(CANDLE_INTERVAL);
+
+    @Before
+    public void setUp() {
+        processor = new TradeProcessor(CANDLE_INTERVAL);
+    }
+
     @Test
     public void duplicateTrade_isDetected() {
-        TradeProcessor processor = new TradeProcessor(CANDLE_INTERVAL);
         Trade trade = Trade.newBuilder()
                 .setTradeId("123")
                 .setTimestamp(System.currentTimeMillis())
@@ -25,7 +32,6 @@ public class TradeProcessorTest {
 
     @Test
     public void differentMinutes_sameTrade_notDuplicate() {
-        TradeProcessor processor = new TradeProcessor(CANDLE_INTERVAL);
         long baseTime = System.currentTimeMillis();
         
         Trade trade1 = Trade.newBuilder()
