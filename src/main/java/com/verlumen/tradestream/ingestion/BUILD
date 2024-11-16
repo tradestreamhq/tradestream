@@ -109,6 +109,7 @@ java_library(
         "@maven//:org_apache_kafka_kafka_clients",
         ":candle_publisher",
         ":candle_publisher_impl",
+        ":kafka_producer_provider",
         ":market_data_ingestion",
         ":real_time_data_ingestion",
     ],
