@@ -12,7 +12,7 @@ java_test(
         "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",
         "//src/main/java/com/verlumen/tradestream/ingestion:app",
-        "//src/main/java/com/verlumen/tradestream/ingestion:market-data-ingestion",
+        "//src/main/java/com/verlumen/tradestream/ingestion:market_data_ingestion",
     ],
 )
 
