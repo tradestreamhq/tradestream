@@ -138,6 +138,7 @@ java_library(
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
         "@maven//:com_google_inject_guice",
+        ":candle_publisher",
         ":market_data_ingestion",
     ]
 )
