@@ -1,16 +1,15 @@
 import ocm.google.inject.Inject;
 import ocm.google.inject.Provider;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
 
 import java.util.Properties;
 
-final class KafkaProducerProvider implements Provider<KafkaProducer<String, String>> {
+final class KafkaProducerProvider implements Provider<KafkaProducer<String, byte[]>> {
   @Inject
   KafkaProducerProvider() {}
 
   @Override
-  public Producer<String, String> get() {
+  public KafkaProducer<String, byte[]> get() {
       Properties props = new Properties();
       props.put("bootstrap.servers", "localhost:9092");
       props.put("acks", "all");
