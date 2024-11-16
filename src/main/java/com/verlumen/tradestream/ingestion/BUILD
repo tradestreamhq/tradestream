@@ -50,7 +50,6 @@ java_library(
 java_library(
     name = "candle_publisher_impl",
     srcs = ["CandlePublisherImpl.java"],
-    plugins = ["//:autofactory_plugin"],
     deps = [
         "@maven//:org_apache_kafka_kafka_clients",
         "//:autofactory",
