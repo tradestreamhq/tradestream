@@ -31,8 +31,8 @@ java_library(
     name = "candle_manager",
     srcs = ["CandleManager.java"],
     deps = [
-        "//protos:marketdata_java_proto",
         "//:autofactory",
+        "//protos:marketdata_java_proto",
         ":candle_builder",
         ":candle_publisher",
         ":price_tracker",
@@ -43,6 +43,7 @@ java_library(
     name = "candle_publisher",
     srcs = ["CandlePublisher.java"],
     deps = [
+        "//:autovalue",
         "//protos:marketdata_java_proto",
     ],
 )
