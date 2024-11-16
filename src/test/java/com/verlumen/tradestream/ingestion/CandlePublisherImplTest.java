@@ -27,11 +27,11 @@ public class CandlePublisherImplTest {
     private static final String TEST_TOPIC = "test-topic";
     
     @Mock @Bind private KafkaProducer<String, byte[]> mockProducer;
-    @Inject private CandlePublisherImplFactory factory;
+    @Inject private CandlePublisher.Factory factory;
 
     @Before
     public void setUp() {
-        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+        Guice.createInjector(BoundFieldModule.of(this), new TestModule()).injectMembers(this);
     }
 
     @Test
@@ -56,5 +56,12 @@ public class CandlePublisherImplTest {
 
         // Assert
         verify(mockProducer).close(any(Duration.class));
+    }
+
+    private static class TestModule extends AbstractModule {
+        @Override
+        protected void configure() {
+            bind(CandlePublisher.Factory.class).to(CandlePublisherImplFactory.class);
+        }
     }
 }
