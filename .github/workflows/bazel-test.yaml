@@ -12,9 +12,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Bazelisk
-      uses: philwo/bazelisk-action@v1
-
     - name: Compute Cache Key
       id: compute-cache-key
       run: |
@@ -28,7 +25,7 @@ jobs:
         path: |
           ~/.cache/bazel
           .bazel-disk-cache
-          external_dependency_dir # Replace with actual dependency directories if any
+
         key: ${{ env.CACHE_KEY }}
         restore-keys: |
           bazel-cache-${{ env.BAZEL_VERSION }}-
