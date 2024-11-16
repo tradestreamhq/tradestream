@@ -24,7 +24,7 @@ java_test(
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle-builder",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_builder",
     ],
 )
 
