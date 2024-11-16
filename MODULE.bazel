@@ -38,16 +38,19 @@ maven.install(
         "org.knowm.xchange:xchange-stream-coinbasepro:5.2.0",
         # Make sure we use RxJava 3.x as that's what xchange-stream uses
         "io.reactivex.rxjava3:rxjava:3.1.6",
+        "javax.inject:javax.inject:1",
         "com.google.guava:guava:31.1-jre",
         "com.google.inject:guice:7.0.0",
         "com.google.protobuf:protobuf-java:3.21.12",
         "org.apache.kafka:kafka-clients:3.6.1",
         "org.slf4j:slf4j-api:2.0.12",
+
+        # Test Dependencies
+        "com.google.inject.extensions:guice-testlib:7.0.0",
+        "com.google.testparameterinjector:test-parameter-injector:1.9",
+        "com.google.truth:truth:1.1.2",
         "junit:junit:4.13.2",
         "org.mockito:mockito-core:4.3.1",
-        "com.google.inject.extensions:guice-testlib:7.0.0",
-        "com.google.truth:truth:1.1.2",
-        "com.google.testparameterinjector:test-parameter-injector:1.9",
     ],
     fetch_sources = True,
     repositories = [
