@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.auto.value.AutoValue;
 import marketdata.Marketdata.Trade;
 
 import java.util.Set;
@@ -14,11 +15,21 @@ final class TradeProcessor {
     }
 
     boolean isProcessed(Trade trade) {
-        CandleKey key = new CandleKey(trade.getTradeId(), getMinuteTimestamp(trade.getTimestamp()));
+        CandleKey key = CandleKey.create(trade.getTradeId(), getMinuteTimestamp(trade.getTimestamp()));
         return !processedTrades.add(key);
     }
 
     long getMinuteTimestamp(long timestamp) {
         return (timestamp / candleIntervalMillis) * candleIntervalMillis;
+    }
+
+    @AutoValue
+    abstract static class CandleKey {
+        private static CandleKey create(String tradeId, long minuteTimestamp) {
+            return new AutoValue_TradeProcessor_CandleKey(tradeId, minuteTimestamp);
+        }
+    
+        abstract String tradeId();
+        abstract long minuteTimestamp();
     }
 }
