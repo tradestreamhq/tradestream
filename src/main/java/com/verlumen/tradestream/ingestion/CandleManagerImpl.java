@@ -22,9 +22,10 @@ final class CandleManagerImpl implements CandleManager {
         @Assisted long candleIntervalMillis,
         @Assisted String topic
     ) {
-        this.candleIntervalMillis = candleIntervalMillis;
-        this.publisher = publisher;
+        this.candlePublisherFactory = candlePublisherFactory;
         this.priceTracker = priceTracker;
+        this.candleIntervalMillis = candleIntervalMillis;
+        this.topic = topic;
     }
 
     @Override
