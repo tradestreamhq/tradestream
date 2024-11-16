@@ -37,7 +37,7 @@ java_test(
         "@maven//:org_mockito_mockito_core",
         "@maven//:com_google_guava_guava",
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager_impl",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
         "//src/main/java/com/verlumen/tradestream/ingestion:price_tracker",
     ],
