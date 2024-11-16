@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.inject.Inject;
 import marketdata.Marketdata.Trade;
 import marketdata.Marketdata.Candle;
 import java.util.List;
@@ -8,12 +9,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 final class CandleManagerImpl implements CandleManager {
     private final Map<String, CandleBuilder> candleBuilders = new ConcurrentHashMap<>();
-    private final long candleIntervalMillis;
-    private final CandlePublisher publisher;
+    private final CandlePublisher.Factory candlePublisherFactory;
     private final PriceTracker priceTracker;
+    private final long candleIntervalMillis;
+    private final String topic;
 
-    CandleManagerImpl(long candleIntervalMillis, CandlePublisher publisher,
-                  PriceTracker priceTracker) {
+    @Inject
+    CandleManagerImpl(
+        CandlePublisher.Factory candlePublisherFactory,
+        PriceTracker priceTracker,
+        @Assisted long candleIntervalMillis,
+        @Assisted String topic
+    ) {
         this.candleIntervalMillis = candleIntervalMillis;
         this.publisher = publisher;
         this.priceTracker = priceTracker;
