@@ -25,7 +25,7 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 
 @RunWith(TestParameterInjector.class)
 public class CandlePublisherImplTest {
-    @Rule public MockitoRule rule = MockitoJUnit.rule();
+    @Rule public MockitoRule mocks = MockitoJUnit.rule();
 
     private static final String TEST_TOPIC = "test-topic";
     

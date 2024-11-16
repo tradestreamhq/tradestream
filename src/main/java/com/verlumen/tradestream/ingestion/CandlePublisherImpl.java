@@ -16,8 +16,8 @@ final class CandlePublisherImpl implements CandlePublisher {
         String topic,
         @Provided KafkaProducer<String, byte[]> kafkaProducer
     ) {
-        this.kafkaProducer = kafkaProducer;
         this.topic = topic;
+        this.kafkaProducer = kafkaProducer;
     }
 
     public void publishCandle(Candle candle) {
