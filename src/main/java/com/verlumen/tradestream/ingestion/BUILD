@@ -28,8 +28,8 @@ java_library(
 )
 
 java_library(
-    name = "candle_manager",
-    srcs = ["CandleManager.java"],
+    name = "candle_manager_impl",
+    srcs = ["CandleManagerImpl.java"],
     deps = [
         "//protos:marketdata_java_proto",
         ":candle_builder",
@@ -50,6 +50,8 @@ java_library(
     name = "candle_publisher_impl",
     srcs = ["CandlePublisherImpl.java"],
     deps = [
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
+        "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
         "//protos:marketdata_java_proto",
         ":candle_publisher",
@@ -102,7 +104,10 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
+        ":candle_publisher",
+        ":candle_publisher_impl",
         ":market_data_ingestion",
         ":real_time_data_ingestion",
     ],
