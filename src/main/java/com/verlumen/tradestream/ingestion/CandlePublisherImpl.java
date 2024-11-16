@@ -11,6 +11,7 @@ final class CandlePublisherImpl implements CandlePublisher {
     private final KafkaProducer<String, byte[]> kafkaProducer;
     private final String topic;
 
+    @AutoFactory
     CandlePublisherImpl(
         String topic,
         @Provided KafkaProducer<String, byte[]> kafkaProducer
