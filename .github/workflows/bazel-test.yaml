@@ -11,9 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Mount bazel cache
+
+    - name: Cache Bazel Build
       uses: actions/cache@v4
       with:
-        path: "~/.cache/bazel"
-        key: bazel
-    - run: bazel test //... --test_output=all
+        path: |
+          ~/.cache/bazel
+        key: ${{ runner.os }}-bazel-${{ github.ref_name }}-${{ hashFiles('WORKSPACE', '**/BUILD', '**/*.bzl', 'bazel.rc') }}
+        restore-keys: |
+          ${{ runner.os }}-bazel-${{ github.ref_name }}-
+          ${{ runner.os }}-bazel-
+
+    - name: Run Bazel Tests
+      run: bazel test //... --test_output=errors
