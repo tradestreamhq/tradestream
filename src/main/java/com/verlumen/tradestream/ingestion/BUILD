@@ -152,7 +152,7 @@ java_library(
 )
 
 java_library(
-    name = "trade-processor",
+    name = "trade_processor",
     srcs = ["TradeProcessor.java"],
     deps = [
         ":candle-key",
