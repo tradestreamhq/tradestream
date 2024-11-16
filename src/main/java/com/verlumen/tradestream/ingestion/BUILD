@@ -14,13 +14,13 @@ java_binary(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":ingestion_module",
-        ":market-data-ingestion",
+        ":market_data_ingestion",
         ":real_time_data_ingestion",
     ],
 )
 
 java_library(
-    name = "candle-builder",
+    name = "candle_builder",
     srcs = ["CandleBuilder.java"],
     deps = [
         "//protos:marketdata_java_proto",
@@ -28,13 +28,13 @@ java_library(
 )
 
 java_library(
-    name = "candle-manager",
+    name = "candle_manager",
     srcs = ["CandleManager.java"],
     deps = [
-        ":candle-builder",
-        ":candle_publisher",
-        ":price-tracker",
         "//protos:marketdata_java_proto",
+        ":candle_builder",
+        ":candle_publisher",
+        ":price_tracker",
     ],
 )
 
@@ -104,7 +104,7 @@ java_library(
     srcs = ["IngestionModule.java"],
     deps = [
         "@maven//:com_google_inject_guice",
-        ":market-data-ingestion",
+        ":market_data_ingestion",
         ":real_time_data_ingestion",
     ],
 )
@@ -115,12 +115,12 @@ tar(
 )
 
 java_library(
-    name = "market-data-ingestion",
+    name = "market_data_ingestion",
     srcs = ["MarketDataIngestion.java"],
 )
 
 java_library(
-    name = "price-tracker",
+    name = "price_tracker",
     srcs = ["PriceTracker.java"],
     deps = [
         "@maven//:com_google_inject_guice",        
@@ -139,7 +139,7 @@ java_library(
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
         "@maven//:com_google_inject_guice",
-        ":market-data-ingestion",
+        ":market_data_ingestion",
     ]
 )
 

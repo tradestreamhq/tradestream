@@ -7,9 +7,9 @@ import com.google.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import org.junit.runners.JUnit4;
 
-@RunWith(TestParameterInjector.class)
+@RunWith(JUnit4.class)
 public class PriceTrackerTest {
     private static final String TEST_PAIR = "BTC/USD";
     @Inject private PriceTracker tracker;
