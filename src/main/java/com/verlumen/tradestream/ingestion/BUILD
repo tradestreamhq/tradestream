@@ -41,6 +41,7 @@ java_library(
     deps = [
         "//protos:marketdata_java_proto",
         ":candle_builder",
+        ":candle_manager",
         ":candle_publisher",
         ":price_tracker",
     ],
