@@ -1,5 +1,5 @@
-import ocm.google.inject.Inject;
-import ocm.google.inject.Provider;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import org.apache.kafka.clients.producer.KafkaProducer;
 
 import java.util.Properties;
