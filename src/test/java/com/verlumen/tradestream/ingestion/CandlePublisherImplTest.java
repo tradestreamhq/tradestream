@@ -3,6 +3,7 @@ package com.verlumen.tradestream.ingestion;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.google.inject.Inject;
 import marketdata.Marketdata.Candle;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -22,9 +23,8 @@ public class CandlePublisherImplTest {
 
     private static final String TEST_TOPIC = "test-topic";
     
-    @Mock
-    private KafkaProducer<String, byte[]> mockProducer;
-    private CandlePublisherImpl publisher;
+    @Mock private KafkaProducer<String, byte[]> mockProducer;
+    @Inject private CandlePublisherImpl publisher;
 
     @Before
     public void setUp() {
