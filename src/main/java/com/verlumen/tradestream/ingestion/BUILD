@@ -14,7 +14,7 @@ java_library(
         "@maven//:com_google_inject_guice",
         ":ingestion_module",
         ":market-data-ingestion",
-        ":real-time-data-ingestion",
+        ":real_time_data_ingestion",
     ],
 )
 
@@ -108,7 +108,7 @@ java_library(
     deps = [
         "@maven//:com_google_inject_guice",
         ":market-data-ingestion",
-        ":real-time-data-ingestion",
+        ":real_time_data_ingestion",
     ],
 )
 
@@ -138,7 +138,7 @@ oci_push(
 )
 
 java_library(
-    name = "real-time-data-ingestion",
+    name = "real_time_data_ingestion",
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
         "@maven//:com_google_inject_guice",
