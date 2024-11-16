@@ -7,8 +7,9 @@ load("//platforms:transition.bzl", "multi_arch")
 package(default_visibility = ["//visibility:public"])
 
 java_binary(
-    name = "App",
+    name = "app",
     srcs = ["App.java"],
+    main_class = "com.verlumen.tradestream.ingestion.App",
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
