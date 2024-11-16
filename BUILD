@@ -2,7 +2,7 @@ package(default_visibility = ["//visibility:public"])
 
 java_library(
     name = "common",
-    exports = ["@com_google_auto_auto_common//jar"],
+    exports = ["@maven//:com_google_auto_auto_common"],
 )
 
 java_plugin(
@@ -12,8 +12,8 @@ java_plugin(
     deps = [
         ":common",
         ":service",
-        "//third_party/java/guava",
-        "@com_google_auto_value_auto_value//jar",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_auto_value_auto_value",
     ],
 )
 
@@ -24,8 +24,8 @@ java_plugin(
     deps = [
         ":common",
         ":service",
-        "//third_party/java/guava",
-        "@com_google_auto_value_auto_value//jar",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_auto_value_auto_value",
     ],
 )
 
@@ -36,8 +36,8 @@ java_plugin(
     deps = [
         ":common",
         ":service",
-        "//third_party/java/guava",
-        "@com_google_auto_value_auto_value//jar",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_auto_value_auto_value",
     ],
 )
 
@@ -63,7 +63,7 @@ java_plugin(
     deps = [
         ":common",
         ":service",
-        "//third_party/java/guava",
+        "@maven//:com_google_guava_guava",
         "//third_party/java/javapoet",
         "@maven//:com_google_auto_factory_auto_factory",
     ],
@@ -81,7 +81,7 @@ java_plugin(
     visibility = ["//visibility:private"],
     deps = [
         ":common",
-        "//third_party/java/guava",
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_auto_service_auto_service",
     ],
 )
