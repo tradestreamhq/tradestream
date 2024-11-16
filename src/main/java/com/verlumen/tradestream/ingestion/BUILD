@@ -104,7 +104,7 @@ java_library(
     srcs = ["IngestionModule.java"],
     deps = [
         "@maven//:com_google_inject_guice",
-        ":market-data-ingestion",
+        ":market_data_ingestion",
         ":real_time_data_ingestion",
     ],
 )
@@ -139,7 +139,7 @@ java_library(
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
         "@maven//:com_google_inject_guice",
-        ":market-data-ingestion",
+        ":market_data_ingestion",
     ]
 )
 
