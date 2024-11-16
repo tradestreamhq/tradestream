@@ -9,7 +9,7 @@ import org.knowm.xchange.currency.CurrencyPair;
 
 import java.util.*;
 
-class RealTimeDataIngestion implements MarketDataIngestion {
+final class RealTimeDataIngestion implements MarketDataIngestion {
     private final StreamingExchange exchange;
     private final StreamingMarketDataService marketDataService;
     private final List<String> currencyPairs;
