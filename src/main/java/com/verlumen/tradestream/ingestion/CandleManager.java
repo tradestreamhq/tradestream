@@ -4,8 +4,12 @@ import marketdata.Marketdata.Trade;
 
 import java.util.List;
 
-interface CandleManager {
+public interface CandleManager {
     void processTrade(Trade trade);
 
     void handleThinlyTradedMarkets(List<String> currencyPairs);
+
+    interface Factory {
+        CandleManager create(long candleIntervalMillis, String topic);
+    }
 }
