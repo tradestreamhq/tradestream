@@ -47,12 +47,14 @@ java_test(
     name = "CandlePublisherImplTest",
     srcs = ["CandlePublisherImplTest.java"],
     deps = [
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_extensions_guice_testlib",
         "@maven//:com_google_inject_guice",
         "@maven//:junit_junit",
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:org_mockito_mockito_core",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher_impl",
     ],
 )
