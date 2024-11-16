@@ -73,7 +73,10 @@ java_plugin(
 java_library(
     name = "autofactory",
     exported_plugins = [":auto_factory_processor"],
-    exports = ["@maven//:com_google_auto_factory_auto_factory"],
+    exports = [
+        "@maven//:com_google_auto_factory_auto_factory",
+        "@maven//:javax_inject_javax_inject",        
+    ],
 )
 
 java_plugin(
