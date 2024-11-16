@@ -7,7 +7,7 @@ import java.util.Properties;
 
 final class KafkaProducerProvider implements Provider<KafkaProducer<String, String>> {
   @Inject
-  KafkaProducerFactoryImpl() {}
+  KafkaProducerProvider() {}
 
   @Override
   public Producer<String, String> get() {
