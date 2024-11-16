@@ -31,10 +31,10 @@ java_library(
     name = "candle_manager",
     srcs = ["CandleManager.java"],
     deps = [
+        "//protos:marketdata_java_proto",
         ":candle_builder",
         ":candle_publisher",
-        ":price-tracker",
-        "//protos:marketdata_java_proto",
+        ":price_tracker",
     ],
 )
 
@@ -120,7 +120,7 @@ java_library(
 )
 
 java_library(
-    name = "price-tracker",
+    name = "price_tracker",
     srcs = ["PriceTracker.java"],
     deps = [
         "@maven//:com_google_inject_guice",        
