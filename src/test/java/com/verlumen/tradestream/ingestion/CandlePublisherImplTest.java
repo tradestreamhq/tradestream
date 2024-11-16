@@ -37,7 +37,7 @@ public class CandlePublisherImplTest {
             new FactoryModuleBuilder()
                  .implement(CandlePublisher.class, CandlePublisherImpl.class)
                  .build(CandlePublisher.Factory.class)
-        )
+        );
     }
 
     @Test
