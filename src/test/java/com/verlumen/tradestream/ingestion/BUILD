@@ -48,10 +48,10 @@ java_test(
     name = "CandlePublisherImplTest",
     srcs = ["CandlePublisherImplTest.java"],
     deps = [
-        "@maven//:org_mockito_mockito_core",
-        "@maven//:junit_junit",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
         "@maven//:org_apache_kafka_kafka_clients",
+        "@maven//:org_mockito_mockito_core",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher_impl",
     ],
@@ -65,7 +65,7 @@ java_test(
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
-        "//src/main/java/com/verlumen/tradestream/ingestion:price-tracker",
+        "//src/main/java/com/verlumen/tradestream/ingestion:price_tracker",
     ],
 )
 
