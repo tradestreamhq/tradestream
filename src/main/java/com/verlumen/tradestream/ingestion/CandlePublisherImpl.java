@@ -6,11 +6,11 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import java.time.Duration;
 
-class CandlePublisherImpl implements CandlePublisher {
+final class CandlePublisherImpl implements CandlePublisher {
     private final KafkaProducer<String, byte[]> kafkaProducer;
     private final String topic;
 
-    CandlePublisherImpl(KafkaProducer<String, byte[]> kafkaProducer, String topic) {
+    CandlePublisherImpl(String topic, KafkaProducer<String, byte[]> kafkaProducer) {
         this.kafkaProducer = kafkaProducer;
         this.topic = topic;
     }
