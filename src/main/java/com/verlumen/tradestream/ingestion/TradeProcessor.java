@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.auto.value.AutoValue;
 import marketdata.Marketdata.Trade;
 
 import java.util.Set;
