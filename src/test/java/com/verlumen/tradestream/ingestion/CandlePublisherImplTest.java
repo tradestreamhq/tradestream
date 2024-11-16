@@ -35,8 +35,8 @@ public class CandlePublisherImplTest {
         Guice.createInjector(
             BoundFieldModule.of(this), 
             new FactoryModuleBuilder()
-                .implement(Payment.class, RealPayment.class)
-                 .build(PaymentFactory.class)
+                 .implement(CandleUpdater.class, CandleUpdaterImpl.class)
+                 .build(CandleUpdater.Factory.class)
         )
     }
 
