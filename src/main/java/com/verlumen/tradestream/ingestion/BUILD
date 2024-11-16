@@ -142,6 +142,7 @@ java_library(
     name = "trade-processor",
     srcs = ["TradeProcessor.java"],
     deps = [
+        "//:autovalue",
         "//protos:marketdata_java_proto",
     ],
     visibility = ["//visibility:public"],
