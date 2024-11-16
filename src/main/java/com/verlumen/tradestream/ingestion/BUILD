@@ -104,6 +104,7 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
         ":candle_publisher",
         ":candle_publisher_impl",
