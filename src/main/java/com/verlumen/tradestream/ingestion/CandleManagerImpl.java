@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class CandleManagerImpl {
+class CandleManagerImpl implements CandleManager {
     private final Map<String, CandleBuilder> candleBuilders = new ConcurrentHashMap<>();
     private final long candleIntervalMillis;
     private final CandlePublisher publisher;
