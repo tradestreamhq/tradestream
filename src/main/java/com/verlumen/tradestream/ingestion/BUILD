@@ -7,7 +7,7 @@ load("//platforms:transition.bzl", "multi_arch")
 package(default_visibility = ["//visibility:public"])
 
 java_binary(
-    name = "app",
+    name = "App",
     srcs = ["App.java"],
     deps = [
         "@maven//:com_google_guava_guava",
