@@ -10,10 +10,6 @@ java_binary(
     name = "app",
     main_class = "com.verlumen.tradestream.ingestion.App",
     runtime_deps = [":app-lib"],
-)
-
-java_library(
-    name = "app-lib",
     srcs = ["App.java"],
     deps = [
         "@maven//:com_google_guava_guava",
