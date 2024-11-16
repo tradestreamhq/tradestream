@@ -26,6 +26,7 @@ final class CandleManagerImpl implements CandleManager {
         this.priceTracker = priceTracker;
     }
 
+    @Override
     public void processTrade(Trade trade) {
         long minuteTimestamp = getMinuteTimestamp(trade.getTimestamp());
         String key = getCandleKey(trade.getCurrencyPair(), minuteTimestamp);
@@ -43,6 +44,7 @@ final class CandleManagerImpl implements CandleManager {
         }
     }
 
+    @Override
     public void handleThinlyTradedMarkets(List<String> currencyPairs) {
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
         for (String pair : currencyPairs) {
