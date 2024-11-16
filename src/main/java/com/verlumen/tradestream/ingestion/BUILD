@@ -14,7 +14,7 @@ java_binary(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":ingestion_module",
-        ":market-data-ingestion",
+        ":market_data_ingestion",
         ":real_time_data_ingestion",
     ],
 )
@@ -104,7 +104,7 @@ java_library(
     srcs = ["IngestionModule.java"],
     deps = [
         "@maven//:com_google_inject_guice",
-        ":market-data-ingestion",
+        ":market_data_ingestion",
         ":real_time_data_ingestion",
     ],
 )
@@ -115,7 +115,7 @@ tar(
 )
 
 java_library(
-    name = "market-data-ingestion",
+    name = "market_data_ingestion",
     srcs = ["MarketDataIngestion.java"],
 )
 
@@ -139,7 +139,7 @@ java_library(
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
         "@maven//:com_google_inject_guice",
-        ":market-data-ingestion",
+        ":market_data_ingestion",
     ]
 )
 
