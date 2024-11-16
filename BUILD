@@ -6,7 +6,9 @@ java_library(
     neverlink = 1,
     visibility = ["//visibility:public"],
     exports = [
+        "@maven//:com_google_auto_auto_common",
         "@maven//:com_google_auto_factory_auto_factory",
+        "@maven//:javax_annotation_javax_annotation_api",
         "@maven//:javax_inject_javax_inject",
     ],
 )
@@ -43,7 +45,10 @@ java_plugin(
     name = "autofactory_plugin",
     processor_class = "com.google.auto.factory.processor.AutoFactoryProcessor",
     deps = [
+        "@maven//:com_google_auto_auto_common",
         "@maven//:com_google_auto_factory_auto_factory",
+        "@maven//:javax_annotation_javax_annotation_api",
+        "@maven//:javax_inject_javax_inject",
     ],
 )
 
