@@ -7,7 +7,7 @@ load("//platforms:transition.bzl", "multi_arch")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
-    name = "app-lib",
+    name = "app",
     srcs = ["App.java"],
     deps = [
         "@maven//:com_google_guava_guava",
@@ -21,7 +21,7 @@ java_library(
 java_binary(
     name = "app",
     main_class = "com.verlumen.tradestream.ingestion.App",
-    runtime_deps = [":app-lib"],
+    runtime_deps = [":app"],
 )
 
 java_library(
