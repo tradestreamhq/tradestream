@@ -9,7 +9,7 @@ final class IngestionModule extends AbstractModule {
     bind(MarketDataIngestion.class).to(RealTimeDataIngestion.class);
 
     install(new FactoryModuleBuilder()
-     .implement(CandleUpdater.class, CandleUpdaterImpl.class)
-     .build(CandleUpdater.Factory.class));
+     .implement(CandlePublisher.class, CandlePublisherImpl.class)
+     .build(CandlePublisher.Factory.class));
   }
 }
