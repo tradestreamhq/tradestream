@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
-import com.google.auto.factory.AutoFactory;
-import com.google.auto.factory.Provided;
+import com.google.inject.Inject;
 import marketdata.Marketdata.Candle;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -9,22 +8,17 @@ import java.time.Duration;
 
 final class CandlePublisherImpl implements CandlePublisher {
     private final KafkaProducer<String, byte[]> kafkaProducer;
-    private final String topic;
 
-    @AutoFactory(implementing = CandlePublisher.Factory.class)
-    CandlePublisherImpl(
-        String topic,
-        @Provided KafkaProducer<String, byte[]> kafkaProducer
-    ) {
-        this.topic = topic;
+    @Inject
+    CandlePublisherImpl(KafkaProducer<String, byte[]> kafkaProducer) {
         this.kafkaProducer = kafkaProducer;
     }
 
-    public void publishCandle(Candle candle) {
+    public void publishCandle(PublishParams params) {
         ProducerRecord<String, byte[]> record = new ProducerRecord<>(
-            topic,
-            candle.getCurrencyPair(),
-            candle.toByteArray()
+            params.topic(),
+            params.candle().getCurrencyPair(),
+            params.candle().toByteArray()
         );
 
         kafkaProducer.send(record, (metadata, exception) -> {
