@@ -24,14 +24,14 @@ import java.time.Duration;
 public class CandlePublisherImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
 
-    private static final String TEST_TOPIC = "test-topic";
+    private static final String TOPIC = "test-topic";
     
-    @Mock private KafkaProducer<String, byte[]> mockProducer;
+    @Mock @Bind private KafkaProducer<String, byte[]> mockProducer;
     @Inject private CandlePublisherImpl publisher;
 
     @Before
     public void setUp() {
-        publisher = new CandlePublisherImpl(TEST_TOPIC, mockProducer);
+        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
     @Test
@@ -41,6 +41,7 @@ public class CandlePublisherImplTest {
             .setCurrencyPair("BTC/USD")
             .setTimestamp(System.currentTimeMillis())
             .build();
+        PublishParams params = PublishParams.create(TOPIC, candle);
 
         // Act
         publisher.publishCandle(candle);
