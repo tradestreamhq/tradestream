@@ -2,19 +2,21 @@ package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import org.junit.runners.JUnit4;
 
-@RunWith(TestParameterInjector.class)
+@RunWith(JUnit4.class)
 public class PriceTrackerTest {
     private static final String TEST_PAIR = "BTC/USD";
-    private PriceTracker tracker;
+    @Inject private PriceTracker tracker;
 
     @Before
     public void setUp() {
-        tracker = new PriceTracker();
+        Guice.createInjector().injectMembers(this);
     }
 
     @Test

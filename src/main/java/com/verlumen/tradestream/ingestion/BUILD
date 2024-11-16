@@ -8,20 +8,19 @@ package(default_visibility = ["//visibility:public"])
 
 java_binary(
     name = "app",
-    main_class = "com.verlumen.tradestream.ingestion.App",
-    runtime_deps = [":app-lib"],
     srcs = ["App.java"],
+    main_class = "com.verlumen.tradestream.ingestion.App",
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":ingestion_module",
-        ":market-data-ingestion",
-        ":real-time-data-ingestion",
+        ":market_data_ingestion",
+        ":real_time_data_ingestion",
     ],
 )
 
 java_library(
-    name = "candle-builder",
+    name = "candle_builder",
     srcs = ["CandleBuilder.java"],
     deps = [
         "//protos:marketdata_java_proto",
@@ -29,29 +28,33 @@ java_library(
 )
 
 java_library(
-    name = "candle-key",
-    srcs = ["CandleKey.java"],
-)
-
-java_library(
-    name = "candle-manager",
+    name = "candle_manager",
     srcs = ["CandleManager.java"],
     deps = [
-        ":candle-builder",
-        ":candle-publisher",
-        ":price-tracker",
         "//protos:marketdata_java_proto",
+        ":candle_builder",
+        ":candle_publisher",
+        ":price_tracker",
     ],
 )
 
 java_library(
-    name = "candle-publisher",
+    name = "candle_publisher",
     srcs = ["CandlePublisher.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "@maven//:org_apache_kafka_kafka_clients",
     ],
-    visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "candle_publisher_impl",
+    srcs = ["CandlePublisherImpl.java"],
+    deps = [
+        "@maven//:org_apache_kafka_kafka_clients",
+        "//:autofactory",
+        "//protos:marketdata_java_proto",
+        ":candle_publisher",
+    ],
 )
 
 container_structure_test(
@@ -101,8 +104,8 @@ java_library(
     srcs = ["IngestionModule.java"],
     deps = [
         "@maven//:com_google_inject_guice",
-        ":market-data-ingestion",
-        ":real-time-data-ingestion",
+        ":market_data_ingestion",
+        ":real_time_data_ingestion",
     ],
 )
 
@@ -112,14 +115,16 @@ tar(
 )
 
 java_library(
-    name = "market-data-ingestion",
+    name = "market_data_ingestion",
     srcs = ["MarketDataIngestion.java"],
 )
 
 java_library(
-    name = "price-tracker",
+    name = "price_tracker",
     srcs = ["PriceTracker.java"],
-    visibility = ["//visibility:public"],
+    deps = [
+        "@maven//:com_google_inject_guice",        
+    ],
 )
 
 oci_push(
@@ -130,27 +135,25 @@ oci_push(
 )
 
 java_library(
-    name = "real-time-data-ingestion",
+    name = "real_time_data_ingestion",
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
-        ":market-data-ingestion",
-        ":candle-manager",
-        ":trade-processor",
-        ":candle-publisher",
         "@maven//:com_google_inject_guice",
         "@maven//:org_knowm_xchange_xchange_core",
         "@maven//:org_knowm_xchange_xchange_stream_core",
         "@maven//:io_reactivex_rxjava3_rxjava",
         "//protos:marketdata_java_proto",
-    ],
+        ":candle-manager",
+        ":candle-publisher",
+        ":market-data-ingestion",
+        ":trade-processor",
 )
 
 java_library(
-    name = "trade-processor",
+    name = "trade_processor",
     srcs = ["TradeProcessor.java"],
     deps = [
-        ":candle-key",
+        "//:autovalue",
         "//protos:marketdata_java_proto",
     ],
-    visibility = ["//visibility:public"],
 )
