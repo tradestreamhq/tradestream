@@ -16,9 +16,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import java.time.Duration; 
 
-
-import com.google.testing.junit.testparameterinjector.TestParameterInjector;
-
 @RunWith(JUnit4.class)
 public class CandlePublisherImplTest {
     @Rule public MockitoRule rule = MockitoJUnit.rule();
