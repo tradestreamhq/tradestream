@@ -145,7 +145,7 @@ java_library(
         "//protos:marketdata_java_proto",
         ":candle_manager",
         ":candle_publisher",
-        ":market_data-ingestion",
+        ":market_data_ingestion",
         ":trade_processor",
     ],
 )
