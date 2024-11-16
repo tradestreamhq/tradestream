@@ -6,7 +6,7 @@ load("//platforms:transition.bzl", "multi_arch")
 
 package(default_visibility = ["//visibility:public"])
 
-java_library(
+java_binary(
     name = "app",
     srcs = ["App.java"],
     deps = [
@@ -16,12 +16,6 @@ java_library(
         ":market-data-ingestion",
         ":real-time-data-ingestion",
     ],
-)
-
-java_binary(
-    name = "app",
-    main_class = "com.verlumen.tradestream.ingestion.App",
-    runtime_deps = [":app"],
 )
 
 java_library(
