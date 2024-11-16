@@ -27,7 +27,7 @@ public class CandlePublisherImplTest {
 
     private static final String TOPIC = "test-topic";
     
-    @Mock private KafkaProducer<String, byte[]> mockProducer;
+    @Mock @Bind private KafkaProducer<String, byte[]> mockProducer;
     @Inject private CandlePublisher.Factory factory;
 
     @Before
