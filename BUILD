@@ -64,7 +64,7 @@ java_plugin(
         ":common",
         ":service",
         "@maven//:com_google_guava_guava",
-        "//third_party/java/javapoet",
+        "@maven//:com_squareup_javapoet",
         "@maven//:com_google_auto_factory_auto_factory",
     ],
 )
