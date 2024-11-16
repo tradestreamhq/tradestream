@@ -32,7 +32,6 @@ java_library(
     srcs = ["CandleManager.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//:autofactory",
         ":candle_builder",
         ":candle_publisher",
         ":price_tracker",
@@ -52,7 +51,6 @@ java_library(
     srcs = ["CandlePublisherImpl.java"],
     deps = [
         "@maven//:org_apache_kafka_kafka_clients",
-        "//:autofactory",
         "//protos:marketdata_java_proto",
         ":candle_publisher",
     ],
