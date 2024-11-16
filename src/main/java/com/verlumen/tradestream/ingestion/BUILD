@@ -147,6 +147,7 @@ java_library(
         ":candle-publisher",
         ":market-data-ingestion",
         ":trade-processor",
+    ],
 )
 
 java_library(
