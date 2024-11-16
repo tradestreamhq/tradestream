@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import org.apache.kafka.clients.producer.KafkaProducer;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
