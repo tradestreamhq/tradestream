@@ -44,7 +44,7 @@ public class CandlePublisherImplTest {
         PublishParams params = PublishParams.create(TOPIC, candle);
 
         // Act
-        publisher.publishCandle(candle);
+        publisher.publishCandle(params);
 
         // Assert
         verify(mockProducer).send(any(ProducerRecord.class), any());
