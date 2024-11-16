@@ -6,9 +6,9 @@ import marketdata.Marketdata.Trade;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import org.junit.runners.JUnit4;
 
-@RunWith(TestParameterInjector.class)
+@RunWith(JUnit4.class)
 public class TradeProcessorTest {
     private static final long CANDLE_INTERVAL = 60000L;
 
