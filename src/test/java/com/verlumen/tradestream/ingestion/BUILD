@@ -51,6 +51,7 @@ java_test(
         "@maven//:com_google_inject_guice",        
         "@maven//:junit_junit",
         "@maven//:org_apache_kafka_kafka_clients",
+        "@maven//:com_google_inject_guice",
         "@maven//:org_mockito_mockito_core",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher_impl",
