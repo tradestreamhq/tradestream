@@ -51,8 +51,8 @@ java_library(
     name = "candle_publisher_impl",
     srcs = ["CandlePublisherImpl.java"],
     deps = [
+        "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
-        "//:autofactory",
         "//protos:marketdata_java_proto",
         ":candle_publisher",
     ],
