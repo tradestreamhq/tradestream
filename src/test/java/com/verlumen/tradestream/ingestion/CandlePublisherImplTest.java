@@ -32,12 +32,14 @@ public class CandlePublisherImplTest {
 
     @Before
     public void setUp() {
-        Guice.createInjector(
-            BoundFieldModule.of(this), 
-            new FactoryModuleBuilder()
-                 .implement(CandlePublisher.class, CandlePublisherImpl.class)
-                 .build(CandlePublisher.Factory.class)
-        );
+        Guice
+            .createInjector(
+                BoundFieldModule.of(this), 
+                new FactoryModuleBuilder()
+                     .implement(CandlePublisher.class, CandlePublisherImpl.class)
+                     .build(CandlePublisher.Factory.class)
+            )
+            .injectMembers(this);
     }
 
     @Test
