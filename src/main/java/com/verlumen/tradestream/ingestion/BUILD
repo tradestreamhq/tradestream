@@ -31,7 +31,6 @@ java_library(
     name = "candle_manager",
     srcs = ["CandleManager.java"],
     deps = [
-        "@maven//:com_google_inject_extensions_guice_assistedinject",
         "//protos:marketdata_java_proto",
         ":candle_builder",
         ":candle_publisher",
