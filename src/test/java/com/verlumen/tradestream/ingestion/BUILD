@@ -64,7 +64,6 @@ java_test(
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
-        "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "//src/main/java/com/verlumen/tradestream/ingestion:price_tracker",
     ],
 )
