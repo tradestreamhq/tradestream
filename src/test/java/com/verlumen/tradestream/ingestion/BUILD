@@ -47,7 +47,6 @@ java_test(
     name = "CandlePublisherImplTest",
     srcs = ["CandlePublisherImplTest.java"],
     deps = [
-        "@maven//:com_google_inject_extensions_guice_testlib",
         "@maven//:com_google_inject_guice",        
         "@maven//:junit_junit",
         "@maven//:org_apache_kafka_kafka_clients",
