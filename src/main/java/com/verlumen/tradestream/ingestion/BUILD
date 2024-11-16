@@ -49,6 +49,14 @@ java_library(
 )
 
 java_library(
+    name = "candle_publisher",
+    srcs = ["CandlePublisher.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+    ],
+)
+
+java_library(
     name = "candle_publisher_impl",
     srcs = ["CandlePublisherImpl.java"],
     deps = [
