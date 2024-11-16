@@ -106,6 +106,7 @@ java_library(
     deps = [
         "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
+        "@maven//:org_apache_kafka_kafka_clients",
         ":candle_publisher",
         ":candle_publisher_impl",
         ":market_data_ingestion",
