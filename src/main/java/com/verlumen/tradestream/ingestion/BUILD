@@ -53,6 +53,7 @@ java_library(
     plugins = ["//:autofactory_plugin"],
     deps = [
         "@maven//:org_apache_kafka_kafka_clients",
+        "//:autofactory",
         "//protos:marketdata_java_proto",
         ":candle_publisher",
     ],
