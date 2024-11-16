@@ -28,7 +28,7 @@ java_library(
 )
 
 java_library(
-    name = "candle-manager",
+    name = "candle_manager",
     srcs = ["CandleManager.java"],
     deps = [
         ":candle_builder",
