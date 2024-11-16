@@ -17,7 +17,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
-public class CandleManagerTest {
+public class CandleManagerImplTest {
     @Rule public MockitoRule rule = MockitoJUnit.rule();
     
     private static final long CANDLE_INTERVAL = 60000L;
@@ -25,11 +25,11 @@ public class CandleManagerTest {
     
     @Mock private CandlePublisher mockPublisher;
     @Mock private PriceTracker mockPriceTracker;
-    private CandleManager manager;
+    private CandleManagerImpl manager;
 
     @Before
     public void setUp() {
-        manager = new CandleManager(CANDLE_INTERVAL, mockPublisher, mockPriceTracker);
+        manager = new CandleManagerImpl(CANDLE_INTERVAL, mockPublisher, mockPriceTracker);
     }
 
     @Test

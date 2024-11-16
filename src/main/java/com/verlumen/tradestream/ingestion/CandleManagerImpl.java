@@ -6,13 +6,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class CandleManager {
+class CandleManagerImpl {
     private final Map<String, CandleBuilder> candleBuilders = new ConcurrentHashMap<>();
     private final long candleIntervalMillis;
     private final CandlePublisher publisher;
     private final PriceTracker priceTracker;
 
-    CandleManager(long candleIntervalMillis, CandlePublisher publisher,
+    CandleManagerImpl(long candleIntervalMillis, CandlePublisher publisher,
                   PriceTracker priceTracker) {
         this.candleIntervalMillis = candleIntervalMillis;
         this.publisher = publisher;

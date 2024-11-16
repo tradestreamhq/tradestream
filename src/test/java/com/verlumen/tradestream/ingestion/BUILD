@@ -29,15 +29,15 @@ java_test(
 )
 
 java_test(
-    name = "CandleManagerTest",
-    srcs = ["CandleManagerTest.java"],
+    name = "CandleManagerImplTest",
+    srcs = ["CandleManagerImplTest.java"],
     deps = [
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",
         "@maven//:com_google_guava_guava",
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager_impl",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
         "//src/main/java/com/verlumen/tradestream/ingestion:price_tracker",
     ],
