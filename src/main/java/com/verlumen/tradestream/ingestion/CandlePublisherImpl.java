@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.auto.factory.AutoFactory;
+import com.google.auto.factory.Provided;
 import marketdata.Marketdata.Candle;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
