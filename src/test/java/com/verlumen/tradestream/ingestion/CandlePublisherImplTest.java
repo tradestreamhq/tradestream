@@ -3,6 +3,7 @@ package com.verlumen.tradestream.ingestion;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
@@ -24,14 +25,19 @@ import java.time.Duration;
 public class CandlePublisherImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
 
-    private static final String TEST_TOPIC = "test-topic";
+    private static final String TOPIC = "test-topic";
     
     @Mock private KafkaProducer<String, byte[]> mockProducer;
-    @Inject private CandlePublisherImpl publisher;
+    @Inject private CandlePublisher.Factory factory;
 
     @Before
     public void setUp() {
-        publisher = new CandlePublisherImpl(TEST_TOPIC, mockProducer);
+        Guice.createInjector(
+            BoundFieldModule.of(this), 
+            new FactoryModuleBuilder()
+                .implement(Payment.class, RealPayment.class)
+                 .build(PaymentFactory.class)
+        )
     }
 
     @Test
@@ -43,7 +49,7 @@ public class CandlePublisherImplTest {
             .build();
 
         // Act
-        publisher.publishCandle(candle);
+        factory.create(TOPIC).publishCandle(candle);
 
         // Assert
         verify(mockProducer).send(any(ProducerRecord.class), any());
@@ -52,7 +58,7 @@ public class CandlePublisherImplTest {
     @Test
     public void close_closesProducer() {
         // Act
-        publisher.close();
+        factory.create(TOPIC).close();
 
         // Assert
         verify(mockProducer).close(any(Duration.class));
