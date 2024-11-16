@@ -47,6 +47,7 @@ java_test(
     name = "CandlePublisherImplTest",
     srcs = ["CandlePublisherImplTest.java"],
     deps = [
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_extensions_guice_testlib",
         "@maven//:com_google_inject_guice",
         "@maven//:junit_junit",
