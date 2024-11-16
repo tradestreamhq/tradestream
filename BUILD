@@ -50,6 +50,7 @@ java_plugin(
         "@maven//:javax_annotation_javax_annotation_api",
         "@maven//:javax_inject_javax_inject",
     ],
+    visibility = ["//visibility:public"],
 )
 
 java_plugin(
