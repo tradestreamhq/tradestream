@@ -12,31 +12,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Compute Cache Key
-      id: compute-cache-key
-      run: |
-        BAZEL_VERSION=$(bazel version | grep 'Build label' | awk '{print $3}')
-        WORKSPACE_HASH=$(sha256sum WORKSPACE | awk '{print $1}')
-        echo "CACHE_KEY=bazel-cache-${BAZEL_VERSION}-${WORKSPACE_HASH}" >> $GITHUB_ENV
-
-    - name: Cache Bazel Directories
+    - name: Cache Bazel Build
       uses: actions/cache@v4
       with:
         path: |
           ~/.cache/bazel
-          .bazel-disk-cache
-
-        key: ${{ env.CACHE_KEY }}
+        key: ${{ runner.os }}-bazel-${{ github.ref_name }}-${{ hashFiles('WORKSPACE', '**/BUILD', '**/*.bzl', 'bazel.rc') }}
         restore-keys: |
-          bazel-cache-${{ env.BAZEL_VERSION }}-
-          bazel-cache-
+          ${{ runner.os }}-bazel-${{ github.ref_name }}-
+          ${{ runner.os }}-bazel-
 
     - name: Run Bazel Tests
-      run: |
-        mkdir -p .bazel-disk-cache
-        bazel test //... --test_output=all --disk_cache=$(pwd)/.bazel-disk-cache
-
-    - name: Post Build Cache Info
-      if: always()
-      run: |
-        echo "Used Cache Key: ${{ env.CACHE_KEY }}"
+      run: bazel test //... --test_output=errors
