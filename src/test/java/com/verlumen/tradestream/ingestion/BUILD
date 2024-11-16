@@ -40,7 +40,7 @@ java_test(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle-manager",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher_impl",
-        "//src/main/java/com/verlumen/tradestream/ingestion:price-tracker",
+        "//src/main/java/com/verlumen/tradestream/ingestion:price_tracker",
     ],
 )
 
