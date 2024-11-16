@@ -29,8 +29,8 @@ java_test(
 )
 
 java_test(
-    name = "CandleManagerTest",
-    srcs = ["CandleManagerTest.java"],
+    name = "CandleManagerImplTest",
+    srcs = ["CandleManagerImplTest.java"],
     deps = [
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
