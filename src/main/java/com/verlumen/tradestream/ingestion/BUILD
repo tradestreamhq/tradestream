@@ -115,7 +115,7 @@ tar(
 )
 
 java_library(
-    name = "market-data-ingestion",
+    name = "market_data_ingestion",
     srcs = ["MarketDataIngestion.java"],
 )
 
