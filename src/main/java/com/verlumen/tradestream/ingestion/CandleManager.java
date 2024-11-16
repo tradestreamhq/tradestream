@@ -1,7 +1,5 @@
 package com.verlumen.tradestream.ingestion;
 
-import com.google.auto.factory.AutoFactory;
-import com.google.auto.factory.Provided;
 import marketdata.Marketdata.Trade;
 import marketdata.Marketdata.Candle;
 import java.util.List;
@@ -14,12 +12,8 @@ class CandleManager {
     private final CandlePublisher publisher;
     private final PriceTracker priceTracker;
 
-    @AutoFactory
-    CandleManager(
-        long candleIntervalMillis,
-        CandlePublisher publisher,
-        @Provided PriceTracker priceTracker
-    ) {
+    CandleManager(long candleIntervalMillis, CandlePublisher publisher,
+                  PriceTracker priceTracker) {
         this.candleIntervalMillis = candleIntervalMillis;
         this.publisher = publisher;
         this.priceTracker = priceTracker;
