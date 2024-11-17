@@ -12,8 +12,8 @@ abstract class TradeProcessor {
         return new AutoValue_TradeProcessor(candleIntervalMillis, ConcurrentHashMap.newKeySet());
     }
     
-    abstract long candleIntervalMillis;
-    abstract Set<CandleKey> processedTrades = ConcurrentHashMap.newKeySet();
+    abstract long candleIntervalMillis();
+    abstract Set<CandleKey> processedTrades();
 
     boolean isProcessed(Trade trade) {
         CandleKey key = CandleKey.create(trade.getTradeId(), getMinuteTimestamp(trade.getTimestamp()));
