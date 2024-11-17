@@ -29,7 +29,7 @@ public class CandleManagerImplTest {
     private static final String TEST_PAIR = "BTC/USD";
     
     @Mock private CandlePublisher mockPublisher;
-    @Mock private PriceTracker mockPriceTracker;
+    @Mock @Bind private PriceTracker mockPriceTracker;
     @Inject private CandleManager.Factory factory;
 
     @Before
