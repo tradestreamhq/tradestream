@@ -18,6 +18,9 @@ java_binary(
         ":market_data_ingestion",
         ":real_time_data_ingestion",
     ],
+    data = [
+        ":config.properties",
+    ]
 )
 
 java_library(
