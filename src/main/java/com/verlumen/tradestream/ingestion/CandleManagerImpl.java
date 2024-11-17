@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.Inject;
 import marketdata.Marketdata.Trade;
 import marketdata.Marketdata.Candle;
 import java.util.List;
@@ -8,21 +10,25 @@ import java.util.concurrent.ConcurrentHashMap;
 
 final class CandleManagerImpl implements CandleManager {
     private final Map<String, CandleBuilder> candleBuilders = new ConcurrentHashMap<>();
-    private final long candleIntervalMillis;
-    private final CandlePublisher publisher;
     private final PriceTracker priceTracker;
+    private final long candleIntervalMillis;
+    private final CandlePublisher candlePublisher;
 
-    CandleManagerImpl(long candleIntervalMillis, CandlePublisher publisher,
-                  PriceTracker priceTracker) {
-        this.candleIntervalMillis = candleIntervalMillis;
-        this.publisher = publisher;
+    @Inject
+    CandleManagerImpl(
+        PriceTracker priceTracker,
+        @Assisted long candleIntervalMillis,
+        @Assisted CandlePublisher candlePublisher
+    ) {
         this.priceTracker = priceTracker;
+        this.candleIntervalMillis = candleIntervalMillis;
+        this.candlePublisher = candlePublisher;
     }
 
+    @Override
     public void processTrade(Trade trade) {
         long minuteTimestamp = getMinuteTimestamp(trade.getTimestamp());
         String key = getCandleKey(trade.getCurrencyPair(), minuteTimestamp);
-        
         CandleBuilder builder = candleBuilders.computeIfAbsent(
             key,
             k -> new CandleBuilder(trade.getCurrencyPair(), minuteTimestamp)
@@ -36,6 +42,7 @@ final class CandleManagerImpl implements CandleManager {
         }
     }
 
+    @Override
     public void handleThinlyTradedMarkets(List<String> currencyPairs) {
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
         for (String pair : currencyPairs) {
@@ -46,6 +53,11 @@ final class CandleManagerImpl implements CandleManager {
                 generateEmptyCandle(pair, currentMinute);
             }
         }
+    }
+
+    @Override
+    public int getActiveBuilderCount() {
+        return candleBuilders.size();
     }
 
     private void generateEmptyCandle(String currencyPair, long timestamp) {
@@ -63,7 +75,7 @@ final class CandleManagerImpl implements CandleManager {
     }
 
     private void publishAndRemoveCandle(String key, CandleBuilder builder) {
-        publisher.publishCandle(builder.build());
+        candlePublisher.publishCandle(builder.build());
         candleBuilders.remove(key);
     }
 
@@ -77,10 +89,5 @@ final class CandleManagerImpl implements CandleManager {
 
     private boolean isIntervalComplete(long timestamp) {
         return System.currentTimeMillis() >= timestamp + candleIntervalMillis;
-    }
-
-    // Visible for testing
-    int getActiveBuilderCount() {
-        return candleBuilders.size();
     }
 }
