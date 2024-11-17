@@ -128,6 +128,7 @@ java_library(
         ":market_data_ingestion",
         ":properties_provider",
         ":real_time_data_ingestion",
+        ":streaming_exchange_provider",
     ],
 )
 
