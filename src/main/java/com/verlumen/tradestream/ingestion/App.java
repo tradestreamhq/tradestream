@@ -23,5 +23,4 @@ final class App {
     App app = Guice.createInjector(new IngestionModule()).getInstance(App.class);
     app.run();
   }
-
 }
