@@ -129,6 +129,7 @@ java_library(
         ":candle_publisher_impl",
         ":kafka_producer_provider",
         ":market_data_ingestion",
+        ":properties_provider",
         ":real_time_data_ingestion",
     ],
 )
@@ -158,6 +159,11 @@ java_library(
     deps = [
         "@maven//:com_google_inject_guice",        
     ],
+)
+
+java_library(
+    name = "properties_provider",
+    srcs = ["PropertiesProvider"],
 )
 
 oci_push(
