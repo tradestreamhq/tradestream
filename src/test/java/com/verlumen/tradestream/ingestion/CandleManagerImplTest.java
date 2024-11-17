@@ -8,6 +8,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.testing.fieldbinder.Bind;
+import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import marketdata.Marketdata.Trade;
 import marketdata.Marketdata.Candle;
 import org.junit.Before;
