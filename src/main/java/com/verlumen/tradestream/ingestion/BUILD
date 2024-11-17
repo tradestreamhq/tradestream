@@ -131,21 +131,20 @@ java_library(
 )
 
 java_library(
-    name = "kafka_properties",
-    srcs = ["KafkaProperties.java"],
-    deps = [
-        "@maven//:com_google_inject_guice",
-        "@maven//:org_apache_kafka_kafka_clients",
-    ],    
-)
-
-java_library(
     name = "kafka_producer_provider",
     srcs = ["KafkaProducerProvider.java"],
     deps = [
         "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
         ":kafka_properties",
+    ],    
+)
+
+java_library(
+    name = "kafka_properties",
+    srcs = ["KafkaProperties.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
     ],    
 )
 
