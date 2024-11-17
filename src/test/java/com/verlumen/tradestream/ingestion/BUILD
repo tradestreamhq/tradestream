@@ -70,6 +70,7 @@ java_test(
         "@maven//:com_google_inject_extensions_guice_testlib",
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_truth_truth",
+        "//src/main/java/com/verlumen/tradestream/ingestion:kafka_producer_properties_provider",
     ],
 )
 
