@@ -14,6 +14,9 @@ final class IngestionModule extends AbstractModule {
     bind(MarketDataIngestion.class).to(RealTimeDataIngestion.class);
 
     install(new FactoryModuleBuilder()
+        .implement(CandleManager.class, CandleManagerImpl.class)
+        .build(CandleManager.Factory.class));    
+    install(new FactoryModuleBuilder()
         .implement(CandlePublisher.class, CandlePublisherImpl.class)
         .build(CandlePublisher.Factory.class));
   }
