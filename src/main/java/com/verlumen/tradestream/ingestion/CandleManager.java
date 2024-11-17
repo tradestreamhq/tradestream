@@ -12,6 +12,6 @@ public interface CandleManager {
     int getActiveBuilderCount()
 
     interface Factory {
-        CandleManager create(long candleIntervalMillis, String topic);
+        CandleManager create(long candleIntervalMillis, CandlePublisher candlePublisher);
     }
 }
