@@ -46,22 +46,17 @@ final class CandleManagerImpl implements CandleManager {
     @Override
     public void handleThinlyTradedMarkets(List<String> currencyPairs) {
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
-        CandlePublisher publisher = createCandlePublisher();
         for (String pair : currencyPairs) {
             String key = getCandleKey(pair, currentMinute);
             CandleBuilder builder = candleBuilders.get(key);
             
             if (builder == null || !builder.hasTrades()) {
-                generateEmptyCandle(publisher, pair, currentMinute);
+                generateEmptyCandle(pair, currentMinute);
             }
         }
     }
 
-    private CandlePublisher createCandlePublisher() {
-        return candlePublisherFactory.create(topic);
-    }
-
-    private void generateEmptyCandle(CandlePublisher publisher, String currencyPair, long timestamp) {
+    private void generateEmptyCandle(String currencyPair, long timestamp) {
         double lastPrice = priceTracker.getLastPrice(currencyPair);
         if (!Double.isNaN(lastPrice)) {
             CandleBuilder builder = new CandleBuilder(currencyPair, timestamp);
@@ -71,12 +66,12 @@ final class CandleManagerImpl implements CandleManager {
                 .setCurrencyPair(currencyPair)
                 .setTimestamp(timestamp)
                 .build());
-            publishAndRemoveCandle(publisher, getCandleKey(currencyPair, timestamp), builder);
+            publishAndRemoveCandle(getCandleKey(currencyPair, timestamp), builder);
         }
     }
 
-    private void publishAndRemoveCandle(CandlePublisher publisher, String key, CandleBuilder builder) {
-        publisher.publishCandle(builder.build());
+    private void publishAndRemoveCandle(String key, CandleBuilder builder) {
+        candlePublisher.publishCandle(builder.build());
         candleBuilders.remove(key);
     }
 
