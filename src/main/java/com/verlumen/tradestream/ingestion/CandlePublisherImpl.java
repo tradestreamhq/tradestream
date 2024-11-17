@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.inject.assistedinject.Assisted;
 import com.google.inject.Inject;
 import marketdata.Marketdata.Candle;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -10,7 +11,11 @@ final class CandlePublisherImpl implements CandlePublisher {
     private final KafkaProducer<String, byte[]> kafkaProducer;
 
     @Inject
-    CandlePublisherImpl(KafkaProducer<String, byte[]> kafkaProducer) {
+    CandlePublisherImpl(
+        KafkaProducer<String, byte[]> kafkaProducer,
+        @Assisted String topic
+    ) {
+        this.topic = topic;
         this.kafkaProducer = kafkaProducer;
     }
 

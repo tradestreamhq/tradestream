@@ -32,7 +32,16 @@ java_library(
     srcs = ["CandleManager.java"],
     deps = [
         "//protos:marketdata_java_proto",
+    ],
+)
+
+java_library(
+    name = "candle_manager_impl",
+    srcs = ["CandleManagerImpl.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
         ":candle_builder",
+        ":candle_manager",
         ":candle_publisher",
         ":price_tracker",
     ],
@@ -51,6 +60,7 @@ java_library(
     name = "candle_publisher_impl",
     srcs = ["CandlePublisherImpl.java"],
     deps = [
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
         "//protos:marketdata_java_proto",
@@ -104,10 +114,24 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
+        "@maven//:org_apache_kafka_kafka_clients",
+        ":candle_publisher",
+        ":candle_publisher_impl",
+        ":kafka_producer_provider",
         ":market_data_ingestion",
         ":real_time_data_ingestion",
     ],
+)
+
+java_library(
+    name = "kafka_producer_provider",
+    srcs = ["KafkaProducerProvider.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_apache_kafka_kafka_clients",
+    ],    
 )
 
 tar(

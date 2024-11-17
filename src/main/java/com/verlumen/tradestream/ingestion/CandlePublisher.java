@@ -5,8 +5,8 @@ import marketdata.Marketdata.Candle;
 
 import java.time.Duration;
 
-interface CandlePublisher {
-    void publishCandle(PublishParams params);
+public interface CandlePublisher {
+    void publishCandle(Candle candle);
 
     void close();
 
