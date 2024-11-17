@@ -163,7 +163,7 @@ java_library(
 
 java_library(
     name = "properties_provider",
-    srcs = ["PropertiesProvider"],
+    srcs = ["PropertiesProvider.java"],
 )
 
 oci_push(
