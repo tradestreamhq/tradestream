@@ -6,6 +6,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.Guice;
 import com.google.inject.Inject;
 import marketdata.Marketdata.Trade;
 import marketdata.Marketdata.Candle;
