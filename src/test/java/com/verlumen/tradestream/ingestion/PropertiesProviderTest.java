@@ -28,8 +28,8 @@ public class PropertiesProviderTest {
     // Assert
     assertThat(actual).isNotNull();
     assertThat(actual.isEmpty()).isFalse();
-    assertThat(actual.getProperty("bootstrap.servers")).isEqualTo("localhost:9092");
-    assertThat(actual.getProperty("acks")).isEqualTo("all");
-    assertThat(actual.getProperty("retries")).isEqualTo("0");
+    assertThat(actual.getProperty("kafka.bootstrap.servers")).isEqualTo("localhost:9092");
+    assertThat(actual.getProperty("kafka.acks")).isEqualTo("all");
+    assertThat(actual.getProperty("kafka.retries")).isEqualTo("0");
   }
 }
