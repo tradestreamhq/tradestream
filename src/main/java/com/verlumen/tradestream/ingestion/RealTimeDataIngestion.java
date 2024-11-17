@@ -9,7 +9,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     @Inject
     RealTimeDataIngestion(
         CandleManager.Factory candleManagerFactory,
-        CandlePublisher.Factory candlePublisherFactory,
+        CandlePublisher.Factory candlePublisherFactory
     ) {
         this.candleManagerFactory = candleManagerFactory;
         this.candlePublisherFactory = candlePublisherFactory;
