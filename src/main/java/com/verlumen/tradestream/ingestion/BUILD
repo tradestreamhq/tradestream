@@ -162,6 +162,7 @@ java_library(
     srcs = ["PropertiesProvider.java"],
     deps = [
         "@bazel_tools//tools/java/runfiles",
+        "@maven//:com_google_inject_guice",
     ],
     data = [
         ":config.properties",
