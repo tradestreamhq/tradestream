@@ -1,3 +1,5 @@
+package com.verlumen.tradestream.ingestion;
+
 import com.google.devtools.build.runfiles.Runfiles;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
