@@ -18,12 +18,9 @@ final class PropertiesProvider implements Provider<Properties> {
   @Override
   public Properties get() {
     try {
-      // Step 1: Preload Runfiles
-      Runfiles.Preloaded runfilesPreloaded = Runfiles.preload();
+      Runfiles runfiles = Runfiles.create();
 
-      // Resolve the path to the properties file in the runfiles directory
-      String propertiesPath = runfilesPreloaded.unmapped()
-        .rlocation(WORKSPACE_NAME + "/" + CONFIG_FILE_PATH);
+      String propertiesPath = runfiles.rlocation(WORKSPACE_NAME + "/" + CONFIG_FILE_PATH);
 
       // Step 2: Load properties from the file
       Properties props = new Properties();
