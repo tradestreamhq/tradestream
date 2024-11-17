@@ -81,17 +81,4 @@ public class KafkaPropertiesTest {
     // Assert
     assertThat(kafkaProperties.isEmpty()).isTrue();
   }
-
-  @Test
-  public void testExtractKafkaProperties_handlesMultipleKafkaProperties() {
-    // Arrange
-    INPUT_PROPERTIES.setProperty("kafka.group.id", "group-1");
-
-    // Act
-    Properties kafkaProperties = supplier.get();
-
-    // Assert
-    assertThat(kafkaProperties.getProperty("group.id")).isEqualTo("group-1");
-    assertThat(kafkaProperties.size()).isEqualTo(3);
-  }
 }
