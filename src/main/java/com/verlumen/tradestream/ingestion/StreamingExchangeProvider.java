@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
 
