@@ -29,7 +29,6 @@ final class CandleManagerImpl implements CandleManager {
     public void processTrade(Trade trade) {
         long minuteTimestamp = getMinuteTimestamp(trade.getTimestamp());
         String key = getCandleKey(trade.getCurrencyPair(), minuteTimestamp);
-        CandlePublisher publisher = createCandlePublisher();       
         CandleBuilder builder = candleBuilders.computeIfAbsent(
             key,
             k -> new CandleBuilder(trade.getCurrencyPair(), minuteTimestamp)
@@ -39,7 +38,7 @@ final class CandleManagerImpl implements CandleManager {
         priceTracker.updateLastPrice(trade.getCurrencyPair(), trade.getPrice());
 
         if (isIntervalComplete(minuteTimestamp)) {
-            publishAndRemoveCandle(publisher, key, builder);
+            publishAndRemoveCandle(key, builder);
         }
     }
 
