@@ -9,6 +9,8 @@ public interface CandleManager {
 
     void handleThinlyTradedMarkets(List<String> currencyPairs);
 
+    int getActiveBuilderCount()
+
     interface Factory {
         CandleManager create(long candleIntervalMillis, String topic);
     }
