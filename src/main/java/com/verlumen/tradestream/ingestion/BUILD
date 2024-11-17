@@ -11,12 +11,16 @@ java_binary(
     srcs = ["App.java"],
     main_class = "com.verlumen.tradestream.ingestion.App",
     deps = [
+        "@bazel_tools//tools/java/runfiles",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":ingestion_module",
         ":market_data_ingestion",
         ":real_time_data_ingestion",
     ],
+    data = [
+        ":config.properties",
+    ]
 )
 
 java_library(
