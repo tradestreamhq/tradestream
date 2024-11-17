@@ -17,7 +17,7 @@ final class StreamingExchangeProvider implements Provider<StreamingExchange> {
 
   @Override
   public StreamingExchange get() {
-    String exchangeName = properties.get("xchange.exchangeName").toString();
+    String exchangeName = properties.getProperty("xchange.exchangeName");
     return StreamingExchangeFactory.INSTANCE.createExchange(exchangeName);
   }
 }
