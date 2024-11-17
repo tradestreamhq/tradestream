@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 import java.util.Properties;
-import java.util.Supplier;
+import java.util.function.Supplier;
 
 final class KafkaProperties implements Supplier<Properties> {
   private final Properties properties;
