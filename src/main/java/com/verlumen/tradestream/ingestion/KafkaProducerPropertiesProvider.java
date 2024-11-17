@@ -9,7 +9,7 @@ final class KafkaProducerPropertiesProvider impements Provider<Properties> {
   private final Properties properties;
 
   @Inject
-  KafkaProducerProperties(Properties properties) {
+  KafkaProducerPropertiesProvider(Properties properties) {
     this.properties = properties;
   }
 
