@@ -131,8 +131,8 @@ java_library(
 )
 
 java_library(
-    name = "kafka_producer_properties_provider",
-    srcs = ["KafkaProducerPropertiesProvider.java"],
+    name = "kafka_properties",
+    srcs = ["KafkaProperties.java"],
     deps = [
         "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
