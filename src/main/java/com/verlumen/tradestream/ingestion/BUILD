@@ -160,8 +160,10 @@ java_library(
 java_library(
     name = "properties_provider",
     srcs = ["PropertiesProvider.java"],
-    data = [
+    deps = [
         "@bazel_tools//tools/java/runfiles",
+    ],
+    data = [
         ":config.properties",
     ],
 )
