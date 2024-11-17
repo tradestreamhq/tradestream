@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import marketdata.Marketdata.Trade;
