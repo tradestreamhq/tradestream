@@ -16,6 +16,7 @@ java_binary(
         ":ingestion_module",
         ":market_data_ingestion",
         ":real_time_data_ingestion",
+        ":streaming_exchange_provider",
     ],
 )
 
@@ -119,6 +120,7 @@ java_library(
         "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
         ":candle_manager",
         ":candle_manager_impl",
         ":candle_publisher",
@@ -127,6 +129,7 @@ java_library(
         ":market_data_ingestion",
         ":properties_provider",
         ":real_time_data_ingestion",
+        ":streaming_exchange_provider",
     ],
 )
 
@@ -190,9 +193,21 @@ java_library(
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
         "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
         ":candle_manager",
         ":candle_publisher",
         ":market_data_ingestion",
+    ]
+)
+
+java_library(
+    name = "streaming_exchange_provider",
+    srcs = ["StreamingExchangeProvider.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
     ]
 )
 
