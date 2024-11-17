@@ -48,7 +48,7 @@ public class CandleManagerImplTest {
     @Test
     public void processTrade_updatesLastPrice() {
         Trade trade = createTestTrade(System.currentTimeMillis());
-        factory.create().processTrade(trade);
+        factory.create(CANDLE_INTERVAL, TEST_TOPIC).processTrade(trade);
         verify(mockPriceTracker).updateLastPrice(TEST_PAIR, trade.getPrice());
     }
 
