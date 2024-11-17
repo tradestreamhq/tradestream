@@ -10,7 +10,7 @@ final class KafkaProperties implements Supplier<Properties> {
   private final Properties properties;
 
   @Inject
-  KafkaProducerPropertiesProvider(Properties properties) {
+  KafkaProperties(Properties properties) {
     this.properties = properties;
   }
 
