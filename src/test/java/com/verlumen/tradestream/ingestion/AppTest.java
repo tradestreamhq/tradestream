@@ -7,13 +7,17 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class AppTest {
+  @Rule public MockitoRule rule = MockitoJUnit.rule();
 
   @Bind @Mock
   private MarketDataIngestion mockMarketDataIngestion;

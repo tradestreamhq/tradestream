@@ -56,14 +56,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: all
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
       - name: Push the Data Ingestion image
         run: |
           bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
@@ -71,12 +63,6 @@ jobs:
             --sandbox_debug \
             -- \
             --tag ${{ steps.create_image_tag.outputs.image_tag }}
-
-      - name: Inspect Docker Manifest
-        run: |
-          docker manifest inspect tradestreamhq/tradestream-data-ingestion:${{ steps.create_image_tag.outputs.image_tag }}
-        env:
-          DOCKER_CLI_EXPERIMENTAL: enabled
 
       - name: Install yq
         run: |

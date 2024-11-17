@@ -29,17 +29,20 @@ java_test(
 )
 
 java_test(
-    name = "CandleManagerTest",
-    srcs = ["CandleManagerTest.java"],
+    name = "CandleManagerImplTest",
+    srcs = ["CandleManagerImplTest.java"],
     deps = [
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
+        "@maven//:com_google_inject_extensions_guice_testlib",
+        "@maven//:com_google_inject_guice",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",
-        "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:com_google_guava_guava",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher_impl",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager_impl",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
         "//src/main/java/com/verlumen/tradestream/ingestion:price_tracker",
     ],
 )
@@ -48,11 +51,14 @@ java_test(
     name = "CandlePublisherImplTest",
     srcs = ["CandlePublisherImplTest.java"],
     deps = [
-        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
+        "@maven//:com_google_inject_extensions_guice_testlib",
+        "@maven//:com_google_inject_guice",
         "@maven//:junit_junit",
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:org_mockito_mockito_core",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher_impl",
     ],
 )

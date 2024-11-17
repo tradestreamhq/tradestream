@@ -3,6 +3,11 @@ package com.verlumen.tradestream.ingestion;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.testing.fieldbinder.Bind;
+import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import marketdata.Marketdata.Candle;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -10,28 +15,31 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import java.time.Duration; 
 
-
-import com.google.testing.junit.testparameterinjector.TestParameterInjector;
-
-@RunWith(TestParameterInjector.class)
+@RunWith(JUnit4.class)
 public class CandlePublisherImplTest {
-    @Rule public MockitoRule rule = MockitoJUnit.rule();
+    @Rule public MockitoRule mocks = MockitoJUnit.rule();
 
-    private static final String TEST_TOPIC = "test-topic";
+    private static final String TOPIC = "test-topic";
     
-    @Mock
-    private KafkaProducer<String, byte[]> mockProducer;
-    private CandlePublisherImpl publisher;
+    @Mock @Bind private KafkaProducer<String, byte[]> mockProducer;
+    @Inject private CandlePublisher.Factory factory;
 
     @Before
     public void setUp() {
-        publisher = new CandlePublisherImpl(mockProducer, TEST_TOPIC);
+        Guice
+            .createInjector(
+                BoundFieldModule.of(this), 
+                new FactoryModuleBuilder()
+                     .implement(CandlePublisher.class, CandlePublisherImpl.class)
+                     .build(CandlePublisher.Factory.class)
+            )
+            .injectMembers(this);
     }
 
     @Test
@@ -43,7 +51,7 @@ public class CandlePublisherImplTest {
             .build();
 
         // Act
-        publisher.publishCandle(candle);
+        factory.create(TOPIC).publishCandle(candle);
 
         // Assert
         verify(mockProducer).send(any(ProducerRecord.class), any());
@@ -52,7 +60,7 @@ public class CandlePublisherImplTest {
     @Test
     public void close_closesProducer() {
         // Act
-        publisher.close();
+        factory.create(TOPIC).close();
 
         // Assert
         verify(mockProducer).close(any(Duration.class));
