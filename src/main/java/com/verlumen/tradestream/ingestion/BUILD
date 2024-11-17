@@ -118,6 +118,8 @@ java_library(
         "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
+        ":candle_manager",
+        ":candle_manager_impl",
         ":candle_publisher",
         ":candle_publisher_impl",
         ":kafka_producer_provider",
