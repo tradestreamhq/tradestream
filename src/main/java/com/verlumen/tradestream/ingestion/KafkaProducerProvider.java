@@ -15,7 +15,7 @@ final class KafkaProducerProvider implements Provider<KafkaProducer<String, byte
   }
 
   @Override
-  public KafkaProducer<String, String> get() {
+  public KafkaProducer<String, byte[]> get() {
     return new KafkaProducer<>(properties);
   }
 }
