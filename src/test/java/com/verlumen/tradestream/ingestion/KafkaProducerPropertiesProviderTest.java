@@ -2,6 +2,10 @@ package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.testing.fieldbinder.Bind;
+import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import org.junit.Test;
 
 import java.util.Properties;
