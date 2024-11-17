@@ -145,6 +145,7 @@ java_library(
     deps = [
         "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
+        ":kafka_properties",
     ],    
 )
 
