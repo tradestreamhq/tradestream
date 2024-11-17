@@ -32,6 +32,7 @@ java_library(
     srcs = ["CandleManager.java"],
     deps = [
         "//protos:marketdata_java_proto",
+        ":candle_publisher",
     ],
 )
 
