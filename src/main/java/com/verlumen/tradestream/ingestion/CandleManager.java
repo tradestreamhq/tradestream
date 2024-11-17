@@ -9,7 +9,7 @@ public interface CandleManager {
 
     void handleThinlyTradedMarkets(List<String> currencyPairs);
 
-    int getActiveBuilderCount()
+    int getActiveBuilderCount();
 
     interface Factory {
         CandleManager create(long candleIntervalMillis, CandlePublisher candlePublisher);
