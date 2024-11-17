@@ -15,10 +15,10 @@ import org.junit.runners.JUnit4;
 import java.util.Properties;
 
 @RunWith(JUnit4.class)
-public class KafkaProducerPropertiesProviderTest {
-  @Bind private static final Properties TEST_PROPERTIES = new Properties();
+public class KafkaPropertiesTest {
+  @Bind private static final Properties INPUT_PROPERTIES = new Properties();
 
-  @Inject private KafkaProducerPropertiesProvider provider;
+  @Inject private KafkaProperties supplier;
 
   @Before
   public void setup() {
@@ -27,18 +27,18 @@ public class KafkaProducerPropertiesProviderTest {
 
   @After
   public void teardown() {
-    TEST_PROPERTIES.clear();
+    INPUT_PROPERTIES.clear();
   }
 
   @Test
   public void testExtractKafkaProperties_containsOnlyKafkaProperties() {
     // Arrange
-    TEST_PROPERTIES.setProperty("kafka.bootstrap.servers", "localhost:9092");
-    TEST_PROPERTIES.setProperty("kafka.client.id", "client-1");
-    TEST_PROPERTIES.setProperty("application.name", "TestApp");
+    INPUT_PROPERTIES.setProperty("kafka.bootstrap.servers", "localhost:9092");
+    INPUT_PROPERTIES.setProperty("kafka.client.id", "client-1");
+    INPUT_PROPERTIES.setProperty("application.name", "TestApp");
     
     // Act
-    Properties kafkaProperties = provider.get();
+    Properties kafkaProperties = supplier.get();
 
     // Assert
     assertThat(kafkaProperties.containsKey("bootstrap.servers")).isTrue();
@@ -49,12 +49,12 @@ public class KafkaProducerPropertiesProviderTest {
   @Test
   public void testExtractKafkaProperties_removesKafkaPrefix() {
     // Arrange
-    TEST_PROPERTIES.setProperty("kafka.bootstrap.servers", "localhost:9092");
-    TEST_PROPERTIES.setProperty("kafka.client.id", "client-1");
-    TEST_PROPERTIES.setProperty("application.name", "TestApp");
+    INPUT_PROPERTIES.setProperty("kafka.bootstrap.servers", "localhost:9092");
+    INPUT_PROPERTIES.setProperty("kafka.client.id", "client-1");
+    INPUT_PROPERTIES.setProperty("application.name", "TestApp");
 
     // Act
-    Properties kafkaProperties = provider.get();
+    Properties kafkaProperties = supplier.get();
 
     // Assert
     assertThat(kafkaProperties.getProperty("bootstrap.servers")).isEqualTo("localhost:9092");
@@ -64,7 +64,7 @@ public class KafkaProducerPropertiesProviderTest {
   @Test
   public void testExtractKafkaProperties_emptyInputReturnsEmptyProperties() {
     // Act
-    Properties kafkaProperties = provider.get();
+    Properties kafkaProperties = supplier.get();
 
     // Assert
     assertThat(kafkaProperties.isEmpty()).isTrue();
@@ -73,10 +73,10 @@ public class KafkaProducerPropertiesProviderTest {
   @Test
   public void testExtractKafkaProperties_noKafkaPropertiesReturnsEmptyProperties() {
     // Arrange
-    TEST_PROPERTIES.setProperty("application.name", "TestApp");
+    INPUT_PROPERTIES.setProperty("application.name", "TestApp");
 
     // Act
-    Properties kafkaProperties = provider.get();
+    Properties kafkaProperties = supplier.get();
 
     // Assert
     assertThat(kafkaProperties.isEmpty()).isTrue();
@@ -85,10 +85,10 @@ public class KafkaProducerPropertiesProviderTest {
   @Test
   public void testExtractKafkaProperties_handlesMultipleKafkaProperties() {
     // Arrange
-    TEST_PROPERTIES.setProperty("kafka.group.id", "group-1");
+    INPUT_PROPERTIES.setProperty("kafka.group.id", "group-1");
 
     // Act
-    Properties kafkaProperties = provider.get();
+    Properties kafkaProperties = supplier.get();
 
     // Assert
     assertThat(kafkaProperties.getProperty("group.id")).isEqualTo("group-1");
