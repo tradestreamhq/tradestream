@@ -10,22 +10,19 @@ import java.util.concurrent.ConcurrentHashMap;
 
 final class CandleManagerImpl implements CandleManager {
     private final Map<String, CandleBuilder> candleBuilders = new ConcurrentHashMap<>();
-    private final CandlePublisher.Factory candlePublisherFactory;
     private final PriceTracker priceTracker;
     private final long candleIntervalMillis;
-    private final String topic;
+    private final CandlePublisher candlePublisher;
 
     @Inject
     CandleManagerImpl(
-        CandlePublisher.Factory candlePublisherFactory,
         PriceTracker priceTracker,
         @Assisted long candleIntervalMillis,
-        @Assisted String topic
+        @Assisted CandlePublisher candlePublisher
     ) {
-        this.candlePublisherFactory = candlePublisherFactory;
         this.priceTracker = priceTracker;
         this.candleIntervalMillis = candleIntervalMillis;
-        this.topic = topic;
+        this.candlePublisher = candlePublisher;
     }
 
     @Override
