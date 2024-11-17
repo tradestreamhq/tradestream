@@ -4,6 +4,8 @@ import com.google.inject.Inject;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
 
+import java.util.Properties;
+
 final class StreamingExchangeProvider implements Provider<StreamingExchange> {
   private final Properties properties;
 
