@@ -168,6 +168,8 @@ java_library(
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
         "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
         ":candle_manager",
         ":candle_publisher",
         ":market_data_ingestion",
