@@ -5,6 +5,8 @@ import static org.mockito.Mockito.*;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.Inject;
 import marketdata.Marketdata.Trade;
 import marketdata.Marketdata.Candle;
 import org.junit.Before;
