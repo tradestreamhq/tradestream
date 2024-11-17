@@ -32,7 +32,7 @@ final class CandleManagerImpl implements CandleManager {
     public void processTrade(Trade trade) {
         long minuteTimestamp = getMinuteTimestamp(trade.getTimestamp());
         String key = getCandleKey(trade.getCurrencyPair(), minuteTimestamp);
-        
+        CandlePublisher publisher = createCandlePublisher();       
         CandleBuilder builder = candleBuilders.computeIfAbsent(
             key,
             k -> new CandleBuilder(trade.getCurrencyPair(), minuteTimestamp)
@@ -42,24 +42,29 @@ final class CandleManagerImpl implements CandleManager {
         priceTracker.updateLastPrice(trade.getCurrencyPair(), trade.getPrice());
 
         if (isIntervalComplete(minuteTimestamp)) {
-            publishAndRemoveCandle(key, builder);
+            publishAndRemoveCandle(publisher, key, builder);
         }
     }
 
     @Override
     public void handleThinlyTradedMarkets(List<String> currencyPairs) {
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
+        CandlePublisher publisher = createCandlePublisher();
         for (String pair : currencyPairs) {
             String key = getCandleKey(pair, currentMinute);
             CandleBuilder builder = candleBuilders.get(key);
             
             if (builder == null || !builder.hasTrades()) {
-                generateEmptyCandle(pair, currentMinute);
+                generateEmptyCandle(publisher, pair, currentMinute);
             }
         }
     }
 
-    private void generateEmptyCandle(String currencyPair, long timestamp) {
+    private CandlePublisher createCandlePublisher() {
+        return candlePublisherFactory.create(topic);
+    }
+
+    private void generateEmptyCandle(CandlePublisher publisher, String currencyPair, long timestamp) {
         double lastPrice = priceTracker.getLastPrice(currencyPair);
         if (!Double.isNaN(lastPrice)) {
             CandleBuilder builder = new CandleBuilder(currencyPair, timestamp);
@@ -69,11 +74,11 @@ final class CandleManagerImpl implements CandleManager {
                 .setCurrencyPair(currencyPair)
                 .setTimestamp(timestamp)
                 .build());
-            publishAndRemoveCandle(getCandleKey(currencyPair, timestamp), builder);
+            publishAndRemoveCandle(publisher, getCandleKey(currencyPair, timestamp), builder);
         }
     }
 
-    private void publishAndRemoveCandle(String key, CandleBuilder builder) {
+    private void publishAndRemoveCandle(CandlePublisher publisher, String key, CandleBuilder builder) {
         publisher.publishCandle(builder.build());
         candleBuilders.remove(key);
     }
