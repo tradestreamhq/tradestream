@@ -125,6 +125,7 @@ java_library(
         ":candle_publisher_impl",
         ":kafka_producer_provider",
         ":market_data_ingestion",
+        ":properties_provider",
         ":real_time_data_ingestion",
     ],
 )
@@ -135,6 +136,15 @@ java_library(
     deps = [
         "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
+        ":kafka_properties",
+    ],    
+)
+
+java_library(
+    name = "kafka_properties",
+    srcs = ["KafkaProperties.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
     ],    
 )
 
@@ -153,6 +163,18 @@ java_library(
     srcs = ["PriceTracker.java"],
     deps = [
         "@maven//:com_google_inject_guice",        
+    ],
+)
+
+java_library(
+    name = "properties_provider",
+    srcs = ["PropertiesProvider.java"],
+    deps = [
+        "@bazel_tools//tools/java/runfiles",
+        "@maven//:com_google_inject_guice",
+    ],
+    data = [
+        ":config.properties",
     ],
 )
 

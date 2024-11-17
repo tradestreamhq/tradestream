@@ -64,6 +64,17 @@ java_test(
 )
 
 java_test(
+    name = "KafkaPropertiesTest",
+    srcs = ["KafkaPropertiesTest.java"],
+    deps = [
+        "@maven//:com_google_inject_extensions_guice_testlib",
+        "@maven//:com_google_inject_guice",
+        "@maven//:com_google_truth_truth",
+        "//src/main/java/com/verlumen/tradestream/ingestion:kafka_properties",
+    ],
+)
+
+java_test(
     name = "PriceTrackerTest",
     srcs = ["PriceTrackerTest.java"],
     deps = [
@@ -71,6 +82,17 @@ java_test(
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
         "//src/main/java/com/verlumen/tradestream/ingestion:price_tracker",
+    ],
+)
+
+java_test(
+    name = "PropertiesProviderTest",
+    srcs = ["PropertiesProviderTest.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
+        "//src/main/java/com/verlumen/tradestream/ingestion:properties_provider",
     ],
 )
 
