@@ -171,6 +171,7 @@ java_library(
         ":candle_manager",
         ":candle_publisher",
         ":market_data_ingestion",
+        ":trade_processor",
     ]
 )
 
