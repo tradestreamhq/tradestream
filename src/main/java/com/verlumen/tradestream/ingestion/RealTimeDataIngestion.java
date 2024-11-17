@@ -11,7 +11,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     RealTimeDataIngestion(
         CandleManager.Factory candleManagerFactory,
         CandlePublisher.Factory candlePublisherFactory,
-        TradeProcessor tradeProcessor,
+        TradeProcessor tradeProcessor
     ) {
         this.candleManagerFactory = candleManagerFactory;
         this.candlePublisherFactory = candlePublisherFactory;
