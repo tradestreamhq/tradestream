@@ -27,7 +27,6 @@ public class CandleManagerImplTest {
     
     private static final long CANDLE_INTERVAL = 60000L;
     private static final String TEST_PAIR = "BTC/USD";
-    private static final String TEST_TOPIC = "send-candles-here";
     
     @Mock private CandlePublisher mockPublisher;
     @Mock private PriceTracker mockPriceTracker;
@@ -50,7 +49,7 @@ public class CandleManagerImplTest {
         // Arrange
         long timestamp = System.currentTimeMillis();
         Trade trade = createTestTrade(timestamp);
-        CandleManager manager = factory.create(CANDLE_INTERVAL, TEST_TOPIC);
+        CandleManager manager = factory.create(CANDLE_INTERVAL, mockPublisher);
 
         // Act
         manager.processTrade(trade);
@@ -63,7 +62,7 @@ public class CandleManagerImplTest {
     public void processTrade_updatesLastPrice() {
         // Arrange
         Trade trade = createTestTrade(System.currentTimeMillis());
-        CandleManager manager = factory.create(CANDLE_INTERVAL, TEST_TOPIC);
+        CandleManager manager = factory.create(CANDLE_INTERVAL, mockPublisher);
 
         // Act
         manager.processTrade(trade);
@@ -77,7 +76,7 @@ public class CandleManagerImplTest {
         // Arrange
         long timestamp = System.currentTimeMillis() - (CANDLE_INTERVAL + 1000); // Past interval
         Trade trade = createTestTrade(timestamp);
-        CandleManager manager = factory.create(CANDLE_INTERVAL, TEST_TOPIC);
+        CandleManager manager = factory.create(CANDLE_INTERVAL, mockPublisher);
 
         // Act
         manager.processTrade(trade);
@@ -90,11 +89,11 @@ public class CandleManagerImplTest {
     @Test
     public void handleThinlyTradedMarkets_generatesEmptyCandles() {
         // Arrange
+        CandleManager manager = factory.create(CANDLE_INTERVAL, mockPublisher);
         when(mockPriceTracker.getLastPrice(TEST_PAIR)).thenReturn(100.0);
 
         // Act
-        factory.create(CANDLE_INTERVAL, TEST_TOPIC)
-            .handleThinlyTradedMarkets(ImmutableList.of(TEST_PAIR));
+        manager.handleThinlyTradedMarkets(ImmutableList.of(TEST_PAIR));
 
         // Assert
         verify(mockPublisher).publishCandle(argThat(candle -> 
@@ -105,7 +104,7 @@ public class CandleManagerImplTest {
     @Test
     public void handleThinlyTradedMarkets_skipsWhenNoLastPrice() {
         // Arrange
-        CandleManager manager = factory.create(CANDLE_INTERVAL, TEST_TOPIC);
+        CandleManager manager = factory.create(CANDLE_INTERVAL, mockPublisher);
 
         when(mockPriceTracker.getLastPrice(TEST_PAIR)).thenReturn(Double.NaN);
         
