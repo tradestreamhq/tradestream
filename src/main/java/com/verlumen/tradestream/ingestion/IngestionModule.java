@@ -5,11 +5,14 @@ import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import org.apache.kafka.clients.producer.KafkaProducer;
 
+import java.util.Properties;
+
 final class IngestionModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
+    bind(Properties.class).toProvider(PropertiesProvider.class);
 
     bind(MarketDataIngestion.class).to(RealTimeDataIngestion.class);
 
