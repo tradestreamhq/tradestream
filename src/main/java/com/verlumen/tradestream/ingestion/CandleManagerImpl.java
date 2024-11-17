@@ -56,6 +56,11 @@ final class CandleManagerImpl implements CandleManager {
         }
     }
 
+    @Override
+    public int getActiveBuilderCount() {
+        return candleBuilders.size();
+    }
+
     private void generateEmptyCandle(String currencyPair, long timestamp) {
         double lastPrice = priceTracker.getLastPrice(currencyPair);
         if (!Double.isNaN(lastPrice)) {
@@ -85,10 +90,5 @@ final class CandleManagerImpl implements CandleManager {
 
     private boolean isIntervalComplete(long timestamp) {
         return System.currentTimeMillis() >= timestamp + candleIntervalMillis;
-    }
-
-    // Visible for testing
-    int getActiveBuilderCount() {
-        return candleBuilders.size();
     }
 }
