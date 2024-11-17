@@ -16,6 +16,7 @@ java_binary(
         ":ingestion_module",
         ":market_data_ingestion",
         ":real_time_data_ingestion",
+        ":streaming_exchange_provider",
     ],
 )
 
@@ -195,6 +196,16 @@ java_library(
         ":candle_manager",
         ":candle_publisher",
         ":market_data_ingestion",
+    ]
+)
+
+java_library(
+    name = "streaming_exchange_provider",
+    srcs = ["StreamingExchangeProvider.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
     ]
 )
 
