@@ -64,6 +64,14 @@ java_test(
 )
 
 java_test(
+    name = "KafkaProducerPropertiesProviderTest",
+    srcs = ["KafkaProducerPropertiesProviderTest.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+    ],
+)
+
+java_test(
     name = "PriceTrackerTest",
     srcs = ["PriceTrackerTest.java"],
     deps = [
