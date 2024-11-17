@@ -3,8 +3,12 @@ package com.verlumen.tradestream.ingestion;
 import com.google.inject.Inject;
 
 final class RealTimeDataIngestion implements MarketDataIngestion {
+    private final CandlePublisher.Factory candlePublisherFactory;
+    
     @Inject
-    RealTimeDataIngestion() {}
+    RealTimeDataIngestion(CandlePublisher.Factory candlePublisherFactory) {
+        this.candlePublisherFactory = candlePublisherFactory;
+    }
 
     @Override
     public void start() {}
