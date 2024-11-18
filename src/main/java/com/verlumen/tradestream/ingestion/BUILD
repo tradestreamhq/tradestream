@@ -130,6 +130,7 @@ java_library(
     deps = [
         "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:org_knowm_xchange_xchange_stream_core",
         ":candle_manager",
