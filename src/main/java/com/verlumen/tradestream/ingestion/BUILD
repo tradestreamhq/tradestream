@@ -71,6 +71,11 @@ java_library(
     ],
 )
 
+java_library(
+    name = "config_arguments",
+    srcs = ["ConfigArguments.java"],
+)
+
 container_structure_test(
     name = "container_test",
     configs = ["container-structure-test.yaml"],
