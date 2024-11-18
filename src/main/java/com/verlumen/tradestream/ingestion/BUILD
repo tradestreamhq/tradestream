@@ -117,6 +117,7 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
