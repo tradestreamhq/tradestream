@@ -16,12 +16,7 @@ abstract class ConfigArguments implements Provider<Namespace> {
 
   @Override
   public Namespace get() {
-    ArgumentParser parser = createParser();
-    try {
-      return parser.parseArgs(args.toArray(String[0]));
-    } catch (ArgumentParserException e) {
-      throw new RuntimeException(e);
-    }  
+    return createParser().parseArgs(args().toArray(String[0]));
   }
 
   private static ArgumentParser createParser() {
