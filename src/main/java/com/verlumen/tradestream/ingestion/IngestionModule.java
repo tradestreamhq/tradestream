@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
@@ -11,11 +13,17 @@ import java.util.Properties;
 
 @AutoValue
 abstract class IngestionModule extends AbstractModule {
+  static IngestionModule create(String[] commandLineArgs) {
+    return new AutoValue_IngestionModule(ImmutableList.copyOf(commandLineArgs));
+  }
+
+  abstract ImmutableList<String> commandLineArgs();
+  
   @Override
   protected void configure() {
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
-    bind(Namespace.class).toProvider(ConfigArguments.create());
+    bind(Namespace.class).toProvider(ConfigArguments.create(args()));
     bind(Properties.class).toProvider(PropertiesProvider.class);
     bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class);
 
