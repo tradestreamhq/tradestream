@@ -7,6 +7,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import info.bitrich.xchangestream.core.StreamingExchange;
+import net.sourceforge.argparse4j.inf.Namespace;
 
 import java.util.Properties;
 
@@ -22,6 +23,7 @@ abstract class IngestionModule extends AbstractModule {
   protected void configure() {
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
+    bind(Namespace.class).toProvider(ConfigArguments.create(commandLineArgs()));
     bind(Properties.class).toProvider(PropertiesProvider.class);
     bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class);
 
