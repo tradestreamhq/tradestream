@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.auto.value.AutoValue;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
