@@ -14,7 +14,7 @@ final class IngestionModule extends AbstractModule {
   protected void configure() {
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
-    bind(Namespace.class).toProvider(Config.class);
+    bind(Namespace.class).toProvider(ConfigArguments.class);
     bind(Properties.class).toProvider(PropertiesProvider.class);
     bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class);
 
