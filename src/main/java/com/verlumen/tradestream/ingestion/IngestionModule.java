@@ -9,7 +9,8 @@ import net.sourceforge.argparse4j.inf.Namespace;
 
 import java.util.Properties;
 
-final class IngestionModule extends AbstractModule {
+@AutoValue
+abstract class IngestionModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
