@@ -121,6 +121,7 @@ java_library(
         "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:org_knowm_xchange_xchange_stream_core",
+        "//:autovalue",
         ":candle_manager",
         ":candle_manager_impl",
         ":candle_publisher",
