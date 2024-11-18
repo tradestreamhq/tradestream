@@ -16,6 +16,7 @@ java_binary(
         ":ingestion_module",
         ":market_data_ingestion",
         ":real_time_data_ingestion",
+        ":streaming_exchange_provider",
     ],
 )
 
@@ -119,13 +120,16 @@ java_library(
         "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
         ":candle_manager",
         ":candle_manager_impl",
         ":candle_publisher",
         ":candle_publisher_impl",
         ":kafka_producer_provider",
         ":market_data_ingestion",
+        ":properties_provider",
         ":real_time_data_ingestion",
+        ":streaming_exchange_provider",
     ],
 )
 
@@ -135,6 +139,15 @@ java_library(
     deps = [
         "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
+        ":kafka_properties",
+    ],    
+)
+
+java_library(
+    name = "kafka_properties",
+    srcs = ["KafkaProperties.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
     ],    
 )
 
@@ -156,6 +169,18 @@ java_library(
     ],
 )
 
+java_library(
+    name = "properties_provider",
+    srcs = ["PropertiesProvider.java"],
+    deps = [
+        "@bazel_tools//tools/java/runfiles",
+        "@maven//:com_google_inject_guice",
+    ],
+    data = [
+        ":config.properties",
+    ],
+)
+
 oci_push(
     name = "push_image",
     image = ":index",
@@ -168,10 +193,22 @@ java_library(
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
         "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
         ":candle_manager",
         ":candle_publisher",
         ":market_data_ingestion",
         ":trade_processor",
+    ]
+)
+
+java_library(
+    name = "streaming_exchange_provider",
+    srcs = ["StreamingExchangeProvider.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
     ]
 )
 

@@ -4,12 +4,17 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import info.bitrich.xchangestream.core.StreamingExchange;
+
+import java.util.Properties;
 
 final class IngestionModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
+    bind(Properties.class).toProvider(PropertiesProvider.class);
+    bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class);
 
     bind(MarketDataIngestion.class).to(RealTimeDataIngestion.class);
 
