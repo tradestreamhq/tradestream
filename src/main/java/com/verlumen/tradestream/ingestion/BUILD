@@ -136,6 +136,7 @@ java_library(
         ":candle_manager_impl",
         ":candle_publisher",
         ":candle_publisher_impl",
+        ":config_arguments",
         ":kafka_producer_provider",
         ":market_data_ingestion",
         ":properties_provider",
