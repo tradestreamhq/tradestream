@@ -76,6 +76,7 @@ java_library(
     srcs = ["ConfigArguments.java"],
     deps = [
         "@maven//:net_sourceforge_argparse4j_argparse4j",
+        "//:autovalue",
     ],
 )
 
