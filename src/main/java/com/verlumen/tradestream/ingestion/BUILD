@@ -75,6 +75,8 @@ java_library(
     name = "config_arguments",
     srcs = ["ConfigArguments.java"],
     deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
         "@maven//:net_sourceforge_argparse4j_argparse4j",
         "//:autovalue",
     ],
