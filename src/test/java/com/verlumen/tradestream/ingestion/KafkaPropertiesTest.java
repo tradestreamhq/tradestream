@@ -20,7 +20,7 @@ import java.util.Properties;
 public class KafkaPropertiesTest {
   private static final Map<String, Object> INPUT_PROPERTIES = new HashMap<>();
 
-  @Bind private static final Namespace NAMESPACE = new Properties();
+  @Bind private static final Namespace NAMESPACE = new Properties(INPUT_PROPERTIES);
 
   @Inject private KafkaProperties supplier;
 
