@@ -10,7 +10,7 @@ import info.bitrich.xchangestream.core.StreamingExchange;
 import java.util.Properties;
 
 @AutoValue
-final class IngestionModule extends AbstractModule {
+abstract class IngestionModule extends AbstractModule {
   static IngestionModule create(String[] commandLineArgs) {
     return new AutoValue_IngestionModule(commandLineArgs);
   }
