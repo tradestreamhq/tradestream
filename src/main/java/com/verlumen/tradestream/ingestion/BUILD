@@ -74,6 +74,9 @@ java_library(
 java_library(
     name = "config_arguments",
     srcs = ["ConfigArguments.java"],
+    deps = [
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
+    ],
 )
 
 container_structure_test(
