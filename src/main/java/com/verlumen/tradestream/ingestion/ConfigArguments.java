@@ -18,11 +18,15 @@ abstract class ConfigArguments implements Provider<Namespace> {
 
   @Override
   public Namespace get() {
-    return createParser().parseArgs(args().toArray(new String[0]));
+    try {
+      return createParser().parseArgs(args().toArray(new String[0]));
+    } catch(ArgumentParserException e) {
+      throw new RuntimeException("Unable to parse arguments.", e);
+    }
   }
 
   private static ArgumentParser createParser() {
-    ArgumentParser parser = ArgumentParsers.newFor("KafkaExchangeConfig")
+    ArgumentParser parser = ArgumentParsers.newFor("TradeStreamDataIngestion")
       .build()
       .defaultHelp(true)
       .description("Configuration for Kafka producer and exchange settings");
