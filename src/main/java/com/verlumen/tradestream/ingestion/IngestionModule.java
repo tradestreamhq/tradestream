@@ -23,7 +23,7 @@ abstract class IngestionModule extends AbstractModule {
   protected void configure() {
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
-    bind(Namespace.class).toProvider(ConfigArguments.create(args()));
+    bind(Namespace.class).toProvider(ConfigArguments.create(commandLineArgs()));
     bind(Properties.class).toProvider(PropertiesProvider.class);
     bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class);
 
