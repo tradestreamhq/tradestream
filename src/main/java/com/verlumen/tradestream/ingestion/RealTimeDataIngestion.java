@@ -80,7 +80,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
             .get()
             .getStreamingMarketDataService()
             .getTrades(currencyPair)
-            .subscribe(trade -> onTrade(convertTrade(trade, pair)));
+            .subscribe(trade -> onTrade(convertTrade(trade, currencyPair.toString())));
     }
 
     private void subscribeToTradeStreams() {}
