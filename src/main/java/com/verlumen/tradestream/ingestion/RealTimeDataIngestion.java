@@ -50,10 +50,8 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
 
     @Override
     public void shutdown() {
-        for (Disposable subscription : subscriptions) {
-            subscription.dispose();
-        }
-        thinMarketTimer.stop();
+        subscriptions.forEach(Disposable::dispose);
+        thinMarketTimer.cancel();
         exchange.get().disconnect().blockingAwait();
         candlePublisher.close();
     }
