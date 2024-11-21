@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.Timer;
 import java.util.TimerTask;
 
-final class ThinMarketTimerImpl implements ThinMarketTimer {
+final class ThinMarketTimer extends Timer {
   private static final int ONE_MINUTE_IN_MILLISECONDS = 60_000;
 
   private final Timer timer;
@@ -28,7 +28,7 @@ final class ThinMarketTimerImpl implements ThinMarketTimer {
   }
 
   @Override
-  public void stop() {
+  public void cancel() {
     if (isScheduled.compareAndSet(true, false)) {
         timer.cancel();
     }
