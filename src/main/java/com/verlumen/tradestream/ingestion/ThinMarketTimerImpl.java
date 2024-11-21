@@ -41,7 +41,7 @@ final class ThinMarketTimerImpl implements ThinMarketTimer {
   
       @Override
       public void run() {
-          ImmutableList<CurrencyPair> currencyPairs =
+          ImmutableList<String> currencyPairs =
             currencyPairSupplier()
             .currencyPairs()
             .stream()
