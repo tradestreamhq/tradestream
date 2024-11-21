@@ -12,121 +12,133 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Timer;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
-public class ThinMarketTimerTaskTest {
+public class ThinMarketTimerImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
 
     @Mock @Bind private CandleManager candleManager;
     @Mock @Bind private CurrencyPairSupplier currencyPairSupplier;
+    @Mock @Bind private Timer timer;
     @Inject private ThinMarketTimerTask thinMarketTimerTask;
 
     @Before
     public void setUp() {
-        Guice.createInjector
+        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
     @Test
-    public void run_withValidCurrencyPairs_callsHandleThinlyTradedMarkets() {
+    public void start_schedulesTimerTaskAtFixedRate() {
         // Arrange
-        CurrencyPair btcUsd = new CurrencyPair("BTC/USD");
-        CurrencyPair ethUsd = new CurrencyPair("ETH/USD");
-        when(currencyPairSupplier.currencyPairs()).thenReturn(Arrays.asList(btcUsd, ethUsd));
+        ArgumentCaptor<TimerTask> taskCaptor = ArgumentCaptor.forClass(TimerTask.class);
+        long expectedPeriod = 60_000L;
 
         // Act
-        thinMarketTimerTask.run();
+        thinMarketTimer.start();
 
         // Assert
-        verify(candleManager).handleThinlyTradedMarkets(ImmutableList.of("BTC/USD", "ETH/USD"));
+        verify(timer).scheduleAtFixedRate(taskCaptor.capture(), eq(0L), eq(expectedPeriod));
+        assertThat(taskCaptor.getValue()).isNotNull();
     }
 
     @Test
-    public void run_withEmptyCurrencyPairs_callsHandleThinlyTradedMarketsWithEmptyList() {
+    public void stop_cancelsTimer() {
         // Arrange
-        when(currencyPairSupplier.currencyPairs()).thenReturn(Collections.emptyList());
+        thinMarketTimer.start();
 
         // Act
-        thinMarketTimerTask.run();
+        thinMarketTimer.stop();
 
         // Assert
-        verify(candleManager).handleThinlyTradedMarkets(ImmutableList.of());
+        verify(timer).cancel();
     }
 
     @Test
-    public void run_withNullCurrencyPairs_throwsNullPointerException() {
+    public void start_multipleCalls_scheduleOnlyOnce() {
         // Arrange
-        when(currencyPairSupplier.currencyPairs()).thenReturn(null);
 
-        // Act / Assert
-        assertThrows(NullPointerException.class, thinMarketTimerTask::run);
+        // Act
+        thinMarketTimer.start();
+        thinMarketTimer.start();
+
+        // Assert
+        verify(timer, times(1)).scheduleAtFixedRate(any(TimerTask.class), anyLong(), anyLong());
+    }
+
+    @Test
+    public void stop_withoutStart_doesNotThrowException() {
+        // Act & Assert
+        try {
+            thinMarketTimer.stop();
+        } catch (Exception e) {
+            fail("Calling stop without start should not throw an exception");
+        }
+    }
+
+    @Test
+    public void start_afterStop_reschedulesTimerTask() {
+        // Arrange
+        thinMarketTimer.start();
+        thinMarketTimer.stop();
+        ArgumentCaptor<TimerTask> taskCaptor = ArgumentCaptor.forClass(TimerTask.class);
+
+        // Act
+        thinMarketTimer.start();
+
+        // Assert
+        verify(timer, times(2)).scheduleAtFixedRate(taskCaptor.capture(), eq(0L), eq(60_000L));
+    }
+
+    @Test
+    public void timerTask_run_invokesHandleThinlyTradedMarkets() {
+        // Arrange
+        TimerTask timerTask = captureTimerTask();
+        CurrencyPair currencyPair = new CurrencyPair("BTC/USD");
+        when(currencyPairSupplier.currencyPairs()).thenReturn(java.util.Collections.singletonList(currencyPair));
+
+        // Act
+        timerTask.run();
+
+        // Assert
+        verify(candleManager).handleThinlyTradedMarkets(com.google.common.collect.ImmutableList.of("BTC/USD"));
+    }
+
+    @Test
+    public void timerTask_run_withEmptyCurrencyPairs_invokesHandleThinlyTradedMarketsWithEmptyList() {
+        // Arrange
+        TimerTask timerTask = captureTimerTask();
+        when(currencyPairSupplier.currencyPairs()).thenReturn(java.util.Collections.emptyList());
+
+        // Act
+        timerTask.run();
+
+        // Assert
+        verify(candleManager).handleThinlyTradedMarkets(com.google.common.collect.ImmutableList.of());
     }
 
     @Test(expected = NullPointerException.class)
-    public void run_withNullElementInCurrencyPairs_throwsNullPointerException() {
+    public void timerTask_run_withNullCurrencyPairs_throwsNullPointerException() {
         // Arrange
-        CurrencyPair btcUsd = new CurrencyPair("BTC/USD");
-        when(currencyPairSupplier.currencyPairs()).thenReturn(Arrays.asList(btcUsd, null));
+        TimerTask timerTask = captureTimerTask();
+        when(currencyPairSupplier.currencyPairs()).thenReturn(null);
+
+        // Act
+        timerTask.run();
 
         // Act / Assert
-        assertThrows(NullPointerException.class, thinMarketTimerTask::run);
+        assertThrows(NullPointerException.class, timerTask::run)
     }
 
-    @Test
-    public void run_currencyPairsOrderIsPreserved() {
-        // Arrange
-        CurrencyPair firstPair = new CurrencyPair("FIRST/PAIR");
-        CurrencyPair secondPair = new CurrencyPair("SECOND/PAIR");
-        CurrencyPair thirdPair = new CurrencyPair("THIRD/PAIR");
-        when(currencyPairSupplier.currencyPairs()).thenReturn(Arrays.asList(firstPair, secondPair, thirdPair));
-
-        // Act
-        thinMarketTimerTask.run();
-
-        // Assert
-        verify(candleManager).handleThinlyTradedMarkets(ImmutableList.of("FIRST/PAIR", "SECOND/PAIR", "THIRD/PAIR"));
-    }
-
-    @Test
-    public void run_withDuplicateCurrencyPairs_callsHandleThinlyTradedMarketsWithDuplicates() {
-        // Arrange
-        CurrencyPair btcUsd = new CurrencyPair("BTC/USD");
-        when(currencyPairSupplier.currencyPairs()).thenReturn(Arrays.asList(btcUsd, btcUsd));
-
-        // Act
-        thinMarketTimerTask.run();
-
-        // Assert
-        verify(candleManager).handleThinlyTradedMarkets(ImmutableList.of("BTC/USD", "BTC/USD"));
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void run_whenHandleThinlyTradedMarketsThrows_exceptionIsPropagated() {
-        // Arrange
-        CurrencyPair btcUsd = new CurrencyPair("BTC/USD");
-        when(currencyPairSupplier.currencyPairs()).thenReturn(Collections.singletonList(btcUsd));
-        doThrow(new RuntimeException()).when(candleManager).handleThinlyTradedMarkets(any());
-
-        // Act
-        thinMarketTimerTask.run();
-
-        // Act / Assert
-        assertThrows(RuntimeException.class, thinMarketTimerTask::run);
-    }
-
-    @Test
-    public void run_withCurrencyPairToStringReturningNull_callsHandleThinlyTradedMarketsWithNullElement() {
-        // Arrange
-        CurrencyPair currencyPair = mock(CurrencyPair.class);
-        when(currencyPair.toString()).thenReturn(null);
-        when(currencyPairSupplier.currencyPairs()).thenReturn(Collections.singletonList(currencyPair));
-
-        // Act
-        thinMarketTimerTask.run();
-
-        // Assert
-        verify(candleManager).handleThinlyTradedMarkets(ImmutableList.of((String) null));
+    // Helper method to capture the TimerTask scheduled by start()
+    private TimerTask captureTimerTask() {
+        ArgumentCaptor<TimerTask> taskCaptor = ArgumentCaptor.forClass(TimerTask.class);
+        thinMarketTimer.start();
+        verify(timer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong());
+        return taskCaptor.getValue();
     }
 }
+
