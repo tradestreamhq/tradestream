@@ -107,6 +107,7 @@ java_library(
     srcs = ["CurrencyPairSupplier.java"],
     deps = [
         "@maven//:com_google_guava_guava",
+        "@maven//:org_knowm_xchange_xchange_core",
         ":currency_pair_metadata",
     ],
 )
@@ -270,6 +271,11 @@ java_library(
 java_library(
     name = "thin_market_timer",
     srcs = ["ThinMarketTimer.java"],    
+)
+
+java_library(
+    name = "thin_market_timer_impl",
+    srcs = ["ThinMarketTimerImpl.java"],    
 )
 
 java_library(
