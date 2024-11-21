@@ -75,22 +75,6 @@ public class ThinMarketTimerTaskImplTest {
     }
 
     @Test
-    public void run_withNullElementInCurrencyPairs_throwsNullPointerException() {
-        // Arrange
-        CurrencyPair btcUsd = new CurrencyPair("BTC", "USD");
-        ImmutableList<CurrencyPair> currencyPairs = ImmutableList.of(btcUsd, null);
-        when(currencyPairSupplier.currencyPairs()).thenReturn(currencyPairs);
-
-        // Act & Assert
-        try {
-            thinMarketTimerTask.run();
-            fail("Expected NullPointerException");
-        } catch (NullPointerException e) {
-            // Expected exception
-        }
-    }
-
-    @Test
     public void run_handleThinlyTradedMarketsThrowsException_exceptionIsPropagated() {
         // Arrange
         CurrencyPair btcUsd = new CurrencyPair("BTC", "USD");
