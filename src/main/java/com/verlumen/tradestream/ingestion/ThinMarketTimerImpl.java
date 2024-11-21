@@ -15,9 +15,15 @@ final class ThinMarketTimerImpl implements ThinMarketTimer {
     this.timer = new Timer();
     this.timerTask = ThinMarketTimerTask.create(candleManager, currencyPairSupplier);
   }
-   
-  void start() {
-      timer.scheduleAtFixedRate(timerTask, 0, ONE_MINUTE_IN_MILLISECONDS);            
+
+  @Override
+  public void start() {
+    timer.scheduleAtFixedRate(timerTask, 0, ONE_MINUTE_IN_MILLISECONDS);            
+  }
+
+  @Override
+  public void stop() {
+    timer.cancel();
   }
 }
 
