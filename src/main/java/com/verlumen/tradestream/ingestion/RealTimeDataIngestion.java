@@ -48,12 +48,11 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
 
     @Override
     public void shutdown() {
-        for (Disposable subscription : subscriptions) {
-            subscription.dispose();
-        }
-        if (thinMarketTimer != null) {
-            thinMarketTimer.cancel();
-        }
+        subscriptions.forEach(Disposable::dispose);
+        // for (Disposable subscription : subscriptions) {
+        //     subscription.dispose();
+        // }
+        thinMarketTimer.cancel();
         exchange.get().disconnect().blockingAwait();
         candlePublisher.close();
     }
@@ -73,16 +72,6 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         if (!tradeProcessor.isProcessed(trade)) {
             candleManager.processTrade(trade);
         }
-    }
-
-    private void startThinMarketTimer() {
-        thinMarketTimer = new Timer();
-        thinMarketTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                candleManager.handleThinlyTradedMarkets(currencyPairs);
-            }
-        }, 0, 60000); // Every minute
     }
 
     private Observable<Trade> subscribeToTradeStream(String pair) {
