@@ -50,7 +50,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     @Override
     public void shutdown() {
         subscriptions.forEach(Disposable::dispose);
-        thinMarketTimer.cancel();
+        thinMarketTimer.stop();
         exchange.get().disconnect().blockingAwait();
         candlePublisher.close();
     }
@@ -87,9 +87,10 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     }
 
     private void subscribeToTradeStreams() {
-        for (CurrencyPair currencyPair : currencyPairSupplier.currencyPairs()) {
-            Disposable subscription = subscribeToTradeStream(pair);
-            subscriptions.add(subscription);
-        }
+        currencyPairSupplier
+            .currencyPairs()
+            .stream()
+            .map(this::subscribeToTradeStream)
+            .forEach(subscriptions::add);
     }
 }
