@@ -235,7 +235,6 @@ java_library(
         "@maven//:io_reactivex_rxjava3_rxjava",
         "@maven//:org_knowm_xchange_xchange_core",
         "@maven//:org_knowm_xchange_xchange_stream_core",
-        "@maven//:io_reactivex_rxjava3_rxjava",
         "//protos:marketdata_java_proto",
         ":candle_manager",
         ":candle_publisher",
