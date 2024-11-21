@@ -11,7 +11,7 @@ final class ThinMarketTimerImpl implements ThinMarketTimer {
   }
    
   void start() {
-      timer().scheduleAtFixedRate(timerTask(), 0, ONE_MINUTE_IN_MILLISECONDS);            
+      timer.scheduleAtFixedRate(timerTask, 0, ONE_MINUTE_IN_MILLISECONDS);            
   }
 }
 
