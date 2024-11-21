@@ -287,6 +287,14 @@ java_library(
 )
 
 java_library(
+    name = "thin_market_timer_task_impl",
+    srcs = ["ThinMarketTimerTaskImpl.java"],
+    deps = [
+        ":thin_market_timer_task",
+    ],
+)
+
+java_library(
     name = "trade_processor",
     srcs = ["TradeProcessor.java"],
     deps = [
