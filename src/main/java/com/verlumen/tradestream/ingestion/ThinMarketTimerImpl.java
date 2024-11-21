@@ -3,6 +3,8 @@ package com.verlumen.tradestream.ingestion;
 import com.google.inject.Inject;
 import org.knowm.xchange.currency.CurrencyPair;
 
+import java.util.Timer;
+
 final class ThinMarketTimerImpl implements ThinMarketTimer {
   private static final int ONE_MINUTE_IN_MILLISECONDS = 60_000;
 
