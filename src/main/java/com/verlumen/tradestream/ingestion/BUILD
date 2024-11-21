@@ -183,6 +183,7 @@ java_library(
         ":streaming_exchange_provider",
         ":thin_market_timer",
         ":thin_market_timer_impl",
+        ":thin_market_timer_task",
         ":trade_processor",
     ],
 )
@@ -278,7 +279,6 @@ java_library(
         "@maven//:com_google_inject_guice",
         "@maven//:org_knowm_xchange_xchange_core",
         ":thin_market_timer",
-        ":thin_market_timer_task",
     ]
 )
 
@@ -288,10 +288,8 @@ java_library(
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
-        "@maven//:org_knowm_xchange_xchange_core",
         ":candle_manager",
         ":currency_pair_supplier",
-        ":thin_market_timer",
     ]
 )
 
