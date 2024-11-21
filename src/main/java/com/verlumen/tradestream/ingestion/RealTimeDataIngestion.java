@@ -74,7 +74,13 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         }
     }
 
-    private void subscribeToTradeStream() {}
+    private Observable<Trade> subscribeToTradeStream(CurrencyPair currencyPair) {
+        return exchange
+            .get()
+            .getStreamingMarketDataService()
+            .getTrades(currencyPair)
+            .subscribe(trade -> onTrade(convertTrade(trade, pair)));
+    }
 
     private void subscribeToTradeStreams() {}
 }
