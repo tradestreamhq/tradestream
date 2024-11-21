@@ -52,6 +52,12 @@ abstract class IngestionModule extends AbstractModule {
   }
 
   @Provides
+  App.RunMode provideRunMode(Namespace namespace) {
+    String runModeName = namespace.getString("runMode").toUpperCase();
+    return App.RunMode.valueOf(runModeName);
+  }
+
+  @Provides
   TradeProcessor provideTradeProcessor(Namespace namespace) {
     long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000;
     return TradeProcessor.create(candleIntervalMillis);
