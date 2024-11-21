@@ -1,6 +1,8 @@
 package com.verlumen.tradestream.ingestion;
 
 final class ThinMarketTimerImpl implements ThinMarketTimer {
+  private static final int ONE_MINUTE_IN_MILLISECONDS = 60_000;
+
   private final Timer timer;
   private final TimerTask timerTask;
 
@@ -21,6 +23,7 @@ abstract static class ThinMarketTimerTask extends TimerTask {
     }
 
     abstract CandleManager candleManager();
+
     abstract CurrencyPairSuppier currencyPairSupplier();
 
     @Override
