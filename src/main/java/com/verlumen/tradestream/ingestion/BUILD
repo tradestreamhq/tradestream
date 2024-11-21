@@ -285,17 +285,6 @@ java_library(
 )
 
 java_library(
-    name = "thin_market_timer_impl",
-    srcs = ["ThinMarketTimerImpl.java"],
-    deps = [
-        "@maven//:com_google_inject_guice",
-        "@maven//:org_knowm_xchange_xchange_core",
-        ":thin_market_timer",
-        ":thin_market_timer_task",
-    ],
-)
-
-java_library(
     name = "thin_market_timer_task",
     srcs = ["ThinMarketTimerTask.java"],
 )
