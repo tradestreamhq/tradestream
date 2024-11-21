@@ -23,11 +23,11 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     
     @Inject
     RealTimeDataIngestion(
-            CandleManager candleManager,
-            CandlePublisher candlePublisher,
-            CurrencyPairSupplier currencyPairSupplier,
-            Provider<StreamingExchange> exchange,
-            TradeProcessor tradeProcessor
+        CandleManager candleManager,
+        CandlePublisher candlePublisher,
+        CurrencyPairSupplier currencyPairSupplier,
+        Provider<StreamingExchange> exchange,
+        TradeProcessor tradeProcessor
     ) {
         this.currencyPairs = currencyPairs;
         this.candleManager = candleManager;
