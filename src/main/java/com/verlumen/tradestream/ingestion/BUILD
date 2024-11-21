@@ -123,6 +123,14 @@ java_library(
     ],
 )
 
+genrule(
+    name = "hash",
+    srcs = [":index"],
+    outs = ["sha256.sum"],
+    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
+    toolchains = ["@jq_toolchains//:resolved_toolchain"],
+)
+
 oci_image(
     name = "image",
     base = "@openjdk_java",
@@ -148,14 +156,6 @@ oci_image_index(
     images = [
         ":images",
     ],
-)
-
-genrule(
-    name = "hash",
-    srcs = [":index"],
-    outs = ["sha256.sum"],
-    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
-    toolchains = ["@jq_toolchains//:resolved_toolchain"],
 )
 
 java_library(
