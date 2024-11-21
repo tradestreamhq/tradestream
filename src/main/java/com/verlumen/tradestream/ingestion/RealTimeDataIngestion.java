@@ -38,7 +38,11 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     }
 
     @Override
-    public void start() {}
+    public void start() {
+        exchange.connect().blockingAwait();
+        subscribeToTradeStreams();
+        // thinMarketTimer.start();
+    }
 
     @Override
     public void shutdown() {
@@ -57,4 +61,8 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
             candleManager.processTrade(trade);
         }
     }
+
+    private void subscribeToTradeStream() {}
+
+    private void subscribeToTradeStreams() {}
 }
