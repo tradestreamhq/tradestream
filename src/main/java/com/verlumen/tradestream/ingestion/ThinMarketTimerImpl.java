@@ -28,25 +28,25 @@ final class ThinMarketTimerImpl implements ThinMarketTimer {
   public void stop() {
     timer.cancel();
   }
-}
 
-abstract static class ThinMarketTimerTask extends TimerTask {
-    static ThinMarketTimerTask create(CandleManager candleManager, CurrencyPairSupplier currencyPairSupplier) {
-        return new AutoValue_RealTimeDataIngestion_ThinMarketTimerTask(candleManager, currencyPairSupplier);
-    }
-
-    abstract CandleManager candleManager();
-
-    abstract CurrencyPairSupplier currencyPairSupplier();
-
-    @Override
-    public void run() {
-        ImmutableList<CurrencyPair> currencyPairs =
-          currencyPairSupplier()
-          .currencyPairs()
-          .stream()
-          .map(Object::toString)
-          .collect(toImmutableList());
-        candleManager().handleThinlyTradedMarkets(currencyPairs);
-    }
+  abstract static class ThinMarketTimerTask extends TimerTask {
+      static ThinMarketTimerTask create(CandleManager candleManager, CurrencyPairSupplier currencyPairSupplier) {
+          return new AutoValue_RealTimeDataIngestion_ThinMarketTimerTask(candleManager, currencyPairSupplier);
+      }
+  
+      abstract CandleManager candleManager();
+  
+      abstract CurrencyPairSupplier currencyPairSupplier();
+  
+      @Override
+      public void run() {
+          ImmutableList<CurrencyPair> currencyPairs =
+            currencyPairSupplier()
+            .currencyPairs()
+            .stream()
+            .map(Object::toString)
+            .collect(toImmutableList());
+          candleManager().handleThinlyTradedMarkets(currencyPairs);
+      }
+  }
 }
