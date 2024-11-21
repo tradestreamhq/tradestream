@@ -56,6 +56,17 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         candlePublisher.close();
     }
 
+    private Trade convertTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String pair) {
+        return Trade.newBuilder()
+            .setTimestamp(xchangeTrade.getTimestamp().getTime())
+            .setExchange(exchange.getExchangeSpecification().getExchangeName())
+            .setCurrencyPair(pair)
+            .setPrice(xchangeTrade.getPrice().doubleValue())
+            .setVolume(xchangeTrade.getOriginalAmount().doubleValue())
+            .setTradeId(xchangeTrade.getId() != null ? xchangeTrade.getId() : UUID.randomUUID().toString())
+            .build();
+    }
+
     private void onTrade(Trade trade) {
         if (!tradeProcessor.isProcessed(trade)) {
             candleManager.processTrade(trade);
