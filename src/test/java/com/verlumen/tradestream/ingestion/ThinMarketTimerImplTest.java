@@ -29,7 +29,7 @@ public class ThinMarketTimerImplTest {
     @Mock @Bind private CurrencyPairSupplier currencyPairSupplier;
     @Mock @Bind private Timer timer;
     @Mock @Bind private ThinMarketTimerTask task;
-    @Inject private ThinMarketTimer thinMarketTimer;
+    @Inject private ThinMarketTimerImpl thinMarketTimer;
 
     @Before
     public void setUp() {
