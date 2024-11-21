@@ -5,7 +5,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 
-final class ThinMarketTimerTask extends TimerTask {
+final class ThinMarketTimerTaskImpl extends TimerTask {
     private final CandleManager candleManager;
     private final CurrencyPairSupplier currencyPairSupplier;
 
