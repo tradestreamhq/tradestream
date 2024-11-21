@@ -25,9 +25,4 @@ final class App {
     App app = Guice.createInjector(IngestionModule.create(args)).getInstance(App.class);
     app.run();
   }
-
-  enum RunMode {
-    WET,
-    DRY;
-  }
 }
