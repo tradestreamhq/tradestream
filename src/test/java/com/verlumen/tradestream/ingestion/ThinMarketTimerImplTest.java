@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.times;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -24,7 +25,7 @@ public class ThinMarketTimerImplTest {
     @Mock @Bind private CandleManager candleManager;
     @Mock @Bind private CurrencyPairSupplier currencyPairSupplier;
     @Mock @Bind private Timer timer;
-    @Inject private ThinMarketTimerTask thinMarketTimerTask;
+    @Inject private ThinMarketTimerTask thinMarketTimer;
 
     @Before
     public void setUp() {
@@ -80,7 +81,7 @@ public class ThinMarketTimerImplTest {
         thinMarketTimer.start();
 
         // Assert
-        verify(timer, times(1)).scheduleAtFixedRate(eq(task), eq(0L), eq(60_000L));
+        verify(timer).scheduleAtFixedRate(eq(task), eq(0L), eq(60_000L));
     }
 
     @Test
@@ -104,7 +105,7 @@ public class ThinMarketTimerImplTest {
         thinMarketTimer.start();
 
         // Assert
-        verify(timer, times(1)).scheduleAtFixedRate(eq(task), anyLong(), anyLong());
+        verify(timer).scheduleAtFixedRate(eq(task), anyLong(), anyLong());
     }
 
     @Test
