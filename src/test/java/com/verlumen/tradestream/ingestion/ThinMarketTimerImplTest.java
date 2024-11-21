@@ -31,25 +31,6 @@ public class ThinMarketTimerImplTest {
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
-package com.verlumen.tradestream.ingestion;
-
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
-
-
-
-public class ThinMarketTimerImplTest {
-    private ThinMarketTimerTask task;
-    private ThinMarketTimerImpl thinMarketTimer;
-    private Timer timer;
-
-    @Before
-    public void setUp() {
-        task = mock(ThinMarketTimerTask.class);
-        timer = mock(Timer.class);
-        thinMarketTimer = new ThinMarketTimerImpl(task, timer);
-    }
-
     @Test
     public void start_schedulesTaskAtFixedRate() {
         // Arrange
