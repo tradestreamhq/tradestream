@@ -19,7 +19,7 @@ final class ThinMarketTimerImpl implements ThinMarketTimer {
 
   @Override
   public void start() {
-    timer.scheduleAtFixedRate(task, 0, ONE_MINUTE_IN_MILLISECONDS);            
+    timer.scheduleAtFixedRate(timerTask, 0, ONE_MINUTE_IN_MILLISECONDS);            
   }
 
   @Override
