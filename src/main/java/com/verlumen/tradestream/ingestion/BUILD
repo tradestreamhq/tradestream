@@ -93,6 +93,24 @@ container_structure_test(
     tags = ["requires-docker"],
 )
 
+java_library(
+    name = "currency_pair_metadata",
+    srcs = ["CurrencyPairMetadata.java"],
+    deps = [
+        "@maven//:org_knowm_xchange_xchange_core",
+        "//:autovalue",
+    ],
+)
+
+java_library(
+    name = "currency_pair_supplier",
+    srcs = ["CurrencyPairSupplier.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        ":currency_pair_metadata",
+    ],
+)
+
 oci_image(
     name = "image",
     base = "@openjdk_java",
@@ -214,6 +232,7 @@ java_library(
     srcs = ["RealTimeDataIngestion.java"],
     deps = [
         "@maven//:com_google_inject_guice",
+        "@maven//:io_reactivex_rxjava3_rxjava",
         "@maven//:org_knowm_xchange_xchange_core",
         "@maven//:org_knowm_xchange_xchange_stream_core",
         "@maven//:io_reactivex_rxjava3_rxjava",

@@ -8,16 +8,19 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import marketdata.Marketdata.Trade;
 import org.knowm.xchange.currency.CurrencyPair;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+
 final class RealTimeDataIngestion implements MarketDataIngestion {
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
     private final CurrencyPairSupplier currencyPairSupplier;
     private final Provider<StreamingExchange> exchange;
-    private final List<Disposable> subscriptions = new ArrayList<>();
+    private final List<Disposable> subscriptions;
     private final TradeProcessor tradeProcessor;
-
     private Timer thinMarketTimer;
-
+    
     @Inject
     RealTimeDataIngestion(
             CandleManager candleManager,
@@ -31,6 +34,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         this.candlePublisher = candlePublisher;
         this.currencyPairSupplier = currencyPairSupplier;
         this.exchange = exchange;
+        this.subscriptions = new ArrayList<>();
         this.tradeProcessor = tradeProcessor;
     }
 
