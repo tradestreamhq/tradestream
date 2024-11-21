@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
-import marketdata.Marketdata.Candle;
+import com.verlumen.tradestream.marketdata.Candle;
 
 import java.time.Duration;
 
