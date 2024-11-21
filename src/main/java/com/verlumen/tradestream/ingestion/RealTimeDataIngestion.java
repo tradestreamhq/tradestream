@@ -6,6 +6,7 @@ import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.rxjava3.disposables.Disposable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 
