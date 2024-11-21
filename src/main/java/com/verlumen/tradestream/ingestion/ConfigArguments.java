@@ -31,6 +31,11 @@ abstract class ConfigArguments implements Provider<Namespace> {
       .defaultHelp(true)
       .description("Configuration for Kafka producer and exchange settings");
 
+    parser.addArgument("--candleIntervalSeconds")
+          .type(Integer.class)
+          .setDefault(60)
+          .help("Candle interval in seconds");
+
     // Kafka configuration
     parser.addArgument("--kafka.bootstrap.servers")
       .setDefault("localhost:9092")
