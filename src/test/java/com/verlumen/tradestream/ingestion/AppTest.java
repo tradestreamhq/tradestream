@@ -22,6 +22,8 @@ public class AppTest {
   @Bind @Mock
   private MarketDataIngestion mockMarketDataIngestion;
 
+  @Bind private RunMode runMode = RunMode.WET;
+
   @Inject
   private App app;
   
