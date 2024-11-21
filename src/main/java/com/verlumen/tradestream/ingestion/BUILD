@@ -178,7 +178,6 @@ java_library(
         ":currency_pair_supplier_impl",
         ":kafka_producer_provider",
         ":market_data_ingestion",
-        ":properties_provider",
         ":real_time_data_ingestion",
         ":run_mode",
         ":streaming_exchange_provider",
@@ -225,18 +224,6 @@ java_library(
     ],
 )
 
-java_library(
-    name = "properties_provider",
-    srcs = ["PropertiesProvider.java"],
-    deps = [
-        "@bazel_tools//tools/java/runfiles",
-        "@maven//:com_google_inject_guice",
-    ],
-    data = [
-        ":config.properties",
-    ],
-)
-
 oci_push(
     name = "push_image",
     image = ":index",
@@ -251,6 +238,7 @@ java_library(
         "@maven//:com_google_inject_guice",
         "@maven//:io_reactivex_rxjava3_rxjava",
         "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_coinbasepro",
         "@maven//:org_knowm_xchange_xchange_stream_core",
         "//protos:marketdata_java_proto",
         ":candle_manager",
@@ -274,6 +262,7 @@ java_library(
         "@maven//:com_google_inject_guice",
         "@maven//:org_knowm_xchange_xchange_core",
         "@maven//:org_knowm_xchange_xchange_stream_core",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
     ],
 )
 
