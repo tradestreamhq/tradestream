@@ -8,11 +8,20 @@ import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.common.collect.ImmutableList;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.knowm.xchange.currency.CurrencyPair;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
 
 public class ThinMarketTimerTaskImplTest {
+    @Rule public MockitoRule mocks = MockitoJUnit.rule();
+
     @Mock @Bind private CandleManager candleManager;
     @Mock @Bind private CurrencyPairSupplier currencyPairSupplier;
     @Inject private ThinMarketTimerTaskImpl thinMarketTimerTask;
