@@ -71,7 +71,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
 
     private void handleTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String currencyPair) {
         String symbol = currencyPair.toString();
-        Trade trade = convertTrade(trade, symbol);
+        Trade trade = convertTrade(xchangeTrade, symbol);
         onTrade(trade);
     }
 
