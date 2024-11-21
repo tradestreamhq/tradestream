@@ -8,15 +8,15 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import org.junit.Rule;
 
 import java.util.Timer;
 import java.util.TimerTask;
