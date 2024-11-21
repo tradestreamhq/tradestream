@@ -11,7 +11,6 @@ import org.knowm.xchange.currency.CurrencyPair;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
 import java.util.UUID;
 
 final class RealTimeDataIngestion implements MarketDataIngestion {
