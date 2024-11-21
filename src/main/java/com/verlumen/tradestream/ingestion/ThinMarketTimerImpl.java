@@ -1,5 +1,8 @@
 package com.verlumen.tradestream.ingestion;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 final class ThinMarketTimerImpl implements ThinMarketTimer {
   private static final int ONE_MINUTE_IN_MILLISECONDS = 60_000;
 
