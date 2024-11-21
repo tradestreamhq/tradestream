@@ -22,7 +22,7 @@ final class ThinMarketTimerImpl implements ThinMarketTimer {
 }
 
 abstract static class ThinMarketTimerTask extends TimerTask {
-    private static ThinMarketTimerTask create(CandleManager candleManager, CurrencyPairSupplier currencyPairSupplier) {
+    static ThinMarketTimerTask create(CandleManager candleManager, CurrencyPairSupplier currencyPairSupplier) {
         return new AutoValue_RealTimeDataIngestion_ThinMarketTimerTask(candleManager, currencyPairSupplier);
     }
 
