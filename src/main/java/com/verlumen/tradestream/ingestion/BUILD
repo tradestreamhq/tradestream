@@ -252,6 +252,7 @@ java_library(
         ":candle_publisher",
         ":currency_pair_supplier",
         ":market_data_ingestion",
+        ":thin_market_timer",
         ":trade_processor",
     ],
 )
@@ -264,6 +265,11 @@ java_library(
         "@maven//:org_knowm_xchange_xchange_core",
         "@maven//:org_knowm_xchange_xchange_stream_core",
     ],
+)
+
+java_library(
+    name = "thin_market_timer",
+    srcs = ["ThinMarketTimer.java"],    
 )
 
 java_library(
