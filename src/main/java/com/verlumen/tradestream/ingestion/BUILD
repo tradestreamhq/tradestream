@@ -111,6 +111,16 @@ java_library(
     ],
 )
 
+java_library(
+    name = "currency_pair_supplier_impl",
+    srcs = ["CurrencyPairSupplierImpl.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        ":currency_pair_metadata",
+        ":currency_pair_supplier",
+    ],
+)
+
 oci_image(
     name = "image",
     base = "@openjdk_java",
