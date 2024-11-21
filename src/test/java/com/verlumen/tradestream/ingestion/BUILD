@@ -102,6 +102,17 @@ java_test(
 )
 
 java_test(
+    name = "thin_market_timer_task_impl_test",
+    srcs = ["ThinMarketTimerTaskImplTest.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
+        "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer_task_impl",
+    ],
+)
+
+java_test(
     name = "TradeProcessorTest",
     srcs = ["TradeProcessorTest.java"],
     deps = [
