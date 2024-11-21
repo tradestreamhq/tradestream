@@ -277,7 +277,11 @@ java_library(
 
 java_library(
     name = "thin_market_timer_impl",
-    srcs = ["ThinMarketTimerImpl.java"],    
+    srcs = ["ThinMarketTimerImpl.java"],
+    deps = [
+        ":candle_manager",
+        ":currency_pair_supplier",
+    ]
 )
 
 java_library(
