@@ -273,6 +273,7 @@ java_library(
     srcs = ["ThinMarketTimerImpl.java"],
     deps = [
         "@maven//:com_google_inject_guice",
+        ":thin_market_timer",
         ":thin_market_timer_task",
     ],
 )
