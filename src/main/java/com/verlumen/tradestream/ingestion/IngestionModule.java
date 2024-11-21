@@ -9,7 +9,9 @@ import com.google.inject.TypeLiteral;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import net.sourceforge.argparse4j.inf.Namespace;
+
 import java.util.Properties;
+import java.util.Timer;
 
 @AutoValue
 abstract class IngestionModule extends AbstractModule {
@@ -28,6 +30,7 @@ abstract class IngestionModule extends AbstractModule {
 
     bind(CurrencyPairSupplier.class).to(CurrencyPairSupplierImpl.class);
     bind(MarketDataIngestion.class).to(RealTimeDataIngestion.class);
+    bind(Timer.class).toProvider(Timer::new);
 
     install(new FactoryModuleBuilder()
         .implement(CandleManager.class, CandleManagerImpl.class)
@@ -54,7 +57,7 @@ abstract class IngestionModule extends AbstractModule {
     String runModeName = namespace.getString("runMode").toUpperCase();
     return RunMode.valueOf(runModeName);
   }
- 
+
   @Provides
   TradeProcessor provideTradeProcessor(Namespace namespace) {
     long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000;
