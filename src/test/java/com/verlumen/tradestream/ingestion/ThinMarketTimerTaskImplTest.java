@@ -136,7 +136,7 @@ public class ThinMarketTimerTaskImplTest {
     public void run_withDuplicateCurrencyPairs_duplicatesAreIncludedInResultList() {
         // Arrange
         CurrencyPair btcUsd = new CurrencyPair("BTC", "USD");
-        List<CurrencyPair> currencyPairs = Arrays.asList(btcUsd, btcUsd);
+        ImmutableList<CurrencyPair> currencyPairs = ImmutableList.of(btcUsd, btcUsd);
         when(currencyPairSupplier.currencyPairs()).thenReturn(currencyPairs);
 
         // Act
