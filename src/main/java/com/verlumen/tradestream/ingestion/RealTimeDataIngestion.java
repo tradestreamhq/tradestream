@@ -12,6 +12,7 @@ import org.knowm.xchange.currency.CurrencyPair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
+import java.util.UUID;
 
 final class RealTimeDataIngestion implements MarketDataIngestion {
     private final CandleManager candleManager;
@@ -42,7 +43,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
 
     @Override
     public void start() {
-        exchange.connect().blockingAwait();
+        exchange.get().connect().blockingAwait();
         subscribeToTradeStreams();
         thinMarketTimer.start();
     }
@@ -61,7 +62,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     private Trade convertTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String pair) {
         return Trade.newBuilder()
             .setTimestamp(xchangeTrade.getTimestamp().getTime())
-            .setExchange(exchange.getExchangeSpecification().getExchangeName())
+            .setExchange(exchange.get().getExchangeSpecification().getExchangeName())
             .setCurrencyPair(pair)
             .setPrice(xchangeTrade.getPrice().doubleValue())
             .setVolume(xchangeTrade.getOriginalAmount().doubleValue())

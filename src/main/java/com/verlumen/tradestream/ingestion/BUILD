@@ -17,6 +17,7 @@ java_binary(
         ":ingestion_module",
         ":market_data_ingestion",
         ":real_time_data_ingestion",
+        ":run_mode",
         ":streaming_exchange_provider",
     ],
     runtime_deps = [
@@ -107,6 +108,7 @@ java_library(
     srcs = ["CurrencyPairSupplier.java"],
     deps = [
         "@maven//:com_google_guava_guava",
+        "@maven//:org_knowm_xchange_xchange_core",
         ":currency_pair_metadata",
     ],
 )
@@ -119,6 +121,14 @@ java_library(
         ":currency_pair_metadata",
         ":currency_pair_supplier",
     ],
+)
+
+genrule(
+    name = "hash",
+    srcs = [":index"],
+    outs = ["sha256.sum"],
+    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
+    toolchains = ["@jq_toolchains//:resolved_toolchain"],
 )
 
 oci_image(
@@ -148,14 +158,6 @@ oci_image_index(
     ],
 )
 
-genrule(
-    name = "hash",
-    srcs = [":index"],
-    outs = ["sha256.sum"],
-    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
-    toolchains = ["@jq_toolchains//:resolved_toolchain"],
-)
-
 java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
@@ -176,9 +178,13 @@ java_library(
         ":currency_pair_supplier_impl",
         ":kafka_producer_provider",
         ":market_data_ingestion",
-        ":properties_provider",
         ":real_time_data_ingestion",
+        ":run_mode",
         ":streaming_exchange_provider",
+        ":thin_market_timer",
+        ":thin_market_timer_impl",
+        ":thin_market_timer_task",
+        ":thin_market_timer_task_impl",
         ":trade_processor",
     ],
 )
@@ -220,18 +226,6 @@ java_library(
     ],
 )
 
-java_library(
-    name = "properties_provider",
-    srcs = ["PropertiesProvider.java"],
-    deps = [
-        "@bazel_tools//tools/java/runfiles",
-        "@maven//:com_google_inject_guice",
-    ],
-    data = [
-        ":config.properties",
-    ],
-)
-
 oci_push(
     name = "push_image",
     image = ":index",
@@ -246,6 +240,7 @@ java_library(
         "@maven//:com_google_inject_guice",
         "@maven//:io_reactivex_rxjava3_rxjava",
         "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_coinbasepro",
         "@maven//:org_knowm_xchange_xchange_stream_core",
         "//protos:marketdata_java_proto",
         ":candle_manager",
@@ -257,12 +252,47 @@ java_library(
 )
 
 java_library(
+    name = "run_mode",
+    srcs = ["RunMode.java"],
+)
+
+java_library(
     name = "streaming_exchange_provider",
     srcs = ["StreamingExchangeProvider.java"],
     deps = [
         "@maven//:com_google_inject_guice",
         "@maven//:org_knowm_xchange_xchange_core",
         "@maven//:org_knowm_xchange_xchange_stream_core",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
+    ],
+)
+
+java_library(
+    name = "thin_market_timer",
+    srcs = ["ThinMarketTimer.java"],
+)
+
+java_library(
+    name = "thin_market_timer_impl",
+    srcs = ["ThinMarketTimerImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        ":thin_market_timer",
+        ":thin_market_timer_task",
+    ],
+)
+
+java_library(
+    name = "thin_market_timer_task",
+    srcs = ["ThinMarketTimerTask.java"],
+)
+
+java_library(
+    name = "thin_market_timer_task_impl",
+    srcs = ["ThinMarketTimerTaskImpl.java"],
+    deps = [
+        ":thin_market_timer_task",
     ],
 )
 

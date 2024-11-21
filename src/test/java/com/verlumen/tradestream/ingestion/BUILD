@@ -13,6 +13,7 @@ java_test(
         "@maven//:org_mockito_mockito_core",
         "//src/main/java/com/verlumen/tradestream/ingestion:app",
         "//src/main/java/com/verlumen/tradestream/ingestion:market_data_ingestion",
+        "//src/main/java/com/verlumen/tradestream/ingestion:run_mode",
     ],
     runtime_deps = [
         "@maven//:com_google_flogger_flogger_system_backend",
@@ -90,13 +91,20 @@ java_test(
 )
 
 java_test(
-    name = "PropertiesProviderTest",
-    srcs = ["PropertiesProviderTest.java"],
+    name = "ThinMarketTimerImplTest",
+    srcs = ["ThinMarketTimerImplTest.java"],
     deps = [
+        "@maven//:com_google_inject_extensions_guice_testlib",
         "@maven//:com_google_inject_guice",
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
-        "//src/main/java/com/verlumen/tradestream/ingestion:properties_provider",
+        "@maven//:org_mockito_mockito_core",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager",
+        "//src/main/java/com/verlumen/tradestream/ingestion:currency_pair_supplier",
+        "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer_impl",
+        "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer_task",
     ],
 )
 

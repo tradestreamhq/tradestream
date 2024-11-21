@@ -11,6 +11,7 @@ import info.bitrich.xchangestream.core.StreamingExchange;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 import java.util.Properties;
+import java.util.Timer;
 
 @AutoValue
 abstract class IngestionModule extends AbstractModule {
@@ -25,11 +26,14 @@ abstract class IngestionModule extends AbstractModule {
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
     bind(Namespace.class).toProvider(ConfigArguments.create(commandLineArgs()));
-    bind(Properties.class).toProvider(PropertiesProvider.class);
     bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class);
 
     bind(CurrencyPairSupplier.class).to(CurrencyPairSupplierImpl.class);
     bind(MarketDataIngestion.class).to(RealTimeDataIngestion.class);
+    bind(ThinMarketTimerTask.class).to(ThinMarketTimerTaskImpl.class);
+    bind(Timer.class).toProvider(Timer::new);
+    bind(ThinMarketTimer.class).to(ThinMarketTimerImpl.class);
+    bind(ThinMarketTimerTask.class).to(ThinMarketTimerTaskImpl.class);
 
     install(new FactoryModuleBuilder()
         .implement(CandleManager.class, CandleManagerImpl.class)
@@ -49,6 +53,12 @@ abstract class IngestionModule extends AbstractModule {
   CandlePublisher provideCandlePublisher(Namespace namespace, CandlePublisher.Factory candlePublisherFactory) {
     String topic = namespace.getString("candlePublisherTopic");
     return candlePublisherFactory.create(topic);
+  }
+
+  @Provides
+  RunMode provideRunMode(Namespace namespace) {
+    String runModeName = namespace.getString("runMode").toUpperCase();
+    return RunMode.valueOf(runModeName);
   }
 
   @Provides
