@@ -53,9 +53,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         for (Disposable subscription : subscriptions) {
             subscription.dispose();
         }
-        if (thinMarketTimer != null) {
-            thinMarketTimer.cancel();
-        }
+        thinMarketTimer.stop();
         exchange.get().disconnect().blockingAwait();
         candlePublisher.close();
     }
