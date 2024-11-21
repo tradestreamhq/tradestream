@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-final class RealTimeDataIngestion implements MarketDataIngestion {
+final class RealTimeDataIngestionImpl implements MarketDataIngestion {
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
     private final CurrencyPairSupplier currencyPairSupplier;
@@ -23,7 +23,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     private final TradeProcessor tradeProcessor;
     
     @Inject
-    RealTimeDataIngestion(
+    RealTimeDataIngestionImpl(
         CandleManager candleManager,
         CandlePublisher candlePublisher,
         CurrencyPairSupplier currencyPairSupplier,
