@@ -9,9 +9,6 @@ import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.currency.CurrencyPair;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 public class ThinMarketTimerTaskImplTest {
     @Mock @Bind private CandleManager candleManager;
@@ -28,7 +25,7 @@ public class ThinMarketTimerTaskImplTest {
         // Arrange
         CurrencyPair btcUsd = new CurrencyPair("BTC", "USD");
         CurrencyPair ethEur = new CurrencyPair("ETH", "EUR");
-        List<CurrencyPair> currencyPairs = Arrays.asList(btcUsd, ethEur);
+        ImmutableList<CurrencyPair> currencyPairs = ImmutableList.of(btcUsd, ethEur);
         when(currencyPairSupplier.currencyPairs()).thenReturn(currencyPairs);
 
         // Act
@@ -42,7 +39,7 @@ public class ThinMarketTimerTaskImplTest {
     @Test
     public void run_withEmptyCurrencyPairs_callsHandleThinlyTradedMarketsWithEmptyList() {
         // Arrange
-        when(currencyPairSupplier.currencyPairs()).thenReturn(Collections.emptyList());
+        when(currencyPairSupplier.currencyPairs()).thenReturn(ImmutableList.of());
 
         // Act
         thinMarketTimerTask.run();
@@ -70,7 +67,7 @@ public class ThinMarketTimerTaskImplTest {
     public void run_withNullElementInCurrencyPairs_throwsNullPointerException() {
         // Arrange
         CurrencyPair btcUsd = new CurrencyPair("BTC", "USD");
-        List<CurrencyPair> currencyPairs = Arrays.asList(btcUsd, null);
+        ImmutableList<CurrencyPair> currencyPairs = ImmutableList.of(btcUsd, null);
         when(currencyPairSupplier.currencyPairs()).thenReturn(currencyPairs);
 
         // Act & Assert
@@ -87,7 +84,7 @@ public class ThinMarketTimerTaskImplTest {
         // Arrange
         CurrencyPair mockCurrencyPair = mock(CurrencyPair.class);
         when(mockCurrencyPair.toString()).thenReturn(null);
-        List<CurrencyPair> currencyPairs = Collections.singletonList(mockCurrencyPair);
+        ImmutableList<CurrencyPair> currencyPairs = ImmutableList.of(mockCurrencyPair);
         when(currencyPairSupplier.currencyPairs()).thenReturn(currencyPairs);
 
         // Act
@@ -102,7 +99,7 @@ public class ThinMarketTimerTaskImplTest {
     public void run_handleThinlyTradedMarketsThrowsException_exceptionIsPropagated() {
         // Arrange
         CurrencyPair btcUsd = new CurrencyPair("BTC", "USD");
-        List<CurrencyPair> currencyPairs = Collections.singletonList(btcUsd);
+        ImmutableList<CurrencyPair> currencyPairs = ImmutableList.of(btcUsd);
         when(currencyPairSupplier.currencyPairs()).thenReturn(currencyPairs);
         doThrow(new RuntimeException("Test exception")).when(candleManager).handleThinlyTradedMarkets(any());
 
