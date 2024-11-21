@@ -87,5 +87,11 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
             .subscribe(trade -> handleTrade(trade, currencyPair.toString()));
     }
 
-    private void subscribeToTradeStreams() {}
+    private void subscribeToTradeStreams() {
+        currencyPairSupplier
+            .currencyPairs()
+            .stream()
+            .map(this::subscribeToTradeStream)
+            .forEach(subscriptions::add);
+    }
 }
