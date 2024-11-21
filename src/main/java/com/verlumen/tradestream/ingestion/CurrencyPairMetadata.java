@@ -16,7 +16,7 @@ abstract class CurrencyPairMetadata {
 
   abstract CurrencyPair currencyPair();
 
-  abstract BigDecimal marketCapIn();
+  abstract MarketCap marketCap();
 
   @AutoValue
   abstract static class MarketCap {
