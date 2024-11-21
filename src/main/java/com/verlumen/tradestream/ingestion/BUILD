@@ -93,6 +93,23 @@ container_structure_test(
     tags = ["requires-docker"],
 )
 
+java_library(
+    name = "currency_pair_metadata",
+    srcs = ["CurrencyPairMetadata.java"],
+    deps = [
+        "@maven//:org_knowm_xchange_xchange_core",
+        "//:autovalue",
+    ],
+)
+
+java_library(
+    name = "currency_pair_supplier",
+    srcs = ["CurrencyPairSupplier.java"],
+    deps = [
+        ":currency_pair_metadata",
+    ],
+)
+
 oci_image(
     name = "image",
     base = "@openjdk_java",
