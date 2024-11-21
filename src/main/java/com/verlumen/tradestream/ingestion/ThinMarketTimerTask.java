@@ -5,18 +5,18 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.google.common.collect.ImmutableList;
 
 final class ThinMarketTimerTask extends TimerTask {
-    static ThinMarketTimerTask create(CandleManager candleManager, CurrencyPairSupplier currencyPairSupplier) {
-        return new AutoValue_RealTimeDataIngestion_ThinMarketTimerTask(candleManager, currencyPairSupplier);
+    private final CandleManager candleManager;
+    private final CurrencyPairSupplier currencyPairSupplier;
+
+    ThinMarketTimerTask (CandleManager candleManager, CurrencyPairSupplier currencyPairSupplier) {
+        this.candleManager = candleManager;
+        this.currencyPairSupplier = currencyPairSupplier;
     }
-
-    abstract CandleManager candleManager();
-
-    abstract CurrencyPairSupplier currencyPairSupplier();
 
     @Override
     public void run() {
         ImmutableList<String> currencyPairs =
-          currencyPairSupplier()
+          currencyPairSupplier
           .currencyPairs()
           .stream()
           .map(Object::toString)
