@@ -4,19 +4,19 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableList;
+import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import com.verlumen.tradestream.marketdata.Trade;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
-import marketdata.Marketdata.Trade;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.knowm.xchange.dto.marketdata.Trades;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 
 import java.math.BigDecimal;
 import java.util.Date;
