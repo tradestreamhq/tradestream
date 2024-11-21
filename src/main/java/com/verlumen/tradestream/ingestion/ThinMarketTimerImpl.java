@@ -4,6 +4,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
+import org.knowm.xchange.currency.CurrencyPair;
 import java.util.Timer;
 import java.util.TimerTask;
 
