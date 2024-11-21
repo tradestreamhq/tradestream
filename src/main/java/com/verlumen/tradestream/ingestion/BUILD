@@ -247,6 +247,7 @@ java_library(
         ":candle_publisher",
         ":currency_pair_supplier",
         ":market_data_ingestion",
+        ":thin_market_timer",
         ":trade_processor",
     ],
 )
