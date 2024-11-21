@@ -282,6 +282,7 @@ java_library(
         "@maven//:com_google_inject_guice",
         ":candle_manager",
         ":currency_pair_supplier",
+        ":thin_market_timer",
     ]
 )
 
