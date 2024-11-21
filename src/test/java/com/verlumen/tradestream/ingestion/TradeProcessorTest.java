@@ -12,11 +12,11 @@ import org.junit.runners.JUnit4;
 public class TradeProcessorTest {
     private static final long CANDLE_INTERVAL = 60000L;
 
-    TradeProcessor processor = new TradeProcessor(CANDLE_INTERVAL);
+    private TradeProcessor processor;
 
     @Before
     public void setUp() {
-        processor = new TradeProcessor(CANDLE_INTERVAL);
+        processor = TradeProcessor.create(CANDLE_INTERVAL);
     }
 
     @Test

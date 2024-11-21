@@ -1,13 +1,12 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.rxjava3.disposables.Disposable;
 import marketdata.Marketdata.Trade;
 import org.knowm.xchange.currency.CurrencyPair;
-
-import java.util.*;
 
 final class RealTimeDataIngestion implements MarketDataIngestion {
     private final StreamingExchange exchange;

@@ -14,6 +14,9 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/ingestion:app",
         "//src/main/java/com/verlumen/tradestream/ingestion:market_data_ingestion",
     ],
+    runtime_deps = [
+        "@maven//:com_google_flogger_flogger_system_backend",
+    ],
 )
 
 java_test(
@@ -64,6 +67,18 @@ java_test(
 )
 
 java_test(
+    name = "KafkaPropertiesTest",
+    srcs = ["KafkaPropertiesTest.java"],
+    deps = [
+        "@maven//:com_google_inject_extensions_guice_testlib",
+        "@maven//:com_google_inject_guice",
+        "@maven//:com_google_truth_truth",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
+        "//src/main/java/com/verlumen/tradestream/ingestion:kafka_properties",
+    ],
+)
+
+java_test(
     name = "PriceTrackerTest",
     srcs = ["PriceTrackerTest.java"],
     deps = [
@@ -71,6 +86,17 @@ java_test(
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
         "//src/main/java/com/verlumen/tradestream/ingestion:price_tracker",
+    ],
+)
+
+java_test(
+    name = "PropertiesProviderTest",
+    srcs = ["PropertiesProviderTest.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
+        "//src/main/java/com/verlumen/tradestream/ingestion:properties_provider",
     ],
 )
 

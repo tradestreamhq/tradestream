@@ -4,4 +4,4 @@ commandTests:
   - name: test
     command: java
     args: ['-jar', '/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar']
-    expectedOutput: ['Starting real-time data ingestion...']
+    expectedError: ['.*Starting real-time data ingestion...']

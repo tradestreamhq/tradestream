@@ -11,11 +11,16 @@ java_binary(
     srcs = ["App.java"],
     main_class = "com.verlumen.tradestream.ingestion.App",
     deps = [
+        "@maven//:com_google_flogger_flogger",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":ingestion_module",
         ":market_data_ingestion",
         ":real_time_data_ingestion",
+        ":streaming_exchange_provider",
+    ],
+    runtime_deps = [
+        "@maven//:com_google_flogger_flogger_system_backend",
     ],
 )
 
@@ -70,6 +75,17 @@ java_library(
     ],
 )
 
+java_library(
+    name = "config_arguments",
+    srcs = ["ConfigArguments.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
+        "//:autovalue",
+    ],
+)
+
 container_structure_test(
     name = "container_test",
     configs = ["container-structure-test.yaml"],
@@ -116,16 +132,24 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
         "@maven//:org_apache_kafka_kafka_clients",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
+        "//:autovalue",
         ":candle_manager",
         ":candle_manager_impl",
         ":candle_publisher",
         ":candle_publisher_impl",
+        ":config_arguments",
         ":kafka_producer_provider",
         ":market_data_ingestion",
+        ":properties_provider",
         ":real_time_data_ingestion",
+        ":streaming_exchange_provider",
+        ":trade_processor",
     ],
 )
 
@@ -135,6 +159,16 @@ java_library(
     deps = [
         "@maven//:com_google_inject_guice",
         "@maven//:org_apache_kafka_kafka_clients",
+        ":kafka_properties",
+    ],    
+)
+
+java_library(
+    name = "kafka_properties",
+    srcs = ["KafkaProperties.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
     ],    
 )
 
@@ -153,6 +187,18 @@ java_library(
     srcs = ["PriceTracker.java"],
     deps = [
         "@maven//:com_google_inject_guice",        
+    ],
+)
+
+java_library(
+    name = "properties_provider",
+    srcs = ["PropertiesProvider.java"],
+    deps = [
+        "@bazel_tools//tools/java/runfiles",
+        "@maven//:com_google_inject_guice",
+    ],
+    data = [
+        ":config.properties",
     ],
 )
 
@@ -176,6 +222,16 @@ java_library(
         ":candle_publisher",
         ":market_data_ingestion",
         ":trade_processor",
+    ],
+)
+
+java_library(
+    name = "streaming_exchange_provider",
+    srcs = ["StreamingExchangeProvider.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
     ],
 )
 

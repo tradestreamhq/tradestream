@@ -6,21 +6,22 @@ import marketdata.Marketdata.Trade;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-final class TradeProcessor {
-    private final Set<CandleKey> processedTrades = ConcurrentHashMap.newKeySet();
-    private final long candleIntervalMillis;
-
-    TradeProcessor(long candleIntervalMillis) {
-        this.candleIntervalMillis = candleIntervalMillis;
+@AutoValue
+abstract class TradeProcessor {
+    static TradeProcessor create(long candleIntervalMillis) {
+        return new AutoValue_TradeProcessor(candleIntervalMillis, ConcurrentHashMap.newKeySet());
     }
+    
+    abstract long candleIntervalMillis();
+    abstract Set<CandleKey> processedTrades();
 
     boolean isProcessed(Trade trade) {
         CandleKey key = CandleKey.create(trade.getTradeId(), getMinuteTimestamp(trade.getTimestamp()));
-        return !processedTrades.add(key);
+        return !processedTrades().add(key);
     }
 
     long getMinuteTimestamp(long timestamp) {
-        return (timestamp / candleIntervalMillis) * candleIntervalMillis;
+        return (timestamp / candleIntervalMillis()) * candleIntervalMillis();
     }
 
     @AutoValue
