@@ -59,7 +59,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     private Trade convertTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String pair) {
         return Trade.newBuilder()
             .setTimestamp(xchangeTrade.getTimestamp().getTime())
-            .setExchange(exchange.getExchangeSpecification().getExchangeName())
+            .setExchange(exchange.get().getExchangeSpecification().getExchangeName())
             .setCurrencyPair(pair)
             .setPrice(xchangeTrade.getPrice().doubleValue())
             .setVolume(xchangeTrade.getOriginalAmount().doubleValue())
