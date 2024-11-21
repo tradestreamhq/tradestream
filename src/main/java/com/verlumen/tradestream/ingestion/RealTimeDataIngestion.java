@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Timer;
 
 final class RealTimeDataIngestion implements MarketDataIngestion {
+    private static final int ONE_MINUTE_IN_MILLISECONDS = 60_000;
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
     private final CurrencyPairSupplier currencyPairSupplier;
@@ -56,5 +57,15 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         if (!tradeProcessor.isProcessed(trade)) {
             candleManager.processTrade(trade);
         }
+    }
+
+    private void startThinMarketTimer() {
+        thinMarketTimer = new Timer();
+        thinMarketTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                candleManager.handleThinlyTradedMarkets(currencyPairs);
+            }
+        }, 0, ONE_MINUTE_IN_MILLISECONDS);
     }
 }
