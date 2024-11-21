@@ -270,7 +270,7 @@ java_library(
 
 java_library(
     name = "thin_market_timer",
-    srcs = ["ThinMarketTimer.java"],    
+    srcs = ["ThinMarketTimer.java"],
 )
 
 java_library(
