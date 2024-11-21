@@ -82,6 +82,12 @@ abstract class ConfigArguments implements Provider<Namespace> {
       .setDefault("info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange")
       .help("Exchange name");
 
+    // Run mode configuration
+    parser.addArgument("--runMode")
+      .choices("wet", "dry")
+      .setDefault("wet")
+      .help("Run mode: wet or dry");
+
     return parser;
   }
 }

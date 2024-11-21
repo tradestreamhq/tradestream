@@ -17,6 +17,7 @@ java_binary(
         ":ingestion_module",
         ":market_data_ingestion",
         ":real_time_data_ingestion",
+        ":run_mode",
         ":streaming_exchange_provider",
     ],
     runtime_deps = [
@@ -179,6 +180,7 @@ java_library(
         ":market_data_ingestion",
         ":properties_provider",
         ":real_time_data_ingestion",
+        ":run_mode",
         ":streaming_exchange_provider",
         ":thin_market_timer",
         ":thin_market_timer_impl",
@@ -258,6 +260,11 @@ java_library(
         ":thin_market_timer",
         ":trade_processor",
     ],
+)
+
+java_library(
+    name = "run_mode",
+    srcs = ["RunMode.java"],
 )
 
 java_library(

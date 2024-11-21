@@ -8,14 +8,17 @@ final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final MarketDataIngestion marketDataIngestion;
+  private final RunMode runMode;
 
   @Inject
-  App(MarketDataIngestion marketDataIngestion) {
+  App(MarketDataIngestion marketDataIngestion, RunMode runMode) {
     this.marketDataIngestion = marketDataIngestion;
+    this.runMode = runMode;
   }
 
   void run() {
     logger.atInfo().log("Starting real-time data ingestion...");
+    if (runMode == RunMode.DRY) return;
     marketDataIngestion.start();
   }
 
