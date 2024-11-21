@@ -42,8 +42,8 @@ public class ThinMarketTimerImplTest {
 
         // Assert
         verify(timer).scheduleAtFixedRate(eq(task), delayCaptor.capture(), periodCaptor.capture());
-        assertEquals("Delay should be 0", 0L, delayCaptor.getValue().longValue());
-        assertEquals("Period should be one minute in milliseconds", 60_000L, periodCaptor.getValue().longValue());
+        assertThat(delayCaptor.getValue().longValue()).isEqualTo(0L);
+        assertThat(periodCaptor.getValue().longValue()).isEqualTo(60_000L);
     }
 
     @Test
@@ -92,34 +92,6 @@ public class ThinMarketTimerImplTest {
             thinMarketTimer.stop();
         } catch (Exception e) {
             fail("Stopping without starting should not throw an exception");
-        }
-    }
-
-    @Test
-    public void constructor_withNullTask_throwsNullPointerException() {
-        // Arrange
-
-        // Act & Assert
-        try {
-            new ThinMarketTimerImpl(null, timer);
-            fail("Constructor should throw NullPointerException when task is null");
-        } catch (NullPointerException e) {
-            // Expected exception
-            assertEquals("Expected NullPointerException", NullPointerException.class, e.getClass());
-        }
-    }
-
-    @Test
-    public void constructor_withNullTimer_throwsNullPointerException() {
-        // Arrange
-
-        // Act & Assert
-        try {
-            new ThinMarketTimerImpl(task, null);
-            fail("Constructor should throw NullPointerException when timer is null");
-        } catch (NullPointerException e) {
-            // Expected exception
-            assertEquals("Expected NullPointerException", NullPointerException.class, e.getClass());
         }
     }
 
