@@ -43,7 +43,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     public void start() {
         exchange.connect().blockingAwait();
         subscribeToTradeStreams();
-        startThinMarketTimer();
+        thinMarketTimer.start();
     }
 
     @Override
