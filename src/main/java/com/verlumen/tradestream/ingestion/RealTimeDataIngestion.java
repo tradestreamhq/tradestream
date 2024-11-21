@@ -28,7 +28,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         this.candleManager = candleManager;
         this.candlePublisher = candlePublisher;
         this.exchange = exchange;
-        this.subscriptions =  = new ArrayList<>();
+        this.subscriptions = new ArrayList<>();
         this.tradeProcessor = tradeProcessor;
     }
 
