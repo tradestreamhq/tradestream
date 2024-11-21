@@ -13,6 +13,7 @@ java_test(
         "@maven//:org_mockito_mockito_core",
         "//src/main/java/com/verlumen/tradestream/ingestion:app",
         "//src/main/java/com/verlumen/tradestream/ingestion:market_data_ingestion",
+        "//src/main/java/com/verlumen/tradestream/ingestion:run_mode",
     ],
     runtime_deps = [
         "@maven//:com_google_flogger_flogger_system_backend",

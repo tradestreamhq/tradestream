@@ -23,7 +23,7 @@ import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
 public class CandleManagerImplTest {
-    @Rule public MockitoRule rule = MockitoJUnit.rule();
+    @Rule public MockitoRule mocks = MockitoJUnit.rule();
     
     private static final long CANDLE_INTERVAL = 60000L;
     private static final String TEST_PAIR = "BTC/USD";
