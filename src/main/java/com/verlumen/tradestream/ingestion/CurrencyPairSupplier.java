@@ -8,8 +8,7 @@ import java.util.function.Supplier;
 
 interface CurrencyPairSupplier extends Supplier<ImmutableList<CurrencyPairMetadata>> {
   default ImmutableList<CurrencyPair> currencyPairs() {
-    return currencyPairSupplier()
-      .get()
+    return get()
       .stream()
       .map(CurrencyPairMetadata::currencyPair)
       .collect(toImmutableList());
