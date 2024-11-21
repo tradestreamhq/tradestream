@@ -10,6 +10,8 @@ import io.reactivex.rxjava3.disposables.Disposable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.UUID;
 
 final class RealTimeDataIngestion implements MarketDataIngestion {
     private final CandleManager candleManager;
@@ -51,6 +53,17 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         thinMarketTimer.stop();
         exchange.get().disconnect().blockingAwait();
         candlePublisher.close();
+    }
+
+    private Trade convertTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String pair) {
+        return Trade.newBuilder()
+            .setTimestamp(xchangeTrade.getTimestamp().getTime())
+            .setExchange(exchange.get().getExchangeSpecification().getExchangeName())
+            .setCurrencyPair(pair)
+            .setPrice(xchangeTrade.getPrice().doubleValue())
+            .setVolume(xchangeTrade.getOriginalAmount().doubleValue())
+            .setTradeId(xchangeTrade.getId() != null ? xchangeTrade.getId() : UUID.randomUUID().toString())
+            .build();
     }
 
     private void onTrade(Trade trade) {
