@@ -59,10 +59,6 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         }
     }
 
-    private void startThinMarketTimer() {
-        thinMarketTimer.start();
-    }
-
     private void subscribeToTradeStream() {}
 
     private void subscribeToTradeStreams() {}
