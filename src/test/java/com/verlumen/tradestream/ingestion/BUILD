@@ -14,6 +14,9 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/ingestion:app",
         "//src/main/java/com/verlumen/tradestream/ingestion:market_data_ingestion",
     ],
+    runtime_deps = [
+        "@maven//:com_google_flogger_flogger_system_backend",
+    ]
 )
 
 java_test(
