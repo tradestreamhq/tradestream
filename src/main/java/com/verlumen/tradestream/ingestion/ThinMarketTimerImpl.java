@@ -4,12 +4,13 @@ import com.google.inject.Inject;
 import org.knowm.xchange.currency.CurrencyPair;
 
 import java.util.Timer;
+import java.util.TimerTask;
 
 final class ThinMarketTimerImpl implements ThinMarketTimer {
   private static final int ONE_MINUTE_IN_MILLISECONDS = 60_000;
 
-  private final ThinMarketTimerTask timerTask;
   private final Timer timer;
+  private final TimerTask timerTask;
 
   @Inject
   ThinMarketTimerImpl(Timer timer, ThinMarketTimerTask timerTask) {
