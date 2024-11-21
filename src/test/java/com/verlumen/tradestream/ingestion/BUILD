@@ -16,7 +16,7 @@ java_test(
     ],
     runtime_deps = [
         "@maven//:com_google_flogger_flogger_system_backend",
-    ]
+    ],
 )
 
 java_test(
