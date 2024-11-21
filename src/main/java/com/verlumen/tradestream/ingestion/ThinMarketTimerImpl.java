@@ -30,6 +30,7 @@ final class ThinMarketTimerImpl implements ThinMarketTimer {
     timer.cancel();
   }
 
+  @AutoValue
   abstract static class ThinMarketTimerTask extends TimerTask {
       static ThinMarketTimerTask create(CandleManager candleManager, CurrencyPairSupplier currencyPairSupplier) {
           return new AutoValue_RealTimeDataIngestion_ThinMarketTimerTask(candleManager, currencyPairSupplier);
