@@ -36,6 +36,10 @@ abstract class ConfigArguments implements Provider<Namespace> {
           .setDefault(60)
           .help("Candle interval in seconds");
 
+    parser.addArgument("--candlePublisherTopic")
+          .setDefault("candles") 
+          .help("Kafka topic to publish candle data");
+
     // Kafka configuration
     parser.addArgument("--kafka.bootstrap.servers")
       .setDefault("localhost:9092")

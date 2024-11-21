@@ -27,7 +27,7 @@ final class KafkaProperties implements Supplier<Properties> {
 
       // Remove the prefix and add the key-value pair to the new Properties object
       String newKey = key.substring("kafka.".length());
-      kafkaProperties.setProperty(newKey, namespace.get(key));
+      kafkaProperties.setProperty(newKey, namespace.getString(key));
     }
 
     return kafkaProperties;
