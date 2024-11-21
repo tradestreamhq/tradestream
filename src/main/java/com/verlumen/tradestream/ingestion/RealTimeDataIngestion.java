@@ -47,4 +47,6 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         exchange.get().disconnect().blockingAwait();
         candlePublisher.close();
     }
+
+    private void onTrade(Trade trade) {}
 }
