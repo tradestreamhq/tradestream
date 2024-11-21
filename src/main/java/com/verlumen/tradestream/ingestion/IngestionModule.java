@@ -17,7 +17,6 @@ final class IngestionModule extends AbstractModule {
     bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class);
 
     bind(MarketDataIngestion.class).to(RealTimeDataIngestion.class);
-    bind(TradeProcessor.class).toInstance(TradeProcessor.create());
 
     install(new FactoryModuleBuilder()
         .implement(CandleManager.class, CandleManagerImpl.class)
