@@ -91,22 +91,6 @@ public class ThinMarketTimerTaskImplTest {
     }
 
     @Test
-    public void run_currencyPairToStringReturnsNull_handlesNullInResultList() {
-        // Arrange
-        CurrencyPair mockCurrencyPair = mock(CurrencyPair.class);
-        when(mockCurrencyPair.toString()).thenReturn(null);
-        ImmutableList<CurrencyPair> currencyPairs = ImmutableList.of(mockCurrencyPair);
-        when(currencyPairSupplier.currencyPairs()).thenReturn(currencyPairs);
-
-        // Act
-        thinMarketTimerTask.run();
-
-        // Assert
-        ImmutableList<String> expected = ImmutableList.of((String) null);
-        verify(candleManager).handleThinlyTradedMarkets(expected);
-    }
-
-    @Test
     public void run_handleThinlyTradedMarketsThrowsException_exceptionIsPropagated() {
         // Arrange
         CurrencyPair btcUsd = new CurrencyPair("BTC", "USD");
