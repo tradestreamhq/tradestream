@@ -13,6 +13,7 @@ final class App {
   @Inject
   App(MarketDataIngestion marketDataIngestion, RunMode runMode) {
     this.marketDataIngestion = marketDataIngestion;
+    this.runMode = runMode;
   }
 
   void run() {
