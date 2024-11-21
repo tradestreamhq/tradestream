@@ -14,8 +14,8 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     private final List<String> currencyPairs;
     private final List<Disposable> subscriptions = new ArrayList<>();
     private final TradeProcessor tradeProcessor;
-    private final CandleManager.Factory candleManagerFactory;
-    private final CandlePublisher.Factory candlePublisherFactory;
+    private final CandleManager candleManager;
+    private final CandlePublisher candlePublisher;
     private Timer thinMarketTimer;
 
     @Inject
@@ -23,8 +23,8 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
             StreamingExchange exchange,
             StreamingMarketDataService marketDataService,
             List<String> currencyPairs,
-            CandleManager.Factory candleManagerFactory,
-            CandlePublisher.Factory candlePublisherFactory,
+            CandleManager candleManager,
+            CandlePublisher candlePublisher,
             TradeProcessor tradeProcessor) {
         this.exchange = exchange;
         this.marketDataService = marketDataService;
