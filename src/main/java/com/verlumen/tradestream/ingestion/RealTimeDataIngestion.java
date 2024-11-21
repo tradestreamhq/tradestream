@@ -19,8 +19,8 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     private final CurrencyPairSupplier currencyPairSupplier;
     private final Provider<StreamingExchange> exchange;
     private final List<Disposable> subscriptions;
+    private final ThinMarketTimer thinMarketTimer;
     private final TradeProcessor tradeProcessor;
-    private Timer thinMarketTimer;
     
     @Inject
     RealTimeDataIngestion(
@@ -28,6 +28,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         CandlePublisher candlePublisher,
         CurrencyPairSupplier currencyPairSupplier,
         Provider<StreamingExchange> exchange,
+        ThinMarketTimer thinMarketTimer,
         TradeProcessor tradeProcessor
     ) {
         this.candleManager = candleManager;
@@ -35,6 +36,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         this.currencyPairSupplier = currencyPairSupplier;
         this.exchange = exchange;
         this.subscriptions = new ArrayList<>();
+        this.thinMarketTimer = thinMarketTimer;
         this.tradeProcessor = tradeProcessor;
     }
 
@@ -61,11 +63,34 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
 
     private void startThinMarketTimer() {
         thinMarketTimer = new Timer();
-        thinMarketTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                candleManager.handleThinlyTradedMarkets(currencyPairs);
-            }
-        }, 0, ONE_MINUTE_IN_MILLISECONDS);
+
+    }
+
+    private static class ThinMarketTimer {
+        private final Timer timer;
+        
+        @Inject
+        ThinMarketTimer(ThinMarketTimerTask timerTask) {
+            this.timer = new Timer();
+            this.timerTask = timerTask;
+        }
+
+        void start() {
+            timer.scheduleAtFixedRate(timerTask, 0, ONE_MINUTE_IN_MILLISECONDS);            
+        }
+    }
+
+    private static class ThinMarketTimerTask extends TimerTask {
+        private final CandleManager candleManager;
+
+        @Inject
+        ThinMarketTimerTask(CandleManager candleManager) {
+            this.candleManager = candleManager;
+        }
+
+        @Override
+        public void run() {
+            candleManager.handleThinlyTradedMarkets(currencyPairs);
+        }
     }
 }
