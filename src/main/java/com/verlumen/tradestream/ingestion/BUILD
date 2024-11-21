@@ -246,6 +246,7 @@ java_library(
         "@maven//:com_google_inject_guice",
         "@maven//:io_reactivex_rxjava3_rxjava",
         "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_coinbasepro",
         "@maven//:org_knowm_xchange_xchange_stream_core",
         "//protos:marketdata_java_proto",
         ":candle_manager",
