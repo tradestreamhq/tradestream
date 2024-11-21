@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.common.collect.ImmutableList;
 
 final class ThinMarketTimerTask extends TimerTask {
