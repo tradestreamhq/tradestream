@@ -121,7 +121,7 @@ public class ThinMarketTimerTaskImplTest {
         CurrencyPair pair1 = new CurrencyPair("AAA", "BBB");
         CurrencyPair pair2 = new CurrencyPair("CCC", "DDD");
         CurrencyPair pair3 = new CurrencyPair("EEE", "FFF");
-        List<CurrencyPair> currencyPairs = Arrays.asList(pair1, pair2, pair3);
+        ImmutableList<CurrencyPair> currencyPairs =ImmutableList.of(pair1, pair2, pair3);
         ImmutableList<String> expected = ImmutableList.of(pair1.toString(), pair2.toString(), pair3.toString());
         when(currencyPairSupplier.currencyPairs()).thenReturn(currencyPairs);
 
