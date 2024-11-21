@@ -2,8 +2,8 @@ package com.verlumen.tradestream.ingestion;
 
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.Inject;
-import marketdata.Marketdata.Trade;
-import marketdata.Marketdata.Candle;
+import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.marketdata.Candle;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
