@@ -1,22 +1,22 @@
 package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
+import static org.junit.Assert.fail;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import com.google.common.collect.ImmutableList;
 import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.junit.Rule;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -28,8 +28,8 @@ public class ThinMarketTimerImplTest {
     @Mock @Bind private CandleManager candleManager;
     @Mock @Bind private CurrencyPairSupplier currencyPairSupplier;
     @Mock @Bind private Timer timer;
-    @Mock @Bind private ThinMarketTimerTask timerTask;
-    @Inject private ThinMarketTimerImpl thinMarketTimer;
+    @Mock @Bind private ThinMarketTimerTask task;
+    @Inject private ThinMarketTimer thinMarketTimer;
 
     @Before
     public void setUp() {
@@ -43,7 +43,7 @@ public class ThinMarketTimerImplTest {
         ArgumentCaptor<Long> periodCaptor = ArgumentCaptor.forClass(Long.class);
 
         // Act
-        .start();
+        thinMarketTimer.start();
 
         // Assert
         verify(timer).scheduleAtFixedRate(eq(task), delayCaptor.capture(), periodCaptor.capture());
