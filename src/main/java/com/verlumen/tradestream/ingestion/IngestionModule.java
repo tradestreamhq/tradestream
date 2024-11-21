@@ -39,15 +39,15 @@ abstract class IngestionModule extends AbstractModule {
   }
 
   @Provides
-  TradeProcessor provideCandleManager(Namespace namespace) {
+  TradeProcessor provideCandleManager(Namespace namespace, CandlePublisher candlePublisher) {
     long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000;
     return TradeProcessor.create(candleIntervalMillis);
   }
 
   @Provides
-  TradeProcessor provideCandlePublisher(Namespace namespace) {
-    long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000;
-    return TradeProcessor.create(candleIntervalMillis);
+  TradeProcessor provideCandlePublisher(Namespace namespace, CandlePublisher.Factory candlePublisherFactory) {
+    String topic = namespace.getString("candlePublisherTopic");
+    return candlePublisherFactory.create(topic);
   }
 
   @Provides
