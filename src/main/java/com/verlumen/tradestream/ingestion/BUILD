@@ -123,6 +123,14 @@ java_library(
     ],
 )
 
+genrule(
+    name = "hash",
+    srcs = [":index"],
+    outs = ["sha256.sum"],
+    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
+    toolchains = ["@jq_toolchains//:resolved_toolchain"],
+)
+
 oci_image(
     name = "image",
     base = "@openjdk_java",
@@ -148,14 +156,6 @@ oci_image_index(
     images = [
         ":images",
     ],
-)
-
-genrule(
-    name = "hash",
-    srcs = [":index"],
-    outs = ["sha256.sum"],
-    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
-    toolchains = ["@jq_toolchains//:resolved_toolchain"],
 )
 
 java_library(
@@ -184,6 +184,7 @@ java_library(
         ":thin_market_timer",
         ":thin_market_timer_impl",
         ":thin_market_timer_task",
+        ":thin_market_timer_task_impl",
         ":trade_processor",
     ],
 )
@@ -281,6 +282,17 @@ java_library(
         ":thin_market_timer",
         ":thin_market_timer_task",
     ]
+)
+
+java_library(
+    name = "thin_market_timer_impl",
+    srcs = ["ThinMarketTimerImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        ":thin_market_timer",
+        ":thin_market_timer_task",
+    ],
 )
 
 java_library(

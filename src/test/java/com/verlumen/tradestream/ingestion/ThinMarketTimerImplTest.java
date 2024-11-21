@@ -1,6 +1,8 @@
 package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.*;
+import static org.junit.Assert.fail;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -13,6 +15,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.junit.Rule;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -24,7 +29,8 @@ public class ThinMarketTimerImplTest {
     @Mock @Bind private CandleManager candleManager;
     @Mock @Bind private CurrencyPairSupplier currencyPairSupplier;
     @Mock @Bind private Timer timer;
-    @Inject private ThinMarketTimerTask thinMarketTimerTask;
+    @Mock @Bind private ThinMarketTimerTask task;
+    @Inject private ThinMarketTimerImpl thinMarketTimer;
 
     @Before
     public void setUp() {
@@ -80,7 +86,7 @@ public class ThinMarketTimerImplTest {
         thinMarketTimer.start();
 
         // Assert
-        verify(timer, times(1)).scheduleAtFixedRate(eq(task), eq(0L), eq(60_000L));
+        verify(timer).scheduleAtFixedRate(eq(task), eq(0L), eq(60_000L));
     }
 
     @Test
@@ -104,7 +110,7 @@ public class ThinMarketTimerImplTest {
         thinMarketTimer.start();
 
         // Assert
-        verify(timer, times(1)).scheduleAtFixedRate(eq(task), anyLong(), anyLong());
+        verify(timer).scheduleAtFixedRate(eq(task), anyLong(), anyLong());
     }
 
     @Test
