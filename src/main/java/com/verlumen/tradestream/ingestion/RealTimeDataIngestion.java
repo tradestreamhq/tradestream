@@ -5,6 +5,7 @@ import com.google.inject.Provider;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.rxjava3.disposables.Disposable;
+import marketdata.Marketdata.Trade;
 
 import java.util.ArrayList;
 import java.util.List;
