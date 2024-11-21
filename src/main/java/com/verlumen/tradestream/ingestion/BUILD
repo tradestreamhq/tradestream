@@ -179,8 +179,10 @@ java_library(
         ":kafka_producer_provider",
         ":market_data_ingestion",
         ":real_time_data_ingestion",
-        ":streaming_exchange_provider",
         ":run_mode",
+        ":streaming_exchange_provider",
+        ":thin_market_timer",
+        ":thin_market_timer_impl",
         ":thin_market_timer_task",
         ":thin_market_timer_task_impl",
         ":trade_processor",
@@ -268,6 +270,17 @@ java_library(
 java_library(
     name = "thin_market_timer",
     srcs = ["ThinMarketTimer.java"],
+)
+
+java_library(
+    name = "thin_market_timer_impl",
+    srcs = ["ThinMarketTimerImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        ":thin_market_timer",
+        ":thin_market_timer_task",
+    ],
 )
 
 java_library(
