@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.inject.Inject;
 import java.util.Timer;
 import java.util.TimerTask;
 
