@@ -172,6 +172,8 @@ java_library(
         ":candle_publisher",
         ":candle_publisher_impl",
         ":config_arguments",
+        ":currency_pair_supplier",
+        ":currency_pair_supplier_impl",
         ":kafka_producer_provider",
         ":market_data_ingestion",
         ":properties_provider",
