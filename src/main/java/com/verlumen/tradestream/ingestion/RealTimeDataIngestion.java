@@ -6,6 +6,8 @@ import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.rxjava3.disposables.Disposable;
 
+import java.util.List;
+
 final class RealTimeDataIngestion implements MarketDataIngestion {
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
