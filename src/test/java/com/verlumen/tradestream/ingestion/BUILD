@@ -99,6 +99,7 @@ java_test(
         "@maven//:junit_junit",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer_impl",
+        "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer_task",
     ],
 )
 
