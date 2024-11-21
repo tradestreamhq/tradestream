@@ -14,6 +14,7 @@ import java.util.Timer;
 final class RealTimeDataIngestion implements MarketDataIngestion {
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
+    private final CurrencyPairSupplier currencyPairSupplier;
     private final Provider<StreamingExchange> exchange;
     private final List<Disposable> subscriptions;
     private final TradeProcessor tradeProcessor;
@@ -23,11 +24,13 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     RealTimeDataIngestion(
         CandleManager candleManager,
         CandlePublisher candlePublisher,
+        CurrencyPairSupplier currencyPairSupplier,
         Provider<StreamingExchange> exchange,
         TradeProcessor tradeProcessor
     ) {
         this.candleManager = candleManager;
         this.candlePublisher = candlePublisher;
+        this.currencyPairSupplier = currencyPairSupplier;
         this.exchange = exchange;
         this.subscriptions = new ArrayList<>();
         this.tradeProcessor = tradeProcessor;
