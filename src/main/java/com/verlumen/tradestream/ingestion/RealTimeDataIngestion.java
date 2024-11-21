@@ -67,18 +67,9 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
             .build();
     }
 
-    private Observable<Trade> subscribeToTradeStream(String pair) {
-        return exchange
-            .getStreamingMarketDataService()
-            .getTrades(new CurrencyPair(pair))
-            .subscribe(trade -> onTrade(convertTrade(trade, pair)));
-    }
-
-    private void subscribeToTradeStreams() {
-        for (String pair : currencyPairs) {
-            CurrencyPair currencyPair = new CurrencyPair(pair);
-            Disposable subscription = subscribeToTradeStream(pair);
-            subscriptions.add(subscription);
+    private void onTrade(Trade trade) {
+        if (!tradeProcessor.isProcessed(trade)) {
+            candleManager.processTrade(trade);
         }
     }
 
@@ -92,15 +83,18 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         }, 0, 60000); // Every minute
     }
 
-    private void onTrade(Trade trade) {
-        if (!tradeProcessor.isProcessed(trade)) {
-            candleManager.processTrade(trade);
-        }
+    private Observable<Trade> subscribeToTradeStream(String pair) {
+        return exchange
+            .getStreamingMarketDataService()
+            .getTrades(new CurrencyPair(pair))
+            .subscribe(trade -> onTrade(convertTrade(trade, pair)));
     }
 
-    private void onTrade(Trade trade) {
-        if (!tradeProcessor.isProcessed(trade)) {
-            candleManager.processTrade(trade);
+    private void subscribeToTradeStreams() {
+        for (String pair : currencyPairs) {
+            CurrencyPair currencyPair = new CurrencyPair(pair);
+            Disposable subscription = subscribeToTradeStream(pair);
+            subscriptions.add(subscription);
         }
     }
 }
