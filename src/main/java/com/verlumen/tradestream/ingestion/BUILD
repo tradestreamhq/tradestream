@@ -278,6 +278,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         "@maven//:org_knowm_xchange_xchange_core",
+        "//:autovalue",
         ":candle_manager",
         ":currency_pair_supplier",
         ":thin_market_timer",
