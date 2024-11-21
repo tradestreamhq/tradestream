@@ -9,7 +9,6 @@ import marketdata.Marketdata.Trade;
 import org.knowm.xchange.currency.CurrencyPair;
 
 final class RealTimeDataIngestion implements MarketDataIngestion {
-    private final StreamingMarketDataService marketDataService;
     private final List<String> currencyPairs;
     private final List<Disposable> subscriptions = new ArrayList<>();
     private final CandleManager candleManager;
@@ -20,14 +19,12 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
 
     @Inject
     RealTimeDataIngestion(
-            StreamingMarketDataService marketDataService,
             List<String> currencyPairs,
             CandleManager candleManager,
             CandlePublisher candlePublisher,
             Provider<StreamingExchange> exchange,
             TradeProcessor tradeProcessor
     ) {
-        this.marketDataService = marketDataService;
         this.currencyPairs = currencyPairs;
         this.candleManager = candleManager;
         this.candlePublisher = candlePublisher;
@@ -42,11 +39,40 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         startThinMarketTimer();
     }
 
+    @Override
+    public void shutdown() {
+        for (Disposable subscription : subscriptions) {
+            subscription.dispose();
+        }
+        if (thinMarketTimer != null) {
+            thinMarketTimer.cancel();
+        }
+        exchange.disconnect().blockingAwait();
+        publisher.close();
+    }
+
+    private Trade convertTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String pair) {
+        return Trade.newBuilder()
+            .setTimestamp(xchangeTrade.getTimestamp().getTime())
+            .setExchange(exchange.getExchangeSpecification().getExchangeName())
+            .setCurrencyPair(pair)
+            .setPrice(xchangeTrade.getPrice().doubleValue())
+            .setVolume(xchangeTrade.getOriginalAmount().doubleValue())
+            .setTradeId(xchangeTrade.getId() != null ? xchangeTrade.getId() : UUID.randomUUID().toString())
+            .build();
+    }
+
+    private Observable<Trade> subscribeToTradeStream(String pair) {
+        return exchange
+            .getStreamingMarketDataService()
+            .getTrades(new CurrencyPair(pair))
+            .subscribe(trade -> onTrade(convertTrade(trade, pair)));
+    }
+
     private void subscribeToTradeStreams() {
         for (String pair : currencyPairs) {
             CurrencyPair currencyPair = new CurrencyPair(pair);
-            Disposable subscription = marketDataService.getTrades(currencyPair)
-                    .subscribe(trade -> onTrade(convertTrade(trade, pair)));
+            Disposable subscription = subscribeToTradeStream(pair);
             subscriptions.add(subscription);
         }
     }
@@ -65,28 +91,5 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         if (!tradeProcessor.isProcessed(trade)) {
             candleManager.processTrade(trade);
         }
-    }
-
-    @Override
-    public void shutdown() {
-        for (Disposable subscription : subscriptions) {
-            subscription.dispose();
-        }
-        if (thinMarketTimer != null) {
-            thinMarketTimer.cancel();
-        }
-        exchange.disconnect().blockingAwait();
-        publisher.close();
-    }
-
-    private Trade convertTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String pair) {
-        return Trade.newBuilder()
-                .setTimestamp(xchangeTrade.getTimestamp().getTime())
-                .setExchange(exchange.getExchangeSpecification().getExchangeName())
-                .setCurrencyPair(pair)
-                .setPrice(xchangeTrade.getPrice().doubleValue())
-                .setVolume(xchangeTrade.getOriginalAmount().doubleValue())
-                .setTradeId(xchangeTrade.getId() != null ? xchangeTrade.getId() : UUID.randomUUID().toString())
-                .build();
     }
 }
