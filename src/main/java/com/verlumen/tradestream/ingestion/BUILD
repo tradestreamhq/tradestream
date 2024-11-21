@@ -297,7 +297,7 @@ java_library(
         ":candle_manager",
         ":currency_pair_supplier",
         ":thin_market_timer_task",
-    ]
+    ],
 )
 
 java_library(
