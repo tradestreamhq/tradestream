@@ -6,17 +6,22 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import net.sourceforge.argparse4j.inf.Namespace;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 @RunWith(JUnit4.class)
 public class KafkaPropertiesTest {
-  @Bind private static final Properties INPUT_PROPERTIES = new Properties();
+  private static final Map<String, Object> INPUT_PROPERTIES = new HashMap<>();
+
+  @Bind private static final Namespace NAMESPACE = new Namespace(INPUT_PROPERTIES);
 
   @Inject private KafkaProperties supplier;
 
@@ -33,9 +38,9 @@ public class KafkaPropertiesTest {
   @Test
   public void testExtractKafkaProperties_containsOnlyKafkaProperties() {
     // Arrange
-    INPUT_PROPERTIES.setProperty("kafka.bootstrap.servers", "localhost:9092");
-    INPUT_PROPERTIES.setProperty("kafka.client.id", "client-1");
-    INPUT_PROPERTIES.setProperty("application.name", "TestApp");
+    INPUT_PROPERTIES.put("kafka.bootstrap.servers", "localhost:9092");
+    INPUT_PROPERTIES.put("kafka.client.id", "client-1");
+    INPUT_PROPERTIES.put("application.name", "TestApp");
     
     // Act
     Properties kafkaProperties = supplier.get();
@@ -49,9 +54,9 @@ public class KafkaPropertiesTest {
   @Test
   public void testExtractKafkaProperties_removesKafkaPrefix() {
     // Arrange
-    INPUT_PROPERTIES.setProperty("kafka.bootstrap.servers", "localhost:9092");
-    INPUT_PROPERTIES.setProperty("kafka.client.id", "client-1");
-    INPUT_PROPERTIES.setProperty("application.name", "TestApp");
+    INPUT_PROPERTIES.put("kafka.bootstrap.servers", "localhost:9092");
+    INPUT_PROPERTIES.put("kafka.client.id", "client-1");
+    INPUT_PROPERTIES.put("application.name", "TestApp");
 
     // Act
     Properties kafkaProperties = supplier.get();
@@ -73,7 +78,7 @@ public class KafkaPropertiesTest {
   @Test
   public void testExtractKafkaProperties_noKafkaPropertiesReturnsEmptyProperties() {
     // Arrange
-    INPUT_PROPERTIES.setProperty("application.name", "TestApp");
+    INPUT_PROPERTIES.put("application.name", "TestApp");
 
     // Act
     Properties kafkaProperties = supplier.get();

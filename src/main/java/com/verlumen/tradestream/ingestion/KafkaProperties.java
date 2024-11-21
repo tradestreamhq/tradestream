@@ -2,16 +2,17 @@ package com.verlumen.tradestream.ingestion;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import net.sourceforge.argparse4j.inf.Namespace;
 
 import java.util.Properties;
 import java.util.function.Supplier;
 
 final class KafkaProperties implements Supplier<Properties> {
-  private final Properties properties;
+  private final Namespace namespace;
 
   @Inject
-  KafkaProperties(Properties properties) {
-    this.properties = properties;
+  KafkaProperties(Namespace namespace) {
+    this.namespace = namespace;
   }
 
   @Override
@@ -20,13 +21,13 @@ final class KafkaProperties implements Supplier<Properties> {
     Properties kafkaProperties = new Properties();
 
     // Iterate over the input properties
-    for (String key : properties.stringPropertyNames()) {
+    for (String key : namespace.getAttrs().keySet()) {
       // Check if the key starts with the "kafka." prefix
       if (!key.startsWith("kafka.")) continue;
 
       // Remove the prefix and add the key-value pair to the new Properties object
       String newKey = key.substring("kafka.".length());
-      kafkaProperties.setProperty(newKey, properties.getProperty(key));
+      kafkaProperties.setProperty(newKey, namespace.get(key));
     }
 
     return kafkaProperties;

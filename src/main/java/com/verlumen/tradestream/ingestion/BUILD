@@ -71,6 +71,17 @@ java_library(
     ],
 )
 
+java_library(
+    name = "config_arguments",
+    srcs = ["ConfigArguments.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
+        "//:autovalue",
+    ],
+)
+
 container_structure_test(
     name = "container_test",
     configs = ["container-structure-test.yaml"],
@@ -117,20 +128,24 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:org_knowm_xchange_xchange_stream_core",
+        "//:autovalue",
         ":candle_manager",
         ":candle_manager_impl",
         ":candle_publisher",
         ":candle_publisher_impl",
+        ":config_arguments",
         ":kafka_producer_provider",
         ":market_data_ingestion",
         ":properties_provider",
         ":real_time_data_ingestion",
         ":streaming_exchange_provider",
-        ":trade_processor", 
+        ":trade_processor",
     ],
 )
 
@@ -149,6 +164,7 @@ java_library(
     srcs = ["KafkaProperties.java"],
     deps = [
         "@maven//:com_google_inject_guice",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
     ],    
 )
 

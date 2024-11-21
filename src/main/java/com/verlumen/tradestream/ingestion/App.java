@@ -16,9 +16,8 @@ final class App {
     marketDataIngestion.start();
   }
 
-  public static void main(String... args) throws Exception {
-    App app = Guice.createInjector(new IngestionModule()).getInstance(App.class);
+  public static void main(String[] args) throws Exception {
+    App app = Guice.createInjector(IngestionModule.create(args)).getInstance(App.class);
     app.run();
   }
-
 }
