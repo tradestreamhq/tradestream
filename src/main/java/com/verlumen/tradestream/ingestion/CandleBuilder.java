@@ -1,7 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
-import marketdata.Marketdata.Candle;
-import marketdata.Marketdata.Trade;
+import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.Trade;
 
 final class CandleBuilder {
     private final String currencyPair;

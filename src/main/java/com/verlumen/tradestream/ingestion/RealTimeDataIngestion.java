@@ -2,11 +2,11 @@ package com.verlumen.tradestream.ingestion;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.verlumen.tradestream.marketdata.Trade;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import marketdata.Marketdata.Trade;
 
 import java.util.ArrayList;
 import java.util.List;
