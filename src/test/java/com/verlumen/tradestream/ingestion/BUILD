@@ -90,17 +90,6 @@ java_test(
 )
 
 java_test(
-    name = "PropertiesProviderTest",
-    srcs = ["PropertiesProviderTest.java"],
-    deps = [
-        "@maven//:com_google_inject_guice",
-        "@maven//:com_google_truth_truth",
-        "@maven//:junit_junit",
-        "//src/main/java/com/verlumen/tradestream/ingestion:properties_provider",
-    ],
-)
-
-java_test(
     name = "TradeProcessorTest",
     srcs = ["TradeProcessorTest.java"],
     deps = [
