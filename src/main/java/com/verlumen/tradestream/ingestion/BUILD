@@ -169,7 +169,6 @@ java_library(
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:org_knowm_xchange_xchange_stream_core",
         "//:autovalue",
-        "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer_task",
         ":candle_manager",
         ":candle_manager_impl",
         ":candle_publisher",
