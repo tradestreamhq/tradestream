@@ -12,12 +12,14 @@ java_binary(
     main_class = "com.verlumen.tradestream.ingestion.App",
     deps = [
         "@maven//:com_google_flogger_flogger",
-        "@maven//:com_google_flogger_flogger_system_backend",        
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":ingestion_module",
         ":market_data_ingestion",
         ":real_time_data_ingestion",
+    ],
+    runtime_deps = [
+        "@maven//:com_google_flogger_flogger_system_backend",
     ],
 )
 
