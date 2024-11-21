@@ -17,6 +17,7 @@ final class App {
 
   void run() {
     logger.atInfo().log("Starting real-time data ingestion...");
+    if (runMode == RunMode.DRY) return;
     marketDataIngestion.start();
   }
 
