@@ -69,6 +69,12 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
             .build();
     }
 
+    private void handleTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String currencyPair) {
+        String symbol = currencyPair.toString();
+        Trade trade = convertTrade(trade, symbol);
+        onTrade(convertTrade(trade, symbol));
+    }
+
     private void onTrade(Trade trade) {
         if (!tradeProcessor.isProcessed(trade)) {
             candleManager.processTrade(trade);
@@ -80,7 +86,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
             .get()
             .getStreamingMarketDataService()
             .getTrades(currencyPair)
-            .subscribe(trade -> onTrade(convertTrade(trade, currencyPair.toString())));
+            .subscribe(trade -> handleTrade(trade, currencyPair.toString()));
     }
 
     private void subscribeToTradeStreams() {}
