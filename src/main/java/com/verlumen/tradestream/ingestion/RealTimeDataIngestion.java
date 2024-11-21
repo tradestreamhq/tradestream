@@ -7,6 +7,7 @@ import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
+import org.knowm.xchange.currency.CurrencyPair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     private final CurrencyPairSupplier currencyPairSupplier;
     private final Provider<StreamingExchange> exchange;
     private final List<Disposable> subscriptions;
-    private final ThinMarketTimer thinMarketTimer;
+    private final Provider<ThinMarketTimer> thinMarketTimer;
     private final TradeProcessor tradeProcessor;
     
     @Inject
@@ -28,7 +29,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         CandlePublisher candlePublisher,
         CurrencyPairSupplier currencyPairSupplier,
         Provider<StreamingExchange> exchange,
-        ThinMarketTimer thinMarketTimer,
+        Provider<ThinMarketTimer> thinMarketTimer,
         TradeProcessor tradeProcessor
     ) {
         this.candleManager = candleManager;
@@ -44,13 +45,13 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     public void start() {
         exchange.get().connect().blockingAwait();
         subscribeToTradeStreams();
-        // thinMarketTimer.start();
+        thinMarketTimer.get().start();
     }
 
     @Override
     public void shutdown() {
         subscriptions.forEach(Disposable::dispose);
-        thinMarketTimer.stop();
+        thinMarketTimer.get().stop();
         exchange.get().disconnect().blockingAwait();
         candlePublisher.close();
     }
@@ -66,13 +67,31 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
             .build();
     }
 
+    private void handleTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String currencyPair) {
+        String symbol = currencyPair.toString();
+        Trade trade = convertTrade(xchangeTrade, symbol);
+        onTrade(trade);
+    }
+
     private void onTrade(Trade trade) {
         if (!tradeProcessor.isProcessed(trade)) {
             candleManager.processTrade(trade);
         }
     }
 
-    private void subscribeToTradeStream() {}
+    private Disposable subscribeToTradeStream(CurrencyPair currencyPair) {
+        return exchange
+            .get()
+            .getStreamingMarketDataService()
+            .getTrades(currencyPair)
+            .subscribe(trade -> handleTrade(trade, currencyPair.toString()));
+    }
 
-    private void subscribeToTradeStreams() {}
+    private void subscribeToTradeStreams() {
+        currencyPairSupplier
+            .currencyPairs()
+            .stream()
+            .map(this::subscribeToTradeStream)
+            .forEach(subscriptions::add);
+    }
 }
