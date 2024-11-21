@@ -16,7 +16,7 @@ final class StreamingExchangeProvider implements Provider<StreamingExchange> {
 
   @Override
   public StreamingExchange get() {
-    String exchangeName = namesapce.getString("xchange.exchangeName");
+    String exchangeName = namesapce.getString("exchangeName");
     return StreamingExchangeFactory.INSTANCE.createExchange(exchangeName);
   }
 }
