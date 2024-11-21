@@ -28,6 +28,7 @@ abstract class IngestionModule extends AbstractModule {
 
     bind(CurrencyPairSupplier.class).to(CurrencyPairSupplierImpl.class);
     bind(MarketDataIngestion.class).to(RealTimeDataIngestion.class);
+    bind(Timer.class).toProvider(Timer::new);
 
     install(new FactoryModuleBuilder()
         .implement(CandleManager.class, CandleManagerImpl.class)
@@ -54,7 +55,7 @@ abstract class IngestionModule extends AbstractModule {
     String runModeName = namespace.getString("runMode").toUpperCase();
     return RunMode.valueOf(runModeName);
   }
- 
+
   @Provides
   TradeProcessor provideTradeProcessor(Namespace namespace) {
     long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000;
