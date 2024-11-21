@@ -1,9 +1,5 @@
 package com.verlumen.tradestream.ingestion;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
-import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import org.knowm.xchange.currency.CurrencyPair;
 import java.util.Timer;
@@ -16,7 +12,7 @@ final class ThinMarketTimerImpl implements ThinMarketTimer {
   private final TimerTask timerTask;
 
   @Inject
-  ThinMarketTimerImpl(CandleManager candleManager, ThinMarketTimerTask thinMarketTimerTask) {
+  ThinMarketTimerImpl(CandleManager candleManager, TimerTask timerTask) {
     this.timer = new Timer();
     this.timerTask = thinMarketTimerTask;
   }
