@@ -260,7 +260,7 @@ java_library(
 
 java_library(
     name = "run_mode",
-    srcs = [":run_mode"],
+    srcs = ["RunMode.java"],
 )
 
 java_library(
