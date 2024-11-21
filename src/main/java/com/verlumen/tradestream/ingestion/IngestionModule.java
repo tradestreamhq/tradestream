@@ -30,6 +30,7 @@ abstract class IngestionModule extends AbstractModule {
 
     bind(CurrencyPairSupplier.class).to(CurrencyPairSupplierImpl.class);
     bind(MarketDataIngestion.class).to(RealTimeDataIngestion.class);
+    bind(ThinMarketTimerTask.class).to(ThinMarketTimerTaskImpl.class);
     bind(Timer.class).toProvider(Timer::new);
     bind(ThinMarketTimer.class).to(ThinMarketTimerImpl.class);
     bind(ThinMarketTimerTask.class).to(ThinMarketTimerTaskImplementation.class);
