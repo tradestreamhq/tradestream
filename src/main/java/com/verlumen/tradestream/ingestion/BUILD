@@ -237,6 +237,7 @@ java_library(
         "@maven//:org_knowm_xchange_xchange_stream_core",
         ":candle_manager",
         ":candle_publisher",
+        ":currency_pair_supplier",
         ":market_data_ingestion",
         ":trade_processor",
     ],
