@@ -91,6 +91,15 @@ java_test(
 )
 
 java_test(
+    name = "RealTimeDataIngestionImplTest",
+    srcs = ["RealTimeDataIngestionImplTest"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:com_google_truth_truth",        
+    ],
+)
+
+java_test(
     name = "ThinMarketTimerImplTest",
     srcs = ["ThinMarketTimerImplTest.java"],
     deps = [
