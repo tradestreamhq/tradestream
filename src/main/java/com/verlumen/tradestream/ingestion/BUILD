@@ -281,7 +281,7 @@ java_library(
         "@maven//:org_knowm_xchange_xchange_core",
         ":thin_market_timer",
         ":thin_market_timer_task",
-    ]
+    ],
 )
 
 java_library(
