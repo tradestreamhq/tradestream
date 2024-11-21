@@ -1,5 +1,8 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -38,6 +41,12 @@ abstract static class ThinMarketTimerTask extends TimerTask {
 
     @Override
     public void run() {
-        candleManager().handleThinlyTradedMarkets(currencyPairSupplier().currencyPairs());
+        ImmutableList<CurrencyPair> currencyPairs =
+          currencyPairSupplier()
+          .currencyPairs()
+          .stream()
+          .map(Object::toString)
+          .collect(toImmutableList());
+        candleManager().handleThinlyTradedMarkets(currencyPairs);
     }
 }
