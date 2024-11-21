@@ -63,35 +63,6 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     }
 
     private void startThinMarketTimer() {
-        thinMarketTimer = new Timer();
-
-    }
-
-    private static class ThinMarketTimer {
-        private final Timer timer;
-        
-        @Inject
-        ThinMarketTimer(ThinMarketTimerTask timerTask) {
-            this.timer = new Timer();
-            this.timerTask = timerTask;
-        }
-
-        void start() {
-            timer.scheduleAtFixedRate(timerTask, 0, ONE_MINUTE_IN_MILLISECONDS);            
-        }
-    }
-
-    private static class ThinMarketTimerTask extends TimerTask {
-        private final CandleManager candleManager;
-
-        @Inject
-        ThinMarketTimerTask(CandleManager candleManager) {
-            this.candleManager = candleManager;
-        }
-
-        @Override
-        public void run() {
-            candleManager.handleThinlyTradedMarkets(currencyPairs);
-        }
+        thinMarketTimer.start();
     }
 }
