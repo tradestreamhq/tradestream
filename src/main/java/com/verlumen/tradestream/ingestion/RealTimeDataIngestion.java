@@ -27,11 +27,11 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
             Provider<StreamingExchange> exchange,
             TradeProcessor tradeProcessor
     ) {
-        this.exchange = exchange;
         this.marketDataService = marketDataService;
         this.currencyPairs = currencyPairs;
         this.candleManager = candleManager;
         this.candlePublisher = candlePublisher;
+        this.exchange = exchange;
         this.tradeProcessor = tradeProcessor;
     }
 
