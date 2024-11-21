@@ -52,7 +52,7 @@ abstract class IngestionModule extends AbstractModule {
   }
 
   @Provides
-  App.RunMode provideRunMode(Namespace namespace) {
+  RunMode provideRunMode(Namespace namespace) {
     String runModeName = namespace.getString("runMode").toUpperCase();
     return App.RunMode.valueOf(runModeName);
   }
