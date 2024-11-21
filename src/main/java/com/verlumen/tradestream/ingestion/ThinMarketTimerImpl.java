@@ -16,9 +16,9 @@ final class ThinMarketTimerImpl implements ThinMarketTimer {
   private final TimerTask timerTask;
 
   @Inject
-  ThinMarketTimerImpl(CandleManager candleManager, CurrencyPairSupplier currencyPairSupplier) {
+  ThinMarketTimerImpl(CandleManager candleManager, ThinMarketTimerTask thinMarketTimerTask) {
     this.timer = new Timer();
-    this.timerTask = ThinMarketTimerTask.create(candleManager, currencyPairSupplier);
+    this.timerTask = thinMarketTimerTask;
   }
 
   @Override
@@ -29,27 +29,5 @@ final class ThinMarketTimerImpl implements ThinMarketTimer {
   @Override
   public void stop() {
     timer.cancel();
-  }
-
-  @AutoValue
-  abstract static class ThinMarketTimerTask extends TimerTask {
-      static ThinMarketTimerTask create(CandleManager candleManager, CurrencyPairSupplier currencyPairSupplier) {
-          return new AutoValue_RealTimeDataIngestion_ThinMarketTimerTask(candleManager, currencyPairSupplier);
-      }
-  
-      abstract CandleManager candleManager();
-  
-      abstract CurrencyPairSupplier currencyPairSupplier();
-  
-      @Override
-      public void run() {
-          ImmutableList<String> currencyPairs =
-            currencyPairSupplier()
-            .currencyPairs()
-            .stream()
-            .map(Object::toString)
-            .collect(toImmutableList());
-          candleManager().handleThinlyTradedMarkets(currencyPairs);
-      }
   }
 }
