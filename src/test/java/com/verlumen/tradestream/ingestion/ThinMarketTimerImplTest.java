@@ -9,13 +9,16 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import java.util.TimerTask;
 
 @RunWith(JUnit4.class)
 public class ThinMarketTimerImplTest {
@@ -31,18 +34,38 @@ public class ThinMarketTimerImplTest {
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
+package com.verlumen.tradestream.ingestion;
+
+import static org.mockito.Mockito.*;
+import static org.junit.Assert.*;
+
+
+
+public class ThinMarketTimerImplTest {
+    private ThinMarketTimerTask task;
+    private ThinMarketTimerImpl thinMarketTimer;
+    private Timer timer;
+
+    @Before
+    public void setUp() {
+        task = mock(ThinMarketTimerTask.class);
+        timer = mock(Timer.class);
+        thinMarketTimer = new ThinMarketTimerImpl(task, timer);
+    }
+
     @Test
-    public void start_schedulesTimerTaskAtFixedRate() {
+    public void start_schedulesTaskAtFixedRate() {
         // Arrange
-        ArgumentCaptor<TimerTask> taskCaptor = ArgumentCaptor.forClass(TimerTask.class);
-        long expectedPeriod = 60_000L;
+        ArgumentCaptor<Long> delayCaptor = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<Long> periodCaptor = ArgumentCaptor.forClass(Long.class);
 
         // Act
         thinMarketTimer.start();
 
         // Assert
-        verify(timer).scheduleAtFixedRate(taskCaptor.capture(), eq(0L), eq(expectedPeriod));
-        assertThat(taskCaptor.getValue()).isNotNull();
+        verify(timer).scheduleAtFixedRate(eq(task), delayCaptor.capture(), periodCaptor.capture());
+        assertEquals("Delay should be 0", 0L, delayCaptor.getValue().longValue());
+        assertEquals("Period should be one minute in milliseconds", 60_000L, periodCaptor.getValue().longValue());
     }
 
     @Test
@@ -58,7 +81,20 @@ public class ThinMarketTimerImplTest {
     }
 
     @Test
-    public void start_multipleCalls_scheduleOnlyOnce() {
+    public void start_afterStop_reschedulesTask() {
+        // Arrange
+        thinMarketTimer.start();
+        thinMarketTimer.stop();
+
+        // Act
+        thinMarketTimer.start();
+
+        // Assert
+        verify(timer, times(2)).scheduleAtFixedRate(eq(task), eq(0L), eq(60_000L));
+    }
+
+    @Test
+    public void start_multipleTimesWithoutStop_schedulesTaskOnlyOnce() {
         // Arrange
 
         // Act
@@ -66,79 +102,72 @@ public class ThinMarketTimerImplTest {
         thinMarketTimer.start();
 
         // Assert
-        verify(timer, times(1)).scheduleAtFixedRate(any(TimerTask.class), anyLong(), anyLong());
+        verify(timer, times(1)).scheduleAtFixedRate(eq(task), eq(0L), eq(60_000L));
     }
 
     @Test
     public void stop_withoutStart_doesNotThrowException() {
+        // Arrange
+
         // Act & Assert
         try {
             thinMarketTimer.stop();
         } catch (Exception e) {
-            fail("Calling stop without start should not throw an exception");
+            fail("Stopping without starting should not throw an exception");
         }
     }
 
     @Test
-    public void start_afterStop_reschedulesTimerTask() {
+    public void constructor_withNullTask_throwsNullPointerException() {
+        // Arrange
+
+        // Act & Assert
+        try {
+            new ThinMarketTimerImpl(null, timer);
+            fail("Constructor should throw NullPointerException when task is null");
+        } catch (NullPointerException e) {
+            // Expected exception
+            assertEquals("Expected NullPointerException", NullPointerException.class, e.getClass());
+        }
+    }
+
+    @Test
+    public void constructor_withNullTimer_throwsNullPointerException() {
+        // Arrange
+
+        // Act & Assert
+        try {
+            new ThinMarketTimerImpl(task, null);
+            fail("Constructor should throw NullPointerException when timer is null");
+        } catch (NullPointerException e) {
+            // Expected exception
+            assertEquals("Expected NullPointerException", NullPointerException.class, e.getClass());
+        }
+    }
+
+    @Test
+    public void start_taskAlreadyScheduled_doesNotReschedule() {
+        // Arrange
+        thinMarketTimer.start();
+
+        // Act
+        thinMarketTimer.start();
+
+        // Assert
+        verify(timer, times(1)).scheduleAtFixedRate(eq(task), anyLong(), anyLong());
+    }
+
+    @Test
+    public void stop_timerAlreadyCancelled_doesNotThrowException() {
         // Arrange
         thinMarketTimer.start();
         thinMarketTimer.stop();
-        ArgumentCaptor<TimerTask> taskCaptor = ArgumentCaptor.forClass(TimerTask.class);
 
-        // Act
-        thinMarketTimer.start();
-
-        // Assert
-        verify(timer, times(2)).scheduleAtFixedRate(taskCaptor.capture(), eq(0L), eq(60_000L));
-    }
-
-    @Test
-    public void timerTask_run_invokesHandleThinlyTradedMarkets() {
-        // Arrange
-        TimerTask timerTask = captureTimerTask();
-        CurrencyPair currencyPair = new CurrencyPair("BTC/USD");
-        when(currencyPairSupplier.currencyPairs()).thenReturn(java.util.Collections.singletonList(currencyPair));
-
-        // Act
-        timerTask.run();
-
-        // Assert
-        verify(candleManager).handleThinlyTradedMarkets(com.google.common.collect.ImmutableList.of("BTC/USD"));
-    }
-
-    @Test
-    public void timerTask_run_withEmptyCurrencyPairs_invokesHandleThinlyTradedMarketsWithEmptyList() {
-        // Arrange
-        TimerTask timerTask = captureTimerTask();
-        when(currencyPairSupplier.currencyPairs()).thenReturn(java.util.Collections.emptyList());
-
-        // Act
-        timerTask.run();
-
-        // Assert
-        verify(candleManager).handleThinlyTradedMarkets(com.google.common.collect.ImmutableList.of());
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void timerTask_run_withNullCurrencyPairs_throwsNullPointerException() {
-        // Arrange
-        TimerTask timerTask = captureTimerTask();
-        when(currencyPairSupplier.currencyPairs()).thenReturn(null);
-
-        // Act
-        timerTask.run();
-
-        // Act / Assert
-        assertThrows(NullPointerException.class, timerTask::run)
-    }
-
-    // Helper method to capture the TimerTask scheduled by start()
-    private TimerTask captureTimerTask() {
-        ArgumentCaptor<TimerTask> taskCaptor = ArgumentCaptor.forClass(TimerTask.class);
-        thinMarketTimer.start();
-        verify(timer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong());
-        return taskCaptor.getValue();
+        // Act & Assert
+        try {
+            thinMarketTimer.stop();
+        } catch (Exception e) {
+            fail("Stopping an already stopped timer should not throw an exception");
+        }
     }
 }
-
