@@ -97,4 +97,10 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
             candleManager.processTrade(trade);
         }
     }
+
+    private void onTrade(Trade trade) {
+        if (!tradeProcessor.isProcessed(trade)) {
+            candleManager.processTrade(trade);
+        }
+    }
 }
