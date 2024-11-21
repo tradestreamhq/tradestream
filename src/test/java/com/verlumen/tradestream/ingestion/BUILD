@@ -27,6 +27,7 @@ java_test(
         "@maven//:com_google_truth_truth",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",
+        "@maven//:org_mockito_mockito_core",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_builder",
     ],
