@@ -106,6 +106,7 @@ java_library(
     name = "currency_pair_supplier",
     srcs = ["CurrencyPairSupplier.java"],
     deps = [
+        "@maven//:com_google_guava_guava",
         ":currency_pair_metadata",
     ],
 )
