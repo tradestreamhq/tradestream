@@ -109,6 +109,23 @@ java_test(
 )
 
 java_test(
+    name = "ThinMarketTimerTaskImplTest",
+    srcs = ["ThinMarketTimerTaskImplTest.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_extensions_guice_testlib",
+        "@maven//:com_google_inject_guice",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
+        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_mockito_mockito_core",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager",
+        "//src/main/java/com/verlumen/tradestream/ingestion:currency_pair_supplier",
+        "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer_task_impl",
+    ],
+)
+
+java_test(
     name = "TradeProcessorTest",
     srcs = ["TradeProcessorTest.java"],
     deps = [
