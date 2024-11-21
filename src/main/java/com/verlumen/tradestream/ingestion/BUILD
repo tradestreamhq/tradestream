@@ -180,6 +180,8 @@ java_library(
         ":properties_provider",
         ":real_time_data_ingestion",
         ":streaming_exchange_provider",
+        ":thin_market_timer",
+        ":thin_market_timer_impl",
         ":trade_processor",
     ],
 )
