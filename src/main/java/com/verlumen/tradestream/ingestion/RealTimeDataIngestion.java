@@ -52,8 +52,8 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         if (thinMarketTimer != null) {
             thinMarketTimer.cancel();
         }
-        exchange.disconnect().blockingAwait();
-        publisher.close();
+        exchange.get().disconnect().blockingAwait();
+        candlePublisher.close();
     }
 
     private Trade convertTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String pair) {
