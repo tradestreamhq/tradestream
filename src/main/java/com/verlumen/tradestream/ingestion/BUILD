@@ -111,6 +111,16 @@ java_library(
     ],
 )
 
+java_library(
+    name = "currency_pair_supplier_impl",
+    srcs = ["CurrencyPairSupplierImpl.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        ":currency_pair_metadata",
+        ":currency_pair_supplier",
+    ],
+)
+
 oci_image(
     name = "image",
     base = "@openjdk_java",
@@ -162,6 +172,8 @@ java_library(
         ":candle_publisher",
         ":candle_publisher_impl",
         ":config_arguments",
+        ":currency_pair_supplier",
+        ":currency_pair_supplier_impl",
         ":kafka_producer_provider",
         ":market_data_ingestion",
         ":properties_provider",
@@ -235,8 +247,10 @@ java_library(
         "@maven//:io_reactivex_rxjava3_rxjava",
         "@maven//:org_knowm_xchange_xchange_core",
         "@maven//:org_knowm_xchange_xchange_stream_core",
+        "//protos:marketdata_java_proto",
         ":candle_manager",
         ":candle_publisher",
+        ":currency_pair_supplier",
         ":market_data_ingestion",
         ":trade_processor",
     ],

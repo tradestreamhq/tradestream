@@ -5,6 +5,7 @@ import com.google.inject.Provider;
 import com.verlumen.tradestream.marketdata.Trade;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.Timer;
 final class RealTimeDataIngestion implements MarketDataIngestion {
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
+    private final CurrencyPairSupplier currencyPairSupplier;
     private final Provider<StreamingExchange> exchange;
     private final List<Disposable> subscriptions;
     private final TradeProcessor tradeProcessor;
@@ -23,11 +25,13 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     RealTimeDataIngestion(
         CandleManager candleManager,
         CandlePublisher candlePublisher,
+        CurrencyPairSupplier currencyPairSupplier,
         Provider<StreamingExchange> exchange,
         TradeProcessor tradeProcessor
     ) {
         this.candleManager = candleManager;
         this.candlePublisher = candlePublisher;
+        this.currencyPairSupplier = currencyPairSupplier;
         this.exchange = exchange;
         this.subscriptions = new ArrayList<>();
         this.tradeProcessor = tradeProcessor;
@@ -48,5 +52,9 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         candlePublisher.close();
     }
 
-    private void onTrade(Trade trade) {}
+    private void onTrade(Trade trade) {
+        if (!tradeProcessor.isProcessed(trade)) {
+            candleManager.processTrade(trade);
+        }
+    }
 }

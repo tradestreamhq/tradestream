@@ -28,6 +28,7 @@ abstract class IngestionModule extends AbstractModule {
     bind(Properties.class).toProvider(PropertiesProvider.class);
     bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class);
 
+    bind(CurrencyPairSupplier.class).to(CurrencyPairSupplierImpl.class);
     bind(MarketDataIngestion.class).to(RealTimeDataIngestion.class);
 
     install(new FactoryModuleBuilder()
