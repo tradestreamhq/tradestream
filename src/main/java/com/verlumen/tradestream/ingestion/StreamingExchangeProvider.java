@@ -4,20 +4,19 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
-
-import java.util.Properties;
+import net.sourceforge.argparse4j.inf.Namespace;
 
 final class StreamingExchangeProvider implements Provider<StreamingExchange> {
-  private final Properties properties;
+  private final Namespace namespace;
 
   @Inject
-  StreamingExchangeProvider(Properties properties) {
-    this.properties = properties;
+  StreamingExchangeProvider(Namespace namespace) {
+    this.namespace = namespace;
   }
 
   @Override
   public StreamingExchange get() {
-    String exchangeName = properties.getProperty("xchange.exchangeName");
+    String exchangeName = namesapce.getString("xchange.exchangeName");
     return StreamingExchangeFactory.INSTANCE.createExchange(exchangeName);
   }
 }
