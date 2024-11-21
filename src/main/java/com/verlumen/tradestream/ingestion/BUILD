@@ -181,6 +181,8 @@ java_library(
         ":real_time_data_ingestion",
         ":streaming_exchange_provider",
         ":run_mode",
+        ":thin_market_timer_task",
+        ":thin_market_timer_task_impl",
         ":trade_processor",
     ],
 )
