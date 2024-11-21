@@ -96,7 +96,7 @@ java_test(
     name = "ThinMarketTimerImplTest",
     srcs = ["ThinMarketTimerImplTest.java"],
     deps = [
-        "@maven//:com_google_inject_extensions_guice_assistedinject",
+        "@maven//:com_google_inject_extensions_guice_testlib",
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_truth_truth",
