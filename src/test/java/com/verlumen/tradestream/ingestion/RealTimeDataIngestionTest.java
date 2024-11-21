@@ -37,7 +37,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
-public final class RealTimeDataIngestionTest {
+public final class RealTimeDataIngestionImplTest {
   @Rule public final MockitoRule mockitoRule = MockitoJUnit.rule();
 
   private static final CurrencyPair CURRENCY_PAIR = new CurrencyPair("BTC", "USD");
