@@ -11,6 +11,7 @@ import marketdata.Marketdata.Trade;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
+import java.util.TimerTask;
 
 final class RealTimeDataIngestion implements MarketDataIngestion {
     private static final int ONE_MINUTE_IN_MILLISECONDS = 60_000;
