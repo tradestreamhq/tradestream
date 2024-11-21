@@ -9,25 +9,27 @@ import marketdata.Marketdata.Trade;
 import org.knowm.xchange.currency.CurrencyPair;
 
 final class RealTimeDataIngestion implements MarketDataIngestion {
-    private final List<String> currencyPairs;
-    private final List<Disposable> subscriptions = new ArrayList<>();
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
+    private final CurrencyPairSupplier currencyPairSupplier;
     private final Provider<StreamingExchange> exchange;
+    private final List<Disposable> subscriptions = new ArrayList<>();
     private final TradeProcessor tradeProcessor;
+
     private Timer thinMarketTimer;
 
     @Inject
     RealTimeDataIngestion(
-            List<String> currencyPairs,
             CandleManager candleManager,
             CandlePublisher candlePublisher,
+            CurrencyPairSupplier currencyPairSupplier,
             Provider<StreamingExchange> exchange,
             TradeProcessor tradeProcessor
     ) {
         this.currencyPairs = currencyPairs;
         this.candleManager = candleManager;
         this.candlePublisher = candlePublisher;
+        this.currencyPairSupplier = currencyPairSupplier;
         this.exchange = exchange;
         this.tradeProcessor = tradeProcessor;
     }
