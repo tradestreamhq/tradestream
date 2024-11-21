@@ -28,7 +28,8 @@ public class ThinMarketTimerImplTest {
     @Mock @Bind private CandleManager candleManager;
     @Mock @Bind private CurrencyPairSupplier currencyPairSupplier;
     @Mock @Bind private Timer timer;
-    @Inject private ThinMarketTimerTask thinMarketTimer;
+    @Mock @Bind private ThinMarketTimerTask timerTask;
+    @Inject private ThinMarketTimerImpl thinMarketTimer;
 
     @Before
     public void setUp() {
@@ -42,7 +43,7 @@ public class ThinMarketTimerImplTest {
         ArgumentCaptor<Long> periodCaptor = ArgumentCaptor.forClass(Long.class);
 
         // Act
-        thinMarketTimer.start();
+        .start();
 
         // Assert
         verify(timer).scheduleAtFixedRate(eq(task), delayCaptor.capture(), periodCaptor.capture());
