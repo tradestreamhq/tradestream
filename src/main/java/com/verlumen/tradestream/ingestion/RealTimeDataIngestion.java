@@ -13,8 +13,8 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     
     @Inject
     RealTimeDataIngestion(
-        CandleManager.Factory candleManager,
-        CandlePublisher.Factory candlePublisher,
+        CandleManager candleManager,
+        CandlePublisher candlePublisher,
         Provider<StreamingExchange> exchange,
         TradeProcessor tradeProcessor
     ) {
