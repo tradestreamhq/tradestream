@@ -20,8 +20,8 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     private final CurrencyPairSupplier currencyPairSupplier;
     private final Provider<StreamingExchange> exchange;
     private final List<Disposable> subscriptions;
+    private final ThinMarketTimer thinMarketTimer;
     private final TradeProcessor tradeProcessor;
-    private Timer thinMarketTimer;
     
     @Inject
     RealTimeDataIngestion(
@@ -29,6 +29,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         CandlePublisher candlePublisher,
         CurrencyPairSupplier currencyPairSupplier,
         Provider<StreamingExchange> exchange,
+        ThinMarketTimer thinMarketTimer,
         TradeProcessor tradeProcessor
     ) {
         this.candleManager = candleManager;
@@ -36,6 +37,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         this.currencyPairSupplier = currencyPairSupplier;
         this.exchange = exchange;
         this.subscriptions = new ArrayList<>();
+        this.thinMarketTimer = thinMarketTimer;
         this.tradeProcessor = tradeProcessor;
     }
 
