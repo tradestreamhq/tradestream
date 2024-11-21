@@ -28,7 +28,7 @@ abstract static class ThinMarketTimerTask extends TimerTask {
 
     abstract CandleManager candleManager();
 
-    abstract CurrencyPairSuppier currencyPairSupplier();
+    abstract CurrencyPairSupplier currencyPairSupplier();
 
     @Override
     public void run() {
