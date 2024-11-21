@@ -14,7 +14,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 final class RealTimeDataIngestion implements MarketDataIngestion {
-    private static final int ONE_MINUTE_IN_MILLISECONDS = 60_000;
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
     private final CurrencyPairSupplier currencyPairSupplier;
