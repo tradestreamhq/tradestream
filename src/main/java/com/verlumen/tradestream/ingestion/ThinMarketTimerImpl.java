@@ -12,14 +12,14 @@ final class ThinMarketTimerImpl implements ThinMarketTimer {
   private final Timer timer;
 
   @Inject
-  ThinMarketTimerImpl(ThinMarketTimerTask timerTask, Timer timer) {
+  ThinMarketTimerImpl(Timer timer, ThinMarketTimerTask timerTask) {
     this.timer = timer;
     this.timerTask = timerTask;
   }
 
   @Override
   public void start() {
-    timer.scheduleAtFixedRate(task, 0, ONE_MINUTE_IN_MILLISECONDS);            
+    timer.scheduleAtFixedRate(timerTask, 0, ONE_MINUTE_IN_MILLISECONDS);            
   }
 
   @Override
