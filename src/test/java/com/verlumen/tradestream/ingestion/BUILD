@@ -102,9 +102,10 @@ java_test(
 )
 
 java_test(
-    name = "thin_market_timer_task_impl_test",
+    name = "ThinMarketTimerTaskImplTest",
     srcs = ["ThinMarketTimerTaskImplTest.java"],
     deps = [
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
