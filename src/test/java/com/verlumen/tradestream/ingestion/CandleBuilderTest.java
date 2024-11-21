@@ -3,8 +3,8 @@ package com.verlumen.tradestream.ingestion;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
-import marketdata.Marketdata.Trade;
-import marketdata.Marketdata.Candle;
+import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.marketdata.Candle;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;

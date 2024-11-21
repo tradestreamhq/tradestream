@@ -2,11 +2,11 @@ package com.verlumen.tradestream.ingestion;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.verlumen.tradestream.marketdata.Trade;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import marketdata.Marketdata.Trade;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,11 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     }
 
     @Override
-    public void start() {}
+    public void start() {
+        exchange.connect().blockingAwait();
+        subscribeToTradeStreams();
+        // thinMarketTimer.start();
+    }
 
     @Override
     public void shutdown() {
@@ -65,4 +69,8 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     private void startThinMarketTimer() {
         thinMarketTimer.start();
     }
+
+    private void subscribeToTradeStream() {}
+
+    private void subscribeToTradeStreams() {}
 }
