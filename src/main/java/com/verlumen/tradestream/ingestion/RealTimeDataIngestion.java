@@ -9,6 +9,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
     private final Provider<StreamingExchange> exchange;
+    private final List<Disposable> subscriptions;
     private final TradeProcessor tradeProcessor;
     
     @Inject
@@ -21,6 +22,7 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
         this.candleManager = candleManager;
         this.candlePublisher = candlePublisher;
         this.exchange = exchange;
+        this.subscriptions =  = new ArrayList<>();
         this.tradeProcessor = tradeProcessor;
     }
 
