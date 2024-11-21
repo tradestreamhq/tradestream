@@ -44,15 +44,12 @@ final class RealTimeDataIngestion implements MarketDataIngestion {
     public void start() {
         exchange.get().connect().blockingAwait();
         subscribeToTradeStreams();
-        // thinMarketTimer.start();
+        thinMarketTimer.start();
     }
 
     @Override
     public void shutdown() {
         subscriptions.forEach(Disposable::dispose);
-        // for (Disposable subscription : subscriptions) {
-        //     subscription.dispose();
-        // }
         thinMarketTimer.stop();
         exchange.get().disconnect().blockingAwait();
         candlePublisher.close();
