@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
-import marketdata.Marketdata.Trade;
+import com.verlumen.tradestream.marketdata.Trade;
 
 import java.util.List;
 
