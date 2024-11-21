@@ -1,3 +1,3 @@
 package com.verlumen.tradestream.ingestion;
 
-abstract class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {}
+final class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {}
