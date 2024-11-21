@@ -1,9 +1,12 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 
 final class App {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final MarketDataIngestion marketDataIngestion;
 
   @Inject
@@ -12,7 +15,7 @@ final class App {
   }
 
   void run() {
-    System.out.println("Starting real-time data ingestion...");
+    logger.atInfo().log("Starting real-time data ingestion...");
     marketDataIngestion.start();
   }
 
