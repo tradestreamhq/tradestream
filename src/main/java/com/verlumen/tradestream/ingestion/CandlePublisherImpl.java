@@ -2,7 +2,7 @@ package com.verlumen.tradestream.ingestion;
 
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.Inject;
-import marketdata.Marketdata.Candle;
+import com.verlumen.tradestream.marketdata.Candle;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import java.time.Duration;
