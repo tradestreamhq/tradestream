@@ -220,7 +220,7 @@ java_library(
         ":candle_publisher",
         ":market_data_ingestion",
         ":trade_processor",
-    ]
+    ],
 )
 
 java_library(
@@ -230,7 +230,7 @@ java_library(
         "@maven//:com_google_inject_guice",
         "@maven//:org_knowm_xchange_xchange_core",
         "@maven//:org_knowm_xchange_xchange_stream_core",
-    ]
+    ],
 )
 
 java_library(
@@ -240,5 +240,4 @@ java_library(
         "//:autovalue",
         "//protos:marketdata_java_proto",
     ],
-    visibility = ["//visibility:public"],
 )
