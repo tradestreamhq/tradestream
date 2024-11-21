@@ -176,7 +176,6 @@ java_library(
         ":currency_pair_supplier_impl",
         ":kafka_producer_provider",
         ":market_data_ingestion",
-        ":properties_provider",
         ":real_time_data_ingestion",
         ":streaming_exchange_provider",
         ":trade_processor",
@@ -217,18 +216,6 @@ java_library(
     srcs = ["PriceTracker.java"],
     deps = [
         "@maven//:com_google_inject_guice",        
-    ],
-)
-
-java_library(
-    name = "properties_provider",
-    srcs = ["PropertiesProvider.java"],
-    deps = [
-        "@bazel_tools//tools/java/runfiles",
-        "@maven//:com_google_inject_guice",
-    ],
-    data = [
-        ":config.properties",
     ],
 )
 
