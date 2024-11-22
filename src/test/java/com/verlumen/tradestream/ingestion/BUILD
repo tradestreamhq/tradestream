@@ -109,7 +109,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/ingestion:currency_pair_supplier",
         "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer",
         "//src/main/java/com/verlumen/tradestream/ingestion:trade_processor",
-        "//src/main/java/com/verlumen/tradestream/ingestion:real_time_data_ingestion",
+        "//src/main/java/com/verlumen/tradestream/ingestion:real_time_data_ingestion_impl",
     ],
 )
 
