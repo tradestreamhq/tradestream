@@ -20,7 +20,7 @@ public class AppTest {
   @Rule public MockitoRule rule = MockitoJUnit.rule();
 
   @Bind @Mock
-  private MarketDataIngestion mockMarketDataIngestion;
+  private RealTimeDataIngestion mockRealTimeDataIngestion;
 
   @Bind private RunMode runMode = RunMode.WET;
 
@@ -38,7 +38,7 @@ public class AppTest {
     app.run();
   
     // Assert
-    verify(mockMarketDataIngestion).start();
+    verify(mockRealTimeDataIngestion).start();
   }
 
 }
