@@ -16,7 +16,7 @@ java_binary(
         "@maven//:com_google_inject_guice",
         ":ingestion_module",
         ":market_data_ingestion",
-        ":real_time_data_ingestion",
+        ":real_time_data_ingestion_impl",
         ":run_mode",
         ":streaming_exchange_provider",
     ],
@@ -178,7 +178,7 @@ java_library(
         ":currency_pair_supplier_impl",
         ":kafka_producer_provider",
         ":market_data_ingestion",
-        ":real_time_data_ingestion",
+        ":real_time_data_ingestion_impl",
         ":run_mode",
         ":streaming_exchange_provider",
         ":thin_market_timer",
@@ -234,8 +234,8 @@ oci_push(
 )
 
 java_library(
-    name = "real_time_data_ingestion",
-    srcs = ["RealTimeDataIngestion.java"],
+    name = "real_time_data_ingestion_impl",
+    srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
         "@maven//:com_google_inject_guice",
         "@maven//:io_reactivex_rxjava3_rxjava",
