@@ -54,6 +54,14 @@ abstract class IngestionModule extends AbstractModule {
     return candlePublisherFactory.create(topic);
   }
 
+
+  @Provides
+  ProductSubscription provideProductSubscription() {
+    return ProductSubscription
+      .create()
+      .build();
+  }
+  
   @Provides
   RunMode provideRunMode(Namespace namespace) {
     String runModeName = namespace.getString("runMode").toUpperCase();
