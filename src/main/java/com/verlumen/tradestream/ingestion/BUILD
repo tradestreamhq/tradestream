@@ -235,7 +235,7 @@ oci_push(
 
 java_library(
     name = "real_time_data_ingestion_impl",
-    srcs = ["RealTimeDataIngestion.java"],
+    srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
         "@maven//:com_google_inject_guice",
         "@maven//:io_reactivex_rxjava3_rxjava",
