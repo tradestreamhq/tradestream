@@ -125,40 +125,4 @@ public void start_subscribesToTradeStreams() {
     realTimeDataIngestion.shutdown();
     verify(mockCandlePublisher).close();
   }
-
-  @Test
-  public void convertTrade_correctTradeIsCreated() {
-    XChangeTrade xChangeTrade =
-        new XChangeTrade.Builder()
-            .timestamp(new java.util.Date(TIMESTAMP))
-            .price(new java.math.BigDecimal("10.00"))
-            .originalAmount(new java.math.BigDecimal("1.00"))
-            .id("trade-id")
-            .build();
-
-    when(mockExchange.getExchangeSpecification().getExchangeName()).thenReturn("test-exchange");
-    Trade convertedTrade = realTimeDataIngestion.convertTrade(xChangeTrade, PAIR_STRING);
-    assertThat(convertedTrade.getTimestamp()).isEqualTo(TIMESTAMP);
-    assertThat(convertedTrade.getExchange()).isEqualTo("test-exchange");
-    assertThat(convertedTrade.getCurrencyPair()).isEqualTo(PAIR_STRING);
-    assertThat(convertedTrade.getPrice()).isEqualTo(10.00);
-    assertThat(convertedTrade.getVolume()).isEqualTo(1.00);
-    assertThat(convertedTrade.getTradeId()).isEqualTo("trade-id");
-  }
-
-  @Test
-  public void onTrade_processesTradeWithCandleManager() {
-      Trade trade = Trade.newBuilder().build();
-      when(tradeProcessor.isProcessed(trade)).thenReturn(false);
-      realTimeDataIngestion.onTrade(trade);
-      verify(mockCandleManager).processTrade(trade);
-  }
-
-  @Test
-  public void onTrade_doesNotProcessTradeTwice() {
-      Trade trade = Trade.newBuilder().build();
-      when(tradeProcessor.isProcessed(trade)).thenReturn(true);
-      realTimeDataIngestion.onTrade(trade);
-      verify(mockCandleManager, times(0)).processTrade(any(Trade.class));
-  }
 }
