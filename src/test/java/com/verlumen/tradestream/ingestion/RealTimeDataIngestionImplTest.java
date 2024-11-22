@@ -65,12 +65,12 @@ public final class RealTimeDataIngestionImplTest {
   @Test
   public void start_connectsToExchange() {
     // Arrange
-    // when(mockThinMarketTimerProvider.get()).thenReturn(mockThinMarketTimer);
-    // when(mockExchange.getStreamingMarketDataService()).thenReturn(mockMarketDataService);
-    // when(mockMarketDataService.getTrades(any())).thenReturn(mockTradeObservable);
-    // doReturn(mockTradeObservable)
-    //     .when(mockMarketDataService)
-    //     .getTrades(any(CurrencyPair.class));
+    when(mockThinMarketTimerProvider.get()).thenReturn(mockThinMarketTimer);
+    when(mockExchange.getStreamingMarketDataService()).thenReturn(mockMarketDataService);
+    when(mockMarketDataService.getTrades(any())).thenReturn(mockTradeObservable);
+    doReturn(mockTradeObservable)
+        .when(mockMarketDataService)
+        .getTrades(any(CurrencyPair.class));
 
     // Act
     realTimeDataIngestion.start();
@@ -80,11 +80,19 @@ public final class RealTimeDataIngestionImplTest {
   }
 
   @Test
-  public void start_subscribesToTradeStreams() {
+@Test
+public void start_subscribesToTradeStreams() {
+    // Arrange
     when(mockCurrencyPairSupplier.currencyPairs()).thenReturn(ImmutableList.of(CURRENCY_PAIR));
+    when(mockExchange.getStreamingMarketDataService()).thenReturn(mockMarketDataService);
+    when(mockMarketDataService.getTrades(CURRENCY_PAIR)).thenReturn(mockTradeObservable);
+
+    // Act
     realTimeDataIngestion.start();
+
+    // Assert
     verify(mockMarketDataService).getTrades(CURRENCY_PAIR);
-  }
+}
 
   @Test
   public void start_startsThinMarketTimer() {
