@@ -7,19 +7,19 @@ import com.google.inject.Inject;
 final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private final MarketDataIngestion marketDataIngestion;
+  private final RealTimeDataIngestion realTimeDataIngestion;
   private final RunMode runMode;
 
   @Inject
-  App(MarketDataIngestion marketDataIngestion, RunMode runMode) {
-    this.marketDataIngestion = marketDataIngestion;
+  App(RealTimeDataIngestion realTimeDataIngestion, RunMode runMode) {
+    this.realTimeDataIngestion = realTimeDataIngestion;
     this.runMode = runMode;
   }
 
   void run() {
     logger.atInfo().log("Starting real-time data ingestion...");
     if (runMode == RunMode.DRY) return;
-    marketDataIngestion.start();
+    realTimeDataIngestion.start();
   }
 
   public static void main(String[] args) throws Exception {

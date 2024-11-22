@@ -15,7 +15,7 @@ java_binary(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":ingestion_module",
-        ":market_data_ingestion",
+        ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
         ":run_mode",
         ":streaming_exchange_provider",
@@ -177,7 +177,7 @@ java_library(
         ":currency_pair_supplier",
         ":currency_pair_supplier_impl",
         ":kafka_producer_provider",
-        ":market_data_ingestion",
+        ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
         ":run_mode",
         ":streaming_exchange_provider",
@@ -214,11 +214,6 @@ tar(
 )
 
 java_library(
-    name = "market_data_ingestion",
-    srcs = ["MarketDataIngestion.java"],
-)
-
-java_library(
     name = "price_tracker",
     srcs = ["PriceTracker.java"],
     deps = [
@@ -234,6 +229,11 @@ oci_push(
 )
 
 java_library(
+    name = "real_time_data_ingestion",
+    srcs = ["RealTimeDataIngestion.java"],
+)
+
+java_library(
     name = "real_time_data_ingestion_impl",
     srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
@@ -246,7 +246,7 @@ java_library(
         ":candle_manager",
         ":candle_publisher",
         ":currency_pair_supplier",
-        ":market_data_ingestion",
+        ":real_time_data_ingestion",
         ":thin_market_timer",
         ":trade_processor",
     ],
