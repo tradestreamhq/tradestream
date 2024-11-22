@@ -19,7 +19,6 @@ import com.google.inject.Provides;
 import com.google.inject.Provider;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import com.verlumen.tradestream.marketdata.Trade;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.rxjava3.core.Observable;
@@ -31,7 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.knowm.xchange.currency.CurrencyPair;
-import org.knowm.xchange.dto.marketdata.Trade as XChangeTrade;
+import org.knowm.xchange.dto.marketdata.Trade;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -51,7 +50,7 @@ public final class RealTimeDataIngestionImplTest {
   @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
   @Bind @Mock private TradeProcessor tradeProcessor;
   @Mock private StreamingMarketDataService mockMarketDataService;
-  @Mock private Observable<XChangeTrade> mockTradeObservable;
+  @Mock private Observable<Trade> mockTradeObservable;
   @Bind @Mock private Provider<ThinMarketTimer> mockThinMarketTimerProvider;
 
   @Inject private RealTimeDataIngestionImpl realTimeDataIngestion;
