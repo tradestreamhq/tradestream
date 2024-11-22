@@ -7,5 +7,5 @@ proto_library(
 java_proto_library(
     name = "marketdata_java_proto",
     deps = [":marketdata_proto"],
-    visibility = ["//:__subpackages__"],
+    visibility = ["//..."],
 )
