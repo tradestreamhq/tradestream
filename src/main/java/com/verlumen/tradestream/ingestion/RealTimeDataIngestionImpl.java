@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-final class RealTimeDataIngestionImpl implements MarketDataIngestion {
+final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
     private final CurrencyPairSupplier currencyPairSupplier;
