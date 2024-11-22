@@ -44,16 +44,16 @@ public final class RealTimeDataIngestionImplTest {
   private static final String PAIR_STRING = CURRENCY_PAIR.toString();
   private static final long TIMESTAMP = 12345L;
 
-  @Mock @Bind private StreamingExchange mockExchange;
+  @Mock @Bind private CandleManager mockCandleManager;
   @Mock @Bind private CandlePublisher mockCandlePublisher;
   @Mock @Bind private CurrencyPairSupplier mockCurrencyPairSupplier;
+  @Mock @Bind private StreamingExchange mockExchange;
   @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
-  @Mock @Bind private CandleManager mockCandleManager;
+  @Bind @Mock private TradeProcessor tradeProcessor;
   @Mock private StreamingMarketDataService mockMarketDataService;
   @Mock private Observable<XChangeTrade> mockTradeObservable;
   @Bind @Mock private Provider<ThinMarketTimer> mockThinMarketTimerProvider;
 
-  @Bind private TradeProcessor tradeProcessor = mock(TradeProcessor.class);
   @Inject private RealTimeDataIngestion realTimeDataIngestion;
   private final List<Disposable> subscriptions = new java.util.ArrayList<>();
 
