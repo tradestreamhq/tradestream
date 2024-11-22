@@ -103,7 +103,7 @@ java_test(
         "@maven//:org_knowm_xchange_xchange_core",
         "@maven//:org_knowm_xchange_xchange_stream_core",
         "@maven//:org_mockito_mockito_core",
-        "//protos:marketdata_proto",
+        "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
         "//src/main/java/com/verlumen/tradestream/ingestion:currency_pair_supplier",
