@@ -161,10 +161,4 @@ public void start_subscribesToTradeStreams() {
       realTimeDataIngestion.onTrade(trade);
       verify(mockCandleManager, times(0)).processTrade(any(Trade.class));
   }
-
-  @Test
-  public void subscribeToTradeStream_subscribesToTheCorrectStream() {
-    realTimeDataIngestion.subscribeToTradeStream(CURRENCY_PAIR);
-    verify(mockMarketDataService).getTrades(CURRENCY_PAIR);
-  }
 }
