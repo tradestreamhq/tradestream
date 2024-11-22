@@ -54,7 +54,7 @@ public final class RealTimeDataIngestionImplTest {
   @Mock private Observable<XChangeTrade> mockTradeObservable;
   @Bind @Mock private Provider<ThinMarketTimer> mockThinMarketTimerProvider;
 
-  @Inject private RealTimeDataIngestion realTimeDataIngestion;
+  @Inject private RealTimeDataIngestionImpl realTimeDataIngestion;
   private final List<Disposable> subscriptions = new java.util.ArrayList<>();
 
   @Before
