@@ -18,6 +18,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private final CandlePublisher candlePublisher;
     private final CurrencyPairSupplier currencyPairSupplier;
     private final Provider<StreamingExchange> exchange;
+    private final ProductSubscription productSubscription;
     private final List<Disposable> subscriptions;
     private final Provider<ThinMarketTimer> thinMarketTimer;
     private final TradeProcessor tradeProcessor;
@@ -28,6 +29,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         CandlePublisher candlePublisher,
         CurrencyPairSupplier currencyPairSupplier,
         Provider<StreamingExchange> exchange,
+        ProductSubscription productSubscription,
         Provider<ThinMarketTimer> thinMarketTimer,
         TradeProcessor tradeProcessor
     ) {
@@ -35,6 +37,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         this.candlePublisher = candlePublisher;
         this.currencyPairSupplier = currencyPairSupplier;
         this.exchange = exchange;
+        this.productSubscription = productSubscription;
         this.subscriptions = new ArrayList<>();
         this.thinMarketTimer = thinMarketTimer;
         this.tradeProcessor = tradeProcessor;
