@@ -57,10 +57,10 @@ abstract class IngestionModule extends AbstractModule {
 
 
   @Provides
-  ProductSubscription provideProductSubscription() {
-    return ProductSubscription
-      .create()
-      .build();
+  ProductSubscription provideProductSubscription(CurrencyPairSupplier currencyPairSupplier) {
+    ProductSubscription.ProductSubscriptionBuilder builder = ProductSubscription.create();
+    currencyPairSupplier.currencyPairs().forEach(builder::addTrades);
+    return builder.build();
   }
   
   @Provides
