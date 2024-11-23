@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.inject.Inject;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -16,7 +17,8 @@ final class CurrencyPairSupplierImpl implements CurrencyPairSupplier {
     private final HttpClient httpClient;
     private final Gson gson = new Gson();
 
-    public CurrencyPairSupplierImpl(int topN, String apiKey, HttpClient httpClient) {
+    @Inject
+    CurrencyPairSupplierImpl(int topN, String apiKey, HttpClient httpClient) {
         if (topN <= 0) {
             throw new IllegalArgumentException("topN must be greater than 0");
         }
