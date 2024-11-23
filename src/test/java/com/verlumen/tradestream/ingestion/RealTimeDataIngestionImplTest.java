@@ -51,7 +51,6 @@ public final class RealTimeDataIngestionImplTest {
   @Bind @Mock private TradeProcessor tradeProcessor;
   @Mock private StreamingMarketDataService mockMarketDataService;
   @Mock private Observable<Trade> mockTradeObservable;
-  @Bind @Mock private Provider<ThinMarketTimer> mockThinMarketTimerProvider;
 
   @Inject private RealTimeDataIngestionImpl realTimeDataIngestion;
   private final List<Disposable> subscriptions = new java.util.ArrayList<>();
@@ -64,7 +63,6 @@ public final class RealTimeDataIngestionImplTest {
   @Test
   public void start_connectsToExchange() {
     // Arrange
-    when(mockThinMarketTimerProvider.get()).thenReturn(mockThinMarketTimer);
     when(mockExchange.getStreamingMarketDataService()).thenReturn(mockMarketDataService);
     when(mockMarketDataService.getTrades(any())).thenReturn(mockTradeObservable);
     doReturn(mockTradeObservable)
