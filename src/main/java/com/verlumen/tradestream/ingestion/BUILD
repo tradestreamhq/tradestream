@@ -110,6 +110,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:org_knowm_xchange_xchange_core",
         ":currency_pair_metadata",
+        ":http_client",
     ],
 )
 
@@ -129,6 +130,11 @@ genrule(
     outs = ["sha256.sum"],
     cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
     toolchains = ["@jq_toolchains//:resolved_toolchain"],
+)
+
+java_library(
+    name = "http_client",
+    srcs = ["HttpClient.java"],
 )
 
 oci_image(
