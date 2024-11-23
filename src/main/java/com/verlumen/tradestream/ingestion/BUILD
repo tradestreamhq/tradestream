@@ -119,6 +119,7 @@ java_library(
     deps = [
         "@maven//:com_google_code_gson_gson",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
         ":currency_pair_metadata",
         ":currency_pair_supplier",
         ":http_client",
