@@ -76,7 +76,6 @@ public final class RealTimeDataIngestionImplTest {
     verify(mockExchange).connect();
   }
 
-  @Test
 @Test
 public void start_subscribesToTradeStreams() {
     // Arrange
