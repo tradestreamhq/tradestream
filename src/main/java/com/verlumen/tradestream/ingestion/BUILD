@@ -110,7 +110,6 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:org_knowm_xchange_xchange_core",
         ":currency_pair_metadata",
-        ":http_client",
     ],
 )
 
@@ -121,6 +120,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         ":currency_pair_metadata",
         ":currency_pair_supplier",
+        ":http_client",
     ],
 )
 
