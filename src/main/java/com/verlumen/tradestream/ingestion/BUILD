@@ -117,6 +117,7 @@ java_library(
     name = "currency_pair_supplier_impl",
     srcs = ["CurrencyPairSupplierImpl.java"],
     deps = [
+        "@maven//:com_google_code_gson_gson",
         "@maven//:com_google_guava_guava",
         ":currency_pair_metadata",
         ":currency_pair_supplier",
