@@ -68,9 +68,8 @@ public class ThinMarketTimerTaskImplTest {
     @Test
     public void run_handleThinlyTradedMarketsThrowsException_exceptionIsPropagated() {
         // Arrange
-        CurrencyPair btcUsd = new CurrencyPair("BTC", "USD");
-        ImmutableList<CurrencyPair> currencyPairs = ImmutableList.of(btcUsd);
-        when(currencyPairSupplier.currencyPairs()).thenReturn(currencyPairs);
+        ImmutableList<CurrencyPairMetadata> metadataList = ImmutableList.of(BTC_USD);
+        CURRENCY_PAIR_SUPPLY.set(CurrencyPairSupply.create(metadataList));
         doThrow(new RuntimeException("Test exception")).when(candleManager).handleThinlyTradedMarkets(any());
 
         // Act & Assert
