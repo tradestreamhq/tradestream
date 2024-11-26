@@ -131,6 +131,11 @@ genrule(
     toolchains = ["@jq_toolchains//:resolved_toolchain"],
 )
 
+java_library(
+    name = "http_client",
+    srcs = ["HttpClient.java"],
+)
+
 oci_image(
     name = "image",
     base = "@openjdk_java",
