@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Inject;
+import com.google.inject.Provider
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
