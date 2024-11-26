@@ -9,7 +9,7 @@ import org.knowm.xchange.currency.CurrencyPair;
 @AutoValue
 abstract class CurrencyPairSupply {
   static CurrencyPairSupply create(ImmutableList<CurrencyPairMetadata> metadataList) {
-    return AutoValue_CurrencyPairSupply(metadataList);
+    return new AutoValue_CurrencyPairSupply(metadataList);
   }
 
   abstract ImmutableList<CurrencyPairMetadata> metadataList();
