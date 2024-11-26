@@ -91,7 +91,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     }
 
     private void subscribeToTradeStreams() {
-        currencyPairSupplier
+        currencyPairSupply
             .currencyPairs()
             .stream()
             .map(this::subscribeToTradeStream)
