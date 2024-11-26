@@ -13,29 +13,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 final class CurrencyPairSupplyProvider implements Provider<CurrencyPairSupply> {
-    private final String apiKey;
+    private final CoinMarketCapConfig coingMarketCapConfig;
     private final HttpClient httpClient;
     private final Gson gson;
-    private final int topN;
 
     @Inject
     CurrencyPairSupplierImpl(CoinMarketCapConfig coingMarketCapConfig, Gson gson, HttpClient httpClient) {
-        this.apiKey = coingMarketCapConfig.apiKey();
+        this.coingMarketCapConfig = coingMarketCapConfig;
         this.gson = gson;
         this.httpClient = httpClient;
-        this.topN = coingMarketCapConfig.topN();
     }
 
     @Override
     public ImmutableList<CurrencyPairMetadata> get() {
         String url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest";
         try {
-            String parameters = "start=1&limit=" + topN + "&convert=USD";
+            String parameters = "start=1&limit=" + coingMarketCapConfig.topN() + "&convert=USD";
             String fullUrl = url + "?" + parameters;
 
             // Set the headers
             Map<String, String> headers = new HashMap<>();
-            headers.put("X-CMC_PRO_API_KEY", apiKey);
+            headers.put("X-CMC_PRO_API_KEY", coingMarketCapConfig.apiKey());
             headers.put("Accept", "application/json");
 
             String responseStr = httpClient.get(fullUrl, headers);
