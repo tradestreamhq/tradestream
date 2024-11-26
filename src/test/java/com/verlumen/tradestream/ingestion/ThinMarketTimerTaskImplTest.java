@@ -37,7 +37,15 @@ public class ThinMarketTimerTaskImplTest {
 
     @Before
     public void setUp() {
+        // Initialize with empty supply before each test
+        CURRENCY_PAIR_SUPPLY.set(CurrencyPairSupply.create(ImmutableList.of()));
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+    }
+
+    @After
+    public void tearDown() {
+        // Clear the reference after each test
+        CURRENCY_PAIR_SUPPLY.set(null);
     }
 
     @Test
