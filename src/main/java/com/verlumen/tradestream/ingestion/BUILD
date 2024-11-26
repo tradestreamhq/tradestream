@@ -313,7 +313,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":candle_manager",
-        ":currency_pair_supplier",
+        ":currency_pair_supply",
         ":thin_market_timer_task",
     ],
 )
