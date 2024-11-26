@@ -7,7 +7,7 @@ import com.google.inject.Inject;
 
 final class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {
   private final CandleManager candleManager;
-  private final CurrencyPairSupplier currencyPairSupply;
+  private final CurrencyPairSupply currencyPairSupply;
 
   @Inject
   ThinMarketTimerTaskImpl (CandleManager candleManager, CurrencyPairSupply currencyPairSupply) {
