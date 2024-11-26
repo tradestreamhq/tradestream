@@ -262,7 +262,7 @@ java_library(
         "//protos:marketdata_java_proto",
         ":candle_manager",
         ":candle_publisher",
-        ":currency_pair_supplier",
+        ":currency_pair_supply",
         ":real_time_data_ingestion",
         ":thin_market_timer",
         ":trade_processor",
