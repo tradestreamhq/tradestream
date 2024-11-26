@@ -90,7 +90,10 @@ public class ThinMarketTimerTaskImplTest {
     public void run_currencyPairsOrderIsPreserved() {
         // Arrange
         ImmutableList<CurrencyPair> currencyPairs =ImmutableList.of(pair1, pair2, pair3);
-        ImmutableList<String> expected = ImmutableList.of(pair1.toString(), pair2.toString(), pair3.toString());
+        ImmutableList<String> expected = ImmutableList.of(
+            AAA_BBB.currencyPair().toString(),
+            CCC_DDD.currencyPair().toString(),
+            EEE_FFF.currencyPair().toString());
 
         // Act
         thinMarketTimerTask.run();
