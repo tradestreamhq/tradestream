@@ -104,26 +104,6 @@ java_library(
 )
 
 java_library(
-    name = "currency_pair_supplier",
-    srcs = ["CurrencyPairSupplier.java"],
-    deps = [
-        "@maven//:com_google_guava_guava",
-        "@maven//:org_knowm_xchange_xchange_core",
-        ":currency_pair_metadata",
-    ],
-)
-
-java_library(
-    name = "currency_pair_supplier_impl",
-    srcs = ["CurrencyPairSupplierImpl.java"],
-    deps = [
-        "@maven//:com_google_guava_guava",
-        ":currency_pair_metadata",
-        ":currency_pair_supplier",
-    ],
-)
-
-java_library(
     name = "currency_pair_supply",
     srcs = ["CurrencyPairSupply.java"],
     deps = [
@@ -190,8 +170,6 @@ java_library(
         ":candle_publisher",
         ":candle_publisher_impl",
         ":config_arguments",
-        ":currency_pair_supplier",
-        ":currency_pair_supplier_impl",
         ":currency_pair_supply",
         ":kafka_producer_provider",
         ":real_time_data_ingestion",
@@ -262,7 +240,7 @@ java_library(
         "//protos:marketdata_java_proto",
         ":candle_manager",
         ":candle_publisher",
-        ":currency_pair_supplier",
+        ":currency_pair_supply",
         ":real_time_data_ingestion",
         ":thin_market_timer",
         ":trade_processor",
