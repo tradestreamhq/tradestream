@@ -192,6 +192,7 @@ java_library(
         ":config_arguments",
         ":currency_pair_supplier",
         ":currency_pair_supplier_impl",
+        ":currency_pair_supply",
         ":kafka_producer_provider",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
