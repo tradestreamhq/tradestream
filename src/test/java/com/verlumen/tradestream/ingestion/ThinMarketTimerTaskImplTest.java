@@ -25,6 +25,7 @@ public class ThinMarketTimerTaskImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
 
     private static final AtomicReference<CurrencyPairSupply> CURRENCY_PAIR_SUPPLY = new AtomicReference<>();
+    @Bind private static final Provider<CurrencyPairSupply> CURRENCY_PAIR_SUPPLY_PROVIDER = CURRENCY_PAIR_SUPPLY::get;
     private static final CurrencyPairMetadata AAA_BBB = CurrencyPairMetadata.create(new CurrencyPair("AAA", "BBB"), 123L);
     private static final CurrencyPairMetadata CCC_DDD = CurrencyPairMetadata.create(new CurrencyPair("CCC", "DDD"), 234L);
     private static final CurrencyPairMetadata EEE_FFF = CurrencyPairMetadata.create(new CurrencyPair("EEE", "FFF"), 345L);
@@ -32,12 +33,10 @@ public class ThinMarketTimerTaskImplTest {
     private static final CurrencyPairMetadata ETH_EUR = CurrencyPairMetadata.create(new CurrencyPair("ETH", "EUR"), 567L);
 
     @Mock @Bind private CandleManager candleManager;
-    @Bind private Provider<CurrencyPairSupply> currencyPairSupply;
     @Inject private ThinMarketTimerTaskImpl thinMarketTimerTask;
 
     @Before
     public void setUp() {
-        this.currencyPairSupply = CURRENCY_PAIR_SUPPLY::get;
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
