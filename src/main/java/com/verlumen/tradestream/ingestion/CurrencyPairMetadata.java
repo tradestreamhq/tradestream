@@ -13,7 +13,7 @@ abstract class CurrencyPairMetadata {
   }
 
   static CurrencyPairMetadata create(CurrencyPair currencyPair, long marketCapValue) {
-    return new AutoValue_CurrencyPairMetadata(currencyPair, BigDecimal.valueOf(marketCapValue));
+    return create(currencyPair, BigDecimal.valueOf(marketCapValue));
   }
 
   static CurrencyPairMetadata create(CurrencyPair currencyPair, BigDecimal marketCapValue) {
