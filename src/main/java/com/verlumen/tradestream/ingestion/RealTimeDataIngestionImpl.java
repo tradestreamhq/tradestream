@@ -17,7 +17,7 @@ import java.util.UUID;
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
-    private final CurrencyPairSupplier currencyPairSupplier;
+    private final Provider<CurrencyPairSupplier> currencyPairSupplier;
     private final Provider<StreamingExchange> exchange;
     private final ProductSubscription productSubscription;
     private final List<Disposable> subscriptions;
@@ -28,7 +28,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     RealTimeDataIngestionImpl(
         CandleManager candleManager,
         CandlePublisher candlePublisher,
-        CurrencyPairSupplier currencyPairSupplier,
+        Provider<CurrencyPairSupplier> currencyPairSupplier,
         Provider<StreamingExchange> exchange,
         ProductSubscription productSubscription,
         Provider<ThinMarketTimer> thinMarketTimer,
@@ -92,6 +92,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     private void subscribeToTradeStreams() {
         currencyPairSupplier
+            .get()
             .currencyPairs()
             .stream()
             .map(this::subscribeToTradeStream)
