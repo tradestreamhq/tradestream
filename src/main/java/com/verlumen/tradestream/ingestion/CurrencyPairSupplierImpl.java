@@ -15,15 +15,16 @@ final class CurrencyPairSupplierImpl implements CurrencyPairSupplier {
     private final int topN;
     private final String apiKey;
     private final HttpClient httpClient;
-    private final Gson gson = new Gson();
+    private final Gson gson;
 
     @Inject
-    CurrencyPairSupplierImpl(int topN, String apiKey, HttpClient httpClient) {
+    CurrencyPairSupplierImpl(int topN, String apiKey, Gson gson, HttpClient httpClient) {
         if (topN <= 0) {
             throw new IllegalArgumentException("topN must be greater than 0");
         }
         this.topN = topN;
         this.apiKey = apiKey;
+        this.gson = gson;
         this.httpClient = httpClient;
     }
 
