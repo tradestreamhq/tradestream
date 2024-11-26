@@ -17,7 +17,7 @@ import java.util.UUID;
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
-    private final CurrencyPairSupplier currencyPairSupplier;
+    private final Provider<CurrencyPairSupply> currencyPairSupply;
     private final Provider<StreamingExchange> exchange;
     private final ProductSubscription productSubscription;
     private final List<Disposable> subscriptions;
@@ -27,16 +27,16 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     @Inject
     RealTimeDataIngestionImpl(
         CandleManager candleManager,
+        Provider<CurrencyPairSupplier> currencyPairSupply,
         CandlePublisher candlePublisher,
-        CurrencyPairSupplier currencyPairSupplier,
         Provider<StreamingExchange> exchange,
         ProductSubscription productSubscription,
         Provider<ThinMarketTimer> thinMarketTimer,
         TradeProcessor tradeProcessor
     ) {
         this.candleManager = candleManager;
+        this.currencyPairSupply = currencyPairSupply;
         this.candlePublisher = candlePublisher;
-        this.currencyPairSupplier = currencyPairSupplier;
         this.exchange = exchange;
         this.productSubscription = productSubscription;
         this.subscriptions = new ArrayList<>();
