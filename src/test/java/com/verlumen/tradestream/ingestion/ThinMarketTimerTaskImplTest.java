@@ -89,7 +89,6 @@ public class ThinMarketTimerTaskImplTest {
         CurrencyPair pair3 = new CurrencyPair("EEE", "FFF");
         ImmutableList<CurrencyPair> currencyPairs =ImmutableList.of(pair1, pair2, pair3);
         ImmutableList<String> expected = ImmutableList.of(pair1.toString(), pair2.toString(), pair3.toString());
-        when(currencyPairSupplier.currencyPairs()).thenReturn(currencyPairs);
 
         // Act
         thinMarketTimerTask.run();
@@ -101,9 +100,8 @@ public class ThinMarketTimerTaskImplTest {
     @Test
     public void run_withDuplicateCurrencyPairs_duplicatesAreIncludedInResultList() {
         // Arrange
-        CurrencyPair btcUsd = new CurrencyPair("BTC", "USD");
-        ImmutableList<CurrencyPair> currencyPairs = ImmutableList.of(btcUsd, btcUsd);
-        when(currencyPairSupplier.currencyPairs()).thenReturn(currencyPairs);
+        ImmutableList<CurrencyPairMetadata> metadataList = ImmutableList.of(BTC_USD, BTC_USD);
+        CURRENCY_PAIR_SUPPLY.set(CurrencyPairSupply.create(metadataList));
 
         // Act
         thinMarketTimerTask.run();
