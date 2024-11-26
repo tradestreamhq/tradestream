@@ -123,6 +123,16 @@ java_library(
     ],
 )
 
+java_library(
+    name = "currency_pair_supply",
+    name = "CurrencyPairSupply.java",
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_knowm_xchange_xchange_core",        
+        "//:autovalue",
+    ],
+)
+
 genrule(
     name = "hash",
     srcs = [":index"],
