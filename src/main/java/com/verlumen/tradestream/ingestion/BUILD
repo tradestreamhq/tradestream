@@ -130,6 +130,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:org_knowm_xchange_xchange_core",        
         "//:autovalue",
+        ":currency_pair_metadata",
     ],
 )
 
