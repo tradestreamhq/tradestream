@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.common.collect.ImmutableList;
@@ -21,9 +22,11 @@ import org.mockito.junit.MockitoRule;
 
 public class ThinMarketTimerTaskImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
+    private static final CurrencyPairMetadata BTC_USD = CurrencyPairMetadata.create(CurrencyPair.BTC_USD);
+    private static final CurrencyPairMetadata ETH_USD = CurrencyPairMetadata.create(CurrencyPair.ETH_USD);
 
     @Mock @Bind private CandleManager candleManager;
-    @Mock @Bind private CurrencyPairSupplier currencyPairSupplier;
+    @Mock @Bind private Provider<CurrencyPairSupply> currencyPairSupply;
     @Inject private ThinMarketTimerTaskImpl thinMarketTimerTask;
 
     @Before
