@@ -109,7 +109,8 @@ public class ThinMarketTimerTaskImplTest {
         thinMarketTimerTask.run();
 
         // Assert
-        ImmutableList<String> expected = ImmutableList.of(btcUsd.toString(), btcUsd.toString());
+        ImmutableList<String> expected =
+            ImmutableList.of(BTC_USD.currencyPair().toString(), BTC_USD.currencyPair().toString());
         verify(candleManager).handleThinlyTradedMarkets(expected);
     }
 }
