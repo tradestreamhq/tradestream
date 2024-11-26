@@ -11,6 +11,7 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.common.collect.ImmutableList;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
