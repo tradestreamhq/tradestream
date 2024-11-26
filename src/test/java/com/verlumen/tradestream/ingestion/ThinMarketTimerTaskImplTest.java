@@ -24,8 +24,11 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ThinMarketTimerTaskImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
     private static final AtomicReference<CurrencyPairSupply> CURRENCY_PAIR_SUPPLY = new AtomicReference<>();
-    private static final CurrencyPairMetadata BTC_USD = CurrencyPairMetadata.create(new CurrencyPair("BTC", "USD"), 123L);
-    private static final CurrencyPairMetadata ETH_EUR = CurrencyPairMetadata.create(new CurrencyPair("ETH", "EUR"), 456L);
+    private static final CurrencyPairMetadata AAA_BBB = CurrencyPairMetadata.create(new CurrencyPair("AAA", "BBB"), 123L);
+    private static final CurrencyPairMetadata CCC_DDD = CurrencyPairMetadata.create(new CurrencyPair("CCC", "DDD"), 234L);
+    private static final CurrencyPairMetadata EEE_FFF = CurrencyPairMetadata.create(new CurrencyPair("EEE", "FFF"), 345L);
+    private static final CurrencyPairMetadata BTC_USD = CurrencyPairMetadata.create(new CurrencyPair("BTC", "USD"), 456L);
+    private static final CurrencyPairMetadata ETH_EUR = CurrencyPairMetadata.create(new CurrencyPair("ETH", "EUR"), 567L);
 
     @Mock @Bind private CandleManager candleManager;
     @Bind private Provider<CurrencyPairSupply> currencyPairSupply;
@@ -85,9 +88,6 @@ public class ThinMarketTimerTaskImplTest {
     @Test
     public void run_currencyPairsOrderIsPreserved() {
         // Arrange
-        CurrencyPair pair1 = new CurrencyPair("AAA", "BBB");
-        CurrencyPair pair2 = new CurrencyPair("CCC", "DDD");
-        CurrencyPair pair3 = new CurrencyPair("EEE", "FFF");
         ImmutableList<CurrencyPair> currencyPairs =ImmutableList.of(pair1, pair2, pair3);
         ImmutableList<String> expected = ImmutableList.of(pair1.toString(), pair2.toString(), pair3.toString());
 
