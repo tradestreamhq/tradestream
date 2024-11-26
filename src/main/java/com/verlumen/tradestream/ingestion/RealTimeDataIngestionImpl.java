@@ -27,16 +27,16 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     @Inject
     RealTimeDataIngestionImpl(
         CandleManager candleManager,
-        Provider<CurrencyPairSupplier> currencyPairSupply,
         CandlePublisher candlePublisher,
+        Provider<CurrencyPairSupplier> currencyPairSupply,
         Provider<StreamingExchange> exchange,
         ProductSubscription productSubscription,
         Provider<ThinMarketTimer> thinMarketTimer,
         TradeProcessor tradeProcessor
     ) {
         this.candleManager = candleManager;
-        this.currencyPairSupply = currencyPairSupply;
         this.candlePublisher = candlePublisher;
+        this.currencyPairSupply = currencyPairSupply;
         this.exchange = exchange;
         this.productSubscription = productSubscription;
         this.subscriptions = new ArrayList<>();
