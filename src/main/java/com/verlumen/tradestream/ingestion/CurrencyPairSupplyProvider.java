@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-final class CurrencyPairSupplierImpl implements CurrencyPairSupplier {
+final class CurrencyPairSupplyProvider implements Provider<CurrencyPairSupply> {
     private final String apiKey;
     private final HttpClient httpClient;
     private final Gson gson;
