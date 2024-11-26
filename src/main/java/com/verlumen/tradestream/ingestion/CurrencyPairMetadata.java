@@ -9,7 +9,14 @@ import java.math.BigDecimal;
 @AutoValue
 abstract class CurrencyPairMetadata {
   static CurrencyPairMetadata create(String pair, BigDecimal marketCapValue) {
-    CurrencyPair currencyPair = new CurrencyPair(pair);
+    return create(new CurrencyPair(pair), marketCap);
+  }
+
+  static CurrencyPairMetadata create(CurrencyPair currencyPair, long marketCapValue) {
+    return new AutoValue_CurrencyPairMetadata(currencyPair, BigDecimal.valueOf(marketCapValue));
+  }
+
+  static CurrencyPairMetadata create(CurrencyPair currencyPair, BigDecimal marketCapValue) {
     MarketCap marketCap = MarketCap.create(marketCapValue, Currency.USD);
     return new AutoValue_CurrencyPairMetadata(currencyPair, marketCap);
   }
