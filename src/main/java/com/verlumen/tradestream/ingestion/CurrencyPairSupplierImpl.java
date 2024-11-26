@@ -12,20 +12,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 final class CurrencyPairSupplierImpl implements CurrencyPairSupplier {
-    private final int topN;
     private final String apiKey;
     private final HttpClient httpClient;
     private final Gson gson;
+    private final int topN;
 
     @Inject
-    CurrencyPairSupplierImpl(int topN, String apiKey, Gson gson, HttpClient httpClient) {
-        if (topN <= 0) {
-            throw new IllegalArgumentException("topN must be greater than 0");
-        }
-        this.topN = topN;
-        this.apiKey = apiKey;
+    CurrencyPairSupplierImpl(CoinMarketCapConfig coingMarketCapConfig, Gson gson, HttpClient httpClient) {
+        this.apiKey = coingMarketCapConfig.apiKey();
         this.gson = gson;
         this.httpClient = httpClient;
+        this.topN = coingMarketCapConfig.topN();
     }
 
     @Override
