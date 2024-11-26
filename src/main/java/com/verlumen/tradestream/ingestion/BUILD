@@ -77,6 +77,14 @@ java_library(
 )
 
 java_library(
+    name = "coin_market_cap_config",
+    srcs = ["CoinMarketCapConfig.java"],
+    deps = [
+        "//:autovalue",
+    ],
+)
+
+java_library(
     name = "config_arguments",
     srcs = ["ConfigArguments.java"],
     deps = [
@@ -120,6 +128,7 @@ java_library(
         "@maven//:com_google_code_gson_gson",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
+        ":coin_market_cap_config",
         ":currency_pair_metadata",
         ":currency_pair_supplier",
         ":http_client",
