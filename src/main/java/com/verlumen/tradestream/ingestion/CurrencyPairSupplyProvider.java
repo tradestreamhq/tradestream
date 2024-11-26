@@ -18,7 +18,7 @@ final class CurrencyPairSupplyProvider implements Provider<CurrencyPairSupply> {
     private final Gson gson;
 
     @Inject
-    CurrencyPairSupplierImpl(CoinMarketCapConfig coingMarketCapConfig, Gson gson, HttpClient httpClient) {
+    CurrencyPairSupplyProvider(CoinMarketCapConfig coingMarketCapConfig, Gson gson, HttpClient httpClient) {
         this.coingMarketCapConfig = coingMarketCapConfig;
         this.gson = gson;
         this.httpClient = httpClient;
