@@ -43,11 +43,6 @@ public class ThinMarketTimerTaskImplTest {
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
-    @After
-    public void tearDown() {
-        CURRENCY_PAIR_SUPPLY.set(null);
-    }
-
     @Test
     public void run_withValidCurrencyPairs_callsHandleThinlyTradedMarketsWithCorrectList() {
         // Arrange
