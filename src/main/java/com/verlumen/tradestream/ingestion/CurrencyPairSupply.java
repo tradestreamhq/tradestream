@@ -6,6 +6,10 @@ import com.google.common.collect.ImmutableList;
 import org.knowm.xchange.currency.CurrencyPair;
 
 abstract CurrencyPairSupply {
+  static CurrencyPairSupply create(ImmutableList<CurrencyPairMetadata> metadataList) {
+    return AutoValue_CurrencyPairSupply(metadataList);
+  }
+
   abstract ImmutableList<CurrencyPairMetadata> metadataList();
   
   ImmutableList<CurrencyPair> currencyPairs() {
