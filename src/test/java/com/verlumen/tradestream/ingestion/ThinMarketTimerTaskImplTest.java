@@ -88,7 +88,8 @@ public class ThinMarketTimerTaskImplTest {
     @Test
     public void run_currencyPairsOrderIsPreserved() {
         // Arrange
-        ImmutableList<CurrencyPairMetadata> metadataList =ImmutableList.of(AAA_BBB, CCC_DDD, EEE_FFF);
+        ImmutableList<CurrencyPairMetadata> metadataList = ImmutableList.of(AAA_BBB, CCC_DDD, EEE_FFF);
+        CURRENCY_PAIR_SUPPLY.set(CurrencyPairSupply.create(metadataList));
         ImmutableList<String> expected = ImmutableList.of(
             AAA_BBB.currencyPair().toString(),
             CCC_DDD.currencyPair().toString(),
