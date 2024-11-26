@@ -19,28 +19,29 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ThinMarketTimerTaskImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
-    private static final CurrencyPairMetadata BTC_USD = CurrencyPairMetadata.create(CurrencyPair.BTC_USD);
-    private static final CurrencyPairMetadata ETH_USD = CurrencyPairMetadata.create(CurrencyPair.ETH_USD);
+    private static final AtomicReference<CurrencyPairSupply> CURRENCY_PAIR_SUPPLY = new AtomicReference<>();
+    private static final CurrencyPairMetadata BTC_USD = CurrencyPairMetadata.create(new CurrencyPair("BTC", "USD"), 123L);
+    private static final CurrencyPairMetadata ETH_EUR = CurrencyPairMetadata.create(new CurrencyPair("ETH", "EUR"), 456L);
 
     @Mock @Bind private CandleManager candleManager;
-    @Mock @Bind private Provider<CurrencyPairSupply> currencyPairSupply;
+    @Bind private Provider<CurrencyPairSupply> currencyPairSupply;
     @Inject private ThinMarketTimerTaskImpl thinMarketTimerTask;
 
     @Before
     public void setUp() {
+        this.currencyPairSupply = CURRENCY_PAIR_SUPPLY::get;
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
     @Test
     public void run_withValidCurrencyPairs_callsHandleThinlyTradedMarketsWithCorrectList() {
         // Arrange
-        CurrencyPair btcUsd = new CurrencyPair("BTC", "USD");
-        CurrencyPair ethEur = new CurrencyPair("ETH", "EUR");
-        ImmutableList<CurrencyPair> currencyPairs = ImmutableList.of(btcUsd, ethEur);
-        when(currencyPairSupplier.currencyPairs()).thenReturn(currencyPairs);
+        ImmutableList<CurrencyPairMetadata> metadataList = ImmutableList.of(BTC_USD, ETH_EUR);
+        CURRENCY_PAIR_SUPPLY.set(CurrencyPairSupply.create(metadataList));
 
         // Act
         thinMarketTimerTask.run();
@@ -53,7 +54,8 @@ public class ThinMarketTimerTaskImplTest {
     @Test
     public void run_withEmptyCurrencyPairs_callsHandleThinlyTradedMarketsWithEmptyList() {
         // Arrange
-        when(currencyPairSupplier.currencyPairs()).thenReturn(ImmutableList.of());
+        ImmutableList<CurrencyPairMetadata> metadataList = ImmutableList.of();
+        CURRENCY_PAIR_SUPPLY.set(CurrencyPairSupply.create(metadataList));
 
         // Act
         thinMarketTimerTask.run();
@@ -61,20 +63,6 @@ public class ThinMarketTimerTaskImplTest {
         // Assert
         ImmutableList<String> expected = ImmutableList.of();
         verify(candleManager).handleThinlyTradedMarkets(expected);
-    }
-
-    @Test
-    public void run_withNullCurrencyPairs_throwsNullPointerException() {
-        // Arrange
-        when(currencyPairSupplier.currencyPairs()).thenReturn(null);
-
-        // Act & Assert
-        try {
-            thinMarketTimerTask.run();
-            fail("Expected NullPointerException");
-        } catch (NullPointerException e) {
-            // Expected exception
-        }
     }
 
     @Test
