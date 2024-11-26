@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ThinMarketTimerTaskImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
+
     private static final AtomicReference<CurrencyPairSupply> CURRENCY_PAIR_SUPPLY = new AtomicReference<>();
     private static final CurrencyPairMetadata AAA_BBB = CurrencyPairMetadata.create(new CurrencyPair("AAA", "BBB"), 123L);
     private static final CurrencyPairMetadata CCC_DDD = CurrencyPairMetadata.create(new CurrencyPair("CCC", "DDD"), 234L);
