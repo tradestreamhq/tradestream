@@ -128,7 +128,6 @@ java_library(
     srcs = ["CurrencyPairSupply.java"],
     deps = [
         "@maven//:com_google_guava_guava",
-        "@maven//:org_knowm_xchange_xchange_core",        
         ":currency_pair_metadata",
     ],
 )
