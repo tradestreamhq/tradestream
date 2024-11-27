@@ -167,6 +167,7 @@ java_library(
     deps = [
         "@maven//:com_google_inject_guice",
         ":http_client",
+        ":http_url_connection_factory",
     ],
 )
 
