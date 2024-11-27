@@ -232,6 +232,8 @@ java_library(
         ":currency_pair_supply_impl",
         ":http_client",
         ":http_client_impl",
+        ":http_url_connection_factory",
+        ":http_url_connection_factory_impl",
         ":kafka_producer_provider",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
