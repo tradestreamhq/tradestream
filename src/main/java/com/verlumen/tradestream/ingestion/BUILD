@@ -129,8 +129,19 @@ java_library(
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:org_knowm_xchange_xchange_core",        
+        ":currency_pair_metadata",
+    ],
+)
+
+java_library(
+    name = "currency_pair_supply_impl",
+    srcs = ["CurrencyPairSupplyImpl.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_knowm_xchange_xchange_core",        
         "//:autovalue",
         ":currency_pair_metadata",
+        ":currency_pair_supply",
     ],
 )
 
