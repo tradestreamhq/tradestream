@@ -10,13 +10,16 @@ import java.net.URL;
 import java.util.Map;
 
 final class HttpClientImpl implements HttpClient {
+    private final HttpURLConnectionFactory hHttpURLConnectionFactory;
+
     @Inject
-    HttpClientImpl() {}
+    HttpClientImpl(HttpURLConnectionFactory hHttpURLConnectionFactory) {
+        this.httpURLConnectionFactory = hHttpURLConnectionFactory;
+    }
 
     @Override
     public String get(String url, Map<String, String> headers) throws IOException {
-        URL obj = new URL(url);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        HttpURLConnection con = httpURLConnectionFactory.create(url);
         con.setRequestMethod("GET");
         for (Map.Entry<String, String> header : headers.entrySet()) {
             con.setRequestProperty(header.getKey(), header.getValue());
