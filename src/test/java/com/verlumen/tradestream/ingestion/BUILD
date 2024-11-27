@@ -71,12 +71,13 @@ java_test(
     name = "HttpClientImplTest",
     srcs = ["HttpClientImplTest.java"],
     deps = [
-        "@maven//:com_google_inject_extensions_guice_assistedinject",
+        "@maven//:com_google_truth_truth",
         "@maven//:com_google_inject_extensions_guice_testlib",
         "@maven//:com_google_inject_guice",
         "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",
         "//src/main/java/com/verlumen/tradestream/ingestion:http_client_impl",
+        "//src/main/java/com/verlumen/tradestream/ingestion:http_url_connection_factory",
     ],
 )
 
