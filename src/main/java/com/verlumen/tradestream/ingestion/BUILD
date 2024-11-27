@@ -77,6 +77,14 @@ java_library(
 )
 
 java_library(
+    name = "coin_market_cap_config",
+    srcs = ["CoinMarketCapConfig.java"],
+    deps = [
+        "//:autovalue",
+    ],
+)
+
+java_library(
     name = "config_arguments",
     srcs = ["ConfigArguments.java"],
     deps = [
