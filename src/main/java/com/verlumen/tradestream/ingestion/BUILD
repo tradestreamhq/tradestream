@@ -164,6 +164,9 @@ java_library(
 java_library(
     name = "http_client_impl",
     srcs = ["HttpClientImpl.java"],
+    deps = [
+        ":http_client",
+    ],
 )
 
 oci_image(
