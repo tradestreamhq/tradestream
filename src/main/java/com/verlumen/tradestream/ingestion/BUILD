@@ -165,6 +165,7 @@ java_library(
     name = "http_client_impl",
     srcs = ["HttpClientImpl.java"],
     deps = [
+        "@maven//:com_google_inject_guice",
         ":http_client",
     ],
 )
