@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.inject.Inject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,6 +10,9 @@ import java.net.URL;
 import java.util.Map;
 
 final class HttpClientImpl implements HttpClient {
+    @Inject
+    HttpClientImpl() {}
+
     @Override
     public String get(String url, Map<String, String> headers) throws IOException {
         URL obj = new URL(url);
