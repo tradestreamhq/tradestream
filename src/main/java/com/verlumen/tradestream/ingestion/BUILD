@@ -230,6 +230,8 @@ java_library(
         ":config_arguments",
         ":currency_pair_supply",
         ":currency_pair_supply_impl",
+        ":http_client",
+        ":http_client_impl",
         ":kafka_producer_provider",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
