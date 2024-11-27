@@ -161,6 +161,16 @@ java_library(
     srcs = ["HttpClient.java"],
 )
 
+java_library(
+    name = "http_url_connection_factory",
+    srcs = ["HttpURLConnectionFactory.java"],
+)
+
+java_library(
+    name = "http_url_connection_factory_impl",
+    srcs = ["HttpURLConnectionFactoryImpl.java"],
+)
+
 oci_image(
     name = "image",
     base = "@openjdk_java",
