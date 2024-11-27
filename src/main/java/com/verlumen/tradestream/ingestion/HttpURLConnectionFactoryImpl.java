@@ -11,7 +11,7 @@ final class HttpURLConnectionFactoryImpl implements HttpURLConnectionFactory {
   HttpURLConnectionFactoryImpl() {}
 
   @Override
-  public String create(String url) throws IOException {
+  public HttpURLConnection create(String url) throws IOException {
     return (HttpURLConnection) new URL(url).openConnection();
   }
 }
