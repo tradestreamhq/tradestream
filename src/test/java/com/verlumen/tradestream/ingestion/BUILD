@@ -102,7 +102,6 @@ java_test(
         "@maven//:org_mockito_mockito_core",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager",
-        "//src/main/java/com/verlumen/tradestream/ingestion:currency_pair_supplier",
         "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer_impl",
         "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer_task",
     ],
