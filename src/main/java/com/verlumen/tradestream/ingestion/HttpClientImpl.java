@@ -10,11 +10,11 @@ import java.net.URL;
 import java.util.Map;
 
 final class HttpClientImpl implements HttpClient {
-    private final HttpURLConnectionFactory hHttpURLConnectionFactory;
+    private final HttpURLConnectionFactory httpURLConnectionFactory;
 
     @Inject
-    HttpClientImpl(HttpURLConnectionFactory hHttpURLConnectionFactory) {
-        this.httpURLConnectionFactory = hHttpURLConnectionFactory;
+    HttpClientImpl(HttpURLConnectionFactory httpURLConnectionFactory) {
+        this.httpURLConnectionFactory = httpURLConnectionFactory;
     }
 
     @Override
