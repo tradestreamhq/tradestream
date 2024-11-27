@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.ingestion;
+zpackage com.verlumen.tradestream.ingestion;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
@@ -57,9 +57,9 @@ abstract class IngestionModule extends AbstractModule {
 
 
   @Provides
-  ProductSubscription provideProductSubscription(CurrencyPairSupplier currencyPairSupplier) {
+  ProductSubscription provideProductSubscription(CurrencyPairSupply currencyPairSupply) {
     ProductSubscription.ProductSubscriptionBuilder builder = ProductSubscription.create();
-    currencyPairSupplier.currencyPairs().forEach(builder::addTrades);
+    currencyPairSupply.currencyPairs().forEach(builder::addTrades);
     return builder.build();
   }
   
