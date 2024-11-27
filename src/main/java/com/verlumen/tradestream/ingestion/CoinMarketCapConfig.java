@@ -1,3 +1,5 @@
+package com.verlumen.tradestream.ingestion;
+
 import com.google.auto.value.AutoValue;
 
 @AutoValue
