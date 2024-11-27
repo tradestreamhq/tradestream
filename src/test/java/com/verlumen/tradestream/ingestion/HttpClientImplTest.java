@@ -1,8 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -57,7 +55,7 @@ public class HttpClientImplTest {
         String actualResponse = httpClient.get(url, headers);
 
         // Assert
-        assertThat(actualResponse, equalTo(expectedResponse));
+        assertThat(actualResponse).isEqualTo(expectedResponse);
     }
 
     @Test
@@ -90,7 +88,7 @@ public class HttpClientImplTest {
 
         // Act & Assert
         IOException thrown = assertThrows(IOException.class, () -> httpClient.get(url, headers));
-        assertThat(thrown.getMessage(), containsString("HTTP code 400"));
+        assertThat(thrown).hasMessageThat().contains("HTTP code 400");
     }
 
     @Test
@@ -108,7 +106,7 @@ public class HttpClientImplTest {
         String actualResponse = httpClient.get(url, headers);
 
         // Assert
-        assertThat(actualResponse, equalTo(expectedResponse));
+        assertThat(actualResponse).isEqualTo(expectedResponse);
     }
 
     @Test
@@ -123,7 +121,7 @@ public class HttpClientImplTest {
 
         // Act & Assert
         IOException thrown = assertThrows(IOException.class, () -> httpClient.get(url, headers));
-        assertThat(thrown.getMessage(), containsString("Stream read error"));
+        assertThat(thrown).hasMessageThat().contains("Stream read error"));
     }
 
     @Test
@@ -137,7 +135,7 @@ public class HttpClientImplTest {
 
         // Act & Assert
         IOException thrown = assertThrows(IOException.class, () -> httpClient.get(url, headers));
-        assertThat(thrown.getMessage(), containsString("Connection failed"));
+        assertThat(thrown).hasMessageThat().contains("Connection failed");
     }
 
     @Test
@@ -151,6 +149,6 @@ public class HttpClientImplTest {
 
         // Act & Assert
         IOException thrown = assertThrows(IOException.class, () -> httpClient.get(url, headers));
-        assertThat(thrown.getMessage(), containsString("Invalid method"));
+        assertThat(thrown).hasMessageThat().contains("Invalid method");
     }
 }
