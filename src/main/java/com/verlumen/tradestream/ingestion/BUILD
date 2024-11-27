@@ -162,6 +162,16 @@ java_library(
 )
 
 java_library(
+    name = "http_client_impl",
+    srcs = ["HttpClientImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        ":http_client",
+        ":http_url_connection_factory",
+    ],
+)
+
+java_library(
     name = "http_url_connection_factory",
     srcs = ["HttpURLConnectionFactory.java"],
 )
