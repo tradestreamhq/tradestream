@@ -14,8 +14,8 @@ import java.util.Map;
 
 final class CurrencyPairSupplyProvider implements Provider<CurrencyPairSupply> {
     private final CoinMarketCapConfig coingMarketCapConfig;
-    private final HttpClient httpClient;
     private final Gson gson;
+    private final HttpClient httpClient;
 
     @Inject
     CurrencyPairSupplyProvider(CoinMarketCapConfig coingMarketCapConfig, Gson gson, HttpClient httpClient) {
