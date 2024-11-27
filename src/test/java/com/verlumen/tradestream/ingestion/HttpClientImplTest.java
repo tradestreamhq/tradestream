@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -20,6 +21,7 @@ import org.mockito.junit.MockitoRule;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +38,6 @@ public class HttpClientImplTest {
     @Before
     public void setUp() throws Exception {
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
-
         when(mockConnectionFactory.create(anyString())).thenReturn(mockConnection);
     }
 
@@ -121,7 +122,7 @@ public class HttpClientImplTest {
 
         // Act & Assert
         IOException thrown = assertThrows(IOException.class, () -> httpClient.get(url, headers));
-        assertThat(thrown).hasMessageThat().contains("Stream read error"));
+        assertThat(thrown).hasMessageThat().contains("Stream read error");
     }
 
     @Test
