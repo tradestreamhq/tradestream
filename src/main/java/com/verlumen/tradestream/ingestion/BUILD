@@ -132,6 +132,22 @@ java_library(
     ],
 )
 
+java_library(
+    name = "currency_pair_supply_provider",
+    srcs = ["CurrencyPairSupplyProvider.java"],
+    deps = [
+        "@maven//:com_google_code_gson_gson",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        ":coin_market_cap_config",
+        ":currency_pair_metadata",
+        ":currency_pair_supply",
+        ":currency_pair_supply_impl",
+        ":http_client",
+    ],
+)
+
 genrule(
     name = "hash",
     srcs = [":index"],
