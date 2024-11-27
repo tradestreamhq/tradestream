@@ -169,6 +169,10 @@ java_library(
 java_library(
     name = "http_url_connection_factory_impl",
     srcs = ["HttpURLConnectionFactoryImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        ":http_url_connection_factory",
+    ],
 )
 
 oci_image(
