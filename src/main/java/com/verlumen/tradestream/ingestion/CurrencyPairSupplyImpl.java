@@ -13,11 +13,4 @@ abstract class CurrencyPairSupplyImpl implements CurrencyPairSupply {
   }
 
   abstract ImmutableList<CurrencyPairMetadata> metadataList();
-  
-  ImmutableList<CurrencyPair> currencyPairs() {
-    return metadataList()
-      .stream()
-      .map(CurrencyPairMetadata::currencyPair)
-      .collect(toImmutableList());
-  }
 }
