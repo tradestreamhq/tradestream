@@ -161,6 +161,11 @@ java_library(
     srcs = ["HttpClient.java"],
 )
 
+java_library(
+    name = "http_client_impl",
+    srcs = ["HttpClientImpl.java"],
+)
+
 oci_image(
     name = "image",
     base = "@openjdk_java",
