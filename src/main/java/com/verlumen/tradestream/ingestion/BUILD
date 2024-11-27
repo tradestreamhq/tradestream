@@ -120,7 +120,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "//:autovalue",
         ":currency_pair_metadata",
-        ":currency_pair_supply",
+        ":currency_pair_supply", 
     ],
 )
 
