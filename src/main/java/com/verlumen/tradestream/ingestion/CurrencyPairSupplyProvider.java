@@ -13,13 +13,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 final class CurrencyPairSupplyProvider implements Provider<CurrencyPairSupply> {
-    private final CoinMarketCapConfig coingMarketCapConfig;
+    private final CoinMarketCapConfig coinMarketCapConfig;
     private final Gson gson;
     private final HttpClient httpClient;
 
     @Inject
-    CurrencyPairSupplyProvider(CoinMarketCapConfig coingMarketCapConfig, Gson gson, HttpClient httpClient) {
-        this.coingMarketCapConfig = coingMarketCapConfig;
+    CurrencyPairSupplyProvider(CoinMarketCapConfig coinMarketCapConfig, Gson gson, HttpClient httpClient) {
+        this.coinMarketCapConfig = coinMarketCapConfig;
         this.gson = gson;
         this.httpClient = httpClient;
     }
@@ -28,12 +28,12 @@ final class CurrencyPairSupplyProvider implements Provider<CurrencyPairSupply> {
     public CurrencyPairSupply get() {
         String url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest";
         try {
-            String parameters = "start=1&limit=" + coingMarketCapConfig.topN() + "&convert=USD";
+            String parameters = "start=1&limit=" + coinMarketCapConfig.topN() + "&convert=USD";
             String fullUrl = url + "?" + parameters;
 
             // Set the headers
             Map<String, String> headers = new HashMap<>();
-            headers.put("X-CMC_PRO_API_KEY", coingMarketCapConfig.apiKey());
+            headers.put("X-CMC_PRO_API_KEY", coinMarketCapConfig.apiKey());
             headers.put("Accept", "application/json");
 
             String responseStr = httpClient.get(fullUrl, headers);
