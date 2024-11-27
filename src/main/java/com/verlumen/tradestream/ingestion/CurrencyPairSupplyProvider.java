@@ -25,7 +25,7 @@ final class CurrencyPairSupplyProvider implements Provider<CurrencyPairSupply> {
     }
 
     @Override
-    public ImmutableList<CurrencyPairMetadata> get() {
+    public CurrencyPairSupply get() {
         String url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest";
         try {
             String parameters = "start=1&limit=" + coingMarketCapConfig.topN() + "&convert=USD";
@@ -84,8 +84,7 @@ final class CurrencyPairSupplyProvider implements Provider<CurrencyPairSupply> {
                 listBuilder.add(metadata);
             });
 
-            return listBuilder.build();
-
+            return CurrencyPairSupplyImpl.create(listBuilder.build());
         } catch (IOException e) {
             // Handle exceptions
             throw new RuntimeException("Failed to fetch currency data", e);
