@@ -161,6 +161,30 @@ java_library(
     srcs = ["HttpClient.java"],
 )
 
+java_library(
+    name = "http_client_impl",
+    srcs = ["HttpClientImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        ":http_client",
+        ":http_url_connection_factory",
+    ],
+)
+
+java_library(
+    name = "http_url_connection_factory",
+    srcs = ["HttpURLConnectionFactory.java"],
+)
+
+java_library(
+    name = "http_url_connection_factory_impl",
+    srcs = ["HttpURLConnectionFactoryImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        ":http_url_connection_factory",
+    ],
+)
+
 oci_image(
     name = "image",
     base = "@openjdk_java",
@@ -206,6 +230,11 @@ java_library(
         ":config_arguments",
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
+        ":currency_pair_supply_impl",
+        ":http_client",
+        ":http_client_impl",
+        ":http_url_connection_factory",
+        ":http_url_connection_factory_impl",
         ":kafka_producer_provider",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",

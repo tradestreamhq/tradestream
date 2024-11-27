@@ -30,6 +30,8 @@ abstract class IngestionModule extends AbstractModule {
     bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class);
 
     bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
+    bind(HttpClient.class).to(HttpClientImpl.class);
+    bind(HttpURLConnectionFactory.class).to(HttpURLConnectionFactoryImpl.class);
     bind(RealTimeDataIngestion.class).to(RealTimeDataIngestionImpl.class);
     bind(ThinMarketTimer.class).to(ThinMarketTimerImpl.class);
     bind(ThinMarketTimerTask.class).to(ThinMarketTimerTaskImpl.class);
