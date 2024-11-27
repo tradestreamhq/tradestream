@@ -7,9 +7,9 @@ import com.google.common.collect.ImmutableList;
 import org.knowm.xchange.currency.CurrencyPair;
 
 @AutoValue
-abstract class CurrencyPairSupply {
-  static CurrencyPairSupply create(ImmutableList<CurrencyPairMetadata> metadataList) {
-    return new AutoValue_CurrencyPairSupply(metadataList);
+abstract class CurrencyPairSupplyImpl implements CurrencyPairSupply {
+  static CurrencyPairSupplyImpl create(ImmutableList<CurrencyPairMetadata> metadataList) {
+    return new AutoValue_CurrencyPairSupplyImpl(metadataList);
   }
 
   abstract ImmutableList<CurrencyPairMetadata> metadataList();
