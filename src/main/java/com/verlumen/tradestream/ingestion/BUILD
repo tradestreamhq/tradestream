@@ -205,7 +205,7 @@ java_library(
         ":candle_publisher_impl",
         ":config_arguments",
         ":currency_pair_supply",
-        ":currency_pair_supply_impl",
+        ":currency_pair_supply_provider",
         ":kafka_producer_provider",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
