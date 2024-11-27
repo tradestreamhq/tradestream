@@ -143,6 +143,7 @@ java_library(
         ":coin_market_cap_config",
         ":currency_pair_metadata",
         ":currency_pair_supply",
+        ":currency_pair_supply_impl",
         ":http_client",
     ],
 )
