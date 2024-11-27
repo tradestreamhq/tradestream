@@ -8,7 +8,7 @@ abstract class CoinMarketCapConfig {
       return new AutoValue_CoinMarketCapConfig(topN, apiKey);
   }
 
-  abstract String apiKey();
-
   abstract int topN();
+
+  abstract String apiKey();
 }
