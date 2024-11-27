@@ -126,6 +126,27 @@ java_library(
     ],
 )
 
+java_library(
+    name = "currency_pair_supply",
+    srcs = ["CurrencyPairSupply.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_knowm_xchange_xchange_core",        
+        ":currency_pair_metadata",
+    ],
+)
+
+java_library(
+    name = "currency_pair_supply_impl",
+    srcs = ["CurrencyPairSupplyImpl.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "//:autovalue",
+        ":currency_pair_metadata",
+        ":currency_pair_supply",
+    ],
+)
+
 genrule(
     name = "hash",
     srcs = [":index"],
@@ -184,6 +205,8 @@ java_library(
         ":config_arguments",
         ":currency_pair_supplier",
         ":currency_pair_supplier_impl",
+        ":currency_pair_supply",
+        ":currency_pair_supply_impl",
         ":kafka_producer_provider",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
@@ -253,7 +276,7 @@ java_library(
         "//protos:marketdata_java_proto",
         ":candle_manager",
         ":candle_publisher",
-        ":currency_pair_supplier",
+        ":currency_pair_supply",
         ":real_time_data_ingestion",
         ":thin_market_timer",
         ":trade_processor",
@@ -304,7 +327,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":candle_manager",
-        ":currency_pair_supplier",
+        ":currency_pair_supply",
         ":thin_market_timer_task",
     ],
 )

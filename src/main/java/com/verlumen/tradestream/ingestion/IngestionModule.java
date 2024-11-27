@@ -30,6 +30,7 @@ abstract class IngestionModule extends AbstractModule {
     bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class);
 
     bind(CurrencyPairSupplier.class).to(CurrencyPairSupplierImpl.class);
+    bind(CurrencyPairSupply.class).toInstance(CurrencyPairSupplyImpl.create(ImmutableList.of()));
     bind(RealTimeDataIngestion.class).to(RealTimeDataIngestionImpl.class);
     bind(ThinMarketTimer.class).to(ThinMarketTimerImpl.class);
     bind(ThinMarketTimerTask.class).to(ThinMarketTimerTaskImpl.class);
@@ -57,10 +58,10 @@ abstract class IngestionModule extends AbstractModule {
 
 
   @Provides
-  ProductSubscription provideProductSubscription() {
-    return ProductSubscription
-      .create()
-      .build();
+  ProductSubscription provideProductSubscription(CurrencyPairSupply currencyPairSupply) {
+    ProductSubscription.ProductSubscriptionBuilder builder = ProductSubscription.create();
+    currencyPairSupply.currencyPairs().forEach(builder::addTrades);
+    return builder.build();
   }
   
   @Provides
