@@ -26,7 +26,7 @@ public class ThinMarketTimerImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
 
     @Mock @Bind private CandleManager candleManager;
-    @Mock @Bind private CurrencyPairSupplier currencyPairSupplier;
+    @Mock @Bind private CurrencyPairSupply currencyPairSupply;
     @Mock @Bind private Timer timer;
     @Mock @Bind private ThinMarketTimerTask task;
     @Inject private ThinMarketTimerImpl thinMarketTimer;
