@@ -203,6 +203,7 @@ java_library(
         ":currency_pair_supplier",
         ":currency_pair_supplier_impl",
         ":currency_pair_supply",
+        ":currency_pair_supply_impl",
         ":kafka_producer_provider",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
