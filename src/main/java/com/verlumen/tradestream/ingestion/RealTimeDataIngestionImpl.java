@@ -28,7 +28,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     RealTimeDataIngestionImpl(
         CandleManager candleManager,
         CandlePublisher candlePublisher,
-        Provider<CurrencyPairSupplier> currencyPairSupply,
+        Provider<CurrencyPairSupply> currencyPairSupply,
         Provider<StreamingExchange> exchange,
         ProductSubscription productSubscription,
         Provider<ThinMarketTimer> thinMarketTimer,
