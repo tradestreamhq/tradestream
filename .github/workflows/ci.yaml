@@ -27,7 +27,33 @@ jobs:
 
       - name: Wait for All Pods to be Ready
         run: |
-          kubectl wait --for=condition=Ready pods --all -n tradestream-namespace --timeout=900s
+          echo "Waiting for all pods to be ready in namespace 'tradestream-namespace'..."
+          timeout=900  # Total time to wait in seconds
+          interval=10  # Interval between checks in seconds
+          end_time=$((SECONDS+timeout))
+      
+          while [ $SECONDS -lt $end_time ]; do
+            # Get the number of pods that are not in 'Running' or 'Completed' state
+            not_ready_pods=$(kubectl get pods -n tradestream-namespace --no-headers | grep -vE 'Running|Completed' | wc -l)
+            
+            # If all pods are ready, exit the loop
+            if [ "$not_ready_pods" -eq "0" ]; then
+              echo "All pods are ready."
+              break
+            else
+              echo "Some pods are not ready yet. Current status:"
+              kubectl get pods -n tradestream-namespace
+              echo "Waiting for $interval seconds before rechecking..."
+              sleep $interval
+            fi
+          done
+      
+          # Check if the timeout was reached
+          if [ $SECONDS -ge $end_time ]; then
+            echo "Timeout reached while waiting for pods to be ready."
+            kubectl get pods -n tradestream-namespace
+            exit 1
+          fi
 
       - name: Verify Installations
         run: |
