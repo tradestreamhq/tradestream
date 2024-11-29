@@ -45,4 +45,3 @@ spec:
                 secretKeyRef:
                   name: coinmarketcap-api-key
                   key: apiKey
-          
