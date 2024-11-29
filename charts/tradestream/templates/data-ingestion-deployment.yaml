@@ -21,6 +21,9 @@ metadata:
     app: {{ include "tradestream.name" . }}
     component: data-ingestion
     release: {{ .Release.Name }}
+  annotations:
+    helm.sh/hook-weight: "0"
+    secret.reloader.stakater.com/reload: "coinmarketcap-api-key"
 spec:
   replicas: {{ .Values.dataIngestion.replicaCount }}
   selector:
