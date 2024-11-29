@@ -10,4 +10,3 @@ dependencies:
   - name: sealed-secrets
     version: "2.7.2"
     repository: "https://charts.bitnami.com/bitnami"
-
