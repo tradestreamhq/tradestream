@@ -27,7 +27,7 @@ jobs:
 
       - name: Wait for All Pods to be Ready
         run: |
-          kubectl wait --for=condition=Ready pods --all -n tradestream-namespace --timeout=600s
+          kubectl wait --for=condition=Ready pods --all -n tradestream-namespace --timeout=900s
 
       - name: Verify Installations
         run: |
