@@ -1,7 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.auto.value.AutoValue;
-import marketdata.Marketdata.Trade;
+import com.verlumen.tradestream.marketdata.Trade;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;

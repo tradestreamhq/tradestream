@@ -2,7 +2,7 @@ package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import marketdata.Marketdata.Trade;
+import com.verlumen.tradestream.marketdata.Trade;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

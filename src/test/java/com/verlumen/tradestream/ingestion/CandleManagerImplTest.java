@@ -10,8 +10,8 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import marketdata.Marketdata.Trade;
-import marketdata.Marketdata.Candle;
+import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.Trade;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,7 +23,7 @@ import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
 public class CandleManagerImplTest {
-    @Rule public MockitoRule rule = MockitoJUnit.rule();
+    @Rule public MockitoRule mocks = MockitoJUnit.rule();
     
     private static final long CANDLE_INTERVAL = 60000L;
     private static final String TEST_PAIR = "BTC/USD";
