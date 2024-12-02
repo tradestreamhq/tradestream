@@ -1,4 +1,4 @@
-{{- define "tradestream.fullname" -}} 
+{{- define "tradestream.fullname" -}}
 {{- $name := default .Chart.Name .Values.nameOverride -}}
 {{- if contains $name .Release.Name -}}
 {{- .Release.Name -}}
