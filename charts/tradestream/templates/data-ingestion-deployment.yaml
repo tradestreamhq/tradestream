@@ -21,23 +21,6 @@ spec:
         component: data-ingestion
         release: {{ .Release.Name }}
     spec:
-      initContainers:
-        - name: wait-for-secret
-          image: bitnami/kubectl:1.21
-          command:
-            - /bin/sh
-            - -c
-            - |
-              SECONDS=0
-              TIMEOUT=180
-              until kubectl get secret coinmarketcap-api-key -n {{ .Release.Namespace }} || [ $SECONDS -ge $TIMEOUT ]; do
-                echo "Waiting for secret..."
-                sleep 2
-              done
-              if [ $SECONDS -ge $TIMEOUT ]; then
-                echo "Timeout waiting for secret."
-                exit 1
-              fi
       containers:
         - name: data-ingestion
           image: "{{ .Values.dataIngestion.image.repository }}:{{ .Values.dataIngestion.image.tag }}"
