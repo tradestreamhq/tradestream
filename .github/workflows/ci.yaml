@@ -35,9 +35,10 @@ jobs:
 
       - name: Wait for Sealed Secrets Controller to be Ready
         run: |
-          echo "Waiting for Sealed Secrets Controller to be ready..."
-          # Use labels to find the correct deployment
-          kubectl rollout status deployment -n sealed-secrets -l app.kubernetes.io/name=sealed-secrets,app.kubernetes.io/instance=my-sealed-secrets-controller --timeout=120s
+          kubectl rollout status deployment \
+            -n sealed-secrets \
+            my-sealed-secrets-controller-sealed-secrets \
+            --timeout=180s
 
       - name: Install TradeStream Helm Chart
         run: |
