@@ -60,7 +60,7 @@ abstract class IngestionModule extends AbstractModule {
   @Provides
   CoinMarketCapConfig provideCoinMarketCapConfig() {
     String apiKey = namespace.getString("coinmarketcap.apiKey");
-    int topN = namespace.getString("coinmarketcap.topN");
+    int topN = namespace.getInt("coinmarketcap.topN");
     return CoinMarketCapConfig.create(topN, apiKey);    
   }
 
