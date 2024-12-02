@@ -1,4 +1,3 @@
-# charts/tradestream/charts/sealed-secret/Chart.yaml
 apiVersion: v2
 name: sealed-secret
 version: 0.1.0
