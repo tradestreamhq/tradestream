@@ -37,7 +37,7 @@ jobs:
         run: |
           kubectl rollout status deployment \
             -n sealed-secrets \
-            my-sealed-secrets-controller-sealed-secrets \
+            my-sealed-secrets-controller \
             --timeout=180s
 
       - name: Install TradeStream Helm Chart
