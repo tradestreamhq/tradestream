@@ -1,1 +1,4 @@
-# Marker file that this is the root of a Bazel workspace.
+workspace(name = "tradestream")
+
+load("//platforms:docker.bzl", "setup_docker_deps")
+setup_docker_deps()

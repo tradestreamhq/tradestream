@@ -1,20 +1,29 @@
-package com.example.myproject;
+package com.verlumen.tradestream.ingestion;
 
-import com.google.common.primitives.Ints;
+import com.google.common.flogger.FluentLogger;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
 
-/**
- * This application compares two numbers, using the Ints.compare
- * method from Guava.
- */
-public class App {
+final class App {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  public static int compare(int a, int b) {
-    return Ints.compare(a, b);
+  private final RealTimeDataIngestion realTimeDataIngestion;
+  private final RunMode runMode;
+
+  @Inject
+  App(RealTimeDataIngestion realTimeDataIngestion, RunMode runMode) {
+    this.realTimeDataIngestion = realTimeDataIngestion;
+    this.runMode = runMode;
   }
 
-  public static void main(String... args) throws Exception {
-    App app = new App();
-    System.out.println("Success: " + app.compare(2, 1));
+  void run() {
+    logger.atInfo().log("Starting real-time data ingestion...");
+    if (runMode == RunMode.DRY) return;
+    realTimeDataIngestion.start();
   }
 
+  public static void main(String[] args) throws Exception {
+    App app = Guice.createInjector(IngestionModule.create(args)).getInstance(App.class);
+    app.run();
+  }
 }

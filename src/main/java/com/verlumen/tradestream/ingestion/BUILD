@@ -1,63 +1,98 @@
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
-load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_test")
-load("@rules_oci//oci:defs.bzl", "oci_image")
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("//platforms:transition.bzl", "multi_arch")
 
 package(default_visibility = ["//visibility:public"])
 
-java_library(
-    name = "candle-key",
-    srcs = ["CandleKey.java"]
-)
-
-java_library(
-    name = "real-time-data-ingestion-lib",
-    srcs = ["RealTimeDataIngestion.java"],
-    deps = [
-        "@maven//:com_google_inject_guice",
-    ]
-)
-
 java_binary(
-    name = "real-time-data-ingestion",
-    main_class = "com.verlumen.tradestream.RealTimeDataIngestion",
-    runtime_deps = [":real-time-data-ingestion-lib"],
-)
-
-java_library(
-    name = "java-maven-lib",
+    name = "app",
     srcs = ["App.java"],
-    deps = ["@maven//:com_google_guava_guava"],
-)
-
-java_binary(
-    name = "java-maven",
-    main_class = "com.example.myproject.App",
-    runtime_deps = [":java-maven-lib"],
-)
-
-tar(
-    name = "layer",
-    srcs = [":java-maven_deploy.jar"],
-)
-
-oci_image(
-    name = "image",
-    base = "@distroless_java",
-    entrypoint = [
-        "java",
-        "-jar",
-        "/java-maven_deploy.jar",
+    main_class = "com.verlumen.tradestream.ingestion.App",
+    deps = [
+        "@maven//:com_google_flogger_flogger",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
+        ":ingestion_module",
+        ":real_time_data_ingestion",
+        ":real_time_data_ingestion_impl",
+        ":run_mode",
+        ":streaming_exchange_provider",
     ],
-    tars = [":layer"],
+    runtime_deps = [
+        "@maven//:com_google_flogger_flogger_system_backend",
+    ],
 )
 
-load("@rules_oci//oci:defs.bzl", "oci_tarball")
+java_library(
+    name = "candle_builder",
+    srcs = ["CandleBuilder.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+    ],
+)
 
-oci_tarball(
-    name = "app_tarball",
-    image = ":image",
-    repo_tags = ["app:latest"]
+java_library(
+    name = "candle_manager",
+    srcs = ["CandleManager.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        ":candle_publisher",
+    ],
+)
+
+java_library(
+    name = "candle_manager_impl",
+    srcs = ["CandleManagerImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
+        "@maven//:com_google_inject_guice",
+        "//protos:marketdata_java_proto",
+        ":candle_builder",
+        ":candle_manager",
+        ":candle_publisher",
+        ":price_tracker",
+    ],
+)
+
+java_library(
+    name = "candle_publisher",
+    srcs = ["CandlePublisher.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+    ],
+)
+
+java_library(
+    name = "candle_publisher_impl",
+    srcs = ["CandlePublisherImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_apache_kafka_kafka_clients",
+        "//protos:marketdata_java_proto",
+        ":candle_publisher",
+    ],
+)
+
+java_library(
+    name = "coin_market_cap_config",
+    srcs = ["CoinMarketCapConfig.java"],
+    deps = [
+        "//:autovalue",
+    ],
+)
+
+java_library(
+    name = "config_arguments",
+    srcs = ["ConfigArguments.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
+        "//:autovalue",
+    ],
 )
 
 container_structure_test(
@@ -65,4 +100,270 @@ container_structure_test(
     configs = ["container-structure-test.yaml"],
     image = ":image",
     tags = ["requires-docker"],
+)
+
+java_library(
+    name = "currency_pair_metadata",
+    srcs = ["CurrencyPairMetadata.java"],
+    deps = [
+        "@maven//:org_knowm_xchange_xchange_core",
+        "//:autovalue",
+    ],
+)
+
+java_library(
+    name = "currency_pair_supply",
+    srcs = ["CurrencyPairSupply.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_knowm_xchange_xchange_core",        
+        ":currency_pair_metadata",
+    ],
+)
+
+java_library(
+    name = "currency_pair_supply_impl",
+    srcs = ["CurrencyPairSupplyImpl.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "//:autovalue",
+        ":currency_pair_metadata",
+        ":currency_pair_supply",
+    ],
+)
+
+java_library(
+    name = "currency_pair_supply_provider",
+    srcs = ["CurrencyPairSupplyProvider.java"],
+    deps = [
+        "@maven//:com_google_code_gson_gson",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        ":coin_market_cap_config",
+        ":currency_pair_metadata",
+        ":currency_pair_supply",
+        ":currency_pair_supply_impl",
+        ":http_client",
+    ],
+)
+
+genrule(
+    name = "hash",
+    srcs = [":index"],
+    outs = ["sha256.sum"],
+    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
+    toolchains = ["@jq_toolchains//:resolved_toolchain"],
+)
+
+java_library(
+    name = "http_client",
+    srcs = ["HttpClient.java"],
+)
+
+java_library(
+    name = "http_client_impl",
+    srcs = ["HttpClientImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        ":http_client",
+        ":http_url_connection_factory",
+    ],
+)
+
+java_library(
+    name = "http_url_connection_factory",
+    srcs = ["HttpURLConnectionFactory.java"],
+)
+
+java_library(
+    name = "http_url_connection_factory_impl",
+    srcs = ["HttpURLConnectionFactoryImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        ":http_url_connection_factory",
+    ],
+)
+
+oci_image(
+    name = "image",
+    base = "@openjdk_java",
+    entrypoint = [
+        "java",
+        "-jar",
+        "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
+    ],
+    tars = [":layer"],
+)
+
+multi_arch(
+    name = "images",
+    image = ":image",
+    platforms = [
+        "//platforms:linux_arm64",
+        "//platforms:linux_amd64",
+    ],
+)
+
+oci_image_index(
+    name = "index",
+    images = [
+        ":images",
+    ],
+)
+
+java_library(
+    name = "ingestion_module",
+    srcs = ["IngestionModule.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
+        "@maven//:com_google_inject_guice",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
+        "@maven//:org_apache_kafka_kafka_clients",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
+        "//:autovalue",
+        ":candle_manager",
+        ":candle_manager_impl",
+        ":candle_publisher",
+        ":candle_publisher_impl",
+        ":config_arguments",
+        ":currency_pair_supply",
+        ":currency_pair_supply_impl",
+        ":http_client",
+        ":http_client_impl",
+        ":http_url_connection_factory",
+        ":http_url_connection_factory_impl",
+        ":kafka_producer_provider",
+        ":real_time_data_ingestion",
+        ":real_time_data_ingestion_impl",
+        ":run_mode",
+        ":streaming_exchange_provider",
+        ":thin_market_timer",
+        ":thin_market_timer_impl",
+        ":thin_market_timer_task",
+        ":thin_market_timer_task_impl",
+        ":trade_processor",
+    ],
+)
+
+java_library(
+    name = "kafka_producer_provider",
+    srcs = ["KafkaProducerProvider.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_apache_kafka_kafka_clients",
+        ":kafka_properties",
+    ],    
+)
+
+java_library(
+    name = "kafka_properties",
+    srcs = ["KafkaProperties.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
+    ],    
+)
+
+tar(
+    name = "layer",
+    srcs = [":app_deploy.jar"],
+)
+
+java_library(
+    name = "price_tracker",
+    srcs = ["PriceTracker.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",        
+    ],
+)
+
+oci_push(
+    name = "push_image",
+    image = ":index",
+    remote_tags = ["latest"],
+    repository = "tradestreamhq/tradestream-data-ingestion",
+)
+
+java_library(
+    name = "real_time_data_ingestion",
+    srcs = ["RealTimeDataIngestion.java"],
+)
+
+java_library(
+    name = "real_time_data_ingestion_impl",
+    srcs = ["RealTimeDataIngestionImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:io_reactivex_rxjava3_rxjava",
+        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_coinbasepro",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
+        "//protos:marketdata_java_proto",
+        ":candle_manager",
+        ":candle_publisher",
+        ":currency_pair_supply",
+        ":real_time_data_ingestion",
+        ":thin_market_timer",
+        ":trade_processor",
+    ],
+)
+
+java_library(
+    name = "run_mode",
+    srcs = ["RunMode.java"],
+)
+
+java_library(
+    name = "streaming_exchange_provider",
+    srcs = ["StreamingExchangeProvider.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
+    ],
+)
+
+java_library(
+    name = "thin_market_timer",
+    srcs = ["ThinMarketTimer.java"],
+)
+
+java_library(
+    name = "thin_market_timer_impl",
+    srcs = ["ThinMarketTimerImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        ":thin_market_timer",
+        ":thin_market_timer_task",
+    ],
+)
+
+java_library(
+    name = "thin_market_timer_task",
+    srcs = ["ThinMarketTimerTask.java"],
+)
+
+java_library(
+    name = "thin_market_timer_task_impl",
+    srcs = ["ThinMarketTimerTaskImpl.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
+        ":candle_manager",
+        ":currency_pair_supply",
+        ":thin_market_timer_task",
+    ],
+)
+
+java_library(
+    name = "trade_processor",
+    srcs = ["TradeProcessor.java"],
+    deps = [
+        "//:autovalue",
+        "//protos:marketdata_java_proto",
+    ],
 )

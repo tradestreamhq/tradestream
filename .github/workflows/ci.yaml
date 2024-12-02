@@ -20,14 +20,69 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
+      - name: Create Namespace
+        run: kubectl create namespace tradestream-namespace
+
+      - name: Create Secrets
+        run: |
+          kubectl create secret generic \
+            coinmarketcap \
+            --from-literal=apiKey=FAKE_API_KEY \
+            --namespace=tradestream-namespace
+
       - name: Install TradeStream Helm Chart
         run: |
           helm dependency update charts/tradestream && \
-          helm install my-tradestream charts/tradestream --namespace tradestream-namespace --create-namespace
+          helm install my-tradestream charts/tradestream --namespace tradestream-namespace
 
       - name: Wait for All Pods to be Ready
         run: |
-          kubectl wait --for=condition=Ready pods --all -n tradestream-namespace --timeout=600s
+          echo "Waiting for all pods to be ready in namespace 'tradestream-namespace'..."
+          timeout=180  # Total time to wait in seconds
+          interval=10  # Interval between checks in seconds
+          end_time=$((SECONDS+timeout))
+
+          while [ $SECONDS -lt $end_time ]; do
+            # Get the number of pods that are not in 'Running' or 'Completed' state
+            not_ready_pods=$(kubectl get pods -n tradestream-namespace --no-headers | grep -vE 'Running|Completed' | wc -l)
+
+            # If all pods are ready, exit the loop
+            if [ "$not_ready_pods" -eq "0" ]; then
+              echo "All pods are ready."
+              break
+            else
+              echo "Some pods are not ready yet. Current status:"
+              kubectl get pods -n tradestream-namespace
+              echo "Waiting for $interval seconds before rechecking..."
+              sleep $interval
+            fi
+          done
+
+          # Check if the timeout was reached
+          if [ $SECONDS -ge $end_time ]; then
+            echo "Timeout reached while waiting for pods to be ready."
+            kubectl get pods -n tradestream-namespace
+
+            echo -e "\nGathering detailed status and logs for non-ready pods..."
+
+            # Get the list of pods that are not in 'Running' or 'Completed' state
+            not_ready_pod_names=$(kubectl get pods -n tradestream-namespace --no-headers | grep -vE 'Running|Completed' | awk '{print $1}')
+          
+            for pod in $not_ready_pod_names; do
+              echo -e "\nDetails for pod $pod:"
+              kubectl describe pod $pod -n tradestream-namespace
+
+              # Get the list of containers in the pod
+              containers=$(kubectl get pod $pod -n tradestream-namespace -o jsonpath='{.spec.containers[*].name}')
+
+              for container in $containers; do
+                echo -e "\nLogs for container '$container' in pod '$pod':"
+                kubectl logs $pod -n tradestream-namespace -c $container
+              done
+            done
+
+            exit 1
+          fi
 
       - name: Verify Installations
         run: |
