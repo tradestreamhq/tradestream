@@ -20,30 +20,9 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-      - name: Add Helm Repositories
-        run: |
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo update
-
-      - name: Install Sealed Secrets Controller
-        run: |
-          kubectl create namespace sealed-secrets
-          helm install my-sealed-secrets-controller bitnami/sealed-secrets \
-            --namespace sealed-secrets \
-            --set namespaceOverride=sealed-secrets \
-            --set controller.watchNamespace=tradestream-namespace
-
-      - name: Wait for Sealed Secrets Controller to be Ready
-        run: |
-          kubectl rollout status deployment \
-            -n sealed-secrets \
-            my-sealed-secrets-controller \
-            --timeout=180s
-
       - name: Install TradeStream Helm Chart
         run: |
-          # Ensure that the SealedSecret is in the same namespace as the application
-          helm dependency update charts/tradestream
+          helm dependency update charts/tradestream && \
           helm install my-tradestream charts/tradestream --namespace tradestream-namespace --create-namespace
 
       - name: Wait for All Pods to be Ready
