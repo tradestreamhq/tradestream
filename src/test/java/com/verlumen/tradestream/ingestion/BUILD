@@ -149,14 +149,3 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/ingestion:trade_processor",
     ],
 )
-
-java_test(
-    name = "TestApp",
-    srcs = ["TestApp.java"],
-    test_class = "com.example.myproject.TestApp",
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/ingestion:java-maven-lib",
-        "@maven//:com_google_guava_guava",
-        "@maven//:junit_junit",
-    ],
-)
