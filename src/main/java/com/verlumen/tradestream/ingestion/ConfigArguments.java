@@ -10,6 +10,8 @@ import net.sourceforge.argparse4j.inf.Namespace;
 
 @AutoValue
 abstract class ConfigArguments implements Provider<Namespace> {
+  private static final String API_KEY_ENV_VAR = "TRADESTREAM_COINMARKETCAP_API_KEY";
+
   static ConfigArguments create(ImmutableList<String> args) {
     return new AutoValue_ConfigArguments(args);
   }
@@ -20,7 +22,7 @@ abstract class ConfigArguments implements Provider<Namespace> {
   public Namespace get() {
     try {
       return createParser().parseArgs(args().toArray(new String[0]));
-    } catch(ArgumentParserException e) {
+    } catch (ArgumentParserException e) {
       throw new RuntimeException("Unable to parse arguments.", e);
     }
   }
@@ -31,14 +33,15 @@ abstract class ConfigArguments implements Provider<Namespace> {
       .defaultHelp(true)
       .description("Configuration for Kafka producer and exchange settings");
 
+    // Existing arguments
     parser.addArgument("--candleIntervalSeconds")
-          .type(Integer.class)
-          .setDefault(60)
-          .help("Candle interval in seconds");
+      .type(Integer.class)
+      .setDefault(60)
+      .help("Candle interval in seconds");
 
     parser.addArgument("--candlePublisherTopic")
-          .setDefault("candles") 
-          .help("Kafka topic to publish candle data");
+      .setDefault("candles") 
+      .help("Kafka topic to publish candle data");
 
     // Kafka configuration
     parser.addArgument("--kafka.bootstrap.servers")
@@ -81,6 +84,16 @@ abstract class ConfigArguments implements Provider<Namespace> {
     parser.addArgument("--xchange.exchangeName")
       .setDefault("info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange")
       .help("Exchange name");
+
+    // CoinMarketCap configuration
+    parser.addArgument("--coinmarketcap.apiKey")
+      .setDefault(System.getenv(API_KEY_ENV_VAR))
+      .help("CoinMarketCap API Key (default: value of TRADESTREAM_COINMARKETCAP_API_KEY environment variable)");
+
+    parser.addArgument("--coinmarketcap.topN")
+      .type(Integer.class)
+      .setDefault(100)
+      .help("Number of top cryptocurrencies to track (default: 100)");
 
     // Run mode configuration
     parser.addArgument("--runMode")
