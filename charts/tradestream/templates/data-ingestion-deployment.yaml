@@ -13,13 +13,11 @@ spec:
     matchLabels:
       app: {{ include "tradestream.name" . }}
       component: data-ingestion
-      release: {{ .Release.Name }}
   template:
     metadata:
       labels:
         app: {{ include "tradestream.name" . }}
         component: data-ingestion
-        release: {{ .Release.Name }}
     spec:
       containers:
         - name: data-ingestion
