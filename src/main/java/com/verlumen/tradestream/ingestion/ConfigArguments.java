@@ -10,7 +10,7 @@ import net.sourceforge.argparse4j.inf.Namespace;
 
 @AutoValue
 abstract class ConfigArguments implements Provider<Namespace> {
-  private static final String API_KEY_ENV_VAR = "TRADESTREAM_COINMARKETCAP_API_KEY";
+  private static final String API_KEY_ENV_VAR = "COINMARKETCAP_API_KEY";
 
   static ConfigArguments create(ImmutableList<String> args) {
     return new AutoValue_ConfigArguments(args);
@@ -87,8 +87,8 @@ abstract class ConfigArguments implements Provider<Namespace> {
 
     // CoinMarketCap configuration
     parser.addArgument("--coinmarketcap.apiKey")
-      .setDefault(System.getenv(API_KEY_ENV_VAR))
-      .help("CoinMarketCap API Key (default: value of TRADESTREAM_COINMARKETCAP_API_KEY environment variable)");
+      .setDefault(System.getenv().getOrDefault(API_KEY_ENV_VAR, "INVALID_API_KEY"))
+      .help("CoinMarketCap API Key (default: value of " + API_KEY_ENV_VAR + " environment variable)");
 
     parser.addArgument("--coinmarketcap.topN")
       .type(Integer.class)
