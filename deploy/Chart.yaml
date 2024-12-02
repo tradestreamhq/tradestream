@@ -1,0 +1,14 @@
+apiVersion: v2
+name: tradestream-umbrella
+description: An umbrella chart for deploying TradeStream and its dependencies
+type: application
+version: 0.1.0
+appVersion: "1.0"
+
+dependencies:
+  - name: tradestream
+    version: 0.1.0
+    repository: "file://./charts/tradestream"
+  - name: secrets
+    version: 0.1.0
+    repository: "file://./charts/secrets"
