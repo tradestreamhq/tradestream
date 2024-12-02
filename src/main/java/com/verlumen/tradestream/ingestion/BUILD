@@ -227,7 +227,6 @@ java_library(
         ":candle_manager_impl",
         ":candle_publisher",
         ":candle_publisher_impl",
-        ":coin_market_cap_config",
         ":config_arguments",
         ":currency_pair_supply",
         ":currency_pair_supply_impl",
