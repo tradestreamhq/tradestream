@@ -1,0 +1,5 @@
+# charts/tradestream/charts/sealed-secret/Chart.yaml
+apiVersion: v2
+name: sealed-secret
+version: 0.1.0
+description: A subchart for managing the SealedSecret resource
