@@ -25,27 +25,11 @@ jobs:
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
 
-      - name: Install Sealed Secrets Controller
+      - name: Create Secrets
         run: |
-          kubectl create namespace sealed-secrets
-          helm install my-sealed-secrets-controller bitnami/sealed-secrets \
-            --namespace sealed-secrets \
-            --set namespaceOverride=sealed-secrets \
-            --set controller.watchNamespace=tradestream-namespace
-
-      - name: Wait for Sealed Secrets Controller to be Ready
-        run: |
-          kubectl rollout status deployment \
-            -n sealed-secrets \
-            my-sealed-secrets-controller \
-            --timeout=180s
-
-      - name: Install TradeStream Helm Chart
-        run: |
-          # Ensure that the SealedSecret is in the same namespace as the application
-          helm dependency update charts/tradestream
-          helm install my-tradestream charts/tradestream --namespace tradestream-namespace --create-namespace
-
+          kubectl create secret generic \
+            coinmarketcap \
+            --from-literal=apiKey=FAKE_API_KEY
       - name: Wait for All Pods to be Ready
         run: |
           echo "Waiting for all pods to be ready in namespace 'tradestream-namespace'..."
