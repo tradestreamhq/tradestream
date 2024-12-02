@@ -1,0 +1,6 @@
+apiVersion: v2
+name: tradestream
+description: A Helm chart for TradeStream application
+type: application
+version: 0.1.0
+appVersion: "1.0"
