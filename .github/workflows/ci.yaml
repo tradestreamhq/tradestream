@@ -20,7 +20,7 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-      - name: Add Helm Repositories
+      - name: Add Helm Repositories 
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
