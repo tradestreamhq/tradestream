@@ -29,5 +29,5 @@ spec:
             - name: COINMARKETCAP_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: coinmarketcap-api-key
+                  name: coinmarketcap
                   key: apiKey
