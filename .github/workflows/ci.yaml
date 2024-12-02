@@ -49,7 +49,7 @@ jobs:
       - name: Wait for All Pods to be Ready
         run: |
           echo "Waiting for all pods to be ready in namespace 'tradestream-namespace'..."
-          timeout=90  # Total time to wait in seconds
+          timeout=180  # Total time to wait in seconds
           interval=10  # Interval between checks in seconds
           end_time=$((SECONDS+timeout))
 
