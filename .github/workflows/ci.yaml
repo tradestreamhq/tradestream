@@ -27,10 +27,11 @@ jobs:
 
       - name: Install Sealed Secrets Controller
         run: |
-          # Create a dedicated namespace for the Sealed Secrets controller
           kubectl create namespace sealed-secrets
-          # Install the Sealed Secrets controller into its namespace
-          helm install my-sealed-secrets-controller bitnami/sealed-secrets --namespace sealed-secrets
+          helm install my-sealed-secrets-controller bitnami/sealed-secrets \
+            --namespace sealed-secrets \
+            --set namespaceOverride=sealed-secrets \
+            --set controller.watchNamespace=tradestream-namespace
 
       - name: Wait for Sealed Secrets Controller to be Ready
         run: |
