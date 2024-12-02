@@ -20,6 +20,9 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
+      - name: Create Namespace
+        run: kubectl create namespace tradestream-namespace
+
       - name: Create Secrets
         run: |
           kubectl create secret generic \
@@ -30,7 +33,7 @@ jobs:
       - name: Install TradeStream Helm Chart
         run: |
           helm dependency update charts/tradestream && \
-          helm install my-tradestream charts/tradestream --namespace tradestream-namespace --create-namespace
+          helm install my-tradestream charts/tradestream --namespace tradestream-namespace
 
       - name: Wait for All Pods to be Ready
         run: |
