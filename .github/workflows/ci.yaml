@@ -20,16 +20,17 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-      - name: Add Helm Repositories
-        run: |
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo update
-
       - name: Create Secrets
         run: |
           kubectl create secret generic \
             coinmarketcap \
             --from-literal=apiKey=FAKE_API_KEY
+
+      - name: Install TradeStream Helm Chart
+        run: |
+          helm dependency update charts/tradestream && \
+          helm install my-tradestream charts/tradestream --namespace tradestream-namespace --create-namespace
+
       - name: Wait for All Pods to be Ready
         run: |
           echo "Waiting for all pods to be ready in namespace 'tradestream-namespace'..."
