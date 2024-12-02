@@ -90,10 +90,3 @@ jobs:
       - name: Verify Sealed Secret
         run: |
           kubectl get secret coinmarketcap-api-key -n tradestream-namespace
-
-      - name: Cleanup Resources
-        if: always()
-        run: |
-          helm uninstall my-tradestream --namespace tradestream-namespace
-          helm uninstall my-sealed-secrets-controller --namespace sealed-secrets
-          kubectl delete namespace tradestream-namespace sealed-secrets
