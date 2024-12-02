@@ -27,17 +27,17 @@ jobs:
 
       - name: Install Sealed Secrets Controller
         run: |
-          kubectl create namespace sealed-secrets
-          helm install my-sealed-secrets-controller bitnami/sealed-secrets --namespace sealed-secrets
+          kubectl create namespace tradestream-namespace
+          helm install my-sealed-secrets-controller bitnami/sealed-secrets --namespace tradestream-namespace
 
-      - name: List Deployments in sealed-secrets Namespace
+      - name: List Deployments in tradestream-namespace Namespace
         run: |
-          kubectl get deployments -n sealed-secrets
+          kubectl get deployments -n tradestream-namespace
 
       - name: Wait for Sealed Secrets Controller to be Ready
         run: |
           echo "Waiting for Sealed Secrets Controller to be ready..."
-          kubectl rollout status deployment/my-sealed-secrets-controller --namespace sealed-secrets --timeout=120s
+          kubectl rollout status deployment/my-sealed-secrets-controller --namespace tradestream-namespace --timeout=120s
 
       - name: Install TradeStream Helm Chart
         run: |
