@@ -57,6 +57,12 @@ abstract class IngestionModule extends AbstractModule {
     return candlePublisherFactory.create(topic);
   }
 
+  @Provides
+  CoinMarketCapConfig provideCoinMarketCapConfig(Namespace namespace) {
+    String apiKey = namespace.getString("coinmarketcap.apiKey");
+    int topN = namespace.getInt("coinmarketcap.topN");
+    return CoinMarketCapConfig.create(topN, apiKey);    
+  }
 
   @Provides
   ProductSubscription provideProductSubscription(CurrencyPairSupply currencyPairSupply) {
