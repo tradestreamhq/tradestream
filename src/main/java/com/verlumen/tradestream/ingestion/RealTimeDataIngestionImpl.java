@@ -19,7 +19,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private final CandlePublisher candlePublisher;
     private final Provider<CurrencyPairSupply> currencyPairSupply;
     private final Provider<StreamingExchange> exchange;
-    private final ProductSubscription productSubscription;
+    private final Provider<ProductSubscription> productSubscription;
     private final List<Disposable> subscriptions;
     private final Provider<ThinMarketTimer> thinMarketTimer;
     private final TradeProcessor tradeProcessor;
@@ -30,7 +30,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         CandlePublisher candlePublisher,
         Provider<CurrencyPairSupply> currencyPairSupply,
         Provider<StreamingExchange> exchange,
-        ProductSubscription productSubscription,
+        Provider<ProductSubscription> productSubscription,
         Provider<ThinMarketTimer> thinMarketTimer,
         TradeProcessor tradeProcessor
     ) {
@@ -46,7 +46,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     @Override
     public void start() {
-        exchange.get().connect(productSubscription).blockingAwait();
+        exchange.get().connect(productSubscription.get()).blockingAwait();
         subscribeToTradeStreams();
         thinMarketTimer.get().start();
     }
