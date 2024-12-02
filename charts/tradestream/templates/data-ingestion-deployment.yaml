@@ -25,3 +25,9 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: {{ .Values.dataIngestion.service.port }}
+          env:
+            - name: COINMARKETCAP_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: coinmarketcap
+                  key: apiKey
