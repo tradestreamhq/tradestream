@@ -74,4 +74,26 @@ jobs:
               echo -e "\nDetails for pod $pod:"
               kubectl describe pod $pod -n tradestream-namespace
 
-              containers=$(kubectl get pod $pod -n tradestream-namespace -o jsonpath='{.spec.containers[*].name
+              containers=$(kubectl get pod $pod -n tradestream-namespace -o jsonpath='{.spec.containers[*].name}')
+              for container in $containers; do
+                echo -e "\nLogs for container '$container' in pod '$pod':"
+                kubectl logs $pod -n tradestream-namespace -c $container
+              done
+            done
+            exit 1
+          fi
+
+      - name: Verify Installations
+        run: |
+          kubectl get pods -n tradestream-namespace
+
+      - name: Verify Sealed Secret
+        run: |
+          kubectl get secret coinmarketcap-api-key -n tradestream-namespace
+
+      - name: Cleanup Resources
+        if: always()
+        run: |
+          helm uninstall my-tradestream --namespace tradestream-namespace
+          helm uninstall my-sealed-secrets-controller --namespace sealed-secrets
+          kubectl delete namespace tradestream-namespace sealed-secrets
