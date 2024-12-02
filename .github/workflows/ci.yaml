@@ -24,7 +24,8 @@ jobs:
         run: |
           kubectl create secret generic \
             coinmarketcap \
-            --from-literal=apiKey=FAKE_API_KEY
+            --from-literal=apiKey=FAKE_API_KEY \
+            --namespace=tradestream-namespace
 
       - name: Install TradeStream Helm Chart
         run: |
