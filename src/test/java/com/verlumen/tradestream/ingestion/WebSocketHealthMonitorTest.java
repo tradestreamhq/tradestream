@@ -30,18 +30,18 @@ public class WebSocketHealthMonitorTest {
     @Mock @Bind private ScheduledExecutorService mockScheduler;
     @Inject private WebSocketHealthMonitor monitor;
 
-    private ScheduledFuture<?> mockFuture;
+    @SuppressWarnings("unchecked")  // Safe for mocking
+    private ScheduledFuture<?> mockFuture = mock(ScheduledFuture.class);
 
     @Before
     public void setUp() {
-        mockFuture = mock(ScheduledFuture.class);
-        // Mock the scheduler's scheduleAtFixedRate to capture and verify the runnable
+        // Note the cast to handle generics properly
         when(mockScheduler.scheduleAtFixedRate(
             any(Runnable.class), 
             anyLong(), 
             anyLong(), 
             any(TimeUnit.class)
-        )).thenReturn(mockFuture);
+        )).thenReturn((ScheduledFuture<?>) mockFuture);
 
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
