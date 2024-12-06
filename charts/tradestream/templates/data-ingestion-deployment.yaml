@@ -21,6 +21,7 @@ spec:
     spec:
       containers:
         - name: data-ingestion
+          args: {{ .Values.dataIngestion.args | default "" | quote }}
           image: "{{ .Values.dataIngestion.image.repository }}:{{ .Values.dataIngestion.image.tag }}"
           imagePullPolicy: IfNotPresent
           ports:
