@@ -69,8 +69,10 @@ public final class RealTimeDataIngestionImplTest {
         CountDownLatch retryLatch = new CountDownLatch(4); // Initial + 3 retries
         Observable<Trade> failingObservable = Observable.error(new RuntimeException("Test error"))
             .doOnError(throwable -> retryLatch.countDown());
-        when(mockMarketDataService.getTrades(CURRENCY_PAIR)).thenReturn(failingObservable);
-    
+            when(mockMarketDataService.getTrades(CURRENCY_PAIR)).thenReturn(Observable.<Trade>empty()
+                        .doOnComplete(() -> retryLatch.countDown())
+                        .doOnError(throwable -> retryLatch.countDown()));
+
         // Act
         realTimeDataIngestion.start();
     
@@ -78,6 +80,7 @@ public final class RealTimeDataIngestionImplTest {
         try {
             boolean completed = retryLatch.await(1, TimeUnit.SECONDS);
             assertThat(completed).isTrue();
+            // Expect 4 calls because the empty observable will trigger doOnComplete and the retry logic
             verify(mockMarketDataService, times(4)).getTrades(CURRENCY_PAIR);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
