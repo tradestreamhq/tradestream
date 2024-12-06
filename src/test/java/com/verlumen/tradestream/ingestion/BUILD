@@ -105,6 +105,29 @@ java_test(
 )
 
 java_test(
+    name = "RealTimeDataIngestionImplTest",
+    srcs = ["RealTimeDataIngestionImplTest.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_extensions_guice_testlib",
+        "@maven//:com_google_inject_guice",
+        "@maven//:com_google_truth_truth",
+        "@maven//:io_reactivex_rxjava3_rxjava",
+        "@maven//:junit_junit",
+        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
+        "@maven//:org_mockito_mockito_core",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager",
+        "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
+        "//src/main/java/com/verlumen/tradestream/ingestion:currency_pair_supply",
+        "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer",
+        "//src/main/java/com/verlumen/tradestream/ingestion:trade_processor",
+        "//src/main/java/com/verlumen/tradestream/ingestion:real_time_data_ingestion_impl",
+    ],
+)
+
+java_test(
     name = "ThinMarketTimerImplTest",
     srcs = ["ThinMarketTimerImplTest.java"],
     deps = [
