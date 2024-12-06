@@ -22,55 +22,84 @@ public class WebSocketHealthMonitorTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
 
     @Mock @Bind private StreamingExchange mockExchange;
+    @Mock @Bind private ScheduledExecutorService mockScheduler;
     @Inject private WebSocketHealthMonitor monitor;
+
+    private ScheduledFuture<?> mockFuture;
 
     @Before
     public void setUp() {
+        mockFuture = mock(ScheduledFuture.class);
+        // Mock the scheduler's scheduleAtFixedRate to capture and verify the runnable
+        when(mockScheduler.scheduleAtFixedRate(
+            any(Runnable.class), 
+            anyLong(), 
+            anyLong(), 
+            any(TimeUnit.class)
+        )).thenReturn(mockFuture);
+
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
     @Test
-    public void start_schedulesHealthCheck() throws InterruptedException {
-        // Arrange
-        when(mockExchange.isAlive()).thenReturn(true);
-
+    public void start_schedulesHealthCheck() {
         // Act
         monitor.start();
-        Thread.sleep(100); // Allow scheduled task to run
 
         // Assert
-        verify(mockExchange, atLeastOnce()).isAlive();
+        verify(mockScheduler).scheduleAtFixedRate(
+            any(Runnable.class),
+            eq(30L), // Initial delay
+            eq(30L), // Period
+            eq(TimeUnit.SECONDS)
+        );
     }
 
     @Test
-    public void stop_shutsDownScheduler() throws InterruptedException {
+    public void stop_shutsDownScheduler() {
         // Arrange
         monitor.start();
 
         // Act
         monitor.stop();
-        Thread.sleep(100); // Allow shutdown to complete
 
         // Assert
-        // Verify no more health checks after stop
-        int callCount = mockingDetails(mockExchange).getInvocations().size();
-        Thread.sleep(100);
-        assertThat(mockingDetails(mockExchange).getInvocations().size())
-            .isEqualTo(callCount);
+        verify(mockScheduler).shutdown();
     }
 
     @Test
-    public void checkHealth_logsWarning_whenDisconnected() throws InterruptedException {
+    public void checkHealth_logsWarning_whenDisconnected() {
         // Arrange
         when(mockExchange.isAlive()).thenReturn(false);
 
-        // Act
+        // Capture the runnable when scheduling
+        ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
         monitor.start();
-        Thread.sleep(100); // Allow scheduled task to run
+        verify(mockScheduler).scheduleAtFixedRate(
+            runnableCaptor.capture(),
+            anyLong(),
+            anyLong(),
+            any()
+        );
+
+        // Act
+        runnableCaptor.getValue().run();
 
         // Assert
-        verify(mockExchange, atLeastOnce()).isAlive();
-        // Note: Would ideally verify log message, but FluentLogger makes this difficult
-        // Consider using a logging framework that's more testable if this is important
+        verify(mockExchange).isAlive();
+    }
+
+    @Test
+    public void stop_waitsForTermination() throws InterruptedException {
+        // Arrange
+        when(mockScheduler.awaitTermination(anyLong(), any()))
+            .thenReturn(true);
+        monitor.start();
+
+        // Act
+        monitor.stop();
+
+        // Assert
+        verify(mockScheduler).awaitTermination(5, TimeUnit.SECONDS);
     }
 }
