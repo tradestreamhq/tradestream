@@ -45,7 +45,7 @@ public final class RealTimeDataIngestionImplTest {
 
   @Mock @Bind private CandleManager mockCandleManager;
   @Mock @Bind private CandlePublisher mockCandlePublisher;
-  @Mock @Bind private CurrencyPairSupplier mockCurrencyPairSupplier;
+  @Mock @Bind private CurrencyPairSupply mockCurrencyPairSupply;
   @Mock @Bind private StreamingExchange mockExchange;
   @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
   @Bind @Mock private TradeProcessor tradeProcessor;
@@ -79,7 +79,7 @@ public final class RealTimeDataIngestionImplTest {
 @Test
 public void start_subscribesToTradeStreams() {
     // Arrange
-    when(mockCurrencyPairSupplier.currencyPairs()).thenReturn(ImmutableList.of(CURRENCY_PAIR));
+    when(mockCurrencyPairSupply.currencyPairs()).thenReturn(ImmutableList.of(CURRENCY_PAIR));
     when(mockExchange.getStreamingMarketDataService()).thenReturn(mockMarketDataService);
     when(mockMarketDataService.getTrades(CURRENCY_PAIR)).thenReturn(mockTradeObservable);
 
