@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -20,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.knowm.xchange.currency.CurrencyPair;
+import org.knowm.xchange.ExchangeSpecification;
 import org.knowm.xchange.dto.marketdata.Trade;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
