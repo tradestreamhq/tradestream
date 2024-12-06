@@ -21,6 +21,9 @@ spec:
     spec:
       containers:
         - name: data-ingestion
+          {{- if .Values.dataIngestion.args }}
+          args: {{ .Values.dataIngestion.args | toYaml | nindent 12 }}
+          {{- end }}
           image: "{{ .Values.dataIngestion.image.repository }}:{{ .Values.dataIngestion.image.tag }}"
           imagePullPolicy: IfNotPresent
           ports:
