@@ -38,6 +38,8 @@ abstract class IngestionModule extends AbstractModule {
     bind(ThinMarketTimerTask.class).to(ThinMarketTimerTaskImpl.class);
     bind(Timer.class).toProvider(Timer::new);
 
+    bind(WebSocketHealthMonitor.class).in(Singleton.class);
+
     install(new FactoryModuleBuilder()
         .implement(CandleManager.class, CandleManagerImpl.class)
         .build(CandleManager.Factory.class));    
