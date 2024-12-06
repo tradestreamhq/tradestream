@@ -92,19 +92,21 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     }
 
     private Disposable subscribeToTradeStream(CurrencyPair currencyPair) {
-        return exchange
-            .get()
+        return exchange.get()
             .getStreamingMarketDataService()
             .getTrades(currencyPair)
-            .subscribe(trade -> handleTrade(trade, currencyPair.toString()));
+            .subscribe(
+                trade -> handleTrade(trade, currencyPair.toString()),
+                throwable -> { // Handle errors during subscription
+                  logger.atSevere().withCause(throwable).log("Error subscribing to %s", currencyPair);
+                  // Implement retry logic or other error handling if needed
+                });
     }
 
     private void subscribeToTradeStreams() {
-        currencyPairSupply
-            .get()
-            .currencyPairs()
-            .stream()
-            .map(this::subscribeToTradeStream)
-            .forEach(subscriptions::add);
+        currencyPairSupply.get().currencyPairs().stream()
+            .forEach(pair -> {
+                subscriptions.add(subscribeToTradeStream(pair)); // Collect disposables
+            });
     }
 }
