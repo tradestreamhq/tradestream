@@ -14,9 +14,12 @@ import org.knowm.xchange.currency.CurrencyPair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+    private static final int RESUBSCRIBE_DELAY_SECONDS = 5;
+    private static final int MAX_RESUBSCRIBE_ATTEMPTS = 3;
 
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
@@ -49,23 +52,30 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     @Override
     public void start() {
-      logger.atInfo().log("Starting real-time data ingestion with %d currency pairs", 
-          currencyPairSupply.get().currencyPairs().size());
-      exchange.get().connect(productSubscription.get())
-          .subscribe(() -> {
-              logger.atInfo().log("Exchange connected successfully!");
-              subscribeToTradeStreams();
-              thinMarketTimer.get().start();
-              logger.atInfo().log("Real-time data ingestion started successfully");
-          }, throwable -> {
-              logger.atSevere().withCause(throwable).log("Error connecting to exchange");
-              logger.atInfo().log("Active subscriptions: %d", subscriptions.size());
-              logger.atSevere().log("Connection error details: %s", throwable.getMessage());
-          });
+        StreamingExchange streamingExchange = exchange.get();
+        logger.atInfo().log("Starting real-time data ingestion with %d currency pairs from %s", 
+            currencyPairSupply.get().currencyPairs().size(),
+            streamingExchange.getExchangeSpecification().getExchangeName());
+        
+        streamingExchange.connect(productSubscription.get())
+            .doOnComplete(() -> {
+                logger.atInfo().log("Exchange connected successfully! API URL: %s", 
+                    streamingExchange.getExchangeSpecification().getSslUri());
+                subscribeToTradeStreams();
+                thinMarketTimer.get().start();
+                logger.atInfo().log("Real-time data ingestion started successfully");
+            })
+            .doOnError(throwable -> {
+                logger.atSevere().withCause(throwable).log(
+                    "Failed to connect to exchange. Active subscriptions: %d",
+                    subscriptions.size());
+            })
+            .subscribe();
     }
 
     @Override
     public void shutdown() {
+        logger.atInfo().log("Initiating shutdown sequence");
         subscriptions.forEach(Disposable::dispose);
         thinMarketTimer.get().stop();
         exchange.get().disconnect().blockingAwait();
@@ -74,29 +84,66 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         logger.atInfo().log("Real-time data ingestion shutdown complete");
     }
 
-    private Trade convertTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String pair) {
-        logger.atFine().log("Converting trade for pair %s: price=%f, volume=%f", 
-            pair, xchangeTrade.getPrice().doubleValue(), xchangeTrade.getOriginalAmount().doubleValue());
-        return Trade.newBuilder()
-            .setTimestamp(xchangeTrade.getTimestamp().getTime())
-            .setExchange(exchange.get().getExchangeSpecification().getExchangeName())
-            .setCurrencyPair(pair)
-            .setPrice(xchangeTrade.getPrice().doubleValue())
-            .setVolume(xchangeTrade.getOriginalAmount().doubleValue())
-            .setTradeId(xchangeTrade.getId() != null ? xchangeTrade.getId() : UUID.randomUUID().toString())
-            .build();
+    private Disposable subscribeToTradeStream(CurrencyPair currencyPair) {
+        logger.atInfo().log("Subscribing to trade stream for currency pair: %s", currencyPair);
+        
+        return exchange.get()
+            .getStreamingMarketDataService()
+            .getTrades(currencyPair)
+            .doOnSubscribe(disposable -> 
+                logger.atInfo().log("Successfully subscribed to %s trade stream", currencyPair))
+            .doOnNext(trade -> 
+                logger.atInfo().log("Received trade for %s: price=%f, amount=%f, id=%s", 
+                    currencyPair, 
+                    trade.getPrice().doubleValue(),
+                    trade.getOriginalAmount().doubleValue(),
+                    trade.getId()))
+            .doOnError(throwable -> 
+                logger.atSevere().withCause(throwable)
+                    .log("Error in trade stream for %s", currencyPair))
+            .subscribe(
+                trade -> handleTrade(trade, currencyPair.toString()),
+                throwable -> {
+                    logger.atSevere().withCause(throwable)
+                        .log("Error subscribing to %s", currencyPair);
+                    resubscribeWithDelay(currencyPair, 1);
+                });
     }
 
-    private void handleTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String currencyPair) {
-        String symbol = currencyPair.toString();
-        Trade trade = convertTrade(xchangeTrade, symbol);
-        onTrade(trade);
+    private void resubscribeWithDelay(CurrencyPair currencyPair, int attemptCount) {
+        if (attemptCount > MAX_RESUBSCRIBE_ATTEMPTS) {
+            logger.atSevere().log("Maximum resubscribe attempts (%d) reached for %s", 
+                MAX_RESUBSCRIBE_ATTEMPTS, currencyPair);
+            return;
+        }
+
+        logger.atInfo().log("Scheduling resubscription attempt %d for %s in %d seconds", 
+            attemptCount, currencyPair, RESUBSCRIBE_DELAY_SECONDS);
+
+        Observable.timer(RESUBSCRIBE_DELAY_SECONDS, TimeUnit.SECONDS)
+            .subscribe(ignored -> {
+                logger.atInfo().log("Attempting resubscription for %s (attempt %d)", 
+                    currencyPair, attemptCount);
+                Disposable newSubscription = subscribeToTradeStream(currencyPair)
+                    .doOnError(throwable -> resubscribeWithDelay(currencyPair, attemptCount + 1));
+                subscriptions.add(newSubscription);
+            });
     }
 
-    private void onTrade(Trade trade) {
+    private void subscribeToTradeStreams() {
+        currencyPairSupply.get().currencyPairs().stream()
+            .map(this::subscribeToTradeStream)
+            .forEach(subscriptions::add);
+        logger.atInfo().log("Subscribed to %d trade streams", subscriptions.size());
+    }
+
+    private void handleTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, 
+        String currencyPair) {
+        Trade trade = convertTrade(xchangeTrade, currencyPair);
         if (!tradeProcessor.isProcessed(trade)) {
-            logger.atFine().log("Processing new trade for %s: ID=%s", 
-                trade.getCurrencyPair(), trade.getTradeId());
+            logger.atInfo().log("Processing new trade for %s: ID=%s, Price=%f, Volume=%f", 
+                trade.getCurrencyPair(), trade.getTradeId(), 
+                trade.getPrice(), trade.getVolume());
             candleManager.processTrade(trade);
         } else {
             logger.atFine().log("Skipping duplicate trade for %s: ID=%s",
@@ -104,21 +151,15 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         }
     }
 
-    private Disposable subscribeToTradeStream(CurrencyPair currencyPair) {
-        logger.atInfo().log("Subscribing to trade stream for currency pair: %s", currencyPair);
-        return exchange.get()
-            .getStreamingMarketDataService()
-            .getTrades(currencyPair)
-            .subscribe(
-                trade -> handleTrade(trade, currencyPair.toString()),
-                throwable -> {
-                    logger.atSevere().withCause(throwable).log("Error subscribing to %s", currencyPair);
-                });
-    }
-
-    private void subscribeToTradeStreams() {
-        currencyPairSupply.get().currencyPairs().stream()
-            .map(this::subscribeToTradeStream)
-            .forEach(subscriptions::add);
+    private Trade convertTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String pair) {
+        return Trade.newBuilder()
+            .setTimestamp(xchangeTrade.getTimestamp().getTime())
+            .setExchange(exchange.get().getExchangeSpecification().getExchangeName())
+            .setCurrencyPair(pair)
+            .setPrice(xchangeTrade.getPrice().doubleValue())
+            .setVolume(xchangeTrade.getOriginalAmount().doubleValue())
+            .setTradeId(xchangeTrade.getId() != null ? xchangeTrade.getId() : 
+                UUID.randomUUID().toString())
+            .build();
     }
 }
