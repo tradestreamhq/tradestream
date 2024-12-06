@@ -84,6 +84,26 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         logger.atInfo().log("Real-time data ingestion shutdown complete");
     }
 
+    private void resubscribeWithDelay(CurrencyPair currencyPair, int attemptCount) {
+        if (attemptCount > MAX_RESUBSCRIBE_ATTEMPTS) {
+            logger.atSevere().log("Maximum resubscribe attempts (%d) reached for %s", 
+                MAX_RESUBSCRIBE_ATTEMPTS, currencyPair);
+            return;
+        }
+
+        logger.atInfo().log("Scheduling resubscription attempt %d for %s in %d seconds", 
+            attemptCount, currencyPair, RESUBSCRIBE_DELAY_SECONDS);
+
+        Observable.timer(RESUBSCRIBE_DELAY_SECONDS, TimeUnit.SECONDS)
+            .subscribe(ignored -> {
+                logger.atInfo().log("Attempting resubscription for %s (attempt %d)", 
+                    currencyPair, attemptCount);
+                
+                Disposable newSubscription = subscribeToTradeStream(currencyPair);
+                subscriptions.add(newSubscription);
+            });
+    }
+
     private Disposable subscribeToTradeStream(CurrencyPair currencyPair) {
         logger.atInfo().log("Subscribing to trade stream for currency pair: %s", currencyPair);
         
@@ -108,26 +128,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
                         .log("Error subscribing to %s", currencyPair);
                     resubscribeWithDelay(currencyPair, 1);
                 });
-    }
-
-    private void resubscribeWithDelay(CurrencyPair currencyPair, int attemptCount) {
-        if (attemptCount > MAX_RESUBSCRIBE_ATTEMPTS) {
-            logger.atSevere().log("Maximum resubscribe attempts (%d) reached for %s", 
-                MAX_RESUBSCRIBE_ATTEMPTS, currencyPair);
-            return;
-        }
-
-        logger.atInfo().log("Scheduling resubscription attempt %d for %s in %d seconds", 
-            attemptCount, currencyPair, RESUBSCRIBE_DELAY_SECONDS);
-
-        Observable.timer(RESUBSCRIBE_DELAY_SECONDS, TimeUnit.SECONDS)
-            .subscribe(ignored -> {
-                logger.atInfo().log("Attempting resubscription for %s (attempt %d)", 
-                    currencyPair, attemptCount);
-                Disposable newSubscription = subscribeToTradeStream(currencyPair)
-                    .doOnError(throwable -> resubscribeWithDelay(currencyPair, attemptCount + 1));
-                subscriptions.add(newSubscription);
-            });
     }
 
     private void subscribeToTradeStreams() {
