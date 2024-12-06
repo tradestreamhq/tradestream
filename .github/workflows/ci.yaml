@@ -33,7 +33,7 @@ jobs:
       - name: Install TradeStream Helm Chart
         run: |
           helm dependency update charts/tradestream && \
-          helm install my-tradestream charts/tradestream --namespace tradestream-namespace --set dataIngestion.args="--runMode=dry"
+          helm install my-tradestream charts/tradestream --namespace tradestream-namespace --set 'dataIngestion.args[0]=--runMode=dry'
 
       - name: Wait for All Pods to be Ready
         run: |
