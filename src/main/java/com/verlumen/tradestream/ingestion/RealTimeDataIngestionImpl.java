@@ -118,9 +118,11 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
                     trade.getPrice().doubleValue(),
                     trade.getOriginalAmount().doubleValue(),
                     trade.getId()))
-            .doOnError(throwable -> 
+            .doOnError(throwable -> {
                 logger.atSevere().withCause(throwable)
-                    .log("Error in trade stream for %s", currencyPair))
+                    .log("Error in trade stream for %s", currencyPair);
+                resubscribeWithDelay(currencyPair, 1);
+            })
             .subscribe(
                 trade -> handleTrade(trade, currencyPair.toString()),
                 throwable -> {
