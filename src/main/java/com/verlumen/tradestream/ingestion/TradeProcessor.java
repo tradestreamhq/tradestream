@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.auto.value.AutoValue;
 import com.verlumen.tradestream.marketdata.Trade;
 
@@ -8,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @AutoValue
 abstract class TradeProcessor {
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
     static TradeProcessor create(long candleIntervalMillis) {
         return new AutoValue_TradeProcessor(candleIntervalMillis, ConcurrentHashMap.newKeySet());
     }
@@ -17,7 +20,15 @@ abstract class TradeProcessor {
 
     boolean isProcessed(Trade trade) {
         CandleKey key = CandleKey.create(trade.getTradeId(), getMinuteTimestamp(trade.getTimestamp()));
-        return !processedTrades().add(key);
+        boolean isDuplicate = !processedTrades().add(key);
+        
+        if (isDuplicate) {
+            logger.atFine().log("Detected duplicate trade: ID=%s, timestamp=%d", 
+                trade.getTradeId(), trade.getTimestamp());
+        }
+        
+        logger.atFine().log("Trade processor state: processed trades=%d", processedTrades().size());
+        return isDuplicate;
     }
 
     long getMinuteTimestamp(long timestamp) {

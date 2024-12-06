@@ -372,7 +372,11 @@ java_library(
     name = "trade_processor",
     srcs = ["TradeProcessor.java"],
     deps = [
+        "@maven//:com_google_flogger_flogger",
         "//:autovalue",
         "//protos:marketdata_java_proto",
+    ],
+    runtime_deps = [
+        "@maven//:com_google_flogger_flogger_system_backend",
     ],
 )
