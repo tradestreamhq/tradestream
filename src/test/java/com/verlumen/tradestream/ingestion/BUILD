@@ -185,4 +185,7 @@ java_test(
         "@maven//:org_knowm_xchange_xchange_stream_core",
         "//src/main/java/com/verlumen/tradestream/ingestion:websocket_health_monitor",
     ],
+    runtime_deps = [
+        "@maven//:com_google_flogger_flogger_system_backend",
+    ],
 )
