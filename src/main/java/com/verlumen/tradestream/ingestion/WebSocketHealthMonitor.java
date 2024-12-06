@@ -9,14 +9,15 @@ import java.util.concurrent.TimeUnit;
 
 public class WebSocketHealthMonitor {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private final StreamingExchange exchange;
-    private final ScheduledExecutorService scheduler;
     private static final int HEALTH_CHECK_INTERVAL_SECONDS = 30;
 
+    private final StreamingExchange exchange;
+    private final ScheduledExecutorService scheduler;
+
     @Inject
-    public WebSocketHealthMonitor(StreamingExchange exchange) {
+    WebSocketHealthMonitor(StreamingExchange exchange, ScheduledExecutorService scheduler) {
         this.exchange = exchange;
-        this.scheduler = Executors.newSingleThreadScheduledExecutor();
+        this.scheduler = scheduler;
     }
 
     public void start() {
