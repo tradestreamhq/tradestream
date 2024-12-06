@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.verlumen.tradestream.marketdata.Trade;
@@ -15,6 +16,8 @@ import java.util.List;
 import java.util.UUID;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
     private final Provider<CurrencyPairSupply> currencyPairSupply;
