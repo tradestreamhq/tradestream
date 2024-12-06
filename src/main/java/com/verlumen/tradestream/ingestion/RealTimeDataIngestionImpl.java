@@ -49,14 +49,18 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     @Override
     public void start() {
+      logger.atInfo().log("Starting real-time data ingestion with %d currency pairs", 
+          currencyPairSupply.get().currencyPairs().size());
       exchange.get().connect(productSubscription.get())
           .subscribe(() -> {
               logger.atInfo().log("Exchange connected successfully!");
               subscribeToTradeStreams();
               thinMarketTimer.get().start();
+              logger.atInfo().log("Real-time data ingestion started successfully");
           }, throwable -> {
               logger.atSevere().withCause(throwable).log("Error connecting to exchange");
-              // Optional: Retry logic or exit
+              logger.atInfo().log("Active subscriptions: %d", subscriptions.size());
+              logger.atSevere().log("Connection error details: %s", throwable.getMessage());
           });
     }
 
@@ -65,10 +69,14 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         subscriptions.forEach(Disposable::dispose);
         thinMarketTimer.get().stop();
         exchange.get().disconnect().blockingAwait();
+        logger.atInfo().log("Disposed %d subscriptions", subscriptions.size());
         candlePublisher.close();
+        logger.atInfo().log("Real-time data ingestion shutdown complete");
     }
 
     private Trade convertTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String pair) {
+        logger.atFine().log("Converting trade for pair %s: price=%f, volume=%f", 
+            pair, xchangeTrade.getPrice().doubleValue(), xchangeTrade.getOriginalAmount().doubleValue());
         return Trade.newBuilder()
             .setTimestamp(xchangeTrade.getTimestamp().getTime())
             .setExchange(exchange.get().getExchangeSpecification().getExchangeName())
@@ -87,7 +95,12 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     private void onTrade(Trade trade) {
         if (!tradeProcessor.isProcessed(trade)) {
+            logger.atFine().log("Processing new trade for %s: ID=%s", 
+                trade.getCurrencyPair(), trade.getTradeId());
             candleManager.processTrade(trade);
+        } else {
+            logger.atFine().log("Skipping duplicate trade for %s: ID=%s",
+                trade.getCurrencyPair(), trade.getTradeId());
         }
     }
 
@@ -98,16 +111,15 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             .getTrades(currencyPair)
             .subscribe(
                 trade -> handleTrade(trade, currencyPair.toString()),
-                throwable -> { // Handle errors during subscription
-                  logger.atSevere().withCause(throwable).log("Error subscribing to %s", currencyPair);
-                  // Implement retry logic or other error handling if needed
+                throwable -> {
+                    logger.atSevere().withCause(throwable).log("Error subscribing to %s", currencyPair);
                 });
     }
 
     private void subscribeToTradeStreams() {
         currencyPairSupply.get().currencyPairs().stream()
             .forEach(pair -> {
-                subscriptions.add(subscribeToTradeStream(pair)); // Collect disposables
+                subscriptions.add(subscribeToTradeStream(pair));
             });
     }
 }
