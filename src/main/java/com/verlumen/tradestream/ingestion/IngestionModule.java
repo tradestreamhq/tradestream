@@ -5,8 +5,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import net.sourceforge.argparse4j.inf.Namespace;
 
@@ -26,10 +28,12 @@ abstract class IngestionModule extends AbstractModule {
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
     bind(Namespace.class).toProvider(ConfigArguments.create(commandLineArgs()));
-    bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class);
+    bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class).in(Singleton.class);
 
-    bind(CurrencyPairSupplier.class).to(CurrencyPairSupplierImpl.class);
-    bind(MarketDataIngestion.class).to(RealTimeDataIngestion.class);
+    bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
+    bind(HttpClient.class).to(HttpClientImpl.class);
+    bind(HttpURLConnectionFactory.class).to(HttpURLConnectionFactoryImpl.class);
+    bind(RealTimeDataIngestion.class).to(RealTimeDataIngestionImpl.class);
     bind(ThinMarketTimer.class).to(ThinMarketTimerImpl.class);
     bind(ThinMarketTimerTask.class).to(ThinMarketTimerTaskImpl.class);
     bind(Timer.class).toProvider(Timer::new);
@@ -54,6 +58,20 @@ abstract class IngestionModule extends AbstractModule {
     return candlePublisherFactory.create(topic);
   }
 
+  @Provides
+  CoinMarketCapConfig provideCoinMarketCapConfig(Namespace namespace) {
+    String apiKey = namespace.getString("coinmarketcap.apiKey");
+    int topN = namespace.getInt("coinmarketcap.topN");
+    return CoinMarketCapConfig.create(topN, apiKey);    
+  }
+
+  @Provides
+  ProductSubscription provideProductSubscription(CurrencyPairSupply currencyPairSupply) {
+    ProductSubscription.ProductSubscriptionBuilder builder = ProductSubscription.create();
+    currencyPairSupply.currencyPairs().forEach(builder::addTrades);
+    return builder.build();
+  }
+  
   @Provides
   RunMode provideRunMode(Namespace namespace) {
     String runModeName = namespace.getString("runMode").toUpperCase();

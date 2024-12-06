@@ -15,8 +15,8 @@ java_binary(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":ingestion_module",
-        ":market_data_ingestion",
         ":real_time_data_ingestion",
+        ":real_time_data_ingestion_impl",
         ":run_mode",
         ":streaming_exchange_provider",
     ],
@@ -77,6 +77,14 @@ java_library(
 )
 
 java_library(
+    name = "coin_market_cap_config",
+    srcs = ["CoinMarketCapConfig.java"],
+    deps = [
+        "//:autovalue",
+    ],
+)
+
+java_library(
     name = "config_arguments",
     srcs = ["ConfigArguments.java"],
     deps = [
@@ -104,22 +112,39 @@ java_library(
 )
 
 java_library(
-    name = "currency_pair_supplier",
-    srcs = ["CurrencyPairSupplier.java"],
+    name = "currency_pair_supply",
+    srcs = ["CurrencyPairSupply.java"],
     deps = [
         "@maven//:com_google_guava_guava",
-        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:org_knowm_xchange_xchange_core",        
         ":currency_pair_metadata",
     ],
 )
 
 java_library(
-    name = "currency_pair_supplier_impl",
-    srcs = ["CurrencyPairSupplierImpl.java"],
+    name = "currency_pair_supply_impl",
+    srcs = ["CurrencyPairSupplyImpl.java"],
     deps = [
         "@maven//:com_google_guava_guava",
+        "//:autovalue",
         ":currency_pair_metadata",
-        ":currency_pair_supplier",
+        ":currency_pair_supply",
+    ],
+)
+
+java_library(
+    name = "currency_pair_supply_provider",
+    srcs = ["CurrencyPairSupplyProvider.java"],
+    deps = [
+        "@maven//:com_google_code_gson_gson",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_core",
+        ":coin_market_cap_config",
+        ":currency_pair_metadata",
+        ":currency_pair_supply",
+        ":currency_pair_supply_impl",
+        ":http_client",
     ],
 )
 
@@ -129,6 +154,35 @@ genrule(
     outs = ["sha256.sum"],
     cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
     toolchains = ["@jq_toolchains//:resolved_toolchain"],
+)
+
+java_library(
+    name = "http_client",
+    srcs = ["HttpClient.java"],
+)
+
+java_library(
+    name = "http_client_impl",
+    srcs = ["HttpClientImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        ":http_client",
+        ":http_url_connection_factory",
+    ],
+)
+
+java_library(
+    name = "http_url_connection_factory",
+    srcs = ["HttpURLConnectionFactory.java"],
+)
+
+java_library(
+    name = "http_url_connection_factory_impl",
+    srcs = ["HttpURLConnectionFactoryImpl.java"],
+    deps = [
+        "@maven//:com_google_inject_guice",
+        ":http_url_connection_factory",
+    ],
 )
 
 oci_image(
@@ -173,12 +227,17 @@ java_library(
         ":candle_manager_impl",
         ":candle_publisher",
         ":candle_publisher_impl",
+        ":coin_market_cap_config",
         ":config_arguments",
-        ":currency_pair_supplier",
-        ":currency_pair_supplier_impl",
+        ":currency_pair_supply",
+        ":currency_pair_supply_provider",
+        ":http_client",
+        ":http_client_impl",
+        ":http_url_connection_factory",
+        ":http_url_connection_factory_impl",
         ":kafka_producer_provider",
-        ":market_data_ingestion",
         ":real_time_data_ingestion",
+        ":real_time_data_ingestion_impl",
         ":run_mode",
         ":streaming_exchange_provider",
         ":thin_market_timer",
@@ -214,11 +273,6 @@ tar(
 )
 
 java_library(
-    name = "market_data_ingestion",
-    srcs = ["MarketDataIngestion.java"],
-)
-
-java_library(
     name = "price_tracker",
     srcs = ["PriceTracker.java"],
     deps = [
@@ -236,6 +290,11 @@ oci_push(
 java_library(
     name = "real_time_data_ingestion",
     srcs = ["RealTimeDataIngestion.java"],
+)
+
+java_library(
+    name = "real_time_data_ingestion_impl",
+    srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
         "@maven//:com_google_inject_guice",
         "@maven//:io_reactivex_rxjava3_rxjava",
@@ -245,8 +304,8 @@ java_library(
         "//protos:marketdata_java_proto",
         ":candle_manager",
         ":candle_publisher",
-        ":currency_pair_supplier",
-        ":market_data_ingestion",
+        ":currency_pair_supply",
+        ":real_time_data_ingestion",
         ":thin_market_timer",
         ":trade_processor",
     ],
@@ -296,7 +355,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":candle_manager",
-        ":currency_pair_supplier",
+        ":currency_pair_supply",
         ":thin_market_timer_task",
     ],
 )

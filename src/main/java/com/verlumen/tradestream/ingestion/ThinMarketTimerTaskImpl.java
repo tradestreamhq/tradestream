@@ -7,18 +7,18 @@ import com.google.inject.Inject;
 
 final class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {
   private final CandleManager candleManager;
-  private final CurrencyPairSupplier currencyPairSupplier;
+  private final CurrencyPairSupply currencyPairSupply;
 
   @Inject
-  ThinMarketTimerTaskImpl (CandleManager candleManager, CurrencyPairSupplier currencyPairSupplier) {
+  ThinMarketTimerTaskImpl (CandleManager candleManager, CurrencyPairSupply currencyPairSupply) {
       this.candleManager = candleManager;
-      this.currencyPairSupplier = currencyPairSupplier;
+      this.currencyPairSupply = currencyPairSupply;
   }
 
   @Override
   public void run() {
       ImmutableList<String> currencyPairs =
-        currencyPairSupplier
+        currencyPairSupply
         .currencyPairs()
         .stream()
         .map(Object::toString)

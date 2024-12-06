@@ -4,11 +4,12 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
 import org.knowm.xchange.currency.CurrencyPair;
-import java.util.function.Supplier;
 
-interface CurrencyPairSupplier extends Supplier<ImmutableList<CurrencyPairMetadata>> {
+interface CurrencyPairSupply {
+  ImmutableList<CurrencyPairMetadata> metadataList();
+  
   default ImmutableList<CurrencyPair> currencyPairs() {
-    return get()
+    return metadataList()
       .stream()
       .map(CurrencyPairMetadata::currencyPair)
       .collect(toImmutableList());
