@@ -24,6 +24,8 @@ import org.knowm.xchange.dto.marketdata.Trade;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import java.math.BigDecimal;
+import java.util.Date;
 
 @RunWith(JUnit4.class)
 public final class RealTimeDataIngestionImplTest {
@@ -54,6 +56,41 @@ public final class RealTimeDataIngestionImplTest {
         when(mockExchange.connect(any(ProductSubscription.class))).thenReturn(Completable.complete());
         when(mockExchange.disconnect()).thenReturn(Completable.complete());
         when(mockCurrencyPairSupply.currencyPairs()).thenReturn(ImmutableList.of(CURRENCY_PAIR));
+    }
+
+    @Test
+    public void resubscribe_attemptsUpToMaxRetries() {
+        // Arrange
+        Observable<Trade> failingObservable = Observable.error(new RuntimeException("Test error"));
+        when(mockMarketDataService.getTrades(CURRENCY_PAIR)).thenReturn(failingObservable);
+    
+        // Act
+        realTimeDataIngestion.start();
+        // Allow time for retries
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    
+        // Assert
+        // Should attempt initial + 3 retries = 4 total attempts
+        verify(mockMarketDataService, times(4)).getTrades(CURRENCY_PAIR);
+    }
+
+    @Test
+    public void start_includesDetailedConnectionLogging() {
+        // Arrange
+        when(mockExchange.getExchangeSpecification().getExchangeName()).thenReturn("TestExchange");
+        when(mockExchange.getExchangeSpecification().getSslUri()).thenReturn("wss://test.exchange");
+    
+        // Act
+        realTimeDataIngestion.start();
+    
+        // Assert
+        verify(mockExchange).getExchangeSpecification();
+        verify(mockExchange.getExchangeSpecification()).getExchangeName();
+        verify(mockExchange.getExchangeSpecification()).getSslUri();
     }
 
     @Test
