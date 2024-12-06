@@ -296,6 +296,7 @@ java_library(
     name = "real_time_data_ingestion_impl",
     srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
+        "@maven//:com_google_flogger_flogger",
         "@maven//:com_google_inject_guice",
         "@maven//:io_reactivex_rxjava3_rxjava",
         "@maven//:org_knowm_xchange_xchange_core",
@@ -308,6 +309,9 @@ java_library(
         ":real_time_data_ingestion",
         ":thin_market_timer",
         ":trade_processor",
+    ],
+    runtime_deps = [
+        "@maven//:com_google_flogger_flogger_system_backend",
     ],
 )
 
