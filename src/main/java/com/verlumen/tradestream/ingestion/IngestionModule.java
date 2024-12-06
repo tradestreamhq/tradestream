@@ -25,6 +25,8 @@ abstract class IngestionModule extends AbstractModule {
   
   @Override
   protected void configure() {
+    bind(WebSocketHealthMonitor.class).in(Singleton.class);
+
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
     bind(Namespace.class).toProvider(ConfigArguments.create(commandLineArgs()));
@@ -37,8 +39,6 @@ abstract class IngestionModule extends AbstractModule {
     bind(ThinMarketTimer.class).to(ThinMarketTimerImpl.class);
     bind(ThinMarketTimerTask.class).to(ThinMarketTimerTaskImpl.class);
     bind(Timer.class).toProvider(Timer::new);
-
-    bind(WebSocketHealthMonitor.class).in(Singleton.class);
 
     install(new FactoryModuleBuilder()
         .implement(CandleManager.class, CandleManagerImpl.class)
