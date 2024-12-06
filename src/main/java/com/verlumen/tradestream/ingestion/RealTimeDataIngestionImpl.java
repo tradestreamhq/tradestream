@@ -50,14 +50,14 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     @Override
     public void start() {
       exchange.get().connect(productSubscription.get())
-          .subscribe(o -> { // Subscribe inside the connect Observable
+          .subscribe(() -> {
               logger.atInfo().log("Exchange connected successfully!");
               subscribeToTradeStreams();
               thinMarketTimer.get().start();
-            }, throwable -> { // Add error handling!
+          }, throwable -> {
               logger.atSevere().withCause(throwable).log("Error connecting to exchange");
-              // Handle the error appropriately (e.g., retry, exit)
-            });
+              // Optional: Retry logic or exit
+          });
     }
 
     @Override
