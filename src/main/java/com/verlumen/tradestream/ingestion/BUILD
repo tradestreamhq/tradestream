@@ -253,6 +253,7 @@ java_library(
         ":thin_market_timer_task",
         ":thin_market_timer_task_impl",
         ":trade_processor",
+        ":websocket_health_monitor",
     ],
 )
 
@@ -384,3 +385,17 @@ java_library(
         "@maven//:com_google_flogger_flogger_system_backend",
     ],
 )
+
+java_library(
+    name = "websocket_health_monitor",
+    srcs = ["WebSocketHealthMonitor.java"],
+    deps = [
+        "@maven//:com_google_flogger_flogger",
+        "@maven//:com_google_inject_guice",
+        "@maven//:org_knowm_xchange_xchange_stream_core",
+    ],
+    runtime_deps = [
+        "@maven//:com_google_flogger_flogger_system_backend",
+    ],
+)
+
