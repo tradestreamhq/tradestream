@@ -17,6 +17,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.concurrent.TimeUnit;
+
 @RunWith(JUnit4.class)
 public class WebSocketHealthMonitorTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
