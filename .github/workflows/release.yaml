@@ -56,6 +56,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - uses: bazel-contrib/setup-bazel@0.9.1
+        with:
+          # Avoid downloading Bazel every time
+          bazelisk-cache: true
+          # Store build cache per workflow
+          disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows
+          repository-cache: true
+
       - name: Push the Data Ingestion image
         run: |
           bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
@@ -85,3 +94,4 @@ jobs:
           git add charts/tradestream/values.yaml
           git commit -m "Update values.yaml: Set ${{ env.DATA_INGESTION_SECTION_KEY }} image to ${{ steps.create_image_tag.outputs.image_tag }}" || echo "No changes to commit"
           git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
+          
