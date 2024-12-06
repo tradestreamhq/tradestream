@@ -118,8 +118,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     private void subscribeToTradeStreams() {
         currencyPairSupply.get().currencyPairs().stream()
-            .forEach(pair -> {
-                subscriptions.add(subscribeToTradeStream(pair));
-            });
+            .map(this::subscribeToTradeStream)
+            .forEach(subscriptions::add);
     }
 }
