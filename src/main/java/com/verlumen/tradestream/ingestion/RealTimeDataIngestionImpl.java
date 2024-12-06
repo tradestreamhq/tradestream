@@ -92,6 +92,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     }
 
     private Disposable subscribeToTradeStream(CurrencyPair currencyPair) {
+        logger.atInfo().log("Subscribing to trade stream for currency pair: %s", currencyPair);
         return exchange.get()
             .getStreamingMarketDataService()
             .getTrades(currencyPair)
