@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import info.bitrich.xchangestream.core.ProductSubscription;
@@ -27,7 +28,7 @@ abstract class IngestionModule extends AbstractModule {
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
     bind(Namespace.class).toProvider(ConfigArguments.create(commandLineArgs()));
-    bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class);
+    bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class).in(Singleton.class);
 
     bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
     bind(HttpClient.class).to(HttpClientImpl.class);
