@@ -92,7 +92,7 @@ abstract class ConfigArguments implements Provider<Namespace> {
 
     parser.addArgument("--coinmarketcap.topN")
       .type(Integer.class)
-      .setDefault(100)
+      .setDefault(10)
       .help("Number of top cryptocurrencies to track (default: 100)");
 
     // Run mode configuration
