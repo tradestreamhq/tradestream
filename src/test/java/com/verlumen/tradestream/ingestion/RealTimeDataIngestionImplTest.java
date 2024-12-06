@@ -1,29 +1,17 @@
-package com.verlumen.tradestream.ingestion;
-
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
-import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableList;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Provides;
-import com.google.inject.Provider;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.Disposable;
-import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,88 +25,86 @@ import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
 public final class RealTimeDataIngestionImplTest {
-  @Rule public final MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule public final MockitoRule mockitoRule = MockitoJUnit.rule();
 
-  private static final CurrencyPair CURRENCY_PAIR = new CurrencyPair("BTC", "USD");
-  private static final String PAIR_STRING = CURRENCY_PAIR.toString();
-  private static final long TIMESTAMP = 12345L;
+    private static final CurrencyPair CURRENCY_PAIR = new CurrencyPair("BTC", "USD");
+    private static final String PAIR_STRING = CURRENCY_PAIR.toString();
 
-  @Mock @Bind private CandleManager mockCandleManager;
-  @Mock @Bind private CandlePublisher mockCandlePublisher;
-  @Mock @Bind private CurrencyPairSupply mockCurrencyPairSupply;
-  @Mock @Bind private StreamingExchange mockExchange;
-  @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
-  @Bind @Mock private TradeProcessor tradeProcessor;
-  @Mock private StreamingMarketDataService mockMarketDataService;
-  @Mock private Observable<Trade> mockTradeObservable;
+    @Mock @Bind private CandleManager mockCandleManager;
+    @Mock @Bind private CandlePublisher mockCandlePublisher;
+    @Mock @Bind private CurrencyPairSupply mockCurrencyPairSupply;
+    @Mock @Bind private StreamingExchange mockExchange;
+    @Mock @Bind private ProductSubscription mockProductSubscription;
+    @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
+    @Mock @Bind private TradeProcessor mockTradeProcessor;
+    @Mock private StreamingMarketDataService mockMarketDataService;
+    @Mock private Observable<Trade> mockTradeObservable;
 
-  @Inject private RealTimeDataIngestionImpl realTimeDataIngestion;
-  private final List<Disposable> subscriptions = new java.util.ArrayList<>();
+    @Inject private RealTimeDataIngestionImpl realTimeDataIngestion;
 
-  @Before
-  public void setUp() {
-    Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
-  }
+    @Before
+    public void setUp() {
+        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+        
+        // Setup basic mocking behavior
+        when(mockExchange.getStreamingMarketDataService()).thenReturn(mockMarketDataService);
+        when(mockMarketDataService.getTrades(any(CurrencyPair.class))).thenReturn(mockTradeObservable);
+        when(mockExchange.connect(any(ProductSubscription.class))).thenReturn(Completable.complete());
+        when(mockExchange.disconnect()).thenReturn(Completable.complete());
+        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(ImmutableList.of(CURRENCY_PAIR));
+    }
 
-  @Test
-  public void start_connectsToExchange() {
-    // Arrange
-    when(mockExchange.getStreamingMarketDataService()).thenReturn(mockMarketDataService);
-    when(mockMarketDataService.getTrades(any())).thenReturn(mockTradeObservable);
-    doReturn(mockTradeObservable)
-        .when(mockMarketDataService)
-        .getTrades(any(CurrencyPair.class));
+    @Test
+    public void start_connectsToExchange() {
+        // Act
+        realTimeDataIngestion.start();
 
-    // Act
-    realTimeDataIngestion.start();
+        // Assert
+        verify(mockExchange).connect(any(ProductSubscription.class));
+    }
 
-    // Assert
-    verify(mockExchange).connect();
-  }
+    @Test
+    public void start_subscribesToTradeStreams() {
+        // Act
+        realTimeDataIngestion.start();
 
-@Test
-public void start_subscribesToTradeStreams() {
-    // Arrange
-    when(mockCurrencyPairSupply.currencyPairs()).thenReturn(ImmutableList.of(CURRENCY_PAIR));
-    when(mockExchange.getStreamingMarketDataService()).thenReturn(mockMarketDataService);
-    when(mockMarketDataService.getTrades(CURRENCY_PAIR)).thenReturn(mockTradeObservable);
+        // Assert
+        verify(mockMarketDataService).getTrades(CURRENCY_PAIR);
+    }
 
-    // Act
-    realTimeDataIngestion.start();
+    @Test
+    public void start_startsThinMarketTimer() {
+        // Act
+        realTimeDataIngestion.start();
 
-    // Assert
-    verify(mockMarketDataService).getTrades(CURRENCY_PAIR);
-}
+        // Assert
+        verify(mockThinMarketTimer).start();
+    }
 
-  @Test
-  public void start_startsThinMarketTimer() {
-    realTimeDataIngestion.start();
-    verify(mockThinMarketTimer).start();
-  }
+    @Test
+    public void shutdown_disconnectsFromExchange() {
+        // Act
+        realTimeDataIngestion.shutdown();
 
-  @Test
-  public void shutdown_disposesSubscriptions() {
-    Disposable mockDisposable = mock(Disposable.class);
-    subscriptions.add(mockDisposable);
-    realTimeDataIngestion.shutdown();
-    verify(mockDisposable).dispose();
-  }
+        // Assert
+        verify(mockExchange).disconnect();
+    }
 
-  @Test
-  public void shutdown_stopsThinMarketTimer() {
-    realTimeDataIngestion.shutdown();
-    verify(mockThinMarketTimer).stop();
-  }
+    @Test
+    public void shutdown_closesCandlePublisher() {
+        // Act
+        realTimeDataIngestion.shutdown();
 
-  @Test
-  public void shutdown_disconnectsFromExchange() {
-    realTimeDataIngestion.shutdown();
-    verify(mockExchange).disconnect();
-  }
+        // Assert
+        verify(mockCandlePublisher).close();
+    }
 
-  @Test
-  public void shutdown_closesCandlePublisher() {
-    realTimeDataIngestion.shutdown();
-    verify(mockCandlePublisher).close();
-  }
+    @Test
+    public void shutdown_stopsThinMarketTimer() {
+        // Act
+        realTimeDataIngestion.shutdown();
+
+        // Assert
+        verify(mockThinMarketTimer).stop();
+    }
 }
