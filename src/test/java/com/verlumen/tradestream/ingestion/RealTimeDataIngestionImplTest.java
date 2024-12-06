@@ -24,7 +24,10 @@ import org.knowm.xchange.dto.marketdata.Trade;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
 import java.math.BigDecimal;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.Date;
 
 @RunWith(JUnit4.class)
@@ -61,34 +64,38 @@ public final class RealTimeDataIngestionImplTest {
     @Test
     public void resubscribe_attemptsUpToMaxRetries() {
         // Arrange
-        Observable<Trade> failingObservable = Observable.error(new RuntimeException("Test error"));
+        CountDownLatch retryLatch = new CountDownLatch(4); // Initial + 3 retries
+        Observable<Trade> failingObservable = Observable.error(new RuntimeException("Test error"))
+            .doOnError(throwable -> retryLatch.countDown());
         when(mockMarketDataService.getTrades(CURRENCY_PAIR)).thenReturn(failingObservable);
     
         // Act
         realTimeDataIngestion.start();
-        // Allow time for retries
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
     
         // Assert
-        // Should attempt initial + 3 retries = 4 total attempts
-        verify(mockMarketDataService, times(4)).getTrades(CURRENCY_PAIR);
+        try {
+            boolean completed = retryLatch.await(1, TimeUnit.SECONDS);
+            assertThat(completed).isTrue();
+            verify(mockMarketDataService, times(4)).getTrades(CURRENCY_PAIR);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            fail("Test interrupted while waiting for retries");
+        }
     }
 
     @Test
     public void start_includesDetailedConnectionLogging() {
         // Arrange
+        when(mockExchange.getExchangeSpecification()).thenReturn(mock(ExchangeSpecification.class));
         when(mockExchange.getExchangeSpecification().getExchangeName()).thenReturn("TestExchange");
         when(mockExchange.getExchangeSpecification().getSslUri()).thenReturn("wss://test.exchange");
+        when(mockExchange.connect(any())).thenReturn(Completable.complete());
     
         // Act
         realTimeDataIngestion.start();
     
         // Assert
-        verify(mockExchange).getExchangeSpecification();
+        verify(mockExchange, atLeastOnce()).getExchangeSpecification();
         verify(mockExchange.getExchangeSpecification()).getExchangeName();
         verify(mockExchange.getExchangeSpecification()).getSslUri();
     }
