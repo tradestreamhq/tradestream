@@ -177,12 +177,12 @@ java_test(
     name = "WebSocketHealthMonitorTest",
     srcs = ["WebSocketHealthMonitorTest.java"],
     deps = [
-        ":websocket_health_monitor",
         "@maven//:com_google_inject_extensions_guice_testlib",
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",
         "@maven//:org_knowm_xchange_xchange_stream_core",
+        "//src/main/java/com/verlumen/tradestream/ingestion:websocket_health_monitor",
     ],
 )
