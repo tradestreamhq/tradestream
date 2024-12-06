@@ -1,3 +1,8 @@
+package com.verlumen.tradestream.ingestion;
+
+import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.Trade;
+
 /**
  * Builds candle (OHLCV) data from a stream of trades for a specific currency pair and time interval.
  * This builder accumulates trade data and generates a candle representing price movements and volume
