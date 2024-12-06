@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.verlumen.tradestream.marketdata.Trade;
@@ -15,6 +16,8 @@ import java.util.List;
 import java.util.UUID;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
     private final Provider<CurrencyPairSupply> currencyPairSupply;
@@ -46,9 +49,15 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     @Override
     public void start() {
-        exchange.get().connect(productSubscription.get()).blockingAwait();
-        subscribeToTradeStreams();
-        thinMarketTimer.get().start();
+      exchange.get().connect(productSubscription.get())
+          .subscribe(() -> {
+              logger.atInfo().log("Exchange connected successfully!");
+              subscribeToTradeStreams();
+              thinMarketTimer.get().start();
+          }, throwable -> {
+              logger.atSevere().withCause(throwable).log("Error connecting to exchange");
+              // Optional: Retry logic or exit
+          });
     }
 
     @Override
@@ -83,19 +92,21 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     }
 
     private Disposable subscribeToTradeStream(CurrencyPair currencyPair) {
-        return exchange
-            .get()
+        return exchange.get()
             .getStreamingMarketDataService()
             .getTrades(currencyPair)
-            .subscribe(trade -> handleTrade(trade, currencyPair.toString()));
+            .subscribe(
+                trade -> handleTrade(trade, currencyPair.toString()),
+                throwable -> { // Handle errors during subscription
+                  logger.atSevere().withCause(throwable).log("Error subscribing to %s", currencyPair);
+                  // Implement retry logic or other error handling if needed
+                });
     }
 
     private void subscribeToTradeStreams() {
-        currencyPairSupply
-            .get()
-            .currencyPairs()
-            .stream()
-            .map(this::subscribeToTradeStream)
-            .forEach(subscriptions::add);
+        currencyPairSupply.get().currencyPairs().stream()
+            .forEach(pair -> {
+                subscriptions.add(subscribeToTradeStream(pair)); // Collect disposables
+            });
     }
 }
