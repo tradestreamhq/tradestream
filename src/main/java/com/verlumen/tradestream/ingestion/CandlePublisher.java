@@ -4,7 +4,7 @@ import com.verlumen.tradestream.marketdata.Candle;
 
 import java.time.Duration;
 
-public interface CandlePublisher {
+interface CandlePublisher {
     void publishCandle(Candle candle);
 
     void close();
