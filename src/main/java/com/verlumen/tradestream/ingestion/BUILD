@@ -18,7 +18,6 @@ java_binary(
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
         ":run_mode",
-        ":streaming_exchange_provider",
     ],
     runtime_deps = [
         "@maven//:com_google_flogger_flogger_system_backend",
@@ -290,7 +289,6 @@ java_library(
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
         ":run_mode",
-        ":streaming_exchange_provider",
         ":thin_market_timer",
         ":thin_market_timer_impl",
         ":thin_market_timer_task",
@@ -366,17 +364,6 @@ java_library(
 java_library(
     name = "run_mode",
     srcs = ["RunMode.java"],
-)
-
-java_library(
-    name = "streaming_exchange_provider",
-    srcs = ["StreamingExchangeProvider.java"],
-    deps = [
-        "@maven//:com_google_inject_guice",
-        "@maven//:org_knowm_xchange_xchange_core",
-        "@maven//:org_knowm_xchange_xchange_stream_core",
-        "@maven//:net_sourceforge_argparse4j_argparse4j",
-    ],
 )
 
 java_library(
