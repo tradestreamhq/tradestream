@@ -7,4 +7,4 @@ import java.util.TimerTask;
  * This can be used in conjunction with the ThinMarketTimer to perform specific actions,
  * such as forcing the generation of candles when there is little to no trading activity.
  */
-abstract class AbstractThinMarketTimerTask extends TimerTask {}
+abstract class ThinMarketTimerTask extends TimerTask {}
