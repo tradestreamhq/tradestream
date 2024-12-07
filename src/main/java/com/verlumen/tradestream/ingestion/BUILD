@@ -85,6 +85,11 @@ java_library(
 )
 
 java_library(
+    name = "coinbase_streaming_client",
+    srcs = ["CoinbaseStreamingClient.java"],
+)
+
+java_library(
     name = "coin_market_cap_config",
     srcs = ["CoinMarketCapConfig.java"],
     deps = [
