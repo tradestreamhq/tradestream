@@ -154,9 +154,12 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         events.getAsJsonArray("trades").forEach(tradeElement -> {
             try {
                 JsonObject tradeJson = tradeElement.getAsJsonObject();
-                
+        
+                // Correct timestamp parsing
+                long timestamp = Instant.parse(tradeJson.get("time").getAsString()).toEpochMilli();
+        
                 Trade trade = Trade.newBuilder()
-                    .setTimestamp(tradeJson.get("timestamp").getAsLong())
+                    .setTimestamp(timestamp)
                     .setExchange(getExchangeName())
                     .setCurrencyPair(tradeJson.get("product_id").getAsString().replace("-", "/"))
                     .setPrice(tradeJson.get("price").getAsDouble())
@@ -170,8 +173,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                     logger.atWarning().log("Received trade but no handler is registered");
                 }
             } catch (Exception e) {
-                logger.atWarning().withCause(e)
-                    .log("Failed to process trade: %s", tradeElement);
+                logger.atWarning().withCause(e).log("Failed to process trade: %s", tradeElement);
             }
         });
     }
