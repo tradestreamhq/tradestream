@@ -284,22 +284,4 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             candleManager.getActiveBuilderCount()
         );
     }
-
-    private void subscribeToTradeStreams() {
-        logger.atInfo().log("Setting up trade stream subscriptions for %d currency pairs", 
-            currencyPairSupply.get().currencyPairs().size());
-
-        currencyPairSupply.get().currencyPairs().stream()
-            .map(pair -> {
-                logger.atFine().log("Creating subscription for %s", pair);
-                return subscribeToTradeStream(pair);
-            })
-            .forEach(subscription -> {
-                subscriptions.add(subscription);
-                logger.atFine().log("Added subscription, total count: %d", subscriptions.size());
-            });
-
-        logger.atInfo().log("Successfully created %d trade stream subscriptions", 
-            subscriptions.size());
-    }
 }
