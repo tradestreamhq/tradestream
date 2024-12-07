@@ -163,10 +163,10 @@ public class CoinbaseStreamingClientTest {
         verify(mockTradeHandler).accept(tradeCaptor.capture());
         
         Trade trade = tradeCaptor.getValue();
-        assertThat(trade.getTimestamp()).isEqualTo(1234567890);
+        assertThat(trade.getTimestamp()).isEqualTo(Instant.parse("2024-12-07T09:48:31.810058685Z").toEpochMilli());
         assertThat(trade.getCurrencyPair()).isEqualTo("BTC/USD");
-        assertThat(trade.getPrice()).isEqualTo(50000.00);
-        assertThat(trade.getVolume()).isEqualTo(1.0);
+        assertThat(trade.getPrice()).isEqualTo(50775.00);
+        assertThat(trade.getVolume()).isEqualTo(0.00516);
         assertThat(trade.getTradeId()).isEqualTo("12345");
         assertThat(trade.getExchange()).isEqualTo("coinbase");
     }
