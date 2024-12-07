@@ -22,16 +22,19 @@ final class CandleManagerImpl implements CandleManager {
         @Assisted long candleIntervalMillis,
         @Assisted CandlePublisher candlePublisher
     ) {
+        logger.atInfo().log("Initializing CandleManager with interval: %d ms", candleIntervalMillis);
         this.priceTracker = priceTracker;
         this.candleIntervalMillis = candleIntervalMillis;
         this.candlePublisher = candlePublisher;
+        logger.atInfo().log("CandleManager initialization complete");
     }
 
     @Override
     public void processTrade(Trade trade) {
         long minuteTimestamp = getMinuteTimestamp(trade.getTimestamp());
         String key = getCandleKey(trade.getCurrencyPair(), minuteTimestamp);
-        logger.atFine().log("Processing trade for candle key: %s", key);
+        logger.atFine().log("Processing trade for candle key: %s, trade ID: %s, price: %f", 
+            key, trade.getTradeId(), trade.getPrice());
 
         CandleBuilder builder = candleBuilders.computeIfAbsent(
             key,
@@ -43,7 +46,12 @@ final class CandleManagerImpl implements CandleManager {
         );
 
         builder.addTrade(trade);
+        logger.atFine().log("Updated candle builder for %s with trade: price=%f, volume=%f",
+            key, trade.getPrice(), trade.getVolume());
+
         priceTracker.updateLastPrice(trade.getCurrencyPair(), trade.getPrice());
+        logger.atFine().log("Updated last price for %s to %f", 
+            trade.getCurrencyPair(), trade.getPrice());
 
         if (isIntervalComplete(minuteTimestamp)) {
             logger.atInfo().log("Interval complete for %s, publishing candle", key);
@@ -53,29 +61,37 @@ final class CandleManagerImpl implements CandleManager {
 
     @Override
     public void handleThinlyTradedMarkets(List<String> currencyPairs) {
-        logger.atInfo().log("Handling thin market update for %d pairs", currencyPairs.size());
+        logger.atInfo().log("Handling thin market update for %d currency pairs", currencyPairs.size());
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
+        
         for (String pair : currencyPairs) {
             String key = getCandleKey(pair, currentMinute);
             CandleBuilder builder = candleBuilders.get(key);
             
             if (builder == null || !builder.hasTrades()) {
-                logger.atInfo().log("Generating empty candle for thinly traded pair: %s", pair);
+                logger.atInfo().log("No trades found for %s in current interval, generating empty candle", pair);
                 generateEmptyCandle(pair, currentMinute);
             } else {
-                logger.atFine().log("Skipping thin market handling for %s - has trades", pair);
+                logger.atFine().log("Skipping thin market handling for %s - active trades exist", pair);
             }
         }
+        logger.atInfo().log("Completed thin market handling for %d pairs", currencyPairs.size());
     }
 
     @Override
     public int getActiveBuilderCount() {
-        return candleBuilders.size();
+        int count = candleBuilders.size();
+        logger.atFine().log("Current active builder count: %d", count);
+        return count;
     }
 
     private void generateEmptyCandle(String currencyPair, long timestamp) {
         double lastPrice = priceTracker.getLastPrice(currencyPair);
+        logger.atFine().log("Generating empty candle for %s at %d with last price %f", 
+            currencyPair, timestamp, lastPrice);
+
         if (!Double.isNaN(lastPrice)) {
+            logger.atFine().log("Creating empty candle with last known price for %s", currencyPair);
             CandleBuilder builder = new CandleBuilder(currencyPair, timestamp);
             builder.addTrade(Trade.newBuilder()
                 .setPrice(lastPrice)
@@ -83,13 +99,24 @@ final class CandleManagerImpl implements CandleManager {
                 .setCurrencyPair(currencyPair)
                 .setTimestamp(timestamp)
                 .build());
+            
             publishAndRemoveCandle(getCandleKey(currencyPair, timestamp), builder);
+        } else {
+            logger.atWarning().log("No last price available for %s, skipping empty candle generation", 
+                currencyPair);
         }
     }
 
     private void publishAndRemoveCandle(String key, CandleBuilder builder) {
-        candlePublisher.publishCandle(builder.build());
+        Candle candle = builder.build();
+        logger.atInfo().log("Publishing candle for %s: open=%f, high=%f, low=%f, close=%f, volume=%f",
+            candle.getCurrencyPair(), candle.getOpen(), candle.getHigh(), 
+            candle.getLow(), candle.getClose(), candle.getVolume());
+            
+        candlePublisher.publishCandle(candle);
         candleBuilders.remove(key);
+        logger.atFine().log("Removed builder for key: %s, remaining builders: %d", 
+            key, candleBuilders.size());
     }
 
     private String getCandleKey(String currencyPair, long minuteTimestamp) {
@@ -101,6 +128,10 @@ final class CandleManagerImpl implements CandleManager {
     }
 
     private boolean isIntervalComplete(long timestamp) {
-        return System.currentTimeMillis() >= timestamp + candleIntervalMillis;
+        boolean isComplete = System.currentTimeMillis() >= timestamp + candleIntervalMillis;
+        if (isComplete) {
+            logger.atFine().log("Interval complete for timestamp %d", timestamp);
+        }
+        return isComplete;
     }
 }
