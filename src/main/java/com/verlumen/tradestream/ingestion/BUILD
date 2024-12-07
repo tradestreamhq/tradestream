@@ -160,6 +160,8 @@ java_library(
     name = "exchange_streaming_client",
     srcs = ["ExchangeStreamingClient.java"],
     deps = [
+        "@maven//:com_google_guava_guava",
+        "//protos:marketdata_java_proto",
     ],
 )
 
