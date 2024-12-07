@@ -53,7 +53,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         logger.atInfo().log("Starting real-time data ingestion with %d currency pairs: %s", 
             currencyPairs.size(), currencyPairs);
     
-        connectToExchange();
+        connectToExchange(currencyPairs);
         exchange.getStreamingMarketDataService()
                 .getTrades(CurrencyPair.BTC_USDT)
                 .subscribe(trade -> {
@@ -112,13 +112,10 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         logger.atInfo().log("Shutdown sequence complete");
     }
 
-    private void connectToExchange() {
+    private void connectToExchange(ImmutableList<CurrencyPair> currencyPairs) {
         logger.atInfo().log("Connecting to exchange...");
-        ProductSubscription productSubscription = ProductSubscription.create()
-            .addTrades(CurrencyPair.BTC_USDT)
-            .build();
-        exchange.get().connect(productSubscription.get()).blockingAwait();
-        exchange.connect(subscription).blockingAwait();
+        ProductSubscription productSubscription = createProductSubscription();
+        exchange.get().connect(productSubscription).blockingAwait();
     }
 
     private Trade convertTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String pair) {
@@ -147,6 +144,12 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
         logger.atFine().log("Successfully converted trade: %s", trade);
         return trade;
+    }
+
+    private ProductSubscription createProductSubscription(ImmutableList<CurrencyPair> currencyPairs) {
+        ProductSubscription.ProductSubscriptionBuilder builder = ProductSubscription.create();
+        currencyPairs.forEach(builder::addTrades);
+        return builder.build();
     }
 
     private void handleTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String currencyPair) {
