@@ -188,6 +188,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         "//protos:marketdata_java_proto",
+        ":coinbase_streaming_client",
         ":exchange_streaming_client",
     ],
 )
