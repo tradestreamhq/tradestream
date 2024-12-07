@@ -23,6 +23,6 @@ final class ExchangeStreamingClientFactory implements ExchangeStreamingClient.Fa
   @Override
   public ExchangeStreamingClient create(String exchangeName) {
     checkArgument(clientMap.contains(exchangeName));
-    return clientMap.get(exchangeName);
+    return clientMap.get(exchangeName).get();
   }
 }
