@@ -8,11 +8,11 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 final class ExchangeStreamingClientFactory implements ExchangeStreamingClient.Factory {
-  private final ImmutableMap<String, Provider<ExchangeStreamingClient>> clientMap;
+  private final ImmutableMap<String, Provider<? extends ExchangeStreamingClient>> clientMap;
 
   @Inject
   ExchangeStreamingClientFactory(Provider<CoinbaseStreamingClient> coinbaseStreamingClient) {
-    this.clientMap = ImmutableMap.<String, Provider<ExchangeStreamingClient>>builder()
+    this.clientMap = ImmutableMap.<String, Provider<? extends ExchangeStreamingClient>>builder()
       .put("coinbase", coinbaseStreamingClient)
       .buildOrThrow();
   }
