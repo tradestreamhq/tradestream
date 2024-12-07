@@ -21,6 +21,7 @@ import com.verlumen.tradestream.marketdata.Trade;
  */
 final class CandleBuilder {
     // The currency pair this candle represents (e.g. "BTC/USD")
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final String currencyPair;
     
     // Unix timestamp in milliseconds marking the start of this candle's interval
@@ -45,6 +46,7 @@ final class CandleBuilder {
      * @param timestamp The starting timestamp for this candle's interval in Unix milliseconds
      */
     CandleBuilder(String currencyPair, long timestamp) {
+        logger.atInfo().log("Creating new CandleBuilder for %s at timestamp %d", currencyPair, timestamp);
         this.currencyPair = currencyPair;
         this.timestamp = timestamp;
     }
@@ -57,26 +59,42 @@ final class CandleBuilder {
      * @param trade The trade to process, must not be null
      */
     void addTrade(Trade trade) {
+        logger.atInfo().log("Adding trade to candle for %s: price=%f, volume=%f", 
+            currencyPair, trade.getPrice(), trade.getVolume());
+        
         double price = trade.getPrice();
         double tradeVolume = trade.getVolume();
 
         // For first trade, initialize all price fields
         if (Double.isNaN(open)) {
+            logger.atInfo().log("First trade for candle %s, initializing OHLC values to %f", 
+                currencyPair, price);
             open = price;
             high = price;
             low = price;
         } else {
             // Update high/low water marks if applicable
-            high = Math.max(high, price);
-            low = Math.min(low, price);
+            if (price > high) {
+                logger.atInfo().log("New high price for %s: %f", currencyPair, price);
+                high = price;
+            }
+            if (price < low) {
+                logger.atInfo().log("New low price for %s: %f", currencyPair, price);
+                low = price;
+            }
         }
 
         // Most recent trade's price becomes the close
         close = price;
+        logger.atFine().log("Updated close price for %s to %f", currencyPair, close);
         
         // Add this trade's volume to accumulated total
         volume += tradeVolume;
+        logger.atFine().log("Updated accumulated volume for %s to %f", currencyPair, volume);
+        
         hasTrades = true;
+        logger.atFine().log("Candle state after trade: open=%f, high=%f, low=%f, close=%f, volume=%f",
+            open, high, low, close, volume);
     }
 
     /**
@@ -95,6 +113,9 @@ final class CandleBuilder {
      * @return A new immutable Candle instance
      */
     Candle build() {
+        logger.atInfo().log("Building candle for %s: timestamp=%d, open=%f, high=%f, low=%f, close=%f, volume=%f",
+            currencyPair, timestamp, open, high, low, close, volume);
+        
         return Candle.newBuilder()
                 .setTimestamp(timestamp)
                 .setCurrencyPair(currencyPair)
