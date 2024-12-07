@@ -271,7 +271,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             candleManager.getActiveBuilderCount()
         );
     }
-}
 
     private void logSystemState() {
         logger.atInfo().log(
