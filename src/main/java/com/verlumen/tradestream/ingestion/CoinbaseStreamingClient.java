@@ -27,17 +27,19 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     private static final String WEBSOCKET_URL = "wss://advanced-trade-ws.coinbase.com";
     private static final int PRODUCTS_PER_CONNECTION = 15;
     
-    private final List<WebSocket> connections = new CopyOnWriteArrayList<>();
-    private final Map<WebSocket, List<String>> connectionProducts = new ConcurrentHashMap<>();
+    private final List<WebSocket> connections;
+    private final Map<WebSocket, List<String>> connectionProducts;
     private Consumer<Trade> tradeHandler;
     
     @Inject
-    CoinbaseStreamingClient() {}
+    CoinbaseStreamingClient(HttpClient httpClient) {
+        this.connectionProducts = new ConcurrentHashMap<>();
+        this.connections = new CopyOnWriteArrayList<>();
+        this.httpClient = httpClient;
+    }
 
     @Override
-    public void startStreaming(ImmutableList<String> currencyPairs, Consumer<Trade> tradeHandler) {
-        this.tradeHandler = tradeHandler;
-        
+    public void startStreaming(ImmutableList<String> currencyPairs, Consumer<Trade> tradeHandler) {       
         // Convert currency pairs to Coinbase product IDs
         ImmutableList<String> productIds = currencyPairs.stream()
             .map(pair -> pair.replace("/", "-"))
@@ -89,7 +91,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
 
     private void connectToWebSocket(List<String> productIds) {
         try {
-            WebSocket.Builder builder = HttpClient.newHttpClient().newWebSocketBuilder();
+            WebSocket.Builder builder = httpClient.newWebSocketBuilder();
             WebSocket webSocket = builder.buildAsync(URI.create(WEBSOCKET_URL), new WebSocketListener())
                 .join();
             connections.add(webSocket);
