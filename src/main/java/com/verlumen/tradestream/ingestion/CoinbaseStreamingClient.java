@@ -102,9 +102,10 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         JsonObject subscribeMessage = new JsonObject();
         subscribeMessage.addProperty("type", "subscribe");
         subscribeMessage.addProperty("channel", "market_trades");
-        JsonObject productIdsObject = new JsonObject();
-        productIdsObject.addProperty("product_ids", String.join(",", productIds));
-        subscribeMessage.add("product_ids", productIdsObject);
+        
+        JsonArray productIdsArray = new JsonArray();
+        productIds.forEach(productIdsArray::add);
+        subscribeMessage.add("product_ids", productIdsArray);
         
         webSocket.sendText(subscribeMessage.toString(), true);
         logger.atInfo().log("Sent subscription message for %d products: %s", 
