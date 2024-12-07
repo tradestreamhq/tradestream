@@ -29,6 +29,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     
     private final Map<WebSocket, List<String>> connectionProducts;
     private final List<WebSocket> connections;
+    private final HttpClient httpClient;
     private Consumer<Trade> tradeHandler;
     
     @Inject
