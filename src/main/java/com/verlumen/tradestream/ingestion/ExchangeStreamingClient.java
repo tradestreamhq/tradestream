@@ -2,6 +2,7 @@ package com.verlumen.tradestream.ingestion;
 
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.marketdata.Trade;
+
 import java.util.function.Consumer;
 
 /**
