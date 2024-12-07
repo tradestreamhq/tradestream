@@ -3,7 +3,7 @@ package com.verlumen.tradestream.ingestion;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.verlumen.tradestream.marketdata.Trade;
@@ -19,8 +19,9 @@ final class ExchangeStreamingClientFactory implements ExchangeStreamingClient.Fa
       .put("coinbase", coinbaseStreamingClient)
       .buildOrThrow();
   }
-    
-  ExchangeStreamingClient create(String exchangeName) {
+
+  @Override
+  public ExchangeStreamingClient create(String exchangeName) {
     checkArgument(clientMap.contains(exchangeName));
     return clientMap.get(exchangeName);
   }
