@@ -36,11 +36,8 @@ import java.util.function.Consumer;
 
 @RunWith(JUnit4.class)
 public class CoinbaseStreamingClientTest {
-    @Rule public MockitoRule mockito = MockitoJUnit.rule();
-
-    private static final String WEBSOCKET_URL = "wss://advanced-trade-ws.coinbase.com";
-    private static final ImmutableList<String> TEST_PAIRS = 
-        ImmutableList.of("BTC/USD", "ETH/USD");
+    @Rule 
+    public MockitoRule mockito = MockitoJUnit.rule();
 
     @Mock @Bind private Consumer<Trade> mockTradeHandler;
     @Mock @Bind private HttpClient mockHttpClient;
@@ -49,21 +46,15 @@ public class CoinbaseStreamingClientTest {
 
     @Inject private CoinbaseStreamingClient client;
 
-    private ArgumentCaptor<WebSocket.Listener> listenerCaptor;
-    private CompletableFuture<WebSocket> webSocketFuture;
-
     @Before
     public void setUp() {
-        listenerCaptor = ArgumentCaptor.forClass(WebSocket.Listener.class);
-    
-        webSocketFuture = new CompletableFuture<>();
-        webSocketFuture.complete(mockWebSocket);
-    
+        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+
         when(mockHttpClient.newWebSocketBuilder()).thenReturn(mockWebSocketBuilder);
         when(mockWebSocketBuilder.buildAsync(any(URI.class), any(WebSocket.Listener.class)))
-            .thenReturn(webSocketFuture);
-    
-        when(mockWebSocket.sendText(anyString(), anyBoolean())).thenReturn(CompletableFuture.completedFuture(null)); 
+            .thenReturn(CompletableFuture.completedFuture(mockWebSocket));
+        when(mockWebSocket.sendText(anyString(), anyBoolean()))
+            .thenReturn(CompletableFuture.completedFuture(null));
     }
 
     @Test
