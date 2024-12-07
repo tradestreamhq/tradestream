@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -22,7 +23,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private final CandlePublisher candlePublisher;
     private final Provider<CurrencyPairSupply> currencyPairSupply;
     private final Provider<StreamingExchange> exchange;
-    private final Provider<ProductSubscription> productSubscription;
     private final List<Disposable> subscriptions;
     private final Provider<ThinMarketTimer> thinMarketTimer;
     private final TradeProcessor tradeProcessor;
@@ -33,7 +33,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         CandlePublisher candlePublisher,
         Provider<CurrencyPairSupply> currencyPairSupply,
         Provider<StreamingExchange> exchange,
-        Provider<ProductSubscription> productSubscription,
         Provider<ThinMarketTimer> thinMarketTimer,
         TradeProcessor tradeProcessor
     ) {
@@ -42,7 +41,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         this.candlePublisher = candlePublisher;
         this.currencyPairSupply = currencyPairSupply;
         this.exchange = exchange;
-        this.productSubscription = productSubscription;
         this.subscriptions = new ArrayList<>();
         this.thinMarketTimer = thinMarketTimer;
         this.tradeProcessor = tradeProcessor;
@@ -51,27 +49,19 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     @Override
     public void start() {
+        ImmutableList<CurrencyPair> currencyPairs = currencyPairSupply.get().currencyPairs();
+
         logger.atInfo().log("Starting real-time data ingestion with %d currency pairs: %s", 
-            currencyPairSupply.get().currencyPairs().size(),
-            currencyPairSupply.get().currencyPairs());
+            currencyPairs.size(), currencyPairs);
     
-        logger.atInfo().log("Connecting to exchange...");
-        exchange.get().connect(productSubscription.get())
-            .subscribe(
-                () -> {
-                    logger.atInfo().log("Exchange connected successfully! Exchange status: alive=%b", 
-                        exchange.get().isAlive());
-                    logger.atInfo().log("Starting trade stream subscriptions...");
-                    subscribeToTradeStreams();
-                    logger.atInfo().log("Starting thin market timer...");
-                    thinMarketTimer.get().start();
-                    logger.atInfo().log("Real-time data ingestion system fully initialized and running");
-                }, 
-                throwable -> {
-                    logger.atSevere().withCause(throwable)
-                        .log("Fatal error connecting to exchange");
-                    throw new RuntimeException("Failed to connect to exchange", throwable);
-                });
+        connectToExchange(currencyPairs);
+        logger.atInfo().log("Exchange connected successfully! Exchange status: alive=%b", 
+            exchange.get().isAlive());
+        logger.atInfo().log("Starting trade stream subscriptions...");
+        subscribeToTradeStreams();
+        logger.atInfo().log("Starting thin market timer...");
+        thinMarketTimer.get().start();
+        logger.atInfo().log("Real-time data ingestion system fully initialized and running");
     }
 
     @Override
@@ -110,6 +100,12 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         logger.atInfo().log("Shutdown sequence complete");
     }
 
+    private void connectToExchange(ImmutableList<CurrencyPair> currencyPairs) {
+        logger.atInfo().log("Connecting to exchange...");
+        ProductSubscription productSubscription = createProductSubscription(currencyPairs);
+        exchange.get().connect(productSubscription).blockingAwait();
+    }
+
     private Trade convertTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String pair) {
         logger.atFine().log("Converting trade for pair %s: price=%f, volume=%f, id=%s", 
             pair, 
@@ -136,6 +132,12 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
         logger.atFine().log("Successfully converted trade: %s", trade);
         return trade;
+    }
+
+    private ProductSubscription createProductSubscription(ImmutableList<CurrencyPair> currencyPairs) {
+        ProductSubscription.ProductSubscriptionBuilder builder = ProductSubscription.create();
+        currencyPairs.forEach(builder::addTrades);
+        return builder.build();
     }
 
     private void handleTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String currencyPair) {

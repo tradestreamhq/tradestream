@@ -8,7 +8,6 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import net.sourceforge.argparse4j.inf.Namespace;
 
@@ -63,13 +62,6 @@ abstract class IngestionModule extends AbstractModule {
     String apiKey = namespace.getString("coinmarketcap.apiKey");
     int topN = namespace.getInt("coinmarketcap.topN");
     return CoinMarketCapConfig.create(topN, apiKey);    
-  }
-
-  @Provides
-  ProductSubscription provideProductSubscription(CurrencyPairSupply currencyPairSupply) {
-    ProductSubscription.ProductSubscriptionBuilder builder = ProductSubscription.create();
-    currencyPairSupply.currencyPairs().forEach(builder::addTrades);
-    return builder.build();
   }
   
   @Provides
