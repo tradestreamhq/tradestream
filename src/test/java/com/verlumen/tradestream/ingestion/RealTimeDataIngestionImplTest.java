@@ -33,15 +33,17 @@ public class RealTimeDataIngestionImplTest {
     @Mock @Bind private CandleManager mockCandleManager;
     @Mock @Bind private CandlePublisher mockCandlePublisher;
     @Mock @Bind private CurrencyPairSupply mockCurrencyPairSupply;
-    @Mock @Bind private ExchangeStreamingClient mockExchangeClient;
+    @Mock @Bind private ExchangeStreamingClient.Factory mockExchangeClientFactory;
     @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
     @Mock @Bind private TradeProcessor mockTradeProcessor;
+    @Mock private ExchangeStreamingClient mockExchangeClient;
 
     @Inject private RealTimeDataIngestionImpl realTimeDataIngestion;
 
     @Before
     public void setUp() {
         when(mockCurrencyPairSupply.symbols()).thenReturn(TEST_CURRENCY_PAIRS);
+        when(mockExchangeClientFactory.create(TEST_EXCHANGE)).thenReturn(mockExchangeClient);
         when(mockExchangeClient.getExchangeName()).thenReturn(TEST_EXCHANGE);
 
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
