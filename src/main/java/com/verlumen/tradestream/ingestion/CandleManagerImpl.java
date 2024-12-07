@@ -87,35 +87,41 @@ final class CandleManagerImpl implements CandleManager {
 
     private void generateEmptyCandle(String currencyPair, long timestamp) {
         double lastPrice = priceTracker.getLastPrice(currencyPair);
-        logger.atFine().log("Generating empty candle for %s at %d with last price %f", 
+        logger.atInfo().log("Generating empty candle for %s at timestamp %d with last price %f",
             currencyPair, timestamp, lastPrice);
 
-        if (!Double.isNaN(lastPrice)) {
-            logger.atFine().log("Creating empty candle with last known price for %s", currencyPair);
-            CandleBuilder builder = new CandleBuilder(currencyPair, timestamp);
-            builder.addTrade(Trade.newBuilder()
-                .setPrice(lastPrice)
-                .setVolume(0)
-                .setCurrencyPair(currencyPair)
-                .setTimestamp(timestamp)
-                .build());
-            
-            publishAndRemoveCandle(getCandleKey(currencyPair, timestamp), builder);
-        } else {
-            logger.atWarning().log("No last price available for %s, skipping empty candle generation", 
+        if (Double.isNaN(lastPrice)) {
+            logger.atWarning().log("No last price available for %s, unable to generate empty candle", 
                 currencyPair);
+            return;
         }
+            
+        logger.atInfo().log("Creating empty candle with last known price %f for %s", 
+            lastPrice, currencyPair);
+        CandleBuilder builder = new CandleBuilder(currencyPair, timestamp);
+        builder.addTrade(Trade.newBuilder()
+            .setPrice(lastPrice)
+            .setVolume(0)
+            .setCurrencyPair(currencyPair)
+            .setTimestamp(timestamp)
+            .build());
+        publishAndRemoveCandle(getCandleKey(currencyPair, timestamp), builder);
     }
 
     private void publishAndRemoveCandle(String key, CandleBuilder builder) {
         Candle candle = builder.build();
-        logger.atInfo().log("Publishing candle for %s: open=%f, high=%f, low=%f, close=%f, volume=%f",
-            candle.getCurrencyPair(), candle.getOpen(), candle.getHigh(), 
-            candle.getLow(), candle.getClose(), candle.getVolume());
-            
+        logger.atInfo().log("Publishing candle for %s: timestamp=%d, open=%f, high=%f, low=%f, close=%f, volume=%f",
+            candle.getCurrencyPair(), 
+            candle.getTimestamp(),
+            candle.getOpen(),
+            candle.getHigh(),
+            candle.getLow(),
+            candle.getClose(),
+            candle.getVolume());
+                
         candlePublisher.publishCandle(candle);
         candleBuilders.remove(key);
-        logger.atFine().log("Removed builder for key: %s, remaining builders: %d", 
+        logger.atInfo().log("Removed builder for key %s, active builders remaining: %d", 
             key, candleBuilders.size());
     }
 
