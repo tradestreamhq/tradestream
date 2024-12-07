@@ -30,13 +30,15 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     private final Map<WebSocket, List<String>> connectionProducts;
     private final List<WebSocket> connections;
     private final HttpClient httpClient;
+    private final Map<WebSocket, CompletableFuture<Void>> pendingMessages;
     private Consumer<Trade> tradeHandler;
-    
+
     @Inject
     CoinbaseStreamingClient(HttpClient httpClient) {
         this.connectionProducts = new ConcurrentHashMap<>();
         this.connections = new CopyOnWriteArrayList<>();
         this.httpClient = httpClient;
+        this.pendingMessages = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -98,6 +100,11 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             connections.add(webSocket);
             connectionProducts.put(webSocket, new ArrayList<>(productIds));
             subscribe(webSocket, productIds);
+            
+            // Subscribe to heartbeats only on the first connection
+            if (connections.size() == 1) {
+                subscribeToHeartbeat(webSocket);
+            }
         } catch (Exception e) {
             logger.atSevere().withCause(e).log("Failed to establish WebSocket connection");
             throw new RuntimeException("WebSocket connection failed", e);
@@ -224,8 +231,8 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             logger.atInfo().log("WebSocket closed: %d %s", statusCode, reason);
             connections.remove(webSocket);
             
-            // Attempt to reconnect if this wasn't an intentional shutdown
-            if (!connections.isEmpty()) {
+            // Only attempt reconnection for non-normal closures
+            if (statusCode != WebSocket.NORMAL_CLOSURE && !connections.isEmpty()) {
                 List<String> productIds = connectionProducts.remove(webSocket);
                 if (productIds != null && !productIds.isEmpty()) {
                     logger.atInfo().log("Attempting to reconnect for products: %s", productIds);
