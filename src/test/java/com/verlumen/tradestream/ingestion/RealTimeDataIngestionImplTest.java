@@ -31,20 +31,18 @@ public class RealTimeDataIngestionImplTest {
         ImmutableList.of("BTC/USD", "ETH/USD");
     private static final String TEST_EXCHANGE = "test-exchange";
 
-    @Mock @Bind private CandleManager mockCandleManager;
-    @Mock @Bind private CandlePublisher mockCandlePublisher;
+    @Mock private CandleManager mockCandleManager;
+    @Mock private CandlePublisher mockCandlePublisher;
     @Mock @Bind private CurrencyPairSupply mockCurrencyPairSupply;
-    @Mock @Bind private Provider<CurrencyPairSupply> mockCurrencyPairSupplyProvider;
-    @Mock @Bind private ExchangeStreamingClient mockExchangeClient;
-    @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
+    @Mock private ExchangeStreamingClient mockExchangeClient;
+    @Mock private ThinMarketTimer mockThinMarketTimer;
     @Mock @Bind private Provider<ThinMarketTimer> mockThinMarketTimerProvider;
-    @Mock @Bind private TradeProcessor mockTradeProcessor;
+    @Mock private TradeProcessor mockTradeProcessor;
 
     @Inject private RealTimeDataIngestionImpl realTimeDataIngestion;
 
     @Before
     public void setUp() {
-        when(mockCurrencyPairSupplyProvider.get()).thenReturn(mockCurrencyPairSupply);
         when(mockCurrencyPairSupply.symbols()).thenReturn(TEST_CURRENCY_PAIRS);
         when(mockThinMarketTimerProvider.get()).thenReturn(mockThinMarketTimer);
         when(mockExchangeClient.getExchangeName()).thenReturn(TEST_EXCHANGE);
