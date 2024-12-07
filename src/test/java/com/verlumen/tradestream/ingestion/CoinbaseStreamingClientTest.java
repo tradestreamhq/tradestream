@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Guice;
@@ -90,9 +91,10 @@ public class CoinbaseStreamingClientTest {
         JsonObject message = JsonParser.parseString(messageCaptor.getValue()).getAsJsonObject();
         assertThat(message.get("type").getAsString()).isEqualTo("subscribe");
         assertThat(message.get("channel").getAsString()).isEqualTo("market_trades");
-        assertThat(message.getAsJsonObject("product_ids").get("product_ids").getAsString())
-            .contains("BTC-USD")
-            .contains("ETH-USD");
+
+        String productIds = message.getAsJsonObject("product_ids").get("product_ids").getAsString();
+        assertThat(productIds).contains("BTC-USD");
+        assertThat(productIds).contains("ETH-USD");
     }
 
     @Test
@@ -113,6 +115,7 @@ public class CoinbaseStreamingClientTest {
                 "subscribe".equals(json.get("type").getAsString()) &&
                 "heartbeats".equals(json.get("channel").getAsString())
             );
+            
         assertThat(foundHeartbeat).isTrue();
     }
 
