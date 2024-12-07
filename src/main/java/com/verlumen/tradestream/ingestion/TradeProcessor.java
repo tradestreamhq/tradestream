@@ -26,7 +26,14 @@ abstract class TradeProcessor {
      * @return A new TradeProcessor instance
      */
     static TradeProcessor create(long candleIntervalMillis) {
-        return new AutoValue_TradeProcessor(candleIntervalMillis, ConcurrentHashMap.newKeySet());
+        logger.atInfo().log("Creating new TradeProcessor with candle interval: %d ms", 
+            candleIntervalMillis);
+        TradeProcessor processor = new AutoValue_TradeProcessor(
+            candleIntervalMillis, 
+            ConcurrentHashMap.newKeySet()
+        );
+        logger.atInfo().log("TradeProcessor created successfully");
+        return processor;
     }
     
     /**
@@ -48,22 +55,27 @@ abstract class TradeProcessor {
      * @return true if this trade is a duplicate, false if it's new
      */
     boolean isProcessed(Trade trade) {
+        logger.atFine().log("Checking if trade is processed: ID=%s, timestamp=%d, pair=%s", 
+            trade.getTradeId(), trade.getTimestamp(), trade.getCurrencyPair());
+
+        long intervalTimestamp = getMinuteTimestamp(trade.getTimestamp());
+        logger.atFine().log("Calculated interval timestamp: %d", intervalTimestamp);
+
         // Create a unique key combining trade ID and its candle interval
-        CandleKey key = CandleKey.create(
-            trade.getTradeId(), 
-            getMinuteTimestamp(trade.getTimestamp())
-        );
+        CandleKey key = CandleKey.create(trade.getTradeId(), intervalTimestamp);
         
         // Attempt to add to processed set - returns false if already present
         boolean isDuplicate = !processedTrades().add(key);
         
         if (isDuplicate) {
-            logger.atFine().log("Detected duplicate trade: ID=%s, timestamp=%d", 
-                trade.getTradeId(), trade.getTimestamp());
+            logger.atInfo().log("Detected duplicate trade: ID=%s, timestamp=%d, pair=%s", 
+                trade.getTradeId(), trade.getTimestamp(), trade.getCurrencyPair());
+        } else {
+            logger.atFine().log("New trade detected: ID=%s, timestamp=%d, pair=%s", 
+                trade.getTradeId(), trade.getTimestamp(), trade.getCurrencyPair());
         }
         
-        logger.atFine().log("Trade processor state: processed trades=%d", 
-            processedTrades().size());
+        logger.atFine().log("Current processed trades count: %d", processedTrades().size());
         return isDuplicate;
     }
 
@@ -74,7 +86,10 @@ abstract class TradeProcessor {
      * @return The start timestamp of the containing candle interval
      */
     long getMinuteTimestamp(long timestamp) {
-        return (timestamp / candleIntervalMillis()) * candleIntervalMillis();
+        long intervalTimestamp = (timestamp / candleIntervalMillis()) * candleIntervalMillis();
+        logger.atFine().log("Converted timestamp %d to interval timestamp %d", 
+            timestamp, intervalTimestamp);
+        return intervalTimestamp;
     }
 
     /**
@@ -83,6 +98,8 @@ abstract class TradeProcessor {
     @AutoValue
     abstract static class CandleKey {
         private static CandleKey create(String tradeId, long minuteTimestamp) {
+            logger.atFine().log("Creating new CandleKey: tradeId=%s, minuteTimestamp=%d", 
+                tradeId, minuteTimestamp);
             return new AutoValue_TradeProcessor_CandleKey(tradeId, minuteTimestamp);
         }
     
