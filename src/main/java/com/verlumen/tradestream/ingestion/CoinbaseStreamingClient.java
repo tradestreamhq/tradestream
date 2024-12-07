@@ -56,11 +56,6 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         for (List<String> group : productGroups) {
             connectToWebSocket(group);
         }
-        
-        // Subscribe to heartbeats on first connection
-        if (!connections.isEmpty()) {
-            subscribeToHeartbeat(connections.get(0));
-        }
     }
 
     @Override
