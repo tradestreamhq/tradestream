@@ -28,7 +28,11 @@ java_library(
     name = "candle_builder",
     srcs = ["CandleBuilder.java"],
     deps = [
+        "@maven//:com_google_flogger_flogger",
         "//protos:marketdata_java_proto",
+    ],
+    runtime_deps = [
+        "@maven//:com_google_flogger_flogger_system_backend",
     ],
 )
 
