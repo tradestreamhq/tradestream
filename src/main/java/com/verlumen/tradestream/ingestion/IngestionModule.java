@@ -64,13 +64,6 @@ abstract class IngestionModule extends AbstractModule {
     int topN = namespace.getInt("coinmarketcap.topN");
     return CoinMarketCapConfig.create(topN, apiKey);    
   }
-
-  @Provides
-  ProductSubscription provideProductSubscription(CurrencyPairSupply currencyPairSupply) {
-    ProductSubscription.ProductSubscriptionBuilder builder = ProductSubscription.create();
-    currencyPairSupply.currencyPairs().forEach(builder::addTrades);
-    return builder.build();
-  }
   
   @Provides
   RunMode provideRunMode(Namespace namespace) {
