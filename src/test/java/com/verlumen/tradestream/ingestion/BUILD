@@ -68,6 +68,23 @@ java_test(
 )
 
 java_test(
+    name = "CoinbaseStreamingClientTest",
+    srcs = ["CoinbaseStreamingClientTest.java"],
+    deps = [
+        "@maven//:com_google_inject_extensions_guice_testlib",
+        "@maven//:com_google_inject_guice",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
+        "@maven//:org_mockito_mockito_core",
+        "@maven//:com_google_code_gson_gson",
+        "@maven//:com_google_guava_guava",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ingestion:coinbase_streaming_client",
+        "//src/main/java/com/verlumen/tradestream/ingestion:exchange_streaming_client",
+    ],
+)
+
+java_test(
     name = "HttpClientImplTest",
     srcs = ["HttpClientImplTest.java"],
     deps = [
