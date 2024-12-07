@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.common.flogger.FluentLogger;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.Trade;
 
