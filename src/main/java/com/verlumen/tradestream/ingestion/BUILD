@@ -348,10 +348,14 @@ java_library(
     name = "thin_market_timer_impl",
     srcs = ["ThinMarketTimerImpl.java"],
     deps = [
+        "@maven//:com_google_flogger_flogger",
         "@maven//:com_google_inject_guice",
         "@maven//:org_knowm_xchange_xchange_core",
         ":thin_market_timer",
         ":thin_market_timer_task",
+    ],
+    runtime_deps = [
+        "@maven//:com_google_flogger_flogger_system_backend",
     ],
 )
 
