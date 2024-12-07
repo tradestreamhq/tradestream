@@ -102,7 +102,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     private void connectToExchange(ImmutableList<CurrencyPair> currencyPairs) {
         logger.atInfo().log("Connecting to exchange...");
-        ProductSubscription productSubscription = createProductSubscription();
+        ProductSubscription productSubscription = createProductSubscription(currencyPairs);
         exchange.get().connect(productSubscription).blockingAwait();
     }
 
