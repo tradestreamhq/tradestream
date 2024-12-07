@@ -173,9 +173,13 @@ java_library(
     name = "http_client_impl",
     srcs = ["HttpClientImpl.java"],
     deps = [
+        "@maven//:com_google_flogger_flogger",
         "@maven//:com_google_inject_guice",
         ":http_client",
         ":http_url_connection_factory",
+    ],
+    runtime_deps = [
+        "@maven//:com_google_flogger_flogger_system_backend",
     ],
 )
 
