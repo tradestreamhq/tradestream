@@ -150,7 +150,13 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             return;
         }
     
-        JsonArray events = message.getAsJsonArray("events");
+        JsonElement eventsElement = message.get("events");
+        if (!eventsElement.isJsonArray()) {
+            logger.atWarning().log("Events field is not an array: %s", message);
+            return;
+        }
+
+        JsonArray events = eventsElement.getAsJsonArray();
         for (JsonElement event : events) {
             JsonObject eventObj = event.getAsJsonObject();
             if (!eventObj.has("trades")) {
@@ -158,7 +164,13 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                 continue;
             }
             
-            JsonArray trades = eventObj.getAsJsonArray("trades");
+            JsonElement tradesElement = eventObj.get("trades");
+            if (!tradesElement.isJsonArray()) {
+                logger.atWarning().log("Trades field is not an array: %s", eventObj);
+                continue;
+            }
+            
+            JsonArray trades = tradesElement.getAsJsonArray();
             trades.forEach(tradeElement -> {
                 try {
                     JsonObject tradeJson = tradeElement.getAsJsonObject();
