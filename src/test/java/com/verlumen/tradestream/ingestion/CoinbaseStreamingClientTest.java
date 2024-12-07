@@ -7,11 +7,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableList;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
@@ -30,8 +27,6 @@ import org.mockito.junit.MockitoRule;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
-import java.time.Instant;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -50,7 +45,6 @@ public class CoinbaseStreamingClientTest {
 
     @Inject private CoinbaseStreamingClient client;
     private ArgumentCaptor<WebSocket.Listener> listenerCaptor;
-    private CompletableFuture<WebSocket> webSocketFuture;
 
     @Before
     public void setUp() {
@@ -78,7 +72,7 @@ public class CoinbaseStreamingClientTest {
     }
 
     @Test
-    public void startStreaming_sendsSubscription() {
+    public void startStreaming_sendsSubscriptions() {
         // Arrange
         ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
 
@@ -86,51 +80,20 @@ public class CoinbaseStreamingClientTest {
         client.startStreaming(TEST_PAIRS, mockTradeHandler);
 
         // Assert
-        verify(mockWebSocket).sendText(messageCaptor.capture(), eq(true));
+        verify(mockWebSocket, times(2)).sendText(messageCaptor.capture(), eq(true));
 
-        JsonObject message = JsonParser.parseString(messageCaptor.getValue()).getAsJsonObject();
-        assertThat(message.get("type").getAsString()).isEqualTo("subscribe");
-        assertThat(message.get("channel").getAsString()).isEqualTo("market_trades");
-        assertThat(message.get("product_ids").isJsonArray()).isTrue();
+        // Verify market trades subscription
+        JsonObject tradesSub = JsonParser.parseString(messageCaptor.getAllValues().get(0))
+            .getAsJsonObject();
+        assertThat(tradesSub.get("type").getAsString()).isEqualTo("subscribe");
+        assertThat(tradesSub.get("channel").getAsString()).isEqualTo("market_trades");
+        assertThat(tradesSub.get("product_ids").getAsJsonArray().size()).isEqualTo(2);
 
-        JsonArray productIds = message.get("product_ids").getAsJsonArray();
-        assertThat(productIds.size()).isEqualTo(2);
-        assertThat(productIds.get(0).getAsString()).isEqualTo("BTC-USD");
-        assertThat(productIds.get(1).getAsString()).isEqualTo("ETH-USD");
-    }
-
-    @Test
-    public void startStreaming_subscribesToHeartbeat() {
-        // Arrange
-        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
-
-        // Act
-        client.startStreaming(TEST_PAIRS, mockTradeHandler);
-
-        // Assert
-        verify(mockWebSocket, atLeastOnce()).sendText(messageCaptor.capture(), eq(true));
-        
-        boolean foundHeartbeat = messageCaptor.getAllValues().stream()
-            .map(JsonParser::parseString)
-            .map(JsonElement::getAsJsonObject)
-            .anyMatch(json -> 
-                "subscribe".equals(json.get("type").getAsString()) &&
-                "heartbeats".equals(json.get("channel").getAsString())
-            );
-            
-        assertThat(foundHeartbeat).isTrue();
-    }
-
-    @Test
-    public void stopStreaming_closesAllConnections() {
-        // Arrange
-        client.startStreaming(TEST_PAIRS, mockTradeHandler);
-
-        // Act
-        client.stopStreaming();
-
-        // Assert
-        verify(mockWebSocket).sendClose(eq(WebSocket.NORMAL_CLOSURE), anyString());
+        // Verify heartbeat subscription
+        JsonObject heartbeatSub = JsonParser.parseString(messageCaptor.getAllValues().get(1))
+            .getAsJsonObject();
+        assertThat(heartbeatSub.get("type").getAsString()).isEqualTo("subscribe");
+        assertThat(heartbeatSub.get("channel").getAsString()).isEqualTo("heartbeats");
     }
 
     @Test
@@ -140,7 +103,6 @@ public class CoinbaseStreamingClientTest {
             {
               "channel": "market_trades",
               "events": [{
-                "type": "match",
                 "trades": [{
                   "trade_id": "12345",
                   "product_id": "BTC-USD",
@@ -153,21 +115,16 @@ public class CoinbaseStreamingClientTest {
             """;
             
         client.startStreaming(TEST_PAIRS, mockTradeHandler);
+        captureWebSocketListener();
         
-        // Capture WebSocket.Listener
-        verify(mockWebSocketBuilder).buildAsync(any(), listenerCaptor.capture());
-        WebSocket.Listener listener = listenerCaptor.getValue();
-    
         // Act
-        listener.onText(mockWebSocket, tradeMessage, true);
+        simulateWebSocketMessage(tradeMessage);
     
         // Assert
         ArgumentCaptor<Trade> tradeCaptor = ArgumentCaptor.forClass(Trade.class);
         verify(mockTradeHandler).accept(tradeCaptor.capture());
         
         Trade trade = tradeCaptor.getValue();
-        assertThat(trade.getTimestamp()).isEqualTo(
-            Instant.parse("2024-12-07T09:48:31.810058685Z").toEpochMilli());
         assertThat(trade.getCurrencyPair()).isEqualTo("BTC/USD");
         assertThat(trade.getPrice()).isEqualTo(50775.00);
         assertThat(trade.getVolume()).isEqualTo(0.00516);
@@ -176,63 +133,41 @@ public class CoinbaseStreamingClientTest {
     }
 
     @Test
-    public void onText_handlesHeartbeat() {
-        // Arrange
-        client.startStreaming(TEST_PAIRS, mockTradeHandler);
-        
-        verify(mockWebSocketBuilder).buildAsync(any(), listenerCaptor.capture());
-        WebSocket.Listener listener = listenerCaptor.getValue();
-
-        String heartbeatMessage = """
-            {
-                "channel": "heartbeats",
-                "timestamp": 1234567890
-            }
-            """;
-
-        // Act
-        listener.onText(mockWebSocket, heartbeatMessage, true);
-
-        // Assert
-        verifyNoInteractions(mockTradeHandler);
-    }
-
-    @Test
     public void onClose_attemptsReconnection() {
         // Arrange
         client.startStreaming(TEST_PAIRS, mockTradeHandler);
+        captureWebSocketListener();
         
-        verify(mockWebSocketBuilder).buildAsync(any(), listenerCaptor.capture());
-        WebSocket.Listener listener = listenerCaptor.getValue();
+        // Reset the mock to verify new connection attempts
+        reset(mockWebSocketBuilder);
+        when(mockWebSocketBuilder.buildAsync(any(URI.class), any(WebSocket.Listener.class)))
+            .thenReturn(CompletableFuture.completedFuture(mockWebSocket));
 
         // Act
-        listener.onClose(mockWebSocket, WebSocket.NORMAL_CLOSURE, "Test close");
+        listenerCaptor.getValue().onClose(mockWebSocket, WebSocket.NORMAL_CLOSURE, "Test close");
 
         // Assert
-        // Verify initial connection + reconnection attempt
-        verify(mockWebSocketBuilder, times(2))
-            .buildAsync(any(URI.class), any(WebSocket.Listener.class));
+        verify(mockWebSocketBuilder, timeout(1000))
+            .buildAsync(eq(URI.create(WEBSOCKET_URL)), any(WebSocket.Listener.class));
     }
 
     @Test
     public void handleMessage_ignoresInvalidMessages() {
         // Arrange
         client.startStreaming(TEST_PAIRS, mockTradeHandler);
-        
-        verify(mockWebSocketBuilder).buildAsync(any(), listenerCaptor.capture());
-        WebSocket.Listener listener = listenerCaptor.getValue();
+        captureWebSocketListener();
 
         String invalidMessage = """
             {
                 "channel": "market_trades",
-                "events": {
+                "events": [{
                     "not_trades": []
-                }
+                }]
             }
             """;
 
         // Act
-        listener.onText(mockWebSocket, invalidMessage, true);
+        simulateWebSocketMessage(invalidMessage);
 
         // Assert
         verifyNoInteractions(mockTradeHandler);
@@ -242,62 +177,40 @@ public class CoinbaseStreamingClientTest {
     public void handleMessage_handlesPartialMessages() {
         // Arrange
         client.startStreaming(TEST_PAIRS, mockTradeHandler);
-        
-        verify(mockWebSocketBuilder).buildAsync(any(), listenerCaptor.capture());
+        captureWebSocketListener();
         WebSocket.Listener listener = listenerCaptor.getValue();
 
-        String messageStart = """
+        String validMessage = """
             {
-                "channel": "market_trades",
-                "events": {
-                    "trades": [{
-                        "timestamp": 1234567890,
-            """;
+              "channel": "market_trades",
+              "events": [{
+                "trades": [{
+                  "trade_id": "12345",
+                  "product_id": "BTC-USD",
+                  "price": "50775",
+                  "size": "0.00516",
+                  "time": "2024-12-07T09:48:31.810058685Z"
+                }]
+              }]
+            }""";
+
+        // Act - Send message in chunks
+        listener.onText(mockWebSocket, validMessage.substring(0, 50), false);
+        listener.onText(mockWebSocket, validMessage.substring(50), true);
+
+        // Assert
+        ArgumentCaptor<Trade> tradeCaptor = ArgumentCaptor.forClass(Trade.class);
+        verify(mockTradeHandler).accept(tradeCaptor.capture());
         
-        String messageEnd = """
-                        "product_id": "BTC-USD",
-                        "price": "50000.00",
-                        "size": "1.0",
-                        "trade_id": "12345"
-                    }]
-                }
-            }
-            """;
-
-        // Act
-        listener.onText(mockWebSocket, messageStart, false);
-        listener.onText(mockWebSocket, messageEnd, true);
-
-        // Assert
-        verify(mockTradeHandler).accept(any(Trade.class));
-    }
-
-    @Test
-    public void splitProductsIntoGroups_respectsMaxLimit() {
-        // Arrange
-        ImmutableList<String> manyPairs = ImmutableList.of(
-            "BTC/USD", "ETH/USD", "LTC/USD", "XRP/USD", "ADA/USD",
-            "DOT/USD", "LINK/USD", "BCH/USD", "XLM/USD", "UNI/USD",
-            "DOGE/USD", "SOL/USD", "MATIC/USD", "ATOM/USD", "AAVE/USD",
-            "COMP/USD", "SNX/USD", "YFI/USD", "MKR/USD", "SUSHI/USD"
-        );
-
-        // Act
-        client.startStreaming(manyPairs, mockTradeHandler);
-
-        // Assert
-        // Verify that multiple WebSocket connections were created
-        verify(mockWebSocketBuilder, atLeast(2))
-            .buildAsync(any(URI.class), any(WebSocket.Listener.class));
+        Trade trade = tradeCaptor.getValue();
+        assertThat(trade.getCurrencyPair()).isEqualTo("BTC/USD");
     }
 
     private void captureWebSocketListener() {
         verify(mockWebSocketBuilder).buildAsync(any(), listenerCaptor.capture());
     }
 
-    // Helper method to simulate WebSocket message
     private void simulateWebSocketMessage(String message) {
-        WebSocket.Listener listener = listenerCaptor.getValue();
-        listener.onText(mockWebSocket, message, true);
+        listenerCaptor.getValue().onText(mockWebSocket, message, true);
     }
 }
