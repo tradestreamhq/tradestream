@@ -49,19 +49,22 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     @Override
     public void start() {
-      logger.atInfo().log("Starting real-time data ingestion with %d currency pairs", 
-          currencyPairSupply.get().currencyPairs().size());
-      exchange.get().connect(productSubscription.get())
-          .subscribe(() -> {
-              logger.atInfo().log("Exchange connected successfully!");
-              subscribeToTradeStreams();
-              thinMarketTimer.get().start();
-              logger.atInfo().log("Real-time data ingestion started successfully");
-          }, throwable -> {
-              logger.atSevere().withCause(throwable).log("Error connecting to exchange");
-              logger.atInfo().log("Active subscriptions: %d", subscriptions.size());
-              logger.atSevere().log("Connection error details: %s", throwable.getMessage());
-          });
+        logger.atInfo().log("Starting real-time data ingestion with %d currency pairs: %s", 
+            currencyPairSupply.get().currencyPairs().size(),
+            currencyPairSupply.get().currencyPairs()); // Log the actual pairs
+    
+        exchange.get().connect(productSubscription.get())
+            .subscribe(
+                () -> {
+                    logger.atInfo().log("Exchange connected successfully! Exchange alive status: %b", 
+                        exchange.get().isAlive());
+                    subscribeToTradeStreams();
+                    thinMarketTimer.get().start();
+                    logger.atInfo().log("Real-time data ingestion started successfully");
+                }, 
+                throwable -> {
+                    logger.atSevere().withCause(throwable).log("Error connecting to exchange");
+                });
     }
 
     @Override
@@ -106,13 +109,22 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     private Disposable subscribeToTradeStream(CurrencyPair currencyPair) {
         logger.atInfo().log("Subscribing to trade stream for currency pair: %s", currencyPair);
+        
         return exchange.get()
             .getStreamingMarketDataService()
             .getTrades(currencyPair)
+            .doOnSubscribe(d -> logger.atInfo().log("Successfully subscribed to %s", currencyPair))
+            .doOnError(e -> logger.atSevere().withCause(e).log("Error in trade stream for %s", currencyPair))
             .subscribe(
-                trade -> handleTrade(trade, currencyPair.toString()),
+                trade -> {
+                    logger.atInfo().log("Received trade for %s: price=%f, amount=%f", 
+                        currencyPair, trade.getPrice().doubleValue(), 
+                        trade.getOriginalAmount().doubleValue());
+                    handleTrade(trade, currencyPair.toString());
+                },
                 throwable -> {
-                    logger.atSevere().withCause(throwable).log("Error subscribing to %s", currencyPair);
+                    logger.atSevere().withCause(throwable)
+                        .log("Error subscribing to %s", currencyPair);
                 });
     }
 
