@@ -228,8 +228,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             logger.atInfo().log("WebSocket closed: %d %s", statusCode, reason);
             connections.remove(webSocket);
             
-            // Only attempt reconnection for non-normal closures
-            if (statusCode != WebSocket.NORMAL_CLOSURE && !connections.isEmpty()) {
+            if (statusCode != WebSocket.NORMAL_CLOSURE) {
                 List<String> productIds = connectionProducts.remove(webSocket);
                 if (productIds != null && !productIds.isEmpty()) {
                     logger.atInfo().log("Attempting to reconnect for products: %s", productIds);
