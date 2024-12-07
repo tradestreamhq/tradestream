@@ -6,23 +6,20 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.verlumen.tradestream.marketdata.Trade;
-
-import java.util.function.Consumer;
 
 final class ExchangeStreamingClientFactory implements ExchangeStreamingClient.Factory {
-  private final ImmutableMap<String, Provider<ExchangeStreamingClient>> clientMap;
+  private final ImmutableMap<String, Provider<? extends ExchangeStreamingClient>> clientMap;
 
   @Inject
-  ExchangeStreamingClient(Provider<CoinbaseStreamingClient> coinbaseStreamingClient) {
-    this.clientMap = ImmutableMap.builder()
+  ExchangeStreamingClientFactory(Provider<CoinbaseStreamingClient> coinbaseStreamingClient) {
+    this.clientMap = ImmutableMap.<String, Provider<? extends ExchangeStreamingClient>>builder()
       .put("coinbase", coinbaseStreamingClient)
       .buildOrThrow();
   }
 
   @Override
   public ExchangeStreamingClient create(String exchangeName) {
-    checkArgument(clientMap.contains(exchangeName));
-    return clientMap.get(exchangeName);
+    checkArgument(clientMap.containsKey(exchangeName), "Unsupported exchange: " + exchangeName);
+    return clientMap.get(exchangeName).get();
   }
 }
