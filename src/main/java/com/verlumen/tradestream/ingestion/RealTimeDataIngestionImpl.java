@@ -55,26 +55,13 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             currencyPairs.size(), currencyPairs);
     
         connectToExchange(currencyPairs);
-        exchange.getStreamingMarketDataService()
-                .getTrades(CurrencyPair.BTC_USDT)
-                .subscribe(trade -> {
-                    Log.i(TAG, "Trade: " + trade);
-                });
-            .subscribe(
-                () -> {
-                    logger.atInfo().log("Exchange connected successfully! Exchange status: alive=%b", 
-                        exchange.get().isAlive());
-                    logger.atInfo().log("Starting trade stream subscriptions...");
-                    subscribeToTradeStreams();
-                    logger.atInfo().log("Starting thin market timer...");
-                    thinMarketTimer.get().start();
-                    logger.atInfo().log("Real-time data ingestion system fully initialized and running");
-                }, 
-                throwable -> {
-                    logger.atSevere().withCause(throwable)
-                        .log("Fatal error connecting to exchange");
-                    throw new RuntimeException("Failed to connect to exchange", throwable);
-                });
+        logger.atInfo().log("Exchange connected successfully! Exchange status: alive=%b", 
+            exchange.get().isAlive());
+        logger.atInfo().log("Starting trade stream subscriptions...");
+        subscribeToTradeStreams();
+        logger.atInfo().log("Starting thin market timer...");
+        thinMarketTimer.get().start();
+        logger.atInfo().log("Real-time data ingestion system fully initialized and running");
     }
 
     @Override
