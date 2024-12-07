@@ -8,7 +8,6 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import net.sourceforge.argparse4j.inf.Namespace;
 
