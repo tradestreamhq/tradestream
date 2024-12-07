@@ -94,7 +94,7 @@ java_library(
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_code_gson_gson",
         "//protos:marketdata_java_proto",
-        ":exchange_streaming",
+        ":exchange_streaming_client",
     ],
     runtime_deps = [
         "@maven//:com_google_flogger_flogger_system_backend",
