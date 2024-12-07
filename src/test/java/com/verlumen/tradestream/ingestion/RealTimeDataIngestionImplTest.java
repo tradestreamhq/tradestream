@@ -45,7 +45,7 @@ public class RealTimeDataIngestionImplTest {
     @Before
     public void setUp() {
         when(mockCurrencyPairSupplyProvider.get()).thenReturn(mockCurrencyPairSupply);
-        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(TEST_CURRENCY_PAIRS);
+        when(mockCurrencyPairSupply.symbols()).thenReturn(TEST_CURRENCY_PAIRS);
         when(mockThinMarketTimerProvider.get()).thenReturn(mockThinMarketTimer);
         when(mockExchangeClient.getExchangeName()).thenReturn(TEST_EXCHANGE);
 
@@ -174,7 +174,7 @@ public class RealTimeDataIngestionImplTest {
     public void start_usesCorrectCurrencyPairs() {
         // Arrange
         ImmutableList<String> expectedPairs = ImmutableList.of("TEST1/USD", "TEST2/USD");
-        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(expectedPairs);
+        when(mockCurrencyPairSupply.symbols()).thenReturn(expectedPairs);
 
         // Act
         realTimeDataIngestion.start();
