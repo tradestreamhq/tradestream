@@ -42,7 +42,9 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     }
 
     @Override
-    public void startStreaming(ImmutableList<String> currencyPairs, Consumer<Trade> tradeHandler) {       
+    public void startStreaming(ImmutableList<String> currencyPairs, Consumer<Trade> tradeHandler) {
+        this.tradeHandler = tradeHandler;
+
         // Convert currency pairs to Coinbase product IDs
         ImmutableList<String> productIds = currencyPairs.stream()
             .map(pair -> pair.replace("/", "-"))
