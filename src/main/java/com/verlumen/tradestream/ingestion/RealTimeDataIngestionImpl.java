@@ -22,7 +22,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private final CandlePublisher candlePublisher;
     private final Provider<CurrencyPairSupply> currencyPairSupply;
     private final Provider<StreamingExchange> exchange;
-    private final Provider<ProductSubscription> productSubscription;
     private final List<Disposable> subscriptions;
     private final Provider<ThinMarketTimer> thinMarketTimer;
     private final TradeProcessor tradeProcessor;
@@ -33,7 +32,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         CandlePublisher candlePublisher,
         Provider<CurrencyPairSupply> currencyPairSupply,
         Provider<StreamingExchange> exchange,
-        Provider<ProductSubscription> productSubscription,
         Provider<ThinMarketTimer> thinMarketTimer,
         TradeProcessor tradeProcessor
     ) {
@@ -42,7 +40,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         this.candlePublisher = candlePublisher;
         this.currencyPairSupply = currencyPairSupply;
         this.exchange = exchange;
-        this.productSubscription = productSubscription;
         this.subscriptions = new ArrayList<>();
         this.thinMarketTimer = thinMarketTimer;
         this.tradeProcessor = tradeProcessor;
@@ -56,7 +53,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             currencyPairSupply.get().currencyPairs());
     
         logger.atInfo().log("Connecting to exchange...");
-        exchange.get().connect(productSubscription.get())
+        exchange.get().connect(productSubscription.get()).blockingAwait();
             .subscribe(
                 () -> {
                     logger.atInfo().log("Exchange connected successfully! Exchange status: alive=%b", 
