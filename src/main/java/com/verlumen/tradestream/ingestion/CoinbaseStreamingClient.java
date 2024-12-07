@@ -27,8 +27,8 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     private static final String WEBSOCKET_URL = "wss://advanced-trade-ws.coinbase.com";
     private static final int PRODUCTS_PER_CONNECTION = 15;
     
-    private final List<WebSocket> connections;
     private final Map<WebSocket, List<String>> connectionProducts;
+    private final List<WebSocket> connections;
     private Consumer<Trade> tradeHandler;
     
     @Inject
