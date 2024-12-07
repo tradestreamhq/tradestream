@@ -63,6 +63,11 @@ abstract class IngestionModule extends AbstractModule {
     int topN = namespace.getInt("coinmarketcap.topN");
     return CoinMarketCapConfig.create(topN, apiKey);    
   }
+
+  @Provides
+  ExchangeService provide(Namespace namespace) {
+    
+  }
   
   @Provides
   RunMode provideRunMode(Namespace namespace) {
