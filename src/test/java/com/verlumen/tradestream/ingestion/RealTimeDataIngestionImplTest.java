@@ -36,7 +36,6 @@ public final class RealTimeDataIngestionImplTest {
     @Mock @Bind private CandlePublisher mockCandlePublisher;
     @Mock @Bind private CurrencyPairSupply mockCurrencyPairSupply;
     @Mock @Bind private StreamingExchange mockExchange;
-    @Mock @Bind private ProductSubscription mockProductSubscription;
     @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
     @Mock @Bind private TradeProcessor mockTradeProcessor;
     @Mock private StreamingMarketDataService mockMarketDataService;
