@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
@@ -40,11 +41,11 @@ public class CoinbaseStreamingClientTest {
     private static final ImmutableList<String> TEST_PAIRS = 
         ImmutableList.of("BTC/USD", "ETH/USD");
 
-    @Mock private Consumer<Trade> mockTradeHandler;
-    @Mock private HttpClient mockHttpClient;
+    @Mock @Bind private Consumer<Trade> mockTradeHandler;
+    @Mock @Bind private HttpClient mockHttpClient;
     @Mock private WebSocket mockWebSocket;
     @Mock private WebSocket.Builder mockWebSocketBuilder;
-    
+
     @Inject private CoinbaseStreamingClient client;
 
     private ArgumentCaptor<WebSocket.Listener> listenerCaptor;
@@ -64,15 +65,12 @@ public class CoinbaseStreamingClientTest {
 
     @Test
     public void startStreaming_establishesWebSocketConnection() {
-        // Arrange
-        String expectedUrl = WEBSOCKET_URL;
-
         // Act
         client.startStreaming(TEST_PAIRS, mockTradeHandler);
 
         // Assert
         verify(mockWebSocketBuilder).buildAsync(
-            eq(URI.create(expectedUrl)), 
+            eq(URI.create(WEBSOCKET_URL)), 
             any(WebSocket.Listener.class)
         );
     }
@@ -284,5 +282,15 @@ public class CoinbaseStreamingClientTest {
         // Verify that multiple WebSocket connections were created
         verify(mockWebSocketBuilder, atLeast(2))
             .buildAsync(any(URI.class), any(WebSocket.Listener.class));
+    }
+
+    private void captureWebSocketListener() {
+        verify(mockWebSocketBuilder).buildAsync(any(), listenerCaptor.capture());
+    }
+
+    // Helper method to simulate WebSocket message
+    private void simulateWebSocketMessage(String message) {
+        WebSocket.Listener listener = listenerCaptor.getValue();
+        listener.onText(mockWebSocket, message, true);
     }
 }
