@@ -135,7 +135,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             logger.atFine().log("Received heartbeat");
             return;
         }
-        
+
         if (!"market_trades".equals(channel)) {
             logger.atFine().log("Ignoring message from unknown channel: %s", channel);
             return;
@@ -145,38 +145,41 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             logger.atWarning().log("Market trades message missing events field: %s", message);
             return;
         }
-
-        JsonObject events = message.getAsJsonObject("events");
-        if (!events.has("trades")) {
-            logger.atWarning().log("Events object missing trades array: %s", events);
-            return;
-        }
-
-        events.getAsJsonArray("trades").forEach(tradeElement -> {
-            try {
-                JsonObject tradeJson = tradeElement.getAsJsonObject();
-        
-                // Correct timestamp parsing
-                long timestamp = Instant.parse(tradeJson.get("time").getAsString()).toEpochMilli();
-        
-                Trade trade = Trade.newBuilder()
-                    .setTimestamp(timestamp)
-                    .setExchange(getExchangeName())
-                    .setCurrencyPair(tradeJson.get("product_id").getAsString().replace("-", "/"))
-                    .setPrice(tradeJson.get("price").getAsDouble())
-                    .setVolume(tradeJson.get("size").getAsDouble())
-                    .setTradeId(tradeJson.get("trade_id").getAsString())
-                    .build();
-
-                if (tradeHandler != null) {
-                    tradeHandler.accept(trade);
-                } else {
-                    logger.atWarning().log("Received trade but no handler is registered");
-                }
-            } catch (Exception e) {
-                logger.atWarning().withCause(e).log("Failed to process trade: %s", tradeElement);
+    
+        JsonArray events = message.getAsJsonArray("events");
+        for (JsonElement event : events) {
+            JsonObject eventObj = event.getAsJsonObject();
+            if (!eventObj.has("trades")) {
+                logger.atWarning().log("Event missing trades array: %s", eventObj);
+                continue;
             }
-        });
+            
+            JsonArray trades = eventObj.getAsJsonArray("trades");
+            trades.forEach(tradeElement -> {
+                try {
+                    JsonObject tradeJson = tradeElement.getAsJsonObject();
+                    
+                    long timestamp = Instant.parse(tradeJson.get("time").getAsString()).toEpochMilli();
+                    
+                    Trade trade = Trade.newBuilder()
+                        .setTimestamp(timestamp)
+                        .setExchange(getExchangeName())
+                        .setCurrencyPair(tradeJson.get("product_id").getAsString().replace("-", "/"))
+                        .setPrice(tradeJson.get("price").getAsDouble())
+                        .setVolume(tradeJson.get("size").getAsDouble())
+                        .setTradeId(tradeJson.get("trade_id").getAsString())
+                        .build();
+    
+                    if (tradeHandler != null) {
+                        tradeHandler.accept(trade);
+                    } else {
+                        logger.atWarning().log("Received trade but no handler is registered");
+                    }
+                } catch (Exception e) {
+                    logger.atWarning().withCause(e).log("Failed to process trade: %s", tradeElement);
+                }
+            });
+        }
     }
 
     private class WebSocketListener implements WebSocket.Listener {
