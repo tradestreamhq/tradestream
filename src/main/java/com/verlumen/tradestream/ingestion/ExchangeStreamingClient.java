@@ -33,6 +33,6 @@ interface ExchangeStreamingClient {
      * Factory for creating exchange-specific streaming clients.
      */
     interface Factory {       
-        ExchangeStreamingClient getClient(String exchangeName);
+        ExchangeStreamingClient create(String exchangeName);
     }
 }

@@ -30,7 +30,9 @@ abstract class IngestionModule extends AbstractModule {
     bind(StreamingExchange.class).toProvider(StreamingExchangeProvider.class).in(Singleton.class);
 
     bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
+    bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
     bind(HttpClient.class).to(HttpClientImpl.class);
+    bind(java.net.http.HttpClient.class).toProvider(java.net.http.HttpClient::newHttpClient);
     bind(HttpURLConnectionFactory.class).to(HttpURLConnectionFactoryImpl.class);
     bind(RealTimeDataIngestion.class).to(RealTimeDataIngestionImpl.class);
     bind(ThinMarketTimer.class).to(ThinMarketTimerImpl.class);
@@ -62,6 +64,11 @@ abstract class IngestionModule extends AbstractModule {
     String apiKey = namespace.getString("coinmarketcap.apiKey");
     int topN = namespace.getInt("coinmarketcap.topN");
     return CoinMarketCapConfig.create(topN, apiKey);    
+  }
+
+  @Provides
+  ExchangeStreamingClient provideExchangeStreamingClient(Namespace namespace, ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
+    return exchangeStreamingClientFactory.create(namespace.getString("exchangeName"));
   }
   
   @Provides

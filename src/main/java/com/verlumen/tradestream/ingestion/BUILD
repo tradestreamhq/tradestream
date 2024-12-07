@@ -181,6 +181,17 @@ java_library(
     ],
 )
 
+java_library(
+    name = "exchange_streaming_client_factory",
+    srcs = ["ExchangeStreamingClientFactory.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
+        ":coinbase_streaming_client",
+        ":exchange_streaming_client",
+    ],
+)
+
 genrule(
     name = "hash",
     srcs = [":index"],
@@ -268,6 +279,8 @@ java_library(
         ":config_arguments",
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
+        ":exchange_streaming_client",
+        ":exchange_streaming_client_factory",
         ":http_client",
         ":http_client_impl",
         ":http_url_connection_factory",
@@ -334,16 +347,12 @@ java_library(
     srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
         "@maven//:com_google_flogger_flogger",
-        "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
-        "@maven//:io_reactivex_rxjava3_rxjava",
-        "@maven//:org_knowm_xchange_xchange_core",
-        "@maven//:org_knowm_xchange_xchange_stream_coinbasepro",
-        "@maven//:org_knowm_xchange_xchange_stream_core",
         "//protos:marketdata_java_proto",
         ":candle_manager",
         ":candle_publisher",
         ":currency_pair_supply",
+        ":exchange_streaming_client",
         ":real_time_data_ingestion",
         ":thin_market_timer",
         ":trade_processor",

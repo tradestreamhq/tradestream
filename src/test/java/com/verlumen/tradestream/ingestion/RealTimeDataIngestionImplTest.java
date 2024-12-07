@@ -9,68 +9,54 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import info.bitrich.xchangestream.core.ProductSubscription;
-import info.bitrich.xchangestream.core.StreamingExchange;
-import info.bitrich.xchangestream.core.StreamingMarketDataService;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Observable;
+import com.verlumen.tradestream.marketdata.Trade;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.knowm.xchange.currency.CurrencyPair;
-import org.knowm.xchange.dto.marketdata.Trade;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-@RunWith(JUnit4.class)
-public final class RealTimeDataIngestionImplTest {
-    @Rule public final MockitoRule mockitoRule = MockitoJUnit.rule();
+import java.util.function.Consumer;
 
-    private static final CurrencyPair CURRENCY_PAIR = new CurrencyPair("BTC", "USD");
-    private static final String PAIR_STRING = CURRENCY_PAIR.toString();
+@RunWith(JUnit4.class)
+public class RealTimeDataIngestionImplTest {
+    @Rule public final MockitoRule mockito = MockitoJUnit.rule();
+
+    private static final ImmutableList<String> TEST_CURRENCY_PAIRS = 
+        ImmutableList.of("BTC/USD", "ETH/USD");
+    private static final String TEST_EXCHANGE = "test-exchange";
 
     @Mock @Bind private CandleManager mockCandleManager;
     @Mock @Bind private CandlePublisher mockCandlePublisher;
     @Mock @Bind private CurrencyPairSupply mockCurrencyPairSupply;
-    @Mock @Bind private StreamingExchange mockExchange;
+    @Mock @Bind private ExchangeStreamingClient mockExchangeClient;
     @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
     @Mock @Bind private TradeProcessor mockTradeProcessor;
-    @Mock private StreamingMarketDataService mockMarketDataService;
-    @Mock private Observable<Trade> mockTradeObservable;
 
     @Inject private RealTimeDataIngestionImpl realTimeDataIngestion;
 
     @Before
     public void setUp() {
+        when(mockCurrencyPairSupply.symbols()).thenReturn(TEST_CURRENCY_PAIRS);
+        when(mockExchangeClient.getExchangeName()).thenReturn(TEST_EXCHANGE);
+
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
-        
-        // Setup basic mocking behavior
-        when(mockExchange.getStreamingMarketDataService()).thenReturn(mockMarketDataService);
-        when(mockMarketDataService.getTrades(any(CurrencyPair.class))).thenReturn(mockTradeObservable);
-        when(mockExchange.connect(any(ProductSubscription.class))).thenReturn(Completable.complete());
-        when(mockExchange.disconnect()).thenReturn(Completable.complete());
-        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(ImmutableList.of(CURRENCY_PAIR));
     }
 
     @Test
-    public void start_connectsToExchange() {
+    public void start_initiatesStreaming() {
         // Act
         realTimeDataIngestion.start();
 
         // Assert
-        verify(mockExchange).connect(any(ProductSubscription.class));
-    }
-
-    @Test
-    public void start_subscribesToTradeStreams() {
-        // Act
-        realTimeDataIngestion.start();
-
-        // Assert
-        verify(mockMarketDataService).getTrades(CURRENCY_PAIR);
+        verify(mockExchangeClient).startStreaming(
+            eq(TEST_CURRENCY_PAIRS),
+            any(Consumer.class)
+        );
     }
 
     @Test
@@ -83,29 +69,136 @@ public final class RealTimeDataIngestionImplTest {
     }
 
     @Test
-    public void shutdown_disconnectsFromExchange() {
+    public void shutdown_stopsStreamingAndTimer() {
+        // Arrange
+        realTimeDataIngestion.start();
+
         // Act
         realTimeDataIngestion.shutdown();
 
         // Assert
-        verify(mockExchange).disconnect();
-    }
-
-    @Test
-    public void shutdown_closesCandlePublisher() {
-        // Act
-        realTimeDataIngestion.shutdown();
-
-        // Assert
+        verify(mockExchangeClient).stopStreaming();
+        verify(mockThinMarketTimer).stop();
         verify(mockCandlePublisher).close();
     }
 
     @Test
-    public void shutdown_stopsThinMarketTimer() {
-        // Act
+    public void shutdown_handlesCandlePublisherException() {
+        // Arrange
+        doThrow(new RuntimeException("Test exception"))
+            .when(mockCandlePublisher)
+            .close();
+
+        // Act - Should not throw
         realTimeDataIngestion.shutdown();
 
         // Assert
+        verify(mockExchangeClient).stopStreaming();
         verify(mockThinMarketTimer).stop();
+    }
+
+    @Test
+    public void processTrade_handlesNewTrade() {
+        // Arrange
+        ArgumentCaptor<Consumer<Trade>> handlerCaptor = 
+            ArgumentCaptor.forClass(Consumer.class);
+        
+        realTimeDataIngestion.start();
+        verify(mockExchangeClient).startStreaming(any(), handlerCaptor.capture());
+        
+        Trade trade = Trade.newBuilder()
+            .setTradeId("test-trade")
+            .setCurrencyPair("BTC/USD")
+            .setPrice(50000.0)
+            .setVolume(1.0)
+            .build();
+        
+        when(mockTradeProcessor.isProcessed(trade)).thenReturn(false);
+
+        // Act
+        handlerCaptor.getValue().accept(trade);
+
+        // Assert
+        verify(mockCandleManager).processTrade(trade);
+    }
+
+    @Test
+    public void processTrade_skipsDuplicateTrade() {
+        // Arrange
+        ArgumentCaptor<Consumer<Trade>> handlerCaptor = 
+            ArgumentCaptor.forClass(Consumer.class);
+        
+        realTimeDataIngestion.start();
+        verify(mockExchangeClient).startStreaming(any(), handlerCaptor.capture());
+        
+        Trade trade = Trade.newBuilder()
+            .setTradeId("test-trade")
+            .setCurrencyPair("BTC/USD")
+            .setPrice(50000.0)
+            .setVolume(1.0)
+            .build();
+        
+        when(mockTradeProcessor.isProcessed(trade)).thenReturn(true);
+
+        // Act
+        handlerCaptor.getValue().accept(trade);
+
+        // Assert
+        verify(mockCandleManager, never()).processTrade(trade);
+    }
+
+    @Test
+    public void lifecycle_properStartupShutdownSequence() {
+        // Act - Start
+        realTimeDataIngestion.start();
+
+        // Assert - Started correctly
+        verify(mockExchangeClient).startStreaming(any(), any());
+        verify(mockThinMarketTimer).start();
+
+        // Act - Shutdown
+        realTimeDataIngestion.shutdown();
+
+        // Assert - Shutdown correctly
+        verify(mockExchangeClient).stopStreaming();
+        verify(mockThinMarketTimer).stop();
+        verify(mockCandlePublisher).close();
+    }
+
+    @Test
+    public void start_usesCorrectCurrencyPairs() {
+        // Arrange
+        ImmutableList<String> expectedPairs = ImmutableList.of("TEST1/USD", "TEST2/USD");
+        when(mockCurrencyPairSupply.symbols()).thenReturn(expectedPairs);
+
+        // Act
+        realTimeDataIngestion.start();
+
+        // Assert
+        verify(mockExchangeClient).startStreaming(eq(expectedPairs), any());
+    }
+
+    @Test
+    public void processTrade_handlesTradeProcessorException() {
+        // Arrange
+        ArgumentCaptor<Consumer<Trade>> handlerCaptor = 
+            ArgumentCaptor.forClass(Consumer.class);
+        
+        realTimeDataIngestion.start();
+        verify(mockExchangeClient).startStreaming(any(), handlerCaptor.capture());
+        
+        Trade trade = Trade.newBuilder()
+            .setTradeId("test-trade")
+            .setCurrencyPair("BTC/USD")
+            .build();
+        
+        when(mockTradeProcessor.isProcessed(trade))
+            .thenThrow(new RuntimeException("Test exception"));
+
+        // Act - Should not throw
+        handlerCaptor.getValue().accept(trade);
+
+        // Assert
+        verify(mockCandleManager, never()).processTrade(any());
     }
 }

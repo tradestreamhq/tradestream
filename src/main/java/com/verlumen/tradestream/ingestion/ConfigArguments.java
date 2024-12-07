@@ -81,8 +81,8 @@ abstract class ConfigArguments implements Provider<Namespace> {
       .help("Value serializer class");
 
     // Exchange configuration
-    parser.addArgument("--xchange.exchangeName")
-      .setDefault("info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange")
+    parser.addArgument("--exchangeName")
+      .setDefault("coinbase")
       .help("Exchange name");
 
     // CoinMarketCap configuration
