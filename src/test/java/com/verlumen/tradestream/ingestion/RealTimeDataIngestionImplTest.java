@@ -10,7 +10,6 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import com.verlumen.tradestream.exchanges.ExchangeStreamingClient;
 import com.verlumen.tradestream.marketdata.Trade;
 import org.junit.Before;
 import org.junit.Rule;
