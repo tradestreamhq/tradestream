@@ -71,17 +71,23 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     }
 
     private void processTrade(Trade trade) {
-        if (!tradeProcessor.isProcessed(trade)) {
-            logger.atInfo().log("Processing new trade for %s: ID=%s, price=%f, volume=%f", 
-                trade.getCurrencyPair(), 
-                trade.getTradeId(),
-                trade.getPrice(),
-                trade.getVolume());
-            candleManager.processTrade(trade);
-        } else {
-            logger.atInfo().log("Skipping duplicate trade for %s: ID=%s", 
-                trade.getCurrencyPair(), 
-                trade.getTradeId());
+        try {
+            if (!tradeProcessor.isProcessed(trade)) {
+                logger.atInfo().log("Processing new trade for %s: ID=%s, price=%f, volume=%f", 
+                    trade.getCurrencyPair(), 
+                    trade.getTradeId(),
+                    trade.getPrice(),
+                    trade.getVolume());
+                candleManager.processTrade(trade);
+            } else {
+                logger.atInfo().log("Skipping duplicate trade for %s: ID=%s",
+                    trade.getCurrencyPair(),
+                    trade.getTradeId());
+            }
+        } catch (RuntimeException e) {
+            logger.atSevere().withCause(e).log(
+                "Error processing trade: %s", trade.getTradeId());
+            // Don't rethrow - we want to continue processing other trades
         }
     }
 }
