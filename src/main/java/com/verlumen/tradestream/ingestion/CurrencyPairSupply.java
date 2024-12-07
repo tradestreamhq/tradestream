@@ -9,8 +9,9 @@ interface CurrencyPairSupply {
   ImmutableList<CurrencyPairMetadata> metadataList();
   
   default ImmutableList<String> symbols() {
-    return currencyPairs()
+    return metadataList()
       .stream()
+      .map(CurrencyPairMetadata::currencyPair)
       .map(pair -> pair.getBase() + "-" + pair.getCounter())
       .collect(toImmutableList());
   }
