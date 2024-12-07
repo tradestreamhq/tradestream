@@ -165,6 +165,17 @@ java_library(
     ],
 )
 
+java_library(
+    name = "exchange_streaming_client_factory",
+    srcs = ["ExchangeStreamingClientFactory.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
+        "//protos:marketdata_java_proto",
+        ":exchange_streaming_client",
+    ],
+)
+
 genrule(
     name = "hash",
     srcs = [":index"],
