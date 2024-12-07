@@ -264,6 +264,7 @@ java_library(
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
         ":exchange_streaming_client",
+        ":exchange_streaming_client_factory",
         ":http_client",
         ":http_client_impl",
         ":http_url_connection_factory",
