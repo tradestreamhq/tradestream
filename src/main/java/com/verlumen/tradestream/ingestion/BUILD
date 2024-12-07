@@ -87,7 +87,6 @@ java_library(
 java_library(
     name = "coinbase_streaming_client",
     srcs = ["CoinbaseStreamingClient.java"],
-    srcs = ["CoinbaseStreamingClient.java"],
     deps = [
         "@maven//:com_google_flogger_flogger",
         "@maven//:com_google_guava_guava",
