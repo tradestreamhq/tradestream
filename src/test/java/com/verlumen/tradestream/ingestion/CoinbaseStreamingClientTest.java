@@ -90,14 +90,16 @@ public class CoinbaseStreamingClientTest {
 
         // Assert
         verify(mockWebSocket).sendText(messageCaptor.capture(), eq(true));
-        
+
         JsonObject message = JsonParser.parseString(messageCaptor.getValue()).getAsJsonObject();
         assertThat(message.get("type").getAsString()).isEqualTo("subscribe");
         assertThat(message.get("channel").getAsString()).isEqualTo("market_trades");
+        assertThat(message.get("product_ids").isJsonArray()).isTrue();
 
-        String productIds = message.getAsJsonObject("product_ids").get("product_ids").getAsString();
-        assertThat(productIds).contains("BTC-USD");
-        assertThat(productIds).contains("ETH-USD");
+        JsonArray productIds = message.get("product_ids").getAsJsonArray();
+        assertThat(productIds.size()).isEqualTo(2);
+        assertThat(productIds.get(0).getAsString()).isEqualTo("BTC-USD");
+        assertThat(productIds.get(1).getAsString()).isEqualTo("ETH-USD");
     }
 
     @Test
