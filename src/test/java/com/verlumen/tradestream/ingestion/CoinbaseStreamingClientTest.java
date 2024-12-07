@@ -140,16 +140,16 @@ public class CoinbaseStreamingClientTest {
 
         String tradeMessage = """
             {
-                "channel": "market_trades",
-                "events": {
-                    "trades": [{
-                        "timestamp": 1234567890,
-                        "product_id": "BTC-USD",
-                        "price": "50000.00",
-                        "size": "1.0",
-                        "trade_id": "12345"
-                    }]
-                }
+              "type": "match",  // Or "last_match"
+              "trade_id": 12345,
+              "maker_order_id": "ac928c66-ca53-498f-9c13-a110027a60e8",
+              "taker_order_id": "132fb6ae-456b-4654-b4e0-d681ac05cea1",
+              "side": "sell",
+              "size": "0.00516",
+              "price": "50775",
+              "product_id": "BTC-USD",
+              "sequence": 12038919848,
+              "time": "2024-12-07T09:48:31.810058685Z" 
             }
             """;
 
