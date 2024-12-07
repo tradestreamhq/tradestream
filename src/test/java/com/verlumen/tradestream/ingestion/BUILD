@@ -15,9 +15,6 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/ingestion:real_time_data_ingestion",
         "//src/main/java/com/verlumen/tradestream/ingestion:run_mode",
     ],
-    runtime_deps = [
-        "@maven//:com_google_flogger_flogger_system_backend",
-    ],
 )
 
 java_test(
