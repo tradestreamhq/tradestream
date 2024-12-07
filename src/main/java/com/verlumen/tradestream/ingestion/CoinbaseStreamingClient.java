@@ -11,6 +11,7 @@ import com.verlumen.tradestream.marketdata.Trade;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
