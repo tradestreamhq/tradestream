@@ -6,11 +6,6 @@ load("//platforms:transition.bzl", "multi_arch")
 
 package(default_visibility = ["//visibility:public"])
 
-java_library(
-    name = "abstract_thin_market_timer_task",
-    srcs = ["AbstractThinMarketTimerTask.java"],
-)
-
 java_binary(
     name = "app",
     srcs = ["App.java"],
