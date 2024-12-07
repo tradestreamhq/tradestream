@@ -7,7 +7,6 @@ import static org.mockito.Mockito.*;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.marketdata.Trade;
@@ -31,20 +30,18 @@ public class RealTimeDataIngestionImplTest {
         ImmutableList.of("BTC/USD", "ETH/USD");
     private static final String TEST_EXCHANGE = "test-exchange";
 
-    @Mock private CandleManager mockCandleManager;
-    @Mock private CandlePublisher mockCandlePublisher;
+    @Mock @Bind private CandleManager mockCandleManager;
+    @Mock @Bind private CandlePublisher mockCandlePublisher;
     @Mock @Bind private CurrencyPairSupply mockCurrencyPairSupply;
-    @Mock private ExchangeStreamingClient mockExchangeClient;
-    @Mock private ThinMarketTimer mockThinMarketTimer;
-    @Mock @Bind private Provider<ThinMarketTimer> mockThinMarketTimerProvider;
-    @Mock private TradeProcessor mockTradeProcessor;
+    @Mock @Bind private ExchangeStreamingClient mockExchangeClient;
+    @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
+    @Mock @Bind private TradeProcessor mockTradeProcessor;
 
     @Inject private RealTimeDataIngestionImpl realTimeDataIngestion;
 
     @Before
     public void setUp() {
         when(mockCurrencyPairSupply.symbols()).thenReturn(TEST_CURRENCY_PAIRS);
-        when(mockThinMarketTimerProvider.get()).thenReturn(mockThinMarketTimer);
         when(mockExchangeClient.getExchangeName()).thenReturn(TEST_EXCHANGE);
 
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
