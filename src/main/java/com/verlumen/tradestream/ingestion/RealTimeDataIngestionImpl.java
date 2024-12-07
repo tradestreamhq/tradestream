@@ -40,7 +40,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             exchangeClient.getExchangeName());
     
         exchangeClient.startStreaming(
-            currencyPairSupply.get().currencyPairs(),
+            currencyPairSupply.get().symbols(),
             this::processTrade
         );
         
