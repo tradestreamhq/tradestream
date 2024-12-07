@@ -156,6 +156,13 @@ java_library(
     ],
 )
 
+java_library(
+    name = "exchange_streaming_client",
+    srcs = ["ExchangeStreamingClient.java"],
+    deps = [
+    ],
+)
+
 genrule(
     name = "hash",
     srcs = [":index"],
