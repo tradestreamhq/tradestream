@@ -65,8 +65,8 @@ abstract class IngestionModule extends AbstractModule {
   }
 
   @Provides
-  ExchangeService provide(Namespace namespace) {
-    
+  ExchangeService provideExchangeStreamingClient(Namespace namespace, ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
+    return exchangeStreamingClientFactory.create(namespace.getString("exchangeName"));
   }
   
   @Provides
