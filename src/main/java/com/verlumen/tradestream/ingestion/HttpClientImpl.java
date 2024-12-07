@@ -43,7 +43,6 @@ final class HttpClientImpl implements HttpClient {
 
             if (responseCode != HttpURLConnection.HTTP_OK) {
                 String errorMessage = String.format("Failed to fetch data: HTTP code %d", responseCode);
-                logger.atWarning().log(errorMessage);
                 throw new IOException(errorMessage);
             }
 
