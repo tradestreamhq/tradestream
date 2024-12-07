@@ -137,16 +137,17 @@ public class CoinbaseStreamingClientTest {
         // Arrange
         client.startStreaming(TEST_PAIRS, mockTradeHandler);
         captureWebSocketListener();
-        
+        WebSocket.Listener listener = listenerCaptor.getValue();
+
         // Reset the mock to verify new connection attempts
         reset(mockWebSocketBuilder);
         when(mockWebSocketBuilder.buildAsync(any(URI.class), any(WebSocket.Listener.class)))
             .thenReturn(CompletableFuture.completedFuture(mockWebSocket));
 
         // Act
-        listenerCaptor.getValue().onClose(mockWebSocket, WebSocket.NORMAL_CLOSURE, "Test close");
+        listener.onClose(mockWebSocket, 1006, "Abnormal closure").toCompletableFuture().join();
 
-        // Assert
+        // Assert - verify reconnection attempt
         verify(mockWebSocketBuilder, timeout(1000))
             .buildAsync(eq(URI.create(WEBSOCKET_URL)), any(WebSocket.Listener.class));
     }
@@ -180,30 +181,37 @@ public class CoinbaseStreamingClientTest {
         captureWebSocketListener();
         WebSocket.Listener listener = listenerCaptor.getValue();
 
-        String validMessage = """
+        String messageStart = """
             {
               "channel": "market_trades",
               "events": [{
                 "trades": [{
                   "trade_id": "12345",
+        """;
+
+        String messageEnd = """
                   "product_id": "BTC-USD",
                   "price": "50775",
                   "size": "0.00516",
                   "time": "2024-12-07T09:48:31.810058685Z"
                 }]
               }]
-            }""";
+            }
+        """;
 
-        // Act - Send message in chunks
-        listener.onText(mockWebSocket, validMessage.substring(0, 50), false);
-        listener.onText(mockWebSocket, validMessage.substring(50), true);
+        // Act
+        listener.onText(mockWebSocket, messageStart, false).toCompletableFuture().join();
+        listener.onText(mockWebSocket, messageEnd, true).toCompletableFuture().join();
 
         // Assert
         ArgumentCaptor<Trade> tradeCaptor = ArgumentCaptor.forClass(Trade.class);
-        verify(mockTradeHandler).accept(tradeCaptor.capture());
+        verify(mockTradeHandler, timeout(1000)).accept(tradeCaptor.capture());
         
         Trade trade = tradeCaptor.getValue();
         assertThat(trade.getCurrencyPair()).isEqualTo("BTC/USD");
+        assertThat(trade.getPrice()).isEqualTo(50775.00);
+        assertThat(trade.getVolume()).isEqualTo(0.00516);
+        assertThat(trade.getTradeId()).isEqualTo("12345");
     }
 
     private void captureWebSocketListener() {
