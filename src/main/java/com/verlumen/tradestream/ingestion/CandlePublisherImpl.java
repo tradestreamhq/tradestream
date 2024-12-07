@@ -18,33 +18,58 @@ final class CandlePublisherImpl implements CandlePublisher {
         KafkaProducer<String, byte[]> kafkaProducer,
         @Assisted String topic
     ) {
+        logger.atInfo().log("Initializing CandlePublisher for topic: %s", topic);
         this.topic = topic;
         this.kafkaProducer = kafkaProducer;
+        logger.atInfo().log("CandlePublisher initialization complete");
     }
 
     public void publishCandle(Candle candle) {
-        logger.atInfo().log("Publishing candle for %s to topic %s", 
-            candle.getCurrencyPair(), topic);
+        logger.atInfo().log("Publishing candle for %s to topic %s. Timestamp=%d, Open=%f, High=%f, Low=%f, Close=%f, Volume=%f", 
+            candle.getCurrencyPair(), 
+            topic,
+            candle.getTimestamp(),
+            candle.getOpen(),
+            candle.getHigh(),
+            candle.getLow(),
+            candle.getClose(),
+            candle.getVolume());
+
+        byte[] candleBytes = candle.toByteArray();
+        logger.atFine().log("Serialized candle data size: %d bytes", candleBytes.length);
+
         ProducerRecord<String, byte[]> record = new ProducerRecord<>(
             topic,
             candle.getCurrencyPair(),
-            candle.toByteArray()
+            candleBytes
         );
 
         kafkaProducer.send(record, (metadata, exception) -> {
             if (exception != null) {
                 logger.atSevere().withCause(exception)
-                    .log("Failed to publish candle for %s", candle.getCurrencyPair());
+                    .log("Failed to publish candle for %s to topic %s", 
+                        candle.getCurrencyPair(), topic);
             } else {
-                logger.atFine().log("Successfully published candle: topic=%s, partition=%d, offset=%d",
-                    metadata.topic(), metadata.partition(), metadata.offset());
+                logger.atInfo().log("Successfully published candle: topic=%s, partition=%d, offset=%d, timestamp=%d",
+                    metadata.topic(), 
+                    metadata.partition(), 
+                    metadata.offset(),
+                    metadata.timestamp());
             }
         });
     }
 
     public void close() {
-        logger.atInfo().log("Closing Kafka producer");
-        kafkaProducer.close(Duration.ofSeconds(5));
-        logger.atInfo().log("Kafka producer closed successfully");
+        logger.atInfo().log("Initiating Kafka producer shutdown");
+        try {
+            logger.atInfo().log("Flushing any pending messages...");
+            kafkaProducer.flush();
+            logger.atInfo().log("Starting graceful shutdown with 5 second timeout");
+            kafkaProducer.close(Duration.ofSeconds(5));
+            logger.atInfo().log("Kafka producer closed successfully");
+        } catch (Exception e) {
+            logger.atSevere().withCause(e).log("Error during Kafka producer shutdown");
+            throw e;
+        }
     }
 }
