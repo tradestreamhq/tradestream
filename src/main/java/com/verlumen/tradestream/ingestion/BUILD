@@ -85,6 +85,22 @@ java_library(
 )
 
 java_library(
+    name = "coinbase_streaming_client",
+    srcs = ["CoinbaseStreamingClient.java"],
+    deps = [
+        "@maven//:com_google_flogger_flogger",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
+        "@maven//:com_google_code_gson_gson",
+        "//protos:marketdata_java_proto",
+        ":exchange_streaming_client",
+    ],
+    runtime_deps = [
+        "@maven//:com_google_flogger_flogger_system_backend",
+    ],
+)
+
+java_library(
     name = "coin_market_cap_config",
     srcs = ["CoinMarketCapConfig.java"],
     deps = [
