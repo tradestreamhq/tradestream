@@ -252,6 +252,7 @@ java_library(
         ":config_arguments",
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
+        ":exchange_streaming_client",
         ":http_client",
         ":http_client_impl",
         ":http_url_connection_factory",
