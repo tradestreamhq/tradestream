@@ -136,35 +136,38 @@ public class CoinbaseStreamingClientTest {
     @Test
     public void onText_handlesTrade() {
         // Arrange
-        client.startStreaming(TEST_PAIRS, mockTradeHandler);
-        
-        verify(mockWebSocketBuilder).buildAsync(any(), listenerCaptor.capture());
-        WebSocket.Listener listener = listenerCaptor.getValue();
-
         String tradeMessage = """
             {
-              "type": "match",  // Or "last_match"
-              "trade_id": 12345,
-              "maker_order_id": "ac928c66-ca53-498f-9c13-a110027a60e8",
-              "taker_order_id": "132fb6ae-456b-4654-b4e0-d681ac05cea1",
-              "side": "sell",
-              "size": "0.00516",
-              "price": "50775",
-              "product_id": "BTC-USD",
-              "sequence": 12038919848,
-              "time": "2024-12-07T09:48:31.810058685Z" 
+              "channel": "market_trades",
+              "events": [{
+                "type": "match",
+                "trades": [{
+                  "trade_id": "12345",
+                  "product_id": "BTC-USD",
+                  "price": "50775",
+                  "size": "0.00516",
+                  "time": "2024-12-07T09:48:31.810058685Z" 
+                }]
+              }]
             }
             """;
-
+            
+        client.startStreaming(TEST_PAIRS, mockTradeHandler);
+        
+        // Capture WebSocket.Listener
+        verify(mockWebSocketBuilder).buildAsync(any(), listenerCaptor.capture());
+        WebSocket.Listener listener = listenerCaptor.getValue();
+    
         // Act
         listener.onText(mockWebSocket, tradeMessage, true);
-
+    
         // Assert
         ArgumentCaptor<Trade> tradeCaptor = ArgumentCaptor.forClass(Trade.class);
         verify(mockTradeHandler).accept(tradeCaptor.capture());
         
         Trade trade = tradeCaptor.getValue();
-        assertThat(trade.getTimestamp()).isEqualTo(Instant.parse("2024-12-07T09:48:31.810058685Z").toEpochMilli());
+        assertThat(trade.getTimestamp()).isEqualTo(
+            Instant.parse("2024-12-07T09:48:31.810058685Z").toEpochMilli());
         assertThat(trade.getCurrencyPair()).isEqualTo("BTC/USD");
         assertThat(trade.getPrice()).isEqualTo(50775.00);
         assertThat(trade.getVolume()).isEqualTo(0.00516);
