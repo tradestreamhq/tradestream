@@ -328,6 +328,7 @@ java_library(
         ":candle_manager",
         ":candle_publisher",
         ":currency_pair_supply",
+        ":exchange_streaming_client",
         ":real_time_data_ingestion",
         ":thin_market_timer",
         ":trade_processor",
