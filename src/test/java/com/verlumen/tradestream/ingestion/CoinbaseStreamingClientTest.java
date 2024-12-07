@@ -48,6 +48,8 @@ public class CoinbaseStreamingClientTest {
     @Mock private WebSocket.Builder mockWebSocketBuilder;
 
     @Inject private CoinbaseStreamingClient client;
+    private ArgumentCaptor<WebSocket.Listener> listenerCaptor;
+    private CompletableFuture<WebSocket> webSocketFuture;
 
     @Before
     public void setUp() {
