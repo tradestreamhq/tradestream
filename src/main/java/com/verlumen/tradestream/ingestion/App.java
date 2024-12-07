@@ -18,6 +18,7 @@ final class App {
   }
 
   void run() {
+    logger.atInfo().log("Starting real-time data ingestion...");
     logger.atInfo().log("Starting application in %s mode", runMode);
     if (runMode == RunMode.DRY) {
       logger.atInfo().log("Dry run mode detected - skipping data ingestion");
