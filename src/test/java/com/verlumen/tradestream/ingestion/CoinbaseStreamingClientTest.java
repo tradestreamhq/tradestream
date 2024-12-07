@@ -36,8 +36,11 @@ import java.util.function.Consumer;
 
 @RunWith(JUnit4.class)
 public class CoinbaseStreamingClientTest {
-    @Rule 
-    public MockitoRule mockito = MockitoJUnit.rule();
+    @Rule public MockitoRule mockito = MockitoJUnit.rule();
+
+    private static final String WEBSOCKET_URL = "wss://advanced-trade-ws.coinbase.com";
+    private static final ImmutableList<String> TEST_PAIRS = 
+        ImmutableList.of("BTC/USD", "ETH/USD");
 
     @Mock @Bind private Consumer<Trade> mockTradeHandler;
     @Mock @Bind private HttpClient mockHttpClient;
