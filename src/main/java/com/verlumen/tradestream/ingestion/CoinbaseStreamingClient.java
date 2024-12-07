@@ -29,9 +29,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     private Consumer<Trade> tradeHandler;
     
     @Inject
-    CoinbaseStreamingClient() {
-        logger.atInfo().log("Initializing Coinbase streaming client");
-    }
+    CoinbaseStreamingClient() {}
 
     @Override
     public void startStreaming(ImmutableList<String> currencyPairs, Consumer<Trade> tradeHandler) {
