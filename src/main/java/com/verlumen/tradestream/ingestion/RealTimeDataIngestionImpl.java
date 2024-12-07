@@ -37,6 +37,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         Provider<ThinMarketTimer> thinMarketTimer,
         TradeProcessor tradeProcessor
     ) {
+        logger.atInfo().log("Initializing RealTimeDataIngestion implementation");
         this.candleManager = candleManager;
         this.candlePublisher = candlePublisher;
         this.currencyPairSupply = currencyPairSupply;
@@ -45,92 +46,158 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         this.subscriptions = new ArrayList<>();
         this.thinMarketTimer = thinMarketTimer;
         this.tradeProcessor = tradeProcessor;
+        logger.atInfo().log("RealTimeDataIngestion initialization complete");
     }
 
     @Override
     public void start() {
         logger.atInfo().log("Starting real-time data ingestion with %d currency pairs: %s", 
             currencyPairSupply.get().currencyPairs().size(),
-            currencyPairSupply.get().currencyPairs()); // Log the actual pairs
+            currencyPairSupply.get().currencyPairs());
     
+        logger.atInfo().log("Connecting to exchange...");
         exchange.get().connect(productSubscription.get())
             .subscribe(
                 () -> {
-                    logger.atInfo().log("Exchange connected successfully! Exchange alive status: %b", 
+                    logger.atInfo().log("Exchange connected successfully! Exchange status: alive=%b", 
                         exchange.get().isAlive());
+                    logger.atInfo().log("Starting trade stream subscriptions...");
                     subscribeToTradeStreams();
+                    logger.atInfo().log("Starting thin market timer...");
                     thinMarketTimer.get().start();
-                    logger.atInfo().log("Real-time data ingestion started successfully");
+                    logger.atInfo().log("Real-time data ingestion system fully initialized and running");
                 }, 
                 throwable -> {
-                    logger.atSevere().withCause(throwable).log("Error connecting to exchange");
+                    logger.atSevere().withCause(throwable)
+                        .log("Fatal error connecting to exchange");
+                    throw new RuntimeException("Failed to connect to exchange", throwable);
                 });
     }
 
     @Override
     public void shutdown() {
-        subscriptions.forEach(Disposable::dispose);
+        logger.atInfo().log("Beginning shutdown sequence...");
+        
+        logger.atInfo().log("Disposing of %d subscriptions", subscriptions.size());
+        subscriptions.forEach(disposable -> {
+            try {
+                disposable.dispose();
+                logger.atFine().log("Successfully disposed of subscription");
+            } catch (Exception e) {
+                logger.atWarning().withCause(e).log("Error disposing subscription");
+            }
+        });
+
+        logger.atInfo().log("Stopping thin market timer...");
         thinMarketTimer.get().stop();
-        exchange.get().disconnect().blockingAwait();
-        logger.atInfo().log("Disposed %d subscriptions", subscriptions.size());
-        candlePublisher.close();
-        logger.atInfo().log("Real-time data ingestion shutdown complete");
+
+        logger.atInfo().log("Disconnecting from exchange...");
+        try {
+            exchange.get().disconnect().blockingAwait();
+            logger.atInfo().log("Successfully disconnected from exchange");
+        } catch (Exception e) {
+            logger.atWarning().withCause(e).log("Error disconnecting from exchange");
+        }
+
+        logger.atInfo().log("Closing candle publisher...");
+        try {
+            candlePublisher.close();
+            logger.atInfo().log("Successfully closed candle publisher");
+        } catch (Exception e) {
+            logger.atWarning().withCause(e).log("Error closing candle publisher");
+        }
+
+        logger.atInfo().log("Shutdown sequence complete");
     }
 
     private Trade convertTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String pair) {
-        logger.atFine().log("Converting trade for pair %s: price=%f, volume=%f", 
-            pair, xchangeTrade.getPrice().doubleValue(), xchangeTrade.getOriginalAmount().doubleValue());
-        return Trade.newBuilder()
+        logger.atFine().log("Converting trade for pair %s: price=%f, volume=%f, id=%s", 
+            pair, 
+            xchangeTrade.getPrice().doubleValue(), 
+            xchangeTrade.getOriginalAmount().doubleValue(),
+            xchangeTrade.getId());
+
+        String tradeId = xchangeTrade.getId() != null ? 
+            xchangeTrade.getId() : 
+            UUID.randomUUID().toString();
+
+        if (xchangeTrade.getId() == null) {
+            logger.atWarning().log("Trade ID was null, generated UUID: %s", tradeId);
+        }
+
+        Trade trade = Trade.newBuilder()
             .setTimestamp(xchangeTrade.getTimestamp().getTime())
             .setExchange(exchange.get().getExchangeSpecification().getExchangeName())
             .setCurrencyPair(pair)
             .setPrice(xchangeTrade.getPrice().doubleValue())
             .setVolume(xchangeTrade.getOriginalAmount().doubleValue())
-            .setTradeId(xchangeTrade.getId() != null ? xchangeTrade.getId() : UUID.randomUUID().toString())
+            .setTradeId(tradeId)
             .build();
+
+        logger.atFine().log("Successfully converted trade: %s", trade);
+        return trade;
     }
 
     private void handleTrade(org.knowm.xchange.dto.marketdata.Trade xchangeTrade, String currencyPair) {
-        String symbol = currencyPair.toString();
-        Trade trade = convertTrade(xchangeTrade, symbol);
+        logger.atFine().log("Processing incoming trade for %s", currencyPair);
+        Trade trade = convertTrade(xchangeTrade, currencyPair);
         onTrade(trade);
     }
 
     private void onTrade(Trade trade) {
         if (!tradeProcessor.isProcessed(trade)) {
-            logger.atFine().log("Processing new trade for %s: ID=%s", 
-                trade.getCurrencyPair(), trade.getTradeId());
+            logger.atInfo().log("Processing new trade for %s: ID=%s, price=%f, volume=%f", 
+                trade.getCurrencyPair(), 
+                trade.getTradeId(),
+                trade.getPrice(),
+                trade.getVolume());
             candleManager.processTrade(trade);
         } else {
-            logger.atFine().log("Skipping duplicate trade for %s: ID=%s",
-                trade.getCurrencyPair(), trade.getTradeId());
+            logger.atInfo().log("Skipping duplicate trade for %s: ID=%s", 
+                trade.getCurrencyPair(), 
+                trade.getTradeId());
         }
     }
 
     private Disposable subscribeToTradeStream(CurrencyPair currencyPair) {
-        logger.atInfo().log("Subscribing to trade stream for currency pair: %s", currencyPair);
+        logger.atInfo().log("Creating trade stream subscription for currency pair: %s", currencyPair);
         
         return exchange.get()
             .getStreamingMarketDataService()
             .getTrades(currencyPair)
-            .doOnSubscribe(d -> logger.atInfo().log("Successfully subscribed to %s", currencyPair))
+            .doOnSubscribe(d -> logger.atInfo().log("Successfully subscribed to %s trade stream", currencyPair))
             .doOnError(e -> logger.atSevere().withCause(e).log("Error in trade stream for %s", currencyPair))
+            .doOnComplete(() -> logger.atInfo().log("Trade stream completed for %s", currencyPair))
             .subscribe(
                 trade -> {
-                    logger.atInfo().log("Received trade for %s: price=%f, amount=%f", 
-                        currencyPair, trade.getPrice().doubleValue(), 
-                        trade.getOriginalAmount().doubleValue());
+                    logger.atInfo().log("Received trade for %s: price=%f, amount=%f, id=%s", 
+                        currencyPair, 
+                        trade.getPrice().doubleValue(), 
+                        trade.getOriginalAmount().doubleValue(),
+                        trade.getId());
                     handleTrade(trade, currencyPair.toString());
                 },
                 throwable -> {
                     logger.atSevere().withCause(throwable)
-                        .log("Error subscribing to %s", currencyPair);
+                        .log("Fatal error in trade stream for %s", currencyPair);
                 });
     }
 
     private void subscribeToTradeStreams() {
+        logger.atInfo().log("Setting up trade stream subscriptions for %d currency pairs", 
+            currencyPairSupply.get().currencyPairs().size());
+
         currencyPairSupply.get().currencyPairs().stream()
-            .map(this::subscribeToTradeStream)
-            .forEach(subscriptions::add);
+            .map(pair -> {
+                logger.atFine().log("Creating subscription for %s", pair);
+                return subscribeToTradeStream(pair);
+            })
+            .forEach(subscription -> {
+                subscriptions.add(subscription);
+                logger.atFine().log("Added subscription, total count: %d", subscriptions.size());
+            });
+
+        logger.atInfo().log("Successfully created %d trade stream subscriptions", 
+            subscriptions.size());
     }
 }
