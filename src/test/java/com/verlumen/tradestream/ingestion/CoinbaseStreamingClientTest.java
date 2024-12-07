@@ -53,6 +53,8 @@ public class CoinbaseStreamingClientTest {
 
     @Before
     public void setUp() {
+        listenerCaptor = ArgumentCaptor.forClass(WebSocket.Listener.class);
+
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
 
         when(mockHttpClient.newWebSocketBuilder()).thenReturn(mockWebSocketBuilder);
