@@ -55,18 +55,15 @@ public class CoinbaseStreamingClientTest {
     @Before
     public void setUp() {
         listenerCaptor = ArgumentCaptor.forClass(WebSocket.Listener.class);
-        
-        // Create a proper CompletableFuture that completes with the mock WebSocket
+    
         webSocketFuture = new CompletableFuture<>();
         webSocketFuture.complete(mockWebSocket);
     
-        // Configure the mock builder to return our WebSocket
         when(mockHttpClient.newWebSocketBuilder()).thenReturn(mockWebSocketBuilder);
         when(mockWebSocketBuilder.buildAsync(any(URI.class), any(WebSocket.Listener.class)))
             .thenReturn(webSocketFuture);
     
-        // Ensure mockWebSocket.sendText() doesn't throw exceptions
-        doNothing().when(mockWebSocket).sendText(anyString(), anyBoolean());
+        when(mockWebSocket.sendText(anyString(), anyBoolean())).thenReturn(CompletableFuture.completedFuture(null)); 
     }
 
     @Test
