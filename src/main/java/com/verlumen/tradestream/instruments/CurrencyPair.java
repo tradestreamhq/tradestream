@@ -9,7 +9,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 
 import java.util.stream.Stream;
-import java.util.NoSuchElementException;
 
 /**
  * Represents a currency pair, which is a combination of two currencies.
