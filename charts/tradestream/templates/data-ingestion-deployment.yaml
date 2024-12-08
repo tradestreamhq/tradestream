@@ -27,9 +27,10 @@ spec:
             - -c
             - |
               until /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server my-tradestream-kafka:9092 --list | grep -q '^candles$'; do
-                echo "Waiting for candles topic..."
+                echo "Waiting for candles topic to be ready..."
                 sleep 5
               done
+              echo "Topic 'candles' exists, continuing..."
       containers:
         - name: data-ingestion
           {{- if .Values.dataIngestion.args }}
