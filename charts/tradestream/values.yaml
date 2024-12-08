@@ -20,6 +20,9 @@ kafka:
     offset.storage=raft
     transaction.state.log.replication.factor=3
     transaction.state.log.min.isr=2
+  service:
+    ports:
+      client: 9092
   topics:
     - name: candles
       partitions: 3
