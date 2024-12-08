@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Inject;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
 
 import java.net.URI;
@@ -42,13 +43,13 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     }
 
     @Override
-    public void startStreaming(ImmutableList<String> currencyPairs, Consumer<Trade> tradeHandler) {
+    public void startStreaming(ImmutableList<CurrencyPair> currencyPairs, Consumer<Trade> tradeHandler) {
         this.tradeHandler = tradeHandler;
 
         // Convert currency pairs to Coinbase product IDs
         ImmutableList<String> productIds = currencyPairs.stream()
-            .map(pair -> pair.replace("/", "-"))
-            .collect(ImmutableList.toImmutableList());
+            .map(pair -> String.format("%s-%s", pair.base().symbol(), pair.counter().symbol()))
+            .collect(toImmutableList());
 
         logger.atInfo().log("Starting Coinbase streaming for %d products: %s", 
             productIds.size(), productIds);
