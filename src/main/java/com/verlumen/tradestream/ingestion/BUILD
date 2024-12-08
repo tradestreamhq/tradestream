@@ -133,7 +133,7 @@ java_library(
     name = "currency_pair_metadata",
     srcs = ["CurrencyPairMetadata.java"],
     deps = [
-        "@maven//:org_knowm_xchange_xchange_core",
+        "@maven//:com_google_guava_guava",
         "//:autovalue",
     ],
 )
@@ -143,7 +143,6 @@ java_library(
     srcs = ["CurrencyPairSupply.java"],
     deps = [
         "@maven//:com_google_guava_guava",
-        "@maven//:org_knowm_xchange_xchange_core",        
         ":currency_pair_metadata",
     ],
 )
