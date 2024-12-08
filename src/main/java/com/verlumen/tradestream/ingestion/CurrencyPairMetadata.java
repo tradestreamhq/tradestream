@@ -36,26 +36,6 @@ abstract class CurrencyPairMetadata {
   abstract MarketCap marketCap();
 
   @AutoValue
-  abstract static class Currency {
-    private static Currency create(String name) {
-      return new AutoValue_CurrencyPairMetadata_Currency(name);
-    }
-
-    abstract String name();
-  }
-
-  @AutoValue
-  abstract static class CurrencyPair {
-    private static Currency create(Currency base, Currency counter) {
-      return new AutoValue_CurrencyPairMetadata_CurrencyPair(base, counter);
-    }
-
-    abstract Currency base();
-
-    abstract Currency counter();
-  }
-
-  @AutoValue
   abstract static class MarketCap {
     private static MarketCap create(BigDecimal value, Currency currency) {
       return new AutoValue_CurrencyPairMetadata_MarketCap(value, currency);
