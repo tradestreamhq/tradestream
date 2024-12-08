@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.Trade;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
