@@ -1,39 +1,38 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "tradestream.fullname" . }}-create-topic
+  name: {{ include "tradestream.fullname" . }}-kafka-topic-init
   namespace: {{ .Release.Namespace }}
   labels:
     app: {{ include "tradestream.name" . }}
-    component: kafka-topic-creator
+    component: kafka-topic-init
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded
 spec:
   template:
     spec:
       restartPolicy: OnFailure
-      initContainers:
-        - name: wait-for-kafka
+      containers:
+        - name: kafka-topic-creator
           image: bitnami/kafka:latest
           command:
             - /bin/bash
             - -c
             - |
-              until /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server my-tradestream-kafka-controller:9092 --list; do
-                echo "Waiting for Kafka to be ready..."
+              echo "Waiting for Kafka broker to be ready..."
+              until /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server {{ .Values.kafka.bootstrapServer }} --list; do
+                echo "Kafka is not ready. Retrying..."
                 sleep 5
               done
-      containers:
-      - name: create-topics
-        image: bitnami/kafka:latest
-        command:
-          - /bin/bash
-          - -c
-          - |
-            /opt/bitnami/kafka/bin/kafka-topics.sh \
-              --bootstrap-server my-tradestream-kafka-controller:9092 \
-              --create \
-              --if-not-exists \
-              --topic candles \
-              --partitions 3 \
-              --replication-factor 2 \
-              --config retention.ms=604800000 \
-              --config cleanup.policy=delete
+
+              echo "Creating Kafka topics..."
+              /opt/bitnami/kafka/bin/kafka-topics.sh \
+                --bootstrap-server {{ .Values.kafka.bootstrapServer }} \
+                --create \
+                --if-not-exists \
+                --topic {{ .Values.kafka.topics.candles.name }} \
+                --partitions {{ .Values.kafka.topics.candles.partitions }} \
+                --replication-factor {{ .Values.kafka.topics.candles.replicationFactor }} \
+                --config retention.ms={{ .Values.kafka.topics.candles.retentionMs }} \
+                --config cleanup.policy={{ .Values.kafka.topics.candles.cleanupPolicy }}
