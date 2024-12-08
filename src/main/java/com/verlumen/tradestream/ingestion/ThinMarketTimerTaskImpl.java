@@ -1,30 +1,24 @@
 package com.verlumen.tradestream.ingestion;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 
 final class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {
-  private final CandleManager candleManager;
-  private final CurrencyPairSupply currencyPairSupply;
+  private final Provider<CandleManager> candleManager;
+  private final Provider<CurrencyPairSupply> currencyPairSupply;
 
   @Inject
-  ThinMarketTimerTaskImpl (CandleManager candleManager, CurrencyPairSupply currencyPairSupply) {
+  ThinMarketTimerTaskImpl(
+    Provider<CandleManager candleManager, Provider<CurrencyPairSupply> currencyPairSupply) {
       this.candleManager = candleManager;
       this.currencyPairSupply = currencyPairSupply;
   }
 
   @Override
   public void run() {
-      ImmutableList<CurrencyPair> currencyPairs =
-        currencyPairSupply
-        .metadataList()
-        .stream()
-        .map(CurrencyPairMetadata::currencyPair)
-        .distinct()
-        .collect(toImmutableList());
-      candleManager.handleThinlyTradedMarkets(currencyPairs);
+      candleManager
+        .get()
+        .handleThinlyTradedMarkets(currencyPairSupply.get().currencyPairs());
   }
 }
