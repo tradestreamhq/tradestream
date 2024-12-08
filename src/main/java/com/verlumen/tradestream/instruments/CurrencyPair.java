@@ -71,7 +71,7 @@ public abstract class CurrencyPair {
         .omitEmptyStrings(); // Ignore empty parts caused by consecutive delimiters.
   
       // Normalize the split parts (e.g., convert to uppercase and ensure uniqueness).
-      ImmutableList<String> symbolParts = splitter.splitToStream(symbol)
+      return splitter.splitToStream(symbol)
         .map(String::toUpperCase) // Convert each part to uppercase for standardization.
         .distinct() // Ensure the base and counter currencies are distinct.
         .collect(toImmutableList());
