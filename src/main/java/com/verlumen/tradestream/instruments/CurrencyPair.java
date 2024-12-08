@@ -40,6 +40,13 @@ public abstract class CurrencyPair {
     // Extract the parts of the symbol.
     ImmutableList<String> symbolParts = extractSymbolParts(symbol);
 
+    // Create and return a CurrencyPair object.
+    return fromSymbolParts(symbolParts);
+  }
+
+  private static CurrencyPair fromSymbolParts(ImmutableList<String> symbolParts) {
+    checkArgument(symbolParts.size() == 2);
+    
     // Extract the base and counter currencies.
     Currency base = Currency.create(symbolParts.get(0));
     Currency counter = Currency.create(symbolParts.get(1));
@@ -48,13 +55,6 @@ public abstract class CurrencyPair {
     return create(base, counter);
   }
 
-  /**
-   * Private factory method to create a {@link CurrencyPair} object.
-   *
-   * @param base the base currency.
-   * @param counter the counter currency.
-   * @return a new {@link CurrencyPair} instance.
-   */
   private static CurrencyPair create(Currency base, Currency counter) {
     return new AutoValue_CurrencyPair(base, counter);
   }
