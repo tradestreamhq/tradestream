@@ -404,7 +404,6 @@ java_library(
     name = "thin_market_timer_task_impl",
     srcs = ["ThinMarketTimerTaskImpl.java"],
     deps = [
-        "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         ":candle_manager",
         ":currency_pair_supply",
