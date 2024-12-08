@@ -4,10 +4,10 @@ import static com.google.common.collect.MoreCollectors.onlyElement;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Splitter;
+import com.verlumen.tradestream.instruments.Currency;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 
 import java.math.BigDecimal;
-import java.util.Currency;
 import java.util.Stream;
 
 @AutoValue
