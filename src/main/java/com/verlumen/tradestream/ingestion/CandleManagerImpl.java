@@ -66,8 +66,8 @@ final class CandleManagerImpl implements CandleManager {
         logger.atInfo().log("Handling thin market update for %d currency pairs", currencyPairs.size());
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
         
-        for (String pair : currencyPairs) {
-            String key = getCandleKey(pair, currentMinute);
+        for (CurrencyPair pair : currencyPairs) {
+            String key = getCandleKey(pair.symbol(), currentMinute);
             CandleBuilder builder = candleBuilders.get(key);
             
             if (builder == null || !builder.hasTrades()) {
