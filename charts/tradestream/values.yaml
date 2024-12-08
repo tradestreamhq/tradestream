@@ -20,6 +20,12 @@ kafka:
     offset.storage=raft
     transaction.state.log.replication.factor=3
     transaction.state.log.min.isr=2
+  topics:
+    - name: candles
+      partitions: 3
+      replicationFactor: 2
+      configs:
+        retention.ms: 604800000  # 1 week
 dataIngestion:
   args:
     - "--runMode=wet"
