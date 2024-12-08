@@ -18,6 +18,7 @@ abstract static class CurrencyPair {
     ImmutableList<String> symbolParts = splitter.split(symbol)
       .stream()
       .map(String::toUpperCase)
+      .distinct()
       .collect(toImmutableList());
     Currency base = Currency.create(symbolParts.get(0));
     Currency counter = Currency.create(symbolParts.get(1));
