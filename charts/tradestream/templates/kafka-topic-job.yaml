@@ -17,7 +17,7 @@ spec:
             - /bin/bash
             - -c
             - |
-              until /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server my-tradestream-kafka:9092 --list; do
+              until /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server my-tradestream-kafka-controller:9092 --list; do
                 echo "Waiting for Kafka to be ready..."
                 sleep 5
               done
