@@ -1,13 +1,14 @@
 package com.verlumen.tradestream.instruments;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 
 @AutoValue
-abstract static class CurrencyPair {
+public abstract class CurrencyPair {
   public static CurrencyPair fromSymbol(String symbol) {
     String delimitter = Stream.of(FORWARD_SLASH, HYPHEN)
       .filter(symbol::contains)
