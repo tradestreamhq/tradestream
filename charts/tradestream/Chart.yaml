@@ -7,6 +7,3 @@ dependencies:
   - name: kafka
     version: 30.1.8
     repository: https://charts.bitnami.com/bitnami
-  - name: strimzi-kafka-operator
-    version: 0.34.0
-    repository: https://strimzi.io/charts/
