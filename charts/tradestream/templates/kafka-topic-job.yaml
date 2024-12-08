@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "tradestream.fullname" . }}-create-topic
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: kafka-topic-creator
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: create-topics
+        image: bitnami/kafka:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          until /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server my-tradestream-kafka:9092 --list; do
+            echo "Waiting for Kafka to be ready..."
+            sleep 5
+          done
+          /opt/bitnami/kafka/bin/kafka-topics.sh \
+            --bootstrap-server my-tradestream-kafka:9092 \
+            --create \
+            --if-not-exists \
+            --topic candles \
+            --partitions 3 \
+            --replication-factor 2 \
+            --config retention.ms=604800000 \
+            --config cleanup.policy=delete
