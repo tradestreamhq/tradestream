@@ -1,8 +1,7 @@
 package com.verlumen.tradestream.instruments;
 
 import com.google.auto.value.AutoValue;
-
-import java.util.Currency;
+import com.google.common.base.Splitter;
 
 @AutoValue
 abstract static class CurrencyPair {
@@ -13,8 +12,8 @@ abstract static class CurrencyPair {
     Splitter splitter = Splitter.on(delimiter)
       .trimResults()
       .omitEmptyStrings();
-    Currency base = Currency.create(symbol.split(delimiter)[0]);
-    Currency counter = Currency.create(symbol.split(delimiter)[1]);
+    Currency base = Currency.create(splitter.split(symbol)[0].toUpperCase());
+    Currency counter = Currency.create(splitter.split(symbol)[1].toUpperCase());
     return create(base, counter);
   }
 
