@@ -7,7 +7,7 @@ import org.knowm.xchange.currency.CurrencyPair;
 
 interface CurrencyPairSupply {
   ImmutableList<CurrencyPairMetadata> metadataList();
-  
+
   default ImmutableList<CurrencyPair> currencyPairs() {
     return metadataList()
       .stream()
