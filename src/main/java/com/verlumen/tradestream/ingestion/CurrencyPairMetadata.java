@@ -1,7 +1,5 @@
 package com.verlumen.tradestream.ingestion;
 
-import static com.google.common.collect.MoreCollectors.onlyElement;
-
 import com.google.auto.value.AutoValue;
 import com.verlumen.tradestream.instruments.Currency;
 import com.verlumen.tradestream.instruments.CurrencyPair;
