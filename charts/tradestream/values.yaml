@@ -25,7 +25,7 @@ kafka:
 dataIngestion:
   args:
     - "--runMode=wet"
-    - "--candlePublisherTopic=your-topic-name"
+    - "--candlePublisherTopic=candles"
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
