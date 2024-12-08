@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "tradestream.fullname" . }}-kafka-topic-init
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: kafka-topic-init
+    release: {{ .Release.Name }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        app: {{ include "tradestream.name" . }}
+        component: kafka-topic-init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: kafka-topic-init
+          image: bitnami/kafka:3.6.1
+          command:
+            - /bin/bash
+            - -c
+            - |
+              # Wait for Kafka to be ready
+              until kafka-topics.sh --bootstrap-server {{ .Values.kafka.service.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.kafka.service.ports.client }} --list; do
+                echo "Waiting for Kafka to be ready..."
+                sleep 5
+              done
+              
+              {{- range .Values.kafka.topics }}
+              # Create topic if it doesn't exist
+              kafka-topics.sh --bootstrap-server {{ $.Values.kafka.service.name }}.{{ $.Release.Namespace }}.svc.cluster.local:{{ $.Values.kafka.service.ports.client }} \
+                --create \
+                --if-not-exists \
+                --topic {{ .name }} \
+                --partitions {{ .partitions }} \
+                --replication-factor {{ .replicationFactor }} \
+                {{- if .configs }}
+                --config {{ range $key, $value := .configs }}{{ $key }}={{ $value }} {{ end }}
+                {{- end }}
+              {{- end }}
