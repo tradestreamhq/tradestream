@@ -1,11 +1,12 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.Inject;
-import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
-import java.util.List;
+import com.verlumen.tradestream.marketdata.Trade;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
