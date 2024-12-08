@@ -23,11 +23,11 @@ kafka:
     transaction.state.log.replication.factor=3
     transaction.state.log.min.isr=2
 dataIngestion:
-  args: 
+  args:
     - "--runMode=wet"
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
-    tag: v0.0.249-develop
+    tag: v0.0.250-develop
   service:
     port: 8080
