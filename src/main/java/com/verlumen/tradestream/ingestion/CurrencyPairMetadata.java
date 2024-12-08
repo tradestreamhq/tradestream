@@ -4,8 +4,10 @@ import static com.google.common.collect.MoreCollectors.onlyElement;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Splitter;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.Stream;
 
 @AutoValue
@@ -14,15 +16,7 @@ abstract class CurrencyPairMetadata {
   private static final String HYPHEN = "-";
 
   static CurrencyPairMetadata create(String symbol, BigDecimal marketCapValue) {
-    String delimitter = Stream.of(FORWARD_SLASH, HYPHEN)
-      .filter(symbol::contains)
-      .collect(onlyElement());
-    Splitter splitter = Splitter.on(delimiter)
-      .trimResults()
-      .omitEmptyStrings();
-    Currency base = Currency.create(symbol.split(delimiter)[0]);
-    Currency counter = Currency.create(symbol.split(delimiter)[1]);
-    CurrencyPair currencyPair = CurrencyPair.create(base, counter);
+    CurrencyPair currencyPair = CurrencyPair.fromSymbol(symbol);
     MarketCap marketCap = MarketCap.create(marketCapValue, counter);
     return create(currencyPair, marketCap);
   }
