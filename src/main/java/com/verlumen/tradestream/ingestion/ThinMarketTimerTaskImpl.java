@@ -4,6 +4,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 
 final class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {
   private final CandleManager candleManager;
@@ -17,11 +18,11 @@ final class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {
 
   @Override
   public void run() {
-      ImmutableList<String> currencyPairs =
+      ImmutableList<CurrencyPair> currencyPairs =
         currencyPairSupply
-        .currencyPairs()
+        .metadataList()
         .stream()
-        .map(Object::toString)
+        .map(CurrencyPairMetadata::currencyPair)
         .collect(toImmutableList());
       candleManager.handleThinlyTradedMarkets(currencyPairs);
   }
