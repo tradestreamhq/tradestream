@@ -129,7 +129,7 @@ public class CurrencyPairTest {
     String symbol = "/USD";
 
     // Act & Assert
-    assertThrows(IndexOutOfBoundsException.class, () -> CurrencyPair.fromSymbol(symbol));
+    assertThrows(IllegalArgumentException .class, () -> CurrencyPair.fromSymbol(symbol));
   }
 
   @Test
@@ -138,7 +138,7 @@ public class CurrencyPairTest {
     String symbol = "EUR/";
 
     // Act & Assert
-    assertThrows(IndexOutOfBoundsException.class, () -> CurrencyPair.fromSymbol(symbol));
+    assertThrows(IllegalArgumentException .class, () -> CurrencyPair.fromSymbol(symbol));
   }
 
   @Test
