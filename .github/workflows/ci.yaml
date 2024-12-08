@@ -92,7 +92,7 @@ jobs:
           kubectl wait --for=condition=complete job -l app={{ include "tradestream.name" . }},component=kafka-topic-creator -n tradestream-namespace --timeout=180s
           
           echo "Verifying topic exists..."
-          kubectl exec -n tradestream-namespace my-tradestream-kafka-0 -- \
+          kubectl exec -n tradestream-namespace my-tradestream-kafka-controller-0 -- \
             /opt/bitnami/kafka/bin/kafka-topics.sh \
             --bootstrap-server localhost:9092 \
             --describe \
