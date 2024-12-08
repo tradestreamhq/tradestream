@@ -9,6 +9,9 @@ import com.google.common.collect.ImmutableList;
 
 @AutoValue
 public abstract class CurrencyPair {
+  private static final String FORWARD_SLASH = "/";
+  private static final String HYPHEN = "-";
+
   public static CurrencyPair fromSymbol(String symbol) {
     String delimitter = Stream.of(FORWARD_SLASH, HYPHEN)
       .filter(symbol::contains)
