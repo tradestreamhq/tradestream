@@ -28,14 +28,14 @@ spec:
             - -c
             - |
               # Wait for Kafka to be ready
-              until kafka-topics.sh --bootstrap-server {{ .Values.kafka.service.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.kafka.service.ports.client }} --list; do
+              until kafka-topics.sh --bootstrap-server {{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.kafka.service.ports.client }} --list; do
                 echo "Waiting for Kafka to be ready..."
                 sleep 5
               done
               
               {{- range .Values.kafka.topics }}
               # Create topic if it doesn't exist
-              kafka-topics.sh --bootstrap-server {{ $.Values.kafka.service.name }}.{{ $.Release.Namespace }}.svc.cluster.local:{{ $.Values.kafka.service.ports.client }} \
+              kafka-topics.sh --bootstrap-server {{ include "tradestream.fullname" $ }}-kafka.{{ $.Release.Namespace }}.svc.cluster.local:{{ $.Values.kafka.service.ports.client }} \
                 --create \
                 --if-not-exists \
                 --topic {{ .name }} \
