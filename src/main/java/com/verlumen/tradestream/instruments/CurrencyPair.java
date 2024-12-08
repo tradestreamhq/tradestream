@@ -1,7 +1,10 @@
 package com.verlumen.tradestream.instruments;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 
 @AutoValue
 abstract static class CurrencyPair {
@@ -12,8 +15,12 @@ abstract static class CurrencyPair {
     Splitter splitter = Splitter.on(delimiter)
       .trimResults()
       .omitEmptyStrings();
-    Currency base = Currency.create(splitter.split(symbol)[0].toUpperCase());
-    Currency counter = Currency.create(splitter.split(symbol)[1].toUpperCase());
+    ImmutableList<String> symbolParts = splitter.split(symbol)
+      .stream()
+      .map(String::toUpperCase)
+      .collect(toImmutableList());
+    Currency base = Currency.create(symbolParts.get(0));
+    Currency counter = Currency.create(symbolParts.get(1));
     return create(base, counter);
   }
 
