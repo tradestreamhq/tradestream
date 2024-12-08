@@ -21,14 +21,14 @@ spec:
             - -c
             - |
               echo "Waiting for Kafka broker to be ready..."
-              until /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server {{ .Values.kafka.bootstrapServer }} --list; do
+              until /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server {{ .Release.Name }}-kafka-controller:9092 --list; do
                 echo "Kafka is not ready. Retrying..."
                 sleep 5
               done
 
               echo "Creating Kafka topics..."
               /opt/bitnami/kafka/bin/kafka-topics.sh \
-                --bootstrap-server {{ .Values.kafka.bootstrapServer }} \
+                --bootstrap-server {{ .Release.Name }}-kafka-controller:9092 \
                 --create \
                 --if-not-exists \
                 --topic {{ .Values.kafka.topics.candles.name }} \
