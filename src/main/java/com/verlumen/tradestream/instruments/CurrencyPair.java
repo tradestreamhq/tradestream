@@ -16,6 +16,10 @@ import java.util.stream.Stream;
  */
 @AutoValue
 public abstract class CurrencyPair {
+  // Constants for possible delimiters in the currency pair symbol.
+  private static final String FORWARD_SLASH = "/";
+  private static final String HYPHEN = "-";
+
   /**
    * Factory method to create a {@link CurrencyPair} from a string symbol.
    *
@@ -31,22 +35,8 @@ public abstract class CurrencyPair {
    * @throws IllegalArgumentException if the symbol is invalid or if the delimiter is ambiguous.
    */
   public static CurrencyPair fromSymbol(String symbol) {
-    // Determine the delimiter used in the symbol (either "/" or "-").
-    // If both delimiters are present, or none is found, it will throw an exception.
-    String delimiter = Stream.of(FORWARD_SLASH, HYPHEN)
-      .filter(symbol::contains) // Retain only delimiters that are present in the symbol.
-      .collect(onlyElement()); // Ensure exactly one delimiter is found.
-
-    // Split the symbol using the determined delimiter.
-    Splitter splitter = Splitter.on(delimiter)
-      .trimResults() // Remove any leading/trailing whitespace.
-      .omitEmptyStrings(); // Ignore empty parts caused by consecutive delimiters.
-
-    // Normalize the split parts (e.g., convert to uppercase and ensure uniqueness).
-    ImmutableList<String> symbolParts = splitter.splitToStream(symbol)
-      .map(String::toUpperCase) // Convert each part to uppercase for standardization.
-      .distinct() // Ensure the base and counter currencies are distinct.
-      .collect(toImmutableList());
+    // Extract the parts of the symbol.
+    ImmutableList<String> symbolParts = extractSymbolParts();
 
     // Extract the base and counter currencies.
     Currency base = Currency.create(symbolParts.get(0));
@@ -55,10 +45,6 @@ public abstract class CurrencyPair {
     // Create and return a CurrencyPair object.
     return create(base, counter);
   }
-
-  // Constants for possible delimiters in the currency pair symbol.
-  private static final String FORWARD_SLASH = "/";
-  private static final String HYPHEN = "-";
 
   /**
    * Private factory method to create a {@link CurrencyPair} object.
@@ -69,6 +55,31 @@ public abstract class CurrencyPair {
    */
   private static CurrencyPair create(Currency base, Currency counter) {
     return new AutoValue_CurrencyPair(base, counter);
+  }
+
+  private static ImmutableList<String> extractSymbolParts(String symbol) {
+    try {
+      // Determine the delimiter used in the symbol (either "/" or "-").
+      // If both delimiters are present, or none is found, it will throw an exception.
+      String delimiter = Stream.of(FORWARD_SLASH, HYPHEN)
+        .filter(symbol::contains) // Retain only delimiters that are present in the symbol.
+        .collect(onlyElement()); // Ensure exactly one delimiter is found.
+  
+      // Split the symbol using the determined delimiter.
+      Splitter splitter = Splitter.on(delimiter)
+        .trimResults() // Remove any leading/trailing whitespace.
+        .omitEmptyStrings(); // Ignore empty parts caused by consecutive delimiters.
+  
+      // Normalize the split parts (e.g., convert to uppercase and ensure uniqueness).
+      ImmutableList<String> symbolParts = splitter.splitToStream(symbol)
+        .map(String::toUpperCase) // Convert each part to uppercase for standardization.
+        .distinct() // Ensure the base and counter currencies are distinct.
+        .collect(toImmutableList());
+    } catch (NoSuchElementException | IndexOutOfBoundsException e) {
+      throw new IllegalArgumentException(
+        String.format("Unable to parse currency pair, invalid symbol: \"%s\".", symbol)
+      );
+    }
   }
 
   /**
