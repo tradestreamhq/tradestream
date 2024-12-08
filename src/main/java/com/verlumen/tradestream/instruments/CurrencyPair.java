@@ -38,7 +38,7 @@ public abstract class CurrencyPair {
    */
   public static CurrencyPair fromSymbol(String symbol) {
     // Extract the parts of the symbol.
-    ImmutableList<String> symbolParts = extractSymbolParts();
+    ImmutableList<String> symbolParts = extractSymbolParts(symbol);
 
     // Extract the base and counter currencies.
     Currency base = Currency.create(symbolParts.get(0));
