@@ -10,7 +10,8 @@ final class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {
 
   @Inject
   ThinMarketTimerTaskImpl(
-    Provider<CandleManager candleManager, Provider<CurrencyPairSupply> currencyPairSupply) {
+    Provider<CandleManager> candleManager,
+    Provider<CurrencyPairSupply> currencyPairSupply) {
       this.candleManager = candleManager;
       this.currencyPairSupply = currencyPairSupply;
   }
