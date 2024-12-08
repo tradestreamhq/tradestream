@@ -19,6 +19,17 @@ spec:
         app: {{ include "tradestream.name" . }}
         component: data-ingestion
     spec:
+      initContainers:
+        - name: wait-for-kafka
+          image: bitnami/kafka:latest
+          command: 
+            - /bin/bash
+            - -c
+            - |
+              until /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server my-tradestream-kafka:9092 --list | grep -q '^candles$'; do
+                echo "Waiting for candles topic..."
+                sleep 5
+              done
       containers:
         - name: data-ingestion
           {{- if .Values.dataIngestion.args }}
