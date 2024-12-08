@@ -13,16 +13,16 @@ public abstract class Currency {
   /**
    * Factory method to create a {@link Currency} instance.
    *
-   * @param symbol the symbol of the currency, typically in uppercase and following ISO 4217 standards
+   * @param name the name of the currency, typically in uppercase and following ISO 4217 standards
    *             (e.g., "USD" for US Dollar, "EUR" for Euro, "BTC" for Bitcoin).
    * @return a new {@link Currency} instance with the given name.
    * @throws IllegalArgumentException if the name is null or empty.
    */
-  static Currency create(String symbol) {
+  static Currency create(String name) {
     if (name == null || name.isEmpty()) {
-      throw new IllegalArgumentException("Currency symbol must not be null or empty.");
+      throw new IllegalArgumentException("Currency name must not be null or empty.");
     }
-    return new AutoValue_Currency(symbol);
+    return new AutoValue_Currency(name);
   }
 
   /**
@@ -33,5 +33,5 @@ public abstract class Currency {
    *
    * @return the name of the currency.
    */
-  public abstract String symbol();
+  public abstract String name();
 }
