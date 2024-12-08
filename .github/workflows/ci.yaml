@@ -85,8 +85,11 @@ jobs:
 
       - name: Verify Kafka Topic Creation
         run: |
-          echo "Waiting for topic creation job to complete..."
-          kubectl wait --for=condition=complete job/my-tradestream-create-topic -n tradestream-namespace --timeout=180s
+          echo "Waiting for topic creation job to start..."
+          kubectl wait --for=condition=ready pod -l app={{ include "tradestream.name" . }},component=kafka-topic-creator -n tradestream-namespace --timeout=180s
+          
+          echo "Waiting for job to complete..."
+          kubectl wait --for=condition=complete job -l app={{ include "tradestream.name" . }},component=kafka-topic-creator -n tradestream-namespace --timeout=180s
           
           echo "Verifying topic exists..."
           kubectl exec -n tradestream-namespace my-tradestream-kafka-0 -- \
