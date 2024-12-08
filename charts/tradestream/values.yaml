@@ -1,7 +1,5 @@
 kafka:
   replicaCount: 2
-  nodeSelector:
-    kubernetes.io/arch: arm64
   persistence:
     enabled: true
     size: 10Gi
