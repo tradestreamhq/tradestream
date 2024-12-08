@@ -7,3 +7,6 @@ dependencies:
   - name: kafka
     version: 30.1.8
     repository: https://charts.bitnami.com/bitnami
+  - name: kafka-topic-creator
+    repository: "https://hypertrace-helm-charts.storage.googleapis.com"
+    version: 0.1.0
