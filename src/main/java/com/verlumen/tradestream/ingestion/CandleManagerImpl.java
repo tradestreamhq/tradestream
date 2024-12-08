@@ -62,7 +62,7 @@ final class CandleManagerImpl implements CandleManager {
     }
 
     @Override
-    public void handleThinlyTradedMarkets(ImmutableList<String> currencyPairs) {
+    public void handleThinlyTradedMarkets(ImmutableList<CurrencyPair> currencyPairs) {
         logger.atInfo().log("Handling thin market update for %d currency pairs", currencyPairs.size());
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
         
