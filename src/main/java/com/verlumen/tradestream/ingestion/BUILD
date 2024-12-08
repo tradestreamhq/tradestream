@@ -133,7 +133,6 @@ java_library(
     name = "currency_pair_metadata",
     srcs = ["CurrencyPairMetadata.java"],
     deps = [
-        "@maven//:com_google_guava_guava",
         "//:autovalue",
         "//src/main/java/com/verlumen/tradestream/instruments:currency",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
