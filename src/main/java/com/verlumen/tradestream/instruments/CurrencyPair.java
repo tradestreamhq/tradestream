@@ -18,7 +18,7 @@ abstract static class CurrencyPair {
     return create(base, counter);
   }
 
-  private static Currency create(Currency base, Currency counter) {
+  private static CurrencyPair create(Currency base, Currency counter) {
     return new AutoValue_CurrencyPair(base, counter);
   }
 
