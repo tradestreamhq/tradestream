@@ -10,9 +10,8 @@ jobs:
   install-helm-charts:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-  
+      - uses: actions/checkout@v4
+
       - name: Start minikube
         uses: medyagh/setup-minikube@latest
 
@@ -84,6 +83,19 @@ jobs:
             exit 1
           fi
 
+      - name: Verify Kafka Topic Creation
+        run: |
+          echo "Waiting for topic creation job to complete..."
+          kubectl wait --for=condition=complete job/my-tradestream-create-topic -n tradestream-namespace --timeout=180s
+          
+          echo "Verifying topic exists..."
+          kubectl exec -n tradestream-namespace my-tradestream-kafka-0 -- \
+            /opt/bitnami/kafka/bin/kafka-topics.sh \
+            --bootstrap-server localhost:9092 \
+            --describe \
+            --topic candles
+
       - name: Verify Installations
         run: |
+          kubectl get all -n tradestream-namespace
           kubectl get pods -n tradestream-namespace
