@@ -144,6 +144,7 @@ java_library(
     srcs = ["CurrencyPairSupply.java"],
     deps = [
         "@maven//:com_google_guava_guava",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":currency_pair_metadata",
     ],
 )
