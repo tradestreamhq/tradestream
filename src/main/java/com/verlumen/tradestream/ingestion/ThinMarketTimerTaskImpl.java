@@ -23,6 +23,7 @@ final class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {
         .metadataList()
         .stream()
         .map(CurrencyPairMetadata::currencyPair)
+        .distinct()
         .collect(toImmutableList());
       candleManager.handleThinlyTradedMarkets(currencyPairs);
   }
