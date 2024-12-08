@@ -25,15 +25,15 @@ spec:
       - name: create-topics
         image: bitnami/kafka:latest
         command:
-        - /bin/bash
-        - -c
-        - |
-          /opt/bitnami/kafka/bin/kafka-topics.sh \
-            --bootstrap-server my-tradestream-kafka:9092 \
-            --create \
-            --if-not-exists \
-            --topic candles \
-            --partitions 3 \
-            --replication-factor 2 \
-            --config retention.ms=604800000 \
-            --config cleanup.policy=delete
+          - /bin/bash
+          - -c
+          - |
+            /opt/bitnami/kafka/bin/kafka-topics.sh \
+              --bootstrap-server my-tradestream-kafka-controller:9092 \
+              --create \
+              --if-not-exists \
+              --topic candles \
+              --partitions 3 \
+              --replication-factor 2 \
+              --config retention.ms=604800000 \
+              --config cleanup.policy=delete
