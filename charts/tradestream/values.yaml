@@ -26,7 +26,6 @@ dataIngestion:
   args: 
     - "--runMode=wet"
   replicaCount: 1
-
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
     tag: v0.0.249-develop
