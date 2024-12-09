@@ -170,8 +170,10 @@ public class RealTimeDataIngestionImplTest {
     @Test
     public void start_usesCorrectCurrencyPairs() {
         // Arrange
-        ImmutableList<String> expectedPairs = ImmutableList.of("TEST1/USD", "TEST2/USD");
-        when(mockCurrencyPairSupply.symbols()).thenReturn(expectedPairs);
+        ImmutableList<CurrencyPair> expectedPairs = Stream.of("TEST1/USD", "TEST2/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
+        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(expectedPairs);
 
         // Act
         realTimeDataIngestion.start();
