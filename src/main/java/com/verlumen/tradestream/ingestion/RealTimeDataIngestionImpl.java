@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
@@ -41,7 +42,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     public void start() {
         logger.atInfo().log("Starting real-time data ingestion for %s", 
             exchangeClient.getExchangeName());
-        
+
         startMarketDataIngestion();
         logger.atInfo().log("Starting thin market timer...");
         thinMarketTimer.get().start();
@@ -91,12 +92,12 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     }
 
     private void startMarketDataIngestion() {
-        exchangeClient.startStreaming(supportedSymbols(), this::processTrade);
+        exchangeClient.startStreaming(supportedCurrencyPairs(), this::processTrade);
     }
 
-    private ImmutableList<String> supportedSymbols() {
+    private ImmutableList<CurrencyPair> supportedCurrencyPairs() {
         return currencyPairSupply.get()
-            .symbols()
+            .currencyPairs()
             .stream()
             .filter(exchangeClient::isSupportedCurrencyPair)
             .collect(toImmutableList());

@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -9,6 +10,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
 import org.junit.Before;
 import org.junit.Rule;
@@ -21,13 +23,16 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @RunWith(JUnit4.class)
 public class RealTimeDataIngestionImplTest {
     @Rule public final MockitoRule mockito = MockitoJUnit.rule();
 
-    private static final ImmutableList<String> TEST_CURRENCY_PAIRS = 
-        ImmutableList.of("BTC/USD", "ETH/USD");
+    private static final ImmutableList<CurrencyPair> TEST_CURRENCY_PAIRS = 
+        Stream.of("BTC/USD", "ETH/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
     private static final String TEST_EXCHANGE = "test-exchange";
 
     @Mock @Bind private CandleManager mockCandleManager;
@@ -41,7 +46,7 @@ public class RealTimeDataIngestionImplTest {
 
     @Before
     public void setUp() {
-        when(mockCurrencyPairSupply.symbols()).thenReturn(TEST_CURRENCY_PAIRS);
+        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(TEST_CURRENCY_PAIRS);
         when(mockExchangeClient.getExchangeName()).thenReturn(TEST_EXCHANGE);
 
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
@@ -50,9 +55,11 @@ public class RealTimeDataIngestionImplTest {
     @Test
     public void start_initiatesStreaming() {
         // Arrange
-        ImmutableList<String> pairs = ImmutableList.of("BTC/USD", "ETH/USD");
-        when(mockCurrencyPairSupply.symbols()).thenReturn(pairs);
-        when(mockExchangeClient.isSupportedCurrencyPair(anyString())).thenReturn(true);
+        ImmutableList<CurrencyPair> pairs = Stream.of("BTC/USD", "ETH/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
+        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(pairs);
+        when(mockExchangeClient.isSupportedCurrencyPair(any(CurrencyPair.class))).thenReturn(true);
 
         // Act
         realTimeDataIngestion.start();
@@ -170,11 +177,11 @@ public class RealTimeDataIngestionImplTest {
     @Test
     public void start_usesCorrectCurrencyPairs() {
         // Arrange 
-        String supportedPair = "TEST1/USD";
-        String unsupportedPair = "TEST2/USD";
-        ImmutableList<String> pairs = ImmutableList.of(supportedPair, unsupportedPair);
-        ImmutableList<String> expected = ImmutableList.of(supportedPair);
-        when(mockCurrencyPairSupply.symbols()).thenReturn(pairs);
+        CurrencyPair supportedPair = CurrencyPair.fromSymbol("TEST1/USD");
+        CurrencyPair unsupportedPair = CurrencyPair.fromSymbol("TEST2/USD");
+        ImmutableList<CurrencyPair> pairs = ImmutableList.of(supportedPair, unsupportedPair);
+        ImmutableList<CurrencyPair> expected = ImmutableList.of(supportedPair);
+        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(pairs);
 
         when(mockExchangeClient.isSupportedCurrencyPair(supportedPair)).thenReturn(true);
         when(mockExchangeClient.isSupportedCurrencyPair(unsupportedPair)).thenReturn(false);

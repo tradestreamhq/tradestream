@@ -96,6 +96,7 @@ java_library(
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_code_gson_gson",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":exchange_streaming_client",
     ],
     runtime_deps = [
@@ -133,8 +134,9 @@ java_library(
     name = "currency_pair_metadata",
     srcs = ["CurrencyPairMetadata.java"],
     deps = [
-        "@maven//:org_knowm_xchange_xchange_core",
         "//:autovalue",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
     ],
 )
 
@@ -143,8 +145,8 @@ java_library(
     srcs = ["CurrencyPairSupply.java"],
     deps = [
         "@maven//:com_google_guava_guava",
-        "@maven//:org_knowm_xchange_xchange_core",        
         "//:autovalue",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":currency_pair_metadata",
     ],
 )
@@ -170,6 +172,7 @@ java_library(
     deps = [
         "@maven//:com_google_guava_guava",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
     ],
 )
 
@@ -341,6 +344,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":candle_manager",
         ":candle_publisher",
         ":currency_pair_supply",
@@ -390,6 +394,7 @@ java_library(
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":candle_manager",
         ":currency_pair_supply",
         ":thin_market_timer_task",
