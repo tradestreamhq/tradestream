@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.common.collect.Streams.stream;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
@@ -126,7 +127,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             JsonArray productsArray = jsonElement.getAsJsonArray();
             
             // Convert JsonArray to Stream and map each product "id" to a CurrencyPair
-            ImmutableList<CurrencyPair> pairs = StreamSupport.stream(productsArray.spliterator(), false)
+            ImmutableList<CurrencyPair> pairs = stream(productsArray)
                 .filter(JsonElement::isJsonObject)
                 .map(JsonElement::getAsJsonObject)
                 .filter(obj -> obj.has("id"))
