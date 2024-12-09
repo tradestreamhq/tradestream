@@ -92,12 +92,9 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     }
 
     private void startMarketDataIngestion() {
-        exchangeClient.startStreaming(
-            currencyPairSupply.get().currencyPairs(),
-            this::processTrade
-        );
+        exchangeClient.startStreaming(supportedCurrencyPairs(), this::processTrade);
     }
-  
+ 
     private ImmutableList<CurrencyPair> supportedCurrencyPairs() {
       return currencyPairSupply.get().currencyPairs().stream()
         .filter(exchangeClient::isSupportedCurrencyPair)
