@@ -23,8 +23,8 @@ import java.math.BigDecimal;
 @RunWith(JUnit4.class)
 public class ThinMarketTimerTaskImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
-    private static final BigDecimal BTC_USD_MARKET_CAP = BigDecimal.valueOf(456L);
-    private static final BigDecimal ETH_EUR_MARKET_CAP = BigDecimal.valueOf(567L);
+    private static final BigDecimal BTC_USD_MARKET_CAP = BigDecimal.valueOf(456.78);
+    private static final BigDecimal ETH_EUR_MARKET_CAP = BigDecimal.valueOf(567.89);
     private static final CurrencyPairMetadata BTC_USD = 
         CurrencyPairMetadata.create("BTC/USD", BTC_USD_MARKET_CAP);
     private static final CurrencyPairMetadata ETH_EUR = 
@@ -34,9 +34,12 @@ public class ThinMarketTimerTaskImplTest {
     @Mock @Bind private CurrencyPairSupply currencyPairSupply;
     @Inject private ThinMarketTimerTaskImpl timerTask;
 
-    @Before 
+    @Before
     public void setUp() {
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+        // Default to empty list of currency pairs
+        when(currencyPairSupply.currencyPairs())
+            .thenReturn(ImmutableList.of());
     }
 
     @Test
@@ -54,6 +57,33 @@ public class ThinMarketTimerTaskImplTest {
                 BTC_USD.currencyPair(),
                 ETH_EUR.currencyPair()
             ));
+    }
+
+    @Test
+    public void run_withEmptyCurrencyPairs_callsHandleThinlyTradedMarketsWithEmptyList() {
+        // Act
+        timerTask.run();
+
+        // Assert
+        verify(candleManager).handleThinlyTradedMarkets(ImmutableList.of());
+    }
+
+    @Test
+    public void run_handleThinlyTradedMarketsThrowsException_exceptionIsPropagated() {
+        // Arrange
+        when(currencyPairSupply.currencyPairs())
+            .thenReturn(ImmutableList.of(BTC_USD.currencyPair()));
+        doThrow(new RuntimeException("Test exception"))
+            .when(candleManager)
+            .handleThinlyTradedMarkets(any());
+
+        // Act & Assert
+        try {
+            timerTask.run();
+            fail("Expected RuntimeException");
+        } catch (RuntimeException e) {
+            assertEquals("Test exception", e.getMessage());
+        }
     }
 
     @Test
