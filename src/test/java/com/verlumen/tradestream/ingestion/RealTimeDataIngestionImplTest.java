@@ -9,6 +9,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
 import org.junit.Before;
 import org.junit.Rule;
@@ -26,8 +27,10 @@ import java.util.function.Consumer;
 public class RealTimeDataIngestionImplTest {
     @Rule public final MockitoRule mockito = MockitoJUnit.rule();
 
-    private static final ImmutableList<String> TEST_CURRENCY_PAIRS = 
-        ImmutableList.of("BTC/USD", "ETH/USD");
+    private static final ImmutableList<CurrencyPair> TEST_CURRENCY_PAIRS = 
+        Stream.of("BTC/USD", "ETH/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
     private static final String TEST_EXCHANGE = "test-exchange";
 
     @Mock @Bind private CandleManager mockCandleManager;
@@ -41,7 +44,7 @@ public class RealTimeDataIngestionImplTest {
 
     @Before
     public void setUp() {
-        when(mockCurrencyPairSupply.symbols()).thenReturn(TEST_CURRENCY_PAIRS);
+        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(TEST_CURRENCY_PAIRS);
         when(mockExchangeClient.getExchangeName()).thenReturn(TEST_EXCHANGE);
 
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
