@@ -28,8 +28,10 @@ import java.util.function.Consumer;
 public class RealTimeDataIngestionImplTest {
     @Rule public final MockitoRule mockito = MockitoJUnit.rule();
 
-    private static final ImmutableList<String> TEST_CURRENCY_PAIRS = 
-        Stream.of("BTC/USD", "ETH/USD").map(CurrencyPair::fromSymbol).collect(toImmutableList());
+    private static final ImmutableList<CurrencyPair> TEST_CURRENCY_PAIRS = 
+        Stream.of("BTC/USD", "ETH/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
     private static final String TEST_EXCHANGE = "test-exchange";
 
     @Mock @Bind private CandleManager mockCandleManager;
