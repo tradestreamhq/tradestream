@@ -1,5 +1,8 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
+import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -88,9 +91,14 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     }
 
     private void startMarketDataIngestion() {
-        exchangeClient.startStreaming(
-            currencyPairSupply.get().symbols(),
-            this::processTrade
-        );
+        exchangeClient.startStreaming(supportedSymbols(), this::processTrade);
+    }
+
+    private ImmutableList<String> supportedSymbols() {
+        return currencyPairSupply.get()
+            .symbols()
+            .stream()
+            .filter(exchangeClient::isSupportedCurrencyPair)
+            .collect(toImmutableList());
     }
 }
