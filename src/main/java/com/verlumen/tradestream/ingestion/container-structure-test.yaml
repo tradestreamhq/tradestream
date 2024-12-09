@@ -3,5 +3,8 @@ schemaVersion: 2.0.0
 commandTests:
   - name: test
     command: java
-    args: ['-jar', '/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar', '--runMode=dry']
+    args:
+    - '-jar'
+    - '/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar'
+    - '--runMode=dry'
     expectedError: ['.*Starting real-time data ingestion...']
