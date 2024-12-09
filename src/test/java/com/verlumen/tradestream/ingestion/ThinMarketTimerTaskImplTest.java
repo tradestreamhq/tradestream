@@ -8,7 +8,6 @@ import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.common.collect.ImmutableList;
-import com.verlumen.tradestream.instruments.CurrencyPair;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,9 +22,9 @@ public class ThinMarketTimerTaskImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
 
     private static final CurrencyPairMetadata BTC_USD = 
-        CurrencyPairMetadata.create(CurrencyPair.fromSymbol("BTC/USD"), 456L);
+        CurrencyPairMetadata.create("BTC/USD", 456L);
     private static final CurrencyPairMetadata ETH_EUR = 
-        CurrencyPairMetadata.create(CurrencyPair.fromSymbol("ETH/EUR"), 567L);
+        CurrencyPairMetadata.create("ETH/EUR", 567L);
 
     @Mock @Bind private CandleManager candleManager;
     @Mock @Bind private CurrencyPairSupply currencyPairSupply;
@@ -53,8 +52,8 @@ public class ThinMarketTimerTaskImplTest {
 
         // Assert
         ImmutableList<String> expected = ImmutableList.of(
-            BTC_USD.currencyPair().toString(), 
-            ETH_EUR.currencyPair().toString()
+            BTC_USD.currencyPair().symbol(), 
+            ETH_EUR.currencyPair().symbol()
         );
         verify(candleManager).handleThinlyTradedMarkets(expected);
     }
