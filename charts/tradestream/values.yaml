@@ -24,10 +24,10 @@ dataIngestion:
   args:
     - "--runMode=wet"
     - "--candlePublisherTopic=candles"
-    - "--kafka.bootstrap.servers={{ include \"tradestream.fullname\" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+    - "--exchangeName=coinbase"
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
-    tag: v0.0.273-develop
+    tag: v0.0.282-develop
   service:
     port: 8080

@@ -4,8 +4,10 @@ commandTests:
   - name: test
     command: java
     args:
-    - '-jar'
-    - '/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar'
-    - '--kafka.bootstrap.servers=localhost:9092'
-    - '--runMode=dry'
+      - '-jar'
+      - '/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar'
+      - '--candlePublisherTopic=fakeTopic'
+      - '--exchangeName=coinbase'
+      - '--kafka.bootstrap.servers=localhost:9092'
+      - '--runMode=dry'
     expectedError: ['.*Starting real-time data ingestion...']
