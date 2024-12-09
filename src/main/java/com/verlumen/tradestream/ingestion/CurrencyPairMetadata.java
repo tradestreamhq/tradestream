@@ -18,12 +18,12 @@ abstract class CurrencyPairMetadata {
    * @param marketCapValue  the market capitalization value for the pair, in terms of the counter currency.
    * @return a new {@link CurrencyPairMetadata} instance.
    */
-  static CurrencyPairMetadata create(String symbol, BigDecimal marketCapValue) {
+  static CurrencyPairMetadata create(String symbol, long marketCapValue) {
     // Parse the currency pair from the symbol.
     CurrencyPair currencyPair = CurrencyPair.fromSymbol(symbol);
 
     // Create a MarketCap object using the market capitalization value and the counter currency.
-    MarketCap marketCap = MarketCap.create(marketCapValue, currencyPair.counter());
+    MarketCap marketCap = MarketCap.create(BigDecimal.valueOf(marketCapValue), currencyPair.counter());
 
     // Create and return the CurrencyPairMetadata object.
     return create(currencyPair, marketCap);
