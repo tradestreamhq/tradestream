@@ -32,6 +32,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     private final HttpClient httpClient;
     private final Map<WebSocket, CompletableFuture<Void>> pendingMessages;
     private Consumer<Trade> tradeHandler;
+    private final WebSocketConnector connector;
 
     @Inject
     CoinbaseStreamingClient(HttpClient httpClient) {
@@ -39,6 +40,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         this.connections = new CopyOnWriteArrayList<>();
         this.httpClient = httpClient;
         this.pendingMessages = new ConcurrentHashMap<>();
+        this.connector = new WebSocketConnector();
     }
 
     @Override
@@ -53,10 +55,9 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         logger.atInfo().log("Starting Coinbase streaming for %d products: %s", 
             productIds.size(), productIds);
 
-        // Split products into groups and create connections
         List<List<String>> productGroups = splitProductsIntoGroups(productIds);
         for (List<String> group : productGroups) {
-            connectToWebSocket(group);
+            connector.connect(group);
         }
     }
 
@@ -87,31 +88,6 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             groups.add(productIds.subList(i, end));
         }
         return groups;
-    }
-
-    private void connectToWebSocket(List<String> productIds) {
-        logger.atInfo().log("Attempting to connect WebSocket for products: %s", productIds);
-        WebSocket.Builder builder = httpClient.newWebSocketBuilder();
-    
-        // Instead of join(), use thenAccept and exceptionally to handle async completion.
-        CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), new WebSocketListener());
-    
-        futureWs
-            .thenAccept(webSocket -> {
-                logger.atInfo().log("Successfully connected to Coinbase WebSocket");
-                connections.add(webSocket);
-                connectionProducts.put(webSocket, new ArrayList<>(productIds));
-                subscribe(webSocket, productIds);
-                
-                // Subscribe to heartbeats only on the first connection
-                if (connections.size() == 1) {
-                    subscribeToHeartbeat(webSocket);
-                }
-            })
-            .exceptionally(ex -> {
-                logger.atSevere().withCause(ex).log("Failed to establish WebSocket connection for products: %s", productIds);
-                return null;
-            });
     }
 
     private void subscribe(WebSocket webSocket, List<String> productIds) {
@@ -214,6 +190,58 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         }
     }
 
+    private class WebSocketConnector {
+        void connect(List<String> productIds) {
+            logger.atInfo().log("Attempting to connect WebSocket for products: %s", productIds);
+            WebSocket.Builder builder = httpClient.newWebSocketBuilder();
+        
+            CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), new WebSocketListener());
+        
+            futureWs
+                .thenAccept(webSocket -> {
+                    logger.atInfo().log("Successfully connected to Coinbase WebSocket");
+                    connections.add(webSocket);
+                    connectionProducts.put(webSocket, new ArrayList<>(productIds));
+                    subscribe(webSocket, productIds);
+                    
+                    if (connections.size() == 1) {
+                        subscribeToHeartbeat(webSocket);
+                    }
+                })
+                .exceptionally(ex -> {
+                    logger.atSevere().withCause(ex)
+                        .log("Failed to establish WebSocket connection for products: %s", productIds);
+                    return null;
+                });
+        }
+
+        private void subscribe(WebSocket webSocket, List<String> productIds) {
+            logger.atInfo().log("Subscribing to market_trades for products: %s", productIds);
+            JsonObject subscribeMessage = new JsonObject();
+            subscribeMessage.addProperty("type", "subscribe");
+            subscribeMessage.addProperty("channel", "market_trades");
+        
+            JsonArray productIdsArray = new JsonArray();
+            productIds.forEach(productIdsArray::add);
+            subscribeMessage.add("product_ids", productIdsArray);
+        
+            String messageStr = subscribeMessage.toString();
+            logger.atFine().log("Sending subscription message: %s", messageStr);
+            webSocket.sendText(messageStr, true);
+        }
+
+        private void subscribeToHeartbeat(WebSocket webSocket) {
+            logger.atInfo().log("Subscribing to heartbeats");
+            JsonObject heartbeatMessage = new JsonObject();
+            heartbeatMessage.addProperty("type", "subscribe");
+            heartbeatMessage.addProperty("channel", "heartbeats");
+        
+            String messageStr = heartbeatMessage.toString();
+            logger.atFine().log("Sending heartbeat subscription message: %s", messageStr);
+            webSocket.sendText(messageStr, true);
+        }
+    }
+
     private class WebSocketListener implements WebSocket.Listener {
         private final StringBuilder messageBuffer;
 
@@ -250,7 +278,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                 List<String> productIds = connectionProducts.remove(webSocket);
                 if (productIds != null && !productIds.isEmpty()) {
                     logger.atInfo().log("Attempting to reconnect for products: %s", productIds);
-                    connectToWebSocket(productIds);
+                    connector.connect(productIds);
                 }
             }
 
