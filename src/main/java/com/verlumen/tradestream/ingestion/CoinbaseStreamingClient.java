@@ -198,7 +198,9 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             logger.atInfo().log("Attempting to connect WebSocket for products: %s", productIds);
             WebSocket.Builder builder = httpClient.newWebSocketBuilder();
         
-            CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), new WebSocketListener(connector));
+            CompletableFuture<WebSocket> futureWs = builder.buildAsync(
+                URI.create(WEBSOCKET_URL),
+                new WebSocketListener(connectionProducts, connections, connector));
         
             futureWs
                 .thenAccept(webSocket -> {
@@ -246,10 +248,16 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     }
 
     private static class WebSocketListener implements WebSocket.Listener {
+        private final Map<WebSocket, List<String>> connectionProducts;
+        private final List<WebSocket> connections;
         private final StringBuilder messageBuffer;
         private final WebSocketConnector webSocketConnector;
 
-        WebSocketListener(WebSocketConnector webSocketConnector) {
+        WebSocketListener(Map<WebSocket, List<String>> connectionProducts,
+                          List<WebSocket> connections,
+                          WebSocketConnector webSocketConnector) {
+            this.connectionProducts = connectionProducts;
+            this.connections = connections;
             this.messageBuffer = new StringBuilder();
             this.webSocketConnector = webSocketConnector;
         }
