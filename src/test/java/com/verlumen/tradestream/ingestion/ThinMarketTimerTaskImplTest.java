@@ -104,7 +104,10 @@ public class ThinMarketTimerTaskImplTest {
         timerTask.run();
 
         // Assert
-        verify(candleManager).handleThinlyTradedMarkets(symbols);
+        ImmutableList<String> expected = ImmutableList.of(
+            "AAA/BBB", "CCC/DDD", "EEE/FFF"
+        );
+        verify(candleManager).handleThinlyTradedMarkets(expected);
     }
 
     @Test 
