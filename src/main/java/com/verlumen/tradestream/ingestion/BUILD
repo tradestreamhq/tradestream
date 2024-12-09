@@ -341,6 +341,7 @@ java_library(
     srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
         "@maven//:com_google_flogger_flogger",
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         "//protos:marketdata_java_proto",
         ":candle_manager",

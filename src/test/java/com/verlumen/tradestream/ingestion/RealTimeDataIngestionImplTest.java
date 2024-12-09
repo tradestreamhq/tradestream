@@ -54,14 +54,16 @@ public class RealTimeDataIngestionImplTest {
 
     @Test
     public void start_initiatesStreaming() {
+        // Arrange
+        ImmutableList<String> pairs = ImmutableList.of("BTC/USD", "ETH/USD");
+        when(mockCurrencyPairSupply.symbols()).thenReturn(pairs);
+        when(mockExchangeClient.isSupportedCurrencyPair(anyString())).thenReturn(true);
+
         // Act
         realTimeDataIngestion.start();
 
         // Assert
-        verify(mockExchangeClient).startStreaming(
-            eq(TEST_CURRENCY_PAIRS),
-            any(Consumer.class)
-        );
+        verify(mockExchangeClient).startStreaming(eq(pairs), any(Consumer.class));
     }
 
     @Test
@@ -172,17 +174,21 @@ public class RealTimeDataIngestionImplTest {
 
     @Test
     public void start_usesCorrectCurrencyPairs() {
-        // Arrange
-        ImmutableList<CurrencyPair> expectedPairs = Stream.of("TEST1/USD", "TEST2/USD")
-            .map(CurrencyPair::fromSymbol)
-            .collect(toImmutableList());
-        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(expectedPairs);
+        // Arrange 
+        String supportedPair = "TEST1/USD";
+        String unsupportedPair = "TEST2/USD";
+        ImmutableList<String> pairs = ImmutableList.of(supportedPair, unsupportedPair);
+        ImmutableList<String> expected = ImmutableList.of(supportedPair);
+        when(mockCurrencyPairSupply.symbols()).thenReturn(pairs);
+
+        when(mockExchangeClient.isSupportedCurrencyPair(supportedPair)).thenReturn(true);
+        when(mockExchangeClient.isSupportedCurrencyPair(unsupportedPair)).thenReturn(false);
 
         // Act
         realTimeDataIngestion.start();
 
         // Assert
-        verify(mockExchangeClient).startStreaming(eq(expectedPairs), any());
+        verify(mockExchangeClient).startStreaming(eq(expected), any(Consumer.class));
     }
 
     @Test
