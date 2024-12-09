@@ -12,8 +12,11 @@ import com.google.inject.Inject;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
 
-import java.net.URI;
+import java.io.IOException;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.URI;
 import java.net.http.WebSocket;
 import java.time.Instant;
 import java.util.ArrayList;
