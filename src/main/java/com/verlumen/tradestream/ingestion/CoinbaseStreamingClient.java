@@ -29,12 +29,14 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private static final String WEBSOCKET_URL = "wss://advanced-trade-ws.coinbase.com";
     private static final int PRODUCTS_PER_CONNECTION = 15;
-    
+
     private final Map<WebSocket, List<String>> connectionProducts;
     private final List<WebSocket> connections;
     private final HttpClient httpClient;
     private final Map<WebSocket, CompletableFuture<Void>> pendingMessages;
     private Consumer<Trade> tradeHandler;
+    private final WebSocketConnector connector;
+    private final MessageHandler messageHandler;
 
     @Inject
     CoinbaseStreamingClient(HttpClient httpClient) {
@@ -42,6 +44,8 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         this.connections = new CopyOnWriteArrayList<>();
         this.httpClient = httpClient;
         this.pendingMessages = new ConcurrentHashMap<>();
+        this.connector = new WebSocketConnector();
+        this.messageHandler = new MessageHandler();
     }
 
     @Override
@@ -56,10 +60,9 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         logger.atInfo().log("Starting Coinbase streaming for %d products: %s", 
             productIds.size(), productIds);
 
-        // Split products into groups and create connections
         List<List<String>> productGroups = splitProductsIntoGroups(productIds);
         for (List<String> group : productGroups) {
-            connectToWebSocket(group);
+            connector.connect(group);
         }
     }
 
@@ -92,31 +95,6 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         return groups;
     }
 
-    private void connectToWebSocket(List<String> productIds) {
-        logger.atInfo().log("Attempting to connect WebSocket for products: %s", productIds);
-        WebSocket.Builder builder = httpClient.newWebSocketBuilder();
-    
-        // Instead of join(), use thenAccept and exceptionally to handle async completion.
-        CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), new WebSocketListener());
-    
-        futureWs
-            .thenAccept(webSocket -> {
-                logger.atInfo().log("Successfully connected to Coinbase WebSocket");
-                connections.add(webSocket);
-                connectionProducts.put(webSocket, new ArrayList<>(productIds));
-                subscribe(webSocket, productIds);
-                
-                // Subscribe to heartbeats only on the first connection
-                if (connections.size() == 1) {
-                    subscribeToHeartbeat(webSocket);
-                }
-            })
-            .exceptionally(ex -> {
-                logger.atSevere().withCause(ex).log("Failed to establish WebSocket connection for products: %s", productIds);
-                return null;
-            });
-    }
-
     private void subscribe(WebSocket webSocket, List<String> productIds) {
         logger.atInfo().log("Subscribing to market_trades for products: %s", productIds);
         JsonObject subscribeMessage = new JsonObject();
@@ -143,77 +121,134 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         webSocket.sendText(messageStr, true);
     }
 
-    private void handleMessage(JsonObject message) {
-        logger.atFiner().log("Received message: %s", message);
+    /**
+     * Inner class responsible for handling and parsing incoming JSON messages.
+     */
+    private class MessageHandler {
+        void handle(JsonObject message) {
+            logger.atFiner().log("Received message: %s", message);
 
-        if (!message.has("channel")) {
-            logger.atWarning().log("Received message without 'channel' field: %s", message);
-            return;
-        }
-
-        String channel = message.get("channel").getAsString();
-
-        if ("heartbeats".equals(channel)) {
-            logger.atFine().log("Received heartbeat");
-            return;
-        }
-
-        if (!"market_trades".equals(channel)) {
-            logger.atFine().log("Ignoring message from unknown channel: %s", channel);
-            return;
-        }
-
-        if (!message.has("events")) {
-            logger.atWarning().log("Market trades message missing 'events' field: %s", message);
-            return;
-        }
-
-        JsonElement eventsElement = message.get("events");
-        if (!eventsElement.isJsonArray()) {
-            logger.atWarning().log("'events' field is not an array: %s", message);
-            return;
-        }
-
-        JsonArray events = eventsElement.getAsJsonArray();
-        for (JsonElement event : events) {
-            JsonObject eventObj = event.getAsJsonObject();
-            if (!eventObj.has("trades")) {
-                logger.atWarning().log("Event missing 'trades' array: %s", eventObj);
-                continue;
+            if (!message.has("channel")) {
+                logger.atWarning().log("Received message without 'channel' field: %s", message);
+                return;
             }
 
-            JsonElement tradesElement = eventObj.get("trades");
-            if (!tradesElement.isJsonArray()) {
-                logger.atWarning().log("'trades' field is not an array: %s", eventObj);
-                continue;
+            String channel = message.get("channel").getAsString();
+
+            if ("heartbeats".equals(channel)) {
+                logger.atFine().log("Received heartbeat");
+                return;
             }
 
-            JsonArray trades = tradesElement.getAsJsonArray();
-            trades.forEach(tradeElement -> {
-                try {
-                    JsonObject tradeJson = tradeElement.getAsJsonObject();
-                    logger.atFiner().log("Processing trade: %s", tradeJson);
+            if (!"market_trades".equals(channel)) {
+                logger.atFine().log("Ignoring message from unknown channel: %s", channel);
+                return;
+            }
 
-                    long timestamp = Instant.parse(tradeJson.get("time").getAsString()).toEpochMilli();
+            if (!message.has("events")) {
+                logger.atWarning().log("Market trades message missing 'events' field: %s", message);
+                return;
+            }
 
-                    Trade trade = Trade.newBuilder()
-                        .setTimestamp(timestamp)
-                        .setExchange(getExchangeName())
-                        .setCurrencyPair(tradeJson.get("product_id").getAsString().replace("-", "/"))
-                        .setPrice(tradeJson.get("price").getAsDouble())
-                        .setVolume(tradeJson.get("size").getAsDouble())
-                        .setTradeId(tradeJson.get("trade_id").getAsString())
-                        .build();
+            JsonElement eventsElement = message.get("events");
+            if (!eventsElement.isJsonArray()) {
+                logger.atWarning().log("'events' field is not an array: %s", message);
+                return;
+            }
 
-                    if (tradeHandler != null) {
-                        tradeHandler.accept(trade);
-                    } else {
-                        logger.atWarning().log("Received trade but no handler is registered");
-                    }
-                } catch (Exception e) {
-                    logger.atWarning().withCause(e).log("Failed to process trade: %s", tradeElement);
+            JsonArray events = eventsElement.getAsJsonArray();
+            for (JsonElement event : events) {
+                JsonObject eventObj = event.getAsJsonObject();
+                if (!eventObj.has("trades")) {
+                    logger.atWarning().log("Event missing 'trades' array: %s", eventObj);
+                    continue;
                 }
-            });
+
+                JsonElement tradesElement = eventObj.get("trades");
+                if (!tradesElement.isJsonArray()) {
+                    logger.atWarning().log("'trades' field is not an array: %s", eventObj);
+                    continue;
+                }
+
+                JsonArray trades = tradesElement.getAsJsonArray();
+                trades.forEach(tradeElement -> {
+                    try {
+                        JsonObject tradeJson = tradeElement.getAsJsonObject();
+                        logger.atFiner().log("Processing trade: %s", tradeJson);
+
+                        long timestamp = Instant.parse(tradeJson.get("time").getAsString()).toEpochMilli();
+
+                        Trade trade = Trade.newBuilder()
+                            .setTimestamp(timestamp)
+                            .setExchange(getExchangeName())
+                            .setCurrencyPair(tradeJson.get("product_id").getAsString().replace("-", "/"))
+                            .setPrice(tradeJson.get("price").getAsDouble())
+                            .setVolume(tradeJson.get("size").getAsDouble())
+                            .setTradeId(tradeJson.get("trade_id").getAsString())
+                            .build();
+
+                        if (tradeHandler != null) {
+                            tradeHandler.accept(trade);
+                        } else {
+                            logger.atWarning().log("Received trade but no handler is registered");
+                        }
+                    } catch (Exception e) {
+                        logger.atWarning().withCause(e).log("Failed to process trade: %s", tradeElement);
+                    }
+                });
+            }
+        }
+    }
+
+    private class WebSocketConnector {
+        void connect(List<String> productIds) {
+            logger.atInfo().log("Attempting to connect WebSocket for products: %s", productIds);
+            WebSocket.Builder builder = httpClient.newWebSocketBuilder();
+        
+            CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), new WebSocketListener());
+        
+            futureWs
+                .thenAccept(webSocket -> {
+                    logger.atInfo().log("Successfully connected to Coinbase WebSocket");
+                    connections.add(webSocket);
+                    connectionProducts.put(webSocket, new ArrayList<>(productIds));
+                    subscribe(webSocket, productIds);
+                    
+                    if (connections.size() == 1) {
+                        subscribeToHeartbeat(webSocket);
+                    }
+                })
+                .exceptionally(ex -> {
+                    logger.atSevere().withCause(ex)
+                        .log("Failed to establish WebSocket connection for products: %s", productIds);
+                    return null;
+                });
+        }
+
+        private void subscribe(WebSocket webSocket, List<String> productIds) {
+            logger.atInfo().log("Subscribing to market_trades for products: %s", productIds);
+            JsonObject subscribeMessage = new JsonObject();
+            subscribeMessage.addProperty("type", "subscribe");
+            subscribeMessage.addProperty("channel", "market_trades");
+        
+            JsonArray productIdsArray = new JsonArray();
+            productIds.forEach(productIdsArray::add);
+            subscribeMessage.add("product_ids", productIdsArray);
+        
+            String messageStr = subscribeMessage.toString();
+            logger.atFine().log("Sending subscription message: %s", messageStr);
+            webSocket.sendText(messageStr, true);
+        }
+
+        private void subscribeToHeartbeat(WebSocket webSocket) {
+            logger.atInfo().log("Subscribing to heartbeats");
+            JsonObject heartbeatMessage = new JsonObject();
+            heartbeatMessage.addProperty("type", "subscribe");
+            heartbeatMessage.addProperty("channel", "heartbeats");
+        
+            String messageStr = heartbeatMessage.toString();
+            logger.atFine().log("Sending heartbeat subscription message: %s", messageStr);
+            webSocket.sendText(messageStr, true);
         }
     }
 
@@ -233,7 +268,8 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                 messageBuffer.setLength(0); // Clear buffer
                 logger.atFiner().log("Complete message received: %s", message);
                 try {
-                    handleMessage(JsonParser.parseString(message).getAsJsonObject());
+                    JsonObject jsonMessage = JsonParser.parseString(message).getAsJsonObject();
+                    messageHandler.handle(jsonMessage);
                 } catch (Exception e) {
                     logger.atWarning().withCause(e).log("Failed to parse message: %s", message);
                 }
@@ -253,7 +289,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                 List<String> productIds = connectionProducts.remove(webSocket);
                 if (productIds != null && !productIds.isEmpty()) {
                     logger.atInfo().log("Attempting to reconnect for products: %s", productIds);
-                    connectToWebSocket(productIds);
+                    connector.connect(productIds);
                 }
             }
 
