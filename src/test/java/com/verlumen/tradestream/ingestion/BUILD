@@ -81,6 +81,7 @@ java_test(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:coinbase_streaming_client",
         "//src/main/java/com/verlumen/tradestream/ingestion:exchange_streaming_client",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
     ],
 )
 
