@@ -73,5 +73,23 @@ public class ThinMarketTimerTaskImplTest {
         verify(candleManager).handleThinlyTradedMarkets(pairs);
     }
 
-    // ... rest of tests remain the same ...
+    @Test 
+    public void run_withDuplicateCurrencyPairs_duplicatesAreIncludedInResultList() {
+        // Arrange
+        ImmutableList<CurrencyPair> pairs = ImmutableList.of(
+            BTC_USD.currencyPair(),
+            BTC_USD.currencyPair()
+        );
+        when(currencyPairSupply.currencyPairs()).thenReturn(pairs);
+
+        // Act
+        timerTask.run();
+
+        // Assert
+        ImmutableList<String> expected = ImmutableList.of(
+            BTC_USD.currencyPair().toString(),
+            BTC_USD.currencyPair().toString()
+        );
+        verify(candleManager).handleThinlyTradedMarkets(expected);
+    }
 }
