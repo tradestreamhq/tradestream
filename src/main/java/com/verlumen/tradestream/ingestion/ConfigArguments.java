@@ -81,7 +81,6 @@ abstract class ConfigArguments implements Provider<Namespace> {
 
     // Exchange configuration
     parser.addArgument("--exchangeName")
-      .setDefault("coinbase")
       .help("Exchange name");
 
     // CoinMarketCap configuration
