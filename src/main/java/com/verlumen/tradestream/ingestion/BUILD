@@ -50,11 +50,9 @@ java_library(
     srcs = ["CandleManagerImpl.java"],
     deps = [
         "@maven//:com_google_flogger_flogger",
-        "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":candle_builder",
         ":candle_manager",
         ":candle_publisher",
