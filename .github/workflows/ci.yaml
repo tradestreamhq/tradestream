@@ -26,6 +26,20 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
+      - name: Configure Minikube Registry Access
+        run: |
+          kubectl apply -f - <<EOF
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: local-registry-hosting
+            namespace: kube-public
+          data:
+            localRegistryHosting.v1: |
+              host: "localhost:5000"
+              help: "https://microk8s.io/docs/registry-built-in"
+          EOF
+
       - name: Create Namespace
         run: kubectl create namespace tradestream-namespace
 
@@ -47,12 +61,16 @@ jobs:
 
       - name: Push the Data Ingestion image
         run: |
+          # Push to local registry
           bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
             --verbose_failures \
             --sandbox_debug \
             -- \
-            --repository localhost:5000/tradestream-app:latest \
+            --repository localhost:5000/tradestream-app \
             --tag "latest"
+            
+          # Load into Minikube
+          minikube image load localhost:5000/tradestream-app:latest
 
       - name: Install TradeStream Helm Chart
         run: |
