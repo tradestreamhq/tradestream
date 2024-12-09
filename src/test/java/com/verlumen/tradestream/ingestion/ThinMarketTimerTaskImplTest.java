@@ -89,18 +89,17 @@ public class ThinMarketTimerTaskImplTest {
     @Test
     public void run_currencyPairsOrderIsPreserved() {
         // Arrange
-        ImmutableList<CurrencyPair> pairs = ImmutableList.of(
-            CurrencyPair.fromSymbol("AAA/BBB"),
-            CurrencyPair.fromSymbol("CCC/DDD"),
-            CurrencyPair.fromSymbol("EEE/FFF")
-        );
+        ImmutableList<String> symbols = ImmutableList.of("AAA/BBB", "CCC/DDD", "EEE/FFF");
+        ImmutableList<CurrencyPair> pairs = symbols.stream()
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
         when(currencyPairSupply.currencyPairs()).thenReturn(pairs);
 
         // Act
         timerTask.run();
 
         // Assert
-        verify(candleManager).handleThinlyTradedMarkets(pairs);
+        verify(candleManager).handleThinlyTradedMarkets(symbols);
     }
 
     @Test 
