@@ -8,12 +8,12 @@ import java.math.BigDecimal;
 
 @AutoValue
 abstract class CurrencyPairMetadata {
-  static CurrencyPairMetadata create(String pair, long marketCapValue) {
+  static CurrencyPairMetadata create(String pair, BigDecimal marketCapValue) {
     return create(new CurrencyPair(pair), marketCapValue);
   }
 
-  static CurrencyPairMetadata create(CurrencyPair currencyPair, long marketCapValue) {
-    MarketCap marketCap = MarketCap.create(BigDecimal.valueOf(marketCapValue), Currency.USD);
+  static CurrencyPairMetadata create(CurrencyPair currencyPair, BigDecimal marketCapValue) {
+    MarketCap marketCap = MarketCap.create(marketCapValue, currencyPair.counter());
     return new AutoValue_CurrencyPairMetadata(currencyPair, marketCap);
   }
 
