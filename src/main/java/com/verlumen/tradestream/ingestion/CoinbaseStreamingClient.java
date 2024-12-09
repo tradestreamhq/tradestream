@@ -196,6 +196,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     private static class WebSocketConnector {
         private final Map<WebSocket, List<String>> connectionProducts;
         private final List<WebSocket> connections;
+        private final HttpClient httpClient;
 
         WebSocketConnector(
             Map<WebSocket, List<String>> connectionProducts,
