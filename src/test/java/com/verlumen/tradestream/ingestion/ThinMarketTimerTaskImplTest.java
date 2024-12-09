@@ -18,14 +18,16 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.math.BigDecimal;
+
 @RunWith(JUnit4.class)
 public class ThinMarketTimerTaskImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
 
     private static final CurrencyPairMetadata BTC_USD = 
-        CurrencyPairMetadata.create(new CurrencyPair("BTC", "USD"), 456L);
+        CurrencyPairMetadata.create("BTC/USD", BigDecimal.valueOf(456L));
     private static final CurrencyPairMetadata ETH_EUR = 
-        CurrencyPairMetadata.create(new CurrencyPair("ETH", "EUR"), 567L);
+        CurrencyPairMetadata.create("ETH/EUR", BigDecimal.valueOf(567L));
 
     @Mock @Bind private CandleManager candleManager;
     @Mock @Bind private CurrencyPairSupply currencyPairSupply;
