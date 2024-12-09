@@ -1,15 +1,18 @@
+{{- range $topic := .Values.kafka.topics }}
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
 metadata:
-  name: {{ include "tradestream.fullname" . }}-candles
+  name: {{ include "tradestream.fullname" . }}-{{ $topic.name }}
   labels:
     strimzi.io/cluster: {{ .Values.kafka.clusterName }}
     app: {{ include "tradestream.name" . }}
     release: {{ .Release.Name }}
 spec:
-  partitions: {{ .Values.kafka.topics.candles.partitions }}
-  replicas: {{ .Values.kafka.topics.candles.replicas }}
+  partitions: {{ $topic.partitions }}
+  replicas: {{ $topic.replicas }}
   config:
-    {{- with .Values.kafka.topics.candles.config }}
+    {{- with $topic.config }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+---
+{{- end }}
