@@ -36,11 +36,8 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
 
     @Inject
     CoinbaseStreamingClient(HttpClient httpClient) {
-        Map<WebSocket, List<String>> connectionProducts = new ConcurrentHashMap<>();
-        List<WebSocket> connections = new CopyOnWriteArrayList<>();
-
-        this.connectionProducts = connectionProducts;
-        this.connections = connections;
+        this.connectionProducts = new ConcurrentHashMap<>();
+        this.connections = new CopyOnWriteArrayList<>();
         this.httpClient = httpClient;
         this.pendingMessages = new ConcurrentHashMap<>();
         this.connector = new WebSocketConnector();
