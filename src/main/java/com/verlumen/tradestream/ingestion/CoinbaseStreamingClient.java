@@ -195,7 +195,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             logger.atInfo().log("Attempting to connect WebSocket for products: %s", productIds);
             WebSocket.Builder builder = httpClient.newWebSocketBuilder();
         
-            CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), new WebSocketListener());
+            CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), new WebSocketListener(connector));
         
             futureWs
                 .thenAccept(webSocket -> {
