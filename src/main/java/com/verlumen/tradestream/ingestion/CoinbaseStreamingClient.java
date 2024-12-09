@@ -29,13 +29,14 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private static final String WEBSOCKET_URL = "wss://advanced-trade-ws.coinbase.com";
     private static final int PRODUCTS_PER_CONNECTION = 15;
-    
+
     private final Map<WebSocket, List<String>> connectionProducts;
     private final List<WebSocket> connections;
     private final HttpClient httpClient;
     private final Map<WebSocket, CompletableFuture<Void>> pendingMessages;
     private Consumer<Trade> tradeHandler;
     private final WebSocketConnector connector;
+    private final MessageHandler messageHandler;
 
     @Inject
     CoinbaseStreamingClient(HttpClient httpClient) {
@@ -44,6 +45,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         this.httpClient = httpClient;
         this.pendingMessages = new ConcurrentHashMap<>();
         this.connector = new WebSocketConnector();
+        this.messageHandler = new MessageHandler(this); // Pass reference to parent
     }
 
     @Override
@@ -119,77 +121,89 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         webSocket.sendText(messageStr, true);
     }
 
-    private void handleMessage(JsonObject message) {
-        logger.atFiner().log("Received message: %s", message);
+    /**
+     * Static inner class responsible for handling and parsing incoming JSON messages.
+     * This class now requires a reference to the outer class instance to access instance-specific fields.
+     */
+    private static class MessageHandler {
+        private final CoinbaseStreamingClient parent;
 
-        if (!message.has("channel")) {
-            logger.atWarning().log("Received message without 'channel' field: %s", message);
-            return;
+        MessageHandler(CoinbaseStreamingClient parent) {
+            this.parent = parent;
         }
 
-        String channel = message.get("channel").getAsString();
+        void handle(JsonObject message) {
+            logger.atFiner().log("Received message: %s", message);
 
-        if ("heartbeats".equals(channel)) {
-            logger.atFine().log("Received heartbeat");
-            return;
-        }
-
-        if (!"market_trades".equals(channel)) {
-            logger.atFine().log("Ignoring message from unknown channel: %s", channel);
-            return;
-        }
-
-        if (!message.has("events")) {
-            logger.atWarning().log("Market trades message missing 'events' field: %s", message);
-            return;
-        }
-
-        JsonElement eventsElement = message.get("events");
-        if (!eventsElement.isJsonArray()) {
-            logger.atWarning().log("'events' field is not an array: %s", message);
-            return;
-        }
-
-        JsonArray events = eventsElement.getAsJsonArray();
-        for (JsonElement event : events) {
-            JsonObject eventObj = event.getAsJsonObject();
-            if (!eventObj.has("trades")) {
-                logger.atWarning().log("Event missing 'trades' array: %s", eventObj);
-                continue;
+            if (!message.has("channel")) {
+                logger.atWarning().log("Received message without 'channel' field: %s", message);
+                return;
             }
 
-            JsonElement tradesElement = eventObj.get("trades");
-            if (!tradesElement.isJsonArray()) {
-                logger.atWarning().log("'trades' field is not an array: %s", eventObj);
-                continue;
+            String channel = message.get("channel").getAsString();
+
+            if ("heartbeats".equals(channel)) {
+                logger.atFine().log("Received heartbeat");
+                return;
             }
 
-            JsonArray trades = tradesElement.getAsJsonArray();
-            trades.forEach(tradeElement -> {
-                try {
-                    JsonObject tradeJson = tradeElement.getAsJsonObject();
-                    logger.atFiner().log("Processing trade: %s", tradeJson);
+            if (!"market_trades".equals(channel)) {
+                logger.atFine().log("Ignoring message from unknown channel: %s", channel);
+                return;
+            }
 
-                    long timestamp = Instant.parse(tradeJson.get("time").getAsString()).toEpochMilli();
+            if (!message.has("events")) {
+                logger.atWarning().log("Market trades message missing 'events' field: %s", message);
+                return;
+            }
 
-                    Trade trade = Trade.newBuilder()
-                        .setTimestamp(timestamp)
-                        .setExchange(getExchangeName())
-                        .setCurrencyPair(tradeJson.get("product_id").getAsString().replace("-", "/"))
-                        .setPrice(tradeJson.get("price").getAsDouble())
-                        .setVolume(tradeJson.get("size").getAsDouble())
-                        .setTradeId(tradeJson.get("trade_id").getAsString())
-                        .build();
+            JsonElement eventsElement = message.get("events");
+            if (!eventsElement.isJsonArray()) {
+                logger.atWarning().log("'events' field is not an array: %s", message);
+                return;
+            }
 
-                    if (tradeHandler != null) {
-                        tradeHandler.accept(trade);
-                    } else {
-                        logger.atWarning().log("Received trade but no handler is registered");
-                    }
-                } catch (Exception e) {
-                    logger.atWarning().withCause(e).log("Failed to process trade: %s", tradeElement);
+            JsonArray events = eventsElement.getAsJsonArray();
+            for (JsonElement event : events) {
+                JsonObject eventObj = event.getAsJsonObject();
+                if (!eventObj.has("trades")) {
+                    logger.atWarning().log("Event missing 'trades' array: %s", eventObj);
+                    continue;
                 }
-            });
+
+                JsonElement tradesElement = eventObj.get("trades");
+                if (!tradesElement.isJsonArray()) {
+                    logger.atWarning().log("'trades' field is not an array: %s", eventObj);
+                    continue;
+                }
+
+                JsonArray trades = tradesElement.getAsJsonArray();
+                trades.forEach(tradeElement -> {
+                    try {
+                        JsonObject tradeJson = tradeElement.getAsJsonObject();
+                        logger.atFiner().log("Processing trade: %s", tradeJson);
+
+                        long timestamp = Instant.parse(tradeJson.get("time").getAsString()).toEpochMilli();
+
+                        Trade trade = Trade.newBuilder()
+                            .setTimestamp(timestamp)
+                            .setExchange(parent.getExchangeName())
+                            .setCurrencyPair(tradeJson.get("product_id").getAsString().replace("-", "/"))
+                            .setPrice(tradeJson.get("price").getAsDouble())
+                            .setVolume(tradeJson.get("size").getAsDouble())
+                            .setTradeId(tradeJson.get("trade_id").getAsString())
+                            .build();
+
+                        if (parent.tradeHandler != null) {
+                            parent.tradeHandler.accept(trade);
+                        } else {
+                            logger.atWarning().log("Received trade but no handler is registered");
+                        }
+                    } catch (Exception e) {
+                        logger.atWarning().withCause(e).log("Failed to process trade: %s", tradeElement);
+                    }
+                });
+            }
         }
     }
 
@@ -261,7 +275,8 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                 messageBuffer.setLength(0); // Clear buffer
                 logger.atFiner().log("Complete message received: %s", message);
                 try {
-                    handleMessage(JsonParser.parseString(message).getAsJsonObject());
+                    JsonObject jsonMessage = JsonParser.parseString(message).getAsJsonObject();
+                    messageHandler.handle(jsonMessage);
                 } catch (Exception e) {
                     logger.atWarning().withCause(e).log("Failed to parse message: %s", message);
                 }
