@@ -36,10 +36,30 @@ jobs:
             --from-literal=apiKey=FAKE_API_KEY \
             --namespace=tradestream-namespace
 
+      - uses: bazel-contrib/setup-bazel@0.9.1
+        with:
+          # Avoid downloading Bazel every time
+          bazelisk-cache: true
+          # Store build cache per workflow
+          disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows
+          repository-cache: true
+
+      - name: Push the Data Ingestion image
+        run: |
+          bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
+            --verbose_failures \
+            --sandbox_debug \
+            -- \
+            --repository localhost:5000/tradestream-app:latest \
+            --tag "latest"
+
       - name: Install TradeStream Helm Chart
         run: |
           helm dependency update charts/tradestream && \
-          helm install my-tradestream charts/tradestream --namespace tradestream-namespace --set 'dataIngestion.args[0]=--runMode=dry'
+          helm install my-tradestream charts/tradestream \
+            --namespace tradestream-namespace \
+            --set 'dataIngestion.args[0]=--runMode=dry'
 
       - name: Wait for All Pods to be Ready
         run: |
