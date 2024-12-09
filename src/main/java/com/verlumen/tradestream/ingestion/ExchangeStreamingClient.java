@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.common.collect.ImmutableList;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
 
 import java.util.function.Consumer;
@@ -17,7 +18,7 @@ interface ExchangeStreamingClient {
      * @param currencyPairs List of currency pairs to stream
      * @param tradeHandler Callback to handle incoming trades
      */
-    void startStreaming(ImmutableList<String> currencyPairs, Consumer<Trade> tradeHandler);
+    void startStreaming(ImmutableList<CurrencyPair> currencyPairs, Consumer<Trade> tradeHandler);
 
     /**
      * Stops streaming and cleans up resources.
