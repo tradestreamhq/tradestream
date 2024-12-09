@@ -1,13 +1,13 @@
 package com.verlumen.tradestream.ingestion;
 
-import com.google.common.collect.ImmutableList;
-import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
+
+import java.util.List;
 
 public interface CandleManager {
     void processTrade(Trade trade);
 
-    void handleThinlyTradedMarkets(ImmutableList<CurrencyPair> currencyPairs);
+    void handleThinlyTradedMarkets(List<String> currencyPairs);
 
     int getActiveBuilderCount();
 
