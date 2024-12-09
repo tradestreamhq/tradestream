@@ -23,6 +23,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @RunWith(JUnit4.class)
 public class RealTimeDataIngestionImplTest {
