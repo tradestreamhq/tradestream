@@ -9,6 +9,12 @@ on:
 jobs:
   install-helm-charts:
     runs-on: ubuntu-latest
+    services:
+      # Runs a local Docker registry accessible at localhost:5000
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
