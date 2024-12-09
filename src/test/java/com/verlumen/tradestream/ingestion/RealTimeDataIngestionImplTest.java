@@ -61,7 +61,7 @@ public class RealTimeDataIngestionImplTest {
         // Assert
         verify(mockExchangeClient).startStreaming(pairs, realTimeDataIngestion);
     }
-    
+
     @Test
     public void start_startsThinMarketTimer() {
         // Act
