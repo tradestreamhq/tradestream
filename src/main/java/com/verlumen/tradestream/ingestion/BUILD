@@ -96,6 +96,7 @@ java_library(
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_code_gson_gson",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":exchange_streaming_client",
     ],
     runtime_deps = [
@@ -181,6 +182,7 @@ java_library(
     deps = [
         "@maven//:com_google_guava_guava",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
     ],
 )
 
