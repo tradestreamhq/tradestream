@@ -1,8 +1,8 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.auto.value.AutoValue;
-import org.knowm.xchange.currency.Currency;
-import org.knowm.xchange.currency.CurrencyPair;
+import com.verlumen.tradestream.instruments.Currency;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 
 import java.math.BigDecimal;
 
