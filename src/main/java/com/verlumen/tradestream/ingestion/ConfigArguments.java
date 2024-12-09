@@ -40,7 +40,6 @@ abstract class ConfigArguments implements Provider<Namespace> {
       .help("Candle interval in seconds");
 
     parser.addArgument("--candlePublisherTopic")
-      .setDefault("candles") 
       .help("Kafka topic to publish candle data");
 
     // Kafka configuration
@@ -97,7 +96,6 @@ abstract class ConfigArguments implements Provider<Namespace> {
     // Run mode configuration
     parser.addArgument("--runMode")
       .choices("wet", "dry")
-      .setDefault("wet")
       .help("Run mode: wet or dry");
 
     return parser;

@@ -4,8 +4,9 @@ commandTests:
   - name: test
     command: java
     args:
-    - '-jar'
-    - '/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar'
-    - "--exchangeName=coinbase"
-    - '--runMode=dry'
+      - '-jar'
+      - '/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar'
+      - '--candlePublisherTopic=fakeTopic'
+      - "--exchangeName=coinbase"
+      - '--runMode=dry'
     expectedError: ['.*Starting real-time data ingestion...']

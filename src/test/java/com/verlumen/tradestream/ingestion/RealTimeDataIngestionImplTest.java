@@ -12,6 +12,7 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

@@ -11,20 +11,20 @@ final class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {
   private final CurrencyPairSupply currencyPairSupply;
 
   @Inject
-  ThinMarketTimerTaskImpl (CandleManager candleManager, CurrencyPairSupply currencyPairSupply) {
-      this.candleManager = candleManager;
-      this.currencyPairSupply = currencyPairSupply;
+  ThinMarketTimerTaskImpl(CandleManager candleManager, CurrencyPairSupply currencyPairSupply) {
+    this.candleManager = candleManager;
+    this.currencyPairSupply = currencyPairSupply;
   }
 
   @Override
   public void run() {
-      ImmutableList<String> currencyPairs =
-        currencyPairSupply
-        .currencyPairs()
-        .stream()
-        .map(CurrencyPair::symbol)
-        .distinct()
-        .collect(toImmutableList());
-      candleManager.handleThinlyTradedMarkets(currencyPairs);
+    ImmutableList<String> currencyPairs =
+      currencyPairSupply
+      .currencyPairs()
+      .stream()
+      .map(CurrencyPair::symbol)
+      .distinct()
+      .collect(toImmutableList());
+    candleManager.handleThinlyTradedMarkets(currencyPairs);
   }
 }
