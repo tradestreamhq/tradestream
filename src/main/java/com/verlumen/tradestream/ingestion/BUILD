@@ -134,8 +134,8 @@ java_library(
     name = "currency_pair_metadata",
     srcs = ["CurrencyPairMetadata.java"],
     deps = [
-        "@maven//:org_knowm_xchange_xchange_core",
         "//:autovalue",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
     ],
 )
 
