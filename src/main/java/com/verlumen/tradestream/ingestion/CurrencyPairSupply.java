@@ -4,7 +4,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
-import org.knowm.xchange.currency.CurrencyPair;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 
 @AutoValue
 abstract class CurrencyPairSupply {
@@ -24,7 +24,7 @@ abstract class CurrencyPairSupply {
   ImmutableList<String> symbols() {
     return currencyPairs()
       .stream()
-      .map(pair -> pair.getBase() + "-" + pair.getCounter())
+      .map(CurrencyPair::symbol)
       .collect(toImmutableList());
   }
 }

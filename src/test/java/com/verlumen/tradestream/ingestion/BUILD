@@ -81,6 +81,7 @@ java_test(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:coinbase_streaming_client",
         "//src/main/java/com/verlumen/tradestream/ingestion:exchange_streaming_client",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
     ],
 )
 
@@ -139,6 +140,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer",
         "//src/main/java/com/verlumen/tradestream/ingestion:trade_processor",
         "//src/main/java/com/verlumen/tradestream/ingestion:real_time_data_ingestion_impl",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
     ],
 )
 
@@ -168,12 +170,12 @@ java_test(
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
-        "@maven//:org_knowm_xchange_xchange_core",
         "@maven//:org_mockito_mockito_core",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager",
         "//src/main/java/com/verlumen/tradestream/ingestion:currency_pair_metadata",
         "//src/main/java/com/verlumen/tradestream/ingestion:currency_pair_supply",
         "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer_task_impl",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
     ],
 )
 

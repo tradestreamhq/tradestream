@@ -8,12 +8,12 @@ import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.common.collect.ImmutableList;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.knowm.xchange.currency.CurrencyPair;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -55,8 +55,8 @@ public class ThinMarketTimerTaskImplTest {
 
         // Assert
         ImmutableList<String> expected = ImmutableList.of(
-            BTC_USD.currencyPair().toString(), 
-            ETH_EUR.currencyPair().toString()
+            BTC_USD.currencyPair().symbol(), 
+            ETH_EUR.currencyPair().symbol()
         );
         verify(candleManager).handleThinlyTradedMarkets(expected);
     }
@@ -92,9 +92,9 @@ public class ThinMarketTimerTaskImplTest {
     public void run_currencyPairsOrderIsPreserved() {
         // Arrange
         ImmutableList<CurrencyPair> pairs = ImmutableList.of(
-            new CurrencyPair("AAA", "BBB"),
-            new CurrencyPair("CCC", "DDD"),
-            new CurrencyPair("EEE", "FFF")
+            CurrencyPair.fromSymbol("AAA/BBB"),
+            CurrencyPair.fromSymbol("CCC/DDD"),
+            CurrencyPair.fromSymbol("EEE/FFF")
         );
         when(currencyPairSupply.currencyPairs()).thenReturn(pairs);
 
@@ -109,7 +109,7 @@ public class ThinMarketTimerTaskImplTest {
     }
 
     @Test 
-    public void run_withDuplicateCurrencyPairs_duplicatesAreIncludedInResultList() {
+    public void run_withDuplicateCurrencyPairs_duplicatesAreExcludedInResultList() {
         // Arrange
         ImmutableList<CurrencyPair> pairs = ImmutableList.of(
             BTC_USD.currencyPair(),
@@ -122,8 +122,7 @@ public class ThinMarketTimerTaskImplTest {
 
         // Assert
         ImmutableList<String> expected = ImmutableList.of(
-            BTC_USD.currencyPair().toString(),
-            BTC_USD.currencyPair().toString()
+            BTC_USD.currencyPair().symbol()
         );
         verify(candleManager).handleThinlyTradedMarkets(expected);
     }
