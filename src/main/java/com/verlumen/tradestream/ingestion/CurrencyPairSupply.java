@@ -18,7 +18,7 @@ interface CurrencyPairSupply {
   default ImmutableList<CurrencyPair> symbols() {
     return currencyPairs()
       .stream()
-      .map(CurrencyPair::symbol)
+      .map(CurrencyPair::fromSymbol)
       .collect(toImmutableList());
   }
 }
