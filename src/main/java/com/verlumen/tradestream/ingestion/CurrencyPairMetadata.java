@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.auto.value.AutoValue;
+import com.verlumen.tradestream.instruments.Currency;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 
 import java.math.BigDecimal;
@@ -32,11 +33,11 @@ abstract class CurrencyPairMetadata {
    * and a long market cap value.
    *
    * @param currencyPair the {@link CurrencyPair} instance.
-   * @param marketCapValue the market capitalization value as a long.
+   * @param marketCap the market capitalization value.
    * @return a new {@link CurrencyPairMetadata} instance.
    */
-  static CurrencyPairMetadata create(CurrencyPair currencyPair, long marketCapValue) {
-    return create(currencyPair, BigDecimal.valueOf(marketCapValue));
+  static CurrencyPairMetadata create(String symbol, BigDecimal marketCapValue) {
+    return create(CurrencyPair.fromSymbol(symbol), marketCapValue);
   }
 
   /**

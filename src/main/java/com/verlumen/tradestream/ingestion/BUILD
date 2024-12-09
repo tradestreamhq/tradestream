@@ -149,7 +149,6 @@ java_library(
     srcs = ["CurrencyPairSupply.java"],
     deps = [
         "@maven//:com_google_guava_guava",
-        "@maven//:org_knowm_xchange_xchange_core",        
         "//:autovalue",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":currency_pair_metadata",

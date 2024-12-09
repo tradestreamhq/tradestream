@@ -42,7 +42,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     public void start() {
         logger.atInfo().log("Starting real-time data ingestion for %s", 
             exchangeClient.getExchangeName());
-        
+
         startMarketDataIngestion();
         logger.atInfo().log("Starting thin market timer...");
         thinMarketTimer.get().start();
@@ -94,10 +94,12 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private void startMarketDataIngestion() {
         exchangeClient.startStreaming(supportedCurrencyPairs(), this::processTrade);
     }
- 
+
     private ImmutableList<CurrencyPair> supportedCurrencyPairs() {
-      return currencyPairSupply.get().currencyPairs().stream()
-        .filter(exchangeClient::isSupportedCurrencyPair)
-        .collect(toImmutableList());
+        return currencyPairSupply.get()
+            .currencyPairs()
+            .stream()
+            .filter(exchangeClient::isSupportedCurrencyPair)
+            .collect(toImmutableList());
     }
 }

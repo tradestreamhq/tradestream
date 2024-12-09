@@ -18,15 +18,13 @@ final class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {
 
   @Override
   public void run() {
-    // Get currency pairs from supply and convert to string representations
-    ImmutableList<String> pairSymbols = currencyPairSupply
+    ImmutableList<String> currencyPairs =
+      currencyPairSupply
       .currencyPairs()
       .stream()
       .map(CurrencyPair::symbol)
       .distinct()
       .collect(toImmutableList());
-
-    // Pass the string representations to the candle manager
-    candleManager.handleThinlyTradedMarkets(pairSymbols);
+    candleManager.handleThinlyTradedMarkets(currencyPairs);
   }
 }

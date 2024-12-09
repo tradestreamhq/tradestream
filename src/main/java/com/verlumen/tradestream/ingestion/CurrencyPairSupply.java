@@ -24,7 +24,7 @@ abstract class CurrencyPairSupply {
   ImmutableList<String> symbols() {
     return currencyPairs()
       .stream()
-      .map(CurrencyPair::symbol) // Map each CurrencyPair to its symbol.
+      .map(CurrencyPair::symbol)
       .collect(toImmutableList());
   }
 }
