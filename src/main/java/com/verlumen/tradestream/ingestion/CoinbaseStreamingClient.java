@@ -95,6 +95,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
      * 
      * @return an immutable list of supported CurrencyPairs.
      */
+    @Override
     public ImmutableList<CurrencyPair> supportedCurrencyPairs(String delimiter) {
         logger.atInfo().log("Fetching supported currency pairs from Coinbase");
         
