@@ -119,9 +119,9 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     }
 
     /**
-     * Inner class responsible for handling and parsing incoming JSON messages.
+     * Responsible for handling and parsing incoming JSON messages.
      */
-    private class MessageHandler {
+    private static class MessageHandler {
         void handle(JsonObject message) {
             logger.atFiner().log("Received message: %s", message);
 
