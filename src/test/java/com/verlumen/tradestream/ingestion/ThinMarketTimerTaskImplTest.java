@@ -46,8 +46,11 @@ public class ThinMarketTimerTaskImplTest {
     @Test
     public void run_withValidCurrencyPairs_callsHandleThinlyTradedMarketsWithCorrectList() {
         // Arrange
-        when(currencyPairSupply.metadataList())
-            .thenReturn(ImmutableList.of(BTC_USD, ETH_EUR));
+        ImmutableList<CurrencyPair> pairs = ImmutableList.of(
+            BTC_USD.currencyPair(), 
+            ETH_EUR.currencyPair()
+        );
+        when(currencyPairSupply.currencyPairs()).thenReturn(pairs);
 
         // Act
         timerTask.run();
