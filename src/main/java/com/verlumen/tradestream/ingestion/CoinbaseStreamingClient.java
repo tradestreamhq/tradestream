@@ -43,7 +43,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         this.connections = connections;
         this.httpClient = httpClient;
         this.pendingMessages = new ConcurrentHashMap<>();
-        this.connector = new WebSocketConnector(connectionProducts, connections);
+        this.connector = new WebSocketConnector(connectionProducts, connections, httpClient);
     }
 
     @Override
@@ -197,9 +197,13 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         private final Map<WebSocket, List<String>> connectionProducts;
         private final List<WebSocket> connections;
 
-        WebSocketConnector(Map<WebSocket, List<String>> connectionProducts, List<WebSocket> connections) {
+        WebSocketConnector(
+            Map<WebSocket, List<String>> connectionProducts,
+            List<WebSocket> connections,
+            HttpClient httpClient) {
             this.connectionProducts = connectionProducts;
             this.connections = connections;
+            this.httpClient = httpClient;
         }
 
         void connect(List<String> productIds) {
