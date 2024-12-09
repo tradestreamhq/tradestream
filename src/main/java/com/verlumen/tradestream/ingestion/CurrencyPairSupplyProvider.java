@@ -84,7 +84,7 @@ final class CurrencyPairSupplyProvider implements Provider<CurrencyPairSupply> {
                 listBuilder.add(metadata);
             });
 
-            return CurrencyPairSupplyImpl.create(listBuilder.build());
+            return CurrencyPairSupply.create(listBuilder.build());
         } catch (IOException e) {
             // Handle exceptions
             throw new RuntimeException("Failed to fetch currency data", e);
