@@ -105,7 +105,7 @@ final class CandleManagerImpl implements CandleManager {
         builder.addTrade(Trade.newBuilder()
             .setPrice(lastPrice)
             .setVolume(0)
-            .setCurrencyPair(currencyPair)
+            .setCurrencyPair(symbol)
             .setTimestamp(timestamp)
             .build());
         publishAndRemoveCandle(getCandleKey(symbol, timestamp), builder);
