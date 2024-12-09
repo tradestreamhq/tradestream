@@ -47,13 +47,16 @@ jobs:
 
       - name: Build and Push the Data Ingestion Image
         run: |
-          # Build & push the image to the local registry as before
+          # Push to local registry
           bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
             --verbose_failures \
             --sandbox_debug \
             -- \
             --repository localhost:5000/tradestream-app \
             --tag "latest"
+            
+          # Load into Minikube
+          minikube image load localhost:5000/tradestream-app:latest
 
       - name: Pull Image into Local Docker Daemon
         run: |
