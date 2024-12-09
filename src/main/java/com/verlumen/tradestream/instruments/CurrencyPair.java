@@ -57,7 +57,7 @@ public abstract class CurrencyPair {
     return new AutoValue_CurrencyPair(base, counter, delimiter);
   }
 
-  private static ImmutableList<String> extractSymbolParts(String symbol) {
+  private static SymbolParts extractSymbolParts(String symbol) {
     try {
       // Determine the delimiter used in the symbol (either "/" or "-").
       // If both delimiters are present, or none is found, it will throw an exception.
@@ -71,10 +71,11 @@ public abstract class CurrencyPair {
         .omitEmptyStrings(); // Ignore empty parts caused by consecutive delimiters.
   
       // Normalize the split parts (e.g., convert to uppercase and ensure uniqueness).
-      return splitter.splitToStream(symbol)
+      ImmutableList<String> symbolParts = splitter.splitToStream(symbol)
         .map(String::toUpperCase) // Convert each part to uppercase for standardization.
         .distinct() // Ensure the base and counter currencies are distinct.
         .collect(toImmutableList());
+      return SymbolParts.create(symbolParts);
     } catch (NoSuchElementException | IndexOutOfBoundsException e) {
       throw new IllegalArgumentException(
         String.format("Unable to parse currency pair, invalid symbol: \"%s\".", symbol)
@@ -113,8 +114,28 @@ public abstract class CurrencyPair {
       return new AutoValue_CurrencyPair_SymbolParts(delimiter, parts);
     }
 
+    private static SymbolParts fromSymbol(String symbol) {
+      // Determine the delimiter used in the symbol (either "/" or "-").
+      // If both delimiters are present, or none is found, it will throw an exception.
+      String delimiter = Stream.of(FORWARD_SLASH, HYPHEN)
+        .filter(symbol::contains) // Retain only delimiters that are present in the symbol.
+        .collect(onlyElement()); // Ensure exactly one delimiter is found.
+  
+      // Split the symbol using the determined delimiter.
+      Splitter splitter = Splitter.on(delimiter)
+        .trimResults() // Remove any leading/trailing whitespace.
+        .omitEmptyStrings(); // Ignore empty parts caused by consecutive delimiters.
+  
+      // Normalize the split parts (e.g., convert to uppercase and ensure uniqueness).
+      ImmutableList<String> parts = splitter.splitToStream(symbol)
+        .map(String::toUpperCase) // Convert each part to uppercase for standardization.
+        .distinct() // Ensure the base and counter currencies are distinct.
+        .collect(toImmutableList());
+      return create(parts);  
+    }
+
     abstract String delimiter();
 
-    abstract String parts();
+    abstract ImmutableList<String> parts();
   }
 }
