@@ -177,9 +177,11 @@ public class RealTimeDataIngestionImplTest {
         // Arrange 
         String supportedPair = "TEST1/USD";
         String unsupportedPair = "TEST2/USD";
-        ImmutableList<String> pairs = ImmutableList.of(supportedPair, unsupportedPair);
-        ImmutableList<String> expected = ImmutableList.of(supportedPair);
-        when(mockCurrencyPairSupply.symbols()).thenReturn(pairs);
+        ImmutableList<CurrencyPair> pairs = Stream.of(supportedPair, unsupportedPair)
+            .map(CurrencyPair::fromSymbol).collect(toImmutableList());
+        ImmutableList<CurrencyPair> expected = ImmutableList.of(supportedPair)
+            .map(CurrencyPair::fromSymbol).collect(toImmutableList());
+        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(pairs);
 
         when(mockExchangeClient.isSupportedCurrencyPair(supportedPair)).thenReturn(true);
         when(mockExchangeClient.isSupportedCurrencyPair(unsupportedPair)).thenReturn(false);
