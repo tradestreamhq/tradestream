@@ -215,7 +215,11 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     }
 
     private class WebSocketListener implements WebSocket.Listener {
-        private final StringBuilder messageBuffer = new StringBuilder();
+        private final StringBuilder messageBuffer;
+
+        WebSocketListener() {
+            this.messageBuffer = new StringBuilder();
+        }
 
         @Override
         public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
