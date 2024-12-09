@@ -8,6 +8,7 @@ import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.common.collect.ImmutableList;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,11 +21,12 @@ import org.mockito.junit.MockitoRule;
 @RunWith(JUnit4.class)
 public class ThinMarketTimerTaskImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
-
+    private static final BigDecimal BTC_USD_MARKET_CAP = BigDecimal.valueOf(456L);
+    private static final BigDecimal ETH_EUR_MARKET_CAP = BigDecimal.valueOf(456L);
     private static final CurrencyPairMetadata BTC_USD = 
-        CurrencyPairMetadata.create("BTC/USD", 456L);
+        CurrencyPairMetadata.create("BTC/USD", BTC_USD_MARKET_CAP);
     private static final CurrencyPairMetadata ETH_EUR = 
-        CurrencyPairMetadata.create("ETH/EUR", 567L);
+        CurrencyPairMetadata.create("ETH/EUR", ETH_EUR_MARKET_CAP);
 
     @Mock @Bind private CandleManager candleManager;
     @Mock @Bind private CurrencyPairSupply currencyPairSupply;
