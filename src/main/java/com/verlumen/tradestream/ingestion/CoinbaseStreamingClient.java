@@ -126,7 +126,6 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             
             // Map each product "id" to a CurrencyPair
             ImmutableList<CurrencyPair> pairs = productsArray
-                .asList()
                 .stream()
                 .filter(JsonElement::isJsonObject)
                 .map(JsonElement::getAsJsonObject)
