@@ -58,7 +58,7 @@ public class RealTimeDataIngestionImplTest {
         realTimeDataIngestion.start();
 
         // Assert
-        verify(mockExchangeClient).startStreaming(pairs, realTimeDataIngestion);
+        verify(mockExchangeClient).startStreaming(eq(pairs), any(Consumer.class));
     }
 
     @Test
