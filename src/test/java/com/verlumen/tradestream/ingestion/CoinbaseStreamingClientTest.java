@@ -31,6 +31,7 @@ import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @RunWith(JUnit4.class)
 public class CoinbaseStreamingClientTest {
