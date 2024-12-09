@@ -25,7 +25,7 @@ spec:
           args: {{ .Values.dataIngestion.args | toYaml | nindent 12 }}
           {{- end }}
           image: "{{ .Values.dataIngestion.image.repository }}:{{ .Values.dataIngestion.image.tag }}"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: {{ default "IfNotPresent" .Values.dataIngestion.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.dataIngestion.service.port }}
           env:
