@@ -44,6 +44,7 @@ abstract class ConfigArguments implements Provider<Namespace> {
 
     // Kafka configuration
     parser.addArgument("--kafka.bootstrap.servers")
+      .setDefault("localhost:9092")
       .help("Kafka bootstrap servers");
 
     parser.addArgument("--kafka.acks")
