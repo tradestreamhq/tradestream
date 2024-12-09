@@ -1,32 +1,55 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.auto.value.AutoValue;
-import com.verlumen.tradestream.instruments.Currency;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 
 import java.math.BigDecimal;
 
 /**
- * Represents metadata for a currency pair, including its {@link CurrencyPair} and associated market capitalization.
+ * Represents metadata for a currency pair, including its {@link CurrencyPair} 
+ * and associated market capitalization.
  */
 @AutoValue
 abstract class CurrencyPairMetadata {
   /**
-   * Factory method to create a {@link CurrencyPairMetadata} instance.
+   * Factory method to create a {@link CurrencyPairMetadata} instance from a symbol and market cap value.
    *
-   * @param symbol          the symbol representing the currency pair, e.g., "BTC/USD" or "ETH-BTC".
-   * @param marketCap  the market capitalization value for the pair, in terms of the counter currency.
+   * The symbol should be in the format "BASE/COUNTER" or "BASE-COUNTER".
+   *
+   * @param symbol    the symbol representing the currency pair, e.g., "BTC/USD" or "ETH-BTC".
+   * @param marketCap the market capitalization value for the pair, in terms of the counter currency.
    * @return a new {@link CurrencyPairMetadata} instance.
+   * @throws IllegalArgumentException if the symbol is invalid.
    */
   static CurrencyPairMetadata create(String symbol, BigDecimal marketCap) {
     // Parse the currency pair from the symbol.
     CurrencyPair currencyPair = CurrencyPair.fromSymbol(symbol);
-
     return create(currencyPair, marketCap);
-  } 
+  }
 
-  private static CurrencyPairMetadata create(CurrencyPair currencyPair, BigDecimal marketCapValue) {
-    MarketCap marketCap = MarketCap.create(marketCapValue, currencyPair.getCounter());
+  /**
+   * Factory method to create a {@link CurrencyPairMetadata} instance from a {@link CurrencyPair}
+   * and a long market cap value.
+   *
+   * @param currencyPair the {@link CurrencyPair} instance.
+   * @param marketCapValue the market capitalization value as a long.
+   * @return a new {@link CurrencyPairMetadata} instance.
+   */
+  static CurrencyPairMetadata create(CurrencyPair currencyPair, long marketCapValue) {
+    return create(currencyPair, BigDecimal.valueOf(marketCapValue));
+  }
+
+  /**
+   * Private factory method to create a {@link CurrencyPairMetadata} instance.
+   *
+   * @param currencyPair the {@link CurrencyPair} instance.
+   * @param marketCap    the market capitalization value as a {@link BigDecimal}.
+   * @return a new {@link CurrencyPairMetadata} instance.
+   */
+  private static CurrencyPairMetadata create(CurrencyPair currencyPair, BigDecimal marketCap) {
+    if (marketCap == null || marketCap.compareTo(BigDecimal.ZERO) < 0) {
+      throw new IllegalArgumentException("Market cap must be non-null and non-negative.");
+    }
     return new AutoValue_CurrencyPairMetadata(currencyPair, marketCap);
   }
 
@@ -38,46 +61,9 @@ abstract class CurrencyPairMetadata {
   abstract CurrencyPair currencyPair();
 
   /**
-   * Returns the {@link MarketCap} associated with this currency pair.
+   * Returns the market capitalization value for the currency pair.
    *
-   * @return the market capitalization details.
+   * @return the market cap as a {@link BigDecimal}.
    */
-  abstract MarketCap marketCap();
-
-  /**
-   * Represents market capitalization details, including its value and associated currency.
-   */
-  @AutoValue
-  abstract static class MarketCap {
-    /**
-     * Factory method to create a {@link MarketCap} instance.
-     *
-     * @param value    the market capitalization value.
-     * @param currency the currency in which the market cap is denominated (typically the counter currency).
-     * @return a new {@link MarketCap} instance.
-     */
-    private static MarketCap create(BigDecimal value, Currency currency) {
-      if (value == null || value.compareTo(BigDecimal.ZERO) < 0) {
-        throw new IllegalArgumentException("Market cap value must not be null or negative.");
-      }
-      if (currency == null) {
-        throw new IllegalArgumentException("Currency must not be null.");
-      }
-      return new AutoValue_CurrencyPairMetadata_MarketCap(value, currency);
-    }
-
-    /**
-     * Returns the market capitalization value.
-     *
-     * @return the market cap value.
-     */
-    abstract BigDecimal value();
-
-    /**
-     * Returns the currency in which the market cap is denominated.
-     *
-     * @return the currency.
-     */
-    abstract Currency currency();
-  }
+  abstract BigDecimal marketCap();
 }
