@@ -24,7 +24,6 @@ dataIngestion:
   args:
     - "--runMode=wet"
     - "--candlePublisherTopic=candles"
-    - "--exchangeName=coinbase"
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
