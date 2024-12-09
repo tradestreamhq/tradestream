@@ -8,8 +8,8 @@ import java.math.BigDecimal;
 
 @AutoValue
 abstract class CurrencyPairMetadata {
-  static CurrencyPairMetadata create(String symbol, long marketCapValue) {
-    return create(CurrencyPair.fromSymbol(symbol), BigDecimal.valueOf(marketCapValue));
+  static CurrencyPairMetadata create(String symbol, BigDecimal marketCapValue) {
+    return create(CurrencyPair.fromSymbol(symbol), marketCapValue);
   }
 
   static CurrencyPairMetadata create(CurrencyPair currencyPair, BigDecimal marketCapValue) {
