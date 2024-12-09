@@ -214,7 +214,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         }
     }
 
-    private class WebSocketListener implements WebSocket.Listener {
+    private static class WebSocketListener implements WebSocket.Listener {
         private final StringBuilder messageBuffer = new StringBuilder();
 
         @Override
