@@ -45,8 +45,8 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         this.connections = new CopyOnWriteArrayList<>();
         this.httpClient = httpClient;
         this.pendingMessages = new ConcurrentHashMap<>();
-        this.connector = new WebSocketConnector();
-        this.messageHandler = new MessageHandler(this); // Pass reference to parent
+        this.connector = new WebSocketConnector(this);
+        this.messageHandler = new MessageHandler(this);
     }
 
     @Override
@@ -122,15 +122,12 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         webSocket.sendText(messageStr, true);
     }
 
-    /**
-     * Static inner class responsible for handling and parsing incoming JSON messages.
-     * This class now requires a reference to the outer class instance to access instance-specific fields.
-     */
     private static class MessageHandler {
-        private final CoinbaseStreamingClient parent;
+        private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+        private final CoinbaseStreamingClient client;
 
-        MessageHandler(CoinbaseStreamingClient parent) {
-            this.parent = parent;
+        MessageHandler(CoinbaseStreamingClient client) {
+            this.client = client;
         }
 
         void handle(JsonObject message) {
@@ -188,15 +185,15 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
 
                         Trade trade = Trade.newBuilder()
                             .setTimestamp(timestamp)
-                            .setExchange(parent.getExchangeName())
+                            .setExchange(client.getExchangeName())
                             .setCurrencyPair(tradeJson.get("product_id").getAsString().replace("-", "/"))
                             .setPrice(tradeJson.get("price").getAsDouble())
                             .setVolume(tradeJson.get("size").getAsDouble())
                             .setTradeId(tradeJson.get("trade_id").getAsString())
                             .build();
 
-                        if (parent.tradeHandler != null) {
-                            parent.tradeHandler.accept(trade);
+                        if (client.tradeHandler != null) {
+                            client.tradeHandler.accept(trade);
                         } else {
                             logger.atWarning().log("Received trade but no handler is registered");
                         }
@@ -208,22 +205,30 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         }
     }
 
-    private class WebSocketConnector {
+    private static class WebSocketConnector {
+        private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+        private final CoinbaseStreamingClient client;
+
+        WebSocketConnector(CoinbaseStreamingClient client) {
+            this.client = client;
+        }
+
         void connect(List<String> productIds) {
             logger.atInfo().log("Attempting to connect WebSocket for products: %s", productIds);
-            WebSocket.Builder builder = httpClient.newWebSocketBuilder();
+            WebSocket.Builder builder = client.httpClient.newWebSocketBuilder();
         
-            CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), new WebSocketListener());
+            CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), 
+                new WebSocketListener(client, productIds));
         
             futureWs
                 .thenAccept(webSocket -> {
                     logger.atInfo().log("Successfully connected to Coinbase WebSocket");
-                    connections.add(webSocket);
-                    connectionProducts.put(webSocket, new ArrayList<>(productIds));
-                    subscribe(webSocket, productIds);
+                    client.connections.add(webSocket);
+                    client.connectionProducts.put(webSocket, new ArrayList<>(productIds));
+                    client.subscribe(webSocket, productIds);
                     
-                    if (connections.size() == 1) {
-                        subscribeToHeartbeat(webSocket);
+                    if (client.connections.size() == 1) {
+                        client.subscribeToHeartbeat(webSocket);
                     }
                 })
                 .exceptionally(ex -> {
@@ -232,39 +237,18 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                     return null;
                 });
         }
-
-        private void subscribe(WebSocket webSocket, List<String> productIds) {
-            logger.atInfo().log("Subscribing to market_trades for products: %s", productIds);
-            JsonObject subscribeMessage = new JsonObject();
-            subscribeMessage.addProperty("type", "subscribe");
-            subscribeMessage.addProperty("channel", "market_trades");
-        
-            JsonArray productIdsArray = new JsonArray();
-            productIds.forEach(productIdsArray::add);
-            subscribeMessage.add("product_ids", productIdsArray);
-        
-            String messageStr = subscribeMessage.toString();
-            logger.atFine().log("Sending subscription message: %s", messageStr);
-            webSocket.sendText(messageStr, true);
-        }
-
-        private void subscribeToHeartbeat(WebSocket webSocket) {
-            logger.atInfo().log("Subscribing to heartbeats");
-            JsonObject heartbeatMessage = new JsonObject();
-            heartbeatMessage.addProperty("type", "subscribe");
-            heartbeatMessage.addProperty("channel", "heartbeats");
-        
-            String messageStr = heartbeatMessage.toString();
-            logger.atFine().log("Sending heartbeat subscription message: %s", messageStr);
-            webSocket.sendText(messageStr, true);
-        }
     }
 
-    private class WebSocketListener implements WebSocket.Listener {
+    private static class WebSocketListener implements WebSocket.Listener {
+        private static final FluentLogger logger = FluentLogger.forEnclosingClass();
         private final StringBuilder messageBuffer;
+        private final CoinbaseStreamingClient client;
+        private final List<String> productIds;
 
-        WebSocketListener() {
+        WebSocketListener(CoinbaseStreamingClient client, List<String> productIds) {
             this.messageBuffer = new StringBuilder();
+            this.client = client;
+            this.productIds = productIds;
         }
 
         @Override
@@ -277,7 +261,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                 logger.atFiner().log("Complete message received: %s", message);
                 try {
                     JsonObject jsonMessage = JsonParser.parseString(message).getAsJsonObject();
-                    messageHandler.handle(jsonMessage);
+                    client.messageHandler.handle(jsonMessage);
                 } catch (Exception e) {
                     logger.atWarning().withCause(e).log("Failed to parse message: %s", message);
                 }
@@ -291,13 +275,13 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         @Override
         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
             logger.atInfo().log("WebSocket closed: %d %s", statusCode, reason);
-            connections.remove(webSocket);
-
+            client.connections.remove(webSocket);
+    
             if (statusCode != WebSocket.NORMAL_CLOSURE) {
-                List<String> productIds = connectionProducts.remove(webSocket);
-                if (productIds != null && !productIds.isEmpty()) {
-                    logger.atInfo().log("Attempting to reconnect for products: %s", productIds);
-                    connector.connect(productIds);
+                List<String> products = client.connectionProducts.remove(webSocket);
+                if (products != null && !products.isEmpty()) {
+                    logger.atInfo().log("Attempting to reconnect for products: %s", products);
+                    client.connector.connect(products);
                 }
             }
 
