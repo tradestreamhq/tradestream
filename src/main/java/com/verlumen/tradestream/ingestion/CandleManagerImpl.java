@@ -67,12 +67,13 @@ final class CandleManagerImpl implements CandleManager {
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
         
         for (CurrencyPair pair : currencyPairs) {
-            String key = getCandleKey(pair, currentMinute);
+            String symbol = getSymbol(currencyPair);
+            String key = getCandleKey(symbol, currentMinute);
             CandleBuilder builder = candleBuilders.get(key);
             
             if (builder == null || !builder.hasTrades()) {
                 logger.atInfo().log("No trades found for %s in current interval, generating empty candle", pair);
-                generateEmptyCandle(pair, currentMinute);
+                generateEmptyCandle(symbol, currentMinute);
             } else {
                 logger.atFine().log("Skipping thin market handling for %s - active trades exist", pair);
             }
@@ -87,9 +88,8 @@ final class CandleManagerImpl implements CandleManager {
         return count;
     }
 
-    private void generateEmptyCandle(CurrencyPair currencyPair, long timestamp) {
-        String symbol = String.format("%s-%s", currencyPair.base(), currencyPair.counter());
-        double lastPrice = priceTracker.getLastPrice(currencyPair);
+    private void generateEmptyCandle(String symbol, long timestamp) {
+        double lastPrice = priceTracker.getLastPrice(symbol);
         logger.atInfo().log("Generating empty candle for %s at timestamp %d with last price %f",
             symbol, timestamp, lastPrice);
 
@@ -134,6 +134,10 @@ final class CandleManagerImpl implements CandleManager {
 
     private long getMinuteTimestamp(long timestamp) {
         return (timestamp / candleIntervalMillis) * candleIntervalMillis;
+    }
+
+    private String getSymbol(CurrencyPair currencyPair) {
+        return String.format("%s-%s", currencyPair.base(), currencyPair.counter())
     }
 
     private boolean isIntervalComplete(long timestamp) {
