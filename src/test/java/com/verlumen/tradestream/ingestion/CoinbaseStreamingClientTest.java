@@ -37,7 +37,7 @@ public class CoinbaseStreamingClientTest {
     @Rule public MockitoRule mockito = MockitoJUnit.rule();
 
     private static final String WEBSOCKET_URL = "wss://advanced-trade-ws.coinbase.com";
-    private static final ImmutableList<String> TEST_PAIRS = 
+    private static final ImmutableList<CurrencyPair> TEST_PAIRS = 
         Stream.of("BTC/USD", "ETH/USD")
             .map(CurrencyPair.fromSymbol())
             .distinct()
