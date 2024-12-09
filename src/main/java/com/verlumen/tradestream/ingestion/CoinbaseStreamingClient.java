@@ -36,11 +36,13 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
 
     @Inject
     CoinbaseStreamingClient(HttpClient httpClient) {
+        List<WebSocket> connections = new CopyOnWriteArrayList<>();
+
         this.connectionProducts = new ConcurrentHashMap<>();
-        this.connections = new CopyOnWriteArrayList<>();
+        this.connections = connections;
         this.httpClient = httpClient;
         this.pendingMessages = new ConcurrentHashMap<>();
-        this.connector = new WebSocketConnector();
+        this.connector = new WebSocketConnector(connections);
     }
 
     @Override
@@ -191,6 +193,12 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     }
 
     private static class WebSocketConnector {
+        private final List<WebSocket> connections;
+
+        WebSocketConnector(List<WebSocket> connections) {
+            this.connections = connections;
+        }
+
         void connect(List<String> productIds) {
             logger.atInfo().log("Attempting to connect WebSocket for products: %s", productIds);
             WebSocket.Builder builder = httpClient.newWebSocketBuilder();
