@@ -84,13 +84,8 @@ public abstract class CurrencyPair {
    */
   abstract String delimiter();
 
-  /**
-   * Returns the formatted symbol representing the currency pair.
-   *
-   * @return the symbol (e.g., "BTC/USD" or "ETH-BTC").
-   */
   public String symbol() {
-    return symbolWithCustomDelimiter(delimeter());
+    return symbolWithCustomDelimiter(delimiter());
   }
 
   public String symbolWithCustomDelimiter(String delimeter) {
