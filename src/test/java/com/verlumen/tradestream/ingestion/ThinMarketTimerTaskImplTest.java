@@ -90,9 +90,9 @@ public class ThinMarketTimerTaskImplTest {
     public void run_currencyPairsOrderIsPreserved() {
         // Arrange
         ImmutableList<CurrencyPair> pairs = ImmutableList.of(
-            new CurrencyPair("AAA", "BBB"),
-            new CurrencyPair("CCC", "DDD"),
-            new CurrencyPair("EEE", "FFF")
+            CurrencyPair.fromSymbol("AAA/BBB"),
+            CurrencyPair.fromSymbol("CCC/DDD"),
+            CurrencyPair.fromSymbol("EEE/FFF")
         );
         when(currencyPairSupply.currencyPairs()).thenReturn(pairs);
 
