@@ -21,7 +21,7 @@ final class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {
         currencyPairSupply
         .currencyPairs()
         .stream()
-        .map(Object::toString)
+        .map(CurrencyPair::symbol)
         .collect(toImmutableList());
       candleManager.handleThinlyTradedMarkets(currencyPairs);
   }
