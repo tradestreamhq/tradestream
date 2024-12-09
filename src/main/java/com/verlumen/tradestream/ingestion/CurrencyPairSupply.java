@@ -18,7 +18,7 @@ interface CurrencyPairSupply {
   default ImmutableList<String> symbols() {
     return currencyPairs()
       .stream()
-      .map(pair -> pair.getBase() + "-" + pair.getCounter())
+      .map(CurrencyPair::symbol)
       .collect(toImmutableList());
   }
 }
