@@ -12,7 +12,7 @@ abstract class CurrencyPairMetadata {
     return create(CurrencyPair.fromSymbol(symbol), marketCapValue);
   }
 
-  static CurrencyPairMetadata create(CurrencyPair currencyPair, BigDecimal marketCapValue) {
+  private static CurrencyPairMetadata create(CurrencyPair currencyPair, BigDecimal marketCapValue) {
     MarketCap marketCap = MarketCap.create(marketCapValue, currencyPair.counter());
     return new AutoValue_CurrencyPairMetadata(currencyPair, marketCap);
   }

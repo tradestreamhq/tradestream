@@ -45,7 +45,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         this.httpClient = httpClient;
         this.pendingMessages = new ConcurrentHashMap<>();
         this.connector = new WebSocketConnector();
-        this.messageHandler = new MessageHandler();
+        this.messageHandler = new MessageHandler(this); // Pass reference to parent
     }
 
     @Override
@@ -122,9 +122,16 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     }
 
     /**
-     * Inner class responsible for handling and parsing incoming JSON messages.
+     * Static inner class responsible for handling and parsing incoming JSON messages.
+     * This class now requires a reference to the outer class instance to access instance-specific fields.
      */
-    private class MessageHandler {
+    private static class MessageHandler {
+        private final CoinbaseStreamingClient parent;
+
+        MessageHandler(CoinbaseStreamingClient parent) {
+            this.parent = parent;
+        }
+
         void handle(JsonObject message) {
             logger.atFiner().log("Received message: %s", message);
 
@@ -180,15 +187,15 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
 
                         Trade trade = Trade.newBuilder()
                             .setTimestamp(timestamp)
-                            .setExchange(getExchangeName())
+                            .setExchange(parent.getExchangeName())
                             .setCurrencyPair(tradeJson.get("product_id").getAsString().replace("-", "/"))
                             .setPrice(tradeJson.get("price").getAsDouble())
                             .setVolume(tradeJson.get("size").getAsDouble())
                             .setTradeId(tradeJson.get("trade_id").getAsString())
                             .build();
 
-                        if (tradeHandler != null) {
-                            tradeHandler.accept(trade);
+                        if (parent.tradeHandler != null) {
+                            parent.tradeHandler.accept(trade);
                         } else {
                             logger.atWarning().log("Received trade but no handler is registered");
                         }
