@@ -40,9 +40,7 @@ java_library(
     name = "candle_manager",
     srcs = ["CandleManager.java"],
     deps = [
-        "@maven//:com_google_guava_guava",
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":candle_publisher",
     ],
 )
