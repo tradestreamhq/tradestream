@@ -40,7 +40,6 @@ public class CoinbaseStreamingClientTest {
     private static final ImmutableList<CurrencyPair> TEST_PAIRS = 
         Stream.of("BTC/USD", "ETH/USD")
             .map(CurrencyPair.fromSymbol())
-            .distinct()
             .collect(toImmutableList());
 
     @Mock @Bind private Consumer<Trade> mockTradeHandler;
