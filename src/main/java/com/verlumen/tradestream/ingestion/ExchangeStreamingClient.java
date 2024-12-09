@@ -37,7 +37,7 @@ interface ExchangeStreamingClient {
      * @param currencyPair The currency pair to check (e.g., "BTC/USD").
      * @return true if the currency pair is supported, false otherwise.
      */
-    default boolean isSupportedCurrencyPair(String currencyPair) {
+    default boolean isSupportedCurrencyPair(CurrencyPair currencyPair) {
         return true;
     }
 
