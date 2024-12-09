@@ -101,14 +101,14 @@ final class CandleManagerImpl implements CandleManager {
             
         logger.atInfo().log("Creating empty candle with last known price %f for %s", 
             lastPrice, currencyPair);
-        CandleBuilder builder = new CandleBuilder(currencyPair, timestamp);
+        CandleBuilder builder = new CandleBuilder(symbol, timestamp);
         builder.addTrade(Trade.newBuilder()
             .setPrice(lastPrice)
             .setVolume(0)
             .setCurrencyPair(currencyPair)
             .setTimestamp(timestamp)
             .build());
-        publishAndRemoveCandle(getCandleKey(currencyPair, timestamp), builder);
+        publishAndRemoveCandle(getCandleKey(symbol, timestamp), builder);
     }
 
     private void publishAndRemoveCandle(String key, CandleBuilder builder) {
@@ -128,8 +128,8 @@ final class CandleManagerImpl implements CandleManager {
             key, candleBuilders.size());
     }
 
-    private String getCandleKey(String currencyPair, long minuteTimestamp) {
-        return currencyPair + ":" + minuteTimestamp;
+    private String getCandleKey(String symbol, long minuteTimestamp) {
+        return symbol + ":" + minuteTimestamp;
     }
 
     private long getMinuteTimestamp(long timestamp) {
