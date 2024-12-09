@@ -50,7 +50,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
 
         // Convert currency pairs to Coinbase product IDs
         ImmutableList<String> productIds = currencyPairs.stream()
-            .map(pair -> pair.symbolWithCustomDelimeter("-"))
+            .map(pair -> pair.symbolWithCustomDelimiter("-"))
             .collect(toImmutableList());
 
         logger.atInfo().log("Starting Coinbase streaming for %d products: %s", 
