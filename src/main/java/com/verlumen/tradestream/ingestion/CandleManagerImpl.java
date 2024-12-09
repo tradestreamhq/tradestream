@@ -1,13 +1,11 @@
 package com.verlumen.tradestream.ingestion;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.Inject;
-import com.verlumen.tradestream.instruments.CurrencyPair;
-import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.Trade;
-
+import com.verlumen.tradestream.marketdata.Candle;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -62,18 +60,17 @@ final class CandleManagerImpl implements CandleManager {
     }
 
     @Override
-    public void handleThinlyTradedMarkets(ImmutableList<CurrencyPair> currencyPairs) {
+    public void handleThinlyTradedMarkets(List<String> currencyPairs) {
         logger.atInfo().log("Handling thin market update for %d currency pairs", currencyPairs.size());
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
         
-        for (CurrencyPair pair : currencyPairs) {
-            String symbol = getSymbol(currencyPair);
-            String key = getCandleKey(symbol, currentMinute);
+        for (String pair : currencyPairs) {
+            String key = getCandleKey(pair, currentMinute);
             CandleBuilder builder = candleBuilders.get(key);
             
             if (builder == null || !builder.hasTrades()) {
                 logger.atInfo().log("No trades found for %s in current interval, generating empty candle", pair);
-                generateEmptyCandle(symbol, currentMinute);
+                generateEmptyCandle(pair, currentMinute);
             } else {
                 logger.atFine().log("Skipping thin market handling for %s - active trades exist", pair);
             }
@@ -88,10 +85,10 @@ final class CandleManagerImpl implements CandleManager {
         return count;
     }
 
-    private void generateEmptyCandle(String symbol, long timestamp) {
-        double lastPrice = priceTracker.getLastPrice(symbol);
+    private void generateEmptyCandle(String currencyPair, long timestamp) {
+        double lastPrice = priceTracker.getLastPrice(currencyPair);
         logger.atInfo().log("Generating empty candle for %s at timestamp %d with last price %f",
-            symbol, timestamp, lastPrice);
+            currencyPair, timestamp, lastPrice);
 
         if (Double.isNaN(lastPrice)) {
             logger.atWarning().log("No last price available for %s, unable to generate empty candle", 
@@ -101,14 +98,14 @@ final class CandleManagerImpl implements CandleManager {
             
         logger.atInfo().log("Creating empty candle with last known price %f for %s", 
             lastPrice, currencyPair);
-        CandleBuilder builder = new CandleBuilder(symbol, timestamp);
+        CandleBuilder builder = new CandleBuilder(currencyPair, timestamp);
         builder.addTrade(Trade.newBuilder()
             .setPrice(lastPrice)
             .setVolume(0)
-            .setCurrencyPair(symbol)
+            .setCurrencyPair(currencyPair)
             .setTimestamp(timestamp)
             .build());
-        publishAndRemoveCandle(getCandleKey(symbol, timestamp), builder);
+        publishAndRemoveCandle(getCandleKey(currencyPair, timestamp), builder);
     }
 
     private void publishAndRemoveCandle(String key, CandleBuilder builder) {
@@ -128,16 +125,12 @@ final class CandleManagerImpl implements CandleManager {
             key, candleBuilders.size());
     }
 
-    private String getCandleKey(String symbol, long minuteTimestamp) {
-        return symbol + ":" + minuteTimestamp;
+    private String getCandleKey(String currencyPair, long minuteTimestamp) {
+        return currencyPair + ":" + minuteTimestamp;
     }
 
     private long getMinuteTimestamp(long timestamp) {
         return (timestamp / candleIntervalMillis) * candleIntervalMillis;
-    }
-
-    private String getSymbol(CurrencyPair currencyPair) {
-        return String.format("%s-%s", currencyPair.base(), currencyPair.counter())
     }
 
     private boolean isIntervalComplete(long timestamp) {
