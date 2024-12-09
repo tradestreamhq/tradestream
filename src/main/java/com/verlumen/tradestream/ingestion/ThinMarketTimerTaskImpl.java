@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 
-final class ThinMarketTimerTaskImpl implements ThinMarketTimerTask {
+final class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {
   private final CandleManager candleManager;
   private final CurrencyPairSupply currencyPairSupply;
 
