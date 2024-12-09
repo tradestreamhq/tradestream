@@ -55,8 +55,8 @@ public class ThinMarketTimerTaskImplTest {
 
         // Assert
         ImmutableList<String> expected = ImmutableList.of(
-            BTC_USD.currencyPair().toString(), 
-            ETH_EUR.currencyPair().toString()
+            BTC_USD.currencyPair().symbol(), 
+            ETH_EUR.currencyPair().symbol()
         );
         verify(candleManager).handleThinlyTradedMarkets(expected);
     }
@@ -92,9 +92,9 @@ public class ThinMarketTimerTaskImplTest {
     public void run_currencyPairsOrderIsPreserved() {
         // Arrange
         ImmutableList<CurrencyPair> pairs = ImmutableList.of(
-            new CurrencyPair("AAA", "BBB"),
-            new CurrencyPair("CCC", "DDD"),
-            new CurrencyPair("EEE", "FFF")
+            CurrencyPair.fromSymbol("AAA/BBB"),
+            CurrencyPair.fromSymbol("CCC/DDD"),
+            CurrencyPair.fromSymbol("EEE/FFF")
         );
         when(currencyPairSupply.currencyPairs()).thenReturn(pairs);
 
