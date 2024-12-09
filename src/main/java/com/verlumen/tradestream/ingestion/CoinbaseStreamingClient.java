@@ -33,7 +33,6 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     private final Map<WebSocket, CompletableFuture<Void>> pendingMessages;
     private Consumer<Trade> tradeHandler;
     private final WebSocketConnector connector;
-    private final MessageHandler messageHandler;
 
     @Inject
     CoinbaseStreamingClient(HttpClient httpClient) {
@@ -42,7 +41,6 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         this.httpClient = httpClient;
         this.pendingMessages = new ConcurrentHashMap<>();
         this.connector = new WebSocketConnector();
-        this.messageHandler = new MessageHandler();
     }
 
     @Override
@@ -122,6 +120,14 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
      * Responsible for handling and parsing incoming JSON messages.
      */
     private static class MessageHandler {
+        private final String exchangeName;
+        private final Consumer<Trade> tradeHandler;
+
+        MessageHandler(String exchangeName, Consumer<Trade> tradeHandler) {
+            this.exhangeName = exchangeName;
+            this.tradeHandler = tradeHandler;
+        }
+
         void handle(JsonObject message) {
             logger.atFiner().log("Received message: %s", message);
 
@@ -201,8 +207,11 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         void connect(List<String> productIds) {
             logger.atInfo().log("Attempting to connect WebSocket for products: %s", productIds);
             WebSocket.Builder builder = httpClient.newWebSocketBuilder();
-        
-            CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), new WebSocketListener());
+
+            MessageHandler messageHandler = new MessageHandler();
+            CompletableFuture<WebSocket> futureWs = builder.buildAsync(
+                URI.create(WEBSOCKET_URL),
+                new WebSocketListener(messageHandler));
         
             futureWs
                 .thenAccept(webSocket -> {
@@ -251,8 +260,9 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
 
     private class WebSocketListener implements WebSocket.Listener {
         private final StringBuilder messageBuffer;
+        private final MessageHandler messageHandler;
 
-        WebSocketListener() {
+        WebSocketListener(MessageHandler messageHandler) {
             this.messageBuffer = new StringBuilder();
         }
 
