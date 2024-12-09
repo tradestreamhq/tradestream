@@ -38,25 +38,23 @@ public abstract class CurrencyPair {
    */
   public static CurrencyPair fromSymbol(String symbol) {
     // Extract the parts of the symbol.
-    ImmutableList<String> symbolParts = extractSymbolParts(symbol);
+    SymbolParts symbolParts = extractSymbolParts(symbol);
 
     // Create and return a CurrencyPair object.
     return fromSymbolParts(symbolParts);
   }
 
-  private static CurrencyPair fromSymbolParts(ImmutableList<String> symbolParts) {
-    checkArgument(symbolParts.size() == 2);
-    
+  private static CurrencyPair fromSymbolParts(SymbolParts symbolParts) {
     // Extract the base and counter currencies.
     Currency base = Currency.create(symbolParts.get(0));
     Currency counter = Currency.create(symbolParts.get(1));
 
     // Create and return a CurrencyPair object.
-    return create(base, counter);
+    return create(base, counter, symbolParts.delimiter());
   }
 
-  private static CurrencyPair create(Currency base, Currency counter) {
-    return new AutoValue_CurrencyPair(base, counter);
+  private static CurrencyPair create(Currency base, Currency counter, String delimiter) {
+    return new AutoValue_CurrencyPair(base, counter, delimiter);
   }
 
   private static ImmutableList<String> extractSymbolParts(String symbol) {
@@ -101,4 +99,22 @@ public abstract class CurrencyPair {
    * @return the counter currency.
    */
   public abstract Currency counter();
+
+  abstract String delimiter();
+
+  public String symbol() {
+    return String.format("%s%s%s", base(), delimiter(), counter());
+  }
+
+  @AutoValue
+  abstract static class SymbolParts {
+    private static SymbolParts create(String delimiter, ImmutableList<String> symbolParts) {
+      checkArgument(symbolParts.size() == 2);
+      return new AutoValue_CurrencyPair_SymbolParts(delimiter, parts);
+    }
+
+    abstract String delimiter();
+
+    abstract String parts();
+  }
 }
