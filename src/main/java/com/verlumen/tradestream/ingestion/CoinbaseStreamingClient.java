@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import com.google.gson.JsonArray;
@@ -43,13 +45,13 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     }
 
     @Override
-    public void startStreaming(ImmutableList<String> currencyPairs, Consumer<Trade> tradeHandler) {
+    public void startStreaming(ImmutableList<CurrencyPair> currencyPairs, Consumer<Trade> tradeHandler) {
         this.tradeHandler = tradeHandler;
 
         // Convert currency pairs to Coinbase product IDs
         ImmutableList<String> productIds = currencyPairs.stream()
-            .map(pair -> pair.replace("/", "-"))
-            .collect(ImmutableList.toImmutableList());
+            .map(pair -> pair.symbolWithCustomDelimeter("-"))
+            .collect(toImmutableList());
 
         logger.atInfo().log("Starting Coinbase streaming for %d products: %s", 
             productIds.size(), productIds);
