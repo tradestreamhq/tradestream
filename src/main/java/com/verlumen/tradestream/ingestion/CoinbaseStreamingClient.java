@@ -90,31 +90,6 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         return groups;
     }
 
-    private void connectToWebSocket(List<String> productIds) {
-        logger.atInfo().log("Attempting to connect WebSocket for products: %s", productIds);
-        WebSocket.Builder builder = httpClient.newWebSocketBuilder();
-    
-        // Instead of join(), use thenAccept and exceptionally to handle async completion.
-        CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), new WebSocketListener());
-    
-        futureWs
-            .thenAccept(webSocket -> {
-                logger.atInfo().log("Successfully connected to Coinbase WebSocket");
-                connections.add(webSocket);
-                connectionProducts.put(webSocket, new ArrayList<>(productIds));
-                subscribe(webSocket, productIds);
-                
-                // Subscribe to heartbeats only on the first connection
-                if (connections.size() == 1) {
-                    subscribeToHeartbeat(webSocket);
-                }
-            })
-            .exceptionally(ex -> {
-                logger.atSevere().withCause(ex).log("Failed to establish WebSocket connection for products: %s", productIds);
-                return null;
-            });
-    }
-
     private void subscribe(WebSocket webSocket, List<String> productIds) {
         logger.atInfo().log("Subscribing to market_trades for products: %s", productIds);
         JsonObject subscribeMessage = new JsonObject();
@@ -303,7 +278,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                 List<String> productIds = connectionProducts.remove(webSocket);
                 if (productIds != null && !productIds.isEmpty()) {
                     logger.atInfo().log("Attempting to reconnect for products: %s", productIds);
-                    connectToWebSocket(productIds);
+                    connector.connect(productIds);
                 }
             }
 
