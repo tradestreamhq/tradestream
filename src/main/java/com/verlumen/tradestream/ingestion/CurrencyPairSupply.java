@@ -3,7 +3,7 @@ package com.verlumen.tradestream.ingestion;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
-import org.knowm.xchange.currency.CurrencyPair;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 
 interface CurrencyPairSupply {
   ImmutableList<CurrencyPairMetadata> metadataList();
