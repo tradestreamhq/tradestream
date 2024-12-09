@@ -86,6 +86,61 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         return "coinbase";
     }
 
+    /**
+     * Fetches the list of supported currency pairs from the Coinbase API.
+     * 
+     * @return an immutable list of supported CurrencyPairs.
+     */
+    public ImmutableList<CurrencyPair> supportedCurrencyPairs() {
+        logger.atInfo().log("Fetching supported currency pairs from Coinbase");
+        
+        // Coinbase Exchange Products endpoint
+        String url = "https://api.exchange.coinbase.com/products";
+        
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .header("Accept", "application/json")
+            .build();
+        
+        try {
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            int statusCode = response.statusCode();
+            
+            if (statusCode != 200) {
+                logger.atWarning().log("Failed to fetch supported products from Coinbase. Status: %d, Response: %s",
+                    statusCode, response.body());
+                return ImmutableList.of();
+            }
+            
+            // Parse the response into a JsonArray
+            JsonElement jsonElement = JsonParser.parseString(response.body());
+            if (!jsonElement.isJsonArray()) {
+                logger.atWarning().log("Expected a JSON array of products but received: %s", response.body());
+                return ImmutableList.of();
+            }
+            
+            JsonArray productsArray = jsonElement.getAsJsonArray();
+            
+            // Map each product "id" to a CurrencyPair
+            ImmutableList<CurrencyPair> pairs = productsArray
+                .asList()
+                .stream()
+                .filter(JsonElement::isJsonObject)
+                .map(JsonElement::getAsJsonObject)
+                .filter(obj -> obj.has("id"))
+                .map(obj -> obj.get("id").getAsString())
+                .map(CurrencyPair::fromSymbol)
+                .collect(toImmutableList());
+            
+            logger.atInfo().log("Retrieved %d supported currency pairs", pairs.size());
+            return pairs;
+            
+        } catch (IOException | InterruptedException e) {
+            logger.atSevere().withCause(e).log("Error fetching supported products from Coinbase");
+            return ImmutableList.of();
+        }
+    }
+
     private List<List<String>> splitProductsIntoGroups(List<String> productIds) {
         List<List<String>> groups = new ArrayList<>();
         for (int i = 0; i < productIds.size(); i += PRODUCTS_PER_CONNECTION) {
