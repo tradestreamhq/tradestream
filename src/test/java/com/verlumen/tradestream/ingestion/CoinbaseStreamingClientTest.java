@@ -39,7 +39,9 @@ public class CoinbaseStreamingClientTest {
 
     private static final String WEBSOCKET_URL = "wss://advanced-trade-ws.coinbase.com";
     private static final ImmutableList<CurrencyPair> TEST_PAIRS = 
-        Stream.of("BTC/USD", "ETH/USD").map(CurrencyPair::fromSymbol).collect(toImmutableList());
+        Stream.of("BTC/USD", "ETH/USD")
+          .map(CurrencyPair::fromSymbol)
+          .collect(toImmutableList());
 
     @Mock @Bind private Consumer<Trade> mockTradeHandler;
     @Mock @Bind private HttpClient mockHttpClient;

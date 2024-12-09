@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
@@ -23,11 +24,12 @@ import java.math.BigDecimal;
 @RunWith(JUnit4.class)
 public class ThinMarketTimerTaskImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
-
+    private static final BigDecimal BTC_USD_MARKET_CAP = BigDecimal.valueOf(456.78);
+    private static final BigDecimal ETH_EUR_MARKET_CAP = BigDecimal.valueOf(567.89);
     private static final CurrencyPairMetadata BTC_USD = 
-        CurrencyPairMetadata.create("BTC/USD", BigDecimal.valueOf(456L));
+        CurrencyPairMetadata.create("BTC/USD", BTC_USD_MARKET_CAP);
     private static final CurrencyPairMetadata ETH_EUR = 
-        CurrencyPairMetadata.create("ETH/EUR", BigDecimal.valueOf(567L));
+        CurrencyPairMetadata.create("ETH/EUR", ETH_EUR_MARKET_CAP);
 
     @Mock @Bind private CandleManager candleManager;
     @Mock @Bind private CurrencyPairSupply currencyPairSupply;
