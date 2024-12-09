@@ -18,6 +18,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.math.BigDecimal;
+
 @RunWith(JUnit4.class)
 public class ThinMarketTimerTaskImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
