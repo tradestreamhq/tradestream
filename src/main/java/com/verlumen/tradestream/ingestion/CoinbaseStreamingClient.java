@@ -190,7 +190,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         }
     }
 
-    private class WebSocketConnector {
+    private static class WebSocketConnector {
         void connect(List<String> productIds) {
             logger.atInfo().log("Attempting to connect WebSocket for products: %s", productIds);
             WebSocket.Builder builder = httpClient.newWebSocketBuilder();
