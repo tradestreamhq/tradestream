@@ -15,28 +15,18 @@ abstract class CurrencyPairMetadata {
    * Factory method to create a {@link CurrencyPairMetadata} instance.
    *
    * @param symbol          the symbol representing the currency pair, e.g., "BTC/USD" or "ETH-BTC".
-   * @param marketCapValue  the market capitalization value for the pair, in terms of the counter currency.
+   * @param marketCap  the market capitalization value for the pair, in terms of the counter currency.
    * @return a new {@link CurrencyPairMetadata} instance.
    */
-  static CurrencyPairMetadata create(String symbol, BigDecimal marketCapValue) {
+  static CurrencyPairMetadata create(String symbol, BigDecimal marketCap) {
     // Parse the currency pair from the symbol.
     CurrencyPair currencyPair = CurrencyPair.fromSymbol(symbol);
 
-    // Create a MarketCap object using the market capitalization value and the counter currency.
-    MarketCap marketCap = MarketCap.create(marketCapValue, currencyPair.counter());
-
-    // Create and return the CurrencyPairMetadata object.
     return create(currencyPair, marketCap);
-  }
+  } 
 
-  /**
-   * Private factory method to create a {@link CurrencyPairMetadata} instance.
-   *
-   * @param currencyPair the currency pair for which metadata is being created.
-   * @param marketCap    the market capitalization associated with the currency pair.
-   * @return a new {@link CurrencyPairMetadata} instance.
-   */
-  private static CurrencyPairMetadata create(CurrencyPair currencyPair, MarketCap marketCap) {
+  private static CurrencyPairMetadata create(CurrencyPair currencyPair, BigDecimal marketCapValue) {
+    MarketCap marketCap = MarketCap.create(marketCapValue, currencyPair.getCounter());
     return new AutoValue_CurrencyPairMetadata(currencyPair, marketCap);
   }
 
