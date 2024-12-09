@@ -211,7 +211,8 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         WebSocketConnector(
             Map<WebSocket, List<String>> connectionProducts,
             List<WebSocket> connections,
-            HttpClient httpClient) {
+            HttpClient httpClient,
+            MessageHandler messageHandler) {
             this.connectionProducts = connectionProducts;
             this.connections = connections;
             this.httpClient = httpClient;
