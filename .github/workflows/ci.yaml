@@ -54,9 +54,6 @@ jobs:
             -- \
             --repository localhost:5000/tradestream-app \
             --tag "latest"
-            
-          # Load into Minikube
-          minikube image load localhost:5000/tradestream-app:latest
 
       - name: Pull Image into Local Docker Daemon
         run: |
