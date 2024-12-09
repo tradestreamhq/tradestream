@@ -12,23 +12,15 @@ abstract class CurrencyPairMetadata {
     return create(new CurrencyPair(pair), marketCapValue);
   }
 
-  private static CurrencyPairMetadata create(CurrencyPair currencyPair, BigDecimal marketCapValue) {
-    MarketCap marketCap = MarketCap.create(marketCapValue, currencyPair.getCounter());
+  static CurrencyPairMetadata create(CurrencyPair currencyPair, long marketCapValue) {
+    return create(currencyPair, BigDecimal.valueOf(marketCapValue));
+  }
+
+  private static CurrencyPairMetadata create(CurrencyPair currencyPair, BigDecimal marketCap) {
     return new AutoValue_CurrencyPairMetadata(currencyPair, marketCap);
   }
 
   abstract CurrencyPair currencyPair();
 
-  abstract MarketCap marketCap();
-
-  @AutoValue
-  abstract static class MarketCap {
-    private static MarketCap create(BigDecimal value, Currency currency) {
-      return new AutoValue_CurrencyPairMetadata_MarketCap(value, currency);
-    }
-
-    abstract BigDecimal value();
-
-    abstract Currency currency();
-  }
+  abstract BigDecimal marketCap();
 }
