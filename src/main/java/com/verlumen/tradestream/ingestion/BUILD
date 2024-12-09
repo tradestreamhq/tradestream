@@ -158,7 +158,6 @@ java_library(
         "@maven//:com_google_code_gson_gson",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
-        "@maven//:org_knowm_xchange_xchange_core",
         ":coin_market_cap_config",
         ":currency_pair_metadata",
         ":currency_pair_supply",
