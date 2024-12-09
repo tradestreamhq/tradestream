@@ -135,6 +135,7 @@ java_library(
     srcs = ["CurrencyPairMetadata.java"],
     deps = [
         "//:autovalue",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
     ],
 )
