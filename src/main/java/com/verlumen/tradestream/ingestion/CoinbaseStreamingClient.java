@@ -244,9 +244,11 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
 
     private static class WebSocketListener implements WebSocket.Listener {
         private final StringBuilder messageBuffer;
+        private final WebSocketConnector webSocketConnector;
 
-        WebSocketListener() {
+        WebSocketListener(WebSocketConnector webSocketConnector) {
             this.messageBuffer = new StringBuilder();
+            this.webSocketConnector = webSocketConnector;
         }
 
         @Override
@@ -278,7 +280,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                 List<String> productIds = connectionProducts.remove(webSocket);
                 if (productIds != null && !productIds.isEmpty()) {
                     logger.atInfo().log("Attempting to reconnect for products: %s", productIds);
-                    connector.connect(productIds);
+                    webSocketConnector.connect(productIds);
                 }
             }
 
