@@ -59,6 +59,8 @@ jobs:
           helm dependency update charts/tradestream && \
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
+            --set dataIngestion.image.repository=localhost:5000/tradestream-app \
+            --set dataIngestion.image.tag=latest \
             --set 'dataIngestion.args[0]=--runMode=dry'
 
       - name: Wait for All Pods to be Ready
