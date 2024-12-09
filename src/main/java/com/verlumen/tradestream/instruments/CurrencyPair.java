@@ -90,7 +90,7 @@ public abstract class CurrencyPair {
    * @return the symbol (e.g., "BTC/USD" or "ETH-BTC").
    */
   public String symbol() {
-    return String.format("%s%s%s", base().name(), delimiter(), counter().name());
+    return String.format("%s%s%s", base().symbol(), delimiter(), counter().symbol());
   }
 
   /**
