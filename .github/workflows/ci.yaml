@@ -18,27 +18,13 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-  
+
       - name: Start minikube
         uses: medyagh/setup-minikube@latest
 
       - name: Install Helm
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
-      - name: Configure Minikube Registry Access
-        run: |
-          kubectl apply -f - <<EOF
-          apiVersion: v1
-          kind: ConfigMap
-          metadata:
-            name: local-registry-hosting
-            namespace: kube-public
-          data:
-            localRegistryHosting.v1: |
-              host: "localhost:5000"
-              help: "https://microk8s.io/docs/registry-built-in"
-          EOF
 
       - name: Create Namespace
         run: kubectl create namespace tradestream-namespace
@@ -59,25 +45,32 @@ jobs:
           # Share repository cache between workflows
           repository-cache: true
 
-      - name: Push the Data Ingestion image
+      - name: Build and Push the Data Ingestion Image
         run: |
-          # Push to local registry
+          # Build & push the image to the local registry (same as before)
           bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
             --verbose_failures \
             --sandbox_debug \
             -- \
             --repository localhost:5000/tradestream-app \
             --tag "latest"
-            
-          # Load into Minikube
-          minikube image load localhost:5000/tradestream-app:latest
+
+      - name: Pull Image into Local Docker Daemon
+        run: |
+          # Now that the image is in the local registry, pull it into the local Docker daemon
+          docker pull localhost:5000/tradestream-app:latest
+
+      - name: Load Image into Minikube
+        run: |
+          # Load the image (now in local Docker) into Minikube's image cache
+          minikube image load tradestream-app:latest
 
       - name: Install TradeStream Helm Chart
         run: |
           helm dependency update charts/tradestream && \
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
-            --set dataIngestion.image.repository=localhost:5000/tradestream-app \
+            --set dataIngestion.image.repository=tradestream-app \
             --set dataIngestion.image.tag=latest \
             --set 'dataIngestion.args[0]=--runMode=dry'
 
@@ -89,10 +82,7 @@ jobs:
           end_time=$((SECONDS+timeout))
 
           while [ $SECONDS -lt $end_time ]; do
-            # Get the number of pods that are not in 'Running' or 'Completed' state
             not_ready_pods=$(kubectl get pods -n tradestream-namespace --no-headers | grep -vE 'Running|Completed' | wc -l)
-
-            # If all pods are ready, exit the loop
             if [ "$not_ready_pods" -eq "0" ]; then
               echo "All pods are ready."
               break
@@ -104,29 +94,20 @@ jobs:
             fi
           done
 
-          # Check if the timeout was reached
           if [ $SECONDS -ge $end_time ]; then
             echo "Timeout reached while waiting for pods to be ready."
             kubectl get pods -n tradestream-namespace
-
             echo -e "\nGathering detailed status and logs for non-ready pods..."
-
-            # Get the list of pods that are not in 'Running' or 'Completed' state
             not_ready_pod_names=$(kubectl get pods -n tradestream-namespace --no-headers | grep -vE 'Running|Completed' | awk '{print $1}')
-          
             for pod in $not_ready_pod_names; do
               echo -e "\nDetails for pod $pod:"
               kubectl describe pod $pod -n tradestream-namespace
-
-              # Get the list of containers in the pod
               containers=$(kubectl get pod $pod -n tradestream-namespace -o jsonpath='{.spec.containers[*].name}')
-
               for container in $containers; do
                 echo -e "\nLogs for container '$container' in pod '$pod':"
                 kubectl logs $pod -n tradestream-namespace -c $container
               done
             done
-
             exit 1
           fi
 
