@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
@@ -54,8 +55,8 @@ public class ThinMarketTimerTaskImplTest {
         // Assert
         verify(candleManager).handleThinlyTradedMarkets(
             ImmutableList.of(
-                BTC_USD.currencyPair(),
-                ETH_EUR.currencyPair()
+                BTC_USD.currencyPair().symbol(),
+                ETH_EUR.currencyPair().symbol()
             ));
     }
 
