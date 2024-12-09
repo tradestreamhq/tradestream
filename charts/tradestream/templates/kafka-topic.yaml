@@ -1,0 +1,15 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: {{ include "tradestream.fullname" . }}-candles
+  labels:
+    strimzi.io/cluster: {{ .Values.kafka.clusterName }}
+    app: {{ include "tradestream.name" . }}
+    release: {{ .Release.Name }}
+spec:
+  partitions: {{ .Values.kafka.topics.candles.partitions }}
+  replicas: {{ .Values.kafka.topics.candles.replicas }}
+  config:
+    {{- with .Values.kafka.topics.candles.config }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
