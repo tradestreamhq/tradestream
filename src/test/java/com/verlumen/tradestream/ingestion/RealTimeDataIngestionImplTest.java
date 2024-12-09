@@ -63,25 +63,6 @@ public class RealTimeDataIngestionImplTest {
     }
     
     @Test
-    public void start_usesCorrectCurrencyPairs() {
-        // Arrange 
-        String supportedPair = "TEST1/USD";
-        String unsupportedPair = "TEST2/USD";
-        List<String> pairs = ImmutableList.of(supportedPair, unsupportedPair);
-        List<String> expected = ImmutableList.of(supportedPair);
-        when(mockCurrencyPairSupply.get()).thenReturn(new CurrencyPairs(pairs));
-
-        when(mockExchangeClient.isSupportedCurrencyPair(supportedPair)).thenReturn(true);
-        when(mockExchangeClient.isSupportedCurrencyPair(unsupportedPair)).thenReturn(false);
-
-        // Act
-        realTimeDataIngestion.start();
-
-        // Assert
-        verify(mockExchangeClient).startStreaming(expected, realTimeDataIngestion);
-    }
-
-    @Test
     public void start_startsThinMarketTimer() {
         // Act
         realTimeDataIngestion.start();
@@ -189,15 +170,21 @@ public class RealTimeDataIngestionImplTest {
 
     @Test
     public void start_usesCorrectCurrencyPairs() {
-        // Arrange
-        ImmutableList<String> expectedPairs = ImmutableList.of("TEST1/USD", "TEST2/USD");
-        when(mockCurrencyPairSupply.symbols()).thenReturn(expectedPairs);
+        // Arrange 
+        String supportedPair = "TEST1/USD";
+        String unsupportedPair = "TEST2/USD";
+        List<String> pairs = ImmutableList.of(supportedPair, unsupportedPair);
+        List<String> expected = ImmutableList.of(supportedPair);
+        when(mockCurrencyPairSupply.get()).thenReturn(new CurrencyPairs(pairs));
+
+        when(mockExchangeClient.isSupportedCurrencyPair(supportedPair)).thenReturn(true);
+        when(mockExchangeClient.isSupportedCurrencyPair(unsupportedPair)).thenReturn(false);
 
         // Act
         realTimeDataIngestion.start();
 
         // Assert
-        verify(mockExchangeClient).startStreaming(eq(expectedPairs), any());
+        verify(mockExchangeClient).startStreaming(expected, realTimeDataIngestion);
     }
 
     @Test
