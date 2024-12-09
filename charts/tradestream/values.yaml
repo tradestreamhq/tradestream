@@ -24,6 +24,7 @@ dataIngestion:
   args:
     - "--runMode=wet"
     - "--candlePublisherTopic=candles"
+    - "--kafka.bootstrap.servers={{ include \"tradestream.fullname\" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
