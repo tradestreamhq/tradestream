@@ -24,7 +24,7 @@ final class App {
       logger.atInfo().log("Dry run mode detected - skipping data ingestion");
       return;
     }
-    
+
     try {
       logger.atInfo().log("Initiating real-time data ingestion...");
       realTimeDataIngestion.start();
