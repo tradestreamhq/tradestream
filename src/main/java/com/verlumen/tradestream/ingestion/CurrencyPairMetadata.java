@@ -17,7 +17,7 @@ abstract class CurrencyPairMetadata {
   }
 
   static CurrencyPairMetadata create(CurrencyPair currencyPair, BigDecimal marketCapValue) {
-    MarketCap marketCap = MarketCap.create(marketCapValue, Currency.USD);
+    MarketCap marketCap = MarketCap.create(marketCapValue, currencyPair.counter());
     return new AutoValue_CurrencyPairMetadata(currencyPair, marketCap);
   }
 
