@@ -23,9 +23,9 @@ public class ThinMarketTimerTaskImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
 
     private static final CurrencyPairMetadata BTC_USD = 
-        CurrencyPairMetadata.create(new CurrencyPair("BTC", "USD"), 456L);
+        CurrencyPairMetadata.create(CurrencyPair.fromSymbol("BTC/USD"), 456L);
     private static final CurrencyPairMetadata ETH_EUR = 
-        CurrencyPairMetadata.create(new CurrencyPair("ETH", "EUR"), 567L);
+        CurrencyPairMetadata.create(CurrencyPair.fromSymbol("ETH/EUR"), 567L);
 
     @Mock @Bind private CandleManager candleManager;
     @Mock @Bind private CurrencyPairSupply currencyPairSupply;
