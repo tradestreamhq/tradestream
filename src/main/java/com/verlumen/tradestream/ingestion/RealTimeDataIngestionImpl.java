@@ -38,12 +38,8 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     public void start() {
         logger.atInfo().log("Starting real-time data ingestion for %s", 
             exchangeClient.getExchangeName());
-    
-        exchangeClient.startStreaming(
-            currencyPairSupply.get().symbols(),
-            this::processTrade
-        );
         
+        startMarketDataIngestion();
         logger.atInfo().log("Starting thin market timer...");
         thinMarketTimer.get().start();
         logger.atInfo().log("Real-time data ingestion system fully initialized and running");
@@ -89,5 +85,12 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
                 "Error processing trade: %s", trade.getTradeId());
             // Don't rethrow - we want to continue processing other trades
         }
+    }
+
+    private void startMarketDataIngestion() {
+        exchangeClient.startStreaming(
+            currencyPairSupply.get().symbols(),
+            this::processTrade
+        );
     }
 }
