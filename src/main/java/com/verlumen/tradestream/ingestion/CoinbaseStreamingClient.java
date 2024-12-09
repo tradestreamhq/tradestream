@@ -41,7 +41,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         this.connections = new CopyOnWriteArrayList<>();
         this.httpClient = httpClient;
         this.pendingMessages = new ConcurrentHashMap<>();
-        this.connector = new WebSocketConnector();
+        this.connector = new WebSocketConnector(httpClient, connectionProducts, connections);
         this.messageHandler = new MessageHandler(this); // Pass reference to parent
     }
 
@@ -92,35 +92,8 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         return groups;
     }
 
-    private void subscribe(WebSocket webSocket, List<String> productIds) {
-        logger.atInfo().log("Subscribing to market_trades for products: %s", productIds);
-        JsonObject subscribeMessage = new JsonObject();
-        subscribeMessage.addProperty("type", "subscribe");
-        subscribeMessage.addProperty("channel", "market_trades");
-    
-        JsonArray productIdsArray = new JsonArray();
-        productIds.forEach(productIdsArray::add);
-        subscribeMessage.add("product_ids", productIdsArray);
-    
-        String messageStr = subscribeMessage.toString();
-        logger.atFine().log("Sending subscription message: %s", messageStr);
-        webSocket.sendText(messageStr, true);
-    }
-
-    private void subscribeToHeartbeat(WebSocket webSocket) {
-        logger.atInfo().log("Subscribing to heartbeats");
-        JsonObject heartbeatMessage = new JsonObject();
-        heartbeatMessage.addProperty("type", "subscribe");
-        heartbeatMessage.addProperty("channel", "heartbeats");
-    
-        String messageStr = heartbeatMessage.toString();
-        logger.atFine().log("Sending heartbeat subscription message: %s", messageStr);
-        webSocket.sendText(messageStr, true);
-    }
-
     /**
      * Static inner class responsible for handling and parsing incoming JSON messages.
-     * This class now requires a reference to the outer class instance to access instance-specific fields.
      */
     private static class MessageHandler {
         private final CoinbaseStreamingClient parent;
@@ -204,20 +177,36 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         }
     }
 
-    private class WebSocketConnector {
+    /**
+     * Static inner class responsible for establishing WebSocket connections and subscribing to channels.
+     */
+    private static class WebSocketConnector {
+        private final HttpClient httpClient;
+        private final Map<WebSocket, List<String>> connectionProducts;
+        private final List<WebSocket> connections;
+
+        WebSocketConnector(HttpClient httpClient,
+                           Map<WebSocket, List<String>> connectionProducts,
+                           List<WebSocket> connections) {
+            this.httpClient = httpClient;
+            this.connectionProducts = connectionProducts;
+            this.connections = connections;
+        }
+
         void connect(List<String> productIds) {
             logger.atInfo().log("Attempting to connect WebSocket for products: %s", productIds);
             WebSocket.Builder builder = httpClient.newWebSocketBuilder();
         
-            CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), new WebSocketListener());
+            CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), new WebSocketListener(this));
         
             futureWs
                 .thenAccept(webSocket -> {
                     logger.atInfo().log("Successfully connected to Coinbase WebSocket");
                     connections.add(webSocket);
                     connectionProducts.put(webSocket, new ArrayList<>(productIds));
-                    subscribe(webSocket, productIds);
+                    subscribeToTrades(webSocket, productIds);
                     
+                    // Subscribe to heartbeats only on the first connection
                     if (connections.size() == 1) {
                         subscribeToHeartbeat(webSocket);
                     }
@@ -229,7 +218,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                 });
         }
 
-        private void subscribe(WebSocket webSocket, List<String> productIds) {
+        private void subscribeToTrades(WebSocket webSocket, List<String> productIds) {
             logger.atInfo().log("Subscribing to market_trades for products: %s", productIds);
             JsonObject subscribeMessage = new JsonObject();
             subscribeMessage.addProperty("type", "subscribe");
@@ -257,10 +246,13 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     }
 
     private class WebSocketListener implements WebSocket.Listener {
-        private final StringBuilder messageBuffer;
+        private final StringBuilder messageBuffer = new StringBuilder();
+        private final MessageHandler messageHandler;
+        private final WebSocketConnector connector;
 
-        WebSocketListener() {
-            this.messageBuffer = new StringBuilder();
+        WebSocketListener(WebSocketConnector connector) {
+            this.connector = connector;
+            this.messageHandler = CoinbaseStreamingClient.this.messageHandler;
         }
 
         @Override
