@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.ingestion;
 
-import static com.google.common.collect.Streams.stream;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
@@ -13,11 +12,8 @@ import com.google.inject.Inject;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
 
-import java.io.IOException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -88,61 +84,6 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     @Override
     public String getExchangeName() {
         return "coinbase";
-    }
-
-    /**
-     * Fetches the list of supported currency pairs from the Coinbase API.
-     * 
-     * @return an immutable list of supported CurrencyPairs.
-     */
-    @Override
-    public ImmutableList<CurrencyPair> supportedCurrencyPairs(String delimiter) {
-        logger.atInfo().log("Fetching supported currency pairs from Coinbase");
-        
-        // Coinbase Exchange Products endpoint
-        String url = "https://api.exchange.coinbase.com/products";
-        
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .header("Accept", "application/json")
-            .build();
-        
-        try {
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            int statusCode = response.statusCode();
-            
-            if (statusCode != 200) {
-                logger.atWarning().log("Failed to fetch supported products from Coinbase. Status: %d, Response: %s",
-                    statusCode, response.body());
-                return ImmutableList.of();
-            }
-            
-            // Parse the response into a JsonArray
-            JsonElement jsonElement = JsonParser.parseString(response.body());
-            if (!jsonElement.isJsonArray()) {
-                logger.atWarning().log("Expected a JSON array of products but received: %s", response.body());
-                return ImmutableList.of();
-            }
-            
-            JsonArray productsArray = jsonElement.getAsJsonArray();
-            
-            // Convert JsonArray to Stream and map each product "id" to a CurrencyPair
-            ImmutableList<CurrencyPair> pairs = stream(productsArray)
-                .filter(JsonElement::isJsonObject)
-                .map(JsonElement::getAsJsonObject)
-                .filter(obj -> obj.has("id"))
-                .map(obj -> obj.get("id").getAsString())
-                .map(productId -> productId.replace("-", delimiter))
-                .map(CurrencyPair::fromSymbol)
-                .collect(toImmutableList());
-            
-            logger.atInfo().log("Retrieved %d supported currency pairs", pairs.size());
-            return pairs;
-            
-        } catch (IOException | InterruptedException e) {
-            logger.atSevere().withCause(e).log("Error fetching supported products from Coinbase");
-            return ImmutableList.of();
-        }
     }
 
     private List<List<String>> splitProductsIntoGroups(List<String> productIds) {

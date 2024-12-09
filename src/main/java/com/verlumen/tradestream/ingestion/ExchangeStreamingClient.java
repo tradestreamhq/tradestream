@@ -44,13 +44,6 @@ interface ExchangeStreamingClient {
     }
 
     /**
-     * Fetches the list of supported currency pairs from the Coinbase API.
-     * 
-     * @return an immutable list of supported CurrencyPairs.
-     */
-    ImmutableList<CurrencyPair> supportedCurrencyPairs(String delimiter);
-
-    /**
      * Factory for creating exchange-specific streaming clients.
      */
     interface Factory {
