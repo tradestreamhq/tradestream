@@ -244,7 +244,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
             logger.atInfo().log("WebSocket closed: %d %s", statusCode, reason);
             connections.remove(webSocket);
-    
+
             if (statusCode != WebSocket.NORMAL_CLOSURE) {
                 List<String> productIds = connectionProducts.remove(webSocket);
                 if (productIds != null && !productIds.isEmpty()) {
