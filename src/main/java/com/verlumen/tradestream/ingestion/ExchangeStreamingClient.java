@@ -30,9 +30,20 @@ interface ExchangeStreamingClient {
     String getExchangeName();
 
     /**
+     * Checks if the given currency pair is supported by the exchange.
+     * Default implementation always returns true until further implementation.
+     *
+     * @param currencyPair The currency pair to check (e.g., "BTC/USD").
+     * @return true if the currency pair is supported, false otherwise.
+     */
+    default boolean isSupportedCurrencyPair(String currencyPair) {
+        return true;
+    }
+
+    /**
      * Factory for creating exchange-specific streaming clients.
      */
-    interface Factory {       
+    interface Factory {
         ExchangeStreamingClient create(String exchangeName);
     }
 }
