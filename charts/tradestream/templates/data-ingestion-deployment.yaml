@@ -21,9 +21,13 @@ spec:
     spec:
       containers:
         - name: data-ingestion
-          {{- if .Values.dataIngestion.args }}
-          args: {{ .Values.dataIngestion.args | toYaml | nindent 12 }}
+          args:
+          {{- range .Values.dataIngestion.args }}
+            - {{ . | quote }}
           {{- end }}
+            - "--kafka.bootstrap.servers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+
+
           image: "{{ .Values.dataIngestion.image.repository }}:{{ .Values.dataIngestion.image.tag }}"
           imagePullPolicy: {{ default "IfNotPresent" .Values.dataIngestion.image.pullPolicy }}
           ports:
