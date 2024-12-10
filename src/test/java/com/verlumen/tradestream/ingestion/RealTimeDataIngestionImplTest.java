@@ -54,18 +54,24 @@ public class RealTimeDataIngestionImplTest {
         when(mockCurrencyPairSupply.currencyPairs()).thenReturn(TEST_CURRENCY_PAIRS);
         when(mockExchangeClient.getExchangeName()).thenReturn(TEST_EXCHANGE);
         when(mockExchangeClient.supportedCurrencyPairs("/")).thenReturn(SUPPORTED_CURRENCY_PAIRS);
-        when(mockExchangeClient.isSupportedCurrencyPair(any(CurrencyPair.class))).thenReturn(true);
 
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
     @Test
     public void start_initiatesStreaming() {
+        // Arrange
+        ImmutableList<CurrencyPair> pairs = Stream.of("BTC/USD", "ETH/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
+        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(pairs);
+        when(mockExchangeClient.isSupportedCurrencyPair(any(CurrencyPair.class))).thenReturn(true);
+
         // Act
         realTimeDataIngestion.start();
 
         // Assert
-        verify(mockExchangeClient).startStreaming(eq(TEST_CURRENCY_PAIRS), any(Consumer.class));
+        verify(mockExchangeClient).startStreaming(eq(pairs), any(Consumer.class));
     }
 
     @Test
