@@ -70,7 +70,6 @@ public class RealTimeDataIngestionImplTest {
             .map(CurrencyPair::fromSymbol)
             .collect(toImmutableList());
         when(mockCurrencyPairSupply.currencyPairs()).thenReturn(pairs);
-        when(mockExchangeClient.isSupportedCurrencyPair(any(CurrencyPair.class))).thenReturn(true);
 
         // Act
         realTimeDataIngestion.start();

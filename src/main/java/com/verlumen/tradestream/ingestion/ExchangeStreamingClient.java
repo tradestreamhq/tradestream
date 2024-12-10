@@ -33,17 +33,6 @@ interface ExchangeStreamingClient {
     String getExchangeName();
 
     /**
-     * Checks if the given currency pair is supported by the exchange.
-     * Default implementation always returns true until further implementation.
-     *
-     * @param currencyPair The currency pair to check (e.g., "BTC/USD").
-     * @return true if the currency pair is supported, false otherwise.
-     */
-    default boolean isSupportedCurrencyPair(CurrencyPair currencyPair) {
-        return true;
-    }
-
-    /**
      * Fetches the list of supported currency pairs from the Coinbase API.
      * 
      * @return an immutable list of supported CurrencyPairs.
