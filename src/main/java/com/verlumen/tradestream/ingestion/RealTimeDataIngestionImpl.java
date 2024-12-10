@@ -110,9 +110,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         return currencyPairSupply.get()
             .currencyPairs()
             .stream()
-            // .map(pair -> pair.symbolWithCustomDelimiter(FORWARD_SLASH))
-            // .map(CurrencyPair::fromSymbol)            
-            // .filter(supportedPairs::contains)
             .collect(toImmutableList());
     }
 }
