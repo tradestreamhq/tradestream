@@ -107,7 +107,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         ImmutableSet<CurrencyPair> requestedPairs = currencyPairSupply.get()
             .currencyPairs()
             .stream()
-            .filter(exchangeClient::isSupportedCurrencyPair)
             .collect(toImmutableSet());
         difference(requestedPairs, supportedPairs)
             .forEach(unsupportedPair -> logger.atInfo().log(
