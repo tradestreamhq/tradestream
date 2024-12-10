@@ -108,10 +108,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             .currencyPairs()
             .stream()
             .filter(exchangeClient::isSupportedCurrencyPair)
-            .distinct()
-            // .map(pair -> pair.symbolWithCustomDelimiter(FORWARD_SLASH))
-            // .map(CurrencyPair::fromSymbol)            
-            // .filter(supportedPairs::contains)
             .collect(toImmutableSet());
 
         difference(requestedPairs, supportedPairs)
