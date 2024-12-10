@@ -31,6 +31,10 @@ public class RealTimeDataIngestionImplTest {
     @Rule public final MockitoRule mockito = MockitoJUnit.rule();
 
     private static final ImmutableList<CurrencyPair> TEST_CURRENCY_PAIRS = 
+        Stream.of("BTC-USD", "ETH-USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
+    private static final ImmutableList<CurrencyPair> SUPPORTED_CURRENCY_PAIRS = 
         Stream.of("BTC/USD", "ETH/USD")
             .map(CurrencyPair::fromSymbol)
             .collect(toImmutableList());
@@ -49,6 +53,7 @@ public class RealTimeDataIngestionImplTest {
     public void setUp() {
         when(mockCurrencyPairSupply.currencyPairs()).thenReturn(TEST_CURRENCY_PAIRS);
         when(mockExchangeClient.getExchangeName()).thenReturn(TEST_EXCHANGE);
+        when(mockExchangeClient.supportedCurrencyPairs("/")).thenReturn(SUPPORTED_CURRENCY_PAIRS);
 
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
