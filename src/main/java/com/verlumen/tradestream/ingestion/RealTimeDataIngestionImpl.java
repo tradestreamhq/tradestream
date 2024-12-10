@@ -103,9 +103,11 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             .supportedCurrencyPairs(FORWARD_SLASH)
             .stream()
             .collect(toImmutableSet());
-        return currencyPairSupply.get()
+        ImmutableSet<CurrencyPair> requestedPairs = currencyPairSupply.get()
             .currencyPairs()
             .stream()
-            .collect(toImmutableList());
+            .collect(toImmutableSet());
+        return requestedPairs
+            .asList();
     }
 }
