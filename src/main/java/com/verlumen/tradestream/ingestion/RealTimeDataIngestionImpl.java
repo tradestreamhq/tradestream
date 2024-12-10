@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
