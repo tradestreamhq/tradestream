@@ -97,12 +97,21 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     }
 
     private ImmutableList<CurrencyPair> supportedCurrencyPairs() {
-        ImmutableList<CurrencyPair> supportedPairs = exchangeClient.supportedCurrencyPairs(FORWARD_SLASH);
-        supportedPairs.forEach(logger.atInfo()::log);
-        return currencyPairSupply.get()
-            .currencyPairs()
+        ImmutableSet<CurrencyPair> supportedPairs = exchangeClient
+            .supportedCurrencyPairs(FORWARD_SLASH)
+            .stream()
+            .collect(toImmutableSet());
+        supportedPairs
+            .stream()
+            .filter()
+            .map(CurrencyPair::symbol)
+            .forEach(logger.atInfo()::log);
+        return pairs
             .stream()
             .filter(exchangeClient::isSupportedCurrencyPair)
+            // .map(pair -> pair.symbolWithCustomDelimiter(FORWARD_SLASH))
+            // .map(CurrencyPair::fromSymbol)            
+            // .filter(supportedPairs::contains)
             .collect(toImmutableList());
     }
 }
