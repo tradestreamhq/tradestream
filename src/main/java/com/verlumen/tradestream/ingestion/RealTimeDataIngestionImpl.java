@@ -1,8 +1,10 @@
 package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -11,6 +13,7 @@ import com.verlumen.tradestream.marketdata.Trade;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+    private static final String FORWARD_SLASH = "/";
 
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
@@ -96,10 +99,21 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     }
 
     private ImmutableList<CurrencyPair> supportedCurrencyPairs() {
+        ImmutableSet<CurrencyPair> supportedPairs = exchangeClient
+            .supportedCurrencyPairs(FORWARD_SLASH)
+            .stream()
+            .collect(toImmutableSet());
+        supportedPairs
+            .stream()
+            .map(CurrencyPair::symbol)
+            .forEach(logger.atInfo()::log);
         return currencyPairSupply.get()
             .currencyPairs()
             .stream()
             .filter(exchangeClient::isSupportedCurrencyPair)
+            // .map(pair -> pair.symbolWithCustomDelimiter(FORWARD_SLASH))
+            // .map(CurrencyPair::fromSymbol)            
+            // .filter(supportedPairs::contains)
             .collect(toImmutableList());
     }
 }
