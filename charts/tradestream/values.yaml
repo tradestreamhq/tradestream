@@ -1,7 +1,5 @@
 kafka:
   replicaCount: 2
-  nodeSelector:
-    kubernetes.io/arch: arm64
   persistence:
     enabled: true
     size: 10Gi
@@ -30,10 +28,13 @@ kafka:
       retentionMs: 604800000
       cleanupPolicy: "delete"
 dataIngestion:
-  args: ["--runMode=wet"]
+  args:
+    - "--runMode=wet"
+    - "--candlePublisherTopic=candles"
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
-    tag: v0.0.249-develop
+    pullPolicy: IfNotPresent
+    tag: v0.0.299-develop
   service:
     port: 8080

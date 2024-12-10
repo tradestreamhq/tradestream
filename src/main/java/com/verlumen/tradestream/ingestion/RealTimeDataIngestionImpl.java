@@ -1,8 +1,12 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
+import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
@@ -38,12 +42,8 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     public void start() {
         logger.atInfo().log("Starting real-time data ingestion for %s", 
             exchangeClient.getExchangeName());
-    
-        exchangeClient.startStreaming(
-            currencyPairSupply.get().symbols(),
-            this::processTrade
-        );
-        
+
+        startMarketDataIngestion();
         logger.atInfo().log("Starting thin market timer...");
         thinMarketTimer.get().start();
         logger.atInfo().log("Real-time data ingestion system fully initialized and running");
@@ -89,5 +89,17 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
                 "Error processing trade: %s", trade.getTradeId());
             // Don't rethrow - we want to continue processing other trades
         }
+    }
+
+    private void startMarketDataIngestion() {
+        exchangeClient.startStreaming(supportedCurrencyPairs(), this::processTrade);
+    }
+
+    private ImmutableList<CurrencyPair> supportedCurrencyPairs() {
+        return currencyPairSupply.get()
+            .currencyPairs()
+            .stream()
+            .filter(exchangeClient::isSupportedCurrencyPair)
+            .collect(toImmutableList());
     }
 }

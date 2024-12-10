@@ -2,23 +2,29 @@ package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
-import org.knowm.xchange.currency.CurrencyPair;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 
-interface CurrencyPairSupply {
-  ImmutableList<CurrencyPairMetadata> metadataList();
-  
-  default ImmutableList<CurrencyPair> currencyPairs() {
+@AutoValue
+abstract class CurrencyPairSupply {
+  static CurrencyPairSupply create(ImmutableList<CurrencyPairMetadata> metadataList) {
+    return new AutoValue_CurrencyPairSupply(metadataList);
+  }
+
+  abstract ImmutableList<CurrencyPairMetadata> metadataList();
+
+  ImmutableList<CurrencyPair> currencyPairs() {
     return metadataList()
       .stream()
-      .map(CurrencyPairMetadata::currencyPair)
+      .map(CurrencyPairMetadata::currencyPair) // Extract the CurrencyPair from each metadata.
       .collect(toImmutableList());
   }
 
-  default ImmutableList<String> symbols() {
+  ImmutableList<String> symbols() {
     return currencyPairs()
       .stream()
-      .map(pair -> pair.getBase() + "-" + pair.getCounter())
+      .map(CurrencyPair::symbol)
       .collect(toImmutableList());
   }
 }

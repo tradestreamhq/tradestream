@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -13,6 +14,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,14 +31,17 @@ import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @RunWith(JUnit4.class)
 public class CoinbaseStreamingClientTest {
     @Rule public MockitoRule mockito = MockitoJUnit.rule();
 
     private static final String WEBSOCKET_URL = "wss://advanced-trade-ws.coinbase.com";
-    private static final ImmutableList<String> TEST_PAIRS = 
-        ImmutableList.of("BTC/USD", "ETH/USD");
+    private static final ImmutableList<CurrencyPair> TEST_PAIRS = 
+        Stream.of("BTC/USD", "ETH/USD")
+          .map(CurrencyPair::fromSymbol)
+          .collect(toImmutableList());
 
     @Mock @Bind private Consumer<Trade> mockTradeHandler;
     @Mock @Bind private HttpClient mockHttpClient;

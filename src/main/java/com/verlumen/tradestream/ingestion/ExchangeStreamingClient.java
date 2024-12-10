@@ -1,6 +1,9 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.common.collect.ImmutableList;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
 
 import java.util.function.Consumer;
@@ -17,7 +20,7 @@ interface ExchangeStreamingClient {
      * @param currencyPairs List of currency pairs to stream
      * @param tradeHandler Callback to handle incoming trades
      */
-    void startStreaming(ImmutableList<String> currencyPairs, Consumer<Trade> tradeHandler);
+    void startStreaming(ImmutableList<CurrencyPair> currencyPairs, Consumer<Trade> tradeHandler);
 
     /**
      * Stops streaming and cleans up resources.
@@ -30,9 +33,27 @@ interface ExchangeStreamingClient {
     String getExchangeName();
 
     /**
+     * Checks if the given currency pair is supported by the exchange.
+     * Default implementation always returns true until further implementation.
+     *
+     * @param currencyPair The currency pair to check (e.g., "BTC/USD").
+     * @return true if the currency pair is supported, false otherwise.
+     */
+    default boolean isSupportedCurrencyPair(CurrencyPair currencyPair) {
+        return true;
+    }
+
+    /**
+     * Fetches the list of supported currency pairs from the Coinbase API.
+     * 
+     * @return an immutable list of supported CurrencyPairs.
+     */
+    ImmutableList<CurrencyPair> supportedCurrencyPairs(String delimiter);
+
+    /**
      * Factory for creating exchange-specific streaming clients.
      */
-    interface Factory {       
+    interface Factory {
         ExchangeStreamingClient create(String exchangeName);
     }
 }
