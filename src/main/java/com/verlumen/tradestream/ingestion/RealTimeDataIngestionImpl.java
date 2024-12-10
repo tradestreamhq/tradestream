@@ -2,6 +2,7 @@ package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.Sets.difference;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -103,17 +104,19 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             .supportedCurrencyPairs(FORWARD_SLASH)
             .stream()
             .collect(toImmutableSet());
-        supportedPairs
-            .stream()
-            .map(CurrencyPair::symbol)
-            .forEach(logger.atInfo()::log);
-        return currencyPairSupply.get()
+        ImmutableSet<CurrencyPair> requestedPairs = currencyPairSupply.get()
             .currencyPairs()
             .stream()
             .filter(exchangeClient::isSupportedCurrencyPair)
+            .distinct()
             // .map(pair -> pair.symbolWithCustomDelimiter(FORWARD_SLASH))
             // .map(CurrencyPair::fromSymbol)            
             // .filter(supportedPairs::contains)
-            .collect(toImmutableList());
+            .collect(toImmutableSet());
+
+        difference(requestedPairs, supportedPairs)
+            .forEach(unsupportedPair -> logger.atInfo().log(
+                "Pair with symbol %s is not supported.", unsupportedPair.symbol()));
+        return pairs;
     }
 }
