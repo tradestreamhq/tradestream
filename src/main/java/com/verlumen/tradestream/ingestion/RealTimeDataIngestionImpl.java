@@ -105,7 +105,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             .collect(toImmutableSet());
         supportedPairs
             .stream()
-            .filter()
             .map(CurrencyPair::symbol)
             .forEach(logger.atInfo()::log);
         return currencyPairSupply.get()
