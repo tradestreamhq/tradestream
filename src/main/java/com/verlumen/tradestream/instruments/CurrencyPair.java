@@ -107,6 +107,10 @@ public abstract class CurrencyPair {
     return symbolWithCustomDelimiter(delimiter());
   }
 
+  public CurrencyPair withCustomDelimiter(String delimiter) {
+    return fromSymbol(symbolWithCustomDelimiter(delimiter));
+  }
+
   /**
    * Returns the currency pair symbol using a custom delimiter.
    * <p>
@@ -116,7 +120,7 @@ public abstract class CurrencyPair {
    * @param delimiter the custom delimiter to use when constructing the symbol
    * @return a string representation of the currency pair symbol using the specified delimiter
    */
-  public String symbolWithCustomDelimiter(String delimiter) {
+  private String symbolWithCustomDelimiter(String delimiter) {
     return String.format("%s%s%s", base().symbol(), delimiter, counter().symbol());
   }
 
