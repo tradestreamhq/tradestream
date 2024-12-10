@@ -96,27 +96,40 @@ public abstract class CurrencyPair {
   abstract String delimiter();
 
   /**
-   * Returns the currency pair symbol using the original delimiter.
-   * <p>
-   * For example, if the base is EUR and the counter is USD, and the delimiter was "/",
-   * this method returns "EUR/USD".
+   * Returns the standard symbol for this currency pair, formed by concatenating the base and counter
+   * currencies with the default delimiter.
    *
-   * @return a string representation of the currency pair symbol using the original delimiter
+   * @return the standard symbol for this currency pair
    */
   public String symbol() {
     return symbolWithCustomDelimiter(delimiter());
+  }
+  
+  /**
+   * Returns a new {@code CurrencyPair} instance that uses the specified delimiter
+   * between the base and counter currency symbols. For example, if the base currency
+   * symbol is "BTC" and the counter currency symbol is "USD", and a colon (":") is provided
+   * as the delimiter, the resulting symbol would be "BTC:USD".
+   *
+   * @param delimiter the custom delimiter to use when constructing the symbol
+   * @return a new {@code CurrencyPair} instance with the specified custom delimiter
+   * @throws IllegalArgumentException if the generated symbol is invalid
+   */
+  public CurrencyPair withCustomDelimiter(String delimiter) {
+    return fromSymbol(symbolWithCustomDelimiter(delimiter));
   }
 
   /**
    * Returns the currency pair symbol using a custom delimiter.
    * <p>
-   * For example, if you pass "-" as the delimiter, and the pair is EUR and USD, this method
-   * returns "EUR-USD".
+   * For example, if this currency pair has a base currency symbol "BTC" and a counter currency symbol "USD",
+   * and you provide a hyphen ("-") as the delimiter, this method would return "BTC-USD".
+   * </p>
    *
    * @param delimiter the custom delimiter to use when constructing the symbol
    * @return a string representation of the currency pair symbol using the specified delimiter
    */
-  public String symbolWithCustomDelimiter(String delimiter) {
+  private String symbolWithCustomDelimiter(String delimiter) {
     return String.format("%s%s%s", base().symbol(), delimiter, counter().symbol());
   }
 
