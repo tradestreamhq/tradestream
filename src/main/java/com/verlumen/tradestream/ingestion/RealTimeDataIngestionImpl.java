@@ -107,7 +107,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             .filter()
             .map(CurrencyPair::symbol)
             .forEach(logger.atInfo()::log);
-        return pairs
+        return currencyPairSupply.get()
             .stream()
             .filter(exchangeClient::isSupportedCurrencyPair)
             // .map(pair -> pair.symbolWithCustomDelimiter(FORWARD_SLASH))
