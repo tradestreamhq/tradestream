@@ -30,14 +30,19 @@ import java.util.stream.Stream;
 public class RealTimeDataIngestionImplTest {
     @Rule public final MockitoRule mockito = MockitoJUnit.rule();
 
-    private static final ImmutableList<CurrencyPair> TEST_CURRENCY_PAIRS = 
-        Stream.of("BTC-USD", "ETH-USD")
-            .map(CurrencyPair::fromSymbol)
-            .collect(toImmutableList());
     private static final ImmutableList<CurrencyPair> SUPPORTED_CURRENCY_PAIRS = 
         Stream.of("BTC/USD", "ETH/USD")
             .map(CurrencyPair::fromSymbol)
             .collect(toImmutableList());
+    private static final ImmutableList<CurrencyPair> UNSUPPORTED_CURRENCY_PAIRS = 
+        Stream.of("ETH/USD", "DOGE/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
+    private static final ImmutableList<CurrencyPair> TEST_CURRENCY_PAIRS = 
+        ImmutableList.builder()
+            .addAll(SUPPORTED_CURRENCY_PAIRS)
+            .addAll(UNSUPPORTED_CURRENCY_PAIRS)
+            .build();
     private static final String TEST_EXCHANGE = "test-exchange";
 
     @Mock @Bind private CandleManager mockCandleManager;
@@ -182,21 +187,11 @@ public class RealTimeDataIngestionImplTest {
 
     @Test
     public void start_usesCorrectCurrencyPairs() {
-        // Arrange 
-        CurrencyPair supportedPair = CurrencyPair.fromSymbol("TEST1/USD");
-        CurrencyPair unsupportedPair = CurrencyPair.fromSymbol("TEST2/USD");
-        ImmutableList<CurrencyPair> pairs = ImmutableList.of(supportedPair, unsupportedPair);
-        ImmutableList<CurrencyPair> expected = ImmutableList.of(supportedPair);
-        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(pairs);
-
-        when(mockExchangeClient.isSupportedCurrencyPair(supportedPair)).thenReturn(true);
-        when(mockExchangeClient.isSupportedCurrencyPair(unsupportedPair)).thenReturn(false);
-
         // Act
         realTimeDataIngestion.start();
 
         // Assert
-        verify(mockExchangeClient).startStreaming(eq(expected), any(Consumer.class));
+        verify(mockExchangeClient).startStreaming(eq(SUPPORTED_CURRENCY_PAIRS), any(Consumer.class));
     }
 
     @Test
