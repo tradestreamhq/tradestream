@@ -60,18 +60,11 @@ public class RealTimeDataIngestionImplTest {
 
     @Test
     public void start_initiatesStreaming() {
-        // Arrange
-        ImmutableList<CurrencyPair> pairs = Stream.of("BTC/USD", "ETH/USD")
-            .map(CurrencyPair::fromSymbol)
-            .collect(toImmutableList());
-        when(mockCurrencyPairSupply.currencyPairs()).thenReturn(pairs);
-        when(mockExchangeClient.isSupportedCurrencyPair(any(CurrencyPair.class))).thenReturn(true);
-
         // Act
         realTimeDataIngestion.start();
 
         // Assert
-        verify(mockExchangeClient).startStreaming(eq(pairs), any(Consumer.class));
+        verify(mockExchangeClient).startStreaming(eq(SUPPORTED_CURRENCY_PAIRS), any(Consumer.class));
     }
 
     @Test
