@@ -106,7 +106,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         return currencyPairSupply.get()
             .currencyPairs()
             .stream()
-            .filter(exchangeClient::isSupportedCurrencyPair)
             .collect(toImmutableList());
     }
 }
