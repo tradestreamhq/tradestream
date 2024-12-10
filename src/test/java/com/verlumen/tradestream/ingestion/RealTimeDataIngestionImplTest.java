@@ -39,7 +39,7 @@ public class RealTimeDataIngestionImplTest {
             .map(CurrencyPair::fromSymbol)
             .collect(toImmutableList());
     private static final ImmutableList<CurrencyPair> TEST_CURRENCY_PAIRS = 
-        ImmutableList.builder()
+        ImmutableList.<CurrencyPair>builder()
             .addAll(SUPPORTED_CURRENCY_PAIRS)
             .addAll(UNSUPPORTED_CURRENCY_PAIRS)
             .build();
