@@ -173,22 +173,6 @@ public class RealTimeDataIngestionImplTest {
         verify(mockCandlePublisher).close();
     }
 
-    // @Test
-    // public void start_usesCorrectCurrencyPairs() {
-    //     // Arrange 
-    //     CurrencyPair supportedPair = CurrencyPair.fromSymbol("TEST1/USD");
-    //     CurrencyPair unsupportedPair = CurrencyPair.fromSymbol("TEST2/USD");
-    //     ImmutableList<CurrencyPair> pairs = ImmutableList.of(supportedPair, unsupportedPair);
-    //     ImmutableList<CurrencyPair> expected = ImmutableList.of(supportedPair);
-    //     when(mockCurrencyPairSupply.currencyPairs()).thenReturn(pairs);
-
-    //     // Act
-    //     realTimeDataIngestion.start();
-
-    //     // Assert
-    //     verify(mockExchangeClient).startStreaming(eq(expected), any(Consumer.class));
-    // }
-
     @Test
     public void processTrade_handlesTradeProcessorException() {
         // Arrange
