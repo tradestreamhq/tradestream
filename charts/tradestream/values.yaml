@@ -4,6 +4,7 @@ kafka:
     enabled: true
     size: 10Gi
     accessModes:
+  configurationOverrides:
       - ReadWriteOnce
   auth:
     enabled: true
@@ -17,13 +18,19 @@ kafka:
     inter.broker.listener.name=PLAINTEXT
     controller.listener.names=CONTROLLER
     log.dirs=/var/lib/kafka/data
+  configurationOverrides:
     offset.storage=raft
     transaction.state.log.replication.factor=3
     transaction.state.log.min.isr=2
+
 dataIngestion:
   args:
     - "--runMode=wet"
     - "--candlePublisherTopic=candles"
+    - "--kafka.acks=all"
+    - "--kafka.retries=5"
+    - "--kafka.linger.ms=50"
+    # Note: Using only existing args from ConfigArguments.java
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
