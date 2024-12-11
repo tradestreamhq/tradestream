@@ -86,4 +86,16 @@ public class KafkaPropertiesTest {
     // Assert
     assertThat(kafkaProperties.isEmpty()).isTrue();
   }
+
+  @Test
+  public void testKafkaProperties_includesRetriesAndLinger() {
+    INPUT_PROPERTIES.put("kafka.acks", "all");
+    INPUT_PROPERTIES.put("kafka.retries", "5");
+    INPUT_PROPERTIES.put("kafka.linger.ms", "50");
+
+    Properties kafkaProps = supplier.get();
+    assertThat(kafkaProps.getProperty("acks")).isEqualTo("all");
+    assertThat(kafkaProps.getProperty("retries")).isEqualTo("5");
+    assertThat(kafkaProps.getProperty("linger.ms")).isEqualTo("50");
+  }
 }
