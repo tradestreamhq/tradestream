@@ -69,7 +69,7 @@ public class RealTimeDataIngestionImplTest {
         realTimeDataIngestion.start();
 
         // Assert
-        verify(mockExchangeClient).startStreaming(eq(TEST_CURRENCY_PAIRS), any(Consumer.class));
+        verify(mockExchangeClient).startStreaming(eq(SUPPORTED_CURRENCY_PAIRS), any(Consumer.class));
     }
 
     @Test
@@ -176,15 +176,6 @@ public class RealTimeDataIngestionImplTest {
         verify(mockExchangeClient).stopStreaming();
         verify(mockThinMarketTimer).stop();
         verify(mockCandlePublisher).close();
-    }
-
-    @Test
-    public void start_usesCorrectCurrencyPairs() {
-        // Act
-        realTimeDataIngestion.start();
-
-        // Assert
-        verify(mockExchangeClient).startStreaming(eq(SUPPORTED_CURRENCY_PAIRS), any(Consumer.class));
     }
 
     @Test
