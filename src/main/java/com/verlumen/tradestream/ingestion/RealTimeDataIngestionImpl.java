@@ -3,6 +3,7 @@ package com.verlumen.tradestream.ingestion;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Sets.difference;
+import static com.google.common.collect.Sets.intersection;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -111,7 +112,8 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         difference(requestedPairs, supportedPairs)
             .forEach(unsupportedPair -> logger.atInfo().log(
                 "Pair with symbol %s is not supported.", unsupportedPair.symbol()));
-        return requestedPairs
+        return intersection(requestedPairs, supportedPairs)
+            .immutableCopy()
             .asList();
     }
 }

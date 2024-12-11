@@ -30,14 +30,19 @@ import java.util.stream.Stream;
 public class RealTimeDataIngestionImplTest {
     @Rule public final MockitoRule mockito = MockitoJUnit.rule();
 
-    private static final ImmutableList<CurrencyPair> TEST_CURRENCY_PAIRS = 
-        Stream.of("BTC-USD", "ETH-USD")
-            .map(CurrencyPair::fromSymbol)
-            .collect(toImmutableList());
     private static final ImmutableList<CurrencyPair> SUPPORTED_CURRENCY_PAIRS = 
         Stream.of("BTC/USD", "ETH/USD")
             .map(CurrencyPair::fromSymbol)
             .collect(toImmutableList());
+    private static final ImmutableList<CurrencyPair> UNSUPPORTED_CURRENCY_PAIRS = 
+        Stream.of("ETH/USD", "DOGE/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
+    private static final ImmutableList<CurrencyPair> TEST_CURRENCY_PAIRS = 
+        ImmutableList.<CurrencyPair>builder()
+            .addAll(SUPPORTED_CURRENCY_PAIRS)
+            .addAll(UNSUPPORTED_CURRENCY_PAIRS)
+            .build();
     private static final String TEST_EXCHANGE = "test-exchange";
 
     @Mock @Bind private CandleManager mockCandleManager;
@@ -64,7 +69,7 @@ public class RealTimeDataIngestionImplTest {
         realTimeDataIngestion.start();
 
         // Assert
-        verify(mockExchangeClient).startStreaming(eq(TEST_CURRENCY_PAIRS), any(Consumer.class));
+        verify(mockExchangeClient).startStreaming(eq(SUPPORTED_CURRENCY_PAIRS), any(Consumer.class));
     }
 
     @Test
