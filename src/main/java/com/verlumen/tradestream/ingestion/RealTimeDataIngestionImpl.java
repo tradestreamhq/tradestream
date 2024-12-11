@@ -113,7 +113,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             .forEach(unsupportedPair -> logger.atInfo().log(
                 "Pair with symbol %s is not supported.", unsupportedPair.symbol()));
         return intersection(requestedPairs, supportedPairs)
-            immutableCopy()
+            .immutableCopy()
             .asList();
     }
 }
