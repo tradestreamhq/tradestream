@@ -7,7 +7,7 @@ import java.util.List;
 public interface CandleManager {
     void processTrade(Trade trade);
 
-    void handleThinlyTradedMarkets(List<String> currencyPairs);
+    void handleThinlyTradedMarkets(List<CurrencyPair> currencyPairs);
 
     int getActiveBuilderCount();
 
