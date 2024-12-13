@@ -17,14 +17,7 @@ abstract class CurrencyPairSupply {
   ImmutableList<CurrencyPair> currencyPairs() {
     return metadataList()
       .stream()
-      .map(CurrencyPairMetadata::currencyPair) // Extract the CurrencyPair from each metadata.
-      .collect(toImmutableList());
-  }
-
-  ImmutableList<String> symbols() {
-    return currencyPairs()
-      .stream()
-      .map(CurrencyPair::symbol)
+      .map(CurrencyPairMetadata::currencyPair)
       .collect(toImmutableList());
   }
 }
