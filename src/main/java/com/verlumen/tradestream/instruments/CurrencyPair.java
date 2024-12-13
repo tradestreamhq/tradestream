@@ -127,6 +127,6 @@ public abstract class CurrencyPair {
   public abstract Currency counter();
 
   public String symbol() {
-    return base() + HYPHEN + counter();
+    return base() + FORWARD_SLASH + counter();
   }
 }
