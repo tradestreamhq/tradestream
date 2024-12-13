@@ -124,4 +124,8 @@ public abstract class CurrencyPair {
    * @return the counter {@link Currency}
    */
   public abstract Currency counter();
+
+  public String symbol() {
+    return base().symbol() + FORWARD_SLASH + counter().symbol();
+  }
 }
