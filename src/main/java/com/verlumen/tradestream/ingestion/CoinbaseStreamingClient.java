@@ -146,6 +146,10 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         }
     }
 
+    private static String createProductId(CurrencyPair currencyPair) {
+        return currencyPair.base().symbol() + "-" + currencyPair.counter().symbol();
+    }
+
     private List<List<String>> splitProductsIntoGroups(List<String> productIds) {
         List<List<String>> groups = new ArrayList<>();
         for (int i = 0; i < productIds.size(); i += PRODUCTS_PER_CONNECTION) {
