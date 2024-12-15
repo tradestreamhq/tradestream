@@ -40,7 +40,7 @@ abstract class ConfigArguments implements Provider<Namespace> {
       .help("Candle interval in seconds");
 
     parser.addArgument("--candlePublisherTopic")
-      .setDefault("candles") 
+      .setDefault("candles")
       .help("Kafka topic to publish candle data");
 
     // Kafka configuration
@@ -72,12 +72,13 @@ abstract class ConfigArguments implements Provider<Namespace> {
       .setDefault(33554432)
       .help("Buffer memory in bytes");
 
+    // Updated value serializer default to ByteArraySerializer
     parser.addArgument("--kafka.key.serializer")
       .setDefault("org.apache.kafka.common.serialization.StringSerializer")
       .help("Key serializer class");
 
     parser.addArgument("--kafka.value.serializer")
-      .setDefault("org.apache.kafka.common.serialization.StringSerializer")
+      .setDefault("org.apache.kafka.common.serialization.ByteArraySerializer")
       .help("Value serializer class");
 
     // Exchange configuration
