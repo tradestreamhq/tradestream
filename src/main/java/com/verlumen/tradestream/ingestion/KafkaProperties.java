@@ -21,14 +21,14 @@ final class KafkaProperties implements Supplier<Properties> {
     Properties kafkaProperties = new Properties();
 
     // Iterate over the input properties
-    for (String key : namespace.getAttrs().keySet()) {
+    namespace.getAttrs().keySet().forEach(key -> {
       // Check if the key starts with the "kafka." prefix
       if (!key.startsWith("kafka.")) continue;
 
       // Remove the prefix and add the key-value pair to the new Properties object
       String newKey = key.substring("kafka.".length());
       kafkaProperties.setProperty(newKey, namespace.getString(key));
-    }
+    });
 
     return kafkaProperties;
   }
