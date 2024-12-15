@@ -27,15 +27,16 @@ final class KafkaProperties implements Provider<Properties> {
     Properties kafkaProperties = new Properties();
 
     // Extract all properties starting with "kafka."
-    Set<String> keys = namespace.getAttrs().keySet();
-    for (String key : keys) {
-      if (!key.startsWith("kafka.")) continue;
-      String newKey = key.substring("kafka.".length());
-      String value = namespace.getString(key);
-      if (value != null) {
-        kafkaProperties.setProperty(newKey, value);
-      }
-    }
+    namespace.getAttrs().keySet()
+      .stream()
+      .filter(key -> key.startsWith("kafka."))
+      .forEach(key -> {
+        String newKey = key.substring("kafka.".length());
+        String value = namespace.getString(key);
+        if (value != null) {
+          kafkaProperties.setProperty(newKey, value);
+        }
+      })
 
     // Ensure essential Kafka properties are set
     if (!kafkaProperties.containsKey("bootstrap.servers")) {
