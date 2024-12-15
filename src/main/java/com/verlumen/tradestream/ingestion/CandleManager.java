@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
 
 import java.util.List;
