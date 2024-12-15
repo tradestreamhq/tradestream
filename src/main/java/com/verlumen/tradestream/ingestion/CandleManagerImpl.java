@@ -66,7 +66,7 @@ final class CandleManagerImpl implements CandleManager {
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
         
         for (String pair : currencyPairs) {
-            String key = getCandleKey(pair, currentMinute);
+            CandleKey key = CandleKey.create(pair, currentMinute);
             CandleBuilder builder = candleBuilders.get(key);
             
             if (builder == null || !builder.hasTrades()) {
@@ -109,7 +109,7 @@ final class CandleManagerImpl implements CandleManager {
         publishAndRemoveCandle(getCandleKey(currencyPair, timestamp), builder);
     }
 
-    private void publishAndRemoveCandle(String key, CandleBuilder builder) {
+    private void publishAndRemoveCandle(CandleKey key, CandleBuilder builder) {
         Candle candle = builder.build();
         logger.atInfo().log("Publishing candle for %s: timestamp=%d, open=%f, high=%f, low=%f, close=%f, volume=%f",
             candle.getCurrencyPair(), 
@@ -126,10 +126,6 @@ final class CandleManagerImpl implements CandleManager {
             key, candleBuilders.size());
     }
 
-    private String getCandleKey(String currencyPair, long minuteTimestamp) {
-        return currencyPair + ":" + minuteTimestamp;
-    }
-
     private long getMinuteTimestamp(long timestamp) {
         return (timestamp / candleIntervalMillis) * candleIntervalMillis;
     }
@@ -140,5 +136,16 @@ final class CandleManagerImpl implements CandleManager {
             logger.atFine().log("Interval complete for timestamp %d", timestamp);
         }
         return isComplete;
+    }
+
+    @AutoValue
+    abstract static class CandleKey {
+        private static CandleKey create(CurrencyPair currencyPair, long minuteTimestamp) {
+            return new AutoValue_CandleManagerImpl_CandleKey(currencyPair, minuteTimestamp);
+        }
+
+        abstract CurrencyPair currencyPair();
+
+        abstract long minuteTimestamp();
     }
 }
