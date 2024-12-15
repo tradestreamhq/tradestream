@@ -4,8 +4,7 @@ kafka:
     enabled: true
     size: 10Gi
     accessModes:
-  configurationOverrides:
-      - ReadWriteOnce
+  configurationOverrides: offset.storage=raft transaction.state.log.replication.factor=3 transaction.state.log.min.isr=2
   auth:
     enabled: true
     saslMechanisms:
@@ -18,11 +17,6 @@ kafka:
     inter.broker.listener.name=PLAINTEXT
     controller.listener.names=CONTROLLER
     log.dirs=/var/lib/kafka/data
-  configurationOverrides:
-    offset.storage=raft
-    transaction.state.log.replication.factor=3
-    transaction.state.log.min.isr=2
-
 dataIngestion:
   args:
     - "--runMode=wet"
@@ -35,6 +29,6 @@ dataIngestion:
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
     pullPolicy: IfNotPresent
-    tag: v0.0.315-develop
+    tag: v0.0.317-develop
   service:
     port: 8080
