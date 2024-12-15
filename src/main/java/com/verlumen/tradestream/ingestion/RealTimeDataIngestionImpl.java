@@ -104,7 +104,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         ImmutableSet<CurrencyPair> supportedPairs = ImmutableSet.copyOf(
             exchangeClient.supportedCurrencyPairs());
         ImmutableSet<CurrencyPair> requestedPairs = ImmutableSet.copyOf(
-            currencyPairSupply.get());
+            currencyPairSupply.get().currencyPairs());
         difference(requestedPairs, supportedPairs)
             .forEach(unsupportedPair -> logger.atInfo().log(
                 "Pair with symbol %s is not supported.", unsupportedPair.symbol()));
