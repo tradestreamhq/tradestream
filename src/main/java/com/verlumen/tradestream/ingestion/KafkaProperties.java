@@ -36,7 +36,7 @@ final class KafkaProperties implements Provider<Properties> {
         if (value != null) {
           kafkaProperties.setProperty(newKey, value);
         }
-      })
+      });
 
     // Ensure essential Kafka properties are set
     if (!kafkaProperties.containsKey("bootstrap.servers")) {
