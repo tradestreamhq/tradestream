@@ -305,6 +305,7 @@ java_library(
     srcs = ["KafkaProperties.java"],
     deps = [
         "@maven//:com_google_inject_guice",
+        "@maven//:com_google_mug_mug",
         "@maven//:net_sourceforge_argparse4j_argparse4j",
     ],    
 )
