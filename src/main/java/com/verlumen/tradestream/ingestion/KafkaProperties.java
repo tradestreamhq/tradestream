@@ -2,10 +2,12 @@ package com.verlumen.tradestream.ingestion;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.mu.util.stream.BiStream;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 import java.util.Properties;
 import java.util.function.Supplier;
+import java.util.Objects;
 
 final class KafkaProperties implements Supplier<Properties> {
   private final Namespace namespace;
@@ -21,11 +23,12 @@ final class KafkaProperties implements Supplier<Properties> {
     Properties kafkaProperties = new Properties();
 
     // Iterate over the input properties
-    namespace.getAttrs().keySet()
-      .stream()
-      .filter(key -> key.startsWith("kafka."))
-      .map(key -> key.substring("kafka.".length()))
-      .forEach(key -> kafkaProperties.setProperty(key, namespace.getString(key)));
+    BiStream.from(namespace.getAttrs().keySet())
+      .filterKeys(key -> key.startsWith("kafka."))
+      .mapValues(namespace::getString)
+      .filterValues(Objects::nonNull)
+      .mapValues(key -> key.substring("kafka.".length()))
+      .forEach((key, value) -> kafkaProperties.setProperty(key, value));
 
     return kafkaProperties;
   }
