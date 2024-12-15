@@ -3,8 +3,9 @@ package com.verlumen.tradestream.ingestion;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.Inject;
-import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.Trade;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,7 +61,7 @@ final class CandleManagerImpl implements CandleManager {
     }
 
     @Override
-    public void handleThinlyTradedMarkets(List<String> currencyPairs) {
+    public void handleThinlyTradedMarkets(List<CurrencyPair> currencyPairs) {
         logger.atInfo().log("Handling thin market update for %d currency pairs", currencyPairs.size());
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
         
