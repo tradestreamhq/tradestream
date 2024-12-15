@@ -96,7 +96,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
      * @return an immutable list of supported CurrencyPairs.
      */
     @Override
-    public ImmutableList<CurrencyPair> supportedCurrencyPairs(String delimiter) {
+    public ImmutableList<CurrencyPair> supportedCurrencyPairs() {
         logger.atInfo().log("Fetching supported currency pairs from Coinbase");
         
         // Coinbase Exchange Products endpoint
@@ -132,7 +132,6 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                 .map(JsonElement::getAsJsonObject)
                 .filter(obj -> obj.has("id"))
                 .map(obj -> obj.get("id").getAsString())
-                .map(productId -> productId.replace("-", delimiter))
                 .map(CurrencyPair::fromSymbol)
                 .collect(toImmutableList());
             
