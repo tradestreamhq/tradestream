@@ -5,9 +5,16 @@ import com.google.inject.Provider;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 import java.util.Properties;
-import java.util.function.Supplier;
+import java.util.Set;
 
-final class KafkaProperties implements Supplier<Properties> {
+/**
+ * Provides a Properties object containing Kafka producer configurations.
+ * 
+ * This class filters properties from the given Namespace, extracting all keys starting
+ * with "kafka." and removing that prefix. It then ensures that essential Kafka properties
+ * are set, applying defaults if necessary.
+ */
+final class KafkaProperties implements Provider<Properties> {
   private final Namespace namespace;
 
   @Inject
@@ -17,18 +24,38 @@ final class KafkaProperties implements Supplier<Properties> {
 
   @Override
   public Properties get() {
-    // Create a new Properties object to hold the filtered and modified properties
     Properties kafkaProperties = new Properties();
 
-    // Iterate over the input properties
-    for (String key : namespace.getAttrs().keySet()) {
-      // Check if the key starts with the "kafka." prefix
+    // Extract all properties starting with "kafka."
+    Set<String> keys = namespace.getAttrs().keySet();
+    for (String key : keys) {
       if (!key.startsWith("kafka.")) continue;
-
-      // Remove the prefix and add the key-value pair to the new Properties object
       String newKey = key.substring("kafka.".length());
-      kafkaProperties.setProperty(newKey, namespace.getString(key));
+      String value = namespace.getString(key);
+      if (value != null) {
+        kafkaProperties.setProperty(newKey, value);
+      }
     }
+
+    // Ensure essential Kafka properties are set
+    if (!kafkaProperties.containsKey("bootstrap.servers")) {
+      kafkaProperties.setProperty("bootstrap.servers", "localhost:9092");
+    }
+
+    // Key serializer default - should be StringSerializer for keys
+    if (!kafkaProperties.containsKey("key.serializer")) {
+      kafkaProperties.setProperty("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+    }
+
+    // Value serializer default - must match the data type we're sending (byte[])
+    // Ensuring we do not rely on incorrect defaults that cause ClassCastExceptions
+    if (!kafkaProperties.containsKey("value.serializer")) {
+      kafkaProperties.setProperty("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
+    }
+
+    // If the user didn't specify acks, retries, linger.ms, etc., they remain
+    // as defined by defaults from ConfigArguments or the Kafka client defaults.
+    // But we at least ensure a sane set of serializers and bootstrap server.
 
     return kafkaProperties;
   }
