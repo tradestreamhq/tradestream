@@ -12,7 +12,6 @@ java_test(
         "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/strategies:data_consumption_layer",
-        "//src/main/java/com/verlumen/tradestream/strategies:data_consumption_layer_impl",
+        "//src/main/java/com/verlumen/tradestream/strategies:data_consumption",
     ],
 )
