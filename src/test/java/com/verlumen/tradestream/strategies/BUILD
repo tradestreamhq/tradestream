@@ -5,7 +5,7 @@ java_test(
     size = "small",
     srcs = ["DataConsumptionLayerImplTest.java"],
     deps = [
-        ":data_consumption",
+        "//src/main/java/com/verlumen/tradestream/strategies:data_consumption_layer",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_inject_extensions_guice_testlib",
