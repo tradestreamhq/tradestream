@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.dataconsumption;
+package com.verlumen.tradestream.strategies;
 
 import com.verlumen.tradestream.marketdata.Candle;
 import java.time.Duration;
