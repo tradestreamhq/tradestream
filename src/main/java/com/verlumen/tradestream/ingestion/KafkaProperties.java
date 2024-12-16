@@ -5,8 +5,10 @@ import com.google.inject.Provider;
 import com.google.mu.util.stream.BiStream;
 import net.sourceforge.argparse4j.inf.Namespace;
 
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Provides a Properties object containing Kafka producer configurations.
