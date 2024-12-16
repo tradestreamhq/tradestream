@@ -27,7 +27,8 @@ public class CandleManagerImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
     
     private static final long CANDLE_INTERVAL = 60000L;
-    private static final CurrencyPair TEST_PAIR = CurrencyPair.fromSymbol("BTC/USD");
+    private static final CurrencyPair SYMBOL = "BTC/USD";
+    private static final CurrencyPair PAIR = CurrencyPair.fromSymbol(SYMBOL);
     
     @Mock private CandlePublisher mockPublisher;
     @Mock @Bind private PriceTracker mockPriceTracker;
@@ -69,7 +70,7 @@ public class CandleManagerImplTest {
         manager.processTrade(trade);
 
         // Assert
-        verify(mockPriceTracker).updateLastPrice(TEST_PAIR, trade.getPrice());
+        verify(mockPriceTracker).updateLastPrice(SYMBOL, trade.getPrice());
     }
 
     @Test
@@ -91,10 +92,10 @@ public class CandleManagerImplTest {
     public void handleThinlyTradedMarkets_generatesEmptyCandles() {
         // Arrange
         CandleManager manager = factory.create(CANDLE_INTERVAL, mockPublisher);
-        when(mockPriceTracker.getLastPrice(TEST_PAIR)).thenReturn(100.0);
+        when(mockPriceTracker.getLastPrice(SYMBOL)).thenReturn(100.0);
 
         // Act
-        manager.handleThinlyTradedMarkets(ImmutableList.of(TEST_PAIR));
+        manager.handleThinlyTradedMarkets(ImmutableList.of(PAIR));
 
         // Assert
         verify(mockPublisher).publishCandle(argThat(candle -> 
@@ -107,10 +108,10 @@ public class CandleManagerImplTest {
         // Arrange
         CandleManager manager = factory.create(CANDLE_INTERVAL, mockPublisher);
 
-        when(mockPriceTracker.getLastPrice(TEST_PAIR)).thenReturn(Double.NaN);
+        when(mockPriceTracker.getLastPrice(SYMBOL)).thenReturn(Double.NaN);
         
         // Act
-        manager.handleThinlyTradedMarkets(ImmutableList.of(TEST_PAIR));
+        manager.handleThinlyTradedMarkets(ImmutableList.of(PAIR));
 
         // Assert
         verify(mockPublisher, never()).publishCandle(any());
@@ -119,7 +120,7 @@ public class CandleManagerImplTest {
     private Trade createTestTrade(long timestamp) {
         return Trade.newBuilder()
             .setTimestamp(timestamp)
-            .setCurrencyPair(TEST_PAIR)
+            .setCurrencyPair(SYMBOL)
             .setPrice(100.0)
             .setVolume(1.0)
             .setTradeId("test-" + System.nanoTime())
