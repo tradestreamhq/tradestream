@@ -66,7 +66,7 @@ final class CandleManagerImpl implements CandleManager {
         logger.atInfo().log("Handling thin market update for %d currency pairs", currencyPairs.size());
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
         
-        for (String pair : currencyPairs) {
+        for (CurrencyPair pair : currencyPairs) {
             CandleKey key = CandleKey.create(pair, currentMinute);
             CandleBuilder builder = candleBuilders.get(key);
             
@@ -87,7 +87,7 @@ final class CandleManagerImpl implements CandleManager {
         return count;
     }
 
-    private void generateEmptyCandle(String currencyPair, long timestamp) {
+    private void generateEmptyCandle(CurrencyPair currencyPair, long timestamp) {
         double lastPrice = priceTracker.getLastPrice(currencyPair);
         logger.atInfo().log("Generating empty candle for %s at timestamp %d with last price %f",
             currencyPair, timestamp, lastPrice);
@@ -107,7 +107,7 @@ final class CandleManagerImpl implements CandleManager {
             .setCurrencyPair(currencyPair)
             .setTimestamp(timestamp)
             .build());
-        publishAndRemoveCandle(getCandleKey(currencyPair, timestamp), builder);
+        publishAndRemoveCandle(CandleKey.create(currencyPair, timestamp), builder);
     }
 
     private void publishAndRemoveCandle(CandleKey key, CandleBuilder builder) {
