@@ -5,10 +5,6 @@ kafka:
     size: 10Gi
     accessModes:
   configurationOverrides: offset.storage=raft transaction.state.log.replication.factor=3 transaction.state.log.min.isr=2
-  auth:
-    enabled: true
-    saslMechanisms:
-      - scram-sha-256
   configuration: |
     process.roles=broker,controller
     controller.quorum.voters=0@${HOSTNAME}:9093,1@${HOSTNAME}:9093,2@${HOSTNAME}:9093
