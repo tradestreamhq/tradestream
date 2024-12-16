@@ -23,7 +23,7 @@ final class KafkaProperties implements Supplier<Properties> {
     Properties kafkaProperties = new Properties();
 
     // Iterate over the input properties
-    BiStream.from(namespace.getAttrs().keySet())
+    BiStream.from(namespace.getAttrs())
       .filterKeys(key -> key.startsWith("kafka."))
       .mapValues(namespace::getString)
       .filterValues(Objects::nonNull)
