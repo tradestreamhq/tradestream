@@ -82,7 +82,7 @@ abstract class ConfigArguments implements Provider<Namespace> {
 
     // SASL configuration
     parser.addArgument("--kafka.security.protocol")
-      .setDefault("SASL_PLAINTEXT")
+      .setDefault("PLAINTEXT")
       .help("Protocol used to communicate with brokers (e.g., PLAINTEXT, SASL_SSL)");
 
     parser.addArgument("--kafka.sasl.mechanism")
