@@ -71,10 +71,10 @@ final class CandleManagerImpl implements CandleManager {
             CandleBuilder builder = candleBuilders.get(key);
             
             if (builder == null || !builder.hasTrades()) {
-                logger.atInfo().log("No trades found for %s in current interval, generating empty candle", pair);
-                generateEmptyCandle(pair, currentMinute);
+                logger.atInfo().log("No trades found for %s in current interval, generating empty candle", pair.symbol());
+                generateEmptyCandle(pair.symbol(), currentMinute);
             } else {
-                logger.atFine().log("Skipping thin market handling for %s - active trades exist", pair);
+                logger.atFine().log("Skipping thin market handling for %s - active trades exist", pair.symbol());
             }
         }
         logger.atInfo().log("Completed thin market handling for %d pairs", currencyPairs.size());
