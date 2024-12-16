@@ -80,7 +80,7 @@ abstract class ConfigArguments implements Provider<Namespace> {
       .setDefault("org.apache.kafka.common.serialization.ByteArraySerializer")
       .help("Value serializer class");
 
-    // SASL configuration (added)
+    // SASL configuration
     parser.addArgument("--kafka.security.protocol")
       .setDefault("PLAINTEXT")
       .help("Protocol used to communicate with brokers (e.g., PLAINTEXT, SASL_SSL)");

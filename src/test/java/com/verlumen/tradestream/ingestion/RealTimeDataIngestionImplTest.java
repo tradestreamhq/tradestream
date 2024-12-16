@@ -58,7 +58,7 @@ public class RealTimeDataIngestionImplTest {
     public void setUp() {
         when(mockCurrencyPairSupply.currencyPairs()).thenReturn(TEST_CURRENCY_PAIRS);
         when(mockExchangeClient.getExchangeName()).thenReturn(TEST_EXCHANGE);
-        when(mockExchangeClient.supportedCurrencyPairs("/")).thenReturn(SUPPORTED_CURRENCY_PAIRS);
+        when(mockExchangeClient.supportedCurrencyPairs()).thenReturn(SUPPORTED_CURRENCY_PAIRS);
 
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
