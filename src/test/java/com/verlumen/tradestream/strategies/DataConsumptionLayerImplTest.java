@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies;
+package com.verlumen.tradestream.strategies..dataconsumption;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
