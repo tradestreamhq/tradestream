@@ -18,11 +18,8 @@ final class ThinMarketTimerTaskImpl extends ThinMarketTimerTask {
 
   @Override
   public void run() {
-    ImmutableList<String> currencyPairs =
-      currencyPairSupply
-      .currencyPairs()
+    ImmutableList<CurrencyPair> currencyPairs = currencyPairSupply.currencyPairs()
       .stream()
-      .map(CurrencyPair::symbol)
       .distinct()
       .collect(toImmutableList());
     candleManager.handleThinlyTradedMarkets(currencyPairs);

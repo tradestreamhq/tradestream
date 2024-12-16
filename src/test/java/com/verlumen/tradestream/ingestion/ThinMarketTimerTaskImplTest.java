@@ -56,9 +56,9 @@ public class ThinMarketTimerTaskImplTest {
         timerTask.run();
 
         // Assert
-        ImmutableList<String> expected = ImmutableList.of(
-            BTC_USD.currencyPair().symbol(), 
-            ETH_EUR.currencyPair().symbol()
+        ImmutableList<CurrencyPair> expected = ImmutableList.of(
+            BTC_USD.currencyPair(), 
+            ETH_EUR.currencyPair()
         );
         verify(candleManager).handleThinlyTradedMarkets(expected);
     }
@@ -104,10 +104,7 @@ public class ThinMarketTimerTaskImplTest {
         timerTask.run();
 
         // Assert
-        ImmutableList<String> expected = ImmutableList.of(
-            "AAA/BBB", "CCC/DDD", "EEE/FFF"
-        );
-        verify(candleManager).handleThinlyTradedMarkets(expected);
+        verify(candleManager).handleThinlyTradedMarkets(pairs);
     }
 
     @Test 
@@ -123,8 +120,8 @@ public class ThinMarketTimerTaskImplTest {
         timerTask.run();
 
         // Assert
-        ImmutableList<String> expected = ImmutableList.of(
-            BTC_USD.currencyPair().symbol()
+        ImmutableList<CurrencyPair> expected = ImmutableList.of(
+            BTC_USD.currencyPair()
         );
         verify(candleManager).handleThinlyTradedMarkets(expected);
     }

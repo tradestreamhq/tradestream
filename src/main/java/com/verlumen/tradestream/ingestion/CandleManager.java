@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
 
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.List;
 public interface CandleManager {
     void processTrade(Trade trade);
 
-    void handleThinlyTradedMarkets(List<String> currencyPairs);
+    void handleThinlyTradedMarkets(List<CurrencyPair> currencyPairs);
 
     int getActiveBuilderCount();
 

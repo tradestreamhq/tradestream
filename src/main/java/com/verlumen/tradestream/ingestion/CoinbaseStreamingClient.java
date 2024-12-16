@@ -58,7 +58,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
 
         // Convert currency pairs to Coinbase product IDs
         ImmutableList<String> productIds = currencyPairs.stream()
-            .map(CurrencyPair::symbol)
+            .map(CoinbaseStreamingClient::createProductId)
             .collect(toImmutableList());
 
         logger.atInfo().log("Starting Coinbase streaming for %d products: %s", 
@@ -142,6 +142,10 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             logger.atSevere().withCause(e).log("Error fetching supported products from Coinbase");
             return ImmutableList.of();
         }
+    }
+
+    private static String createProductId(CurrencyPair currencyPair) {
+        return currencyPair.base().symbol() + "-" + currencyPair.counter().symbol();
     }
 
     private List<List<String>> splitProductsIntoGroups(List<String> productIds) {
