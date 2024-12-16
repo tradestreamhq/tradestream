@@ -29,7 +29,6 @@ final class KafkaProperties implements Supplier<Properties> {
   public Properties get() {
     Properties kafkaProperties = new Properties();
 
-    // Extract all properties starting with "kafka."
     // Iterate over the input properties
     BiStream.from(namespace.getAttrs())
       .filterKeys(key -> key.startsWith("kafka."))
