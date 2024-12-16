@@ -77,8 +77,21 @@ abstract class ConfigArguments implements Provider<Namespace> {
       .help("Key serializer class");
 
     parser.addArgument("--kafka.value.serializer")
-      .setDefault("org.apache.kafka.common.serialization.StringSerializer")
+      .setDefault("org.apache.kafka.common.serialization.ByteArraySerializer")
       .help("Value serializer class");
+
+    // SASL configuration (added)
+    parser.addArgument("--kafka.security.protocol")
+      .setDefault("PLAINTEXT")
+      .help("Protocol used to communicate with brokers (e.g., PLAINTEXT, SASL_SSL)");
+
+    parser.addArgument("--kafka.sasl.mechanism")
+      .setDefault("")
+      .help("SASL mechanism used for authentication (e.g., PLAIN, SCRAM-SHA-256)");
+
+    parser.addArgument("--kafka.sasl.jaas.config")
+      .setDefault("")
+      .help("SASL JAAS configuration");
 
     // Exchange configuration
     parser.addArgument("--exchangeName")
