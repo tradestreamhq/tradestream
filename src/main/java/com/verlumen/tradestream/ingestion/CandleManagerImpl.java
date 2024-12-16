@@ -67,7 +67,7 @@ final class CandleManagerImpl implements CandleManager {
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
         
         for (CurrencyPair pair : currencyPairs) {
-            CandleKey key = getCandleKey(pair.symbol(), currentMinute);
+            String key = getCandleKey(pair.symbol(), currentMinute);
             CandleBuilder builder = candleBuilders.get(key);
             
             if (builder == null || !builder.hasTrades()) {
@@ -107,10 +107,10 @@ final class CandleManagerImpl implements CandleManager {
             .setCurrencyPair(currencyPair)
             .setTimestamp(timestamp)
             .build());
-        publishAndRemoveCandle(CandleKey.create(currencyPair, timestamp), builder);
+        publishAndRemoveCandle(getCandleKey(currencyPair, timestamp), builder);
     }
 
-    private void publishAndRemoveCandle(CandleKey key, CandleBuilder builder) {
+    private void publishAndRemoveCandle(String key, CandleBuilder builder) {
         Candle candle = builder.build();
         logger.atInfo().log("Publishing candle for %s: timestamp=%d, open=%f, high=%f, low=%f, close=%f, volume=%f",
             candle.getCurrencyPair(), 
