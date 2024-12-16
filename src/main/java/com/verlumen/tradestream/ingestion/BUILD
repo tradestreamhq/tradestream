@@ -55,6 +55,7 @@ java_library(
         "@maven//:com_google_inject_guice",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//:autovalue",
         ":candle_builder",
         ":candle_manager",
         ":candle_publisher",
