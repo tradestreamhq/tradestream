@@ -127,6 +127,10 @@ final class CandleManagerImpl implements CandleManager {
             key, candleBuilders.size());
     }
 
+    private String getCandleKey(String symbol, long minuteTimestamp) {
+        return symbol + ":" + minuteTimestamp;
+    }
+
     private long getMinuteTimestamp(long timestamp) {
         return (timestamp / candleIntervalMillis) * candleIntervalMillis;
     }
