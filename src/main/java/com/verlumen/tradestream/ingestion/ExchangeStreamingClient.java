@@ -37,7 +37,7 @@ interface ExchangeStreamingClient {
      * 
      * @return an immutable list of supported CurrencyPairs.
      */
-    ImmutableList<CurrencyPair> supportedCurrencyPairs(String delimiter);
+    ImmutableList<CurrencyPair> supportedCurrencyPairs();
 
     /**
      * Factory for creating exchange-specific streaming clients.
