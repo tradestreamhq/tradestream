@@ -2,6 +2,7 @@ package com.verlumen.tradestream.ingestion;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.mu.util.stream.BiStream;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 import java.util.Properties;
@@ -14,7 +15,7 @@ import java.util.Set;
  * with "kafka." and removing that prefix. It then ensures that essential Kafka properties
  * are set, applying defaults if necessary.
  */
-final class KafkaProperties implements Provider<Properties> {
+final class KafkaProperties implements Supplier<Properties> {
   private final Namespace namespace;
 
   @Inject
@@ -27,16 +28,13 @@ final class KafkaProperties implements Provider<Properties> {
     Properties kafkaProperties = new Properties();
 
     // Extract all properties starting with "kafka."
-    namespace.getAttrs().keySet()
-      .stream()
-      .filter(key -> key.startsWith("kafka."))
-      .forEach(key -> {
-        String newKey = key.substring("kafka.".length());
-        String value = namespace.getString(key);
-        if (value != null) {
-          kafkaProperties.setProperty(newKey, value);
-        }
-      });
+    // Iterate over the input properties
+    BiStream.from(namespace.getAttrs())
+      .filterKeys(key -> key.startsWith("kafka."))
+      .mapKeys(key -> key.substring("kafka.".length()))
+      .filterValues(Objects::nonNull)
+      .mapValues(Object::toString)
+      .forEach(kafkaProperties::setProperty);
 
     // Ensure essential Kafka properties are set
     if (!kafkaProperties.containsKey("bootstrap.servers")) {
