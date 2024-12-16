@@ -27,7 +27,7 @@ public class CandleManagerImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
     
     private static final long CANDLE_INTERVAL = 60000L;
-    private static final CurrencyPair SYMBOL = "BTC/USD";
+    private static final String SYMBOL = "BTC/USD";
     private static final CurrencyPair PAIR = CurrencyPair.fromSymbol(SYMBOL);
     
     @Mock private CandlePublisher mockPublisher;
