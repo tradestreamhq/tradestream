@@ -27,7 +27,7 @@ final class KafkaProperties implements Supplier<Properties> {
       .filterKeys(key -> key.startsWith("kafka."))
       .mapKeys(key -> key.substring("kafka.".length()))
       .filterValues(Objects::nonNull)
-      .forEach((key, value) -> kafkaProperties.setProperty(key, value));
+      .forEach(kafkaProperties::setProperty);
 
     return kafkaProperties;
   }
