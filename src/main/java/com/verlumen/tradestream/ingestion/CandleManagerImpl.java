@@ -87,27 +87,27 @@ final class CandleManagerImpl implements CandleManager {
         return count;
     }
 
-    private void generateEmptyCandle(CurrencyPair currencyPair, long timestamp) {
-        double lastPrice = priceTracker.getLastPrice(currencyPair);
+    private void generateEmptyCandle(String symbol, long timestamp) {
+        double lastPrice = priceTracker.getLastPrice(symbol);
         logger.atInfo().log("Generating empty candle for %s at timestamp %d with last price %f",
-            currencyPair, timestamp, lastPrice);
+            symbol, timestamp, lastPrice);
 
         if (Double.isNaN(lastPrice)) {
             logger.atWarning().log("No last price available for %s, unable to generate empty candle", 
-                currencyPair);
+                symbol);
             return;
         }
             
         logger.atInfo().log("Creating empty candle with last known price %f for %s", 
-            lastPrice, currencyPair);
-        CandleBuilder builder = new CandleBuilder(currencyPair, timestamp);
+            lastPrice, symbol);
+        CandleBuilder builder = new CandleBuilder(symbol, timestamp);
         builder.addTrade(Trade.newBuilder()
             .setPrice(lastPrice)
             .setVolume(0)
-            .setCurrencyPair(currencyPair)
+            .setCurrencyPair(symbol)
             .setTimestamp(timestamp)
             .build());
-        publishAndRemoveCandle(getCandleKey(currencyPair, timestamp), builder);
+        publishAndRemoveCandle(getCandleKey(symbol, timestamp), builder);
     }
 
     private void publishAndRemoveCandle(String key, CandleBuilder builder) {
