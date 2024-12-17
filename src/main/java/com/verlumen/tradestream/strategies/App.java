@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.strategies;
 
 import com.google.common.flogger.FluentLogger;
+import com.google.inject.Guice;
 import com.google.inject.Inject;
 
 /**
@@ -16,7 +17,9 @@ final class App {
   /**
    * Starts all strategy module components
    */
-  public void start() {}
+  public void start() {
+    logger.atInfo().log("Starting real-time strategy discovery...");
+  }
 
   /**
    * Gracefully shuts down all strategy module components
@@ -25,5 +28,7 @@ final class App {
 
   public static void main(String[] args) throws Exception {
     logger.atInfo().log("TradeStream application starting up with %d arguments", args.length);
+    App app = Guice.createInjector().getInstance(App.class);
+    app.start();
   }
 }
