@@ -187,7 +187,7 @@ final class DataConsumptionLayerImpl implements DataConsumptionLayer {
     /**
      * Maintains a sliding window of candles for a specific timeframe.
      */
-    private static class CandleWindow {
+    static class CandleWindow {
         private final List<Candle> candles = Collections.synchronizedList(new ArrayList<>());
         private final Duration timeframe;
 
