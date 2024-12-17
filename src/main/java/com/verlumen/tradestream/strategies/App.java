@@ -16,7 +16,9 @@ final class App {
   /**
    * Starts all strategy module components
    */
-  public void start() {}
+  public void start() {
+    logger.atInfo().log("Starting real-time strategy discovery...");
+  }
 
   /**
    * Gracefully shuts down all strategy module components
