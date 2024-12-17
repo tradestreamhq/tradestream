@@ -1,7 +1,7 @@
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_java//java:defs.bzl", "java_binary")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 load("//platforms:transition.bzl", "multi_arch")
 
 package(default_visibility = ["//visibility:public"])
@@ -64,4 +64,11 @@ oci_image_index(
 tar(
     name = "layer",
     srcs = [":app_deploy.jar"],
+)
+
+oci_push(
+    name = "push_image",
+    image = ":index",
+    remote_tags = ["latest"],
+    repository = "tradestreamhq/tradestream-strategy-engine",
 )
