@@ -6,6 +6,8 @@ java_test(
     srcs = ["CandleWindowTest.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/strategies/dataconsumption:data_consumption_lib",
+        "@maven//:com_google_truth_truth",
+        "//protos:marketdata_java_proto",
     ],
 )
 
