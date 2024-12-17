@@ -95,6 +95,7 @@ abstract class ConfigArguments implements Provider<Namespace> {
 
     // Exchange configuration
     parser.addArgument("--exchangeName")
+      .type(String.class)
       .help("Exchange name");
 
     // CoinMarketCap configuration
