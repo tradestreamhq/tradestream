@@ -48,6 +48,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager_impl",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
         "//src/main/java/com/verlumen/tradestream/ingestion:price_tracker",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
     ],
 )
 

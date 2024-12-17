@@ -58,7 +58,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
 
         // Convert currency pairs to Coinbase product IDs
         ImmutableList<String> productIds = currencyPairs.stream()
-            .map(pair -> pair.symbolWithCustomDelimiter("-"))
+            .map(CoinbaseStreamingClient::createProductId)
             .collect(toImmutableList());
 
         logger.atInfo().log("Starting Coinbase streaming for %d products: %s", 
@@ -96,7 +96,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
      * @return an immutable list of supported CurrencyPairs.
      */
     @Override
-    public ImmutableList<CurrencyPair> supportedCurrencyPairs(String delimiter) {
+    public ImmutableList<CurrencyPair> supportedCurrencyPairs() {
         logger.atInfo().log("Fetching supported currency pairs from Coinbase");
         
         // Coinbase Exchange Products endpoint
@@ -132,7 +132,6 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                 .map(JsonElement::getAsJsonObject)
                 .filter(obj -> obj.has("id"))
                 .map(obj -> obj.get("id").getAsString())
-                .map(productId -> productId.replace("-", delimiter))
                 .map(CurrencyPair::fromSymbol)
                 .collect(toImmutableList());
             
@@ -143,6 +142,10 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             logger.atSevere().withCause(e).log("Error fetching supported products from Coinbase");
             return ImmutableList.of();
         }
+    }
+
+    private static String createProductId(CurrencyPair currencyPair) {
+        return currencyPair.base().symbol() + "-" + currencyPair.counter().symbol();
     }
 
     private List<List<String>> splitProductsIntoGroups(List<String> productIds) {

@@ -1,10 +1,12 @@
 package com.verlumen.tradestream.ingestion;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.Inject;
-import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.Trade;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,19 +62,19 @@ final class CandleManagerImpl implements CandleManager {
     }
 
     @Override
-    public void handleThinlyTradedMarkets(List<String> currencyPairs) {
+    public void handleThinlyTradedMarkets(List<CurrencyPair> currencyPairs) {
         logger.atInfo().log("Handling thin market update for %d currency pairs", currencyPairs.size());
         long currentMinute = getMinuteTimestamp(System.currentTimeMillis());
         
-        for (String pair : currencyPairs) {
-            String key = getCandleKey(pair, currentMinute);
+        for (CurrencyPair pair : currencyPairs) {
+            String key = getCandleKey(pair.symbol(), currentMinute);
             CandleBuilder builder = candleBuilders.get(key);
             
             if (builder == null || !builder.hasTrades()) {
-                logger.atInfo().log("No trades found for %s in current interval, generating empty candle", pair);
-                generateEmptyCandle(pair, currentMinute);
+                logger.atInfo().log("No trades found for %s in current interval, generating empty candle", pair.symbol());
+                generateEmptyCandle(pair.symbol(), currentMinute);
             } else {
-                logger.atFine().log("Skipping thin market handling for %s - active trades exist", pair);
+                logger.atFine().log("Skipping thin market handling for %s - active trades exist", pair.symbol());
             }
         }
         logger.atInfo().log("Completed thin market handling for %d pairs", currencyPairs.size());
@@ -85,27 +87,27 @@ final class CandleManagerImpl implements CandleManager {
         return count;
     }
 
-    private void generateEmptyCandle(String currencyPair, long timestamp) {
-        double lastPrice = priceTracker.getLastPrice(currencyPair);
+    private void generateEmptyCandle(String symbol, long timestamp) {
+        double lastPrice = priceTracker.getLastPrice(symbol);
         logger.atInfo().log("Generating empty candle for %s at timestamp %d with last price %f",
-            currencyPair, timestamp, lastPrice);
+            symbol, timestamp, lastPrice);
 
         if (Double.isNaN(lastPrice)) {
             logger.atWarning().log("No last price available for %s, unable to generate empty candle", 
-                currencyPair);
+                symbol);
             return;
         }
             
         logger.atInfo().log("Creating empty candle with last known price %f for %s", 
-            lastPrice, currencyPair);
-        CandleBuilder builder = new CandleBuilder(currencyPair, timestamp);
+            lastPrice, symbol);
+        CandleBuilder builder = new CandleBuilder(symbol, timestamp);
         builder.addTrade(Trade.newBuilder()
             .setPrice(lastPrice)
             .setVolume(0)
-            .setCurrencyPair(currencyPair)
+            .setCurrencyPair(symbol)
             .setTimestamp(timestamp)
             .build());
-        publishAndRemoveCandle(getCandleKey(currencyPair, timestamp), builder);
+        publishAndRemoveCandle(getCandleKey(symbol, timestamp), builder);
     }
 
     private void publishAndRemoveCandle(String key, CandleBuilder builder) {
@@ -125,8 +127,8 @@ final class CandleManagerImpl implements CandleManager {
             key, candleBuilders.size());
     }
 
-    private String getCandleKey(String currencyPair, long minuteTimestamp) {
-        return currencyPair + ":" + minuteTimestamp;
+    private String getCandleKey(String symbol, long minuteTimestamp) {
+        return symbol + ":" + minuteTimestamp;
     }
 
     private long getMinuteTimestamp(long timestamp) {
