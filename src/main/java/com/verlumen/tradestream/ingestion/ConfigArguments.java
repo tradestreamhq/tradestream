@@ -40,7 +40,7 @@ abstract class ConfigArguments implements Provider<Namespace> {
       .help("Candle interval in seconds");
 
     parser.addArgument("--candlePublisherTopic")
-      .type(String.class)
+      .setDefault("candles")
       .help("Kafka topic to publish candle data");
 
     // Kafka configuration
