@@ -33,5 +33,9 @@ java_test(
     srcs = ["TimeframeAggregationTest.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/strategies/dataconsumption:data_consumption_lib",
+        "//protos:marketdata_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_truth_truth",
     ],
 )
+
