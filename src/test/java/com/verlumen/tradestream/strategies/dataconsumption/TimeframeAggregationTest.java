@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.strategies.dataconsumption;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.marketdata.Candle;
 import org.junit.Before;
