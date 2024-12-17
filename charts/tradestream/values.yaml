@@ -13,6 +13,7 @@ dataIngestion:
   args:
     - "--runMode=wet"
     - "--candlePublisherTopic=candles"
+    - "--exchangeName=coinbase"
     - "--kafka.acks=all"
     - "--kafka.retries=5"
     - "--kafka.linger.ms=50"
