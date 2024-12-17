@@ -79,7 +79,7 @@ jobs:
           yq eval-all '
             . as $item ireduce ({}; . * $item ) |
             .["${{ env.DATA_INGESTION_SECTION_KEY }}"].image.repository = "${{ env.DATA_INGESTION_REPO }}" |
-            .["${{ env.DATA_INGESTION_SECTION_KEY }}"].image.tag = "${{ steps.create_image_tag.outputs.image_tag }}"
+            .["${{ env.DATA_INGESTION_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}"
           ' charts/tradestream/values.yaml > charts/tradestream/values.yaml.tmp
           mv charts/tradestream/values.yaml.tmp charts/tradestream/values.yaml
 
@@ -88,6 +88,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         run: |
           git add charts/tradestream/values.yaml
-          git commit -m "Update values.yaml: Set ${{ env.DATA_INGESTION_SECTION_KEY }} image to ${{ steps.create_image_tag.outputs.image_tag }}" || echo "No changes to commit"
+          git commit -m "Update values.yaml: Set ${{ env.DATA_INGESTION_SECTION_KEY }} image to ${{ steps.version.outputs.version_tag }}" || echo "No changes to commit"
           git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
           
