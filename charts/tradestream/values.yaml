@@ -4,31 +4,24 @@ kafka:
     enabled: true
     size: 10Gi
     accessModes:
-      - ReadWriteOnce
-  auth:
-    enabled: true
-    saslMechanisms:
-      - scram-sha-256
-  configuration: |
-    process.roles=broker,controller
-    controller.quorum.voters=0@${HOSTNAME}:9093,1@${HOSTNAME}:9093,2@${HOSTNAME}:9093
-    listeners=PLAINTEXT://:9092,CONTROLLER://:9093
-    listener.security.protocol.map=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
-    inter.broker.listener.name=PLAINTEXT
-    controller.listener.names=CONTROLLER
-    log.dirs=/var/lib/kafka/data
-    offset.storage=raft
-    transaction.state.log.replication.factor=3
-    transaction.state.log.min.isr=2
+  listeners:
+    client:
+      protocol: 'PLAINTEXT'
+    controller:
+      protocol: 'PLAINTEXT'
 dataIngestion:
   args:
     - "--runMode=wet"
     - "--candlePublisherTopic=candles"
     - "--exchangeName=coinbase"
+    - "--kafka.acks=all"
+    - "--kafka.retries=5"
+    - "--kafka.linger.ms=50"
+    # Note: Using only existing args from ConfigArguments.java
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
     pullPolicy: IfNotPresent
-    tag: v0.0.298-develop
+    tag: "v0.0.333-develop"
   service:
     port: 8080

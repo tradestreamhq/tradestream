@@ -1,8 +1,12 @@
 package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.Sets.difference;
+import static com.google.common.collect.Sets.intersection;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -11,6 +15,7 @@ import com.verlumen.tradestream.marketdata.Trade;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+    private static final String FORWARD_SLASH = "/";
 
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
@@ -96,10 +101,15 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     }
 
     private ImmutableList<CurrencyPair> supportedCurrencyPairs() {
-        return currencyPairSupply.get()
-            .currencyPairs()
-            .stream()
-            .filter(exchangeClient::isSupportedCurrencyPair)
-            .collect(toImmutableList());
+        ImmutableSet<CurrencyPair> supportedPairs = ImmutableSet.copyOf(
+            exchangeClient.supportedCurrencyPairs());
+        ImmutableSet<CurrencyPair> requestedPairs = ImmutableSet.copyOf(
+            currencyPairSupply.get().currencyPairs());
+        difference(requestedPairs, supportedPairs)
+            .forEach(unsupportedPair -> logger.atInfo().log(
+                "Pair with symbol %s is not supported.", unsupportedPair.symbol()));
+        return intersection(requestedPairs, supportedPairs)
+            .immutableCopy()
+            .asList();
     }
 }
