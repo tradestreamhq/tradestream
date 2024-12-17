@@ -40,7 +40,7 @@ oci_image(
     entrypoint = [
         "java",
         "-jar",
-        "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
+        "/src/main/java/com/verlumen/tradestream/strategies/app_deploy.jar",
     ],
     tars = [":layer"],
 )
