@@ -4,14 +4,21 @@ on:
   pull_request:
     branches:
       - main
+      - develop
 
 jobs:
   install-helm-charts:
     runs-on: ubuntu-latest
+    services:
+      # Runs a local Docker registry accessible at localhost:5000
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
-  
+        uses: actions/checkout@v4
+
       - name: Start minikube
         uses: medyagh/setup-minikube@latest
 
@@ -19,14 +26,93 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
+      - name: Create Namespace
+        run: kubectl create namespace tradestream-namespace
+
+      - name: Create Secrets
+        run: |
+          kubectl create secret generic \
+            coinmarketcap \
+            --from-literal=apiKey=FAKE_API_KEY \
+            --namespace=tradestream-namespace
+
+      - uses: bazel-contrib/setup-bazel@0.9.1
+        with:
+          # Avoid downloading Bazel every time
+          bazelisk-cache: true
+          # Store build cache per workflow
+          disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows
+          repository-cache: true
+
+      - name: Build and Push the Data Ingestion Image
+        run: |
+          # Push to local registry
+          bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
+            --verbose_failures \
+            --sandbox_debug \
+            -- \
+            --repository localhost:5000/tradestream-app \
+            --tag "latest"
+
+      - name: Pull Image into Local Docker Daemon
+        run: |
+          # Pull the image from the local registry into the local Docker daemon
+          docker pull localhost:5000/tradestream-app:latest
+          # Retag the image to remove the registry prefix, so Kubernetes doesn't try to pull it remotely
+          docker tag localhost:5000/tradestream-app:latest tradestream-app:latest
+
+      - name: Load Image into Minikube
+        run: |
+          # Load the retagged image (tradestream-app:latest) into Minikube's image cache
+          minikube image load tradestream-app:latest
+
       - name: Install TradeStream Helm Chart
         run: |
           helm dependency update charts/tradestream && \
-          helm install my-tradestream charts/tradestream --namespace tradestream-namespace --create-namespace
+          helm install my-tradestream charts/tradestream \
+            --namespace tradestream-namespace \
+            --set dataIngestion.image.repository=tradestream-app \
+            --set dataIngestion.image.tag=latest \
+            --set dataIngestion.image.pullPolicy=IfNotPresent \
+            --set 'dataIngestion.args[0]=--runMode=dry'
 
       - name: Wait for All Pods to be Ready
         run: |
-          kubectl wait --for=condition=Ready pods --all -n tradestream-namespace --timeout=600s
+          echo "Waiting for all pods to be ready in namespace 'tradestream-namespace'..."
+          timeout=180  # Total time to wait in seconds
+          interval=10  # Interval between checks in seconds
+          end_time=$((SECONDS+timeout))
+
+          while [ $SECONDS -lt $end_time ]; do
+            not_ready_pods=$(kubectl get pods -n tradestream-namespace --no-headers | grep -vE 'Running|Completed' | wc -l)
+            if [ "$not_ready_pods" -eq "0" ]; then
+              echo "All pods are ready."
+              break
+            else
+              echo "Some pods are not ready yet. Current status:"
+              kubectl get pods -n tradestream-namespace
+              echo "Waiting for $interval seconds before rechecking..."
+              sleep $interval
+            fi
+          done
+
+          if [ $SECONDS -ge $end_time ]; then
+            echo "Timeout reached while waiting for pods to be ready."
+            kubectl get pods -n tradestream-namespace
+            echo -e "\nGathering detailed status and logs for non-ready pods..."
+            not_ready_pod_names=$(kubectl get pods -n tradestream-namespace --no-headers | grep -vE 'Running|Completed' | awk '{print $1}')
+            for pod in $not_ready_pod_names; do
+              echo -e "\nDetails for pod $pod:"
+              kubectl describe pod $pod -n tradestream-namespace
+              containers=$(kubectl get pod $pod -n tradestream-namespace -o jsonpath='{.spec.containers[*].name}')
+              for container in $containers; do
+                echo -e "\nLogs for container '$container' in pod '$pod':"
+                kubectl logs $pod -n tradestream-namespace -c $container
+              done
+            done
+            exit 1
+          fi
 
       - name: Verify Installations
         run: |
