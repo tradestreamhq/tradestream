@@ -1,6 +1,15 @@
-/**
- * Tests specific to timeframe aggregation functionality
- */
+package com.verlumen.tradestream.strategies.dataconsumption;
+
+import com.google.common.collect.ImmutableList;
+import com.verlumen.tradestream.marketdata.Candle;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
+import java.time.Duration;
+import java.util.List;
+
 @RunWith(JUnit4.class)
 public class TimeframeAggregationTest {
     private static final String CURRENCY_PAIR = "BTC/USD";
