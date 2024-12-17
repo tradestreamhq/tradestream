@@ -1,7 +1,15 @@
+package com.verlumen.tradestream.strategies.dataconsumption;
 
-/**
- * Tests specific to the CandleWindow functionality
- */
+import static com.google.common.truth.Truth.assertThat;
+import com.verlumen.tradestream.marketdata.Candle;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
+import java.time.Duration;
+import java.util.List;
+
 @RunWith(JUnit4.class)
 public class CandleWindowTest {
     private static final String CURRENCY_PAIR = "BTC/USD";
