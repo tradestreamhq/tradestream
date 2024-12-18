@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package trading;
+package strategies;
 
 enum StrategyType {
   SMA_RSI = 0;
