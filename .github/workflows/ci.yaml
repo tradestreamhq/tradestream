@@ -75,9 +75,7 @@ jobs:
             --set dataIngestion.image.repository=tradestream-data-ingestion \
             --set dataIngestion.image.tag=latest \
             --set dataIngestion.image.pullPolicy=IfNotPresent \
-            --set 'dataIngestion.args[0]=--runMode=dry' \
-            --set dataIngestion.image.repository=tradestream-data-ingestion \
-            --set dataIngestion.image.tag=latest \
+            --set 'dataIngestion.args[0]=--runMode=dry'
 
       - name: Wait for All Pods to be Ready
         run: |
