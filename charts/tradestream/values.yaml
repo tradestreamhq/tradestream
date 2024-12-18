@@ -26,5 +26,5 @@ dataIngestion:
     port: 8080
 strategyEngine:
   image:
-    repository: tradestreamhq/tradestream-strategy-engine
-    tag: v0.0.338-develop
+    repository: "tradestreamhq/tradestream-strategy-engine"
+    tag: "v0.0.338-develop"
