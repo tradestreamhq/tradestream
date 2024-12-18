@@ -52,29 +52,28 @@ jobs:
             --verbose_failures \
             --sandbox_debug \
             -- \
-            --repository localhost:5000/tradestream-app \
+            --repository localhost:5000/tradestream-data-ingestion \
             --tag "latest"
 
       - name: Pull Image into Local Docker Daemon
         run: |
           # Pull the image from the local registry into the local Docker daemon
-          docker pull localhost:5000/tradestream-app:latest
+          docker pull localhost:5000/tradestream-data-ingestion:latest
           # Retag the image to remove the registry prefix, so Kubernetes doesn't try to pull it remotely
-          docker tag localhost:5000/tradestream-app:latest tradestream-app:latest
+          docker tag localhost:5000/tradestream-data-ingestion:latest tradestream-data-ingestion:latest
 
       - name: Load Image into Minikube
         run: |
-          # Load the retagged image (tradestream-app:latest) into Minikube's image cache
-          minikube image load tradestream-app:latest
+          # Load the retagged image (tradestream-data-ingestion:latest) into Minikube's image cache
+          minikube image load tradestream-data-ingestion:latest
 
       - name: Install TradeStream Helm Chart
         run: |
           helm dependency update charts/tradestream && \
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
-            --set dataIngestion.image.repository=tradestream-app \
+            --set dataIngestion.image.repository=tradestream-data-ingestion \
             --set dataIngestion.image.tag=latest \
-            --set dataIngestion.image.pullPolicy=IfNotPresent \
             --set 'dataIngestion.args[0]=--runMode=dry'
 
       - name: Wait for All Pods to be Ready
