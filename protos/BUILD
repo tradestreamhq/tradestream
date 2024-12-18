@@ -1,4 +1,21 @@
 proto_library(
+    name = "backtesting_proto",
+    srcs = ["backtesting.proto"],
+    deps = [
+        "@protobuf//:any_proto",
+        ":marketdata_proto",
+        ":strategies_proto",
+    ],
+    visibility = ["//visibility:private"],
+)
+
+java_proto_library(
+    name = "backtesting_java_proto",
+    deps = [":backtesting_proto"],
+    visibility = ["//:__subpackages__"],
+)
+
+proto_library(
     name = "marketdata_proto",
     srcs = ["marketdata.proto"],
     visibility = ["//visibility:private"],
