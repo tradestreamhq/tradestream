@@ -11,12 +11,12 @@ import "strategies.proto";
 
 message BacktestRequest {
   repeated marketdata.Candle candles = 1;
-  StrategyType strategy_type = 2;
+  strategies.StrategyType strategy_type = 2;
 }
 
 message ParameterizedBacktestRequest {
   repeated marketdata.Candle candles = 1;
-  StrategyType strategy_type = 2;
+  strategies.StrategyType strategy_type = 2;
   google.protobuf.Any strategy_parameters = 3;
 }
 
@@ -37,7 +37,7 @@ message TimeframeResult {
 }
 
 message BacktestResult {
-  StrategyType strategy_type = 1;
+  strategies.StrategyType strategy_type = 1;
   repeated TimeframeResult timeframe_results = 2;
   double overall_score = 3;
 }
