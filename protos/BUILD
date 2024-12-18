@@ -1,6 +1,10 @@
 proto_library(
     name = "backtesting_proto",
     srcs = ["backtesting.proto"],
+    deps = [
+        ":marketdata_proto",
+        ":strategies_proto",
+    ],
     visibility = ["//visibility:private"],
 )
 
