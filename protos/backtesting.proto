@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package backtesting;
 
+option java_multiple_files = true;
+option java_package = "com.verlumen.tradestream.backtesting";
+
 import "google/protobuf/any.proto";
 import "marketdata.proto";
 import "strategies.proto";
