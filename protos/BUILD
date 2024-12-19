@@ -1,3 +1,25 @@
+load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
+
+proto_library(
+    name = "backtest_service_proto",
+    srcs = ["backtest_service.proto"],
+    deps = [
+        ":backtesting_proto",
+    ],
+)
+
+java_proto_library(
+    name = "backtest_service_java_proto",
+    deps = [":backtest_service_proto"],
+    visibility = ["//:__subpackages__"],
+)
+
+java_grpc_library(
+    name = "backtest_service_java_grpc",
+    srcs = [":backtest_service_proto"],
+    deps = [":backtest_service_java_proto"],
+)
+
 proto_library(
     name = "backtesting_proto",
     srcs = ["backtesting.proto"],

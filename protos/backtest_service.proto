@@ -1,0 +1,16 @@
+edition = "2023";
+
+package backtesting;
+
+option java_multiple_files = true;
+option java_package = "com.verlumen.tradestream.backtesting";
+
+import "protos/backtesting.proto";
+
+service BacktestService {
+  rpc RunBacktest (BacktestRequest) returns (BacktestResult);
+}
+
+service ParameterizedBacktestService {
+    rpc RunParameterizedBacktest (ParameterizedBacktestRequest) returns (BacktestResult);
+}
