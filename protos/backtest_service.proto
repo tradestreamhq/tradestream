@@ -3,6 +3,7 @@ edition = "2023";
 package backtesting;
 
 import "protos/backtesting.proto";
+option java_package = "com.verlumen.tradestream.marketdata";
 
 service BacktestService {
   rpc RunBacktest (BacktestRequest) returns (BacktestResult);
