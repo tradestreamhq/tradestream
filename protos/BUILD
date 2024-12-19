@@ -1,4 +1,18 @@
 proto_library(
+    name = "backtest_service_proto",
+    srcs = ["backtest_service.proto"],
+    deps = [
+        ":backtesting_proto",
+    ],
+)
+
+java_proto_library(
+    name = "backtest_service_java_proto",
+    deps = [":backtest_service_proto"],
+    visibility = ["//:__subpackages__"],
+)
+
+proto_library(
     name = "backtesting_proto",
     srcs = ["backtesting.proto"],
     deps = [
