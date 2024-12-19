@@ -1,0 +1,13 @@
+edition = "2023";
+
+package backtesting;
+
+import "protos/backtesting.proto";
+
+service BacktestService {
+  rpc RunBacktest (BacktestRequest) returns (BacktestResult);
+}
+
+service ParameterizedBacktestService {
+    rpc RunParameterizedBacktest (ParameterizedBacktestRequest) returns (BacktestResult);
+}
