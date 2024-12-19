@@ -14,6 +14,12 @@ java_proto_library(
     visibility = ["//:__subpackages__"],
 )
 
+java_grpc_library(
+    name = "backtest_service_java_grpc",
+    srcs = [":backtest_service_proto"],
+    deps = [":backtest_service_java_proto"],
+)
+
 proto_library(
     name = "backtesting_proto",
     srcs = ["backtesting.proto"],
