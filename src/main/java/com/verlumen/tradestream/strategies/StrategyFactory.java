@@ -4,6 +4,8 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.verlumen.tradestream.strategies.StrategyType;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 
