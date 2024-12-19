@@ -6,7 +6,6 @@ import com.google.protobuf.Message;
 import com.verlumen.tradestream.strategies.StrategyType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 
 interface StrategyFactory<T extends Message> {
@@ -14,11 +13,10 @@ interface StrategyFactory<T extends Message> {
    * Creates a Ta4j Strategy object from the provided parameters
    *
    * @param parameters the parameters for the strategy
-   * @param series bar series for the strategy
    * @return Strategy object
    * @throws InvalidProtocolBufferException If there is an error when unpacking the `Any` type
    */
-  Strategy createStrategy(T parameters, BarSeries series)
+  Strategy createStrategy(T parameters)
       throws InvalidProtocolBufferException;
 
   /**
