@@ -1,0 +1,43 @@
+edition = "2023";
+
+package backtesting;
+
+option java_multiple_files = true;
+option java_package = "com.verlumen.tradestream.backtesting";
+
+import "google/protobuf/any.proto";
+import "protos/marketdata.proto";
+import "protos/strategies.proto";
+
+message BacktestRequest {
+  repeated marketdata.Candle candles = 1;
+  strategies.StrategyType strategy_type = 2;
+}
+
+message ParameterizedBacktestRequest {
+  repeated marketdata.Candle candles = 1;
+  strategies.StrategyType strategy_type = 2;
+  google.protobuf.Any strategy_parameters = 3;
+}
+
+message TimeframeResult {
+  string timeframe = 1;
+  double cumulative_return = 2;
+  double annualized_return = 3;
+  double sharpe_ratio = 4;
+  double sortino_ratio = 5;
+  double max_drawdown = 6;
+  double volatility = 7;
+  double win_rate = 8;
+  double profit_factor = 9;
+  int32 number_of_trades = 10;
+  double average_trade_duration = 11;
+  double alpha = 12;
+  double beta = 13;
+}
+
+message BacktestResult {
+  strategies.StrategyType strategy_type = 1;
+  repeated TimeframeResult timeframe_results = 2;
+  double overall_score = 3;
+}
