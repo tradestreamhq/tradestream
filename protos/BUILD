@@ -1,5 +1,5 @@
 load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
-
+ 
 java_proto_library(
     name = "any_java_proto",
     deps = ["@com_google_protobuf//:any_proto"],
