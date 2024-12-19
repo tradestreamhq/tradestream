@@ -1,5 +1,9 @@
 load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 
+package(
+    default_visibility = ["//visibility:public"]
+)
+
 java_proto_library(
     name = "any_java_proto",
     deps = ["@com_google_protobuf//:any_proto"],
@@ -16,7 +20,6 @@ proto_library(
 java_proto_library(
     name = "backtest_service_java_proto",
     deps = [":backtest_service_proto"],
-    visibility = ["//:__subpackages__"],
 )
 
 java_grpc_library(
@@ -39,7 +42,6 @@ proto_library(
 java_proto_library(
     name = "backtesting_java_proto",
     deps = [":backtesting_proto"],
-    visibility = ["//:__subpackages__"],
 )
 
 proto_library(
@@ -51,7 +53,6 @@ proto_library(
 java_proto_library(
     name = "marketdata_java_proto",
     deps = [":marketdata_proto"],
-    visibility = ["//:__subpackages__"],
 )
 
 proto_library(
@@ -63,5 +64,4 @@ proto_library(
 java_proto_library(
     name = "strategies_java_proto",
     deps = [":strategies_proto"],
-    visibility = ["//:__subpackages__"],
 )
