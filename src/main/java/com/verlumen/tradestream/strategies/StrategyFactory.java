@@ -18,7 +18,7 @@ interface StrategyFactory<T extends Message> {
    * @return Strategy object
    * @throws InvalidProtocolBufferException If there is an error when unpacking the `Any` type
    */
-  Strategy createStrategy(Any strategyParameters, BarSeries series)
+  Strategy createStrategy(T strategyParameters, BarSeries series)
       throws InvalidProtocolBufferException;
 
   /**
