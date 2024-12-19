@@ -2,32 +2,33 @@ package com.verlumen.tradestream.strategies;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import org.ta4j.core.Strategy;
-import java.util.Map;
 
 public class StrategyManagerImpl {
-  private final ImmutableMap<StrategyType, StrategyFactory<?>> strategyFactories;
+  private final Config config;
 
   @Inject
-  StrategyManager(ImmutableList<StrategyFactory<? extends Message>> strategyFactories) {
-    ImmutableMap.Builder<StrategyType, StrategyFactory<?>> builder = ImmutableMap.builder();
-    for (StrategyFactory<?> factory : strategyFactories) {
-      builder.put(factory.getStrategyType(), factory);
-    }
-    this.strategyFactories = builder.build();
+  StrategyManagerImpl(Config config) {
+    this.config = config;
   }
 
-
-   public  Strategy createStrategy(StrategyType strategyType, Any strategyParameters) throws InvalidProtocolBufferException {
-
-        StrategyFactory<?> factory = strategyFactories.get(strategyType);
-        if (factory == null) {
-            throw new IllegalArgumentException("Unsupported strategy type: " + strategyType);
-        }
-          Object params = strategyParameters.unpack(factory.getParameterClass());
-        return factory.createStrategy(params);
+  @Override
+  public Strategy createStrategy(Any strategyParameters, StrategyType strategyType) throws InvalidProtocolBufferException {      
+    StrategyFactory<?> factory = config.factoryMap().get(strategyType);
+    if (factory == null) {
+        throw new IllegalArgumentException("Unsupported strategy type: " + strategyType);
     }
+
+    Object params = strategyParameters.unpack(factory.getParameterClass());
+    return factory.createStrategy(params);
+  }
+
+  private <T extends Message> Strategy createStrategy(Any strategyParameters, StrategyFactory factory, Class<T> parameterClass) throws InvalidProtocolBufferException {
+    T params = strategyParameters.unpack(factory.getParameterClass());
+    return factory.createStrategy(params);
+  }
 }
