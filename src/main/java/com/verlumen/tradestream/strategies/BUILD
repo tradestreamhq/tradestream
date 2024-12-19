@@ -79,7 +79,7 @@ java_library(
     deps = [
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_ta4j_ta4j_core",
-        "//protos:any_java_proto",
+        # "//protos:any_java_proto",
         "//protos:strategies_java_proto",
     ],
 )
