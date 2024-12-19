@@ -1,13 +1,12 @@
-package trading.backtesting;
+package com.verlumen.tradestream.strategies;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
-import trading.StrategyType;
+import com.verlumen.tradestream.strategies.StrategyType;
 
-public interface StrategyFactory {
-
+interface StrategyFactory {
   /**
    * Creates a Ta4j Strategy object from the provided parameters
    *
@@ -19,17 +18,10 @@ public interface StrategyFactory {
   Strategy createStrategy(Any strategyParameters, BarSeries series)
       throws InvalidProtocolBufferException;
 
-    /**
-     * Gets the `StrategyType` this factory handles.
-     *
-     * @return The StrategyType this factory handles.
-     */
+  /**
+   * Gets the `StrategyType` this factory handles.
+   *
+   * @return The StrategyType this factory handles.
+   */
   StrategyType getStrategyType();
-
-    /**
-     * Returns the Class that this strategy unpacks the parameters into
-     *
-     * @return the Class that this factory unpacks `Any` into.
-     */
-  Class<?> getParameterClass();
 }
