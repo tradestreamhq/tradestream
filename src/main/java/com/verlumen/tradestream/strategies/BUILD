@@ -1,6 +1,6 @@
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
-load("@rules_java//java:defs.bzl", "java_binary")
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 load("//platforms:transition.bzl", "multi_arch")
 
@@ -71,4 +71,12 @@ oci_push(
     image = ":index",
     remote_tags = ["latest"],
     repository = "tradestreamhq/tradestream-strategy-engine",
+)
+
+java_library(
+    name = "strategy_factory",
+    srcs = ["StrategyFactory.java"],
+    deps = [
+        "@maven//:org_ta4j_ta4j_core",
+    ],
 )
