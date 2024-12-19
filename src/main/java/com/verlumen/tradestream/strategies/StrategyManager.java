@@ -13,6 +13,10 @@ interface StrategyManager {
   
   @AutoValue
   abstract class Config {
+    static Config create(ImmutableList<StrategyFactory> factories) {
+      return new AutoValue_Config();
+    }
+    
     abstract ImmutableMap<StrategyType, StrategyFactory> factoryMap();
   }
 }
