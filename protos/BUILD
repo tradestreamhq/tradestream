@@ -4,11 +4,6 @@ package(
     default_visibility = ["//visibility:public"]
 )
 
-java_proto_library(
-    name = "any_java_proto",
-    deps = ["@com_google_protobuf//:any_proto"],
-)
-
 proto_library(
     name = "backtest_service_proto",
     srcs = ["backtest_service.proto"],
