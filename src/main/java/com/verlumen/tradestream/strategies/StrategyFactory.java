@@ -13,12 +13,12 @@ interface StrategyFactory<T extends Message> {
   /**
    * Creates a Ta4j Strategy object from the provided parameters
    *
-   * @param strategyParameters the parameters for the strategy
+   * @param parameters the parameters for the strategy
    * @param series bar series for the strategy
    * @return Strategy object
    * @throws InvalidProtocolBufferException If there is an error when unpacking the `Any` type
    */
-  Strategy createStrategy(T strategyParameters, BarSeries series)
+  Strategy createStrategy(T parameters, BarSeries series)
       throws InvalidProtocolBufferException;
 
   /**
