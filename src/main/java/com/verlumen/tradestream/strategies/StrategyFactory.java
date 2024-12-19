@@ -26,10 +26,15 @@ interface StrategyFactory<T extends Message> {
    */
   StrategyType getStrategyType();
 
-    /**
-     * Returns the Class that this strategy unpacks the parameters into
-     *
-     * @return the Class that this factory unpacks `Any` into.
-     */
-    Class<T> getParameterClass();
+  /**
+   * Returns the Class that this strategy unpacks the parameters into
+   *
+   * @return the Class that this factory unpacks `Any` into.
+   */
+  default Class<T> getParameterClass(){
+    Type genericSuperclass = getClass().getGenericInterfaces()[0];
+        ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
+        Type actualTypeArgument = parameterizedType.getActualTypeArguments()[0];
+      return (Class<T>) actualTypeArgument;
+  }
 }
