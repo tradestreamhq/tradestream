@@ -78,5 +78,6 @@ java_library(
     srcs = ["StrategyFactory.java"],
     deps = [
         "@maven//:org_ta4j_ta4j_core",
+        "//protos:strategies_java_proto",
     ],
 )
