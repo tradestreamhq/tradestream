@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.strategies;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
