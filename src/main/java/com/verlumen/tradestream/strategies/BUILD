@@ -87,6 +87,7 @@ java_library(
     name = "strategy_manager",
     srcs = ["StrategyManager.java"],
     deps = [
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         ":strategy_factory",
     ],
@@ -96,6 +97,7 @@ java_library(
     name = "strategy_manager_impl",
     srcs = ["StrategyManagerImpl.java"],
     deps = [
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_protobuf_protobuf_java",
         ":strategy_factory",
