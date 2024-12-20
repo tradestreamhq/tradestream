@@ -35,9 +35,8 @@ final class StrategyManagerImpl {
   abstract static class Config {
     static Config create(ImmutableList<StrategyFactory> factories) {
       ImmutableMap<StrategyType, StrategyFactory> factoryMap = 
-        ImmutableMap.copyOf(
-          BiStream.from(factories, StrategyFactory::getStrategyType, identity())
-          .toMap());
+        BiStream.from(factories, StrategyFactory::getStrategyType, identity())
+          .collect(ImmutableMap::toImmutableMap);
       return new AutoValue_StrategyManagerImpl_Config(factoryMap);
     }
     
