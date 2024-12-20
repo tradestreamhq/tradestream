@@ -82,3 +82,21 @@ java_library(
         "//protos:strategies_java_proto",
     ],
 )
+
+java_library(
+    name = "strategy_manager",
+    srcs = ["StrategyManager.java"],
+    deps = [
+        ":strategy_factory",
+    ],
+)
+
+java_library(
+    name = "strategy_manager_impl",
+    srcs = ["StrategyManagerImpl.java"],
+    deps = [
+        ":strategy_factory",
+        ":strategy_manager",
+    ],
+)
+
