@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.Strategy;
 
 final class StrategyManagerImpl {
