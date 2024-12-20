@@ -89,6 +89,7 @@ java_library(
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_ta4j_ta4j_core",
         ":strategy_factory",
     ],
 )
@@ -100,6 +101,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_ta4j_ta4j_core",
         ":strategy_factory",
         ":strategy_manager",
     ],
