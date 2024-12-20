@@ -32,7 +32,7 @@ final class StrategyManagerImpl {
   }
 
   @AutoValue
-  abstract class Config {
+  abstract static class Config {
     static Config create(ImmutableList<StrategyFactory> factories) {
       ImmutableMap<StrategyType, StrategyFactory> factoryMap = 
         ImmutableMap.copyOf(
