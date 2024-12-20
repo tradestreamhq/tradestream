@@ -8,7 +8,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import org.ta4j.core.Strategy;
 
-public class StrategyManagerImpl {
+final class StrategyManagerImpl {
   private final Config config;
 
   @Inject
