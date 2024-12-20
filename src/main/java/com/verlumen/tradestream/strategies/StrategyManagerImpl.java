@@ -17,18 +17,12 @@ public class StrategyManagerImpl {
   }
 
   @Override
-  public Strategy createStrategy(Any strategyParameters, StrategyType strategyType) throws InvalidProtocolBufferException {      
+  public Strategy createStrategy(Any parameters, StrategyType strategyType) throws InvalidProtocolBufferException {      
     StrategyFactory<?> factory = config.factoryMap().get(strategyType);
     if (factory == null) {
         throw new IllegalArgumentException("Unsupported strategy type: " + strategyType);
     }
 
-    Object params = strategyParameters.unpack(factory.getParameterClass());
-    return factory.createStrategy(params);
-  }
-
-  private <T extends Message> Strategy createStrategy(Any strategyParameters, StrategyFactory factory, Class<T> parameterClass) throws InvalidProtocolBufferException {
-    T params = strategyParameters.unpack(factory.getParameterClass());
-    return factory.createStrategy(params);
+    return factory.createStrategy(parameters.unpack(factory.getParameterClass()));
   }
 }
