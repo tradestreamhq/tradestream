@@ -100,6 +100,7 @@ java_library(
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
+        "@maven//:com_google_mug_mug",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_ta4j_ta4j_core",
         "//:autovalue",
