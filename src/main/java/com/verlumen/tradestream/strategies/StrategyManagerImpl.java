@@ -36,7 +36,7 @@ final class StrategyManagerImpl implements StrategyManager {
     static Config create(ImmutableList<StrategyFactory<?>> factories) {
       ImmutableMap<StrategyType, StrategyFactory<?>> factoryMap = 
         BiStream.from(factories, StrategyFactory::getStrategyType, identity())
-          .collect(ImmutableMap.toImmutableMap());
+          .collect(ImmutableMap::toImmutableMap);
       return new AutoValue_StrategyManagerImpl_Config(factoryMap);
     }
     
