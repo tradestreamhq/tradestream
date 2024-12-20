@@ -27,10 +27,25 @@ final class StrategyManagerImpl implements StrategyManager {
     if (factory == null) {
       throw new IllegalArgumentException("Unsupported strategy type: " + strategyType);
     }
-
+  
+    // The factory returns a parameter class with a known Message subtype.
     Class<? extends Message> parameterClass = factory.getParameterClass();
-    return factory.createStrategy(parameters.unpack(parameterClass));
+  
+    // Cast the parameter class to Message, since we know it's safe from how we build the map.
+    @SuppressWarnings("unchecked")
+    Class<Message> castedParameterClass = (Class<Message>) parameterClass;
+  
+    // Unpack the parameters using the casted parameter class.
+    Message paramMessage = parameters.unpack(castedParameterClass);
+  
+    // Cast the factory to a StrategyFactory<Message> so createStrategy can accept paramMessage.
+    @SuppressWarnings("unchecked")
+    StrategyFactory<Message> castedFactory = (StrategyFactory<Message>) factory;
+  
+    // Now call createStrategy with the correctly typed message.
+    return castedFactory.createStrategy(paramMessage);
   }
+
 
   @AutoValue
   abstract static class Config {
