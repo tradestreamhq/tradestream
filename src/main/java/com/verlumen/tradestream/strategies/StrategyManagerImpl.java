@@ -38,7 +38,7 @@ final class StrategyManagerImpl {
         ImmutableMap.copyOf(
           BiStream.from(factories, StrategyFactory::getStrategyType, identity())
           .toMap());
-      return new AutoValue_StrategyManagerImpl_Config();
+      return new AutoValue_StrategyManagerImpl_Config(factoryMap);
     }
     
     abstract ImmutableMap<StrategyType, StrategyFactory> factoryMap();
