@@ -23,23 +23,24 @@ final class StrategyManagerImpl implements StrategyManager {
   @Override
   public Strategy createStrategy(StrategyType strategyType, Any parameters)
       throws InvalidProtocolBufferException {
-    StrategyFactory<? extends Message> factory = config.factoryMap().get(strategyType);
+    StrategyFactory<?> factory = config.factoryMap().get(strategyType);
     if (factory == null) {
       throw new IllegalArgumentException("Unsupported strategy type: " + strategyType);
     }
 
-    return factory.createStrategy(parameters.unpack(factory.getParameterClass()));
+    Class<? extends Message> parameterClass = factory.getParameterClass();
+    return factory.createStrategy(parameters.unpack(parameterClass));
   }
 
   @AutoValue
   abstract static class Config {
-    static Config create(ImmutableList<StrategyFactory<? extends Message>> factories) {
-      ImmutableMap<StrategyType, StrategyFactory<? extends Message>> factoryMap =
+    static Config create(ImmutableList<StrategyFactory<?>> factories) {
+      ImmutableMap<StrategyType, StrategyFactory<?>> factoryMap =
           BiStream.from(factories, StrategyFactory::getStrategyType, identity())
               .collect(ImmutableMap::toImmutableMap);
       return new AutoValue_StrategyManagerImpl_Config(factoryMap);
     }
 
-    abstract ImmutableMap<StrategyType, StrategyFactory<? extends Message>> factoryMap();
+    abstract ImmutableMap<StrategyType, StrategyFactory<?>> factoryMap();
   }
 }
