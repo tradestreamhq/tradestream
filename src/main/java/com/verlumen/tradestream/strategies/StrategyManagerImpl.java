@@ -1,9 +1,12 @@
 package com.verlumen.tradestream.strategies;
 
+import static java.util.function.Function.identity;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
+import com.google.mu.util.stream.BiStream;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
@@ -31,6 +34,10 @@ final class StrategyManagerImpl {
   @AutoValue
   abstract class Config {
     static Config create(ImmutableList<StrategyFactory> factories) {
+      ImmutableMap<StrategyType, StrategyFactory> factoryMap = 
+        ImmutableMap.copyOf(
+          BiStream.from(factories, StrategyFactory::getStrategyType, identity())
+          .toMap());
       return new AutoValue_StrategyManagerImpl_Config();
     }
     
