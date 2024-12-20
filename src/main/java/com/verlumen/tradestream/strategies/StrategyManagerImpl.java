@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.strategies;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
@@ -25,5 +26,14 @@ final class StrategyManagerImpl {
     }
 
     return factory.createStrategy(parameters.unpack(factory.getParameterClass()));
+  }
+
+  @AutoValue
+  abstract class Config {
+    static Config create(ImmutableList<StrategyFactory> factories) {
+      return new AutoValue_StrategyManagerImpl_Config();
+    }
+    
+    abstract ImmutableMap<StrategyType, StrategyFactory> factoryMap();
   }
 }
