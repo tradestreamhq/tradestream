@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.Strategy;
 
 interface StrategyManager {
