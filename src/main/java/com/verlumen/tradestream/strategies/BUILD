@@ -102,6 +102,8 @@ java_library(
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_ta4j_ta4j_core",
+        "//:autovalue",
+        "//protos:strategies_java_proto",
         ":strategy_factory",
         ":strategy_manager",
     ],
