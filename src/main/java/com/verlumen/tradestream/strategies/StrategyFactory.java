@@ -41,6 +41,14 @@ public interface StrategyFactory<T extends Message> {
     return createStrategy(series, parameters.unpack(getParameterClass()));
   }
 
+  default Strategy createStrategy(Rule entryRule, Rule exitRule) {
+    ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
+    EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
+    EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
+
+    return new BaseStrategy(getStrategyType().name(), entryRule, exitRule);
+  }
+  
   /**
    * Gets the {@link StrategyType} that this factory handles.
    *
