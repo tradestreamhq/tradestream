@@ -8,6 +8,8 @@ java_test(
         "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",
         "@maven//:org_ta4j_ta4j_core",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/movingaverages:movingaverages_lib",
     ],
     runtime_deps = [
