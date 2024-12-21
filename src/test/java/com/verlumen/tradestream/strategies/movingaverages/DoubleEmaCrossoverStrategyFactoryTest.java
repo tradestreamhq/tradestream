@@ -81,7 +81,6 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
       throws InvalidProtocolBufferException {
     logger.info("Executing createStrategy_exitRule_triggersOnShortEmaCrossDown test...");
     DoubleEmaCrossoverParameters params =
-    DoubleEmaCrossoverParameters params =
         DoubleEmaCrossoverParameters
           .newBuilder()
           .setShortEmaPeriod(SHORT_EMA)
