@@ -50,7 +50,7 @@ public interface StrategyFactory<T extends Message> {
    * @param exitRule The {@link Rule} that signals an exit from a position.
    * @return The created {@link Strategy} object.
    */
-  default Strategy createStrategy(BarSeries series, Rule entryRule, Rule exitRule) {
+  default Strategy createStrategy(Rule entryRule, Rule exitRule) {
     return new BaseStrategy(getStrategyType().name(), entryRule, exitRule);
   }
   
