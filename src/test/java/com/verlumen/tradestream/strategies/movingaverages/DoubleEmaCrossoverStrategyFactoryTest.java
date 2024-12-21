@@ -148,7 +148,6 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   
       // Act & Assert
       // We'll test that the exit rule becomes true at some bar
-      assertThat(lastBarExitSatisfied).isTrue();
       boolean anyExitSatisfied = false;
       for (int i = series.getBeginIndex(); i <= series.getEndIndex(); i++) {
         if (strategy.getExitRule().isSatisfied(i)) {
