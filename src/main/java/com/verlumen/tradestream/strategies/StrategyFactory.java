@@ -7,6 +7,7 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 
 /**
