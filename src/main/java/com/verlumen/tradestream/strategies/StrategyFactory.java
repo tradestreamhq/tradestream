@@ -7,6 +7,8 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseStrategy;
+import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 
 /**
@@ -41,6 +43,17 @@ public interface StrategyFactory<T extends Message> {
     return createStrategy(series, parameters.unpack(getParameterClass()));
   }
 
+  /**
+   * Creates a Ta4j Strategy object from the provided {@link Rule} and {@link Rule}.
+   *
+   * @param entryRule     The {@link Rule} that signals an entry into a position.
+   * @param exitRule The {@link Rule} that signals an exit from a position.
+   * @return The created {@link Strategy} object.
+   */
+  default Strategy createStrategy(BarSeries series, Rule entryRule, Rule exitRule) {
+    return new BaseStrategy(getStrategyType().name(), entryRule, exitRule);
+  }
+  
   /**
    * Gets the {@link StrategyType} that this factory handles.
    *
