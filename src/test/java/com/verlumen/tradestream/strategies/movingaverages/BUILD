@@ -5,6 +5,7 @@ java_test(
     srcs = ["DoubleEmaCrossoverStrategyFactoryTest.java"],
     deps = [
         "@maven//:com_google_flogger_flogger",
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_truth_truth",
