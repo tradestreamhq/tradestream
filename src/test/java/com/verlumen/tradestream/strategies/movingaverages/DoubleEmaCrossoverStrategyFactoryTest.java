@@ -28,7 +28,6 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 
 @RunWith(JUnit4.class)
 public class DoubleEmaCrossoverStrategyFactoryTest {
-  // Use Flogger:
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final int SHORT_EMA = 2;
@@ -65,31 +64,28 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
 
     BarSeries series = createCrossUpSeries();
 
-    // We'll create an EMAIndicator in the test, just to log how the EMA values progress.
+    // Create indicators for logging
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
     EMAIndicator shortEmaInd = new EMAIndicator(closePrice, SHORT_EMA);
     EMAIndicator longEmaInd = new EMAIndicator(closePrice, LONG_EMA);
 
-    // Log bars/EMA
+    // Log values for debugging
     logBarSeriesWithEma(series, shortEmaInd, longEmaInd);
 
     Strategy strategy = factory.createStrategy(series, params);
     BarSeriesManager manager = new BarSeriesManager(series);
     TradingRecord tradingRecord = manager.run(strategy);
 
-    // Log final trading record
     logTradingRecord(tradingRecord, series);
 
-    logger.atInfo().log("Finished running strategy. Final position count: %d",
+    logger.atInfo().log("Finished running strategy. Final position count: %d", 
         tradingRecord.getPositionCount());
     assertThat(tradingRecord.getPositionCount()).isGreaterThan(0);
-
-    logger.atInfo().log("createStrategy_entryRule_triggersOnShortEmaCrossUp test passed.");
   }
 
-@Test
-public void createStrategy_exitRule_triggersOnShortEmaCrossDown()
-    throws InvalidProtocolBufferException {
+  @Test
+  public void createStrategy_exitRule_triggersOnShortEmaCrossDown()
+      throws InvalidProtocolBufferException {
     logger.atInfo().log("Executing createStrategy_exitRule_triggersOnShortEmaCrossDown test...");
     DoubleEmaCrossoverParameters params =
         DoubleEmaCrossoverParameters.newBuilder()
@@ -100,7 +96,7 @@ public void createStrategy_exitRule_triggersOnShortEmaCrossDown()
 
     BarSeries series = createCrossDownSeries();
 
-    // Create local EMA indicators to observe values per bar
+    // Create local EMA indicators to observe values
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
     EMAIndicator shortEmaInd = new EMAIndicator(closePrice, SHORT_EMA);
     EMAIndicator longEmaInd = new EMAIndicator(closePrice, LONG_EMA);
@@ -113,88 +109,83 @@ public void createStrategy_exitRule_triggersOnShortEmaCrossDown()
 
     logTradingRecord(tradingRecord, series);
 
-    // First verify we have exactly 1 completed position
+    // Verify exactly one completed position
     assertThat(tradingRecord.getPositionCount()).isEqualTo(1);
 
     Position position = tradingRecord.getPositions().get(0);
   
-    // Entry should happen around bar 7-8 where short EMA is above long EMA
+    // Entry should happen around when short EMA rises above long EMA (bars 7-8)
     assertThat(position.getEntry().getIndex()).isIn(Range.closed(7, 8));
   
-    // Exit should happen around bar 9-10 where short EMA crosses below long EMA  
-    assertThat(position.getExit().getIndex()).isIn(Range.closed(9, 10));
+    // Exit should happen around when short EMA drops below long EMA (bars 10-11)
+    assertThat(position.getExit().getIndex()).isIn(Range.closed(10, 11));
   
     // Entry must come before exit
     assertThat(position.getEntry().getIndex())
         .isLessThan(position.getExit().getIndex());
   }
 
-  /**
-   * Creates a bar series designed to produce a short-EMA cross UP over the long-EMA.
-   */
   private BarSeries createCrossUpSeries() {
     logger.atInfo().log("Creating bar series to test short EMA crossing up...");
-
     BarSeries series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
 
-    // Warm-up: 7 bars at 10.0 for a smaller EMA warm-up period
+    // Warm-up: 7 bars steady price to establish baseline EMAs
     for (int i = 0; i < 7; i++) {
-      series.addBar(
-          new BaseBar(
-              Duration.ofMinutes(1),
-              now.plusMinutes(i),
-              10.0, 10.0, 10.0, 10.0,
-              100.0));
+        series.addBar(
+            new BaseBar(
+                Duration.ofMinutes(1),
+                now.plusMinutes(i),
+                50.0, 50.0, 50.0, 50.0,
+                100.0));
     }
 
-    // Move up: enough to push short EMA > long EMA quickly
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(7), 12.0, 12.0, 12.0, 12.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(8), 14.0, 14.0, 14.0, 14.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(9), 18.0, 18.0, 18.0, 18.0, 100.0));
- 
-    // Extra trailing bars so the cross is recognized
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(10), 18.0, 18.0, 18.0, 18.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(11), 18.0, 18.0, 18.0, 18.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(12), 18.0, 18.0, 18.0, 18.0, 100.0));
+    // Sharp rise to trigger short EMA crossing above long EMA
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(7), 60.0, 60.0, 60.0, 60.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(8), 70.0, 70.0, 70.0, 70.0, 100.0));
+    
+    // Maintain higher levels to establish uptrend
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(9), 75.0, 75.0, 75.0, 75.0, 100.0));
 
-    logger.atInfo().log("createCrossUpSeries - Done with smaller EMAs + more trailing bars.");
+    // Sharp drop to trigger short EMA crossing below long EMA
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(10), 45.0, 45.0, 45.0, 45.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(11), 40.0, 40.0, 40.0, 40.0, 100.0));
+
+    logger.atInfo().log("createCrossUpSeries - Done creating series with dramatic price movements");
     return series;
   }
 
-
-  /**
-   * Creates a bar series designed to produce a short-EMA cross DOWN below the long-EMA.
-   */
   private BarSeries createCrossDownSeries() {
     logger.atInfo().log("Creating bar series to test short EMA crossing down...");
-
     BarSeries series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
 
-    // Warm-up: 7 bars at 10.0
+    // Same pattern as crossUpSeries to first establish a position
+    // Warm-up: 7 bars steady price to establish baseline EMAs
     for (int i = 0; i < 7; i++) {
-      series.addBar(
-          new BaseBar(
-              Duration.ofMinutes(1),
-              now.plusMinutes(i),
-              10.0, 10.0, 10.0, 10.0,
-              100.0));
+        series.addBar(
+            new BaseBar(
+                Duration.ofMinutes(1),
+                now.plusMinutes(i),
+                50.0, 50.0, 50.0, 50.0,
+                100.0));
     }
 
-    // First push short Ema above long Ema
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(7), 20.0, 20.0, 20.0, 20.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(8), 25.0, 25.0, 25.0, 25.0, 100.0));
+    // Sharp rise to trigger short EMA crossing above long EMA
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(7), 60.0, 60.0, 60.0, 60.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(8), 70.0, 70.0, 70.0, 70.0, 100.0));
+    
+    // Maintain higher levels briefly
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(9), 75.0, 75.0, 75.0, 75.0, 100.0));
 
-    // Then drop so short < long
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(9), 10.0, 10.0, 10.0, 10.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(10), 5.0, 5.0, 5.0, 5.0, 100.0));
+    // Sharp drop to trigger short EMA crossing below long EMA
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(10), 45.0, 45.0, 45.0, 45.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(11), 40.0, 40.0, 40.0, 40.0, 100.0));
+    
+    // Keep low to establish downtrend
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(12), 35.0, 35.0, 35.0, 35.0, 100.0));
 
-    // Trailing bars so TA4J sees the cross
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(11), 5.0, 5.0, 5.0, 5.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(12), 5.0, 5.0, 5.0, 5.0, 100.0));
-
-    logger.atInfo().log("createCrossDownSeries - Done with smaller EMAs + more trailing bars.");
+    logger.atInfo().log("createCrossDownSeries - Done creating series with dramatic price movements");
     return series;
   }
 
