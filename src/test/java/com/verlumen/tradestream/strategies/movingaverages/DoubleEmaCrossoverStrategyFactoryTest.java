@@ -165,11 +165,12 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
    */
   private BarSeries createCrossDownSeries() {
     logger.atInfo().log("Creating bar series to test short EMA crossing down...");
+
     BarSeries series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
 
-    // 1) Warm-up bars
-    for (int i = 0; i < 10; i++) {
+    // Warm-up: 7 bars at 10.0
+    for (int i = 0; i < 7; i++) {
       series.addBar(
           new BaseBar(
               Duration.ofMinutes(1),
@@ -178,32 +179,19 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
               100.0));
     }
 
-    // 2) Move up first (shortEma > longEma)
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(10), 15.0, 15.0, 15.0, 15.0, 100.0));
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(11), 20.0, 20.0, 20.0, 20.0, 100.0));
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(12), 25.0, 25.0, 25.0, 25.0, 100.0));
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(13), 25.0, 25.0, 25.0, 25.0, 100.0));
+    // First push short Ema above long Ema
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(7), 20.0, 20.0, 20.0, 20.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(8), 25.0, 25.0, 25.0, 25.0, 100.0));
 
-    // 3) Then drop so shortEma < longEma
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(14), 15.0, 15.0, 15.0, 15.0, 100.0));
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(15), 10.0, 10.0, 10.0, 10.0, 100.0));
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(16), 5.0, 5.0, 5.0, 5.0, 100.0));
+    // Then drop so short < long
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(9), 10.0, 10.0, 10.0, 10.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(10), 5.0, 5.0, 5.0, 5.0, 100.0));
 
-    // 4) Extra trailing bars for final cross detection
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(17), 5.0, 5.0, 5.0, 5.0, 100.0));
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(18), 5.0, 5.0, 5.0, 5.0, 100.0));
+    // Trailing bars so TA4J sees the cross
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(11), 5.0, 5.0, 5.0, 5.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(12), 5.0, 5.0, 5.0, 5.0, 100.0));
 
-    logger.atInfo().log(
-        "createCrossDownSeries - Completed building bar series for cross-down scenario.");
+    logger.atInfo().log("createCrossDownSeries - Done with smaller EMAs + more trailing bars.");
     return series;
   }
 
