@@ -44,15 +44,15 @@ public interface StrategyFactory<T extends Message> {
   }
 
   /**
-   * Creates a Ta4j Strategy object from the provided {@link Rule} and {@link Rule}.
+   * Creates a Ta4j Strategy object from the provided entry and exit rules.
    *
-   * @param entryRule     The {@link Rule} that signals an entry into a position.
-   * @param exitRule The {@link Rule} that signals an exit from a position.
-   * @param unstableBars strategy will ignore possible signals at {@code index < unstableBars}
-   * @return The created {@link Strategy} object.
+   * @param entryRule     The {@link Rule} that triggers the opening of a new position.
+   * @param exitRule      The {@link Rule} that triggers the closing of an existing position.
+   * @param unstableBars The number of initial bars to ignore when evaluating the strategy. This helps to avoid early, possibly misleading, signals.
+   * @return The newly created {@link Strategy} object.
    */
   default Strategy createStrategy(Rule entryRule, Rule exitRule, int unstableBars) {
-    return new BaseStrategy(getStrategyType().name(), entryRule, exitRule);
+    return new BaseStrategy(getStrategyType().name(), entryRule, exitRule, unstableBars);
   }
   
   /**
