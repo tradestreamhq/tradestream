@@ -89,28 +89,28 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   public void createStrategy_entryRule_triggersOnShortEmaCrossUp()
       throws InvalidProtocolBufferException {
     // Arrange
-    DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
-        // Use smaller periods so the crossover can happen quickly
-        .setShortEmaPeriod(2)
-        .setLongEmaPeriod(3)
-        .build();
+     DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
+         // Use smaller periods so the crossover can happen quickly
+         .setShortEmaPeriod(2)
+         .setLongEmaPeriod(3)
+         .build();
 
-    // This series (below) is engineered so that around the last bar,
-    // short EMA (2) crosses above long EMA (3)
-    BarSeries series = createCrossUpSeries();
+     // This series (below) is engineered so that around the last bar,
+     // the short EMA (2) crosses above the long EMA (3) at index 3.
+     BarSeries series = createCrossUpSeries();
     Strategy strategy = factory.createStrategy(series, params);
 
     // Act & Assert
     // We'll test that the entry rule becomes true at some bar
-    boolean anyEntrySatisfied = false;
+    boolean entrySatisfiedAtIndex = false;
     for (int i = series.getBeginIndex(); i <= series.getEndIndex(); i++) {
       if (strategy.getEntryRule().isSatisfied(i)) {
-        anyEntrySatisfied = true;
+        entrySatisfiedAtIndex = true;
         break;
       }
     }
     // Because we've engineered the data to cross, we expect at least one bar to trigger
-    assertThat(anyEntrySatisfied).isTrue();
+    assertThat(entrySatisfiedAtIndex).isTrue();
   }
 
   /**
@@ -131,10 +131,10 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
 
     // Act & Assert
     // We'll test that the exit rule becomes true at some bar
-    boolean anyExitSatisfied = false;
+    boolean exitSatisfiedAtIndex = false;
     for (int i = series.getBeginIndex(); i <= series.getEndIndex(); i++) {
       if (strategy.getExitRule().isSatisfied(i)) {
-        anyExitSatisfied = true;
+        exitSatisfiedAtIndex = true;
         break;
       }
     }
@@ -148,7 +148,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
           "Index: " + i + ", Short EMA: " + shortEma.getValue(i) + ", Long EMA: " + longEma.getValue(i));
     }
 
-    assertThat(anyExitSatisfied).isTrue();
+    assertThat(exitSatisfiedAtIndex).isTrue();
   }
 
   private BarSeries createTestBarSeries() {
@@ -168,9 +168,12 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   /**
    * Series designed so that short EMA crosses up the long EMA. The short period is 2, and the long
    * is 3, so around the last bar the short EMA rises above the long.
+   *
+   * Crossover is expected at index 3.
    */
   private BarSeries createCrossUpSeries() {
     BarSeries series = new BaseBarSeries();
+
     ZonedDateTime now = ZonedDateTime.now();
 
     // For the first few bars, keep the close price steady or slightly decreasing
@@ -190,6 +193,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
 
   private BarSeries createCrossDownSeries() {
     BarSeries series = new BaseBarSeries();
+    // The crossover is expected at index 6.
     ZonedDateTime now = ZonedDateTime.now();
 
     // 1) Start with some higher values to ensure short EMA > long EMA initially.
