@@ -8,7 +8,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import org.ta4j.core.Strategy;
 
-interface StrategyFactory<T extends Message> {
+public interface StrategyFactory<T extends Message> {
   /**
    * Creates a Ta4j Strategy object from the provided parameters
    *
