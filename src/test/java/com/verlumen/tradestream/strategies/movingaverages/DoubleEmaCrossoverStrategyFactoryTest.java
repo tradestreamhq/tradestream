@@ -177,19 +177,17 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     BarSeries series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
   
-    // First two bars at 16 to keep short EMA above the long EMA.
+    // Keep price high for the first few bars so short EMA stays above the long EMA.
     series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(1),
         16.0, 16.0, 16.0, 16.0, 100.0));
     series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(2),
         16.0, 16.0, 16.0, 16.0, 100.0));
-  
-    // One bar slightly lower, but short EMA should still be above the long EMA here.
     series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(3),
         15.0, 15.0, 15.0, 15.0, 100.0));
   
-    // Now a big drop to force short EMA < long EMA.
+    // Final bar: a big drop that forces short EMA below the long EMA.
     series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(4),
-        9.0,  9.0,  9.0,  9.0, 100.0));
+        9.0, 9.0, 9.0, 9.0, 100.0));
   
     return series;
   }
