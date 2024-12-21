@@ -86,9 +86,9 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     logger.atInfo().log("createStrategy_entryRule_triggersOnShortEmaCrossUp test passed.");
   }
 
-  @Test
-  public void createStrategy_exitRule_triggersOnShortEmaCrossDown()
-      throws InvalidProtocolBufferException {
+@Test
+public void createStrategy_exitRule_triggersOnShortEmaCrossDown()
+    throws InvalidProtocolBufferException {
     logger.atInfo().log("Executing createStrategy_exitRule_triggersOnShortEmaCrossDown test...");
     DoubleEmaCrossoverParameters params =
         DoubleEmaCrossoverParameters.newBuilder()
@@ -99,7 +99,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
 
     BarSeries series = createCrossDownSeries();
 
-    // Again, create local EMA indicators to observe values per bar
+    // Create local EMA indicators to observe values per bar
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
     EMAIndicator shortEmaInd = new EMAIndicator(closePrice, SHORT_EMA);
     EMAIndicator longEmaInd = new EMAIndicator(closePrice, LONG_EMA);
@@ -112,18 +112,20 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
 
     logTradingRecord(tradingRecord, series);
 
-    logger.atInfo().log("Finished running strategy. Final position count: %d",
-        tradingRecord.getPositionCount());
+    // First verify we have exactly 1 completed position
     assertThat(tradingRecord.getPositionCount()).isEqualTo(1);
 
     Position position = tradingRecord.getPositions().get(0);
-    logger.atInfo().log(
-        "Validating that entry index (%d) < exit index (%d)",
-        position.getEntry().getIndex(),
-        position.getExit().getIndex());
-    assertThat(position.getEntry().getIndex()).isLessThan(position.getExit().getIndex());
-
-    logger.atInfo().log("createStrategy_exitRule_triggersOnShortEmaCrossDown test passed.");
+  
+    // Entry should happen around bar 7-8 where short EMA is above long EMA
+    assertThat(position.getEntry().getIndex()).isIn(Range.closed(7, 8));
+  
+    // Exit should happen around bar 9-10 where short EMA crosses below long EMA  
+    assertThat(position.getExit().getIndex()).isIn(Range.closed(9, 10));
+  
+    // Entry must come before exit
+    assertThat(position.getEntry().getIndex())
+        .isLessThan(position.getExit().getIndex());
   }
 
   /**
