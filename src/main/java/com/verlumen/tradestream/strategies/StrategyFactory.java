@@ -48,9 +48,10 @@ public interface StrategyFactory<T extends Message> {
    *
    * @param entryRule     The {@link Rule} that signals an entry into a position.
    * @param exitRule The {@link Rule} that signals an exit from a position.
+   * @param unstableBars strategy will ignore possible signals at {@code index < unstableBars}
    * @return The created {@link Strategy} object.
    */
-  default Strategy createStrategy(Rule entryRule, Rule exitRule) {
+  default Strategy createStrategy(Rule entryRule, Rule exitRule, int unstableBars) {
     return new BaseStrategy(getStrategyType().name(), entryRule, exitRule);
   }
   
