@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.strategies.movingaverages;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.StrategyFactory;
@@ -20,13 +22,19 @@ public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<Double
   @Override
   public Strategy createStrategy(BarSeries series, DoubleEmaCrossoverParameters params)
       throws InvalidProtocolBufferException {
+    checkArgument(params.getShortEmaPeriod() > 0);
+    checkArgument(params.getLongEmaPeriod() > 0);
+    checkArgument(params.getLongEmaPeriod() > params.getShortEmaPeriod());
+    
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
     EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
     EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
 
     return createStrategy(
         new CrossedUpIndicatorRule(shortEma, longEma),
-        new CrossedDownIndicatorRule(shortEma, longEma));
+        new CrossedDownIndicatorRule(shortEma, longEma),
+        params.getLongEmaPeriod()
+    );
   }
 
   @Override
