@@ -42,7 +42,7 @@ public interface StrategyFactory<T extends Message> {
   default Strategy createStrategy(BarSeries series, Any parameters) throws InvalidProtocolBufferException {
     return createStrategy(series, parameters.unpack(getParameterClass()));
   }
-  
+
   /**
    * Creates a Ta4j Strategy object from the provided {@link Rule} and {@link Rule}.
    *
