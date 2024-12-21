@@ -20,7 +20,7 @@ import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Position;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.TradingRecord;
-import org.ta4j.core.backtest.BarSeriesManager
+import org.ta4j.core.backtest.BarSeriesManager;
 import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
