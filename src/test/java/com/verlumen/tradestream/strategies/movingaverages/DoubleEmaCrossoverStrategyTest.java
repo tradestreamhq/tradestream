@@ -14,11 +14,11 @@ import org.ta4j.core.Strategy;
 @RunWith(JUnit4.class)
 public class DoubleEmaCrossoverStrategyTest {
 
-  private DoubleEmaCrossoverStrategy.Factory factory;
+  private DoubleEmaCrossoverStrategyFactory factory;
 
   @Before
   public void setUp() {
-    factory = new DoubleEmaCrossoverStrategy.Factory();
+    factory = new DoubleEmaCrossoverStrategy();
   }
 
   @Test
@@ -28,12 +28,12 @@ public class DoubleEmaCrossoverStrategyTest {
 
   @Test
   public void getParameterClass() {
-      assertThat(factory.getParameterClass()).isEqualTo(DoubleEmaCrossoverParameters.class);
+    assertThat(factory.getParameterClass()).isEqualTo(DoubleEmaCrossoverParameters.class);
   }
 
   @Test
   public void createStrategy_withParams() throws InvalidProtocolBufferException {
-      DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder().setShortEmaPeriod(5).setLongEmaPeriod(20).build();
+    DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder().setShortEmaPeriod(5).setLongEmaPeriod(20).build();
     Strategy strategy = factory.createStrategy(params);
     assertThat(strategy).isNotNull();
   }
