@@ -1,4 +1,4 @@
-name: Install to Kubernetes Cluster
+name: Run Unit Tests
 
 on:
   pull_request:
