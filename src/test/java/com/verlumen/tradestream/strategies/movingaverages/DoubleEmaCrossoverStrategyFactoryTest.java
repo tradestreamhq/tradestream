@@ -117,23 +117,36 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
    */
   @Test
   public void createStrategy_exitRule_triggersOnShortEmaCrossDown()
-      throws InvalidProtocolBufferException {
-    // Arrange
-    DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
-        .setShortEmaPeriod(2)
-        .setLongEmaPeriod(3)
-        .build();
-
-    // This series is engineered so that short EMA is initially above,
-    // then crosses down (the last bar has a big drop).
-    BarSeries series = createCrossDownSeries();
-    Strategy strategy = factory.createStrategy(series, params);
-
-    // Act & Assert
-    // We'll test that the exit rule becomes true at the last bar
-    int lastBarIndex = series.getEndIndex();
-    boolean lastBarExitSatisfied = strategy.getExitRule().isSatisfied(lastBarIndex);
-    assertThat(lastBarExitSatisfied).isTrue();
+          throws InvalidProtocolBufferException {
+      // Arrange
+      DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
+              .setShortEmaPeriod(2)
+              .setLongEmaPeriod(3)
+              .build();
+  
+      BarSeries series = createCrossDownSeries();
+      Strategy strategy = factory.createStrategy(series, params);
+  
+      // Debugging Output:
+      ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
+      EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
+      EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
+  
+      int lastBarIndex = series.getEndIndex();
+  
+      System.out.println("----- DEBUG INFO -----");
+      System.out.println("Last Bar Index: " + lastBarIndex);
+      for (int i = 0; i <= lastBarIndex; i++) {
+          System.out.println("Index: " + i +
+                ", Short EMA: " + shortEma.getValue(i) +
+                ", Long EMA: " + longEma.getValue(i) +
+                ", Close Price: " + series.getBar(i).getClosePrice());
+      }
+  
+  
+      // Act & Assert
+      boolean lastBarExitSatisfied = strategy.getExitRule().isSatisfied(lastBarIndex);
+      assertThat(lastBarExitSatisfied).isTrue();
   }
 
   private BarSeries createTestBarSeries() {
