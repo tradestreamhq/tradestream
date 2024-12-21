@@ -182,23 +182,17 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   private BarSeries createCrossDownSeries() {
       BarSeries series = new BaseBarSeries();
       ZonedDateTime now = ZonedDateTime.now();
-  
-      // Start with very high values to ensure short EMA starts above long EMA
-      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(1), 
-          25.0, 25.0, 25.0, 25.0, 100.0));
-      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(2), 
-          24.0, 24.0, 24.0, 24.0, 100.0));
-          
-      // Then sharp decline to force crossover
-      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(3), 
-          15.0, 15.0, 15.0, 15.0, 100.0));
-      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(4), 
-          10.0, 10.0, 10.0, 10.0, 100.0));
-      
-      // Continue lower to maintain short EMA below long EMA
-      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(5), 
-          8.0, 8.0, 8.0, 8.0, 100.0));
-  
+
+      // Initial price movement to get short EMA above long EMA
+      series.addBar(new BaseBar(Duration.ofMinutes(1), now, 10.0, 10.0, 10.0, 10.0, 100.0));
+      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(1), 15.0, 15.0, 15.0, 15.0, 100.0));
+      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(2), 20.0, 20.0, 20.0, 20.0, 100.0));
+
+      // Price decline to trigger short EMA crossing below long EMA
+      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(3), 15.0, 15.0, 15.0, 15.0, 100.0));
+      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(4), 10.0, 10.0, 10.0, 10.0, 100.0));
+      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(5), 5.0, 5.0, 5.0, 5.0, 100.0));
+
       return series;
   }
 }
