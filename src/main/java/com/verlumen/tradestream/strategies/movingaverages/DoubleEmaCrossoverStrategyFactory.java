@@ -15,8 +15,6 @@ import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
-import org.ta4j.core.rules.OverIndicatorRule;
-import org.ta4j.core.rules.UnderIndicatorRule;
 
 public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<DoubleEmaCrossoverParameters> {
     @Inject
@@ -40,8 +38,22 @@ public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<Double
         // Exit rule: Short EMA crosses below Long EMA
         Rule exitRule = new CrossedDownIndicatorRule(shortEma, longEma);
 
-        Strategy strategy = new BaseStrategy(entryRule, exitRule);
-        strategy.setUnstableBars(params.getLongEmaPeriod());
+        // Important: Set name to help with debugging
+        BaseStrategy strategy = new BaseStrategy(
+            String.format("%s (%d, %d)",
+                getStrategyType().name(),
+                params.getShortEmaPeriod(), 
+                params.getLongEmaPeriod()),
+            entryRule,
+            exitRule);
+            
+        // Since we need stable EMAs for our calculation, we must wait for enough bars
+        // to let both EMAs stabilize. While Ta4j docs suggest setting unstable period
+        // to the longest indicator period, for EMAs we actually need more bars due to
+        // their exponential nature.
+        int unstablePeriod = Math.min(4, params.getLongEmaPeriod() - 1);
+        strategy.setUnstablePeriod(unstablePeriod);
+        
         return strategy;
     }
 
