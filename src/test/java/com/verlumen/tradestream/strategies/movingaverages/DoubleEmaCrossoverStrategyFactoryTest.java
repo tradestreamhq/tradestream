@@ -30,8 +30,8 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   // Use Flogger:
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private static final int SHORT_EMA = 3;
-  private static final int LONG_EMA = 7;
+  private static final int SHORT_EMA = 2;
+  private static final int LONG_EMA = 5;
 
   @Inject private DoubleEmaCrossoverStrategyFactory factory;
 
