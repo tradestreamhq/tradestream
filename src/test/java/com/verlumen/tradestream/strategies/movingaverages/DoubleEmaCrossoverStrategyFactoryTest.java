@@ -42,7 +42,8 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_entryRule_isCrossedUpIndicatorRule() throws InvalidProtocolBufferException {
+  public void createStrategy_entryRule_isCrossedUpIndicatorRule()
+      throws InvalidProtocolBufferException {
     // Arrange
     DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
         .setShortEmaPeriod(5)
@@ -59,7 +60,8 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_exitRule_isCrossedDownIndicatorRule() throws InvalidProtocolBufferException {
+  public void createStrategy_exitRule_isCrossedDownIndicatorRule()
+      throws InvalidProtocolBufferException {
     // Arrange
     DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
         .setShortEmaPeriod(5)
@@ -75,14 +77,15 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   }
 
   /**
-   * A more functional test verifying that the entry rule is satisfied
-   * at the correct index after short EMA crosses above long EMA.
+   * A more functional test verifying that the entry rule is satisfied at the correct index after
+   * short EMA crosses above long EMA.
    *
-   * Note: This requires creating a BarSeries that actually triggers
-   * a cross-up if shortEmaPeriod < longEmaPeriod.
+   * Note: This requires creating a BarSeries that actually triggers a cross-up if shortEmaPeriod <
+   * longEmaPeriod.
    */
   @Test
-  public void createStrategy_entryRule_triggersOnShortEmaCrossUp() throws InvalidProtocolBufferException {
+  public void createStrategy_entryRule_triggersOnShortEmaCrossUp()
+      throws InvalidProtocolBufferException {
     // Arrange
     DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
         // Use smaller periods so the crossover can happen quickly
@@ -109,11 +112,12 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   }
 
   /**
-   * A more functional test verifying that the exit rule is satisfied
-   * at the correct index after short EMA crosses below long EMA.
+   * A more functional test verifying that the exit rule is satisfied at the correct index after short
+   * EMA crosses below long EMA.
    */
   @Test
-  public void createStrategy_exitRule_triggersOnShortEmaCrossDown() throws InvalidProtocolBufferException {
+  public void createStrategy_exitRule_triggersOnShortEmaCrossDown()
+      throws InvalidProtocolBufferException {
     // Arrange
     DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
         .setShortEmaPeriod(2)
@@ -126,14 +130,10 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     Strategy strategy = factory.createStrategy(series, params);
 
     // Act & Assert
-    boolean anyExitSatisfied = false;
-    for (int i = series.getBeginIndex(); i <= series.getEndIndex(); i++) {
-      if (strategy.getExitRule().isSatisfied(i)) {
-        anyExitSatisfied = true;
-        break;
-      }
-    }
-    assertThat(anyExitSatisfied).isTrue();
+    // We'll test that the exit rule becomes true at the last bar
+    int lastBarIndex = series.getEndIndex();
+    boolean lastBarExitSatisfied = strategy.getExitRule().isSatisfied(lastBarIndex);
+    assertThat(lastBarExitSatisfied).isTrue();
   }
 
   private BarSeries createTestBarSeries() {
@@ -151,9 +151,8 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   }
 
   /**
-   * Series designed so that short EMA crosses up the long EMA.
-   * The short period is 2, and the long is 3, so around the last bar
-   * the short EMA rises above the long.
+   * Series designed so that short EMA crosses up the long EMA. The short period is 2, and the long
+   * is 3, so around the last bar the short EMA rises above the long.
    */
   private BarSeries createCrossUpSeries() {
     BarSeries series = new BaseBarSeries();
@@ -175,9 +174,8 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   }
 
   /**
-   * Series designed so that short EMA starts above the long EMA
-   * and then crosses down. The last bar is a big drop in price
-   * forcing short EMA < long EMA.
+   * Series designed so that short EMA starts above the long EMA and then crosses down. The last bar
+   * is a big drop in price forcing short EMA < long EMA.
    */
     private BarSeries createCrossDownSeries() {
         BarSeries series = new BaseBarSeries();
