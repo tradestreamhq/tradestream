@@ -27,7 +27,7 @@ final class StrategyManagerImpl implements StrategyManager {
       throw new IllegalArgumentException("Unsupported strategy type: " + strategyType);
     }
   
-    return castedFactory.createStrategy(parameters);
+    return factory.createStrategy(parameters);
   }
 
   @AutoValue
