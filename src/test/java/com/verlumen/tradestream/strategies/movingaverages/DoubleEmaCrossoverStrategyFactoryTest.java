@@ -192,21 +192,25 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   }
 
   private BarSeries createCrossDownSeries() {
-    BarSeries series = new BaseBarSeries();
-    // The crossover is expected at index 6.
-    ZonedDateTime now = ZonedDateTime.now();
-
-    // 1) Start with some higher values to ensure short EMA > long EMA initially.
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(1), 18.0, 18.0, 18.0, 18.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(2), 17.0, 17.0, 17.0, 17.0, 100.0));
-
-    // 2) Gradually decrease further, so short EMA crosses below.
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(3), 16.0, 16.0, 16.0, 16.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(4), 14.0, 14.0, 14.0, 14.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(5), 12.0, 12.0, 12.0, 12.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(6), 10.0, 10.0, 10.0, 10.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(7), 8.0, 8.0, 8.0, 8.0, 100.0));
-
-    return series;
+      BarSeries series = new BaseBarSeries();
+      ZonedDateTime now = ZonedDateTime.now();
+  
+      // Start with very high values to ensure short EMA starts above long EMA
+      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(1), 
+          25.0, 25.0, 25.0, 25.0, 100.0));
+      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(2), 
+          24.0, 24.0, 24.0, 24.0, 100.0));
+          
+      // Then sharp decline to force crossover
+      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(3), 
+          15.0, 15.0, 15.0, 15.0, 100.0));
+      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(4), 
+          10.0, 10.0, 10.0, 10.0, 100.0));
+      
+      // Continue lower to maintain short EMA below long EMA
+      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(5), 
+          8.0, 8.0, 8.0, 8.0, 100.0));
+  
+      return series;
   }
 }
