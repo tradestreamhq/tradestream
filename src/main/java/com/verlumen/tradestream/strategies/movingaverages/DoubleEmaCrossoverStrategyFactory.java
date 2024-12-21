@@ -34,26 +34,24 @@ public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<Double
 
         // Entry rule: Short EMA crosses above Long EMA
         Rule entryRule = new CrossedUpIndicatorRule(shortEma, longEma);
-        
+
         // Exit rule: Short EMA crosses below Long EMA
         Rule exitRule = new CrossedDownIndicatorRule(shortEma, longEma);
 
-        // Important: Set name to help with debugging
-        BaseStrategy strategy = new BaseStrategy(
-            String.format("%s (%d, %d)",
-                getStrategyType().name(),
-                params.getShortEmaPeriod(), 
-                params.getLongEmaPeriod()),
-            entryRule,
-            exitRule);
-            
         // Since we need stable EMAs for our calculation, we must wait for enough bars
         // to let both EMAs stabilize. While Ta4j docs suggest setting unstable period
         // to the longest indicator period, for EMAs we actually need more bars due to
         // their exponential nature.
         int unstablePeriod = Math.min(4, params.getLongEmaPeriod() - 1);
-        strategy.setUnstablePeriod(unstablePeriod);
-        
+
+        return new BaseStrategy(
+            String.format("%s (%d, %d)",
+                getStrategyType().name(),
+                params.getShortEmaPeriod(), 
+                params.getLongEmaPeriod()),
+            entryRule,
+            exitRule,
+            unstablePeriod);
         return strategy;
     }
 
