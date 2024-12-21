@@ -12,7 +12,7 @@ import org.junit.runners.JUnit4;
 import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
-public class DoubleEmaCrossoverStrategyTest {
+public class DoubleEmaCrossoverStrategyFactoryTest {
 
   private DoubleEmaCrossoverStrategyFactory factory;
 
