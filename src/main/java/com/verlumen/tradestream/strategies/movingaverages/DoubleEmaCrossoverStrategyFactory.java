@@ -4,9 +4,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import com.verlumen.tradestream.strategies.StrategyType;
-import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Strategy;
@@ -25,7 +25,7 @@ public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<Double
     checkArgument(params.getShortEmaPeriod() > 0);
     checkArgument(params.getLongEmaPeriod() > 0);
     checkArgument(params.getLongEmaPeriod() > params.getShortEmaPeriod());
-    
+
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
     EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
     EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
