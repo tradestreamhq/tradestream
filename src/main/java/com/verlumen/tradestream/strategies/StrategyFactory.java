@@ -42,14 +42,6 @@ public interface StrategyFactory<T extends Message> {
   default Strategy createStrategy(BarSeries series, Any parameters) throws InvalidProtocolBufferException {
     return createStrategy(series, parameters.unpack(getParameterClass()));
   }
-
-  default Strategy createStrategy(Rule entryRule, Rule exitRule) {
-    ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
-    EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
-
-    return new BaseStrategy(getStrategyType().name(), entryRule, exitRule);
-  }
   
   /**
    * Creates a Ta4j Strategy object from the provided {@link Rule} and {@link Rule}.
