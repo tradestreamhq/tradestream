@@ -20,7 +20,7 @@ public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<Double
   @Override
   public Strategy createStrategy(BarSeries series, DoubleEmaCrossoverParameters params)
       throws InvalidProtocolBufferException {
-    ClosePriceIndicator closePrice = new ClosePriceIndicator(null);
+    ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
     EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
     EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
 
