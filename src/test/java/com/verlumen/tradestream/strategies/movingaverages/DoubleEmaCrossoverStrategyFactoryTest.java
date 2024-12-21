@@ -131,12 +131,12 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
    */
   private BarSeries createCrossUpSeries() {
     logger.atInfo().log("Creating bar series to test short EMA crossing up...");
+
     BarSeries series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
 
-    // 1) Warm-up bars so the short (3) & long (7) EMAs are valid.
-    //    10 bars at 10.0 to "prime" the EMAs.
-    for (int i = 0; i < 10; i++) {
+    // Warm-up: 7 bars at 10.0 for a smaller EMA warm-up period
+    for (int i = 0; i < 7; i++) {
       series.addBar(
           new BaseBar(
               Duration.ofMinutes(1),
@@ -145,25 +145,20 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
               100.0));
     }
 
-    // 2) Gradually increase price so shortEma eventually crosses above longEma.
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(10), 12.0, 12.0, 12.0, 12.0, 100.0));
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(11), 14.0, 14.0, 14.0, 14.0, 100.0));
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(12), 18.0, 18.0, 18.0, 18.0, 100.0));
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(13), 20.0, 20.0, 20.0, 20.0, 100.0));
+    // Move up: enough to push short EMA > long EMA quickly
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(7), 12.0, 12.0, 12.0, 12.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(8), 14.0, 14.0, 14.0, 14.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(9), 18.0, 18.0, 18.0, 18.0, 100.0));
+ 
+    // Extra trailing bars so the cross is recognized
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(10), 18.0, 18.0, 18.0, 18.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(11), 18.0, 18.0, 18.0, 18.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(12), 18.0, 18.0, 18.0, 18.0, 100.0));
 
-    // 3) Add extra bars so TA4J can “finalize” the cross.
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(14), 20.0, 20.0, 20.0, 20.0, 100.0));
-    series.addBar(
-        new BaseBar(Duration.ofMinutes(1), now.plusMinutes(15), 20.0, 20.0, 20.0, 20.0, 100.0));
-
-    logger.atInfo().log("createCrossUpSeries - Completed building bar series for cross-up scenario.");
+    logger.atInfo().log("createCrossUpSeries - Done with smaller EMAs + more trailing bars.");
     return series;
   }
+
 
   /**
    * Creates a bar series designed to produce a short-EMA cross DOWN below the long-EMA.
