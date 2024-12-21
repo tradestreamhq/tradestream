@@ -1,5 +1,5 @@
 java_library(
-    name = "movingaverages",
+    name = "movingaverages_lib",
     srcs = glob(["*.java"]),
     deps = [
         "@maven//:org_ta4j_ta4j_core",
