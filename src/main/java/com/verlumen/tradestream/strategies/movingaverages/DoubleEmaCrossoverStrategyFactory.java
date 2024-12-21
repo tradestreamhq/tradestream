@@ -8,7 +8,6 @@ import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
@@ -33,11 +32,11 @@ public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<Double
     EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
     EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
 
-    // Entry rule: Short EMA crosses above Long EMA AND Short EMA > Long EMA
+    // Entry rule: Short EMA crosses above Long EMA AND stays above
     CrossedUpIndicatorRule crossedUpRule = new CrossedUpIndicatorRule(shortEma, longEma);
     OverIndicatorRule overRule = new OverIndicatorRule(shortEma, longEma);
     
-    // Exit rule: Short EMA crosses below Long EMA AND Short EMA < Long EMA  
+    // Exit rule: Short EMA crosses below Long EMA AND stays below
     CrossedDownIndicatorRule crossedDownRule = new CrossedDownIndicatorRule(shortEma, longEma);
     UnderIndicatorRule underRule = new UnderIndicatorRule(shortEma, longEma);
 
