@@ -90,7 +90,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
         .setLongEmaPeriod(3)
         .build();
 
-    // This series (below) is engineered so that around the last bar, 
+    // This series (below) is engineered so that around the last bar,
     // short EMA (2) crosses above long EMA (3)
     BarSeries series = createCrossUpSeries();
     Strategy strategy = factory.createStrategy(series, params);
@@ -179,19 +179,19 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
    * and then crosses down. The last bar is a big drop in price
    * forcing short EMA < long EMA.
    */
-  private BarSeries createCrossDownSeries() {
-    BarSeries series = new BaseBarSeries();
-    ZonedDateTime now = ZonedDateTime.now();
+    private BarSeries createCrossDownSeries() {
+        BarSeries series = new BaseBarSeries();
+        ZonedDateTime now = ZonedDateTime.now();
 
-    // Start high, so short EMA is quickly above
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(1),
-        15.0, 15.0, 15.0, 15.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(2),
-        15.0, 15.0, 15.0, 15.0, 100.0));
-    // Now plunge
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(3),
-        10.0, 10.0,  9.0,  9.0, 100.0));
+        // Start high and keep falling
+        series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(1),
+            15.0, 15.0, 14.0, 14.0, 100.0));
+         series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(2),
+            14.0, 14.0, 13.0, 13.0, 100.0));
+        // Now plunge
+        series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(3),
+            10.0, 10.0,  9.0,  9.0, 100.0));
 
-    return series;
-  }
+        return series;
+    }
 }
