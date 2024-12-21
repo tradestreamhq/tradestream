@@ -2,6 +2,7 @@ package com.verlumen.tradestream.strategies.movingaverages;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.Range;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
