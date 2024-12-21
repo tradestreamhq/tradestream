@@ -1,8 +1,8 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
-    name = "DoubleEmaCrossoverStrategyTest",
-    srcs = ["DoubleEmaCrossoverStrategyTest.java"],
+    name = "DoubleEmaCrossoverStrategyFactoryTest",
+    srcs = ["DoubleEmaCrossoverStrategyFactoryTest.java"],
     deps = [
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_truth_truth",
