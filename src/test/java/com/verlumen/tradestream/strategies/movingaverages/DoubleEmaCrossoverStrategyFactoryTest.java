@@ -2,6 +2,8 @@ package com.verlumen.tradestream.strategies.movingaverages;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
@@ -14,11 +16,12 @@ import org.ta4j.core.Strategy;
 @RunWith(JUnit4.class)
 public class DoubleEmaCrossoverStrategyFactoryTest {
 
+  @Inject
   private DoubleEmaCrossoverStrategyFactory factory;
 
   @Before
   public void setUp() {
-    factory = new DoubleEmaCrossoverStrategy();
+    Guice.createInjector().injectMembers(this);
   }
 
   @Test
