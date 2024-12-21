@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.strategies.movingaverages;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -14,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
@@ -71,7 +71,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     CrossedUpIndicatorRule entryRule = (CrossedUpIndicatorRule) strategy.getEntryRule();
 
     // Assert
-    assertThat(entryRule.getFirstIndicator()).isInstanceOf(EMAIndicator.class);
+      assertThat(entryRule.getFirstIndicator()).isInstanceOf(EMAIndicator.class);
     EMAIndicator shortEma = (EMAIndicator) entryRule.getFirstIndicator();
     assertThat(shortEma.getTimeFrame()).isEqualTo(params.getShortEmaPeriod());
     assertThat(shortEma.getBarSeries()).isEqualTo(series);
@@ -89,17 +89,17 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     CrossedUpIndicatorRule entryRule = (CrossedUpIndicatorRule) strategy.getEntryRule();
 
     // Assert
-    assertThat(entryRule.getSecondIndicator()).isInstanceOf(EMAIndicator.class);
+      assertThat(entryRule.getSecondIndicator()).isInstanceOf(EMAIndicator.class);
     EMAIndicator longEma = (EMAIndicator) entryRule.getSecondIndicator();
-    assertThat(longEma.getTimeFrame()).isEqualTo(params.getLongEmaPeriod());
-    assertThat(longEma.getBarSeries()).isEqualTo(series);
+      assertThat(longEma.getTimeFrame()).isEqualTo(params.getLongEmaPeriod());
+      assertThat(longEma.getBarSeries()).isEqualTo(series);
   }
 
   @Test
   public void createStrategy_exitRule_isCrossedDownIndicatorRule() throws InvalidProtocolBufferException {
     // Arrange
     DoubleEmaCrossoverParameters params =
-        DoubleEmaCmaCrossoverParameters.newBuilder().setShortEmaPeriod(5).setLongEmaPeriod(20).build();
+        DoubleEmaCrossoverParameters.newBuilder().setShortEmaPeriod(5).setLongEmaPeriod(20).build();
     BarSeries series = createTestBarSeries();
 
     // Act
@@ -121,10 +121,10 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     CrossedDownIndicatorRule exitRule = (CrossedDownIndicatorRule) strategy.getExitRule();
 
     // Assert
-    assertThat(exitRule.getFirstIndicator()).isInstanceOf(EMAIndicator.class);
+      assertThat(exitRule.getFirstIndicator()).isInstanceOf(EMAIndicator.class);
     EMAIndicator shortEma = (EMAIndicator) exitRule.getFirstIndicator();
-    assertThat(shortEma.getTimeFrame()).isEqualTo(params.getShortEmaPeriod());
-    assertThat(shortEma.getBarSeries()).isEqualTo(series);
+      assertThat(shortEma.getTimeFrame()).isEqualTo(params.getShortEmaPeriod());
+      assertThat(shortEma.getBarSeries()).isEqualTo(series);
   }
 
   @Test
@@ -148,8 +148,8 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   private BarSeries createTestBarSeries() {
     BarSeries series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
-    series.addBar(new Bar(Duration.ofMinutes(1), now.plusMinutes(1), 10, 12, 8, 11));
-    series.addBar(new Bar(Duration.ofMinutes(1), now.plusMinutes(2), 11, 13, 9, 12));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(1), 10, 12, 8, 11));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(2), 11, 13, 9, 12));
     return series;
   }
 }
