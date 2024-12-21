@@ -8,6 +8,8 @@ import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseStrategy;
+import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
@@ -17,38 +19,34 @@ import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
 public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<DoubleEmaCrossoverParameters> {
-  @Inject
-  DoubleEmaCrossoverStrategyFactory() {}
+    @Inject
+    DoubleEmaCrossoverStrategyFactory() {}
 
-  @Override
-  public Strategy createStrategy(BarSeries series, DoubleEmaCrossoverParameters params)
-      throws InvalidProtocolBufferException {
-    checkArgument(params.getShortEmaPeriod() > 0, "Short EMA period must be positive");
-    checkArgument(params.getLongEmaPeriod() > 0, "Long EMA period must be positive");
-    checkArgument(params.getLongEmaPeriod() > params.getShortEmaPeriod(),
-        "Long EMA period must be greater than short EMA period");
+    @Override
+    public Strategy createStrategy(BarSeries series, DoubleEmaCrossoverParameters params)
+            throws InvalidProtocolBufferException {
+        checkArgument(params.getShortEmaPeriod() > 0, "Short EMA period must be positive");
+        checkArgument(params.getLongEmaPeriod() > 0, "Long EMA period must be positive");
+        checkArgument(params.getLongEmaPeriod() > params.getShortEmaPeriod(),
+            "Long EMA period must be greater than short EMA period");
 
-    ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
-    EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
+        ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
+        EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
+        EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
 
-    // Entry rule: Short EMA crosses above Long EMA AND stays above
-    CrossedUpIndicatorRule crossedUpRule = new CrossedUpIndicatorRule(shortEma, longEma);
-    OverIndicatorRule overRule = new OverIndicatorRule(shortEma, longEma);
-    
-    // Exit rule: Short EMA crosses below Long EMA AND stays below
-    CrossedDownIndicatorRule crossedDownRule = new CrossedDownIndicatorRule(shortEma, longEma);
-    UnderIndicatorRule underRule = new UnderIndicatorRule(shortEma, longEma);
+        // Entry rule: Short EMA crosses above Long EMA
+        Rule entryRule = new CrossedUpIndicatorRule(shortEma, longEma);
+        
+        // Exit rule: Short EMA crosses below Long EMA
+        Rule exitRule = new CrossedDownIndicatorRule(shortEma, longEma);
 
-    return createStrategy(
-        crossedUpRule.and(overRule),
-        crossedDownRule.and(underRule),
-        params.getLongEmaPeriod()
-    );
-  }
+        Strategy strategy = new BaseStrategy(entryRule, exitRule);
+        strategy.setUnstableBars(params.getLongEmaPeriod());
+        return strategy;
+    }
 
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.DOUBLE_EMA_CROSSOVER;
-  }
+    @Override
+    public StrategyType getStrategyType() {
+        return StrategyType.DOUBLE_EMA_CROSSOVER;
+    }
 }
