@@ -4,6 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
+import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.EMAIndicator;
