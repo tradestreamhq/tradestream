@@ -6,6 +6,7 @@ java_library(
     name = "movingaverages_lib",
     srcs = glob(["*.java"]),
     deps = [
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_ta4j_ta4j_core",
