@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.strategies.movingaverages;
 
-import com.google.auto.value.AutoValue;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import com.verlumen.tradestream.strategies.StrategyType;
