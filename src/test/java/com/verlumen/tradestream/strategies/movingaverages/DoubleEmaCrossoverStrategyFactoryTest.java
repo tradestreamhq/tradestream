@@ -7,6 +7,8 @@ import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,8 +23,6 @@ import org.ta4j.core.Indicator;
 import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
-import java.time.Duration;
-import java.time.ZonedDateTime;
 
 @RunWith(JUnit4.class)
 public class DoubleEmaCrossoverStrategyFactoryTest {
