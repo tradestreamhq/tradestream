@@ -26,9 +26,11 @@ import org.ta4j.core.backtest.BarSeriesManager;
 
 @RunWith(JUnit4.class)
 public class DoubleEmaCrossoverStrategyFactoryTest {
-
   private static final Logger logger =
       Logger.getLogger(DoubleEmaCrossoverStrategyFactoryTest.class.getName());
+
+  private static final int SHORT_EMA = 3;
+  private static final int LONG_EMA = 7;
 
   @Inject private DoubleEmaCrossoverStrategyFactory factory;
 
@@ -53,7 +55,11 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
       throws InvalidProtocolBufferException {
     logger.info("Executing createStrategy_entryRule_triggersOnShortEmaCrossUp test...");
     DoubleEmaCrossoverParameters params =
-        DoubleEmaCrossoverParameters.newBuilder().setShortEmaPeriod(2).setLongEmaPeriod(3).build();
+        DoubleEmaCrossoverParameters
+          .newBuilder()
+          .setShortEmaPeriod(SHORT_EMA)
+          .setLongEmaPeriod(LONG_EMA)
+          .build();
     logger.log(Level.FINE, "Parameters for short/long EMA: {0}", params);
 
     BarSeries series = createCrossUpSeries();
@@ -75,7 +81,12 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
       throws InvalidProtocolBufferException {
     logger.info("Executing createStrategy_exitRule_triggersOnShortEmaCrossDown test...");
     DoubleEmaCrossoverParameters params =
-        DoubleEmaCrossoverParameters.newBuilder().setShortEmaPeriod(2).setLongEmaPeriod(3).build();
+    DoubleEmaCrossoverParameters params =
+        DoubleEmaCrossoverParameters
+          .newBuilder()
+          .setShortEmaPeriod(SHORT_EMA)
+          .setLongEmaPeriod(LONG_EMA)
+          .build();
     logger.log(Level.FINE, "Parameters for short/long EMA: {0}", params);
 
     BarSeries series = createCrossDownSeries();
