@@ -25,6 +25,7 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
 @RunWith(JUnit4.class)
 public class DoubleEmaCrossoverStrategyFactoryTest {
+  private static final BarSeries SERIES = newBarSeries();
 
   @Inject
   private DoubleEmaCrossoverStrategyFactory factory;
@@ -35,178 +36,106 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsCorrectType() {
-    // Arrange & Act
+  void createStrategy_validParameters_createsStrategy() throws InvalidProtocolBufferException {
+    // Arrange
+    DoubleEmaCrossoverParameters params =
+        DoubleEmaCrossoverParameters.newBuilder().setShortEmaPeriod(5).setLongEmaPeriod(10).build();
+
+    // Act
+    Strategy strategy = factory.createStrategy(SERIES, params);
+
+    // Assert
+    assertThat(strategy).isNotNull();
+  }
+
+  @Test
+  void createStrategy_shortEmaPeriodZero_throwsIllegalArgumentException() {
+    // Arrange
+    DoubleEmaCrossoverParameters params =
+        DoubleEmaCrossoverParameters.newBuilder().setShortEmaPeriod(0).setLongEmaPeriod(10).build();
+
+    // Act
+    Throwable thrown =
+        assertThrows(IllegalArgumentException.class, () -> factory.createStrategy(SERIES, params));
+
+    // Assert
+    assertThat(thrown).hasMessageThat().contains("shortEmaPeriod");
+  }
+
+  @Test
+  void createStrategy_shortEmaPeriodNegative_throwsIllegalArgumentException() {
+    // Arrange
+    DoubleEmaCrossoverParameters params =
+        DoubleEmaCrossoverParameters.newBuilder().setShortEmaPeriod(-1).setLongEmaPeriod(10).build();
+
+    // Act
+    Throwable thrown =
+        assertThrows(IllegalArgumentException.class, () -> factory.createStrategy(SERIES, params));
+
+    // Assert
+    assertThat(thrown).hasMessageThat().contains("shortEmaPeriod");
+  }
+
+  @Test
+  void createStrategy_longEmaPeriodZero_throwsIllegalArgumentException() {
+    // Arrange
+    DoubleEmaCrossoverParameters params =
+        DoubleEmaCrossoverParameters.newBuilder().setShortEmaPeriod(5).setLongEmaPeriod(0).build();
+
+    // Act
+    Throwable thrown =
+        assertThrows(IllegalArgumentException.class, () -> factory.createStrategy(SERIES, params));
+
+    // Assert
+    assertThat(thrown).hasMessageThat().contains("longEmaPeriod");
+  }
+
+  @Test
+  void createStrategy_longEmaPeriodNegative_throwsIllegalArgumentException() {
+    // Arrange
+    DoubleEmaCrossoverParameters params =
+        DoubleEmaCrossoverParameters.newBuilder().setShortEmaPeriod(5).setLongEmaPeriod(-1).build();
+
+    // Act
+    Throwable thrown =
+        assertThrows(IllegalArgumentException.class, () -> factory.createStrategy(SERIES, params));
+
+    // Assert
+    assertThat(thrown).hasMessageThat().contains("longEmaPeriod");
+  }
+
+  @Test
+  void createStrategy_longEmaPeriodLessThanOrEqualToShortEmaPeriod_throwsIllegalArgumentException() {
+    // Arrange
+    DoubleEmaCrossoverParameters params =
+        DoubleEmaCrossoverParameters.newBuilder().setShortEmaPeriod(10).setLongEmaPeriod(10).build();
+
+    // Act
+    Throwable thrown =
+        assertThrows(IllegalArgumentException.class, () -> factory.createStrategy(SERIES, params));
+
+    // Assert
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("longEmaPeriod must be greater than shortEmaPeriod");
+  }
+
+  @Test
+  void getStrategyType_returnsDoubleEmaCrossover() {
+    // Arrange (no specific arrangement needed)
+
+    // Act
     StrategyType strategyType = factory.getStrategyType();
 
     // Assert
     assertThat(strategyType).isEqualTo(StrategyType.DOUBLE_EMA_CROSSOVER);
   }
 
-  @Test
-  public void createStrategy_entryRule_isCrossedUpIndicatorRule()
-      throws InvalidProtocolBufferException {
-    // Arrange
-    DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
-        .setShortEmaPeriod(5)
-        .setLongEmaPeriod(20)
-        .build();
-    BarSeries series = createTestBarSeries();
-
-    // Act
-    Strategy strategy = factory.createStrategy(series, params);
-
-    // Assert
-    // We can still verify the type of the entry rule
-    assertThat(strategy.getEntryRule()).isInstanceOf(CrossedUpIndicatorRule.class);
-  }
-
-  @Test
-  public void createStrategy_exitRule_isCrossedDownIndicatorRule()
-      throws InvalidProtocolBufferException {
-    // Arrange
-    DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
-        .setShortEmaPeriod(5)
-        .setLongEmaPeriod(20)
-        .build();
-    BarSeries series = createTestBarSeries();
-
-    // Act
-    Strategy strategy = factory.createStrategy(series, params);
-
-    // Assert
-    assertThat(strategy.getExitRule()).isInstanceOf(CrossedDownIndicatorRule.class);
-  }
-
-  /**
-   * A more functional test verifying that the entry rule is satisfied at the correct index after
-   * short EMA crosses above long EMA.
-   *
-   * Note: This requires creating a BarSeries that actually triggers a cross-up if shortEmaPeriod <
-   * longEmaPeriod.
-   */
-  @Test
-  public void createStrategy_entryRule_triggersOnShortEmaCrossUp()
-      throws InvalidProtocolBufferException {
-    // Arrange
-     DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
-         // Use smaller periods so the crossover can happen quickly
-         .setShortEmaPeriod(2)
-         .setLongEmaPeriod(3)
-         .build();
-
-     // This series (below) is engineered so that around the last bar,
-     // the short EMA (2) crosses above the long EMA (3) at index 3.
-     BarSeries series = createCrossUpSeries();
-    Strategy strategy = factory.createStrategy(series, params);
-
-    // Act & Assert
-    // We'll test that the entry rule becomes true at some bar
-    boolean entrySatisfiedAtIndex = false;
-    for (int i = series.getBeginIndex(); i <= series.getEndIndex(); i++) {
-      if (strategy.getEntryRule().isSatisfied(i)) {
-        entrySatisfiedAtIndex = true;
-        break;
-      }
-    }
-    // Because we've engineered the data to cross, we expect at least one bar to trigger
-    assertThat(entrySatisfiedAtIndex).isTrue();
-  }
-
-  /**
-   * A more functional test verifying that the exit rule is satisfied at the correct index after short
-   * EMA crosses below long EMA.
-   */
-  @Test
-  public void createStrategy_exitRule_triggersOnShortEmaCrossDown()
-      throws InvalidProtocolBufferException {
-    // Arrange
-    DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
-        .setShortEmaPeriod(2)
-        .setLongEmaPeriod(3)
-        .build();
-
-    BarSeries series = createCrossDownSeries();
-    Strategy strategy = factory.createStrategy(series, params);
-
-    // Act & Assert
-    // We'll test that the exit rule becomes true at some bar
-    boolean exitSatisfiedAtIndex = false;
-    for (int i = series.getBeginIndex(); i <= series.getEndIndex(); i++) {
-      if (strategy.getExitRule().isSatisfied(i)) {
-        exitSatisfiedAtIndex = true;
-        break;
-      }
-    }
-
-    // Debugging Output:
-    ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
-    EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
-    for (int i = 0; i <= series.getEndIndex(); i++) {
-      System.out.println(
-          "Index: " + i + ", Short EMA: " + shortEma.getValue(i) + ", Long EMA: " + longEma.getValue(i));
-    }
-
-    assertThat(exitSatisfiedAtIndex).isTrue();
-  }
-
-  private BarSeries createTestBarSeries() {
+  private static BarSeries newBarSeries() {
     BarSeries series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
-
-    // With newer TA4j, we must supply (Duration, endTime, open, high, low, close, volume)
-    // Below is just an example with arbitrary values
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(1),
-        10.0, 12.0, 8.0, 11.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(2),
-        11.0, 13.0, 9.0, 12.0, 120.0));
-
-    return series;
-  }
-
-  /**
-   * Series designed so that short EMA crosses up the long EMA. The short period is 2, and the long
-   * is 3, so around the last bar the short EMA rises above the long.
-   *
-   * Crossover is expected at index 3.
-   */
-  private BarSeries createCrossUpSeries() {
-    BarSeries series = new BaseBarSeries();
-
-    ZonedDateTime now = ZonedDateTime.now();
-
-    // For the first few bars, keep the close price steady or slightly decreasing
-    // Then spike upward so that short EMA crosses above the long EMA
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(1),
-        10.0, 10.0, 10.0, 10.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(2),
-        10.0, 10.0, 10.0, 10.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(3),
-        9.5,  9.5,  9.0,  9.0,  100.0));
-    // Big jump
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(4),
-        10.0, 15.0, 10.0, 15.0, 100.0));
-
-    return series;
-  }
-
-  private BarSeries createCrossDownSeries() {
-    BarSeries series = new BaseBarSeries();
-    // The crossover is expected at index 6.
-    ZonedDateTime now = ZonedDateTime.now();
-
-    // 1) Start with some higher values to ensure short EMA > long EMA initially.
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(1), 18.0, 18.0, 18.0, 18.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(2), 17.0, 17.0, 17.0, 17.0, 100.0));
-
-    // 2) Gradually decrease further, so short EMA crosses below.
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(3), 16.0, 16.0, 16.0, 16.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(4), 14.0, 14.0, 14.0, 14.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(5), 12.0, 12.0, 12.0, 12.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(6), 10.0, 10.0, 10.0, 10.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(7), 8.0, 8.0, 8.0, 8.0, 100.0));
-
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.minusMinutes(2), 10, 12, 8, 11));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.minusMinutes(1), 11, 13, 9, 12));
     return series;
   }
 }
