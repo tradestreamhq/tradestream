@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.strategies.movingaverages;
 
+import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import com.verlumen.tradestream.strategies.StrategyType;
@@ -13,9 +14,11 @@ import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
 public class DoubleEmaCrossoverStrategy implements StrategyFactory<DoubleEmaCrossoverParameters> {
+  @Inject
+  DoubleEmaCrossoverStrategy() {}
 
   @Override
-  public Strategy createStrategy(DoubleEmaCrossoverParameters params)
+  public Strategy createStrategy(BarSeries series, DoubleEmaCrossoverParameters params)
       throws InvalidProtocolBufferException {
     ClosePriceIndicator closePrice = new ClosePriceIndicator(null);
     EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
@@ -30,17 +33,5 @@ public class DoubleEmaCrossoverStrategy implements StrategyFactory<DoubleEmaCros
   @Override
   public StrategyType getStrategyType() {
     return StrategyType.DOUBLE_EMA_CROSSOVER;
-  }
-
-  public static class Factory implements StrategyFactory<DoubleEmaCrossoverParameters>{
-    @Override
-    public Strategy createStrategy(DoubleEmaCrossoverParameters parameters) throws InvalidProtocolBufferException {
-        return new DoubleEmaCrossoverStrategy().createStrategy(parameters);
-    }
-
-    @Override
-    public StrategyType getStrategyType() {
-        return StrategyType.DOUBLE_EMA_CROSSOVER;
-    }
   }
 }
