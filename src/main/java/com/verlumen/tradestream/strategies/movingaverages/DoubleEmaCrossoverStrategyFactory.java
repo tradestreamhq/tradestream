@@ -24,8 +24,7 @@ public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<Double
     EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
     EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
 
-    return new BaseStrategy(
-        "Double EMA Crossover",
+    return createStrategy(
         new CrossedUpIndicatorRule(shortEma, longEma),
         new CrossedDownIndicatorRule(shortEma, longEma));
   }
