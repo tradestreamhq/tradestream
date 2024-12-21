@@ -109,63 +109,65 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     logger.info("createStrategy_exitRule_triggersOnShortEmaCrossDown test passed.");
   }
 
-  private BarSeries createCrossDownSeries() {
-    logger.fine("Creating bar series to test short EMA crossing down...");
-    BarSeries series = new BaseBarSeries();
-    ZonedDateTime now = ZonedDateTime.now();
-
-    // 5 bars at 10 to establish a baseline
-    for (int i = 0; i < 5; i++) {
-      Bar bar = new BaseBar(
-          Duration.ofMinutes(1),
-          now.plusMinutes(i),
-          10.0, 10.0, 10.0, 10.0,
-          100.0);
-      series.addBar(bar);
-    }
-  
-    // Move up first, letting short EMA go above the long EMA
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(5), 15.0, 15.0, 15.0, 15.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(6), 20.0, 20.0, 20.0, 20.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(7), 25.0, 25.0, 25.0, 25.0, 100.0));
-  
-    // Stabilize a bit
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(8), 25.0, 25.0, 25.0, 25.0, 100.0));
-  
-    // Then a sharp drop—enough bars to ensure the cross down is recognized
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(9), 15.0, 15.0, 15.0, 15.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(10), 10.0, 10.0, 10.0, 10.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(11), 5.0, 5.0, 5.0, 5.0, 100.0));
-  
-    // One extra bar so TA4J sees the cross from the previous bar
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(12), 5.0, 5.0, 5.0, 5.0, 100.0));
-  
-    return series;
-  }
-
   private BarSeries createCrossUpSeries() {
     logger.fine("Creating bar series to test short EMA crossing up...");
     BarSeries series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
   
-    // 5 bars at 10 to establish baseline
-    for (int i = 0; i < 5; i++) {
-      Bar bar = new BaseBar(
-          Duration.ofMinutes(1),
-          now.plusMinutes(i),
-          10.0, 10.0, 10.0, 10.0,
-          100.0);
-      series.addBar(bar);
+    // 1) Warm-up bars so the short (3) & long (7) EMAs are valid.
+    //    10 bars at 10.0 to "prime" the EMAs.
+    for (int i = 0; i < 10; i++) {
+      series.addBar(
+          new BaseBar(
+              Duration.ofMinutes(1),
+              now.plusMinutes(i),
+              10.0, 10.0, 10.0, 10.0,
+              100.0));
     }
+
+    // 2) Gradually increase price so shortEma eventually crosses above longEma.
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(10), 12.0, 12.0, 12.0, 12.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(11), 14.0, 14.0, 14.0, 14.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(12), 18.0, 18.0, 18.0, 18.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(13), 20.0, 20.0, 20.0, 20.0, 100.0));
+
+    // 3) Add 1–2 extra bars so TA4J can “finalize” the cross.
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(14), 20.0, 20.0, 20.0, 20.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(15), 20.0, 20.0, 20.0, 20.0, 100.0));
+
+    return series;
+  }
   
-    // Gradually move upward to let short EMA inch above long EMA
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(5), 12.0, 12.0, 12.0, 12.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(6), 14.0, 14.0, 14.0, 14.0, 100.0));
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(7), 18.0, 18.0, 18.0, 18.0, 100.0));
-  
-    // IMPORTANT: One extra bar to confirm short > long *on the next bar*
-    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(8), 20.0, 20.0, 20.0, 20.0, 100.0));
-  
+  private BarSeries createCrossDownSeries() {
+    logger.fine("Creating bar series to test short EMA crossing down...");
+    BarSeries series = new BaseBarSeries();
+    ZonedDateTime now = ZonedDateTime.now();
+
+    // 1) Again, warm-up bars to let the longEma(7) & shortEma(3) initialize.
+    for (int i = 0; i < 10; i++) {
+      series.addBar(
+          new BaseBar(
+              Duration.ofMinutes(1),
+              now.plusMinutes(i),
+              10.0, 10.0, 10.0, 10.0,
+              100.0));
+    }
+
+    // 2) Move up first, ensuring shortEma > longEma
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(10), 15.0, 15.0, 15.0, 15.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(11), 20.0, 20.0, 20.0, 20.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(12), 25.0, 25.0, 25.0, 25.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(13), 25.0, 25.0, 25.0, 25.0, 100.0));
+
+    // 3) Then a sharp drop to cross below
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(14), 15.0, 15.0, 15.0, 15.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(15), 10.0, 10.0, 10.0, 10.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(16), 5.0, 5.0, 5.0, 5.0, 100.0));
+
+    // 4) Extra trailing bars to finalize the cross event
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(17), 5.0, 5.0, 5.0, 5.0, 100.0));
+    series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(18), 5.0, 5.0, 5.0, 5.0, 100.0));
+
     return series;
   }
 }
