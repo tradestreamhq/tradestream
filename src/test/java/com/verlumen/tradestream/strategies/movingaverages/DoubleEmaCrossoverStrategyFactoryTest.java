@@ -119,44 +119,36 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
    */
   @Test
   public void createStrategy_exitRule_triggersOnShortEmaCrossDown()
-          throws InvalidProtocolBufferException {
-      // Arrange
-      DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
-              .setShortEmaPeriod(2)
-              .setLongEmaPeriod(3)
-              .build();
-  
-      BarSeries series = createCrossDownSeries();
-      Strategy strategy = factory.createStrategy(series, params);
-  
-      // Debugging Output:
-      ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-      EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
-      EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
-  
-      int lastBarIndex = series.getEndIndex();
-  
-      System.out.println("----- DEBUG INFO -----");
-      System.out.println("Last Bar Index: " + lastBarIndex);
-      for (int i = 0; i <= lastBarIndex; i++) {
-          System.out.println("Index: " + i +
-                ", Short EMA: " + shortEma.getValue(i) +
-                ", Long EMA: " + longEma.getValue(i) +
-                ", Close Price: " + series.getBar(i).getClosePrice());
-      }
-  
-  
-      // Act & Assert
-      // We'll test that the exit rule becomes true at some bar
-      boolean anyExitSatisfied = false;
-      for (int i = series.getBeginIndex(); i <= series.getEndIndex(); i++) {
-        if (strategy.getExitRule().isSatisfied(i)) {
-          anyExitSatisfied = true;
-          break;
-        }
-      }
+      throws InvalidProtocolBufferException {
+    // Arrange
+    DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
+        .setShortEmaPeriod(2)
+        .setLongEmaPeriod(3)
+        .build();
 
-      assertThat(anyExitSatisfied).isTrue();
+    BarSeries series = createCrossDownSeries();
+    Strategy strategy = factory.createStrategy(series, params);
+
+    // Act & Assert
+    // We'll test that the exit rule becomes true at some bar
+    boolean anyExitSatisfied = false;
+    for (int i = series.getBeginIndex(); i <= series.getEndIndex(); i++) {
+      if (strategy.getExitRule().isSatisfied(i)) {
+        anyExitSatisfied = true;
+        break;
+      }
+    }
+
+    // Debugging Output:
+    ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
+    EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
+    EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
+    for (int i = 0; i <= series.getEndIndex(); i++) {
+      System.out.println(
+          "Index: " + i + ", Short EMA: " + shortEma.getValue(i) + ", Long EMA: " + longEma.getValue(i));
+    }
+
+    assertThat(anyExitSatisfied).isTrue();
   }
 
   private BarSeries createTestBarSeries() {
@@ -199,18 +191,18 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   private BarSeries createCrossDownSeries() {
     BarSeries series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
-  
+
     // 1) Start with some higher values to ensure short EMA > long EMA initially.
     series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(1), 18.0, 18.0, 18.0, 18.0, 100.0));
     series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(2), 17.0, 17.0, 17.0, 17.0, 100.0));
-  
+
     // 2) Gradually decrease further, so short EMA crosses below.
     series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(3), 16.0, 16.0, 16.0, 16.0, 100.0));
     series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(4), 14.0, 14.0, 14.0, 14.0, 100.0));
     series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(5), 12.0, 12.0, 12.0, 12.0, 100.0));
     series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(6), 10.0, 10.0, 10.0, 10.0, 100.0));
     series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(7), 8.0, 8.0, 8.0, 8.0, 100.0));
-  
+
     return series;
   }
 }
