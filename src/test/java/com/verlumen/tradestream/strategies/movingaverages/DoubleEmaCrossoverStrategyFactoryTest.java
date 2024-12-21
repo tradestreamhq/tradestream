@@ -118,37 +118,25 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
    * EMA crosses below long EMA.
    */
   @Test
-  public void createStrategy_exitRule_triggersOnShortEmaCrossDown()
-      throws InvalidProtocolBufferException {
-    // Arrange
-    DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
-        .setShortEmaPeriod(2)
-        .setLongEmaPeriod(3)
-        .build();
+  public void createStrategy_exitRule_triggersOnShortEmaCrossDown() throws InvalidProtocolBufferException {
+      // Arrange
+      DoubleEmaCrossoverParameters params = DoubleEmaCrossoverParameters.newBuilder()
+          .setShortEmaPeriod(2)
+          .setLongEmaPeriod(3)
+          .build();
+      BarSeries series = createCrossDownSeries();
 
-    BarSeries series = createCrossDownSeries();
-    Strategy strategy = factory.createStrategy(series, params);
+      // Act
+      Strategy strategy = factory.createStrategy(series, params);
+      BarSeriesManager manager = new BarSeriesManager(series);
+      TradingRecord tradingRecord = manager.run(strategy);
 
-    // Act & Assert
-    // We'll test that the exit rule becomes true at some bar
-    boolean exitSatisfiedAtIndex = false;
-    for (int i = series.getBeginIndex(); i <= series.getEndIndex(); i++) {
-      if (strategy.getExitRule().isSatisfied(i)) {
-        exitSatisfiedAtIndex = true;
-        break;
-      }
-    }
-
-    // Debugging Output:
-    ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    EMAIndicator shortEma = new EMAIndicator(closePrice, params.getShortEmaPeriod());
-    EMAIndicator longEma = new EMAIndicator(closePrice, params.getLongEmaPeriod());
-    for (int i = 0; i <= series.getEndIndex(); i++) {
-      System.out.println(
-          "Index: " + i + ", Short EMA: " + shortEma.getValue(i) + ", Long EMA: " + longEma.getValue(i));
-    }
-
-    assertThat(exitSatisfiedAtIndex).isTrue();
+      // Assert
+      // Should enter position when short EMA crosses above long EMA
+      // and exit when it crosses below
+      assertThat(tradingRecord.getPositionCount()).isEqualTo(1);
+      Position position = tradingRecord.getPositions().get(0);
+      assertThat(position.getEntry().getIndex()).isLessThan(position.getExit().getIndex());
   }
 
   private BarSeries createTestBarSeries() {
