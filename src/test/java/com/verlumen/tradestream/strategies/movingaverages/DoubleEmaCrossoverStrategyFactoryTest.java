@@ -117,7 +117,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
         }
 
         // No exit signal before the drop
-        assertThat(strategy.getExitRule().isSatisfied(10)).isTrue();
+        assertThat(strategy.getExitRule().isSatisfied(10)).isFalse();
 
         // Strict cross-down typically recognized at bar 11
         assertThat(strategy.getExitRule().isSatisfied(11)).isTrue();
