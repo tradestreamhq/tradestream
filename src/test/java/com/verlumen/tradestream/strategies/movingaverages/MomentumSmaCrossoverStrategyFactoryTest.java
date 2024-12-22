@@ -33,44 +33,44 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
   private SMAIndicator smaIndicator;
   private ClosePriceIndicator closePrice;
 
-
   @Before
   public void setUp() throws InvalidProtocolBufferException {
     factory = new MomentumSmaCrossoverStrategyFactory();
     params = MomentumSmaCrossoverParameters.newBuilder()
-        .setMomentumPeriod(MOMENTUM_PERIOD)
-        .setSmaPeriod(SMA_PERIOD)
+        .setMomentumPeriod(MOMENTUM_PERIOD) // 10
+        .setSmaPeriod(SMA_PERIOD)          // 20
         .build();
 
-    // Initialize series
     series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
-    
-   // ---------------------------------------------------------------------
-    // 1) Baseline - momentum < sma
-    // ---------------------------------------------------------------------
-   double price = 50.0;
-   for (int i = 0; i < 7; i++) {
-       series.addBar(createBar(now.plusMinutes(i), price));
-      price -= 1.0;
-    }
 
-   // ---------------------------------------------------------------------
-    // 2) Upward movement - momentum > sma by bar 7
-    // ---------------------------------------------------------------------
-    series.addBar(createBar(now.plusMinutes(7), 65.0));
-    series.addBar(createBar(now.plusMinutes(8), 80.0));
-    series.addBar(createBar(now.plusMinutes(9), 70.0));
+    // ---------------------------------------------------
+    // 1) Extended Baseline: bars 0..9 (11 total bars)
+    //    Enough for Momentum(10) to produce real data
+    // ---------------------------------------------------
+    double price = 50.0;
+    // We'll create 10 baseline bars, gradually descending
+    for (int i = 0; i < 10; i++) {
+        series.addBar(createBar(now.plusMinutes(i), price));
+        price -= 1.0;  // e.g., 50 -> 49 -> 48...
+    }
+    // By bar 9, momentum is being calculated vs bar -1, 
+    // which doesn't fully exist, so let's make bar 9
+    // somewhat stable. The partial means momentum might be ~0.
+
+    // ---------------------------------------------------
+    // 2) Upward movement: bar 10 => big jump to 90
+    // ---------------------------------------------------
     series.addBar(createBar(now.plusMinutes(10), 90.0));
 
-    // ---------------------------------------------------------------------
-    // 3) Downward movement - momentum < sma by bar 11
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------
+    // 3) Downward movement for exit: bars 11..13
+    // ---------------------------------------------------
     series.addBar(createBar(now.plusMinutes(11), 40.0));
     series.addBar(createBar(now.plusMinutes(12), 30.0));
     series.addBar(createBar(now.plusMinutes(13), 25.0));
 
-    // Initialize indicators for debugging
+    // Initialize indicators
     closePrice = new ClosePriceIndicator(series);
     momentumIndicator = new MomentumIndicator(closePrice, MOMENTUM_PERIOD);
     smaIndicator = new SMAIndicator(momentumIndicator, SMA_PERIOD);
@@ -78,6 +78,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
     // Create strategy
     strategy = factory.createStrategy(series, params);
   }
+
 
   @Test
   public void getStrategyType_returnsMomentumSmaCrossover() {
