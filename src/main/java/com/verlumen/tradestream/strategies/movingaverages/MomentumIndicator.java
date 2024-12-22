@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.strategies.movingaverages;
 
+import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
 
