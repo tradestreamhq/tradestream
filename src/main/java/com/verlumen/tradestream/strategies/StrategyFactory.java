@@ -52,9 +52,17 @@ public interface StrategyFactory<T extends Message> {
    * @return The newly created {@link Strategy} object.
    */
   default Strategy createStrategy(Rule entryRule, Rule exitRule, int unstableBars) {
-    return new BaseStrategy(getStrategyType().name(), entryRule, exitRule, unstableBars);
+    return new BaseStrategy(getStrategyType.name(), entryRule, exitRule, unstableBars);
   }
-  
+
+  /**
+   * Gets the name of the strategy based on the provided parameters.
+   *
+   * @param parameters The parameters that may influence the strategy name.
+   * @return The name of the strategy as a {@link String}.
+   */
+  String getStrategyName(T parameters);
+
   /**
    * Gets the {@link StrategyType} that this factory handles.
    *
