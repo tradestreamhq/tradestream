@@ -27,3 +27,5 @@ strategyEngine:
   image:
     repository: "tradestreamhq/tradestream-strategy-engine"
     tag: "v0.0.368-develop"
+  service:
+    port: 8081
