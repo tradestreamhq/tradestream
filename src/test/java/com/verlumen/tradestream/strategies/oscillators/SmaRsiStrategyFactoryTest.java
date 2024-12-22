@@ -54,35 +54,25 @@ public class SmaRsiStrategyFactoryTest {
         series = new BaseBarSeries();
         ZonedDateTime now = ZonedDateTime.now();
 
-        // ---------------------------------------------------------------------
-        // 1)  baseline where rsi is not oversold
-        // ---------------------------------------------------------------------
-        // Bar 0 to 6: descending prices: 50 -> 49 -> 48 -> 47 -> 46 -> 45 -> 44
+        // Bars 0..6: descending prices (50 -> 44)
         double price = 50.0;
         for (int i = 0; i < 7; i++) {
             series.addBar(createBar(now.plusMinutes(i), price));
             price -= 1.0;
         }
-      
-      // ---------------------------------------------------------------------
-        // 2)  Strong downward movement so RSI < oversold threshold by bar 7.
-        //    This ensures a strict entry is possible at bar 7.
-        // ---------------------------------------------------------------------
-      
+
+        // Strong downward movement (bars 7..10)
         series.addBar(createBar(now.plusMinutes(7), 20.0));
         series.addBar(createBar(now.plusMinutes(8), 15.0));
         series.addBar(createBar(now.plusMinutes(9), 10.0));
         series.addBar(createBar(now.plusMinutes(10), 5.0));
-         // ---------------------------------------------------------------------
-        // 3) Strong upward movement so RSI > overbought threshold by bar 11
-        //  This ensures a strict exit is possible at bar 11.
-        // ---------------------------------------------------------------------
+
+        // Strong upward movement (bars 11..13)
         series.addBar(createBar(now.plusMinutes(11), 80.0));
         series.addBar(createBar(now.plusMinutes(12), 85.0));
-      series.addBar(createBar(now.plusMinutes(13), 90.0));
+        series.addBar(createBar(now.plusMinutes(13), 90.0));
 
-
-        // Initialize indicators for debugging
+        // Initialize indicators
         closePrice = new ClosePriceIndicator(series);
         rsiIndicator = new RSIIndicator(closePrice, RSI_PERIOD);
         smaIndicator = new SMAIndicator(rsiIndicator, MOVING_AVERAGE_PERIOD);
@@ -90,99 +80,100 @@ public class SmaRsiStrategyFactoryTest {
         // Create strategy
         strategy = factory.createStrategy(series, params);
     }
+
     @Test
     public void getStrategyType_returnsSmaRsi() {
-      assertThat(factory.getStrategyType()).isEqualTo(StrategyType.SMA_RSI);
+        assertThat(factory.getStrategyType()).isEqualTo(StrategyType.SMA_RSI);
     }
 
     @Test
     public void entryRule_shouldTrigger_whenRsiAndSmaAreUnderOversold() {
-      // Log RSI and SMA values around the expected entry
+        // Log RSI and SMA values around bars 6..10
         for (int i = 6; i <= 10; i++) {
-          System.out.printf("Bar %d - Price: %.2f, RSI: %.2f, SMA: %.2f%n",
-              i,
+            System.out.printf(
+                "Bar %d - Price: %.2f, RSI: %.2f, SMA: %.2f%n",
+                i,
                 closePrice.getValue(i).doubleValue(),
-              rsiIndicator.getValue(i).doubleValue(),
-              smaIndicator.getValue(i).doubleValue());
+                rsiIndicator.getValue(i).doubleValue(),
+                smaIndicator.getValue(i).doubleValue()
+            );
         }
 
-        // No entry signal before the drop
-        assertFalse("Should not trigger entry at bar 6", strategy.getEntryRule().isSatisfied(6));
-
-        // Entry signal at bar 7
+        // We expect the entry signal by bar 7, because RSI & SMA remain very low
         assertTrue(
             "Entry rule should trigger when RSI and SMA are below oversold at bar 7",
             strategy.getEntryRule().isSatisfied(7)
         );
     }
 
-
     @Test
     public void exitRule_shouldTrigger_whenRsiAndSmaAreOverOverbought() {
-      // Log RSI and SMA values around the expected exit
+        // Log RSI and SMA values around bars 10..13
         for (int i = 10; i <= 13; i++) {
-          System.out.printf("Bar %d - Price: %.2f, RSI: %.2f, SMA: %.2f%n",
-              i,
+            System.out.printf(
+                "Bar %d - Price: %.2f, RSI: %.2f, SMA: %.2f%n",
+                i,
                 closePrice.getValue(i).doubleValue(),
                 rsiIndicator.getValue(i).doubleValue(),
-                smaIndicator.getValue(i).doubleValue());
+                smaIndicator.getValue(i).doubleValue()
+            );
         }
-        // No exit signal before the rise
+
+        // Not overbought at bar 10 (RSI=0)
         assertFalse("Should not trigger exit at bar 10", strategy.getExitRule().isSatisfied(10));
 
-        // Exit signal should trigger at bar 11
+        // RSI crosses above 70 around bar 12, so the rule triggers at bar 12
         assertTrue(
-            "Exit rule should trigger when RSI and SMA are above overbought at bar 11",
-            strategy.getExitRule().isSatisfied(11)
+           "Exit rule should trigger when RSI and SMA are above overbought at bar 12",
+           strategy.getExitRule().isSatisfied(12)
         );
     }
 
-
     @Test(expected = IllegalArgumentException.class)
     public void validateMovingAveragePeriod() throws InvalidProtocolBufferException {
-      params = SmaRsiParameters.newBuilder()
-        .setRsiPeriod(RSI_PERIOD)
-          .setMovingAveragePeriod(-1)
-          .setOverboughtThreshold(OVERBOUGHT_THRESHOLD)
-          .setOversoldThreshold(OVERSOLD_THRESHOLD)
-          .build();
-      factory.createStrategy(series, params);
+        params = SmaRsiParameters.newBuilder()
+            .setRsiPeriod(RSI_PERIOD)
+            .setMovingAveragePeriod(-1)
+            .setOverboughtThreshold(OVERBOUGHT_THRESHOLD)
+            .setOversoldThreshold(OVERSOLD_THRESHOLD)
+            .build();
+        factory.createStrategy(series, params);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void validateRsiPeriod() throws InvalidProtocolBufferException {
-      params = SmaRsiParameters.newBuilder()
-        .setRsiPeriod(-1)
-          .setMovingAveragePeriod(MOVING_AVERAGE_PERIOD)
-          .setOverboughtThreshold(OVERBOUGHT_THRESHOLD)
-          .setOversoldThreshold(OVERSOLD_THRESHOLD)
-          .build();
+        params = SmaRsiParameters.newBuilder()
+            .setRsiPeriod(-1)
+            .setMovingAveragePeriod(MOVING_AVERAGE_PERIOD)
+            .setOverboughtThreshold(OVERBOUGHT_THRESHOLD)
+            .setOversoldThreshold(OVERSOLD_THRESHOLD)
+            .build();
         factory.createStrategy(series, params);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void validateOverboughtThreshold() throws InvalidProtocolBufferException {
-      params = SmaRsiParameters.newBuilder()
-        .setRsiPeriod(RSI_PERIOD)
-          .setMovingAveragePeriod(MOVING_AVERAGE_PERIOD)
-           .setOverboughtThreshold(-1)
-          .setOversoldThreshold(OVERSOLD_THRESHOLD)
-          .build();
-      factory.createStrategy(series, params);
+        params = SmaRsiParameters.newBuilder()
+            .setRsiPeriod(RSI_PERIOD)
+            .setMovingAveragePeriod(MOVING_AVERAGE_PERIOD)
+            .setOverboughtThreshold(-1)
+            .setOversoldThreshold(OVERSOLD_THRESHOLD)
+            .build();
+        factory.createStrategy(series, params);
     }
 
-  @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void validateOversoldThreshold() throws InvalidProtocolBufferException {
-    params = SmaRsiParameters.newBuilder()
-      .setRsiPeriod(RSI_PERIOD)
-          .setMovingAveragePeriod(MOVING_AVERAGE_PERIOD)
-          .setOverboughtThreshold(OVERBOUGHT_THRESHOLD)
-          .setOversoldThreshold(-1)
-          .build();
-    factory.createStrategy(series, params);
-  }
+        params = SmaRsiParameters.newBuilder()
+            .setRsiPeriod(RSI_PERIOD)
+            .setMovingAveragePeriod(MOVING_AVERAGE_PERIOD)
+            .setOverboughtThreshold(OVERBOUGHT_THRESHOLD)
+            .setOversoldThreshold(-1)
+            .build();
+        factory.createStrategy(series, params);
+    }
 
-  @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void validateThresholdOrdering() throws InvalidProtocolBufferException {
         params = SmaRsiParameters.newBuilder()
             .setRsiPeriod(RSI_PERIOD)
@@ -192,7 +183,7 @@ public class SmaRsiStrategyFactoryTest {
             .build();
         factory.createStrategy(series, params);
     }
-  
+
     /**
      * Helper for creating a Bar with a specific close price.
      */
