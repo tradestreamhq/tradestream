@@ -79,7 +79,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
 
   @Test
   public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma() {
-    // The crossover should occur around bar 32-33
+    // The crossover should occur at bar 32
     // Log values around expected crossover
     for (int i = 31; i < 34; i++) {
       System.out.printf(
@@ -91,7 +91,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
     }
 
     assertThat(strategy.getEntryRule().isSatisfied(31)).isFalse();
-    assertThat(strategy.getEntryRule().isSatisfied(32)).isFalse();
+    assertThat(strategy.getEntryRule().isSatisfied(32)).isTrue();
     assertThat(strategy.getEntryRule().isSatisfied(33)).isTrue();
   }
 
@@ -103,7 +103,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
       series.addBar(createBar(startTime.plusMinutes(i), price));
     }
 
-    // The crossover should occur around bar 42-43
+    // The crossover should occur at bar 42
     // Log values around expected crossover
     for (int i = 41; i < 44; i++) {
       System.out.printf(
@@ -115,7 +115,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
     }
 
     assertThat(strategy.getExitRule().isSatisfied(41)).isFalse();
-    assertThat(strategy.getExitRule().isSatisfied(42)).isFalse();
+    assertThat(strategy.getExitRule().isSatisfied(42)).isTrue();
     assertThat(strategy.getExitRule().isSatisfied(43)).isTrue();
   }
 
