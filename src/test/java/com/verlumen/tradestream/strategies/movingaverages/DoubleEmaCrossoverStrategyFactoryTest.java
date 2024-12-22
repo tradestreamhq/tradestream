@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.StrategyType;
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -31,7 +32,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     private Strategy strategy;
 
     @Before
-    public void setUp() {
+    public void setUp() throws InvalidProtocolBufferException {
         Guice.createInjector().injectMembers(this);
         
         // Create standard parameters
@@ -87,7 +88,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_shouldThrowException_whenShortEmaPeriodIsNegative() {
+    public void constructor_shouldThrowException_whenShortEmaPeriodIsNegative() throws InvalidProtocolBufferException {
         params = DoubleEmaCrossoverParameters.newBuilder()
             .setShortEmaPeriod(-1)
             .setLongEmaPeriod(LONG_EMA)
@@ -96,7 +97,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_shouldThrowException_whenLongEmaPeriodIsNegative() {
+    public void constructor_shouldThrowException_whenLongEmaPeriodIsNegative() throws InvalidProtocolBufferException {
         params = DoubleEmaCrossoverParameters.newBuilder()
             .setShortEmaPeriod(SHORT_EMA)
             .setLongEmaPeriod(-1)
@@ -105,7 +106,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_shouldThrowException_whenLongEmaPeriodLessThanShortPeriod() {
+    public void constructor_shouldThrowException_whenLongEmaPeriodLessThanShortPeriod() throws InvalidProtocolBufferException {
         params = DoubleEmaCrossoverParameters.newBuilder()
             .setShortEmaPeriod(LONG_EMA)
             .setLongEmaPeriod(SHORT_EMA)
