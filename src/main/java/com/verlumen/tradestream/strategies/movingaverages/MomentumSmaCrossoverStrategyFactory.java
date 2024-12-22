@@ -16,6 +16,8 @@ import org.ta4j.core.indicators.helpers.ConstantIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
+import org.ta4j.core.rules.OverIndicatorRule;
+import org.ta4j.core.rules.UnderIndicatorRule;
 
 public class MomentumSmaCrossoverStrategyFactory 
     implements StrategyFactory<MomentumSmaCrossoverParameters> {
@@ -36,15 +38,14 @@ public class MomentumSmaCrossoverStrategyFactory
         
         // Create SMA of the momentum values 
         SMAIndicator smaIndicator = new SMAIndicator(momentumIndicator, params.getSmaPeriod());
-        
-        // Create zero line indicator for crossover reference
-        ConstantIndicator<Num> zeroLine = new ConstantIndicator<>(series, series.numOf(0));
 
-        // Entry rule - SMA crosses above zero line (indicating sustained upward momentum)
-        var entryRule = new CrossedUpIndicatorRule(smaIndicator, zeroLine);
+        // Entry rule - Momentum is positive AND above SMA
+        var entryRule = new OverIndicatorRule(momentumIndicator, smaIndicator)
+            .and(new OverIndicatorRule(momentumIndicator, series.numOf(0)));
 
-        // Exit rule - SMA crosses below zero line (indicating sustained downward momentum)
-        var exitRule = new CrossedDownIndicatorRule(smaIndicator, zeroLine);
+        // Exit rule - Momentum is negative AND below SMA  
+        var exitRule = new UnderIndicatorRule(momentumIndicator, smaIndicator)
+            .and(new UnderIndicatorRule(momentumIndicator, series.numOf(0)));
 
         String strategyName = String.format(
             "%s (MOM-%d/SMA-%d)", 
