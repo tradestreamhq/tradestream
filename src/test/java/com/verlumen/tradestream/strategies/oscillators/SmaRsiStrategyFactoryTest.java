@@ -72,6 +72,12 @@ public class SmaRsiStrategyFactoryTest {
         series.addBar(createBar(now.plusMinutes(12), 85.0));
         series.addBar(createBar(now.plusMinutes(13), 90.0));
 
+        // Bars 14..20: keep RSI above 70 *consecutively* so that
+        // the 7-bar SMA of RSI also climbs above 70 eventually.
+        for (int i = 14; i <= 20; i++) {
+            series.addBar(createBar(now.plusMinutes(i), 90.0));
+        }
+
         // Initialize indicators
         closePrice = new ClosePriceIndicator(series);
         rsiIndicator = new RSIIndicator(closePrice, RSI_PERIOD);
