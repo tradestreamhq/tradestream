@@ -21,49 +21,37 @@ import org.ta4j.core.rules.UnderIndicatorRule;
 public class MomentumSmaCrossoverStrategyFactory
     implements StrategyFactory<MomentumSmaCrossoverParameters> {
 
-  @Inject
-  MomentumSmaCrossoverStrategyFactory() {}
+    @Inject
+    MomentumSmaCrossoverStrategyFactory() {}
 
-  @Override
-  public Strategy createStrategy(BarSeries series, MomentumSmaCrossoverParameters params)
-      throws InvalidProtocolBufferException {
-    checkArgument(params.getMomentumPeriod() > 0, "Momentum period must be positive");
-    checkArgument(params.getSmaPeriod() > 0, "SMA period must be positive");
+    @Override
+    public Strategy createStrategy(BarSeries series, MomentumSmaCrossoverParameters params)
+        throws InvalidProtocolBufferException {
+        checkArgument(params.getMomentumPeriod() > 0, "Momentum period must be positive");
+        checkArgument(params.getSmaPeriod() > 0, "SMA period must be positive");
 
-    ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
+        ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
+        MomentumIndicator momentumIndicator = new MomentumIndicator(closePrice, params.getMomentumPeriod());
+        SMAIndicator smaIndicator = new SMAIndicator(momentumIndicator, params.getSmaPeriod());
 
-    // Create momentum indicator using percentage change
-    MomentumIndicator momentumIndicator = new MomentumIndicator(closePrice, params.getMomentumPeriod());
+        // Entry rule - First check if momentum is positive, then check for crossover
+        var entryRule = new OverIndicatorRule(momentumIndicator, series.numOf(0))
+            .and(new CrossedUpIndicatorRule(momentumIndicator, smaIndicator));
 
-    // Create SMA of the momentum values
-    SMAIndicator smaIndicator = new SMAIndicator(momentumIndicator, params.getSmaPeriod());
+        // Exit rule - First check if momentum is negative, then check for crossover
+        var exitRule = new UnderIndicatorRule(momentumIndicator, series.numOf(0))
+            .and(new CrossedDownIndicatorRule(momentumIndicator, smaIndicator));
 
-    // Entry rule - Momentum crosses above SMA AND is positive
-    var entryRule =
-        new CrossedUpIndicatorRule(momentumIndicator, smaIndicator)
-            .and(new OverIndicatorRule(momentumIndicator, series.numOf(0)));
-
-    // Exit rule - Momentum crosses below SMA AND is negative
-    var exitRule =
-        new CrossedDownIndicatorRule(momentumIndicator, smaIndicator)
-            .and(new UnderIndicatorRule(momentumIndicator, series.numOf(0)));
-
-    String strategyName =
-        String.format(
+        String strategyName = String.format(
             "%s (MOM-%d/SMA-%d)",
             getStrategyType().name(),
             params.getMomentumPeriod(),
             params.getSmaPeriod());
 
-    return new BaseStrategy(
-        strategyName,
-        entryRule,
-        exitRule,
-        Math.max(params.getMomentumPeriod(), params.getSmaPeriod()));
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.MOMENTUM_SMA_CROSSOVER;
-  }
+        return new BaseStrategy(
+            strategyName,
+            entryRule,
+            exitRule,
+            Math.max(params.getMomentumPeriod(), params.getSmaPeriod()));
+    }
 }
