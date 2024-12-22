@@ -28,7 +28,7 @@ java_library(
     name = "candle_builder",
     srcs = ["CandleBuilder.java"],
     deps = [
-        "@maven//:com_google_flogger_flogger",
+        "//third_party:flogger",
         "//protos:marketdata_java_proto",
     ],
     runtime_deps = [
@@ -50,10 +50,10 @@ java_library(
     name = "candle_manager_impl",
     srcs = ["CandleManagerImpl.java"],
     deps = [
-        "@maven//:com_google_flogger_flogger",
-        "@maven//:com_google_inject_extensions_guice_assistedinject",
-        "@maven//:com_google_inject_guice",
         "//third_party:auto_value",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":candle_builder",
@@ -78,11 +78,11 @@ java_library(
     name = "candle_publisher_impl",
     srcs = ["CandlePublisherImpl.java"],
     deps = [
-        "@maven//:com_google_flogger_flogger",
-        "@maven//:com_google_inject_extensions_guice_assistedinject",
-        "@maven//:com_google_inject_guice",
-        "@maven//:org_apache_kafka_kafka_clients",
         "//protos:marketdata_java_proto",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:kafka_clients",
         ":candle_publisher",
     ],
     runtime_deps = [
@@ -94,12 +94,12 @@ java_library(
     name = "coinbase_streaming_client",
     srcs = ["CoinbaseStreamingClient.java"],
     deps = [
-        "@maven//:com_google_flogger_flogger",
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_inject_guice",
         "@maven//:com_google_code_gson_gson",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party:flogger",
+        "//third_party:guava",
+        "//third_party:guice",
         ":exchange_streaming_client",
     ],
     runtime_deps = [
@@ -119,8 +119,8 @@ java_library(
     name = "config_arguments",
     srcs = ["ConfigArguments.java"],
     deps = [
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_inject_guice",
+        "//third_party:guava",
+        "//third_party:guice",
         "@maven//:net_sourceforge_argparse4j_argparse4j",
         "//third_party:auto_value",
     ],
@@ -146,7 +146,7 @@ java_library(
     name = "currency_pair_supply",
     srcs = ["CurrencyPairSupply.java"],
     deps = [
-        "@maven//:com_google_guava_guava",
+        "//third_party:guava",
         "//third_party:auto_value",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":currency_pair_metadata",
@@ -158,8 +158,8 @@ java_library(
     srcs = ["CurrencyPairSupplyProvider.java"],
     deps = [
         "@maven//:com_google_code_gson_gson",
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_inject_guice",
+        "//third_party:guava",
+        "//third_party:guice",
         ":coin_market_cap_config",
         ":currency_pair_metadata",
         ":currency_pair_supply",
@@ -171,7 +171,7 @@ java_library(
     name = "exchange_streaming_client",
     srcs = ["ExchangeStreamingClient.java"],
     deps = [
-        "@maven//:com_google_guava_guava",
+        "//third_party:guava",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
     ],
@@ -181,8 +181,8 @@ java_library(
     name = "exchange_streaming_client_factory",
     srcs = ["ExchangeStreamingClientFactory.java"],
     deps = [
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_inject_guice",
+        "//third_party:guava",
+        "//third_party:guice",
         ":coinbase_streaming_client",
         ":exchange_streaming_client",
     ],
@@ -205,8 +205,8 @@ java_library(
     name = "http_client_impl",
     srcs = ["HttpClientImpl.java"],
     deps = [
-        "@maven//:com_google_flogger_flogger",
-        "@maven//:com_google_inject_guice",
+        "//third_party:flogger",
+        "//third_party:guice",
         ":http_client",
         ":http_url_connection_factory",
     ],
@@ -224,7 +224,7 @@ java_library(
     name = "http_url_connection_factory_impl",
     srcs = ["HttpURLConnectionFactoryImpl.java"],
     deps = [
-        "@maven//:com_google_inject_guice",
+        "//third_party:guice",
         ":http_url_connection_factory",
     ],
 )
@@ -260,11 +260,11 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_inject_extensions_guice_assistedinject",
-        "@maven//:com_google_inject_guice",
+        "//third_party:guava",
+        "//third_party:guice_assistedinject",
+        "//third_party:guice",
         "@maven//:net_sourceforge_argparse4j_argparse4j",
-        "@maven//:org_apache_kafka_kafka_clients",
+        "//third_party:kafka_clients",
         "@maven//:org_knowm_xchange_xchange_stream_core",
         "//third_party:auto_value",
         ":candle_manager",
@@ -297,8 +297,8 @@ java_library(
     name = "kafka_producer_provider",
     srcs = ["KafkaProducerProvider.java"],
     deps = [
-        "@maven//:com_google_inject_guice",
-        "@maven//:org_apache_kafka_kafka_clients",
+        "//third_party:guice",
+        "//third_party:kafka_clients",
         ":kafka_properties",
     ],    
 )
@@ -307,7 +307,7 @@ java_library(
     name = "kafka_properties",
     srcs = ["KafkaProperties.java"],
     deps = [
-        "@maven//:com_google_inject_guice",
+        "//third_party:guice",
         "@maven//:com_google_mug_mug",
         "@maven//:net_sourceforge_argparse4j_argparse4j",
     ],    
@@ -322,7 +322,7 @@ java_library(
     name = "price_tracker",
     srcs = ["PriceTracker.java"],
     deps = [
-        "@maven//:com_google_inject_guice",        
+        "//third_party:guice",        
     ],
 )
 
@@ -342,9 +342,9 @@ java_library(
     name = "real_time_data_ingestion_impl",
     srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
-        "@maven//:com_google_flogger_flogger",
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_inject_guice",
+        "//third_party:flogger",
+        "//third_party:guava",
+        "//third_party:guice",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":candle_manager",
@@ -374,8 +374,8 @@ java_library(
     name = "thin_market_timer_impl",
     srcs = ["ThinMarketTimerImpl.java"],
     deps = [
-        "@maven//:com_google_flogger_flogger",
-        "@maven//:com_google_inject_guice",
+        "//third_party:flogger",
+        "//third_party:guice",
         "@maven//:org_knowm_xchange_xchange_core",
         ":thin_market_timer",
         ":thin_market_timer_task",
@@ -394,8 +394,8 @@ java_library(
     name = "thin_market_timer_task_impl",
     srcs = ["ThinMarketTimerTaskImpl.java"],
     deps = [
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_inject_guice",
+        "//third_party:guava",
+        "//third_party:guice",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":candle_manager",
         ":currency_pair_supply",
@@ -407,7 +407,7 @@ java_library(
     name = "trade_processor",
     srcs = ["TradeProcessor.java"],
     deps = [
-        "@maven//:com_google_flogger_flogger",
+        "//third_party:flogger",
         "//third_party:auto_value",
         "//protos:marketdata_java_proto",
     ],
