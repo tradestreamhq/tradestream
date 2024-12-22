@@ -1,8 +1,6 @@
 package com.verlumen.tradestream.strategies.movingaverages;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.MomentumSmaCrossoverParameters;
