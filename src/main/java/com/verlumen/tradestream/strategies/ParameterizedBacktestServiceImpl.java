@@ -21,11 +21,11 @@ import org.ta4j.core.Strategy;
 
 public final class ParameterizedBacktestServiceImpl
     extends ParameterizedBacktestServiceGrpc.ParameterizedBacktestServiceImplBase {
-  private final Map<StrategyType, StrategyFactory<?>> strategyFactories;
+  private final StrategyManager strategyManager;
 
   @Inject
-  public ParameterizedBacktestServiceImpl(Map<StrategyType, StrategyFactory<?>> strategyFactories) {
-    this.strategyFactories = strategyFactories;
+  public ParameterizedBacktestServiceImpl(StrategyManager strategyManager) {
+    this.strategyManager = strategyManager;
   }
 
   @Override
@@ -37,31 +37,14 @@ public final class ParameterizedBacktestServiceImpl
       // 1) Convert the repeated candles
       BarSeries series = buildBarSeries(request);
 
-      // 2) Get the strategy type
-      StrategyType strategyType = request.getStrategyType();
-
-      // 3) Look up the factory
-      StrategyFactory<?> factory = strategyFactories.get(strategyType);
-      if (factory == null) {
-        responseObserver.onError(
-            Status.INVALID_ARGUMENT
-                .withDescription("Unrecognized StrategyType: " + strategyType)
-                .asRuntimeException()
-        );
-        return;
-      }
-
-      // 4) Unpack the strategy parameters from the request’s `Any` field
-      //    E.g. request.getStrategyParameters() is an Any
-      Any rawParams = request.getStrategyParameters();
-
       // Because each factory has a known parameter type T extends Message,
       // we can do “factory.createStrategy(series, rawParams)” and the default method
       // in StrategyFactory will do an Any#unpack(T). For example:
-      Strategy strategy = factory.createStrategy(series, rawParams);
+      Strategy strategy = strategyManager.createStrategy(
+          request.getStrategyType(), request.getStrategyParameters());
 
-      // 5) Run your real backtest logic ...
-      //    Below is a placeholder with random values
+      // Run your real backtest logic ...
+      // Below is a placeholder with random values
       double randomCumulativeReturn = Math.random();
       BacktestResult result = BacktestResult.newBuilder()
           .setStrategyType(strategyType)
