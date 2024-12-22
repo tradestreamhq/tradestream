@@ -42,7 +42,7 @@ public class MomentumSmaCrossoverStrategyFactory
     var exitRule = new CrossedDownIndicatorRule(momentumIndicator, smaIndicator);
 
     return new BaseStrategy(
-        String.format("%s (%d / SMA-%d)", params.getMomentumPeriod(), params.getSmaPeriod())
+        String.format("%s (%d / SMA-%d)", params.getMomentumPeriod(), params.getSmaPeriod()),
         entryRule,
         exitRule,
         Math.max(params.getMomentumPeriod(), params.getSmaPeriod())
