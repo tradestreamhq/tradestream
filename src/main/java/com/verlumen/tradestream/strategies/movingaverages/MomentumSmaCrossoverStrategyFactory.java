@@ -9,15 +9,15 @@ import com.verlumen.tradestream.strategies.StrategyFactory;
 import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
-import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
-public class MomentumSmaCrossoverStrategyFactory
+public class MomentumSmaCrossoverStrategyFactory 
     implements StrategyFactory<MomentumSmaCrossoverParameters> {
+
   @Inject
   MomentumSmaCrossoverStrategyFactory() {}
 
@@ -28,15 +28,24 @@ public class MomentumSmaCrossoverStrategyFactory
     checkArgument(params.getSmaPeriod() > 0, "SMA period must be positive");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
+    
+    // Create momentum indicator using price changes
     MomentumIndicator momentumIndicator = new MomentumIndicator(closePrice, params.getMomentumPeriod());
+    
+    // Create SMA of the momentum values 
     SMAIndicator smaIndicator = new SMAIndicator(momentumIndicator, params.getSmaPeriod());
 
-    Rule entryRule = new CrossedUpIndicatorRule(momentumIndicator, smaIndicator);
-    Rule exitRule = new CrossedDownIndicatorRule(momentumIndicator, smaIndicator);
-     return createStrategy(
+    // Entry rule - momentum crosses above its SMA
+    var entryRule = new CrossedUpIndicatorRule(momentumIndicator, smaIndicator);
+
+    // Exit rule - momentum crosses below its SMA  
+    var exitRule = new CrossedDownIndicatorRule(momentumIndicator, smaIndicator);
+
+    return new BaseStrategy(
+        String.format("%s (%d / SMA-%d)", params.getMomentumPeriod(), params.getSmaPeriod())
         entryRule,
         exitRule,
-        params.getSmaPeriod()
+        Math.max(params.getMomentumPeriod(), params.getSmaPeriod())
     );
   }
 
