@@ -46,7 +46,7 @@ public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<Double
                 params.getLongEmaPeriod()),
             entryRule,
             exitRule,
-            params.getLongEmaPeriod() - 1);  // Subtract 1 since we need N-1 bars before Nth bar is ready
+            params.getLongEmaPeriod());
     }
 
     @Override
