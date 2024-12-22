@@ -17,15 +17,15 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
-public class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCrossoverParameters> {
+final class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCrossoverParameters> {
   @Inject
   SmaEmaCrossoverStrategyFactory() {}
 
   @Override
   public Strategy createStrategy(BarSeries series, SmaEmaCrossoverParameters params)
       throws InvalidProtocolBufferException {
-       checkArgument(params.getSmaPeriod() > 0, "SMA period must be positive");
-        checkArgument(params.getEmaPeriod() > 0, "EMA period must be positive");
+    checkArgument(params.getSmaPeriod() > 0, "SMA period must be positive");
+    checkArgument(params.getEmaPeriod() > 0, "EMA period must be positive");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
     SMAIndicator smaIndicator = new SMAIndicator(closePrice, params.getSmaPeriod());
@@ -33,7 +33,10 @@ public class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCro
 
     Rule entryRule = new CrossedUpIndicatorRule(smaIndicator, emaIndicator);
     Rule exitRule = new CrossedDownIndicatorRule(smaIndicator, emaIndicator);
-      return createStrategy(
+    String strategyName = String.format(
+      "%s (SMA-%d EMA-%d)", getStrategyType().name(), params.getSmaPeriod(), params.getEmaPeriod());
+    return new BaseStrategy(
+        strategyName,
         entryRule,
         exitRule,
         params.getEmaPeriod()
