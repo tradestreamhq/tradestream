@@ -33,8 +33,10 @@ public class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCro
 
     Rule entryRule = new CrossedUpIndicatorRule(smaIndicator, emaIndicator);
     Rule exitRule = new CrossedDownIndicatorRule(smaIndicator, emaIndicator);
-      return new BaseStrategy(
-        String.format("%s (SMA-%d EMA-%d)", getStrategyType().name(), params.getSmaPeriod(), params.getEmaPeriod()),
+    String strategyName = String.format(
+      "%s (SMA-%d EMA-%d)", getStrategyType().name(), params.getSmaPeriod(), params.getEmaPeriod());
+    return new BaseStrategy(
+        strategyName,
         entryRule,
         exitRule,
         params.getEmaPeriod()
