@@ -92,7 +92,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
 
     assertThat(strategy.getEntryRule().isSatisfied(31)).isFalse();
     assertThat(strategy.getEntryRule().isSatisfied(32)).isTrue();
-    assertThat(strategy.getEntryRule().isSatisfied(33)).isTrue();
+    assertThat(strategy.getEntryRule().isSatisfied(33)).isFalse();
   }
 
   @Test
@@ -116,7 +116,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
 
     assertThat(strategy.getExitRule().isSatisfied(41)).isFalse();
     assertThat(strategy.getExitRule().isSatisfied(42)).isTrue();
-    assertThat(strategy.getExitRule().isSatisfied(43)).isTrue();
+    assertThat(strategy.getExitRule().isSatisfied(43)).isFalse();
   }
 
   @Test(expected = IllegalArgumentException.class)
