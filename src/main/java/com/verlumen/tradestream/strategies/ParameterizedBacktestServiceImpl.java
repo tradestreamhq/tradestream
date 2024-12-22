@@ -91,7 +91,7 @@ public final class ParameterizedBacktestServiceImpl
   private BarSeries buildBarSeries(ParameterizedBacktestRequest request) {
     BaseBarSeries series = new BaseBarSeries("param-backtest-series");
     ZonedDateTime now = ZonedDateTime.now();
-    for (Marketdata.Candle candle : request.getCandlesList()) {
+    for (Candle candle : request.getCandlesList()) {
       Bar bar = new BaseBar(
           Duration.ofMinutes(1),
           now.plusMinutes(series.getBarCount()),
