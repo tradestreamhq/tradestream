@@ -38,14 +38,15 @@ public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<Double
         // Exit rule: Short EMA crosses below Long EMA
         Rule exitRule = new CrossedDownIndicatorRule(shortEma, longEma);
 
+        // Create strategy using the constructor that takes unstable period directly
         return new BaseStrategy(
             String.format("%s (%d, %d)",
                 getStrategyType().name(),
-                params.getShortEmaPeriod(), 
+                params.getShortEmaPeriod(),
                 params.getLongEmaPeriod()),
             entryRule,
             exitRule,
-            params.getLongEmaPeriod());
+            params.getLongEmaPeriod() - 1);  // Subtract 1 since we need N-1 bars before Nth bar is ready
     }
 
     @Override
