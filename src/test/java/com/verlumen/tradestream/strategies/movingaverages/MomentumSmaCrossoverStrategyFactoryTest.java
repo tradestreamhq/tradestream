@@ -34,42 +34,38 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
   @Before
   public void setUp() throws InvalidProtocolBufferException {
     factory = new MomentumSmaCrossoverStrategyFactory();
-    params =
-        MomentumSmaCrossoverParameters.newBuilder()
-            .setMomentumPeriod(MOMENTUM_PERIOD) // 10
-            .setSmaPeriod(SMA_PERIOD) // 20
-            .build();
+    params = MomentumSmaCrossoverParameters.newBuilder()
+        .setMomentumPeriod(MOMENTUM_PERIOD) // 5
+        .setSmaPeriod(SMA_PERIOD)           // 10
+        .build();
 
     series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
 
-    // ---------------------------------------------------
-    // 1) Extended Baseline: bars 0..8 (9 total bars)
-    // ---------------------------------------------------
+    // 1) Baseline: bars 0..4
     double price = 50.0;
-    for (int i = 0; i < 9; i++) {
-      series.addBar(createBar(now.plusMinutes(i), price));
-      price -= 1.0; // e.g., 50 -> 49 -> 48...
+    for (int i = 0; i < 5; i++) {
+        series.addBar(createBar(now.plusMinutes(i), price));
+        price -= 1.0; // 50, 49, 48, 47, 46
     }
 
-    // ---------------------------------------------------
-    // 2) Force bar 9 to be sharply lower (e.g., 10.0)
-    //    This ensures momentum < sma at bar 9.
-    // ---------------------------------------------------
-    series.addBar(createBar(now.plusMinutes(9), 10.0));
+    // 2) Downward movement: bar5 = 45.0 → momentum=-5
+    series.addBar(createBar(now.plusMinutes(5), 45.0));
 
-    // ---------------------------------------------------
-    // 3) Upward movement: bar 10 => big jump to 90
-    //    This ensures momentum > sma at bar 10
-    // ---------------------------------------------------
+    // 3) Slight downward movement: bar6 = 44.0 → momentum=-5
+    series.addBar(createBar(now.plusMinutes(6), 44.0));
+
+    // 4) Upward movement: bars7..9
+    series.addBar(createBar(now.plusMinutes(7), 60.0)); // momentum=60-49=11
+    series.addBar(createBar(now.plusMinutes(8), 70.0)); // momentum=70-48=22
+    series.addBar(createBar(now.plusMinutes(9), 40.0)); // momentum=40-47=-7
+
+    // 5) Upward jump: bar10=90.0 → momentum=90-46=44
     series.addBar(createBar(now.plusMinutes(10), 90.0));
 
-    // ---------------------------------------------------
-    // 4) Downward movement: bars 11..13
-    // ---------------------------------------------------
-    series.addBar(createBar(now.plusMinutes(11), 40.0));
-    series.addBar(createBar(now.plusMinutes(12), 30.0));
-    series.addBar(createBar(now.plusMinutes(13), 25.0));
+    // 6) Downward movement: bars11..12
+    series.addBar(createBar(now.plusMinutes(11), 40.0)); // momentum=40-60=-20
+    series.addBar(createBar(now.plusMinutes(12), 30.0)); // momentum=30-70=-40
 
     // Initialize indicators
     closePrice = new ClosePriceIndicator(series);
