@@ -7,6 +7,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
@@ -82,8 +83,7 @@ public abstract class CurrencyPair {
       Splitter splitter = Splitter.on(delimiter).trimResults().omitEmptyStrings();
 
       // Extract and normalize the parts.
-      ImmutableList<String> parts =
-          splitter.splitToStream(symbol).map(String::toUpperCase).distinct().collect(toImmutableList());
+      ImmutableList<String> parts = ImmutableSet.copyOf(splitter.split(symbol)).asList();
 
       // Validate that exactly two parts are present.
       checkArgument(parts.size() == 2, "Symbol must contain exactly two currencies: %s", symbol);
