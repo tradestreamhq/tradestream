@@ -1,4 +1,12 @@
 java_library(
+    name = "argparse4j",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
+    ],
+)
+
+java_library(
     name = "auto_factory",
     exported_plugins = [
         ":auto_factory_plugin",
@@ -66,5 +74,86 @@ java_plugin(
     processor_class = "com.ryanharter.auto.value.gson.factory.AutoValueGsonAdapterFactoryProcessor",
     deps = [
         "@maven//:com_ryanharter_auto_value_auto_value_gson",
+    ],
+)
+
+java_library(
+    name = "flogger",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_flogger_flogger",
+    ],
+)
+
+java_library(
+    name = "flogger_system_backend",
+    neverlink = 1,
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_flogger_flogger_system_backend",
+    ],
+)
+
+java_library(
+    name = "gson",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_code_gson_gson",
+    ],
+)
+
+java_library(
+    name = "guava",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "guice",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_inject_guice",
+    ],
+)
+
+java_library(
+    name = "guice_assistedinject",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
+    ],
+)
+
+java_library(
+    name = "kafka_clients",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:org_apache_kafka_kafka_clients",
+    ],
+)
+
+java_library(
+    name = "mug",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_mug_mug",
+    ],
+)
+
+java_library(
+    name = "xchange_core",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:org_knowm_xchange_xchange_core",
+    ],
+)
+
+java_library(
+    name = "xchange_stream_core",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:org_knowm_xchange_xchange_stream_core",
     ],
 )
