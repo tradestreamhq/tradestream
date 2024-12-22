@@ -17,6 +17,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
@@ -32,6 +34,7 @@ public class StrategyManagerImplTest {
 
     private StrategyManagerImpl strategyManager;
     private Strategy mockStrategy;
+    private BarSeries barSeries;
 
     @Before
     public void setUp() {
@@ -46,11 +49,11 @@ public class StrategyManagerImplTest {
             ImmutableList.of(mockSmaRsiFactory, mockEmaMacdFactory));
 
         // Initialize strategy manager with mocked dependencies
-        strategyManager = Guice.createInjector(BoundFieldModule.of(this))
-            .getInstance(StrategyManagerImpl.class);
+        strategyManager = new StrategyManagerImpl(config);
 
-        // Create mock strategy for testing
+        // Create mock strategy and bar series for testing
         mockStrategy = mock(Strategy.class);
+        barSeries = new BaseBarSeries();
     }
 
     @Test
@@ -65,10 +68,10 @@ public class StrategyManagerImplTest {
             .build();
         Any packedParams = Any.pack(params);
 
-        when(mockSmaRsiFactory.createStrategy(packedParams)).thenReturn(mockStrategy);
+        when(mockSmaRsiFactory.createStrategy(barSeries, packedParams)).thenReturn(mockStrategy);
 
         // Act
-        Strategy result = strategyManager.createStrategy(StrategyType.SMA_RSI, packedParams);
+        Strategy result = strategyManager.createStrategy(barSeries, StrategyType.SMA_RSI, packedParams);
 
         // Assert
         assertThat(result).isSameInstanceAs(mockStrategy);
@@ -85,10 +88,10 @@ public class StrategyManagerImplTest {
             .build();
         Any packedParams = Any.pack(params);
 
-        when(mockEmaMacdFactory.createStrategy(packedParams)).thenReturn(mockStrategy);
+        when(mockEmaMacdFactory.createStrategy(barSeries, packedParams)).thenReturn(mockStrategy);
 
         // Act
-        Strategy result = strategyManager.createStrategy(StrategyType.EMA_MACD, packedParams);
+        Strategy result = strategyManager.createStrategy(barSeries, StrategyType.EMA_MACD, packedParams);
 
         // Assert
         assertThat(result).isSameInstanceAs(mockStrategy);
@@ -108,7 +111,7 @@ public class StrategyManagerImplTest {
         // Act & Assert
         IllegalArgumentException thrown = assertThrows(
             IllegalArgumentException.class,
-            () -> strategyManager.createStrategy(StrategyType.ADX_STOCHASTIC, packedParams));
+            () -> strategyManager.createStrategy(barSeries, StrategyType.ADX_STOCHASTIC, packedParams));
         
         assertThat(thrown).hasMessageThat()
             .contains("Unsupported strategy type: ADX_STOCHASTIC");
@@ -128,13 +131,13 @@ public class StrategyManagerImplTest {
 
         InvalidProtocolBufferException expectedException = 
             new InvalidProtocolBufferException("Test exception");
-        when(mockSmaRsiFactory.createStrategy(packedParams))
+        when(mockSmaRsiFactory.createStrategy(barSeries, packedParams))
             .thenThrow(expectedException);
 
         // Act & Assert
         InvalidProtocolBufferException thrown = assertThrows(
             InvalidProtocolBufferException.class,
-            () -> strategyManager.createStrategy(StrategyType.SMA_RSI, packedParams));
+            () -> strategyManager.createStrategy(barSeries, StrategyType.SMA_RSI, packedParams));
         
         assertThat(thrown).isSameInstanceAs(expectedException);
     }
