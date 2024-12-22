@@ -18,7 +18,6 @@ import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
-import org.ta4j.core.indicators.MomentumIndicator;
 
 @RunWith(JUnit4.class)
 public class MomentumSmaCrossoverStrategyFactoryTest {
