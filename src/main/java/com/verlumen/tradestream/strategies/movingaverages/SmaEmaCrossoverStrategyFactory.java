@@ -24,8 +24,8 @@ public class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCro
   @Override
   public Strategy createStrategy(BarSeries series, SmaEmaCrossoverParameters params)
       throws InvalidProtocolBufferException {
-       checkArgument(params.getSmaPeriod() > 0, "SMA period must be positive");
-        checkArgument(params.getEmaPeriod() > 0, "EMA period must be positive");
+    checkArgument(params.getSmaPeriod() > 0, "SMA period must be positive");
+    checkArgument(params.getEmaPeriod() > 0, "EMA period must be positive");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
     SMAIndicator smaIndicator = new SMAIndicator(closePrice, params.getSmaPeriod());
@@ -33,7 +33,8 @@ public class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCro
 
     Rule entryRule = new CrossedUpIndicatorRule(smaIndicator, emaIndicator);
     Rule exitRule = new CrossedDownIndicatorRule(smaIndicator, emaIndicator);
-      return createStrategy(
+      return new BaseStrategy(
+        String.format("%s (SMA-%d EMA-%d)", getStrategyType().name(), params.getSmaPeriod(), params.getEmaPeriod()),
         entryRule,
         exitRule,
         params.getEmaPeriod()
