@@ -87,7 +87,6 @@ java_library(
 
 java_library(
     name = "flogger_system_backend",
-    neverlink = 1,
     visibility = ["//visibility:public"],
     exports = [
         "@maven//:com_google_flogger_flogger_system_backend",
