@@ -78,7 +78,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
   }
 
   @Test
-  public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma() {
+  public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma() throws InvalidProtocolBufferException {
     // Reset series with data that will create a proper crossover
     series = new BaseBarSeries();
     
@@ -120,7 +120,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
   }
 
   @Test
-  public void exitRule_shouldTrigger_whenMomentumCrossesBelowSma() {
+  public void exitRule_shouldTrigger_whenMomentumCrossesBelowSma() throws InvalidProtocolBufferException {
     // First set up entry conditions
     series = new BaseBarSeries();
     
