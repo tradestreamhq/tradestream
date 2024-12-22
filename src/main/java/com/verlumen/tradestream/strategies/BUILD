@@ -66,6 +66,15 @@ tar(
     srcs = [":app_deploy.jar"],
 )
 
+java_library(
+    name = "parameterized_backtest_service_impl",
+    srcs = ["ParameterizedBacktestServiceImpl.java"],
+    deps = [
+        "//protos:backtest_service_java_grpc",
+        "//protos:backtest_service_java_proto", 
+    ],
+)
+
 oci_push(
     name = "push_image",
     image = ":index",
