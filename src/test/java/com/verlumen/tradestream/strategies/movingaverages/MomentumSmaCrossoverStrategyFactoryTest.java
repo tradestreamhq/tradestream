@@ -80,57 +80,49 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
       strategy = factory.createStrategy(series, params);
   }
 
-    @Test
-    public void getStrategyType_returnsMomentumSmaCrossover() {
-        assertThat(factory.getStrategyType()).isEqualTo(StrategyType.MOMENTUM_SMA_CROSSOVER);
-    }
+  @Test
+  public void getStrategyType_returnsMomentumSmaCrossover() {
+      assertThat(factory.getStrategyType()).isEqualTo(StrategyType.MOMENTUM_SMA_CROSSOVER);
+  }
 
 
   @Test
-    public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma() {
-       for (int i = 6; i <= 10; i++) {
-         System.out.printf("Bar %d - Price: %.2f, Momentum: %.2f, SMA: %.2f%n",
-              i,
-              closePrice.getValue(i).doubleValue(),
+  public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma() {
+  // No entry signal before sufficient data
+  assertThat(strategy.getEntryRule().isSatisfied(6)).isFalse();
+  assertThat(strategy.getEntryRule().isSatisfied(9)).isFalse();
+
+  // Entry signal at bar 10
+  assertThat(strategy.getEntryRule().isSatisfied(10)).isTrue();
+
+  // No entry signal after bar 10
+  assertThat(strategy.getEntryRule().isSatisfied(11)).isFalse();
+  }
+
+  @Test
+  public void exitRule_shouldTrigger_whenMomentumCrossesBelowSma() {
+    for (int i = 10; i <= 13; i++) {
+      System.out.printf("Bar %d - Price: %.2f, Momentum: %.2f, SMA: %.2f%n",
+            i,
+            closePrice.getValue(i).doubleValue(),
               momentumIndicator.getValue(i).doubleValue(),
-              smaIndicator.getValue(i).doubleValue());
-      }
+            smaIndicator.getValue(i).doubleValue());
+    }
 
-       // No entry signal before crossover
-        assertFalse("Should not trigger entry at bar 6", strategy.getEntryRule().isSatisfied(6));
+    // No exit signal before crossover
+      assertFalse("Should not trigger exit at bar 10", strategy.getExitRule().isSatisfied(10));
 
-
-      // Entry signal at bar 7
+      // Exit signal at bar 11
       assertTrue(
-           "Entry rule should trigger when momentum crosses above SMA at bar 7",
-           strategy.getEntryRule().isSatisfied(7)
+          "Exit rule should trigger when momentum crosses below SMA at bar 11",
+          strategy.getExitRule().isSatisfied(11)
       );
-    }
-
-    @Test
-    public void exitRule_shouldTrigger_whenMomentumCrossesBelowSma() {
-      for (int i = 10; i <= 13; i++) {
-        System.out.printf("Bar %d - Price: %.2f, Momentum: %.2f, SMA: %.2f%n",
-              i,
-              closePrice.getValue(i).doubleValue(),
-                momentumIndicator.getValue(i).doubleValue(),
-              smaIndicator.getValue(i).doubleValue());
-      }
-
-      // No exit signal before crossover
-        assertFalse("Should not trigger exit at bar 10", strategy.getExitRule().isSatisfied(10));
-
-        // Exit signal at bar 11
-        assertTrue(
-            "Exit rule should trigger when momentum crosses below SMA at bar 11",
-            strategy.getExitRule().isSatisfied(11)
-        );
-    }
+  }
 
 
   @Test(expected = IllegalArgumentException.class)
   public void validateMomentumPeriod() throws InvalidProtocolBufferException {
-      params = MomentumSmaCrossoverParameters.newBuilder().setMomentumPeriod(-1).setSmaPeriod(SMA_PERIOD).build();
+    params = MomentumSmaCrossoverParameters.newBuilder().setMomentumPeriod(-1).setSmaPeriod(SMA_PERIOD).build();
     factory.createStrategy(series, params);
   }
 
@@ -141,14 +133,14 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
   }
   
    private BaseBar createBar(ZonedDateTime time, double price) {
-        return new BaseBar(
-            Duration.ofMinutes(1),
-            time,
-            price, // open
-            price, // high
-            price, // low
-            price, // close
-            100.0  // volume
-        );
+      return new BaseBar(
+          Duration.ofMinutes(1),
+          time,
+          price, // open
+          price, // high
+          price, // low
+          price, // close
+          100.0  // volume
+      );
     }
 }
