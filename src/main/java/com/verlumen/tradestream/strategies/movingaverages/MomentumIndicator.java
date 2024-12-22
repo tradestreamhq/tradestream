@@ -4,6 +4,9 @@ import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
 
+/**
+ * Momentum indicator that measures price changes over a specified period.
+ */
 final class MomentumIndicator extends CachedIndicator<Num> {
     private final ClosePriceIndicator closePrice;
     private final int period;
@@ -17,15 +20,18 @@ final class MomentumIndicator extends CachedIndicator<Num> {
     @Override
     protected Num calculate(int index) {
         if (index < period) {
-            return numOf(0); // Not enough data
+            // Not enough data yet
+            return numOf(0);
         }
+        
+        // Momentum = Current Price - Price 'period' bars ago
         Num currentClose = closePrice.getValue(index);
-        Num pastClose = closePrice.getValue(index - period);
-        return currentClose.minus(pastClose);
+        Num previousClose = closePrice.getValue(index - period);
+        return currentClose.minus(previousClose);
     }
 
     @Override
     public int getUnstableBars() {
-        return period; // The period determines the stabilization requirement
+        return period;
     }
 }
