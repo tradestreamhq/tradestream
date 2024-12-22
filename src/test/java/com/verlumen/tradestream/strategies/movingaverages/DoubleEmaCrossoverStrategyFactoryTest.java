@@ -6,8 +6,8 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
 import com.verlumen.tradestream.strategies.StrategyType;
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -18,6 +18,8 @@ import org.junit.runners.JUnit4;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 
 @RunWith(JUnit4.class)
 public class DoubleEmaCrossoverStrategyFactoryTest {
@@ -98,6 +100,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
         // Should detect entry when short EMA crosses above long EMA
         assertTrue("Entry rule should trigger when short EMA crosses above long EMA",
             strategy.getEntryRule().isSatisfied(8));
+    }
 
     @Test
     public void exitRule_shouldTrigger_whenShortEmaCrossesBelowLongEma() {
@@ -117,9 +120,10 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
         // Should detect exit when short EMA crosses below long EMA
         assertTrue("Exit rule should trigger when short EMA crosses below long EMA",
             strategy.getExitRule().isSatisfied(12));
+    }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_shouldThrowException_whenShortEmaPeriodIsNegative() throws InvalidProtocolBufferException {
+    public void validateShortEmaPeriod() throws InvalidProtocolBufferException {
         params = DoubleEmaCrossoverParameters.newBuilder()
             .setShortEmaPeriod(-1)
             .setLongEmaPeriod(LONG_EMA)
@@ -128,7 +132,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_shouldThrowException_whenLongEmaPeriodIsNegative() throws InvalidProtocolBufferException {
+    public void validateLongEmaPeriod() throws InvalidProtocolBufferException {
         params = DoubleEmaCrossoverParameters.newBuilder()
             .setShortEmaPeriod(SHORT_EMA)
             .setLongEmaPeriod(-1)
@@ -137,7 +141,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_shouldThrowException_whenLongEmaPeriodLessThanShortPeriod() throws InvalidProtocolBufferException {
+    public void validateEmaPeriodOrdering() throws InvalidProtocolBufferException {
         params = DoubleEmaCrossoverParameters.newBuilder()
             .setShortEmaPeriod(LONG_EMA)
             .setLongEmaPeriod(SHORT_EMA)
