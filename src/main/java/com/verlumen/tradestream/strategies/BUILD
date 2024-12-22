@@ -77,8 +77,8 @@ java_library(
         "@maven//:org_ta4j_ta4j_core",
         "//protos:backtest_service_java_grpc",
         "//protos:backtest_service_java_proto",
-        "//protos:marketdata_proto",
-        "//protos:strategies_proto", 
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto", 
     ],
 )
 
