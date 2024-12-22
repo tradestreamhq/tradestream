@@ -103,7 +103,7 @@ java_library(
         "@maven//:com_google_mug_mug",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_ta4j_ta4j_core",
-        "//:autovalue",
+        "//third_party:auto_value",
         "//protos:strategies_java_proto",
         ":strategy_factory",
         ":strategy_manager",

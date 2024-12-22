@@ -53,7 +53,7 @@ java_library(
         "@maven//:com_google_flogger_flogger",
         "@maven//:com_google_inject_extensions_guice_assistedinject",
         "@maven//:com_google_inject_guice",
-        "//:autovalue",
+        "//third_party:auto_value",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":candle_builder",
@@ -111,7 +111,7 @@ java_library(
     name = "coin_market_cap_config",
     srcs = ["CoinMarketCapConfig.java"],
     deps = [
-        "//:autovalue",
+        "//third_party:auto_value",
     ],
 )
 
@@ -122,7 +122,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_inject_guice",
         "@maven//:net_sourceforge_argparse4j_argparse4j",
-        "//:autovalue",
+        "//third_party:auto_value",
     ],
 )
 
@@ -137,7 +137,7 @@ java_library(
     name = "currency_pair_metadata",
     srcs = ["CurrencyPairMetadata.java"],
     deps = [
-        "//:autovalue",
+        "//third_party:auto_value",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
     ],
 )
@@ -147,7 +147,7 @@ java_library(
     srcs = ["CurrencyPairSupply.java"],
     deps = [
         "@maven//:com_google_guava_guava",
-        "//:autovalue",
+        "//third_party:auto_value",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":currency_pair_metadata",
     ],
@@ -266,7 +266,7 @@ java_library(
         "@maven//:net_sourceforge_argparse4j_argparse4j",
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:org_knowm_xchange_xchange_stream_core",
-        "//:autovalue",
+        "//third_party:auto_value",
         ":candle_manager",
         ":candle_manager_impl",
         ":candle_publisher",
@@ -408,7 +408,7 @@ java_library(
     srcs = ["TradeProcessor.java"],
     deps = [
         "@maven//:com_google_flogger_flogger",
-        "//:autovalue",
+        "//third_party:auto_value",
         "//protos:marketdata_java_proto",
     ],
     runtime_deps = [
