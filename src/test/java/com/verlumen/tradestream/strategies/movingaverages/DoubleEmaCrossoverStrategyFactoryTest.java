@@ -37,10 +37,9 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
 
     @Before
     public void setUp() throws InvalidProtocolBufferException {
-        // Instantiate factory directly (unless you have a Guice Module)
         factory = new DoubleEmaCrossoverStrategyFactory();
 
-        // Create standard parameters
+        // Standard parameters
         params = DoubleEmaCrossoverParameters.newBuilder()
             .setShortEmaPeriod(SHORT_EMA)
             .setLongEmaPeriod(LONG_EMA)
@@ -50,22 +49,31 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
         series = new BaseBarSeries();
         ZonedDateTime now = ZonedDateTime.now();
 
-        // Add bars that will create a clear crossover pattern
-        // First establish baseline with steady prices
+        // ---------------------------------------------------------------------
+        // 1) Downward baseline so shortEma < longEma by bar 6
+        //    This ensures a strict cross-up is possible at bar 7.
+        // ---------------------------------------------------------------------
+        // Bar 0 to 6: descending prices: 50 -> 49 -> 48 -> 47 -> 46 -> 45 -> 44
+        double price = 50.0;
         for (int i = 0; i < 7; i++) {
-            series.addBar(createBar(now.plusMinutes(i), 50.0));
+            series.addBar(createBar(now.plusMinutes(i), price));
+            price -= 1.0;
         }
 
-        // Create stronger upward movement to force crossover
-        series.addBar(createBar(now.plusMinutes(7), 65.0));   // Sharper rise
-        series.addBar(createBar(now.plusMinutes(8), 80.0));   // Continues up strongly
-        series.addBar(createBar(now.plusMinutes(9), 85.0));   // Maintains high level
-        series.addBar(createBar(now.plusMinutes(10), 90.0));  // Still high
+        // ---------------------------------------------------------------------
+        // 2) Strong upward movement forces a strict cross-up between bar 6 & 7
+        // ---------------------------------------------------------------------
+        series.addBar(createBar(now.plusMinutes(7), 65.0));  
+        series.addBar(createBar(now.plusMinutes(8), 80.0));  
+        series.addBar(createBar(now.plusMinutes(9), 85.0));  
+        series.addBar(createBar(now.plusMinutes(10), 90.0));
 
-        // Create stronger downward movement
-        series.addBar(createBar(now.plusMinutes(11), 40.0));  // Sharp drop
-        series.addBar(createBar(now.plusMinutes(12), 30.0));  // Continues down strongly
-        series.addBar(createBar(now.plusMinutes(13), 25.0));  // Further drop
+        // ---------------------------------------------------------------------
+        // 3) Then a strong downward movement forces a strict cross-down
+        // ---------------------------------------------------------------------
+        series.addBar(createBar(now.plusMinutes(11), 40.0));
+        series.addBar(createBar(now.plusMinutes(12), 30.0));
+        series.addBar(createBar(now.plusMinutes(13), 25.0));
 
         // Initialize indicators for debugging
         closePrice = new ClosePriceIndicator(series);
@@ -83,7 +91,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
 
     @Test
     public void entryRule_shouldTrigger_whenShortEmaCrossesAboveLongEma() {
-        // Log EMA values around the expected crossover
+        // Log EMA values around the expected cross-up
         for (int i = 6; i <= 9; i++) {
             System.out.printf("Bar %d - Price: %.2f, Short EMA: %.2f, Long EMA: %.2f%n",
                 i,
@@ -92,22 +100,19 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
                 longEma.getValue(i).doubleValue());
         }
 
-        // No entry signal during baseline period
-        assertFalse(
-            "Should not trigger entry during baseline",
-            strategy.getEntryRule().isSatisfied(6)
-        );
+        // No entry signal during baseline
+        assertFalse("Should not trigger entry at bar 6", strategy.getEntryRule().isSatisfied(6));
 
-        // CrossUp occurs between bar 6 and bar 7, so the rule triggers at bar 7
+        // Strict cross-up typically recognized at bar 7
         assertTrue(
-            "Entry rule should trigger when short EMA crosses above long EMA",
+            "Entry rule should trigger when short EMA crosses above long EMA at bar 7",
             strategy.getEntryRule().isSatisfied(7)
         );
     }
 
     @Test
     public void exitRule_shouldTrigger_whenShortEmaCrossesBelowLongEma() {
-        // Log EMA values around the expected crossover
+        // Log EMA values around the expected cross-down
         for (int i = 10; i <= 13; i++) {
             System.out.printf("Bar %d - Price: %.2f, Short EMA: %.2f, Long EMA: %.2f%n",
                 i,
@@ -116,15 +121,12 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
                 longEma.getValue(i).doubleValue());
         }
 
-        // No exit signal during uptrend
-        assertFalse(
-            "Should not trigger exit during uptrend",
-            strategy.getExitRule().isSatisfied(10)
-        );
+        // No exit signal before the drop
+        assertFalse("Should not trigger exit at bar 10", strategy.getExitRule().isSatisfied(10));
 
-        // CrossDown occurs between bar 10 and bar 11, so the rule triggers at bar 11
+        // Strict cross-down typically recognized at bar 11
         assertTrue(
-            "Exit rule should trigger when short EMA crosses below long EMA",
+            "Exit rule should trigger when short EMA crosses below long EMA at bar 11",
             strategy.getExitRule().isSatisfied(11)
         );
     }
@@ -156,15 +158,18 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
         factory.createStrategy(series, params);
     }
 
+    /**
+     * Helper for creating a Bar with a specific close price.
+     */
     private BaseBar createBar(ZonedDateTime time, double price) {
         return new BaseBar(
             Duration.ofMinutes(1),
             time,
-            price, // Open
-            price, // High
-            price, // Low
-            price, // Close
-            100.0  // Volume
+            price, // open
+            price, // high
+            price, // low
+            price, // close
+            100.0  // volume
         );
     }
 }
