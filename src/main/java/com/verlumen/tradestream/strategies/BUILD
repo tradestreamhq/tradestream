@@ -110,3 +110,19 @@ java_library(
         ":strategy_factory",
     ],
 )
+
+java_library(
+    name = "strategy_manager_impl",
+    srcs = ["StrategyManagerImpl.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_inject_guice",
+        "@maven//:com_google_mug_mug",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_ta4j_ta4j_core",
+        "//third_party:auto_value",
+        "//protos:strategies_java_proto",
+        ":strategy_factory",
+        ":strategy_manager",
+    ],
+)

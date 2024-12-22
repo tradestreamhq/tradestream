@@ -7,7 +7,6 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 
@@ -42,19 +41,7 @@ public interface StrategyFactory<T extends Message> {
   default Strategy createStrategy(BarSeries series, Any parameters) throws InvalidProtocolBufferException {
     return createStrategy(series, parameters.unpack(getParameterClass()));
   }
-
-  /**
-   * Creates a Ta4j Strategy object from the provided entry and exit rules.
-   *
-   * @param entryRule     The {@link Rule} that triggers the opening of a new position.
-   * @param exitRule      The {@link Rule} that triggers the closing of an existing position.
-   * @param unstableBars The number of initial bars to ignore when evaluating the strategy. This helps to avoid early, possibly misleading, signals.
-   * @return The newly created {@link Strategy} object.
-   */
-  default Strategy createStrategy(Rule entryRule, Rule exitRule, int unstableBars) {
-    return new BaseStrategy(getStrategyType().name(), entryRule, exitRule, unstableBars);
-  }
-  
+ 
   /**
    * Gets the {@link StrategyType} that this factory handles.
    *
