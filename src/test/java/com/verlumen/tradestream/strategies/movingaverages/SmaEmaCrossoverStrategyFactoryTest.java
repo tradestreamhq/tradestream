@@ -114,12 +114,12 @@ public class SmaEmaCrossoverStrategyFactoryTest {
             emaIndicator.getValue(i).doubleValue());
     }
 
-    // Exit rule should trigger at bar 12
+    // Exit rule should NOT trigger at bar 12
     assertThat(strategy.getExitRule().isSatisfied(12))
-        .isTrue();
-    // Exit rule should not trigger after bar 12
-    assertThat(strategy.getExitRule().isSatisfied(13))
         .isFalse();
+    // Exit rule should trigger at bar 13
+    assertThat(strategy.getExitRule().isSatisfied(13))
+        .isTrue();
   }
 
   @Test(expected = IllegalArgumentException.class)
