@@ -1,4 +1,12 @@
 java_library(
+    name = "argparse4j",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:net_sourceforge_argparse4j_argparse4j",
+    ],
+)
+
+java_library(
     name = "auto_factory",
     exported_plugins = [
         ":auto_factory_plugin",
@@ -87,6 +95,14 @@ java_library(
 )
 
 java_library(
+    name = "gson",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_code_gson_gson",
+    ],
+)
+
+java_library(
     name = "guava",
     visibility = ["//visibility:public"],
     exports = [
@@ -115,5 +131,29 @@ java_library(
     visibility = ["//visibility:public"],
     exports = [
         "@maven//:org_apache_kafka_kafka_clients",
+    ],
+)
+
+java_library(
+    name = "mug",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_mug_mug",
+    ],
+)
+
+java_library(
+    name = "xchange_core",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:org_knowm_xchange_xchange_core",
+    ],
+)
+
+java_library(
+    name = "xchange_stream_core",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:org_knowm_xchange_xchange_stream_core",
     ],
 )
