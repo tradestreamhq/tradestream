@@ -70,7 +70,7 @@ java_library(
     name = "parameterized_backtest_service_impl",
     srcs = ["ParameterizedBacktestServiceImpl.java"],
     deps = [
-        "@com_google_inject_guice//:guice",
+        "@maven//:com_google_inject_guice",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:io_grpc_grpc_api",
         "@maven//:io_grpc_grpc_stub",
