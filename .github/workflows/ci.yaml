@@ -89,7 +89,7 @@ jobs:
             --set strategyEngine.image.repository=tradestream-strategy-engine \
             --set strategyEngine.image.tag=latest \
             --set 'strategyEngine.args[0]=--runMode=dry' \
-            --set dataIngestion.image.repository=tradestream-strategy-engine \
+            --set dataIngestion.image.repository=tradestream-data-ingestion \
             --set dataIngestion.image.tag=latest \
             --set 'dataIngestion.args[0]=--runMode=dry'
 
