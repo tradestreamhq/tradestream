@@ -74,7 +74,6 @@ java_library(
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:io_grpc_grpc_api",
         "@maven//:io_grpc_grpc_stub",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_ta4j_ta4j_core",
         "//protos:backtest_service_java_grpc",
         "//protos:backtest_service_java_proto",
