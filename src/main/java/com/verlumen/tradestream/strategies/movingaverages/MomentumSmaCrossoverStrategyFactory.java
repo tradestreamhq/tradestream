@@ -41,8 +41,11 @@ public class MomentumSmaCrossoverStrategyFactory
     // Exit rule - momentum crosses below its SMA  
     var exitRule = new CrossedDownIndicatorRule(momentumIndicator, smaIndicator);
 
+    String strategyName = String.format(
+        "%s (%d / SMA-%d)", getStrategyType().name(), params.getMomentumPeriod(), params.getSmaPeriod());
+
     return new BaseStrategy(
-        String.format("%s (%d / SMA-%d)", params.getMomentumPeriod(), params.getSmaPeriod()),
+        strategyName,
         entryRule,
         exitRule,
         Math.max(params.getMomentumPeriod(), params.getSmaPeriod())
