@@ -45,26 +45,28 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
     ZonedDateTime now = ZonedDateTime.now();
 
     // ---------------------------------------------------
-    // 1) Extended Baseline: bars 0..9 (11 total bars)
-    //    Enough for Momentum(10) to produce real data
+    // 1) Extended Baseline: bars 0..8 (9 total bars)
     // ---------------------------------------------------
     double price = 50.0;
-    // We'll create 10 baseline bars, gradually descending
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 9; i++) { 
         series.addBar(createBar(now.plusMinutes(i), price));
         price -= 1.0;  // e.g., 50 -> 49 -> 48...
     }
-    // By bar 9, momentum is being calculated vs bar -1, 
-    // which doesn't fully exist, so let's make bar 9
-    // somewhat stable. The partial means momentum might be ~0.
 
     // ---------------------------------------------------
-    // 2) Upward movement: bar 10 => big jump to 90
+    // 2) Force bar 9 to be sharply lower (e.g., 10.0)
+    //    This ensures momentum < sma at bar 9.
+    // ---------------------------------------------------
+    series.addBar(createBar(now.plusMinutes(9), 10.0));
+
+    // ---------------------------------------------------
+    // 3) Upward movement: bar 10 => big jump to 90
+    //    This ensures momentum > sma at bar 10
     // ---------------------------------------------------
     series.addBar(createBar(now.plusMinutes(10), 90.0));
 
     // ---------------------------------------------------
-    // 3) Downward movement for exit: bars 11..13
+    // 4) Downward movement: bars 11..13
     // ---------------------------------------------------
     series.addBar(createBar(now.plusMinutes(11), 40.0));
     series.addBar(createBar(now.plusMinutes(12), 30.0));
@@ -78,7 +80,6 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
     // Create strategy
     strategy = factory.createStrategy(series, params);
   }
-
 
   @Test
   public void getStrategyType_returnsMomentumSmaCrossover() {
