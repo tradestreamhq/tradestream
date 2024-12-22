@@ -83,26 +83,29 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
 
   @Test
   public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma() {
-    // No entry signal before sufficient data
+    // No entry signal before crossover
+    assertThat(strategy.getEntryRule().isSatisfied(4)).isFalse();
+    assertThat(strategy.getEntryRule().isSatisfied(5)).isFalse();
     assertThat(strategy.getEntryRule().isSatisfied(6)).isFalse();
-    assertThat(strategy.getEntryRule().isSatisfied(9)).isFalse();
+    assertThat(strategy.getEntryRule().isSatisfied(7)).isFalse();
+    assertThat(strategy.getEntryRule().isSatisfied(8)).isFalse();
 
-    // Entry signal at bar 10
-    assertThat(strategy.getEntryRule().isSatisfied(10)).isTrue();
+    // Entry signal at bar 9
+    assertThat(strategy.getEntryRule().isSatisfied(9)).isTrue();
 
-    // No entry signal after bar 10
-    assertThat(strategy.getEntryRule().isSatisfied(11)).isFalse();
+    // No entry signal after bar 9
+    assertThat(strategy.getEntryRule().isSatisfied(10)).isFalse();
   }
 
   @Test
   public void exitRule_shouldTrigger_whenMomentumCrossesBelowSma() {
-    for (int i = 10; i <= 13; i++) {
-      System.out.printf(
-          "Bar %d - Price: %.2f, Momentum: %.2f, SMA: %.2f%n",
-          i,
-          closePrice.getValue(i).doubleValue(),
-          momentumIndicator.getValue(i).doubleValue(),
-          smaIndicator.getValue(i).doubleValue());
+    for (int i = 5; i <= 12; i++) {
+        System.out.printf(
+            "Bar %d - Price: %.2f, Momentum: %.2f, SMA: %.2f%n",
+            i,
+            closePrice.getValue(i).doubleValue(),
+            momentumIndicator.getValue(i).doubleValue(),
+            smaIndicator.getValue(i).doubleValue());
     }
 
     // No exit signal before crossover
@@ -110,7 +113,11 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
 
     // Exit signal at bar 10
     assertThat(strategy.getExitRule().isSatisfied(10)).isTrue();
+
+    // No exit signal after bar 10
+    assertThat(strategy.getExitRule().isSatisfied(11)).isFalse();
   }
+
 
   @Test(expected = IllegalArgumentException.class)
   public void validateMomentumPeriod() throws InvalidProtocolBufferException {
