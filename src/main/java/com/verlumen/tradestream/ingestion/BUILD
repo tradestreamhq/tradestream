@@ -20,7 +20,7 @@ java_binary(
         ":run_mode",
     ],
     runtime_deps = [
-        "@maven//:com_google_flogger_flogger_system_backend",
+        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -32,7 +32,7 @@ java_library(
         "//protos:marketdata_java_proto",
     ],
     runtime_deps = [
-        "@maven//:com_google_flogger_flogger_system_backend",
+        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -62,7 +62,7 @@ java_library(
         ":price_tracker",
     ],
     runtime_deps = [
-        "@maven//:com_google_flogger_flogger_system_backend",
+        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -86,7 +86,7 @@ java_library(
         ":candle_publisher",
     ],
     runtime_deps = [
-        "@maven//:com_google_flogger_flogger_system_backend",
+        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -94,16 +94,16 @@ java_library(
     name = "coinbase_streaming_client",
     srcs = ["CoinbaseStreamingClient.java"],
     deps = [
-        "@maven//:com_google_code_gson_gson",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:flogger",
+        "//third_party:gson",
         "//third_party:guava",
         "//third_party:guice",
         ":exchange_streaming_client",
     ],
     runtime_deps = [
-        "@maven//:com_google_flogger_flogger_system_backend",
+        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -307,9 +307,9 @@ java_library(
     name = "kafka_properties",
     srcs = ["KafkaProperties.java"],
     deps = [
+        "//third_party:argparse4j",
         "//third_party:guice",
-        "@maven//:com_google_mug_mug",
-        "@maven//:net_sourceforge_argparse4j_argparse4j",
+        "//third_party:mug",
     ],    
 )
 
@@ -356,7 +356,7 @@ java_library(
         ":trade_processor",
     ],
     runtime_deps = [
-        "@maven//:com_google_flogger_flogger_system_backend",
+        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -376,12 +376,12 @@ java_library(
     deps = [
         "//third_party:flogger",
         "//third_party:guice",
-        "@maven//:org_knowm_xchange_xchange_core",
+        "//third_party:xchange_core",
         ":thin_market_timer",
         ":thin_market_timer_task",
     ],
     runtime_deps = [
-        "@maven//:com_google_flogger_flogger_system_backend",
+        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -412,6 +412,6 @@ java_library(
         "//protos:marketdata_java_proto",
     ],
     runtime_deps = [
-        "@maven//:com_google_flogger_flogger_system_backend",
+        "//third_party:flogger_system_backend",
     ],
 )
