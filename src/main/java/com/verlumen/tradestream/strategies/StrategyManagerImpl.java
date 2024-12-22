@@ -9,6 +9,7 @@ import com.google.inject.Inject;
 import com.google.mu.util.stream.BiStream;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 
 final class StrategyManagerImpl implements StrategyManager {
@@ -20,14 +21,14 @@ final class StrategyManagerImpl implements StrategyManager {
   }
 
   @Override
-  public Strategy createStrategy(StrategyType strategyType, Any parameters)
+  public Strategy createStrategy(BarSeries barSeries, StrategyType strategyType, Any parameters)
       throws InvalidProtocolBufferException {
     StrategyFactory<?> factory = config.factoryMap().get(strategyType);
     if (factory == null) {
       throw new IllegalArgumentException("Unsupported strategy type: " + strategyType);
     }
   
-    return factory.createStrategy(parameters);
+    return factory.createStrategy(barSeries, parameters);
   }
 
   @AutoValue
