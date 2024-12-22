@@ -25,8 +25,9 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
   private MomentumSmaCrossoverParameters params;
   private BaseBarSeries series;
   private Strategy strategy;
+  private ZonedDateTime now;
 
-  // For debugging EMA calculations
+  // For debugging calculations
   private MomentumIndicator momentumIndicator;
   private SMAIndicator smaIndicator;
   private ClosePriceIndicator closePrice;
@@ -35,12 +36,12 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
   public void setUp() throws InvalidProtocolBufferException {
     factory = new MomentumSmaCrossoverStrategyFactory();
     params = MomentumSmaCrossoverParameters.newBuilder()
-        .setMomentumPeriod(MOMENTUM_PERIOD) // 5
-        .setSmaPeriod(SMA_PERIOD)           // 10
+        .setMomentumPeriod(MOMENTUM_PERIOD)
+        .setSmaPeriod(SMA_PERIOD)
         .build();
 
     series = new BaseBarSeries();
-    ZonedDateTime now = ZonedDateTime.now();
+    now = ZonedDateTime.now();
 
     // 1) Baseline: bars 0..4
     double price = 50.0;
@@ -76,19 +77,30 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
     strategy = factory.createStrategy(series, params);
 
     // Generate more bars for stable indicator values
-    for (int i = 0; i < MOMENTUM_PERIOD + SMA_PERIOD + 5; i++) { // Increased number of bars
-      series.addBar(createBar(now.plusMinutes(i), 50.0 + i));  // Simpler price generation
+    for (int i = 13; i < MOMENTUM_PERIOD + SMA_PERIOD + 5; i++) {
+        series.addBar(createBar(now.plusMinutes(i), 50.0 + i));
     }
   }
 
   @Test
   public void getStrategyType_returnsMomentumSmaCrossover() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.MOMENTUM_SMA_CROSSOVER);
+      assertThat(factory.getStrategyType()).isEqualTo(StrategyType.MOMENTUM_SMA_CROSSOVER);
   }
 
   @Test
   public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma() {
-    int crossoverIndex = MOMENTUM_PERIOD + SMA_PERIOD - 1; 
+    int crossoverIndex = MOMENTUM_PERIOD + SMA_PERIOD - 1;
+
+    // Log indicator values around expected crossover point
+    for (int i = crossoverIndex - 1; i <= crossoverIndex + 1; i++) {
+      System.out.printf(
+          "Bar %d - Price: %.2f, Momentum: %.2f, SMA: %.2f%n",
+          i,
+          closePrice.getValue(i).doubleValue(),
+          momentumIndicator.getValue(i).doubleValue(),
+          smaIndicator.getValue(i).doubleValue());
+    }
+
     assertThat(strategy.getEntryRule().isSatisfied(crossoverIndex - 1)).isFalse();
     assertThat(strategy.getEntryRule().isSatisfied(crossoverIndex)).isTrue();
     assertThat(strategy.getEntryRule().isSatisfied(crossoverIndex + 1)).isFalse();
@@ -97,7 +109,17 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
   @Test
   public void exitRule_shouldTrigger_whenMomentumCrossesBelowSma() {
     int crossoverIndex = MOMENTUM_PERIOD + SMA_PERIOD + 1;
-    series.addBar(createBar(now.plusMinutes(crossoverIndex + 1), 10.0)); // Force a downward crossover
+    series.addBar(createBar(now.plusMinutes(crossoverIndex + 1), 10.0)); // Force downward crossover
+
+    // Log indicator values around expected crossover point
+    for (int i = crossoverIndex - 1; i <= crossoverIndex + 1; i++) {
+      System.out.printf(
+          "Bar %d - Price: %.2f, Momentum: %.2f, SMA: %.2f%n",
+          i,
+          closePrice.getValue(i).doubleValue(),
+          momentumIndicator.getValue(i).doubleValue(),
+          smaIndicator.getValue(i).doubleValue());
+    }
 
     assertThat(strategy.getExitRule().isSatisfied(crossoverIndex)).isFalse();
     assertThat(strategy.getExitRule().isSatisfied(crossoverIndex + 1)).isTrue();
@@ -106,27 +128,31 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void validateMomentumPeriod() throws InvalidProtocolBufferException {
-    params =
-        MomentumSmaCrossoverParameters.newBuilder().setMomentumPeriod(-1).setSmaPeriod(SMA_PERIOD).build();
+    params = MomentumSmaCrossoverParameters.newBuilder()
+      .setMomentumPeriod(-1)
+      .setSmaPeriod(SMA_PERIOD)
+      .build();
     factory.createStrategy(series, params);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void validateSmaPeriod() throws InvalidProtocolBufferException {
-    params =
-        MomentumSmaCrossoverParameters.newBuilder().setMomentumPeriod(MOMENTUM_PERIOD).setSmaPeriod(-1).build();
+    params = MomentumSmaCrossoverParameters.newBuilder()
+      .setMomentumPeriod(MOMENTUM_PERIOD)
+      .setSmaPeriod(-1)
+      .build();
     factory.createStrategy(series, params);
   }
 
   private BaseBar createBar(ZonedDateTime time, double price) {
     return new BaseBar(
-        Duration.ofMinutes(1),
-        time,
-        price, // open
-        price, // high
-        price, // low
-        price, // close
-        100.0 // volume
-        );
+      Duration.ofMinutes(1),
+      time,
+      price, // open
+      price, // high
+      price, // low
+      price, // close
+      100.0  // volume
+    );
   }
 }
