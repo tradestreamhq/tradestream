@@ -37,7 +37,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
 
     @Before
     public void setUp() throws InvalidProtocolBufferException {
-        // If you do NOT have a Guice module, just instantiate the factory directly:
+        // Instantiate factory directly (unless you have a Guice Module)
         factory = new DoubleEmaCrossoverStrategyFactory();
 
         // Create standard parameters
@@ -83,7 +83,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
 
     @Test
     public void entryRule_shouldTrigger_whenShortEmaCrossesAboveLongEma() {
-        // Log EMA values around expected crossover point
+        // Log EMA values around the expected crossover
         for (int i = 6; i <= 9; i++) {
             System.out.printf("Bar %d - Price: %.2f, Short EMA: %.2f, Long EMA: %.2f%n",
                 i,
@@ -98,16 +98,16 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
             strategy.getEntryRule().isSatisfied(6)
         );
 
-        // Should detect entry when short EMA crosses above long EMA
+        // CrossUp occurs between bar 6 and bar 7, so the rule triggers at bar 7
         assertTrue(
             "Entry rule should trigger when short EMA crosses above long EMA",
-            strategy.getEntryRule().isSatisfied(8)
+            strategy.getEntryRule().isSatisfied(7)
         );
     }
 
     @Test
     public void exitRule_shouldTrigger_whenShortEmaCrossesBelowLongEma() {
-        // Log EMA values around expected crossover point
+        // Log EMA values around the expected crossover
         for (int i = 10; i <= 13; i++) {
             System.out.printf("Bar %d - Price: %.2f, Short EMA: %.2f, Long EMA: %.2f%n",
                 i,
@@ -122,10 +122,10 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
             strategy.getExitRule().isSatisfied(10)
         );
 
-        // Should detect exit when short EMA crosses below long EMA
+        // CrossDown occurs between bar 10 and bar 11, so the rule triggers at bar 11
         assertTrue(
             "Exit rule should trigger when short EMA crosses below long EMA",
-            strategy.getExitRule().isSatisfied(12)
+            strategy.getExitRule().isSatisfied(11)
         );
     }
 
