@@ -100,15 +100,26 @@ public class SmaEmaCrossoverStrategyFactoryTest {
 
   @Test
   public void exitRule_shouldTrigger_whenSmaCrossesBelowEma() {
-      // Exit rule should not trigger before bar 12
-      assertThat(strategy.getExitRule().isSatisfied(11))
-          .isFalse();
-      // Exit rule should trigger at bar 12
-      assertThat(strategy.getExitRule().isSatisfied(12))
-          .isTrue();
-      // Exit rule should not trigger after bar 12
-      assertThat(strategy.getExitRule().isSatisfied(13))
-          .isFalse();
+    // Exit rule should not trigger before bar 12
+    assertThat(strategy.getExitRule().isSatisfied(11))
+        .isFalse();
+
+    // Debugging: Print SMA and EMA values around bar 12
+    System.out.println("Debugging Exit Rule:");
+    for (int i = 10; i <= 13; i++) {
+        System.out.printf("Bar %d - Price: %.2f, SMA: %.2f, EMA: %.2f%n",
+            i,
+            closePrice.getValue(i).doubleValue(),
+            smaIndicator.getValue(i).doubleValue(),
+            emaIndicator.getValue(i).doubleValue());
+    }
+
+    // Exit rule should trigger at bar 12
+    assertThat(strategy.getExitRule().isSatisfied(12))
+        .isTrue();
+    // Exit rule should not trigger after bar 12
+    assertThat(strategy.getExitRule().isSatisfied(13))
+        .isFalse();
   }
 
   @Test(expected = IllegalArgumentException.class)
