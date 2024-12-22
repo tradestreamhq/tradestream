@@ -1,40 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "tradestream.fullname" . }}-data-ingestion
+  name: {{ include "tradestream.fullname" . }}-strategy-engine
   namespace: {{ .Release.Namespace }}
   labels:
     app: {{ include "tradestream.name" . }}
-    component: data-ingestion
+    component: strategy-engine
     release: {{ .Release.Name }}
 spec:
-  replicas: {{ .Values.dataIngestion.replicaCount }}
+  replicas: {{ .Values.strategyEngine.replicaCount }}
   selector:
     matchLabels:
       app: {{ include "tradestream.name" . }}
-      component: data-ingestion
+      component: strategy-engine
   template:
     metadata:
       labels:
         app: {{ include "tradestream.name" . }}
-        component: data-ingestion
+        component: strategy-engine
     spec:
       containers:
-        - name: data-ingestion
+        - name: strategy-engine
           args:
-          {{- range .Values.dataIngestion.args }}
+          {{- range .Values.strategyEngine.args }}
             - {{ . | quote }}
           {{- end }}
             - "--kafka.bootstrap.servers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
 
 
-          image: "{{ .Values.dataIngestion.image.repository }}:{{ .Values.dataIngestion.image.tag }}"
-          imagePullPolicy: {{ default "IfNotPresent" .Values.dataIngestion.image.pullPolicy }}
+          image: "{{ .Values.strategyEngine.image.repository }}:{{ .Values.strategyEngine.image.tag }}"
+          imagePullPolicy: {{ default "IfNotPresent" .Values.strategyEngine.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.dataIngestion.service.port }}
-          env:
-            - name: COINMARKETCAP_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: coinmarketcap
-                  key: apiKey
+            - containerPort: {{ .Values.strategyEngine.service.port }}
