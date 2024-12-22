@@ -68,3 +68,52 @@ java_plugin(
         "@maven//:com_ryanharter_auto_value_auto_value_gson",
     ],
 )
+
+java_library(
+    name = "flogger",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_flogger_flogger",
+    ],
+)
+
+java_library(
+    name = "flogger_system_backend",
+    neverlink = 1,
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_flogger_flogger_system_backend",
+    ],
+)
+
+java_library(
+    name = "guava",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "guice",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_inject_guice",
+    ],
+)
+
+java_library(
+    name = "guice_assistedinject",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_inject_extensions_guice_assistedinject",
+    ],
+)
+
+java_library(
+    name = "kafka_clients",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:org_apache_kafka_kafka_clients",
+    ],
+)
