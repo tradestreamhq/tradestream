@@ -30,8 +30,8 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 public class DoubleEmaCrossoverStrategyFactoryTest {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private static final int SHORT_EMA = 2;
-  private static final int LONG_EMA = 5;
+  private static final int SHORT_EMA = 3;
+  private static final int LONG_EMA = 7;
 
   @Inject private DoubleEmaCrossoverStrategyFactory factory;
 
