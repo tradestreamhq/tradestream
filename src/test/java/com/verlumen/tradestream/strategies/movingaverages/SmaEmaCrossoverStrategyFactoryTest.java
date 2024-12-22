@@ -56,20 +56,18 @@ public class SmaEmaCrossoverStrategyFactoryTest {
           price -= 1.0;
       }
 
-
-       // ---------------------------------------------------------------------
-        // 2) Upward movement - sma < ema by bar 7
-        // ---------------------------------------------------------------------
+     // ---------------------------------------------------------------------
+      // 2) Upward movement - sma < ema by bar 7
+      // ---------------------------------------------------------------------
       series.addBar(createBar(now.plusMinutes(7), 65.0));
       series.addBar(createBar(now.plusMinutes(8), 80.0));
       series.addBar(createBar(now.plusMinutes(9), 85.0));
       series.addBar(createBar(now.plusMinutes(10), 90.0));
 
-
-        // ---------------------------------------------------------------------
-        // 3) Downward movement - sma > ema by bar 11
-        // ---------------------------------------------------------------------
-      series.addBar(createBar(now.plusMinutes(11), 40.0));
+      // ---------------------------------------------------------------------
+      // 3) Downward movement - sma > ema by bar 11
+      // ---------------------------------------------------------------------
+      series.addBar(createBar(now.plusMinutes(11), 60.0));
       series.addBar(createBar(now.plusMinutes(12), 20.0));
       series.addBar(createBar(now.plusMinutes(13), 15.0));
 
