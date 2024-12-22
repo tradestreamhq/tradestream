@@ -65,28 +65,20 @@ jobs:
             --repository localhost:5000/tradestream-strategy-engine \
             --tag "latest"
 
-      - name: Pull the Data Ingestion Image into Local Docker Daemon
+      - name: Pull Images into Local Docker Daemon
         run: |
-          # Pull the image from the local registry into the local Docker daemon
+          # Pull the images from the local registry into the local Docker daemon
           docker pull localhost:5000/tradestream-data-ingestion:latest
-          # Retag the image to remove the registry prefix, so Kubernetes doesn't try to pull it remotely
-          docker tag localhost:5000/tradestream-data-ingestion:latest tradestream-data-ingestion:latest
-
-      - name: Pull the Strategy Engine Image into Local Docker Daemon
-        run: |
-          # Pull the image from the local registry into the local Docker daemon
           docker pull localhost:5000/tradestream-strategy-engine:latest
-          # Retag the image to remove the registry prefix, so Kubernetes doesn't try to pull it remotely
+
+          # Retag the images to remove the registry prefix, so Kubernetes doesn't try to pull them remotely
+          docker tag localhost:5000/tradestream-data-ingestion:latest tradestream-data-ingestion:latest
           docker tag localhost:5000/tradestream-strategy-engine:latest tradestream-strategy-engine:latest
 
-      - name: Load Data Ingestion Image into Minikube
+      - name: Load Images into Minikube
         run: |
-          # Load the retagged image (tradestream-data-ingestion:latest) into Minikube's image cache
+          # Load the retagged images into Minikube's image cache
           minikube image load tradestream-data-ingestion:latest
-
-      - name: Load Strategy Engine Image into Minikube
-        run: |
-          # Load the retagged image (tradestream-strategy-engine:latest) into Minikube's image cache
           minikube image load tradestream-strategy-engine:latest
 
       - name: Install TradeStream Helm Chart
