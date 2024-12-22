@@ -77,45 +77,39 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
     assertThat(factory.getStrategyType()).isEqualTo(StrategyType.MOMENTUM_SMA_CROSSOVER);
   }
 
-    @Test
-    public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma() throws InvalidProtocolBufferException {
-        series = new BaseBarSeries();
-        
-        // Initial period with stable prices
-        for (int i = 0; i < MOMENTUM_PERIOD + 5; i++) {
-            series.addBar(createBar(startTime.plusMinutes(i), 100.0));
-        }
-        
-        // Create small decline then sharp rise for momentum crossover
-        for (int i = 0; i < 5; i++) {
-            series.addBar(createBar(startTime.plusMinutes(MOMENTUM_PERIOD + 5 + i), 98.0));
-        }
-        
-        // Crossover sequence
-        series.addBar(createBar(startTime.plusMinutes(MOMENTUM_PERIOD + 10), 99.0));  // Bar 30
-        series.addBar(createBar(startTime.plusMinutes(MOMENTUM_PERIOD + 11), 102.0)); // Bar 31 - Crossover
-        series.addBar(createBar(startTime.plusMinutes(MOMENTUM_PERIOD + 12), 103.0)); // Bar 32
-        
-        // Reinitialize with new data
-        closePrice = new ClosePriceIndicator(series);
-        momentumIndicator = new MomentumIndicator(closePrice, MOMENTUM_PERIOD);
-        smaIndicator = new SMAIndicator(momentumIndicator, SMA_PERIOD);
-        strategy = factory.createStrategy(series, params);
-        
-        // Log values
-        for (int i = 30; i < 33; i++) {
-            System.out.printf(
-                "Bar %d - Price: %.2f, Momentum: %.2f, SMA: %.2f%n",
-                i,
-                closePrice.getValue(i).doubleValue(),
-                momentumIndicator.getValue(i).doubleValue(),
-                smaIndicator.getValue(i).doubleValue());
-        }
-        
-        assertThat(strategy.getEntryRule().isSatisfied(30)).isFalse();
-        assertThat(strategy.getEntryRule().isSatisfied(31)).isTrue();
-        assertThat(strategy.getEntryRule().isSatisfied(32)).isFalse();
+  @Test
+  public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma() throws InvalidProtocolBufferException {
+    series = new BaseBarSeries();
+    
+    // Initial period with stable prices (15 bars)
+    for (int i = 0; i < 15; i++) {
+        series.addBar(createBar(startTime.plusMinutes(i), 100.0));
     }
+    
+    // Create decline then rise for crossover (5 bars)
+    series.addBar(createBar(startTime.plusMinutes(15), 98.0));
+    series.addBar(createBar(startTime.plusMinutes(16), 98.0));
+    series.addBar(createBar(startTime.plusMinutes(17), 99.0));  // Bar i-2
+    series.addBar(createBar(startTime.plusMinutes(18), 102.0)); // Bar i-1 - Crossover
+    series.addBar(createBar(startTime.plusMinutes(19), 103.0)); // Bar i
+    
+    // Reinitialize
+    closePrice = new ClosePriceIndicator(series);
+    momentumIndicator = new MomentumIndicator(closePrice, MOMENTUM_PERIOD);
+    smaIndicator = new SMAIndicator(momentumIndicator, SMA_PERIOD);
+    strategy = factory.createStrategy(series, params);
+
+    int lastIndex = series.getBarCount() - 1;
+    
+    // Log debug info
+    System.out.println("Series size: " + series.getBarCount());
+    System.out.println("Testing bars: " + (lastIndex-2) + ", " + (lastIndex-1) + ", " + lastIndex);
+    
+    // Test with actual indices
+    assertThat(strategy.getEntryRule().isSatisfied(lastIndex-2)).isFalse();
+    assertThat(strategy.getEntryRule().isSatisfied(lastIndex-1)).isTrue();
+    assertThat(strategy.getEntryRule().isSatisfied(lastIndex)).isFalse();
+  }
 
     @Test
     public void exitRule_shouldTrigger_whenMomentumCrossesBelowSma() throws InvalidProtocolBufferException {
