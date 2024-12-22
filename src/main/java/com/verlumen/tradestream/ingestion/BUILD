@@ -119,10 +119,10 @@ java_library(
     name = "config_arguments",
     srcs = ["ConfigArguments.java"],
     deps = [
+        "//third_party:argparse4j",
+        "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
-        "@maven//:net_sourceforge_argparse4j_argparse4j",
-        "//third_party:auto_value",
     ],
 )
 
@@ -157,7 +157,7 @@ java_library(
     name = "currency_pair_supply_provider",
     srcs = ["CurrencyPairSupplyProvider.java"],
     deps = [
-        "@maven//:com_google_code_gson_gson",
+        "//third_party:gson",
         "//third_party:guava",
         "//third_party:guice",
         ":coin_market_cap_config",
@@ -211,7 +211,7 @@ java_library(
         ":http_url_connection_factory",
     ],
     runtime_deps = [
-        "@maven//:com_google_flogger_flogger_system_backend",
+        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -260,13 +260,13 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
+        "//third_party:argparse4j",
+        "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice_assistedinject",
         "//third_party:guice",
-        "@maven//:net_sourceforge_argparse4j_argparse4j",
         "//third_party:kafka_clients",
-        "@maven//:org_knowm_xchange_xchange_stream_core",
-        "//third_party:auto_value",
+        "//third_party:xchange_stream_core",
         ":candle_manager",
         ":candle_manager_impl",
         ":candle_publisher",
