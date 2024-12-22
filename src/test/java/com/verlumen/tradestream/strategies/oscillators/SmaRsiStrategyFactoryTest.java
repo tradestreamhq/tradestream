@@ -1,8 +1,6 @@
 package com.verlumen.tradestream.strategies.oscillators;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
@@ -104,10 +102,7 @@ public class SmaRsiStrategyFactoryTest {
         }
 
         // Expect entry by bar 7
-        assertTrue(
-            "Entry rule should trigger when RSI & SMA < oversold at bar 7",
-            strategy.getEntryRule().isSatisfied(7)
-        );
+        assertThat(strategy.getEntryRule().isSatisfied(7)).isTrue();
     }
 
     @Test
@@ -136,10 +131,7 @@ public class SmaRsiStrategyFactoryTest {
         }
 
         System.out.println("Exit rule first satisfied at bar " + exitIndex);
-        assertTrue(
-            "Exit rule should eventually trigger by bar 20",
-            exitIndex >= 0
-        );
+        assertThat(exitIndex).isGreaterThan(0);
     }
 
     @Test(expected = IllegalArgumentException.class)
