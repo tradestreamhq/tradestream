@@ -97,4 +97,4 @@ java_library(
         "@maven//:org_ta4j_ta4j_core",
         "//protos:strategies_java_proto",
     ],
-)
+) 
