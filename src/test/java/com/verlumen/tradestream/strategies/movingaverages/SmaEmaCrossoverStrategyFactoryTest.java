@@ -22,8 +22,8 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 
 @RunWith(JUnit4.class)
 public class SmaEmaCrossoverStrategyFactoryTest {
-  private static final int SMA_PERIOD = 10;
-  private static final int EMA_PERIOD = 20;
+  private static final int SMA_PERIOD = 3;
+  private static final int EMA_PERIOD = 5;
 
   private SmaEmaCrossoverStrategyFactory factory;
   private SmaEmaCrossoverParameters params;
