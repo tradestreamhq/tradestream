@@ -82,50 +82,36 @@ public class SmaEmaCrossoverStrategyFactoryTest {
       strategy = factory.createStrategy(series, params);
   }
 
-    @Test
-    public void getStrategyType_returnsSmaEmaCrossover() {
-        assertThat(factory.getStrategyType()).isEqualTo(StrategyType.SMA_EMA_CROSSOVER);
-    }
+  @Test
+  public void getStrategyType_returnsSmaEmaCrossover() {
+      assertThat(factory.getStrategyType()).isEqualTo(StrategyType.SMA_EMA_CROSSOVER);
+  }
 
   @Test
-    public void entryRule_shouldTrigger_whenSmaCrossesAboveEma() {
-      for (int i = 6; i <= 10; i++) {
-        System.out.printf(
-            "Bar %d - Price: %.2f, SMA: %.2f, EMA: %.2f%n",
-            i,
-            closePrice.getValue(i).doubleValue(),
-            smaIndicator.getValue(i).doubleValue(),
-            emaIndicator.getValue(i).doubleValue());
-      }
-        // No entry signal before crossover
-        assertFalse("Should not trigger entry at bar 6", strategy.getEntryRule().isSatisfied(6));
+  public void entryRule_shouldTrigger_whenSmaCrossesAboveEma() {
+      // Entry rule should not trigger before bar 8
+      assertThat(strategy.getEntryRule().isSatisfied(7))
+          .isFalse();
+      // Entry rule should trigger at bar 8
+      assertThat(strategy.getEntryRule().isSatisfied(8))
+          .isTrue();
+      // Entry rule should not trigger after bar 8
+      assertThat(strategy.getEntryRule().isSatisfied(9))
+          .isFalse();
+  }
 
-        // Entry signal at bar 7
-      assertTrue(
-            "Entry rule should trigger when SMA crosses above EMA at bar 7",
-            strategy.getEntryRule().isSatisfied(7)
-      );
-    }
-
-    @Test
-    public void exitRule_shouldTrigger_whenSmaCrossesBelowEma() {
-    for (int i = 10; i <= 13; i++) {
-      System.out.printf(
-          "Bar %d - Price: %.2f, SMA: %.2f, EMA: %.2f%n",
-          i,
-          closePrice.getValue(i).doubleValue(),
-          smaIndicator.getValue(i).doubleValue(),
-          emaIndicator.getValue(i).doubleValue());
-    }
-        // No exit signal before cross down
-        assertFalse("Should not trigger exit at bar 10", strategy.getExitRule().isSatisfied(10));
-
-        // Exit signal at bar 11
-        assertTrue(
-            "Exit rule should trigger when SMA crosses below EMA at bar 11",
-            strategy.getExitRule().isSatisfied(11)
-        );
-    }
+  @Test
+  public void exitRule_shouldTrigger_whenSmaCrossesBelowEma() {
+      // Exit rule should not trigger before bar 12
+      assertThat(strategy.getExitRule().isSatisfied(11))
+          .isFalse();
+      // Exit rule should trigger at bar 12
+      assertThat(strategy.getExitRule().isSatisfied(12))
+          .isTrue();
+      // Exit rule should not trigger after bar 12
+      assertThat(strategy.getExitRule().isSatisfied(13))
+          .isFalse();
+  }
 
   @Test(expected = IllegalArgumentException.class)
   public void validateSmaPeriod() throws InvalidProtocolBufferException {
