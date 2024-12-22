@@ -44,7 +44,11 @@ public class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> 
           .and(new OverIndicatorRule(smaIndicator, params.getOverboughtThreshold()));
 
     String strategyName = String.format(
-      "%s (RSI-%d SMA-)", getStrategyType().name(), params.getRsiPeriod(), params.getMovingAveragePeriod())
+      "%s (RSI-%d SMA-)",
+      getStrategyType().name(),
+      params.getRsiPeriod(),
+      params.getMovingAveragePeriod()
+    );
     return new BaseStrategy(
       strategyName,
       entryRule,
