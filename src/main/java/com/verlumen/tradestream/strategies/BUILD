@@ -72,9 +72,10 @@ java_library(
     deps = [
         "@com_google_inject_guice//:guice",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@io_grpc_grpc_java//api",
-        "@io_grpc_grpc_java//stub",
-        "@org_ta4j_ta4j//:ta4j",
+        "@maven//:io_grpc_grpc_api",
+        "@maven//:io_grpc_grpc_stub",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_ta4j_ta4j_core",
         "//protos:backtest_service_java_grpc",
         "//protos:backtest_service_java_proto",
         "//protos:marketdata_proto",
