@@ -1,7 +1,7 @@
 java_library(
-    name = "autofactory",
+    name = "auto_factory",
     exported_plugins = [
-        ":autofactory_plugin",
+        ":auto_factory_plugin",
     ],
     neverlink = 1,
     visibility = ["//visibility:public"],
@@ -42,8 +42,8 @@ java_library(
 )
 
 java_plugin(
-    name = "autofactory_plugin",
-    processor_class = "com.google.auto.factory.processor.AutoFactoryProcessor",
+    name = "auto_factory_plugin",
+    processor_class = "com.google.auto.factory.processor.auto_factoryProcessor",
     deps = [
         "@maven//:com_google_auto_auto_common",
         "@maven//:com_google_auto_factory_auto_factory",
