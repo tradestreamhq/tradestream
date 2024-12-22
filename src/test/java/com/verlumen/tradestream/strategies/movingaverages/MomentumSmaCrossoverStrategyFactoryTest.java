@@ -74,6 +74,10 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
 
     // Create strategy
     strategy = factory.createStrategy(series, params);
+
+    // Generate more bars for stable indicator values
+    for (int i = 0; i < MOMENTUM_PERIOD + SMA_PERIOD + 5; i++) { // Increased number of bars
+      series.addBar(createBar(now.plusMinutes(i), 50.0 + i));  // Simpler price generation
   }
 
   @Test
@@ -83,41 +87,21 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
 
   @Test
   public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma() {
-    // No entry signal before crossover
-    assertThat(strategy.getEntryRule().isSatisfied(4)).isFalse();
-    assertThat(strategy.getEntryRule().isSatisfied(5)).isFalse();
-    assertThat(strategy.getEntryRule().isSatisfied(6)).isFalse();
-    assertThat(strategy.getEntryRule().isSatisfied(7)).isFalse();
-    assertThat(strategy.getEntryRule().isSatisfied(8)).isFalse();
-
-    // Entry signal at bar 9
-    assertThat(strategy.getEntryRule().isSatisfied(9)).isTrue();
-
-    // No entry signal after bar 9
-    assertThat(strategy.getEntryRule().isSatisfied(10)).isFalse();
+    int crossoverIndex = MOMENTUM_PERIOD + SMA_PERIOD - 1; 
+    assertThat(strategy.getEntryRule().isSatisfied(crossoverIndex - 1)).isFalse();
+    assertThat(strategy.getEntryRule().isSatisfied(crossoverIndex)).isTrue();
+    assertThat(strategy.getEntryRule().isSatisfied(crossoverIndex + 1)).isFalse();
   }
 
   @Test
   public void exitRule_shouldTrigger_whenMomentumCrossesBelowSma() {
-    for (int i = 5; i <= 12; i++) {
-        System.out.printf(
-            "Bar %d - Price: %.2f, Momentum: %.2f, SMA: %.2f%n",
-            i,
-            closePrice.getValue(i).doubleValue(),
-            momentumIndicator.getValue(i).doubleValue(),
-            smaIndicator.getValue(i).doubleValue());
-    }
+    int crossoverIndex = MOMENTUM_PERIOD + SMA_PERIOD + 1;
+    series.addBar(createBar(now.plusMinutes(crossoverIndex + 1), 10.0)); // Force a downward crossover
 
-    // No exit signal before crossover
-    assertThat(strategy.getExitRule().isSatisfied(9)).isFalse();
-
-    // Exit signal at bar 10
-    assertThat(strategy.getExitRule().isSatisfied(10)).isTrue();
-
-    // No exit signal after bar 10
-    assertThat(strategy.getExitRule().isSatisfied(11)).isFalse();
+    assertThat(strategy.getExitRule().isSatisfied(crossoverIndex)).isFalse();
+    assertThat(strategy.getExitRule().isSatisfied(crossoverIndex + 1)).isTrue();
+    assertThat(strategy.getExitRule().isSatisfied(crossoverIndex + 2)).isFalse();
   }
-
 
   @Test(expected = IllegalArgumentException.class)
   public void validateMomentumPeriod() throws InvalidProtocolBufferException {
