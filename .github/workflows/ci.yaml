@@ -55,6 +55,16 @@ jobs:
             --repository localhost:5000/tradestream-data-ingestion \
             --tag "latest"
 
+      - name: Build and Push the Strategy Engine Image
+        run: |
+          # Push to local registry
+          bazel run //src/main/java/com/verlumen/tradestream/strategies:push_image \
+            --verbose_failures \
+            --sandbox_debug \
+            -- \
+            --repository localhost:5000/tradestream-strategy-engine \
+            --tag "latest"
+
       - name: Pull Image into Local Docker Daemon
         run: |
           # Pull the image from the local registry into the local Docker daemon
