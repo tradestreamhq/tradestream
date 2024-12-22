@@ -43,7 +43,7 @@ java_library(
 
 java_plugin(
     name = "auto_factory_plugin",
-    processor_class = "com.google.auto.factory.processor.auto_factoryProcessor",
+    processor_class = "com.google.auto.factory.processor.AutoFactoryProcessor",
     deps = [
         "@maven//:com_google_auto_auto_common",
         "@maven//:com_google_auto_factory_auto_factory",
@@ -54,7 +54,7 @@ java_plugin(
 
 java_plugin(
     name = "auto_value_plugin",
-    processor_class = "com.google.auto.value.processor.auto_valueProcessor",
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
     deps = [
         "@maven//:com_google_auto_value_auto_value",
         "@maven//:com_ryanharter_auto_value_auto_value_gson_factory",
@@ -63,7 +63,7 @@ java_plugin(
 
 java_plugin(
     name = "auto_value_gson_plugin",
-    processor_class = "com.ryanharter.auto.value.gson.factory.auto_valueGsonAdapterFactoryProcessor",
+    processor_class = "com.ryanharter.auto.value.gson.factory.AutoValueGsonAdapterFactoryProcessor",
     deps = [
         "@maven//:com_ryanharter_auto_value_auto_value_gson",
     ],
