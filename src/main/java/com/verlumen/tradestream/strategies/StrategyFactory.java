@@ -6,35 +6,72 @@ import com.google.protobuf.Message;
 import com.verlumen.tradestream.strategies.StrategyType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseStrategy;
+import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 
-interface StrategyFactory<T extends Message> {
+/**
+ * A factory interface for creating {@link Strategy} instances from provided parameters.
+ * Implementations of this interface are responsible for instantiating a specific type of
+ * trading strategy based on configuration data, often represented as a Protocol Buffer message.
+ *
+ * @param <T> The specific type of {@link Message} that holds the parameters for the strategy.
+ */
+public interface StrategyFactory<T extends Message> {
   /**
-   * Creates a Ta4j Strategy object from the provided parameters
+   * Creates a Ta4j Strategy object from the provided {@link BarSeries} and parameters.
    *
-   * @param parameters the parameters for the strategy
-   * @return Strategy object
-   * @throws InvalidProtocolBufferException If there is an error when unpacking the `Any` type
+   * @param series     The {@link BarSeries} to associate with the created strategy.
+   * @param parameters The parameters for configuring the strategy.
+   * @return The created {@link Strategy} object.
+   * @throws InvalidProtocolBufferException If there is an error when unpacking the parameters.
    */
-  Strategy createStrategy(T parameters)
-      throws InvalidProtocolBufferException;
+  Strategy createStrategy(BarSeries series, T parameters) throws InvalidProtocolBufferException;
 
   /**
-   * Gets the `StrategyType` this factory handles.
+   * Creates a Ta4j Strategy object from the provided {@link BarSeries} and parameters.
+   * This is a convenience method that unpacks the parameters from an {@link Any} message
+   * before invoking {@link #createStrategy(BarSeries, Message)}.
    *
-   * @return The StrategyType this factory handles.
+   * @param series     The {@link BarSeries} to associate with the created strategy.
+   * @param parameters The parameters for the strategy wrapped in an {@link Any} message.
+   * @return The created {@link Strategy} object.
+   * @throws InvalidProtocolBufferException If there is an error when unpacking the {@link Any} message.
+   */
+  default Strategy createStrategy(BarSeries series, Any parameters) throws InvalidProtocolBufferException {
+    return createStrategy(series, parameters.unpack(getParameterClass()));
+  }
+
+  /**
+   * Creates a Ta4j Strategy object from the provided entry and exit rules.
+   *
+   * @param entryRule     The {@link Rule} that triggers the opening of a new position.
+   * @param exitRule      The {@link Rule} that triggers the closing of an existing position.
+   * @param unstableBars The number of initial bars to ignore when evaluating the strategy. This helps to avoid early, possibly misleading, signals.
+   * @return The newly created {@link Strategy} object.
+   */
+  default Strategy createStrategy(Rule entryRule, Rule exitRule, int unstableBars) {
+    return new BaseStrategy(getStrategyType().name(), entryRule, exitRule, unstableBars);
+  }
+  
+  /**
+   * Gets the {@link StrategyType} that this factory handles.
+   *
+   * @return The {@link StrategyType} this factory is responsible for creating.
    */
   StrategyType getStrategyType();
 
   /**
-   * Returns the Class that this strategy unpacks the parameters into
+   * Returns the {@link Class} of the parameter message that this strategy factory uses.
+   * This is determined using reflection on the generic type parameter of the interface.
    *
-   * @return the Class that this factory unpacks `Any` into.
+   * @return The {@link Class} that this factory unpacks {@link Any} into.
    */
-  default Class<T> getParameterClass(){
+  default Class<T> getParameterClass() {
     Type genericSuperclass = getClass().getGenericInterfaces()[0];
-        ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
-        Type actualTypeArgument = parameterizedType.getActualTypeArguments()[0];
-      return (Class<T>) actualTypeArgument;
+    ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
+    Type actualTypeArgument = parameterizedType.getActualTypeArguments()[0];
+    return (Class<T>) actualTypeArgument;
   }
 }
