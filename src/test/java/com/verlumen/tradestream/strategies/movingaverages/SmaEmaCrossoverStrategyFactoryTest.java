@@ -70,8 +70,8 @@ public class SmaEmaCrossoverStrategyFactoryTest {
         // 3) Downward movement - sma > ema by bar 11
         // ---------------------------------------------------------------------
       series.addBar(createBar(now.plusMinutes(11), 40.0));
-      series.addBar(createBar(now.plusMinutes(12), 30.0));
-        series.addBar(createBar(now.plusMinutes(13), 25.0));
+      series.addBar(createBar(now.plusMinutes(12), 20.0));
+      series.addBar(createBar(now.plusMinutes(13), 15.0));
 
       // Initialize indicators for debugging
       closePrice = new ClosePriceIndicator(series);
