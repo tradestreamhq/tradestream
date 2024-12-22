@@ -9,6 +9,7 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.TripleEmaCrossoverParameters;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
+import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
