@@ -1,8 +1,6 @@
 package com.verlumen.tradestream.strategies.movingaverages;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
@@ -101,13 +99,10 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
         }
 
         // No entry signal during baseline
-        assertFalse("Should not trigger entry at bar 6", strategy.getEntryRule().isSatisfied(6));
+        assertThat(strategy.getEntryRule().isSatisfied(6)).isFalse();
 
         // Strict cross-up typically recognized at bar 7
-        assertTrue(
-            "Entry rule should trigger when short EMA crosses above long EMA at bar 7",
-            strategy.getEntryRule().isSatisfied(7)
-        );
+        assertThat(strategy.getEntryRule().isSatisfied(7)).isTrue();
     }
 
     @Test
@@ -122,13 +117,10 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
         }
 
         // No exit signal before the drop
-        assertFalse("Should not trigger exit at bar 10", strategy.getExitRule().isSatisfied(10));
+        assertThat(strategy.getExitRule().isSatisfied(10)).isTrue();
 
         // Strict cross-down typically recognized at bar 11
-        assertTrue(
-            "Exit rule should trigger when short EMA crosses below long EMA at bar 11",
-            strategy.getExitRule().isSatisfied(11)
-        );
+        assertThat(strategy.getExitRule().isSatisfied(11)).isTrue();
     }
 
     @Test(expected = IllegalArgumentException.class)
