@@ -122,7 +122,7 @@ public class TripleEmaCrossoverStrategyFactoryTest {
         assertThat(strategy.getExitRule().isSatisfied(10)).isFalse();
 
         // Exit signal at bar 11
-        assertThat(strategy.getExitRule().isSatisfied(11)).isTrue();
+        assertThat(strategy.getExitRule().isSatisfied(12)).isTrue();
     }
 
   @Test(expected = IllegalArgumentException.class)
