@@ -79,44 +79,92 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
 
   @Test
   public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma() {
-    // The crossover should occur at bar 32
-    // Log values around expected crossover
-    for (int i = 31; i < 34; i++) {
-      System.out.printf(
-          "Bar %d - Price: %.2f, Momentum: %.2f, SMA: %.2f%n",
-          i,
-          closePrice.getValue(i).doubleValue(),
-          momentumIndicator.getValue(i).doubleValue(),
-          smaIndicator.getValue(i).doubleValue());
+    // Reset series with data that will create a proper crossover
+    series = new BaseBarSeries();
+    
+    // Create initial period with flat prices to establish baseline
+    for (int i = 0; i < 25; i++) {
+        series.addBar(createBar(startTime.plusMinutes(i), 50.0));
     }
-
-    assertThat(strategy.getEntryRule().isSatisfied(31)).isFalse();
-    assertThat(strategy.getEntryRule().isSatisfied(32)).isTrue();
-    assertThat(strategy.getEntryRule().isSatisfied(33)).isFalse();
+    
+    // Create gradual momentum buildup
+    for (int i = 25; i < 30; i++) {
+        double price = 50.0 + (i - 24); // Increase by 1 each bar
+        series.addBar(createBar(startTime.plusMinutes(i), price));
+    }
+    
+    // Create crossover point
+    series.addBar(createBar(startTime.plusMinutes(30), 56.0));
+    series.addBar(createBar(startTime.plusMinutes(31), 58.0)); // Bar where crossover happens
+    series.addBar(createBar(startTime.plusMinutes(32), 59.0));
+    
+    // Reinitialize indicators with new data
+    closePrice = new ClosePriceIndicator(series);
+    momentumIndicator = new MomentumIndicator(closePrice, MOMENTUM_PERIOD);
+    smaIndicator = new SMAIndicator(momentumIndicator, SMA_PERIOD);
+    strategy = factory.createStrategy(series, params);
+    
+    // Print values around crossover point
+    for (int i = 30; i < 33; i++) {
+        System.out.printf(
+            "Bar %d - Price: %.2f, Momentum: %.2f, SMA: %.2f%n",
+            i,
+            closePrice.getValue(i).doubleValue(),
+            momentumIndicator.getValue(i).doubleValue(),
+            smaIndicator.getValue(i).doubleValue());
+    }
+    
+    assertThat(strategy.getEntryRule().isSatisfied(30)).isFalse();
+    assertThat(strategy.getEntryRule().isSatisfied(31)).isTrue();
+    assertThat(strategy.getEntryRule().isSatisfied(32)).isFalse();
   }
 
   @Test
   public void exitRule_shouldTrigger_whenMomentumCrossesBelowSma() {
-    // Add downtrend after the entry point to create exit signal
-    for (int i = 35; i < 45; i++) {
-      double price = 90.0 - ((i - 34) * 3); // Decreasing by 3 each bar
-      series.addBar(createBar(startTime.plusMinutes(i), price));
+    // First set up entry conditions
+    series = new BaseBarSeries();
+    
+    // Initial period
+    for (int i = 0; i < 25; i++) {
+        series.addBar(createBar(startTime.plusMinutes(i), 50.0));
     }
-
-    // The crossover should occur at bar 42
-    // Log values around expected crossover
-    for (int i = 41; i < 44; i++) {
-      System.out.printf(
-          "Bar %d - Price: %.2f, Momentum: %.2f, SMA: %.2f%n",
-          i,
-          closePrice.getValue(i).doubleValue(),
-          momentumIndicator.getValue(i).doubleValue(),
-          smaIndicator.getValue(i).doubleValue());
+    
+    // Create uptrend to establish positive momentum
+    for (int i = 25; i < 35; i++) {
+        double price = 50.0 + ((i - 24) * 2); 
+        series.addBar(createBar(startTime.plusMinutes(i), price));
     }
-
-    assertThat(strategy.getExitRule().isSatisfied(41)).isFalse();
-    assertThat(strategy.getExitRule().isSatisfied(42)).isTrue();
-    assertThat(strategy.getExitRule().isSatisfied(43)).isFalse();
+    
+    // Create downtrend to force momentum down
+    for (int i = 35; i < 40; i++) {
+        double price = 70.0 - ((i - 34) * 3);
+        series.addBar(createBar(startTime.plusMinutes(i), price));
+    }
+    
+    // Create crossover point
+    series.addBar(createBar(startTime.plusMinutes(40), 55.0));
+    series.addBar(createBar(startTime.plusMinutes(41), 52.0)); // Bar where crossover happens
+    series.addBar(createBar(startTime.plusMinutes(42), 50.0));
+    
+    // Reinitialize indicators with new data
+    closePrice = new ClosePriceIndicator(series);
+    momentumIndicator = new MomentumIndicator(closePrice, MOMENTUM_PERIOD);
+    smaIndicator = new SMAIndicator(momentumIndicator, SMA_PERIOD);
+    strategy = factory.createStrategy(series, params);
+    
+    // Print values around crossover point
+    for (int i = 40; i < 43; i++) {
+        System.out.printf(
+            "Bar %d - Price: %.2f, Momentum: %.2f, SMA: %.2f%n",
+            i,
+            closePrice.getValue(i).doubleValue(),
+            momentumIndicator.getValue(i).doubleValue(),
+            smaIndicator.getValue(i).doubleValue());
+    }
+    
+    assertThat(strategy.getExitRule().isSatisfied(40)).isFalse();
+    assertThat(strategy.getExitRule().isSatisfied(41)).isTrue();
+    assertThat(strategy.getExitRule().isSatisfied(42)).isFalse();
   }
 
   @Test(expected = IllegalArgumentException.class)
