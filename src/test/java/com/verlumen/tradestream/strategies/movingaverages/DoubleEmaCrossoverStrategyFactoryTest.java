@@ -4,8 +4,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
 import com.verlumen.tradestream.strategies.StrategyType;
@@ -25,23 +23,23 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 public class DoubleEmaCrossoverStrategyFactoryTest {
     private static final int SHORT_EMA = 3;
     private static final int LONG_EMA = 7;
-    
-    // For debugging EMA calculations
-    private EMAIndicator shortEma;
-    private EMAIndicator longEma;
-    private ClosePriceIndicator closePrice;
 
-    @Inject 
     private DoubleEmaCrossoverStrategyFactory factory;
 
     private DoubleEmaCrossoverParameters params;
     private BaseBarSeries series;
     private Strategy strategy;
 
+    // For debugging EMA calculations
+    private EMAIndicator shortEma;
+    private EMAIndicator longEma;
+    private ClosePriceIndicator closePrice;
+
     @Before
     public void setUp() throws InvalidProtocolBufferException {
-        Guice.createInjector().injectMembers(this);
-        
+        // If you do NOT have a Guice module, just instantiate the factory directly:
+        factory = new DoubleEmaCrossoverStrategyFactory();
+
         // Create standard parameters
         params = DoubleEmaCrossoverParameters.newBuilder()
             .setShortEmaPeriod(SHORT_EMA)
@@ -57,13 +55,13 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
         for (int i = 0; i < 7; i++) {
             series.addBar(createBar(now.plusMinutes(i), 50.0));
         }
-        
+
         // Create stronger upward movement to force crossover
         series.addBar(createBar(now.plusMinutes(7), 65.0));   // Sharper rise
         series.addBar(createBar(now.plusMinutes(8), 80.0));   // Continues up strongly
         series.addBar(createBar(now.plusMinutes(9), 85.0));   // Maintains high level
         series.addBar(createBar(now.plusMinutes(10), 90.0));  // Still high
-        
+
         // Create stronger downward movement
         series.addBar(createBar(now.plusMinutes(11), 40.0));  // Sharp drop
         series.addBar(createBar(now.plusMinutes(12), 30.0));  // Continues down strongly
@@ -74,6 +72,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
         shortEma = new EMAIndicator(closePrice, SHORT_EMA);
         longEma = new EMAIndicator(closePrice, LONG_EMA);
 
+        // Create strategy
         strategy = factory.createStrategy(series, params);
     }
 
@@ -94,12 +93,16 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
         }
 
         // No entry signal during baseline period
-        assertFalse("Should not trigger entry during baseline",
-            strategy.getEntryRule().isSatisfied(6));
-        
+        assertFalse(
+            "Should not trigger entry during baseline",
+            strategy.getEntryRule().isSatisfied(6)
+        );
+
         // Should detect entry when short EMA crosses above long EMA
-        assertTrue("Entry rule should trigger when short EMA crosses above long EMA",
-            strategy.getEntryRule().isSatisfied(8));
+        assertTrue(
+            "Entry rule should trigger when short EMA crosses above long EMA",
+            strategy.getEntryRule().isSatisfied(8)
+        );
     }
 
     @Test
@@ -114,12 +117,16 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
         }
 
         // No exit signal during uptrend
-        assertFalse("Should not trigger exit during uptrend",
-            strategy.getExitRule().isSatisfied(10));
-        
+        assertFalse(
+            "Should not trigger exit during uptrend",
+            strategy.getExitRule().isSatisfied(10)
+        );
+
         // Should detect exit when short EMA crosses below long EMA
-        assertTrue("Exit rule should trigger when short EMA crosses below long EMA",
-            strategy.getExitRule().isSatisfied(12));
+        assertTrue(
+            "Exit rule should trigger when short EMA crosses below long EMA",
+            strategy.getExitRule().isSatisfied(12)
+        );
     }
 
     @Test(expected = IllegalArgumentException.class)
