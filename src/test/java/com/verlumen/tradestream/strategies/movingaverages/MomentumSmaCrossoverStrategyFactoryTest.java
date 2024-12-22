@@ -78,6 +78,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
     // Generate more bars for stable indicator values
     for (int i = 0; i < MOMENTUM_PERIOD + SMA_PERIOD + 5; i++) { // Increased number of bars
       series.addBar(createBar(now.plusMinutes(i), 50.0 + i));  // Simpler price generation
+    }
   }
 
   @Test
