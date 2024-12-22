@@ -23,4 +23,9 @@ final class MomentumIndicator extends CachedIndicator<Num> {
         Num pastClose = closePrice.getValue(index - period);
         return currentClose.minus(pastClose);
     }
+
+    @Override
+    public int getUnstableBars() {
+        return period; // The period determines the stabilization requirement
+    }
 }
