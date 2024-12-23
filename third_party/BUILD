@@ -126,6 +126,15 @@ java_library(
 )
 
 java_library(
+    name = "junit",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:junit_junit",
+    ],
+    testonly = True,
+)
+
+java_library(
     name = "kafka_clients",
     visibility = ["//visibility:public"],
     exports = [
@@ -155,6 +164,15 @@ java_library(
     exports = [
         "@maven//:org_ta4j_ta4j_core",
     ],
+)
+
+java_library(
+    name = "truth",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_truth_truth",
+    ],
+    testonly = True,
 )
 
 java_library(
