@@ -80,6 +80,7 @@ java_library(
         "//third_party:guice",
         "//third_party:grpc_java_api",
         "//third_party:grpc_java_stub",
+        ":strategy_manager",
     ],
 )
 
