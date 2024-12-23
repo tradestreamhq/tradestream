@@ -4,23 +4,10 @@ package(
     default_visibility = ["//visibility:public"]
 )
 
-proto_library(
-    name = "backtest_service_proto",
-    srcs = ["backtest_service.proto"],
-    deps = [
-        ":backtesting_proto",
-    ],
-)
-
-java_proto_library(
-    name = "backtest_service_java_proto",
-    deps = [":backtest_service_proto"],
-)
-
 java_grpc_library(
-    name = "backtest_service_java_grpc",
-    srcs = [":backtest_service_proto"],
-    deps = [":backtest_service_java_proto"],
+    name = "backtesting_java_grpc",
+    srcs = [":backtesting_proto"],
+    deps = [":backtesting_java_proto"],
 )
 
 proto_library(

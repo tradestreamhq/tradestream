@@ -94,6 +94,22 @@ java_library(
 )
 
 java_library(
+    name = "grpc_java_api",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@io_grpc_grpc_java//api",
+    ],
+)
+
+java_library(
+    name = "grpc_java_stub",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@io_grpc_grpc_java//stub",
+    ],
+)
+
+java_library(
     name = "gson",
     visibility = ["//visibility:public"],
     exports = [
@@ -126,6 +142,15 @@ java_library(
 )
 
 java_library(
+    name = "guice_testlib",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_inject_extensions_guice_testlib",
+    ],
+    testonly = True,
+)
+
+java_library(
     name = "junit",
     visibility = ["//visibility:public"],
     exports = [
@@ -140,6 +165,15 @@ java_library(
     exports = [
         "@maven//:org_apache_kafka_kafka_clients",
     ],
+)
+
+java_library(
+    name = "mockito_core",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:org_mockito_mockito_core",
+    ],
+    testonly = True,
 )
 
 java_library(
