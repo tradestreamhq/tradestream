@@ -7,7 +7,7 @@ import org.ta4j.core.AnalysisCriterion;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.TradingRecord;
-import org.ta4j.core.analysis.criteria.*;
+import org.ta4j.core.criteria.*;
 import org.ta4j.core.num.Num;
 import java.util.ArrayList;
 import java.util.List;
