@@ -173,6 +173,7 @@ java_library(
     exports = [
         "@maven//:org_mockito_mockito_core",
     ],
+    testonly = True,
 )
 
 java_library(
