@@ -1,3 +1,5 @@
+package(default_visibility = ["//visibility:public"])
+
 java_library(
     name = "backtest_runner",
     srcs = ["BacktestRunner.java"],
