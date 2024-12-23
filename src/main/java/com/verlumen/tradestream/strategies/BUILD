@@ -87,9 +87,9 @@ java_library(
     name = "strategy_manager",
     srcs = ["StrategyManager.java"],
     deps = [
-        "//third_party:ta4j_core",
         "//protos:strategies_java_proto",
         "//third_party:protobuf_java",
+        "//third_party:ta4j_core",
         ":strategy_factory",
     ],
 )
