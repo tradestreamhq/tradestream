@@ -41,3 +41,11 @@ message BacktestResult {
   repeated TimeframeResult timeframe_results = 2;
   double overall_score = 3;
 }
+
+service BacktestService {
+  rpc RunBacktest (BacktestRequest) returns (BacktestResult);
+}
+
+service ParameterizedBacktestService {
+    rpc RunParameterizedBacktest (ParameterizedBacktestRequest) returns (BacktestResult);
+}

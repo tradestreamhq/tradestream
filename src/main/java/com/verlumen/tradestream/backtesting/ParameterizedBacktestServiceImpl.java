@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.verlumen.tradestream.backtesting.BacktestResult;
 import com.verlumen.tradestream.backtesting.ParameterizedBacktestRequest;
 import com.verlumen.tradestream.backtesting.ParameterizedBacktestServiceGrpc;
+import com.verlumen.tradestream.strategies.StrategyManager;
 import com.verlumen.tradestream.marketdata.Candle;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;

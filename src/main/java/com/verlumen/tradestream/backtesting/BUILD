@@ -14,8 +14,7 @@ java_library(
     name = "parameterized_backtest_service_impl",
     srcs = ["ParameterizedBacktestServiceImpl.java"],
     deps = [
-        "//protos:backtest_service_java_grpc",
-        "//protos:backtest_service_java_proto",
+        "//protos:backtesting_java_grpc",
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
