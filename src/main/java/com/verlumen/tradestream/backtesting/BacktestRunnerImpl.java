@@ -8,7 +8,9 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseTradingRecord;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.TradingRecord;
-import org.ta4j.core.criteria.*;
+import org.ta4j.core.criteria.pnl.ReturnCriterion;
+import org.ta4j.core.criteria.pnl.ProfitLossCriterion;
+import org.ta4j.core.criteria.pnl.ProfitLossRatioCriterion;
 import org.ta4j.core.num.Num;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,13 +68,14 @@ final class BacktestRunnerImpl implements BacktestRunner {
 
         // Calculate metrics
         double totalReturn = calculateMetric(timeframeSeries, tradingRecord, 
-            new TotalProfitCriterion());
+            new ProfitLossCriterion());
         
-        double sharpeRatio = calculateMetric(timeframeSeries, tradingRecord,
-            new AverageReturnPerBarCriterion());
+        double profitLossRatio = calculateMetric(timeframeSeries, tradingRecord,
+            new ProfitLossRatioCriterion());
         
-        double maxDrawdown = calculateMetric(timeframeSeries, tradingRecord,
-            new MaximumDrawdownCriterion());
+        // Calculate annualized returns
+        double returnPercentage = calculateMetric(timeframeSeries, tradingRecord,
+            new ReturnCriterion());
             
         double volatility = calculateVolatility(timeframeSeries);
         
@@ -80,7 +83,7 @@ final class BacktestRunnerImpl implements BacktestRunner {
         
         double winRate = calculateWinRate(timeframeSeries, tradingRecord);
         
-        double profitFactor = calculateProfitFactor(timeframeSeries, tradingRecord);
+        double profitFactor = profitLossRatio;
         
         double avgTradeDuration = calculateAverageTradeDuration(tradingRecord);
 
@@ -91,10 +94,10 @@ final class BacktestRunnerImpl implements BacktestRunner {
         return TimeframeResult.newBuilder()
             .setTimeframe(String.valueOf(timeframe))
             .setCumulativeReturn(totalReturn)
-            .setAnnualizedReturn(annualize(totalReturn, timeframe))
-            .setSharpeRatio(sharpeRatio)
+            .setAnnualizedReturn(annualize(returnPercentage, timeframe))
+            .setSharpeRatio(profitLossRatio)  // Using profit/loss ratio as a proxy
             .setSortinoRatio(0.0) // Not directly available in Ta4j
-            .setMaxDrawdown(maxDrawdown)
+            .setMaxDrawdown(calculateMaxDrawdown(timeframeSeries))
             .setVolatility(volatility)
             .setWinRate(winRate)
             .setProfitFactor(profitFactor)
@@ -148,6 +151,24 @@ final class BacktestRunnerImpl implements BacktestRunner {
             .orElse(0.0);
             
         return Math.sqrt(variance);
+    }
+
+    private double calculateMaxDrawdown(BarSeries series) {
+        double maxDrawdown = 0.0;
+        double peak = Double.MIN_VALUE;
+        
+        for (int i = 0; i < series.getBarCount(); i++) {
+            double price = series.getBar(i).getClosePrice().doubleValue();
+            
+            if (price > peak) {
+                peak = price;
+            }
+            
+            double drawdown = (peak - price) / peak;
+            maxDrawdown = Math.max(maxDrawdown, drawdown);
+        }
+        
+        return maxDrawdown;
     }
 
     private double calculateWinRate(BarSeries series, TradingRecord record) {
@@ -208,7 +229,6 @@ final class BacktestRunnerImpl implements BacktestRunner {
     }
 
     private double annualize(double totalReturn, int timeframe, int tradingDaysPerYear) {
-        // Assuming 252 trading days per year
         double yearsElapsed = timeframe / (tradingDaysPerYear * 1440.0); // Convert minutes to years
         return Math.pow(1 + totalReturn, 1 / yearsElapsed) - 1;
     }
@@ -218,7 +238,7 @@ final class BacktestRunnerImpl implements BacktestRunner {
             return 0.0;
         }
 
-        // Weight the different components
+        // Weight the different components 
         double score = 0.0;
         for (TimeframeResult result : results) {
             double timeframeScore = 
