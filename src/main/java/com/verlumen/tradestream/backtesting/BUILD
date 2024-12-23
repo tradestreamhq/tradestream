@@ -13,6 +13,19 @@ java_library(
 )
 
 java_library(
+    name = "backtest_runner_impl",
+    srcs = ["BacktestRunnerImpl.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:ta4j_core",
+        ":backtest_runner",
+    ],
+)
+
+java_library(
     name = "parameterized_backtest_service_impl",
     srcs = ["ParameterizedBacktestServiceImpl.java"],
     deps = [
