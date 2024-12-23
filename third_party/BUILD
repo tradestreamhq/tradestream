@@ -168,6 +168,14 @@ java_library(
 )
 
 java_library(
+    name = "mockito_core",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:org_mockito_mockito_core",
+    ],
+)
+
+java_library(
     name = "mug",
     visibility = ["//visibility:public"],
     exports = [
