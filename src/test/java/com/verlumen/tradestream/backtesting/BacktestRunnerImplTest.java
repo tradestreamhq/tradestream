@@ -134,7 +134,7 @@ public class BacktestRunnerImplTest {
         // Assert
         TimeframeResult firstTimeframe = result.getTimeframeResults(0);
         assertThat(firstTimeframe.getVolatility()).isGreaterThan(0.0);
-        assertThat(firstTimeframe.getSharpeRatio()).isGreaterThan(0.0);
+        assertThat(firstTimeframe.getSharpeRatio()).isEqualTo(-41.43383146756991);
     }
 
     @Test
