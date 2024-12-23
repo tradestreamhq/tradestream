@@ -147,6 +147,7 @@ java_library(
     exports = [
         "@maven//:com_google_inject_extensions_guice_testlib",
     ],
+    testonly = True,
 )
 
 java_library(
