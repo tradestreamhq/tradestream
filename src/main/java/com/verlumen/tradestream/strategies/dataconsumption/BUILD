@@ -6,11 +6,11 @@ java_library(
     name = "data_consumption_lib",
     srcs = glob(["*.java"]),
     deps = [
-        "@maven//:com_google_flogger_flogger",
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_inject_guice",
-        "@maven//:org_apache_kafka_kafka_clients",
         "//:autovalue",
         "//protos:marketdata_java_proto",
+        "//third_party:flogger",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:kafka_clients",
     ],
 )

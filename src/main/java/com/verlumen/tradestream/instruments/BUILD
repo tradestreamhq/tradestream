@@ -6,7 +6,7 @@ java_library(
     name = "currency",
     srcs = ["Currency.java"],
     deps = [
-        "//:autovalue",
+        "//third_party:auto_value",
     ],
 )
 
@@ -14,8 +14,8 @@ java_library(
     name = "currency_pair",
     srcs = ["CurrencyPair.java"],
     deps = [
-        "@maven//:com_google_guava_guava",
-        "//:autovalue",
+        "//third_party:auto_value",
+        "//third_party:guava",
         ":currency",
     ],
 )
