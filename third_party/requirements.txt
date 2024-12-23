@@ -1,0 +1,5 @@
+grpcio==1.60.1
+optuna==3.5.0
+numpy==1.26.3
+pytest==7.4.4
+pytest-grpcio==0.8.1
