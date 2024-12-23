@@ -5,7 +5,6 @@ java_library(
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
         "//third_party:auto_value",
-        "//third_party:guice",
         "//third_party:ta4j_core",
     ],
 )
