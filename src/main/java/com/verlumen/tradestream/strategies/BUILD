@@ -66,24 +66,6 @@ tar(
     srcs = [":app_deploy.jar"],
 )
 
-java_library(
-    name = "parameterized_backtest_service_impl",
-    srcs = ["ParameterizedBacktestServiceImpl.java"],
-    deps = [
-        "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:org_ta4j_ta4j_core",
-        "//protos:backtest_service_java_grpc",
-        "//protos:backtest_service_java_proto",
-        "//protos:backtesting_java_proto",
-        "//protos:marketdata_java_proto",
-        "//protos:strategies_java_proto",
-        "//third_party:guice",
-        "//third_party:grpc_java_api",
-        "//third_party:grpc_java_stub",
-        ":strategy_manager",
-    ],
-)
-
 oci_push(
     name = "push_image",
     image = ":index",
