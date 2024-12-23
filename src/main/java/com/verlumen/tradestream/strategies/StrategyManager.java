@@ -6,7 +6,7 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 
-interface StrategyManager {
+public interface StrategyManager {
   Strategy createStrategy(BarSeries barSeries, StrategyType strategyType, Any strategyParameters)
     throws InvalidProtocolBufferException;
 }
