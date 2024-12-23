@@ -23,9 +23,7 @@ public final class ParameterizedBacktestServiceImpl
   @Override
   public void runParameterizedBacktest(
       ParameterizedBacktestRequest request,
-      StreamObserver<BacktestResult> responseObserver
-  ) {
+      StreamObserver<BacktestResult> responseObserver) {
 
-    }
   }
 }
