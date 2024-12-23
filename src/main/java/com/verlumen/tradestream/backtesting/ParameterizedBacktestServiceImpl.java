@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies;
+package com.verlumen.tradestream.backtesting;
 
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
