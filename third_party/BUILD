@@ -142,6 +142,14 @@ java_library(
 )
 
 java_library(
+    name = "guice_testlib",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_inject_extensions_guice_testlib",
+    ],
+)
+
+java_library(
     name = "junit",
     visibility = ["//visibility:public"],
     exports = [
