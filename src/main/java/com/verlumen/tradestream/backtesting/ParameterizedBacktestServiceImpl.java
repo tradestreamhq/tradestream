@@ -5,14 +5,12 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.backtesting.BacktestResult;
 import com.verlumen.tradestream.backtesting.ParameterizedBacktestRequest;
-import com.verlumen.tradestream.backtesting.TimeframeResult;
 import com.verlumen.tradestream.backtesting.ParameterizedBacktestServiceGrpc;
 import com.verlumen.tradestream.marketdata.Candle;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.util.Map;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
@@ -22,10 +20,14 @@ import org.ta4j.core.Strategy;
 public final class ParameterizedBacktestServiceImpl
     extends ParameterizedBacktestServiceGrpc.ParameterizedBacktestServiceImplBase {
   private final StrategyManager strategyManager;
+  private final BacktestRunner backtestRunner;
 
   @Inject
-  public ParameterizedBacktestServiceImpl(StrategyManager strategyManager) {
+  public ParameterizedBacktestServiceImpl(
+      StrategyManager strategyManager,
+      BacktestRunner backtestRunner) {
     this.strategyManager = strategyManager;
+    this.backtestRunner = backtestRunner;
   }
 
   @Override
@@ -34,39 +36,24 @@ public final class ParameterizedBacktestServiceImpl
       StreamObserver<BacktestResult> responseObserver
   ) {
     try {
-      // 1) Convert the repeated candles
+      // Convert the repeated candles to a BarSeries
       BarSeries series = buildBarSeries(request);
 
-      // Because each factory has a known parameter type T extends Message,
-      // we can do “factory.createStrategy(series, rawParams)” and the default method
-      // in StrategyFactory will do an Any#unpack(T). For example:
+      // Create strategy using manager
       Strategy strategy = strategyManager.createStrategy(
-          request.getStrategyType(), request.getStrategyParameters());
+          series, 
+          request.getStrategyType(), 
+          request.getStrategyParameters());
 
-      // Run your real backtest logic ...
-      // Below is a placeholder with random values
-      double randomCumulativeReturn = Math.random();
-      BacktestResult result = BacktestResult.newBuilder()
-          .setStrategyType(strategyType)
-          .addTimeframeResults(
-              TimeframeResult.newBuilder()
-                  .setTimeframe("ALL_DATA")
-                  .setCumulativeReturn(randomCumulativeReturn)
-                  .setAnnualizedReturn(randomCumulativeReturn * 1.5)
-                  .setSharpeRatio(1.11)
-                  .setSortinoRatio(0.95)
-                  .setMaxDrawdown(0.20)
-                  .setVolatility(0.07)
-                  .setWinRate(0.60)
-                  .setProfitFactor(1.85)
-                  .setNumberOfTrades(22)
-                  .setAverageTradeDuration(30.0)
-                  .setAlpha(0.03)
-                  .setBeta(0.40)
-                  .build()
-          )
-          .setOverallScore(0.92)
+      // Create backtest request
+      BacktestRunner.BacktestRequest backtestRequest = BacktestRunner.BacktestRequest.builder()
+          .setBarSeries(series)
+          .setStrategy(strategy)
+          .setStrategyType(request.getStrategyType())
           .build();
+
+      // Run backtest and get results
+      BacktestResult result = backtestRunner.runBacktest(backtestRequest);
 
       responseObserver.onNext(result);
       responseObserver.onCompleted();
