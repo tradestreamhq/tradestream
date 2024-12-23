@@ -17,5 +17,6 @@ java_library(
         "//protos:strategies_java_proto",
         "//third_party:guice",
         "//third_party:ta4j_core",
+        ":backtest_runner",
     ],
 )
