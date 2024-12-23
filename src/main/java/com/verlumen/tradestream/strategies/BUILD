@@ -11,11 +11,11 @@ java_binary(
     srcs = ["App.java"],
     main_class = "com.verlumen.tradestream.strategies.App",
     deps = [
-        "@maven//:com_google_flogger_flogger",
-        "@maven//:com_google_inject_guice",
+        "//third_party:flogger",
+        "//third_party:guice",
     ],
     runtime_deps = [
-        "@maven//:com_google_flogger_flogger_system_backend",
+        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -98,13 +98,13 @@ java_library(
     name = "strategy_manager_impl",
     srcs = ["StrategyManagerImpl.java"],
     deps = [
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_inject_guice",
-        "@maven//:com_google_mug_mug",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_ta4j_ta4j_core",
-        "//third_party:auto_value",
         "//protos:strategies_java_proto",
+        "//third_party:auto_value",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:mug",
         ":strategy_factory",
         ":strategy_manager",
     ],
