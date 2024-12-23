@@ -5,13 +5,13 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.inject.Inject;
 import org.ta4j.core.AnalysisCriterion;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseTradingRecord;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.TradingRecord;
 import org.ta4j.core.criteria.*;
 import org.ta4j.core.num.Num;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * Implementation of BacktestRunner that evaluates trading strategies using Ta4j.
@@ -66,16 +66,13 @@ final class BacktestRunnerImpl implements BacktestRunner {
 
         // Calculate metrics
         double totalReturn = calculateMetric(timeframeSeries, tradingRecord, 
-            new TotalReturnCriterion());
+            new TotalProfitCriterion());
         
         double sharpeRatio = calculateMetric(timeframeSeries, tradingRecord,
-            new SharpeRatioCriterion());
-        
-        double sortinoRatio = calculateMetric(timeframeSeries, tradingRecord,
-            new SortinoRatioCriterion());
+            new AverageReturnPerBarCriterion());
         
         double maxDrawdown = calculateMetric(timeframeSeries, tradingRecord,
-            new MaxDrawdownCriterion());
+            new MaximumDrawdownCriterion());
             
         double volatility = calculateVolatility(timeframeSeries);
         
@@ -96,7 +93,7 @@ final class BacktestRunnerImpl implements BacktestRunner {
             .setCumulativeReturn(totalReturn)
             .setAnnualizedReturn(annualize(totalReturn, timeframe))
             .setSharpeRatio(sharpeRatio)
-            .setSortinoRatio(sortinoRatio)
+            .setSortinoRatio(0.0) // Not directly available in Ta4j
             .setMaxDrawdown(maxDrawdown)
             .setVolatility(volatility)
             .setWinRate(winRate)
@@ -109,7 +106,7 @@ final class BacktestRunnerImpl implements BacktestRunner {
     }
 
     private TradingRecord runStrategy(BarSeries series, Strategy strategy) {
-        TradingRecord tradingRecord = new TradingRecord();
+        TradingRecord tradingRecord = new BaseTradingRecord();
         
         for (int i = strategy.getUnstableBars(); i < series.getBarCount(); i++) {
             if (strategy.shouldEnter(i)) {
@@ -128,7 +125,6 @@ final class BacktestRunnerImpl implements BacktestRunner {
     }
 
     private double calculateVolatility(BarSeries series) {
-        ReturnCriterion returns = new ReturnCriterion();
         List<Double> dailyReturns = new ArrayList<>();
         
         for (int i = 1; i < series.getBarCount(); i++) {
@@ -162,8 +158,8 @@ final class BacktestRunnerImpl implements BacktestRunner {
         int winningTrades = 0;
         for (org.ta4j.core.Position position : record.getPositions()) {
             if (position.isClosed()) {
-                double entryPrice = position.getEntry().getPrice().doubleValue();
-                double exitPrice = position.getExit().getPrice().doubleValue();
+                double entryPrice = position.getEntry().getNetPrice().doubleValue();
+                double exitPrice = position.getExit().getNetPrice().doubleValue();
                 if (exitPrice > entryPrice) {
                     winningTrades++;
                 }
@@ -208,8 +204,12 @@ final class BacktestRunnerImpl implements BacktestRunner {
     }
 
     private double annualize(double totalReturn, int timeframe) {
+        return annualize(totalReturn, timeframe, 365);
+    }
+
+    private double annualize(double totalReturn, int timeframe, int tradingDaysPerYear) {
         // Assuming 252 trading days per year
-        double yearsElapsed = timeframe / (252.0 * 1440.0); // Convert minutes to years
+        double yearsElapsed = timeframe / (tradingDaysPerYear * 1440.0); // Convert minutes to years
         return Math.pow(1 + totalReturn, 1 / yearsElapsed) - 1;
     }
 
