@@ -18,7 +18,9 @@ java_library(
     deps = [
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
+        "//third_party:guava",
         "//third_party:guice",
+        "//third_party:ta4j_core",
     ],
 )
 
