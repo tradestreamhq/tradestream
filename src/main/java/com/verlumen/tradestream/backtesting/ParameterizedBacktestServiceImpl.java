@@ -1,13 +1,10 @@
 package com.verlumen.tradestream.backtesting;
 
 import com.google.inject.Inject;
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.backtesting.BacktestResult;
 import com.verlumen.tradestream.backtesting.ParameterizedBacktestRequest;
 import com.verlumen.tradestream.backtesting.ParameterizedBacktestServiceGrpc;
 import com.verlumen.tradestream.marketdata.Candle;
-import com.verlumen.tradestream.strategies.StrategyType;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import java.time.Duration;
@@ -18,7 +15,7 @@ import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 
-public final class ParameterizedBacktestServiceImpl
+final class ParameterizedBacktestServiceImpl
     extends ParameterizedBacktestServiceGrpc.ParameterizedBacktestServiceImplBase {
   private final StrategyManager strategyManager;
   private final BacktestRunner backtestRunner;
