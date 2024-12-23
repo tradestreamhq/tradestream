@@ -20,12 +20,12 @@ dataIngestion:
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
-    tag: "v0.0.387-develop"
+    tag: "v0.0.388-develop"
   service:
     port: 8080
 strategyEngine:
   image:
     repository: "tradestreamhq/tradestream-strategy-engine"
-    tag: "v0.0.387-develop"
+    tag: "v0.0.388-develop"
   service:
     port: 8081
