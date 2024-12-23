@@ -36,9 +36,17 @@ final class BacktestRunnerImpl implements BacktestRunner {
         
         List<TimeframeResult> timeframeResults = new ArrayList<>();
         
-        // Test each timeframe
+        // Always evaluate the full series timeframe first
+        TimeframeResult fullSeriesResult = evaluateTimeframe(
+            request.barSeries(),
+            request.strategy(),
+            request.barSeries().getBarCount()
+        );
+        timeframeResults.add(fullSeriesResult);
+        
+        // Then evaluate additional standard timeframes if we have enough data
         for (int timeframe : DEFAULT_TIMEFRAMES) {
-            if (timeframe <= request.barSeries().getBarCount()) {
+            if (timeframe < request.barSeries().getBarCount()) {
                 TimeframeResult result = evaluateTimeframe(
                     request.barSeries(),
                     request.strategy(),
@@ -66,43 +74,44 @@ final class BacktestRunnerImpl implements BacktestRunner {
         // Run the strategy
         TradingRecord tradingRecord = runStrategy(timeframeSeries, strategy);
 
-        // Calculate metrics
-        double totalReturn = calculateMetric(timeframeSeries, tradingRecord, 
+        // Calculate basic metrics
+        double cumulativeReturn = calculateMetric(timeframeSeries, tradingRecord, 
             new ProfitLossCriterion());
         
-        double profitLossRatio = calculateMetric(timeframeSeries, tradingRecord,
+        double profitFactor = calculateMetric(timeframeSeries, tradingRecord,
             new ProfitLossRatioCriterion());
         
-        // Calculate annualized returns
-        double returnPercentage = calculateMetric(timeframeSeries, tradingRecord,
-            new ReturnCriterion());
-            
+        double annualizedReturn = calculateAnnualizedReturn(timeframeSeries, tradingRecord);
+        
+        // Calculate risk metrics
         double volatility = calculateVolatility(timeframeSeries);
+        double maxDrawdown = calculateMaxDrawdown(timeframeSeries);
         
-        int numTrades = tradingRecord.getPositions().size();
-        
+        // Trade statistics
+        int numberOfTrades = tradingRecord.getPositions().size();
         double winRate = calculateWinRate(timeframeSeries, tradingRecord);
-        
-        double profitFactor = profitLossRatio;
-        
-        double avgTradeDuration = calculateAverageTradeDuration(tradingRecord);
+        double averageTradeDuration = calculateAverageTradeDuration(tradingRecord);
 
-        // Calculate alpha and beta if benchmark data is available
+        // Risk-adjusted returns
+        double sharpeRatio = calculateSharpeRatio(cumulativeReturn, volatility);
+        double sortinoRatio = calculateSortinoRatio(timeframeSeries, tradingRecord);
+
+        // Alpha/Beta (simplified calculation)
         double alpha = 0.0; // TODO: Implement when benchmark data is available
         double beta = 1.0;  // TODO: Implement when benchmark data is available
 
         return TimeframeResult.newBuilder()
             .setTimeframe(String.valueOf(timeframe))
-            .setCumulativeReturn(totalReturn)
-            .setAnnualizedReturn(annualize(returnPercentage, timeframe))
-            .setSharpeRatio(profitLossRatio)  // Using profit/loss ratio as a proxy
-            .setSortinoRatio(0.0) // Not directly available in Ta4j
-            .setMaxDrawdown(calculateMaxDrawdown(timeframeSeries))
+            .setCumulativeReturn(cumulativeReturn)
+            .setAnnualizedReturn(annualizedReturn)
+            .setSharpeRatio(sharpeRatio)
+            .setSortinoRatio(sortinoRatio)
+            .setMaxDrawdown(maxDrawdown)
             .setVolatility(volatility)
             .setWinRate(winRate)
             .setProfitFactor(profitFactor)
-            .setNumberOfTrades(numTrades)
-            .setAverageTradeDuration(avgTradeDuration)
+            .setNumberOfTrades(numberOfTrades)
+            .setAverageTradeDuration(averageTradeDuration)
             .setAlpha(alpha)
             .setBeta(beta)
             .build();
@@ -111,10 +120,15 @@ final class BacktestRunnerImpl implements BacktestRunner {
     private TradingRecord runStrategy(BarSeries series, Strategy strategy) {
         TradingRecord tradingRecord = new BaseTradingRecord();
         
+        // Skip unstable period at the start
         for (int i = strategy.getUnstableBars(); i < series.getBarCount(); i++) {
+            // Check if we should enter long position
             if (strategy.shouldEnter(i)) {
+                // Enter with a position size of 1 unit
                 tradingRecord.enter(i, series.getBar(i).getClosePrice(), series.numOf(1));
-            } else if (strategy.shouldExit(i)) {
+            }
+            // Check if we should exit an open position
+            else if (strategy.shouldExit(i) && tradingRecord.getCurrentPosition().isOpened()) {
                 tradingRecord.exit(i, series.getBar(i).getClosePrice(), series.numOf(1));
             }
         }
@@ -128,24 +142,27 @@ final class BacktestRunnerImpl implements BacktestRunner {
     }
 
     private double calculateVolatility(BarSeries series) {
-        List<Double> dailyReturns = new ArrayList<>();
-        
+        if (series.getBarCount() < 2) {
+            return 0.0;
+        }
+
+        List<Double> returns = new ArrayList<>();
         for (int i = 1; i < series.getBarCount(); i++) {
             Num previousClose = series.getBar(i - 1).getClosePrice();
             Num currentClose = series.getBar(i).getClosePrice();
             double dailyReturn = currentClose.minus(previousClose)
                 .dividedBy(previousClose)
                 .doubleValue();
-            dailyReturns.add(dailyReturn);
+            returns.add(dailyReturn);
         }
         
-        // Calculate standard deviation of returns
-        double mean = dailyReturns.stream()
+        // Calculate standard deviation
+        double mean = returns.stream()
             .mapToDouble(Double::doubleValue)
             .average()
             .orElse(0.0);
             
-        double variance = dailyReturns.stream()
+        double variance = returns.stream()
             .mapToDouble(r -> Math.pow(r - mean, 2))
             .average()
             .orElse(0.0);
@@ -154,10 +171,14 @@ final class BacktestRunnerImpl implements BacktestRunner {
     }
 
     private double calculateMaxDrawdown(BarSeries series) {
+        if (series.getBarCount() == 0) {
+            return 0.0;
+        }
+
         double maxDrawdown = 0.0;
-        double peak = Double.MIN_VALUE;
+        double peak = series.getBar(0).getClosePrice().doubleValue();
         
-        for (int i = 0; i < series.getBarCount(); i++) {
+        for (int i = 1; i < series.getBarCount(); i++) {
             double price = series.getBar(i).getClosePrice().doubleValue();
             
             if (price > peak) {
@@ -176,36 +197,12 @@ final class BacktestRunnerImpl implements BacktestRunner {
             return 0.0;
         }
 
-        int winningTrades = 0;
-        for (org.ta4j.core.Position position : record.getPositions()) {
-            if (position.isClosed()) {
-                double entryPrice = position.getEntry().getNetPrice().doubleValue();
-                double exitPrice = position.getExit().getNetPrice().doubleValue();
-                if (exitPrice > entryPrice) {
-                    winningTrades++;
-                }
-            }
-        }
+        long winningTrades = record.getPositions().stream()
+            .filter(position -> position.isClosed() && 
+                position.getProfit().isPositive())
+            .count();
         
         return (double) winningTrades / record.getPositions().size();
-    }
-
-    private double calculateProfitFactor(BarSeries series, TradingRecord record) {
-        double grossProfit = 0.0;
-        double grossLoss = 0.0;
-        
-        for (org.ta4j.core.Position position : record.getPositions()) {
-            if (position.isClosed()) {
-                double profit = position.getProfit().doubleValue();
-                if (profit > 0) {
-                    grossProfit += profit;
-                } else {
-                    grossLoss += Math.abs(profit);
-                }
-            }
-        }
-        
-        return grossLoss == 0 ? grossProfit : grossProfit / grossLoss;
     }
 
     private double calculateAverageTradeDuration(TradingRecord record) {
@@ -213,24 +210,68 @@ final class BacktestRunnerImpl implements BacktestRunner {
             return 0.0;
         }
 
-        double totalDuration = 0.0;
-        for (org.ta4j.core.Position position : record.getPositions()) {
-            if (position.isClosed()) {
-                int duration = position.getExit().getIndex() - position.getEntry().getIndex();
-                totalDuration += duration;
+        double totalDuration = record.getPositions().stream()
+            .filter(position -> position.isClosed())
+            .mapToInt(position -> position.getExit().getIndex() - position.getEntry().getIndex())
+            .sum();
+        
+        long closedPositions = record.getPositions().stream()
+            .filter(position -> position.isClosed())
+            .count();
+        
+        return closedPositions > 0 ? totalDuration / closedPositions : 0.0;
+    }
+
+    private double calculateAnnualizedReturn(BarSeries series, TradingRecord record) {
+        double totalReturn = calculateMetric(series, record, new ReturnCriterion());
+        int barsPerYear = 252 * 1440; // Assuming 1-minute bars and 252 trading days
+        double years = (double) series.getBarCount() / barsPerYear;
+        
+        // Use compound annual growth rate formula
+        return Math.pow(1 + totalReturn, 1 / years) - 1;
+    }
+
+    private double calculateSharpeRatio(double returns, double volatility) {
+        double riskFreeRate = 0.02; // Assume 2% risk-free rate
+        return volatility == 0 ? 0 : (returns - riskFreeRate) / volatility;
+    }
+
+    private double calculateSortinoRatio(BarSeries series, TradingRecord record) {
+        // Simplified Sortino calculation using only negative returns
+        List<Double> negativeReturns = new ArrayList<>();
+        
+        for (int i = 1; i < series.getBarCount(); i++) {
+            double previousPrice = series.getBar(i - 1).getClosePrice().doubleValue();
+            double currentPrice = series.getBar(i).getClosePrice().doubleValue();
+            double return_ = (currentPrice - previousPrice) / previousPrice;
+            
+            if (return_ < 0) {
+                negativeReturns.add(return_);
             }
         }
         
-        return totalDuration / record.getPositions().size();
-    }
-
-    private double annualize(double totalReturn, int timeframe) {
-        return annualize(totalReturn, timeframe, 365);
-    }
-
-    private double annualize(double totalReturn, int timeframe, int tradingDaysPerYear) {
-        double yearsElapsed = timeframe / (tradingDaysPerYear * 1440.0); // Convert minutes to years
-        return Math.pow(1 + totalReturn, 1 / yearsElapsed) - 1;
+        if (negativeReturns.isEmpty()) {
+            return 0.0;
+        }
+        
+        // Calculate downside deviation
+        double meanNegativeReturn = negativeReturns.stream()
+            .mapToDouble(Double::doubleValue)
+            .average()
+            .orElse(0.0);
+            
+        double downsideDeviation = Math.sqrt(
+            negativeReturns.stream()
+                .mapToDouble(r -> Math.pow(r - meanNegativeReturn, 2))
+                .average()
+                .orElse(0.0)
+        );
+        
+        // Calculate Sortino ratio using total return
+        double totalReturn = calculateMetric(series, record, new ReturnCriterion());
+        double riskFreeRate = 0.02; // Assume 2% risk-free rate
+        
+        return downsideDeviation == 0 ? 0 : (totalReturn - riskFreeRate) / downsideDeviation;
     }
 
     private double calculateOverallScore(List<TimeframeResult> results) {
@@ -238,19 +279,26 @@ final class BacktestRunnerImpl implements BacktestRunner {
             return 0.0;
         }
 
-        // Weight the different components 
-        double score = 0.0;
+        double totalScore = 0.0;
         for (TimeframeResult result : results) {
+            // Weight different metrics based on their importance
             double timeframeScore = 
-                0.3 * result.getSharpeRatio() +           // Risk-adjusted returns
-                0.2 * (1 - result.getMaxDrawdown()) +     // Capital preservation
-                0.2 * result.getWinRate() +               // Consistency
-                0.15 * result.getProfitFactor() +         // Profit efficiency
-                0.15 * result.getAnnualizedReturn();      // Absolute returns
+                0.25 * normalize(result.getSharpeRatio()) +          // Risk-adjusted returns
+                0.20 * (1 - result.getMaxDrawdown()) +              // Capital preservation
+                0.20 * result.getWinRate() +                        // Consistency
+                0.20 * normalize(result.getAnnualizedReturn()) +    // Absolute returns
+                0.15 * normalize(result.getProfitFactor());         // Profit efficiency
                 
-            score += timeframeScore;
+            totalScore += timeframeScore;
         }
         
-        return score / results.size();
+        return totalScore / results.size();
+    }
+
+    private double normalize(double value) {
+        // Simple min-max normalization with reasonable bounds
+        double min = -1.0;
+        double max = 2.0;
+        return Math.max(0, Math.min(1, (value - min) / (max - min)));
     }
 }
