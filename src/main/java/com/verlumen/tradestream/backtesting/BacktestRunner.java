@@ -2,13 +2,9 @@ package com.verlumen.tradestream.backtesting;
 
 import com.google.auto.value.AutoValue;
 import com.verlumen.tradestream.backtesting.BacktestResult;
-import com.verlumen.tradestream.backtesting.TimeframeResult;
 import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.AnalysisCriterion;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.TradingRecord;
-import org.ta4j.core.analysis.criteria.*;
 
 /**
  * Interface for running backtests on trading strategies.
