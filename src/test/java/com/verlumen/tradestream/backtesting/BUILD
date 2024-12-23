@@ -1,6 +1,24 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
+    name = "BacktestRunnerImplTest",
+    srcs = ["BacktestRunnerImplTest.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:ta4j_core",
+        "//third_party:truth",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner_impl",
+    ],
+)
+
+java_test(
     name = "ParameterizedBacktestServiceImplTest",
     srcs = ["ParameterizedBacktestServiceImplTest.java"],
     deps = [
