@@ -7,6 +7,7 @@ import com.verlumen.tradestream.backtesting.BacktestResult;
 import com.verlumen.tradestream.backtesting.ParameterizedBacktestRequest;
 import com.verlumen.tradestream.backtesting.ParameterizedBacktestServiceGrpc;
 import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.strategies.StrategyType;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import java.time.Duration;
