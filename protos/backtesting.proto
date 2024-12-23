@@ -36,6 +36,14 @@ message TimeframeResult {
   double beta = 13;
 }
 
+service BacktestService {
+  rpc RunBacktest (BacktestRequest) returns (BacktestResult);
+}
+
+service ParameterizedBacktestService {
+    rpc RunParameterizedBacktest (ParameterizedBacktestRequest) returns (BacktestResult);
+}
+
 message BacktestResult {
   strategies.StrategyType strategy_type = 1;
   repeated TimeframeResult timeframe_results = 2;
