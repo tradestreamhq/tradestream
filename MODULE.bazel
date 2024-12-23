@@ -10,7 +10,7 @@ bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "container_structure_test", version = "1.16.0")
 bazel_dep(name = "grpc-java", repo_name = "io_grpc_grpc_java", version = "1.68.1")
 bazel_dep(name = "protobuf", repo_name = "com_google_protobuf", version = "29.1")
-bazel_dep(name = "rules_java", version = "8.3.1")
+bazel_dep(name = "rules_java", version = "8.5.1")
 bazel_dep(name = "rules_jvm_external", version = "6.5")
 bazel_dep(name = "rules_oci", version = "2.0.1")
 bazel_dep(name = "grpc", version = "1.68.0")
@@ -100,17 +100,25 @@ bazel_lib.jq()
 bazel_lib.tar()
 use_repo(bazel_lib, "bsd_tar_toolchains", "jq_toolchains")
 
-# Initialize and configure rules_python
-python = use_extension("@rules_python//python:defs.bzl", "python")
+# Configure Python toolchain
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
-    name = "python3_10",
     python_version = "3.10",
+    configure_coverage_tool = True,
+    is_default = True,
 )
-use_repo(python, "python_3_10")
+use_repo(python, "python_3_10", "python_versions", "pythons_hub")
 
-pip = use_extension("@rules_python//python:pip.bzl", "pip")
+# Initialize pip for dependency management 
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
-    name = "pip", 
+    hub_name = "pip",  # Changed from name to hub_name
+    python_version = "3.10",
     requirements_lock = "//third_party:requirements_lock.txt",
+    experimental_target_platforms = [
+        "linux_x86_64",
+        "osx_x86_64",
+        "osx_arm64",
+    ],
 )
 use_repo(pip, "pip")
