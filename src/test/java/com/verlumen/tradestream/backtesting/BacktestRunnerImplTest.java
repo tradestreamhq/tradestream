@@ -23,7 +23,6 @@ import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.Trade;
-import org.ta4j.core.num.DoubleNumFactory;
 
 @RunWith(JUnit4.class)
 public class BacktestRunnerImplTest {
@@ -38,7 +37,7 @@ public class BacktestRunnerImplTest {
         backtestRunner = new BacktestRunnerImpl();
 
         // Initialize test data
-        series = new BaseBarSeries("test series", DoubleNumFactory.getInstance());
+        series = new BaseBarSeries("test series");
         startTime = ZonedDateTime.now();
 
         // Create a simple strategy that enters on bar index 1 and exits on bar index 3
