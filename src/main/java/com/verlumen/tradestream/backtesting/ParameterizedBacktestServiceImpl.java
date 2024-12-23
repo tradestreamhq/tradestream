@@ -59,13 +59,6 @@ public final class ParameterizedBacktestServiceImpl
       responseObserver.onNext(result);
       responseObserver.onCompleted();
 
-    } catch (InvalidProtocolBufferException e) {
-      responseObserver.onError(
-          Status.INVALID_ARGUMENT
-              .withCause(e)
-              .withDescription("Failed to unpack strategy parameters: " + e.getMessage())
-              .asRuntimeException()
-      );
     } catch (Exception e) {
       responseObserver.onError(
           Status.INTERNAL
