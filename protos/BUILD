@@ -36,7 +36,7 @@ py_grpc_library(
     name = "backtesting_py_grpc",
     visibility = ["//visibility:public"],
     srcs = [":backtesting_proto"],
-    deps = [":backtesting_java_proto"],
+    deps = [":backtesting_py_proto"],
 )
 
 proto_library(
