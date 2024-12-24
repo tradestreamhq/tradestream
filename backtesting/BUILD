@@ -11,7 +11,7 @@ py_library(
         "//protos:backtesting_py_grpc",
         "//protos:backtesting_py_proto",
         "//protos:strategies_py_proto",
-        ":optimization",
+        # ":optimization",
     ],
 )
 
