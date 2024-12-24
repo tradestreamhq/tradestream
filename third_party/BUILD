@@ -192,6 +192,12 @@ java_library(
     ],
 )
 
+compile_pip_requirements(
+    name = "requirements",
+    src = "requirements.in",
+    requirements_txt = "requirements_lock.txt",
+)
+
 java_library(
     name = "ta4j_core",
     visibility = ["//visibility:public"],
