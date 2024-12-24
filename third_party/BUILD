@@ -197,7 +197,7 @@ java_library(
 compile_pip_requirements(
     name = "requirements",
     src = "requirements.in",
-    requirements_txt = "requirements_lock.txt",
+    requirements_txt = "requirements.txt",
 )
 
 java_library(
