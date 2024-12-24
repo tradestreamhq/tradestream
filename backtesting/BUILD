@@ -1,1 +1,1 @@
-load("@pip//:requirements.bzl", "requirement")
+load("@pypi//:requirements.bzl", "requirement")
