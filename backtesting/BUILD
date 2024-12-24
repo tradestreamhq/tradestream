@@ -1,13 +1,13 @@
 # load("@rules_python//python:defs.bzl", "py_library", "py_binary", "py_test")
-load("@pip//:requirements.bzl", "requirement")
+# load("@pip//:requirements.bzl", "requirement")
 
 py_library(
     name = "ga_service_lib",
     srcs = ["ga_service.py"],
     deps = [
-        requirement("grpcio"),
-        requirement("optuna"),
-        requirement("numpy"),
+        # requirement("grpcio"),
+        # requirement("optuna"),
+        # requirement("numpy"),
         "//protos:backtesting_py_grpc",
         "//protos:backtesting_py_proto",
         "//protos:strategies_py_proto",
