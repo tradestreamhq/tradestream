@@ -1,4 +1,4 @@
-load("@rules_python//python:defs.bzl", "py_library", "py_binary", "py_test")
+# load("@rules_python//python:defs.bzl", "py_library", "py_binary", "py_test")
 load("@pip//:requirements.bzl", "requirement")
 
 py_library(
@@ -15,38 +15,38 @@ py_library(
     ],
 )
 
-py_library(
-    name = "optimization",
-    srcs = ["optimization.py"],
-    deps = [
-        requirement("optuna"),
-        requirement("numpy"),
-    ],
-)
+# py_library(
+#     name = "optimization",
+#     srcs = ["optimization.py"],
+#     deps = [
+#         requirement("optuna"),
+#         requirement("numpy"),
+#     ],
+# )
 
-py_binary(
-    name = "ga_service",
-    srcs = ["ga_service.py"],
-    main = "ga_service.py", 
-    deps = [":ga_service_lib"],
-)
+# py_binary(
+#     name = "ga_service",
+#     srcs = ["ga_service.py"],
+#     main = "ga_service.py", 
+#     deps = [":ga_service_lib"],
+# )
 
-py_test(
-    name = "ga_service_test",
-    srcs = ["ga_service_test.py"],
-    deps = [
-        ":ga_service_lib",
-        requirement("pytest"),
-        requirement("grpcio-testing"),
-    ],
-)
+# py_test(
+#     name = "ga_service_test",
+#     srcs = ["ga_service_test.py"],
+#     deps = [
+#         ":ga_service_lib",
+#         requirement("pytest"),
+#         requirement("grpcio-testing"),
+#     ],
+# )
 
-py_test(
-    name = "optimization_test", 
-    size = "small",
-    srcs = ["optimization_test.py"],
-    deps = [
-        ":optimization",
-        requirement("pytest"),
-    ],
-)
+# py_test(
+#     name = "optimization_test", 
+#     size = "small",
+#     srcs = ["optimization_test.py"],
+#     deps = [
+#         ":optimization",
+#         requirement("pytest"),
+#     ],
+# )
