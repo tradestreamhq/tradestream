@@ -1,3 +1,5 @@
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+
 java_library(
     name = "argparse4j",
     visibility = ["//visibility:public"],
