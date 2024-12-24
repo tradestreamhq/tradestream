@@ -115,7 +115,6 @@ pip.parse(
 )
 use_repo(pip, "pip")
 
-oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 oci.pull(
     name = "ubuntu",
     image = "ubuntu",
