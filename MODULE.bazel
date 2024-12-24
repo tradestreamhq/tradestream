@@ -114,7 +114,7 @@ pip.parse(
     python_version = "3.9",
     requirements_lock = "//third_party:requirements.txt",
 )
-use_repo(pip, "pip")
+use_repo(pip, "pypi")
 
 oci.pull(
     name = "ubuntu",
