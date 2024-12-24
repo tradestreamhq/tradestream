@@ -110,11 +110,11 @@ use_repo(python, "python_3_9")
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
-    hub_name = "pypi",
+    hub_name = "pip",
     python_version = "3.9",
     requirements_lock = "//third_party:requirements.txt",
 )
-use_repo(pip, "pypi")
+use_repo(pip, "pip")
 
 oci.pull(
     name = "ubuntu",
