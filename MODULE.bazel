@@ -110,7 +110,7 @@ use_repo(python, "python_3_9")
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
-    hub_name = "pip",
+    hub_name = "pypi",
     python_version = "3.9",
     requirements_lock = "//third_party:requirements.txt",
 )
