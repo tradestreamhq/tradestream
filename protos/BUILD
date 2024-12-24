@@ -1,4 +1,3 @@
-load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 
