@@ -147,6 +147,12 @@ grpcio==1.68.1 \
     --hash=sha256:ee2e743e51cb964b4975de572aa8fb95b633f496f9fcb5e257893df3be854746 \
     --hash=sha256:eeb38ff04ab6e5756a2aef6ad8d94e89bb4a51ef96e20f45c44ba190fa0bcaad \
     --hash=sha256:f8261fa2a5f679abeb2a0a93ad056d765cdca1c47745eda3f2d87f874ff4b8c9
+    # via
+    #   -r third_party/requirements.in
+    #   grpcio-testing
+grpcio-testing==1.68.1 \
+    --hash=sha256:780d3d0baa4afe44f5d2fe55cf36d7a424ac147de9207779d9c4ceaea08dd6a1 \
+    --hash=sha256:b4aeaf86f565a8f8823317f05152c006e5590e77cf69f9820ed9b375bfd61eb3
     # via -r third_party/requirements.in
 iniconfig==2.0.0 \
     --hash=sha256:2d91e135bf72d31a410b17c16da610a82cb55f6b0477d1a902134b24a455b8b3 \
@@ -280,6 +286,19 @@ pluggy==1.5.0 \
     --hash=sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1 \
     --hash=sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669
     # via pytest
+protobuf==5.29.2 \
+    --hash=sha256:13d6d617a2a9e0e82a88113d7191a1baa1e42c2cc6f5f1398d3b054c8e7e714a \
+    --hash=sha256:2d2e674c58a06311c8e99e74be43e7f3a8d1e2b2fdf845eaa347fbd866f23355 \
+    --hash=sha256:36000f97ea1e76e8398a3f02936aac2a5d2b111aae9920ec1b769fc4a222c4d9 \
+    --hash=sha256:494229ecd8c9009dd71eda5fd57528395d1eacdf307dbece6c12ad0dd09e912e \
+    --hash=sha256:842de6d9241134a973aab719ab42b008a18a90f9f07f06ba480df268f86432f9 \
+    --hash=sha256:a0c53d78383c851bfa97eb42e3703aefdc96d2036a41482ffd55dc5f529466eb \
+    --hash=sha256:b2cc8e8bb7c9326996f0e160137b0861f1a82162502658df2951209d0cb0309e \
+    --hash=sha256:b6b0d416bbbb9d4fbf9d0561dbfc4e324fd522f61f7af0fe0f282ab67b22477e \
+    --hash=sha256:c12ba8249f5624300cf51c3d0bfe5be71a60c63e4dcf51ffe9a68771d958c851 \
+    --hash=sha256:e621a98c0201a7c8afe89d9646859859be97cb22b8bf1d8eacfd90d5bda2eb19 \
+    --hash=sha256:fde4554c0e578a5a0bcc9a276339594848d1e89f9ea47b4427c80e5d72f90181
+    # via grpcio-testing
 pytest==8.3.4 \
     --hash=sha256:50e16d954148559c9a74109af1eaf0c945ba2d8f30f0a3d3335edde19788b6f6 \
     --hash=sha256:965370d062bce11e73868e0335abac31b4d3de0e82f4007408d242b4f8610761
