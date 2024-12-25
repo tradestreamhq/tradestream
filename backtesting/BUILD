@@ -37,7 +37,6 @@ py_test(
     deps = [
         ":ga_service_lib",
         requirement("pytest"),
-        requirement("grpcio-testing"),
     ],
 )
 
