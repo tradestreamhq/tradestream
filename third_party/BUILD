@@ -1,3 +1,5 @@
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+
 java_library(
     name = "argparse4j",
     visibility = ["//visibility:public"],
@@ -190,6 +192,12 @@ java_library(
     exports = [
         "@maven//:com_google_protobuf_protobuf_java",
     ],
+)
+
+compile_pip_requirements(
+    name = "requirements",
+    src = "requirements.in",
+    requirements_txt = "requirements.txt",
 )
 
 java_library(
