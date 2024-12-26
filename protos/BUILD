@@ -14,7 +14,8 @@ proto_library(
 java_grpc_library(
     name = "backtesting_java_grpc",
     visibility = ["//visibility:public"],
-    protos = [":backtesting_proto"],
+    srcs = [":backtesting_proto"],
+    deps = [":backtesting_java_proto"],
 )
 
 java_proto_library(
