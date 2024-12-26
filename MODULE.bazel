@@ -16,7 +16,7 @@ bazel_dep(name = "rules_oci", version = "2.0.1")
 bazel_dep(name = "rules_proto_grpc", version = "5.0.1")
 bazel_dep(name = "rules_proto_grpc_java", version = "5.0.1")
 bazel_dep(name = "rules_proto_grpc_python", version = "5.0.1")
-bazel_dep(name = "rules_python", version = "1.0.0")
+bazel_dep(name = "rules_python", version = "0.37.2")
 
 # Add Java toolchain configuration
 JAVA_LANGUAGE_LEVEL = "17"
