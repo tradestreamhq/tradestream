@@ -1,4 +1,4 @@
-load("@rules_proto_grpc_java//:defs.bzl", "java_grpc_library")
+load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 load("@rules_proto_grpc_python//:defs.bzl", "python_grpc_library", "python_proto_library")
 
 proto_library(
