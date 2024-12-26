@@ -1,6 +1,5 @@
-# load("@grpc//bazel:python_rules.bzl", "py_grpc_library", "py_proto_library")
 load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
-load("@rules_python//python:proto.bzl", "py_proto_library")
+load("@rules_proto_grpc_python//:defs.bzl", "python_proto_library")
 
 proto_library(
     name = "backtesting_proto",
@@ -25,7 +24,7 @@ java_proto_library(
     deps = [":backtesting_proto"],
 )
 
-py_proto_library(
+python_proto_library(
     name = "backtesting_py_proto",
     visibility = ["//visibility:public"],
     deps = [":backtesting_proto"],
@@ -49,7 +48,7 @@ java_proto_library(
     deps = [":marketdata_proto"],
 )
 
-py_proto_library(
+python_proto_library(
     name = "marketdata_py_proto",
     visibility = ["//visibility:public"],
     deps = [":marketdata_proto"],
@@ -66,7 +65,7 @@ java_proto_library(
     deps = [":strategies_proto"],
 )
 
-py_proto_library(
+python_proto_library(
     name = "strategies_py_proto",
     visibility = ["//visibility:public"],
     deps = [":strategies_proto"],
