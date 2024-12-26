@@ -8,13 +8,14 @@ module(
 bazel_dep(name = "aspect_bazel_lib", version = "2.8.1")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "container_structure_test", version = "1.16.0")
-bazel_dep(name = "grpc", version = "1.69.0")
 bazel_dep(name = "grpc-java", repo_name = "io_grpc_grpc_java", version = "1.69.0")
 bazel_dep(name = "protobuf", repo_name = "com_google_protobuf", version = "29.1")
 bazel_dep(name = "rules_java", version = "8.5.1")
 bazel_dep(name = "rules_jvm_external", version = "6.5")
 bazel_dep(name = "rules_oci", version = "2.0.1")
-bazel_dep(name = "rules_python", version = "1.0.0")
+bazel_dep(name = "rules_proto_grpc", version = "5.0.1")
+bazel_dep(name = "rules_proto_grpc_python", version = "5.0.1")
+bazel_dep(name = "rules_python", version = "0.37.2")
 
 # Add Java toolchain configuration
 JAVA_LANGUAGE_LEVEL = "17"
@@ -38,9 +39,9 @@ maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     artifacts = [
         "com.google.auto.factory:auto-factory:1.1.0",
-        "com.google.auto.value:auto-value:1.10",
-        "com.google.auto.value:auto-value-annotations:1.10",
-        "com.google.code.gson:gson:2.9.1",
+        "com.google.auto.value:auto-value:1.11.0",
+        "com.google.auto.value:auto-value-annotations:1.11.0",
+        "com.google.code.gson:gson:2.11.0",
         "com.google.flogger:flogger:0.8",
         "com.google.flogger:flogger-system-backend:0.8",
         "com.google.guava:guava:31.1-jre",
@@ -67,7 +68,7 @@ maven.install(
         # Test Dependencies
         "com.google.inject.extensions:guice-testlib:7.0.0",
         "com.google.testparameterinjector:test-parameter-injector:1.9",
-        "com.google.truth:truth:1.1.2",
+        "com.google.truth:truth:1.4.2",
         "junit:junit:4.13.2",
         "org.mockito:mockito-core:4.3.1",
     ],
