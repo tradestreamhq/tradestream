@@ -30,12 +30,11 @@ python_proto_library(
     protos = [":backtesting_proto"],
 )
 
-# py_grpc_library(
-#     name = "backtesting_py_grpc",
-#     visibility = ["//visibility:public"],
-#     srcs = [":backtesting_proto"],
-#     deps = [":backtesting_py_proto"],
-# )
+python_grpc_library(
+    name = "backtesting_py_grpc",
+    visibility = ["//visibility:public"],
+    protos = [":backtesting_proto"],
+)
 
 proto_library(
     name = "marketdata_proto",
