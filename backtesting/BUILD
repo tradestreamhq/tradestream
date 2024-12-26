@@ -5,13 +5,13 @@ py_library(
     name = "ga_service_lib",
     srcs = ["ga_service.py"],
     deps = [
-        # requirement("grpcio"),
-        # requirement("optuna"),
-        # requirement("numpy"),
+        requirement("grpcio"),
+        requirement("optuna"),
+        requirement("numpy"),
         # "//protos:backtesting_py_grpc",
         "//protos:backtesting_py_proto",
         "//protos:strategies_py_proto",
-        # ":optimization",
+        ":optimization",
     ],
 )
 
