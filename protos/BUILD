@@ -27,7 +27,7 @@ java_proto_library(
 python_proto_library(
     name = "backtesting_py_proto",
     visibility = ["//visibility:public"],
-    deps = [":backtesting_proto"],
+    protos = [":backtesting_proto"],
 )
 
 # py_grpc_library(
@@ -51,7 +51,7 @@ java_proto_library(
 python_proto_library(
     name = "marketdata_py_proto",
     visibility = ["//visibility:public"],
-    deps = [":marketdata_proto"],
+    protos = [":marketdata_proto"],
 )
 
 proto_library(
@@ -68,5 +68,5 @@ java_proto_library(
 python_proto_library(
     name = "strategies_py_proto",
     visibility = ["//visibility:public"],
-    deps = [":strategies_proto"],
+    protos = [":strategies_proto"],
 )
