@@ -1,5 +1,6 @@
 load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
-load("@rules_proto_grpc_python//:defs.bzl", "python_proto_library")
+load("@rules_proto_grpc_java//:defs.bzl", "java_grpc_library")
+load("@rules_proto_grpc_python//:defs.bzl", "python_grpc_library", "python_proto_library")
 
 proto_library(
     name = "backtesting_proto",
@@ -14,8 +15,7 @@ proto_library(
 java_grpc_library(
     name = "backtesting_java_grpc",
     visibility = ["//visibility:public"],
-    srcs = [":backtesting_proto"],
-    deps = [":backtesting_java_proto"],
+    protos = [":backtesting_proto"],
 )
 
 java_proto_library(
