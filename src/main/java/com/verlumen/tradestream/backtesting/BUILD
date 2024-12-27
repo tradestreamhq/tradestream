@@ -34,6 +34,14 @@ java_library(
 )
 
 java_library(
+    name = "backtest_service_client_impl",
+    srcs = ["BacktestServiceClientImpl.java"],
+    deps = [
+
+    ],
+)
+
+java_library(
     name = "backtest_service_impl",
     srcs = ["BacktestServiceImpl.java"],
     deps = [
