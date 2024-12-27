@@ -24,7 +24,7 @@ public class BacktestServiceClientImplTest {
   // A mock for the gRPC channel.
   @Bind @Mock ManagedChannel mockChannel;
 
-  @Bind private BacktestServiceGrpc.BacktestServiceBlockingStub stub;
+  @Bind @Mock private BacktestServiceGrpc.BacktestServiceBlockingStub mockStub;
 
   @Inject
   private BacktestServiceClientImpl client;
@@ -35,12 +35,12 @@ public class BacktestServiceClientImplTest {
     MockitoAnnotations.openMocks(this);
     // Create a Guice injector that binds all @Bind fields
     // Generate a unique in-process server name.
-    String serverName = InProcessServerBuilder.generateName();
+    // String serverName = InProcessServerBuilder.generateName();
     // Use a mutable service registry for later registering the service impl for each test case.
-    grpcCleanup.register(InProcessServerBuilder.forName(serverName)
-       .fallbackHandlerRegistry(serviceRegistry).directExecutor().build().start());
-    stub = grpcCleanup.register(
-       InProcessChannelBuilder.forName(serverName).directExecutor().build());
+    // grpcCleanup.register(InProcessServerBuilder.forName(serverName)
+    //    .fallbackHandlerRegistry(serviceRegistry).directExecutor().build().start());
+    // stub = grpcCleanup.register(
+    //    InProcessChannelBuilder.forName(serverName).directExecutor().build());
     Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
   }
 
