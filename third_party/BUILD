@@ -113,7 +113,7 @@ java_library(
     name = "grpc_testing",
     visibility = ["//visibility:public"],
     exports = [
-        "@maven//:io_grpc_grpc_testing",
+        "@io_grpc_grpc_testing//api",
     ],
     testonly = True,
 )
