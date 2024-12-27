@@ -40,6 +40,7 @@ java_library(
         "//protos:backtesting_java_grpc",
         "//protos:backtesting_java_proto",
         "//third_party:grpc_java_stub",
+        ":backtest_service_client",
     ],
 )
 
