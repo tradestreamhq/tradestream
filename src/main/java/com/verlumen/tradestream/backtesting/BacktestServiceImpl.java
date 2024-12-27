@@ -2,8 +2,8 @@ package com.verlumen.tradestream.backtesting;
 
 import com.google.inject.Inject;
 import com.verlumen.tradestream.backtesting.BacktestResult;
-import com.verlumen.tradestream.backtesting.ParameterizedBacktestRequest;
-import com.verlumen.tradestream.backtesting.ParameterizedBacktestServiceGrpc;
+import com.verlumen.tradestream.backtesting.BacktestRequest;
+import com.verlumen.tradestream.backtesting.BacktestServiceGrpc;
 import com.verlumen.tradestream.strategies.StrategyManager;
 import com.verlumen.tradestream.marketdata.Candle;
 import io.grpc.Status;
@@ -16,13 +16,13 @@ import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 
-final class ParameterizedBacktestServiceImpl
-    extends ParameterizedBacktestServiceGrpc.ParameterizedBacktestServiceImplBase {
+final class BacktestServiceImpl
+    extends BacktestServiceGrpc.BacktestServiceImplBase {
   private final StrategyManager strategyManager;
   private final BacktestRunner backtestRunner;
 
   @Inject
-  public ParameterizedBacktestServiceImpl(
+  public BacktestServiceImpl(
       StrategyManager strategyManager,
       BacktestRunner backtestRunner) {
     this.strategyManager = strategyManager;
@@ -30,8 +30,8 @@ final class ParameterizedBacktestServiceImpl
   }
 
   @Override
-  public void runParameterizedBacktest(
-      ParameterizedBacktestRequest request,
+  public void runBacktest(
+      BacktestRequest request,
       StreamObserver<BacktestResult> responseObserver
   ) {
     try {
@@ -67,7 +67,7 @@ final class ParameterizedBacktestServiceImpl
     }
   }
 
-  private BarSeries buildBarSeries(ParameterizedBacktestRequest request) {
+  private BarSeries buildBarSeries(BacktestRequest request) {
     BaseBarSeries series = new BaseBarSeries("param-backtest-series");
     ZonedDateTime now = ZonedDateTime.now();
     for (Candle candle : request.getCandlesList()) {
