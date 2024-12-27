@@ -51,6 +51,7 @@ java_library(
         "//protos:backtesting_java_proto",
         "//third_party:grpc_java_api",
         "//third_party:grpc_java_stub",
+        "//third_party:guice",
         ":genetic_algorithm_orchestrator",
     ],
 )
