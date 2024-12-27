@@ -24,9 +24,7 @@ public class BacktestServiceClientImplTest {
   // A mock for the gRPC channel.
   @Bind @Mock ManagedChannel mockChannel;
 
-  // We’ll pretend we can also mock the blocking stub object. Typically you might
-  // just mock the entire client, but for demonstration, we can mock the stub itself:
-  @Mock private BacktestServiceGrpc.BacktestServiceBlockingStub mockStub;
+  @Bind private BacktestServiceGrpc.BacktestServiceBlockingStub stub;
 
   @Inject
   private BacktestServiceClientImpl client;
@@ -36,6 +34,13 @@ public class BacktestServiceClientImplTest {
     // Initialize Mockito
     MockitoAnnotations.openMocks(this);
     // Create a Guice injector that binds all @Bind fields
+    // Generate a unique in-process server name.
+    String serverName = InProcessServerBuilder.generateName();
+    // Use a mutable service registry for later registering the service impl for each test case.
+    grpcCleanup.register(InProcessServerBuilder.forName(serverName)
+       .fallbackHandlerRegistry(serviceRegistry).directExecutor().build().start());
+    stub = grpcCleanup.register(
+       InProcessChannelBuilder.forName(serverName).directExecutor().build());
     Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
   }
 
