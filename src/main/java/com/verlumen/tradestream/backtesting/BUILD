@@ -42,3 +42,24 @@ java_library(
         ":backtest_runner",
     ],
 )
+
+java_library(
+    name = "ga_service_impl",
+    srcs = ["GAServiceImpl.java"],
+    deps = [
+        "//protos:backtesting_java_grpc",
+        "//protos:backtesting_java_proto",
+        "//third_party:grpc_java_api",
+        "//third_party:grpc_java_stub",
+        "//third_party:guice",
+        ":genetic_algorithm_orchestrator",
+    ],
+)
+
+java_library(
+    name = "genetic_algorithm_orchestrator",
+    srcs = ["GeneticAlgorithmOrchestrator.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+    ],
+)
