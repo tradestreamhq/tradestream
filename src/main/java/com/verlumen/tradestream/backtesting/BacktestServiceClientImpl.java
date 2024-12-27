@@ -11,8 +11,8 @@ public final class BacktestServiceClientImpl implements BacktestServiceClient {
     private final BacktestServiceGrpc.BacktestServiceBlockingStub stub;
 
     @Inject
-    BacktestServiceClientImpl(ManagedChannel channel) {
-        this.stub = BacktestServiceGrpc.newBlockingStub(channel);
+    BacktestServiceClientImpl(BacktestServiceGrpc.BacktestServiceBlockingStub stub) {
+        this.stub = stub;
     }
 
     @Override
