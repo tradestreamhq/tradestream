@@ -19,6 +19,28 @@ java_test(
 )
 
 java_test(
+    name = "BacktestServiceClientImplTest",
+    srcs = [
+        "BacktestServiceClientImplTest.java",
+    ],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:backtesting_java_grpc",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_service_client_impl",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:truth",
+        "//third_party:grpc_java_api",
+        "//third_party:grpc_java_stub",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+    ],
+    runtime_deps = [
+        "//third_party:flogger_system_backend",
+    ],
+)
+
+java_test(
     name = "BacktestServiceImplTest",
     srcs = ["BacktestServiceImplTest.java"],
     deps = [
