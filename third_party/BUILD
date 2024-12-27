@@ -151,6 +151,14 @@ java_library(
 )
 
 java_library(
+    name = "jenetics",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:io_jenetics_jenetics",
+    ],
+)
+
+java_library(
     name = "junit",
     visibility = ["//visibility:public"],
     exports = [
