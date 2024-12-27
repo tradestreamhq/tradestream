@@ -46,4 +46,7 @@ java_library(
 java_library(
     name = "genetic_algorithm_orchestrator",
     srcs = ["GeneticAlgorithmOrchestrator.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+    ],
 )
