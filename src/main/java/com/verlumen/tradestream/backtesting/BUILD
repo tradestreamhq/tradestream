@@ -44,6 +44,14 @@ java_library(
 )
 
 java_library(
+    name = "ga_service_impl",
+    srcs = ["GAServiceImpl.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+    ],
+)
+
+java_library(
     name = "genetic_algorithm_orchestrator",
     srcs = ["GeneticAlgorithmOrchestrator.java"],
     deps = [
