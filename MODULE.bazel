@@ -51,6 +51,8 @@ maven.install(
         "com.ryanharter.auto.value:auto-value-gson:1.3.1",
         "com.ryanharter.auto.value:auto-value-gson-annotations:0.8.0",
         "com.ryanharter.auto.value:auto-value-gson-factory:1.3.1",
+        // https://mvnrepository.com/artifact/io.grpc/grpc-testing
+        "io.grpc:grpc-testing:1.69.0",
         "io.jenetics:jenetics:8.1.0",
         "io.reactivex.rxjava3:rxjava:3.1.6",
         "javax.inject:javax.inject:1",
