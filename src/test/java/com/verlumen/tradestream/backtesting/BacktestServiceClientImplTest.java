@@ -4,6 +4,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.backtesting.BacktestRequest;
@@ -17,10 +18,6 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-/**
- * Unit tests for {@link BacktestServiceClientImpl} using
- * BoundFieldModule + Mockito + AAA pattern.
- */
 @RunWith(JUnit4.class)
 public class BacktestServiceClientImplTest {
 
@@ -31,6 +28,7 @@ public class BacktestServiceClientImplTest {
   // just mock the entire client, but for demonstration, we can mock the stub itself:
   @Mock private BacktestServiceGrpc.BacktestServiceBlockingStub mockStub;
 
+  @Inject
   private BacktestServiceClientImpl client;
 
   @Before
@@ -38,17 +36,7 @@ public class BacktestServiceClientImplTest {
     // Initialize Mockito
     MockitoAnnotations.openMocks(this);
     // Create a Guice injector that binds all @Bind fields
-    Guice.createInjector(BoundFieldModule.of(this));
-
-    // Instead of newBlockingStub(...), we'll pretend client just uses our mockStub
-    // So let's create a small test subclass or a constructor that sets stub directly:
-    client = new BacktestServiceClientImpl(mockChannel) {
-      @Override
-      public BacktestResult runBacktest(BacktestRequest request) {
-        // We override the real method to return mockStub.runBacktest(...) 
-        return mockStub.runBacktest(request);
-      }
-    };
+    Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
   }
 
   @Test
