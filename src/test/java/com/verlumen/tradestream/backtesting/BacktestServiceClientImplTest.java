@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.client;
+package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
