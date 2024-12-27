@@ -49,6 +49,7 @@ java_library(
     deps = [
         "//protos:backtesting_java_grpc",
         "//protos:backtesting_java_proto",
+        ":genetic_algorithm_orchestrator",
     ],
 )
 
@@ -57,6 +58,5 @@ java_library(
     srcs = ["GeneticAlgorithmOrchestrator.java"],
     deps = [
         "//protos:backtesting_java_proto",
-        ":ga_service_impl",
     ],
 )
