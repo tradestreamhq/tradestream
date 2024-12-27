@@ -1,3 +1,4 @@
+
 package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -11,36 +12,45 @@ import com.verlumen.tradestream.backtesting.BacktestRequest;
 import com.verlumen.tradestream.backtesting.BacktestResult;
 import com.verlumen.tradestream.backtesting.BacktestServiceGrpc;
 import io.grpc.ManagedChannel;
+import io.grpc.inprocess.InProcessServerBuilder;
+import io.grpc.inprocess.InProcessChannelBuilder;
+import io.grpc.testing.GrpcCleanupRule;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 @RunWith(JUnit4.class)
-public class BacktestServiceClientImplTest {
-
-  // A mock for the gRPC channel.
-  @Bind @Mock ManagedChannel mockChannel;
-
-  @Bind @Mock private BacktestServiceGrpc.BacktestServiceBlockingStub mockStub;
+public class BacktestServiceClientImplTest {  
+  @Bind private BacktestServiceGrpc.BacktestServiceBlockingStub stub;
 
   @Inject
   private BacktestServiceClientImpl client;
 
   @Before
   public void setUp() {
-    // Initialize Mockito
-    MockitoAnnotations.openMocks(this);
-    // Create a Guice injector that binds all @Bind fields
-    // Generate a unique in-process server name.
-    // String serverName = InProcessServerBuilder.generateName();
-    // Use a mutable service registry for later registering the service impl for each test case.
-    // grpcCleanup.register(InProcessServerBuilder.forName(serverName)
-    //    .fallbackHandlerRegistry(serviceRegistry).directExecutor().build().start());
-    // stub = grpcCleanup.register(
-    //    InProcessChannelBuilder.forName(serverName).directExecutor().build());
+    // Create a unique in-process server name.
+    String serverName = InProcessServerBuilder.generateName();
+
+    // Build the in-process server with a real or mock service implementation.
+    grpcCleanup.register(
+        InProcessServerBuilder.forName(serverName)
+            .directExecutor()
+            // Suppose you have an actual implementation to add:
+            .addService(new BacktestServiceGrpc.BacktestServiceImplBase() {
+              // Implement the methods you want to test, or use Mockito.spy() if you want partial mocks.
+            })
+            .build()
+            .start());
+
+    // Create a channel connected to the in-process server.
+    // The channel is also automatically closed by GrpcCleanupRule
+    stub = 
+        BacktestServiceGrpc.newBlockingStub(
+            grpcCleanup.register(
+                InProcessChannelBuilder.forName(serverName).directExecutor().build()));
+
     Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
   }
 
@@ -49,7 +59,6 @@ public class BacktestServiceClientImplTest {
     // ARRANGE
     BacktestRequest request = BacktestRequest.newBuilder().build();
     BacktestResult expected = BacktestResult.newBuilder().setOverallScore(0.85).build();
-    when(mockStub.runBacktest(request)).thenReturn(expected);
 
     // ACT
     BacktestResult actual = client.runBacktest(request);
@@ -60,9 +69,6 @@ public class BacktestServiceClientImplTest {
 
   @Test
   public void runBacktest_withNullRequest_throwsException() {
-    // ARRANGE
-    when(mockStub.runBacktest(null)).thenThrow(new NullPointerException("Request is null"));
-
     // ACT + ASSERT
     try {
       client.runBacktest(null);
