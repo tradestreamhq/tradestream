@@ -210,7 +210,6 @@ public class BacktestServiceImplTest {
 
     private BacktestResult createDummyResult() {
         return BacktestResult.newBuilder()
-            .setStrategyType(StrategyType.SMA_RSI)
             .setOverallScore(0.75)
             .build();
     }
