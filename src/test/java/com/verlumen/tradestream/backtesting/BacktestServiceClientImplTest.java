@@ -22,7 +22,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class BacktestServiceClientImplTest {  
+public class BacktestServiceClientImplTest {
+  @Rule public final GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
+
   @Bind private BacktestServiceGrpc.BacktestServiceBlockingStub stub;
 
   @Inject
