@@ -29,7 +29,7 @@ java_library(
     name = "backtest_service_client",
     srcs = ["BacktestServiceClient.java"],
     deps = [
-
+        "//protos:backtesting_java_proto",
     ],
 )
 
@@ -37,7 +37,7 @@ java_library(
     name = "backtest_service_client_impl",
     srcs = ["BacktestServiceClientImpl.java"],
     deps = [
-
+        "//protos:backtesting_java_proto",
     ],
 )
 
