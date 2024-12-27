@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-kafka-ui
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: kafka-ui
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.kafkaUi.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "tradestream.name" . }}
+      component: kafka-ui
+  template:
+    metadata:
+      labels:
+        app: {{ include "tradestream.name" . }}
+        component: kafka-ui
+    spec:
+      containers:
+        - name: kafka-ui
+          image: "{{ .Values.kafkaUi.image.repository }}:{{ .Values.kafkaUi.image.tag }}"
+          imagePullPolicy: {{ .Values.kafkaUi.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.kafkaUi.service.port }}
+          env:
+            - name: KAFKA_CLUSTERS_0_NAME
+              value: "local"
+            - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
+              value: "{{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-kafka-ui
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: kafka-ui
+    release: {{ .Release.Name }}
+spec:
+  type: {{ .Values.kafkaUi.service.type }}
+  ports:
+    - port: {{ .Values.kafkaUi.service.port }}
+      targetPort: {{ .Values.kafkaUi.service.port }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ include "tradestream.name" . }}
+    component: kafka-ui
