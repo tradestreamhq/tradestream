@@ -9,6 +9,15 @@ kafka:
       protocol: 'PLAINTEXT'
     controller:
       protocol: 'PLAINTEXT'
+kafkaUi:
+  replicaCount: 1
+  image:
+    repository: "provectuslabs/kafka-ui"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
 dataIngestion:
   args:
     - "--runMode=wet"
