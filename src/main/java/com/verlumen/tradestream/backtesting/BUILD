@@ -42,3 +42,8 @@ java_library(
         ":backtest_runner",
     ],
 )
+
+java_library(
+    name = "genetic_algorithm_orchestrator",
+    srcs = ["GeneticAlgorithmOrchestrator.java"],
+)
