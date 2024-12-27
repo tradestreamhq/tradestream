@@ -60,7 +60,6 @@ final class BacktestRunnerImpl implements BacktestRunner {
         double overallScore = calculateOverallScore(timeframeResults);
 
         return BacktestResult.newBuilder()
-            .setStrategyType(request.strategyType())
             .addAllTimeframeResults(timeframeResults)
             .setOverallScore(overallScore)
             .build();
