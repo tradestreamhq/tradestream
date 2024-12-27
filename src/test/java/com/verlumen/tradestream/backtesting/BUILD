@@ -45,6 +45,29 @@ java_test(
 )
 
 java_test(
+    name = "GAServiceImplTest",
+    size = "small",
+    srcs = ["GAServiceImplTest.java"],
+    deps = [
+        "//protos:backtesting_java_grpc",
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_impl",
+        "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
+        "//third_party:grpc_java_api",
+        "//third_party:grpc_java_stub",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:protobuf_java",
+        "//third_party:truth",
+    ],
+)
+
+java_test(
     name = "GeneticAlgorithmOrchestratorImplTest",
     size = "small",
     srcs = ["GeneticAlgorithmOrchestratorImplTest.java"],

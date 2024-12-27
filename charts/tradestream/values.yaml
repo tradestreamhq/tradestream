@@ -9,6 +9,15 @@ kafka:
       protocol: 'PLAINTEXT'
     controller:
       protocol: 'PLAINTEXT'
+kafkaUi:
+  replicaCount: 1
+  image:
+    repository: "provectuslabs/kafka-ui"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
 dataIngestion:
   args:
     - "--runMode=wet"
@@ -20,12 +29,12 @@ dataIngestion:
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
-    tag: "v0.0.413-develop"
+    tag: "v0.0.417-develop"
   service:
     port: 8080
 strategyEngine:
   image:
     repository: "tradestreamhq/tradestream-strategy-engine"
-    tag: "v0.0.413-develop"
+    tag: "v0.0.417-develop"
   service:
     port: 8081
