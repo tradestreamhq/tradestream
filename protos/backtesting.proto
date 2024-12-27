@@ -5,21 +5,27 @@ package backtesting;
 option java_multiple_files = true;
 option java_package = "com.verlumen.tradestream.backtesting";
 
-import "google/protobuf/any.proto";
+\import "google/protobuf/any.proto";
 import "protos/marketdata.proto";
 import "protos/strategies.proto";
 
+// ========== Plain Backtest ==========
+
+// Basic request for a plain backtest
 message BacktestRequest {
   repeated marketdata.Candle candles = 1;
   strategies.StrategyType strategy_type = 2;
 }
 
-message ParameterizedBacktestRequest {
-  repeated marketdata.Candle candles = 1;
-  strategies.StrategyType strategy_type = 2;
-  google.protobuf.Any strategy_parameters = 3;
+// The plain backtest result with an overall score 
+// and multiple timeframe metrics
+message BacktestResult {
+  strategies.StrategyType strategy_type = 1;
+  repeated TimeframeResult timeframe_results = 2;
+  double overall_score = 3;
 }
 
+// A timeframe's performance metrics
 message TimeframeResult {
   string timeframe = 1;
   double cumulative_return = 2;
@@ -36,16 +42,50 @@ message TimeframeResult {
   double beta = 13;
 }
 
-message BacktestResult {
-  strategies.StrategyType strategy_type = 1;
-  repeated TimeframeResult timeframe_results = 2;
-  double overall_score = 3;
-}
-
+// Service for plain backtesting
 service BacktestService {
   rpc RunBacktest (BacktestRequest) returns (BacktestResult);
 }
 
+// ========== Parameterized Backtest ==========
+
+// Carries an Any-packed parameter set (e.g., SmaRsiParameters)
+message ParameterizedBacktestRequest {
+  repeated marketdata.Candle candles = 1;
+  strategies.StrategyType strategy_type = 2;
+  google.protobuf.Any strategy_parameters = 3;
+}
+
+message ParameterizedBacktestResponse {
+  repeated TimeframeResult timeframe_results = 1;
+  double overall_score = 2;
+}
+
+// Service for advanced/parameterized backtesting
 service ParameterizedBacktestService {
-    rpc RunParameterizedBacktest (ParameterizedBacktestRequest) returns (BacktestResult);
+  rpc RunParameterizedBacktest (ParameterizedBacktestRequest)
+      returns (ParameterizedBacktestResponse);
+}
+
+// ========== GA (Genetic Algorithm) ==========
+
+// For requesting a GA-based optimization over a given dataset & strategy type
+message GAOptimizationRequest {
+  repeated marketdata.Candle candles = 1;
+  strategies.StrategyType strategy_type = 2;
+
+  // Some optional GA config
+  int32 max_generations = 3;
+  int32 population_size = 4;
+}
+
+// The best discovered strategy param set (any) plus a best score
+message BestStrategyResponse {
+  google.protobuf.Any best_strategy_parameters = 1;
+  double best_score = 2;
+}
+
+// GA service that orchestrates parameter searching
+service GAService {
+  rpc RequestOptimization (GAOptimizationRequest) returns (BestStrategyResponse);
 }
