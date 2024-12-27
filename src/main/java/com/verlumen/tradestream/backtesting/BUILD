@@ -37,7 +37,9 @@ java_library(
     name = "backtest_service_client_impl",
     srcs = ["BacktestServiceClientImpl.java"],
     deps = [
+        "//protos:backtesting_java_grpc",
         "//protos:backtesting_java_proto",
+        "//third_party:grpc_java_stub",
     ],
 )
 
