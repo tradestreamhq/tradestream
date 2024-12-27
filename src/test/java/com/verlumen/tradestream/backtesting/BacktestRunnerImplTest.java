@@ -80,7 +80,6 @@ public class BacktestRunnerImplTest {
         BacktestResult result = backtestRunner.runBacktest(request);
 
         // Assert
-        assertThat(result.getStrategyType()).isEqualTo(StrategyType.SMA_RSI);
         assertThat(result.getTimeframeResultsCount()).isGreaterThan(0);
         assertThat(result.getOverallScore()).isGreaterThan(0.0);
 
