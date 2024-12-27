@@ -41,7 +41,7 @@ maven.install(
         "com.google.code.gson:gson:2.11.0",
         "com.google.flogger:flogger:0.8",
         "com.google.flogger:flogger-system-backend:0.8",
-        "com.google.guava:guava:31.1-jre",
+        "com.google.guava:guava:33.2.1-android",
         "com.google.inject.extensions:guice-assistedinject:7.0.0",
         "com.google.inject:guice:7.0.0",
         "com.google.mug:mug:8.2",
