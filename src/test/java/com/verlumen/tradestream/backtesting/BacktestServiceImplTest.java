@@ -28,21 +28,21 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
-public class ParameterizedBacktestServiceImplTest {
+public class BacktestServiceImplTest {
 
     @Mock private StrategyManager mockStrategyManager;
     @Mock private BacktestRunner mockBacktestRunner;
     @Mock private Strategy mockStrategy;
     @Mock private StreamObserver<BacktestResult> mockResponseObserver;
 
-    private ParameterizedBacktestServiceImpl service;
-    private ParameterizedBacktestRequest request;
+    private BacktestServiceImpl service;
+    private BacktestRequest request;
     private BacktestResult expectedResult;
 
     @Before
     public void setUp() throws InvalidProtocolBufferException {
         MockitoAnnotations.openMocks(this);
-        service = new ParameterizedBacktestServiceImpl(mockStrategyManager, mockBacktestRunner);
+        service = new BacktestServiceImpl(mockStrategyManager, mockBacktestRunner);
         
         // Set up default successful mocked responses
         when(mockStrategyManager.createStrategy(any(), any(), any())).thenReturn(mockStrategy);
@@ -59,7 +59,7 @@ public class ParameterizedBacktestServiceImplTest {
         when(mockBacktestRunner.runBacktest(any())).thenReturn(expectedResult);
 
         // Act
-        service.runParameterizedBacktest(request, mockResponseObserver);
+        service.runBacktest(request, mockResponseObserver);
 
         // Assert
         verify(mockResponseObserver).onNext(expectedResult);
@@ -69,13 +69,13 @@ public class ParameterizedBacktestServiceImplTest {
     @Test
     public void edgeCase_emptyCandles_shouldSucceed() {
         // Arrange
-        request = ParameterizedBacktestRequest.newBuilder()
+        request = BacktestRequest.newBuilder()
             .setStrategyType(StrategyType.SMA_RSI)
             .setStrategyParameters(Any.pack(createValidParameters()))
             .build();
 
         // Act
-        service.runParameterizedBacktest(request, mockResponseObserver);
+        service.runBacktest(request, mockResponseObserver);
 
         // Assert
         verify(mockResponseObserver).onNext(any());
@@ -85,14 +85,14 @@ public class ParameterizedBacktestServiceImplTest {
     @Test
     public void edgeCase_singleCandle_shouldSucceed() {
         // Arrange
-        request = ParameterizedBacktestRequest.newBuilder()
+        request = BacktestRequest.newBuilder()
             .setStrategyType(StrategyType.SMA_RSI)
             .setStrategyParameters(Any.pack(createValidParameters()))
             .addCandles(createCandle(1.0))
             .build();
 
         // Act
-        service.runParameterizedBacktest(request, mockResponseObserver);
+        service.runBacktest(request, mockResponseObserver);
 
         // Assert
         verify(mockResponseObserver).onNext(any());
@@ -109,7 +109,7 @@ public class ParameterizedBacktestServiceImplTest {
             .thenThrow(expectedException);
 
         // Act
-        service.runParameterizedBacktest(request, mockResponseObserver);
+        service.runBacktest(request, mockResponseObserver);
 
         // Assert
         ArgumentCaptor<StatusRuntimeException> captor = 
@@ -129,7 +129,7 @@ public class ParameterizedBacktestServiceImplTest {
         when(mockBacktestRunner.runBacktest(any())).thenThrow(expectedException);
 
         // Act
-        service.runParameterizedBacktest(request, mockResponseObserver);
+        service.runBacktest(request, mockResponseObserver);
 
         // Assert
         ArgumentCaptor<StatusRuntimeException> captor = 
@@ -149,7 +149,7 @@ public class ParameterizedBacktestServiceImplTest {
             ArgumentCaptor.forClass(BacktestRunner.BacktestRequest.class);
 
         // Act
-        service.runParameterizedBacktest(request, mockResponseObserver);
+        service.runBacktest(request, mockResponseObserver);
 
         // Assert
         verify(mockBacktestRunner).runBacktest(captor.capture());
@@ -172,8 +172,8 @@ public class ParameterizedBacktestServiceImplTest {
         }
     }
 
-    private ParameterizedBacktestRequest createValidRequest() {
-        return ParameterizedBacktestRequest.newBuilder()
+    private BacktestRequest createValidRequest() {
+        return BacktestRequest.newBuilder()
             .setStrategyType(StrategyType.SMA_RSI)
             .setStrategyParameters(Any.pack(createValidParameters()))
             .addAllCandles(createTestCandles())
