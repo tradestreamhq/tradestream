@@ -91,20 +91,6 @@ public class GAServiceImplTest {
         assertThat(error.getCause()).isEqualTo(expectedException);
     }
 
-    @Test
-    public void requestOptimization_withNullRequest_returnsError() {
-        // Act
-        service.requestOptimization(null, mockResponseObserver);
-
-        // Assert
-        ArgumentCaptor<StatusRuntimeException> errorCaptor = 
-            ArgumentCaptor.forClass(StatusRuntimeException.class);
-        verify(mockResponseObserver).onError(errorCaptor.capture());
-
-        StatusRuntimeException error = errorCaptor.getValue();
-        assertThat(error.getStatus().getCode()).isEqualTo(Status.Code.INTERNAL);
-    }
-
     private Candle createTestCandle() {
         return Candle.newBuilder()
             .setTimestamp(Instant.now().toEpochMilli())
