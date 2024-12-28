@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.backtesting.params;
 
 import static com.google.common.truth.Truth.assertThat;
 
