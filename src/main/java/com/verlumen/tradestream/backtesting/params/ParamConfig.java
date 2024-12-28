@@ -13,7 +13,7 @@ public interface ParamConfig {
     /**
      * Returns a list of chromosome specifications, each defining a parameter's type and constraints.
      */
-    ImmutableList<NumericChromosomeSpec<?>> getChromosomeSpecs();
+    ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs();
 
     /**
      * Creates strategy parameters from a list of chromosomes.
