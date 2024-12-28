@@ -2,6 +2,7 @@ package com.verlumen.tradestream.backtesting.params;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
@@ -18,8 +19,8 @@ public class ParamRangeTest {
     public void testCreateValidParamRange() {
         ParamConfig.ParamRange<Integer> range = ParamConfig.ParamRange.create(1, 10);
         assertNotNull("ParamRange should not be null", range);
-        assertEquals("Min value should be 1", Integer.valueOf(1), range.min());
-        assertEquals("Max value should be 10", Integer.valueOf(10), range.max());
+        assertEquals("Min value should be 1", 1, range.min());
+        assertEquals("Max value should be 10", 10, range.max());
     }
 
     /**
@@ -27,12 +28,7 @@ public class ParamRangeTest {
      */
     @Test
     public void testCreateInvalidParamRangeEqual() {
-        try {
-            ParamConfig.ParamRange.create(10, 10);
-            fail("Expected IllegalArgumentException for min == max");
-        } catch (IllegalArgumentException e) {
-            // Expected exception
-        }
+        assertThrows(IllegalArgumentException.class, () -> ParamConfig.ParamRange.create(10, 10));
     }
 
     /**
@@ -40,11 +36,6 @@ public class ParamRangeTest {
      */
     @Test
     public void testCreateInvalidParamRangeGreater() {
-        try {
-            ParamConfig.ParamRange.create(20, 10);
-            fail("Expected IllegalArgumentException for min > max");
-        } catch (IllegalArgumentException e) {
-            // Expected exception
-        }
+        assertThrows(IllegalArgumentException.class, () -> ParamConfig.ParamRange.create(20, 10));
     }
 }
