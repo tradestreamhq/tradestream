@@ -184,9 +184,9 @@ java_test(
     name = "TradeProcessorTest",
     srcs = ["TradeProcessorTest.java"],
     deps = [
-        "@maven//:com_google_truth_truth",
-        "@maven//:junit_junit",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:trade_processor",
+        "//third_party:junit",
+        "//third_party:truth",
     ],
 )
