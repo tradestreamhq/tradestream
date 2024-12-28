@@ -1,8 +1,8 @@
 package com.verlumen.tradestream.backtesting.params;
 
 import com.google.common.collect.Range;
-import io.jenetics.Chromosome;
-import io.jenetics.Gene;
+import io.jenetics.NumericChromosome;
+import io.jenetics.NumericGene;
 
 /**
  * Specifies type and range constraints for a chromosome in parameter optimization.
@@ -17,7 +17,7 @@ public interface ChromosomeSpec<T extends Comparable<T>> {
     /**
      * Creates an initial chromosome according to this specification.
      */
-    Chromosome<? extends Gene<T, ?>> createChromosome();
+    NumericChromosome<T, ?> createChromosome();
 
     /**
      * Creates an integer-valued parameter specification.
