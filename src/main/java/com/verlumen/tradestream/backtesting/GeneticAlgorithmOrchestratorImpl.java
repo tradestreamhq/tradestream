@@ -50,11 +50,11 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
             .collect(EvolutionResult.toBestPhenotype());
 
         // Convert best result to strategy parameters
-        Any bestParams = convertToParameters(best.getGenotype(), request.getStrategyType());
+        Any bestParams = convertToParameters(best.genotype(), request.getStrategyType());
 
         return BestStrategyResponse.newBuilder()
             .setBestStrategyParameters(bestParams)
-            .setBestScore(best.getFitness())
+            .setBestScore(best.fitness())
             .build();
     }
 
@@ -64,7 +64,7 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
         ParamConfig config = getParamConfig(request.getStrategyType());
 
         // Create genotype factory for parameter ranges
-        Factory<Genotype<DoubleGene>> gtf = Genotype.of(
+        Genotype<DoubleGene> gtf = Genotype.of(
             config.getChromosomes().stream()
                 .map(range -> DoubleChromosome.of(
                     range.min(), range.max()))
@@ -89,7 +89,8 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
             }
         };
 
-        return Engine.builder(fitness, gtf)
+        return Engine
+            .builder(fitness)
             .populationSize(request.getPopulationSize() > 0 
                 ? request.getPopulationSize() 
                 : DEFAULT_POPULATION_SIZE)
