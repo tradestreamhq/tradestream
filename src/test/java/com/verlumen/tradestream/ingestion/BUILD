@@ -24,11 +24,11 @@ java_test(
     name = "CandleBuilderTest",
     srcs = ["CandleBuilderTest.java"],
     deps = [
-        "@maven//:com_google_truth_truth",
-        "@maven//:com_google_testparameterinjector_test_parameter_injector",
-        "@maven//:junit_junit",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_builder",
+        "//third_party:junit",
+        "//third_party:test_parameter_injector",
+        "//third_party:truth",
     ],
 )
 
