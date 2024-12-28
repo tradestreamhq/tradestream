@@ -20,11 +20,11 @@ public interface ParamConfig {
      * @param chromosomes The chromosomes containing optimized parameter values
      * @return Protocol buffer message containing the parameters 
      */
-    Any createParameters(ImmutableList<? extends NumericChromosome<? extends Gene<?, ?>>> chromosomes);
+    Any createParameters(ImmutableList<NumericChromosome<? extends Gene<?, ?>>> chromosomes);
 
     /**
      * Creates initial chromosomes for this parameter configuration.
      * @return List of initial chromosomes for optimization
      */
-    ImmutableList<? extends NumericChromosome<? extends Gene<?, ?>>> initialChromosomes();
+    ImmutableList<NumericChromosome<? extends Gene<?, ?>>> initialChromosomes();
 }
