@@ -7,13 +7,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import com.google.protobuf.Any;
 import io.jenetics.Genotype;
-import io.jenetics.DoubleGene;
+import io.jenetics.NumericGene;
 
 /**
  * Interface for strategy-specific parameter configuration.
  * Defines parameter ranges and conversion logic.
  */
-interface ParamConfig {
-    ImmutableList<Range> getChromosomes();
-    Any createParameters(Genotype<DoubleGene> genotype);
+interface ParamConfig<T extends Number & Comparable<T>> {
+    ImmutableList<Range<T>> getChromosomes();
+    Any createParameters(Genotype<? extends NumericGene<T>> genotype);
 }
