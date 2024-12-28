@@ -72,10 +72,6 @@ java_test(
     name = "CoinbaseStreamingClientTest",
     srcs = ["CoinbaseStreamingClientTest.java"],
     deps = [
-        "//third_party:extensions_guice_testlib",
-        "//third_party:guice",
-        "//third_party:truth",
-        "//third_party:junit",
         "@tradestream_maven//:org_mockito_mockito_core",
         "@tradestream_maven//:com_google_code_gson_gson",
         "//third_party:guava",
@@ -83,6 +79,10 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/ingestion:coinbase_streaming_client",
         "//src/main/java/com/verlumen/tradestream/ingestion:exchange_streaming_client",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:truth",
+        "//third_party:junit",
     ],
 )
 
