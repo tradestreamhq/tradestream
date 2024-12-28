@@ -2,10 +2,10 @@ package com.verlumen.tradestream.backtesting.params;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
-import io.jenetics.Chromosome;
 import io.jenetics.Gene;
-import io.jenetics.IntegerChromosome;
 import io.jenetics.DoubleChromosome;
+import io.jenetics.IntegerChromosome;
+import io.jenetics.NumericChromosome;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
 
 /**
@@ -27,7 +27,7 @@ public final class SmaRsiParamConfig implements MixedParamConfig {
     }
 
     @Override
-    public Any createParameters(ImmutableList<? extends Chromosome<? extends Gene<?, ?>>> chromosomes) {
+    public Any createParameters(ImmutableList<? extends NumericChromosome<? extends Gene<?, ?>>> chromosomes) {
         if (chromosomes.size() != SPECS.size()) {
             throw new IllegalArgumentException(
                 "Expected " + SPECS.size() + " chromosomes but got " + chromosomes.size());
@@ -51,7 +51,7 @@ public final class SmaRsiParamConfig implements MixedParamConfig {
     }
 
     @Override
-    public ImmutableList<? extends Chromosome<? extends Gene<?, ?>>> initialChromosomes() {
+    public ImmutableList<? extends NumericChromosome<? extends Gene<?, ?>>> initialChromosomes() {
         return SPECS.stream()
             .map(ChromosomeSpec::createChromosome)
             .collect(ImmutableList.toImmutableList());
