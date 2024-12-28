@@ -209,6 +209,15 @@ java_library(
 )
 
 java_library(
+    name = "test_parameter_injector",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+    ],
+    testonly = True,
+)
+
+java_library(
     name = "truth",
     visibility = ["//visibility:public"],
     exports = [
