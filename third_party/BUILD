@@ -102,6 +102,13 @@ java_library(
 )
 
 java_library(
+    name = "grpc_java_inprocess",
+    exports = [
+        "@tradestream_maven//:io_grpc_grpc_inprocess",
+    ],
+)
+
+java_library(
     name = "grpc_java_stub",
     visibility = ["//visibility:public"],
     exports = [
