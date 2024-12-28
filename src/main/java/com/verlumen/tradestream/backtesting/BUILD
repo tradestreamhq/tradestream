@@ -93,6 +93,7 @@ java_library(
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto", 
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:jenetics",
@@ -100,30 +101,6 @@ java_library(
         "//third_party:ta4j_core",
         ":backtest_service_client",
         ":genetic_algorithm_orchestrator",
-        ":param_config",
-        ":sma_rsi_param_config",
-    ],
-)
-
-java_library(
-    name = "param_config",
-    srcs = ["ParamConfig.java"],
-    deps = [
-        "//third_party:auto_value",
-        "//third_party:guava",
-        "//third_party:jenetics",
-        "//third_party:protobuf_java",
-    ],
-)
-
-java_library(
-    name = "sma_rsi_param_config",
-    srcs = ["SmaRsiParamConfig.java"],
-    deps = [
-        "//protos:strategies_java_proto",
-        "//third_party:guava",
-        "//third_party:jenetics",
-        "//third_party:protobuf_java",
         ":param_config",
     ],
 )
