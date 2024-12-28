@@ -13,7 +13,6 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.util.JsonFormat;
 import com.google.common.collect.Range;
 import com.verlumen.tradestream.backtesting.params.ChromosomeSpec;
 import com.verlumen.tradestream.backtesting.params.ParamConfig;
