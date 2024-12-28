@@ -85,6 +85,7 @@ java_library(
         "//third_party:jenetics",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
+        ":backtest_service_client",
         ":genetic_algorithm_orchestrator",
         ":param_config",
         ":sma_rsi_param_config",
