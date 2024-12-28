@@ -4,13 +4,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import com.google.protobuf.Any;
 import io.jenetics.Genotype;
-import io.jenetics.DoubleGene;
+import io.jenetics.IntegerGene;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
 
 /**
  * Parameter configuration for SMA/RSI strategy optimization.
  */
-final class SmaRsiParamConfig implements ParamConfig {
+final class SmaRsiParamConfig implements ParamConfig<Integer, IntegerGene> {
     private static final ImmutableList<Range<Integer>> CHROMOSOMES = ImmutableList.of(
         // Moving Average Period (5-50)
         Range.closed(5, 50),
@@ -28,16 +28,12 @@ final class SmaRsiParamConfig implements ParamConfig {
     }
 
     @Override
-    public Any createParameters(Genotype<DoubleGene> genotype) {
+    public Any createParameters(Genotype<IntegerGene> genotype) {
         return Any.pack(SmaRsiParameters.newBuilder()
-            .setMovingAveragePeriod(getGenotypeIntValue(genotype, 0))
-            .setRsiPeriod(getGenotypeIntValue(genotype, 1))
-            .setOverboughtThreshold(getGenotypeIntValue(genotype, 2))
-            .setOversoldThreshold(getGenotypeIntValue(genotype, 3))
+            .setMovingAveragePeriod(genotype.get(0).get(0).allele())
+            .setRsiPeriod(genotype.get(1).get(0).allele())
+            .setOverboughtThreshold(genotype.get(2).get(0).allele())
+            .setOversoldThreshold(genotype.get(3).get(0).allele())
             .build());
-    }
-
-    private int getGenotypeIntValue(Genotype<DoubleGene> genotype, int index) {
-        return genotype.get(index).get(0).allele().intValue();
     }
 }
