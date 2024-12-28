@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
 import io.jenetics.Gene;
 import io.jenetics.NumericChromosome;
+import io.jenetics.NumericGene;
 
 /**
  * Represents configuration for a strategy's parameters that supports multiple parameter types.
@@ -20,11 +21,11 @@ public interface ParamConfig {
      * @param chromosomes The chromosomes containing optimized parameter values
      * @return Protocol buffer message containing the parameters 
      */
-    Any createParameters(ImmutableList<NumericChromosome<? extends Gene<?, ?>>> chromosomes);
+    Any createParameters(ImmutableList<NumericChromosome<NumericGene<Number, ?>>> chromosomes);
 
     /**
      * Creates initial chromosomes for this parameter configuration.
      * @return List of initial chromosomes for optimization
      */
-    ImmutableList<NumericChromosome<? extends Gene<?, ?>>> initialChromosomes();
+    ImmutableList<NumericChromosome<NumericGene<Number, ?>>> initialChromosomes();
 }
