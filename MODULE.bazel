@@ -1,6 +1,6 @@
 module(
     name = "tradestream",
-    version = "v0.0.446-develop",
+    version = "v0.0.447-develop",
     compatibility_level = 1,
 )
 
@@ -53,6 +53,7 @@ maven.install(
         "com.ryanharter.auto.value:auto-value-gson-annotations:0.8.0",
         "com.ryanharter.auto.value:auto-value-gson-factory:1.3.1",
         "io.grpc:grpc-api:1.69.0",
+        "io.grpc:grpc-inprocess:1.69.0",
         "io.grpc:grpc-stub:1.69.0",
         "io.grpc:grpc-testing:1.69.0",
         "io.jenetics:jenetics:8.1.0",
