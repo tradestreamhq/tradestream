@@ -6,17 +6,17 @@ java_test(
       "AppTest.java"
     ],
     deps = [
-        "@tradestream_maven//:com_google_inject_extensions_guice_testlib",
-        "@tradestream_maven//:com_google_inject_guice",
-        "@tradestream_maven//:com_google_truth_truth",
-        "@tradestream_maven//:junit_junit",
-        "@tradestream_maven//:org_mockito_mockito_core",
         "//src/main/java/com/verlumen/tradestream/ingestion:app",
         "//src/main/java/com/verlumen/tradestream/ingestion:real_time_data_ingestion",
         "//src/main/java/com/verlumen/tradestream/ingestion:run_mode",
+        "//third_party:guice_testlib",
+        "//third_party:guice",
+        "//third_party:truth",
+        "//third_party:junit",
+        "//third_party:mockito_core",
     ],
     runtime_deps = [
-        "@tradestream_maven//:com_google_flogger_flogger_system_backend",
+        "//third_party:flogger_system_backend",
     ],
 )
 
