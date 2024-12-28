@@ -7,6 +7,7 @@ import com.google.inject.Guice;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
 import io.jenetics.Genotype;
+import io.jenetics.DoubleChromosone;
 import io.jenetics.IntegerChromosone;
 import io.jenetics.IntegerGene;
 import java.util.List;
@@ -14,7 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.MockitoAnnotations;
 
 @RunWith(JUnit4.class)
 public class SmaRsiParamConfigTest {
@@ -22,7 +22,6 @@ public class SmaRsiParamConfigTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
         config = new SmaRsiParamConfig();
     }
 
