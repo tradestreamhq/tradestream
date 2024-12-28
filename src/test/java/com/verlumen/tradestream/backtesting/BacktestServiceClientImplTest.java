@@ -31,7 +31,7 @@ public class BacktestServiceClientImplTest {
   private BacktestServiceClientImpl client;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     // Create a unique in-process server name.
     String serverName = InProcessServerBuilder.generateName();
 
