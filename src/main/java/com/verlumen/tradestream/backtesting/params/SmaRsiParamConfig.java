@@ -11,7 +11,7 @@ import com.verlumen.tradestream.strategies.SmaRsiParameters;
  * Parameter configuration for SMA/RSI strategy optimization.
  */
 final class SmaRsiParamConfig implements ParamConfig {
-    private static final ImmutableList<ParamRange> CHROMOSOMES = ImmutableList.of(
+    private static final ImmutableList<Range<Integer>> CHROMOSOMES = ImmutableList.of(
         // Moving Average Period (5-50)
         Range.closed(5, 50),
         // RSI Period (2-30)
