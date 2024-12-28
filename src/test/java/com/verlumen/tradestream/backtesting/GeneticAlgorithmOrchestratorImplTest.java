@@ -156,9 +156,9 @@ public class GeneticAlgorithmOrchestratorImplTest {
    * Creates a mock list of chromosome specs. You can customize these if
    * you need to test certain behaviors in your orchestrator.
    */
-  private List<ChromosomeSpec<?>> createMockChromosomeSpecs() {
-    // Return an empty list or some test ChromosomeSpec objects
-    return new ArrayList<>();
+  private ImmutableList<ChromosomeSpec<?>> createMockChromosomeSpecs() {
+    // Return an empty immutable list or some test ChromosomeSpec objects
+    return ImmutableList.of();
   }
 
   private GAOptimizationRequest createValidRequest() {
