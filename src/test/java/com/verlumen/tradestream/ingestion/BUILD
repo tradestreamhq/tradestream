@@ -90,13 +90,13 @@ java_test(
     name = "HttpClientImplTest",
     srcs = ["HttpClientImplTest.java"],
     deps = [
-        "//third_party:extensions_guice_testlib",
-        "//third_party:guice",
-        "//third_party:truth",
-        "//third_party:junit",
-        "@tradestream_maven//:org_mockito_mockito_core",
         "//src/main/java/com/verlumen/tradestream/ingestion:http_client_impl",
         "//src/main/java/com/verlumen/tradestream/ingestion:http_url_connection_factory",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:truth",
     ],
 )
 
@@ -104,11 +104,11 @@ java_test(
     name = "KafkaPropertiesTest",
     srcs = ["KafkaPropertiesTest.java"],
     deps = [
-        "//third_party:extensions_guice_testlib",
-        "//third_party:guice",
-        "//third_party:truth",
-        "@tradestream_maven//:net_sourceforge_argparse4j_argparse4j",
         "//src/main/java/com/verlumen/tradestream/ingestion:kafka_properties",
+        "//third_party:argparse4j",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:truth",
     ],
 )
 
@@ -116,10 +116,10 @@ java_test(
     name = "PriceTrackerTest",
     srcs = ["PriceTrackerTest.java"],
     deps = [
-        "//third_party:guice",
-        "//third_party:truth",
-        "//third_party:junit",
         "//src/main/java/com/verlumen/tradestream/ingestion:price_tracker",
+        "//third_party:guice",
+        "//third_party:junit",
+        "//third_party:truth",
     ],
 )
 
@@ -127,12 +127,6 @@ java_test(
     name = "RealTimeDataIngestionImplTest",
     srcs = ["RealTimeDataIngestionImplTest.java"],
     deps = [
-        "//third_party:guava",
-        "//third_party:extensions_guice_testlib",
-        "//third_party:guice",
-        "//third_party:truth",
-        "//third_party:junit",
-        "@tradestream_maven//:org_mockito_mockito_core",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
@@ -142,6 +136,11 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/ingestion:trade_processor",
         "//src/main/java/com/verlumen/tradestream/ingestion:real_time_data_ingestion_impl",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:truth",
+        "//third_party:junit",
     ],
 )
 
@@ -149,16 +148,17 @@ java_test(
     name = "ThinMarketTimerImplTest",
     srcs = ["ThinMarketTimerImplTest.java"],
     deps = [
-        "//third_party:extensions_guice_testlib",
-        "//third_party:guice",
-        "//third_party:guava",
-        "//third_party:truth",
-        "//third_party:junit",
         "@tradestream_maven//:org_mockito_mockito_core",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager",
         "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer_impl",
         "//src/main/java/com/verlumen/tradestream/ingestion:thin_market_timer_task",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:truth",
     ],
 )
 
