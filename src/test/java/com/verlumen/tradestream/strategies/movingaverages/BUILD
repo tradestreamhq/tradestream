@@ -17,7 +17,7 @@ java_test(
         "//third_party:truth",
     ],
     runtime_deps = [
-        "@maven//:com_google_flogger_flogger_system_backend",
+        "//third_party:flogger_system_backend",
     ],
 )
 
