@@ -41,7 +41,7 @@ maven.install(
         "com.google.code.gson:gson:2.11.0",
         "com.google.flogger:flogger:0.8",
         "com.google.flogger:flogger-system-backend:0.8",
-        "com.google.guava:guava:33.2.1-android",
+        "com.google.guava:guava:33.4.0-jre",
         "com.google.inject.extensions:guice-assistedinject:7.0.0",
         "com.google.inject:guice:7.0.0",
         "com.google.mug:mug:8.2",
@@ -67,7 +67,7 @@ maven.install(
         # Test Dependencies
         "com.google.inject.extensions:guice-testlib:7.0.0",
         "com.google.testparameterinjector:test-parameter-injector:1.9",
-        "com.google.truth:truth:1.4.2",
+        "com.google.truth:truth:1.4.4",
         "junit:junit:4.13.2",
         "org.mockito:mockito-core:4.3.1",
     ],
