@@ -1,15 +1,13 @@
 package com.verlumen.tradestream.backtesting.params;
 
 import com.google.common.collect.Range;
-import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
-import io.jenetics.DoubleGene;
-import io.jenetics.Gene;
+import io.jenetics.NumericChromosome;
 
 /**
  * Specification for double-valued chromosomes.
  */
-public final class DoubleChromosomeSpec implements ChromosomeSpec<Double> {
+final class DoubleChromosomeSpec implements ChromosomeSpec<Double> {
     private final Range<Double> range;
 
     DoubleChromosomeSpec(Range<Double> range) {
@@ -22,7 +20,7 @@ public final class DoubleChromosomeSpec implements ChromosomeSpec<Double> {
     }
 
     @Override
-    public Chromosome<DoubleGene> createChromosome() {
+    public NumericChromosome<Double, ?> createChromosome() {
         return DoubleChromosome.of(
             range.lowerEndpoint(),
             range.upperEndpoint());
