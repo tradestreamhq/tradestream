@@ -29,10 +29,10 @@ final class SmaRsiParamConfig implements ParamConfig {
     @Override
     public Any createParameters(Genotype<DoubleGene> genotype) {
         return Any.pack(SmaRsiParameters.newBuilder()
-            .setMovingAveragePeriod(getIntValue(genotype, 0))
-            .setRsiPeriod(getIntValue(genotype, 1))
-            .setOverboughtThreshold(getIntValue(genotype, 2))
-            .setOversoldThreshold(getIntValue(genotype, 3))
+            .setMovingAveragePeriod(getGenotypeIntValue(genotype, 0))
+            .setRsiPeriod(getGenotypeIntValue(genotype, 1))
+            .setOverboughtThreshold(getGenotypeIntValue(genotype, 2))
+            .setOversoldThreshold(getGenotypeIntValue(genotype, 3))
             .build());
     }
 
