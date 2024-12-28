@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.backtesting;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Range;
 import com.google.protobuf.Any;
 import io.jenetics.Genotype;
 import io.jenetics.DoubleGene;
@@ -12,13 +13,13 @@ import com.verlumen.tradestream.strategies.SmaRsiParameters;
 final class SmaRsiParamConfig implements ParamConfig {
     private static final ImmutableList<ParamRange> CHROMOSOMES = ImmutableList.of(
         // Moving Average Period (5-50)
-        ParamRange.create(5, 50),
+        Range.closed(5, 50),
         // RSI Period (2-30)
-        ParamRange.create(2, 30),
+        Range.closed(2, 30),
         // Overbought Threshold (60-85)
-        ParamRange.create(60, 85),
+        Range.closed(60, 85),
         // Oversold Threshold (15-40)
-        ParamRange.create(15, 40)
+        Range.closed(15, 40)
     );
 
     @Override
