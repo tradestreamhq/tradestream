@@ -6,8 +6,8 @@ java_test(
     srcs = ["SmaRsiParamConfigTest.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
-        "//src/main/java/com/verlumen/tradestream/backtesting:sma_rsi_param_config",
+        "//src/main/java/com/verlumen/tradestream/backtesting/params:param_config",
+        "//src/main/java/com/verlumen/tradestream/backtesting/params:sma_rsi_param_config",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
