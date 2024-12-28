@@ -101,6 +101,5 @@ java_library(
         "//third_party:ta4j_core",
         ":backtest_service_client",
         ":genetic_algorithm_orchestrator",
-        ":param_config",
     ],
 )
