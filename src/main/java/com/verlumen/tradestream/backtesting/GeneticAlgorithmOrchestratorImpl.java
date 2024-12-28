@@ -27,10 +27,13 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
     private static final double CROSSOVER_PROBABILITY = 0.35;
 
     private final BacktestServiceClient backtestServiceClient;
+    private final ParamConfigManager paramConfigManager;
 
     @Inject
-    GeneticAlgorithmOrchestratorImpl(BacktestServiceClient backtestServiceClient) {
+    GeneticAlgorithmOrchestratorImpl(
+        BacktestServiceClient backtestServiceClient, ParamConfigManager paramConfigManager) {
         this.backtestServiceClient = backtestServiceClient;
+        this.paramConfigManager = paramConfigManager;
     }
 
     @Override
@@ -62,7 +65,7 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
     private Engine<DoubleGene, Double> configureEngine(
             GAOptimizationRequest request, BarSeries series) {
         // Configure chromosome based on strategy type
-        ParamConfig config = getParamConfig(request.getStrategyType());
+        ParamConfig config = paramConfigManager.getParamConfig(request.getStrategyType());
 
         // Create genotype factory for parameter ranges
         Genotype<DoubleGene> gtf = Genotype.of(
@@ -120,17 +123,7 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
     }
 
     private Any convertToParameters(Genotype<DoubleGene> genotype, StrategyType type) {
-        ParamConfig config = getParamConfig(type);
+        ParamConfig config = paramConfigManager.getParamConfig(type);
         return config.createParameters(genotype);
-    }
-
-    private ParamConfig getParamConfig(StrategyType type) {
-        switch (type) {
-            case SMA_RSI:
-                return new SmaRsiParamConfig();
-            // Add other strategy types here
-            default:
-                throw new IllegalArgumentException("Unsupported strategy type: " + type);
-        }
     }
 }
