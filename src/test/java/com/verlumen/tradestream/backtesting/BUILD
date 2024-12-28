@@ -103,11 +103,13 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_service_client",
         "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
         "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator_impl",
+        "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
         "//third_party:junit",
         "//third_party:mockito_core",
+        "//third_party:protobuf_java",
         "//third_party:truth",
     ],
 )
