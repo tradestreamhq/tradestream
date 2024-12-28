@@ -13,10 +13,10 @@ java_test(
         "//third_party:guice",
         "//third_party:guice_testlib",
         "//third_party:protobuf_java",
-        "//third_party:truth",
         "//third_party:junit",
         "//third_party:mockito_core",
         "//third_party:ta4j_core",
+        "//third_party:truth",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
