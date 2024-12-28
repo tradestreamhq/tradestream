@@ -24,11 +24,11 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
     private static final double MUTATION_PROBABILITY = 0.15;
     private static final double CROSSOVER_PROBABILITY = 0.35;
 
-    private final BacktestService backtestService;
+    private final BacktestServiceClient backtestServiceClient;
 
     @Inject
-    GeneticAlgorithmOrchestratorImpl(BacktestService backtestService) {
-        this.backtestService = backtestService;
+    GeneticAlgorithmOrchestratorImpl(BacktestServiceClient backtestServiceClient) {
+        this.backtestServiceClient = backtestServiceClient;
     }
 
     @Override
@@ -81,7 +81,7 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
                     .setStrategyParameters(params)
                     .build();
 
-                BacktestResult result = backtestService.runBacktest(backtestRequest);
+                BacktestResult result = backtestServiceClient.runBacktest(backtestRequest);
                 return result.getOverallScore();
             } catch (Exception e) {
                 return Double.NEGATIVE_INFINITY; // Penalize invalid parameter combinations
