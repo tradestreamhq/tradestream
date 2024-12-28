@@ -13,7 +13,7 @@ import io.jenetics.NumericGene;
  * Interface for strategy-specific parameter configuration.
  * Defines parameter ranges and conversion logic.
  */
-interface ParamConfig<T extends Number & Comparable<T>> {
+interface ParamConfig<N extends Number & Comparable<N>, G extends NumericGene<N,G>> {
     ImmutableList<Range<T>> getChromosomes();
-    Any createParameters(Genotype<? extends NumericGene<T>> genotype);
+    Any createParameters(Genotype<G> genotype);
 }
