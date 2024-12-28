@@ -90,7 +90,7 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
         };
 
         return Engine
-            .builder(fitness)
+            .builder(fitness, gtf)
             .populationSize(request.getPopulationSize() > 0 
                 ? request.getPopulationSize() 
                 : DEFAULT_POPULATION_SIZE)
