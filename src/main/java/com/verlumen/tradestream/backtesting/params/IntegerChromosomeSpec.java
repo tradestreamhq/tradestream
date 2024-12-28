@@ -1,15 +1,13 @@
 package com.verlumen.tradestream.backtesting.params;
 
 import com.google.common.collect.Range;
-import io.jenetics.Chromosome;
 import io.jenetics.IntegerChromosome;
-import io.jenetics.IntegerGene;
-import io.jenetics.Gene;
+import io.jenetics.NumericChromosome;
 
 /**
  * Specification for integer-valued chromosomes.
  */
-public final class IntegerChromosomeSpec implements ChromosomeSpec<Integer> {
+final class IntegerChromosomeSpec implements ChromosomeSpec<Integer> {
     private final Range<Integer> range;
 
     IntegerChromosomeSpec(Range<Integer> range) {
@@ -22,7 +20,7 @@ public final class IntegerChromosomeSpec implements ChromosomeSpec<Integer> {
     }
 
     @Override
-    public Chromosome<IntegerGene> createChromosome() {
+    public NumericChromosome<Integer, ?> createChromosome() {
         return IntegerChromosome.of(
             range.lowerEndpoint(),
             range.upperEndpoint());
