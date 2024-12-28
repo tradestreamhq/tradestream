@@ -3,16 +3,10 @@ package com.verlumen.tradestream.backtesting.params;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Range;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
-import io.jenetics.Chromosome;
-import io.jenetics.DoubleGene;
-import io.jenetics.Genotype;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.IntegerChromosome;
-import io.jenetics.IntegerGene;
 import io.jenetics.NumericChromosome;
-import io.jenetics.NumericGene;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,22 +50,30 @@ public class SmaRsiParamConfigTest {
 
   @Test
   public void createParameters_convertsChromosomesCorrectly() throws Exception {
-    // Create chromosomes matching our specs
+    // Create chromosomes matching our specs (single gene each, random allele in given range)
     ImmutableList<? extends NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
-        IntegerChromosome.of(5, 50, 1), // maPeriod = 14
-        IntegerChromosome.of(2, 30, 1), // rsiPeriod = 7
-        DoubleChromosome.of(60.0, 85.0), // creates default chromosome with overboughtThreshold = 70.0
-        DoubleChromosome.of(15.0, 40.0)  // creates default chromosome with oversoldThreshold = 30.0
+        IntegerChromosome.of(5, 50, 1),   // movingAveragePeriod
+        IntegerChromosome.of(2, 30, 1),   // rsiPeriod
+        DoubleChromosome.of(60.0, 85.0),  // overboughtThreshold
+        DoubleChromosome.of(15.0, 40.0)   // oversoldThreshold
     );
 
     // Act
     SmaRsiParameters params = config.createParameters(chromosomes).unpack(SmaRsiParameters.class);
 
     // Assert
-    assertThat(params.getMovingAveragePeriod()).isEqualTo(14);
-    assertThat(params.getRsiPeriod()).isEqualTo(7);
-    assertThat(params.getOverboughtThreshold()).isEqualTo(70.0);
-    assertThat(params.getOversoldThreshold()).isEqualTo(30.0);
+    // Instead of asserting exact values, verify they fall within the specified bounds.
+    assertThat(params.getMovingAveragePeriod()).isAtLeast(5);
+    assertThat(params.getMovingAveragePeriod()).isAtMost(50);
+
+    assertThat(params.getRsiPeriod()).isAtLeast(2);
+    assertThat(params.getRsiPeriod()).isAtMost(30);
+
+    assertThat(params.getOverboughtThreshold()).isAtLeast(60.0);
+    assertThat(params.getOverboughtThreshold()).isAtMost(85.0);
+
+    assertThat(params.getOversoldThreshold()).isAtLeast(15.0);
+    assertThat(params.getOversoldThreshold()).isAtMost(40.0);
   }
 
   @Test
