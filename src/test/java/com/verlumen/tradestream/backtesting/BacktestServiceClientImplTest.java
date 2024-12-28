@@ -14,6 +14,7 @@ import com.verlumen.tradestream.backtesting.BacktestServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.inprocess.InProcessChannelBuilder;
+import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcCleanupRule;
 import org.junit.Before;
 import org.junit.Rule;
