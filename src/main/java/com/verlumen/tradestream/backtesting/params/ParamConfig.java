@@ -13,7 +13,7 @@ public interface ParamConfig {
     /**
      * Returns a list of chromosome specifications, each defining a parameter's type and constraints.
      */
-    ImmutableList<NumericChromosomeSpec<?>> getNumericChromosomeSpecs();
+    ImmutableList<NumericChromosomeSpec<?>> getChromosomeSpecs();
 
     /**
      * Creates strategy parameters from a list of chromosomes.
@@ -26,5 +26,5 @@ public interface ParamConfig {
      * Creates initial chromosomes for this parameter configuration.
      * @return List of initial chromosomes for optimization
      */
-    ImmutableList<? extends NumericChromosome<? extends Gene<?, ?>>> initialNumericChromosomes();
+    ImmutableList<? extends NumericChromosome<? extends Gene<?, ?>>> initialChromosomes();
 }
