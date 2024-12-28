@@ -98,11 +98,8 @@ jobs:
       - name: Update MODULE.bazel version
         run: |
           echo "Updating MODULE.bazel to version ${{ steps.version.outputs.version_tag }}"
-          sed -i.bak 's/\(version\s*=\s*"\)[^"]\+"/\1'"${{ steps.version.outputs.version_tag }}"'"/' MODULE.bazel
-          # Optional: Remove backup file if not needed
-          rm MODULE.bazel.bak
-          # Optionally, verify the change
-          grep 'version = "' MODULE.bazel
+          # Only replace "version" within the module(...) block
+          sed -i.bak '/^module(/,/^)/ s/\(version\s*=\s*"\)[^"]\+"/\1'"${{ steps.version.outputs.version_tag }}"'"/' MODULE.bazel
         shell: bash
 
       - name: Commit and Push All Changes
