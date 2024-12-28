@@ -104,11 +104,11 @@ java_test(
     name = "KafkaPropertiesTest",
     srcs = ["KafkaPropertiesTest.java"],
     deps = [
-        "@maven//:com_google_inject_extensions_guice_testlib",
-        "@maven//:com_google_inject_guice",
-        "@maven//:com_google_truth_truth",
-        "@maven//:net_sourceforge_argparse4j_argparse4j",
         "//src/main/java/com/verlumen/tradestream/ingestion:kafka_properties",
+        "//third_party:argparse4j",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:truth",
     ],
 )
 
