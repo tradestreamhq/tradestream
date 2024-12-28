@@ -84,3 +84,22 @@ java_library(
         "//protos:backtesting_java_proto",
     ],
 )
+
+java_library(
+    name = "genetic_algorithm_orchestrator_impl",
+    srcs = ["GeneticAlgorithmOrchestratorImpl.java"],
+    deps = [
+        "//protos:backtesting_java_grpc",
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto", 
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:jenetics",
+        "//third_party:protobuf_java",
+        "//third_party:ta4j_core",
+        ":backtest_service_client",
+        ":genetic_algorithm_orchestrator",
+    ],
+)
