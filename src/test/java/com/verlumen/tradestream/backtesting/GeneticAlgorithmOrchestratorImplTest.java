@@ -15,6 +15,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.common.collect.Range;
 import com.verlumen.tradestream.backtesting.params.ChromosomeSpec;
+import com.verlumen.tradestream.backtesting.params.DoubleChromosomeSpec;
 import com.verlumen.tradestream.backtesting.params.ParamConfig;
 import com.verlumen.tradestream.backtesting.params.ParamConfigManager;
 import com.verlumen.tradestream.marketdata.Candle;
