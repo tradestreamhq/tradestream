@@ -2,14 +2,17 @@ package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
+import com.verlumen.tradestream.backtesting.params.ChromosomeSpec;
 import com.verlumen.tradestream.backtesting.params.ParamConfig;
 import com.verlumen.tradestream.backtesting.params.ParamConfigManager;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.*;
 import io.jenetics.engine.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.ta4j.core.BarSeries;
@@ -17,10 +20,6 @@ import org.ta4j.core.BaseBarSeries;
 import java.time.ZonedDateTime;
 import java.time.Duration;
 
-/**
- * Implementation of GeneticAlgorithmOrchestrator using Jenetics library.
- * Evolves strategy parameters by evaluating fitness through backtesting.
- */
 final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestrator {
     private static final int DEFAULT_POPULATION_SIZE = 50;
     private static final int DEFAULT_MAX_GENERATIONS = 100;
@@ -41,20 +40,15 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
     public BestStrategyResponse runOptimization(GAOptimizationRequest request) {
         checkArgument(!request.getCandlesList().isEmpty(), "Candles list cannot be empty");
 
-        // Convert candles to BarSeries for evaluation
         BarSeries series = createBarSeries(request);
-
-        // Configure genetic algorithm based on strategy type
         Engine<DoubleGene, Double> engine = configureEngine(request, series);
 
-        // Run optimization
         Phenotype<DoubleGene, Double> best = engine.stream()
             .limit(request.getMaxGenerations() > 0 
                 ? request.getMaxGenerations() 
                 : DEFAULT_MAX_GENERATIONS)
             .collect(EvolutionResult.toBestPhenotype());
 
-        // Convert best result to strategy parameters
         Any bestParams = convertToParameters(best.genotype(), request.getStrategyType());
 
         return BestStrategyResponse.newBuilder()
@@ -65,18 +59,20 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
 
     private Engine<DoubleGene, Double> configureEngine(
             GAOptimizationRequest request, BarSeries series) {
-        // Configure chromosome based on strategy type
         ParamConfig config = paramConfigManager.getParamConfig(request.getStrategyType());
 
-        // Create genotype factory for parameter ranges
-        Genotype<DoubleGene> gtf = Genotype.of(
-            config.getChromosomes().stream()
-                .map(range -> DoubleChromosome.of(
-                    range.min(), range.max()))
-                .collect(Collectors.toList())
-        );
+        // Create chromosomes based on parameter specs
+        List<DoubleChromosome> chromosomes = config.getChromosomeSpecs().stream()
+            .map(spec -> {
+                ChromosomeSpec<?> paramSpec = spec;
+                double min = ((Number) paramSpec.getRange().lowerEndpoint()).doubleValue();
+                double max = ((Number) paramSpec.getRange().upperEndpoint()).doubleValue();
+                return DoubleChromosome.of(min, max);
+            })
+            .collect(Collectors.toList());
 
-        // Create fitness function that evaluates parameters through backtesting
+        Genotype<DoubleGene> gtf = Genotype.of(chromosomes);
+
         Function<Genotype<DoubleGene>, Double> fitness = genotype -> {
             try {
                 Any params = convertToParameters(genotype, request.getStrategyType());
@@ -90,7 +86,7 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
                 BacktestResult result = backtestServiceClient.runBacktest(backtestRequest);
                 return result.getOverallScore();
             } catch (Exception e) {
-                return Double.NEGATIVE_INFINITY; // Penalize invalid parameter combinations
+                return Double.NEGATIVE_INFINITY;
             }
         };
 
@@ -125,6 +121,12 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
 
     private Any convertToParameters(Genotype<DoubleGene> genotype, StrategyType type) {
         ParamConfig config = paramConfigManager.getParamConfig(type);
-        return config.createParameters(genotype);
+        
+        // Convert Jenetics chromosomes to numeric chromosomes
+        ImmutableList<NumericChromosome<?, ?>> numericChromosomes = genotype.stream()
+            .map(chromosome -> (NumericChromosome<?, ?>) chromosome)
+            .collect(ImmutableList.toImmutableList());
+            
+        return config.createParameters(numericChromosomes);
     }
 }
