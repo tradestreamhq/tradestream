@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.backtesting.params.ParamConfig;
+import com.verlumen.tradestream.backtesting.params.ParamConfigManager;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.*;
 import io.jenetics.engine.*;
