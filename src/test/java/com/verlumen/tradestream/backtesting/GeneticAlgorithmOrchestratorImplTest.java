@@ -138,16 +138,13 @@ public class GeneticAlgorithmOrchestratorImplTest {
   }
 
   /**
-   * Return at least one ChromosomeSpec so Jenetics doesn't get an empty list.
-   * Below is a minimal example that sets a numeric range [1..10].
-   */
+  * Return at least one ChromosomeSpec so Jenetics doesn't get an empty list.
+  * Below is a minimal example that sets a numeric range [1..10].
+  */
   private ImmutableList<ChromosomeSpec<?>> createMockChromosomeSpecs() {
-    ChromosomeSpec<Integer> spec =
-        ChromosomeSpec.<Integer>newBuilder()
-            .setRange(Range.closed(1, 10))
-            .build();
-
-    return ImmutableList.of(spec);
+      // Use actual implementation rather than trying to mock
+      ChromosomeSpec<?> spec = new DoubleChromosomeSpec(Range.closed(1.0, 10.0));
+      return ImmutableList.of(spec);
   }
 
   private GAOptimizationRequest createValidRequest() {
