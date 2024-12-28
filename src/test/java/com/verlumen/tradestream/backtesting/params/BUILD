@@ -5,6 +5,5 @@ java_test(
     srcs = ["ParamRangeTest.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/backtesting/params:param_range",
-        "//third_party:genetics",
     ],
 )
