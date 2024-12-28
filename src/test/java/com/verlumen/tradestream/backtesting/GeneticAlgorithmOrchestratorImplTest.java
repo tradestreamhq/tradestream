@@ -98,6 +98,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
     assertThat(capturedRequest.getCandlesList()).isEqualTo(request.getCandlesList());
 
     assertThat(response.getBestScore()).isEqualTo(mockBacktestResult.getOverallScore());
+    assertThat(response.hasBestStrategyParameters()).isTrue();
   }
 
   @Test
@@ -133,6 +134,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
 
     // Assert
     verify(mockBacktestServiceClient).runBacktest(any());
+    assertThat(response.hasBestStrategyParameters()).isTrue();
   }
 
   @Test
