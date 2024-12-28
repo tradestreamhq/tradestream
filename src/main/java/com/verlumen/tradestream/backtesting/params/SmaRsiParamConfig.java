@@ -52,7 +52,7 @@ public final class SmaRsiParamConfig implements ParamConfig {
     @Override
     public ImmutableList<? extends NumericChromosome<?, ?>> initialChromosomes() {
         return SPECS.stream()
-            .map(spec -> (NumericChromosome<?, ?>) spec.createChromosome())
+            .map(ChromosomeSpec::createChromosome)
             .collect(ImmutableList.toImmutableList());
     }
 }
