@@ -23,7 +23,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
