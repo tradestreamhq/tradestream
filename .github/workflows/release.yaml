@@ -102,4 +102,3 @@ jobs:
           git add charts/tradestream/values.yaml
           git commit -m "Update values.yaml: Set images to ${{ steps.version.outputs.version_tag }}" || echo "No changes to commit"
           git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
-          
