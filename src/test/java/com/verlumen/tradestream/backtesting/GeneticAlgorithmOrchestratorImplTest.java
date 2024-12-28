@@ -26,7 +26,7 @@ import java.util.List;
 public class GeneticAlgorithmOrchestratorImplTest {
     @Bind 
     @Mock 
-    private BacktestService mockBacktestService;
+    private BacktestServiceClient mockBacktestServiceClient;
 
     private GeneticAlgorithmOrchestratorImpl orchestrator;
     private GAOptimizationRequest request;
@@ -35,7 +35,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        orchestrator = new GeneticAlgorithmOrchestratorImpl(mockBacktestService);
+        orchestrator = new GeneticAlgorithmOrchestratorImpl(mockBacktestServiceClient);
 
         // Create mock backtest result
         mockBacktestResult = BacktestResult.newBuilder()
@@ -43,7 +43,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
             .build();
 
         // Set up mock backtest service
-        when(mockBacktestService.runBacktest(any()))
+        when(mockBacktestServiceClient.runBacktest(any()))
             .thenReturn(mockBacktestResult);
 
         // Create basic valid request
@@ -60,7 +60,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
         BestStrategyResponse response = orchestrator.runOptimization(request);
 
         // Assert
-        verify(mockBacktestService).runBacktest(backtestCaptor.capture());
+        verify(mockBacktestServiceClient).runBacktest(backtestCaptor.capture());
         
         BacktestRequest capturedRequest = backtestCaptor.getValue();
         assertThat(capturedRequest.getStrategyType()).isEqualTo(request.getStrategyType());
@@ -102,7 +102,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
         BestStrategyResponse response = orchestrator.runOptimization(request);
 
         // Assert
-        verify(mockBacktestService).runBacktest(any());
+        verify(mockBacktestServiceClient).runBacktest(any());
         assertThat(response.getBestStrategyParameters()).isNotNull();
     }
 
