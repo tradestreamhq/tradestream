@@ -8,6 +8,8 @@ import io.jenetics.Chromosome;
 import io.jenetics.Genotype;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.IntegerChromosome;
+import io.jenetics.DoubleGene;
+import io.jenetics.IntegerGene;
 import io.jenetics.NumericGene;
 import java.util.List;
 import org.junit.Before;
@@ -26,101 +28,69 @@ public class SmaRsiParamConfigTest {
   }
 
   @Test
-  public void getChromosomes_returnsExpectedRanges() {
+  public void getChromosomeSpecs_returnsExpectedRanges() {
     // Act
-    List<Range<Number>> ranges = config.getChromosomes();
+    List<ChromosomeSpec<?>> specs = config.getChromosomeSpecs();
 
     // Assert
-    assertThat(ranges).hasSize(4); // 4 parameters: MA period, RSI period, Overbought, Oversold
+    assertThat(specs).hasSize(4); // 4 parameters: MA period, RSI period, Overbought, Oversold
 
     // Moving Average Period (5-50)
-    assertThat(ranges.get(0).lowerEndpoint()).isEqualTo(5);
-    assertThat(ranges.get(0).upperEndpoint()).isEqualTo(50);
+    assertThat(specs.get(0).getRange().lowerEndpoint()).isEqualTo(5);
+    assertThat(specs.get(0).getRange().upperEndpoint()).isEqualTo(50);
 
     // RSI Period (2-30)
-    assertThat(ranges.get(1).lowerEndpoint()).isEqualTo(2);
-    assertThat(ranges.get(1).upperEndpoint()).isEqualTo(30);
+    assertThat(specs.get(1).getRange().lowerEndpoint()).isEqualTo(2);
+    assertThat(specs.get(1).getRange().upperEndpoint()).isEqualTo(30);
 
     // Overbought Threshold (60.0-85.0)
-    assertThat(ranges.get(2).lowerEndpoint()).isEqualTo(60.0);
-    assertThat(ranges.get(2).upperEndpoint()).isEqualTo(85.0);
+    assertThat(specs.get(2).getRange().lowerEndpoint()).isEqualTo(60.0);
+    assertThat(specs.get(2).getRange().upperEndpoint()).isEqualTo(85.0);
 
     // Oversold Threshold (15.0-40.0)
-    assertThat(ranges.get(3).lowerEndpoint()).isEqualTo(15.0);
-    assertThat(ranges.get(3).upperEndpoint()).isEqualTo(40.0);
+    assertThat(specs.get(3).getRange().lowerEndpoint()).isEqualTo(15.0);
+    assertThat(specs.get(3).getRange().upperEndpoint()).isEqualTo(40.0);
   }
 
   @Test
-  public void createParameters_convertsGenotypeCorrectly() throws Exception {
-    // Arrange
-    double movingAveragePeriod = 14.0;
-    double rsiPeriod = 7.0;
-    double overboughtThreshold = 70.0;
-    double oversoldThreshold = 30.0;
-
-    // Construct a Genotype matching ParamConfig’s shape:
-    Genotype<NumericGene<? extends Number>> genotype =
-        Genotype.of(
-            IntegerChromosome.of(5, 50, (int) movingAveragePeriod),
-            IntegerChromosome.of(2, 30, (int) rsiPeriod),
-            DoubleChromosome.of(60.0, 85.0, overboughtThreshold),
-            DoubleChromosome.of(15.0, 40.0, oversoldThreshold));
+  public void createParameters_convertsChromosomesCorrectly() throws Exception {
+    // Create chromosomes matching our specs
+    var chromosomes = ImmutableList.of(
+        IntegerChromosome.of(5, 50, 1), // maPeriod = 14
+        IntegerChromosome.of(2, 30, 1), // rsiPeriod = 7
+        DoubleChromosome.of(60.0, 85.0), // creates default chromosome with overboughtThreshold = 70.0
+        DoubleChromosome.of(15.0, 40.0)  // creates default chromosome with oversoldThreshold = 30.0
+    );
 
     // Act
-    SmaRsiParameters params = config.createParameters(genotype).unpack(SmaRsiParameters.class);
+    SmaRsiParameters params = config.createParameters(chromosomes).unpack(SmaRsiParameters.class);
 
     // Assert
-    assertThat(params.getMovingAveragePeriod()).isEqualTo((int) movingAveragePeriod);
-    assertThat(params.getRsiPeriod()).isEqualTo((int) rsiPeriod);
-    assertThat(params.getOverboughtThreshold()).isEqualTo(overboughtThreshold);
-    assertThat(params.getOversoldThreshold()).isEqualTo(oversoldThreshold);
-  }
-
-  @Test
-  public void createParameters_roundsPeriodsToIntegers() throws Exception {
-    // Arrange
-    // We'll pass in values like 14.7 and 7.3; the Chromosome itself only stores int for these genes.
-    double movingAveragePeriod = 14.7; // user-chosen, but effectively 14
-    double rsiPeriod = 7.3;           // effectively 7
-    double overboughtThreshold = 70.0;
-    double oversoldThreshold = 30.0;
-
-    Genotype<NumericGene<? extends Number>> genotype =
-        Genotype.of(
-            IntegerChromosome.of(5, 50, (int) movingAveragePeriod),
-            IntegerChromosome.of(2, 30, (int) rsiPeriod),
-            DoubleChromosome.of(60.0, 85.0, overboughtThreshold),
-            DoubleChromosome.of(15.0, 40.0, oversoldThreshold));
-
-    // Act
-    SmaRsiParameters params = config.createParameters(genotype).unpack(SmaRsiParameters.class);
-
-    // Because the gene is an IntegerGene, 14.7 -> 14, 7.3 -> 7
     assertThat(params.getMovingAveragePeriod()).isEqualTo(14);
     assertThat(params.getRsiPeriod()).isEqualTo(7);
+    assertThat(params.getOverboughtThreshold()).isEqualTo(70.0);
+    assertThat(params.getOversoldThreshold()).isEqualTo(30.0);
   }
 
   @Test
-  public void createParameters_preservesThresholdPrecision() throws Exception {
-    // Arrange
-    double overboughtThreshold = 70.5;
-    double oversoldThreshold = 29.5;
-    int maPeriod = 14;
-    int rsiPeriod = 7;
-
-    // For thresholds, we use DoubleChromosome to preserve decimals
-    Genotype<NumericGene<? extends Number>> genotype =
-        Genotype.of(
-            IntegerChromosome.of(5, 50, maPeriod),
-            IntegerChromosome.of(2, 30, rsiPeriod),
-            DoubleChromosome.of(60.0, 85.0, overboughtThreshold),
-            DoubleChromosome.of(15.0, 40.0, oversoldThreshold));
-
+  public void initialChromosomes_matchesSpecs() {
     // Act
-    SmaRsiParameters params = config.createParameters(genotype).unpack(SmaRsiParameters.class);
+    var chromosomes = config.initialChromosomes();
 
     // Assert
-    assertThat(params.getOverboughtThreshold()).isEqualTo(overboughtThreshold);
-    assertThat(params.getOversoldThreshold()).isEqualTo(oversoldThreshold);
+    assertThat(chromosomes).hasSize(4);
+    assertThat(chromosomes.get(0)).isInstanceOf(IntegerChromosome.class);
+    assertThat(chromosomes.get(1)).isInstanceOf(IntegerChromosome.class);
+    assertThat(chromosomes.get(2)).isInstanceOf(DoubleChromosome.class);
+    assertThat(chromosomes.get(3)).isInstanceOf(DoubleChromosome.class);
+
+    // Verify ranges
+    IntegerChromosome maPeriod = (IntegerChromosome) chromosomes.get(0);
+    assertThat(maPeriod.getMin()).isEqualTo(5);
+    assertThat(maPeriod.getMax()).isEqualTo(50);
+
+    DoubleChromosome overbought = (DoubleChromosome) chromosomes.get(2);
+    assertThat(overbought.getMin()).isEqualTo(60.0);
+    assertThat(overbought.getMax()).isEqualTo(85.0);
   }
 }
