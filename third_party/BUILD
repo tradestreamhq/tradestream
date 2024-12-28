@@ -110,6 +110,15 @@ java_library(
 )
 
 java_library(
+    name = "grpc_testing",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:io_grpc_grpc_testing",
+    ],
+    testonly = True,
+)
+
+java_library(
     name = "gson",
     visibility = ["//visibility:public"],
     exports = [
