@@ -6,7 +6,8 @@ java_test(
     deps = [
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
-        "//third_party:grpc_testing",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner_impl",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
@@ -14,8 +15,6 @@ java_test(
         "//third_party:mockito_core",
         "//third_party:ta4j_core",
         "//third_party:truth",
-        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
-        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner_impl",
     ],
 )
 
@@ -33,6 +32,7 @@ java_test(
         "//third_party:truth",
         "//third_party:grpc_java_api",
         "//third_party:grpc_java_stub",
+        "//third_party:grpc_testing",
         "//third_party:guice",
         "//third_party:guice_testlib",
     ],
