@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.*;
 import io.jenetics.engine.*;
 import java.util.function.Function;
