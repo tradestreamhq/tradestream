@@ -7,16 +7,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Range;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.common.collect.Range;
 import com.verlumen.tradestream.backtesting.params.ChromosomeSpec;
-import com.verlumen.tradestream.backtesting.params.DoubleChromosomeSpec;
 import com.verlumen.tradestream.backtesting.params.ParamConfig;
 import com.verlumen.tradestream.backtesting.params.ParamConfigManager;
 import com.verlumen.tradestream.marketdata.Candle;
@@ -144,7 +141,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
   */
   private ImmutableList<ChromosomeSpec<?>> createMockChromosomeSpecs() {
       // Use actual implementation rather than trying to mock
-      ChromosomeSpec<?> spec = new DoubleChromosomeSpec(Range.closed(1.0, 10.0));
+      ChromosomeSpec<?> spec = ChromosomeSpec.ofDouble(1.0, 10.0);
       return ImmutableList.of(spec);
   }
 
