@@ -6,6 +6,7 @@ java_test(
     deps = [
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
+        "//third_party:grpc_testing",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
