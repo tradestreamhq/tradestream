@@ -53,7 +53,7 @@ java_test(
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:bactest_service_client",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_service_client",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_impl",
         "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
         "//third_party:grpc_java_api",
