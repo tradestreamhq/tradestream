@@ -11,6 +11,9 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyType;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,25 +21,29 @@ import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
 public class GeneticAlgorithmOrchestratorImplTest {
+    @Rule public MockitoRule mockito = MockitoJUnit.rule();
+
     @Bind 
     @Mock 
     private BacktestServiceClient mockBacktestServiceClient;
 
+    @Bind
+    @Mock
+    private ParamConfigManager mockParamConfigManager;
+
+    @Inject
     private GeneticAlgorithmOrchestratorImpl orchestrator;
+
     private GAOptimizationRequest request;
     private BacktestResult mockBacktestResult;
 
     @Before
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        orchestrator = new GeneticAlgorithmOrchestratorImpl(mockBacktestServiceClient);
-
         // Create mock backtest result
         mockBacktestResult = BacktestResult.newBuilder()
             .setOverallScore(0.75)
@@ -46,8 +53,14 @@ public class GeneticAlgorithmOrchestratorImplTest {
         when(mockBacktestServiceClient.runBacktest(any()))
             .thenReturn(mockBacktestResult);
 
+        // Set up mock param config manager
+        when(mockParamConfigManager.getParamConfig(any()))
+            .thenReturn(new SmaRsiParamConfig());  // Use a concrete config for testing
+
         // Create basic valid request
         request = createValidRequest();
+
+        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
     @Test
