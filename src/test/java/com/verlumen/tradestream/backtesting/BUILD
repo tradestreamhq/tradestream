@@ -100,6 +100,7 @@ java_test(
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_service_client",
         "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
         "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator_impl",
         "//third_party:guava",
