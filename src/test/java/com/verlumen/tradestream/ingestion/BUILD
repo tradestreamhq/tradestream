@@ -116,10 +116,10 @@ java_test(
     name = "PriceTrackerTest",
     srcs = ["PriceTrackerTest.java"],
     deps = [
-        "@maven//:com_google_inject_guice",
-        "@maven//:com_google_truth_truth",
-        "@maven//:junit_junit",
         "//src/main/java/com/verlumen/tradestream/ingestion:price_tracker",
+        "//third_party:guice",
+        "//third_party:junit",
+        "//third_party:truth",
     ],
 )
 
