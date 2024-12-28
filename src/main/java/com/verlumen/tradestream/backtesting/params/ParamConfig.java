@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.backtesting;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
@@ -18,11 +20,12 @@ interface ParamConfig {
      * Represents a parameter's valid range for genetic optimization.
      */
     @AutoValue
-    abstract class ParamRange {
-        abstract double min();
-        abstract double max();
+    abstract class ParamRange<T extends Comparable> {
+        abstract T min();
+        abstract T max();
 
-        static ParamRange create(double min, double max) {
+        static ParamRange create(T min, T max) {
+            checkArgument(min.compareTo(max) < 0);
             return new AutoValue_ParamConfig_ParamRange(min, max);
         }
     }
