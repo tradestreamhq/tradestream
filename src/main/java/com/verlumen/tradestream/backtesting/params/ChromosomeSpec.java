@@ -8,7 +8,7 @@ import io.jenetics.NumericGene;
  * Specifies type and range constraints for a chromosome in parameter optimization.
  * @param <T> The type of value being optimized (e.g. Integer, Double)
  */
-public interface ChromosomeSpec<T extends Comparable<T>> {
+public interface ChromosomeSpec<T extends Number & Comparable<? super T>> {
     /**
      * Gets the valid range for this parameter.
      */
