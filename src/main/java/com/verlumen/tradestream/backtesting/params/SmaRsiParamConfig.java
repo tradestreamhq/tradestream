@@ -2,16 +2,15 @@ package com.verlumen.tradestream.backtesting.params;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
-import io.jenetics.Gene;
-import io.jenetics.DoubleChromosome;
 import io.jenetics.IntegerChromosome;
+import io.jenetics.DoubleChromosome;
 import io.jenetics.NumericChromosome;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
 
 /**
  * Parameter configuration for SMA/RSI strategy with proper integer and double parameters.
  */
-public final class SmaRsiParamConfig implements MixedParamConfig {
+public final class SmaRsiParamConfig implements ParamConfig {
     private static final ImmutableList<ChromosomeSpec<?>> SPECS = ImmutableList.of(
         // Integer parameters
         ChromosomeSpec.ofInteger(5, 50),    // Moving Average Period
@@ -27,31 +26,31 @@ public final class SmaRsiParamConfig implements MixedParamConfig {
     }
 
     @Override
-    public Any createParameters(ImmutableList<? extends NumericChromosome<? extends Gene<?, ?>>> chromosomes) {
+    public Any createParameters(ImmutableList<? extends NumericChromosome<?, ?>> chromosomes) {
         if (chromosomes.size() != SPECS.size()) {
             throw new IllegalArgumentException(
                 "Expected " + SPECS.size() + " chromosomes but got " + chromosomes.size());
         }
 
-        // Extract parameters with proper typing
-        int maPeriod = ((IntegerChromosome)chromosomes.get(0)).getGene().allele();
-        int rsiPeriod = ((IntegerChromosome)chromosomes.get(1)).getGene().allele();
-        double overbought = ((DoubleChromosome)chromosomes.get(2)).getGene().allele();
-        double oversold = ((DoubleChromosome)chromosomes.get(3)).getGene().allele();
+        // Extract parameters with proper casting
+        IntegerChromosome maPeriodChrom = (IntegerChromosome) chromosomes.get(0);
+        IntegerChromosome rsiPeriodChrom = (IntegerChromosome) chromosomes.get(1);
+        DoubleChromosome overboughtChrom = (DoubleChromosome) chromosomes.get(2);
+        DoubleChromosome oversoldChrom = (DoubleChromosome) chromosomes.get(3);
 
         // Build parameters
         SmaRsiParameters parameters = SmaRsiParameters.newBuilder()
-            .setMovingAveragePeriod(maPeriod)
-            .setRsiPeriod(rsiPeriod)
-            .setOverboughtThreshold(overbought)
-            .setOversoldThreshold(oversold)
+            .setMovingAveragePeriod(maPeriodChrom.gene().allele())
+            .setRsiPeriod(rsiPeriodChrom.gene().allele())
+            .setOverboughtThreshold(overboughtChrom.gene().allele())
+            .setOversoldThreshold(oversoldChrom.gene().allele())
             .build();
 
         return Any.pack(parameters);
     }
 
     @Override
-    public ImmutableList<? extends NumericChromosome<? extends Gene<?, ?>>> initialChromosomes() {
+    public ImmutableList<? extends NumericChromosome<?, ?>> initialChromosomes() {
         return SPECS.stream()
             .map(ChromosomeSpec::createChromosome)
             .collect(ImmutableList.toImmutableList());
