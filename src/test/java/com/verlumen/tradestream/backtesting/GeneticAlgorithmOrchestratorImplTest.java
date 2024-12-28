@@ -16,7 +16,7 @@ import com.verlumen.tradestream.backtesting.params.ParamConfig;
 import com.verlumen.tradestream.backtesting.params.ParamConfigManager;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyType;
-import io.jenetics.engine.NumericChromosome;
+import io.jenetics.NumericChromosome;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
