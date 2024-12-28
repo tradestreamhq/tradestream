@@ -31,6 +31,7 @@ java_test(
         "//third_party:mockito_core",
         "//third_party:truth",
         "//third_party:grpc_java_api",
+        "//third_party:grpc_java_inprocess",
         "//third_party:grpc_java_stub",
         "//third_party:grpc_testing",
         "//third_party:guice",
