@@ -2,6 +2,7 @@ package com.verlumen.tradestream.backtesting.params;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
 import io.jenetics.Chromosome;
@@ -55,7 +56,7 @@ public class SmaRsiParamConfigTest {
   @Test
   public void createParameters_convertsChromosomesCorrectly() throws Exception {
     // Create chromosomes matching our specs
-    var chromosomes = ImmutableList.of(
+    ImmutableList<? extends NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
         IntegerChromosome.of(5, 50, 1), // maPeriod = 14
         IntegerChromosome.of(2, 30, 1), // rsiPeriod = 7
         DoubleChromosome.of(60.0, 85.0), // creates default chromosome with overboughtThreshold = 70.0
@@ -86,11 +87,11 @@ public class SmaRsiParamConfigTest {
 
     // Verify ranges
     IntegerChromosome maPeriod = (IntegerChromosome) chromosomes.get(0);
-    assertThat(maPeriod.getMin()).isEqualTo(5);
-    assertThat(maPeriod.getMax()).isEqualTo(50);
+    assertThat(maPeriod.gene().min()).isEqualTo(5);
+    assertThat(maPeriod.gene().max()).isEqualTo(50);
 
     DoubleChromosome overbought = (DoubleChromosome) chromosomes.get(2);
-    assertThat(overbought.getMin()).isEqualTo(60.0);
-    assertThat(overbought.getMax()).isEqualTo(85.0);
+    assertThat(overbought.gene().min()).isEqualTo(60.0);
+    assertThat(overbought.gene().max()).isEqualTo(85.0);
   }
 }
