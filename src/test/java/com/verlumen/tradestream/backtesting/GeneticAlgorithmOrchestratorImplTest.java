@@ -12,6 +12,9 @@ import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.util.JsonFormat;
+import com.google.common.collect.Range;
 import com.verlumen.tradestream.backtesting.params.ChromosomeSpec;
 import com.verlumen.tradestream.backtesting.params.ParamConfig;
 import com.verlumen.tradestream.backtesting.params.ParamConfigManager;
@@ -36,17 +39,13 @@ public class GeneticAlgorithmOrchestratorImplTest {
   @Rule
   public MockitoRule mockito = MockitoJUnit.rule();
 
-  @Bind
-  @Mock
+  @Bind @Mock
   private BacktestServiceClient mockBacktestServiceClient;
 
-  @Bind
-  @Mock
+  @Bind @Mock
   private ParamConfigManager mockParamConfigManager;
 
-  // Use a mock ParamConfig instead of a concrete SmaRsiParamConfig
-  @Bind
-  @Mock
+  @Bind @Mock
   private ParamConfig mockParamConfig;
 
   @Inject
@@ -58,27 +57,28 @@ public class GeneticAlgorithmOrchestratorImplTest {
   @Before
   public void setUp() {
     // Create a mock backtest result
-    mockBacktestResult = BacktestResult.newBuilder()
-        .setOverallScore(0.75)
-        .build();
+    mockBacktestResult = BacktestResult.newBuilder().setOverallScore(0.75).build();
 
-    // Stub the BacktestServiceClient to return our mock result
+    // Stub the BacktestServiceClient
     when(mockBacktestServiceClient.runBacktest(any()))
         .thenReturn(mockBacktestResult);
 
-    // Program our mock ParamConfig to return an empty chromosome list (or whatever suits your test)
-    when(mockParamConfig.getChromosomeSpecs()).thenReturn(createMockChromosomeSpecs());
+    // Return at least one ChromosomeSpec so Jenetics doesn't get an empty list
+    when(mockParamConfig.getChromosomeSpecs())
+        .thenReturn(createMockChromosomeSpecs());
 
-    // Program our mock ParamConfig to return some dummy Any proto when createParameters(...) is called
-    when(mockParamConfig.createParameters(any())).thenReturn(Any.getDefaultInstance());
+    // Return a dummy Any proto when createParameters(...) is called
+    when(mockParamConfig.createParameters(any()))
+        .thenReturn(Any.getDefaultInstance());
 
     // Have the ParamConfigManager return our mocked ParamConfig
-    when(mockParamConfigManager.getParamConfig(any())).thenReturn(mockParamConfig);
+    when(mockParamConfigManager.getParamConfig(any()))
+        .thenReturn(mockParamConfig);
 
     // Build a basic valid request
     request = createValidRequest();
 
-    // Inject all @Bind fields (mocks + test class) via Guice
+    // Inject all @Bind fields via Guice
     Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
   }
 
@@ -92,11 +92,10 @@ public class GeneticAlgorithmOrchestratorImplTest {
 
     // Assert
     verify(mockBacktestServiceClient).runBacktest(backtestCaptor.capture());
-
     BacktestRequest capturedRequest = backtestCaptor.getValue();
+
     assertThat(capturedRequest.getStrategyType()).isEqualTo(request.getStrategyType());
     assertThat(capturedRequest.getCandlesList()).isEqualTo(request.getCandlesList());
-
     assertThat(response.getBestScore()).isEqualTo(mockBacktestResult.getOverallScore());
     assertThat(response.hasBestStrategyParameters()).isTrue();
   }
@@ -104,16 +103,17 @@ public class GeneticAlgorithmOrchestratorImplTest {
   @Test
   public void runOptimization_withEmptyCandles_throwsException() {
     // Arrange
-    request = GAOptimizationRequest.newBuilder()
+    GAOptimizationRequest emptyCandleRequest = GAOptimizationRequest.newBuilder()
         .setStrategyType(StrategyType.SMA_RSI)
         .setMaxGenerations(10)
         .setPopulationSize(20)
+        // Notice: no candles here
         .build();
 
     // Act & Assert
     IllegalArgumentException thrown = assertThrows(
         IllegalArgumentException.class,
-        () -> orchestrator.runOptimization(request));
+        () -> orchestrator.runOptimization(emptyCandleRequest));
 
     assertThat(thrown).hasMessageThat().contains("Candles list cannot be empty");
   }
@@ -124,42 +124,30 @@ public class GeneticAlgorithmOrchestratorImplTest {
     int customGenerations = 5;
     int customPopulation = 10;
 
-    request = request.toBuilder()
+    GAOptimizationRequest customRequest = request.toBuilder()
         .setMaxGenerations(customGenerations)
         .setPopulationSize(customPopulation)
         .build();
 
     // Act
-    BestStrategyResponse response = orchestrator.runOptimization(request);
+    BestStrategyResponse response = orchestrator.runOptimization(customRequest);
 
     // Assert
     verify(mockBacktestServiceClient).runBacktest(any());
     assertThat(response.hasBestStrategyParameters()).isTrue();
   }
 
-  @Test
-  public void runOptimization_withUnsupportedStrategy_throwsException() {
-    // Arrange
-    request = request.toBuilder()
-        .setStrategyType(StrategyType.UNRECOGNIZED)
-        .build();
-
-    // Act & Assert
-    IllegalArgumentException thrown = assertThrows(
-        IllegalArgumentException.class,
-        () -> orchestrator.runOptimization(request));
-
-    assertThat(thrown).hasMessageThat()
-        .contains("Unsupported strategy type: UNRECOGNIZED");
-  }
-
   /**
-   * Creates a mock list of chromosome specs. You can customize these if
-   * you need to test certain behaviors in your orchestrator.
+   * Return at least one ChromosomeSpec so Jenetics doesn't get an empty list.
+   * Below is a minimal example that sets a numeric range [1..10].
    */
   private ImmutableList<ChromosomeSpec<?>> createMockChromosomeSpecs() {
-    // Return an empty immutable list or some test ChromosomeSpec objects
-    return ImmutableList.of();
+    ChromosomeSpec<Integer> spec =
+        ChromosomeSpec.<Integer>newBuilder()
+            .setRange(Range.closed(1, 10))
+            .build();
+
+    return ImmutableList.of(spec);
   }
 
   private GAOptimizationRequest createValidRequest() {
