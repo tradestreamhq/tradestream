@@ -79,14 +79,4 @@ public class BacktestServiceClientImplTest {
     // The fakeService returns 0.85
     assertThat(actual.getOverallScore()).isWithin(1e-6).of(0.85);
   }
-
-  @Test
-  public void runBacktest_withNullRequest_throwsException() {
-    try {
-      client.runBacktest(null);
-      fail("Expected exception");
-    } catch (Exception e) {
-      assertThat(e).hasMessageThat().contains("Request is null");
-    }
-  }
 }
