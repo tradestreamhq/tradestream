@@ -2,15 +2,13 @@ package com.verlumen.tradestream.backtesting.params;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
+import com.verlumen.tradestream.strategies.SmaRsiParameters;
+import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.NumericChromosome;
-import com.verlumen.tradestream.strategies.SmaRsiParameters;
 
-/**
- * Parameter configuration for SMA/RSI strategy with proper integer and double parameters.
- */
-public final class SmaRsiParamConfig implements ParamConfig {
+final class SmaRsiParamConfig implements ParamConfig {
     private static final ImmutableList<ChromosomeSpec<?>> SPECS = ImmutableList.of(
         // Integer parameters
         ChromosomeSpec.ofInteger(5, 50),    // Moving Average Period
@@ -54,5 +52,10 @@ public final class SmaRsiParamConfig implements ParamConfig {
         return SPECS.stream()
             .map(ChromosomeSpec::createChromosome)
             .collect(ImmutableList.toImmutableList());
+    }
+
+    @Override
+    public StrategyType getStrategyType() {
+        return StrategyType.SMA_RSI;
     }
 }
