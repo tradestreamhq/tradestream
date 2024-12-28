@@ -25,56 +25,67 @@ import org.junit.runners.JUnit4;
 public class BacktestServiceClientImplTest {
   @Rule public final GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
 
-  @Bind private BacktestServiceGrpc.BacktestServiceBlockingStub stub;
+  private BacktestServiceGrpc.BacktestServiceImplBase fakeService =
+      new BacktestServiceGrpc.BacktestServiceImplBase() {
+        @Override
+        public void runBacktest(BacktestRequest request,
+                                StreamObserver<BacktestResult> responseObserver) {
+          // Provide a real or fake response
+          if (request == null) {
+            responseObserver.onError(new NullPointerException("Request is null"));
+          } else {
+            BacktestResult result = BacktestResult.newBuilder()
+                .setOverallScore(0.85)
+                .build();
+            responseObserver.onNext(result);
+            responseObserver.onCompleted();
+          }
+        }
+      };
+
+  @Bind BacktestServiceGrpc.BacktestServiceBlockingStub stub;
 
   @Inject
   private BacktestServiceClientImpl client;
 
   @Before
   public void setUp() throws Exception {
-    // Create a unique in-process server name.
     String serverName = InProcessServerBuilder.generateName();
 
-    // Build the in-process server with a real or mock service implementation.
+    // Build the in-process server with the fakeService
     grpcCleanup.register(
         InProcessServerBuilder.forName(serverName)
             .directExecutor()
-            // Suppose you have an actual implementation to add:
-            .addService(new BacktestServiceGrpc.BacktestServiceImplBase() {
-              // Implement the methods you want to test, or use Mockito.spy() if you want partial mocks.
-            })
+            .addService(fakeService)
             .build()
             .start());
 
-    // Create a channel connected to the in-process server.
-    // The channel is also automatically closed by GrpcCleanupRule
-    stub = 
-        BacktestServiceGrpc.newBlockingStub(
-            grpcCleanup.register(
-                InProcessChannelBuilder.forName(serverName).directExecutor().build()));
+    // Create an in-process channel
+    ManagedChannel channel = grpcCleanup.register(
+        InProcessChannelBuilder.forName(serverName).directExecutor().build());
 
+    // Construct the real stub from the channel
+    this.stub = BacktestServiceGrpc.newBlockingStub(channel);
+
+    // Now inject that realStub into your client
     Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
   }
 
   @Test
   public void runBacktest_returnsExpectedResult() {
-    // ARRANGE
     BacktestRequest request = BacktestRequest.newBuilder().build();
-    BacktestResult expected = BacktestResult.newBuilder().setOverallScore(0.85).build();
-
-    // ACT
     BacktestResult actual = client.runBacktest(request);
 
-    // ASSERT
-    assertThat(actual).isSameInstanceAs(expected);
+    // The fakeService returns 0.85
+    assertThat(actual.getOverallScore()).isWithin(1e-6).of(0.85);
   }
 
   @Test
   public void runBacktest_withNullRequest_throwsException() {
-    // ACT + ASSERT
     try {
       client.runBacktest(null);
-    } catch (NullPointerException e) {
+      fail("Expected exception");
+    } catch (Exception e) {
       assertThat(e).hasMessageThat().contains("Request is null");
     }
   }
