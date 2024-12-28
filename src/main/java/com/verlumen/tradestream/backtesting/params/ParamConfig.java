@@ -1,18 +1,30 @@
 package com.verlumen.tradestream.backtesting.params;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Range;
 import com.google.protobuf.Any;
-import io.jenetics.Genotype;
-import io.jenetics.NumericGene;
+import io.jenetics.Chromosome;
+import io.jenetics.Gene;
 
 /**
- * Interface for strategy-specific parameter configuration.
- * Defines parameter ranges and conversion logic.
+ * Represents configuration for a strategy's parameters that supports multiple parameter types.
+ * Used by GeneticAlgorithmOrchestrator to optimize parameters.
  */
-interface ParamConfig<N extends Number & Comparable<N>, G extends NumericGene<N,G>> {
-    ImmutableList<Range<N>> getChromosomes();
-    Any createParameters(Genotype<G> genotype);
+public interface ParamConfig {
+    /**
+     * Returns a list of chromosome specifications, each defining a parameter's type and constraints.
+     */
+    ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs();
+
+    /**
+     * Creates strategy parameters from a list of chromosomes.
+     * @param chromosomes The chromosomes containing optimized parameter values
+     * @return Protocol buffer message containing the parameters 
+     */
+    Any createParameters(ImmutableList<? extends Chromosome<? extends Gene<?, ?>>> chromosomes);
+
+    /**
+     * Creates initial chromosomes for this parameter configuration.
+     * @return List of initial chromosomes for optimization
+     */
+    ImmutableList<? extends Chromosome<? extends Gene<?, ?>>> initialChromosomes();
 }
