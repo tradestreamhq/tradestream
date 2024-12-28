@@ -2,7 +2,6 @@ package com.verlumen.tradestream.backtesting.params;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import com.google.protobuf.Any;
