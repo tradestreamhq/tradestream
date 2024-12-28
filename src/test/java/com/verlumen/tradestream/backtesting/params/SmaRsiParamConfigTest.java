@@ -6,9 +6,9 @@ import com.google.common.collect.Range;
 import com.google.inject.Guice;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
-import io.jenetics.DoubleChromosome;
-import io.jenetics.DoubleGene;
 import io.jenetics.Genotype;
+import io.jenetics.IntegerChromosone;
+import io.jenetics.IntegerGene;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,11 +59,11 @@ public class SmaRsiParamConfigTest {
         double overboughtThreshold = 70.0;
         double oversoldThreshold = 30.0;
 
-        Genotype<DoubleGene> genotype = Genotype.of(
-            DoubleChromosome.of(DoubleGene.of(movingAveragePeriod, 5, 50)),
-            DoubleChromosome.of(DoubleGene.of(rsiPeriod, 2, 30)),
-            DoubleChromosome.of(DoubleGene.of(overboughtThreshold, 60, 85)),
-            DoubleChromosome.of(DoubleGene.of(oversoldThreshold, 15, 40))
+        Genotype<IntegerGene> genotype = Genotype.of(
+            IntegerChromosone.of(IntegerGene.of(movingAveragePeriod, 5, 50)),
+            IntegerChromosone.of(IntegerGene.of(rsiPeriod, 2, 30)),
+            IntegerChromosone.of(IntegerGene.of(overboughtThreshold, 60, 85)),
+            IntegerChromosone.of(IntegerGene.of(oversoldThreshold, 15, 40))
         );
 
         // Act
@@ -82,11 +82,11 @@ public class SmaRsiParamConfigTest {
         double movingAveragePeriod = 14.7;  // Should round to 14
         double rsiPeriod = 7.3;             // Should round to 7
 
-        Genotype<DoubleGene> genotype = Genotype.of(
-            DoubleChromosome.of(DoubleGene.of(movingAveragePeriod, 5, 50)),
-            DoubleChromosome.of(DoubleGene.of(rsiPeriod, 2, 30)),
-            DoubleChromosome.of(DoubleGene.of(70.0, 60, 85)),
-            DoubleChromosome.of(DoubleGene.of(30.0, 15, 40))
+        Genotype<IntegerGene> genotype = Genotype.of(
+            IntegerChromosone.of(IntegerGene.of(movingAveragePeriod, 5, 50)),
+            IntegerChromosone.of(IntegerGene.of(rsiPeriod, 2, 30)),
+            IntegerChromosone.of(IntegerGene.of(70.0, 60, 85)),
+            IntegerChromosone.of(IntegerGene.of(30.0, 15, 40))
         );
 
         // Act
@@ -103,11 +103,11 @@ public class SmaRsiParamConfigTest {
         double overboughtThreshold = 70.5;
         double oversoldThreshold = 29.5;
 
-        Genotype<DoubleGene> genotype = Genotype.of(
-            DoubleChromosome.of(DoubleGene.of(14.0, 5, 50)),
-            DoubleChromosome.of(DoubleGene.of(7.0, 2, 30)),
-            DoubleChromosome.of(DoubleGene.of(overboughtThreshold, 60, 85)),
-            DoubleChromosome.of(DoubleGene.of(oversoldThreshold, 15, 40))
+        Genotype<IntegerGene> genotype = Genotype.of(
+            IntegerChromosone.of(IntegerGene.of(14.0, 5, 50)),
+            IntegerChromosone.of(IntegerGene.of(7.0, 2, 30)),
+            IntegerChromosone.of(IntegerGene.of(overboughtThreshold, 60, 85)),
+            IntegerChromosone.of(IntegerGene.of(oversoldThreshold, 15, 40))
         );
 
         // Act
