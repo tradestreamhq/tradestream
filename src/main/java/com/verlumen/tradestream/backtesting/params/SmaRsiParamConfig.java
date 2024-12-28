@@ -23,7 +23,7 @@ final class SmaRsiParamConfig implements ParamConfig {
     );
 
     @Override
-    public ImmutableList<ParamRange> getChromosomes() {
+    public ImmutableList<Range<Integer>> getChromosomes() {
         return CHROMOSOMES;
     }
 
