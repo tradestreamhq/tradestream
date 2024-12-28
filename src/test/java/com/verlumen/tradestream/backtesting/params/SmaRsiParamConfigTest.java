@@ -2,6 +2,7 @@ package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.Range;
 import com.google.inject.Guice;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
@@ -28,7 +29,7 @@ public class SmaRsiParamConfigTest {
     @Test
     public void getChromosomes_returnsExpectedRanges() {
         // Act
-        List<ParamConfig.ParamRange> ranges = config.getChromosomes();
+        List<Range<Integer>> ranges = config.getChromosomes();
 
         // Assert
         assertThat(ranges).hasSize(4); // MovingAverage, RSI, Overbought, Oversold
