@@ -65,6 +65,14 @@ java_library(
 )
 
 java_library(
+    name = "ga_service_client",
+    srcs = ["GAServiceClient.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+    ],
+)
+
+java_library(
     name = "ga_service_impl",
     srcs = ["GAServiceImpl.java"],
     deps = [
