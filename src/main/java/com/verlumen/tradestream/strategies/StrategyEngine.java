@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.strategies;
 
-import com.google.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.Candle;
 
 interface StrategyEngine {
     /**
