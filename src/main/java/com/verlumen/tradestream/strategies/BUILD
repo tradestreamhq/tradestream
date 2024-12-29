@@ -78,7 +78,7 @@ java_library(
     srcs = ["StrategyEngine.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//protos:strategies_java_proto",
+        "//third_party:ta4j_core",
     ],
 )
 
