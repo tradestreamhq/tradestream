@@ -3,32 +3,74 @@ package com.verlumen.tradestream.strategies;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Module;
+import com.verlumen.tradestream.strategies.modules.StrategyModule;
 
 /**
- * Main entry point for the Strategy Module. Coordinates data flow between components
- * and manages the lifecycle of the strategy system.
+ * Main entry point for the Strategy Engine service. Coordinates initialization and
+ * lifecycle of the strategy system.
  */
 final class App {
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  @Inject
-  App() {}
+    private final StrategyEngine strategyEngine;
+    private final MarketDataConsumer marketDataConsumer;
+    private volatile boolean isRunning = false;
 
-  /**
-   * Starts all strategy module components
-   */
-  public void start() {
-    logger.atInfo().log("Starting real-time strategy discovery...");
-  }
+    @Inject
+    App(StrategyEngine strategyEngine, MarketDataConsumer marketDataConsumer) {
+        this.strategyEngine = strategyEngine;
+        this.marketDataConsumer = marketDataConsumer;
+    }
 
-  /**
-   * Gracefully shuts down all strategy module components
-   */
-  public void shutdown() {}
+    /**
+     * Starts the strategy engine and begins consuming market data.
+     */
+    public void start() {
+        logger.atInfo().log("Starting Strategy Engine service...");
+        try {
+            isRunning = true;
+            marketDataConsumer.startConsuming(strategyEngine::handleCandle);
+            logger.atInfo().log("Strategy Engine service started successfully");
+        } catch (Exception e) {
+            logger.atSevere().withCause(e).log("Failed to start Strategy Engine service");
+            throw new RuntimeException("Service start failed", e);
+        }
+    }
 
-  public static void main(String[] args) throws Exception {
-    logger.atInfo().log("TradeStream application starting up with %d arguments", args.length);
-    App app = Guice.createInjector().getInstance(App.class);
-    app.start();
-  }
+    /**
+     * Gracefully shuts down the strategy engine and stops consuming market data.
+     */
+    public void shutdown() {
+        logger.atInfo().log("Shutting down Strategy Engine service...");
+        try {
+            isRunning = false;
+            marketDataConsumer.stopConsuming();
+            logger.atInfo().log("Strategy Engine service stopped successfully");
+        } catch (Exception e) {
+            logger.atSevere().withCause(e).log("Error during Strategy Engine service shutdown");
+            // Still throw since we're shutting down anyway
+            throw new RuntimeException("Service shutdown failed", e);
+        }
+    }
+
+    public static void main(String[] args) {
+        logger.atInfo().log("Initializing Strategy Engine service...");
+        
+        // Create required Guice modules
+        Module strategyModule = new StrategyModule();
+        
+        // Initialize dependency injection
+        App app = Guice.createInjector(strategyModule)
+            .getInstance(App.class);
+
+        // Add shutdown hook for graceful termination
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            logger.atInfo().log("Shutdown hook triggered");
+            app.shutdown();
+        }));
+
+        // Start the service
+        app.start();
+    }
 }
