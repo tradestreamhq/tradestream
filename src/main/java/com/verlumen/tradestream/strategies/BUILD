@@ -74,6 +74,16 @@ oci_push(
 )
 
 java_library(
+    name = "strategies_module",
+    srcs = ["StrategiesModule.java"],
+    deps = [
+        "//third_party:auto_value",
+        "//third_party:guava",
+        "//third_party:guice",
+    ],
+)
+
+java_library(
     name = "strategy_engine",
     srcs = ["StrategyEngine.java"],
     deps = [
