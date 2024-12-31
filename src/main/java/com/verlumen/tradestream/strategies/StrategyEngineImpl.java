@@ -20,7 +20,7 @@ import org.ta4j.core.Strategy;
  */
 final class StrategyEngineImpl implements StrategyEngine {
   private final CandleBuffer candleBuffer;
-  private final GAServiceClient gaClient;
+  private final GAServiceClient gaServiceClient;
   private final StrategyManager strategyManager;
   private final TradeSignalPublisher signalPublisher;
 
@@ -35,11 +35,11 @@ final class StrategyEngineImpl implements StrategyEngine {
   @Inject
   StrategyEngineImpl(
       CandleBuffer candleBuffer,
-      GAServiceClient gaClient,
+      GAServiceClient gaServiceClient,
       StrategyManager strategyManager,
       TradeSignalPublisher signalPublisher) {
     this.candleBuffer = candleBuffer;
-    this.gaClient = gaClient;
+    this.gaServiceClient = gaServiceClient;
     this.strategyManager = strategyManager;
     this.signalPublisher = signalPublisher;
     initializeStrategyRecords();
@@ -105,7 +105,7 @@ final class StrategyEngineImpl implements StrategyEngine {
               .build();
 
       try {
-        BestStrategyResponse response = gaClient.requestOptimization(request);
+        BestStrategyResponse response = gaServiceClient.requestOptimization(request);
         updateStrategyRecord(
             strategyType, response.getBestStrategyParameters(), response.getBestScore());
       } catch (Exception e) {
