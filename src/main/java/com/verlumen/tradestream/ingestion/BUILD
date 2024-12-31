@@ -299,7 +299,7 @@ java_library(
     deps = [
         "//third_party:guice",
         "//third_party:kafka_clients",
-        "//src/main/com/verlumen/tradestream/ingestion:kafka_properties",
+        "//src/main/com/verlumen/tradestream/kafka:kafka_properties",
     ],    
 )
 
