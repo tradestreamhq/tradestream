@@ -41,10 +41,10 @@ final class StrategyEngineImpl implements StrategyEngine {
             GAServiceClient gaClient,
             StrategyManager strategyManager,
             TradeSignalPublisher signalPublisher) {
-        this.candleBuffer = checkNotNull(candleBuffer);
-        this.gaClient = checkNotNull(gaClient);
-        this.strategyManager = checkNotNull(strategyManager);
-        this.signalPublisher = checkNotNull(signalPublisher);
+        this.candleBuffer = candleBuffer;
+        this.gaClient = gaClient;
+        this.strategyManager = strategyManager;
+        this.signalPublisher = signalPublisher;
         initializeStrategyRecords();
     }
 
