@@ -70,281 +70,308 @@ enum StrategyType {
 
 message SmaRsiParameters {
   int32 movingAveragePeriod = 1;
-  int32 rsiPeriod = 2;
+  int32 rsiPeriod           = 2;
   double overboughtThreshold = 3;
-  double oversoldThreshold = 4;
+  double oversoldThreshold   = 4;
 }
 
 message EmaMacdParameters {
   int32 shortEmaPeriod = 1;
-  int32 longEmaPeriod = 2;
-  int32 signalPeriod = 3;
+  int32 longEmaPeriod  = 2;
+  int32 signalPeriod   = 3;
 }
 
 message AdxStochasticParameters {
-    int32 adxPeriod = 1;
-    int32 stochasticKPeriod = 2;
-    int32 stochasticDPeriod = 3;
-    int32 overboughtThreshold = 4;
-    int32 oversoldThreshold = 5;
+  int32 adxPeriod           = 1;
+  int32 stochasticKPeriod   = 2;
+  int32 stochasticDPeriod   = 3;
+  int32 overboughtThreshold = 4;
+  int32 oversoldThreshold   = 5;
 }
 
 message AroonMfiParameters {
-  int32 aroonPeriod = 1;
-  int32 mfiPeriod = 2;
+  int32 aroonPeriod       = 1;
+  int32 mfiPeriod         = 2;
   int32 overboughtThreshold = 3;
-  int32 oversoldThreshold = 4;
+  int32 oversoldThreshold   = 4;
 }
 
 message IchimokuCloudParameters {
-    int32 tenkanSenPeriod = 1;
-    int32 kijunSenPeriod = 2;
-    int32 senkouSpanBPeriod = 3;
-    int32 chikouSpanPeriod = 4;
+  int32 tenkanSenPeriod = 1;
+  int32 kijunSenPeriod  = 2;
+  int32 senkouSpanBPeriod = 3;
+  int32 chikouSpanPeriod = 4;
 }
 
 message ParabolicSarParameters {
-  double accelerationFactorStart = 1;
+  double accelerationFactorStart     = 1;
   double accelerationFactorIncrement = 2;
-  double accelerationFactorMax = 3;
+  double accelerationFactorMax       = 3;
 }
 
 message SmaEmaCrossoverParameters {
-    int32 smaPeriod = 1;
-    int32 emaPeriod = 2;
+  int32 smaPeriod = 1;
+  int32 emaPeriod = 2;
 }
 
 message DoubleEmaCrossoverParameters {
-    int32 shortEmaPeriod = 1;
-    int32 longEmaPeriod = 2;
+  int32 shortEmaPeriod = 1;
+  int32 longEmaPeriod  = 2;
 }
 
 message TripleEmaCrossoverParameters {
-    int32 shortEmaPeriod = 1;
-    int32 mediumEmaPeriod = 2;
-    int32 longEmaPeriod = 3;
+  int32 shortEmaPeriod  = 1;
+  int32 mediumEmaPeriod = 2;
+  int32 longEmaPeriod   = 3;
 }
 
 message HeikenAshiParameters {
-    int32 period = 1;
+  int32 period = 1;
 }
 
 message LinearRegressionChannelsParameters {
-    int32 period = 1;
-    double multiplier = 2;
+  int32 period     = 1;
+  double multiplier = 2;
 }
 
 message VwapMeanReversionParameters {
-    int32 vwapPeriod = 1;
-    int32 movingAveragePeriod = 2;
-    double deviationMultiplier = 3;
+  int32 vwapPeriod          = 1;
+  int32 movingAveragePeriod = 2;
+  double deviationMultiplier = 3;
 }
 
 message BbandWRParameters {
-    int32 bbandsPeriod = 1;
-    int32 wrPeriod = 2;
-    double stdDevMultiplier = 3;
+  int32 bbandsPeriod    = 1;
+  int32 wrPeriod        = 2;
+  double stdDevMultiplier = 3;
 }
 
 message AtrCciParameters {
-    int32 atrPeriod = 1;
-    int32 cciPeriod = 2;
+  int32 atrPeriod = 1;
+  int32 cciPeriod = 2;
 }
 
 message DonchianBreakoutParameters {
-    int32 donchianPeriod = 1;
+  int32 donchianPeriod = 1;
 }
 
 message VolatilityStopParameters {
-    int32 atrPeriod = 1;
-    double multiplier = 2;
+  int32 atrPeriod  = 1;
+  double multiplier = 2;
 }
-  message AtrTrailingStopParameters {
-      int32 atrPeriod = 1;
-      double multiplier = 2;
-  }
+
+message AtrTrailingStopParameters {
+  int32 atrPeriod  = 1;
+  double multiplier = 2;
+}
 
 message MomentumSmaCrossoverParameters {
-    int32 momentumPeriod = 1;
-    int32 smaPeriod = 2;
+  int32 momentumPeriod = 1;
+  int32 smaPeriod      = 2;
 }
 
 message KstOscillatorParameters {
-  int32 rma1Period = 1;
-  int32 rma2Period = 2;
-  int32 rma3Period = 3;
-  int32 rma4Period = 4;
+  int32 rma1Period   = 1;
+  int32 rma2Period   = 2;
+  int32 rma3Period   = 3;
+  int32 rma4Period   = 4;
   int32 signalPeriod = 5;
 }
 
 message StochasticRsiParameters {
-    int32 rsiPeriod = 1;
-    int32 stochasticKPeriod = 2;
-    int32 stochasticDPeriod = 3;
-    int32 overboughtThreshold = 4;
-    int32 oversoldThreshold = 5;
+  int32 rsiPeriod           = 1;
+  int32 stochasticKPeriod   = 2;
+  int32 stochasticDPeriod   = 3;
+  int32 overboughtThreshold = 4;
+  int32 oversoldThreshold   = 5;
 }
-    message RviParameters {
-      int32 period = 1;
-  }
 
-  message MassIndexParameters {
-      int32 emaPeriod = 1;
-      int32 sumPeriod = 2;
-   }
+message RviParameters {
+  int32 period = 1;
+}
 
-  message MomentumPinballParameters {
-      int32 shortPeriod = 1;
-      int32 longPeriod = 2;
-   }
-  message VolumeWeightedMacdParameters {
-    int32 shortPeriod = 1;
-    int32 longPeriod = 2;
-    int32 signalPeriod = 3;
-  }
+message MassIndexParameters {
+  int32 emaPeriod = 1;
+  int32 sumPeriod = 2;
+}
 
-  message ObvEmaParameters {
-      int32 emaPeriod = 1;
-  }
+message MomentumPinballParameters {
+  int32 shortPeriod = 1;
+  int32 longPeriod  = 2;
+}
 
-  message ChaikinOscillatorParameters {
-      int32 fastPeriod = 1;
-      int32 slowPeriod = 2;
-   }
+message VolumeWeightedMacdParameters {
+  int32 shortPeriod  = 1;
+  int32 longPeriod   = 2;
+  int32 signalPeriod = 3;
+}
 
-   message KlingerVolumeParameters {
-      int32 shortPeriod = 1;
-      int32 longPeriod = 2;
-      int32 signalPeriod = 3;
-   }
+message ObvEmaParameters {
+  int32 emaPeriod = 1;
+}
 
-   message VolumeBreakoutParameters {
-        double volumeMultiplier = 1;
-    }
+message ChaikinOscillatorParameters {
+  int32 fastPeriod = 1;
+  int32 slowPeriod = 2;
+}
 
-    message PvtParameters {
-        int32 period = 1;
-    }
+message KlingerVolumeParameters {
+  int32 shortPeriod  = 1;
+  int32 longPeriod   = 2;
+  int32 signalPeriod = 3;
+}
 
-    message VptParameters {
-        int32 period = 1;
-    }
+message VolumeBreakoutParameters {
+  double volumeMultiplier = 1;
+}
 
-    message VolumeSpreadAnalysisParameters {
-          int32 volumePeriod = 1;
-    }
-     message TickVolumeAnalysisParameters {
-       int32 tickPeriod = 1;
-    }
+message PvtParameters {
+  int32 period = 1;
+}
 
-    message VolumeProfileDeviationsParameters {
-         int32 period = 1;
-    }
+message VptParameters {
+  int32 period = 1;
+}
 
-    message VolumeProfileParameters {
-      int32 period = 1;
-    }
+message VolumeSpreadAnalysisParameters {
+  int32 volumePeriod = 1;
+}
 
-    message StochasticEmaParameters {
-         int32 emaPeriod = 1;
-          int32 stochasticKPeriod = 2;
-          int32 stochasticDPeriod = 3;
-           int32 overboughtThreshold = 4;
-           int32 oversoldThreshold = 5;
-    }
+message TickVolumeAnalysisParameters {
+  int32 tickPeriod = 1;
+}
 
-    message CmoMfiParameters {
-        int32 cmoPeriod = 1;
-        int32 mfiPeriod = 2;
-    }
-      message RsiEmaCrossoverParameters {
-        int32 rsiPeriod = 1;
-        int32 emaPeriod = 2;
-    }
-      message TrixSignalLineParameters {
-         int32 trixPeriod = 1;
-         int32 signalPeriod = 2;
-      }
-     message CmfZeroLineParameters {
-        int32 period = 1;
-    }
-     message RainbowOscillatorParameters {
-         repeated int32 periods = 1;
-     }
-     message PriceOscillatorSignalParameters {
-       int32 fastPeriod = 1;
-         int32 slowPeriod = 2;
-         int32 signalPeriod = 3;
-     }
+message VolumeProfileDeviationsParameters {
+  int32 period = 1;
+}
 
-     message AwesomeOscillatorParameters {
-        int32 shortPeriod = 1;
-        int32 longPeriod = 2;
-    }
-      message DemaTemaCrossoverParameters {
-        int32 demaPeriod = 1;
-         int32 temaPeriod = 2;
-    }
-    message MacdCrossoverParameters {
-      int32 shortEmaPeriod = 1;
-      int32 longEmaPeriod = 2;
-       int32 signalPeriod = 3;
-    }
-   message VwapCrossoverParameters {
-     int32 vwapPeriod = 1;
-      int32 movingAveragePeriod = 2;
-    }
-     message RocMaCrossoverParameters {
-       int32 rocPeriod = 1;
-        int32 maPeriod = 2;
-    }
-    message RegressionChannelParameters {
-      int32 period = 1;
-    }
-   message FramaParameters {
-        double sc = 1;
-       int32 fc = 2;
-      double alpha = 3;
-    }
-     message PivotParameters {
-      int32 period = 1;
-     }
-   message DoubleTopBottomParameters {
-      int32 period = 1;
-    }
-     message FibonacciRetracementsParameters {
-       int32 period = 1;
-    }
-      message PriceGapParameters {
-        int32 period = 1;
-    }
-   message RenkoChartParameters {
-      double brickSize = 1;
-    }
-     message RangeBarsParameters {
-       double rangeSize = 1;
-    }
-    message GannSwingParameters {
-      int32 gannPeriod = 1;
-   }
-   message SarMfiParameters {
-        double accelerationFactorStart = 1;
-       double accelerationFactorIncrement = 2;
-      double accelerationFactorMax = 3;
-       int32 mfiPeriod = 4;
-   }
-    message AdxDmiParameters {
-         int32 adxPeriod = 1;
-         int32 diPeriod = 2;
-    }
-    message ElderRayMAParameters {
-        int32 emaPeriod = 1;
-    }
-    message DpoCrossoverParameters {
-      int32 dpoPeriod = 1;
-       int32 maPeriod = 2;
-    }
-    message VariablePeriodEmaParameters {
-        int32 minPeriod = 1;
-        int32 maxPeriod = 2;
-    }
+message VolumeProfileParameters {
+  int32 period = 1;
+}
+
+message StochasticEmaParameters {
+  int32 emaPeriod           = 1;
+  int32 stochasticKPeriod   = 2;
+  int32 stochasticDPeriod   = 3;
+  int32 overboughtThreshold = 4;
+  int32 oversoldThreshold   = 5;
+}
+
+message CmoMfiParameters {
+  int32 cmoPeriod = 1;
+  int32 mfiPeriod = 2;
+}
+
+message RsiEmaCrossoverParameters {
+  int32 rsiPeriod = 1;
+  int32 emaPeriod = 2;
+}
+
+message TrixSignalLineParameters {
+  int32 trixPeriod   = 1;
+  int32 signalPeriod = 2;
+}
+
+message CmfZeroLineParameters {
+  int32 period = 1;
+}
+
+message RainbowOscillatorParameters {
+  repeated int32 periods = 1;
+}
+
+message PriceOscillatorSignalParameters {
+  int32 fastPeriod   = 1;
+  int32 slowPeriod   = 2;
+  int32 signalPeriod = 3;
+}
+
+message AwesomeOscillatorParameters {
+  int32 shortPeriod = 1;
+  int32 longPeriod  = 2;
+}
+
+message DemaTemaCrossoverParameters {
+  int32 demaPeriod = 1;
+  int32 temaPeriod = 2;
+}
+
+message MacdCrossoverParameters {
+  int32 shortEmaPeriod = 1;
+  int32 longEmaPeriod  = 2;
+  int32 signalPeriod   = 3;
+}
+
+message VwapCrossoverParameters {
+  int32 vwapPeriod          = 1;
+  int32 movingAveragePeriod = 2;
+}
+
+message RocMaCrossoverParameters {
+  int32 rocPeriod = 1;
+  int32 maPeriod  = 2;
+}
+
+message RegressionChannelParameters {
+  int32 period = 1;
+}
+
+message FramaParameters {
+  double sc    = 1;
+  int32  fc    = 2;
+  double alpha = 3;
+}
+
+message PivotParameters {
+  int32 period = 1;
+}
+
+message DoubleTopBottomParameters {
+  int32 period = 1;
+}
+
+message FibonacciRetracementsParameters {
+  int32 period = 1;
+}
+
+message PriceGapParameters {
+  int32 period = 1;
+}
+
+message RenkoChartParameters {
+  double brickSize = 1;
+}
+
+message RangeBarsParameters {
+  double rangeSize = 1;
+}
+
+message GannSwingParameters {
+  int32 gannPeriod = 1;
+}
+
+message SarMfiParameters {
+  double accelerationFactorStart     = 1;
+  double accelerationFactorIncrement = 2;
+  double accelerationFactorMax       = 3;
+  int32  mfiPeriod                 = 4;
+}
+
+message AdxDmiParameters {
+  int32 adxPeriod = 1;
+  int32 diPeriod  = 2;
+}
+
+message ElderRayMAParameters {
+  int32 emaPeriod = 1;
+}
+
+message DpoCrossoverParameters {
+  int32 dpoPeriod = 1;
+  int32 maPeriod  = 2;
+}
+
+message VariablePeriodEmaParameters {
+  int32 minPeriod = 1;
+  int32 maxPeriod = 2;
+}
