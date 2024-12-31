@@ -108,7 +108,7 @@ java_library(
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//protos:trade_signals_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:ga_client",
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_client",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:protobuf_java",
