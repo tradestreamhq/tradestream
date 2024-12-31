@@ -9,9 +9,12 @@ import org.ta4j.core.Strategy;
  * processing, and trade signal generation.
  */
 final class StrategyEngineImpl implements StrategyEngine {
+  private final StrategyManager strategyManager;
 
   @Inject
-  StrategyEngineImpl() {}
+  StrategyEngineImpl(StrategyManager strategyManager) {
+    this.strategyManager = strategyManager;
+  }
 
   @Override
   public synchronized void handleCandle(Candle candle) {

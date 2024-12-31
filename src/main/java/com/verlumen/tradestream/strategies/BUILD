@@ -109,6 +109,7 @@ java_library(
         "//third_party:guice",
         "//third_party:ta4j_core",
         ":strategy_engine",
+        ":strategy_manager",
     ],
 )
 
