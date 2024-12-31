@@ -53,11 +53,8 @@ final class App {
   public static void main(String[] args) {
     logger.atInfo().log("Initializing Strategy Engine service...");
 
-    // Create required Guice modules
-    Module strategyModule = new StrategyModule();
-
     // Initialize dependency injection
-    App app = Guice.createInjector(strategyModule).getInstance(App.class);
+    App app = Guice.createInjector(StrategiesModule.create()).getInstance(App.class);
 
     // Add shutdown hook for graceful termination
     Runtime.getRuntime()
