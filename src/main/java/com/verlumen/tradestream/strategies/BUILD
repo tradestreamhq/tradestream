@@ -86,6 +86,7 @@ java_library(
     name = "strategy_engine_impl",
     srcs = ["StrategyEngineImpl.java"],
     deps = [
+        "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//protos:trade_signals_java_proto",
