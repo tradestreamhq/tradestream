@@ -66,11 +66,29 @@ tar(
     srcs = [":app_deploy.jar"],
 )
 
+java_library(
+    name = "market_data_consumer",
+    srcs = ["MarketDataConsumer.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+    ],
+)
+
 oci_push(
     name = "push_image",
     image = ":index",
     remote_tags = ["latest"],
     repository = "tradestreamhq/tradestream-strategy-engine",
+)
+
+java_library(
+    name = "strategies_module",
+    srcs = ["StrategiesModule.java"],
+    deps = [
+        "//third_party:auto_value",
+        "//third_party:guava",
+        "//third_party:guice",
+    ],
 )
 
 java_library(
