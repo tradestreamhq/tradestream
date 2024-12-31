@@ -79,6 +79,7 @@ java_library(
     srcs = ["MarketDataConsumerImpl.java"],
     deps = [
         "//protos:marketdata_java_proto",
+        ":market_data_consumer",
     ],
 )
 
