@@ -132,5 +132,6 @@ java_library(
         "//third_party:ta4j_core",
         ":strategy_factory",
         ":strategy_manager",
+        ":trade_signal_publisher",
     ],
 )
