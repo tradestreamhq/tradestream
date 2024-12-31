@@ -66,6 +66,14 @@ tar(
     srcs = [":app_deploy.jar"],
 )
 
+java_library(
+    name = "market_data_consumer",
+    srcs = ["MarketDataConsumer.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+    ],
+)
+
 oci_push(
     name = "push_image",
     image = ":index",
