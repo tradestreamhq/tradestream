@@ -118,3 +118,11 @@ java_library(
         ":strategy_manager",
     ],
 )
+
+java_library(
+    name = "trade_signal_publisher",
+    srcs = ["TradeSignalPublisher.java"],
+    deps = [
+        "//protos:strategies_java_proto",
+    ],
+)
