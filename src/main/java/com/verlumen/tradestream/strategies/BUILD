@@ -101,6 +101,18 @@ java_library(
 )
 
 java_library(
+    name = "strategy_engine_impl",
+    srcs = ["StrategyEngineImpl.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//third_party:guice",
+        "//third_party:ta4j_core",
+        ":strategy_engine",
+    ],
+)
+
+java_library(
     name = "strategy_factory",
     srcs = ["StrategyFactory.java"],
     deps = [
