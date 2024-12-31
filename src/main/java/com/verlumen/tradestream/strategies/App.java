@@ -23,7 +23,7 @@ final class App {
 
   /** Starts the strategy engine and begins consuming market data. */
   public void start() {
-    logger.atInfo().log("Starting Strategy Engine service...");
+    logger.atInfo().log("Starting real-time strategy discovery...");
     try {
       isRunning = true;
       marketDataConsumer.startConsuming(strategyEngine::handleCandle);
