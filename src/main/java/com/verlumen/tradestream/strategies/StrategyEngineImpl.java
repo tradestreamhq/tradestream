@@ -13,7 +13,7 @@ final class StrategyEngineImpl implements StrategyEngine {
 
   @Inject
   StrategyEngineImpl(GAServiceClient gaServiceClient) {
-      this.gaServiceClient = gaServiceClient;
+    this.gaServiceClient = gaServiceClient;
   }
 
   @Override
