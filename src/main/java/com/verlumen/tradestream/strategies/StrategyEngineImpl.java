@@ -17,8 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.ta4j.core.Strategy;
 
 /**
- * Core implementation of the Strategy Engine that coordinates strategy optimization,
- * candlestick processing, and trade signal generation.
+ * Core implementation of the Strategy Engine that coordinates strategy optimization, candlestick
+ * processing, and trade signal generation.
  */
 final class StrategyEngineImpl implements StrategyEngine {
     private final CandleBuffer candleBuffer;
