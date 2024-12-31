@@ -24,7 +24,7 @@ message TradeSignal {
   // Optional fields
   double price = 3;                          // Price at which to execute the trade
   double size = 4;                           // Size of the position to take
-  strategies.StrategyParams strategy = 5;    // The strategy generating signal
+  strategies.Strategy strategy = 5;          // The strategy generating signal
   string reason = 6;                         // Human readable reason for signal
 
   // Risk management fields
