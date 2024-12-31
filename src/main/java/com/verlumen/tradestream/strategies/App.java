@@ -11,8 +11,12 @@ import com.google.inject.Inject;
 final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
+  private final StrategyEngine engine;
+
   @Inject
-  App() {}
+  App(StrategyEngine engine) {
+    this.engine = engine;
+  }
 
   /** Starts all strategy module components */
   public void start() {
