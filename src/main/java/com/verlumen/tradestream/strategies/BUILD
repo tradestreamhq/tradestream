@@ -107,6 +107,8 @@ java_library(
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//third_party:guice",
+        "//third_party:ta4j_core",
+        ":strategy_engine",
     ],
 )
 
