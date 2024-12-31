@@ -106,6 +106,7 @@ java_library(
     deps = [
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_client",
         "//third_party:guice",
         "//third_party:ta4j_core",
         ":strategy_engine",
