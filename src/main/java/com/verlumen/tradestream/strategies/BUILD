@@ -95,6 +95,7 @@ java_library(
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
         ":strategy_engine",
+        ":trade_signal_publisher",
     ],
 )
 
@@ -132,6 +133,5 @@ java_library(
         "//third_party:ta4j_core",
         ":strategy_factory",
         ":strategy_manager",
-        ":trade_signal_publisher",
     ],
 )
