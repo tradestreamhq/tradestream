@@ -44,3 +44,14 @@ java_proto_library(
     visibility = ["//visibility:public"],
     deps = [":strategies_proto"],
 )
+
+proto_library(
+    name = "trade_signals_proto",
+    srcs = ["trade_signals.proto"],
+)
+
+java_proto_library(
+    name = "trade_signals_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":trade_signals_proto"],
+)
