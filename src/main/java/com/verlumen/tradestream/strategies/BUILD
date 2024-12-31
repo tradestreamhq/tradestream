@@ -13,6 +13,7 @@ java_binary(
     deps = [
         "//third_party:flogger",
         "//third_party:guice",
+        ":market_data_consumer",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
