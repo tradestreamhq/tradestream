@@ -9,8 +9,12 @@ import org.ta4j.core.Strategy;
  * candlestick processing, and trade signal generation.
  */
 final class StrategyEngineImpl implements StrategyEngine {
+    private final GAServiceClient gaServiceClient;
+
     @Inject
-    StrategyEngineImpl() {}
+    StrategyEngineImpl(GAServiceClient gaServiceClient) {
+        this.gaServiceClient = gaServiceClient;
+    }
 
     @Override
     public synchronized void handleCandle(Candle candle) {
