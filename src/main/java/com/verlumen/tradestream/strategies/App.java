@@ -29,6 +29,8 @@ final class App {
   public static void main(String[] args) throws Exception {
     logger.atInfo().log("TradeStream application starting up with %d arguments", args.length);
     App app = Guice.createInjector().getInstance(App.class);
+
+    // Start the service
     app.start();
   }
 }
