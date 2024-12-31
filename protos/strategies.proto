@@ -5,7 +5,7 @@ package strategies;
 option java_multiple_files = true;
 option java_package = "com.verlumen.tradestream.strategies";
 
-message StrategyParameters {
+message Strategy {
   StrategyType type = 1;
   google.protobuf.Any parameters = 2;
 }
