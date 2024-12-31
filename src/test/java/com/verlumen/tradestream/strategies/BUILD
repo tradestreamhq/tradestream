@@ -10,7 +10,7 @@ java_test(
         "//third_party:guice_testlib",
         "//third_party:junit",
         "//third_party:kafka_clients",
-        "//third_party:mockito",
+        "//third_party:mockito_core",
     ]
 )
 
