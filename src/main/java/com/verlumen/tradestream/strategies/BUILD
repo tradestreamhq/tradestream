@@ -13,6 +13,7 @@ java_binary(
     deps = [
         "//third_party:flogger",
         "//third_party:guice",
+        ":strategies_module",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
