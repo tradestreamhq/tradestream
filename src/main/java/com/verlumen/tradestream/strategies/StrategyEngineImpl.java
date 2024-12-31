@@ -14,14 +14,12 @@ import com.verlumen.tradestream.strategies.CandleBuffer;
 import com.verlumen.tradestream.strategies.TradeSignalPublisher;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.concurrent.ThreadSafe;
 import org.ta4j.core.Strategy;
 
 /**
  * Core implementation of the Strategy Engine that coordinates strategy optimization,
  * candlestick processing, and trade signal generation.
  */
-@ThreadSafe
 final class StrategyEngineImpl implements StrategyEngine {
     private final CandleBuffer candleBuffer;
     private final GAServiceClient gaClient;
