@@ -20,11 +20,16 @@ final class StrategyEngineImpl implements StrategyEngine {
 
   @Override
   public synchronized void optimizeStrategy() {
-    throw new UnsupportedOperationException();
+    optimizeAndSelectBestStrategy();
   }
 
   @Override
   public Strategy getCurrentStrategy() {
+    throw new UnsupportedOperationException();
+  }
+
+  private void optimizeAndSelectBestStrategy() {
+    // Optimize all strategy types
     throw new UnsupportedOperationException();
   }
 }
