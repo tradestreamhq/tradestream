@@ -123,6 +123,6 @@ java_library(
     name = "trade_signal_publisher",
     srcs = ["TradeSignalPublisher.java"],
     deps = [
-        "//protos:strategies_java_proto",
+        "//protos:trade_signals_java_proto",
     ],
 )
