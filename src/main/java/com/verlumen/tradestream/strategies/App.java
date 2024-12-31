@@ -3,8 +3,6 @@ package com.verlumen.tradestream.strategies;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Module;
-import com.verlumen.tradestream.strategies.modules.StrategyModule;
 
 /**
  * Main entry point for the Strategy Engine service. Coordinates initialization and lifecycle of the
