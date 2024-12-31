@@ -109,13 +109,13 @@ java_library(
         "//protos:strategies_java_proto",
         "//protos:trade_signals_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_client",
+        "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
         ":strategy_engine",
         ":strategy_manager",
-        ":trade_signal_publisher",
     ],
 )
 
