@@ -191,4 +191,9 @@ final class StrategyEngineImpl implements StrategyEngine {
       checkNotNull(strategyType, "Strategy type cannot be null");
     }
   }
+
+  private void optimizeAndSelectBestStrategy() {
+    // Optimize all strategy types
+    throw new UnsupportedOperationException();
+  }
 }
