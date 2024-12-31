@@ -48,6 +48,9 @@ java_proto_library(
 proto_library(
     name = "trade_signals_proto",
     srcs = ["trade_signals.proto"],
+    deps = [
+        ":strategies_proto",
+    ],
 )
 
 java_proto_library(
