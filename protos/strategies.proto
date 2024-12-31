@@ -6,7 +6,7 @@ option java_multiple_files = true;
 option java_package = "com.verlumen.tradestream.strategies";
 
 message StrategyParameters {
-  oneof strategyparameters {
+  oneof parameters {
     SmaRsiParameters sma_rsi = 1;
     EmaMacdParameters ema_macd = 2;
     AdxStochasticParameters adx_stochastic = 3;
