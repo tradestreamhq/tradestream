@@ -37,6 +37,9 @@ java_proto_library(
 proto_library(
     name = "strategies_proto",
     srcs = ["strategies.proto"],
+    deps = [
+        "@com_google_protobuf//:any_proto",
+    ],
 )
 
 java_proto_library(

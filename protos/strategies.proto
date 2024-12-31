@@ -5,6 +5,13 @@ package strategies;
 option java_multiple_files = true;
 option java_package = "com.verlumen.tradestream.strategies";
 
+import "google/protobuf/any.proto";
+
+message Strategy {
+  StrategyType type = 1;
+  google.protobuf.Any parameters = 2;
+}
+
 enum StrategyType {
   SMA_RSI = 0;
   EMA_MACD = 1;
