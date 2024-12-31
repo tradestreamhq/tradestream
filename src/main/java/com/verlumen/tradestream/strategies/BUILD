@@ -75,15 +75,24 @@ oci_push(
 
 java_library(
     name = "strategy_engine",
-    srcs = [
-        "StrategyEngine.java",
-        "StrategyEngineImpl.java",        
-    ],
+    srcs = ["StrategyEngine.java"],
     deps = [
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
+    ],
+)
+
+java_library(
+    name = "strategy_engine_impl",
+    srcs = ["StrategyEngineImpl.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//third_party:protobuf_java",
+        "//third_party:ta4j_core",
+        ":strategy_engine",
     ],
 )
 
