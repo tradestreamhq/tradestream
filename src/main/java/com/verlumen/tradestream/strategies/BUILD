@@ -66,6 +66,14 @@ tar(
     srcs = [":app_deploy.jar"],
 )
 
+java_library(
+    name = "market_data_consumer",
+    srcs = ["MarketDataConsumer.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+    ],
+)
+
 oci_push(
     name = "push_image",
     image = ":index",
@@ -74,11 +82,33 @@ oci_push(
 )
 
 java_library(
+    name = "strategies_module",
+    srcs = ["StrategiesModule.java"],
+    deps = [
+        "//third_party:auto_value",
+        "//third_party:guava",
+        "//third_party:guice",
+    ],
+)
+
+java_library(
     name = "strategy_engine",
     srcs = ["StrategyEngine.java"],
     deps = [
         "//protos:marketdata_java_proto",
         "//third_party:ta4j_core",
+    ],
+)
+
+java_library(
+    name = "strategy_engine_impl",
+    srcs = ["StrategyEngineImpl.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//third_party:guice",
+        "//third_party:ta4j_core",
+        ":strategy_engine",
     ],
 )
 

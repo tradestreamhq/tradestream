@@ -5,8 +5,8 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 
 /**
- * Main entry point for the Strategy Engine service. Coordinates initialization and lifecycle of the
- * strategy system.
+ * Main entry point for the Strategy Module. Coordinates data flow between components and manages the
+ * lifecycle of the strategy system.
  */
 final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -21,7 +21,7 @@ final class App {
     this.marketDataConsumer = marketDataConsumer;
   }
 
-  /** Starts the strategy engine and begins consuming market data. */
+  /** Starts all strategy module components */
   public void start() {
     logger.atInfo().log("Starting real-time strategy discovery...");
     try {
