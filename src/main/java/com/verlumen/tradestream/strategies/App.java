@@ -11,8 +11,12 @@ import com.google.inject.Inject;
 final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
+  private final MarketDataConsumer marketDataConsumer;
+
   @Inject
-  App() {}
+  App(MarketDataConsumer marketDataConsumer) {
+    this.marketDataConsumer = marketDataConsumer;
+  }
 
   /** Starts all strategy module components */
   public void start() {
