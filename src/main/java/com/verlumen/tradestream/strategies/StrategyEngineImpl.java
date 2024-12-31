@@ -11,10 +11,12 @@ import org.ta4j.core.Strategy;
  */
 final class StrategyEngineImpl implements StrategyEngine {
   private final GAServiceClient gaServiceClient;
+  private final StrategyManager strategyManager;
 
   @Inject
-  StrategyEngineImpl(GAServiceClient gaServiceClient) {
+  StrategyEngineImpl(GAServiceClient gaServiceClient, StrategyManager strategyManager) {
     this.gaServiceClient = gaServiceClient;
+    this.strategyManager = strategyManager;
   }
 
   @Override
