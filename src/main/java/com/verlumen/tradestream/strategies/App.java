@@ -21,7 +21,7 @@ final class App {
   private final RunMode runMode;
 
   @Inject
-  App(MarketDataConsumer marketDataConsumer) {
+  App(MarketDataConsumer marketDataConsumer, RunMode runMode) {
     this.marketDataConsumer = marketDataConsumer;
     this.runMode = runMode;
   }
