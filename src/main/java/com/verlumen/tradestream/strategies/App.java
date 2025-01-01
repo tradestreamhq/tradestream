@@ -3,7 +3,6 @@ package com.verlumen.tradestream.strategies;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 import com.verlumen.tradestream.execution.ExecutionModule;
 import com.verlumen.tradestream.execution.RunMode;
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -21,7 +20,7 @@ final class App {
   private final RunMode runMode;
 
   @Inject
-  App(@Assisted RunMode runMode) {
+  App(RunMode runMode) {
     this.runMode = runMode;
   }
 
@@ -46,10 +45,9 @@ final class App {
     ArgumentParser argumentParser = createArgumentParser();
     Namespace namespace = argumentParser.parseArgs(args);
     String runModeName = namespace.getString("runMode");
-    App.Factory appFactory =
+    App app =
         Guice.createInjector(ExecutionModule.create(runModeName), StrategiesModule.create(args))
-            .getInstance(App.Factory.class);
-    App app = appFactory.create(runMode);
+            .getInstance(App.class);
 
     // Start the service
     app.start();
