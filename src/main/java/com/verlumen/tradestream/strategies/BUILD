@@ -81,6 +81,7 @@ java_library(
     deps = [
         "//protos:marketdata_java_proto",
         "//third_party:guice",
+        ":market_data_consumer",
     ],
 )
 
