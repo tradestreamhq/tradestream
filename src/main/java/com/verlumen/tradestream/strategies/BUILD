@@ -11,8 +11,12 @@ java_binary(
     srcs = ["App.java"],
     main_class = "com.verlumen.tradestream.strategies.App",
     deps = [
+        "//src/main/java/com/verlumen/tradestream/execution:execution_module",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party:argparse4j",
         "//third_party:flogger",
         "//third_party:guice",
+        ":strategies_module",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
@@ -79,6 +83,7 @@ java_library(
     srcs = ["MarketDataConsumerImpl.java"],
     deps = [
         "//protos:marketdata_java_proto",
+        "//third_party:guice",
         ":market_data_consumer",
     ],
 )
@@ -97,6 +102,8 @@ java_library(
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
+        ":market_data_consumer",
+        ":market_data_consumer_impl",
     ],
 )
 

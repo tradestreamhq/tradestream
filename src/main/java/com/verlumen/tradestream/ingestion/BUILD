@@ -17,7 +17,7 @@ java_binary(
         ":ingestion_module",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
-        ":run_mode",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
@@ -284,7 +284,7 @@ java_library(
         ":kafka_producer_provider",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
-        ":run_mode",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         ":thin_market_timer",
         ":thin_market_timer_impl",
         ":thin_market_timer_task",
@@ -299,17 +299,7 @@ java_library(
     deps = [
         "//third_party:guice",
         "//third_party:kafka_clients",
-        ":kafka_properties",
-    ],    
-)
-
-java_library(
-    name = "kafka_properties",
-    srcs = ["KafkaProperties.java"],
-    deps = [
-        "//third_party:argparse4j",
-        "//third_party:guice",
-        "//third_party:mug",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
     ],    
 )
 
@@ -358,11 +348,6 @@ java_library(
     runtime_deps = [
         "//third_party:flogger_system_backend",
     ],
-)
-
-java_library(
-    name = "run_mode",
-    srcs = ["RunMode.java"],
 )
 
 java_library(
