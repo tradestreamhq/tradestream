@@ -4,16 +4,11 @@ import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 
 @AutoValue
-abstract class ExecutionModule extends AbstractModule {
-  static ExecutionModule create(String runModeName) {
-    RunMode runMode = RunMode.valueOf(runModeName.toUpperCase());
-    return new AutoValue_ExecutionModule(runMode);
+public abstract class ExecutionModule extends AbstractModule {
+  public static ExecutionModule create() {
+    return new ExecutionModule();
   }
-
-  abstract RunMode runMode();
   
   @Override
-  protected void configure() {
-    bind(RunMode.class).toInstance(runMode());
-  }
+  protected void configure() {}
 }
