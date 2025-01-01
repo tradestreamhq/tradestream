@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.execution;
 
-enum RunMode {
+public enum RunMode {
   WET,
   DRY;
 }
