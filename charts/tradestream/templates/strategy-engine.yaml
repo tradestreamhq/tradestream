@@ -25,8 +25,6 @@ spec:
           {{- range .Values.strategyEngine.args }}
             - {{ . | quote }}
           {{- end }}
-            - "--kafka.bootstrap.servers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
-
 
           image: "{{ .Values.strategyEngine.image.repository }}:{{ .Values.strategyEngine.image.tag }}"
           imagePullPolicy: {{ default "IfNotPresent" .Values.strategyEngine.image.pullPolicy }}
