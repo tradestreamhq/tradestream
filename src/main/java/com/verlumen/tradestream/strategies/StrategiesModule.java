@@ -13,9 +13,5 @@ abstract class StrategiesModule extends AbstractModule {
   abstract ImmutableList<String> commandLineArgs();
   
   @Override
-  protected void configure() {
-    install(new FactoryModuleBuilder()
-         .implement(App.class, App.class)
-         .build(App.Factory.class));
-  }
+  protected void configure() {}
 }
