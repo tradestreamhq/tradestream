@@ -14,6 +14,7 @@ java_binary(
         "//third_party:flogger",
         "//third_party:guice",
         ":market_data_consumer",
+        ":strategies_module",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
@@ -107,9 +108,11 @@ java_library(
     deps = [
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_client",
         "//third_party:guice",
         "//third_party:ta4j_core",
         ":strategy_engine",
+        ":strategy_manager",
     ],
 )
 
