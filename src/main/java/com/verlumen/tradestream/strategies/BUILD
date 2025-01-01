@@ -11,6 +11,9 @@ java_binary(
     srcs = ["App.java"],
     main_class = "com.verlumen.tradestream.strategies.App",
     deps = [
+        "//src/main/java/com/verlumen/tradestream/execution:execution_module",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party:argparse4j",
         "//third_party:flogger",
         "//third_party:guice",
         ":market_data_consumer",
@@ -76,6 +79,16 @@ java_library(
     ],
 )
 
+java_library(
+    name = "market_data_consumer_impl",
+    srcs = ["MarketDataConsumerImpl.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:guice",
+        ":market_data_consumer",
+    ],
+)
+
 oci_push(
     name = "push_image",
     image = ":index",
@@ -90,6 +103,8 @@ java_library(
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
+        ":market_data_consumer",
+        ":market_data_consumer_impl",
     ],
 )
 

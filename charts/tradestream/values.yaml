@@ -25,16 +25,17 @@ dataIngestion:
     - "--kafka.acks=all"
     - "--kafka.retries=5"
     - "--kafka.linger.ms=50"
-    # Note: Using only existing args from ConfigArguments.java
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
-    tag: "v0.0.484-develop"
+    tag: "v0.0.495-develop"
   service:
     port: 8080
 strategyEngine:
+  args:
+    - "--runMode=wet"
   image:
     repository: "tradestreamhq/tradestream-strategy-engine"
-    tag: "v0.0.484-develop"
+    tag: "v0.0.495-develop"
   service:
     port: 8081

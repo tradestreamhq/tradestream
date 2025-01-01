@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.ingestion;
+package com.verlumen.tradestream.kafka;
 
 import static com.google.common.truth.Truth.assertThat;
 
