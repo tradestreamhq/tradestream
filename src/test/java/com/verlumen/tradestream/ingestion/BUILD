@@ -6,9 +6,9 @@ java_test(
       "AppTest.java"
     ],
     deps = [
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/ingestion:app",
         "//src/main/java/com/verlumen/tradestream/ingestion:real_time_data_ingestion",
-        "//src/main/java/com/verlumen/tradestream/ingestion:run_mode",
         "//third_party:guice",
         "//third_party:guice_testlib",
         "//third_party:junit",
