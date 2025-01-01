@@ -16,6 +16,7 @@ java_binary(
         "//third_party:argparse4j",
         "//third_party:flogger",
         "//third_party:guice",
+        ":market_data_consumer",
         ":strategies_module",
     ],
     runtime_deps = [
