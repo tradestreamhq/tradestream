@@ -11,6 +11,7 @@ java_binary(
     srcs = ["App.java"],
     main_class = "com.verlumen.tradestream.strategies.App",
     deps = [
+        "//src/main/java/com/verlumen/tradestream/execution:execution_module",
         "//third_party:argparse4j",
         "//third_party:flogger",
         "//third_party:guice",
