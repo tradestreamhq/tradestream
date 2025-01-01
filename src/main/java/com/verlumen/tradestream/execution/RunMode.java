@@ -4,7 +4,7 @@ public enum RunMode {
   WET,
   DRY;
 
-  static RunMode fromString(String name) {
+  public static RunMode fromString(String name) {
     return RunMode.valueOf(name.toUpperCase());
   }
 }
