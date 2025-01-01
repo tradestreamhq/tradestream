@@ -4,6 +4,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import com.verlumen.tradestream.execution.ExecutionModule;
 import com.verlumen.tradestream.execution.RunMode;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -44,9 +45,11 @@ final class App {
 
     ArgumentParser argumentParser = createArgumentParser();
     Namespace namespace = argumentParser.parseArgs(args);
-    RunMode runMode = RunMode.fromString(namespace.getString("runMode"));
+    String runModeName = namespace.getString("runMode");
+    RunMode runMode = RunMode.fromString(runModeName);
     App.Factory appFactory =
-        Guice.createInjector(StrategiesModule.create(args)).getInstance(App.Factory.class);
+        Guice.createInjector(ExecutionModule.create(), StrategiesModule.create(args))
+            .getInstance(App.Factory.class);
     App app = appFactory.create(runMode);
 
     // Start the service
