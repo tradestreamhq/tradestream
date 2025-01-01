@@ -7,6 +7,7 @@ java_library(
     srcs = ["ExecutionModule.java"],
     deps = [
         "//third_party:auto_value",
+        "//third_party:guice",
         ":run_mode",
     ],
 )
