@@ -299,17 +299,7 @@ java_library(
     deps = [
         "//third_party:guice",
         "//third_party:kafka_clients",
-        ":kafka_properties",
-    ],    
-)
-
-java_library(
-    name = "kafka_properties",
-    srcs = ["KafkaProperties.java"],
-    deps = [
-        "//third_party:argparse4j",
-        "//third_party:guice",
-        "//third_party:mug",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
     ],    
 )
 
