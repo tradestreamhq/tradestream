@@ -46,9 +46,8 @@ final class App {
     ArgumentParser argumentParser = createArgumentParser();
     Namespace namespace = argumentParser.parseArgs(args);
     String runModeName = namespace.getString("runMode");
-    RunMode runMode = RunMode.fromString(runModeName);
     App.Factory appFactory =
-        Guice.createInjector(ExecutionModule.create(runMode), StrategiesModule.create(args))
+        Guice.createInjector(ExecutionModule.create(runModeName), StrategiesModule.create(args))
             .getInstance(App.Factory.class);
     App app = appFactory.create(runMode);
 
