@@ -13,5 +13,7 @@ abstract class StrategiesModule extends AbstractModule {
   abstract ImmutableList<String> commandLineArgs();
   
   @Override
-  protected void configure() {}
+  protected void configure() {
+    bind(MarketDataConsumer.class).to(MarketDataConsumerImpl.class);
+  }
 }
