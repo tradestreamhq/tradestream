@@ -1,3 +1,5 @@
+package com.verlumen.tradestream.execution;
+
 import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 
