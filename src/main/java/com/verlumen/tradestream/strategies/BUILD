@@ -156,6 +156,8 @@ java_library(
         "//third_party:mug",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
+        ":market_data_consumer",
+        ":market_data_consumer_impl",
         ":strategy_factory",
         ":strategy_manager",
     ],
