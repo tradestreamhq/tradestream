@@ -75,6 +75,15 @@ java_library(
     ],
 )
 
+java_library(
+    name = "market_data_consumer_impl",
+    srcs = ["MarketDataConsumerImpl.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:guice",
+    ],
+)
+
 oci_push(
     name = "push_image",
     image = ":index",
