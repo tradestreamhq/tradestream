@@ -15,5 +15,6 @@ abstract class StrategiesModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(MarketDataConsumer.class).to(MarketDataConsumerImpl.class);
+    bind(StrategyManager.class).to(StrategyManagerImpl.class);
   }
 }
