@@ -52,7 +52,7 @@ final class App {
 
   private static ArgumentParser createArgumentParser() {
     ArgumentParser parser =
-        ArgumentParsers.newFor("TradeStreamDataIngestion")
+        ArgumentParsers.newFor("TradestreamStrategyEngine")
             .build()
             .defaultHelp(true)
             .description("Configuration for Kafka producer and exchange settings");
