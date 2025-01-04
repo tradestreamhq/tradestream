@@ -83,11 +83,16 @@ java_library(
 )
 
 java_library(
-    name = "ga_service_client",
-    srcs = ["GAServiceClient.java"],
+    name = "ga_service_client_impl",
+    srcs = ["GAServiceClientImpl.java"],
     visibility = ["//visibility:public"],
     deps = [
+        "//protos:backtesting_java_grpc",
         "//protos:backtesting_java_proto",
+        "//third_party:guice",
+        "//third_party:grpc_java_api",
+        "//third_party:grpc_java_stub",
+        ":ga_service_client",
     ],
 )
 
