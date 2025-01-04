@@ -3,6 +3,8 @@ package com.verlumen.tradestream.ingestion;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
+import com.google.protobuf.Timestamp;
+import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.marketdata.Candle;
 import org.junit.Test;
@@ -12,7 +14,7 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 @RunWith(TestParameterInjector.class)
 public class CandleBuilderTest {
     private static final String TEST_PAIR = "BTC/USD";
-    private static final long TEST_TIMESTAMP = 1622548800000L;
+    private static final Timestamp TEST_TIMESTAMP = fromMillis(1622548800000L);
 
     @Test
     public void firstTrade_setsAllPrices() {
