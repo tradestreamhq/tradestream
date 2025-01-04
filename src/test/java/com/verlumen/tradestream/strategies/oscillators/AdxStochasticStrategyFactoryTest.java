@@ -61,7 +61,7 @@ public class AdxStochasticStrategyFactoryTest {
 
         // Indicators
         closePrice = new ClosePriceIndicator(series);
-        adxIndicator = new ADXIndicator(series.getBarData(), ADX_PERIOD);
+        adxIndicator = new ADXIndicator(series, ADX_PERIOD);
         stochasticK = new StochasticOscillatorKIndicator(series, STOCHASTIC_K_PERIOD);
 
         // Create strategy
