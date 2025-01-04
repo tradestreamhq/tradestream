@@ -10,6 +10,8 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.google.protobuf.Timestamp;
+import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.Trade;
@@ -50,7 +52,7 @@ public class CandleManagerImplTest {
     public void processTrade_createsNewBuilder() {
         // Arrange
         long timestamp = System.currentTimeMillis();
-        Trade trade = createTestTrade(timestamp);
+        Trade trade = createTestTrade(Timestamps.fromMillis(timestamp));
         CandleManager manager = factory.create(CANDLE_INTERVAL, mockPublisher);
 
         // Act
@@ -63,7 +65,8 @@ public class CandleManagerImplTest {
     @Test
     public void processTrade_updatesLastPrice() {
         // Arrange
-        Trade trade = createTestTrade(System.currentTimeMillis());
+        long timestamp = System.currentTimeMillis();
+        Trade trade = createTestTrade(Timestamps.fromMillis(timestamp));
         CandleManager manager = factory.create(CANDLE_INTERVAL, mockPublisher);
 
         // Act
@@ -77,7 +80,7 @@ public class CandleManagerImplTest {
     public void processTrade_publishesCandle_whenIntervalComplete() {
         // Arrange
         long timestamp = System.currentTimeMillis() - (CANDLE_INTERVAL + 1000); // Past interval
-        Trade trade = createTestTrade(timestamp);
+        Trade trade = createTestTrade(Timestamps.fromMillis(timestamp));
         CandleManager manager = factory.create(CANDLE_INTERVAL, mockPublisher);
 
         // Act
@@ -117,7 +120,7 @@ public class CandleManagerImplTest {
         verify(mockPublisher, never()).publishCandle(any());
     }
 
-    private Trade createTestTrade(long timestamp) {
+    private Trade createTestTrade(Timestamp timestamp) {
         return Trade.newBuilder()
             .setTimestamp(timestamp)
             .setCurrencyPair(SYMBOL)
