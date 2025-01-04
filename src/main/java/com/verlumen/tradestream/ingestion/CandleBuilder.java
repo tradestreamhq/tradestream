@@ -1,8 +1,8 @@
 package com.verlumen.tradestream.ingestion;
 
-import static com.google.protobuf.util.Timestamps.fromMillis;
 
 import com.google.common.flogger.FluentLogger;
+import com.google.protobuf.Timestamp;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.Trade;
 
@@ -48,7 +48,7 @@ final class CandleBuilder {
      * @param currencyPair The trading pair identifier (e.g. "BTC/USD")
      * @param timestamp The starting timestamp for this candle's interval in Unix milliseconds
      */
-    CandleBuilder(String currencyPair, long timestamp) {
+    CandleBuilder(String currencyPair, Timestamp timestamp) {
         logger.atInfo().log("Creating new CandleBuilder for %s at timestamp %d", currencyPair, timestamp);
         this.currencyPair = currencyPair;
         this.timestamp = timestamp;
@@ -120,7 +120,7 @@ final class CandleBuilder {
             currencyPair, timestamp, open, high, low, close, volume);
         
         return Candle.newBuilder()
-                .setTimestamp(fromMillis(timestamp))
+                .setTimestamp(timestamp)
                 .setCurrencyPair(currencyPair)
                 .setOpen(open)
                 .setHigh(high)
