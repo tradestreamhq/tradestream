@@ -106,9 +106,7 @@ final class StrategyEngineImpl implements StrategyEngine {
 
       try {
         BestStrategyResponse response = gaServiceClient.requestOptimization(request);
-        StrategyParameters bestParams = unpackParameters(response);
-        double bestScore = computeScore(response);
-        updateStrategyRecord(strategyType, bestParams, bestScore);
+        updateStrategyRecord(strategyType, response.getParameters(), response.getBestScore());
       } catch (Exception e) {
         // Log error but continue with other strategies
         // TODO: Add proper logging
@@ -118,16 +116,6 @@ final class StrategyEngineImpl implements StrategyEngine {
 
     // Select the best performing strategy
     selectBestStrategy();
-  }
-
-  private StrategyParameters unpackParameters(BestStrategyResponse response) 
-      throws InvalidProtocolBufferException {
-    return response.getParameters().unpack(StrategyParameters.class);
-  }
-
-  private double computeScore(BestStrategyResponse response) {
-    // TODO: Implement proper scoring logic based on multiple metrics
-    return response.getBestScore();
   }
 
   private void updateStrategyRecord(
