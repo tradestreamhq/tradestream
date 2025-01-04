@@ -2,8 +2,6 @@ package com.verlumen.tradestream.strategies.oscillators;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.inject.Inject;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import com.verlumen.tradestream.strategies.StrategyType;
@@ -18,12 +16,12 @@ import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
 final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
-  @Inject
-  SmaRsiStrategyFactory() {}
+  static SmaRsiStrategyFactory create() {
+    return new SmaRsiStrategyFactory();
+  }
 
   @Override
-  public Strategy createStrategy(BarSeries series, SmaRsiParameters params)
-      throws InvalidProtocolBufferException {
+  public Strategy createStrategy(BarSeries series, SmaRsiParameters params) {
     checkArgument(params.getMovingAveragePeriod() > 0, "Moving average period must be positive");
     checkArgument(params.getRsiPeriod() > 0, "RSI period must be positive");
     checkArgument(params.getOverboughtThreshold() > 0, "Overbought threshold must be positive");
@@ -52,6 +50,8 @@ final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
             params.getMovingAveragePeriod());
     return new BaseStrategy(strategyName, entryRule, exitRule, params.getRsiPeriod());
   }
+
+  private SmaRsiStrategyFactory() {}
 
   @Override
   public StrategyType getStrategyType() {
