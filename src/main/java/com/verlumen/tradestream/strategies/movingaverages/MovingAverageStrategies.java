@@ -15,7 +15,7 @@ public final class MovingAverageStrategies {
         DoubleEmaCrossoverStrategyFactory.create(),
         MomentumSmaCrossoverStrategyFactory.create(),
         new SmaEmaCrossoverStrategyFactory(),
-        new TripleEmaCrossoverStrategyFactory()
+        TripleEmaCrossoverStrategyFactory.create()
     );
 
     // Prevent instantiation
