@@ -3,6 +3,7 @@ package com.verlumen.tradestream.strategies;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
+import com.google.inject.TypeLiteral;
 
 @AutoValue
 abstract class StrategiesModule extends AbstractModule {
@@ -15,6 +16,8 @@ abstract class StrategiesModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(MarketDataConsumer.class).to(MarketDataConsumerImpl.class);
+    bind(new TypeLiteral<ImmutableList<StrategyFactory<?>>>() {})
+        .toInstance(StrategyFactories.ALL_FACTORIES);
     bind(StrategyManager.class).to(StrategyManagerImpl.class);
   }
 }
