@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.protobuf.java.util.Timestamps.toMillis;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.assistedinject.Assisted;
@@ -33,7 +35,7 @@ final class CandleManagerImpl implements CandleManager {
 
     @Override
     public void processTrade(Trade trade) {
-        long minuteTimestamp = getMinuteTimestamp(trade.getTimestamp());
+        long minuteTimestamp = getMinuteTimestamp(toMillis(trade.getTimestamp()));
         String key = getCandleKey(trade.getCurrencyPair(), minuteTimestamp);
         logger.atFine().log("Processing trade for candle key: %s, trade ID: %s, price: %f", 
             key, trade.getTradeId(), trade.getPrice());
