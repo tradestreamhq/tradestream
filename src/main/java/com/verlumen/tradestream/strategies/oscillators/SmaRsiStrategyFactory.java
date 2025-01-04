@@ -18,8 +18,9 @@ import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
 final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
-  @Inject
-  SmaRsiStrategyFactory() {}
+  static   SmaRsiStrategyFactory create() {
+    return new   SmaRsiStrategyFactory();
+  }
 
   @Override
   public Strategy createStrategy(BarSeries series, SmaRsiParameters params)
@@ -56,6 +57,8 @@ final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
       params.getRsiPeriod()
     );
   }
+
+  private SmaRsiStrategyFactory() {}
 
   @Override
   public StrategyType getStrategyType() {
