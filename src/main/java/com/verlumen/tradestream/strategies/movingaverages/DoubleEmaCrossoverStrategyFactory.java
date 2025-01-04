@@ -16,9 +16,10 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
-public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<DoubleEmaCrossoverParameters> {
-    @Inject
-    DoubleEmaCrossoverStrategyFactory() {}
+final class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<DoubleEmaCrossoverParameters> {
+    static DoubleEmaCrossoverStrategyFactory create() {
+        return new DoubleEmaCrossoverStrategyFactory();
+    }
 
     @Override
     public Strategy createStrategy(BarSeries series, DoubleEmaCrossoverParameters params)
@@ -53,4 +54,6 @@ public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<Double
     public StrategyType getStrategyType() {
         return StrategyType.DOUBLE_EMA_CROSSOVER;
     }
+
+    private DoubleEmaCrossoverStrategyFactory() {}
 }
