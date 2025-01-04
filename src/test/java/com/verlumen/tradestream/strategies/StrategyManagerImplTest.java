@@ -27,6 +27,8 @@ public class StrategyManagerImplTest {
 
   @Mock private StrategyFactory<EmaMacdParameters> mockEmaMacdFactory;
 
+  @Bind private ImmutableList<StrategyFactory<?>> strategyFactories;
+
   private StrategyManagerImpl strategyManager;
   private Strategy mockStrategy;
   private BarSeries barSeries;
@@ -39,9 +41,10 @@ public class StrategyManagerImplTest {
     when(mockSmaRsiFactory.getStrategyType()).thenReturn(StrategyType.SMA_RSI);
     when(mockEmaMacdFactory.getStrategyType()).thenReturn(StrategyType.EMA_MACD);
 
-    // Initialize strategy manager with mocked dependencies
-    strategyManager =
-        new StrategyManagerImpl(ImmutableList.of(mockSmaRsiFactory, mockEmaMacdFactory));
+    // Initialize strategy factories field with mocked dependencies
+    strategyFactories = ImmutableList.of(mockSmaRsiFactory, mockEmaMacdFactory);
+
+    Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
 
     // Create mock strategy and bar series for testing
     mockStrategy = mock(Strategy.class);
