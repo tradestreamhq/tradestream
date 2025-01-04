@@ -18,7 +18,7 @@ public class CandleBuilderTest {
 
     @Test
     public void firstTrade_setsAllPrices() {
-        CandleBuilder builder = new CandleBuilder(TEST_PAIR, TEST_TIMESTAMP);
+        CandleBuilder builder = CandleBuilder.create(TEST_PAIR, TEST_TIMESTAMP);
         Trade trade = createTrade(100.0, 1.0);
         
         builder.addTrade(trade);
@@ -32,7 +32,7 @@ public class CandleBuilderTest {
 
     @Test
     public void multipleTradesUpdateHighLowClose() {
-        CandleBuilder builder = new CandleBuilder(TEST_PAIR, TEST_TIMESTAMP);
+        CandleBuilder builder = CandleBuilder.create(TEST_PAIR, TEST_TIMESTAMP);
         
         builder.addTrade(createTrade(100.0, 1.0));
         builder.addTrade(createTrade(150.0, 1.0));

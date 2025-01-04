@@ -44,7 +44,7 @@ final class CandleManagerImpl implements CandleManager {
             k -> {
                 logger.atInfo().log("Creating new candle builder for %s at timestamp %d",
                     trade.getCurrencyPair(), minuteTimestamp);
-                return new CandleBuilder(trade.getCurrencyPair(), minuteTimestamp);
+                return CandleBuilder.create(trade.getCurrencyPair(), minuteTimestamp);
             }
         );
 
@@ -101,7 +101,7 @@ final class CandleManagerImpl implements CandleManager {
             
         logger.atInfo().log("Creating empty candle with last known price %f for %s", 
             lastPrice, symbol);
-        CandleBuilder builder = new CandleBuilder(symbol, timestamp);
+        CandleBuilder builder = CandleBuilder.create(symbol, timestamp);
         builder.addTrade(Trade.newBuilder()
             .setPrice(lastPrice)
             .setVolume(0)

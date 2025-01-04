@@ -24,6 +24,15 @@ import com.verlumen.tradestream.marketdata.Trade;
  * </pre>
  */
 final class CandleBuilder {
+    static CandleBuilder create(String currencyPair, long timestampMillis) {
+        return create(currencyPair, Timestamps.fromMillis(timestampMillis));
+    }
+
+    static CandleBuilder create(String currencyPair, Timestamp timestamp) {
+        logger.atInfo().log("Creating new CandleBuilder for %s at timestamp %d", currencyPair, timestamp);
+        return new CandleBuilder(currencyPair, timestamp);
+    }
+
     // The currency pair this candle represents (e.g. "BTC/USD")
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final String currencyPair;
@@ -49,8 +58,7 @@ final class CandleBuilder {
      * @param currencyPair The trading pair identifier (e.g. "BTC/USD")
      * @param timestamp The starting timestamp for this candle's interval in Unix milliseconds
      */
-    CandleBuilder(String currencyPair, Timestamp timestamp) {
-        logger.atInfo().log("Creating new CandleBuilder for %s at timestamp %d", currencyPair, timestamp);
+    private CandleBuilder(String currencyPair, Timestamp timestamp) {
         this.currencyPair = currencyPair;
         this.timestamp = timestamp;
     }
