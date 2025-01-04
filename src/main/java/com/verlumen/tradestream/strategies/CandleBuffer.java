@@ -1,9 +1,12 @@
 package com.verlumen.tradestream.strategies;
 
+import static com.google.protobuf.util.Timestamps.toMillis;
+
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.marketdata.Candle;
-import com.verlumen.tradestream.time.Timestamps;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +36,11 @@ final class CandleBuffer {
     }
     
     private Bar createBar(Candle candle) {
+        long epochMillis = toMillis(candle.getTimestamp());
+        Instant instant = Instant.ofEpochMilli(epochMillis);
         return new BaseBar(
             Duration.ofMinutes(1),
-            Timestamps.toZonedDateTime(candle.getTimestamp()),
+            instant.atZone(ZoneOffset.UTC),
             candle.getOpen(),
             candle.getHigh(), 
             candle.getLow(),
