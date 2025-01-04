@@ -2,6 +2,7 @@ package com.verlumen.tradestream.strategies;
 
 import static java.util.function.Function.identity;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.mu.util.stream.BiStream;
