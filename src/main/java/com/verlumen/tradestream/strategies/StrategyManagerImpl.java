@@ -15,7 +15,7 @@ final class StrategyManagerImpl implements StrategyManager {
   private final ImmutableMap<StrategyType, StrategyFactory<?>> factoryMap;
 
   @Inject
-  StrategyManagerImpl(ImmutableList<StrategyFactory<?> factories) {
+  StrategyManagerImpl(ImmutableList<StrategyFactory<?>> factories) {
     this.factoryMap =
         BiStream.from(factories, StrategyFactory::getStrategyType, identity())
             .collect(ImmutableMap::toImmutableMap);
@@ -24,7 +24,7 @@ final class StrategyManagerImpl implements StrategyManager {
   @Override
   public Strategy createStrategy(BarSeries barSeries, StrategyType strategyType, Any parameters)
       throws InvalidProtocolBufferException {
-    StrategyFactory<?> factory = config.factoryMap().get(strategyType);
+    StrategyFactory<?> factory = factoryMap.get(strategyType);
     if (factory == null) {
       throw new IllegalArgumentException("Unsupported strategy type: " + strategyType);
     }
