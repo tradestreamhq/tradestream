@@ -1,10 +1,3 @@
-@antml:function_calls
-@antml:invoke name="artifacts"
-@antml:parameter name="command" value="create"
-@antml:parameter name="id" value="candle-buffer"
-@antml:parameter name="type" value="application/vnd.ant.code"
-@antml:parameter name="language" value="java"
-@antml:parameter name="content"
 package com.verlumen.tradestream.strategies;
 
 import com.google.common.collect.ImmutableList;
