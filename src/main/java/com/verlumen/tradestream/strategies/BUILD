@@ -100,7 +100,6 @@ java_library(
     name = "strategies_module",
     srcs = ["StrategiesModule.java"],
     deps = [
-        "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
         ":market_data_consumer",
