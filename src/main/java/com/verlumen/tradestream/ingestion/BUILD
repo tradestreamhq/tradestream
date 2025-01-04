@@ -84,6 +84,7 @@ java_library(
         "//third_party:guice",
         "//third_party:guice_assistedinject",
         "//third_party:kafka_clients",
+        "//third_party:protobuf_java_util",
         ":candle_publisher",
     ],
     runtime_deps = [
