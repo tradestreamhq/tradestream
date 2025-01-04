@@ -19,11 +19,11 @@ message Trade {
 
 // Candle message definition
 message Candle {
-  int64 timestamp = 1;        // Opening time of the candle (epoch millis)
-  string currency_pair = 2;   // Currency pair symbol
-  double open = 3;            // Opening price
-  double high = 4;            // Highest price
-  double low = 5;             // Lowest price
-  double close = 6;           // Closing price
-  double volume = 7;          // Total volume
+  google.protobuf.Timestamp timestamp = 1; // Opening time of the candle (epoch millis)
+  string currency_pair = 2;                // Currency pair symbol
+  double open = 3;                         // Opening price
+  double high = 4;                         // Highest price
+  double low = 5;                          // Lowest price
+  double close = 6;                        // Closing price
+  double volume = 7;                       // Total volume
 }
