@@ -71,6 +71,7 @@ java_library(
     srcs = ["BacktestingModule.java"],
     deps = [
         "//protos:backtesting_java_grpc",
+        "//third_party:grpc_java_api",
         "//third_party:guice",
         "ga_service_client",
         "ga_service_client_impl",
