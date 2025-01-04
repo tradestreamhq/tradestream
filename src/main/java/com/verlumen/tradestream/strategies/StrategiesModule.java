@@ -1,17 +1,13 @@
 package com.verlumen.tradestream.strategies;
 
-import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 
-@AutoValue
-abstract class StrategiesModule extends AbstractModule {
-  static StrategiesModule create(String[] commandLineArgs) {
-    return new AutoValue_StrategiesModule(ImmutableList.copyOf(commandLineArgs));
+final class StrategiesModule extends AbstractModule {
+  static StrategiesModule create() {
+    return new StrategiesModule();
   }
-
-  abstract ImmutableList<String> commandLineArgs();
   
   @Override
   protected void configure() {

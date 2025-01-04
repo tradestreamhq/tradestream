@@ -48,7 +48,7 @@ final class App {
     Namespace namespace = argumentParser.parseArgs(args);
     String runModeName = namespace.getString("runMode");
     App app =
-        Guice.createInjector(ExecutionModule.create(runModeName), StrategiesModule.create(args))
+        Guice.createInjector(ExecutionModule.create(runModeName), StrategiesModule.create())
             .getInstance(App.class);
 
     // Start the service
