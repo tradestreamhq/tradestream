@@ -19,6 +19,13 @@ java_binary(
     ],
 )
 
+java_library(
+    name = "candle_buffer",
+    srcs = ["CandleBuffer.java"],
+    deps = [
+    ],
+)
+
 container_structure_test(
     name = "container_test",
     configs = ["container-structure-test.yaml"],
