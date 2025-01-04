@@ -2,6 +2,7 @@ package com.verlumen.tradestream.strategies;
 
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.time.Timestamps;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ final class CandleBuffer {
     private Bar createBar(Candle candle) {
         return new BaseBar(
             Duration.ofMinutes(1),
-            ZonedDateTime.now(), // TODO: Use candle timestamp
+            Timestamps.toZonedDateTime(candle.getTimestamp()),
             candle.getOpen(),
             candle.getHigh(), 
             candle.getLow(),
