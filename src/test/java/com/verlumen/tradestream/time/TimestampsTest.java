@@ -16,6 +16,21 @@ public class TimestampsTest {
     private static final int TEST_NANOS = 123456789;
 
     @Test
+    public void toTimestamp_convertsEpochMillisCorrectly() {
+        // Arrange
+        long epochMillis = TEST_SECONDS * 1000 + TEST_NANOS / 1_000_000;
+        
+        // Act
+        Timestamp result = Timestamps.toTimestamp(epochMillis);
+        
+        // Assert
+        assertThat(result.getSeconds()).isEqualTo(TEST_SECONDS);
+        // Since we're converting from millis, we'll lose some precision
+        // Only the first 6 digits of nanos will match (millisecond precision)
+        assertThat(result.getNanos()).isEqualTo((TEST_NANOS / 1_000_000) * 1_000_000);
+    }
+
+    @Test
     public void toZonedDateTime_convertsTimestampCorrectly() {
         // Arrange
         Timestamp timestamp = Timestamp.newBuilder()
