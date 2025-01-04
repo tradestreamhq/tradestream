@@ -150,11 +150,13 @@ public class StrategyManagerImplTest {
   @Test
   public void getStrategyTypes_returnsExpectedStrategyTypes()
       throws InvalidProtocolBufferException {
+    // Arrange
+    ImmutableList<StrategyType> expected = ImmutableList.of(StrategyType.EMA_MACD, StrategyType.SMA_RSI);
+
     // Act
-    ImmutableList<Strategy> actual =
-        strategyManager.getStrategies();
+    ImmutableList<Strategy> actual = strategyManager.getStrategyTypes();
 
     // Assert
-    assertThat(result).containsExactly(StrategyType.EMA_MACD, StrategyType.SMA_RSI);
+    assertThat(actual).containsExactlyElementsIn(expected);
   }
 }
