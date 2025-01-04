@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
@@ -29,7 +30,9 @@ public class StrategyManagerImplTest {
 
   @Bind private ImmutableList<StrategyFactory<?>> strategyFactories;
 
+  @Inject
   private StrategyManagerImpl strategyManager;
+
   private Strategy mockStrategy;
   private BarSeries barSeries;
 
