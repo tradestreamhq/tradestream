@@ -29,7 +29,7 @@ final class CandleBuilder {
     }
 
     static CandleBuilder create(String currencyPair, Timestamp timestamp) {
-        logger.atInfo().log("Creating new CandleBuilder for %s at timestamp %d", currencyPair, timestamp);
+        logger.atInfo().log("Creating new CandleBuilder for %s at timestamp %s", currencyPair, Timestamps.toString(timestamp));
         return new CandleBuilder(currencyPair, timestamp);
     }
 
