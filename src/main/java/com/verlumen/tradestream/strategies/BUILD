@@ -11,8 +11,14 @@ java_binary(
     srcs = ["App.java"],
     main_class = "com.verlumen.tradestream.strategies.App",
     deps = [
+        "//src/main/java/com/verlumen/tradestream/execution:execution_module",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party:argparse4j",
         "//third_party:flogger",
         "//third_party:guice",
+        ":market_data_consumer",
+        ":strategies_module",
+        ":strategy_engine",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
@@ -85,6 +91,16 @@ java_library(
     ],
 )
 
+java_library(
+    name = "market_data_consumer_impl",
+    srcs = ["MarketDataConsumerImpl.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:guice",
+        ":market_data_consumer",
+    ],
+)
+
 oci_push(
     name = "push_image",
     image = ":index",
@@ -96,9 +112,17 @@ java_library(
     name = "strategies_module",
     srcs = ["StrategiesModule.java"],
     deps = [
-        "//third_party:auto_value",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//third_party:guava",
         "//third_party:guice",
+        ":market_data_consumer",
+        ":market_data_consumer_impl",
+        ":strategy_engine",
+        ":strategy_engine_impl",
+        ":strategy_factories",
+        ":strategy_factory",
+        ":strategy_manager",
+        ":strategy_manager_impl",
     ],
 )
 
@@ -132,6 +156,17 @@ java_library(
 )
 
 java_library(
+    name = "strategy_factories",
+    srcs = ["StrategyFactories.java"],
+    deps = [
+        ":strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/movingaverages:movingaverages_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/oscillators:oscillators_lib",
+        "//third_party:guava",
+    ],
+)
+
+java_library(
     name = "strategy_factory",
     srcs = ["StrategyFactory.java"],
     deps = [
@@ -146,6 +181,7 @@ java_library(
     srcs = ["StrategyManager.java"],
     deps = [
         "//protos:strategies_java_proto",
+        "//third_party:guava",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
         ":strategy_factory",
@@ -157,7 +193,6 @@ java_library(
     srcs = ["StrategyManagerImpl.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:mug",

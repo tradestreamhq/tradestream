@@ -5,23 +5,25 @@ package marketdata;
 option java_multiple_files = true;
 option java_package = "com.verlumen.tradestream.marketdata";
 
+import "google/protobuf/timestamp.proto";
+
 // Trade message definition
 message Trade {
-  int64 timestamp = 1;        // Epoch time in milliseconds
-  string exchange = 2;        // Exchange identifier
-  string currency_pair = 3;   // Currency pair symbol, e.g., "BTC/USD"
-  double price = 4;           // Trade price
-  double volume = 5;          // Trade volume
-  string trade_id = 6;        // Unique trade identifier
+  google.protobuf.Timestamp timestamp = 1; // Epoch time in milliseconds
+  string exchange = 2;                     // Exchange identifier
+  string currency_pair = 3;                // Currency pair symbol, e.g., "BTC/USD"
+  double price = 4;                        // Trade price
+  double volume = 5;                       // Trade volume
+  string trade_id = 6;                     // Unique trade identifier
 }
 
 // Candle message definition
 message Candle {
-  int64 timestamp = 1;        // Opening time of the candle (epoch millis)
-  string currency_pair = 2;   // Currency pair symbol
-  double open = 3;            // Opening price
-  double high = 4;            // Highest price
-  double low = 5;             // Lowest price
-  double close = 6;           // Closing price
-  double volume = 7;          // Total volume
+  google.protobuf.Timestamp timestamp = 1; // Opening time of the candle (epoch millis)
+  string currency_pair = 2;                // Currency pair symbol
+  double open = 3;                         // Opening price
+  double high = 4;                         // Highest price
+  double low = 5;                          // Lowest price
+  double close = 6;                        // Closing price
+  double volume = 7;                       // Total volume
 }

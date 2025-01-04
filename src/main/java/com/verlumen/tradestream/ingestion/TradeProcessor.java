@@ -1,9 +1,9 @@
 package com.verlumen.tradestream.ingestion;
 
-import com.google.common.flogger.FluentLogger;
 import com.google.auto.value.AutoValue;
+import com.google.common.flogger.FluentLogger;
+import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.marketdata.Trade;
-
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -55,10 +55,11 @@ abstract class TradeProcessor {
      * @return true if this trade is a duplicate, false if it's new
      */
     boolean isProcessed(Trade trade) {
-        logger.atFine().log("Checking if trade is processed: ID=%s, timestamp=%d, pair=%s", 
-            trade.getTradeId(), trade.getTimestamp(), trade.getCurrencyPair());
+        String timestamp = Timestamps.toString(trade.getTimestamp());
+        logger.atFine().log("Checking if trade is processed: ID=%s, timestamp=%s, pair=%s", 
+            trade.getTradeId(), timestamp, trade.getCurrencyPair());
 
-        long intervalTimestamp = getMinuteTimestamp(trade.getTimestamp());
+        long intervalTimestamp = getMinuteTimestamp(Timestamps.toMillis(trade.getTimestamp()));
         logger.atFine().log("Calculated interval timestamp: %d", intervalTimestamp);
 
         // Create a unique key combining trade ID and its candle interval
@@ -68,11 +69,11 @@ abstract class TradeProcessor {
         boolean isDuplicate = !processedTrades().add(key);
         
         if (isDuplicate) {
-            logger.atInfo().log("Detected duplicate trade: ID=%s, timestamp=%d, pair=%s", 
-                trade.getTradeId(), trade.getTimestamp(), trade.getCurrencyPair());
+            logger.atInfo().log("Detected duplicate trade: ID=%s, timestamp=%s, pair=%s", 
+                trade.getTradeId(), timestamp, trade.getCurrencyPair());
         } else {
-            logger.atFine().log("New trade detected: ID=%s, timestamp=%d, pair=%s", 
-                trade.getTradeId(), trade.getTimestamp(), trade.getCurrencyPair());
+            logger.atFine().log("New trade detected: ID=%s, timestamp=%s, pair=%s", 
+                trade.getTradeId(), timestamp, trade.getCurrencyPair());
         }
         
         logger.atFine().log("Current processed trades count: %d", processedTrades().size());

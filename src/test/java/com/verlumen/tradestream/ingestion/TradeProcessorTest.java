@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.protobuf.util.Timestamps.fromMillis;
 
 import com.verlumen.tradestream.marketdata.Trade;
 import org.junit.Before;
@@ -21,9 +22,10 @@ public class TradeProcessorTest {
 
     @Test
     public void duplicateTrade_isDetected() {
+        long baseTime = System.currentTimeMillis();
         Trade trade = Trade.newBuilder()
                 .setTradeId("123")
-                .setTimestamp(System.currentTimeMillis())
+                .setTimestamp(fromMillis(baseTime))
                 .build();
         
         assertThat(processor.isProcessed(trade)).isFalse(); // First time
@@ -36,12 +38,12 @@ public class TradeProcessorTest {
         
         Trade trade1 = Trade.newBuilder()
                 .setTradeId("123")
-                .setTimestamp(baseTime)
+                .setTimestamp(fromMillis(baseTime))
                 .build();
         
         Trade trade2 = Trade.newBuilder()
                 .setTradeId("123")
-                .setTimestamp(baseTime + CANDLE_INTERVAL)
+                .setTimestamp(fromMillis(baseTime + CANDLE_INTERVAL))
                 .build();
         
         assertThat(processor.isProcessed(trade1)).isFalse();

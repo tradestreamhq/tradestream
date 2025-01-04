@@ -4,6 +4,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.Inject;
+import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.Trade;
@@ -33,7 +34,7 @@ final class CandleManagerImpl implements CandleManager {
 
     @Override
     public void processTrade(Trade trade) {
-        long minuteTimestamp = getMinuteTimestamp(trade.getTimestamp());
+        long minuteTimestamp = getMinuteTimestamp(Timestamps.toMillis(trade.getTimestamp()));
         String key = getCandleKey(trade.getCurrencyPair(), minuteTimestamp);
         logger.atFine().log("Processing trade for candle key: %s, trade ID: %s, price: %f", 
             key, trade.getTradeId(), trade.getPrice());
@@ -43,7 +44,7 @@ final class CandleManagerImpl implements CandleManager {
             k -> {
                 logger.atInfo().log("Creating new candle builder for %s at timestamp %d",
                     trade.getCurrencyPair(), minuteTimestamp);
-                return new CandleBuilder(trade.getCurrencyPair(), minuteTimestamp);
+                return CandleBuilder.create(trade.getCurrencyPair(), minuteTimestamp);
             }
         );
 
@@ -100,21 +101,21 @@ final class CandleManagerImpl implements CandleManager {
             
         logger.atInfo().log("Creating empty candle with last known price %f for %s", 
             lastPrice, symbol);
-        CandleBuilder builder = new CandleBuilder(symbol, timestamp);
+        CandleBuilder builder = CandleBuilder.create(symbol, timestamp);
         builder.addTrade(Trade.newBuilder()
             .setPrice(lastPrice)
             .setVolume(0)
             .setCurrencyPair(symbol)
-            .setTimestamp(timestamp)
+            .setTimestamp(Timestamps.fromMillis(timestamp))
             .build());
         publishAndRemoveCandle(getCandleKey(symbol, timestamp), builder);
     }
 
     private void publishAndRemoveCandle(String key, CandleBuilder builder) {
         Candle candle = builder.build();
-        logger.atInfo().log("Publishing candle for %s: timestamp=%d, open=%f, high=%f, low=%f, close=%f, volume=%f",
+        logger.atInfo().log("Publishing candle for %s: timestamp=%s, open=%f, high=%f, low=%f, close=%f, volume=%f",
             candle.getCurrencyPair(), 
-            candle.getTimestamp(),
+            Timestamps.toString(candle.getTimestamp()),
             candle.getOpen(),
             candle.getHigh(),
             candle.getLow(),

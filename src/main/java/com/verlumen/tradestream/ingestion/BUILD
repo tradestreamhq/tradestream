@@ -17,7 +17,7 @@ java_binary(
         ":ingestion_module",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
-        ":run_mode",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
@@ -28,8 +28,10 @@ java_library(
     name = "candle_builder",
     srcs = ["CandleBuilder.java"],
     deps = [
-        "//third_party:flogger",
         "//protos:marketdata_java_proto",
+        "//third_party:flogger",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
@@ -50,12 +52,13 @@ java_library(
     name = "candle_manager_impl",
     srcs = ["CandleManagerImpl.java"],
     deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:auto_value",
         "//third_party:flogger",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party:protobuf_java_util",
         ":candle_builder",
         ":candle_manager",
         ":candle_publisher",
@@ -83,6 +86,7 @@ java_library(
         "//third_party:guice",
         "//third_party:guice_assistedinject",
         "//third_party:kafka_clients",
+        "//third_party:protobuf_java_util",
         ":candle_publisher",
     ],
     runtime_deps = [
@@ -100,6 +104,7 @@ java_library(
         "//third_party:gson",
         "//third_party:guava",
         "//third_party:guice",
+        "//third_party:protobuf_java_util",
         ":exchange_streaming_client",
     ],
     runtime_deps = [
@@ -260,6 +265,8 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_producer_provider",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:argparse4j",
         "//third_party:auto_value",
         "//third_party:guava",
@@ -281,36 +288,14 @@ java_library(
         ":http_client_impl",
         ":http_url_connection_factory",
         ":http_url_connection_factory_impl",
-        ":kafka_producer_provider",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
-        ":run_mode",
         ":thin_market_timer",
         ":thin_market_timer_impl",
         ":thin_market_timer_task",
         ":thin_market_timer_task_impl",
         ":trade_processor",
     ],
-)
-
-java_library(
-    name = "kafka_producer_provider",
-    srcs = ["KafkaProducerProvider.java"],
-    deps = [
-        "//third_party:guice",
-        "//third_party:kafka_clients",
-        ":kafka_properties",
-    ],    
-)
-
-java_library(
-    name = "kafka_properties",
-    srcs = ["KafkaProperties.java"],
-    deps = [
-        "//third_party:argparse4j",
-        "//third_party:guice",
-        "//third_party:mug",
-    ],    
 )
 
 tar(
@@ -361,11 +346,6 @@ java_library(
 )
 
 java_library(
-    name = "run_mode",
-    srcs = ["RunMode.java"],
-)
-
-java_library(
     name = "thin_market_timer",
     srcs = ["ThinMarketTimer.java"],
 )
@@ -394,9 +374,9 @@ java_library(
     name = "thin_market_timer_task_impl",
     srcs = ["ThinMarketTimerTaskImpl.java"],
     deps = [
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:guava",
         "//third_party:guice",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":candle_manager",
         ":currency_pair_supply",
         ":thin_market_timer_task",
@@ -407,9 +387,10 @@ java_library(
     name = "trade_processor",
     srcs = ["TradeProcessor.java"],
     deps = [
-        "//third_party:flogger",
-        "//third_party:auto_value",
         "//protos:marketdata_java_proto",
+        "//third_party:auto_value",
+        "//third_party:flogger",
+        "//third_party:protobuf_java_util",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",

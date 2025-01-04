@@ -3,6 +3,7 @@ package com.verlumen.tradestream.ingestion;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.verlumen.tradestream.execution.RunMode;
 
 final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
