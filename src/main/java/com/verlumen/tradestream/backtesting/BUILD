@@ -71,10 +71,10 @@ java_library(
     srcs = ["BacktestingModule.java"],
     deps = [
         "//third_party:guice",
-        "backtest_service_client",
-        "backtest_service_client_impl",
-        "ga_service_client",
-        "ga_service_client_impl",
+        ":backtest_service_client",
+        ":backtest_service_client_impl",
+        ":ga_service_client",
+        ":ga_service_client_impl",
     ],
 )
 
