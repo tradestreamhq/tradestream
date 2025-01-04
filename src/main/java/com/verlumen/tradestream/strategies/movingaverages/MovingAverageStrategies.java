@@ -14,7 +14,7 @@ public final class MovingAverageStrategies {
     public static final ImmutableList<StrategyFactory<?>> ALL_FACTORIES = ImmutableList.of(
         DoubleEmaCrossoverStrategyFactory.create(),
         new MomentumSmaCrossoverStrategyFactory(),
-        new SmaEmaCrossoverStrategyFactory(),
+        SmaEmaCrossoverStrategyFactory.create(),
         new TripleEmaCrossoverStrategyFactory()
     );
 
