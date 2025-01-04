@@ -26,7 +26,7 @@ final class CandlePublisherImpl implements CandlePublisher {
     }
 
     public void publishCandle(Candle candle) {
-        logger.atInfo().log("Publishing candle for %s to topic %s. Timestamp=%d, Open=%f, High=%f, Low=%f, Close=%f, Volume=%f", 
+        logger.atInfo().log("Publishing candle for %s to topic %s. Timestamp=%s, Open=%f, High=%f, Low=%f, Close=%f, Volume=%f", 
             candle.getCurrencyPair(), 
             topic,
             Timestamps.toString(candle.getTimestamp()),
