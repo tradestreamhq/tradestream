@@ -125,6 +125,7 @@ java_library(
         "//third_party:guice",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
+        ":candle_buffer",
         ":strategy_engine",
         ":strategy_manager",
     ],
