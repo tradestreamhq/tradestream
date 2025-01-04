@@ -14,7 +14,7 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -93,7 +93,7 @@ public class GAServiceImplTest {
 
     private Candle createTestCandle() {
         return Candle.newBuilder()
-            .setTimestamp(Instant.now().toEpochMilli())
+            .setTimestamp(toTimestamp(ZonedDateTime.now()))
             .setOpen(100.0)
             .setHigh(105.0)
             .setLow(95.0)
