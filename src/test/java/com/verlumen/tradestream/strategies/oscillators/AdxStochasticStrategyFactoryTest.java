@@ -16,8 +16,8 @@ import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.RSIIndicator;
 import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.adx.ADXIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
-import org.ta4j.core.indicators.mt4Selection.AdxIndicator;
 import org.ta4j.core.indicators.StochasticOscillatorKIndicator;
 
 @RunWith(JUnit4.class)
@@ -33,7 +33,7 @@ public class AdxStochasticStrategyFactoryTest {
     private Strategy strategy;
 
     // For debugging ADX and Stochastic K calculations
-    private AdxIndicator adxIndicator;
+    private ADXIndicator adxIndicator;
     private StochasticOscillatorKIndicator stochasticK;
     private ClosePriceIndicator closePrice;
 
@@ -61,7 +61,7 @@ public class AdxStochasticStrategyFactoryTest {
 
         // Indicators
         closePrice = new ClosePriceIndicator(series);
-        adxIndicator = new AdxIndicator(series.getBarData(), ADX_PERIOD);
+        adxIndicator = new ADXIndicator(series.getBarData(), ADX_PERIOD);
         stochasticK = new StochasticOscillatorKIndicator(series, STOCHASTIC_K_PERIOD);
 
         // Create strategy
