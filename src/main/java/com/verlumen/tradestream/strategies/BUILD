@@ -107,6 +107,8 @@ java_library(
         ":market_data_consumer_impl",
         ":strategy_engine",
         ":strategy_engine_impl",
+        ":strategy_factories",
+        ":strategy_factory",
     ],
 )
 
@@ -130,6 +132,17 @@ java_library(
         "//third_party:ta4j_core",
         ":strategy_engine",
         ":strategy_manager",
+    ],
+)
+
+java_library(
+    name = "strategy_factories",
+    srcs = ["StrategyFactories.java"],
+    deps = [
+        ":strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/movingaverages:movingaverages_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/oscillators:oscillators_lib",
+        "//third_party:guava",
     ],
 )
 
@@ -159,7 +172,6 @@ java_library(
     srcs = ["StrategyManagerImpl.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:mug",
