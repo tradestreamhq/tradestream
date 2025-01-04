@@ -10,6 +10,7 @@ import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.backtesting.BestStrategyResponse;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.signals.TradeSignal;
+import com.verlumen.tradestream.signals.TradeSignalPublisher;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.ta4j.core.Strategy;
