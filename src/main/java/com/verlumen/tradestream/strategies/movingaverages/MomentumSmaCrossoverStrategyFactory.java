@@ -2,7 +2,6 @@ package com.verlumen.tradestream.strategies.movingaverages;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.MomentumSmaCrossoverParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
