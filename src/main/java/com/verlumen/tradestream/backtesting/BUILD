@@ -70,6 +70,7 @@ java_library(
     name = "backtesting_module",
     srcs = ["BacktestingModule.java"],
     deps = [
+        "//protos:backtesting_java_grpc",
         "//third_party:guice",
         "ga_service_client",
         "ga_service_client_impl",
