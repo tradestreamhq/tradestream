@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.verlumen.tradestream.time.Timestamps.toTimestamp;
+
 import com.google.common.flogger.FluentLogger;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.Trade;
@@ -118,7 +120,7 @@ final class CandleBuilder {
             currencyPair, timestamp, open, high, low, close, volume);
         
         return Candle.newBuilder()
-                .setTimestamp(timestamp)
+                .setTimestamp(toTimestamp(timestamp))
                 .setCurrencyPair(currencyPair)
                 .setOpen(open)
                 .setHigh(high)
