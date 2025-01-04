@@ -10,7 +10,7 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.adx.AdxIndicator;
+import org.ta4j.core.indicators.adx.ADXIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.StochasticOscillatorKIndicator;
 import org.ta4j.core.indicators.helpers.HighPriceIndicator;
@@ -37,7 +37,7 @@ final class AdxStochasticStrategyFactory
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
     HighPriceIndicator highPrice = new HighPriceIndicator(series);
     LowPriceIndicator lowPrice = new LowPriceIndicator(series);
-    AdxIndicator adxIndicator = new AdxIndicator(highPrice, lowPrice, closePrice, params.getAdxPeriod());
+    ADXIndicator adxIndicator = new ADXIndicator(highPrice, lowPrice, closePrice, params.getAdxPeriod());
     StochasticOscillatorKIndicator stochasticK = new StochasticOscillatorKIndicator(series, params.getStochasticKPeriod());
 
     // Entry rule: ADX above a threshold (e.g., 20) indicating a strong trend
