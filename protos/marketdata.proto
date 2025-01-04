@@ -5,16 +5,6 @@ package marketdata;
 option java_multiple_files = true;
 option java_package = "com.verlumen.tradestream.marketdata";
 
-// Trade message definition
-message Trade {
-  int64 timestamp = 1;        // Epoch time in milliseconds
-  string exchange = 2;        // Exchange identifier
-  string currency_pair = 3;   // Currency pair symbol, e.g., "BTC/USD"
-  double price = 4;           // Trade price
-  double volume = 5;          // Trade volume
-  string trade_id = 6;        // Unique trade identifier
-}
-
 // Candle message definition
 message Candle {
   int64 timestamp = 1;        // Opening time of the candle (epoch millis)
