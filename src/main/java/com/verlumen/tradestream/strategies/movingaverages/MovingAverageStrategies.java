@@ -12,7 +12,7 @@ public final class MovingAverageStrategies {
      * An immutable list of all moving average strategy factories.
      */
     public static final ImmutableList<StrategyFactory<?>> ALL_FACTORIES = ImmutableList.of(
-        new DoubleEmaCrossoverStrategyFactory(),
+        DoubleEmaCrossoverStrategyFactory.create(),
         new MomentumSmaCrossoverStrategyFactory(),
         new SmaEmaCrossoverStrategyFactory(),
         new TripleEmaCrossoverStrategyFactory()
