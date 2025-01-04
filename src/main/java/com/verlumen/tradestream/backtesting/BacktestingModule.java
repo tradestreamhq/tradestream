@@ -18,6 +18,7 @@ public final class BacktestingModule extends AbstractModule {
 
   @Override
   protected void configure() {
+    bind(BacktestServiceClient.class).to(BacktestServiceClientImpl.class);
     bind(GAServiceClient.class).to(GAServiceClientImpl.class);
   }
 
