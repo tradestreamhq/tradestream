@@ -154,7 +154,7 @@ public class StrategyManagerImplTest {
     ImmutableList<StrategyType> expected = ImmutableList.of(StrategyType.EMA_MACD, StrategyType.SMA_RSI);
 
     // Act
-    ImmutableList<Strategy> actual = strategyManager.getStrategyTypes();
+    ImmutableList<StrategyType> actual = strategyManager.getStrategyTypes();
 
     // Assert
     assertThat(actual).containsExactlyElementsIn(expected);
