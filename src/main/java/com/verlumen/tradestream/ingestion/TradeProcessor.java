@@ -68,10 +68,10 @@ abstract class TradeProcessor {
         boolean isDuplicate = !processedTrades().add(key);
         
         if (isDuplicate) {
-            logger.atInfo().log("Detected duplicate trade: ID=%s, timestamp=%d, pair=%s", 
+            logger.atInfo().log("Detected duplicate trade: ID=%s, timestamp=%s, pair=%s", 
                 trade.getTradeId(), Timestamps.toString(trade.getTimestamp()), trade.getCurrencyPair());
         } else {
-            logger.atFine().log("New trade detected: ID=%s, timestamp=%d, pair=%s", 
+            logger.atFine().log("New trade detected: ID=%s, timestamp=%s, pair=%s", 
                 trade.getTradeId(), Timestamps.toString(trade.getTimestamp()), trade.getCurrencyPair());
         }
         
