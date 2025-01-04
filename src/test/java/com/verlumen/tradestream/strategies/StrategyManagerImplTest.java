@@ -23,12 +23,9 @@ import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
 public class StrategyManagerImplTest {
-
-    @Bind
     @Mock
     private StrategyFactory<SmaRsiParameters> mockSmaRsiFactory;
 
-    @Bind
     @Mock 
     private StrategyFactory<EmaMacdParameters> mockEmaMacdFactory;
 
@@ -44,12 +41,8 @@ public class StrategyManagerImplTest {
         when(mockSmaRsiFactory.getStrategyType()).thenReturn(StrategyType.SMA_RSI);
         when(mockEmaMacdFactory.getStrategyType()).thenReturn(StrategyType.EMA_MACD);
 
-        // Create config with mock factories
-        StrategyManagerImpl.Config config = StrategyManagerImpl.Config.create(
-            ImmutableList.of(mockSmaRsiFactory, mockEmaMacdFactory));
-
         // Initialize strategy manager with mocked dependencies
-        strategyManager = new StrategyManagerImpl(config);
+        strategyManager = new StrategyManagerImpl(ImmutableList.of(mockSmaRsiFactory, mockEmaMacdFactory));
 
         // Create mock strategy and bar series for testing
         mockStrategy = mock(Strategy.class);
