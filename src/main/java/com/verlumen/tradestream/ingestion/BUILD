@@ -102,6 +102,7 @@ java_library(
         "//third_party:gson",
         "//third_party:guava",
         "//third_party:guice",
+        "//third_party:protobuf_java_util",
         ":exchange_streaming_client",
     ],
     runtime_deps = [
