@@ -104,6 +104,8 @@ java_library(
         "//third_party:guice",
         ":market_data_consumer",
         ":market_data_consumer_impl",
+        ":strategy_factories",
+        ":strategy_factory",
     ],
 )
 
@@ -167,7 +169,6 @@ java_library(
     srcs = ["StrategyManagerImpl.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:mug",
