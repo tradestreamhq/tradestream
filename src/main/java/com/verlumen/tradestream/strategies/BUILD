@@ -132,6 +132,17 @@ java_library(
 )
 
 java_library(
+    name = "strategy_factories",
+    srcs = ["StrategyFactories.java"],
+    deps = [
+        ":strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/movingaverages:movingaverages_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/oscillators:oscillators_lib",
+        "//third_party:guava",
+    ],
+)
+
+java_library(
     name = "strategy_factory",
     srcs = ["StrategyFactory.java"],
     deps = [
