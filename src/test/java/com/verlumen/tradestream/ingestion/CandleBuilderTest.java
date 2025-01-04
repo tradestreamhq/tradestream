@@ -14,7 +14,7 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 @RunWith(TestParameterInjector.class)
 public class CandleBuilderTest {
     private static final String TEST_PAIR = "BTC/USD";
-    private static final Timestamp TEST_TIMESTAMP = fromMillis(1622548800000L);
+    private static final Timestamp TEST_TIMESTAMP = Timestamps.fromMillis(1622548800000L);
 
     @Test
     public void firstTrade_setsAllPrices() {
