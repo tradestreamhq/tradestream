@@ -28,7 +28,8 @@ final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
     checkArgument(params.getRsiPeriod() > 0, "RSI period must be positive");
     checkArgument(params.getOverboughtThreshold() > 0, "Overbought threshold must be positive");
     checkArgument(params.getOversoldThreshold() > 0, "Oversold threshold must be positive");
-    checkArgument(params.getOverboughtThreshold() > params.getOversoldThreshold(),
+    checkArgument(
+        params.getOverboughtThreshold() > params.getOversoldThreshold(),
         "Overbought threshold must be greater than the oversold threshold");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
@@ -36,25 +37,20 @@ final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
     SMAIndicator smaIndicator = new SMAIndicator(rsiIndicator, params.getMovingAveragePeriod());
 
     Rule entryRule =
-      new UnderIndicatorRule(rsiIndicator, params.getOversoldThreshold())
-          .and(new UnderIndicatorRule(smaIndicator, params.getOversoldThreshold()));
+        new UnderIndicatorRule(rsiIndicator, params.getOversoldThreshold())
+            .and(new UnderIndicatorRule(smaIndicator, params.getOversoldThreshold()));
 
     Rule exitRule =
-      new OverIndicatorRule(rsiIndicator, params.getOverboughtThreshold())
-          .and(new OverIndicatorRule(smaIndicator, params.getOverboughtThreshold()));
+        new OverIndicatorRule(rsiIndicator, params.getOverboughtThreshold())
+            .and(new OverIndicatorRule(smaIndicator, params.getOverboughtThreshold()));
 
-    String strategyName = String.format(
-      "%s (RSI-%d SMA-%d)",
-      getStrategyType().name(),
-      params.getRsiPeriod(),
-      params.getMovingAveragePeriod()
-    );
-    return new BaseStrategy(
-      strategyName,
-      entryRule,
-      exitRule,
-      params.getRsiPeriod()
-    );
+    String strategyName =
+        String.format(
+            "%s (RSI-%d SMA-%d)",
+            getStrategyType().name(),
+            params.getRsiPeriod(),
+            params.getMovingAveragePeriod());
+    return new BaseStrategy(strategyName, entryRule, exitRule, params.getRsiPeriod());
   }
 
   @Override
