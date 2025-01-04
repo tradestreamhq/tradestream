@@ -67,6 +67,14 @@ java_library(
 )
 
 java_library(
+    name = "backtesting_module",
+    srcs = ["BacktestingModule.java"],
+    deps = [
+        "//third_party:guice",
+    ],
+)
+
+java_library(
     name = "ga_service_client",
     srcs = ["GAServiceClient.java"],
     deps = [
