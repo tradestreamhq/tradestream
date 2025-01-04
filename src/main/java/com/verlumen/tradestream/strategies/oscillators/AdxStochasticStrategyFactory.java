@@ -11,10 +11,7 @@ import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.adx.ADXIndicator;
-import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.StochasticOscillatorKIndicator;
-import org.ta4j.core.indicators.helpers.HighPriceIndicator;
-import org.ta4j.core.indicators.helpers.LowPriceIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
@@ -34,10 +31,7 @@ final class AdxStochasticStrategyFactory
         params.getOverboughtThreshold() > params.getOversoldThreshold(),
         "Overbought threshold must be greater than oversold threshold");
 
-    ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    HighPriceIndicator highPrice = new HighPriceIndicator(series);
-    LowPriceIndicator lowPrice = new LowPriceIndicator(series);
-    ADXIndicator adxIndicator = new ADXIndicator(highPrice, lowPrice, closePrice, params.getAdxPeriod());
+    ADXIndicator adxIndicator = new ADXIndicator(series, params.getAdxPeriod());
     StochasticOscillatorKIndicator stochasticK = new StochasticOscillatorKIndicator(series, params.getStochasticKPeriod());
 
     // Entry rule: ADX above a threshold (e.g., 20) indicating a strong trend
