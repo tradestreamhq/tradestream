@@ -28,9 +28,9 @@ java_library(
     name = "candle_builder",
     srcs = ["CandleBuilder.java"],
     deps = [
-        "//src/main/java/com/verlumen/tradestream/time:timestamps",
         "//protos:marketdata_java_proto",
         "//third_party:flogger",
+        "//third_party:protobuf_java_util",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
