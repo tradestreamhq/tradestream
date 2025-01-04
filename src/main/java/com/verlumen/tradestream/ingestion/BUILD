@@ -260,6 +260,8 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_producer_provider",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:argparse4j",
         "//third_party:auto_value",
         "//third_party:guava",
@@ -281,26 +283,14 @@ java_library(
         ":http_client_impl",
         ":http_url_connection_factory",
         ":http_url_connection_factory_impl",
-        ":kafka_producer_provider",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
-        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         ":thin_market_timer",
         ":thin_market_timer_impl",
         ":thin_market_timer_task",
         ":thin_market_timer_task_impl",
         ":trade_processor",
     ],
-)
-
-java_library(
-    name = "kafka_producer_provider",
-    srcs = ["KafkaProducerProvider.java"],
-    deps = [
-        "//third_party:guice",
-        "//third_party:kafka_clients",
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
-    ],    
 )
 
 tar(
