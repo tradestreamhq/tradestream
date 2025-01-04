@@ -32,7 +32,7 @@ final class StrategyEngineImpl implements StrategyEngine {
   private final ConcurrentHashMap<StrategyType, StrategyRecord> strategyRecords = 
       new ConcurrentHashMap<>();
   private volatile StrategyType currentStrategyType;
-  private volatile Strategy currentStrategy;
+  private volatile org.ta4j.core.Strategy currentStrategy;
   private volatile TradeSignal lastSignal = 
       TradeSignal.newBuilder().setType(TradeSignal.TradeSignalType.NONE).build();
 
@@ -76,7 +76,7 @@ final class StrategyEngineImpl implements StrategyEngine {
   }
 
   @Override
-  public Strategy getCurrentStrategy() {
+  public org.ta4j.core.Strategy getCurrentStrategy() {
     return currentStrategy;
   }
 
