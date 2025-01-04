@@ -31,4 +31,9 @@ final class StrategyManagerImpl implements StrategyManager {
 
     return factory.createStrategy(barSeries, parameters);
   }
+
+  @Override
+  public ImmutableList<StrategyType> getStrategyTypes() {
+    return ImmutableList.copyOf(factoryMap.keySet());
+  }
 }

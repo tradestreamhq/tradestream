@@ -163,6 +163,7 @@ java_library(
     srcs = ["StrategyManager.java"],
     deps = [
         "//protos:strategies_java_proto",
+        "//third_party:guava",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
         ":strategy_factory",
