@@ -106,6 +106,8 @@ java_library(
         ":market_data_consumer_impl",
         ":strategy_factories",
         ":strategy_factory",
+        ":strategy_manager",
+        ":strategy_manager_impl",
     ],
 )
 
