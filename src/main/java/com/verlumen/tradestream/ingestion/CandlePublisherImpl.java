@@ -1,10 +1,9 @@
 package com.verlumen.tradestream.ingestion;
 
-import static com.google.protobuf.util.Timestamps.toString;
-
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.Inject;
+import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.marketdata.Candle;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -30,7 +29,7 @@ final class CandlePublisherImpl implements CandlePublisher {
         logger.atInfo().log("Publishing candle for %s to topic %s. Timestamp=%d, Open=%f, High=%f, Low=%f, Close=%f, Volume=%f", 
             candle.getCurrencyPair(), 
             topic,
-            toString(candle.getTimestamp()),
+            Timestamps.toString(candle.getTimestamp()),
             candle.getOpen(),
             candle.getHigh(),
             candle.getLow(),
