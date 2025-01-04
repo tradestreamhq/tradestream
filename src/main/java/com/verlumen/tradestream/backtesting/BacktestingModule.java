@@ -3,7 +3,7 @@ package com.verlumen.tradestream.backtesting;
 import com.google.inject.AbstractModule;
 
 public final class BacktestingModule extends AbstractModule {
-  static BacktestingModule create() {
+  public static BacktestingModule create() {
     return new BacktestingModule();
   }
 
