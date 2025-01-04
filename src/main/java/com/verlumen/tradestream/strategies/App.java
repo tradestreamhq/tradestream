@@ -3,6 +3,7 @@ package com.verlumen.tradestream.strategies;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.verlumen.tradestream.execution.ExecutionModule;
 import com.verlumen.tradestream.execution.RunMode;
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -19,11 +20,16 @@ final class App {
 
   private final MarketDataConsumer marketDataConsumer;
   private final RunMode runMode;
+  private final Provider<StrategyEngine> strategyEngine;
 
   @Inject
-  App(MarketDataConsumer marketDataConsumer, RunMode runMode) {
+  App(
+      MarketDataConsumer marketDataConsumer,
+      RunMode runMode,
+      Provider<StrategyEngine> strategyEngine) {
     this.marketDataConsumer = marketDataConsumer;
     this.runMode = runMode;
+    this.strategyEngine = strategyEngine;
   }
 
   /** Starts all strategy module components */

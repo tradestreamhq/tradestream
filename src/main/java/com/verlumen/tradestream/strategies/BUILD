@@ -18,6 +18,7 @@ java_binary(
         "//third_party:guice",
         ":market_data_consumer",
         ":strategies_module",
+        ":strategy_engine",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
