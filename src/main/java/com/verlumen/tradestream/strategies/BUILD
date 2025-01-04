@@ -23,6 +23,9 @@ java_library(
     name = "candle_buffer",
     srcs = ["CandleBuffer.java"],
     deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:guava",
+        "//third_party:ta4j_core",
     ],
 )
 
