@@ -38,7 +38,7 @@ public class TradeProcessorTest {
         
         Trade trade1 = Trade.newBuilder()
                 .setTradeId("123")
-                .setTimestamp(baseTime)
+                .setTimestamp(fromMillis(baseTime))
                 .build();
         
         Trade trade2 = Trade.newBuilder()
