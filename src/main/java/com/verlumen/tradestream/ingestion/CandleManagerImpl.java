@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
+import static com.google.protobuf.util.Timestamps.fromMillis;
 import static com.google.protobuf.util.Timestamps.toMillis;
 
 import com.google.auto.value.AutoValue;
@@ -107,7 +108,7 @@ final class CandleManagerImpl implements CandleManager {
             .setPrice(lastPrice)
             .setVolume(0)
             .setCurrencyPair(symbol)
-            .setTimestamp(timestamp)
+            .setTimestamp(fromMillis(timestamp))
             .build());
         publishAndRemoveCandle(getCandleKey(symbol, timestamp), builder);
     }
