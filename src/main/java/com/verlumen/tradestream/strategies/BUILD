@@ -172,7 +172,6 @@ java_library(
     srcs = ["StrategyManagerImpl.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:mug",
