@@ -9,7 +9,6 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/strategies/oscillators:oscillators_lib",
         "//third_party:flogger",
         "//third_party:guava",
-        "//third_party:guice",
         "//third_party:junit",
         "//third_party:protobuf_java",
         "//third_party:mockito_core",
