@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
 import static com.google.protobuf.util.Timestamps.toMillis;
+import static com.google.protobuf.util.Timestamps.toString;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.flogger.FluentLogger;
@@ -57,7 +58,7 @@ abstract class TradeProcessor {
      */
     boolean isProcessed(Trade trade) {
         logger.atFine().log("Checking if trade is processed: ID=%s, timestamp=%d, pair=%s", 
-            trade.getTradeId(), trade.getTimestamp(), trade.getCurrencyPair());
+            trade.getTradeId(), toString(trade.getTimestamp()), trade.getCurrencyPair());
 
         long intervalTimestamp = getMinuteTimestamp(toMillis(trade.getTimestamp()));
         logger.atFine().log("Calculated interval timestamp: %d", intervalTimestamp);
@@ -70,10 +71,10 @@ abstract class TradeProcessor {
         
         if (isDuplicate) {
             logger.atInfo().log("Detected duplicate trade: ID=%s, timestamp=%d, pair=%s", 
-                trade.getTradeId(), trade.getTimestamp(), trade.getCurrencyPair());
+                trade.getTradeId(), toString(trade.getTimestamp()), trade.getCurrencyPair());
         } else {
             logger.atFine().log("New trade detected: ID=%s, timestamp=%d, pair=%s", 
-                trade.getTradeId(), trade.getTimestamp(), trade.getCurrencyPair());
+                trade.getTradeId(), toString(trade.getTimestamp()), trade.getCurrencyPair());
         }
         
         logger.atFine().log("Current processed trades count: %d", processedTrades().size());
