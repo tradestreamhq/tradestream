@@ -17,10 +17,12 @@ import net.sourceforge.argparse4j.inf.Namespace;
 final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
+  private final MarketDataConsumer marketDataConsumer;
   private final RunMode runMode;
 
   @Inject
-  App(RunMode runMode) {
+  App(MarketDataConsumer marketDataConsumer, RunMode runMode) {
+    this.marketDataConsumer = marketDataConsumer;
     this.runMode = runMode;
   }
 
