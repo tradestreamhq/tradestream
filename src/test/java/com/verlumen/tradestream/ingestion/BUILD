@@ -27,6 +27,8 @@ java_test(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_builder",
         "//third_party:junit",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
         "//third_party:test_parameter_injector",
         "//third_party:truth",
     ],
@@ -48,6 +50,8 @@ java_test(
         "//third_party:guice_testlib",
         "//third_party:junit",
         "//third_party:mockito_core",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
         "//third_party:truth",
     ],
 )
@@ -65,6 +69,7 @@ java_test(
         "//third_party:junit",
         "//third_party:kafka_clients",
         "//third_party:mockito_core",
+        "//third_party:protobuf_java_util",
     ],
 )
 
@@ -175,6 +180,7 @@ java_test(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:trade_processor",
         "//third_party:junit",
+        "//third_party:protobuf_java_util",
         "//third_party:truth",
     ],
 )

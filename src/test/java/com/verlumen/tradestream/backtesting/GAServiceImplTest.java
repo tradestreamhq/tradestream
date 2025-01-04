@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.protobuf.util.Timestamps.fromMillis;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -92,8 +93,9 @@ public class GAServiceImplTest {
     }
 
     private Candle createTestCandle() {
+        long epochMillis = Instant.now().toEpochMilli();
         return Candle.newBuilder()
-            .setTimestamp(Instant.now().toEpochMilli())
+            .setTimestamp(fromMillis(epochMillis))
             .setOpen(100.0)
             .setHigh(105.0)
             .setLow(95.0)
