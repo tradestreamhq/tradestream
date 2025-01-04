@@ -219,6 +219,14 @@ java_library(
 )
 
 java_library(
+    name = "protobuf_java_util",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:com_google_protobuf_protobuf_java_util",
+    ],
+)
+
+java_library(
     name = "ta4j_core",
     visibility = ["//visibility:public"],
     exports = [
