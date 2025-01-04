@@ -3,6 +3,7 @@ package com.verlumen.tradestream.ingestion;
 import static com.verlumen.tradestream.time.Timestamps.toTimestamp;
 
 import com.google.common.flogger.FluentLogger;
+import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.Trade;
 
