@@ -176,6 +176,7 @@ java_test(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:trade_processor",
         "//third_party:junit",
+        "//third_party:protobuf_java_util",
         "//third_party:truth",
     ],
 )
