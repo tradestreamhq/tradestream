@@ -1,9 +1,10 @@
 package com.verlumen.tradestream.ingestion;
 
-import com.google.common.flogger.FluentLogger;
-import com.google.auto.value.AutoValue;
-import com.verlumen.tradestream.marketdata.Trade;
+import static com.google.protobuf.util.Timestamps.toMillis;
 
+import com.google.auto.value.AutoValue;
+import com.google.common.flogger.FluentLogger;
+import com.verlumen.tradestream.marketdata.Trade;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -58,7 +59,7 @@ abstract class TradeProcessor {
         logger.atFine().log("Checking if trade is processed: ID=%s, timestamp=%d, pair=%s", 
             trade.getTradeId(), trade.getTimestamp(), trade.getCurrencyPair());
 
-        long intervalTimestamp = getMinuteTimestamp(trade.getTimestamp());
+        long intervalTimestamp = getMinuteTimestamp(toMillis(trade.getTimestamp()));
         logger.atFine().log("Calculated interval timestamp: %d", intervalTimestamp);
 
         // Create a unique key combining trade ID and its candle interval
