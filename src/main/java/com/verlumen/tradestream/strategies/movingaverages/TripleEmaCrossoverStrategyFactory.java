@@ -18,8 +18,9 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
 public class TripleEmaCrossoverStrategyFactory
     implements StrategyFactory<TripleEmaCrossoverParameters> {
-  @Inject
-  TripleEmaCrossoverStrategyFactory() {}
+  static   TripleEmaCrossoverStrategyFactory create {
+      return new   TripleEmaCrossoverStrategyFactory();
+  }
 
   @Override
   public Strategy createStrategy(BarSeries series, TripleEmaCrossoverParameters params)
@@ -59,4 +60,6 @@ public class TripleEmaCrossoverStrategyFactory
   public StrategyType getStrategyType() {
     return StrategyType.TRIPLE_EMA_CROSSOVER;
   }
+
+  private TripleEmaCrossoverStrategyFactory() {}
 }
