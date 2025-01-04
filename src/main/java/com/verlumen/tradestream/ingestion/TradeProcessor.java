@@ -55,8 +55,9 @@ abstract class TradeProcessor {
      * @return true if this trade is a duplicate, false if it's new
      */
     boolean isProcessed(Trade trade) {
-        logger.atFine().log("Checking if trade is processed: ID=%s, timestamp=%d, pair=%s", 
-            trade.getTradeId(), Timestamps.toString(trade.getTimestamp()), trade.getCurrencyPair());
+        String timestamp = Timestamps.toString(trade.getTimestamp());
+        logger.atFine().log("Checking if trade is processed: ID=%s, timestamp=%s, pair=%s", 
+            trade.getTradeId(), timestamp, trade.getCurrencyPair());
 
         long intervalTimestamp = getMinuteTimestamp(Timestamps.toMillis(trade.getTimestamp()));
         logger.atFine().log("Calculated interval timestamp: %d", intervalTimestamp);
@@ -69,10 +70,10 @@ abstract class TradeProcessor {
         
         if (isDuplicate) {
             logger.atInfo().log("Detected duplicate trade: ID=%s, timestamp=%s, pair=%s", 
-                trade.getTradeId(), Timestamps.toString(trade.getTimestamp()), trade.getCurrencyPair());
+                trade.getTradeId(), timestamp, trade.getCurrencyPair());
         } else {
             logger.atFine().log("New trade detected: ID=%s, timestamp=%s, pair=%s", 
-                trade.getTradeId(), Timestamps.toString(trade.getTimestamp()), trade.getCurrencyPair());
+                trade.getTradeId(), timestamp, trade.getCurrencyPair());
         }
         
         logger.atFine().log("Current processed trades count: %d", processedTrades().size());
