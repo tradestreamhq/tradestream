@@ -45,25 +45,6 @@ final class StrategyEngineImpl implements StrategyEngine {
     initializeStrategyRecords();
   }
 
-  private void initializeStrategyRecords() {
-    // Initialize records for all supported strategy types
-    for (StrategyType type : StrategyType.values()) {
-      strategyRecords.put(type, new StrategyRecord(type, null, Double.NEGATIVE_INFINITY));
-    }
-
-    // Set default strategy
-    this.currentStrategyType = StrategyType.SMA_RSI;
-    try {
-      currentStrategy =
-          strategyManager.createStrategy(
-              candleBuffer.toBarSeries(),
-              currentStrategyType,
-              strategyManager.getInitialParameters(currentStrategyType));
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to initialize default strategy", e);
-    }
-  }
-
   @Override
   public synchronized void handleCandle(Candle candle) {
     checkNotNull(candle, "Candle cannot be null");
@@ -93,6 +74,25 @@ final class StrategyEngineImpl implements StrategyEngine {
   @Override
   public Strategy getCurrentStrategy() {
     return currentStrategy;
+  }
+
+  private void initializeStrategyRecords() {
+    // Initialize records for all supported strategy types
+    for (StrategyType type : StrategyType.values()) {
+      strategyRecords.put(type, new StrategyRecord(type, null, Double.NEGATIVE_INFINITY));
+    }
+
+    // Set default strategy
+    this.currentStrategyType = StrategyType.SMA_RSI;
+    try {
+      currentStrategy =
+          strategyManager.createStrategy(
+              candleBuffer.toBarSeries(),
+              currentStrategyType,
+              strategyManager.getInitialParameters(currentStrategyType));
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to initialize default strategy", e);
+    }
   }
 
   private void optimizeAndSelectBestStrategy() {
