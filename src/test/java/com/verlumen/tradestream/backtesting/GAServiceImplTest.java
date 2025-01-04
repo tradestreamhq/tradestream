@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.protobuf.util.Timestamps.fromMillis;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,7 +15,7 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -92,8 +93,9 @@ public class GAServiceImplTest {
     }
 
     private Candle createTestCandle() {
+        long epochMillis = Instant.now().toEpochMilli();
         return Candle.newBuilder()
-            .setTimestamp(toTimestamp(ZonedDateTime.now()))
+            .setTimestamp(fromMillis(epochMillis))
             .setOpen(100.0)
             .setHigh(105.0)
             .setLow(95.0)
