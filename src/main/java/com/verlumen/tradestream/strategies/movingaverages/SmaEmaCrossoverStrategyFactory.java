@@ -18,8 +18,9 @@ import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
 final class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCrossoverParameters> {
-  @Inject
-  SmaEmaCrossoverStrategyFactory() {}
+  static SmaEmaCrossoverStrategyFactory create() {
+    return new SmaEmaCrossoverStrategyFactory();
+  }
 
   @Override
   public Strategy createStrategy(BarSeries series, SmaEmaCrossoverParameters params)
@@ -47,4 +48,6 @@ final class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCros
   public StrategyType getStrategyType() {
     return StrategyType.SMA_EMA_CROSSOVER;
   }
+
+  private SmaEmaCrossoverStrategyFactory() {}
 }
