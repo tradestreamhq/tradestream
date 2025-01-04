@@ -13,6 +13,7 @@ final class StrategiesModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(MarketDataConsumer.class).to(MarketDataConsumerImpl.class);
+    bind(StrategyEngine.class).to(StrategyEngineImpl.class);
     bind(new TypeLiteral<ImmutableList<StrategyFactory<?>>>() {})
         .toInstance(StrategyFactories.ALL_FACTORIES);
     bind(StrategyManager.class).to(StrategyManagerImpl.class);

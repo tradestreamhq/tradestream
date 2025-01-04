@@ -105,6 +105,8 @@ java_library(
         "//third_party:guice",
         ":market_data_consumer",
         ":market_data_consumer_impl",
+        ":strategy_engine",
+        ":strategy_engine_impl",
         ":strategy_factories",
         ":strategy_factory",
         ":strategy_manager",
