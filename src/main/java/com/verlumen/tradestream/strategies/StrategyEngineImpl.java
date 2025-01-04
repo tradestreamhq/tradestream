@@ -13,10 +13,8 @@ import com.verlumen.tradestream.backtesting.BestStrategyResponse;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.signals.TradeSignal;
 import com.verlumen.tradestream.signals.TradeSignalPublisher;
-import com.verlumen.tradestream.strategies.Strategy;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.ta4j.core.Strategy;
 
 /**
  * Core implementation of the Strategy Engine that coordinates strategy optimization, candlestick
