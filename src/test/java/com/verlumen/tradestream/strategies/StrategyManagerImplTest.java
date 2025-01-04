@@ -6,6 +6,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.testing.fieldbinder.Bind;
+import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.junit.Before;
@@ -20,12 +24,15 @@ import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
 public class StrategyManagerImplTest {
-
   @Mock private StrategyFactory<SmaRsiParameters> mockSmaRsiFactory;
 
   @Mock private StrategyFactory<EmaMacdParameters> mockEmaMacdFactory;
 
+  @Bind private ImmutableList<StrategyFactory<?>> strategyFactories;
+
+  @Inject
   private StrategyManagerImpl strategyManager;
+
   private Strategy mockStrategy;
   private BarSeries barSeries;
 
@@ -37,12 +44,10 @@ public class StrategyManagerImplTest {
     when(mockSmaRsiFactory.getStrategyType()).thenReturn(StrategyType.SMA_RSI);
     when(mockEmaMacdFactory.getStrategyType()).thenReturn(StrategyType.EMA_MACD);
 
-    // Create config with mock factories
-    StrategyManagerImpl.Config config =
-        StrategyManagerImpl.Config.create(ImmutableList.of(mockSmaRsiFactory, mockEmaMacdFactory));
+    // Initialize strategy factories field with mocked dependencies
+    strategyFactories = ImmutableList.of(mockSmaRsiFactory, mockEmaMacdFactory);
 
-    // Initialize strategy manager with mocked dependencies
-    strategyManager = new StrategyManagerImpl(config);
+    Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
 
     // Create mock strategy and bar series for testing
     mockStrategy = mock(Strategy.class);
@@ -65,7 +70,8 @@ public class StrategyManagerImplTest {
     when(mockSmaRsiFactory.createStrategy(barSeries, packedParams)).thenReturn(mockStrategy);
 
     // Act
-    Strategy result = strategyManager.createStrategy(barSeries, StrategyType.SMA_RSI, packedParams);
+    Strategy result =
+        strategyManager.createStrategy(barSeries, StrategyType.SMA_RSI, packedParams);
 
     // Assert
     assertThat(result).isSameInstanceAs(mockStrategy);
@@ -86,7 +92,8 @@ public class StrategyManagerImplTest {
     when(mockEmaMacdFactory.createStrategy(barSeries, packedParams)).thenReturn(mockStrategy);
 
     // Act
-    Strategy result = strategyManager.createStrategy(barSeries, StrategyType.EMA_MACD, packedParams);
+    Strategy result =
+        strategyManager.createStrategy(barSeries, StrategyType.EMA_MACD, packedParams);
 
     // Assert
     assertThat(result).isSameInstanceAs(mockStrategy);
