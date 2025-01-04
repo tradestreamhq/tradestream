@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
-import static com.google.protobuf.java.util.Timestamps.toMillis;
+import static com.google.protobuf.util.Timestamps.toMillis;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.flogger.FluentLogger;
