@@ -27,6 +27,8 @@ java_test(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_builder",
         "//third_party:junit",
+        "//third_party:probuf_java",
+        "//third_party:probuf_java_util",
         "//third_party:test_parameter_injector",
         "//third_party:truth",
     ],
