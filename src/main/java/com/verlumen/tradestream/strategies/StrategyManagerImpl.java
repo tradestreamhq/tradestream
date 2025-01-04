@@ -14,7 +14,7 @@ final class StrategyManagerImpl implements StrategyManager {
   private final ImmutableMap<StrategyType, StrategyFactory<?>> factoryMap;
 
   @Inject
-  StrategyManagerImpl(ImmutableMap<StrategyType, StrategyFactory<?>> factoryMap) {
+  StrategyManagerImpl(ImmutableList<StrategyFactory<?> factories) {
     this.factoryMap =
         BiStream.from(factories, StrategyFactory::getStrategyType, identity())
             .collect(ImmutableMap::toImmutableMap);
