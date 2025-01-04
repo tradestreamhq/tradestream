@@ -15,12 +15,21 @@ public final class Timestamps {
                 timestamp.getNanos()),
             ZoneId.systemDefault());
     }
-    
+
+    /** Convert an epoch timestamp (milliseconds) to Protobuf Timestamp. */
+    public static Timestamp toTimestamp(long epochMillis) {
+        return toTimestamp(Instant.ofEpochMilli(epochMillis));
+    }
+
     /** Convert a ZonedDateTime to Protobuf Timestamp. */
     public static Timestamp toTimestamp(ZonedDateTime dateTime) {
+        return toTimestamp(dateTime.toInstant());
+    }
+
+    private static Timestamp toTimestamp(Instant instant) {
         return Timestamp.newBuilder()
-            .setSeconds(dateTime.toInstant().getEpochSecond())
-            .setNanos(dateTime.toInstant().getNano())
+            .setSeconds(instant.getEpochSecond())
+            .setNanos(instant.getNano())
             .build();
     }
 
