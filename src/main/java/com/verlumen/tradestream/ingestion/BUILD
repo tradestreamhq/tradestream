@@ -31,6 +31,7 @@ java_library(
         "//protos:marketdata_java_proto",
         "//third_party:flogger",
         "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",

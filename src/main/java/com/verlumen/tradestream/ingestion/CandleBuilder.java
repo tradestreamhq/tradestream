@@ -3,6 +3,7 @@ package com.verlumen.tradestream.ingestion;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.protobuf.Timestamp;
+import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.Trade;
 
@@ -28,7 +29,7 @@ final class CandleBuilder {
     private final String currencyPair;
     
     // Unix timestamp in milliseconds marking the start of this candle's interval
-    private final long timestamp;
+    private final Timestamp timestamp;
     
     // Price tracking fields initialized to NaN to distinguish between no trades and zero prices
     private double open = Double.NaN;
@@ -116,8 +117,8 @@ final class CandleBuilder {
      * @return A new immutable Candle instance
      */
     Candle build() {
-        logger.atInfo().log("Building candle for %s: timestamp=%d, open=%f, high=%f, low=%f, close=%f, volume=%f",
-            currencyPair, timestamp, open, high, low, close, volume);
+        logger.atInfo().log("Building candle for %s: timestamp=%s, open=%f, high=%f, low=%f, close=%f, volume=%f",
+            currencyPair, Timestamps.toString(timestamp), open, high, low, close, volume);
         
         return Candle.newBuilder()
                 .setTimestamp(timestamp)
