@@ -372,9 +372,9 @@ java_library(
     name = "thin_market_timer_task_impl",
     srcs = ["ThinMarketTimerTaskImpl.java"],
     deps = [
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:guava",
         "//third_party:guice",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":candle_manager",
         ":currency_pair_supply",
         ":thin_market_timer_task",
@@ -385,9 +385,10 @@ java_library(
     name = "trade_processor",
     srcs = ["TradeProcessor.java"],
     deps = [
-        "//third_party:flogger",
-        "//third_party:auto_value",
         "//protos:marketdata_java_proto",
+        "//third_party:auto_value",
+        "//third_party:flogger",
+        "//third_party:protobuf_java_util",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
