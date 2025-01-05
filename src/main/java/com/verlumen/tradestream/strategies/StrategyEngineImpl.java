@@ -172,8 +172,8 @@ final class StrategyEngineImpl implements StrategyEngine {
             signalBuilder.setType(TradeSignal.TradeSignalType.NONE);
         }
 
-        // Convert the current TA4J strategy to a strategies.Strategy message
-        strategies.Strategy strategyMessage = convertTa4jStrategy(currentStrategy, currentStrategyType);
+        // Convert the current TA4J strategy to a Strategy message
+        Strategy strategyMessage = convertTa4jStrategy(currentStrategy, currentStrategyType);
         signalBuilder.setStrategy(strategyMessage);
     } catch (Exception e) {
         System.err.println("Error generating trade signal: " + e.getMessage());
@@ -184,9 +184,9 @@ final class StrategyEngineImpl implements StrategyEngine {
     return signalBuilder.build();
   }
 
-  private strategies.Strategy convertTa4jStrategy(org.ta4j.core.Strategy ta4jStrategy, StrategyType strategyType) {
-      // Create a new strategies.Strategy message
-      strategies.Strategy.Builder strategyMessageBuilder = strategies.Strategy.newBuilder();
+  private Strategy convertTa4jStrategy(org.ta4j.core.Strategy ta4jStrategy, StrategyType strategyType) {
+      // Create a new Strategy message
+      Strategy.Builder strategyMessageBuilder = Strategy.newBuilder();
     
       // Set the strategy type
       strategyMessageBuilder.setType(strategyType);
