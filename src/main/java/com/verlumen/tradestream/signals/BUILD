@@ -1,6 +1,16 @@
 load("@rules_java//java:defs.bzl", "java_library")
 
 java_library(
+    name = "signals_module",
+    srcs = ["SignalsModule.java"],
+    deps = [
+        "//third_party:guice",
+        ":trade_signal_publisher",
+        ":trade_signal_publisher_impl",
+    ],
+)
+
+java_library(
     name = "trade_signal_publisher",
     srcs = ["TradeSignalPublisher.java"],
     deps = [
