@@ -24,10 +24,7 @@ abstract class IngestionModule extends AbstractModule {
   
   @Override
   protected void configure() {
-    bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
-        .toProvider(KafkaProducerProvider.class);
     bind(Namespace.class).toProvider(ConfigArguments.create(commandLineArgs()));
-
     bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
     bind(HttpClient.class).to(HttpClientImpl.class);
