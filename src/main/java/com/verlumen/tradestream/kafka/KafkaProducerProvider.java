@@ -9,7 +9,7 @@ final class KafkaProducerProvider implements Provider<KafkaProducer<String, byte
   private final KafkaProperties properties;
 
   @Inject
-  public KafkaProducerProvider(KafkaProperties properties) {
+  KafkaProducerProvider(KafkaProperties properties) {
     this.properties = properties;
   }
 
