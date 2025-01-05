@@ -156,23 +156,48 @@ final class StrategyEngineImpl implements StrategyEngine {
   private TradeSignal generateTradeSignal(Candle candle) {
     BarSeries barSeries = candleBuffer.toBarSeries();
     int endIndex = barSeries.getEndIndex();
-    if (currentStrategy.shouldEnter(endIndex)) {
-      return TradeSignal.newBuilder()
-          .setType(TradeSignal.TradeSignalType.BUY)
-          .setStrategy(currentStrategy.getName())
-          .setTimestamp(candle.getTimestamp().getSeconds() * 1000)
-          .setPrice(candle.getClose())
-          .build();
-    } else if (currentStrategy.shouldExit(endIndex)) {
-      return TradeSignal.newBuilder()
-          .setType(TradeSignal.TradeSignalType.SELL)
-          .setStrategy(currentStrategy.getName())
-          .setTimestamp(candle.getTimestamp().getSeconds() * 1000)
-          .setPrice(candle.getClose())
-          .build();
-    }
     
-    return TradeSignal.newBuilder().setType(TradeSignal.TradeSignalType.NONE).build();
+    TradeSignal.Builder signalBuilder = TradeSignal.newBuilder();
+    
+    try {
+        if (currentStrategy.shouldEnter(endIndex)) {
+            signalBuilder.setType(TradeSignal.TradeSignalType.BUY)
+                .setTimestamp(candle.getTimestamp().getSeconds() * 1000)
+                .setPrice(candle.getClose());
+        } else if (currentStrategy.shouldExit(endIndex)) {
+            signalBuilder.setType(TradeSignal.TradeSignalType.SELL)
+                .setTimestamp(candle.getTimestamp().getSeconds() * 1000)
+                .setPrice(candle.getClose());
+        } else {
+            signalBuilder.setType(TradeSignal.TradeSignalType.NONE);
+        }
+
+        // Convert the current TA4J strategy to a strategies.Strategy message
+        strategies.Strategy strategyMessage = convertTa4jStrategy(currentStrategy, currentStrategyType);
+        signalBuilder.setStrategy(strategyMessage);
+    } catch (Exception e) {
+        System.err.println("Error generating trade signal: " + e.getMessage());
+        signalBuilder.setType(TradeSignal.TradeSignalType.ERROR)
+            .setReason("Error generating trade signal: " + e.getMessage());
+    }
+
+    return signalBuilder.build();
+  }
+
+  private strategies.Strategy convertTa4jStrategy(org.ta4j.core.Strategy ta4jStrategy, StrategyType strategyType) {
+      // Create a new strategies.Strategy message
+      strategies.Strategy.Builder strategyMessageBuilder = strategies.Strategy.newBuilder();
+    
+      // Set the strategy type
+      strategyMessageBuilder.setType(strategyType);
+    
+      // Set the parameters (if available)
+      Any parameters = strategyRecords.get(strategyType).parameters();
+      if (parameters != null) {
+          strategyMessageBuilder.setParameters(parameters);
+      }
+    
+      return strategyMessageBuilder.build();
   }
 
   /** Immutable record of a strategy's current state and performance */
