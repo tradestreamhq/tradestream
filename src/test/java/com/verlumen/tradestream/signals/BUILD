@@ -1,0 +1,19 @@
+load("@rules_java//java:defs.bzl", "java_test")
+
+java_test(
+    name = "trade_signal_publisher_impl_test",
+    srcs = ["TradeSignalPublisherImplTest.java"],
+    deps = [
+        "//protos:trade_signals_java_proto",
+        "//protos:strategies_java_proto",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:guice_testlib",
+        "//third_party:junit",
+        "//third_party:kafka_clients",
+        "//third_party:mockito_core",
+        "//third_party:truth",
+        ":trade_signal_publisher",
+        ":trade_signal_publisher_impl",
+    ],
+)
