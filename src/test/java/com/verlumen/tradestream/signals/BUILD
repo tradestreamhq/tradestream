@@ -13,7 +13,7 @@ java_test(
         "//third_party:kafka_clients",
         "//third_party:mockito_core",
         "//third_party:truth",
-        ":trade_signal_publisher",
-        ":trade_signal_publisher_impl",
+        "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
+        "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher_impl",
     ],
 )
