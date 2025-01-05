@@ -99,15 +99,15 @@ final class StrategyEngineImpl implements StrategyEngine {
   private void optimizeAndSelectBestStrategy() {
     // Optimize all strategy types
     for (StrategyType strategyType : strategyRecords.keySet()) {
-      BacktestRequest request = BacktestRequest.newBuilder()
-          .setStrategyType(strategyType.name())
-          .setStrategyParameters(Any.pack(strategyManager.getInitialParameters(strategyType)))
+      GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
+          .setStrategyType(strategyType)
           .addAllCandles(candleBuffer.getCandles())
           .build();
 
       try {
         BestStrategyResponse response = gaServiceClient.requestOptimization(request);
-        updateStrategyRecord(strategyType, response.getParameters(), response.getBestScore());
+        Any any = response.getBestStrategyParameters();
+        updateStrategyRecord(strategyType, any, response.getBestScore());
       } catch (Exception e) {
         // Log error but continue with other strategies
         // TODO: Add proper logging
