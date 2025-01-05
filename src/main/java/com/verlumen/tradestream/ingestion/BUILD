@@ -272,7 +272,6 @@ java_library(
         "//third_party:guava",
         "//third_party:guice_assistedinject",
         "//third_party:guice",
-        "//third_party:kafka_clients",
         "//third_party:xchange_stream_core",
         ":candle_manager",
         ":candle_manager_impl",
