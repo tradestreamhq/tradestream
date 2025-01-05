@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.ingestion;
+package com.verlumen.tradestream.kafka;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
