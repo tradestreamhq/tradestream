@@ -8,11 +8,11 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.kafka.KafkaModule;
 import java.util.Properties;
 import java.util.Timer;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import net.sourceforge.argparse4j.inf.Namespace;
-import org.apache.kafka.clients.producer.KafkaProducer;
 
 @AutoValue
 abstract class IngestionModule extends AbstractModule {
@@ -41,6 +41,7 @@ abstract class IngestionModule extends AbstractModule {
     install(new FactoryModuleBuilder()
         .implement(CandlePublisher.class, CandlePublisherImpl.class)
         .build(CandlePublisher.Factory.class));
+    install(KafkaModule.create());
   }
 
   @Provides
