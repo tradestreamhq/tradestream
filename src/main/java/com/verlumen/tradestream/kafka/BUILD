@@ -3,6 +3,17 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
+    name = "kafka_module",
+    srcs = ["KafkaModule.java"],
+    deps = [
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:kafka_clients",
+        ":kafka_producer_provider",
+    ],
+)
+
+java_library(
     name = "kafka_producer_provider",
     srcs = ["KafkaProducerProvider.java"],
     deps = [
