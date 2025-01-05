@@ -8,13 +8,15 @@ import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.backtesting.GAServiceClient;
-import com.verlumen.tradestream.backtesting.GAOptimizationRequest; 
+import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.backtesting.BestStrategyResponse;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.signals.TradeSignal;
 import com.verlumen.tradestream.signals.TradeSignalPublisher;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.ta4j.core.BarSeries;
+import org.ta4j.core.TradingRecord;
 
 /**
  * Core implementation of the Strategy Engine that coordinates strategy optimization, candlestick
@@ -22,16 +24,16 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 final class StrategyEngineImpl implements StrategyEngine {
   private final CandleBuffer candleBuffer;
-  private final GAServiceClient gaServiceClient; 
+  private final GAServiceClient gaServiceClient;
   private final StrategyManager strategyManager;
   private final TradeSignalPublisher signalPublisher;
 
   // Thread-safe state management
-  private final ConcurrentHashMap<StrategyType, StrategyRecord> strategyRecords = 
+  private final ConcurrentHashMap<StrategyType, StrategyRecord> strategyRecords =
       new ConcurrentHashMap<>();
   private volatile StrategyType currentStrategyType;
   private volatile org.ta4j.core.Strategy currentStrategy;
-  private volatile TradeSignal lastSignal = 
+  private volatile TradeSignal lastSignal =
       TradeSignal.newBuilder().setType(TradeSignal.TradeSignalType.NONE).build();
 
   @Inject
@@ -87,10 +89,8 @@ final class StrategyEngineImpl implements StrategyEngine {
     // Set default strategy
     this.currentStrategyType = StrategyType.SMA_RSI;
     try {
-      currentStrategy = strategyManager.createStrategy(
-          candleBuffer.toBarSeries(),
-          currentStrategyType, 
-          strategyManager.getInitialParameters(currentStrategyType));
+      currentStrategy =
+          strategyManager.createStrategy(candleBuffer.toBarSeries(), currentStrategyType, null);
     } catch (Exception e) {
       throw new RuntimeException("Failed to initialize default strategy", e);
     }
@@ -99,10 +99,11 @@ final class StrategyEngineImpl implements StrategyEngine {
   private void optimizeAndSelectBestStrategy() {
     // Optimize all strategy types
     for (StrategyType strategyType : strategyRecords.keySet()) {
-      GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
-          .setStrategyType(strategyType)
-          .addAllCandles(candleBuffer.getCandles())
-          .build();
+      GAOptimizationRequest request =
+          GAOptimizationRequest.newBuilder()
+              .setStrategyType(strategyType)
+              .addAllCandles(candleBuffer.getCandles())
+              .build();
 
       try {
         BestStrategyResponse response = gaServiceClient.requestOptimization(request);
@@ -111,6 +112,11 @@ final class StrategyEngineImpl implements StrategyEngine {
       } catch (Exception e) {
         // Log error but continue with other strategies
         // TODO: Add proper logging
+        System.err.println(
+            "Error during optimization for strategy type: "
+                + strategyType
+                + ". "
+                + e.getMessage());
         continue;
       }
     }
@@ -126,32 +132,47 @@ final class StrategyEngineImpl implements StrategyEngine {
 
   private void selectBestStrategy() {
     // Find strategy record with highest score
-    StrategyRecord bestRecord = strategyRecords.values().stream()
-        .max((r1, r2) -> Double.compare(r1.score(), r2.score()))
-        .orElseThrow(() -> new IllegalStateException("No optimized strategy found"));
+    StrategyRecord bestRecord =
+        strategyRecords.values().stream()
+            .max((r1, r2) -> Double.compare(r1.score(), r2.score()))
+            .orElseThrow(() -> new IllegalStateException("No optimized strategy found"));
 
     currentStrategyType = bestRecord.strategyType();
     try {
-      currentStrategy = strategyManager.createStrategy(
-          candleBuffer.toBarSeries(),
-          currentStrategyType,
-          bestRecord.parameters());
+      currentStrategy =
+          strategyManager.createStrategy(
+              candleBuffer.toBarSeries(), currentStrategyType, bestRecord.parameters());
     } catch (InvalidProtocolBufferException e) {
       throw new RuntimeException(e);
     }
   }
 
   private boolean shouldOptimize() {
-    // Optimize after SELL signals or if no active position  
-    return lastSignal.getType() == TradeSignal.TradeSignalType.SELL ||
-           lastSignal.getType() == TradeSignal.TradeSignalType.NONE;
+    // Optimize after SELL signals or if no active position
+    return lastSignal.getType() == TradeSignal.TradeSignalType.SELL
+        || lastSignal.getType() == TradeSignal.TradeSignalType.NONE;
   }
 
   private TradeSignal generateTradeSignal(Candle candle) {
-    // TODO: Implement signal generation using Ta4j and currentStrategy
-    return TradeSignal.newBuilder()
-        .setType(TradeSignal.TradeSignalType.NONE)
-        .build();
+    BarSeries barSeries = candleBuffer.toBarSeries();
+    int endIndex = barSeries.getEndIndex();
+    if (currentStrategy.shouldEnter(endIndex)) {
+      return TradeSignal.newBuilder()
+          .setType(TradeSignal.TradeSignalType.BUY)
+          .setStrategy(currentStrategy.getName())
+          .setTimestamp(candle.getTimestamp().getSeconds() * 1000)
+          .setPrice(candle.getClose())
+          .build();
+    } else if (currentStrategy.shouldExit(endIndex)) {
+      return TradeSignal.newBuilder()
+          .setType(TradeSignal.TradeSignalType.SELL)
+          .setStrategy(currentStrategy.getName())
+          .setTimestamp(candle.getTimestamp().getSeconds() * 1000)
+          .setPrice(candle.getClose())
+          .build();
+    }
+    
+    return TradeSignal.newBuilder().setType(TradeSignal.TradeSignalType.NONE).build();
   }
 
   /** Immutable record of a strategy's current state and performance */
