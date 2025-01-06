@@ -9,25 +9,15 @@ import java.util.function.Supplier;
 import java.util.Objects;
 import net.sourceforge.argparse4j.inf.Namespace;
 
-public final class KafkaProperties implements Supplier<Properties> {
-  public static KafkaProperties create(ImmutableMap<String, Object> properties) {
-    return new KafkaProperties(properties);
-  }
-
-  private final ImmutableMap<String, Object> properties;
-
-  @Inject
-  KafkaProperties(Namespace namespace) {
-    this(ImmutableMap.copyOf(namespace.getAttrs()));
-  }
-
-  private KafkaProperties(ImmutableMap<String, Object> properties) {
-    this.properties = BiStream.from(properties)
-      .filterKeys(key -> key.startsWith("kafka."))
-      .mapKeys(key -> key.substring("kafka.".length()))
-      .filterValues(Objects::nonNull)
-      .mapValues(Object::toString)
-      .collect(ImmutableMap::toImmutableMap);
+public record KafkaProperties(ImmutableMap<String, Object> properties) implements Supplier<Properties> {
+  public static KafkaProperties create(Map<String, Object> properties) {
+    return new KafkaProperties(
+      BiStream.from(properties)
+        .filterKeys(key -> key.startsWith("kafka."))
+        .mapKeys(key -> key.substring("kafka.".length()))
+        .filterValues(Objects::nonNull)
+        .mapValues(Object::toString)
+        .collect(ImmutableMap::toImmutableMap));
   }
 
   @Override
