@@ -22,7 +22,12 @@ public final class KafkaProperties implements Supplier<Properties> {
   }
 
   private KafkaProperties(ImmutableMap<String, Object> properties) {
-    this.properties = properties;
+    this.properties = BiStream.from(properties)
+      .filterKeys(key -> key.startsWith("kafka."))
+      .mapKeys(key -> key.substring("kafka.".length()))
+      .filterValues(Objects::nonNull)
+      .mapValues(Object::toString)
+      .collect(ImmutableMap::toImmutableMap);
   }
 
   @Override
