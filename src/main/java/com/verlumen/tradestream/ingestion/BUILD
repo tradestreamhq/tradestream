@@ -14,7 +14,6 @@ java_binary(
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:argparse4j",
         "//third_party:flogger",
-        "//third_party:guava",
         "//third_party:guice",
         ":ingestion_module",
         ":real_time_data_ingestion",
