@@ -11,13 +11,13 @@ java_binary(
     srcs = ["App.java"],
     main_class = "com.verlumen.tradestream.ingestion.App",
     deps = [
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party:argparse4j",
         "//third_party:flogger",
-        "//third_party:guava",
         "//third_party:guice",
         ":ingestion_module",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
-        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
@@ -117,17 +117,6 @@ java_library(
     srcs = ["CoinMarketCapConfig.java"],
     deps = [
         "//third_party:auto_value",
-    ],
-)
-
-java_library(
-    name = "config_arguments",
-    srcs = ["ConfigArguments.java"],
-    deps = [
-        "//third_party:argparse4j",
-        "//third_party:auto_value",
-        "//third_party:guava",
-        "//third_party:guice",
     ],
 )
 
@@ -278,7 +267,6 @@ java_library(
         ":candle_publisher",
         ":candle_publisher_impl",
         ":coin_market_cap_config",
-        ":config_arguments",
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
         ":exchange_streaming_client",
