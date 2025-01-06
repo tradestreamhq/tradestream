@@ -36,7 +36,8 @@ public final class KafkaProperties implements Supplier<Properties> {
     Properties kafkaProperties = new Properties();
 
     // Iterate over the input properties
-    BiStream.from(properties)
+    properties
+      .entrySet()
       .forEach(kafkaProperties::setProperty);
 
     return kafkaProperties;
