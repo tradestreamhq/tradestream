@@ -17,11 +17,11 @@ import net.sourceforge.argparse4j.inf.Namespace;
 
 @AutoValue
 abstract class IngestionModule extends AbstractModule {
-  static IngestionModule create(String[] commandLineArgs) {
-    return new AutoValue_IngestionModule(ImmutableList.copyOf(commandLineArgs));
+  static IngestionModule create(KafkaProperties kafkaProperties) {
+    return new AutoValue_IngestionModule(kafkaProperties);
   }
 
-  abstract ImmutableList<String> commandLineArgs();
+  abstract KafkaProperties kafkaProperties();
   
   @Override
   protected void configure() {
@@ -67,11 +67,6 @@ abstract class IngestionModule extends AbstractModule {
   @Provides
   ExchangeStreamingClient provideExchangeStreamingClient(Namespace namespace, ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
     return exchangeStreamingClientFactory.create(namespace.getString("exchangeName"));
-  }
-
-  @Provides
-  KafkaProperties provideKafkaProperties(Namespace namespace) {
-    return KafkaProperties.createFromKafkaPrefixedProperties(namespace.getAttrs());
   }
   
   @Provides
