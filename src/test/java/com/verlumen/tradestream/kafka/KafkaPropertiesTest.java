@@ -16,13 +16,6 @@ import java.util.Properties;
 public class KafkaPropertiesTest {
   private static final Map<String, Object> INPUT_PROPERTIES = new HashMap<>();
 
-  private KafkaProperties supplier;
-
-  @Before
-  public void setup() {
-    supplier = KafkaProperties.create(INPUT_PROPERTIES);
-  }
-
   @After
   public void teardown() {
     INPUT_PROPERTIES.clear();
@@ -35,6 +28,8 @@ public class KafkaPropertiesTest {
     // Arrange
     INPUT_PROPERTIES.put("kafka.bootstrap.servers", "localhost:9092");
     INPUT_PROPERTIES.put("application.name", "TestApp");
+    KafkaProperties supplier = KafkaProperties.create(INPUT_PROPERTIES);
+
     // Act
     Properties kafkaProperties = supplier.get();
     // Assert
@@ -46,6 +41,8 @@ public class KafkaPropertiesTest {
     // Arrange
     INPUT_PROPERTIES.put("kafka.client.id", "client-1");
     INPUT_PROPERTIES.put("application.name", "TestApp");
+    KafkaProperties supplier = KafkaProperties.create(INPUT_PROPERTIES);
+
     // Act
     Properties kafkaProperties = supplier.get();
     // Assert
@@ -56,6 +53,8 @@ public class KafkaPropertiesTest {
   public void kafkaProperties_withNonKafkaProperty_excludesNonKafkaKey() {
     // Arrange
     INPUT_PROPERTIES.put("application.name", "TestApp");
+    KafkaProperties supplier = KafkaProperties.create(INPUT_PROPERTIES);
+
     // Act
     Properties kafkaProperties = supplier.get();
     // Assert
@@ -68,6 +67,8 @@ public class KafkaPropertiesTest {
   public void kafkaProperties_withKafkaBootstrapServers_removesKafkaPrefixAndRetainsValue() {
     // Arrange
     INPUT_PROPERTIES.put("kafka.bootstrap.servers", "localhost:9092");
+    KafkaProperties supplier = KafkaProperties.create(INPUT_PROPERTIES);
+
     // Act
     Properties kafkaProperties = supplier.get();
     // Assert
@@ -78,6 +79,8 @@ public class KafkaPropertiesTest {
   public void kafkaProperties_withKafkaClientId_removesKafkaPrefixAndRetainsValue() {
     // Arrange
     INPUT_PROPERTIES.put("kafka.client.id", "client-1");
+    KafkaProperties supplier = KafkaProperties.create(INPUT_PROPERTIES);
+
     // Act
     Properties kafkaProperties = supplier.get();
     // Assert
@@ -88,6 +91,9 @@ public class KafkaPropertiesTest {
   
   @Test
   public void kafkaProperties_withNoInput_returnsEmptyProperties() {
+    // Arrange
+    KafkaProperties supplier = KafkaProperties.create(INPUT_PROPERTIES);
+
     // Act
     Properties kafkaProperties = supplier.get();
     // Assert
@@ -98,6 +104,8 @@ public class KafkaPropertiesTest {
   public void kafkaProperties_withNoKafkaProperties_returnsEmptyProperties() {
     // Arrange
     INPUT_PROPERTIES.put("application.name", "TestApp");
+    KafkaProperties supplier = KafkaProperties.create(INPUT_PROPERTIES);
+
     // Act
     Properties kafkaProperties = supplier.get();
     // Assert
@@ -109,6 +117,8 @@ public class KafkaPropertiesTest {
     INPUT_PROPERTIES.put("kafka.acks", "all");
     INPUT_PROPERTIES.put("kafka.retries", "5");
     INPUT_PROPERTIES.put("kafka.linger.ms", "50");
+    KafkaProperties supplier = KafkaProperties.create(INPUT_PROPERTIES);
+
 
     Properties kafkaProps = supplier.get();
     assertThat(kafkaProps.getProperty("acks")).isEqualTo("all");
