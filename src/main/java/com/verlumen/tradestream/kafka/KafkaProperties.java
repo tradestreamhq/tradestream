@@ -1,13 +1,11 @@
 package com.verlumen.tradestream.kafka;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.mu.util.stream.BiStream;
 import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.Objects;
-import net.sourceforge.argparse4j.inf.Namespace;
 
 public record KafkaProperties(ImmutableMap<String, Object> properties) implements Supplier<Properties> {
   public static KafkaProperties create(Map<String, Object> properties) {
