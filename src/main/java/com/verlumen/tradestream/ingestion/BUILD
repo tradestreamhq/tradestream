@@ -20,6 +20,7 @@ java_binary(
         ":real_time_data_ingestion_impl",
     ],
     runtime_deps = [
+        "//third_party:argparse4j",
         "//third_party:flogger_system_backend",
     ],
 )
