@@ -37,10 +37,6 @@ public final class KafkaProperties implements Supplier<Properties> {
 
     // Iterate over the input properties
     BiStream.from(properties)
-      .filterKeys(key -> key.startsWith("kafka."))
-      .mapKeys(key -> key.substring("kafka.".length()))
-      .filterValues(Objects::nonNull)
-      .mapValues(Object::toString)
       .forEach(kafkaProperties::setProperty);
 
     return kafkaProperties;
