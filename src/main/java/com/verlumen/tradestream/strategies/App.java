@@ -71,6 +71,14 @@ final class App {
     // Run mode configuration
     parser.addArgument("--runMode").choices("wet", "dry").help("Run mode: wet or dry");
 
+    parser.addArgument("--candleTopic")
+      .type(String.class)
+      .help("Kafka topic to subscribe to candle data");
+
+    parser.addArgument("--tradeSignalTopic")
+      .type(String.class)
+      .help("Kafka topic to publish signal data");
+
     return parser;
   }
 }
