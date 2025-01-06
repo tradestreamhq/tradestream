@@ -20,6 +20,4 @@ public abstract class KafkaModule extends AbstractModule {
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
   }
-
-  private KafkaModule() {}
 }
