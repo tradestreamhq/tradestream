@@ -10,6 +10,7 @@ import net.sourceforge.argparse4j.inf.Namespace;
 
 final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private static final String API_KEY_ENV_VAR = "COINMARKETCAP_API_KEY";
 
   private final RealTimeDataIngestion realTimeDataIngestion;
   private final RunMode runMode;
