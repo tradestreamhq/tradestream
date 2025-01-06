@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.kafka;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.mu.util.stream.BiStream;
