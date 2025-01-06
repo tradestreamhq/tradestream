@@ -8,7 +8,7 @@ import java.util.Properties;
 import java.util.function.Supplier;
 
 public record KafkaProperties(ImmutableMap<String, Object> properties) implements Supplier<Properties> {
-  public static KafkaProperties create(Map<String, Object> properties) {
+  public static KafkaProperties createFromKafkaPrefixedProperties(Map<String, Object> properties) {
     return new KafkaProperties(
       BiStream.from(properties)
         .filterKeys(key -> key.startsWith("kafka."))
@@ -16,10 +16,6 @@ public record KafkaProperties(ImmutableMap<String, Object> properties) implement
         .filterValues(Objects::nonNull)
         .mapValues(Object::toString)
         .collect(ImmutableMap::toImmutableMap));
-  }
-
-  private KafkaProperties(ImmutableMap<String, Object> properties) {
-    this.properties = properties;
   }
 
   @Override
