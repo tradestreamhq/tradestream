@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.signals;
 
-interface TradeSignalPublisher {
+public interface TradeSignalPublisher {
     void publish(TradeSignal signal);
 
     void close();
