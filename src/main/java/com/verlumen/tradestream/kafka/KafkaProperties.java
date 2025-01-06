@@ -11,11 +11,19 @@ import java.util.function.Supplier;
 import java.util.Objects;
 
 public final class KafkaProperties implements Supplier<Properties> {
-  private final Namespace namespace;
+  public static KafkaProperties create(ImmutableMap<String, Object> properties) {
+    return new KafkaProperties(properties);
+  }
+
+  private final ImmutableMap<String, Object> properties;
 
   @Inject
   KafkaProperties(Namespace namespace) {
-    this.namespace = namespace;
+    this(namespace.getAttrs());
+  }
+
+  private KafkaProperties(ImmutableMap<String, Object> properties) {
+    this.properties = properties;
   }
 
   @Override
@@ -24,7 +32,7 @@ public final class KafkaProperties implements Supplier<Properties> {
     Properties kafkaProperties = new Properties();
 
     // Iterate over the input properties
-    BiStream.from(namespace.getAttrs())
+    BiStream.from(properties)
       .filterKeys(key -> key.startsWith("kafka."))
       .mapKeys(key -> key.substring("kafka.".length()))
       .filterValues(Objects::nonNull)

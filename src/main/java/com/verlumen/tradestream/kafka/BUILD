@@ -28,6 +28,7 @@ java_library(
     srcs = ["KafkaProperties.java"],
     deps = [
         "//third_party:argparse4j",
+        "//third_party:guava",
         "//third_party:guice",
         "//third_party:mug",
     ],    
