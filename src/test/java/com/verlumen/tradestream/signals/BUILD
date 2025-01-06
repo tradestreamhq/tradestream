@@ -1,7 +1,7 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
-    name = "trade_signal_publisher_impl_test",
+    name = "TradeSignalPublisherImplTest",
     srcs = ["TradeSignalPublisherImplTest.java"],
     deps = [
         "//protos:trade_signals_java_proto",
