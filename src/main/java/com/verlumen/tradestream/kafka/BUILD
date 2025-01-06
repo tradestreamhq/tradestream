@@ -6,6 +6,7 @@ java_library(
     name = "kafka_module",
     srcs = ["KafkaModule.java"],
     deps = [
+        "//third_party:auto_value",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
         "//third_party:kafka_clients",
