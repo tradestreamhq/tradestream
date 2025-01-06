@@ -32,14 +32,8 @@ public final class KafkaProperties implements Supplier<Properties> {
 
   @Override
   public Properties get() {
-    // Create a new Properties object to hold the filtered and modified properties
     Properties kafkaProperties = new Properties();
-
-    // Iterate over the input properties
-    properties
-      .entrySet()
-      .forEach(kafkaProperties::setProperty);
-
+    kafkaProperties.putAll(properties);
     return kafkaProperties;
   }
 }
