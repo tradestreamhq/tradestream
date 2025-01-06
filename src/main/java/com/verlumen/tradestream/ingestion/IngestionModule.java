@@ -9,6 +9,7 @@ import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.KafkaModule;
+import com.verlumen.tradestream.kafka.KafkaProperties;
 import java.util.Properties;
 import java.util.Timer;
 import info.bitrich.xchangestream.core.StreamingExchange;
@@ -66,6 +67,11 @@ abstract class IngestionModule extends AbstractModule {
   @Provides
   ExchangeStreamingClient provideExchangeStreamingClient(Namespace namespace, ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
     return exchangeStreamingClientFactory.create(namespace.getString("exchangeName"));
+  }
+
+  @Provides
+  KafkaProperties provideKafkaProperties(Namespace namespace) {
+    return KafkaProperties.create(namespace.getAttrs());
   }
   
   @Provides
