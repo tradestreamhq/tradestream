@@ -18,7 +18,7 @@ public final class KafkaProperties implements Supplier<Properties> {
 
   @Inject
   KafkaProperties(Namespace namespace) {
-    this(namespace.getAttrs());
+    this(ImmutableMap.copyOf(namespace.getAttrs()));
   }
 
   private KafkaProperties(ImmutableMap<String, Object> properties) {
