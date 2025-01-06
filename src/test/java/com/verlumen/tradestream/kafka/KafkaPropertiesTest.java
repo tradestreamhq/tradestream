@@ -2,11 +2,6 @@ package com.verlumen.tradestream.kafka;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.testing.fieldbinder.Bind;
-import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import net.sourceforge.argparse4j.inf.Namespace;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,13 +16,11 @@ import java.util.Properties;
 public class KafkaPropertiesTest {
   private static final Map<String, Object> INPUT_PROPERTIES = new HashMap<>();
 
-  @Bind private static final Namespace NAMESPACE = new Namespace(INPUT_PROPERTIES);
-
-  @Inject private KafkaProperties supplier;
+  private KafkaProperties supplier;
 
   @Before
   public void setup() {
-    Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+    supplier = KafkaProperties.create(INPUT_PROPERTIES);
   }
 
   @After
