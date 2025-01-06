@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.signals;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 final class SignalsModule extends AbstractModule {
     @Override
