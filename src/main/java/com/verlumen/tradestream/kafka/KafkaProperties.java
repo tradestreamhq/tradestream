@@ -7,8 +7,8 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Supplier;
 
-public record KafkaProperties(ImmutableMap<String, Object> properties) implements Supplier<Properties> {
-  public static KafkaProperties createFromKafkaPrefixedProperties(Map<String, Object> properties) {
+public record KafkaProperties(ImmutableMap<String, String> properties) implements Supplier<Properties> {
+  public static KafkaProperties createFromKafkaPrefixedProperties(Map<String, ?> properties) {
     return new KafkaProperties(
       BiStream.from(properties)
         .filterKeys(key -> key.startsWith("kafka."))
