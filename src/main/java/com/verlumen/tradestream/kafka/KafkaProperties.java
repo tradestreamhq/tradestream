@@ -17,6 +17,10 @@ public record KafkaProperties(ImmutableMap<String, Object> properties) implement
         .collect(ImmutableMap::toImmutableMap));
   }
 
+  private KafkaProperties(ImmutableMap<String, Object> properties) {
+    this.properties = properties;
+  }
+
   @Override
   public Properties get() {
     Properties kafkaProperties = new Properties();
