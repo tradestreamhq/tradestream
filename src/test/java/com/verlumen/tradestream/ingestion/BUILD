@@ -16,6 +16,7 @@ java_test(
         "//third_party:truth",
     ],
     runtime_deps = [
+        "//third_party:argparse4j",
         "//third_party:flogger_system_backend",
     ],
 )
