@@ -27,9 +27,7 @@ java_library(
     name = "kafka_properties",
     srcs = ["KafkaProperties.java"],
     deps = [
-        "//third_party:argparse4j",
         "//third_party:guava",
-        "//third_party:guice",
         "//third_party:mug",
     ],    
 )
