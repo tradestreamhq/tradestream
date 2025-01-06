@@ -11,6 +11,7 @@ java_library(
         "//third_party:guice_assistedinject",
         "//third_party:kafka_clients",
         ":kafka_producer_provider",
+        ":kafka_properties",
     ],
 )
 
