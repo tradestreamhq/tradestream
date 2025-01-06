@@ -76,11 +76,4 @@ final class TradeSignalPublisherImpl implements TradeSignalPublisher {
             throw e;
         }
     }
-
-    /**
-     * Factory interface for creating TradeSignalPublisher instances.
-     */
-    interface Factory {
-        TradeSignalPublisher create(String topic);
-    }
 }
