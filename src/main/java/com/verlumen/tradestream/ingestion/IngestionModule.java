@@ -22,7 +22,7 @@ abstract class IngestionModule extends AbstractModule {
 
   abstract Namespace namespace();
 
-  KafkaProperites kafkaProperties() {
+  KafkaProperties kafkaProperties() {
     return KafkaProperties.create(namespace().getAttrs());
   }
   
