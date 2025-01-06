@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -17,7 +16,7 @@ import net.sourceforge.argparse4j.inf.Namespace;
 @AutoValue
 abstract class IngestionModule extends AbstractModule {
   static IngestionModule create(Namespace namespace) {
-    return new AutoValue_IngestionModule(ImmutableList.copyOf(commandLineArgs));
+    return new AutoValue_IngestionModule(namespace);
   }
 
   abstract Namespace namespace();
