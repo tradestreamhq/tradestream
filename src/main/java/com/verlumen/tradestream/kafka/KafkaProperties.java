@@ -1,35 +1,27 @@
 package com.verlumen.tradestream.kafka;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import com.google.common.collect.ImmutableMap;
 import com.google.mu.util.stream.BiStream;
-import net.sourceforge.argparse4j.inf.Namespace;
-
+import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Supplier;
-import java.util.Objects;
 
-public final class KafkaProperties implements Supplier<Properties> {
-  private final Namespace namespace;
-
-  @Inject
-  KafkaProperties(Namespace namespace) {
-    this.namespace = namespace;
+public record KafkaProperties(ImmutableMap<String, String> properties) implements Supplier<Properties> {
+  public static KafkaProperties createFromKafkaPrefixedProperties(Map<String, ?> properties) {
+    return new KafkaProperties(
+      BiStream.from(properties)
+        .filterKeys(key -> key.startsWith("kafka."))
+        .mapKeys(key -> key.substring("kafka.".length()))
+        .filterValues(Objects::nonNull)
+        .mapValues(Object::toString)
+        .collect(ImmutableMap::toImmutableMap));
   }
 
   @Override
   public Properties get() {
-    // Create a new Properties object to hold the filtered and modified properties
     Properties kafkaProperties = new Properties();
-
-    // Iterate over the input properties
-    BiStream.from(namespace.getAttrs())
-      .filterKeys(key -> key.startsWith("kafka."))
-      .mapKeys(key -> key.substring("kafka.".length()))
-      .filterValues(Objects::nonNull)
-      .mapValues(Object::toString)
-      .forEach(kafkaProperties::setProperty);
-
+    kafkaProperties.putAll(properties);
     return kafkaProperties;
   }
 }

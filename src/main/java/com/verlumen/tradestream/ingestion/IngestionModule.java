@@ -8,6 +8,7 @@ import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.KafkaModule;
+import com.verlumen.tradestream.kafka.KafkaProperties;
 import java.util.Properties;
 import java.util.Timer;
 import info.bitrich.xchangestream.core.StreamingExchange;
@@ -20,6 +21,10 @@ abstract class IngestionModule extends AbstractModule {
   }
 
   abstract Namespace namespace();
+
+  KafkaProperties kafkaProperties() {
+    return KafkaProperties.createFromKafkaPrefixedProperties(namespace().getAttrs());
+  }
   
   @Override
   protected void configure() {
@@ -40,7 +45,7 @@ abstract class IngestionModule extends AbstractModule {
     install(new FactoryModuleBuilder()
         .implement(CandlePublisher.class, CandlePublisherImpl.class)
         .build(CandlePublisher.Factory.class));
-    install(KafkaModule.create());
+    install(KafkaModule.create(kafkaProperties()));
   }
 
   @Provides

@@ -6,10 +6,12 @@ java_library(
     name = "kafka_module",
     srcs = ["KafkaModule.java"],
     deps = [
+        "//third_party:auto_value",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
         "//third_party:kafka_clients",
         ":kafka_producer_provider",
+        ":kafka_properties",
     ],
 )
 
@@ -27,8 +29,7 @@ java_library(
     name = "kafka_properties",
     srcs = ["KafkaProperties.java"],
     deps = [
-        "//third_party:argparse4j",
-        "//third_party:guice",
+        "//third_party:guava",
         "//third_party:mug",
     ],    
 )
