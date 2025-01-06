@@ -71,7 +71,7 @@ abstract class IngestionModule extends AbstractModule {
 
   @Provides
   KafkaProperties provideKafkaProperties(Namespace namespace) {
-    return KafkaProperties.create(namespace.getAttrs());
+    return KafkaProperties.createFromKafkaPrefixedProperties(namespace.getAttrs());
   }
   
   @Provides
