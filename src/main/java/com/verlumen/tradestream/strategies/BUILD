@@ -113,6 +113,7 @@ java_library(
     srcs = ["StrategiesModule.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
+        "//src/main/java/com/verlumen/tradestream/signals:signals_module",
         "//third_party:guava",
         "//third_party:guice",
         ":market_data_consumer",

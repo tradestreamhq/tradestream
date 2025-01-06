@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
+import com.verlumen.tradestream.signals.SignalsModule;
 
 final class StrategiesModule extends AbstractModule {
   static StrategiesModule create() {
@@ -19,5 +20,6 @@ final class StrategiesModule extends AbstractModule {
     bind(StrategyManager.class).to(StrategyManagerImpl.class);
 
     install(BacktestingModule.create());
+    install(SignalsModule.create());
   }
 }
