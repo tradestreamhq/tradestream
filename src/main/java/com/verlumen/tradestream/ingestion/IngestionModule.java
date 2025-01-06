@@ -21,6 +21,10 @@ abstract class IngestionModule extends AbstractModule {
   }
 
   abstract Namespace namespace();
+
+  KafkaProperites kafkaProperties() {
+    return KafkaProperties.create(namespace().getAttrs());
+  }
   
   @Override
   protected void configure() {
@@ -41,7 +45,7 @@ abstract class IngestionModule extends AbstractModule {
     install(new FactoryModuleBuilder()
         .implement(CandlePublisher.class, CandlePublisherImpl.class)
         .build(CandlePublisher.Factory.class));
-    install(KafkaModule.create(namespace().getAttrs()));
+    install(KafkaModule.create(kafkaProperties()));
   }
 
   @Provides
