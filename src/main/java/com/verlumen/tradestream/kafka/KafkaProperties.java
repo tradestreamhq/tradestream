@@ -4,11 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.mu.util.stream.BiStream;
-import net.sourceforge.argparse4j.inf.Namespace;
-
 import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.Objects;
+import net.sourceforge.argparse4j.inf.Namespace;
 
 public final class KafkaProperties implements Supplier<Properties> {
   public static KafkaProperties create(ImmutableMap<String, Object> properties) {
