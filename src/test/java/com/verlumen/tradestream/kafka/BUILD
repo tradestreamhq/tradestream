@@ -5,9 +5,7 @@ java_test(
     srcs = ["KafkaPropertiesTest.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
-        "//third_party:argparse4j",
-        "//third_party:guice",
-        "//third_party:guice_testlib",
+        "//third_party:guava",
         "//third_party:truth",
     ],
 )

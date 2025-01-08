@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.ingestion;
+package com.verlumen.tradestream.kafka;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -9,7 +9,7 @@ final class KafkaProducerProvider implements Provider<KafkaProducer<String, byte
   private final KafkaProperties properties;
 
   @Inject
-  public KafkaProducerProvider(KafkaProperties properties) {
+  KafkaProducerProvider(KafkaProperties properties) {
     this.properties = properties;
   }
 

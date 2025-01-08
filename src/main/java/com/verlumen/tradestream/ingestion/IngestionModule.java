@@ -1,33 +1,34 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.kafka.KafkaModule;
+import com.verlumen.tradestream.kafka.KafkaProperties;
 import java.util.Properties;
 import java.util.Timer;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import net.sourceforge.argparse4j.inf.Namespace;
-import org.apache.kafka.clients.producer.KafkaProducer;
 
 @AutoValue
 abstract class IngestionModule extends AbstractModule {
-  static IngestionModule create(String[] commandLineArgs) {
-    return new AutoValue_IngestionModule(ImmutableList.copyOf(commandLineArgs));
+  static IngestionModule create(Namespace namespace) {
+    return new AutoValue_IngestionModule(namespace);
   }
 
-  abstract ImmutableList<String> commandLineArgs();
+  abstract Namespace namespace();
+
+  KafkaProperties kafkaProperties() {
+    return KafkaProperties.createFromKafkaPrefixedProperties(namespace().getAttrs());
+  }
   
   @Override
   protected void configure() {
-    bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
-        .toProvider(KafkaProducerProvider.class);
-    bind(Namespace.class).toProvider(ConfigArguments.create(commandLineArgs()));
-
+    bind(Namespace.class).toProvider(this::namespace);
     bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
     bind(HttpClient.class).to(HttpClientImpl.class);
@@ -44,6 +45,7 @@ abstract class IngestionModule extends AbstractModule {
     install(new FactoryModuleBuilder()
         .implement(CandlePublisher.class, CandlePublisherImpl.class)
         .build(CandlePublisher.Factory.class));
+    install(KafkaModule.create(kafkaProperties()));
   }
 
   @Provides

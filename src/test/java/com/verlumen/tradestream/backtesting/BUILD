@@ -60,11 +60,33 @@ java_test(
         "//third_party:junit",
         "//third_party:mockito_core",
         "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
         "//third_party:ta4j_core",
         "//third_party:truth",
     ],
     runtime_deps = [
         "//third_party:guice_testlib",
+    ],
+)
+
+java_test(
+    name = "GAServiceClientImplTest",
+    size = "small",
+    srcs = ["GAServiceClientImplTest.java"],
+    deps = [
+        "//protos:backtesting_java_grpc",
+        "//protos:backtesting_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_client",
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_client_impl",
+        "//third_party:grpc_java_api",
+        "//third_party:grpc_java_inprocess",
+        "//third_party:grpc_java_stub",
+        "//third_party:grpc_testing",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:truth",
     ],
 )
 
@@ -87,6 +109,7 @@ java_test(
         "//third_party:junit",
         "//third_party:mockito_core",
         "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
         "//third_party:truth",
     ],
 )
@@ -111,6 +134,7 @@ java_test(
         "//third_party:junit",
         "//third_party:mockito_core",
         "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
         "//third_party:truth",
     ],
 )
