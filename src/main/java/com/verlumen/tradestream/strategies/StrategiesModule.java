@@ -3,6 +3,7 @@ package com.verlumen.tradestream.strategies;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
 
 final class StrategiesModule extends AbstractModule {
@@ -19,5 +20,8 @@ final class StrategiesModule extends AbstractModule {
     bind(StrategyManager.class).to(StrategyManagerImpl.class);
 
     install(BacktestingModule.create());
+    install(new FactoryModuleBuilder()
+        .implement(StrategyEngine.class, StrategyEngineImpl.class)
+        .build(StrategyEngine.Factory.class));
   }
 }
