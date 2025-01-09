@@ -17,7 +17,6 @@ final class StrategiesModule extends AbstractModule {
     bind(StrategyEngine.class).to(StrategyEngineImpl.class);
     bind(new TypeLiteral<ImmutableList<StrategyFactory<?>>>() {})
         .toInstance(StrategyFactories.ALL_FACTORIES);
-    bind(StrategyManager.class).to(StrategyManagerImpl.class);
 
     install(BacktestingModule.create());
     install(new FactoryModuleBuilder()
