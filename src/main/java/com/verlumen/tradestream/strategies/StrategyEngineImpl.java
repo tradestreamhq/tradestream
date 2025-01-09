@@ -11,20 +11,17 @@ import org.ta4j.core.Strategy;
  * processing, and trade signal generation.
  */
 final class StrategyEngineImpl implements StrategyEngine {
+  private final Config config;
   private final GAServiceClient gaServiceClient;
   private final StrategyManager strategyManager;
-  private final String candleTopic;
-  private final String signalTopic;
 
   @Inject
   StrategyEngineImpl(
       GAServiceClient gaServiceClient,
       StrategyManager strategyManager,
-      @Assisted String candleTopic,
-      @Assisted String signalTopic) {
-    this.candleTopic = candleTopic;
+      @Assisted Config config) {
+    this.config = config;
     this.gaServiceClient = gaServiceClient;
-    this.signalTopic = signalTopic;
     this.strategyManager = strategyManager;
   }
 

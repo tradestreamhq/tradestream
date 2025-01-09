@@ -19,7 +19,9 @@ interface StrategyEngine {
      */
     Strategy getCurrentStrategy();
 
+    record Config(String candleTopic, String signalTopic) {}
+
     interface Factory {
-        StrategyEngine create(String candleTopic, String signalTopic);
+        StrategyEngine create(Config config);
     }
 }
