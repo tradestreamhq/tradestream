@@ -18,4 +18,8 @@ interface StrategyEngine {
      * Gets the current active strategy
      */
     Strategy getCurrentStrategy();
+
+    interface Factory {
+        StrategyEngine create(String candleTopic, String signalTopic);
+    }
 }
