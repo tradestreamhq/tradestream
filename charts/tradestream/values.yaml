@@ -33,12 +33,9 @@ dataIngestion:
     port: 8080
 strategyEngine:
   args:
-    - "--runMode"
-    - "wet"
-    - "--candleTopic"
-    - "candles"
-    - "--tradeSignalTopic"
-    - "tradeSignals"
+    runMode: wet
+    candleTopic: candles
+    tradeSignalTopic: tradeSignals
   image:
     repository: "tradestreamhq/tradestream-strategy-engine"
     tag: "v0.0.539-develop"
