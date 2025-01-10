@@ -95,40 +95,39 @@ jobs:
 
       - name: Wait for All Pods to be Ready
         run: |
-          echo "Waiting for all pods to be ready in namespace 'tradestream-namespace'..."
-          timeout=180  # Total time to wait in seconds
-          interval=10  # Interval between checks in seconds
-          end_time=$((SECONDS+timeout))
+          set -e
 
-          while [ $SECONDS -lt $end_time ]; do
-            not_ready_pods=$(kubectl get pods -n tradestream-namespace --no-headers | grep -vE 'Running|Completed' | wc -l)
-            if [ "$not_ready_pods" -eq "0" ]; then
-              echo "All pods are ready."
-              break
-            else
-              echo "Some pods are not ready yet. Current status:"
-              kubectl get pods -n tradestream-namespace
-              echo "Waiting for $interval seconds before rechecking..."
-              sleep $interval
-            fi
-          done
+          echo "Waiting for all pods in the 'tradestream-namespace' to be in the 'Ready' state..."
 
-          if [ $SECONDS -ge $end_time ]; then
-            echo "Timeout reached while waiting for pods to be ready."
+          # Attempt to wait for all pods to become Ready. 
+          # If this fails (non-zero exit code), we move to the "failure handling" block.
+          if ! kubectl wait --for=condition=Ready pod -n tradestream-namespace --all --timeout=180s; then
+            echo "Some pods failed to become Ready within 180 seconds."
+
+            # Print all pods and their statuses
+            echo -e "\nCurrent pod statuses:"
             kubectl get pods -n tradestream-namespace
+
+            # Gather details for pods that aren't Ready
             echo -e "\nGathering detailed status and logs for non-ready pods..."
             not_ready_pod_names=$(kubectl get pods -n tradestream-namespace --no-headers | grep -vE 'Running|Completed' | awk '{print $1}')
             for pod in $not_ready_pod_names; do
               echo -e "\nDetails for pod $pod:"
-              kubectl describe pod $pod -n tradestream-namespace
-              containers=$(kubectl get pod $pod -n tradestream-namespace -o jsonpath='{.spec.containers[*].name}')
+              kubectl describe pod "$pod" -n tradestream-namespace
+
+              containers=$(kubectl get pod "$pod" -n tradestream-namespace -o jsonpath='{.spec.containers[*].name}')
               for container in $containers; do
                 echo -e "\nLogs for container '$container' in pod '$pod':"
-                kubectl logs $pod -n tradestream-namespace -c $container
+                kubectl logs "$pod" -n tradestream-namespace -c "$container"
               done
             done
-            exit 1
-          fi
+
+      # Exit with error so the pipeline knows this step failed
+      exit 1
+    else
+      echo "All pods are Ready."
+    fi
+
 
       - name: Verify Installations
         run: |
