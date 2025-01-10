@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
+import com.verlumen.tradestream.kafka.KafkaProperties;
 import com.verlumen.tradestream.marketdata.Candle;
 import java.time.Duration;
 import java.util.Collections;
@@ -27,22 +28,16 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private static final Duration POLL_TIMEOUT = Duration.ofMillis(100);
 
-    private final Properties kafkaProperties;
+    private final KafkaProperties kafkaProperties;
     private final String topic;
     private final ExecutorService executorService;
     private final AtomicBoolean running;
     private volatile KafkaConsumer<byte[], byte[]> consumer;
 
     @Inject
-    MarketDataConsumerImpl(
-            @Named("kafka.bootstrap.servers") String bootstrapServers,
-            @Named("kafka.group.id") String groupId,
-            @Named("kafka.topic") String topic) {
-        this.topic = checkNotNull(topic);
-        this.kafkaProperties = createConsumerProperties(
-            checkNotNull(bootstrapServers),
-            checkNotNull(groupId)
-        );
+    MarketDataConsumerImpl(KafkaProperties kafkaProperties, @Assisted String topic) {
+        this.kafkaProperties = kafkaProperties;
+        this.topic = topic;
         this.executorService = Executors.newSingleThreadExecutor();
         this.running = new AtomicBoolean(false);
     }
