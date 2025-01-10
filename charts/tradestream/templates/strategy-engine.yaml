@@ -22,7 +22,7 @@ spec:
       containers:
         - name: strategy-engine
           args:
-           {{  range .Values.arguments }}
+           {{  range .Values.strategyEngine.args }}
              - {{ . }}
            {{ end }}
           image: "{{ .Values.strategyEngine.image.repository }}:{{ .Values.strategyEngine.image.tag }}"
