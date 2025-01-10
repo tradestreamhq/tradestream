@@ -23,9 +23,9 @@ spec:
         - name: data-ingestion
           args:
             - --candlePublisherTopic={{ .Values.dataIngestion.args.candlePublisherTopic }}
-            - --kafka.acks={{ .Values.dataIngestion.args.kafka.acks }}
+            - --kafka.acks={{ .Values.dataIngestion.args["kafka.acks"] }}
             - --kafka.bootstrap.servers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092
-            - --kafka.retries={{ .Values.dataIngestion.args.kafka.retries }}
+            - --kafka.retries={{ .Values.dataIngestion.args["kafka.retries"] }}
             - --kafka.linger.ms={{ .Values.dataIngestion.args["kafka.linger.ms"] }}
             - --runMode={{ .Values.dataIngestion.args.runMode }}
           image: "{{ .Values.dataIngestion.image.repository }}:{{ .Values.dataIngestion.image.tag }}"
