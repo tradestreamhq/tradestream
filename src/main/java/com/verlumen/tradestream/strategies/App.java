@@ -36,6 +36,13 @@ final class App {
   public void start() {
     logger.atInfo().log("Starting real-time strategy discovery...");
     if (RunMode.DRY.equals(runMode)) {
+      try {
+        logger.atInfo().log("Sleeping for one minute before exiting dry run");
+        Thread.sleep(60_000L); // Sleep for 60,000 milliseconds (1 minute)
+      } catch (InterruptedException e) {
+        logger.atWarning().withCause(e).log("Sleep interrupted during dry run");
+        Thread.currentThread().interrupt(); // Restore the interrupted status
+      }
       return;
     }
   }
