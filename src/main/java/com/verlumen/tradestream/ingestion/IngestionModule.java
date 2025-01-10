@@ -6,6 +6,7 @@ import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.KafkaModule;
+import com.verlumen.tradestream.kafka.KafkaProperties;
 import java.util.Timer;
 
 @AutoValue
