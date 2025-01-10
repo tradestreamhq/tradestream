@@ -28,6 +28,13 @@ final class App {
     logger.atInfo().log("Starting application in %s mode", runMode);
     if (runMode == RunMode.DRY) {
       logger.atInfo().log("Dry run mode detected - skipping data ingestion");
+      try {
+        logger.atInfo().log("Sleeping for one minute before exiting dry run");
+        Thread.sleep(60_000L); // Sleep for 60,000 milliseconds (1 minute)
+      } catch (InterruptedException e) {
+        logger.atWarning().withCause(e).log("Sleep interrupted during dry run");
+        Thread.currentThread().interrupt(); // Restore the interrupted status
+      }
       return;
     }
 
