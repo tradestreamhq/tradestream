@@ -95,26 +95,34 @@ jobs:
 
       - name: Wait for All Pods to be Ready
         run: |
+          # Exit immediately if a command exits with a non-zero status
           set -e
 
           echo "Waiting for all pods in the 'tradestream-namespace' to be in the 'Ready' state..."
 
-          # Attempt to wait for all pods to become Ready. 
-          # If this fails (non-zero exit code), we move to the "failure handling" block.
-          if ! kubectl wait --for=condition=Ready pod -n tradestream-namespace --all --timeout=180s; then
+          # Wait for up to 180 seconds for every pod in 'tradestream-namespace' to have the 'Ready' condition.
+          # If this times out, the script moves to the 'failure handling' block below.
+          if ! kubectl wait \
+              --for=condition=Ready \
+              pod \
+              -n tradestream-namespace \
+              --all \
+              --timeout=180s; then
+
             echo "Some pods failed to become Ready within 180 seconds."
 
-            # Print all pods and their statuses
+            # Print the statuses of all pods for quick inspection
             echo -e "\nCurrent pod statuses:"
             kubectl get pods -n tradestream-namespace
 
-            # Gather details for pods that aren't Ready
+            # Gather more detailed info for pods that are not Ready (e.g., describe output, container logs)
             echo -e "\nGathering detailed status and logs for non-ready pods..."
             not_ready_pod_names=$(kubectl get pods -n tradestream-namespace --no-headers | grep -vE 'Running|Completed' | awk '{print $1}')
             for pod in $not_ready_pod_names; do
               echo -e "\nDetails for pod $pod:"
               kubectl describe pod "$pod" -n tradestream-namespace
 
+              # Loop through all containers in this pod to grab logs
               containers=$(kubectl get pod "$pod" -n tradestream-namespace -o jsonpath='{.spec.containers[*].name}')
               for container in $containers; do
                 echo -e "\nLogs for container '$container' in pod '$pod':"
@@ -122,11 +130,12 @@ jobs:
               done
             done
 
-      # Exit with error so the pipeline knows this step failed
-      exit 1
-    else
-      echo "All pods are Ready."
-    fi
+            # Exit with error to indicate the pods did not become ready
+            exit 1
+          else
+            echo "All pods are Ready."
+          fi
+
 
 
       - name: Verify Installations
