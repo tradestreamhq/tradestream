@@ -22,7 +22,7 @@ spec:
       containers:
         - name: strategy-engine
           args:
-      {{- range $key, $value := .Values.extraArgs }}
+      {{- range $key, $value := .Values.strategyEngine.args }}
           {{- if $value }}
           - --{{ $key }}={{ $value }}
           {{- else }}
