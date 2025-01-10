@@ -33,6 +33,8 @@ dataIngestion:
     port: 8080
 strategyEngine:
   args:
+    - '-jar'
+    - '/src/main/java/com/verlumen/tradestream/strategies/app_deploy.jar'
     - --candleTopic=candles
     - --runMode=wet
     - --tradeSignalTopic=tradeSignals
