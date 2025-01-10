@@ -25,7 +25,7 @@ public class KafkaPropertiesTest {
             "org.apache.kafka.common.serialization.StringSerializer",
             "PLAINTEXT",
             "PLAIN",
-            null);
+            "some.config");
 
     // Act
     Properties kafkaProperties = supplier.get();
@@ -49,7 +49,7 @@ public class KafkaPropertiesTest {
             "org.apache.kafka.common.serialization.StringSerializer",
             "PLAINTEXT",
             "PLAIN",
-            null);
+            "some.config");
 
     // Act
     Properties kafkaProperties = supplier.get();
@@ -73,7 +73,7 @@ public class KafkaPropertiesTest {
             "org.apache.kafka.common.serialization.StringSerializer",
             "PLAINTEXT",
             "PLAIN",
-            null);
+            "some.config");
 
     // Act
     Properties kafkaProps = supplier.get();
