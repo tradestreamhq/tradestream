@@ -22,10 +22,15 @@ spec:
       containers:
         - name: strategy-engine
           args:
-          {{- range $key, $value := .Values.strategyEngine.args }}
+      {{- range $key, $value := .Values.dataIngestion.args }}
+          {{- if $value }}
+          - --{{ $key }}={{ $value }}
+          {{- else }}
           - --{{ $key }}
-          - {{ $value | quote }}
           {{- end }}
+      {{- end }}
+             - "--kafka.bootstrap.servers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+
           image: "{{ .Values.strategyEngine.image.repository }}:{{ .Values.strategyEngine.image.tag }}"
           imagePullPolicy: {{ default "IfNotPresent" .Values.strategyEngine.image.pullPolicy }}
           ports:
