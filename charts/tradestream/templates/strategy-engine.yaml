@@ -22,11 +22,9 @@ spec:
       containers:
         - name: strategy-engine
           args:
-            - "--candleTopic={{ .Values.strategyEngine.args.candleTopic }}"
-            - "--runMode={{ .Values.strategyEngine.args.runMode }}"
-            - "--tradeSignal={{ .Values.strategyEngine.args.tradeSignal }}"
-          candleTopic: candles
-          tradeSignalTopic: tradeSignals
+           {{  range .Values.strategyEngine.args }}
+             - {{ . }}
+           {{ end }}
           image: "{{ .Values.strategyEngine.image.repository }}:{{ .Values.strategyEngine.image.tag }}"
           imagePullPolicy: {{ default "IfNotPresent" .Values.strategyEngine.image.pullPolicy }}
           ports:
