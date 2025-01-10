@@ -22,9 +22,7 @@ spec:
       containers:
         - name: strategy-engine
           args:
-           {{  range .Values.strategyEngine.args }}
-             - {{ . }}
-           {{ end }}
+            - "--runMode={{ .Values.dataIngestion.args.runMode }}"
           image: "{{ .Values.strategyEngine.image.repository }}:{{ .Values.strategyEngine.image.tag }}"
           imagePullPolicy: {{ default "IfNotPresent" .Values.strategyEngine.image.pullPolicy }}
           ports:
