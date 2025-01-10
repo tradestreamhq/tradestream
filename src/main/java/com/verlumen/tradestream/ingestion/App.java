@@ -53,8 +53,18 @@ final class App {
       long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000L;
       String runModeName = namespace.getString("runMode").toUpperCase();
       RunMode runMode = RunMode.valueOf(runModeName);
-      KafkaProperties kafkaProperties =
-          KafkaProperties.createFromKafkaPrefixedProperties(namespace.getAttrs());
+      KafkaProperties kafkaProperties = new KafkaProperties(
+        namespace.get("kafka.acks"),
+        namespace.getInt("kafka.batch.size"),
+        namespace.getString("kafka.bootstrap.servers"),
+        namespace.getInt("kafka.retries"),
+        namespace.getInt("kafka.linger.ms"),
+        namespace.getInt("kafka.buffer.memory"),
+        namespace.getString("kafka.key.serializer"),
+        namespace.getString("kafka.value.serializer"),
+        namespace.getString("kafka.security.protocol"),
+        namespace.getString("kafka.sasl.mechanism"),
+        namespace.getString("kafka.sasl.jaas.config"));
       IngestionConfig ingestionConfig =
           new IngestionConfig(
               candlePublisherTopic,
