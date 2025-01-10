@@ -34,6 +34,8 @@ dataIngestion:
 strategyEngine:
   args:
     - "--runMode=wet"
+    - "--candleTopic=candles"
+    - "--tradeSignalTopic=tradeSignals"
   image:
     repository: "tradestreamhq/tradestream-strategy-engine"
     tag: "v0.0.534-develop"
