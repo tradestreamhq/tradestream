@@ -13,6 +13,24 @@ import net.sourceforge.argparse4j.inf.Namespace;
 
 @AutoValue
 abstract class IngestionModule extends AbstractModule {
+  static IngestionModule create(
+      String candlePublisherTopic,
+      String coinMarketCapApiKey,
+      int topNCryptocurrencies,
+      String exchangeName,
+      long candleIntervalMillis,
+      RunMode runMode,
+      KafkaProperties kafkaProperties) {
+    return new AutoValue_IngestionModule(
+        candlePublisherTopic,
+        coinMarketCapApiKey,
+        topNCryptocurrencies,
+        exchangeName,
+        candleIntervalMillis,
+        runMode,
+        kafkaProperties);
+  }
+
   static IngestionModule create(Namespace namespace) {
     String candlePublisherTopic = namespace.getString("candlePublisherTopic");
     String coinMarketCapApiKey = namespace.getString("coinmarketcap.apiKey");
@@ -24,23 +42,28 @@ abstract class IngestionModule extends AbstractModule {
     KafkaProperties kafkaProperties =
         KafkaProperties.createFromKafkaPrefixedProperties(namespace.getAttrs());
 
-    return new AutoValue_IngestionModule(
+    return create(
         candlePublisherTopic,
         coinMarketCapApiKey,
         topNCryptocurrencies,
         exchangeName,
         candleIntervalMillis,
         runMode,
-        kafkaProperties
-    );
+        kafkaProperties);
   }
 
   abstract String candlePublisherTopic();
+
   abstract String coinMarketCapApiKey();
+
   abstract int topNCryptocurrencies();
+
   abstract String exchangeName();
+
   abstract long candleIntervalMillis();
+
   abstract RunMode runMode();
+
   abstract KafkaProperties kafkaProperties();
 
   @Override
@@ -55,15 +78,16 @@ abstract class IngestionModule extends AbstractModule {
     bind(ThinMarketTimerTask.class).to(ThinMarketTimerTaskImpl.class);
     bind(Timer.class).toProvider(Timer::new);
 
-    install(new FactoryModuleBuilder()
-        .implement(CandleManager.class, CandleManagerImpl.class)
-        .build(CandleManager.Factory.class));
+    install(
+        new FactoryModuleBuilder()
+            .implement(CandleManager.class, CandleManagerImpl.class)
+            .build(CandleManager.Factory.class));
 
-    install(new FactoryModuleBuilder()
-        .implement(CandlePublisher.class, CandlePublisherImpl.class)
-        .build(CandlePublisher.Factory.class));
+    install(
+        new FactoryModuleBuilder()
+            .implement(CandlePublisher.class, CandlePublisherImpl.class)
+            .build(CandlePublisher.Factory.class));
 
-    // Install Kafka module using the KafkaProperties we stored
     install(KafkaModule.create(kafkaProperties()));
   }
 
