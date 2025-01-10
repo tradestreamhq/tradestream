@@ -266,7 +266,6 @@ java_library(
     srcs = ["IngestionModule.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
         "//third_party:guava",
