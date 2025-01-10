@@ -9,7 +9,6 @@ import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.kafka.KafkaProperties;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import java.util.Timer;
-import net.sourceforge.argparse4j.inf.Namespace;
 
 @AutoValue
 abstract class IngestionModule extends AbstractModule {
@@ -22,27 +21,6 @@ abstract class IngestionModule extends AbstractModule {
       RunMode runMode,
       KafkaProperties kafkaProperties) {
     return new AutoValue_IngestionModule(
-        candlePublisherTopic,
-        coinMarketCapApiKey,
-        topNCryptocurrencies,
-        exchangeName,
-        candleIntervalMillis,
-        runMode,
-        kafkaProperties);
-  }
-
-  static IngestionModule create(Namespace namespace) {
-    String candlePublisherTopic = namespace.getString("candlePublisherTopic");
-    String coinMarketCapApiKey = namespace.getString("coinmarketcap.apiKey");
-    int topNCryptocurrencies = namespace.getInt("coinmarketcap.topN");
-    String exchangeName = namespace.getString("exchangeName");
-    long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000L;
-    String runModeName = namespace.getString("runMode").toUpperCase();
-    RunMode runMode = RunMode.valueOf(runModeName);
-    KafkaProperties kafkaProperties =
-        KafkaProperties.createFromKafkaPrefixedProperties(namespace.getAttrs());
-
-    return create(
         candlePublisherTopic,
         coinMarketCapApiKey,
         topNCryptocurrencies,
