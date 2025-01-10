@@ -7,6 +7,7 @@ import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
+import com.verlumen.tradestream.signals.TradeSignalPublisher;
 
 @AutoValue
 abstract class StrategiesModule extends AbstractModule {
@@ -34,5 +35,10 @@ abstract class StrategiesModule extends AbstractModule {
   StrategyEngine provideStrategyEngine(StrategyEngine.Factory factory) {
     StrategyEngine.Config config = new StrategyEngine.Config(candleTopic(), signalTopic());
     return factory.create(config);
+  }
+
+  @Provides
+  TradeSignalPublisher provideTradeSignalPublisher(TradeSignalPublisher.Factory factory) {
+    return factory.create(signalTopic());
   }
 }
