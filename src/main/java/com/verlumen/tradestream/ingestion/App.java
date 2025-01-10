@@ -4,6 +4,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.kafka.KafkaProperties;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -62,7 +63,7 @@ final class App {
         candleIntervalMillis,
         runMode,
         kafkaProperties);
-      App app = Guice.createInjector(IngestionModule.create(namespace)).getInstance(App.class);
+      App app = Guice.createInjector(module).getInstance(App.class);
       logger.atInfo().log("Guice initialization complete, running application");
       app.run();
     } catch (Exception e) {
