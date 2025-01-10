@@ -104,7 +104,6 @@ final class App {
       .help("Candle interval in seconds");
 
     parser.addArgument("--candlePublisherTopic")
-      .setDefault("candles")
       .help("Kafka topic to publish candle data");
 
     // Kafka configuration
