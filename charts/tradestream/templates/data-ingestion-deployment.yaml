@@ -22,7 +22,7 @@ spec:
       containers:
         - name: data-ingestion
           args:
-      {{- range $key, $value := .Values.extraArgs }}
+      {{- range $key, $value := .Values.dataIngestion.args }}
           {{- if $value }}
           - --{{ $key }}={{ $value }}
           {{- else }}
