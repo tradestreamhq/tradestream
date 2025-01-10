@@ -7,7 +7,6 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.kafka.KafkaProperties;
-import info.bitrich.xchangestream.core.StreamingExchange;
 import java.util.Timer;
 import net.sourceforge.argparse4j.inf.Namespace;
 
@@ -28,14 +27,15 @@ abstract class IngestionModule extends AbstractModule {
     KafkaProperties kafkaProperties =
         KafkaProperties.createFromKafkaPrefixedProperties(namespace.getAttrs());
 
-    IngestionConfig ingestionConfig = new IngestionConfig(
-        candlePublisherTopic,
-        coinMarketCapApiKey,
-        topNCryptocurrencies,
-        exchangeName,
-        candleIntervalMillis,
-        runMode,
-        kafkaProperties);
+    IngestionConfig ingestionConfig =
+        new IngestionConfig(
+            candlePublisherTopic,
+            coinMarketCapApiKey,
+            topNCryptocurrencies,
+            exchangeName,
+            candleIntervalMillis,
+            runMode,
+            kafkaProperties);
     return create(ingestionConfig);
   }
 
@@ -69,7 +69,8 @@ abstract class IngestionModule extends AbstractModule {
   @Provides
   CandleManager provideCandleManager(
       CandlePublisher candlePublisher, CandleManager.Factory candleManagerFactory) {
-    return candleManagerFactory.create(ingestionConfig().candleIntervalMillis(), candlePublisher);
+    return candleManagerFactory.create(
+        ingestionConfig().candleIntervalMillis(), candlePublisher);
   }
 
   @Provides
@@ -79,7 +80,8 @@ abstract class IngestionModule extends AbstractModule {
 
   @Provides
   CoinMarketCapConfig provideCoinMarketCapConfig() {
-    return CoinMarketCapConfig.create(ingestionConfig().topCryptocurrencyCount(), ingestionConfig().coinMarketCapApiKey());
+    return CoinMarketCapConfig.create(
+        ingestionConfig().topCryptocurrencyCount(), ingestionConfig().coinMarketCapApiKey());
   }
 
   @Provides
