@@ -20,9 +20,9 @@ abstract class StrategiesModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(MarketDataConsumer.class).to(MarketDataConsumerImpl.class);
-    bind(StrategyManager.class).to(StrategyManagerImpl.class);    
     bind(new TypeLiteral<ImmutableList<StrategyFactory<?>>>() {})
         .toInstance(StrategyFactories.ALL_FACTORIES);
+    bind(StrategyManager.class).to(StrategyManagerImpl.class);
 
     install(BacktestingModule.create());
     install(new FactoryModuleBuilder()
