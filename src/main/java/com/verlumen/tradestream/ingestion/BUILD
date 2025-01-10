@@ -251,6 +251,15 @@ oci_image_index(
 )
 
 java_library(
+    name = "ingestion_config",
+    srcs = ["IngestionConfig.java"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
+    ],
+)
+
+java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
@@ -276,6 +285,7 @@ java_library(
         ":http_client_impl",
         ":http_url_connection_factory",
         ":http_url_connection_factory_impl",
+        ":ingestion_config",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
         ":thin_market_timer",
