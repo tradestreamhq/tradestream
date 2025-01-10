@@ -6,43 +6,15 @@ import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.KafkaModule;
-import com.verlumen.tradestream.kafka.KafkaProperties;
-import info.bitrich.xchangestream.core.StreamingExchange;
 import java.util.Timer;
 
 @AutoValue
 abstract class IngestionModule extends AbstractModule {
-  static IngestionModule create(
-      String candlePublisherTopic,
-      String coinMarketCapApiKey,
-      int topNCryptocurrencies,
-      String exchangeName,
-      long candleIntervalMillis,
-      RunMode runMode,
-      KafkaProperties kafkaProperties) {
-    return new AutoValue_IngestionModule(
-        candlePublisherTopic,
-        coinMarketCapApiKey,
-        topNCryptocurrencies,
-        exchangeName,
-        candleIntervalMillis,
-        runMode,
-        kafkaProperties);
+  static IngestionModule create(IngestionConfig ingestionConfig) {
+    return new AutoValue_IngestionModule(ingestionConfig);
   }
 
-  abstract String candlePublisherTopic();
-
-  abstract String coinMarketCapApiKey();
-
-  abstract int topNCryptocurrencies();
-
-  abstract String exchangeName();
-
-  abstract long candleIntervalMillis();
-
-  abstract RunMode runMode();
-
-  abstract KafkaProperties kafkaProperties();
+  abstract IngestionConfig ingestionConfig();
 
   @Override
   protected void configure() {
@@ -66,38 +38,40 @@ abstract class IngestionModule extends AbstractModule {
             .implement(CandlePublisher.class, CandlePublisherImpl.class)
             .build(CandlePublisher.Factory.class));
 
-    install(KafkaModule.create(kafkaProperties()));
+    install(KafkaModule.create(ingestionConfig().kafkaProperties()));
   }
 
   @Provides
   CandleManager provideCandleManager(
       CandlePublisher candlePublisher, CandleManager.Factory candleManagerFactory) {
-    return candleManagerFactory.create(candleIntervalMillis(), candlePublisher);
+    return candleManagerFactory.create(
+        ingestionConfig().candleIntervalMillis(), candlePublisher);
   }
 
   @Provides
   CandlePublisher provideCandlePublisher(CandlePublisher.Factory candlePublisherFactory) {
-    return candlePublisherFactory.create(candlePublisherTopic());
+    return candlePublisherFactory.create(ingestionConfig().candlePublisherTopic());
   }
 
   @Provides
   CoinMarketCapConfig provideCoinMarketCapConfig() {
-    return CoinMarketCapConfig.create(topNCryptocurrencies(), coinMarketCapApiKey());
+    return CoinMarketCapConfig.create(
+        ingestionConfig().topCryptocurrencyCount(), ingestionConfig().coinMarketCapApiKey());
   }
 
   @Provides
   ExchangeStreamingClient provideExchangeStreamingClient(
       ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
-    return exchangeStreamingClientFactory.create(exchangeName());
+    return exchangeStreamingClientFactory.create(ingestionConfig().exchangeName());
   }
 
   @Provides
   RunMode provideRunMode() {
-    return runMode();
+    return ingestionConfig().runMode();
   }
 
   @Provides
   TradeProcessor provideTradeProcessor() {
-    return TradeProcessor.create(candleIntervalMillis());
+    return TradeProcessor.create(ingestionConfig().candleIntervalMillis());
   }
 }

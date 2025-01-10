@@ -55,14 +55,16 @@ final class App {
       RunMode runMode = RunMode.valueOf(runModeName);
       KafkaProperties kafkaProperties =
           KafkaProperties.createFromKafkaPrefixedProperties(namespace.getAttrs());
-      IngestionModule module = IngestionModule.create(
-        candlePublisherTopic,
-        coinMarketCapApiKey,
-        topNCryptocurrencies,
-        exchangeName,
-        candleIntervalMillis,
-        runMode,
-        kafkaProperties);
+      IngestionConfig ingestionConfig =
+          new IngestionConfig(
+              candlePublisherTopic,
+              coinMarketCapApiKey,
+              topNCryptocurrencies,
+              exchangeName,
+              candleIntervalMillis,
+              runMode,
+              kafkaProperties);
+      IngestionModule module = IngestionModule.create(ingestionConfig);
       App app = Guice.createInjector(module).getInstance(App.class);
       logger.atInfo().log("Guice initialization complete, running application");
       app.run();

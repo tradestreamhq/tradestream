@@ -16,6 +16,7 @@ java_binary(
         "//third_party:argparse4j",
         "//third_party:flogger",
         "//third_party:guice",
+        ":ingestion_config",
         ":ingestion_module",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
@@ -252,17 +253,24 @@ oci_image_index(
 )
 
 java_library(
+    name = "ingestion_config",
+    srcs = ["IngestionConfig.java"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
+    ],
+)
+
+java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice_assistedinject",
         "//third_party:guice",
-        "//third_party:xchange_stream_core",
         ":candle_manager",
         ":candle_manager_impl",
         ":candle_publisher",
@@ -276,6 +284,7 @@ java_library(
         ":http_client_impl",
         ":http_url_connection_factory",
         ":http_url_connection_factory_impl",
+        ":ingestion_config",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
         ":thin_market_timer",
