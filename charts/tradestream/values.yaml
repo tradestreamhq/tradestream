@@ -33,7 +33,8 @@ dataIngestion:
     port: 8080
 strategyEngine:
   args:
-    runMode: wet
+    - "--runMode"
+    - "wet"
   image:
     repository: "tradestreamhq/tradestream-strategy-engine"
     tag: "v0.0.539-develop"
