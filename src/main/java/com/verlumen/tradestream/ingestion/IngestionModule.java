@@ -6,36 +6,12 @@ import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.KafkaModule;
-import com.verlumen.tradestream.kafka.KafkaProperties;
 import java.util.Timer;
 
 @AutoValue
 abstract class IngestionModule extends AbstractModule {
   static IngestionModule create(IngestionConfig ingestionConfig) {
     return new AutoValue_IngestionModule(ingestionConfig);
-  }
-
-  static IngestionModule create(Namespace namespace) {
-    String candlePublisherTopic = namespace.getString("candlePublisherTopic");
-    String coinMarketCapApiKey = namespace.getString("coinmarketcap.apiKey");
-    int topNCryptocurrencies = namespace.getInt("coinmarketcap.topN");
-    String exchangeName = namespace.getString("exchangeName");
-    long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000L;
-    String runModeName = namespace.getString("runMode").toUpperCase();
-    RunMode runMode = RunMode.valueOf(runModeName);
-    KafkaProperties kafkaProperties =
-        KafkaProperties.createFromKafkaPrefixedProperties(namespace.getAttrs());
-
-    IngestionConfig ingestionConfig =
-        new IngestionConfig(
-            candlePublisherTopic,
-            coinMarketCapApiKey,
-            topNCryptocurrencies,
-            exchangeName,
-            candleIntervalMillis,
-            runMode,
-            kafkaProperties);
-    return create(ingestionConfig);
   }
 
   abstract IngestionConfig ingestionConfig();
