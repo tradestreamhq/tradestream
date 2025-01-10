@@ -26,14 +26,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
 public class BacktestServiceImplTest {
 
   @Mock private StrategyManager mockStrategyManager;
   @Mock private BacktestRunner mockBacktestRunner;
-  @Mock private Strategy mockStrategy;
+  @Mock private org.ta4j.core.Strategy ta4jStrategy;
   @Mock private StreamObserver<BacktestResult> mockResponseObserver;
 
   private BacktestServiceImpl service;
@@ -46,7 +45,7 @@ public class BacktestServiceImplTest {
     service = new BacktestServiceImpl(mockStrategyManager, mockBacktestRunner);
 
     // Set up default successful mocked responses
-    when(mockStrategyManager.createStrategy(any(), any(), any())).thenReturn(mockStrategy);
+    when(mockStrategyManager.createStrategy(any(), any(), any())).thenReturn(ta4jStrategy);
     when(mockBacktestRunner.runBacktest(any())).thenReturn(createDummyResult());
 
     // Create a basic valid request
@@ -89,8 +88,10 @@ public class BacktestServiceImplTest {
     // Arrange
     request =
         BacktestRequest.newBuilder()
-            .setStrategyType(StrategyType.SMA_RSI)
-            .setStrategyParameters(Any.pack(createValidParameters()))
+            .setStrategy(
+                Strategy.newBuilder()
+                    .setType(StrategyType.SMA_RSI)
+                    .setParameters(Any.pack(createValidParameters())))
             .addCandles(createCandle(1.0))
             .build();
 

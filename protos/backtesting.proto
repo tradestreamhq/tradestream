@@ -17,8 +17,7 @@ import "protos/strategies.proto";
 // and an Any for the specific parameters (e.g. SmaRsiParameters).
 message BacktestRequest {
   repeated marketdata.Candle candles = 1;
-  strategies.StrategyType strategy_type = 2;
-  google.protobuf.Any strategy_parameters = 3; // Must be provided
+  strategies.Strategy strategy = 2;
 }
 
 // Multi-timeframe results from the backtest

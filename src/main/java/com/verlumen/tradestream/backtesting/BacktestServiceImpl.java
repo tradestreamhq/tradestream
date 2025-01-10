@@ -41,14 +41,14 @@ final class BacktestServiceImpl
       // Create strategy using manager
       Strategy strategy = strategyManager.createStrategy(
           series, 
-          request.getStrategyType(), 
-          request.getStrategyParameters());
+          request.getStrategy().getType(), 
+          request.getStrategy().getParameters());
 
       // Create backtest request
       BacktestRunner.BacktestRequest backtestRequest = BacktestRunner.BacktestRequest.builder()
           .setBarSeries(series)
           .setStrategy(strategy)
-          .setStrategyType(request.getStrategyType())
+          .setStrategyType(request.getStrategy().getType())
           .build();
 
       // Run backtest and get results

@@ -8,6 +8,7 @@ import com.google.protobuf.Any;
 import com.verlumen.tradestream.backtesting.params.ChromosomeSpec;
 import com.verlumen.tradestream.backtesting.params.ParamConfig;
 import com.verlumen.tradestream.backtesting.params.ParamConfigManager;
+import com.verlumen.tradestream.strategies.Strategy;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.*;
 import io.jenetics.engine.*;
@@ -79,8 +80,7 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
                 
                 BacktestRequest backtestRequest = BacktestRequest.newBuilder()
                     .addAllCandles(request.getCandlesList())
-                    .setStrategyType(request.getStrategyType())
-                    .setStrategyParameters(params)
+                    .setStrategy(Strategy.newBuilder().setType(request.getStrategyType()).setParameters(params))
                     .build();
 
                 BacktestResult result = backtestServiceClient.runBacktest(backtestRequest);
