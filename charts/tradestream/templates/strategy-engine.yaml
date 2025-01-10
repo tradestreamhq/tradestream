@@ -21,14 +21,10 @@ spec:
     spec:
       containers:
         - name: strategy-engine
-          args:
-      {{- range $key, $value := .Values.strategyEngine.args }}
-          {{- if $value }}
-          - --{{ $key }}={{ $value }}
-          {{- else }}
-          - --{{ $key }}
-          {{- end }}
-      {{- end }}
+          args:          
+           {{  range .Values.arguments }}
+             - {{ . }}
+           {{ end }}
           image: "{{ .Values.strategyEngine.image.repository }}:{{ .Values.strategyEngine.image.tag }}"
           imagePullPolicy: {{ default "IfNotPresent" .Values.strategyEngine.image.pullPolicy }}
           ports:
