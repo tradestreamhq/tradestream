@@ -28,8 +28,4 @@ java_library(
 java_library(
     name = "kafka_properties",
     srcs = ["KafkaProperties.java"],
-    deps = [
-        "//third_party:guava",
-        "//third_party:mug",
-    ],    
 )
