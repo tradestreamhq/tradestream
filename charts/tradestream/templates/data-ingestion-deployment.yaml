@@ -22,10 +22,13 @@ spec:
       containers:
         - name: data-ingestion
           args:
-          args:          
-           {{  range .Values.dataIngestion.args }}
-             - {{ . }}
-           {{ end }}
+      {{- range $key, $value := .Values.extraArgs }}
+          {{- if $value }}
+          - --{{ $key }}={{ $value }}
+          {{- else }}
+          - --{{ $key }}
+          {{- end }}
+      {{- end }}
              - "--kafka.bootstrap.servers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
 
 
