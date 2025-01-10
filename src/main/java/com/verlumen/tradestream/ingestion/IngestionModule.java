@@ -1,34 +1,50 @@
 package com.verlumen.tradestream.ingestion;
 
 import com.google.auto.value.AutoValue;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.TypeLiteral;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.kafka.KafkaProperties;
-import java.util.Properties;
-import java.util.Timer;
 import info.bitrich.xchangestream.core.StreamingExchange;
+import java.util.Timer;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 @AutoValue
 abstract class IngestionModule extends AbstractModule {
   static IngestionModule create(Namespace namespace) {
-    return new AutoValue_IngestionModule(namespace);
+    String candlePublisherTopic = namespace.getString("candlePublisherTopic");
+    String coinMarketCapApiKey = namespace.getString("coinmarketcap.apiKey");
+    int topNCryptocurrencies = namespace.getInt("coinmarketcap.topN");
+    String exchangeName = namespace.getString("exchangeName");
+    long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000L;
+    String runModeName = namespace.getString("runMode").toUpperCase();
+    RunMode runMode = RunMode.valueOf(runModeName);
+    KafkaProperties kafkaProperties =
+        KafkaProperties.createFromKafkaPrefixedProperties(namespace.getAttrs());
+
+    return new AutoValue_IngestionModule(
+        candlePublisherTopic,
+        coinMarketCapApiKey,
+        topNCryptocurrencies,
+        exchangeName,
+        candleIntervalMillis,
+        runMode,
+        kafkaProperties
+    );
   }
 
-  abstract Namespace namespace();
+  abstract String candlePublisherTopic();
+  abstract String coinMarketCapApiKey();
+  abstract int topNCryptocurrencies();
+  abstract String exchangeName();
+  abstract long candleIntervalMillis();
+  abstract RunMode runMode();
+  abstract KafkaProperties kafkaProperties();
 
-  KafkaProperties kafkaProperties() {
-    return KafkaProperties.createFromKafkaPrefixedProperties(namespace().getAttrs());
-  }
-  
   @Override
   protected void configure() {
-    bind(Namespace.class).toProvider(this::namespace);
     bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
     bind(HttpClient.class).to(HttpClientImpl.class);
@@ -41,46 +57,45 @@ abstract class IngestionModule extends AbstractModule {
 
     install(new FactoryModuleBuilder()
         .implement(CandleManager.class, CandleManagerImpl.class)
-        .build(CandleManager.Factory.class));    
+        .build(CandleManager.Factory.class));
+
     install(new FactoryModuleBuilder()
         .implement(CandlePublisher.class, CandlePublisherImpl.class)
         .build(CandlePublisher.Factory.class));
+
+    // Install Kafka module using the KafkaProperties we stored
     install(KafkaModule.create(kafkaProperties()));
   }
 
   @Provides
-  CandleManager provideCandleManager(Namespace namespace, CandlePublisher candlePublisher, CandleManager.Factory candleMangerFactory) {
-    long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000;
-    return candleMangerFactory.create(candleIntervalMillis, candlePublisher);
+  CandleManager provideCandleManager(
+      CandlePublisher candlePublisher, CandleManager.Factory candleManagerFactory) {
+    return candleManagerFactory.create(candleIntervalMillis(), candlePublisher);
   }
 
   @Provides
-  CandlePublisher provideCandlePublisher(Namespace namespace, CandlePublisher.Factory candlePublisherFactory) {
-    String topic = namespace.getString("candlePublisherTopic");
-    return candlePublisherFactory.create(topic);
+  CandlePublisher provideCandlePublisher(CandlePublisher.Factory candlePublisherFactory) {
+    return candlePublisherFactory.create(candlePublisherTopic());
   }
 
   @Provides
-  CoinMarketCapConfig provideCoinMarketCapConfig(Namespace namespace) {
-    String apiKey = namespace.getString("coinmarketcap.apiKey");
-    int topN = namespace.getInt("coinmarketcap.topN");
-    return CoinMarketCapConfig.create(topN, apiKey);    
+  CoinMarketCapConfig provideCoinMarketCapConfig() {
+    return CoinMarketCapConfig.create(topNCryptocurrencies(), coinMarketCapApiKey());
   }
 
   @Provides
-  ExchangeStreamingClient provideExchangeStreamingClient(Namespace namespace, ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
-    return exchangeStreamingClientFactory.create(namespace.getString("exchangeName"));
-  }
-  
-  @Provides
-  RunMode provideRunMode(Namespace namespace) {
-    String runModeName = namespace.getString("runMode").toUpperCase();
-    return RunMode.valueOf(runModeName);
+  ExchangeStreamingClient provideExchangeStreamingClient(
+      ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
+    return exchangeStreamingClientFactory.create(exchangeName());
   }
 
   @Provides
-  TradeProcessor provideTradeProcessor(Namespace namespace) {
-    long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000;
-    return TradeProcessor.create(candleIntervalMillis);
+  RunMode provideRunMode() {
+    return runMode();
+  }
+
+  @Provides
+  TradeProcessor provideTradeProcessor() {
+    return TradeProcessor.create(candleIntervalMillis());
   }
 }
