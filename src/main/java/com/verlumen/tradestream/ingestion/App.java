@@ -45,6 +45,23 @@ final class App {
     try {
       logger.atInfo().log("Initializing Guice injector with IngestionModule");
       Namespace namespace = createParser().parseArgs(args);
+      String candlePublisherTopic = namespace.getString("candlePublisherTopic");
+      String coinMarketCapApiKey = namespace.getString("coinmarketcap.apiKey");
+      int topNCryptocurrencies = namespace.getInt("coinmarketcap.topN");
+      String exchangeName = namespace.getString("exchangeName");
+      long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000L;
+      String runModeName = namespace.getString("runMode").toUpperCase();
+      RunMode runMode = RunMode.valueOf(runModeName);
+      KafkaProperties kafkaProperties =
+          KafkaProperties.createFromKafkaPrefixedProperties(namespace.getAttrs());
+      IngestionModule module = IngestionModule.create(
+        candlePublisherTopic,
+        coinMarketCapApiKey,
+        topNCryptocurrencies,
+        exchangeName,
+        candleIntervalMillis,
+        runMode,
+        kafkaProperties);
       App app = Guice.createInjector(IngestionModule.create(namespace)).getInstance(App.class);
       logger.atInfo().log("Guice initialization complete, running application");
       app.run();
