@@ -12,6 +12,7 @@ java_binary(
     main_class = "com.verlumen.tradestream.ingestion.App",
     deps = [
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
         "//third_party:argparse4j",
         "//third_party:flogger",
         "//third_party:guice",
@@ -266,7 +267,6 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
-        "//third_party:argparse4j",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice_assistedinject",

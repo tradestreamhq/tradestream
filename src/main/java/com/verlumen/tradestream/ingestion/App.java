@@ -4,6 +4,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.kafka.KafkaProperties;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -45,7 +46,24 @@ final class App {
     try {
       logger.atInfo().log("Initializing Guice injector with IngestionModule");
       Namespace namespace = createParser().parseArgs(args);
-      App app = Guice.createInjector(IngestionModule.create(namespace)).getInstance(App.class);
+      String candlePublisherTopic = namespace.getString("candlePublisherTopic");
+      String coinMarketCapApiKey = namespace.getString("coinmarketcap.apiKey");
+      int topNCryptocurrencies = namespace.getInt("coinmarketcap.topN");
+      String exchangeName = namespace.getString("exchangeName");
+      long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000L;
+      String runModeName = namespace.getString("runMode").toUpperCase();
+      RunMode runMode = RunMode.valueOf(runModeName);
+      KafkaProperties kafkaProperties =
+          KafkaProperties.createFromKafkaPrefixedProperties(namespace.getAttrs());
+      IngestionModule module = IngestionModule.create(
+        candlePublisherTopic,
+        coinMarketCapApiKey,
+        topNCryptocurrencies,
+        exchangeName,
+        candleIntervalMillis,
+        runMode,
+        kafkaProperties);
+      App app = Guice.createInjector(module).getInstance(App.class);
       logger.atInfo().log("Guice initialization complete, running application");
       app.run();
     } catch (Exception e) {
