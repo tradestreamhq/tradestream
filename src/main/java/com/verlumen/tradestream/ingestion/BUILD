@@ -16,6 +16,7 @@ java_binary(
         "//third_party:argparse4j",
         "//third_party:flogger",
         "//third_party:guice",
+        ":ingestion_config",
         ":ingestion_module",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
