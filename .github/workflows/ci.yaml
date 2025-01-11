@@ -124,8 +124,7 @@ jobs:
             echo -e "\nGathering detailed status and logs for non-ready pods..."
 
             # This command gets pods where the 'Ready' condition status is 'False'.
-            not_ready_pod_names=$(kubectl get pods -n "${namespace}" $label_flag \
-              -o 'jsonpath={range .items[?(@.status.conditions[?(@.type=="Ready")].status=="False")]}{.metadata.name}{"\n"}{end}')
+            not_ready_pod_names=$(kubectl get pods -n "${namespace}" $label_flag -o jsonpath='{range .items[?(@.status.conditions[?(@.type=="Ready")].status=="False")]}{.metadata.name}{"\n"}{end}') # CHANGED
 
             echo -e "\nPods identified as not Ready via JSONPath:\n$not_ready_pod_names" # CHANGED
 
@@ -171,6 +170,8 @@ jobs:
           # whether the application within the pod is ready to serve traffic.
           # A pod can be in the 'Running' phase but still not 'Ready' if its readiness
           # probes are failing.
+
+
 
       - name: Verify Installations
         run: |
