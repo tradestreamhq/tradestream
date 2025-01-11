@@ -20,6 +20,8 @@ kafkaUi:
     port: 8080
 dataIngestion:
   args:
+    - '-jar'
+    - '/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar'
     - --candlePublisherTopic=candles
     - --kafka.acks=all
     - --kafka.retries=5
@@ -33,6 +35,8 @@ dataIngestion:
     port: 8080
 strategyEngine:
   args:
+    - '-jar'
+    - '/src/main/java/com/verlumen/tradestream/strategies/app_deploy.jar'
     - --runMode=wet
   image:
     repository: "tradestreamhq/tradestream-strategy-engine"
