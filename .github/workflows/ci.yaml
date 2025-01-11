@@ -125,7 +125,7 @@ jobs:
 
             # This command gets pods where the 'Ready' condition status is 'False'.
             not_ready_pod_names=$(kubectl get pods -n "${namespace}" $label_flag \
-              -o 'jsonpath={range .items[?(@.status.conditions[?(@.type=="Ready")].status=="False")]}{.metadata.name}{"\n"}{end}')
+              -o 'jsonpath={range .items[?(@.status.conditions[?(@.type=="Ready")].status=="False")]}{.metadata.name}{"\n"}{end}'
 
             echo -e "\nPods identified as not Ready via JSONPath:\n$not_ready_pod_names" # CHANGED
 
