@@ -93,16 +93,15 @@ jobs:
             --set dataIngestion.image.tag=latest \
             --set 'dataIngestion.args[0]=--runMode=dry'
 
-      - name: Wait for All Pods to be Ready
+      - name: Wait for Pods to be Ready
         run: |
-          kubectl wait --for=condition=Ready \
-            pod -l app=my-tradestream \
-            -n tradestream-namespace \
-            --timeout=3m || (
-              kubectl get pods -n tradestream-namespace &&
-              kubectl describe pod -l app=my-tradestream -n tradestream-namespace &&
-              false
-            )
+          until kubectl get pods -l app=my-tradestream -n tradestream-namespace 2>/dev/null | grep -q . ; do
+            echo "Waiting for pods to be created..."
+            sleep 5
+          done
+
+          kubectl wait --for=condition=Ready pod -l app=my-tradestream -n tradestream-namespace --timeout=2m || \
+           (kubectl get pods -n tradestream-namespace && kubectl describe pod -l app=my-tradestream -n tradestream-namespace && false)
 
       - name: Verify Installations
         run: |
