@@ -93,77 +93,16 @@ jobs:
             --set dataIngestion.image.tag=latest \
             --set 'dataIngestion.args[0]=--runMode=dry'
 
-      - name: Wait for All Pods to be Ready
+      - name: Wait for Pods to be Ready
         run: |
-          set -e  # Exit immediately if a command exits with a non-zero status.
-
-          namespace="tradestream-namespace"
-          timeout_seconds=180
-          # Use proper GitHub Actions syntax for input variables
-          label_selector="${{ inputs.label_selector }}"
-
-          echo "Waiting for pods in namespace '${namespace}' to become Ready (timeout: ${timeout_seconds}s)..."
-
-          # Construct the kubectl wait command without quotes that could cause issues
-          wait_command="kubectl wait --for=condition=Ready pod --all -n ${namespace} --timeout=${timeout_seconds}s"
-          if [[ -n "${label_selector}" ]]; then
-            wait_command="${wait_command} -l ${label_selector}"
-            echo "Using label selector: ${label_selector}"
-          fi
-
-          # Execute the kubectl wait command
-          if ! eval "${wait_command}"; then
-            echo "Timeout reached or some pods failed to become Ready within ${timeout_seconds} seconds."
-            echo -e "\nCurrent pod statuses in namespace '${namespace}':"
-            
-            # Handle label selector for pod listing
-            label_flag=""
-            if [[ -n "${label_selector}" ]]; then
-              label_flag="-l ${label_selector}"
-            fi
-            
-            # List current pods
-            kubectl get pods -n "${namespace}" ${label_flag}
-
-            echo -e "\nGathering detailed status and logs for non-ready pods..."
-
-            # Get non-ready pods using proper quoting
-            not_ready_pod_names=$(kubectl get pods -n "${namespace}" ${label_flag} \
-              -o 'jsonpath={range .items[?(@.status.conditions[?(@.type=="Ready")].status=="False")]}{.metadata.name}{"\n"}{end}')
-
-            echo -e "\nPods identified as not Ready via JSONPath:\n${not_ready_pod_names}"
-
-            if [[ -n "${not_ready_pod_names}" ]]; then
-              while IFS= read -r pod; do
-                # Skip empty lines
-                [[ -z "${pod}" ]] && continue
-                
-                echo -e "\nDetails for pod '${pod}':"
-                kubectl describe pod "${pod}" -n "${namespace}"
-
-                # Get container statuses with proper quoting
-                containers=$(kubectl get pod "${pod}" -n "${namespace}" -o jsonpath='{.spec.containers[*].name}')
-                
-                if [[ -n "${containers}" ]]; then
-                  for container in ${containers}; do
-                    echo -e "\nLogs for container '${container}' in pod '${pod}':"
-                    # Get previous logs if available
-                    kubectl logs "${pod}" -n "${namespace}" -c "${container}" --previous 2>/dev/null || true
-                    # Get current logs
-                    kubectl logs "${pod}" -n "${namespace}" -c "${container}" || true
-                  done
-                else
-                  echo "No containers found in pod '${pod}'."
-                fi
-              done <<< "${not_ready_pod_names}"
-            else
-              echo "No pods found that are not in the Ready state."
-            fi
-
-            exit 1
-          else
-            echo "All targeted pods in namespace '${namespace}' are Ready."
-          fi
+          kubectl wait --for=condition=Ready \
+            pod -l app=my-tradestream \
+            -n tradestream-namespace \
+            --timeout=3m || (
+              kubectl get pods -n tradestream-namespace &&
+              kubectl describe pod -l app=my-tradestream -n tradestream-namespace &&
+              false
+            )
 
       - name: Verify Installations
         run: |
