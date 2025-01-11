@@ -99,66 +99,63 @@ jobs:
 
           namespace="tradestream-namespace"
           timeout_seconds=180
-          label_selector="${{ github.event.inputs.label_selector }}" # Example of how to get a label selector from a workflow input, default to empty if not set
+          # Use proper GitHub Actions syntax for input variables
+          label_selector="${{ inputs.label_selector }}"
 
           echo "Waiting for pods in namespace '${namespace}' to become Ready (timeout: ${timeout_seconds}s)..."
 
-          # Construct the kubectl wait command. Include the label selector if provided.
-          wait_command="kubectl wait --for=condition=Ready pod --all -n \"${namespace}\" --timeout=\"${timeout_seconds}s\""
+          # Construct the kubectl wait command without quotes that could cause issues
+          wait_command="kubectl wait --for=condition=Ready pod --all -n ${namespace} --timeout=${timeout_seconds}s"
           if [[ -n "${label_selector}" ]]; then
-            wait_command="$wait_command -l \"${label_selector}\""
+            wait_command="${wait_command} -l ${label_selector}"
             echo "Using label selector: ${label_selector}"
           fi
 
-          # Execute the kubectl wait command and check for success.
-          if ! eval "$wait_command"; then
+          # Execute the kubectl wait command
+          if ! eval "${wait_command}"; then
             echo "Timeout reached or some pods failed to become Ready within ${timeout_seconds} seconds."
             echo -e "\nCurrent pod statuses in namespace '${namespace}':"
-            # Use a separate variable for the label flag to improve readability
+            
+            # Handle label selector for pod listing
             label_flag=""
             if [[ -n "${label_selector}" ]]; then
-              label_flag="-l \"${label_selector}\""
+              label_flag="-l ${label_selector}"
             fi
-            kubectl get pods -n "${namespace}" $label_flag # Use label_flag
+            
+            # List current pods
+            kubectl get pods -n "${namespace}" ${label_flag}
 
             echo -e "\nGathering detailed status and logs for non-ready pods..."
 
-            # This command gets pods where the 'Ready' condition status is 'False'.
-            not_ready_pod_names=$(kubectl get pods -n "${namespace}" $label_flag \
-              -o 'jsonpath={range .items[?(@.status.conditions[?(@.type=="Ready")].status=="False")]}{.metadata.name}{"\n"}{end}'
+            # Get non-ready pods using proper quoting
+            not_ready_pod_names=$(kubectl get pods -n "${namespace}" ${label_flag} \
+              -o 'jsonpath={range .items[?(@.status.conditions[?(@.type=="Ready")].status=="False")]}{.metadata.name}{"\n"}{end}')
 
-            echo -e "\nPods identified as not Ready via JSONPath:\n$not_ready_pod_names" # CHANGED
+            echo -e "\nPods identified as not Ready via JSONPath:\n${not_ready_pod_names}"
 
-            if [[ -n "$not_ready_pod_names" ]]; then
+            if [[ -n "${not_ready_pod_names}" ]]; then
               while IFS= read -r pod; do
-                echo -e "\nDetails for pod '$pod':"
-                kubectl describe pod "$pod" -n "${namespace}"
+                # Skip empty lines
+                [[ -z "${pod}" ]] && continue
+                
+                echo -e "\nDetails for pod '${pod}':"
+                kubectl describe pod "${pod}" -n "${namespace}"
 
-                # Get detailed status of containers within the pod. # CHANGED
-                container_statuses=$(kubectl get pod "$pod" -n "${namespace}" -o go-template='{{range .status.containerStatuses}}{{.name}}={{.state.waiting.reason}}={{.state.terminated.reason}}{{"\n"}}{{end}}')
-
-                containers=$(kubectl get pod "$pod" -n "${namespace}" -o jsonpath='{.spec.containers[*].name}')
-                if [[ -n "$containers" ]]; then
-                  for container in $containers; do
-                    log_this_container=false # Default to not logging unless criteria are met # CHANGED
-
-                    # We are focusing on the pod's Ready condition, not just container states.
-                    # Even if a container is "Running", a failing readiness probe means the pod isn't Ready.
-                    # We gather logs for all containers in pods that are not Ready.
-                    log_this_container=true
-
-                    if "$log_this_container"; then
-                      echo -e "\nLogs for container '$container' in pod '$pod':"
-                      # We capture both --previous and current logs to provide a more complete picture.
-                      # --previous logs can contain information about why a container restarted or failed.
-                      kubectl logs "$pod" -n "${namespace}" -c "$container" --previous 2>/dev/null || true # Attempt to get previous logs, ignore errors if not available
-                      kubectl logs "$pod" -n "${namespace}" -c "$container"
-                    fi
+                # Get container statuses with proper quoting
+                containers=$(kubectl get pod "${pod}" -n "${namespace}" -o jsonpath='{.spec.containers[*].name}')
+                
+                if [[ -n "${containers}" ]]; then
+                  for container in ${containers}; do
+                    echo -e "\nLogs for container '${container}' in pod '${pod}':"
+                    # Get previous logs if available
+                    kubectl logs "${pod}" -n "${namespace}" -c "${container}" --previous 2>/dev/null || true
+                    # Get current logs
+                    kubectl logs "${pod}" -n "${namespace}" -c "${container}" || true
                   done
                 else
-                  echo "No containers found in pod '$pod'."
+                  echo "No containers found in pod '${pod}'."
                 fi
-              done <<< "$not_ready_pod_names"
+              done <<< "${not_ready_pod_names}"
             else
               echo "No pods found that are not in the Ready state."
             fi
@@ -167,10 +164,6 @@ jobs:
           else
             echo "All targeted pods in namespace '${namespace}' are Ready."
           fi
-          # We are focusing on the 'Ready' condition of the pods because this indicates
-          # whether the application within the pod is ready to serve traffic.
-          # A pod can be in the 'Running' phase but still not 'Ready' if its readiness
-          # probes are failing.
 
       - name: Verify Installations
         run: |
