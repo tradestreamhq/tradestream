@@ -95,83 +95,43 @@ jobs:
 
       - name: Wait for All Pods to be Ready
         run: |
-          set -e  # Exit immediately if a command exits with a non-zero status
+          set -e
 
           namespace="tradestream-namespace"
           timeout_seconds=180
-          interval=10  # Interval between checks in seconds
-          end_time=$((SECONDS+timeout_seconds))
 
           echo "Waiting for pods in namespace '${namespace}' to become Ready (timeout: ${timeout_seconds}s)..."
 
-          while [ $SECONDS -lt $end_time ]; do
-            # Use kubectl wait with a short timeout for this iteration
-            if kubectl wait --for=condition=Ready pod --all -n "${namespace}" --timeout="${interval}s" 2>/dev/null; then
-              echo "All pods in namespace '${namespace}' are Ready."
-              exit 0
-            fi
-
-            # If we're here, some pods aren't ready yet
-            echo "Current pod statuses in namespace '${namespace}':"
+          # Directly use kubectl wait with the condition and timeout
+          if ! kubectl wait --for=condition=Ready pod --all -n "${namespace}" --timeout="${timeout_seconds}s"; then
+            echo "Timeout reached or some pods failed to become Ready."
+            echo -e "\nCurrent pod statuses in namespace '${namespace}':"
             kubectl get pods -n "${namespace}"
 
-            # Only show detailed status if we're close to timeout
-            time_left=$((end_time-SECONDS))
-            if [ $time_left -lt $((interval * 2)) ]; then
-              echo -e "\nGathering detailed status and logs for non-ready pods..."
+            echo -e "\nGathering detailed status and logs for non-ready pods..."
+            not_ready_pod_names=$(kubectl get pods -n "${namespace}" -o jsonpath='{range .items[?(@.status.conditions[?(@.type=="Ready")].status=="False")]}{.metadata.name}{"\n"}{end}')
 
-              # Get pods where the 'Ready' condition status is 'False'
-              not_ready_pod_names=$(kubectl get pods -n "${namespace}" -o jsonpath='{range .items[?(@.status.conditions[?(@.type=="Ready")].status=="False")]}{.metadata.name}{"\n"}{end}')
+            if [[ -n "$not_ready_pod_names" ]]; then
+              while IFS= read -r pod; do
+                echo -e "\nDetails for pod '$pod':"
+                kubectl describe pod "$pod" -n "${namespace}"
 
-              if [[ -n "$not_ready_pod_names" ]]; then
-                while IFS= read -r pod; do
-                  echo -e "\nDetails for pod '$pod':"
-                  kubectl describe pod "$pod" -n "${namespace}"
-
-                  # Get container statuses
-                  containers=$(kubectl get pod "$pod" -n "${namespace}" -o jsonpath='{.spec.containers[*].name}')
-                  if [[ -n "$containers" ]]; then
-                    for container in $containers; do
-                      echo -e "\nLogs for container '$container' in pod '$pod':"
-                      # Try to get previous logs first
-                      kubectl logs "$pod" -n "${namespace}" -c "$container" --previous 2>/dev/null || true
-                      # Get current logs
-                      kubectl logs "$pod" -n "${namespace}" -c "$container"
-                    done
-                  fi
-                done <<< "$not_ready_pod_names"
-              fi
+                containers=$(kubectl get pod "$pod" -n "${namespace}" -o jsonpath='{.spec.containers[*].name}')
+                if [[ -n "$containers" ]]; then
+                  for container in $containers; do
+                    echo -e "\nLogs for container '$container' in pod '$pod':"
+                    kubectl logs "$pod" -n "${namespace}" -c "$container" --previous 2>/dev/null || true
+                    kubectl logs "$pod" -n "${namespace}" -c "$container"
+                  done
+                fi
+              done <<< "$not_ready_pod_names"
             else
-              echo "Waiting ${interval} seconds before next check... (${time_left}s until timeout)"
+              echo "No pods found that are not in the Ready state."
             fi
-            sleep $interval
-          done
-
-          echo "Timeout reached while waiting for pods to be ready."
-          echo -e "\nFinal pod statuses in namespace '${namespace}':"
-          kubectl get pods -n "${namespace}"
-
-          # Final detailed status for failed pods
-          echo -e "\nGathering final detailed status and logs for non-ready pods..."
-          not_ready_pod_names=$(kubectl get pods -n "${namespace}" -o jsonpath='{range .items[?(@.status.conditions[?(@.type=="Ready")].status=="False")]}{.metadata.name}{"\n"}{end}')
-
-          if [[ -n "$not_ready_pod_names" ]]; then
-            while IFS= read -r pod; do
-              echo -e "\nDetails for pod '$pod':"
-              kubectl describe pod "$pod" -n "${namespace}"
-
-              containers=$(kubectl get pod "$pod" -n "${namespace}" -o jsonpath='{.spec.containers[*].name}')
-              if [[ -n "$containers" ]]; then
-                for container in $containers; do
-                  echo -e "\nLogs for container '$container' in pod '$pod':"
-                  kubectl logs "$pod" -n "${namespace}" -c "$container" --previous 2>/dev/null || true
-                  kubectl logs "$pod" -n "${namespace}" -c "$container"
-                done
-              fi
-            done <<< "$not_ready_pod_names"
+            exit 1
           fi
 
-          exit 1
+          echo "All pods in namespace '${namespace}' are Ready."
 
       - name: Verify Installations
         run: |
