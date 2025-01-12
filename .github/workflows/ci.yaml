@@ -109,7 +109,7 @@ jobs:
             kubectl get pods -n "${namespace}"
 
             echo -e "\nGathering detailed status and logs for non-ready pods..."
-            not_ready_pod_names=$(kubectl get pods -n "${namespace}" -o jsonpath='{range .items[?(@.status.conditions[?(@.type=="Ready")].status=="False")]}{.metadata.name}{"\n"}{end}')
+            not_ready_pod_names=$(kubectl get pods -n "${namespace}" -o jsonpath='{range .items[*]}{% if (index .status.conditions (index (where .status.conditions "type" "Ready") 0) ).status == "False" %}{.metadata.name}{"\n"}{end}{end}')
 
             if [[ -n "$not_ready_pod_names" ]]; then
               while IFS= read -r pod; do
