@@ -93,15 +93,45 @@ jobs:
             --set dataIngestion.image.tag=latest \
             --set 'dataIngestion.args[0]=--runMode=dry'
 
-      - name: Wait for Pods to be Ready
+      - name: Wait for All Pods to be Ready
         run: |
-          until kubectl get pods -l app=my-tradestream -n tradestream-namespace 2>/dev/null | grep -q . ; do
-            echo "Waiting for pods to be created..."
-            sleep 5
-          done
+          set -e
 
-          kubectl wait --for=condition=Ready pod -l app=my-tradestream -n tradestream-namespace --timeout=2m || \
-           (kubectl get pods -n tradestream-namespace && kubectl describe pod -l app=my-tradestream -n tradestream-namespace && false)
+          namespace="tradestream-namespace"
+          timeout_seconds=180
+
+          echo "Waiting for pods in namespace '${namespace}' to become Ready (timeout: ${timeout_seconds}s)..."
+
+          # Directly use kubectl wait with the condition and timeout
+          if ! kubectl wait --for=condition=Ready pod --all -n "${namespace}" --timeout="${timeout_seconds}s"; then
+            echo "Timeout reached or some pods failed to become Ready."
+            echo -e "\nCurrent pod statuses in namespace '${namespace}':"
+            kubectl get pods -n "${namespace}"
+
+            echo -e "\nGathering detailed status and logs for non-ready pods..."
+            not_ready_pod_names=$(kubectl get pods -n "${namespace}" -o jsonpath='{range .items[?(@.status.conditions[?(@.type=="Ready")].status=="False")]}{.metadata.name}{"\n"}{end}')
+
+            if [[ -n "$not_ready_pod_names" ]]; then
+              while IFS= read -r pod; do
+                echo -e "\nDetails for pod '$pod':"
+                kubectl describe pod "$pod" -n "${namespace}"
+
+                containers=$(kubectl get pod "$pod" -n "${namespace}" -o jsonpath='{.spec.containers[*].name}')
+                if [[ -n "$containers" ]]; then
+                  for container in $containers; do
+                    echo -e "\nLogs for container '$container' in pod '$pod':"
+                    kubectl logs "$pod" -n "${namespace}" -c "$container" --previous 2>/dev/null || true
+                    kubectl logs "$pod" -n "${namespace}" -c "$container"
+                  done
+                fi
+              done <<< "$not_ready_pod_names"
+            else
+              echo "No pods found that are not in the Ready state."
+            fi
+            exit 1
+          fi
+
+          echo "All pods in namespace '${namespace}' are Ready."
 
       - name: Verify Installations
         run: |
