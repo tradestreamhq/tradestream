@@ -105,27 +105,29 @@ jobs:
           # First attempt to wait for all pods
           if ! kubectl wait --for=condition=Ready pod --all -n "${namespace}" --timeout="${timeout_seconds}s"; then
             echo "Some pods failed to become ready. Getting details..."
-            
+
             # Get all pods that aren't ready using a simple field selector
             problem_pods=$(kubectl get pods -n "${namespace}" --field-selector status.phase!=Running,status.phase!=Succeeded -o name)
-            
+
             # Also get pods in Running state but not ready (like CrashLoopBackOff)
             running_but_not_ready=$(kubectl get pods -n "${namespace}" --field-selector status.phase=Running -o jsonpath='{range .items[?(@.status.containerStatuses[*].ready==false)]}{.metadata.name}{"\n"}{end}')
-            
+
             problem_pods="$problem_pods"$'\n'"$running_but_not_ready"
 
             if [[ -n "$problem_pods" ]]; then
               echo -e "\nProblem pods found:"
               echo "$problem_pods"
-              
-              while IFS= read -r pod; do
-                if [[ -n "$pod" ]]; then
-                  echo -e "\n--- Details for $pod ---"
-                  kubectl describe pod "$pod" -n "${namespace}"
-                  
-                  echo -e "\n--- Logs for $pod ---"
-                  kubectl logs "$pod" -n "${namespace}" --all-containers=true --previous=true 2>/dev/null || true
-                  kubectl logs "$pod" -n "${namespace}" --all-containers=true
+
+              while IFS= read -r pod_with_type; do
+                if [[ -n "$pod_with_type" ]]; then
+                  # Extract the pod name by removing the "pod/" prefix
+                  pod_name="${pod_with_type#*/}"
+                  echo -e "\n--- Details for $pod_name ---"
+                  kubectl describe pod "$pod_name" -n "${namespace}"
+
+                  echo -e "\n--- Logs for $pod_name ---"
+                  kubectl logs "$pod_name" -n "${namespace}" --all-containers=true --previous=true 2>/dev/null || true
+                  kubectl logs "$pod_name" -n "${namespace}" --all-containers=true
                 fi
               done <<< "$problem_pods"
             fi
