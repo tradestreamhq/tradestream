@@ -54,11 +54,12 @@ public class StrategyEngineImplTest {
     public void setUp() throws InvalidProtocolBufferException {
         config = new StrategyEngine.Config("candles", "signals");
 
-        // Common mock behaviors
+        // Mock returns
         when(mockStrategyManager.getStrategyTypes())
             .thenReturn(ImmutableList.of(StrategyType.SMA_RSI, StrategyType.EMA_MACD));
         when(mockStrategyManager.createStrategy(any(), any(), any())).thenReturn(mockStrategy);
         when(mockCandleBuffer.toBarSeries()).thenReturn(mockBarSeries);
+        when(mockCandleBuffer.getCandles()).thenReturn(ImmutableList.of());
 
         // Initialize via constructor injection 
         engine = new StrategyEngineImpl(
@@ -68,6 +69,7 @@ public class StrategyEngineImplTest {
             mockSignalPublisher,
             config);
     }
+
 
     @Test
     public void handleCandle_withValidCandle_updatesBuffer() {
