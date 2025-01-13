@@ -37,7 +37,9 @@ strategyEngine:
   args:
     - '-jar'
     - '/src/main/java/com/verlumen/tradestream/strategies/app_deploy.jar'
+    - --candleTopic=candles
     - --runMode=wet
+    - --tradeSignalTopic=tradeSignals
   image:
     repository: "tradestreamhq/tradestream-strategy-engine"
     tag: "v0.0.550-develop"
