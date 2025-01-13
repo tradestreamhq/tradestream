@@ -84,7 +84,9 @@ java_library(
     srcs = ["MarketDataConsumerImpl.java"],
     deps = [
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
         "//third_party:guice",
+        "//third_party:kafka_clients",
         ":market_data_consumer",
     ],
 )
