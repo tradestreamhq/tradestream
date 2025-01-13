@@ -45,6 +45,7 @@ java_library(
         "//third_party:guava",
         "//third_party:protobuf_java_util",
         "//third_party:ta4j_core",
+        ":candle_buffer",
     ],
 )
 
