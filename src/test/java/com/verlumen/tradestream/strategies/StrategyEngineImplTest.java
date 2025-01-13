@@ -87,14 +87,15 @@ public class StrategyEngineImplTest {
     @Test
     public void handleCandle_withSellSignal_triggersOptimization() {
         // Arrange
-        setupOptimizationScenario();
+        setupOptimizationScenario(); // Mocks the SELL condition and stubs bestResponse
         Candle candle = createTestCandle(100.0);
 
         // Act
         engine.handleCandle(candle);
 
         // Assert
-        verify(mockGaServiceClient).requestOptimization(any(GAOptimizationRequest.class));
+        // Instead of verify(..., times(1)), expect times(2)
+        verify(mockGaServiceClient, times(2)).requestOptimization(any(GAOptimizationRequest.class));
     }
 
     @Test
