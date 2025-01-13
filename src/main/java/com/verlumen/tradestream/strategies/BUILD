@@ -131,6 +131,8 @@ java_library(
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
+        ":candle_buffer",
+        ":candle_buffer_impl",
         ":market_data_consumer",
         ":market_data_consumer_impl",
         ":strategy_engine",
