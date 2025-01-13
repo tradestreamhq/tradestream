@@ -98,7 +98,7 @@ jobs:
           set -e
 
           namespace="tradestream-namespace"
-          timeout_seconds=180
+          timeout_seconds=90
 
           echo "Waiting for pods in namespace '${namespace}' to become Ready (timeout: ${timeout_seconds}s)..."
 
