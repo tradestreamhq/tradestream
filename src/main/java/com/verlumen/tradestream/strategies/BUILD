@@ -13,6 +13,8 @@ java_binary(
     deps = [
         "//src/main/java/com/verlumen/tradestream/execution:execution_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
         "//third_party:argparse4j",
         "//third_party:flogger",
         "//third_party:guice",
