@@ -6,6 +6,8 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.verlumen.tradestream.execution.ExecutionModule;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.kafka.KafkaModule;
+import com.verlumen.tradestream.kafka.KafkaProperties;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
@@ -59,12 +61,27 @@ final class App {
 
     ArgumentParser argumentParser = createArgumentParser();
     Namespace namespace = argumentParser.parseArgs(args);
+    KafkaProperties kafkaProperties = new KafkaProperties(
+      namespace.get("kafka.acks"),
+      namespace.getInt("kafka.batch.size"),
+      namespace.getString("kafka.bootstrap.servers"),
+      namespace.getInt("kafka.retries"),
+      namespace.getInt("kafka.linger.ms"),
+      namespace.getInt("kafka.buffer.memory"),
+      namespace.getString("kafka.key.serializer"),
+      namespace.getString("kafka.value.serializer"),
+      namespace.getString("kafka.security.protocol"),
+      namespace.getString("kafka.sasl.mechanism"),
+      namespace.getString("kafka.sasl.jaas.config"));
     String candleTopic = namespace.getString("candleTopic");
     String signalTopic = namespace.getString("tradeSignalTopic");
     String runModeName = namespace.getString("runMode");
     App app =
-        Guice.createInjector(ExecutionModule.create(runModeName), StrategiesModule.create(candleTopic, signalTopic))
-            .getInstance(App.class);
+        Guice.createInjector(
+          ExecutionModule.create(runModeName),
+          KafkaModule.create(kafkaProperties),
+          StrategiesModule.create(candleTopic, signalTopic))
+      .getInstance(App.class);
 
     // Start the service
     app.start();
