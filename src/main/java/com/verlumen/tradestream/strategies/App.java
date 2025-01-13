@@ -59,9 +59,11 @@ final class App {
 
     ArgumentParser argumentParser = createArgumentParser();
     Namespace namespace = argumentParser.parseArgs(args);
+    String candleTopic = namespace.getString("candleTopic");
+    String signalTopic = namespace.getString("tradeSignalTopic");
     String runModeName = namespace.getString("runMode");
     App app =
-        Guice.createInjector(ExecutionModule.create(runModeName), StrategiesModule.create())
+        Guice.createInjector(ExecutionModule.create(runModeName), StrategiesModule.create(candleTopic, signalTopic))
             .getInstance(App.class);
 
     // Start the service
@@ -77,6 +79,7 @@ final class App {
 
     parser.addArgument("--candleTopic")
       .type(String.class)
+      .setDefault("candles")
       .help("Kafka topic to subscribe to candle data");
 
     // Kafka configuration
@@ -134,6 +137,7 @@ final class App {
 
     parser.addArgument("--tradeSignalTopic")
       .type(String.class)
+      .setDefault("tradeSignals")
       .help("Kafka topic to publish signal data");
 
     return parser;
