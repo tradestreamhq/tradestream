@@ -43,7 +43,6 @@ final class StrategyEngineImpl implements StrategyEngine {
       CandleBuffer candleBuffer,
       GAServiceClient gaServiceClient,
       StrategyManager strategyManager,
-      StrategyManager strategyManager,
       TradeSignalPublisher signalPublisher,
       @Assisted Config config) {
     this.candleBuffer = candleBuffer;
