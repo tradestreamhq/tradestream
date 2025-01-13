@@ -27,6 +27,28 @@ java_binary(
     ],
 )
 
+java_library(
+    name = "candle_buffer",
+    srcs = ["CandleBuffer.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:guava",
+        "//third_party:ta4j_core",
+    ],
+)
+
+java_library(
+    name = "candle_buffer_impl",
+    srcs = ["CandleBufferImpl.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:guava",
+        "//third_party:protobuf_java_util",
+        "//third_party:ta4j_core",
+        ":candle_buffer",
+    ],
+)
+
 container_structure_test(
     name = "container_test",
     configs = ["container-structure-test.yaml"],
@@ -110,6 +132,8 @@ java_library(
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
+        ":candle_buffer",
+        ":candle_buffer_impl",
         ":market_data_consumer",
         ":market_data_consumer_impl",
         ":strategy_engine",
@@ -134,12 +158,18 @@ java_library(
     name = "strategy_engine_impl",
     srcs = ["StrategyEngineImpl.java"],
     deps = [
+        "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
+        "//protos:trade_signals_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_client",
+        "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
+        "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
+        "//third_party:protobuf_java",
         "//third_party:ta4j_core",
+        ":candle_buffer",
         ":strategy_engine",
         ":strategy_manager",
     ],
