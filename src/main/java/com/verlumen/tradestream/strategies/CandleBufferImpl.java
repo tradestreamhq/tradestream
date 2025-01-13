@@ -1,4 +1,3 @@
-
 package com.verlumen.tradestream.strategies;
 
 import static com.google.protobuf.util.Timestamps.toMillis;
@@ -8,7 +7,6 @@ import com.verlumen.tradestream.marketdata.Candle;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.ta4j.core.Bar;
@@ -16,19 +14,21 @@ import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.BarSeries;
 
-/** Thread-safe buffer for maintaining recent market data. */
 final class CandleBufferImpl implements CandleBuffer {
     private final List<Candle> candles = new ArrayList<>();
     
-    synchronized void add(Candle candle) {
+    @Override
+    public synchronized void add(Candle candle) {
         candles.add(candle);
     }
     
-    synchronized ImmutableList<Candle> getCandles() {
+    @Override
+    public synchronized ImmutableList<Candle> getCandles() {
         return ImmutableList.copyOf(candles); 
     }
     
-    synchronized BarSeries toBarSeries() {
+    @Override
+    public synchronized BarSeries toBarSeries() {
         var series = new BaseBarSeries();
         for (Candle candle : candles) {
             series.addBar(createBar(candle));
