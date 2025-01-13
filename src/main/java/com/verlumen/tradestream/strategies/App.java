@@ -79,6 +79,7 @@ final class App {
 
     parser.addArgument("--candleTopic")
       .type(String.class)
+      .setDefault("candles")
       .help("Kafka topic to subscribe to candle data");
 
     // Kafka configuration
@@ -136,6 +137,7 @@ final class App {
 
     parser.addArgument("--tradeSignalTopic")
       .type(String.class)
+      .setDefault("tradeSignals")
       .help("Kafka topic to publish signal data");
 
     return parser;
