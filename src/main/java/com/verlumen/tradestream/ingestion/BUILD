@@ -11,13 +11,15 @@ java_binary(
     srcs = ["App.java"],
     main_class = "com.verlumen.tradestream.ingestion.App",
     deps = [
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
+        "//third_party:argparse4j",
         "//third_party:flogger",
-        "//third_party:guava",
         "//third_party:guice",
+        ":ingestion_config",
         ":ingestion_module",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
-        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
@@ -117,17 +119,6 @@ java_library(
     srcs = ["CoinMarketCapConfig.java"],
     deps = [
         "//third_party:auto_value",
-    ],
-)
-
-java_library(
-    name = "config_arguments",
-    srcs = ["ConfigArguments.java"],
-    deps = [
-        "//third_party:argparse4j",
-        "//third_party:auto_value",
-        "//third_party:guava",
-        "//third_party:guice",
     ],
 )
 
@@ -262,23 +253,29 @@ oci_image_index(
 )
 
 java_library(
+    name = "ingestion_config",
+    srcs = ["IngestionConfig.java"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
+    ],
+)
+
+java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
-        "//third_party:argparse4j",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice_assistedinject",
         "//third_party:guice",
-        "//third_party:xchange_stream_core",
         ":candle_manager",
         ":candle_manager_impl",
         ":candle_publisher",
         ":candle_publisher_impl",
         ":coin_market_cap_config",
-        ":config_arguments",
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
         ":exchange_streaming_client",
@@ -287,6 +284,7 @@ java_library(
         ":http_client_impl",
         ":http_url_connection_factory",
         ":http_url_connection_factory_impl",
+        ":ingestion_config",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
         ":thin_market_timer",

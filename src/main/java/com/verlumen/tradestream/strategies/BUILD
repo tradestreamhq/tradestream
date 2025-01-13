@@ -114,8 +114,10 @@ java_library(
     deps = [
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/signals:signals_module",
+        "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
+        "//third_party:guice_assistedinject",
         ":market_data_consumer",
         ":market_data_consumer_impl",
         ":strategy_engine",
@@ -148,6 +150,7 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
         "//third_party:guava",
         "//third_party:guice",
+        "//third_party:guice_assistedinject",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
         ":candle_buffer",

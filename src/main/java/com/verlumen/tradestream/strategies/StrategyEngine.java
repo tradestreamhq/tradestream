@@ -3,7 +3,7 @@ package com.verlumen.tradestream.strategies;
 import com.verlumen.tradestream.marketdata.Candle;
 import org.ta4j.core.Strategy;
 
-interface StrategyEngine {
+public interface StrategyEngine {
     /**
      * Handles new candle data from the market
      */
@@ -18,4 +18,10 @@ interface StrategyEngine {
      * Gets the current active strategy
      */
     Strategy getCurrentStrategy();
+
+    record Config(String candleTopic, String signalTopic) {}
+
+    interface Factory {
+        StrategyEngine create(Config config);
+    }
 }
