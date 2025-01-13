@@ -30,7 +30,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.ta4j.core.Bar;
+import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
+import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
@@ -43,6 +46,7 @@ public class StrategyEngineImplTest {
     @Mock @Bind private Strategy mockStrategy;
     @Mock @Bind private CandleBuffer mockCandleBuffer;
     @Mock @Bind private StrategyEngineImpl.Factory mockFactory;
+    @Mock private BarSeries mockBarSeries;
 
     private StrategyEngineImpl engine;
     private StrategyEngine.Config config;
@@ -55,6 +59,7 @@ public class StrategyEngineImplTest {
         when(mockStrategyManager.getStrategyTypes())
             .thenReturn(ImmutableList.of(StrategyType.SMA_RSI, StrategyType.EMA_MACD));
         when(mockStrategyManager.createStrategy(any(), any(), any())).thenReturn(mockStrategy);
+        when(mockCandleBuffer.toBarSeries()).thenReturn(mockBarSeries);
 
         // Initialize via Guice
         engine = new StrategyEngineImpl(
@@ -94,7 +99,6 @@ public class StrategyEngineImplTest {
     public void handleCandle_withBuyConditions_generatesAndPublishesBuySignal() {
         // Arrange
         when(mockStrategy.shouldEnter(any(Integer.class))).thenReturn(true);
-        when(mockCandleBuffer.toBarSeries()).thenReturn(new BaseBarSeries());
         Candle candle = createTestCandle(100.0);
 
         // Act
@@ -113,7 +117,6 @@ public class StrategyEngineImplTest {
     public void handleCandle_withSellConditions_generatesAndPublishesSellSignal() {
         // Arrange
         when(mockStrategy.shouldExit(any(Integer.class))).thenReturn(true);
-        when(mockCandleBuffer.toBarSeries()).thenReturn(new BaseBarSeries());
         Candle candle = createTestCandle(100.0);
 
         // Act
@@ -136,7 +139,6 @@ public class StrategyEngineImplTest {
             .setBestStrategyParameters(Any.getDefaultInstance())
             .build();
         when(mockGaServiceClient.requestOptimization(any())).thenReturn(bestResponse);
-        when(mockCandleBuffer.toBarSeries()).thenReturn(new BaseBarSeries());
 
         // Act
         engine.optimizeStrategy();
@@ -165,7 +167,6 @@ public class StrategyEngineImplTest {
             .setBestStrategyParameters(Any.getDefaultInstance())
             .build();
         when(mockGaServiceClient.requestOptimization(any())).thenReturn(bestResponse);
-        when(mockCandleBuffer.toBarSeries()).thenReturn(new BaseBarSeries());
     }
 
     private Candle createTestCandle(double price) {
