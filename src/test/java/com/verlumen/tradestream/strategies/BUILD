@@ -10,6 +10,7 @@ java_test(
         "//protos:trade_signals_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_client",
         "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
+        "//src/main/java/com/verlumen/tradestream/strategies:candle_buffer",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine_impl",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
