@@ -103,6 +103,7 @@ java_library(
     deps = [
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
+        "//src/main/java/com/verlumen/tradestream/signals:signals_module",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
