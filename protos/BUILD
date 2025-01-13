@@ -26,6 +26,9 @@ java_proto_library(
 proto_library(
     name = "marketdata_proto",
     srcs = ["marketdata.proto"],
+    deps = [
+        "@com_google_protobuf//:timestamp_proto",
+    ],
 )
 
 java_proto_library(

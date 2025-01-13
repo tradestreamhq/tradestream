@@ -67,10 +67,38 @@ java_library(
 )
 
 java_library(
+    name = "backtesting_module",
+    srcs = ["BacktestingModule.java"],
+    deps = [
+        "//protos:backtesting_java_grpc",
+        "//third_party:grpc_java_api",
+        "//third_party:guice",
+        ":backtest_service_client",
+        ":backtest_service_client_impl",
+        ":ga_service_client",
+        ":ga_service_client_impl",
+    ],
+)
+
+java_library(
     name = "ga_service_client",
     srcs = ["GAServiceClient.java"],
     deps = [
         "//protos:backtesting_java_proto",
+    ],
+)
+
+java_library(
+    name = "ga_service_client_impl",
+    srcs = ["GAServiceClientImpl.java"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//protos:backtesting_java_grpc",
+        "//protos:backtesting_java_proto",
+        "//third_party:guice",
+        "//third_party:grpc_java_api",
+        "//third_party:grpc_java_stub",
+        ":ga_service_client",
     ],
 )
 

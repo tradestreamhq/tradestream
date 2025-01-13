@@ -1,6 +1,9 @@
 package com.verlumen.tradestream.ingestion;
 
+
 import com.google.common.flogger.FluentLogger;
+import com.google.protobuf.Timestamp;
+import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.Trade;
 
@@ -21,12 +24,21 @@ import com.verlumen.tradestream.marketdata.Trade;
  * </pre>
  */
 final class CandleBuilder {
+    static CandleBuilder create(String currencyPair, long timestampMillis) {
+        return create(currencyPair, Timestamps.fromMillis(timestampMillis));
+    }
+
+    static CandleBuilder create(String currencyPair, Timestamp timestamp) {
+        logger.atInfo().log("Creating new CandleBuilder for %s at timestamp %s", currencyPair, Timestamps.toString(timestamp));
+        return new CandleBuilder(currencyPair, timestamp);
+    }
+
     // The currency pair this candle represents (e.g. "BTC/USD")
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final String currencyPair;
     
     // Unix timestamp in milliseconds marking the start of this candle's interval
-    private final long timestamp;
+    private final Timestamp timestamp;
     
     // Price tracking fields initialized to NaN to distinguish between no trades and zero prices
     private double open = Double.NaN;
@@ -46,8 +58,7 @@ final class CandleBuilder {
      * @param currencyPair The trading pair identifier (e.g. "BTC/USD")
      * @param timestamp The starting timestamp for this candle's interval in Unix milliseconds
      */
-    CandleBuilder(String currencyPair, long timestamp) {
-        logger.atInfo().log("Creating new CandleBuilder for %s at timestamp %d", currencyPair, timestamp);
+    private CandleBuilder(String currencyPair, Timestamp timestamp) {
         this.currencyPair = currencyPair;
         this.timestamp = timestamp;
     }
@@ -114,8 +125,8 @@ final class CandleBuilder {
      * @return A new immutable Candle instance
      */
     Candle build() {
-        logger.atInfo().log("Building candle for %s: timestamp=%d, open=%f, high=%f, low=%f, close=%f, volume=%f",
-            currencyPair, timestamp, open, high, low, close, volume);
+        logger.atInfo().log("Building candle for %s: timestamp=%s, open=%f, high=%f, low=%f, close=%f, volume=%f",
+            currencyPair, Timestamps.toString(timestamp), open, high, low, close, volume);
         
         return Candle.newBuilder()
                 .setTimestamp(timestamp)

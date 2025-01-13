@@ -1,35 +1,35 @@
 package com.verlumen.tradestream.kafka;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.mu.util.stream.BiStream;
-import net.sourceforge.argparse4j.inf.Namespace;
-
 import java.util.Properties;
 import java.util.function.Supplier;
-import java.util.Objects;
 
-public final class KafkaProperties implements Supplier<Properties> {
-  private final Namespace namespace;
-
-  @Inject
-  KafkaProperties(Namespace namespace) {
-    this.namespace = namespace;
-  }
+public record KafkaProperties(
+    String acks,
+    int batchSize,
+    String bootstrapServers,
+    int retries,
+    int lingerMs,
+    int bufferMemory,
+    String keySerializer,
+    String valueSerializer,
+    String securityProtocol,
+    String saslMechanism,
+    String saslJaasConfig) implements Supplier<Properties> {
 
   @Override
   public Properties get() {
-    // Create a new Properties object to hold the filtered and modified properties
     Properties kafkaProperties = new Properties();
-
-    // Iterate over the input properties
-    BiStream.from(namespace.getAttrs())
-      .filterKeys(key -> key.startsWith("kafka."))
-      .mapKeys(key -> key.substring("kafka.".length()))
-      .filterValues(Objects::nonNull)
-      .mapValues(Object::toString)
-      .forEach(kafkaProperties::setProperty);
-
+    kafkaProperties.setProperty("acks", acks);
+    kafkaProperties.setProperty("batch.size", Integer.toString(batchSize));
+    kafkaProperties.setProperty("bootstrap.servers", bootstrapServers);
+    kafkaProperties.setProperty("retries", Integer.toString(retries));
+    kafkaProperties.setProperty("linger.ms", Integer.toString(lingerMs));
+    kafkaProperties.setProperty("buffer.memory", Integer.toString(bufferMemory));
+    kafkaProperties.setProperty("key.serializer", keySerializer);
+    kafkaProperties.setProperty("value.serializer", valueSerializer);
+    kafkaProperties.setProperty("security.protocol", securityProtocol);
+    kafkaProperties.setProperty("sasl.mechanism", saslMechanism);
+    kafkaProperties.setProperty("sasl.jaas.config", saslJaasConfig);
     return kafkaProperties;
   }
 }
