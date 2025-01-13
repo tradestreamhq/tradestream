@@ -7,6 +7,7 @@ import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
+import com.verlumen.tradestream.signals.SignalsModule;
 import com.verlumen.tradestream.signals.TradeSignalPublisher;
 
 @AutoValue
