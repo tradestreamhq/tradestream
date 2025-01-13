@@ -12,6 +12,7 @@ import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.backtesting.BestStrategyResponse;
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.backtesting.GAServiceClient;
@@ -41,12 +42,13 @@ public class StrategyEngineImplTest {
     @Mock @Bind private TradeSignalPublisher mockSignalPublisher;
     @Mock @Bind private Strategy mockStrategy;
     @Mock @Bind private CandleBuffer mockCandleBuffer;
+    @Mock @Bind private StrategyEngineImpl.Factory mockFactory;
 
     private StrategyEngineImpl engine;
     private StrategyEngine.Config config;
 
     @Before
-    public void setUp() {
+    public void setUp() throws InvalidProtocolBufferException {
         config = new StrategyEngine.Config("candles", "signals");
 
         // Common mock behaviors
@@ -55,9 +57,12 @@ public class StrategyEngineImplTest {
         when(mockStrategyManager.createStrategy(any(), any(), any())).thenReturn(mockStrategy);
 
         // Initialize via Guice
-        engine = Guice.createInjector(BoundFieldModule.of(this))
-            .getInstance(StrategyEngineImpl.Factory.class)
-            .create(config);
+        engine = new StrategyEngineImpl(
+            mockCandleBuffer,
+            mockGaServiceClient,
+            mockStrategyManager,
+            mockSignalPublisher,
+            config);
     }
 
     @Test
@@ -89,6 +94,7 @@ public class StrategyEngineImplTest {
     public void handleCandle_withBuyConditions_generatesAndPublishesBuySignal() {
         // Arrange
         when(mockStrategy.shouldEnter(any(Integer.class))).thenReturn(true);
+        when(mockCandleBuffer.toBarSeries()).thenReturn(new BaseBarSeries());
         Candle candle = createTestCandle(100.0);
 
         // Act
@@ -107,6 +113,7 @@ public class StrategyEngineImplTest {
     public void handleCandle_withSellConditions_generatesAndPublishesSellSignal() {
         // Arrange
         when(mockStrategy.shouldExit(any(Integer.class))).thenReturn(true);
+        when(mockCandleBuffer.toBarSeries()).thenReturn(new BaseBarSeries());
         Candle candle = createTestCandle(100.0);
 
         // Act
@@ -122,13 +129,14 @@ public class StrategyEngineImplTest {
     }
 
     @Test
-    public void optimizeStrategy_selectsBestPerformingStrategy() {
+    public void optimizeStrategy_selectsBestPerformingStrategy() throws InvalidProtocolBufferException {
         // Arrange
         BestStrategyResponse bestResponse = BestStrategyResponse.newBuilder()
             .setBestScore(0.95)
             .setBestStrategyParameters(Any.getDefaultInstance())
             .build();
         when(mockGaServiceClient.requestOptimization(any())).thenReturn(bestResponse);
+        when(mockCandleBuffer.toBarSeries()).thenReturn(new BaseBarSeries());
 
         // Act
         engine.optimizeStrategy();
@@ -138,7 +146,7 @@ public class StrategyEngineImplTest {
     }
 
     @Test
-    public void getCurrentStrategy_afterOptimization_returnsUpdatedStrategy() {
+    public void getCurrentStrategy_afterOptimization_returnsUpdatedStrategy() throws InvalidProtocolBufferException {
         // Arrange
         optimizeStrategy_selectsBestPerformingStrategy(); // Reuse optimization test
 
@@ -157,6 +165,7 @@ public class StrategyEngineImplTest {
             .setBestStrategyParameters(Any.getDefaultInstance())
             .build();
         when(mockGaServiceClient.requestOptimization(any())).thenReturn(bestResponse);
+        when(mockCandleBuffer.toBarSeries()).thenReturn(new BaseBarSeries());
     }
 
     private Candle createTestCandle(double price) {
