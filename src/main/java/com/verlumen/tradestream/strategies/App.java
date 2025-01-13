@@ -59,11 +59,9 @@ final class App {
 
     ArgumentParser argumentParser = createArgumentParser();
     Namespace namespace = argumentParser.parseArgs(args);
-    String candleTopic = namespace.getString("candleTopic");
-    String signalTopic = namespace.getString("tradeSignalTopic");
     String runModeName = namespace.getString("runMode");
     App app =
-        Guice.createInjector(ExecutionModule.create(runModeName), StrategiesModule.create(candleTopic, signalTopic))
+        Guice.createInjector(ExecutionModule.create(runModeName), StrategiesModule.create())
             .getInstance(App.class);
 
     // Start the service

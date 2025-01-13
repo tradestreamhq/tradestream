@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.strategies;
 
 import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 import com.verlumen.tradestream.backtesting.GAServiceClient;
 import com.verlumen.tradestream.marketdata.Candle;
 import org.ta4j.core.Strategy;
@@ -11,16 +10,11 @@ import org.ta4j.core.Strategy;
  * processing, and trade signal generation.
  */
 final class StrategyEngineImpl implements StrategyEngine {
-  private final Config config;
   private final GAServiceClient gaServiceClient;
   private final StrategyManager strategyManager;
 
   @Inject
-  StrategyEngineImpl(
-      GAServiceClient gaServiceClient,
-      StrategyManager strategyManager,
-      @Assisted Config config) {
-    this.config = config;
+  StrategyEngineImpl(GAServiceClient gaServiceClient, StrategyManager strategyManager) {
     this.gaServiceClient = gaServiceClient;
     this.strategyManager = strategyManager;
   }

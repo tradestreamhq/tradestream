@@ -102,10 +102,8 @@ java_library(
     srcs = ["StrategiesModule.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
-        "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
-        "//third_party:guice_assistedinject",
         ":market_data_consumer",
         ":market_data_consumer_impl",
         ":strategy_engine",
@@ -134,7 +132,6 @@ java_library(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_client",
         "//third_party:guice",
-        "//third_party:guice_assistedinject",
         "//third_party:ta4j_core",
         ":strategy_engine",
         ":strategy_manager",
