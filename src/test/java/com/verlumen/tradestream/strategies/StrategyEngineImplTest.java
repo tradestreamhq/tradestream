@@ -45,7 +45,6 @@ public class StrategyEngineImplTest {
     @Mock @Bind private TradeSignalPublisher mockSignalPublisher;
     @Mock @Bind private Strategy mockStrategy;
     @Mock @Bind private CandleBuffer mockCandleBuffer;
-    @Mock @Bind private StrategyEngineImpl.Factory mockFactory;
     @Mock private BarSeries mockBarSeries;
 
     private StrategyEngineImpl engine;
@@ -61,7 +60,7 @@ public class StrategyEngineImplTest {
         when(mockStrategyManager.createStrategy(any(), any(), any())).thenReturn(mockStrategy);
         when(mockCandleBuffer.toBarSeries()).thenReturn(mockBarSeries);
 
-        // Initialize via Guice
+        // Initialize via constructor injection 
         engine = new StrategyEngineImpl(
             mockCandleBuffer,
             mockGaServiceClient,

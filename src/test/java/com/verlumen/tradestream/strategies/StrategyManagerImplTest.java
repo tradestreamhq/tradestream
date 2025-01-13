@@ -1,9 +1,8 @@
 package com.verlumen.tradestream.strategies;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.protobuf.util.Timestamps.fromMillis;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
@@ -13,171 +12,151 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.backtesting.BestStrategyResponse;
-import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
-import com.verlumen.tradestream.backtesting.GAServiceClient;
-import com.verlumen.tradestream.marketdata.Candle;
-import com.verlumen.tradestream.signals.TradeSignal;
-import com.verlumen.tradestream.signals.TradeSignalPublisher;
-import java.time.Duration;
-import java.time.ZonedDateTime;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.ta4j.core.Bar;
+import org.mockito.MockitoAnnotations;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
-public class StrategyEngineImplTest {
-    @Rule public MockitoRule mockito = MockitoJUnit.rule();
+public class StrategyManagerImplTest {
+  @Mock private StrategyFactory<SmaRsiParameters> mockSmaRsiFactory;
 
-    @Mock @Bind private GAServiceClient mockGaServiceClient;
-    @Mock @Bind private StrategyManager mockStrategyManager;
-    @Mock @Bind private TradeSignalPublisher mockSignalPublisher;
-    @Mock @Bind private Strategy mockStrategy;
-    @Mock @Bind private CandleBuffer mockCandleBuffer;
-    @Mock private BarSeries mockBarSeries;
+  @Mock private StrategyFactory<EmaMacdParameters> mockEmaMacdFactory;
 
-    private StrategyEngineImpl engine;
-    private StrategyEngine.Config config;
+  @Bind private ImmutableList<StrategyFactory<?>> strategyFactories;
 
-    @Before
-    public void setUp() throws InvalidProtocolBufferException {
-        config = new StrategyEngine.Config("candles", "signals");
+  @Inject
+  private StrategyManagerImpl strategyManager;
 
-        // Common mock behaviors
-        when(mockStrategyManager.getStrategyTypes())
-            .thenReturn(ImmutableList.of(StrategyType.SMA_RSI, StrategyType.EMA_MACD));
-        when(mockStrategyManager.createStrategy(any(), any(), any())).thenReturn(mockStrategy);
-        when(mockCandleBuffer.toBarSeries()).thenReturn(mockBarSeries);
+  private Strategy mockStrategy;
+  private BarSeries barSeries;
 
-        // Initialize via constructor injection 
-        engine = new StrategyEngineImpl(
-            mockCandleBuffer,
-            mockGaServiceClient,
-            mockStrategyManager,
-            mockSignalPublisher,
-            config);
-    }
+  @Before
+  public void setUp() {
+    MockitoAnnotations.openMocks(this);
 
-    @Test
-    public void handleCandle_withValidCandle_updatesBuffer() {
-        // Arrange
-        Candle candle = createTestCandle(100.0);
+    // Configure mock factories
+    when(mockSmaRsiFactory.getStrategyType()).thenReturn(StrategyType.SMA_RSI);
+    when(mockEmaMacdFactory.getStrategyType()).thenReturn(StrategyType.EMA_MACD);
 
-        // Act
-        engine.handleCandle(candle);
+    // Initialize strategy factories field with mocked dependencies
+    strategyFactories = ImmutableList.of(mockSmaRsiFactory, mockEmaMacdFactory);
 
-        // Assert
-        verify(mockCandleBuffer).add(candle);
-    }
+    Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
 
-    @Test
-    public void handleCandle_withSellSignal_triggersOptimization() {
-        // Arrange
-        setupOptimizationScenario();
-        Candle candle = createTestCandle(100.0);
+    // Create mock strategy and bar series for testing
+    mockStrategy = mock(Strategy.class);
+    barSeries = new BaseBarSeries();
+  }
 
-        // Act
-        engine.handleCandle(candle);
-
-        // Assert
-        verify(mockGaServiceClient).requestOptimization(any(GAOptimizationRequest.class));
-    }
-
-    @Test
-    public void handleCandle_withBuyConditions_generatesAndPublishesBuySignal() {
-        // Arrange
-        when(mockStrategy.shouldEnter(any(Integer.class))).thenReturn(true);
-        Candle candle = createTestCandle(100.0);
-
-        // Act
-        engine.handleCandle(candle);
-
-        // Assert
-        ArgumentCaptor<TradeSignal> signalCaptor = ArgumentCaptor.forClass(TradeSignal.class);
-        verify(mockSignalPublisher).publish(signalCaptor.capture());
-
-        TradeSignal capturedSignal = signalCaptor.getValue();
-        assertThat(capturedSignal.getType()).isEqualTo(TradeSignal.TradeSignalType.BUY);
-        assertThat(capturedSignal.getPrice()).isEqualTo(100.0);
-    }
-
-    @Test
-    public void handleCandle_withSellConditions_generatesAndPublishesSellSignal() {
-        // Arrange
-        when(mockStrategy.shouldExit(any(Integer.class))).thenReturn(true);
-        Candle candle = createTestCandle(100.0);
-
-        // Act
-        engine.handleCandle(candle);
-
-        // Assert
-        ArgumentCaptor<TradeSignal> signalCaptor = ArgumentCaptor.forClass(TradeSignal.class);
-        verify(mockSignalPublisher).publish(signalCaptor.capture());
-
-        TradeSignal capturedSignal = signalCaptor.getValue();
-        assertThat(capturedSignal.getType()).isEqualTo(TradeSignal.TradeSignalType.SELL);
-        assertThat(capturedSignal.getPrice()).isEqualTo(100.0);
-    }
-
-    @Test
-    public void optimizeStrategy_selectsBestPerformingStrategy() throws InvalidProtocolBufferException {
-        // Arrange
-        BestStrategyResponse bestResponse = BestStrategyResponse.newBuilder()
-            .setBestScore(0.95)
-            .setBestStrategyParameters(Any.getDefaultInstance())
+  @Test
+  public void createStrategy_withValidSmaRsiParameters_returnsStrategy()
+      throws InvalidProtocolBufferException {
+    // Arrange
+    SmaRsiParameters params =
+        SmaRsiParameters.newBuilder()
+            .setMovingAveragePeriod(14)
+            .setRsiPeriod(14)
+            .setOverboughtThreshold(70)
+            .setOversoldThreshold(30)
             .build();
-        when(mockGaServiceClient.requestOptimization(any())).thenReturn(bestResponse);
+    Any packedParams = Any.pack(params);
 
-        // Act
-        engine.optimizeStrategy();
+    when(mockSmaRsiFactory.createStrategy(barSeries, packedParams)).thenReturn(mockStrategy);
 
-        // Assert
-        verify(mockStrategyManager).createStrategy(any(), any(), any());
-    }
+    // Act
+    Strategy result =
+        strategyManager.createStrategy(barSeries, StrategyType.SMA_RSI, packedParams);
 
-    @Test
-    public void getCurrentStrategy_afterOptimization_returnsUpdatedStrategy() throws InvalidProtocolBufferException {
-        // Arrange
-        optimizeStrategy_selectsBestPerformingStrategy(); // Reuse optimization test
+    // Assert
+    assertThat(result).isSameInstanceAs(mockStrategy);
+  }
 
-        // Act
-        Strategy result = engine.getCurrentStrategy();
-
-        // Assert
-        assertThat(result).isSameInstanceAs(mockStrategy);
-    }
-
-    private void setupOptimizationScenario() {
-        // Setup conditions that trigger optimization (e.g., SELL signal)
-        when(mockStrategy.shouldExit(any(Integer.class))).thenReturn(true);
-        BestStrategyResponse bestResponse = BestStrategyResponse.newBuilder()
-            .setBestScore(0.95)
-            .setBestStrategyParameters(Any.getDefaultInstance())
+  @Test
+  public void createStrategy_withValidEmaMacdParameters_returnsStrategy()
+      throws InvalidProtocolBufferException {
+    // Arrange
+    EmaMacdParameters params =
+        EmaMacdParameters.newBuilder()
+            .setShortEmaPeriod(12)
+            .setLongEmaPeriod(26)
+            .setSignalPeriod(9)
             .build();
-        when(mockGaServiceClient.requestOptimization(any())).thenReturn(bestResponse);
-    }
+    Any packedParams = Any.pack(params);
 
-    private Candle createTestCandle(double price) {
-        long epochMillis = System.currentTimeMillis();
-        return Candle.newBuilder()
-            .setTimestamp(fromMillis(epochMillis))
-            .setOpen(price)
-            .setHigh(price + 1)
-            .setLow(price - 1)
-            .setClose(price)
-            .setVolume(1000)
-            .setCurrencyPair("BTC/USD")
+    when(mockEmaMacdFactory.createStrategy(barSeries, packedParams)).thenReturn(mockStrategy);
+
+    // Act
+    Strategy result =
+        strategyManager.createStrategy(barSeries, StrategyType.EMA_MACD, packedParams);
+
+    // Assert
+    assertThat(result).isSameInstanceAs(mockStrategy);
+  }
+
+  @Test
+  public void createStrategy_withUnsupportedStrategyType_throwsIllegalArgumentException() {
+    // Arrange
+    SmaRsiParameters params =
+        SmaRsiParameters.newBuilder()
+            .setMovingAveragePeriod(14)
+            .setRsiPeriod(14)
+            .setOverboughtThreshold(70)
+            .setOversoldThreshold(30)
             .build();
-    }
+    Any packedParams = Any.pack(params);
+
+    // Act & Assert
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                strategyManager.createStrategy(
+                    barSeries, StrategyType.ADX_STOCHASTIC, packedParams));
+
+    assertThat(thrown).hasMessageThat().contains("Unsupported strategy type: ADX_STOCHASTIC");
+  }
+
+  @Test
+  public void createStrategy_whenFactoryThrowsException_propagatesException()
+      throws InvalidProtocolBufferException {
+    // Arrange
+    SmaRsiParameters params =
+        SmaRsiParameters.newBuilder()
+            .setMovingAveragePeriod(14)
+            .setRsiPeriod(14)
+            .setOverboughtThreshold(70)
+            .setOversoldThreshold(30)
+            .build();
+    Any packedParams = Any.pack(params);
+
+    InvalidProtocolBufferException expectedException = new InvalidProtocolBufferException("Test exception");
+    when(mockSmaRsiFactory.createStrategy(barSeries, packedParams)).thenThrow(expectedException);
+
+    // Act & Assert
+    InvalidProtocolBufferException thrown =
+        assertThrows(
+            InvalidProtocolBufferException.class,
+            () -> strategyManager.createStrategy(barSeries, StrategyType.SMA_RSI, packedParams));
+
+    assertThat(thrown).isSameInstanceAs(expectedException);
+  }
+
+  @Test
+  public void getStrategyTypes_returnsExpectedStrategyTypes()
+      throws InvalidProtocolBufferException {
+    // Arrange
+    ImmutableList<StrategyType> expected = ImmutableList.of(StrategyType.EMA_MACD, StrategyType.SMA_RSI);
+
+    // Act
+    ImmutableList<StrategyType> actual = strategyManager.getStrategyTypes();
+
+    // Assert
+    assertThat(actual).containsExactlyElementsIn(expected);
+  }
 }
