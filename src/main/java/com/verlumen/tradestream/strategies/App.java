@@ -59,6 +59,18 @@ final class App {
 
     ArgumentParser argumentParser = createArgumentParser();
     Namespace namespace = argumentParser.parseArgs(args);
+    KafkaProperties kafkaProperties = new KafkaProperties(
+      namespace.get("kafka.acks"),
+      namespace.getInt("kafka.batch.size"),
+      namespace.getString("kafka.bootstrap.servers"),
+      namespace.getInt("kafka.retries"),
+      namespace.getInt("kafka.linger.ms"),
+      namespace.getInt("kafka.buffer.memory"),
+      namespace.getString("kafka.key.serializer"),
+      namespace.getString("kafka.value.serializer"),
+      namespace.getString("kafka.security.protocol"),
+      namespace.getString("kafka.sasl.mechanism"),
+      namespace.getString("kafka.sasl.jaas.config"));
     String candleTopic = namespace.getString("candleTopic");
     String signalTopic = namespace.getString("tradeSignalTopic");
     String runModeName = namespace.getString("runMode");
