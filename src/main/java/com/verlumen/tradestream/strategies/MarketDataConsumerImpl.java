@@ -78,37 +78,32 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
   }
 
   private void consumeLoop(Consumer<Candle> handler) {
-    try {
-      while (running.get()) {
-        ConsumerRecords<byte[], byte[]> records = consumer.poll(POLL_TIMEOUT);
-        records.forEach(record -> {
-          try {
-            Candle candle = Candle.parseFrom(record.value());
-            handler.accept(candle);
-          } catch (Exception e) {
-            // Log error but continue processing
+      try {
+          while (running.get()) {
+              ConsumerRecords<byte[], byte[]> records = consumer.poll(POLL_TIMEOUT);
+              if (records != null) {
+                  records.forEach(record -> {
+                      try {
+                          Candle candle = Candle.parseFrom(record.value());
+                          handler.accept(candle);
+                      } catch (Exception e) {
+                          // Log and handle individual record errors
+                      }
+                  });
+              }
           }
-        });
-      }
-    } catch (WakeupException e) {
-      // Ignore exception if closing
-      if (running.get()) {
-        throw e;
-      }
-    } catch (Exception e) {
-      throw new RuntimeException("Error consuming messages", e);
-    } finally {
-      if (consumer != null) {
-        try {
-          consumer.commitSync();
-        } finally {
-          try {
-            consumer.close();
-          } catch (Exception e) {
-            // Log but ignore, we're already cleaning up
+      } catch (WakeupException e) {
+          if (running.get()) {
+              throw e;
           }
-        }
+      } finally {
+          if (consumer != null) {
+              try {
+                  consumer.commitSync();
+              } finally {
+                  consumer.close();
+              }
+          }
       }
-    }
   }
 }
