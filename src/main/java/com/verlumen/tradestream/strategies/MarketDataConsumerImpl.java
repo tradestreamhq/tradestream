@@ -27,8 +27,8 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
   private final String topic;
   private final ExecutorService executorService;
   private final AtomicBoolean running;
-  private volatile KafkaConsumer<byte[], byte[]> consumer;
-  private volatile Future<?> consumerTask;
+  private KafkaConsumer<byte[], byte[]> consumer;
+  private Future<?> consumerTask;
 
   @Inject
   MarketDataConsumerImpl(
@@ -54,7 +54,10 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
 
       consumerTask = executorService.submit(() -> consumeLoop(handler));
     } catch (Exception e) {
-      cleanup();
+      running.set(false);
+      if (consumer != null) {
+        consumer.close();
+      }
       throw new RuntimeException("Failed to start consumer", e);
     }
   }
@@ -62,48 +65,45 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
   @Override
   public void stopConsuming() {
     if (running.compareAndSet(true, false)) {
-      cleanup();
+      if (consumer != null) {
+        consumer.wakeup();
+      }
+      if (consumerTask != null) {
+        consumerTask.cancel(true);
+      }
+      executorService.shutdown();
     }
-  }
-
-  private void cleanup() {
-    running.set(false);
-    if (consumer != null) {
-      consumer.wakeup();
-    }
-    if (consumerTask != null) {
-      consumerTask.cancel(true);
-    }
-    executorService.shutdown();
   }
 
   private void consumeLoop(Consumer<Candle> handler) {
-      try {
-          while (running.get()) {
-              ConsumerRecords<byte[], byte[]> records = consumer.poll(POLL_TIMEOUT);
-              if (records != null) {
-                  records.forEach(record -> {
-                      try {
-                          Candle candle = Candle.parseFrom(record.value());
-                          handler.accept(candle);
-                      } catch (Exception e) {
-                          // Log and handle individual record errors
-                      }
-                  });
-              }
+    try {
+      while (running.get()) {
+        ConsumerRecords<byte[], byte[]> records = consumer.poll(POLL_TIMEOUT);
+        records.forEach(record -> {
+          try {
+            Candle candle = Candle.parseFrom(record.value());
+            handler.accept(candle);
+          } catch (Exception e) {
+            // Log error but continue processing
           }
-      } catch (WakeupException e) {
-          if (running.get()) {
-              throw e;
-          }
-      } finally {
-          if (consumer != null) {
-              try {
-                  consumer.commitSync();
-              } finally {
-                  consumer.close();
-              }
-          }
+        });
       }
+    } catch (WakeupException e) {
+      // Ignore exception if closing
+      if (running.get()) {
+        throw e;
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Error consuming messages", e);
+    } finally {
+      try {
+        if (consumer != null) {
+          consumer.commitSync();
+          consumer.close();
+        }
+      } catch (Exception e) {
+        // Log but proceed with closing
+      }
+    }
   }
 }
