@@ -10,6 +10,8 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
 import com.verlumen.tradestream.signals.SignalsModule;
 import com.verlumen.tradestream.signals.TradeSignalPublisher;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 @AutoValue
@@ -24,6 +26,7 @@ abstract class StrategiesModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(CandleBuffer.class).to(CandleBufferImpl.class);
+    bind(ExecutorService.class).toProvider(Executors::newSingleThreadExecutor);
     bind(new TypeLiteral<KafkaConsumer<byte[], byte[]>>() {})
         .toProvider(KafkaConsumerProvider.class)
         .in(Singleton.class);
