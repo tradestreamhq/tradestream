@@ -142,6 +142,7 @@ java_library(
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
+        "//third_party:kafka_clients",
         ":candle_buffer",
         ":candle_buffer_impl",
         ":kafka_consumer_provider",
