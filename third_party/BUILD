@@ -111,6 +111,14 @@ java_library(
 )
 
 java_library(
+    name = "grpc_java_netty_shaded",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:io_grpc_grpc_netty_shaded",
+    ],
+)
+
+java_library(
     name = "grpc_java_stub",
     visibility = ["//visibility:public"],
     exports = [
