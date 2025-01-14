@@ -9,6 +9,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
 import com.verlumen.tradestream.signals.SignalsModule;
 import com.verlumen.tradestream.signals.TradeSignalPublisher;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 @AutoValue
 abstract class StrategiesModule extends AbstractModule {
