@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.backtesting.GAServiceClient;
@@ -25,7 +24,6 @@ import org.ta4j.core.TradingRecord;
  */
 final class StrategyEngineImpl implements StrategyEngine {
   private final CandleBuffer candleBuffer;
-  private final Config config;
   private final GAServiceClient gaServiceClient;
   private final StrategyManager strategyManager;
   private final TradeSignalPublisher signalPublisher;
@@ -43,10 +41,8 @@ final class StrategyEngineImpl implements StrategyEngine {
       CandleBuffer candleBuffer,
       GAServiceClient gaServiceClient,
       StrategyManager strategyManager,
-      TradeSignalPublisher signalPublisher,
-      @Assisted Config config) {
+      TradeSignalPublisher signalPublisher) {
     this.candleBuffer = candleBuffer;
-    this.config = config;
     this.gaServiceClient = gaServiceClient;
     this.strategyManager = strategyManager;
     this.signalPublisher = signalPublisher;

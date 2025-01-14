@@ -18,10 +18,4 @@ public interface StrategyEngine {
      * Gets the current active strategy
      */
     Strategy getCurrentStrategy();
-
-    record Config(String candleTopic, String signalTopic) {}
-
-    interface Factory {
-        StrategyEngine create(Config config);
-    }
 }
