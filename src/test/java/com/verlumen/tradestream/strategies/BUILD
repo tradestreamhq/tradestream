@@ -20,6 +20,7 @@ java_test(
     deps = [
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:market_data_consumer",
         "//src/main/java/com/verlumen/tradestream/strategies:market_data_consumer_impl",
         "//third_party:guice",
         "//third_party:guice_testlib",
