@@ -44,14 +44,14 @@ public class MarketDataConsumerImplTest {
     @Before
     public void setUp() {
         when(mockConsumerProvider.get()).thenReturn(mockConsumer);
-        
-        // Execute tasks immediately when submitted to executor
+        when(mockConsumer.poll(any(Duration.class))).thenReturn(new ConsumerRecords<>(Collections.emptyMap()));
+
         doAnswer(invocation -> {
             Runnable task = invocation.getArgument(0);
             task.run();
             return null;
         }).when(mockExecutor).submit(any(Runnable.class));
-        
+
         consumer = Guice.createInjector(
             BoundFieldModule.of(this),
             new FactoryModuleBuilder()
