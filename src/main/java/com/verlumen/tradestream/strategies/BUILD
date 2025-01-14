@@ -111,9 +111,13 @@ java_library(
     deps = [
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
+        "//third_party:flogger",
         "//third_party:guice",
         "//third_party:kafka_clients",
         ":market_data_consumer",
+    ],
+    runtime_deps = [
+        "//third_party:flogger_system_backend",
     ],
 )
 
