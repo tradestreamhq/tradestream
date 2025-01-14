@@ -44,9 +44,17 @@ public class MarketDataConsumerImplTest {
     @Before
     public void setUp() {
         when(mockConsumerProvider.get()).thenReturn(mockConsumer);
+        
+        // Execute tasks immediately when submitted to executor
+        doAnswer(invocation -> {
+            Runnable task = invocation.getArgument(0);
+            task.run();
+            return null;
+        }).when(mockExecutor).submit(any(Runnable.class));
+        
         consumer = Guice.createInjector(
             BoundFieldModule.of(this),
-                new FactoryModuleBuilder()
+            new FactoryModuleBuilder()
                 .implement(MarketDataConsumer.class, MarketDataConsumerImpl.class)
                 .build(MarketDataConsumer.Factory.class))
             .getInstance(MarketDataConsumer.Factory.class)
@@ -82,12 +90,15 @@ public class MarketDataConsumerImplTest {
 
     @Test
     public void consumeLoop_commitsAndClosesOnShutdown() {
+        // Setup consumer to throw WakeupException on poll
         when(mockConsumer.poll(any(Duration.class)))
             .thenThrow(new WakeupException());
 
+        // Start and stop the consumer
         consumer.startConsuming(mockHandler);
         consumer.stopConsuming();
 
+        // Verify cleanup actions
         verify(mockConsumer).commitSync();
         verify(mockConsumer).close();
     }
@@ -110,8 +121,11 @@ public class MarketDataConsumerImplTest {
             .thenReturn(records)
             .thenThrow(new WakeupException());
 
-        // Start consuming and verify handler was called
+        // Start consuming and verify handler was called with the test candle
         consumer.startConsuming(mockHandler);
-        verify(mockHandler, timeout(1000)).accept(testCandle);
+        
+        verify(mockHandler).accept(testCandle);
+        verify(mockConsumer).commitSync();
+        verify(mockConsumer).close();
     }
 }
