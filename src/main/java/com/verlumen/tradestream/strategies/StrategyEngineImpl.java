@@ -25,7 +25,6 @@ import org.ta4j.core.TradingRecord;
  */
 final class StrategyEngineImpl implements StrategyEngine {
   private final CandleBuffer candleBuffer;
-  private final Config config;
   private final GAServiceClient gaServiceClient;
   private final StrategyManager strategyManager;
   private final TradeSignalPublisher signalPublisher;
@@ -43,10 +42,8 @@ final class StrategyEngineImpl implements StrategyEngine {
       CandleBuffer candleBuffer,
       GAServiceClient gaServiceClient,
       StrategyManager strategyManager,
-      TradeSignalPublisher signalPublisher,
-      @Assisted Config config) {
+      TradeSignalPublisher signalPublisher) {
     this.candleBuffer = candleBuffer;
-    this.config = config;
     this.gaServiceClient = gaServiceClient;
     this.strategyManager = strategyManager;
     this.signalPublisher = signalPublisher;
