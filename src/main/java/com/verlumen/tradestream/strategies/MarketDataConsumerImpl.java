@@ -9,7 +9,6 @@ import com.verlumen.tradestream.marketdata.Candle;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -28,10 +27,11 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
   @Inject
   MarketDataConsumerImpl(
       Provider<KafkaConsumer<byte[], byte[]>> consumerProvider,
+      ExecutorService executorService,
       @Assisted String topic) {
     this.consumerProvider = consumerProvider;
+    this.executorService = executorService;
     this.topic = topic;
-    this.executorService = Executors.newSingleThreadExecutor();
     this.running = new AtomicBoolean(false);
   }
 
