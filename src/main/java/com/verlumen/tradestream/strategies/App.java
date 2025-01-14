@@ -51,7 +51,7 @@ final class App {
 
     try {
       isRunning = true;
-      marketDataConsumer.startConsuming(strategyEngine::handleCandle);
+      marketDataConsumer.startConsuming(strategyEngine.get()::handleCandle);
       logger.atInfo().log("Strategy Engine service started successfully");
     } catch (Exception e) {
       logger.atSevere().withCause(e).log("Failed to start Strategy Engine service");
