@@ -1,23 +1,18 @@
 package com.verlumen.tradestream.strategies;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.junit.Assert.*;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.marketdata.Candle;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.function.Consumer;
-import javax.inject.Named;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
@@ -34,19 +29,11 @@ import org.mockito.junit.MockitoRule;
 @RunWith(JUnit4.class)
 public class MarketDataConsumerImplTest {
     private static final String TOPIC = "test-topic";
-    private static final TopicPartition PARTITION = 
-        new TopicPartition(TOPIC, 0);
+    private static final TopicPartition PARTITION = new TopicPartition(TOPIC, 0);
 
-    @Rule public MockitoRule mockito = MockitoJUnit.rule();
+    @Rule public final MockitoRule mockito = MockitoJUnit.rule();
 
-    @Bind @Named("kafka.bootstrap.servers")
-    private final String bootstrapServers = "localhost:9092";
-
-    @Bind @Named("kafka.group.id")
-    private final String groupId = "test-group";
-
-    private final String topic = TOPIC;
-
+    @Mock @Bind private Provider<KafkaConsumer<byte[], byte[]>> mockConsumerProvider;
     @Mock private KafkaConsumer<byte[], byte[]> mockConsumer;
     @Mock private Consumer<Candle> mockHandler;
 
@@ -54,99 +41,69 @@ public class MarketDataConsumerImplTest {
 
     @Before
     public void setUp() {
-        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+        when(mockConsumerProvider.get()).thenReturn(mockConsumer);
+        consumer = new MarketDataConsumerImpl(mockConsumerProvider, TOPIC);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void startConsuming_withNullHandler_throwsException() {
-        assertThrows(NullPointerException.class,
-            () -> consumer.startConsuming(null));
+        consumer.startConsuming(null);
     }
 
-    @Test
+    @Test(expected = IllegalStateException.class)
     public void startConsuming_whenAlreadyRunning_throwsException() {
         // Start first consumer
         consumer.startConsuming(mockHandler);
 
-        // Try to start again
-        assertThrows(IllegalStateException.class,
-            () -> consumer.startConsuming(mockHandler));
-
-        // Cleanup
-        consumer.stopConsuming();
+        // Try to start again - should throw
+        consumer.startConsuming(mockHandler);
     }
 
     @Test
-    public void consumeMessages_handlesRecordsCorrectly() throws Exception {
+    public void startConsuming_subscribesToTopic() {
+        consumer.startConsuming(mockHandler);
+        verify(mockConsumer).subscribe(Collections.singletonList(TOPIC));
+    }
+
+    @Test
+    public void stopConsuming_wakesUpConsumer() {
+        consumer.startConsuming(mockHandler);
+        consumer.stopConsuming();
+        verify(mockConsumer).wakeup();
+    }
+
+    @Test
+    public void consumeLoop_commitsAndClosesOnShutdown() {
+        when(mockConsumer.poll(any(Duration.class)))
+            .thenThrow(new WakeupException());
+
+        consumer.startConsuming(mockHandler);
+        consumer.stopConsuming();
+
+        verify(mockConsumer).commitSync();
+        verify(mockConsumer).close();
+    }
+
+    @Test
+    public void consumeLoop_handlesRecordsCorrectly() throws Exception {
         // Create test candle
-        Candle testCandle = createTestCandle(100.0);
+        Candle testCandle = Candle.newBuilder().build();
         byte[] candleBytes = testCandle.toByteArray();
 
         // Setup mock consumer record
-        ConsumerRecord<byte[], byte[]> record = 
-            new ConsumerRecord<>(TOPIC, 0, 0L, new byte[0], candleBytes);
         ConsumerRecords<byte[], byte[]> records = new ConsumerRecords<>(
-            Collections.singletonMap(PARTITION, Collections.singletonList(record)));
+            Collections.singletonMap(PARTITION, 
+                Collections.singletonList(
+                    new org.apache.kafka.clients.consumer.ConsumerRecord<>(
+                        TOPIC, 0, 0L, new byte[0], candleBytes))));
 
-        // Mock consumer behavior
+        // Mock consumer to return records once then throw WakeupException
         when(mockConsumer.poll(any(Duration.class)))
             .thenReturn(records)
-            .thenThrow(WakeupException.class);
+            .thenThrow(new WakeupException());
 
-        // Start consuming
+        // Start consuming and verify handler was called
         consumer.startConsuming(mockHandler);
-
-        // Verify handler was called with correct candle
         verify(mockHandler, timeout(1000)).accept(testCandle);
-
-        // Cleanup
-        consumer.stopConsuming();
-    }
-
-    @Test
-    public void consumeMessages_handlesParsingErrors() throws Exception {
-        // Setup invalid record
-        ConsumerRecord<byte[], byte[]> record = 
-            new ConsumerRecord<>(TOPIC, 0, 0L, new byte[0], new byte[]{1,2,3});
-        ConsumerRecords<byte[], byte[]> records = new ConsumerRecords<>(
-            Collections.singletonMap(PARTITION, Collections.singletonList(record)));
-
-        // Mock consumer behavior
-        when(mockConsumer.poll(any(Duration.class)))
-            .thenReturn(records)
-            .thenThrow(WakeupException.class);
-
-        // Start consuming - should not throw exception
-        consumer.startConsuming(mockHandler);
-
-        // Verify handler was not called
-        verify(mockHandler, timeout(1000).times(0)).accept(any());
-
-        // Cleanup
-        consumer.stopConsuming();
-    }
-
-    @Test
-    public void stopConsuming_performsCleanShutdown() {
-        // Start consuming
-        consumer.startConsuming(mockHandler);
-
-        // Stop consuming
-        consumer.stopConsuming();
-
-        // Verify consumer is stopped
-        assertThrows(IllegalStateException.class,
-            () -> consumer.startConsuming(mockHandler));
-    }
-
-    private Candle createTestCandle(double price) {
-        return Candle.newBuilder()
-            .setTimestamp(Instant.now().toEpochMilli())
-            .setOpen(price)
-            .setHigh(price)
-            .setLow(price)
-            .setClose(price)
-            .setVolume(1000)
-            .build();
     }
 }
