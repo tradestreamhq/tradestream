@@ -6,6 +6,8 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.verlumen.tradestream.execution.ExecutionModule;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.kafka.KafkaModule;
+import com.verlumen.tradestream.kafka.KafkaProperties;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
@@ -37,6 +39,13 @@ final class App {
   public void start() {
     logger.atInfo().log("Starting real-time strategy discovery...");
     if (RunMode.DRY.equals(runMode)) {
+      try {
+        logger.atInfo().log("Sleeping for one minute before exiting dry run");
+        Thread.sleep(60_000L); // Sleep for 60,000 milliseconds (1 minute)
+      } catch (InterruptedException e) {
+        logger.atWarning().withCause(e).log("Sleep interrupted during dry run");
+        Thread.currentThread().interrupt(); // Restore the interrupted status
+      }
       return;
     }
 
@@ -69,10 +78,27 @@ final class App {
 
     ArgumentParser argumentParser = createArgumentParser();
     Namespace namespace = argumentParser.parseArgs(args);
+    KafkaProperties kafkaProperties = new KafkaProperties(
+      namespace.get("kafka.acks"),
+      namespace.getInt("kafka.batch.size"),
+      namespace.getString("kafka.bootstrap.servers"),
+      namespace.getInt("kafka.retries"),
+      namespace.getInt("kafka.linger.ms"),
+      namespace.getInt("kafka.buffer.memory"),
+      namespace.getString("kafka.key.serializer"),
+      namespace.getString("kafka.value.serializer"),
+      namespace.getString("kafka.security.protocol"),
+      namespace.getString("kafka.sasl.mechanism"),
+      namespace.getString("kafka.sasl.jaas.config"));
+    String candleTopic = namespace.getString("candleTopic");
+    String signalTopic = namespace.getString("tradeSignalTopic");
     String runModeName = namespace.getString("runMode");
     App app =
-        Guice.createInjector(ExecutionModule.create(runModeName), StrategiesModule.create())
-            .getInstance(App.class);
+        Guice.createInjector(
+          ExecutionModule.create(runModeName),
+          KafkaModule.create(kafkaProperties),
+          StrategiesModule.create(candleTopic, signalTopic))
+      .getInstance(App.class);
 
     // Add shutdown hook for graceful termination
     Runtime.getRuntime()
@@ -95,6 +121,7 @@ final class App {
 
     parser.addArgument("--candleTopic")
       .type(String.class)
+      .setDefault("candles")
       .help("Kafka topic to subscribe to candle data");
 
     // Kafka configuration
@@ -152,6 +179,7 @@ final class App {
 
     parser.addArgument("--tradeSignalTopic")
       .type(String.class)
+      .setDefault("tradeSignals")
       .help("Kafka topic to publish signal data");
 
     return parser;

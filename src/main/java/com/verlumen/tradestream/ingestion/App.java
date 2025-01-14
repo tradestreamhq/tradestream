@@ -4,6 +4,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.kafka.KafkaProperties;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -27,6 +28,13 @@ final class App {
     logger.atInfo().log("Starting application in %s mode", runMode);
     if (runMode == RunMode.DRY) {
       logger.atInfo().log("Dry run mode detected - skipping data ingestion");
+      try {
+        logger.atInfo().log("Sleeping for one minute before exiting dry run");
+        Thread.sleep(60_000L); // Sleep for 60,000 milliseconds (1 minute)
+      } catch (InterruptedException e) {
+        logger.atWarning().withCause(e).log("Sleep interrupted during dry run");
+        Thread.currentThread().interrupt(); // Restore the interrupted status
+      }
       return;
     }
 
@@ -45,7 +53,36 @@ final class App {
     try {
       logger.atInfo().log("Initializing Guice injector with IngestionModule");
       Namespace namespace = createParser().parseArgs(args);
-      App app = Guice.createInjector(IngestionModule.create(namespace)).getInstance(App.class);
+      String candlePublisherTopic = namespace.getString("candlePublisherTopic");
+      String coinMarketCapApiKey = namespace.getString("coinmarketcap.apiKey");
+      int topNCryptocurrencies = namespace.getInt("coinmarketcap.topN");
+      String exchangeName = namespace.getString("exchangeName");
+      long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000L;
+      String runModeName = namespace.getString("runMode").toUpperCase();
+      RunMode runMode = RunMode.valueOf(runModeName);
+      KafkaProperties kafkaProperties = new KafkaProperties(
+        namespace.get("kafka.acks"),
+        namespace.getInt("kafka.batch.size"),
+        namespace.getString("kafka.bootstrap.servers"),
+        namespace.getInt("kafka.retries"),
+        namespace.getInt("kafka.linger.ms"),
+        namespace.getInt("kafka.buffer.memory"),
+        namespace.getString("kafka.key.serializer"),
+        namespace.getString("kafka.value.serializer"),
+        namespace.getString("kafka.security.protocol"),
+        namespace.getString("kafka.sasl.mechanism"),
+        namespace.getString("kafka.sasl.jaas.config"));
+      IngestionConfig ingestionConfig =
+          new IngestionConfig(
+              candlePublisherTopic,
+              coinMarketCapApiKey,
+              topNCryptocurrencies,
+              exchangeName,
+              candleIntervalMillis,
+              runMode,
+              kafkaProperties);
+      IngestionModule module = IngestionModule.create(ingestionConfig);
+      App app = Guice.createInjector(module).getInstance(App.class);
       logger.atInfo().log("Guice initialization complete, running application");
       app.run();
     } catch (Exception e) {
