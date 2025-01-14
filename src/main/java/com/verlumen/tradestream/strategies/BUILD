@@ -118,6 +118,7 @@ java_library(
     ],
     runtime_deps = [
         "//third_party:flogger_system_backend",
+        "//third_party:grpc_java_netty_shaded",
     ],
 )
 
