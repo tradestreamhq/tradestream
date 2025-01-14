@@ -19,4 +19,8 @@ interface MarketDataConsumer {
      * Stops consuming market data and performs cleanup.
      */
     void stopConsuming();
+
+    interface Factory {
+        MarketDataConsumer create(String candleTopic);
+    }
 }
