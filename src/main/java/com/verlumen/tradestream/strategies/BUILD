@@ -111,6 +111,7 @@ java_library(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
         "//third_party:flogger",
+        "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
         "//third_party:kafka_clients",
