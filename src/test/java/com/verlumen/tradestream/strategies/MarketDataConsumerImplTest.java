@@ -39,13 +39,12 @@ public class MarketDataConsumerImplTest {
     @Mock private KafkaConsumer<byte[], byte[]> mockConsumer;
     @Mock private Consumer<Candle> mockHandler;
 
-    @Inject
     private MarketDataConsumerImpl consumer;
 
     @Before
     public void setUp() {
         when(mockConsumerProvider.get()).thenReturn(mockConsumer);
-        Guice
+        consumer = Guice
             .createInjector(BoundFieldModule.of(this))
             .getInstance(MarketDataConsumer.Factory.class)
             .create(CANDLE_TOPIC);
