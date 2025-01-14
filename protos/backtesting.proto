@@ -1,0 +1,75 @@
+edition = "2023";
+
+package backtesting;
+
+option java_multiple_files = true;
+option java_package = "com.verlumen.tradestream.backtesting";
+
+import "google/protobuf/any.proto";
+import "protos/marketdata.proto";
+import "protos/strategies.proto";
+
+// =========================
+//       Backtest Service
+// =========================
+
+// The universal backtest request: includes candle data, strategy type,
+// and an Any for the specific parameters (e.g. SmaRsiParameters).
+message BacktestRequest {
+  repeated marketdata.Candle candles = 1;
+  strategies.StrategyType strategy_type = 2;
+  google.protobuf.Any strategy_parameters = 3; // Must be provided
+}
+
+// Multi-timeframe results from the backtest
+message TimeframeResult {
+  string timeframe = 1;
+  double cumulative_return = 2;
+  double annualized_return = 3;
+  double sharpe_ratio = 4;
+  double sortino_ratio = 5;
+  double max_drawdown = 6;
+  double volatility = 7;
+  double win_rate = 8;
+  double profit_factor = 9;
+  int32 number_of_trades = 10;
+  double average_trade_duration = 11;
+  double alpha = 12;
+  double beta = 13;
+}
+
+// The final result from a single backtest
+message BacktestResult {
+  repeated TimeframeResult timeframe_results = 1;
+  double overall_score = 2;
+}
+
+// The single service for all backtesting
+service BacktestService {
+  // Always requires strategy parameters, no “plain” concept
+  rpc RunBacktest (BacktestRequest) returns (BacktestResult);
+}
+
+// =========================
+//        GA Service
+// =========================
+
+// GA request describing the data, strategy type, and any optional GA config
+message GAOptimizationRequest {
+  repeated marketdata.Candle candles = 1;
+  strategies.StrategyType strategy_type = 2;
+
+  // Optional GA config
+  int32 max_generations = 3;
+  int32 population_size = 4;
+}
+
+// Response from the GA service: best discovered param set + best score
+message BestStrategyResponse {
+  google.protobuf.Any best_strategy_parameters = 1;
+  double best_score = 2;
+}
+
+service GAService {
+  rpc RequestOptimization (GAOptimizationRequest) returns (BestStrategyResponse);
+}

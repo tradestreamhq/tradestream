@@ -1,0 +1,141 @@
+name: Test Kubernetes / Helm Install
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  install-helm-charts:
+    runs-on: ubuntu-latest
+    services:
+      # Runs a local Docker registry accessible at localhost:5000
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Create Namespace
+        run: kubectl create namespace tradestream-namespace
+
+      - name: Create Secrets
+        run: |
+          kubectl create secret generic \
+            coinmarketcap \
+            --from-literal=apiKey=FAKE_API_KEY \
+            --namespace=tradestream-namespace
+
+      - uses: bazel-contrib/setup-bazel@0.9.1
+        with:
+          # Avoid downloading Bazel every time
+          bazelisk-cache: true
+          # Store build cache per workflow
+          disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows
+          repository-cache: true
+
+      - name: Build and Push the Data Ingestion Image
+        run: |
+          # Push to local registry
+          bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
+            --verbose_failures \
+            --sandbox_debug \
+            -- \
+            --repository localhost:5000/tradestream-data-ingestion \
+            --tag "latest"
+
+      - name: Build and Push the Strategy Engine Image
+        run: |
+          # Push to local registry
+          bazel run //src/main/java/com/verlumen/tradestream/strategies:push_image \
+            --verbose_failures \
+            --sandbox_debug \
+            -- \
+            --repository localhost:5000/tradestream-strategy-engine \
+            --tag "latest"
+
+      - name: Pull Images into Local Docker Daemon
+        run: |
+          # Pull the images from the local registry into the local Docker daemon
+          docker pull localhost:5000/tradestream-data-ingestion:latest
+          docker pull localhost:5000/tradestream-strategy-engine:latest
+
+          # Retag the images to remove the registry prefix, so Kubernetes doesn't try to pull them remotely
+          docker tag localhost:5000/tradestream-data-ingestion:latest tradestream-data-ingestion:latest
+          docker tag localhost:5000/tradestream-strategy-engine:latest tradestream-strategy-engine:latest
+
+      - name: Load Images into Minikube
+        run: |
+          # Load the retagged images into Minikube's image cache
+          minikube image load tradestream-data-ingestion:latest
+          minikube image load tradestream-strategy-engine:latest
+
+      - name: Install TradeStream Helm Chart
+        run: |
+          helm dependency update charts/tradestream && \
+          helm install my-tradestream charts/tradestream \
+            --namespace tradestream-namespace \
+            --set strategyEngine.image.repository=tradestream-strategy-engine \
+            --set strategyEngine.image.tag=latest \
+            --set 'strategyEngine.args[0]=--runMode=dry' \
+            --set dataIngestion.image.repository=tradestream-data-ingestion \
+            --set dataIngestion.image.tag=latest \
+            --set 'dataIngestion.args[0]=--runMode=dry'
+
+      - name: Wait for All Pods to be Ready
+        run: |
+          set -e
+
+          namespace="tradestream-namespace"
+          timeout_seconds=90
+
+          echo "Waiting for pods in namespace '${namespace}' to become Ready (timeout: ${timeout_seconds}s)..."
+
+          # First attempt to wait for all pods
+          if ! kubectl wait --for=condition=Ready pod --all -n "${namespace}" --timeout="${timeout_seconds}s"; then
+            echo "Some pods failed to become ready. Getting details..."
+
+            # Get all pods that aren't ready using a simple field selector
+            problem_pods=$(kubectl get pods -n "${namespace}" --field-selector status.phase!=Running,status.phase!=Succeeded -o name)
+
+            # Also get pods in Running state but not ready (like CrashLoopBackOff)
+            running_but_not_ready=$(kubectl get pods -n "${namespace}" --field-selector status.phase=Running -o jsonpath='{range .items[?(@.status.containerStatuses[*].ready==false)]}{.metadata.name}{"\n"}{end}')
+
+            problem_pods="$problem_pods"$'\n'"$running_but_not_ready"
+
+            if [[ -n "$problem_pods" ]]; then
+              echo -e "\nProblem pods found:"
+              echo "$problem_pods"
+
+              while IFS= read -r pod_with_type; do
+                if [[ -n "$pod_with_type" ]]; then
+                  # Extract the pod name by removing the "pod/" prefix
+                  pod_name="${pod_with_type#*/}"
+                  echo -e "\n--- Details for $pod_name ---"
+                  kubectl describe pod "$pod_name" -n "${namespace}"
+
+                  echo -e "\n--- Logs for $pod_name ---"
+                  kubectl logs "$pod_name" -n "${namespace}" --all-containers=true --previous=true 2>/dev/null || true
+                  kubectl logs "$pod_name" -n "${namespace}" --all-containers=true
+                fi
+              done <<< "$problem_pods"
+            fi
+            exit 1
+          fi
+
+          echo "All pods in namespace '${namespace}' are Ready."
+
+      - name: Verify Installations
+        run: |
+          kubectl get pods -n tradestream-namespace

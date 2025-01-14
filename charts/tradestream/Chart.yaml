@@ -1,0 +1,9 @@
+apiVersion: v2
+name: tradestream
+description: Chart for deploying TradeStream.
+version: 0.1.0
+appVersion: "3.0.0"
+dependencies:
+  - name: kafka
+    version: 30.1.8
+    repository: https://charts.bitnami.com/bitnami
