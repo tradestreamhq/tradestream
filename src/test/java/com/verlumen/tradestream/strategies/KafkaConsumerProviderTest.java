@@ -17,7 +17,7 @@ import java.util.Properties;
 
 @RunWith(JUnit4.class)
 public class KafkaConsumerProviderTest {
-    @Bind private KafkaProperties kafkaProperties; // No longer a mock
+    @Bind private KafkaProperties kafkaProperties;
     @Inject private KafkaConsumerProvider provider;
 
     @Before
@@ -31,7 +31,7 @@ public class KafkaConsumerProviderTest {
             33554432,            // bufferMemory
             "org.apache.kafka.common.serialization.StringSerializer", // keySerializer
             "org.apache.kafka.common.serialization.StringSerializer", // valueSerializer
-            "",                  // securityProtocol
+            "PLAINTEXT",         // securityProtocol - changed from empty string
             "",                  // saslMechanism
             ""                   // saslJaasConfig
         );
@@ -47,7 +47,6 @@ public class KafkaConsumerProviderTest {
 
     @Test
     public void get_includesSecurityConfig_whenProvided() {
-        // Create new KafkaProperties with security config
         kafkaProperties = new KafkaProperties(
             "all",                // acks
             16384,               // batchSize
