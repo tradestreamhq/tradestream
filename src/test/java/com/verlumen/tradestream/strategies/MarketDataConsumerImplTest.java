@@ -34,6 +34,7 @@ public class MarketDataConsumerImplTest {
     @Rule public final MockitoRule mockito = MockitoJUnit.rule();
 
     @Mock @Bind private Provider<KafkaConsumer<byte[], byte[]>> mockConsumerProvider;
+    @Mock @Bind private ExecutorService mockExecutor;
     @Mock private KafkaConsumer<byte[], byte[]> mockConsumer;
     @Mock private Consumer<Candle> mockHandler;
 
