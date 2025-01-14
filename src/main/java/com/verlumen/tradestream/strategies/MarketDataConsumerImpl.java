@@ -4,7 +4,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
+import com.verlumen.tradestream.marketdata.Candle;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
@@ -14,8 +16,6 @@ import java.util.function.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
-import com.verlumen.tradestream.marketdata.Candle;
-import com.verlumen.tradestream.kafka.KafkaConsumerProvider;
 
 final class MarketDataConsumerImpl implements MarketDataConsumer {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
