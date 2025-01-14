@@ -39,7 +39,7 @@ public class MarketDataConsumerImplTest {
     @Mock private KafkaConsumer<byte[], byte[]> mockConsumer;
     @Mock private Consumer<Candle> mockHandler;
 
-    private MarketDataConsumerImpl consumer;
+    private MarketDataConsumer consumer;
 
     @Before
     public void setUp() {
