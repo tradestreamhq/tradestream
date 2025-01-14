@@ -35,9 +35,6 @@ abstract class StrategiesModule extends AbstractModule {
 
     install(BacktestingModule.create());
     install(SignalsModule.create());
-    install(new FactoryModuleBuilder()
-        .implement(StrategyEngine.class, StrategyEngineImpl.class)
-        .build(StrategyEngine.Factory.class));
   }
 
   @Provides
