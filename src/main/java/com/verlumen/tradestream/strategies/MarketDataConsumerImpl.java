@@ -9,12 +9,17 @@ import com.verlumen.tradestream.marketdata.Candle;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
 
+/**
+ * Consumes candle data from a Kafka topic using the Kafka Consumer API.
+ * Supports graceful shutdown and error handling.
+ */
 final class MarketDataConsumerImpl implements MarketDataConsumer {
   private static final Duration POLL_TIMEOUT = Duration.ofMillis(100);
 
@@ -23,6 +28,7 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
   private final ExecutorService executorService;
   private final AtomicBoolean running;
   private KafkaConsumer<byte[], byte[]> consumer;
+  private Future<?> consumerTask;
 
   @Inject
   MarketDataConsumerImpl(
@@ -46,9 +52,12 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
       consumer = consumerProvider.get();
       consumer.subscribe(Collections.singletonList(topic));
 
-      executorService.submit(() -> consumeLoop(handler));
+      consumerTask = executorService.submit(() -> consumeLoop(handler));
     } catch (Exception e) {
       running.set(false);
+      if (consumer != null) {
+        consumer.close();
+      }
       throw new RuntimeException("Failed to start consumer", e);
     }
   }
@@ -58,6 +67,9 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
     if (running.compareAndSet(true, false)) {
       if (consumer != null) {
         consumer.wakeup();
+      }
+      if (consumerTask != null) {
+        consumerTask.cancel(true);
       }
       executorService.shutdown();
     }
@@ -85,11 +97,13 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
       throw new RuntimeException("Error consuming messages", e);
     } finally {
       try {
-        consumer.commitSync();
+        if (consumer != null) {
+          consumer.commitSync();
+          consumer.close();
+        }
       } catch (Exception e) {
         // Log but proceed with closing
       }
-      consumer.close();
     }
   }
 }
