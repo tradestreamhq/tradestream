@@ -42,6 +42,11 @@ abstract class StrategiesModule extends AbstractModule {
   }
 
   @Provides
+  MarketDataConsumer provideMarketDataConsumer(MarketDataConsumer.Factory factory) {
+    return factory.create(candleTopic());
+  }
+
+  @Provides
   StrategyEngine provideStrategyEngine(StrategyEngine.Factory factory) {
     StrategyEngine.Config config = new StrategyEngine.Config(candleTopic(), signalTopic());
     return factory.create(config);
