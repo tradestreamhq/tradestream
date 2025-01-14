@@ -27,6 +27,7 @@ abstract class StrategiesModule extends AbstractModule {
     bind(new TypeLiteral<KafkaConsumer<byte[], byte[]>>() {})
         .toProvider(KafkaConsumerProvider.class)
         .in(Singleton.class);
+    bind(StrategyEngine.class).to(StrategyEngineImpl.class);
     bind(new TypeLiteral<ImmutableList<StrategyFactory<?>>>() {})
         .toInstance(StrategyFactories.ALL_FACTORIES);
     bind(StrategyManager.class).to(StrategyManagerImpl.class);
@@ -44,12 +45,6 @@ abstract class StrategiesModule extends AbstractModule {
   @Provides
   MarketDataConsumer provideMarketDataConsumer(MarketDataConsumer.Factory factory) {
     return factory.create(candleTopic());
-  }
-
-  @Provides
-  StrategyEngine provideStrategyEngine(StrategyEngine.Factory factory) {
-    StrategyEngine.Config config = new StrategyEngine.Config(candleTopic(), signalTopic());
-    return factory.create(config);
   }
 
   @Provides

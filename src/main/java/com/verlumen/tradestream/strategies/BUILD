@@ -186,7 +186,6 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
         "//third_party:guava",
         "//third_party:guice",
-        "//third_party:guice_assistedinject",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
         ":candle_buffer",
