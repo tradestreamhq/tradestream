@@ -27,8 +27,8 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
   private final String topic;
   private final ExecutorService executorService;
   private final AtomicBoolean running;
-  private KafkaConsumer<byte[], byte[]> consumer;
-  private Future<?> consumerTask;
+  private volatile KafkaConsumer<byte[], byte[]> consumer;
+  private volatile Future<?> consumerTask;
 
   @Inject
   MarketDataConsumerImpl(
@@ -54,10 +54,7 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
 
       consumerTask = executorService.submit(() -> consumeLoop(handler));
     } catch (Exception e) {
-      running.set(false);
-      if (consumer != null) {
-        consumer.close();
-      }
+      cleanup();
       throw new RuntimeException("Failed to start consumer", e);
     }
   }
@@ -65,14 +62,19 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
   @Override
   public void stopConsuming() {
     if (running.compareAndSet(true, false)) {
-      if (consumer != null) {
-        consumer.wakeup();
-      }
-      if (consumerTask != null) {
-        consumerTask.cancel(true);
-      }
-      executorService.shutdown();
+      cleanup();
     }
+  }
+
+  private void cleanup() {
+    running.set(false);
+    if (consumer != null) {
+      consumer.wakeup();
+    }
+    if (consumerTask != null) {
+      consumerTask.cancel(true);
+    }
+    executorService.shutdown();
   }
 
   private void consumeLoop(Consumer<Candle> handler) {
@@ -96,13 +98,16 @@ final class MarketDataConsumerImpl implements MarketDataConsumer {
     } catch (Exception e) {
       throw new RuntimeException("Error consuming messages", e);
     } finally {
-      try {
-        if (consumer != null) {
+      if (consumer != null) {
+        try {
           consumer.commitSync();
-          consumer.close();
+        } finally {
+          try {
+            consumer.close();
+          } catch (Exception e) {
+            // Log but ignore, we're already cleaning up
+          }
         }
-      } catch (Exception e) {
-        // Log but proceed with closing
       }
     }
   }
