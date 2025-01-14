@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import com.verlumen.tradestream.kafka.KafkaProperties;
 import com.verlumen.tradestream.marketdata.Candle;
 import java.time.Duration;
