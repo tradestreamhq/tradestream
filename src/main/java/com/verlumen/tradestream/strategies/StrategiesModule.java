@@ -37,9 +37,6 @@ abstract class StrategiesModule extends AbstractModule {
         .implement(MarketDataConsumer.class, MarketDataConsumerImpl.class)
         .build(MarketDataConsumer.Factory.class));
     install(SignalsModule.create());
-    install(new FactoryModuleBuilder()
-        .implement(StrategyEngine.class, StrategyEngineImpl.class)
-        .build(StrategyEngine.Factory.class));
   }
 
   @Provides
