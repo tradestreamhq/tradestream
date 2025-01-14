@@ -18,6 +18,7 @@ java_binary(
         "//third_party:argparse4j",
         "//third_party:flogger",
         "//third_party:guice",
+        "//third_party:guice_assistedinject",
         ":market_data_consumer",
         ":strategies_module",
         ":strategy_engine",
