@@ -12,6 +12,7 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.marketdata.Candle;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
