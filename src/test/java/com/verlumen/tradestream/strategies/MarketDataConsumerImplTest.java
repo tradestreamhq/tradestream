@@ -44,8 +44,11 @@ public class MarketDataConsumerImplTest {
     @Before
     public void setUp() {
         when(mockConsumerProvider.get()).thenReturn(mockConsumer);
-        consumer = Guice
-            .createInjector(BoundFieldModule.of(this))
+        consumer = Guice.createInjector(
+            BoundFieldModule.of(this),
+                new FactoryModuleBuilder()
+                .implement(MarketDataConsumer.class, MarketDataConsumerImpl.class)
+                .build(MarketDataConsumer.Factory.class))
             .getInstance(MarketDataConsumer.Factory.class)
             .create(CANDLE_TOPIC);
     }
