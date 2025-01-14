@@ -45,7 +45,6 @@ public class MarketDataConsumerImplTest {
     @Bind @Named("kafka.group.id")
     private final String groupId = "test-group";
 
-    @Bind @Named("kafka.topic")
     private final String topic = TOPIC;
 
     @Mock private KafkaConsumer<byte[], byte[]> mockConsumer;
@@ -55,7 +54,7 @@ public class MarketDataConsumerImplTest {
 
     @Before
     public void setUp() {
-        consumer = new MarketDataConsumerImpl(bootstrapServers, groupId, topic);
+        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
     @Test
