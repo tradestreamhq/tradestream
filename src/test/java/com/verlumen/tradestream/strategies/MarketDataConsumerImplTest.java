@@ -29,8 +29,8 @@ import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
 public class MarketDataConsumerImplTest {
-    private static final String TOPIC = "test-topic";
-    private static final TopicPartition PARTITION = new TopicPartition(TOPIC, 0);
+    private static final String CANDLE_TOPIC = "test-topic";
+    private static final TopicPartition PARTITION = new TopicPartition(CANDLE_TOPIC, 0);
 
     @Rule public final MockitoRule mockito = MockitoJUnit.rule();
 
@@ -45,7 +45,10 @@ public class MarketDataConsumerImplTest {
     @Before
     public void setUp() {
         when(mockConsumerProvider.get()).thenReturn(mockConsumer);
-        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+        Guice
+            .createInjector(BoundFieldModule.of(this))
+            .getInstance(MarketDataConsumer.Factory.class)
+            .create(CANDLE_TOPIC);
     }
 
     @Test(expected = NullPointerException.class)
@@ -65,7 +68,7 @@ public class MarketDataConsumerImplTest {
     @Test
     public void startConsuming_subscribesToTopic() {
         consumer.startConsuming(mockHandler);
-        verify(mockConsumer).subscribe(Collections.singletonList(TOPIC));
+        verify(mockConsumer).subscribe(Collections.singletonList(CANDLE_TOPIC));
     }
 
     @Test
@@ -98,7 +101,7 @@ public class MarketDataConsumerImplTest {
             Collections.singletonMap(PARTITION, 
                 Collections.singletonList(
                     new org.apache.kafka.clients.consumer.ConsumerRecord<>(
-                        TOPIC, 0, 0L, new byte[0], candleBytes))));
+                        CANDLE_TOPIC, 0, 0L, new byte[0], candleBytes))));
 
         // Mock consumer to return records once then throw WakeupException
         when(mockConsumer.poll(any(Duration.class)))
