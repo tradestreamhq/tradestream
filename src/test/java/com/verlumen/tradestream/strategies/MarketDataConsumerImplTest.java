@@ -5,8 +5,8 @@ import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.marketdata.Candle;
