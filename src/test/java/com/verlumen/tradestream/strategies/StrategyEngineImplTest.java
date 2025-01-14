@@ -50,7 +50,6 @@ public class StrategyEngineImplTest {
 
     @Inject
     private StrategyEngineImpl engine;
-    private StrategyEngine.Config config;
 
     @Before
     public void setUp() throws InvalidProtocolBufferException {
