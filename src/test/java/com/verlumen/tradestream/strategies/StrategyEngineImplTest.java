@@ -48,13 +48,12 @@ public class StrategyEngineImplTest {
     @Mock @Bind private CandleBuffer mockCandleBuffer;
     @Mock private BarSeries mockBarSeries;
 
+    @Inject
     private StrategyEngineImpl engine;
     private StrategyEngine.Config config;
 
     @Before
     public void setUp() throws InvalidProtocolBufferException {
-        config = new StrategyEngine.Config("candles", "signals");
-
         // Mock returns
         when(mockStrategyManager.getStrategyTypes())
             .thenReturn(ImmutableList.of(StrategyType.SMA_RSI, StrategyType.EMA_MACD));
@@ -62,13 +61,7 @@ public class StrategyEngineImplTest {
         when(mockCandleBuffer.toBarSeries()).thenReturn(mockBarSeries);
         when(mockCandleBuffer.getCandles()).thenReturn(ImmutableList.of());
 
-        // Initialize via constructor injection 
-        engine = new StrategyEngineImpl(
-            mockCandleBuffer,
-            mockGaServiceClient,
-            mockStrategyManager,
-            mockSignalPublisher,
-            config);
+        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
 
