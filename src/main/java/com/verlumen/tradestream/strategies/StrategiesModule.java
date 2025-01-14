@@ -23,7 +23,7 @@ abstract class StrategiesModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(CandleBuffer.class).to(CandleBufferImpl.class);
-    bind(new TypeLiteral<Provider<KafkaConsumer<byte[], byte[]>>>() {})
+    bind(new TypeLiteral<KafkaConsumer<byte[], byte[]>>() {})
         .toProvider(KafkaConsumerProvider.class)
         .in(Singleton.class);
     bind(MarketDataConsumer.class).to(MarketDataConsumerImpl.class);
