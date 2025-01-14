@@ -4,7 +4,7 @@ java_test(
     name = "MarketDataConsumerImplTest",
     srcs = ["MarketDataConsumerImplTest.java"],
     deps = [
-        "//protos:marketdata_proto",
+        "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:market_data_consumer_impl",
         "//third_party:guice",
