@@ -97,6 +97,7 @@ java_library(
         "//protos:backtesting_java_proto",
         "//third_party:guice",
         "//third_party:grpc_java_api",
+        "//third_party:grpc_java_netty_shaded",
         "//third_party:grpc_java_stub",
         ":ga_service_client",
     ],
