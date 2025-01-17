@@ -23,13 +23,13 @@ final class App {
   private volatile boolean isRunning = false;
   private final MarketDataConsumer marketDataConsumer;
   private final RunMode runMode;
-  private final Provider<StrategyEngine> strategyEngine;
+  private final StrategyEngine strategyEngine;
 
   @Inject
   App(
       MarketDataConsumer marketDataConsumer,
       RunMode runMode,
-      Provider<StrategyEngine> strategyEngine) {
+      StrategyEngine strategyEngine) {
     this.marketDataConsumer = marketDataConsumer;
     this.runMode = runMode;
     this.strategyEngine = strategyEngine;
@@ -51,7 +51,7 @@ final class App {
 
     try {
       isRunning = true;
-      marketDataConsumer.startConsuming(strategyEngine.get()::handleCandle);
+      marketDataConsumer.startConsuming(strategyEngine::handleCandle);
       logger.atInfo().log("Strategy Engine service started successfully");
     } catch (Exception e) {
       logger.atSevere().withCause(e).log("Failed to start Strategy Engine service");
