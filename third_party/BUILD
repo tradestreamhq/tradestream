@@ -83,11 +83,13 @@ java_library(
     exports = [
         "@tradestream_maven//:com_google_flogger_flogger",
     ],
+    runtime_deps = [
+        ":flogger_system_backend",
+    ],
 )
 
 java_library(
     name = "flogger_system_backend",
-    visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:com_google_flogger_flogger_system_backend",
     ],

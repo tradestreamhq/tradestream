@@ -16,9 +16,6 @@ java_test(
         "//third_party:ta4j_core",
         "//third_party:truth",
     ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
 )
 
 java_test(
@@ -36,9 +33,6 @@ java_test(
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
         "//third_party:truth",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -58,9 +52,6 @@ java_test(
         "//third_party:ta4j_core",
         "//third_party:truth",
     ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
 )
 
 java_test(
@@ -78,8 +69,5 @@ java_test(
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
         "//third_party:truth",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
     ],
 )

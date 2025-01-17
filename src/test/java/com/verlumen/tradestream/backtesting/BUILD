@@ -37,9 +37,6 @@ java_test(
         "//third_party:guice",
         "//third_party:guice_testlib",
     ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
 )
 
 java_test(

@@ -9,6 +9,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/ingestion:app",
         "//src/main/java/com/verlumen/tradestream/ingestion:real_time_data_ingestion",
+        "//third_party:flogger",
         "//third_party:guice",
         "//third_party:guice_testlib",
         "//third_party:junit",
@@ -17,7 +18,6 @@ java_test(
     ],
     runtime_deps = [
         "//third_party:argparse4j",
-        "//third_party:flogger_system_backend",
     ],
 )
 

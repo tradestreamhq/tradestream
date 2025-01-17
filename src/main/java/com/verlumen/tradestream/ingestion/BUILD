@@ -21,9 +21,6 @@ java_binary(
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
     ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
 )
 
 java_library(
@@ -34,9 +31,6 @@ java_library(
         "//third_party:flogger",
         "//third_party:protobuf_java",
         "//third_party:protobuf_java_util",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -66,9 +60,6 @@ java_library(
         ":candle_publisher",
         ":price_tracker",
     ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
 )
 
 java_library(
@@ -91,9 +82,6 @@ java_library(
         "//third_party:protobuf_java_util",
         ":candle_publisher",
     ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
 )
 
 java_library(
@@ -108,9 +96,6 @@ java_library(
         "//third_party:guice",
         "//third_party:protobuf_java_util",
         ":exchange_streaming_client",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -205,9 +190,6 @@ java_library(
         "//third_party:guice",
         ":http_client",
         ":http_url_connection_factory",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -337,9 +319,6 @@ java_library(
         ":thin_market_timer",
         ":trade_processor",
     ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
 )
 
 java_library(
@@ -356,9 +335,6 @@ java_library(
         "//third_party:xchange_core",
         ":thin_market_timer",
         ":thin_market_timer_task",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -388,8 +364,5 @@ java_library(
         "//third_party:auto_value",
         "//third_party:flogger",
         "//third_party:protobuf_java_util",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
     ],
 )
