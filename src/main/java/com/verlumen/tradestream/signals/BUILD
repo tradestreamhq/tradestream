@@ -33,7 +33,4 @@ java_library(
         "//third_party:protobuf_java_util",
         ":trade_signal_publisher",
     ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
 )

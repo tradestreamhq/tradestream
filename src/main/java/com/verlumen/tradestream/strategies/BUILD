@@ -22,9 +22,6 @@ java_binary(
         ":strategies_module",
         ":strategy_engine",
     ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
 )
 
 java_library(
@@ -126,9 +123,6 @@ java_library(
         "//third_party:guice_assistedinject",
         "//third_party:kafka_clients",
         ":market_data_consumer",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
     ],
 )
 
