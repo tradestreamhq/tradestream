@@ -15,9 +15,6 @@ java_test(
         "//third_party:truth",
         "//third_party:ta4j_core",
     ],
-     runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
 )
 
 java_test(
@@ -34,8 +31,5 @@ java_test(
         "//third_party:mockito_core",
         "//third_party:truth",
         "//third_party:ta4j_core",
-    ],
-     runtime_deps = [
-        "//third_party:flogger_system_backend",
     ],
 )
