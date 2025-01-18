@@ -22,14 +22,14 @@ final class StrategyManagerImpl implements StrategyManager {
   }
 
   @Override
-  public Strategy createStrategy(BarSeries barSeries, StrategyType strategyType, Any parameters)
+  public StrategyFactory<?> getStrategyFactory(StrategyType strategyType)
       throws InvalidProtocolBufferException {
     StrategyFactory<?> factory = factoryMap.get(strategyType);
     if (factory == null) {
       throw new IllegalArgumentException("Unsupported strategy type: " + strategyType);
     }
 
-    return factory.createStrategy(barSeries, parameters);
+    return factory;
   }
 
   @Override
