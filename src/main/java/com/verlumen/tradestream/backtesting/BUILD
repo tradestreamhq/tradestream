@@ -111,6 +111,11 @@ multi_arch(
     ],
 )
 
+tar(
+    name = "ga_server_layer",
+    srcs = [":ga_server_deploy.jar"],
+)
+
 oci_image_index(
     name = "ga_server_index",
     images = [
@@ -180,3 +185,11 @@ java_library(
         ":genetic_algorithm_orchestrator",
     ],
 )
+
+oci_push(
+    name = "push_ga_server_image",
+    image = ":ga_server_index",
+    remote_tags = ["latest"],
+    repository = "tradestreamhq/tradestream-ga-server",
+)
+
