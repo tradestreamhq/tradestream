@@ -79,6 +79,14 @@ jobs:
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
 
+      - name: Push the GA Server image
+        run: |
+          bazel run //src/main/java/com/verlumen/tradestream/backtesting:push_ga_server_image \
+            --verbose_failures \
+            --sandbox_debug \
+            -- \
+            --tag ${{ steps.version.outputs.version_tag }}
+
       - name: Install yq
         run: |
           sudo wget -O /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64
