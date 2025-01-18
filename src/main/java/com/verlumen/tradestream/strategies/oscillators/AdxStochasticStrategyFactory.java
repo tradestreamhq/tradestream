@@ -58,6 +58,16 @@ final class AdxStochasticStrategyFactory
   }
 
   @Override
+  public AdxStochasticParameters getDefaultParameters() {
+      return AdxStochasticParameters.newBuilder()
+          .setAdxPeriod(14)               // Commonly used ADX period
+          .setStochasticKPeriod(14)       // Typical Stochastic K period
+          .setOverboughtThreshold(80)     // Default overbought threshold
+          .setOversoldThreshold(20)       // Default oversold threshold
+          .build();
+  }
+
+  @Override
   public StrategyType getStrategyType() {
     return StrategyType.ADX_STOCHASTIC;
   }

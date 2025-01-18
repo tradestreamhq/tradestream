@@ -50,6 +50,14 @@ final class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<DoubleE
     }
 
     @Override
+    public DoubleEmaCrossoverParameters getDefaultParameters() {
+        return DoubleEmaCrossoverParameters.newBuilder()
+            .setShortEmaPeriod(12)
+            .setLongEmaPeriod(26)
+            .build();
+    }
+
+    @Override
     public StrategyType getStrategyType() {
         return StrategyType.DOUBLE_EMA_CROSSOVER;
     }
