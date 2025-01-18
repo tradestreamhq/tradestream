@@ -59,7 +59,7 @@ final class MomentumSmaCrossoverStrategyFactory
         return MomentumSmaCrossoverParameters.newBuilder()
             .setMomentumPeriod(10)
             .setSmaPeriod(20)
-            .build())
+            .build();
     }
 
     @Override
