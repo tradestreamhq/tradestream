@@ -55,6 +55,16 @@ jobs:
             --repository localhost:5000/tradestream-data-ingestion \
             --tag "latest"
 
+      - name: Build and Push the GA Server Image
+        run: |
+          # Push to local registry
+          bazel run //src/main/java/com/verlumen/tradestream/backtesting:ga_server_image \
+            --verbose_failures \
+            --sandbox_debug \
+            -- \
+            --repository localhost:5000/tradestream-ga-server \
+            --tag "latest"
+
       - name: Build and Push the Strategy Engine Image
         run: |
           # Push to local registry
