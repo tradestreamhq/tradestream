@@ -83,14 +83,15 @@ final class StrategyEngineImpl implements StrategyEngine {
   private void initializeStrategyRecords() {
     // Initialize records for all supported strategy types
     for (StrategyType type : strategyManager.getStrategyTypes()) {
-      strategyRecords.put(type, new StrategyRecord(type, null, Double.NEGATIVE_INFINITY));
+      Any defaultParameters = strategyManager.getDefaultParameters(type);
+      strategyRecords.put(type, new StrategyRecord(type, defaultParameters, Double.NEGATIVE_INFINITY));
     }
 
     // Set default strategy
     this.currentStrategyType = StrategyType.SMA_RSI;
     try {
       currentStrategy =
-          strategyManager.createStrategy(candleBuffer.toBarSeries(), currentStrategyType, null);
+          strategyManager.createStrategy(currentStrategyType, candleBuffer.toBarSeries());
     } catch (Exception e) {
       throw new RuntimeException("Failed to initialize default strategy", e);
     }
@@ -141,7 +142,7 @@ final class StrategyEngineImpl implements StrategyEngine {
     try {
       currentStrategy =
           strategyManager.createStrategy(
-              candleBuffer.toBarSeries(), currentStrategyType, bestRecord.parameters());
+            currentStrategyType, candleBuffer.toBarSeries(), bestRecord.parameters());
     } catch (InvalidProtocolBufferException e) {
       throw new RuntimeException(e);
     }

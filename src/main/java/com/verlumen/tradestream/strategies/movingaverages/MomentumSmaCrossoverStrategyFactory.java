@@ -53,7 +53,15 @@ final class MomentumSmaCrossoverStrategyFactory
             exitRule,
             Math.max(params.getMomentumPeriod(), params.getSmaPeriod()));
         }
-    
+
+    @Override
+    public MomentumSmaCrossoverParameters getDefaultParameters() {
+        return MomentumSmaCrossoverParameters.newBuilder()
+            .setMomentumPeriod(10)
+            .setSmaPeriod(20)
+            .build();
+    }
+
     @Override
     public StrategyType getStrategyType() {
         return StrategyType.MOMENTUM_SMA_CROSSOVER;
