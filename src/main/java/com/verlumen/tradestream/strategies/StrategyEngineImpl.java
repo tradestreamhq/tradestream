@@ -142,7 +142,7 @@ final class StrategyEngineImpl implements StrategyEngine {
     try {
       currentStrategy =
           strategyManager.createStrategy(
-              candleBuffer.toBarSeries(), currentStrategyType, bestRecord.parameters());
+            currentStrategyType, candleBuffer.toBarSeries(), bestRecord.parameters());
     } catch (InvalidProtocolBufferException e) {
       throw new RuntimeException(e);
     }
