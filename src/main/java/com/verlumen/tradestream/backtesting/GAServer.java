@@ -8,7 +8,7 @@ import com.google.inject.Injector;
 public class GAServer {
     public static void main(String[] args) throws Exception {
         // Create Guice injector
-        Injector injector = Guice.createInjector(new BacktestingModule());
+        Injector injector = Guice.createInjector(BacktestingModule.create());
         
         // Get GAServiceImpl instance from Guice
         GAServiceImpl gaService = injector.getInstance(GAServiceImpl.class);
