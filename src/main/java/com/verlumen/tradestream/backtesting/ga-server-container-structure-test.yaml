@@ -1,6 +1,15 @@
 # See https://github.com/GoogleContainerTools/container-structure-test#command-tests
 schemaVersion: 2.0.0
 commandTests:
+  - name: "validate java version"
+    command: /usr/bin/java
+    args:
+      - '--version'
+    expectedOutput: ['openjdk 21.*']
+  - name: "validate server jar"
+    command: "ls"
+    args: ["-la", "/src/main/java/com/verlumen/tradestream/backtesting/ga_server_deploy.jar"]
+    expectedOutput: [".*ga_server_deploy.jar"]
   - name: test
     command: java
     args:
