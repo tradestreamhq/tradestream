@@ -91,6 +91,7 @@ java_binary(
     deps = [
         "//third_party:flogger",
         "//third_party:grpc_java_api",
+        "//third_party:grpc_java_netty_shaded",
         "//third_party:guice",
         ":backtesting_module",
         ":ga_service_impl",
