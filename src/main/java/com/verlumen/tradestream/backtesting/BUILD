@@ -1,4 +1,4 @@
-load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -77,6 +77,17 @@ java_library(
         ":backtest_service_client_impl",
         ":ga_service_client",
         ":ga_service_client_impl",
+    ],
+)
+
+java_library(
+    name = "ga_server",
+    srcs = ["GAServer.java"],
+    deps = [
+        "//third_party:grpc_java_api",
+        "//third_party:guice",
+        ":backtesting_module",
+        ":ga_service_impl",
     ],
 )
 
