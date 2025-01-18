@@ -91,7 +91,7 @@ final class StrategyEngineImpl implements StrategyEngine {
     this.currentStrategyType = StrategyType.SMA_RSI;
     try {
       currentStrategy =
-          strategyManager.createStrategy(candleBuffer.toBarSeries(), currentStrategyType);
+          strategyManager.createStrategy(currentStrategyType, candleBuffer.toBarSeries());
     } catch (Exception e) {
       throw new RuntimeException("Failed to initialize default strategy", e);
     }
