@@ -32,11 +32,6 @@ public interface StrategyManager {
    */
   default Strategy createStrategy(StrategyType strategyType, BarSeries barSeries, Any parameters)
       throws InvalidProtocolBufferException {
-    StrategyFactory<?> factory = factoryMap.get(strategyType);
-    if (factory == null) {
-      throw new IllegalArgumentException("Unsupported strategy type: " + strategyType);
-    }
-
     return getStrategyFactory(strategyType).createStrategy(barSeries, parameters);
   }
 
