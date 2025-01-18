@@ -95,6 +95,13 @@ java_binary(
     ],
 )
 
+container_structure_test(
+    name = "ga_server_container_test",
+    configs = ["ga-server-container-structure-test.yaml"],
+    image = ":ga_server_image",
+    tags = ["requires-docker"],
+)
+
 oci_image(
     name = "ga_server_image",
     base = "@openjdk_java",
