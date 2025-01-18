@@ -5,7 +5,7 @@ import io.grpc.ManagedChannelBuilder;
 
 public record Endpoint(String host, String port) {
   public ManagedChannel createChannel() {
-    return ManagedChannelBuilder.forAddress(
+    return ManagedChannelBuilder
         .forAddress(host, port)
         .usePlaintext()
         .build();
