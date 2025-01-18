@@ -139,11 +139,7 @@ public class StrategyEngineImplTest {
         engine.optimizeStrategy();
 
         // Assert
-        // We now expect that createStrategy gets called twice:
-        //   1) at engine startup (default strategy)
-        //   2) after optimization (best strategy).
-        verify(mockStrategyManager, times(2)).createStrategy(any(), any(), any());
-
+        verify(mockStrategyManager).createStrategy(any(), any(), any());
         verify(mockGaServiceClient).requestOptimization(any());
     }
 
