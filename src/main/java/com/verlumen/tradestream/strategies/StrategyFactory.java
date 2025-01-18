@@ -47,9 +47,7 @@ public interface StrategyFactory<T extends Message> {
   *
   * @return The default parameters for this strategy.
   */
-  default T getDefaultParameters() {
-    throw new UnsupportedOperationException();
-  }
+  T getDefaultParameters();
 
   /**
    * Gets the {@link StrategyType} that this factory handles.
