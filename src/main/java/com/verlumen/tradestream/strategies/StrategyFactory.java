@@ -41,7 +41,16 @@ public interface StrategyFactory<T extends Message> {
   default Strategy createStrategy(BarSeries series, Any parameters) throws InvalidProtocolBufferException {
     return createStrategy(series, parameters.unpack(getParameterClass()));
   }
- 
+
+  /**
+  * Gets the default parameters for this strategy.
+  *
+  * @return The default parameters for this strategy.
+  */
+  default T getDefaultParameters() {
+    throw new UnsupportedOperationException();
+  }
+
   /**
    * Gets the {@link StrategyType} that this factory handles.
    *
