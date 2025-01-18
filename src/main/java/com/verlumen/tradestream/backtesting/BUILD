@@ -104,6 +104,15 @@ java_library(
 )
 
 java_library(
+    name = "ga_service",
+    srcs = ["GAService.java"],
+    deps = [
+        "//third_party:guice",
+        ":ga_service_impl",
+    ],
+)
+
+java_library(
     name = "ga_service_impl",
     srcs = ["GAServiceImpl.java"],
     deps = [
