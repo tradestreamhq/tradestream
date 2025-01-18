@@ -58,7 +58,7 @@ jobs:
       - name: Build and Push the GA Server Image
         run: |
           # Push to local registry
-          bazel run //src/main/java/com/verlumen/tradestream/backtesting:ga_server_image \
+          bazel run //src/main/java/com/verlumen/tradestream/backtesting:push_ga_server_image \
             --verbose_failures \
             --sandbox_debug \
             -- \
