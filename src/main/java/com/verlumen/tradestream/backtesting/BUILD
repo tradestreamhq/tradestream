@@ -91,6 +91,33 @@ java_library(
     ],
 )
 
+oci_image(
+    name = "ga_server_image",
+    base = "@openjdk_java",
+    entrypoint = [
+        "java",
+        "-jar",
+        "/src/main/java/com/verlumen/tradestream/backtesting/ga_server_deploy.jar",
+    ],
+    tars = [":ga_server_layer"],
+)
+
+multi_arch(
+    name = "ga_server_images",
+    image = ":ga_server_image",
+    platforms = [
+        "//platforms:linux_arm64",
+        "//platforms:linux_amd64",
+    ],
+)
+
+oci_image_index(
+    name = "ga_server_index",
+    images = [
+        ":ga_server_images",
+    ],
+)
+
 java_library(
     name = "ga_service_client",
     srcs = ["GAServiceClient.java"],
