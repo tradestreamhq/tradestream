@@ -22,7 +22,7 @@ public class GAServer {
             .build();
 
         server.start();
-        System.out.println("GA Server started on port 50051");
+        logger.atInfo().log("GA Server started on port 50051");
 
         // Keep server running
         server.awaitTermination();
