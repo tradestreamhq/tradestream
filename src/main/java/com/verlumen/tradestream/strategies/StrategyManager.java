@@ -36,7 +36,7 @@ public interface StrategyManager {
   }
 
   default Any getDefaultParameters(StrategyType strategyType) {
-    return getStrategyFactory(strategyType).getDefaultParameters();
+    return Any.pack(getStrategyFactory(strategyType).getDefaultParameters());
   }
 
   StrategyFactory<?> getStrategyFactory(StrategyType strategyType);
