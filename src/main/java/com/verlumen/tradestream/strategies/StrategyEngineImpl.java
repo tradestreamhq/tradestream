@@ -83,7 +83,8 @@ final class StrategyEngineImpl implements StrategyEngine {
   private void initializeStrategyRecords() {
     // Initialize records for all supported strategy types
     for (StrategyType type : strategyManager.getStrategyTypes()) {
-      strategyRecords.put(type, new StrategyRecord(type, null, Double.NEGATIVE_INFINITY));
+      Any defaultParameters = strategyManager.getDefaultParameters(strategyType);
+      strategyRecords.put(type, new StrategyRecord(type, defaultParameters, Double.NEGATIVE_INFINITY));
     }
 
     // Set default strategy

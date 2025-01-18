@@ -18,8 +18,7 @@ public interface StrategyManager {
    */
   default Strategy createStrategy(StrategyType strategyType, BarSeries barSeries)
       throws InvalidProtocolBufferException {
-    Any parameters = getStrategyFactory(strategyType).getDefaultParameters();
-    return createStrategy(strategyType, barSeries, parameters);
+    return createStrategy(strategyType, barSeries, getDefaultParameters(strategyType));
   }
 
   /**
@@ -39,6 +38,10 @@ public interface StrategyManager {
     }
 
     return getStrategyFactory(strategyType).createStrategy(barSeries, parameters);
+  }
+
+  default Any getDefaultParameters(StrategyType strategyType) {
+    return getStrategyFactory(strategyType).getDefaultParameters();
   }
 
   StrategyFactory<?> getStrategyFactory(StrategyType strategyType);
