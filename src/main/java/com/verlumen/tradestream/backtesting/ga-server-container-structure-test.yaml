@@ -1,6 +1,18 @@
 # See https://github.com/GoogleContainerTools/container-structure-test#command-tests
 schemaVersion: 2.0.0
 commandTests:
+  - name: List JARs in ga_server_deploy.jar
+    command: /usr/bin/jd
+    args:
+      - ls
+      - /src/main/java/com/verlumen/tradestream/backtesting/ga_server_deploy.jar
+
+  - name: Inspect JAR Manifest
+    command: /usr/bin/jd
+    args:
+      - cat
+      - "/src/main/java/com/verlumen/tradestream/backtesting/ga_server_deploy.jar"
+      - "META-INF/MANIFEST.MF" 
   - name: "validate java version"
     command: /usr/bin/java
     args:
