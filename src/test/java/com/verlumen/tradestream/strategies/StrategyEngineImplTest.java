@@ -140,7 +140,7 @@ public class StrategyEngineImplTest {
 
         // Assert
         verify(mockStrategyManager).createStrategy(any(), any(), any());
-        verify(mockGaServiceClient).requestOptimization(any());
+        verify(mockGaServiceClient, times(2)).requestOptimization(any());
     }
 
     @Test
