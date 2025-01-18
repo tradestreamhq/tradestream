@@ -6,4 +6,4 @@ commandTests:
     args:
       - '-jar'
       - '/src/main/java/com/verlumen/tradestream/backtesting/ga_server_deploy.jar'
-    expectedError: ['.*Starting genetic algorithm server...']
+    expectedError: ['.*GA Server started on port 50051']
