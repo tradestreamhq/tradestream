@@ -17,12 +17,12 @@ public final class BacktestingModule extends AbstractModule {
       new Endpoint(DEFAULT_GA_SERVICE_HOST, DEFAULT_GA_SERVICE_PORT));
   }
 
-  private final Endpoint backtestService;
-  private final Endpoint gaService;
+  private final Endpoint backtestEndpoint;
+  private final Endpoint gaEndpoint;
 
-  BacktestingModule(Endpoint backtestService, Endpoint gaService) {
-    this.backtestService = backtestService;
-    this.gaService = gaService;
+  BacktestingModule(Endpoint backtestEndpoint, Endpoint gaEndpoint) {
+    this.backtestEndpoint = backtestEndpoint;
+    this.gaEndpoint = gaEndpoint;
   }
 
   @Override
@@ -34,12 +34,12 @@ public final class BacktestingModule extends AbstractModule {
   @Provides 
   @Singleton
   BacktestServiceGrpc.BacktestServiceBlockingStub provideBacktestServiceStub() {
-    return BacktestServiceGrpc.newBlockingStub(backtestService.createChannel());
+    return BacktestServiceGrpc.newBlockingStub(backtestEndpoint.createChannel());
   }
 
   @Provides
   @Singleton
   GAServiceGrpc.GAServiceBlockingStub provideGAServiceStub() {
-    return GAServiceGrpc.newBlockingStub(gaService.createChannel());
+    return GAServiceGrpc.newBlockingStub(gaEndpoint.createChannel());
   }
 }
