@@ -84,7 +84,7 @@ java_library(
     ],
 )
 
-java_library(
+java_binary(
     name = "ga_server",
     srcs = ["GAServer.java"],
     deps = [
