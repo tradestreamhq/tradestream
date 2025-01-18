@@ -87,6 +87,7 @@ java_library(
 java_binary(
     name = "ga_server",
     srcs = ["GAServer.java"],
+    main_class = "com.verlumen.tradestream.backtesting.GAServer",
     deps = [
         "//third_party:flogger",
         "//third_party:grpc_java_api",
