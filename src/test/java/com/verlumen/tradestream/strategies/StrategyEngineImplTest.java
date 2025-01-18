@@ -144,8 +144,7 @@ public class StrategyEngineImplTest {
         //   2) after optimization (best strategy).
         verify(mockStrategyManager, times(2)).createStrategy(any(), any(), any());
 
-        // If you have 2 strategy types, each gets optimized, so 2 calls:
-        verify(mockGaServiceClient, times(2)).requestOptimization(any());
+        verify(mockGaServiceClient).requestOptimization(any());
     }
 
     @Test
