@@ -89,6 +89,7 @@ java_binary(
     srcs = ["GAServer.java"],
     deps = [
         "//third_party:grpc_java_api",
+        "//third_party:flogger",
         "//third_party:guice",
         ":backtesting_module",
         ":ga_service_impl",
