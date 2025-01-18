@@ -81,6 +81,17 @@ java_library(
 )
 
 java_library(
+    name = "ga_server",
+    srcs = ["GAServer.java"],
+    deps = [
+        "//third_party:grpc_java_api",
+        "//third_party:guice",
+        ":backtesting_module",
+        ":ga_service_impl",
+    ],
+)
+
+java_library(
     name = "ga_service_client",
     srcs = ["GAServiceClient.java"],
     deps = [
@@ -100,16 +111,6 @@ java_library(
         "//third_party:grpc_java_netty_shaded",
         "//third_party:grpc_java_stub",
         ":ga_service_client",
-    ],
-)
-
-java_library(
-    name = "ga_server",
-    srcs = ["GAServer.java"],
-    deps = [
-        "//third_party:grpc_java_api",
-        "//third_party:guice",
-        ":ga_service_impl",
     ],
 )
 
