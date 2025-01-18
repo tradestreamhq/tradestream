@@ -8,6 +8,7 @@ import io.grpc.ServerBuilder;
 
 public class GAServer {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
     public static void main(String[] args) throws Exception {
         // Create Guice injector
         Injector injector = Guice.createInjector(BacktestingModule.create());
