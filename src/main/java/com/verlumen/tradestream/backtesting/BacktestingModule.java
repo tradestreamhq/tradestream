@@ -3,8 +3,7 @@ package com.verlumen.tradestream.backtesting;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
+import com.verlumen.tradestream.grpc.Endpoint;
 
 public final class BacktestingModule extends AbstractModule {
   private static final String DEFAULT_BACKTEST_SERVICE_HOST = "backtest-service";
@@ -16,6 +15,14 @@ public final class BacktestingModule extends AbstractModule {
     return new BacktestingModule();
   }
 
+  private final Endpoint backtestService;
+  private final Endpoint gaService;
+
+  BacktestingModule() {
+    this.backtestService = new Endpoint(DEFAULT_BACKTEST_SERVICE_HOST, DEFAULT_BACKTEST_SERVICE_PORT);
+    this.gaService = new Endpoint(DEFAULT_GA_SERVICE_HOST, DEFAULT_GA_SERVICE_PORT);
+  }
+
   @Override
   protected void configure() {
     bind(BacktestServiceClient.class).to(BacktestServiceClientImpl.class);
@@ -25,23 +32,13 @@ public final class BacktestingModule extends AbstractModule {
   @Provides 
   @Singleton
   BacktestServiceGrpc.BacktestServiceBlockingStub provideBacktestServiceStub() {
-    ManagedChannel channel = ManagedChannelBuilder.forAddress(
-            DEFAULT_BACKTEST_SERVICE_HOST, 
-            DEFAULT_BACKTEST_SERVICE_PORT)
-        .usePlaintext()
-        .build();
-    return BacktestServiceGrpc.newBlockingStub(channel);
+    return BacktestServiceGrpc.newBlockingStub(backtestService.createChannel());
   }
 
   @Provides
   @Singleton
   GAServiceGrpc.GAServiceBlockingStub provideGAServiceStub() {
-    ManagedChannel channel = ManagedChannelBuilder.forAddress(
-            DEFAULT_GA_SERVICE_HOST, 
-            DEFAULT_GA_SERVICE_PORT)
-        .usePlaintext()
-        .build();
-    return GAServiceGrpc.newBlockingStub(channel);
+    return GAServiceGrpc.newBlockingStub(gaService.createChannel());
   }
 
   private BacktestingModule() {}

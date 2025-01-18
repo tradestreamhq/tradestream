@@ -71,7 +71,7 @@ java_library(
     srcs = ["BacktestingModule.java"],
     deps = [
         "//protos:backtesting_java_grpc",
-        "//third_party:grpc_java_api",
+        "//src/main/java/com/verlumen/tradestream/grpc:endpoint",
         "//third_party:guice",
         ":backtest_service_client",
         ":backtest_service_client_impl",
