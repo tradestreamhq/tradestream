@@ -51,6 +51,16 @@ final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
     return new BaseStrategy(strategyName, entryRule, exitRule, params.getRsiPeriod());
   }
 
+  @Override
+  public SmaRsiParameters getDefaultParameters() {
+      return SmaRsiParameters.newBuilder()
+          .setMovingAveragePeriod(14)      // Typical moving average period for smoothing RSI
+          .setRsiPeriod(14)                // Common RSI calculation period
+          .setOverboughtThreshold(70)      // Overbought threshold, often set at 70
+          .setOversoldThreshold(30)        // Oversold threshold, often set at 30
+          .build();
+  }
+
   private SmaRsiStrategyFactory() {}
 
   @Override

@@ -44,6 +44,14 @@ final class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCros
   }
 
   @Override
+  public SmaEmaCrossoverParameters getDefaultParameters() {
+      return SmaEmaCrossoverParameters.newBuilder()
+          .setSmaPeriod(20) // Default SMA period, typically used as a short-term trend
+          .setEmaPeriod(50) // Default EMA period, commonly used for medium-term trend
+          .build();
+  }
+
+  @Override
   public StrategyType getStrategyType() {
     return StrategyType.SMA_EMA_CROSSOVER;
   }
