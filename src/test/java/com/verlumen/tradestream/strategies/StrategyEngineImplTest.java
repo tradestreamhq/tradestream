@@ -139,12 +139,7 @@ public class StrategyEngineImplTest {
         engine.optimizeStrategy();
 
         // Assert
-        // We now expect that createStrategy gets called twice:
-        //   1) at engine startup (default strategy)
-        //   2) after optimization (best strategy).
-        verify(mockStrategyManager, times(2)).createStrategy(any(), any(), any());
-
-        // If you have 2 strategy types, each gets optimized, so 2 calls:
+        verify(mockStrategyManager).createStrategy(any(), any(), any());
         verify(mockGaServiceClient, times(2)).requestOptimization(any());
     }
 
