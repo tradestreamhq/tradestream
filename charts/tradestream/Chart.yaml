@@ -7,6 +7,7 @@ dependencies:
   - name: kafka
     version: 30.1.8
     repository: https://charts.bitnami.com/bitnami
-  - name: flink
-    version: 1.20.0
-    repository: https://charts.bitnami.com/flink
+  - name: flink-kubernetes-operator
+    version: "1.10.0"
+    repository: "https://downloads.apache.org/flink/flink-kubernetes-operator-1.10.0/"
+
