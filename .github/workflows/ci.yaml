@@ -81,7 +81,6 @@ jobs:
           minikube image load tradestream-data-ingestion:latest
           minikube image load tradestream-strategy-engine:latest
 
-      # Install cert-manager in its own step
       - name: Install Cert Manager
         run: |
           # Create the cert-manager namespace if it doesn't exist
@@ -94,7 +93,7 @@ jobs:
         run: |
           kubectl wait \
             --for=condition=Available \
-            --timeout=300s \
+            --timeout=90s \
             deployment \
             -l app.kubernetes.io/instance=cert-manager \
             -n cert-manager
