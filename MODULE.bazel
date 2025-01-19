@@ -90,7 +90,7 @@ oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 
 oci.pull(
     name = "openjdk_java",
-    digest = "sha256:b76af3b248acbcd94ffae671900e9fa8e2f869688598e5733a5fb6e983e51928",
+    digest = "sha256:af9de795d1f8d3b6172f6c55ca9ba1c5768baa11bb2dc8af7045c7db9d4c33ac",
     image = "docker.io/library/openjdk",
     platforms = [
         "linux/amd64",
