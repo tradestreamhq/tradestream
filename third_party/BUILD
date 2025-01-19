@@ -99,7 +99,7 @@ java_library(
     name = "grpc_java_api",
     visibility = ["//visibility:public"],
     exports = [
-        "@tradestream_maven//:io_grpc_grpc_api",
+        "@io_grpc_grpc_java//api",
     ],
 )
 
@@ -124,7 +124,7 @@ java_library(
     name = "grpc_java_stub",
     visibility = ["//visibility:public"],
     exports = [
-        "@tradestream_maven//:io_grpc_grpc_stub",
+        "@io_grpc_grpc_java//stub",
     ],
 )
 
