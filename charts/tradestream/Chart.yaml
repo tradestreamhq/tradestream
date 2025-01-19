@@ -10,4 +10,3 @@ dependencies:
   - name: flink-kubernetes-operator
     version: "1.10.0"
     repository: "https://downloads.apache.org/flink/flink-kubernetes-operator-1.10.0/"
-
