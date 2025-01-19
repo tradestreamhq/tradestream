@@ -4,6 +4,11 @@ description: Chart for deploying TradeStream.
 version: 0.1.0
 appVersion: "3.0.0"
 dependencies:
+  - name: cert-manager
+    version: v1.9.1
+    repository: https://charts.jetstack.io
+    alias: cert-manager
+    condition: cert-manager.enabled
   - name: flink-kubernetes-operator
     version: "1.10.0"
     repository: "https://downloads.apache.org/flink/flink-kubernetes-operator-1.10.0/"
