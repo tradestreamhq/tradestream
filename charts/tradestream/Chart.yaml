@@ -4,6 +4,9 @@ description: Chart for deploying TradeStream.
 version: 0.1.0
 appVersion: "3.0.0"
 dependencies:
+  - name: flink-kubernetes-operator
+    version: 1.10.0
+    repository: "https://downloads.apache.org/flink/flink-kubernetes-operator-1.10.0/"
   - name: kafka
     version: 30.1.8
     repository: https://charts.bitnami.com/bitnami
