@@ -78,6 +78,13 @@ java_plugin(
 )
 
 java_library(
+    name = "beam_runners_direct_java",
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_runners_direct_java",
+    ],
+)
+
+java_library(
     name = "beam_sdks_java_core",
     visibility = ["//visibility:public"],
     exports = [
