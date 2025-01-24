@@ -79,6 +79,7 @@ java_plugin(
 
 java_plugin(
     name = "beam_sdks_java_core",
+    visibility = ["//visibility:public"],
     deps = [
         "@tradestream_maven//:org_apache_beam_beam_sdks_java_core",
     ],
