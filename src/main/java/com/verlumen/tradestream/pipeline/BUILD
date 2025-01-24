@@ -36,7 +36,7 @@ oci_image(
     entrypoint = [
         "java",
         "-jar",
-        "/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar",
+        "/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar",
     ],
     tars = [":layer"],
 )
@@ -66,5 +66,5 @@ oci_push(
     name = "push_image",
     image = ":index",
     remote_tags = ["latest"],
-    repository = "tradestreamhq/tradestream-data-ingestion",
+    repository = "tradestreamhq/tradestream-data-pipeline",
 )
