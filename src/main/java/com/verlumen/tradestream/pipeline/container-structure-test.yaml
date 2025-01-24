@@ -8,4 +8,4 @@ commandTests:
       - '/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar'
       - '--candlePublisherTopic=fakeTopic'
       - '--runMode=dry'
-    expectedError: ['.*Starting real-time data ingestion...']
+    expectedOutput: ['Hello', 'World!']
