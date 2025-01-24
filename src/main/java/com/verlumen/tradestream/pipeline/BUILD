@@ -1,3 +1,5 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
 java_binary(
   name = "app",
   main_class = "com.verlumen.tradestream.pipeline.App",
