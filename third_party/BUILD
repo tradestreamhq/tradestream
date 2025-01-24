@@ -78,6 +78,14 @@ java_plugin(
 )
 
 java_library(
+    name = "beam_sdks_java_core",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_sdks_java_core",
+    ],
+)
+
+java_library(
     name = "flogger",
     visibility = ["//visibility:public"],
     exports = [
