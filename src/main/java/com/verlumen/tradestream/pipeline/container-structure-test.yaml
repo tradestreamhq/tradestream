@@ -5,7 +5,5 @@ commandTests:
     command: java
     args:
       - '-jar'
-      - '/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar'
-      - '--candlePublisherTopic=fakeTopic'
-      - '--runMode=dry'
+      - '/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar'
     expectedOutput: ['Hello', 'World!']
