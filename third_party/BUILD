@@ -86,6 +86,14 @@ java_library(
 )
 
 java_library(
+    name = "beam_runners_flink_java",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_runners_flink_1_18",
+    ],
+)
+
+java_library(
     name = "beam_sdks_java_core",
     visibility = ["//visibility:public"],
     exports = [
