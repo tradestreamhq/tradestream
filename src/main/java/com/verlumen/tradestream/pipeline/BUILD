@@ -13,6 +13,9 @@ java_binary(
   deps = [
     "//third_party:beam_sdks_java_core",
   ],
+  runtime_deps = [
+    "//third_party:beam_runners_direct_java",
+  ],
 )
 
 container_structure_test(
