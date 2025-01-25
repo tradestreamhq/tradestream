@@ -6,26 +6,19 @@ load("//platforms:transition.bzl", "multi_arch")
 
 package(default_visibility = ["//visibility:public"])
 
-############################
-# 1. SINGLE JAVA BINARY
-############################
 java_binary(
-    name = "app",
-    main_class = "com.verlumen.tradestream.pipeline.App",
-    srcs = ["App.java"],
-    deps = [
-        "//third_party:beam_sdks_java_core",
-    ],
-    # Include BOTH runners in the runtime classpath
-    runtime_deps = [
-        "//third_party:beam_runners_direct_java",  # for local/test
-        "//third_party:beam_runners_flink_java",   # for production
-    ],
+  name = "app",
+  main_class = "com.verlumen.tradestream.pipeline.App",
+  srcs = ["App.java"],
+  deps = [
+    "//third_party:beam_sdks_java_core",
+  ],
+  runtime_deps = [
+    "//third_party:beam_runners_direct_java",
+    "//third_party:beam_runners_flink_java",
+  ],
 )
 
-############################
-# 2. CONTAINER STRUCTURE TEST
-############################
 container_structure_test(
     name = "container_test",
     configs = ["container-structure-test.yaml"],
@@ -33,13 +26,17 @@ container_structure_test(
     tags = ["requires-docker"],
 )
 
-############################
-# 3. BUILD AN OCI IMAGE
-############################
+genrule(
+    name = "hash",
+    srcs = [":index"],
+    outs = ["sha256.sum"],
+    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
+    toolchains = ["@jq_toolchains//:resolved_toolchain"],
+)
+
 oci_image(
     name = "image",
     base = "@openjdk_java",
-    # The same JAR is used in all environments
     entrypoint = [
         "java",
         "-jar",
@@ -48,9 +45,6 @@ oci_image(
     tars = [":layer"],
 )
 
-############################
-# 4. MULTI-ARCH FOR THE IMAGE
-############################
 multi_arch(
     name = "images",
     image = ":image",
@@ -67,23 +61,9 @@ oci_image_index(
     ],
 )
 
-############################
-# 5. TAR LAYER FOR JAR
-############################
 tar(
     name = "layer",
     srcs = [":app_deploy.jar"],
-)
-
-############################
-# 6. HASH & PUSH
-############################
-genrule(
-    name = "hash",
-    srcs = [":index"],
-    outs = ["sha256.sum"],
-    cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
-    toolchains = ["@jq_toolchains//:resolved_toolchain"],
 )
 
 oci_push(
