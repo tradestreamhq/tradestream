@@ -2,12 +2,14 @@ package com.verlumen.tradestream.kafka;
 
 import com.google.auto.value.AutoValue;
 import org.apache.beam.sdk.io.kafka.KafkaIO;
+import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.PTransform;
-import org.apache.beam.sdk.transforms.Values;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
+import org.apache.beam.sdk.values.TypeDescriptors;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.beam.sdk.io.kafka.KafkaRecord;
 import org.joda.time.Duration;
 
 import java.util.Collections;
@@ -16,44 +18,30 @@ import java.util.Map;
 @AutoValue
 public abstract class KafkaReadTransform extends PTransform<PBegin, PCollection<String>> {
 
-  // ---------------------------------------------------------------------------------------------
-  // 1. Abstract getters for your config parameters:
-  // ---------------------------------------------------------------------------------------------
   abstract String bootstrapServers();
   abstract String topic();
   abstract int dynamicReadIntervalHours();
   abstract Map<String, Object> consumerConfig();
 
-  // ---------------------------------------------------------------------------------------------
-  // 2. Builder for constructing instances immutably:
-  // ---------------------------------------------------------------------------------------------
   public static Builder builder() {
     return new AutoValue_KafkaReadTransform.Builder()
-        .setConsumerConfig(Collections.emptyMap()); // Default to empty map
+        .setConsumerConfig(Collections.emptyMap()); // default
   }
 
   @AutoValue.Builder
   public abstract static class Builder {
-    // Required fields
     public abstract Builder setBootstrapServers(String bootstrapServers);
     public abstract Builder setTopic(String topic);
     public abstract Builder setDynamicReadIntervalHours(int hours);
-
-    // Optional fields
     public abstract Builder setConsumerConfig(Map<String, Object> consumerConfig);
-
     public abstract KafkaReadTransform build();
   }
 
-  // ---------------------------------------------------------------------------------------------
-  // 3. expand() method applying KafkaIO read with your config:
-  // ---------------------------------------------------------------------------------------------
   @Override
   public PCollection<String> expand(PBegin input) {
-    // Convert int hours to a Joda Duration
     Duration interval = Duration.standardHours(dynamicReadIntervalHours());
 
-    // Build KafkaIO.Read
+    // Create the KafkaIO read transform
     KafkaIO.Read<Long, String> kafkaRead =
         KafkaIO.<Long, String>read()
             .withBootstrapServers(bootstrapServers())
@@ -63,9 +51,11 @@ public abstract class KafkaReadTransform extends PTransform<PBegin, PCollection<
             .withConsumerConfigUpdates(consumerConfig())
             .withDynamicRead(interval);
 
-    // Then extract values:
+    // Apply the read, then map each KafkaRecord<Long,String> to just the String value
     return input
         .apply("ReadFromKafka", kafkaRead)
-        .apply("ExtractValues", Values.<String>create());
+        .apply("ExtractValue",
+            MapElements.into(TypeDescriptors.strings())
+                .via((KafkaRecord<Long, String> record) -> record.getKV().getValue()));
   }
 }
