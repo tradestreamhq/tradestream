@@ -55,31 +55,18 @@ jobs:
             --repository localhost:5000/tradestream-data-ingestion \
             --tag "latest"
 
-      - name: Build and Push the Strategy Engine Image
-        run: |
-          # Push to local registry
-          bazel run //src/main/java/com/verlumen/tradestream/strategies:push_image \
-            --verbose_failures \
-            --sandbox_debug \
-            -- \
-            --repository localhost:5000/tradestream-strategy-engine \
-            --tag "latest"
-
       - name: Pull Images into Local Docker Daemon
         run: |
           # Pull the images from the local registry into the local Docker daemon
           docker pull localhost:5000/tradestream-data-ingestion:latest
-          docker pull localhost:5000/tradestream-strategy-engine:latest
 
           # Retag the images to remove the registry prefix, so Kubernetes doesn't try to pull them remotely
           docker tag localhost:5000/tradestream-data-ingestion:latest tradestream-data-ingestion:latest
-          docker tag localhost:5000/tradestream-strategy-engine:latest tradestream-strategy-engine:latest
 
       - name: Load Images into Minikube
         run: |
           # Load the retagged images into Minikube's image cache
           minikube image load tradestream-data-ingestion:latest
-          minikube image load tradestream-strategy-engine:latest
 
       - name: Install Cert Manager
         run: |
@@ -103,9 +90,6 @@ jobs:
           helm dependency update charts/tradestream && \
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
-            --set strategyEngine.image.repository=tradestream-strategy-engine \
-            --set strategyEngine.image.tag=latest \
-            --set 'strategyEngine.args[0]=--runMode=dry' \
             --set dataIngestion.image.repository=tradestream-data-ingestion \
             --set dataIngestion.image.tag=latest \
             --set 'dataIngestion.args[0]=--runMode=dry'

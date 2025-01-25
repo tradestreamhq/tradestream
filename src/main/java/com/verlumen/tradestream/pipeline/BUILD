@@ -15,6 +15,7 @@ java_binary(
   ],
   runtime_deps = [
     "//third_party:beam_runners_direct_java",
+    "//third_party:beam_runners_flink_java",
   ],
 )
 

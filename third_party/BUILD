@@ -86,6 +86,14 @@ java_library(
 )
 
 java_library(
+    name = "beam_runners_flink_java",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_runners_flink_1_18",
+    ],
+)
+
+java_library(
     name = "beam_sdks_java_core",
     visibility = ["//visibility:public"],
     exports = [
@@ -117,48 +125,6 @@ java_library(
     exports = [
         "@tradestream_maven//:com_google_flogger_flogger_system_backend",
     ],
-)
-
-java_library(
-    name = "grpc_java_api",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@io_grpc_grpc_java//api",
-    ],
-)
-
-java_library(
-    name = "grpc_java_inprocess",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@tradestream_maven//:io_grpc_grpc_inprocess",
-    ],
-    testonly = True,
-)
-
-java_library(
-    name = "grpc_java_netty_shaded",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@tradestream_maven//:io_grpc_grpc_netty_shaded",
-    ],
-)
-
-java_library(
-    name = "grpc_java_stub",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@io_grpc_grpc_java//stub",
-    ],
-)
-
-java_library(
-    name = "grpc_testing",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@tradestream_maven//:io_grpc_grpc_testing",
-    ],
-    testonly = True,
 )
 
 java_library(
