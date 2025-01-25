@@ -54,17 +54,16 @@ public abstract class KafkaReadTransform extends PTransform<PBegin, PCollection<
     // Convert int hours to a Joda Duration
     Duration interval = Duration.standardHours(dynamicReadIntervalHours());
 
-    return input.apply(
-        "ReadFromKafka",
-        KafkaIO.<Long, String>read()
-            .withBootstrapServers(bootstrapServers())
-            .withTopic(topic()) // specify the topic name
-            .withKeyDeserializer(LongDeserializer.class)
-            .withValueDeserializer(StringDeserializer.class)
-            .withConsumerConfigUpdates(consumerConfig())
-            // For dynamic reads (new partitions, etc.)
-            .withDynamicRead(interval)
-            // Tells Beam to produce PCollection<String> directly.
-            .withValueOnly());
-  }
+    return input
+        .apply("ReadFromKafka",
+            KafkaIO.<Long, String>read()
+                .withBootstrapServers(bootstrapServers())
+                .withTopic(topic())
+                .withKeyDeserializer(LongDeserializer.class)
+                .withValueDeserializer(StringDeserializer.class)
+                .withConsumerConfigUpdates(consumerConfig())
+                .withDynamicRead(interval)
+        )
+        // Then map from KafkaRecord<Long, String> to just the String value:
+        .apply("Extract Values", Values.<String>create());
 }
