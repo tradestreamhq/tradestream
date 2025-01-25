@@ -8,3 +8,13 @@ java_test(
         "//third_party:truth",
     ],
 )
+
+java_test(
+    name = "KafkaReadTransformTest",
+    srcs = ["KafkaReadTransformTest.java"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
+        "//third_party:test_parameter_injector",
+        "//third_party:truth",
+    ],
+)

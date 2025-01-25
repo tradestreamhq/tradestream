@@ -59,6 +59,7 @@ maven.install(
         "org.apache.beam:beam-runners-direct-java:2.62.0",
         "org.apache.beam:beam-runners-flink-1.18:2.62.0",
         "org.apache.beam:beam-sdks-java-core:2.62.0",
+        "org.apache.beam:beam-sdks-java-io-kafka:2.62.0",
         "org.apache.kafka:kafka-clients:3.6.1",
         "org.knowm.xchange:xchange-coinbasepro:5.2.0",
         "org.knowm.xchange:xchange-core:5.2.0",
@@ -78,6 +79,7 @@ maven.install(
     repositories = [
         "https://repo1.maven.org/maven2",
         "https://jcenter.bintray.com/",
+        "https://packages.confluent.io/maven/",
     ],
 )
 use_repo(maven, "tradestream_maven")

@@ -102,6 +102,14 @@ java_library(
 )
 
 java_library(
+    name = "beam_sdks_java_io_kafka",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_sdks_java_io_kafka",
+    ],
+)
+
+java_library(
     name = "flogger",
     visibility = ["//visibility:public"],
     exports = [
@@ -165,6 +173,14 @@ java_library(
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:io_jenetics_jenetics",
+    ],
+)
+
+java_library(
+    name = "joda_time",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:joda_time_joda_time",
     ],
 )
 
