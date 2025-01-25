@@ -36,5 +36,6 @@ java_library(
     deps = [
         "//third_party:auto_value",
         "//third_party:beam_sdks_java_core",
+        "//third_party:joda_time",
     ],
 )
