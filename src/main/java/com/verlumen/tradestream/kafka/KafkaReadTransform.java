@@ -3,7 +3,6 @@ package com.verlumen.tradestream.kafka;
 import com.google.auto.value.AutoValue;
 import org.apache.beam.sdk.io.kafka.KafkaIO;
 import org.apache.beam.sdk.transforms.PTransform;
-import org.apache.beam.sdk.transforms.Values;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.kafka.common.serialization.LongDeserializer;
@@ -23,7 +22,7 @@ public abstract class KafkaReadTransform extends PTransform<PBegin, PCollection<
   abstract String topic();
   abstract int dynamicReadIntervalHours();
 
-  // (Optional) Additional consumer config to override defaults:
+  // (Optional) Additional consumer config to override defaults
   abstract Map<String, Object> consumerConfig();
 
   // ---------------------------------------------------------------------------------------------
@@ -31,8 +30,7 @@ public abstract class KafkaReadTransform extends PTransform<PBegin, PCollection<
   // ---------------------------------------------------------------------------------------------
   public static Builder builder() {
     return new AutoValue_KafkaReadTransform.Builder()
-        // Provide a default empty map in case you don't need extra configs:
-        .setConsumerConfig(Collections.emptyMap());
+        .setConsumerConfig(Collections.emptyMap()); // Default to empty map
   }
 
   @AutoValue.Builder
@@ -53,27 +51,20 @@ public abstract class KafkaReadTransform extends PTransform<PBegin, PCollection<
   // ---------------------------------------------------------------------------------------------
   @Override
   public PCollection<String> expand(PBegin input) {
-    // Convert the integer hours to a Joda Duration
+    // Convert int hours to a Joda Duration
     Duration interval = Duration.standardHours(dynamicReadIntervalHours());
 
-    // Build the KafkaIO.Read with your parameters
-    KafkaIO.Read<Long, String> kafkaRead = KafkaIO.<Long, String>read()
-        .withBootstrapServers(bootstrapServers())
-        .withTopic(topic()) // specify the topic name
-        .withKeyDeserializer(LongDeserializer.class)
-        .withValueDeserializer(StringDeserializer.class)
-        // If you need to override/augment consumer configs:
-        .withConsumerConfigUpdates(consumerConfig())
-        // For dynamic reads (new partitions, etc.):
-        .withDynamicRead(interval);
-
-    // If you want a function to decide when to stop reading:
-    // .withCheckStopReadingFn(topicPartition -> false);
-
-    return input
-        .apply("ReadFromKafka", kafkaRead)
-        .apply("ExtractKafkaValues", MapElements.into(TypeDescriptors.strings())
-            .via((KafkaRecord<Long, String> record) -> record.getKV().getValue()))
-        .apply("ExtractValues", Values.create());
-      }
+    return input.apply(
+        "ReadFromKafka",
+        KafkaIO.<Long, String>read()
+            .withBootstrapServers(bootstrapServers())
+            .withTopic(topic()) // specify the topic name
+            .withKeyDeserializer(LongDeserializer.class)
+            .withValueDeserializer(StringDeserializer.class)
+            .withConsumerConfigUpdates(consumerConfig())
+            // For dynamic reads (new partitions, etc.)
+            .withDynamicRead(interval)
+            // Tells Beam to produce PCollection<String> directly.
+            .withValueOnly());
+  }
 }
