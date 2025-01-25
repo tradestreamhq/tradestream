@@ -79,6 +79,7 @@ maven.install(
     repositories = [
         "https://repo1.maven.org/maven2",
         "https://jcenter.bintray.com/",
+        "https://packages.confluent.io/maven/",
     ],
 )
 use_repo(maven, "tradestream_maven")
