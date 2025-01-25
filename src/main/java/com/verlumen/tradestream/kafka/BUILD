@@ -29,3 +29,11 @@ java_library(
     name = "kafka_properties",
     srcs = ["KafkaProperties.java"],
 )
+
+java_library(
+    name = "kafka_read_transform",
+    srcs = ["KafkaReadTransform.java"],
+    deps = [
+        
+    ],
+)
