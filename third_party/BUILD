@@ -120,48 +120,6 @@ java_library(
 )
 
 java_library(
-    name = "grpc_java_api",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@io_grpc_grpc_java//api",
-    ],
-)
-
-java_library(
-    name = "grpc_java_inprocess",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@tradestream_maven//:io_grpc_grpc_inprocess",
-    ],
-    testonly = True,
-)
-
-java_library(
-    name = "grpc_java_netty_shaded",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@tradestream_maven//:io_grpc_grpc_netty_shaded",
-    ],
-)
-
-java_library(
-    name = "grpc_java_stub",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@io_grpc_grpc_java//stub",
-    ],
-)
-
-java_library(
-    name = "grpc_testing",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@tradestream_maven//:io_grpc_grpc_testing",
-    ],
-    testonly = True,
-)
-
-java_library(
     name = "gson",
     visibility = ["//visibility:public"],
     exports = [
