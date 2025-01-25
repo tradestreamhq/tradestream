@@ -34,11 +34,6 @@ java_library(
     ],
 )
 
-tar(
-    name = "layer",
-    srcs = [":app_deploy.jar"],
-)
-
 java_library(
     name = "market_data_consumer",
     srcs = ["MarketDataConsumer.java"],
