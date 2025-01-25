@@ -212,7 +212,7 @@ java_library(
 
 java_library(
     name = "joda_time",
-    visibility = [],
+    visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:joda_time_joda_time",
     ],
