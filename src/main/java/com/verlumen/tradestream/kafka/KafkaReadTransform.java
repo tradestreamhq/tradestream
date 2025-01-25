@@ -72,6 +72,8 @@ public abstract class KafkaReadTransform extends PTransform<PBegin, PCollection<
 
     return input
         .apply("ReadFromKafka", kafkaRead)
-        .apply("ExtractValues", Values.<String>create());
-  }
+        .apply("ExtractKafkaValues", MapElements.into(TypeDescriptors.strings())
+            .via((KafkaRecord<Long, String> record) -> record.getKV().getValue()))
+        .apply("ExtractValues", Values.create());
+      }
 }
