@@ -3,6 +3,7 @@ package com.verlumen.tradestream.kafka;
 import com.google.auto.value.AutoValue;
 import org.apache.beam.sdk.io.kafka.KafkaIO;
 import org.apache.beam.sdk.transforms.PTransform;
+import org.apache.beam.sdk.transforms.Values;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.kafka.common.serialization.LongDeserializer;
@@ -21,8 +22,6 @@ public abstract class KafkaReadTransform extends PTransform<PBegin, PCollection<
   abstract String bootstrapServers();
   abstract String topic();
   abstract int dynamicReadIntervalHours();
-
-  // (Optional) Additional consumer config to override defaults
   abstract Map<String, Object> consumerConfig();
 
   // ---------------------------------------------------------------------------------------------
@@ -54,16 +53,19 @@ public abstract class KafkaReadTransform extends PTransform<PBegin, PCollection<
     // Convert int hours to a Joda Duration
     Duration interval = Duration.standardHours(dynamicReadIntervalHours());
 
+    // Build KafkaIO.Read
+    KafkaIO.Read<Long, String> kafkaRead =
+        KafkaIO.<Long, String>read()
+            .withBootstrapServers(bootstrapServers())
+            .withTopic(topic())
+            .withKeyDeserializer(LongDeserializer.class)
+            .withValueDeserializer(StringDeserializer.class)
+            .withConsumerConfigUpdates(consumerConfig())
+            .withDynamicRead(interval);
+
+    // Then extract values:
     return input
-        .apply("ReadFromKafka",
-            KafkaIO.<Long, String>read()
-                .withBootstrapServers(bootstrapServers())
-                .withTopic(topic())
-                .withKeyDeserializer(LongDeserializer.class)
-                .withValueDeserializer(StringDeserializer.class)
-                .withConsumerConfigUpdates(consumerConfig())
-                .withDynamicRead(interval)
-        )
-        // Then map from KafkaRecord<Long, String> to just the String value:
-        .apply("Extract Values", Values.<String>create());
+        .apply("ReadFromKafka", kafkaRead)
+        .apply("ExtractValues", Values.<String>create());
+  }
 }
