@@ -36,8 +36,6 @@ public abstract class KafkaReadTransform extends PTransform<PBegin, PCollection<
 
   @Override
   public PCollection<String> expand(PBegin input) {
-    Duration interval = Duration.standardHours(dynamicReadIntervalHours());
-
     // Create the KafkaIO read transform
     KafkaIO.Read<Long, String> kafkaRead =
         KafkaIO.<Long, String>read()
