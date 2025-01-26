@@ -26,7 +26,9 @@ final class App {
   private final KafkaReadTransform kafkaReadTransform;
 
   @Inject
-  App() {}
+  App(KafkaReadTransform kafkaReadTransform) {
+    this.kafkaReadTransform = kafkaReadTransform;
+  }
 
   static PCollection<String> buildPipeline(Pipeline pipeline, String inputText) {
     return pipeline
