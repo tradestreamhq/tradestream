@@ -24,7 +24,6 @@ abstract class PipelineModule extends AbstractModule {
     return KafkaReadTransform.builder()
       .setBootstrapServers(bootstrapServers())
       .setTopic(candleTopic())
-      .setDynamicReadIntervalHours(dynamicReadIntervalHours())
       .build();
   }
 }
