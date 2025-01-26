@@ -2,6 +2,7 @@ package com.verlumen.tradestream.pipeline;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import java.util.Arrays;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
@@ -21,6 +22,8 @@ final class App {
 
     void setInputText(String value);
   }
+
+  private final KafkaReadTransform kafkaReadTransform;
 
   @Inject
   App() {}
