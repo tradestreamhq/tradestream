@@ -65,9 +65,9 @@ final class App {
   public static void main(String[] args) {
     var options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
     var module = PipelineModule.create(
-      options.bootstrapServers(),
-      options.candleTopic(),
-      options.dynamicReadIntervalHours());
+      options.getBootstrapServers(),
+      options.getCandleTopic(),
+      options.getDynamicReadIntervalHours());
     var app = Guice.createInjector(module).getInstance(App.class);
     var pipeline = Pipeline.create(options);
     app.runPipeline(pipeline);
