@@ -1,9 +1,8 @@
 package com.verlumen.tradestream.pipeline;
 
+import com.google.inject.Guice;
 import java.util.Arrays;
-import java.util.List;
 import org.apache.beam.sdk.Pipeline;
-import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
@@ -35,10 +34,15 @@ public class App {
                     }));
   }
 
-  public static void main(String[] args) {
+  void runPipeline(String[] args) {
     var options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
     var pipeline = Pipeline.create(options);
     App.buildPipeline(pipeline, options.getInputText());
     pipeline.run().waitUntilFinish();
+  }
+
+  public static void main(String[] args) {
+    App app = Guice.createInjector().getInstance(App.class);
+    app.runPipeline(args);
   }
 }

@@ -12,6 +12,7 @@ java_binary(
   srcs = ["App.java"],
   deps = [
     "//third_party:beam_sdks_java_core",
+    "//third_party:guice",
   ],
   runtime_deps = [
     "//third_party:beam_runners_direct_java",
