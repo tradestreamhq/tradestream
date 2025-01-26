@@ -11,6 +11,7 @@ java_binary(
   main_class = "com.verlumen.tradestream.pipeline.App",
   srcs = ["App.java"],
   deps = [
+    ":pipeline_module",
     "//third_party:beam_sdks_java_core",
     "//third_party:guice",
   ],
