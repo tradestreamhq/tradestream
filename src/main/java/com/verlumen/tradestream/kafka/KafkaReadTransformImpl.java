@@ -15,23 +15,22 @@ import java.util.Collections;
 import java.util.Map;
 
 @AutoValue
-public abstract class KafkaReadTransformImpl extends KafkaReadTransform {
-
+abstract class KafkaReadTransformImpl extends KafkaReadTransform {
   abstract String bootstrapServers();
   abstract String topic();
   abstract Map<String, Object> consumerConfig();
 
-  public static Builder builder() {
+  static Builder builder() {
     return new AutoValue_KafkaReadTransform.Builder()
         .setConsumerConfig(Collections.emptyMap()); // default
   }
 
   @AutoValue.Builder
-  public abstract static class Builder {
-    public abstract Builder setBootstrapServers(String bootstrapServers);
-    public abstract Builder setTopic(String topic);
-    public abstract Builder setConsumerConfig(Map<String, Object> consumerConfig);
-    public abstract KafkaReadTransform build();
+  abstract static class Builder {
+    abstract Builder setBootstrapServers(String bootstrapServers);
+    abstract Builder setTopic(String topic);
+    abstract Builder setConsumerConfig(Map<String, Object> consumerConfig);
+    abstract KafkaReadTransform build();
   }
 
   @Override

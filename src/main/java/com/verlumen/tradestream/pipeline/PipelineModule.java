@@ -3,7 +3,7 @@ package com.verlumen.tradestream.pipeline;
 import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.verlumen.tradestream.kafka.KafkaReadTransform;
+import com.verlumen.tradestream.kafka.KafkaModule;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
@@ -17,13 +17,7 @@ abstract class PipelineModule extends AbstractModule {
   abstract int dynamicReadIntervalHours();
 
   @Override
-  protected void configure() {}
-
-  @Provides
-  KafkaReadTransform provideKafkaReadTransform() {
-    return KafkaReadTransform.builder()
-      .setBootstrapServers(bootstrapServers())
-      .setTopic(candleTopic())
-      .build();
+  protected void configure() {
+    install(KafkaModule.create());
   }
 }
