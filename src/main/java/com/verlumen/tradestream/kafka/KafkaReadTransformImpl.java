@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.Map;
 
 @AutoValue
-public abstract class KafkaReadTransform extends PTransform<PBegin, PCollection<String>> {
+public abstract class KafkaReadTransformImpl extends KafkaReadTransform {
 
   abstract String bootstrapServers();
   abstract String topic();
