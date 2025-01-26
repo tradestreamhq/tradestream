@@ -27,7 +27,7 @@ final class App {
     void setBootstrapServers(String value);
 
     @Description("Kafka topic to read candle data from.")
-    @Default.String("candle-data")
+    @Default.String("candles")
     String getCandleTopic();
     void setCandleTopic(String value);
 
