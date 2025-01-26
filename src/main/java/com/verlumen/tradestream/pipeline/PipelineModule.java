@@ -3,7 +3,7 @@ package com.verlumen.tradestream.pipeline;
 import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import package com.verlumen.tradestream.kafka.KafkaReadTransform;
+import com.verlumen.tradestream.kafka.KafkaReadTransform;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
