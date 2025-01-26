@@ -2,6 +2,7 @@ package com.verlumen.tradestream.pipeline;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import java.util.Arrays;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
@@ -18,16 +19,34 @@ final class App {
     @Description("Input text to print.")
     @Default.String("My input text")
     String getInputText();
-
     void setInputText(String value);
+
+    @Description("Comma-separated list of Kafka bootstrap servers.")
+    @Default.String("localhost:9092") 
+    String getBootstrapServers();
+    void setBootstrapServers(String value);
+
+    @Description("Kafka topic to read candle data from.")
+    @Default.String("candles")
+    String getCandleTopic();
+    void setCandleTopic(String value);
+
+    @Description("Interval in hours for dynamic read.")
+    @Default.Integer(1) // Default to 1 hour
+    int getDynamicReadIntervalHours();
+    void setDynamicReadIntervalHours(int value);
   }
 
-  @Inject
-  App() {}
+  private final KafkaReadTransform kafkaReadTransform;
 
-  static PCollection<String> buildPipeline(Pipeline pipeline, String inputText) {
+  @Inject
+  App(KafkaReadTransform kafkaReadTransform) {
+    this.kafkaReadTransform = kafkaReadTransform;
+  }
+
+  static PCollection<String> buildPipeline(Pipeline pipeline) {
     return pipeline
-        .apply("Create elements", Create.of(Arrays.asList("Hello", "World!", inputText)))
+        .apply("Create elements", Create.of(Arrays.asList("Hello", "World!")))
         .apply(
             "Print elements",
             MapElements.into(TypeDescriptors.strings())
@@ -38,15 +57,19 @@ final class App {
                     }));
   }
 
-  void runPipeline(String[] args) {
-    var options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
-    var pipeline = Pipeline.create(options);
-    App.buildPipeline(pipeline, options.getInputText());
+  void runPipeline(Pipeline pipeline) {
+    App.buildPipeline(pipeline);
     pipeline.run().waitUntilFinish();
   }
 
   public static void main(String[] args) {
-    App app = Guice.createInjector(PipelineModule.create()).getInstance(App.class);
-    app.runPipeline(args);
+    var options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
+    var module = PipelineModule.create(
+      options.getBootstrapServers(),
+      options.getCandleTopic(),
+      options.getDynamicReadIntervalHours());
+    var app = Guice.createInjector(module).getInstance(App.class);
+    var pipeline = Pipeline.create(options);
+    app.runPipeline(pipeline);
   }
 }
