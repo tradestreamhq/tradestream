@@ -9,7 +9,7 @@ import com.verlumen.tradestream.kafka.KafkaReadTransform;
 abstract class PipelineModule extends AbstractModule {
   static PipelineModule create(
     String bootstrapServers, String candleTopic, int intervalHours) {
-    return new AutoValue_PipelineModule();
+    return new AutoValue_PipelineModule(bootstrapServers, candleTopic, intervalHours);
   }
 
   abstract String bootstrapServers();
