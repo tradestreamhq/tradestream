@@ -17,20 +17,17 @@ public class KafkaReadTransformTest {
     // Arrange
     String bootstrapServers = "localhost:9092";
     String topic = "test-topic";
-    int intervalHours = 1;
 
     // Act
     KafkaReadTransform transform =
         KafkaReadTransform.builder()
             .setBootstrapServers(bootstrapServers)
             .setTopic(topic)
-            .setDynamicReadIntervalHours(intervalHours)
             .build();
 
     // Assert
     assertThat(transform.bootstrapServers()).isEqualTo(bootstrapServers);
     assertThat(transform.topic()).isEqualTo(topic);
-    assertThat(transform.dynamicReadIntervalHours()).isEqualTo(intervalHours);
     assertThat(transform.consumerConfig()).isEqualTo(Collections.emptyMap()); // Default config
   }
 
@@ -39,7 +36,6 @@ public class KafkaReadTransformTest {
     // Arrange
     String bootstrapServers = "broker1:9092,broker2:9092";
     String topic = "another-topic";
-    int intervalHours = 24;
     Map<String, Object> consumerConfig = Map.of("group.id", "test-group", "auto.offset.reset", "earliest");
 
     // Act
@@ -47,14 +43,12 @@ public class KafkaReadTransformTest {
         KafkaReadTransform.builder()
             .setBootstrapServers(bootstrapServers)
             .setTopic(topic)
-            .setDynamicReadIntervalHours(intervalHours)
             .setConsumerConfig(consumerConfig)
             .build();
 
     // Assert
     assertThat(transform.bootstrapServers()).isEqualTo(bootstrapServers);
     assertThat(transform.topic()).isEqualTo(topic);
-    assertThat(transform.dynamicReadIntervalHours()).isEqualTo(intervalHours);
     assertThat(transform.consumerConfig()).isEqualTo(consumerConfig);
   }
 
@@ -64,7 +58,6 @@ public class KafkaReadTransformTest {
     KafkaReadTransform transform = KafkaReadTransform.builder()
         .setBootstrapServers("some-servers")
         .setTopic("a-topic")
-        .setDynamicReadIntervalHours(1)
         .build();
 
     // Assert
