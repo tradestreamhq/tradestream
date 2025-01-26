@@ -41,7 +41,7 @@ final class App {
 
   static PCollection<String> buildPipeline(Pipeline pipeline) {
     return pipeline
-        .apply("Create elements", Create.of(Arrays.asList("Hello", "World!")))
+        .apply("Create elements", kafkaReadTransform)
         .apply(
             "Print elements",
             MapElements.into(TypeDescriptors.strings())
