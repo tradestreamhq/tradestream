@@ -16,11 +16,6 @@ import org.apache.beam.sdk.values.TypeDescriptors;
 
 final class App {
   public interface Options extends StreamingOptions {
-    @Description("Input text to print.")
-    @Default.String("My input text")
-    String getInputText();
-    void setInputText(String value);
-
     @Description("Comma-separated list of Kafka bootstrap servers.")
     @Default.String("localhost:9092") 
     String getBootstrapServers();
