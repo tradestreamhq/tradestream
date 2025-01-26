@@ -19,8 +19,22 @@ final class App {
     @Description("Input text to print.")
     @Default.String("My input text")
     String getInputText();
-
     void setInputText(String value);
+
+    @Description("Comma-separated list of Kafka bootstrap servers.")
+    @Default.String("localhost:9092") 
+    String getBootstrapServers();
+    void setBootstrapServers(String value);
+
+    @Description("Kafka topic to read candle data from.")
+    @Default.String("candle-data")
+    String getCandleTopic();
+    void setCandleTopic(String value);
+
+    @Description("Interval in hours for dynamic read.")
+    @Default.Integer(1) // Default to 1 hour
+    int getDynamicReadIntervalHours();
+    void setDynamicReadIntervalHours(int value);
   }
 
   private final KafkaReadTransform kafkaReadTransform;
@@ -51,7 +65,11 @@ final class App {
   }
 
   public static void main(String[] args) {
-    App app = Guice.createInjector(PipelineModule.create()).getInstance(App.class);
+    var module = PipelineModule.create(
+      options.bootstrapServers(),
+      options.candleTopic(),
+      options.dynamicReadIntervalHours());
+    var app = Guice.createInjector(module).getInstance(App.class);
     app.runPipeline(args);
   }
 }
