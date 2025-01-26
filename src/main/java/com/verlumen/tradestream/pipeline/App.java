@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.pipeline;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import java.util.Arrays;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
@@ -12,7 +13,7 @@ import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.TypeDescriptors;
 
-public class App {
+final class App {
   public interface Options extends StreamingOptions {
     @Description("Input text to print.")
     @Default.String("My input text")
@@ -21,7 +22,10 @@ public class App {
     void setInputText(String value);
   }
 
-  public static PCollection<String> buildPipeline(Pipeline pipeline, String inputText) {
+  @Inject
+  App() {}
+
+  static PCollection<String> buildPipeline(Pipeline pipeline, String inputText) {
     return pipeline
         .apply("Create elements", Create.of(Arrays.asList("Hello", "World!", inputText)))
         .apply(
@@ -42,7 +46,7 @@ public class App {
   }
 
   public static void main(String[] args) {
-    App app = Guice.createInjector().getInstance(App.class);
+    App app = Guice.createInjector(PipelineModule.create()).getInstance(App.class);
     app.runPipeline(args);
   }
 }
