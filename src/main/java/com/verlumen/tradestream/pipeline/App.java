@@ -42,7 +42,7 @@ public class App {
   }
 
   public static void main(String[] args) {
-    App app = Guice.createInjector().getInstance(App.class);
+    App app = Guice.createInjector(PipelineModule.create()).getInstance(App.class);
     app.runPipeline(args);
   }
 }
