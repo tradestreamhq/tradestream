@@ -12,6 +12,7 @@ java_binary(
   srcs = ["App.java"],
   deps = [
     ":pipeline_module",
+    "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
     "//third_party:beam_sdks_java_core",
     "//third_party:guice",
   ],
@@ -72,6 +73,7 @@ java_library(
     name = "pipeline_module",
     srcs = ["PipelineModule.java"],
     deps = [
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
         "//third_party:guice",
     ],
 )
