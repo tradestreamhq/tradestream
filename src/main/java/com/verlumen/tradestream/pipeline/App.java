@@ -7,6 +7,7 @@ import java.util.Arrays;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
+import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.StreamingOptions;
 import org.apache.beam.sdk.transforms.Create;
@@ -44,9 +45,9 @@ final class App {
     this.kafkaReadTransform = kafkaReadTransform;
   }
 
-  static PCollection<String> buildPipeline(Pipeline pipeline, String inputText) {
+  static PCollection<String> buildPipeline(Pipeline pipeline) {
     return pipeline
-        .apply("Create elements", Create.of(Arrays.asList("Hello", "World!", inputText)))
+        .apply("Create elements", Create.of(Arrays.asList("Hello", "World!")))
         .apply(
             "Print elements",
             MapElements.into(TypeDescriptors.strings())
@@ -57,19 +58,19 @@ final class App {
                     }));
   }
 
-  void runPipeline(String[] args) {
-    var options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
-    var pipeline = Pipeline.create(options);
-    App.buildPipeline(pipeline, options.getInputText());
+  void runPipeline(Pipeline pipeline) {
+    App.buildPipeline(pipeline);
     pipeline.run().waitUntilFinish();
   }
 
   public static void main(String[] args) {
+    var options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
     var module = PipelineModule.create(
       options.bootstrapServers(),
       options.candleTopic(),
       options.dynamicReadIntervalHours());
     var app = Guice.createInjector(module).getInstance(App.class);
-    app.runPipeline(args);
+    var pipeline = Pipeline.create(options);
+    app.runPipeline(pipeline);
   }
 }
