@@ -65,5 +65,6 @@ java_library(
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_io_kafka",
         "//third_party:kafka_clients",
+        ":kafka_read_transform",
     ],
 )
