@@ -14,8 +14,9 @@ public abstract class KafkaModule extends AbstractModule {
   
   @Override
   protected void configure() {
-    bind(KafkaProperties.class).toProvider(KafkaProperties::create);
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
+    bind(KafkaProperties.class).toProvider(KafkaProperties::create);
+    bind(KafkaReadTransform.Factory.class).to(KafkaReadTransformFactory.class);
   }
 }
