@@ -21,13 +21,10 @@ kafkaUi:
 dataIngestion:
   args:
     - --candlePublisherTopic=candles
-    - --kafka.acks=all
-    - --kafka.retries=5
-    - --kafka.linger.ms=50
     - --runMode=wet
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
-    tag: "v0.0.588-develop"
+    tag: "v0.0.593-develop"
   service:
     port: 8080

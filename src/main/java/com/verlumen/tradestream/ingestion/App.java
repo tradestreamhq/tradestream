@@ -4,7 +4,6 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.execution.RunMode;
-import com.verlumen.tradestream.kafka.KafkaProperties;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -60,18 +59,6 @@ final class App {
       long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000L;
       String runModeName = namespace.getString("runMode").toUpperCase();
       RunMode runMode = RunMode.valueOf(runModeName);
-      KafkaProperties kafkaProperties = new KafkaProperties(
-        namespace.get("kafka.acks"),
-        namespace.getInt("kafka.batch.size"),
-        namespace.getString("kafka.bootstrap.servers"),
-        namespace.getInt("kafka.retries"),
-        namespace.getInt("kafka.linger.ms"),
-        namespace.getInt("kafka.buffer.memory"),
-        namespace.getString("kafka.key.serializer"),
-        namespace.getString("kafka.value.serializer"),
-        namespace.getString("kafka.security.protocol"),
-        namespace.getString("kafka.sasl.mechanism"),
-        namespace.getString("kafka.sasl.jaas.config"));
       IngestionConfig ingestionConfig =
           new IngestionConfig(
               candlePublisherTopic,
@@ -79,8 +66,7 @@ final class App {
               topNCryptocurrencies,
               exchangeName,
               candleIntervalMillis,
-              runMode,
-              kafkaProperties);
+              runMode);
       IngestionModule module = IngestionModule.create(ingestionConfig);
       App app = Guice.createInjector(module).getInstance(App.class);
       logger.atInfo().log("Guice initialization complete, running application");
@@ -106,56 +92,6 @@ final class App {
     parser.addArgument("--candlePublisherTopic")
       .setDefault("candles")
       .help("Kafka topic to publish candle data");
-
-    // Kafka configuration
-    parser.addArgument("--kafka.bootstrap.servers")
-      .setDefault("localhost:9092")
-      .help("Kafka bootstrap servers");
-
-    parser.addArgument("--kafka.acks")
-      .setDefault("all")
-      .help("Kafka acknowledgment configuration");
-
-    parser.addArgument("--kafka.retries")
-      .type(Integer.class)
-      .setDefault(0)
-      .help("Number of retries");
-
-    parser.addArgument("--kafka.batch.size")
-      .type(Integer.class)
-      .setDefault(16384)
-      .help("Batch size in bytes");
-
-    parser.addArgument("--kafka.linger.ms")
-      .type(Integer.class)
-      .setDefault(1)
-      .help("Linger time in milliseconds");
-
-    parser.addArgument("--kafka.buffer.memory")
-      .type(Integer.class)
-      .setDefault(33554432)
-      .help("Buffer memory in bytes");
-
-    parser.addArgument("--kafka.key.serializer")
-      .setDefault("org.apache.kafka.common.serialization.StringSerializer")
-      .help("Key serializer class");
-
-    parser.addArgument("--kafka.value.serializer")
-      .setDefault("org.apache.kafka.common.serialization.ByteArraySerializer")
-      .help("Value serializer class");
-
-    // SASL configuration
-    parser.addArgument("--kafka.security.protocol")
-      .setDefault("PLAINTEXT")
-      .help("Protocol used to communicate with brokers (e.g., PLAINTEXT, SASL_SSL)");
-
-    parser.addArgument("--kafka.sasl.mechanism")
-      .setDefault("")
-      .help("SASL mechanism used for authentication (e.g., PLAIN, SCRAM-SHA-256)");
-
-    parser.addArgument("--kafka.sasl.jaas.config")
-      .setDefault("")
-      .help("SASL JAAS configuration");
 
     // Exchange configuration
     parser.addArgument("--exchangeName")
