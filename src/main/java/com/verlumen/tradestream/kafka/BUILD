@@ -3,6 +3,16 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
+    name = "dry_run_kafka_read_transform",
+    srcs = ["DryRunKafkaReadTransform.java"],
+    deps = [
+        ":kafka_read_transform",
+        "//third_party:auto_value",
+        "//third_party:beam_sdks_java_core",
+    ],
+)
+
+java_library(
     name = "kafka_defaults",
     srcs = ["KafkaDefaults.java"],
 )
