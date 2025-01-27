@@ -3,7 +3,6 @@ package com.verlumen.tradestream.kafka;
 import com.google.auto.value.AutoValue;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import org.apache.kafka.clients.producer.KafkaProducer;
 
