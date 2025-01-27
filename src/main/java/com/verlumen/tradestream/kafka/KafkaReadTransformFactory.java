@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.kafka;
 
 import com.google.inject.Inject;
+import com.verlumen.tradestream.execution.RunMode;
 
 final class KafkaReadTransformFactory implements KafkaReadTransform.Factory {
   private final KafkaProperties kafkaProperties;
