@@ -60,7 +60,7 @@ final class App {
       long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000L;
       String runModeName = namespace.getString("runMode").toUpperCase();
       RunMode runMode = RunMode.valueOf(runModeName);
-      KafkaProperties kafkaProperties = new KafkaProperties(
+      KafkaProperties kafkaProperties = KafkaProperties.create(
         namespace.get("kafka.acks"),
         namespace.getInt("kafka.batch.size"),
         namespace.getString("kafka.bootstrap.servers"),
