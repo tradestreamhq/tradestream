@@ -20,4 +20,9 @@ abstract class PipelineModule extends AbstractModule {
   protected void configure() {
     install(KafkaModule.create());
   }
+
+  @Provides
+  KafkaReadTransform provideKafkaReadTransform(KafkaReadTransform.Factory factory) {
+    return factory.create(candleTopic());
+  }
 }

@@ -74,6 +74,7 @@ java_library(
     srcs = ["PipelineModule.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
         "//third_party:auto_value",
         "//third_party:guice",
     ],
