@@ -13,7 +13,7 @@ import java.util.Properties;
 
 final class KafkaConsumerProvider implements Provider<KafkaConsumer<byte[], byte[]>> {
     private static final String GROUP_ID = "strategy-engine-consumer-group";
-    private static final String DEFAULT_SECURITY_PROTOCOL = "PLAINTEXT"; // Add this
+    private static final String DEFAULT_SECURITY_PROTOCOL = "PLAINTEXT";
 
     private final KafkaProperties kafkaProperties;
 
@@ -41,14 +41,6 @@ final class KafkaConsumerProvider implements Provider<KafkaConsumer<byte[], byte
         String securityProtocol = kafkaProperties.securityProtocol().isEmpty() ? 
             DEFAULT_SECURITY_PROTOCOL : kafkaProperties.securityProtocol();
         props.put("security.protocol", securityProtocol);
-        
-        if (!kafkaProperties.saslMechanism().isEmpty()) {
-            props.put("sasl.mechanism", kafkaProperties.saslMechanism());
-        }
-        if (!kafkaProperties.saslJaasConfig().isEmpty()) {
-            props.put("sasl.jaas.config", kafkaProperties.saslJaasConfig());
-        }
-
         return new KafkaConsumer<>(props);
     }
 }

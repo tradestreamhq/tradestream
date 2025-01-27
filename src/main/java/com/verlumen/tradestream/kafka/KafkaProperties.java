@@ -12,9 +12,7 @@ public record KafkaProperties(
     int bufferMemory,
     String keySerializer,
     String valueSerializer,
-    String securityProtocol,
-    String saslMechanism,
-    String saslJaasConfig) implements Supplier<Properties> {
+    String securityProtocol) implements Supplier<Properties> {
 
   @Override
   public Properties get() {
@@ -28,8 +26,6 @@ public record KafkaProperties(
     kafkaProperties.setProperty("key.serializer", keySerializer);
     kafkaProperties.setProperty("value.serializer", valueSerializer);
     kafkaProperties.setProperty("security.protocol", securityProtocol);
-    kafkaProperties.setProperty("sasl.mechanism", saslMechanism);
-    kafkaProperties.setProperty("sasl.jaas.config", saslJaasConfig);
     return kafkaProperties;
   }
 }
