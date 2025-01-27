@@ -34,8 +34,7 @@ public record KafkaProperties(
       "",
       KafkaDefaults.ACKS,
       KafkaDefaults.LINGER_MS,
-      KafkaDefaults.RETRIES,
-      );
+      KafkaDefaults.RETRIES);
   }
 
   @Override
