@@ -8,13 +8,15 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 
 @AutoValue
 public abstract class KafkaModule extends AbstractModule {
-  public static KafkaModule create() {
-    return new AutoValue_KafkaModule();
+  public static KafkaModule create(KafkaProperties kafkaProperties) {
+    return new AutoValue_KafkaModule(kafkaProperties);
   }
+
+  abstract KafkaProperties kafkaProperties();
   
   @Override
   protected void configure() {
-    bind(KafkaProperties.class).toProvider(KafkaProperties::create);
+    bind(KafkaProperties.class).toProvider(this::kafkaProperties);
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
   }

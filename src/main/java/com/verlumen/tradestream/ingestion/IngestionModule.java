@@ -38,7 +38,7 @@ abstract class IngestionModule extends AbstractModule {
             .implement(CandlePublisher.class, CandlePublisherImpl.class)
             .build(CandlePublisher.Factory.class));
 
-    install(KafkaModule.create());
+    install(KafkaModule.create(ingestionConfig().kafkaProperties()));
   }
 
   @Provides

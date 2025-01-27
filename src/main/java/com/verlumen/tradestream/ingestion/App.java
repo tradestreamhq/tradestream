@@ -4,6 +4,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.kafka.KafkaProperties;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -59,6 +60,7 @@ final class App {
       long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000L;
       String runModeName = namespace.getString("runMode").toUpperCase();
       RunMode runMode = RunMode.valueOf(runModeName);
+      KafkaProperties kafkaProperties = KafkaProperties.create();
       IngestionConfig ingestionConfig =
           new IngestionConfig(
               candlePublisherTopic,
@@ -66,7 +68,8 @@ final class App {
               topNCryptocurrencies,
               exchangeName,
               candleIntervalMillis,
-              runMode);
+              runMode,
+              kafkaProperties);
       IngestionModule module = IngestionModule.create(ingestionConfig);
       App app = Guice.createInjector(module).getInstance(App.class);
       logger.atInfo().log("Guice initialization complete, running application");
