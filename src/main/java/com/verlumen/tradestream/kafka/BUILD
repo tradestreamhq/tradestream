@@ -64,7 +64,6 @@ java_library(
     srcs = ["KafkaReadTransformImpl.java"],
     deps = [
         ":kafka_read_transform",
-        ":kafka_read_transform_factory",
         "//third_party:auto_value",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_io_kafka",
