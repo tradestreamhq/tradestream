@@ -16,13 +16,18 @@ public record KafkaProperties(
   int lingerMs,
   int retries) implements Supplier<Properties> {
 
-  public static KafkaProperties create() {
+  public static KafkaProperties create(
+    int batchSize,
+    String bootstrapServers,
+    int bufferMemory,
+    String keySerializer,
+    String valueSerializer) {
     return new KafkaProperties(
-      KafkaDefaults.BATCH_SIZE,
-      KafkaDefaults.BOOTSTRAP_SERVERS,
-      KafkaDefaults.BUFFER_MEMORY,
-      KafkaDefaults.KEY_SERIALIZER,
-      KafkaDefaults.VALUE_SERIALIZER,
+      batchSize,
+      bootstrapServers,
+      bufferMemory,
+      keySerializer,
+      valueSerializer,
       KafkaDefaults.SECURITY_PROTOCOL,
       "",
       "",
