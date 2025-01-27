@@ -14,13 +14,13 @@ public final class KafkaDefaults {
     public static final String ACKS = "all";
 
     /** Number of retries */
-    public static final int RETRIES = 0;
+    public static final int RETRIES = 5;
 
     /** Batch size in bytes */
     public static final int BATCH_SIZE = 16384;
 
     /** Linger time in milliseconds */
-    public static final int LINGER_MS = 1;
+    public static final int LINGER_MS = 50;
 
     /** Buffer memory in bytes */
     public static final int BUFFER_MEMORY = 33554432;

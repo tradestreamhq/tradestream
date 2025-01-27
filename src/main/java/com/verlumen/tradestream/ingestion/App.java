@@ -109,24 +109,10 @@ final class App {
       .setDefault("localhost:9092")
       .help("Kafka bootstrap servers");
 
-    parser.addArgument("--kafka.acks")
-      .setDefault("all")
-      .help("Kafka acknowledgment configuration");
-
-    parser.addArgument("--kafka.retries")
-      .type(Integer.class)
-      .setDefault(0)
-      .help("Number of retries");
-
     parser.addArgument("--kafka.batch.size")
       .type(Integer.class)
       .setDefault(16384)
       .help("Batch size in bytes");
-
-    parser.addArgument("--kafka.linger.ms")
-      .type(Integer.class)
-      .setDefault(1)
-      .help("Linger time in milliseconds");
 
     parser.addArgument("--kafka.buffer.memory")
       .type(Integer.class)
