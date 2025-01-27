@@ -60,7 +60,7 @@ final class App {
       long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000L;
       String runModeName = namespace.getString("runMode").toUpperCase();
       RunMode runMode = RunMode.valueOf(runModeName);
-      KafkaProperties kafkaProperties = new KafkaProperties(
+      KafkaProperties kafkaProperties = KafkaProperties.create(
         namespace.get("kafka.acks"),
         namespace.getInt("kafka.batch.size"),
         namespace.getString("kafka.bootstrap.servers"),
@@ -68,10 +68,7 @@ final class App {
         namespace.getInt("kafka.linger.ms"),
         namespace.getInt("kafka.buffer.memory"),
         namespace.getString("kafka.key.serializer"),
-        namespace.getString("kafka.value.serializer"),
-        namespace.getString("kafka.security.protocol"),
-        namespace.getString("kafka.sasl.mechanism"),
-        namespace.getString("kafka.sasl.jaas.config"));
+        namespace.getString("kafka.value.serializer"));
       IngestionConfig ingestionConfig =
           new IngestionConfig(
               candlePublisherTopic,
@@ -143,19 +140,6 @@ final class App {
     parser.addArgument("--kafka.value.serializer")
       .setDefault("org.apache.kafka.common.serialization.ByteArraySerializer")
       .help("Value serializer class");
-
-    // SASL configuration
-    parser.addArgument("--kafka.security.protocol")
-      .setDefault("PLAINTEXT")
-      .help("Protocol used to communicate with brokers (e.g., PLAINTEXT, SASL_SSL)");
-
-    parser.addArgument("--kafka.sasl.mechanism")
-      .setDefault("")
-      .help("SASL mechanism used for authentication (e.g., PLAIN, SCRAM-SHA-256)");
-
-    parser.addArgument("--kafka.sasl.jaas.config")
-      .setDefault("")
-      .help("SASL JAAS configuration");
 
     // Exchange configuration
     parser.addArgument("--exchangeName")

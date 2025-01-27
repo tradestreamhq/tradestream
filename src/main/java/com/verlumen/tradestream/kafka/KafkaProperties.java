@@ -4,6 +4,19 @@ import java.util.Properties;
 import java.util.function.Supplier;
 
 public record KafkaProperties(
+  String acks,
+  int batchSize,
+  String bootstrapServers,
+  int retries,
+  int lingerMs,
+  int bufferMemory,
+  String keySerializer,
+  String valueSerializer,
+  String securityProtocol,
+  String saslMechanism,
+  String saslJaasConfig) implements Supplier<Properties> {
+
+  public static KafkaProperties create(
     String acks,
     int batchSize,
     String bootstrapServers,
@@ -11,10 +24,10 @@ public record KafkaProperties(
     int lingerMs,
     int bufferMemory,
     String keySerializer,
-    String valueSerializer,
-    String securityProtocol,
-    String saslMechanism,
-    String saslJaasConfig) implements Supplier<Properties> {
+    String valueSerializer) {
+    return new KafkaProperties(
+      acks, batchSize, bootstrapServers, retries, lingerMs, bufferMemory, keySerializer, valueSerializer, KafkaDefaults.SECURITY_PROTOCOL, "", "");
+  }
 
   @Override
   public Properties get() {
