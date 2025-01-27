@@ -15,17 +15,17 @@ public class KafkaPropertiesTest {
     // Arrange
     KafkaProperties supplier =
         new KafkaProperties(
-            "all",
             16384,
             "localhost:9092",
-            0,
-            1,
             33554432,
             "org.apache.kafka.common.serialization.StringSerializer",
             "org.apache.kafka.common.serialization.StringSerializer",
             "PLAINTEXT",
             "PLAIN",
-            "some.config");
+            "some.config",
+            "all",
+            0,
+            1);
 
     // Act
     Properties kafkaProperties = supplier.get();
@@ -39,17 +39,17 @@ public class KafkaPropertiesTest {
     // Arrange
     KafkaProperties supplier =
         new KafkaProperties(
-            "all",
             16384,
             "localhost:9092",
-            0,
-            1,
             33554432,
             "org.apache.kafka.common.serialization.StringSerializer",
             "org.apache.kafka.common.serialization.StringSerializer",
             "PLAINTEXT",
             "PLAIN",
-            "some.config");
+            "some.config",
+            "all",
+            0,
+            1);
 
     // Act
     Properties kafkaProperties = supplier.get();
@@ -63,18 +63,17 @@ public class KafkaPropertiesTest {
     // Arrange
     KafkaProperties supplier =
         new KafkaProperties(
-            "all",
             16384,
             "localhost:9092",
-            5,
-            50,
             33554432,
             "org.apache.kafka.common.serialization.StringSerializer",
             "org.apache.kafka.common.serialization.StringSerializer",
             "PLAINTEXT",
             "PLAIN",
-            "some.config");
-
+            "some.config",
+            "all",
+            5,
+            50);
     // Act
     Properties kafkaProps = supplier.get();
 
