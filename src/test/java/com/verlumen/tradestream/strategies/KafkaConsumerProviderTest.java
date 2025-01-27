@@ -23,17 +23,17 @@ public class KafkaConsumerProviderTest {
     @Before
     public void setUp() {
         kafkaProperties = new KafkaProperties(
-            "all",                // acks
             16384,               // batchSize
             "localhost:9092",    // bootstrapServers
-            0,                   // retries 
-            1,                   // lingerMs
             33554432,            // bufferMemory
             "org.apache.kafka.common.serialization.StringSerializer", // keySerializer
             "org.apache.kafka.common.serialization.StringSerializer", // valueSerializer
             "PLAINTEXT",         // securityProtocol - changed from empty string
             "",                  // saslMechanism
-            ""                   // saslJaasConfig
+            "",                  // saslJaasConfig
+            "all",               // acks
+            1,                   // lingerMs
+            0                    // retries 
         );
 
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
