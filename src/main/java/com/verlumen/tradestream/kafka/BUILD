@@ -3,6 +3,11 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
+    name = "kafka_defaults",
+    srcs = ["KafkaDefaults.java"],
+)
+
+java_library(
     name = "kafka_module",
     srcs = ["KafkaModule.java"],
     deps = [
