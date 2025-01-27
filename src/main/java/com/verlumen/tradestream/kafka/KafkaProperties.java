@@ -16,17 +16,18 @@ public record KafkaProperties(
   String saslMechanism,
   String saslJaasConfig) implements Supplier<Properties> {
 
-  static KafkaProperties create(String acks,
-      int batchSize,
-      String bootstrapServers,
-      int retries,
-      int lingerMs,
-      int bufferMemory,
-      String keySerializer,
-      String valueSerializer,
-      String securityProtocol) {
-      return new KafkaProperties(
-          acks, batchSize, bootstrapServers, retries, lingerMs, bufferMemory, keySerializer, valueSerializer, securityProtocol, "", "");
+  public static KafkaProperties create(
+    String acks,
+    int batchSize,
+    String bootstrapServers,
+    int retries,
+    int lingerMs,
+    int bufferMemory,
+    String keySerializer,
+    String valueSerializer,
+    String securityProtocol) {
+    return new KafkaProperties(
+      acks, batchSize, bootstrapServers, retries, lingerMs, bufferMemory, keySerializer, valueSerializer, securityProtocol, "", "");
   }
 
   @Override
