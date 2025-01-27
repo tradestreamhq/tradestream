@@ -1,5 +1,7 @@
 package com.verluem.tradestream.kafka;
 
+import com.google.inject.Inject;
+
 public class KafkaReadTransformFactory implements KafkaReadTransform.Factory {
   private final KafkaProperties kafkaProperties;
 
