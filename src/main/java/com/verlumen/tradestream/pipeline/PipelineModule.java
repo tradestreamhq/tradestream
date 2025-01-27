@@ -4,6 +4,7 @@ import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.verlumen.tradestream.kafka.KafkaModule;
+import com.verlumen.tradestream.kafka.KafkaReadTransform;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
