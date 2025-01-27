@@ -52,10 +52,10 @@ java_library(
     name = "kafka_read_transform_factory",
     srcs = ["KafkaReadTransformFactory.java"],
     deps = [
+        ":kafka_properties",
         ":kafka_read_transform",
         ":kafka_read_transform_impl",
         "//third_party:guice",
-        ":kafka_properties",
     ],
 )
 
