@@ -62,6 +62,7 @@ java_library(
     name = "kafka_read_transform_factory",
     srcs = ["KafkaReadTransformFactory.java"],
     deps = [
+        ":dry_run_kafka_read_transform",
         ":kafka_properties",
         ":kafka_read_transform",
         ":kafka_read_transform_impl",
