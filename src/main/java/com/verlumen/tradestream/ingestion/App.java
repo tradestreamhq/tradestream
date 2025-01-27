@@ -61,11 +61,8 @@ final class App {
       String runModeName = namespace.getString("runMode").toUpperCase();
       RunMode runMode = RunMode.valueOf(runModeName);
       KafkaProperties kafkaProperties = KafkaProperties.create(
-        namespace.get("kafka.acks"),
         namespace.getInt("kafka.batch.size"),
         namespace.getString("kafka.bootstrap.servers"),
-        namespace.getInt("kafka.retries"),
-        namespace.getInt("kafka.linger.ms"),
         namespace.getInt("kafka.buffer.memory"),
         namespace.getString("kafka.key.serializer"),
         namespace.getString("kafka.value.serializer"));
