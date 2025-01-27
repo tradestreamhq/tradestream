@@ -24,10 +24,9 @@ public record KafkaProperties(
     int lingerMs,
     int bufferMemory,
     String keySerializer,
-    String valueSerializer,
-    String securityProtocol) {
+    String valueSerializer) {
     return new KafkaProperties(
-      acks, batchSize, bootstrapServers, retries, lingerMs, bufferMemory, keySerializer, valueSerializer, securityProtocol, "", "");
+      acks, batchSize, bootstrapServers, retries, lingerMs, bufferMemory, keySerializer, valueSerializer, KafkaDefaults.SECURITY_PROTOCOL, "", "");
   }
 
   @Override

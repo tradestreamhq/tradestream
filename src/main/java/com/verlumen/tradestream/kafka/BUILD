@@ -33,6 +33,9 @@ java_library(
 java_library(
     name = "kafka_properties",
     srcs = ["KafkaProperties.java"],
+    deps = [
+        ":kafka_defaults",
+    ],
 )
 
 java_library(
