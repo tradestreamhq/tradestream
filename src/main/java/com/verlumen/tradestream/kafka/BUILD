@@ -66,6 +66,7 @@ java_library(
         ":kafka_properties",
         ":kafka_read_transform",
         ":kafka_read_transform_impl",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:guice",
     ],
 )
