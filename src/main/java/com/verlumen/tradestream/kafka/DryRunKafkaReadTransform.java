@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @AutoValue
-abstract class DryRunKafkaReadTransform extends PTransform<PBegin, PCollection<String>> {
+abstract class DryRunKafkaReadTransform extends KafkaReadTransform {
   abstract String bootstrapServers();
   abstract String topic();
   abstract Map<String, Object> consumerConfig();
