@@ -4,7 +4,6 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.execution.RunMode;
-import com.verlumen.tradestream.kafka.KafkaProperties;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -60,12 +59,6 @@ final class App {
       long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000L;
       String runModeName = namespace.getString("runMode").toUpperCase();
       RunMode runMode = RunMode.valueOf(runModeName);
-      KafkaProperties kafkaProperties = KafkaProperties.create(
-        namespace.getInt("kafka.batch.size"),
-        namespace.getString("kafka.bootstrap.servers"),
-        namespace.getInt("kafka.buffer.memory"),
-        namespace.getString("kafka.key.serializer"),
-        namespace.getString("kafka.value.serializer"));
       IngestionConfig ingestionConfig =
           new IngestionConfig(
               candlePublisherTopic,
@@ -73,8 +66,7 @@ final class App {
               topNCryptocurrencies,
               exchangeName,
               candleIntervalMillis,
-              runMode,
-              kafkaProperties);
+              runMode);
       IngestionModule module = IngestionModule.create(ingestionConfig);
       App app = Guice.createInjector(module).getInstance(App.class);
       logger.atInfo().log("Guice initialization complete, running application");
@@ -100,29 +92,6 @@ final class App {
     parser.addArgument("--candlePublisherTopic")
       .setDefault("candles")
       .help("Kafka topic to publish candle data");
-
-    // Kafka configuration
-    parser.addArgument("--kafka.bootstrap.servers")
-      .setDefault("localhost:9092")
-      .help("Kafka bootstrap servers");
-
-    parser.addArgument("--kafka.batch.size")
-      .type(Integer.class)
-      .setDefault(16384)
-      .help("Batch size in bytes");
-
-    parser.addArgument("--kafka.buffer.memory")
-      .type(Integer.class)
-      .setDefault(33554432)
-      .help("Buffer memory in bytes");
-
-    parser.addArgument("--kafka.key.serializer")
-      .setDefault("org.apache.kafka.common.serialization.StringSerializer")
-      .help("Key serializer class");
-
-    parser.addArgument("--kafka.value.serializer")
-      .setDefault("org.apache.kafka.common.serialization.ByteArraySerializer")
-      .help("Value serializer class");
 
     // Exchange configuration
     parser.addArgument("--exchangeName")
