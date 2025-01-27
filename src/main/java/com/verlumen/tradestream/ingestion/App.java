@@ -68,8 +68,7 @@ final class App {
         namespace.getInt("kafka.linger.ms"),
         namespace.getInt("kafka.buffer.memory"),
         namespace.getString("kafka.key.serializer"),
-        namespace.getString("kafka.value.serializer"),
-        namespace.getString("kafka.security.protocol"));
+        namespace.getString("kafka.value.serializer"));
       IngestionConfig ingestionConfig =
           new IngestionConfig(
               candlePublisherTopic,
