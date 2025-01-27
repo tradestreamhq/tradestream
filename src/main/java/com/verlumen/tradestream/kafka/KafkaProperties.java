@@ -17,7 +17,6 @@ public record KafkaProperties(
   int retries) implements Supplier<Properties> {
 
   public static KafkaProperties create(
-    String acks,
     int batchSize,
     String bootstrapServers,
     int bufferMemory,
