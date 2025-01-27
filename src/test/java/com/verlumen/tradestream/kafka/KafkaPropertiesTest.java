@@ -72,8 +72,8 @@ public class KafkaPropertiesTest {
             "PLAIN",
             "some.config",
             "all",
-            5,
-            50);
+            50,
+            5);
     // Act
     Properties kafkaProps = supplier.get();
 
