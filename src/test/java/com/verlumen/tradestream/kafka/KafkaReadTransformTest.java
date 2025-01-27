@@ -10,7 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public class KafkaReadTransformImplTest {
+public class KafkaReadTransformTest {
 
   @Test
   public void builder_minimalConfiguration() {
@@ -19,8 +19,8 @@ public class KafkaReadTransformImplTest {
     String topic = "test-topic";
 
     // Act
-    KafkaReadTransformImpl transform =
-        KafkaReadTransformImpl.builder()
+    KafkaReadTransform transform =
+        KafkaReadTransform.builder()
             .setBootstrapServers(bootstrapServers)
             .setTopic(topic)
             .build();
@@ -39,8 +39,8 @@ public class KafkaReadTransformImplTest {
     Map<String, Object> consumerConfig = Map.of("group.id", "test-group", "auto.offset.reset", "earliest");
 
     // Act
-    KafkaReadTransformImpl transform =
-        KafkaReadTransformImpl.builder()
+    KafkaReadTransform transform =
+        KafkaReadTransform.builder()
             .setBootstrapServers(bootstrapServers)
             .setTopic(topic)
             .setConsumerConfig(consumerConfig)
@@ -55,7 +55,7 @@ public class KafkaReadTransformImplTest {
   @Test
   public void defaultConsumerConfig_isInitiallyEmpty() {
     // Arrange/Act
-    KafkaReadTransformImpl transform = KafkaReadTransformImpl.builder()
+    KafkaReadTransform transform = KafkaReadTransform.builder()
         .setBootstrapServers("some-servers")
         .setTopic("a-topic")
         .build();
