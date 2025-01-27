@@ -1,17 +1,17 @@
 package com.verluem.tradestream.kafka;
 
-public class KafkaReadTransformFactoryImpl implements KafkaReadTransform.Factory {
+public class KafkaReadTransformFactory implements KafkaReadTransform.Factory {
   private final KafkaProperties kafkaProperties;
 
   @Inject
-  KafkaReadTransformFactoryImpl(KafkaProperties kafkaProperties) {
+  KafkaReadTransformFactory(KafkaProperties kafkaProperties) {
     this.kafkaProperties = kafkaProperties;
   }
 
-  public KafkaReadTransform provideKafkaReadTransform() {
+  public KafkaReadTransform provideKafkaReadTransform(String topic) {
     return KafkaReadTransformImpl.builder()
       .setBootstrapServers(kafkaProperties.bootstrapServers())
-      .setTopic()
+      .setTopic(topic)
       .build();
   }
 }
