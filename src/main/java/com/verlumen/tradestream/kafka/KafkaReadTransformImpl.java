@@ -30,7 +30,7 @@ abstract class KafkaReadTransformImpl extends KafkaReadTransform {
     abstract Builder setBootstrapServers(String bootstrapServers);
     abstract Builder setTopic(String topic);
     abstract Builder setConsumerConfig(Map<String, Object> consumerConfig);
-    abstract KafkaReadTransform build();
+    abstract KafkaReadTransformImpl build();
   }
 
   @Override
