@@ -142,11 +142,6 @@ final class App {
       .setDefault("org.apache.kafka.common.serialization.ByteArraySerializer")
       .help("Value serializer class");
 
-    // SASL configuration
-    parser.addArgument("--kafka.security.protocol")
-      .setDefault("PLAINTEXT")
-      .help("Protocol used to communicate with brokers (e.g., PLAINTEXT, SASL_SSL)");
-
     // Exchange configuration
     parser.addArgument("--exchangeName")
       .setDefault("coinbase")
