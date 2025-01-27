@@ -50,10 +50,10 @@ java_library(
     name = "kafka_read_transform_factory",
     srcs = ["KafkaReadTransformFactory.java"],
     deps = [
-        "//third_party:guice",
-        ":kafka_properties",
         ":kafka_read_transform",
         ":kafka_read_transform_impl",
+        "//third_party:guice",
+        ":kafka_properties",
     ],
 )
 
@@ -61,10 +61,11 @@ java_library(
     name = "kafka_read_transform_impl",
     srcs = ["KafkaReadTransformImpl.java"],
     deps = [
+        ":kafka_read_transform",
+        ":kafka_read_transform_factory",
         "//third_party:auto_value",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_io_kafka",
         "//third_party:kafka_clients",
-        ":kafka_read_transform",
     ],
 )
