@@ -39,14 +39,7 @@ final class KafkaConsumerProperties implements Provider<Properties> {
         String securityProtocol = kafkaProperties.securityProtocol().isEmpty() ? 
             DEFAULT_SECURITY_PROTOCOL : kafkaProperties.securityProtocol();
         props.put("security.protocol", securityProtocol);
-        
-        if (!kafkaProperties.saslMechanism().isEmpty()) {
-            props.put("sasl.mechanism", kafkaProperties.saslMechanism());
-        }
-        if (!kafkaProperties.saslJaasConfig().isEmpty()) {
-            props.put("sasl.jaas.config", kafkaProperties.saslJaasConfig());
-        }
 
-        return new KafkaConsumer<>(props);
+        return props;
     }
 }
