@@ -21,7 +21,7 @@ abstract class KafkaReadTransformImpl extends KafkaReadTransform {
   abstract Map<String, Object> consumerConfig();
 
   static Builder builder() {
-    return new AutoValue_KafkaReadTransform.Builder()
+    return new AutoValue_KafkaReadTransformImpl.Builder()
         .setConsumerConfig(Collections.emptyMap()); // default
   }
 
