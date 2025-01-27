@@ -48,17 +48,17 @@ public class KafkaConsumerProviderTest {
     @Test
     public void get_includesSecurityConfig_whenProvided() {
         kafkaProperties = new KafkaProperties(
-            "all",                // acks
             16384,               // batchSize
             "localhost:9092",    // bootstrapServers
-            0,                   // retries 
-            1,                   // lingerMs
             33554432,            // bufferMemory
             "org.apache.kafka.common.serialization.StringSerializer", // keySerializer
             "org.apache.kafka.common.serialization.StringSerializer", // valueSerializer
             "SASL_SSL",          // securityProtocol
             "PLAIN",             // saslMechanism
-            "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user\" password=\"pass\";" // saslJaasConfig
+            "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user\" password=\"pass\";", // saslJaasConfig
+            "all",               // acks
+            1,                   // lingerMs
+            0                    // retries 
         );
 
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
