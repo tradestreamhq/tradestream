@@ -18,12 +18,5 @@ public abstract class KafkaModule extends AbstractModule {
     bind(new TypeLiteral<KafkaProducer<String, byte[]>>() {})
         .toProvider(KafkaProducerProvider.class);
     bind(KafkaProperties.class).toProvider(KafkaProperties::create);
-    bind(KafkaReadTransform.class).to(KafkaReadTransformImpl.class);
-  }
-
-  @Provides
-  KafkaReadTransform provideKafkaReadTransform(KafkaProperties kafkaProperties) {
-    return KafkaReadTransformImpl.builder()
-      .set();
   }
 }
