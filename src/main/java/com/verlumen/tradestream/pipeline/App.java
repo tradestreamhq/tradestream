@@ -30,6 +30,11 @@ final class App {
     @Default.Integer(1) // Default to 1 hour
     int getDynamicReadIntervalHours();
     void setDynamicReadIntervalHours(int value);
+
+    @Description("Run mode: wet or dry.")
+    @Default.String("wet") // Default to "wet" mode
+    String getRunMode();
+    void setRunMode(String value);
   }
 
   private final KafkaReadTransform kafkaReadTransform;
@@ -62,7 +67,8 @@ final class App {
     var module = PipelineModule.create(
       options.getBootstrapServers(),
       options.getCandleTopic(),
-      options.getDynamicReadIntervalHours());
+      options.getDynamicReadIntervalHours(),
+      options.getRunMode());
     var app = Guice.createInjector(module).getInstance(App.class);
     var pipeline = Pipeline.create(options);
     app.runPipeline(pipeline);
