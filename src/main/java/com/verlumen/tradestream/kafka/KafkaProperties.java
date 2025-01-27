@@ -26,6 +26,8 @@ public record KafkaProperties(
     kafkaProperties.setProperty("key.serializer", keySerializer);
     kafkaProperties.setProperty("value.serializer", valueSerializer);
     kafkaProperties.setProperty("security.protocol", securityProtocol);
+    kafkaProperties.setProperty("sasl.mechanism", "");
+    kafkaProperties.setProperty("sasl.jaas.config", "");
     return kafkaProperties;
   }
 }
