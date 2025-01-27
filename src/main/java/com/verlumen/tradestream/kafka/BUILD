@@ -13,6 +13,8 @@ java_library(
     deps = [
         ":kafka_producer_provider",
         ":kafka_properties",
+        ":kafka_read_transform",
+        ":kafka_read_transform_factory",
         "//third_party:auto_value",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
