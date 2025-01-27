@@ -61,11 +61,8 @@ final class App {
       String runModeName = namespace.getString("runMode").toUpperCase();
       RunMode runMode = RunMode.valueOf(runModeName);
       KafkaProperties kafkaProperties = KafkaProperties.create(
-        namespace.get("kafka.acks"),
         namespace.getInt("kafka.batch.size"),
         namespace.getString("kafka.bootstrap.servers"),
-        namespace.getInt("kafka.retries"),
-        namespace.getInt("kafka.linger.ms"),
         namespace.getInt("kafka.buffer.memory"),
         namespace.getString("kafka.key.serializer"),
         namespace.getString("kafka.value.serializer"));
@@ -109,24 +106,10 @@ final class App {
       .setDefault("localhost:9092")
       .help("Kafka bootstrap servers");
 
-    parser.addArgument("--kafka.acks")
-      .setDefault("all")
-      .help("Kafka acknowledgment configuration");
-
-    parser.addArgument("--kafka.retries")
-      .type(Integer.class)
-      .setDefault(0)
-      .help("Number of retries");
-
     parser.addArgument("--kafka.batch.size")
       .type(Integer.class)
       .setDefault(16384)
       .help("Batch size in bytes");
-
-    parser.addArgument("--kafka.linger.ms")
-      .type(Integer.class)
-      .setDefault(1)
-      .help("Linger time in milliseconds");
 
     parser.addArgument("--kafka.buffer.memory")
       .type(Integer.class)

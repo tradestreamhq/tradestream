@@ -21,9 +21,6 @@ kafkaUi:
 dataIngestion:
   args:
     - --candlePublisherTopic=candles
-    - --kafka.acks=all
-    - --kafka.retries=5
-    - --kafka.linger.ms=50
     - --runMode=wet
   replicaCount: 1
   image:
