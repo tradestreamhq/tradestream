@@ -7,7 +7,6 @@ public record KafkaProperties(
   String acks,
   int batchSize,
   String bootstrapServers,
-  int retries,
   int lingerMs,
   int bufferMemory,
   String keySerializer,
