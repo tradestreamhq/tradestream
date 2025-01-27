@@ -47,6 +47,16 @@ java_library(
 )
 
 java_library(
+    name = "kafka_read_transform_factory",
+    srcs = ["KafkaReadTransformFactory.java"],
+    deps = [
+        "//third_party:guice",
+        ":kafka_read_transform",
+        ":kafka_read_transform_impl",
+    ],
+)
+
+java_library(
     name = "kafka_read_transform_impl",
     srcs = ["KafkaReadTransformImpl.java"],
     deps = [
