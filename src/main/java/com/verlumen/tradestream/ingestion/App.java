@@ -110,7 +110,7 @@ final class App {
       .help("Number of top cryptocurrencies to track (default: 100)");
 
     // Kafka configuration
-    parser.addArgument("--")
+    parser.addArgument("--kafka.bootstrap.servers")
       .setDefault("localhost:9092")
       .help("Kafka bootstrap servers");
 
