@@ -24,6 +24,6 @@ dataIngestion:
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
-    tag: "v0.0.603-develop"
+    tag: "v0.0.604-develop"
   service:
     port: 8080
