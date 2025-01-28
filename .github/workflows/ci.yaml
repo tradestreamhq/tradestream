@@ -19,124 +19,127 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Setup Debugging Environment
+        run: |
+          # Enable immediate failure and command echoing
+          echo "::add-mask::"  # For security if needed later
+          set -x -o errexit -o pipefail
+          mkdir -p /tmp/diagnostics
+
       - name: Start minikube
         uses: medyagh/setup-minikube@latest
+        env:
+          MINIKUBE_START_ARGS: "--alsologtostderr -v=5"  # Verbose logging
 
       - name: Install Helm
         run: |
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm version 2>&1 | tee /tmp/helm_install.log
 
       - name: Create Namespace
-        run: kubectl create namespace tradestream-namespace
+        run: |
+          kubectl create namespace tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
+          kubectl get namespaces -o wide 2>&1 | tee /tmp/namespace_creation.log
 
       - name: Create Secrets
         run: |
-          kubectl create secret generic \
-            coinmarketcap \
+          kubectl create secret generic coinmarketcap \
             --from-literal=apiKey=FAKE_API_KEY \
-            --namespace=tradestream-namespace
+            --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
+          kubectl get secrets -n tradestream-namespace -o yaml 2>&1 | tee /tmp/secrets_creation.log
 
       - uses: bazel-contrib/setup-bazel@0.9.1
         with:
-          # Avoid downloading Bazel every time
           bazelisk-cache: true
-          # Store build cache per workflow
           disk-cache: ${{ github.workflow }}
-          # Share repository cache between workflows
           repository-cache: true
 
-      - name: Build and Push the Data Ingestion Image
+      - name: Build and Push Image
         run: |
-          # Push to local registry
+          function _logger() {
+            while read -r line; do
+              printf '%s %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$line"
+            done | tee -a /tmp/image_build.log
+          }
+          
           bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
             --verbose_failures \
             --sandbox_debug \
             -- \
             --repository localhost:5000/tradestream-data-ingestion \
-            --tag "latest"
-
-      - name: Pull Images into Local Docker Daemon
-        run: |
-          # Pull the images from the local registry into the local Docker daemon
-          docker pull localhost:5000/tradestream-data-ingestion:latest
-
-          # Retag the images to remove the registry prefix, so Kubernetes doesn't try to pull them remotely
-          docker tag localhost:5000/tradestream-data-ingestion:latest tradestream-data-ingestion:latest
+            --tag "latest" 2>&1 | _logger
+          
+          docker images 2>&1 | _logger
 
       - name: Load Images into Minikube
         run: |
-          # Load the retagged images into Minikube's image cache
-          minikube image load tradestream-data-ingestion:latest
+          {
+            docker pull localhost:5000/tradestream-data-ingestion:latest
+            docker tag localhost:5000/tradestream-data-ingestion:latest tradestream-data-ingestion:latest
+            minikube image load tradestream-data-ingestion:latest
+            minikube image ls
+          } 2>&1 | tee /tmp/image_load.log
 
       - name: Install Cert Manager
         run: |
-          # Create the cert-manager namespace if it doesn't exist
-          kubectl create namespace cert-manager || true
- 
-          # Apply the cert-manager manifests
+          function _cert_manager_diagnostics() {
+            echo "=== Cert Manager Diagnostics ==="
+            kubectl get pods -n cert-manager
+            kubectl describe deployments -n cert-manager
+            kubectl get events -n cert-manager
+          }
+          
+          trap '_cert_manager_diagnostics' ERR
+          
+          kubectl create namespace cert-manager --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
- 
-      - name: Wait for Cert Manager
-        run: |
-          kubectl wait \
-            --for=condition=Available \
-            --timeout=90s \
-            deployment \
-            -l app.kubernetes.io/instance=cert-manager \
-            -n cert-manager
+          kubectl wait --for=condition=Available -n cert-manager deployment/cert-manager-webhook --timeout=120s 2>&1 | tee /tmp/cert_manager_install.log
 
       - name: Install TradeStream Helm Chart
         run: |
-          helm dependency update charts/tradestream && \
+          function _helm_diagnostics() {
+            echo "=== Helm Release Diagnostics ==="
+            helm status my-tradestream -n tradestream-namespace
+            helm get values my-tradestream -n tradestream-namespace
+          }
+          
+          trap '_helm_diagnostics' ERR
+          
+          helm dependency update charts/tradestream 2>&1 | tee /tmp/helm_dependencies.log
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
             --set dataIngestion.image.repository=tradestream-data-ingestion \
             --set dataIngestion.image.tag=latest \
-            --set 'dataIngestion.args[0]=--runMode=dry'
+            --set 'dataIngestion.args[0]=--runMode=dry' \
+            --dry-run 2>&1 | tee /tmp/helm_dryrun.log  # Validate first
+            
+          helm install my-tradestream charts/tradestream \
+            --namespace tradestream-namespace \
+            --set dataIngestion.image.repository=tradestream-data-ingestion \
+            --set dataIngestion.image.tag=latest \
+            --set 'dataIngestion.args[0]=--runMode=dry' 2>&1 | tee /tmp/helm_install.log
 
-      - name: Wait for All Pods to be Ready
+      - name: Monitor Deployment
         run: |
-          set -e
+          function _exit_handler() {
+            echo "=== FAILURE DIAGNOSTICS ==="
+            echo "Cluster events:"
+            kubectl get events -A --sort-by='.lastTimestamp' --field-selector type!=Normal
+            echo "Problem pods:"
+            kubectl get pods -A --field-selector=status.phase!=Running
+            echo "Container restarts:"
+            kubectl get pods -A -o jsonpath='{range .items[?(@.status.containerStatuses[*].restartCount>0)]}{.metadata.name}{"\trestarts: "}{.status.containerStatuses[*].restartCount}{"\n"}{end}'
+          }
+          
+          trap '_exit_handler' ERR
+          
+          kubectl wait --for=condition=Ready -n tradestream-namespace pod --all --timeout=300s
 
-          namespace="tradestream-namespace"
-          timeout_seconds=90
-
-          echo "Waiting for pods in namespace '${namespace}' to become Ready (timeout: ${timeout_seconds}s)..."
-
-          # First attempt to wait for all pods
-          if ! kubectl wait --for=condition=Ready pod --all -n "${namespace}" --timeout="${timeout_seconds}s"; then
-            echo "Some pods failed to become ready. Getting details..."
-
-            # Get all pods that aren't ready using a simple field selector
-            problem_pods=$(kubectl get pods -n "${namespace}" --field-selector status.phase!=Running,status.phase!=Succeeded -o name)
-
-            # Also get pods in Running state but not ready (like CrashLoopBackOff)
-            running_but_not_ready=$(kubectl get pods -n "${namespace}" --field-selector status.phase=Running -o jsonpath='{range .items[?(@.status.containerStatuses[*].ready==false)]}{.metadata.name}{"\n"}{end}')
-
-            problem_pods="$problem_pods"$'\n'"$running_but_not_ready"
-
-            if [[ -n "$problem_pods" ]]; then
-              echo -e "\nProblem pods found:"
-              echo "$problem_pods"
-
-              while IFS= read -r pod_with_type; do
-                if [[ -n "$pod_with_type" ]]; then
-                  # Extract the pod name by removing the "pod/" prefix
-                  pod_name="${pod_with_type#*/}"
-                  echo -e "\n--- Details for $pod_name ---"
-                  kubectl describe pod "$pod_name" -n "${namespace}"
-
-                  echo -e "\n--- Logs for $pod_name ---"
-                  kubectl logs "$pod_name" -n "${namespace}" --all-containers=true --previous=true 2>/dev/null || true
-                  kubectl logs "$pod_name" -n "${namespace}" --all-containers=true
-                fi
-              done <<< "$problem_pods"
-            fi
-            exit 1
-          fi
-
-          echo "All pods in namespace '${namespace}' are Ready."
-
-      - name: Verify Installations
+      - name: Compact Log Export
+        if: always()
         run: |
-          kubectl get pods -n tradestream-namespace
+          # Capture minimal essential diagnostics directly in job log
+          echo "=== FINAL DIAGNOSTIC SNAPSHOT ==="
+          kubectl get all -n tradestream-namespace -o wide
+          kubectl get events -n tradestream-namespace --sort-by=.metadata.creationTimestamp
+          helm status my-tradestream -n tradestream-namespace
