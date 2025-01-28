@@ -22,9 +22,8 @@ spec:
       containers:
         - name: data-ingestion
           args:
-          {{- range .Values.dataIngestion.args }}
-            - {{ . }}
-          {{- end }}
+            - "--candlePublisherTopic={{ .Values.dataIngestion.candlePublisherTopic }}"
+            - "--runMode={{ .Values.dataIngestion.runMode }}"
             - "--kafka.bootstrap.servers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
           image: "{{ .Values.dataIngestion.image.repository }}:{{ .Values.dataIngestion.image.tag }}"
           imagePullPolicy: {{ default "IfNotPresent" .Values.dataIngestion.image.pullPolicy }}
