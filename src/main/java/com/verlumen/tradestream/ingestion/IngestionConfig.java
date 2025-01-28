@@ -8,4 +8,5 @@ record IngestionConfig(
     int topCryptocurrencyCount,
     String exchangeName,
     long candleIntervalMillis,
-    RunMode runMode) {}
+    RunMode runMode,
+    String kafkaBootstrapServers) {}

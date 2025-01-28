@@ -16,10 +16,10 @@ public record KafkaProperties(
   int lingerMs,
   int retries) implements Supplier<Properties> {
 
-  public static KafkaProperties create() {
+  public static KafkaProperties create(String bootstrapServers) {
     return new KafkaProperties(
       KafkaDefaults.BATCH_SIZE,
-      KafkaDefaults.BOOTSTRAP_SERVERS,
+      bootstrapServers,
       KafkaDefaults.BUFFER_MEMORY,
       KafkaDefaults.KEY_SERIALIZER,
       KafkaDefaults.VALUE_SERIALIZER,
