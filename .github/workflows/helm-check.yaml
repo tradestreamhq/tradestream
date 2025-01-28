@@ -1,0 +1,25 @@
+name: Validate Helm Chart
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  helm-check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Helm
+      uses: azure/setup-helm@v4.2.0
+
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: helm dependency update charts/tradestream
+
+    - name: helm-check
+      uses: igabaydulin/helm-check-action@0.1.4
+      env:
+        CHART_LOCATION: charts/tradestream
+        CHART_VALUES: charts/tradestream/values.yaml
