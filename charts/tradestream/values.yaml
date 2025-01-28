@@ -19,9 +19,8 @@ kafkaUi:
     type: ClusterIP
     port: 8080
 dataIngestion:
-  args:
-    - --candlePublisherTopic=candles
-    - --runMode=wet
+  candlePublisherTopic: candles
+  runMode: wet
   replicaCount: 1
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
