@@ -59,14 +59,14 @@ jobs:
               printf '%s %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$line"
             done | tee -a /tmp/image_build.log
           }
-
+          
           bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
             --verbose_failures \
-+          --sandbox_debug \
+            --sandbox_debug \
             -- \
             --repository localhost:5000/tradestream-data-ingestion \
             --tag "latest" 2>&1 | _logger
-
+          
           docker images 2>&1 | _logger
 
       - name: Load Images into Minikube
@@ -86,10 +86,10 @@ jobs:
             kubectl describe deployments -n cert-manager
             kubectl get events -n cert-manager
           }
-
+          
           trap '_cert_manager_diagnostics' ERR
-
-          kubectl create namespace cert-manager --dry-run=client -o yaml | kubectl apply -f - || true
+          
+          kubectl create namespace cert-manager --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
           kubectl wait --for=condition=Available -n cert-manager deployment/cert-manager-webhook --timeout=120s 2>&1 | tee /tmp/cert_manager_install.log
 
@@ -100,9 +100,9 @@ jobs:
             helm status my-tradestream -n tradestream-namespace
             helm get values my-tradestream -n tradestream-namespace
           }
-
+          
           trap '_helm_diagnostics' ERR
-
+          
           helm dependency update charts/tradestream 2>&1 | tee /tmp/helm_dependencies.log
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
@@ -110,7 +110,7 @@ jobs:
             --set dataIngestion.image.tag=latest \
             --set 'dataIngestion.args[0]=--runMode=dry' \
             --dry-run 2>&1 | tee /tmp/helm_dryrun.log  # Validate first
-
+            
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
             --set dataIngestion.image.repository=tradestream-data-ingestion \
@@ -128,10 +128,10 @@ jobs:
             echo "Container restarts:"
             kubectl get pods -A -o jsonpath='{range .items[?(@.status.containerStatuses[*].restartCount>0)]}{.metadata.name}{"\trestarts: "}{.status.containerStatuses[*].restartCount}{"\n"}{end}'
           }
-
+          
           trap '_exit_handler' ERR
-
-          kubectl wait --for=condition=Ready -n tradestream-namespace pod --all --timeout=90s
+          
+          kubectl wait --for=condition=Ready -n tradestream-namespace pod --all --timeout=300s
 
       - name: Compact Log Export
         if: always()
