@@ -23,8 +23,7 @@ jobs:
         uses: medyagh/setup-minikube@latest
 
       - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+        uses: azure/setup-helm@v4.2.0
 
       - name: Create Namespace
         run: kubectl create namespace tradestream-namespace
