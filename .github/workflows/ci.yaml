@@ -32,9 +32,7 @@ jobs:
           MINIKUBE_START_ARGS: "--alsologtostderr -v=5"  # Verbose logging
 
       - name: Install Helm
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-          helm version 2>&1 | tee /tmp/helm_install.log
+        uses: azure/setup-helm@v4.2.0
 
       - name: Create Namespace
         run: |
