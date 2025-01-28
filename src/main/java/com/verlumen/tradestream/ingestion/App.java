@@ -66,7 +66,8 @@ final class App {
               topNCryptocurrencies,
               exchangeName,
               candleIntervalMillis,
-              runMode);
+              runMode,
+              namespace.getString("kafka.bootstrap.servers"));
       IngestionModule module = IngestionModule.create(ingestionConfig);
       App app = Guice.createInjector(module).getInstance(App.class);
       logger.atInfo().log("Guice initialization complete, running application");
@@ -107,6 +108,11 @@ final class App {
       .type(Integer.class)
       .setDefault(10)
       .help("Number of top cryptocurrencies to track (default: 100)");
+
+    // Kafka configuration
+    parser.addArgument("--kafka.bootstrap.servers")
+      .setDefault("localhost:9092")
+      .help("Kafka bootstrap servers");
 
     // Run mode configuration
     parser.addArgument("--runMode")

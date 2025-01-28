@@ -26,11 +26,6 @@ final class App {
     String getCandleTopic();
     void setCandleTopic(String value);
 
-    @Description("Interval in hours for dynamic read.")
-    @Default.Integer(1) // Default to 1 hour
-    int getDynamicReadIntervalHours();
-    void setDynamicReadIntervalHours(int value);
-
     @Description("Run mode: wet or dry.")
     @Default.String("wet") // Default to "wet" mode
     String getRunMode();
@@ -67,7 +62,6 @@ final class App {
     var module = PipelineModule.create(
       options.getBootstrapServers(),
       options.getCandleTopic(),
-      options.getDynamicReadIntervalHours(),
       options.getRunMode());
     var app = Guice.createInjector(module).getInstance(App.class);
     var pipeline = Pipeline.create(options);

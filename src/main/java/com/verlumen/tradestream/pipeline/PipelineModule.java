@@ -10,19 +10,18 @@ import com.verlumen.tradestream.kafka.KafkaReadTransform;
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
   static PipelineModule create(
-    String bootstrapServers, String candleTopic, int intervalHours, String runMode) {
-    return new AutoValue_PipelineModule(bootstrapServers, candleTopic, intervalHours, runMode);
+    String bootstrapServers, String candleTopic, String runMode) {
+    return new AutoValue_PipelineModule(bootstrapServers, candleTopic, runMode);
   }
 
   abstract String bootstrapServers();
   abstract String candleTopic();
-  abstract int dynamicReadIntervalHours();
   abstract String runMode();
 
   @Override
   protected void configure() {
     install(ExecutionModule.create(runMode()));
-    install(KafkaModule.create());
+    install(KafkaModule.create(bootstrapServers()));
   }
 
   @Provides
