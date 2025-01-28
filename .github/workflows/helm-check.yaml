@@ -13,10 +13,11 @@ jobs:
     - name: Install Helm
       uses: azure/setup-helm@v4.2.0
 
+    - uses: actions/checkout@v4
+
     - name: Install dependencies
       run: helm dependency update charts/tradestream
 
-    - uses: actions/checkout@v4
     - name: helm-check
       uses: igabaydulin/helm-check-action@0.1.4
       env:
