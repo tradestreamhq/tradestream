@@ -10,6 +10,12 @@ jobs:
   helm-check:
     runs-on: ubuntu-latest
     steps:
+    - name: Install Helm
+      uses: azure/setup-helm@v4.2.0
+
+    - name: Install dependencies
+      run: helm dependency update charts/tradestream
+
     - uses: actions/checkout@v4
     - name: helm-check
       uses: igabaydulin/helm-check-action@0.1.4
