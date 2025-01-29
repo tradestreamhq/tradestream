@@ -52,7 +52,7 @@ jobs:
           disk-cache: ${{ github.workflow }}
           repository-cache: true
 
-      - name: Build and Push Image
+      - name: Build and Push Data Ingestion Image
         run: |
           function _logger() {
             while read -r line; do
@@ -69,12 +69,37 @@ jobs:
           
           docker images 2>&1 | _logger
 
+      - name: Build and Push Pipeline Image
+        run: |
+          function _logger() {
+            while read -r line; do
+              printf '%s %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$line"
+            done | tee -a /tmp/image_build.log
+          }
+          
+          bazel run //src/main/java/com/verlumen/tradestream/pipeline:push_image \
+            --verbose_failures \
+            --sandbox_debug \
+            -- \
+            --repository localhost:5000/tradestream-pipeline \
+            --tag "latest" 2>&1 | _logger
+          
+          docker images 2>&1 | _logger
+
       - name: Load Images into Minikube
         run: |
           {
+            # Load data ingestion image
             docker pull localhost:5000/tradestream-data-ingestion:latest
             docker tag localhost:5000/tradestream-data-ingestion:latest tradestream-data-ingestion:latest
             minikube image load tradestream-data-ingestion:latest
+            
+            # Load pipeline image
+            docker pull localhost:5000/tradestream-pipeline:latest
+            docker tag localhost:5000/tradestream-pipeline:latest tradestream-pipeline:latest
+            minikube image load tradestream-pipeline:latest
+            
+            # List all images
             minikube image ls
           } 2>&1 | tee /tmp/image_load.log
 
@@ -109,13 +134,19 @@ jobs:
             --set dataIngestion.image.repository=tradestream-data-ingestion \
             --set dataIngestion.image.tag=latest \
             --set 'dataIngestion.args[0]=--runMode=dry' \
+            --set pipeline.image.repository=tradestream-data-ingestion \
+            --set pipeline.image.tag=latest \
+            --set 'pipeline.args[0]=--runMode=dry' \
             --dry-run 2>&1 | tee /tmp/helm_dryrun.log  # Validate first
             
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
             --set dataIngestion.image.repository=tradestream-data-ingestion \
             --set dataIngestion.image.tag=latest \
-            --set 'dataIngestion.args[0]=--runMode=dry' 2>&1 | tee /tmp/helm_install.log
+            --set 'dataIngestion.args[0]=--runMode=dry' \
+            --set pipeline.image.repository=tradestream-data-ingestion \
+            --set pipeline.image.tag=latest \
+            --set 'pipeline.args[0]=--runMode=dry' 2>&1 | tee /tmp/helm_install.log
 
       - name: Monitor Deployment
         run: |
