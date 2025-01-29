@@ -10,7 +10,6 @@ kafka:
       protocol: PLAINTEXT
     controller:
       protocol: PLAINTEXT
-
 kafkaUi:
   replicaCount: 1
   image:
@@ -20,22 +19,20 @@ kafkaUi:
   service:
     type: ClusterIP
     port: 8080
-
 dataIngestion:
   candlePublisherTopic: candles
   runMode: wet
   replicaCount: 1
   image:
     repository: tradestreamhq/tradestream-data-ingestion
-    tag: v0.0.608-develop
+    tag: v0.0.609-develop
   service:
     port: 8080
-
 pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-pipeline
-    tag: v0.0.608-develop
+    tag: v0.0.609-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -52,6 +49,6 @@ pipeline:
     jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
     args:
       - "--runner=FlinkRunner"
-      - "--bootstrapServers={{ include 'tradestream.fullname' . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"  # Fixed quotes
+      - "--bootstrapServers={{ include 'tradestream.fullname' . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092" # Fixed quotes
     parallelism: 1
     upgradeMode: stateless
