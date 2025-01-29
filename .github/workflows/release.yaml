@@ -10,7 +10,7 @@ jobs:
     env:
       DATA_INGESTION_REPO: tradestreamhq/tradestream-data-ingestion
       DATA_INGESTION_SECTION_KEY: dataIngestion
-      PIPELINE_REPO: tradestreamhq/tradestream-pipeline
+      PIPELINE_REPO: tradestreamhq/tradestream-data-pipeline
       PIPELINE_SECTION_KEY: pipeline
     steps:
       - name: Checkout
