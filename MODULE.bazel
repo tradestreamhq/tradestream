@@ -14,12 +14,12 @@ bazel_dep(name = "rules_jvm_external", version = "6.5")
 bazel_dep(name = "rules_oci", version = "2.0.1")
 
 # Add Java toolchain configuration
-JAVA_LANGUAGE_LEVEL = "21"
+JAVA_LANGUAGE_LEVEL = "17"
 
 java = use_extension("@rules_java//java:extensions.bzl", "java")
 java.toolchain(
     name = "java",
-    java_runtime = "@rules_java//toolchains:remotejdk_21",
+    java_runtime = "@rules_java//toolchains:remotejdk_17",
     source_version = JAVA_LANGUAGE_LEVEL,
     target_version = JAVA_LANGUAGE_LEVEL,
 )
