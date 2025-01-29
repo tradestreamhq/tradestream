@@ -101,8 +101,8 @@ use_repo(oci, "openjdk_java")
 
 oci.pull(
     name = "flink_java17",
-    image = "docker.io/library/flink:java17",
-    digest = "sha256:1a089cc897a4f34ceaa4e15215d9a05cc32a6b5f7cba84dc0583e32eead42113",
+    image = "docker.io/library/flink:1.18-java17",
+    digest = "sha256:e3836db6fbdf5186156cebe9aaa9a8d7a6edfa43450476faa1224fae8d5c4b80",
     platforms = [
         "linux/amd64",
         "linux/arm64/v8",
