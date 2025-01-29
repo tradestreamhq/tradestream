@@ -39,7 +39,7 @@ genrule(
 
 oci_image(
     name = "image",
-    base = "@openjdk_java",
+    base = "@flink_java17",
     entrypoint = [
         "java",
         "-jar",
