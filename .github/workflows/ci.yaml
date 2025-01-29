@@ -133,20 +133,20 @@ jobs:
             --namespace tradestream-namespace \
             --set dataIngestion.image.repository=tradestream-data-ingestion \
             --set dataIngestion.image.tag=latest \
-            --set 'dataIngestion.args[0]=--runMode=dry' \
+            --set dataIngestion.runMode=dry \
             --set pipeline.image.repository=tradestream-data-ingestion \
             --set pipeline.image.tag=latest \
-            --set 'pipeline.args[0]=--runMode=dry' \
+            --set pipeline.runMode=dry \
             --dry-run 2>&1 | tee /tmp/helm_dryrun.log  # Validate first
             
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
             --set dataIngestion.image.repository=tradestream-data-ingestion \
             --set dataIngestion.image.tag=latest \
-            --set 'dataIngestion.args[0]=--runMode=dry' \
+            --set dataIngestion.runMode=dry \
             --set pipeline.image.repository=tradestream-data-ingestion \
             --set pipeline.image.tag=latest \
-            --set 'pipeline.args[0]=--runMode=dry' 2>&1 | tee /tmp/helm_install.log
+            --set pipeline.runMode=dry 2>&1 | tee /tmp/helm_install.log
 
       - name: Monitor Deployment
         run: |
