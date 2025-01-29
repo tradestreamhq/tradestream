@@ -32,3 +32,22 @@ pipeline:
   image:
     repository: "tradestreamhq/tradestream-pipeline"
     tag: "v0.0.608-develop"
+    pullPolicy: IfNotPresent
+  version: v1_18
+  configuration:
+    taskmanager.numberOfTaskSlots: "1"
+  serviceAccount: flink
+  jobManager:
+    memory: "2048m"
+    cpu: 1
+  taskManager:
+    memory: "2048m"
+    cpu: 1
+  job:
+    entryClass: com.verlumen.tradestream.pipeline.App
+    jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
+    args:
+      - "--runner=FlinkRunner"
+      - "--bootstrapServers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+    parallelism: 1
+    upgradeMode: stateless
