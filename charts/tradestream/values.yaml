@@ -27,3 +27,8 @@ dataIngestion:
     tag: "v0.0.608-develop"
   service:
     port: 8080
+pipeline:
+  runMode: wet
+  image:
+    repository: "tradestreamhq/tradestream-pipeline"
+    tag: "v0.0.608-develop"
