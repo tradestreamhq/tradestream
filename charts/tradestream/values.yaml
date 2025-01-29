@@ -4,26 +4,54 @@ kafka:
     enabled: true
     size: 10Gi
     accessModes:
+      - ReadWriteOnce
   listeners:
     client:
-      protocol: 'PLAINTEXT'
+      protocol: PLAINTEXT
     controller:
-      protocol: 'PLAINTEXT'
+      protocol: PLAINTEXT
+
 kafkaUi:
   replicaCount: 1
   image:
-    repository: "provectuslabs/kafka-ui"
-    tag: "latest"
+    repository: provectuslabs/kafka-ui
+    tag: latest
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
     port: 8080
+
 dataIngestion:
   candlePublisherTopic: candles
   runMode: wet
   replicaCount: 1
   image:
-    repository: "tradestreamhq/tradestream-data-ingestion"
-    tag: "v0.0.608-develop"
+    repository: tradestreamhq/tradestream-data-ingestion
+    tag: v0.0.608-develop
   service:
     port: 8080
+
+pipeline:
+  runMode: wet
+  image:
+    repository: tradestreamhq/tradestream-pipeline
+    tag: v0.0.608-develop
+    pullPolicy: IfNotPresent
+  version: v1_18
+  configuration:
+    taskmanager.numberOfTaskSlots: "1"
+  serviceAccount: flink
+  jobManager:
+    memory: 2048m
+    cpu: 1
+  taskManager:
+    memory: 2048m
+    cpu: 1
+  job:
+    entryClass: com.verlumen.tradestream.pipeline.App
+    jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
+    args:
+      - "--runner=FlinkRunner"
+      - "--bootstrapServers={{ include 'tradestream.fullname' . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"  # Fixed quotes
+    parallelism: 1
+    upgradeMode: stateless
