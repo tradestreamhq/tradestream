@@ -14,12 +14,12 @@ bazel_dep(name = "rules_jvm_external", version = "6.5")
 bazel_dep(name = "rules_oci", version = "2.0.1")
 
 # Add Java toolchain configuration
-JAVA_LANGUAGE_LEVEL = "21"
+JAVA_LANGUAGE_LEVEL = "17"
 
 java = use_extension("@rules_java//java:extensions.bzl", "java")
 java.toolchain(
     name = "java",
-    java_runtime = "@rules_java//toolchains:remotejdk_21",
+    java_runtime = "@rules_java//toolchains:remotejdk_17",
     source_version = JAVA_LANGUAGE_LEVEL,
     target_version = JAVA_LANGUAGE_LEVEL,
 )
@@ -52,7 +52,7 @@ maven.install(
         "com.ryanharter.auto.value:auto-value-gson:1.3.1",
         "com.ryanharter.auto.value:auto-value-gson-annotations:0.8.0",
         "com.ryanharter.auto.value:auto-value-gson-factory:1.3.1",
-        "io.jenetics:jenetics:8.1.0",
+        "io.jenetics:jenetics:7.2.0",
         "io.reactivex.rxjava3:rxjava:3.1.6",
         "javax.inject:javax.inject:1",
         "net.sourceforge.argparse4j:argparse4j:0.9.0",
