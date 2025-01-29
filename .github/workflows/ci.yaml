@@ -81,7 +81,7 @@ jobs:
             --verbose_failures \
             --sandbox_debug \
             -- \
-            --repository localhost:5000/tradestream-pipeline \
+            --repository localhost:5000/tradestream-data-pipeline \
             --tag "latest" 2>&1 | _logger
           
           docker images 2>&1 | _logger
@@ -95,9 +95,9 @@ jobs:
             minikube image load tradestream-data-ingestion:latest
             
             # Load pipeline image
-            docker pull localhost:5000/tradestream-pipeline:latest
-            docker tag localhost:5000/tradestream-pipeline:latest tradestream-pipeline:latest
-            minikube image load tradestream-pipeline:latest
+            docker pull localhost:5000/tradestream-data-pipeline:latest
+            docker tag localhost:5000/tradestream-data-pipeline:latest tradestream-data-pipeline:latest
+            minikube image load tradestream-data-pipeline:latest
             
             # List all images
             minikube image ls

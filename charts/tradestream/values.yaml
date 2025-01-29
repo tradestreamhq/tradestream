@@ -31,7 +31,7 @@ dataIngestion:
 pipeline:
   runMode: wet
   image:
-    repository: tradestreamhq/tradestream-pipeline
+    repository: tradestreamhq/tradestream-data-pipeline
     tag: v0.0.609-develop
     pullPolicy: IfNotPresent
   version: v1_18
