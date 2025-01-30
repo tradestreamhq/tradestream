@@ -48,7 +48,6 @@ pipeline:
     entryClass: com.verlumen.tradestream.pipeline.App
     jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
     args:
-      - "--blockOnRun=false"
       - "--bootstrapServers={{ include 'tradestream.fullname' . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
       - "--runner=FlinkRunner"
     parallelism: 1
