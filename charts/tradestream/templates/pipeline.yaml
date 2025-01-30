@@ -26,6 +26,7 @@ spec:
     entryClass: {{ .Values.pipeline.job.entryClass }}
     jarURI: {{ .Values.pipeline.job.jarURI }}
     args: 
-      {{- toYaml .Values.pipeline.job.args | nindent 6 }}
+      - "--bootstrapServers={{ include 'tradestream.fullname' . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+      - "--runner=FlinkRunner"
     parallelism: {{ .Values.pipeline.job.parallelism }}
     upgradeMode: {{ .Values.pipeline.job.upgradeMode }}
