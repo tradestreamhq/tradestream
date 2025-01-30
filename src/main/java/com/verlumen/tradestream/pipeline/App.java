@@ -3,18 +3,18 @@ package com.verlumen.tradestream.pipeline;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
-import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.StreamingOptions;
+import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.TypeDescriptors;
 
 public final class App {
-  public interface Options extends StreamingOptions, FlinkPipelineOptions {
+  public interface Options extends StreamingOptions {
     @Description("Comma-separated list of Kafka bootstrap servers.")
     @Default.String("localhost:9092") 
     String getBootstrapServers();
@@ -58,10 +58,6 @@ public final class App {
 
   public static void main(String[] args) {
     var options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
-    
-    // Ensure the Flink job is not submitted in detached mode
-    options.setDetached(false);
-
     var module = PipelineModule.create(
       options.getBootstrapServers(),
       options.getCandleTopic(),
