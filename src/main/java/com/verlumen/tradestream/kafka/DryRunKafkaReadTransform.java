@@ -35,7 +35,7 @@ abstract class DryRunKafkaReadTransform extends KafkaReadTransform {
     // Create a list of strings to simulate the Kafka read
     List<String> mockData = List.of(
         "Hello",
-        "World",
+        "World!",
         "bootstrapServers: " + bootstrapServers(),
         "topic: " + topic(),
         "consumerConfig: " + consumerConfig().toString()
