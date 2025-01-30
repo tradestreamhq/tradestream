@@ -25,14 +25,14 @@ dataIngestion:
   replicaCount: 1
   image:
     repository: tradestreamhq/tradestream-data-ingestion
-    tag: v0.0.612-develop
+    tag: v0.0.613-develop
   service:
     port: 8080
 pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v0.0.612-develop
+    tag: v0.0.613-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -51,6 +51,5 @@ pipeline:
       - "--blockOnRun=false"
       - "--bootstrapServers={{ include 'tradestream.fullname' . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
       - "--runner=FlinkRunner"
-      
     parallelism: 1
     upgradeMode: stateless
