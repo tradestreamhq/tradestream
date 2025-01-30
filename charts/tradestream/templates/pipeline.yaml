@@ -1,11 +1,11 @@
 apiVersion: flink.apache.org/v1beta1
 kind: FlinkDeployment
 metadata:
-  name: {{ include "tradestream.fullname" . }}-flink-beam
+  name: {{ include "tradestream.fullname" . }}-data-pipeline
   namespace: {{ .Release.Namespace }}
   labels:
     app: {{ include "tradestream.name" . }}
-    component: flink-beam
+    component: data-pipeline
     release: {{ .Release.Name }}
 spec:
   image: {{ .Values.pipeline.image.repository }}:{{ .Values.pipeline.image.tag }}
