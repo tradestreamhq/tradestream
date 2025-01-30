@@ -34,8 +34,8 @@ abstract class DryRunKafkaReadTransform extends KafkaReadTransform {
   public PCollection<String> expand(PBegin input) {
     // Create a list of strings to simulate the Kafka read
     List<String> mockData = List.of(
-        "hello",
-        "world",
+        "Hello",
+        "World!",
         "bootstrapServers: " + bootstrapServers(),
         "topic: " + topic(),
         "consumerConfig: " + consumerConfig().toString()

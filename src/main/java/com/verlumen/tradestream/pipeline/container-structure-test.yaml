@@ -6,4 +6,5 @@ commandTests:
     args:
       - '-jar'
       - '/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar'
+      - "--runMode=dry"
     expectedOutput: ['Hello', 'World!']

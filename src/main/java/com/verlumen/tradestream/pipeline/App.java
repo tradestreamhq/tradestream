@@ -39,9 +39,9 @@ public final class App {
     this.kafkaReadTransform = kafkaReadTransform;
   }
 
-  static PCollection<String> buildPipeline(Pipeline pipeline) {
+  PCollection<String> buildPipeline(Pipeline pipeline) {
     return pipeline
-        .apply("Create elements", Create.of(Arrays.asList("Hello", "World!")))
+        .apply("Create elements", kafkaReadTransform)
         .apply(
             "Print elements",
             MapElements.into(TypeDescriptors.strings())
@@ -53,7 +53,7 @@ public final class App {
   }
 
   void runPipeline(Pipeline pipeline) {
-    App.buildPipeline(pipeline);
+    buildPipeline(pipeline);
     pipeline.run().waitUntilFinish();
   }
 
