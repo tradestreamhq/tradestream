@@ -14,7 +14,7 @@ import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.TypeDescriptors;
 
-final class App {
+public final class App {
   public interface Options extends StreamingOptions {
     @Description("Comma-separated list of Kafka bootstrap servers.")
     @Default.String("localhost:9092") 
