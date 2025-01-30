@@ -25,8 +25,26 @@ spec:
   job:
     entryClass: {{ .Values.pipeline.job.entryClass }}
     jarURI: {{ .Values.pipeline.job.jarURI }}
-    args: 
+    args:
       - "--bootstrapServers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
       - "--runner=FlinkRunner"
     parallelism: {{ .Values.pipeline.job.parallelism }}
     upgradeMode: {{ .Values.pipeline.job.upgradeMode }}
+
+  #############################################
+  # Example podTemplate to mount /opt/flink/conf as RW
+  #############################################
+  podTemplate:
+    metadata:
+      labels:
+        custom-pod-template: "true"
+    spec:
+      volumes:
+        - name: flink-conf-volume
+          emptyDir: {}
+      containers:
+        - name: flink-main-container
+          volumeMounts:
+            - name: flink-conf-volume
+              mountPath: /opt/flink/conf
+              readOnly: false
