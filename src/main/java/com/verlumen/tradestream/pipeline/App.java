@@ -41,13 +41,13 @@ public final class App {
 
   PCollection<String> buildPipeline(Pipeline pipeline) {
       return pipeline
-          .apply("Create elements", kafkaReadTransform)
-          .apply(
-              "Print elements",
+          .<KV<String, byte[]>>apply("Read from Kafka", kafkaReadTransform)
+          .apply("Convert to String", 
               MapElements.into(TypeDescriptors.strings())
-                  .via((byte[] x) -> {
-                      System.out.println(new String(x));
-                      return new String(x);
+                  .via(kv -> {
+                      String value = new String(kv.getValue());
+                      System.out.println(value);
+                      return value;
                   }));
   }
 
