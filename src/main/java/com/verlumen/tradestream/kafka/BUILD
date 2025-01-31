@@ -82,6 +82,7 @@ java_library(
         "//third_party:auto_value",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_io_kafka",
+        "//third_party:guava",
         "//third_party:kafka_clients",
     ],
 )
