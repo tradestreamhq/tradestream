@@ -36,18 +36,17 @@ abstract class KafkaReadTransformImpl<K, V> extends KafkaReadTransform<K, V> {
 
   @AutoValue.Builder
   abstract static class Builder<K, V> {
-    abstract Builder<K, V> setBootstrapServers(String bootstrapServers);
-    abstract Builder<K, V> setTopic(String topic);
-    abstract Builder<K, V> setConsumerConfig(Map<String, Object> consumerConfig);
+      abstract Builder<K, V> setBootstrapServers(String bootstrapServers);
+      abstract Builder<K, V> setTopic(String topic);
+      abstract Builder<K, V> setConsumerConfig(Map<String, Object> consumerConfig);
 
-    // Methods to set the deserializer classes
-    abstract Builder<K, V> setKeyDeserializerClass(
-        Class<? extends Deserializer<K>> keyDeserializerClass);
+      // Updated to match the Factory's parameter types
+      abstract Builder<K, V> setKeyDeserializerClass(
+          Class<? extends Deserializer<? super K>> keyDeserializerClass);
+      abstract Builder<K, V> setValueDeserializerClass(
+          Class<? extends Deserializer<? super V>> valueDeserializerClass);
 
-    abstract Builder<K, V> setValueDeserializerClass(
-        Class<? extends Deserializer<V>> valueDeserializerClass);
-
-    abstract KafkaReadTransformImpl<K, V> build();
+      abstract KafkaReadTransformImpl<K, V> build();
   }
 
   @Override

@@ -32,8 +32,8 @@ final class KafkaReadTransformFactory implements KafkaReadTransform.Factory {
           .setBootstrapServers(kafkaProperties.bootstrapServers())
           .setTopic(topic)
           // (Assuming DryRunKafkaReadTransform is also generic and has these methods)
-          .setKeyDeserializerClass(keyDeserializer)
-          .setValueDeserializerClass(valueDeserializer)
+          .setKeyDeserializerClass((Class) keyDeserializer)
+          .setValueDeserializerClass((Class) valueDeserializer)
           .build();
     }
 
@@ -42,8 +42,8 @@ final class KafkaReadTransformFactory implements KafkaReadTransform.Factory {
         .<K, V>builder()
         .setBootstrapServers(kafkaProperties.bootstrapServers())
         .setTopic(topic)
-        .setKeyDeserializerClass(keyDeserializer)
-        .setValueDeserializerClass(valueDeserializer)
+        .setKeyDeserializerClass((Class) keyDeserializer)
+        .setValueDeserializerClass((Class) valueDeserializer)
         .build();
   }
 }
