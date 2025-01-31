@@ -74,11 +74,14 @@ java_library(
     srcs = ["PipelineModule.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/execution:execution_module",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/kafka:dry_run_kafka_read_transform",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform_factory",
         "//third_party:auto_value",
         "//third_party:guice",
+        "//third_party:kafka_clients",
     ],
 )
 

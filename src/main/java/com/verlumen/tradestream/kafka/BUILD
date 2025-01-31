@@ -9,6 +9,7 @@ java_library(
         ":kafka_read_transform",
         "//third_party:auto_value",
         "//third_party:beam_sdks_java_core",
+        "//third_party:kafka_clients",
     ],
 )
 
@@ -55,6 +56,7 @@ java_library(
     srcs = ["KafkaReadTransform.java"],
     deps = [
         "//third_party:beam_sdks_java_core",
+        "//third_party:kafka_clients",
     ],
 )
 
@@ -66,8 +68,9 @@ java_library(
         ":kafka_properties",
         ":kafka_read_transform",
         ":kafka_read_transform_impl",
-        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party:beam_sdks_java_core",
         "//third_party:guice",
+        "//third_party:kafka_clients",
     ],
 )
 
