@@ -15,10 +15,10 @@ java_binary(
     "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
     "//third_party:beam_sdks_java_core",
     "//third_party:guice",
+    "//third_party:beam_runners_flink_java",
   ],
   runtime_deps = [
     "//third_party:beam_runners_direct_java",
-    "//third_party:beam_runners_flink_java",
   ],
 )
 
