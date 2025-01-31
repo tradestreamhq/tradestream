@@ -40,16 +40,15 @@ public final class App {
   }
 
   PCollection<String> buildPipeline(Pipeline pipeline) {
-    return pipeline
-        .apply("Create elements", kafkaReadTransform)
-        .apply(
-            "Print elements",
-            MapElements.into(TypeDescriptors.strings())
-                .via(
-                    x -> {
-                      System.out.println(x);
-                      return x;
-                    }));
+      return pipeline
+          .apply("Create elements", kafkaReadTransform)
+          .apply(
+              "Print elements",
+              MapElements.into(TypeDescriptors.strings())
+                  .via((byte[] x) -> {
+                      System.out.println(new String(x));
+                      return new String(x);
+                  }));
   }
 
   void runPipeline(Pipeline pipeline) {
