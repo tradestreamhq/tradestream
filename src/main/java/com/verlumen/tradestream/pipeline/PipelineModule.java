@@ -32,7 +32,7 @@ abstract class PipelineModule extends AbstractModule {
   KafkaReadTransform<String, byte[]> provideKafkaReadTransform(KafkaReadTransform.Factory factory, RunMode runMode) {
       if (runMode.equals(RunMode.DRY)) {
         return DryRunKafkaReadTransform
-            .<K, V>builder()
+            .<String, byte[]>builder()
             .setBootstrapServers(kafkaProperties.bootstrapServers())
             .setTopic(candleTopic())
             .setKeyDeserializerClass(StringDeserializer.class)
