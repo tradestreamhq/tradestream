@@ -42,8 +42,8 @@ public final class App {
         pipeline
             .apply("Read from Kafka", kafkaReadTransform)
             .apply("Convert to String", 
-                MapElements.into(TypeDescriptors.strings())
-                    .via((KV<String, byte[]> kv) -> {
+                MapElements.<KV<String, byte[]>>into(TypeDescriptors.strings())
+                    .via(kv -> {
                         String value = new String(kv.getValue());
                         System.out.println(value);
                         return value;
