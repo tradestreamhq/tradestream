@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @AutoValue
-abstract class DryRunKafkaReadTransform<K, V> extends KafkaReadTransform<K, V> {
+public abstract class DryRunKafkaReadTransform<K, V> extends KafkaReadTransform<K, V> {
   abstract String bootstrapServers();
   abstract String topic();
   abstract Map<String, Object> consumerConfig();
@@ -21,9 +21,11 @@ abstract class DryRunKafkaReadTransform<K, V> extends KafkaReadTransform<K, V> {
   abstract Class<? extends Deserializer<? super K>> keyDeserializerClass();
   abstract Class<? extends Deserializer<? super V>> valueDeserializerClass();
 
+  abstract V defaultValue();
+
   static <K, V> Builder<K, V> builder() {
     return new AutoValue_DryRunKafkaReadTransform.Builder<K, V>()
-        .setConsumerConfig(Collections.emptyMap()); // default
+        .setConsumerConfig(Collections.emptyMap());
   }
 
   @AutoValue.Builder
@@ -38,19 +40,19 @@ abstract class DryRunKafkaReadTransform<K, V> extends KafkaReadTransform<K, V> {
     abstract Builder<K, V> setValueDeserializerClass(
         Class<? extends Deserializer<? super V>> valueDeserializerClass);
 
+    abstract Builder<K, V> setDefaultValue(V defaultValue);
+
     abstract DryRunKafkaReadTransform<K, V> build();
   }
 
   @Override
   public PCollection<V> expand(PBegin input) {
-    // For a DRY run, we typically don't produce real data.
-    // We'll produce an empty PCollection<V> to keep it truly generic.
-    List<V> mockData = Collections.emptyList();
+    // Create mock data based on the default value.
+    List<V> mockData = Collections.singletonList(defaultValue());
 
     return input
         .getPipeline()
-        .apply("CreateEmptyData", Create.of(mockData))
-        // Provide a correct type descriptor for V
+        .apply("CreateMockData", Create.of(mockData))
         .setTypeDescriptor(new TypeDescriptor<V>() {});
   }
 }

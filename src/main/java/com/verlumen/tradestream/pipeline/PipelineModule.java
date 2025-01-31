@@ -4,8 +4,10 @@ import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.verlumen.tradestream.execution.ExecutionModule;
+import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
+import java.nio.charset.StandardCharsets;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
@@ -27,7 +29,18 @@ abstract class PipelineModule extends AbstractModule {
   }
 
   @Provides
-  KafkaReadTransform<String, byte[]> provideKafkaReadTransform(KafkaReadTransform.Factory factory) {
+  KafkaReadTransform<String, byte[]> provideKafkaReadTransform(KafkaReadTransform.Factory factory, RunMode runMode) {
+      if (runMode.equals(RunMode.DRY)) {
+        return DryRunKafkaReadTransform
+            .<K, V>builder()
+            .setBootstrapServers(kafkaProperties.bootstrapServers())
+            .setTopic(candleTopic())
+            .setKeyDeserializerClass(StringDeserializer.class)
+            .setValueDeserializerClass(ByteArrayDeserializer.class)
+            .setDefaultValue("dummy_value".getBytes(StandardCharsets.UTF_8))
+            .build();
+      }
+
       return factory.create(
           candleTopic(), 
           StringDeserializer.class,
