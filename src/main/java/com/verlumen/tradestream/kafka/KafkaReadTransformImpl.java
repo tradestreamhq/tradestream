@@ -18,6 +18,10 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import java.util.Collections;
 import java.util.Map;
 
+/**
+ * Generic implementation of Kafka read transform, allowing the user to specify
+ * K (the key type) and V (the value type) plus their deserializers.
+ */
 @AutoValue
 abstract class KafkaReadTransformImpl<K, V> extends KafkaReadTransform<K, V> {
   private static final ImmutableMap<Class<? extends Deserializer<?>>, Coder<?>> DESERIALIZER_TO_CODER_MAP =
