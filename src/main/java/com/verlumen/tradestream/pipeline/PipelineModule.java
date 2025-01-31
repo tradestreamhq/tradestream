@@ -22,12 +22,15 @@ abstract class PipelineModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    install(ExecutionModule.create(runMode()));
-    install(KafkaModule.create(bootstrapServers(), StringDeserializer.class, ByteArrayDeserializer.class));
+      install(ExecutionModule.create(runMode()));
+      install(KafkaModule.create(bootstrapServers()));
   }
 
   @Provides
   KafkaReadTransform provideKafkaReadTransform(KafkaReadTransform.Factory factory) {
-    return factory.create(candleTopic(), );
+      return factory.create(
+          candleTopic(), 
+          StringDeserializer.class,
+          ByteArrayDeserializer.class);
   }
 }
