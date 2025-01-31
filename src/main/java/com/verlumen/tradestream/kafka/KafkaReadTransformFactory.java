@@ -7,7 +7,7 @@ final class KafkaReadTransformFactory implements KafkaReadTransform.Factory {
   private final KafkaProperties kafkaProperties;
 
   @Inject
-  KafkaReadTransformFactory(KafkaProperties kafkaProperties, RunMode runMode) {
+  KafkaReadTransformFactory(KafkaProperties kafkaProperties) {
     this.kafkaProperties = kafkaProperties;
   }
 
