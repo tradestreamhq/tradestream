@@ -27,7 +27,7 @@ abstract class PipelineModule extends AbstractModule {
   }
 
   @Provides
-  KafkaReadTransform provideKafkaReadTransform(KafkaReadTransform.Factory factory) {
+  KafkaReadTransform<String, byte[]> provideKafkaReadTransform(KafkaReadTransform.Factory factory) {
       return factory.create(
           candleTopic(), 
           StringDeserializer.class,
