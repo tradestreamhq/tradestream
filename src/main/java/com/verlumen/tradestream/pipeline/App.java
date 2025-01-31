@@ -46,24 +46,23 @@ public final class App {
     private Pipeline buildPipeline(Pipeline pipeline) {
         PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
 
-        // Make the DoFn static and separate from the method
-        private static class BytesToStringDoFn extends DoFn<byte[], String> {
-            @ProcessElement
-            public void processElement(@Element byte[] element, OutputReceiver<String> receiver) {
-                String value = new String(element);
-                System.out.println(value);
-                receiver.output(value);
-            }
-        }
-
         input.apply("Convert to String", ParDo.of(new BytesToStringDoFn()));
         
         return pipeline;
     }
 
-    public void runPipeline(Pipeline pipeline) {
+    private void runPipeline(Pipeline pipeline) {
         buildPipeline(pipeline);
         pipeline.run();
+    }
+
+    private static class BytesToStringDoFn extends DoFn<byte[], String> {
+        @ProcessElement
+        public void processElement(@Element byte[] element, OutputReceiver<String> receiver) {
+            String value = new String(element);
+            System.out.println(value);
+            receiver.output(value);
+        }
     }
 
     public static void main(String[] args) {
