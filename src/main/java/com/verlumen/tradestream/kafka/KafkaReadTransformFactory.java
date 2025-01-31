@@ -25,6 +25,10 @@ final class KafkaReadTransformFactory implements KafkaReadTransform.Factory {
     this.kafkaProperties = kafkaProperties;
   }
 
+  /**
+   * Returns a KafkaReadTransform, either the "dry-run" version or the real version,
+   * depending on the current RunMode. Both are parameterized by K, V.
+   */
   @SuppressWarnings("unchecked")
   private <T> Coder<T> getCoderForDeserializer(Class<? extends Deserializer<? super T>> deserializerClass) {
     Coder<?> coder = DESERIALIZER_TO_CODER_MAP.get(deserializerClass);
