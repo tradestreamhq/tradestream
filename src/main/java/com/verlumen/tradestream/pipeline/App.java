@@ -43,15 +43,14 @@ public final class App {
 
   PCollection<String> buildPipeline(Pipeline pipeline) {
       return pipeline
-          .<KV<String, byte[]>>apply("Read from Kafka", kafkaReadTransform)
+          .apply("Read from Kafka", kafkaReadTransform)
           .apply("Convert to String", 
               MapElements.into(TypeDescriptors.strings())
-                  .via(kv -> {
+                  .via((KV<String, byte[]> kv) -> {
                       String value = new String(kv.getValue());
                       System.out.println(value);
                       return value;
                   }));
-  }
 
   void runPipeline(Pipeline pipeline) {
     buildPipeline(pipeline);
