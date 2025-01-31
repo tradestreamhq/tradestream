@@ -11,6 +11,10 @@ final class KafkaReadTransformFactory implements KafkaReadTransform.Factory {
     this.kafkaProperties = kafkaProperties;
   }
 
+  /**
+   * Returns a KafkaReadTransform, either the "dry-run" version or the real version,
+   * depending on the current RunMode. Both are parameterized by K, V.
+   */
   @Override
   public <K, V> KafkaReadTransform<K, V> create(
       String topic,
