@@ -22,16 +22,16 @@ abstract class KafkaReadTransformImpl<K, V> extends KafkaReadTransform<K, V> {
   abstract String topic();
   abstract Map<String, Object> consumerConfig();
 
-  // Deserializer classes for key and value. These must implement Kafka's Deserializer interface.
-  abstract Class<? extends Deserializer<? super K>> keyDeserializerClass();
-  abstract Class<? extends Deserializer<? super V>> valueDeserializerClass();
+  // Deserializer classes for key and value. Must be Deserializer<K> and Deserializer<V> specifically.
+  abstract Class<? extends Deserializer<K>> keyDeserializerClass();
+  abstract Class<? extends Deserializer<V>> valueDeserializerClass();
 
   /**
    * Builder entry point for creating the transform.
    */
   static <K, V> Builder<K, V> builder() {
     return new AutoValue_KafkaReadTransformImpl.Builder<K, V>()
-        .setConsumerConfig(Collections.emptyMap()); // default empty config
+        .setConsumerConfig(Collections.emptyMap());
   }
 
   @AutoValue.Builder
@@ -42,9 +42,10 @@ abstract class KafkaReadTransformImpl<K, V> extends KafkaReadTransform<K, V> {
 
     // Methods to set the deserializer classes
     abstract Builder<K, V> setKeyDeserializerClass(
-        Class<? extends Deserializer<? super K>> keyDeserializerClass);
+        Class<? extends Deserializer<K>> keyDeserializerClass);
+
     abstract Builder<K, V> setValueDeserializerClass(
-        Class<? extends Deserializer<? super V>> valueDeserializerClass);
+        Class<? extends Deserializer<V>> valueDeserializerClass);
 
     abstract KafkaReadTransformImpl<K, V> build();
   }
@@ -60,7 +61,7 @@ abstract class KafkaReadTransformImpl<K, V> extends KafkaReadTransform<K, V> {
             .withValueDeserializer(valueDeserializerClass())
             .withConsumerConfigUpdates(consumerConfig());
 
-    // Apply the read, then map each KafkaRecord<K, V> to its V (the value)
+    // Apply the read, then map each KafkaRecord<K, V> to its value
     return input
         .apply("ReadFromKafka", kafkaRead)
         .apply("ExtractValue",
