@@ -3,6 +3,7 @@ package com.verlumen.tradestream.pipeline;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
+import com.verlumen.tradestream.marketdata.Candle;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
@@ -60,7 +61,7 @@ public final class App {
         @ProcessElement
         public void processElement(@Element byte[] element, OutputReceiver<String> receiver) {
             String value = new String(element);
-            System.out.println(value);
+            System.out.println(Candle.parseFrom(value));
             receiver.output(value);
         }
     }
