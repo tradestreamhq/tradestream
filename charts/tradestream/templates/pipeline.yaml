@@ -13,6 +13,8 @@ spec:
   flinkVersion: {{ .Values.pipeline.version }}
   flinkConfiguration:
     {{- toYaml .Values.pipeline.configuration | nindent 4 }}
+    # Add configuration to use the new writable directory
+    io.tmp.dirs: "/opt/flink/writable-tmp"
   serviceAccount: {{ .Values.pipeline.serviceAccount }}
   jobManager:
     resource:
@@ -30,21 +32,17 @@ spec:
       - "--runner=FlinkRunner"
     parallelism: {{ .Values.pipeline.job.parallelism }}
     upgradeMode: {{ .Values.pipeline.job.upgradeMode }}
-
-  #############################################
-  # Example podTemplate to mount /opt/flink/conf as RW
-  #############################################
   podTemplate:
     metadata:
       labels:
         custom-pod-template: "true"
     spec:
       volumes:
-        - name: flink-conf-volume
+        - name: flink-writable-volume
           emptyDir: {}
       containers:
         - name: flink-main-container
           volumeMounts:
-            - name: flink-conf-volume
-              mountPath: /opt/flink/conf
+            - name: flink-writable-volume
+              mountPath: /opt/flink/writable-tmp
               readOnly: false
