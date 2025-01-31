@@ -53,7 +53,7 @@ public final class App {
 
   void runPipeline(Pipeline pipeline) {
     buildPipeline(pipeline);
-    pipeline.run().waitUntilFinish();
+    pipeline.run();
   }
 
   public static void main(String[] args) {
