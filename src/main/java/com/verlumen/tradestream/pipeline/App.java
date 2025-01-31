@@ -10,7 +10,10 @@ import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.StreamingOptions;
 import org.apache.beam.sdk.transforms.MapElements;
+import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
+import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.TypeDescriptors;
 
 public final class App {
@@ -39,11 +42,18 @@ public final class App {
     }
 
     private Pipeline buildPipeline(Pipeline pipeline) {
-        return pipeline
-            .apply("Read from Kafka", kafkaReadTransform)
-            .apply(MapElements
-                .into(TypeDescriptors.strings())
-                .via(kv -> new String(kv.getValue())));
+        PCollection<KV<String, byte[]>> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
+        
+        input.apply("Convert to String", ParDo.of(new DoFn<KV<String, byte[]>, String>() {
+            @ProcessElement
+            public void processElement(@Element KV<String, byte[]> element, OutputReceiver<String> receiver) {
+                String value = new String(element.getValue());
+                System.out.println(value);
+                receiver.output(value);
+            }
+        }));
+        
+        return pipeline;
     }
 
     public void runPipeline(Pipeline pipeline) {
