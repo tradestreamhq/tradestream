@@ -75,6 +75,7 @@ java_library(
     deps = [
         "//src/main/java/com/verlumen/tradestream/execution:execution_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/kafka:dry_run_kafka_read_transform",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform_factory",

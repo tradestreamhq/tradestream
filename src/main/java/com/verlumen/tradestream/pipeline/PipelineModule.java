@@ -5,6 +5,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.verlumen.tradestream.execution.ExecutionModule;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.kafka.DryRunKafkaReadTransform;
 import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import java.nio.charset.StandardCharsets;
