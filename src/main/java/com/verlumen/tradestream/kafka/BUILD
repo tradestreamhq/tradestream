@@ -56,6 +56,7 @@ java_library(
     srcs = ["KafkaReadTransform.java"],
     deps = [
         "//third_party:beam_sdks_java_core",
+        "//third_party:guava",
         "//third_party:kafka_clients",
     ],
 )
@@ -69,7 +70,6 @@ java_library(
         ":kafka_read_transform",
         ":kafka_read_transform_impl",
         "//third_party:beam_sdks_java_core",
-        "//third_party:guava",
         "//third_party:guice",
         "//third_party:kafka_clients",
     ],

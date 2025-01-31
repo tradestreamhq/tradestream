@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.kafka;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableMap;
 import org.apache.beam.sdk.coders.Coder;
 import org.apache.beam.sdk.io.kafka.KafkaIO;
 import org.apache.beam.sdk.io.kafka.KafkaRecord;
@@ -15,13 +16,25 @@ import java.util.Map;
 
 @AutoValue
 abstract class KafkaReadTransformImpl<K, V> extends KafkaReadTransform<K, V> {
+  private static final ImmutableMap<Class<? extends Deserializer<?>>, Coder<?>> DESERIALIZER_TO_CODER_MAP =
+      ImmutableMap.<Class<? extends Deserializer<?>>, Coder<?>>builder()
+          .put(StringDeserializer.class, StringUtf8Coder.of())
+          .put(ByteArrayDeserializer.class, ByteArrayCoder.of())
+          .build();
+
     abstract String bootstrapServers();
     abstract String topic();
     abstract Map<String, Object> consumerConfig();
     abstract Class<? extends Deserializer<K>> keyDeserializerClass();
     abstract Class<? extends Deserializer<V>> valueDeserializerClass();
-    abstract Coder<K> keyCoder(); 
-    abstract Coder<V> valueCoder();
+
+    Coder<K> keyCoder() {
+        return getCoderForDeserializer(keyDeserializerClass());
+    }
+
+    Coder<V> valueCoder() {
+        return getCoderForDeserializer(valueDeserializerClass());
+    }
 
     static <K, V> Builder<K, V> builder() {
         return new AutoValue_KafkaReadTransformImpl.Builder<K, V>()
@@ -37,8 +50,6 @@ abstract class KafkaReadTransformImpl<K, V> extends KafkaReadTransform<K, V> {
             Class<? extends Deserializer<K>> keyDeserializerClass);
         abstract Builder<K, V> setValueDeserializerClass(
             Class<? extends Deserializer<V>> valueDeserializerClass);
-        abstract Builder<K, V> setKeyCoder(Coder<K> keyCoder);
-        abstract Builder<K, V> setValueCoder(Coder<V> valueCoder);
         abstract KafkaReadTransformImpl<K, V> build();
     }
 
@@ -55,5 +66,21 @@ abstract class KafkaReadTransformImpl<K, V> extends KafkaReadTransform<K, V> {
             .apply("ExtractValue",
                 MapElements.into(valueCoder().getEncodedTypeDescriptor())
                     .via((KafkaRecord<K, V> record) -> record.getKV().getValue()));
+    }
+
+      /**
+     * Returns a KafkaReadTransform, either the "dry-run" version or the real version,
+     * depending on the current RunMode. Both are parameterized by K, V.
+     */
+    @SuppressWarnings("unchecked")
+    private <T> Coder<T> getCoderForDeserializer(Class<? extends Deserializer<? super T>> deserializerClass) {
+        Coder<?> coder = DESERIALIZER_TO_CODER_MAP.get(deserializerClass);
+        if (coder == null) {
+        throw new IllegalArgumentException(
+            String.format("No coder mapping found for deserializer class: %s. Supported deserializers: %s",
+                deserializerClass.getName(),
+                DESERIALIZER_TO_CODER_MAP.keySet()));
+        }
+        return (Coder<T>) coder;
     }
 }
