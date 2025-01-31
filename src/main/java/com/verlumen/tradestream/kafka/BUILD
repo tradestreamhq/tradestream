@@ -70,6 +70,7 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:beam_sdks_java_core",
         "//third_party:guice",
+        "//third_party:kafka_clients",
     ],
 )
 
