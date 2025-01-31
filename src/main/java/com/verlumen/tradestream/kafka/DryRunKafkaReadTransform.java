@@ -23,26 +23,24 @@ public abstract class DryRunKafkaReadTransform<K, V> extends KafkaReadTransform<
 
   abstract V defaultValue();
 
-  static <K, V> Builder<K, V> builder() {
+  public static <K, V> Builder<K, V> builder() {
     return new AutoValue_DryRunKafkaReadTransform.Builder<K, V>()
         .setConsumerConfig(Collections.emptyMap());
   }
 
   @AutoValue.Builder
-  abstract static class Builder<K, V> {
-    abstract Builder<K, V> setBootstrapServers(String bootstrapServers);
-    abstract Builder<K, V> setTopic(String topic);
-    abstract Builder<K, V> setConsumerConfig(Map<String, Object> consumerConfig);
-
-    // New: set the deserializer classes
-    abstract Builder<K, V> setKeyDeserializerClass(
+  public abstract static class Builder<K, V> {
+    public abstract Builder<K, V> setBootstrapServers(String bootstrapServers);
+    public abstract Builder<K, V> setTopic(String topic);
+    public abstract Builder<K, V> setConsumerConfig(Map<String, Object> consumerConfig);
+    public abstract Builder<K, V> setKeyDeserializerClass(
         Class<? extends Deserializer<? super K>> keyDeserializerClass);
-    abstract Builder<K, V> setValueDeserializerClass(
+    public abstract Builder<K, V> setValueDeserializerClass(
         Class<? extends Deserializer<? super V>> valueDeserializerClass);
 
-    abstract Builder<K, V> setDefaultValue(V defaultValue);
+    public abstract Builder<K, V> setDefaultValue(V defaultValue);
 
-    abstract DryRunKafkaReadTransform<K, V> build();
+    public abstract DryRunKafkaReadTransform<K, V> build();
   }
 
   @Override
