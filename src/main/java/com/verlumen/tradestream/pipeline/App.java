@@ -61,7 +61,7 @@ public final class App {
         @ProcessElement
         public void processElement(@Element byte[] element, OutputReceiver<String> receiver) {
             String value = new String(element);
-            System.out.println(Candle.parseFrom(value));
+            System.out.println(Candle.parseFrom(element));
             receiver.output(value);
         }
     }
