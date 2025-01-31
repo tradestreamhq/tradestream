@@ -3,6 +3,7 @@ package com.verlumen.tradestream.pipeline;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
+import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
@@ -57,7 +58,15 @@ public final class App {
   }
 
   public static void main(String[] args) {
+    // Parse your custom options
     var options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
+
+    // Convert to FlinkPipelineOptions so we can set attachedMode(false)
+    FlinkPipelineOptions flinkOptions = options.as(FlinkPipelineOptions.class);
+    flinkOptions.setAttachedMode(false);   // <--- CRUCIAL
+    // If this is a streaming job, ensure it's flagged as streaming:
+    flinkOptions.setStreaming(true);
+
     var module = PipelineModule.create(
       options.getBootstrapServers(),
       options.getCandleTopic(),
