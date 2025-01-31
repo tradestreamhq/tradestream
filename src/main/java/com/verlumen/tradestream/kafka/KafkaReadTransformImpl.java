@@ -76,9 +76,6 @@ abstract class KafkaReadTransformImpl<K, V> extends KafkaReadTransform<K, V> {
                     .via((KafkaRecord<K, V> record) -> record.getKV().getValue()));
     }
 
-      /**
-     * Returns a KafkaReadTransform, parameterized by K, V.
-     */
     @SuppressWarnings("unchecked")
     private <T> Coder<T> getCoderForDeserializer(Class<? extends Deserializer<? super T>> deserializerClass) {
         Coder<?> coder = DESERIALIZER_TO_CODER_MAP.get(deserializerClass);
