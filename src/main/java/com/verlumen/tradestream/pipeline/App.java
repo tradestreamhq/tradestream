@@ -41,17 +41,18 @@ public final class App {
         this.kafkaReadTransform = kafkaReadTransform;
     }
 
+
     private Pipeline buildPipeline(Pipeline pipeline) {
-        PCollection<KV<String, byte[]>> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
-        
-        input.apply("Convert to String", ParDo.of(new DoFn<KV<String, byte[]>, String>() {
-            @ProcessElement
-            public void processElement(@Element KV<String, byte[]> element, OutputReceiver<String> receiver) {
-                String value = new String(element.getValue());
-                System.out.println(value);
-                receiver.output(value);
-            }
-        }));
+      PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
+
+      input.apply("Convert to String", ParDo.of(new DoFn<byte[], String>() {
+        @ProcessElement
+        public void processElement(@Element byte[] element, OutputReceiver<String> receiver) {
+          String value = new String(element);
+          System.out.println(value);
+          receiver.output(value);
+        }
+      }));
         
         return pipeline;
     }
