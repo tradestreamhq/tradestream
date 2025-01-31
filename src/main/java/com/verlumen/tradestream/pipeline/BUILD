@@ -79,6 +79,7 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform_factory",
         "//third_party:auto_value",
         "//third_party:guice",
+        "//third_party:kafka_clients",
     ],
 )
 
