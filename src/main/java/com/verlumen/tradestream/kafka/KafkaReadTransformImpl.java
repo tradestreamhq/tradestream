@@ -53,7 +53,7 @@ abstract class KafkaReadTransformImpl<K, V> extends KafkaReadTransform<K, V> {
                     .withValueDeserializerAndCoder(valueDeserializerClass(), valueCoder())
                     .withConsumerConfigUpdates(consumerConfig()))
             .apply("ExtractValue",
-                MapElements.into(TypeDescriptor.of(valueCoder().getEncodedTypeDescriptor()))
+                MapElements.into(valueCoder().getEncodedTypeDescriptor())
                     .via((KafkaRecord<K, V> record) -> record.getKV().getValue()));
     }
 }
