@@ -77,8 +77,7 @@ abstract class KafkaReadTransformImpl<K, V> extends KafkaReadTransform<K, V> {
     }
 
       /**
-     * Returns a KafkaReadTransform, either the "dry-run" version or the real version,
-     * depending on the current RunMode. Both are parameterized by K, V.
+     * Returns a KafkaReadTransform, parameterized by K, V.
      */
     @SuppressWarnings("unchecked")
     private <T> Coder<T> getCoderForDeserializer(Class<? extends Deserializer<? super T>> deserializerClass) {
