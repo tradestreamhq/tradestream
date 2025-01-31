@@ -6,6 +6,8 @@ import com.google.inject.Provides;
 import com.verlumen.tradestream.execution.ExecutionModule;
 import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
@@ -21,11 +23,11 @@ abstract class PipelineModule extends AbstractModule {
   @Override
   protected void configure() {
     install(ExecutionModule.create(runMode()));
-    install(KafkaModule.create(bootstrapServers()));
+    install(KafkaModule.create(bootstrapServers(), StringDeserializer.class, ByteArrayDeserializer.class));
   }
 
   @Provides
   KafkaReadTransform provideKafkaReadTransform(KafkaReadTransform.Factory factory) {
-    return factory.create(candleTopic());
+    return factory.create(candleTopic(), );
   }
 }
