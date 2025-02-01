@@ -3,7 +3,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
-  name = "candle_author",
+  name = "create_candles", 
   srcs = ["CandleAuthor.java"],
   deps = [
     "//protos:marketdata_java_proto",
@@ -18,7 +18,7 @@ java_library(
   name = "market_data_module",
   srcs = ["MarketDataModule.java"],
   deps = [
-    ":candle_author",
+    ":create_candles",
     ":trade_publisher",
     ":trade_publisher_impl",
     "//third_party:guice",
