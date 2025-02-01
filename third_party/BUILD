@@ -118,6 +118,15 @@ java_library(
 )
 
 java_library(
+    name = "beam_sdks_java_test_utils",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_sdks_java_test_utils",
+    ],
+    testonly = True,
+)
+
+java_library(
     name = "flogger",
     visibility = ["//visibility:public"],
     exports = [
