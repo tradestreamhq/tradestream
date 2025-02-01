@@ -65,12 +65,13 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         logger.atInfo().log("Stopping thin market timer...");
         thinMarketTimer.get().stop();
 
-        logger.atInfo().log("Closing candle publisher...");
+        logger.atInfo().log("Closing trade publisher...");
         try {
+            tradePublisher.close();
             candlePublisher.close();
-            logger.atInfo().log("Successfully closed candle publisher");
+            logger.atInfo().log("Successfully closed trade publisher");
         } catch (Exception e) {
-            logger.atWarning().withCause(e).log("Error closing candle publisher");
+            logger.atWarning().withCause(e).log("Error closing trade publisher");
         }
 
         logger.atInfo().log("Shutdown sequence complete");
@@ -89,6 +90,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
                 trade.getTradeId(),
                 trade.getPrice(),
                 trade.getVolume());
+            tradePublisher.publishTrade(trade);
             candleManager.processTrade(trade);
         } catch (RuntimeException e) {
             logger.atSevere().withCause(e).log(
