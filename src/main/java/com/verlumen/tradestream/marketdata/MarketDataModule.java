@@ -10,5 +10,10 @@ public final class MarketDataModule extends AbstractModule {
   private MarketDataModule() {}
 
   @Override
-  protected void configure() {}
+  protected void configure() {
+    install(
+        new FactoryModuleBuilder()
+            .implement(TradePublisher.class, TradePublisherImpl.class)
+            .build(TradePublisher.Factory.class));
+  }
 }
