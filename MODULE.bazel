@@ -63,7 +63,7 @@ maven.install(
         "org.apache.beam:beam-sdks-java-io-kafka:2.62.0",
         "org.apache.beam:beam-sdks-java-test-utils:2.62.0",
         "org.apache.kafka:kafka-clients:3.6.1"
-        "org.hamcrest:hamcrest:2.2",
+        "org.hamcrest:hamcrest:3.0",
         "org.knowm.xchange:xchange-coinbasepro:5.2.0",
         "org.knowm.xchange:xchange-core:5.2.0",
         "org.knowm.xchange:xchange-stream-core:5.2.0",
