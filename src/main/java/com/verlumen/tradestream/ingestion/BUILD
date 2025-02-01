@@ -281,6 +281,7 @@ java_library(
         ":trade_processor",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_config",
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_publisher",
         "//third_party:flogger",
         "//third_party:guava",
