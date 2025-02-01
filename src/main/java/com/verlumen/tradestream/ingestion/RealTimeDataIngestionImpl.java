@@ -33,7 +33,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         ExchangeStreamingClient exchangeClient,
         Provider<ThinMarketTimer> thinMarketTimer,
         TradeProcessor tradeProcessor,
-        TradeProcessor tradePublisher
+        TradePublisher tradePublisher
     ) {
         this.candleManager = candleManager;
         this.candlePublisher = candlePublisher;
