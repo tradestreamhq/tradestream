@@ -15,7 +15,7 @@ java_library(
 )
 
 java_library(
-  name = "parse_trade",
+  name = "parse_trades",
   srcs = ["ParseTrades.java"],
   deps = [
     "//protos:marketdata_java_proto",
