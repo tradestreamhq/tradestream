@@ -50,7 +50,7 @@ abstract class PipelineModule extends AbstractModule {
             .setTopic(candleTopic())
             .setKeyDeserializerClass(StringDeserializer.class)
             .setValueDeserializerClass(ByteArrayDeserializer.class)
-            .setDefaultValue("dummy_value".getBytes(StandardCharsets.UTF_8))
+            .setDefaultValue(DRY_RUN_TRADE.toByteArray())
             .build();
       }
 
