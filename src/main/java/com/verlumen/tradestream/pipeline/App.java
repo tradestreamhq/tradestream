@@ -43,7 +43,6 @@ public final class App {
         this.kafkaReadTransform = kafkaReadTransform;
     }
 
-    // In App.java
     private Pipeline buildPipeline(Pipeline pipeline) {
         PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
 
@@ -60,7 +59,7 @@ public final class App {
     private static class PrintBytesAsString extends DoFn<byte[], byte[]> {
         @ProcessElement
         public void processElement(@Element byte[] element, OutputReceiver<byte[]> receiver) {
-            System.out.println(new String(value));
+            System.out.println(new String(element));
             receiver.output(element);
         }
     }
