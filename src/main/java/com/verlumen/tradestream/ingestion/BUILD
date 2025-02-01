@@ -143,7 +143,7 @@ java_library(
         ":coin_market_cap_config",
         ":currency_pair_metadata",
         ":currency_pair_supply",
-        ":http_client",
+        "//src/main/java/com/verlumen/tradestream/http//src/main/java/com/verlumen/tradestream/http:http_client",
     ],
 )
 
@@ -187,8 +187,8 @@ java_library(
     deps = [
         "//third_party:flogger",
         "//third_party:guice",
-        ":http_client",
-        ":http_url_connection_factory",
+        "//src/main/java/com/verlumen/tradestream/http:http_client",
+        "//src/main/java/com/verlumen/tradestream/http:http_url_connection_factory",
     ],
 )
 
@@ -202,7 +202,7 @@ java_library(
     srcs = ["HttpURLConnectionFactoryImpl.java"],
     deps = [
         "//third_party:guice",
-        ":http_url_connection_factory",
+        "//src/main/java/com/verlumen/tradestream/http:http_url_connection_factory",
     ],
 )
 
@@ -260,10 +260,10 @@ java_library(
         ":currency_pair_supply_provider",
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
-        ":http_client",
-        ":http_client_impl",
-        ":http_url_connection_factory",
-        ":http_url_connection_factory_impl",
+        "//src/main/java/com/verlumen/tradestream/http:http_client",
+        "//src/main/java/com/verlumen/tradestream/http:http_client_impl",
+        "//src/main/java/com/verlumen/tradestream/http:http_url_connection_factory",
+        "//src/main/java/com/verlumen/tradestream/http:http_url_connection_factory_impl",
         ":ingestion_config",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
