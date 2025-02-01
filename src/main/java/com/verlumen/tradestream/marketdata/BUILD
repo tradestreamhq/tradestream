@@ -5,5 +5,6 @@ java_library(
   srcs = ["CandleAuthor.java"],
   deps = [
     "//third_party:beam_sdks_java_core",
+    "//third_party:protobuf_java_util",
   ],
 )
