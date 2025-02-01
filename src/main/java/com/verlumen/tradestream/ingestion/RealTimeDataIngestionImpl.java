@@ -16,7 +16,6 @@ import com.verlumen.tradestream.marketdata.TradePublisher;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private static final String FORWARD_SLASH = "/";
 
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
@@ -36,7 +35,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         TradeProcessor tradeProcessor,
         TradeProcessor tradePublisher
     ) {
-        logger.atInfo().log("Initializing RealTimeDataIngestion implementation");
         this.candleManager = candleManager;
         this.candlePublisher = candlePublisher;
         this.currencyPairSupply = currencyPairSupply;
@@ -44,7 +42,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         this.thinMarketTimer = thinMarketTimer;
         this.tradeProcessor = tradeProcessor;
         this.tradePublisher = tradePublisher;
-        logger.atInfo().log("RealTimeDataIngestion initialization complete");
     }
 
     @Override
