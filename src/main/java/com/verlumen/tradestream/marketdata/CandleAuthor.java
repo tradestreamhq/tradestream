@@ -22,9 +22,9 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Duration;
 
-public class CandleAuthor extends PTransform<PCollection<KV<String, Trade>>, PCollection<Candle>> {
-  public static CandleAuthor create() {
-    return new CandleAuthor();
+public class CreateCandles extends PTransform<PCollection<KV<String, Trade>>, PCollection<Candle>> {
+  public static CreateCandles create() {
+    return new CreateCandles();
   }
 
   @Override
