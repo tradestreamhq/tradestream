@@ -176,36 +176,6 @@ genrule(
     toolchains = ["@jq_toolchains//:resolved_toolchain"],
 )
 
-java_library(
-    name = "http_client",
-    srcs = ["HttpClient.java"],
-)
-
-java_library(
-    name = "http_client_impl",
-    srcs = ["HttpClientImpl.java"],
-    deps = [
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//src/main/java/com/verlumen/tradestream/http:http_client",
-        "//src/main/java/com/verlumen/tradestream/http:http_url_connection_factory",
-    ],
-)
-
-java_library(
-    name = "http_url_connection_factory",
-    srcs = ["HttpURLConnectionFactory.java"],
-)
-
-java_library(
-    name = "http_url_connection_factory_impl",
-    srcs = ["HttpURLConnectionFactoryImpl.java"],
-    deps = [
-        "//third_party:guice",
-        "//src/main/java/com/verlumen/tradestream/http:http_url_connection_factory",
-    ],
-)
-
 oci_image(
     name = "image",
     base = "@openjdk_java",
