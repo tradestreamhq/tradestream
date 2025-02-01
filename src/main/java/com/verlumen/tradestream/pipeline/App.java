@@ -68,6 +68,7 @@ public final class App {
             } catch (InvalidProtocolBufferException e) {
                 // Handle checked exception for Protocol Buffer parsing
                 System.err.println("Failed to parse Protocol Buffer: " + e.getMessage());
+                System.err.println("Input String: " + value);
                 e.printStackTrace();
             } catch (RuntimeException e) {
                 // Handle any unchecked exceptions
