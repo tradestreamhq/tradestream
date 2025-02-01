@@ -75,6 +75,7 @@ java_library(
     name = "pipeline_module",
     srcs = ["PipelineModule.java"],
     deps = [
+        "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:execution_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/kafka:dry_run_kafka_read_transform",
@@ -84,6 +85,7 @@ java_library(
         "//third_party:auto_value",
         "//third_party:guice",
         "//third_party:kafka_clients",
+        "//third_party:protobuf_java_util",
     ],
 )
 
