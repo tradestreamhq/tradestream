@@ -15,10 +15,16 @@ java_library(
 )
 
 java_library(
+  name = "market_data_config",
+  srcs = ["MarketDataConfig.java"],
+)
+
+java_library(
   name = "market_data_module",
   srcs = ["MarketDataModule.java"],
   deps = [
     ":create_candles",
+    ":market_data_config",
     ":trade_publisher",
     ":trade_publisher_impl",
     "//third_party:guice",
