@@ -12,7 +12,9 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
-import com.verlumen.tradestream.instruments.CurrencyPair;
+import com.verlumen.tradestream.marketdata.TradePublisher;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,9 +24,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 @RunWith(JUnit4.class)
 public class RealTimeDataIngestionImplTest {
@@ -51,6 +50,7 @@ public class RealTimeDataIngestionImplTest {
     @Mock @Bind private ExchangeStreamingClient mockExchangeClient;
     @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
     @Mock @Bind private TradeProcessor mockTradeProcessor;
+    @Mock @Bind private TradePublisher tradePublisher;
 
     @Inject private RealTimeDataIngestionImpl realTimeDataIngestion;
 

@@ -116,6 +116,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/ingestion:trade_processor",
         "//src/main/java/com/verlumen/tradestream/ingestion:real_time_data_ingestion_impl",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/marketdata:trade_publisher",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
