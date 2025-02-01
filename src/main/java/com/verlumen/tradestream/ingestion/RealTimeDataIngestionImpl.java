@@ -15,27 +15,19 @@ import com.verlumen.tradestream.marketdata.Trade;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private static final String FORWARD_SLASH = "/";
 
-    private final CandleManager candleManager;
-    private final CandlePublisher candlePublisher;
     private final Provider<CurrencyPairSupply> currencyPairSupply;
     private final ExchangeStreamingClient exchangeClient;
-    private final Provider<ThinMarketTimer> thinMarketTimer;
     private final TradeProcessor tradeProcessor;
     
     @Inject
     RealTimeDataIngestionImpl(
-        CandleManager candleManager,
-        CandlePublisher candlePublisher,
         Provider<CurrencyPairSupply> currencyPairSupply,
         ExchangeStreamingClient exchangeClient,
         Provider<ThinMarketTimer> thinMarketTimer,
         TradeProcessor tradeProcessor
     ) {
         logger.atInfo().log("Initializing RealTimeDataIngestion implementation");
-        this.candleManager = candleManager;
-        this.candlePublisher = candlePublisher;
         this.currencyPairSupply = currencyPairSupply;
         this.exchangeClient = exchangeClient;
         this.thinMarketTimer = thinMarketTimer;
@@ -77,18 +69,19 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     private void processTrade(Trade trade) {
         try {
-            if (!tradeProcessor.isProcessed(trade)) {
-                logger.atInfo().log("Processing new trade for %s: ID=%s, price=%f, volume=%f", 
-                    trade.getCurrencyPair(), 
-                    trade.getTradeId(),
-                    trade.getPrice(),
-                    trade.getVolume());
-                candleManager.processTrade(trade);
-            } else {
+            if (tradeProcessor.isProcessed(trade)) {
                 logger.atInfo().log("Skipping duplicate trade for %s: ID=%s",
                     trade.getCurrencyPair(),
                     trade.getTradeId());
+                return;
             }
+
+            logger.atInfo().log("Processing new trade for %s: ID=%s, price=%f, volume=%f", 
+                trade.getCurrencyPair(), 
+                trade.getTradeId(),
+                trade.getPrice(),
+                trade.getVolume());
+            tradeProcessor.processTrade(trade);
         } catch (RuntimeException e) {
             logger.atSevere().withCause(e).log(
                 "Error processing trade: %s", trade.getTradeId());
