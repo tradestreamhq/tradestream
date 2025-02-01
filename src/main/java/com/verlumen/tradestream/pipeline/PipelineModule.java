@@ -21,7 +21,7 @@ abstract class PipelineModule extends AbstractModule {
       .setExchange("FakeExhange")
       .setCurrencyPair("DRY/RUN")
       .setTradeId("trade-123")
-      .setTimestamp(fromMillis(1738428532166))
+      .setTimestamp(fromMillis(1234567))
       .setPrice(50000.0)
       .setVolume(0.1)
       .build();
