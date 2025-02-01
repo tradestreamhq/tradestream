@@ -33,7 +33,8 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         Provider<CurrencyPairSupply> currencyPairSupply,
         ExchangeStreamingClient exchangeClient,
         Provider<ThinMarketTimer> thinMarketTimer,
-        TradeProcessor tradeProcessor
+        TradeProcessor tradeProcessor,
+        TradeProcessor tradePublisher
     ) {
         logger.atInfo().log("Initializing RealTimeDataIngestion implementation");
         this.candleManager = candleManager;
@@ -42,6 +43,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         this.exchangeClient = exchangeClient;
         this.thinMarketTimer = thinMarketTimer;
         this.tradeProcessor = tradeProcessor;
+        this.tradePublisher = tradePublisher;
         logger.atInfo().log("RealTimeDataIngestion initialization complete");
     }
 
