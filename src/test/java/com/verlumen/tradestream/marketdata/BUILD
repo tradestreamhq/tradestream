@@ -1,13 +1,13 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
-    name = "CandleAuthorTest",
+    name = "CreateCandlesTest",
     srcs = [
-      "CandleAuthorTest.java"
+      "CreateCandlesTest.java"
     ],
     deps = [
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/marketdata:candle_author",
+        "//src/main/java/com/verlumen/tradestream/marketdata:create_candles",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf",
         "//third_party:beam_sdks_java_test_utils",
