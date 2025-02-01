@@ -7,7 +7,7 @@ java_test(
     ],
     deps = [
         "//protos:marketdata_java_proto",
-        "//src/main/com/verlumen/tradestream/marketdata:candle_author",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_author",
         "//third_party:beam_sdks_java_core",
         "//third_party:protobuf_java",
         "//third_party:protobuf_java_util",
