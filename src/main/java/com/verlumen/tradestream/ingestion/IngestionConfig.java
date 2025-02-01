@@ -9,4 +9,5 @@ record IngestionConfig(
     String exchangeName,
     long candleIntervalMillis,
     RunMode runMode,
-    String kafkaBootstrapServers) {}
+    String kafkaBootstrapServers,
+    String tradeTopic) {}

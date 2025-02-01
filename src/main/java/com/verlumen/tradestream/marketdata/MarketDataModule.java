@@ -1,14 +1,17 @@
 package com.verlumen.tradestream.marketdata;
 
+import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
-public final class MarketDataModule extends AbstractModule {
-  public static MarketDataModule create() {
-    return new MarketDataModule();
+@AutoValue
+public abstract class MarketDataModule extends AbstractModule {
+  public static MarketDataModule create(MarketDataConfig config) {
+    return new AutoValue_MarketDataModule(config);
   }
 
-  private MarketDataModule() {}
+  abstract MarketDataConfig config();
 
   @Override
   protected void configure() {
@@ -18,5 +21,10 @@ public final class MarketDataModule extends AbstractModule {
         new FactoryModuleBuilder()
             .implement(TradePublisher.class, TradePublisherImpl.class)
             .build(TradePublisher.Factory.class));
+  }
+
+  @Provides
+  TradePublisher provideTradePublisher(TradePublisher.Factory tradePublisherFactory) {
+    return tradePublisherFactory.create(config().tradeTopic());
   }
 }
