@@ -90,7 +90,7 @@ public class CandleAuthor
         if (agg != null) {
           // If there were trades, build the candle from the aggregated values.
           outputCandle = Candle.newBuilder()
-              .setCurrencyPair(c.element().getKey()) // key is available in the context if needed
+              .setCurrencyPair(c.getKey())
               .setTimestamp(Timestamps.fromMillis(windowStartMillis))
               .setOpen(agg.open)
               .setHigh(agg.high)
