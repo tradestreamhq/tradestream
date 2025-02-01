@@ -3,8 +3,8 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
-  name = "candle_author",
-  srcs = ["CandleAuthor.java"],
+  name = "create_candles",
+  srcs = ["CreateCandles.java"],
   deps = [
     "//protos:marketdata_java_proto",
     "//third_party:beam_sdks_java_core",
