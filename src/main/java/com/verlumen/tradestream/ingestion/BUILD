@@ -245,13 +245,6 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
-        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
-        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
-        "//third_party:auto_value",
-        "//third_party:guava",
-        "//third_party:guice_assistedinject",
-        "//third_party:guice",
         ":candle_manager",
         ":candle_manager_impl",
         ":candle_publisher",
@@ -273,6 +266,13 @@ java_library(
         ":thin_market_timer_task",
         ":thin_market_timer_task_impl",
         ":trade_processor",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
+        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
+        "//third_party:auto_value",
+        "//third_party:guava",
+        "//third_party:guice_assistedinject",
+        "//third_party:guice",
     ],
 )
 
