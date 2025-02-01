@@ -191,6 +191,7 @@ java_library(
     exports = [
         "@tradestream_maven//:org_hamcrest_hamcrest",
     ],
+    testonly = True,
 )
 
 java_library(
