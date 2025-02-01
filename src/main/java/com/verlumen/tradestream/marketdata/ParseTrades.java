@@ -19,6 +19,9 @@ public class ParseTrades extends PTransform<PCollection<byte[]>, PCollection<Tra
                     // Parse the byte array into a Trade instance.
                     Trade trade = Trade.parseFrom(element);
                     out.output(trade);
+                    // Log the trade's timestamp, currency pair, and volume.
+                    logger.atInfo().log("Parsed Trade - Timestamp: %s, Currency Pair: %s, Volume: %s",
+                        trade.getTimestamp(), trade.getCurrencyPair(), trade.getVolume());
                 } catch (InvalidProtocolBufferException e) {
                     // Log the error. You might also choose to send these bytes to a dead-letter PCollection.
                     logger.atSevere().withCause(e).log("Failed to parse Trade message from bytes");
