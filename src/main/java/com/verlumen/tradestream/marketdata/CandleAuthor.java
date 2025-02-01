@@ -1,6 +1,10 @@
 package com.verlumen.tradestream.marketdata;
 
 import com.google.protobuf.util.Timestamps;
+import java.io.Serializable;
+import org.apache.beam.sdk.coders.SerializableCoder;
+import org.apache.beam.sdk.coders.StringUtf8Coder;
+import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.state.StateSpec;
 import org.apache.beam.sdk.state.StateSpecs;
 import org.apache.beam.sdk.state.ValueState;
@@ -38,14 +42,17 @@ public class CandleAuthor extends PTransform<PCollection<KV<String, Trade>>, PCo
 
               // State to hold the aggregate (for the current window)
               @StateId("aggState")
-              private final StateSpec<ValueState<Aggregate>> aggStateSpec = StateSpecs.value();
+              private final StateSpec<ValueState<Aggregate>> aggStateSpec =
+                  StateSpecs.value(SerializableCoder.of(Aggregate.class));
 
               @StateId("keyState")
-              private final StateSpec<ValueState<String>> keyStateSpec = StateSpecs.value();
+              private final StateSpec<ValueState<String>> keyStateSpec =
+                  StateSpecs.value(StringUtf8Coder.of());
 
               // State to hold the previous candle across windows
               @StateId("prevCandle")
-              private final StateSpec<ValueState<Candle>> prevCandleSpec = StateSpecs.value();
+              private final StateSpec<ValueState<Candle>> prevCandleSpec =
+                  StateSpecs.value(ProtoCoder.of(Candle.class));
 
               // A timer to fire at the end of the window
               @TimerId("windowTimer")
@@ -134,7 +141,7 @@ public class CandleAuthor extends PTransform<PCollection<KV<String, Trade>>, PCo
               }
 
               // A simple POJO to accumulate values.
-              private static class Aggregate {
+              private static class Aggregate implements Serializable {
                 double open;
                 double high;
                 double low;
