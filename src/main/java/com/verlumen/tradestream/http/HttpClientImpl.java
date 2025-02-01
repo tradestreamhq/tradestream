@@ -1,8 +1,8 @@
-package com.verlumen.tradestream.ingestion;
+package com.verlumen.tradestream.http;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
-
+import com.verlumen.tradestream.http.HttpURLConnectionFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

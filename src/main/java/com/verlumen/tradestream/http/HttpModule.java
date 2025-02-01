@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.ingestion;
+package com.verlumen.tradestream.http;
 
 import com.google.inject.AbstractModule;
 
