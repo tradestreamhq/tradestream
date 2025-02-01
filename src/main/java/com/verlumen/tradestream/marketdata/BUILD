@@ -18,6 +18,9 @@ java_library(
   name = "market_data_module",
   srcs = ["MarketDataModule.java"],
   deps = [
+    ":candle_author",
+    ":trade_publisher",
+    ":trade_publisher_impl",
     "//third_party:guice",
   ],
 )
