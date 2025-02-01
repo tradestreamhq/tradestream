@@ -67,7 +67,8 @@ final class App {
               exchangeName,
               candleIntervalMillis,
               runMode,
-              namespace.getString("kafka.bootstrap.servers"));
+              namespace.getString("kafka.bootstrap.servers"),
+              namespace.getString("tradeTopic"));
       IngestionModule module = IngestionModule.create(ingestionConfig);
       App app = Guice.createInjector(module).getInstance(App.class);
       logger.atInfo().log("Guice initialization complete, running application");
@@ -118,6 +119,10 @@ final class App {
     parser.addArgument("--runMode")
       .choices("wet", "dry")
       .help("Run mode: wet or dry");
+
+    parser.addArgument("--tradeTopic")
+      .setDefault("trades")
+      .help("Kafka topic for publishing trades");
 
     return parser;
   }

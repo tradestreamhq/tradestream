@@ -82,7 +82,7 @@ java_library(
         ":coin_market_cap_config",
         ":currency_pair_metadata",
         ":currency_pair_supply",
-        ":http_client",
+        "//src/main/java/com/verlumen/tradestream/http:http_client",
     ],
 )
 
@@ -113,36 +113,6 @@ genrule(
     outs = ["sha256.sum"],
     cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
     toolchains = ["@jq_toolchains//:resolved_toolchain"],
-)
-
-java_library(
-    name = "http_client",
-    srcs = ["HttpClient.java"],
-)
-
-java_library(
-    name = "http_client_impl",
-    srcs = ["HttpClientImpl.java"],
-    deps = [
-        "//third_party:flogger",
-        "//third_party:guice",
-        ":http_client",
-        ":http_url_connection_factory",
-    ],
-)
-
-java_library(
-    name = "http_url_connection_factory",
-    srcs = ["HttpURLConnectionFactory.java"],
-)
-
-java_library(
-    name = "http_url_connection_factory_impl",
-    srcs = ["HttpURLConnectionFactoryImpl.java"],
-    deps = [
-        "//third_party:guice",
-        ":http_url_connection_factory",
-    ],
 )
 
 oci_image(
@@ -184,17 +154,11 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
-        ":candle_manager",
-        ":candle_manager_impl",
         ":coin_market_cap_config",
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
-        ":http_client",
-        ":http_client_impl",
-        ":http_url_connection_factory",
-        ":http_url_connection_factory_impl",
         ":ingestion_config",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
@@ -202,6 +166,11 @@ java_library(
         ":trade_publisher_impl",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/http:http_module",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
+        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_config",
+        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice_assistedinject",
@@ -230,16 +199,16 @@ java_library(
     name = "real_time_data_ingestion_impl",
     srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
-        "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":currency_pair_supply",
         ":exchange_streaming_client",
         ":real_time_data_ingestion",
-        ":thin_market_timer",
         ":trade_publisher",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/marketdata:trade_publisher",
+        "//third_party:flogger",
+        "//third_party:guava",
+        "//third_party:guice",
     ],
 )
 

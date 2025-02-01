@@ -12,7 +12,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
-import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.marketdata.TradePublisher;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -27,6 +27,8 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         ExchangeStreamingClient exchangeClient,
         TradePublisher tradePublisher
     ) {
+        this.candleManager = candleManager;
+        this.candlePublisher = candlePublisher;
         this.currencyPairSupply = currencyPairSupply;
         this.exchangeClient = exchangeClient;
         this.tradePublisher = tradePublisher;

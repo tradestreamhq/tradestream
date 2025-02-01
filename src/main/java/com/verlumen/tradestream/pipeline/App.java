@@ -43,12 +43,10 @@ public final class App {
         this.kafkaReadTransform = kafkaReadTransform;
     }
 
-
-    // In App.java
     private Pipeline buildPipeline(Pipeline pipeline) {
         PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
 
-        input.apply("Convert to String", ParDo.of(new BytesToStringDoFn()));
+        input.apply("Convert to String", ParDo.of(new PrintBytesAsString()));
         
         return pipeline;
     }
@@ -58,23 +56,11 @@ public final class App {
         pipeline.run();
     }
 
-    private static class BytesToStringDoFn extends DoFn<byte[], String> {
+    private static class PrintBytesAsString extends DoFn<byte[], byte[]> {
         @ProcessElement
-        public void processElement(@Element byte[] element, OutputReceiver<String> receiver) {
-            try {
-                String value = new String(element);
-                System.out.println(value);
-                System.out.println(Candle.parseFrom(element));
-                receiver.output(value);
-            } catch (InvalidProtocolBufferException e) {
-                // Handle checked exception for Protocol Buffer parsing
-                System.err.println("Failed to parse Protocol Buffer: " + e.getMessage());
-                e.printStackTrace();
-            } catch (RuntimeException e) {
-                // Handle any unchecked exceptions
-                System.err.println("Unexpected error processing element: " + e.getMessage());
-                e.printStackTrace();
-            }
+        public void processElement(@Element byte[] element, OutputReceiver<byte[]> receiver) {
+            System.out.println(new String(element));
+            receiver.output(element);
         }
     }
 
