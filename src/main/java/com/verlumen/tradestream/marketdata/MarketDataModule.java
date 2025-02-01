@@ -12,7 +12,8 @@ public final class MarketDataModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(CandleAuthor.class).toProvider(CreateCandles::create);
+    bind(CreateCandles.class).toProvider(CreateCandles::create);
+
     install(
         new FactoryModuleBuilder()
             .implement(TradePublisher.class, TradePublisherImpl.class)
