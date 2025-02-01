@@ -37,17 +37,21 @@ public final class App {
     }
 
     private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
+    private final ParseTrades parseTrades;
 
     @Inject
-    App(KafkaReadTransform<String, byte[]> kafkaReadTransform) {
+    App(KafkaReadTransform<String, byte[]> kafkaReadTransform, ParseTrades parseTrades) {
         this.kafkaReadTransform = kafkaReadTransform;
+        this.parseTrades = parseTrades;
     }
 
     private Pipeline buildPipeline(Pipeline pipeline) {
         PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
 
-        input.apply("Convert to String", ParDo.of(new PrintBytesAsString()));
-        
+        input
+            .apply("Print Contents", ParDo.of(new PrintBytesAsString()))
+            .apply("Parse Trades", parseTrades);
+
         return pipeline;
     }
 
