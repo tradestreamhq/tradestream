@@ -23,6 +23,16 @@ java_test(
 )
 
 java_test(
+    name = "ParseTradesTest",
+    srcs = ["ParseTradesTest.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
+        "//third_party:beam_sdks_java_test_utils",
+    ],
+)
+
+java_test(
     name = "TradePublisherImplTest",
     srcs = ["TradePublisherImplTest.java"],
     deps = [
