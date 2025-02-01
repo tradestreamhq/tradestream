@@ -20,7 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 /**
- * Test suite for CandleAuthor.
+ * Test suite for CreateCandles.
  *
  * Note:
  * - The integration tests below use TestStream and PAssert.
@@ -28,7 +28,7 @@ import org.junit.Test;
  *   processed in a window) we assume that the anonymous DoFn has been refactored
  *   into a package-private static inner class {@code AggregateToCandleDoFn}.
  */
-public class CandleAuthorTest {
+public class CreateCandlesTest {
 
   @Rule 
   public final TestPipeline pipeline = TestPipeline.create();
@@ -61,7 +61,7 @@ public class CandleAuthorTest {
   //–––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
   // Integration Test 1: Single Trade produces a correct candle.
   // Arrange: One KV element for key "EUR/USD" in a fixed window.
-  // Act: Apply windowing and CandleAuthor.create().
+  // Act: Apply windowing and CreateCandles.create().
   // Assert: The output candle’s open price equals the trade price.
   @Test
   public void testSingleTradeProducesCorrectCandle() {
@@ -88,7 +88,7 @@ public class CandleAuthorTest {
         pipeline
             .apply("Input", stream)
             .apply("Window", Window.<KV<String, Trade>>into(FixedWindows.of(Duration.standardSeconds(10))))
-            .apply("Candle", CandleAuthor.create());
+            .apply("Candle", CreateCandles.create());
 
     PAssert.that(candles).satisfies((Iterable<Candle> outs) -> {
       int count = 0;
@@ -137,14 +137,14 @@ public class CandleAuthorTest {
     pipeline
         .apply("Input2", stream)
         .apply("Window2", Window.<KV<String, Trade>>into(FixedWindows.of(Duration.standardSeconds(10))))
-        .apply("Candle2", CandleAuthor.create());
+        .apply("Candle2", CreateCandles.create());
         
     // Assert: Use PAssert to check that the maximum (high) value equals 105.0.
     PAssert.thatSingleton(
             pipeline
                 .apply("InputForPAssert2", stream)
                 .apply("WindowForPAssert2", Window.<KV<String, Trade>>into(FixedWindows.of(Duration.standardSeconds(10))))
-                .apply("CandleForPAssert2", CandleAuthor.create())
+                .apply("CandleForPAssert2", CreateCandles.create())
                 .apply("ExtractHigh", org.apache.beam.sdk.transforms.MapElements.into(
                     org.apache.beam.sdk.values.TypeDescriptors.doubles())
                     .via((Candle c) -> c.getHigh())))
@@ -170,7 +170,7 @@ public class CandleAuthorTest {
         pipeline
             .apply("EmptyInput", emptyStream)
             .apply("WindowEmpty", Window.<KV<String, Trade>>into(FixedWindows.of(Duration.standardSeconds(10))))
-            .apply("CandleEmpty", CandleAuthor.create());
+            .apply("CandleEmpty", CreateCandles.create());
 
     // Assert: The output PCollection should be empty.
     PAssert.that(output).empty();
