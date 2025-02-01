@@ -3,8 +3,8 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
-  name = "create_candles", 
-  srcs = ["CandleAuthor.java"],
+  name = "create_candles",
+  srcs = ["CreateCandles.java"],
   deps = [
     "//protos:marketdata_java_proto",
     "//third_party:beam_sdks_java_core",
@@ -23,6 +23,18 @@ java_library(
     ":trade_publisher_impl",
     "//third_party:guice",
     "//third_party:guice_assistedinject",
+  ],
+)
+
+java_library(
+  name = "parse_trades",
+  srcs = ["ParseTrades.java"],
+  deps = [
+    "//protos:marketdata_java_proto",
+    "//third_party:beam_sdks_java_core",
+    "//third_party:beam_sdks_java_extensions_protobuf",
+    "//third_party:flogger",
+    "//third_party:protobuf_java",
   ],
 )
 
