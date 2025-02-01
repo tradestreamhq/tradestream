@@ -15,6 +15,14 @@ java_library(
 )
 
 java_library(
+  name = "market_data_module",
+  srcs = ["MarketDataModule.java"],
+  deps = [
+    "//third_party:guice",
+  ],
+)
+
+java_library(
     name = "trade_publisher",
     srcs = ["TradePublisher.java"],
     deps = [
