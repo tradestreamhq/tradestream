@@ -143,7 +143,7 @@ java_library(
         ":coin_market_cap_config",
         ":currency_pair_metadata",
         ":currency_pair_supply",
-        "//src/main/java/com/verlumen/tradestream/http//src/main/java/com/verlumen/tradestream/http:http_client",
+        "//src/main/java/com/verlumen/tradestream/http:http_client",
     ],
 )
 
