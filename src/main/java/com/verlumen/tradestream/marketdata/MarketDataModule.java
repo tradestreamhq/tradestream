@@ -5,11 +5,11 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 @AutoValue
 public final class MarketDataModule extends AbstractModule {
-  public static MarketDataModule create(String tradeTopic) {
-    return new AutoValue_MarketDataModule(tradeTopic);
+  public static MarketDataModule create(MarketDataConfig config) {
+    return new AutoValue_MarketDataModule(config);
   }
 
-  abstract String tradeTopic();
+  abstract MarketDataConfig config();
 
   @Override
   protected void configure() {
@@ -23,6 +23,6 @@ public final class MarketDataModule extends AbstractModule {
 
   @Provides
   TradePublisher provideTradePublisher(TradePublisher.Factory tradePublisherFactory) {
-    return tradePublisherFactory.create(tradeTopic());
+    return tradePublisherFactory.create(config().tradeTopic());
   }
 }
