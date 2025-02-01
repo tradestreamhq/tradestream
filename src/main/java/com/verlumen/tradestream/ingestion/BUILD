@@ -143,7 +143,7 @@ java_library(
         ":coin_market_cap_config",
         ":currency_pair_metadata",
         ":currency_pair_supply",
-        ":http_client",
+        "//src/main/java/com/verlumen/tradestream/http:http_client",
     ],
 )
 
@@ -174,36 +174,6 @@ genrule(
     outs = ["sha256.sum"],
     cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
     toolchains = ["@jq_toolchains//:resolved_toolchain"],
-)
-
-java_library(
-    name = "http_client",
-    srcs = ["HttpClient.java"],
-)
-
-java_library(
-    name = "http_client_impl",
-    srcs = ["HttpClientImpl.java"],
-    deps = [
-        "//third_party:flogger",
-        "//third_party:guice",
-        ":http_client",
-        ":http_url_connection_factory",
-    ],
-)
-
-java_library(
-    name = "http_url_connection_factory",
-    srcs = ["HttpURLConnectionFactory.java"],
-)
-
-java_library(
-    name = "http_url_connection_factory_impl",
-    srcs = ["HttpURLConnectionFactoryImpl.java"],
-    deps = [
-        "//third_party:guice",
-        ":http_url_connection_factory",
-    ],
 )
 
 oci_image(
@@ -254,10 +224,6 @@ java_library(
         ":currency_pair_supply_provider",
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
-        ":http_client",
-        ":http_client_impl",
-        ":http_url_connection_factory",
-        ":http_url_connection_factory_impl",
         ":ingestion_config",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
@@ -267,6 +233,7 @@ java_library(
         ":thin_market_timer_task_impl",
         ":trade_processor",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/http:http_module",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
         "//third_party:auto_value",
