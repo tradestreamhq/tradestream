@@ -102,11 +102,28 @@ java_library(
 )
 
 java_library(
+    name = "beam_sdks_java_extensions_protobuf",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_sdks_java_extensions_protobuf",
+    ],
+)
+
+java_library(
     name = "beam_sdks_java_io_kafka",
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:org_apache_beam_beam_sdks_java_io_kafka",
     ],
+)
+
+java_library(
+    name = "beam_sdks_java_test_utils",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_sdks_java_test_utils",
+    ],
+    testonly = True,
 )
 
 java_library(
@@ -164,6 +181,15 @@ java_library(
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:com_google_inject_extensions_guice_testlib",
+    ],
+    testonly = True,
+)
+
+java_library(
+    name = "hamcrest",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_hamcrest_hamcrest",
     ],
     testonly = True,
 )
