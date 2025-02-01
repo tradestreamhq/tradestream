@@ -1,6 +1,5 @@
-package com.verlumen.tradestream.transforms;
+package com.verlumen.tradestream.marketdata;
 
-import com.verlumen.tradestream.marketdata.Trade;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
@@ -10,8 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ParseTrades extends PTransform<PCollection<byte[]>, PCollection<Trade>> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ParseTrades.class);
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
     @Override
     public PCollection<Trade> expand(PCollection<byte[]> input) {
@@ -24,7 +22,7 @@ public class ParseTrades extends PTransform<PCollection<byte[]>, PCollection<Tra
                     out.output(trade);
                 } catch (InvalidProtocolBufferException e) {
                     // Log the error. You might also choose to send these bytes to a dead-letter PCollection.
-                    LOG.error("Failed to parse Trade message from bytes", e);
+                    logger.atError().log("Failed to parse Trade message from bytes", e);
                 }
             }
         }));
