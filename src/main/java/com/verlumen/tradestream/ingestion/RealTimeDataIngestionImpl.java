@@ -15,7 +15,6 @@ import com.verlumen.tradestream.marketdata.Trade;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private static final String FORWARD_SLASH = "/";
 
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
