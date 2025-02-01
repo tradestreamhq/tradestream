@@ -121,7 +121,7 @@ final class App {
       .help("Run mode: wet or dry");
 
     parser.addArgument("--tradeTopic")
-      .setDefault("candles")
+      .setDefault("trades")
       .help("Kafka topic for publishing trades");
 
     return parser;
