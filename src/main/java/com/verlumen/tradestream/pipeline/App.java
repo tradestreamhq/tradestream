@@ -2,7 +2,9 @@ package com.verlumen.tradestream.pipeline;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
+import com.verlumen.tradestream.marketdata.Candle;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
@@ -59,9 +61,20 @@ public final class App {
     private static class BytesToStringDoFn extends DoFn<byte[], String> {
         @ProcessElement
         public void processElement(@Element byte[] element, OutputReceiver<String> receiver) {
-            String value = new String(element);
-            System.out.println(value);
-            receiver.output(value);
+            try {
+                String value = new String(element);
+                System.out.println(value);
+                System.out.println(Candle.parseFrom(element));
+                receiver.output(value);
+            } catch (InvalidProtocolBufferException e) {
+                // Handle checked exception for Protocol Buffer parsing
+                System.err.println("Failed to parse Protocol Buffer: " + e.getMessage());
+                e.printStackTrace();
+            } catch (RuntimeException e) {
+                // Handle any unchecked exceptions
+                System.err.println("Unexpected error processing element: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
