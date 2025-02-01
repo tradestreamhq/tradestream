@@ -1,15 +1,15 @@
 package com.verlumen.tradestream.ingestion;
 
-import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.Trade;
 
 import java.time.Duration;
 
-public interface CandlePublisher {
-    void publishCandle(Candle candle);
+public interface TradePublisher {
+    void publishTrade(Trade trade);
 
     void close();
 
     interface Factory {
-        CandlePublisher create(String topic);
+        TradePublisher create(String topic);
     }
 }
