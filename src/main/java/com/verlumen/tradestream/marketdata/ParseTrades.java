@@ -21,7 +21,7 @@ public class ParseTrades extends PTransform<PCollection<byte[]>, PCollection<Tra
                     out.output(trade);
                 } catch (InvalidProtocolBufferException e) {
                     // Log the error. You might also choose to send these bytes to a dead-letter PCollection.
-                    logger.atError().log("Failed to parse Trade message from bytes", e);
+                    logger.atSevere().log("Failed to parse Trade message from bytes", e);
                 }
             }
         }));
