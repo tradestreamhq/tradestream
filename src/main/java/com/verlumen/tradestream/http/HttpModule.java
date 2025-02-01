@@ -2,7 +2,7 @@ package com.verlumen.tradestream.http;
 
 import com.google.inject.AbstractModule;
 
-public abstract class HttpModule extends AbstractModule {
+public final class HttpModule extends AbstractModule {
   public static HttpModule create(IngestionConfig ingestionConfig) {
     return new HttpModule(ingestionConfig);
   }
