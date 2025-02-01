@@ -22,6 +22,7 @@ java_library(
     "//third_party:beam_sdks_java_core",
     "//third_party:beam_sdks_java_extensions_protobuf",
     "//third_party:flogger",
+    "//third_party:protobuf_java",
   ],
 )
 
