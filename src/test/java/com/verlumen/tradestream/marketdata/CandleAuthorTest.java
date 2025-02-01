@@ -7,7 +7,7 @@ import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Timestamps;
 import java.util.List;
 import org.apache.beam.sdk.coders.KvCoder;
-import org.apache.beam.sdk.coders.ProtoCoder;
+import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.testing.DoFnTester;
 import org.apache.beam.sdk.testing.PAssert;
