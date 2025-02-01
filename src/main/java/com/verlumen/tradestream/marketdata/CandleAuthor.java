@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.marketdata;
 
-import com.google.auto.value.AutoValue;
 import com.google.protobuf.util.Timestamps;
 import java.time.Instant;
 import java.time.ZoneOffset;
