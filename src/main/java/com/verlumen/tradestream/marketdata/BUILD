@@ -13,3 +13,25 @@ java_library(
     "//third_party:protobuf_java_util",
   ],
 )
+
+java_library(
+    name = "trade_publisher",
+    srcs = ["TradePublisher.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+    ],
+)
+
+java_library(
+    name = "trade_publisher_impl",
+    srcs = ["TradePublisherImpl.java"],
+    deps = [
+        ":trade_publisher",
+        "//protos:marketdata_java_proto",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:kafka_clients",
+        "//third_party:protobuf_java_util",
+    ],
+)
