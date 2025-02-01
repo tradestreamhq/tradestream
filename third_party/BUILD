@@ -186,6 +186,14 @@ java_library(
 )
 
 java_library(
+    name = "hamcrest",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_hamcrest_hamcrest",
+    ],
+)
+
+java_library(
     name = "jenetics",
     visibility = ["//visibility:public"],
     exports = [
