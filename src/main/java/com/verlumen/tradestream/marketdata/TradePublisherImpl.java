@@ -24,16 +24,20 @@ final class TradePublisherImpl implements TradePublisher {
         logger.atInfo().log("TradePublisher initialization complete");
     }
 
+    @Override
     public void publishTrade(Trade trade) {
-        logger.atInfo().log("Publishing trade for %s to topic %s. Timestamp=%s, Open=%f, High=%f, Low=%f, Close=%f, Volume=%f", 
-            trade.getCurrencyPair(), 
+        // Updated log statement using new Trade fields:
+        logger.atInfo().log(
+            "Publishing trade: exchange=%s, currency pair=%s, trade id=%s to topic %s. " +
+            "Timestamp=%s, Price=%f, Volume=%f",
+            trade.getExchange(),
+            trade.getCurrencyPair(),
+            trade.getTradeId(),
             topic,
             Timestamps.toString(trade.getTimestamp()),
-            trade.getOpen(),
-            trade.getHigh(),
-            trade.getLow(),
-            trade.getClose(),
-            trade.getVolume());
+            trade.getPrice(),
+            trade.getVolume()
+        );
 
         byte[] tradeBytes = trade.toByteArray();
         logger.atFine().log("Serialized trade data size: %d bytes", tradeBytes.length);
@@ -47,7 +51,7 @@ final class TradePublisherImpl implements TradePublisher {
         kafkaProducer.send(record, (metadata, exception) -> {
             if (exception != null) {
                 logger.atSevere().withCause(exception)
-                    .log("Failed to publish trade for %s to topic %s", 
+                    .log("Failed to publish trade for %s to topic %s",
                         trade.getCurrencyPair(), topic);
             } else {
                 logger.atInfo().log("Successfully published trade: topic=%s, partition=%d, offset=%d, timestamp=%d",
@@ -59,6 +63,7 @@ final class TradePublisherImpl implements TradePublisher {
         });
     }
 
+    @Override
     public void close() {
         logger.atInfo().log("Initiating Kafka producer shutdown");
         try {

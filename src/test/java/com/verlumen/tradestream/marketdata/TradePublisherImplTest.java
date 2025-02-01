@@ -2,7 +2,7 @@ package com.verlumen.tradestream.marketdata;
 
 import static com.google.protobuf.util.Timestamps.fromMillis;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.Guice;
@@ -26,7 +26,7 @@ public class TradePublisherImplTest {
     @Rule public MockitoRule mocks = MockitoJUnit.rule();
 
     private static final String TOPIC = "test-topic";
-    
+
     @Mock @Bind private KafkaProducer<String, byte[]> mockProducer;
     @Inject private TradePublisher.Factory factory;
 
@@ -47,8 +47,12 @@ public class TradePublisherImplTest {
         // Arrange
         long epochMillis = System.currentTimeMillis();
         Trade trade = Trade.newBuilder()
+            .setExchange("Coinbase")
             .setCurrencyPair("BTC/USD")
+            .setTradeId("trade-123")
             .setTimestamp(fromMillis(epochMillis))
+            .setPrice(50000.0)
+            .setVolume(0.1)
             .build();
 
         // Act
