@@ -5,6 +5,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.http.HttpModule;
 import com.verlumen.tradestream.kafka.KafkaModule;
 import java.util.Timer;
 
@@ -20,9 +21,6 @@ abstract class IngestionModule extends AbstractModule {
   protected void configure() {
     bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
-    bind(HttpClient.class).to(HttpClientImpl.class);
-    bind(java.net.http.HttpClient.class).toProvider(java.net.http.HttpClient::newHttpClient);
-    bind(HttpURLConnectionFactory.class).to(HttpURLConnectionFactoryImpl.class);
     bind(RealTimeDataIngestion.class).to(RealTimeDataIngestionImpl.class);
     bind(ThinMarketTimer.class).to(ThinMarketTimerImpl.class);
     bind(ThinMarketTimerTask.class).to(ThinMarketTimerTaskImpl.class);
@@ -38,6 +36,7 @@ abstract class IngestionModule extends AbstractModule {
             .implement(CandlePublisher.class, CandlePublisherImpl.class)
             .build(CandlePublisher.Factory.class));
 
+    install(HttpModule.create());
     install(KafkaModule.create(ingestionConfig().kafkaBootstrapServers()));
   }
 
