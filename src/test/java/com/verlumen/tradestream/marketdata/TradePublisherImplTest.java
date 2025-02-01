@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.ingestion;
+package com.verlumen.tradestream.marketdata;
 
 import static com.google.protobuf.util.Timestamps.fromMillis;
 import static org.mockito.ArgumentMatchers.any;
