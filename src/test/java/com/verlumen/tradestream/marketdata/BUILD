@@ -30,6 +30,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_test_utils",
+        "//third_party:protobuf_java",
         "//third_party:protobuf_java_util",
         "//third_party:junit",
     ],
