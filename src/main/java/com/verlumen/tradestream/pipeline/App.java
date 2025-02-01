@@ -61,8 +61,8 @@ public final class App {
     private static class BytesToStringDoFn extends DoFn<byte[], String> {
         @ProcessElement
         public void processElement(@Element byte[] element, OutputReceiver<String> receiver) {
+            String value = new String(element);
             try {
-                String value = new String(element);
                 System.out.println(Candle.parseFrom(element));
                 receiver.output(value);
             } catch (InvalidProtocolBufferException e) {
