@@ -22,6 +22,7 @@ java_library(
     ":trade_publisher",
     ":trade_publisher_impl",
     "//third_party:guice",
+    "//third_party:guice_assistedinject",
   ],
 )
 
