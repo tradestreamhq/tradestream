@@ -4,54 +4,54 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.Inject;
 import com.google.protobuf.util.Timestamps;
-import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.Trade;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import java.time.Duration;
 
-final class CandlePublisherImpl implements CandlePublisher {
+final class TradePublisherImpl implements TradePublisher {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
     private final KafkaProducer<String, byte[]> kafkaProducer;
     private final String topic;
 
     @Inject
-    CandlePublisherImpl(
+    TradePublisherImpl(
         KafkaProducer<String, byte[]> kafkaProducer,
         @Assisted String topic
     ) {
-        logger.atInfo().log("Initializing CandlePublisher for topic: %s", topic);
+        logger.atInfo().log("Initializing TradePublisher for topic: %s", topic);
         this.topic = topic;
         this.kafkaProducer = kafkaProducer;
-        logger.atInfo().log("CandlePublisher initialization complete");
+        logger.atInfo().log("TradePublisher initialization complete");
     }
 
-    public void publishCandle(Candle candle) {
-        logger.atInfo().log("Publishing candle for %s to topic %s. Timestamp=%s, Open=%f, High=%f, Low=%f, Close=%f, Volume=%f", 
-            candle.getCurrencyPair(), 
+    public void publishTrade(Trade trade) {
+        logger.atInfo().log("Publishing trade for %s to topic %s. Timestamp=%s, Open=%f, High=%f, Low=%f, Close=%f, Volume=%f", 
+            trade.getCurrencyPair(), 
             topic,
-            Timestamps.toString(candle.getTimestamp()),
-            candle.getOpen(),
-            candle.getHigh(),
-            candle.getLow(),
-            candle.getClose(),
-            candle.getVolume());
+            Timestamps.toString(trade.getTimestamp()),
+            trade.getOpen(),
+            trade.getHigh(),
+            trade.getLow(),
+            trade.getClose(),
+            trade.getVolume());
 
-        byte[] candleBytes = candle.toByteArray();
-        logger.atFine().log("Serialized candle data size: %d bytes", candleBytes.length);
+        byte[] tradeBytes = trade.toByteArray();
+        logger.atFine().log("Serialized trade data size: %d bytes", tradeBytes.length);
 
         ProducerRecord<String, byte[]> record = new ProducerRecord<>(
             topic,
-            candle.getCurrencyPair(),
-            candleBytes
+            trade.getCurrencyPair(),
+            tradeBytes
         );
 
         kafkaProducer.send(record, (metadata, exception) -> {
             if (exception != null) {
                 logger.atSevere().withCause(exception)
-                    .log("Failed to publish candle for %s to topic %s", 
-                        candle.getCurrencyPair(), topic);
+                    .log("Failed to publish trade for %s to topic %s", 
+                        trade.getCurrencyPair(), topic);
             } else {
-                logger.atInfo().log("Successfully published candle: topic=%s, partition=%d, offset=%d, timestamp=%d",
+                logger.atInfo().log("Successfully published trade: topic=%s, partition=%d, offset=%d, timestamp=%d",
                     metadata.topic(), 
                     metadata.partition(), 
                     metadata.offset(),
