@@ -12,10 +12,10 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.marketdata.TradePublisher;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private static final String FORWARD_SLASH = "/";
 
     private final CandleManager candleManager;
     private final CandlePublisher candlePublisher;
@@ -23,6 +23,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private final ExchangeStreamingClient exchangeClient;
     private final Provider<ThinMarketTimer> thinMarketTimer;
     private final TradeProcessor tradeProcessor;
+    private final TradePublisher tradePublisher;
     
     @Inject
     RealTimeDataIngestionImpl(
@@ -31,16 +32,16 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         Provider<CurrencyPairSupply> currencyPairSupply,
         ExchangeStreamingClient exchangeClient,
         Provider<ThinMarketTimer> thinMarketTimer,
-        TradeProcessor tradeProcessor
+        TradeProcessor tradeProcessor,
+        TradePublisher tradePublisher
     ) {
-        logger.atInfo().log("Initializing RealTimeDataIngestion implementation");
         this.candleManager = candleManager;
         this.candlePublisher = candlePublisher;
         this.currencyPairSupply = currencyPairSupply;
         this.exchangeClient = exchangeClient;
         this.thinMarketTimer = thinMarketTimer;
         this.tradeProcessor = tradeProcessor;
-        logger.atInfo().log("RealTimeDataIngestion initialization complete");
+        this.tradePublisher = tradePublisher;
     }
 
     @Override

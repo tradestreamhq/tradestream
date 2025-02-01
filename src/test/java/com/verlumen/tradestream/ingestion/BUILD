@@ -93,20 +93,6 @@ java_test(
 )
 
 java_test(
-    name = "HttpClientImplTest",
-    srcs = ["HttpClientImplTest.java"],
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/ingestion:http_client_impl",
-        "//src/main/java/com/verlumen/tradestream/ingestion:http_url_connection_factory",
-        "//third_party:guice",
-        "//third_party:guice_testlib",
-        "//third_party:junit",
-        "//third_party:mockito_core",
-        "//third_party:truth",
-    ],
-)
-
-java_test(
     name = "PriceTrackerTest",
     srcs = ["PriceTrackerTest.java"],
     deps = [
@@ -130,6 +116,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/ingestion:trade_processor",
         "//src/main/java/com/verlumen/tradestream/ingestion:real_time_data_ingestion_impl",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/marketdata:trade_publisher",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",

@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.ParseTrades;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
@@ -37,19 +38,21 @@ public final class App {
     }
 
     private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
+    private final ParseTrades parseTrades;
 
     @Inject
-    App(KafkaReadTransform<String, byte[]> kafkaReadTransform) {
+    App(KafkaReadTransform<String, byte[]> kafkaReadTransform, ParseTrades parseTrades) {
         this.kafkaReadTransform = kafkaReadTransform;
+        this.parseTrades = parseTrades;
     }
 
-
-    // In App.java
     private Pipeline buildPipeline(Pipeline pipeline) {
         PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
 
-        input.apply("Convert to String", ParDo.of(new BytesToStringDoFn()));
-        
+        input
+            .apply("Print Contents", ParDo.of(new PrintBytesAsString()))
+            .apply("Parse Trades", parseTrades);
+
         return pipeline;
     }
 
@@ -58,23 +61,11 @@ public final class App {
         pipeline.run();
     }
 
-    private static class BytesToStringDoFn extends DoFn<byte[], String> {
+    private static class PrintBytesAsString extends DoFn<byte[], byte[]> {
         @ProcessElement
-        public void processElement(@Element byte[] element, OutputReceiver<String> receiver) {
-            try {
-                String value = new String(element);
-                System.out.println(value);
-                System.out.println(Candle.parseFrom(element));
-                receiver.output(value);
-            } catch (InvalidProtocolBufferException e) {
-                // Handle checked exception for Protocol Buffer parsing
-                System.err.println("Failed to parse Protocol Buffer: " + e.getMessage());
-                e.printStackTrace();
-            } catch (RuntimeException e) {
-                // Handle any unchecked exceptions
-                System.err.println("Unexpected error processing element: " + e.getMessage());
-                e.printStackTrace();
-            }
+        public void processElement(@Element byte[] element, OutputReceiver<byte[]> receiver) {
+            System.out.println(new String(element));
+            receiver.output(element);
         }
     }
 
