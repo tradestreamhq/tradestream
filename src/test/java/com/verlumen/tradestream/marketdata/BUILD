@@ -16,4 +16,7 @@ java_test(
         "//third_party:joda_time",
         "//third_party:junit",
     ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+    ],
 )
