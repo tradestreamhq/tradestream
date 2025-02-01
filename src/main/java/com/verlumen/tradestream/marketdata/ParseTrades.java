@@ -9,10 +9,6 @@ import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PCollection;
 
 public final class ParseTrades extends PTransform<PCollection<byte[]>, PCollection<Trade>> {
-    public static ParseTrades create() {
-        return new ParseTrades() {}
-    }
-
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
     @Inject
