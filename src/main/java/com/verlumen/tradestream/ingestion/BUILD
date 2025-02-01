@@ -272,11 +272,6 @@ java_library(
     name = "real_time_data_ingestion_impl",
     srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
-        "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         ":candle_manager",
         ":candle_publisher",
         ":currency_pair_supply",
@@ -284,6 +279,12 @@ java_library(
         ":real_time_data_ingestion",
         ":thin_market_timer",
         ":trade_processor",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/marketdata:trade_publisher",
+        "//third_party:flogger",
+        "//third_party:guava",
+        "//third_party:guice",
     ],
 )
 
