@@ -1,18 +1,15 @@
 package com.verlumen.tradestream.marketdata;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Timestamps;
-import java.util.List;
 import org.apache.beam.sdk.coders.KvCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestStream;
 import org.apache.beam.sdk.testing.TestPipeline;
-import org.apache.beam.sdk.transforms.DoFnTester;
+import org.apache.beam.sdk.testing.TimestampedValue;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
@@ -33,13 +30,15 @@ import org.junit.Test;
  */
 public class CandleAuthorTest {
 
-  @Rule public final TestPipeline pipeline = TestPipeline.create();
+  @Rule 
+  public final TestPipeline pipeline = TestPipeline.create();
 
-  // Helper methods for building Trade and Candle instances.
+  // Helper method for building Trade instances.
   private Trade createTrade(double price, double volume) {
     return Trade.newBuilder().setPrice(price).setVolume(volume).build();
   }
 
+  // Helper method for building expected Candle instances.
   private Candle createExpectedCandle(
       String currencyPair,
       long windowStartMillis,
@@ -78,7 +77,8 @@ public class CandleAuthorTest {
         TestStream.<KV<String, Trade>>create(
             KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Trade.class))
         )
-        .addElements(KV.of(key, trade))
+        // Wrap the element with its timestamp.
+        .addElements(TimestampedValue.of(KV.of(key, trade), eventTime))
         // Advance the watermark past the window so that the timer fires.
         .advanceWatermarkTo(new Instant(11000))
         .advanceProcessingTime(Duration.standardSeconds(1))
@@ -126,15 +126,9 @@ public class CandleAuthorTest {
 
     TestStream<KV<String, Trade>> stream =
         TestStream.<KV<String, Trade>>create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Trade.class)))
-            .addElements(
-                org.joda.time.Instant.ofEpochMilli(time1.getMillis()),
-                KV.of(key, t1))
-            .addElements(
-                org.joda.time.Instant.ofEpochMilli(time2.getMillis()),
-                KV.of(key, t2))
-            .addElements(
-                org.joda.time.Instant.ofEpochMilli(time3.getMillis()),
-                KV.of(key, t3))
+            .addElements(TimestampedValue.of(KV.of(key, t1), time1))
+            .addElements(TimestampedValue.of(KV.of(key, t2), time2))
+            .addElements(TimestampedValue.of(KV.of(key, t3), time3))
             .advanceWatermarkTo(new Instant(11000))
             .advanceProcessingTime(Duration.standardSeconds(1))
             .advanceWatermarkToInfinity();
@@ -144,15 +138,18 @@ public class CandleAuthorTest {
         .apply("Input2", stream)
         .apply("Window2", Window.<KV<String, Trade>>into(FixedWindows.of(Duration.standardSeconds(10))))
         .apply("Candle2", CandleAuthor.create());
+        
     // Assert: Use PAssert to check that the maximum (high) value equals 105.0.
     PAssert.thatSingleton(
             pipeline
                 .apply("InputForPAssert2", stream)
                 .apply("WindowForPAssert2", Window.<KV<String, Trade>>into(FixedWindows.of(Duration.standardSeconds(10))))
                 .apply("CandleForPAssert2", CandleAuthor.create())
-                .apply("ExtractHigh", org.apache.beam.sdk.transforms.MapElements.into(org.apache.beam.sdk.values.TypeDescriptors.doubles())
+                .apply("ExtractHigh", org.apache.beam.sdk.transforms.MapElements.into(
+                    org.apache.beam.sdk.values.TypeDescriptors.doubles())
                     .via((Candle c) -> c.getHigh())))
         .isEqualTo(105.0);
+        
     pipeline.run().waitUntilFinish();
   }
 
@@ -169,17 +166,15 @@ public class CandleAuthorTest {
             .advanceWatermarkToInfinity();
 
     // Arrange + Act
-    pipeline
-        .apply("EmptyInput", emptyStream)
-        .apply("WindowEmpty", Window.<KV<String, Trade>>into(FixedWindows.of(Duration.standardSeconds(10))))
-        .apply("CandleEmpty", CandleAuthor.create());
+    PCollection<Candle> output =
+        pipeline
+            .apply("EmptyInput", emptyStream)
+            .apply("WindowEmpty", Window.<KV<String, Trade>>into(FixedWindows.of(Duration.standardSeconds(10))))
+            .apply("CandleEmpty", CandleAuthor.create());
 
     // Assert: The output PCollection should be empty.
-    PAssert.thatEmpty(
-        pipeline
-            .apply("EmptyInputForPAssert", emptyStream)
-            .apply("WindowEmptyForPAssert", Window.<KV<String, Trade>>into(FixedWindows.of(Duration.standardSeconds(10))))
-            .apply("CandleEmptyForPAssert", CandleAuthor.create()));
+    PAssert.that(output).empty();
+    
     pipeline.run().waitUntilFinish();
   }
 }
