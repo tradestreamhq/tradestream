@@ -12,6 +12,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.marketdata.TradePublisher;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -23,6 +24,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private final ExchangeStreamingClient exchangeClient;
     private final Provider<ThinMarketTimer> thinMarketTimer;
     private final TradeProcessor tradeProcessor;
+    private final TradePublisher tradePublisher;
     
     @Inject
     RealTimeDataIngestionImpl(
