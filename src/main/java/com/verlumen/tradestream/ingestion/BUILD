@@ -184,16 +184,8 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
-        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
-        "//third_party:auto_value",
-        "//third_party:guava",
-        "//third_party:guice_assistedinject",
-        "//third_party:guice",
         ":candle_manager",
         ":candle_manager_impl",
-        ":trade_publisher",
-        ":trade_publisher_impl",
         ":coin_market_cap_config",
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
@@ -206,25 +198,20 @@ java_library(
         ":ingestion_config",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
-        ":thin_market_timer",
-        ":thin_market_timer_impl",
-        ":thin_market_timer_task",
-        ":thin_market_timer_task_impl",
-        ":trade_processor",
+        ":trade_publisher",
+        ":trade_publisher_impl",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party:auto_value",
+        "//third_party:guava",
+        "//third_party:guice_assistedinject",
+        "//third_party:guice",
     ],
 )
 
 tar(
     name = "layer",
     srcs = [":app_deploy.jar"],
-)
-
-java_library(
-    name = "price_tracker",
-    srcs = ["PriceTracker.java"],
-    deps = [
-        "//third_party:guice",        
-    ],
 )
 
 oci_push(
