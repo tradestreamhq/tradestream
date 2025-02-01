@@ -61,14 +61,14 @@ public final class App {
     private static class BytesToStringDoFn extends DoFn<byte[], String> {
         @ProcessElement
         public void processElement(@Element byte[] element, OutputReceiver<String> receiver) {
-            String value = new String(element);
             try {
+                String value = new String(element);
+                System.out.println(value);
                 System.out.println(Candle.parseFrom(element));
                 receiver.output(value);
             } catch (InvalidProtocolBufferException e) {
                 // Handle checked exception for Protocol Buffer parsing
                 System.err.println("Failed to parse Protocol Buffer: " + e.getMessage());
-                System.err.println("Input String: " + value);
                 e.printStackTrace();
             } catch (RuntimeException e) {
                 // Handle any unchecked exceptions
