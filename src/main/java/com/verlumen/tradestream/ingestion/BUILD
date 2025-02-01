@@ -11,14 +11,14 @@ java_binary(
     srcs = ["App.java"],
     main_class = "com.verlumen.tradestream.ingestion.App",
     deps = [
-        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
-        "//third_party:argparse4j",
-        "//third_party:flogger",
-        "//third_party:guice",
         ":ingestion_config",
         ":ingestion_module",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party:argparse4j",
+        "//third_party:flogger",
+        "//third_party:guice",
     ],
 )
 
@@ -26,6 +26,7 @@ java_library(
     name = "coinbase_streaming_client",
     srcs = ["CoinbaseStreamingClient.java"],
     deps = [
+        ":exchange_streaming_client",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:flogger",
@@ -33,7 +34,6 @@ java_library(
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:protobuf_java_util",
-        ":exchange_streaming_client",
     ],
 )
 
