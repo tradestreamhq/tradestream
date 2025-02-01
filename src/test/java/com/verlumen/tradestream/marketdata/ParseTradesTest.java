@@ -4,6 +4,7 @@ import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Timestamps;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.beam.sdk.coders.ByteArrayCoder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
@@ -123,7 +124,7 @@ public class ParseTradesTest {
     @Test
     public void testEmptyInput() throws Exception {
         // Arrange: Create an empty PCollection of byte[].
-        PCollection<byte[]> input = pipeline.apply("CreateEmptyInput", Create.empty(byte[].class));
+        PCollection<byte[]> input = pipeline.apply("CreateEmptyInput", Create.empty(ByteArrayCoder.of()));
 
         // Act
         PCollection<Trade> output = input.apply(new ParseTrades());
