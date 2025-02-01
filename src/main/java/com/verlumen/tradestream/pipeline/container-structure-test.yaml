@@ -7,4 +7,4 @@ commandTests:
       - '-jar'
       - '/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar'
       - "--runMode=dry"
-    expectedOutput: ['dummy_value']
+    expectedOutput: ["DRY/RUN"]
