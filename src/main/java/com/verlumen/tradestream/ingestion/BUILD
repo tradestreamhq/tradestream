@@ -23,67 +23,6 @@ java_binary(
 )
 
 java_library(
-    name = "candle_builder",
-    srcs = ["CandleBuilder.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party:flogger",
-        "//third_party:protobuf_java",
-        "//third_party:protobuf_java_util",
-    ],
-)
-
-java_library(
-    name = "candle_manager",
-    srcs = ["CandleManager.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        ":candle_publisher",
-    ],
-)
-
-java_library(
-    name = "candle_manager_impl",
-    srcs = ["CandleManagerImpl.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party:auto_value",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:protobuf_java_util",
-        ":candle_builder",
-        ":candle_manager",
-        ":candle_publisher",
-        ":price_tracker",
-    ],
-)
-
-java_library(
-    name = "candle_publisher",
-    srcs = ["CandlePublisher.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-    ],
-)
-
-java_library(
-    name = "candle_publisher_impl",
-    srcs = ["CandlePublisherImpl.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:kafka_clients",
-        "//third_party:protobuf_java_util",
-        ":candle_publisher",
-    ],
-)
-
-java_library(
     name = "coinbase_streaming_client",
     srcs = ["CoinbaseStreamingClient.java"],
     deps = [
@@ -253,8 +192,8 @@ java_library(
         "//third_party:guice",
         ":candle_manager",
         ":candle_manager_impl",
-        ":candle_publisher",
-        ":candle_publisher_impl",
+        ":trade_publisher",
+        ":trade_publisher_impl",
         ":coin_market_cap_config",
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
@@ -309,58 +248,32 @@ java_library(
         "//third_party:guice",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        ":candle_manager",
-        ":candle_publisher",
         ":currency_pair_supply",
         ":exchange_streaming_client",
         ":real_time_data_ingestion",
         ":thin_market_timer",
-        ":trade_processor",
+        ":trade_publisher",
     ],
 )
 
 java_library(
-    name = "thin_market_timer",
-    srcs = ["ThinMarketTimer.java"],
-)
-
-java_library(
-    name = "thin_market_timer_impl",
-    srcs = ["ThinMarketTimerImpl.java"],
-    deps = [
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:xchange_core",
-        ":thin_market_timer",
-        ":thin_market_timer_task",
-    ],
-)
-
-java_library(
-    name = "thin_market_timer_task",
-    srcs = ["ThinMarketTimerTask.java"],
-)
-
-java_library(
-    name = "thin_market_timer_task_impl",
-    srcs = ["ThinMarketTimerTaskImpl.java"],
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party:guava",
-        "//third_party:guice",
-        ":candle_manager",
-        ":currency_pair_supply",
-        ":thin_market_timer_task",
-    ],
-)
-
-java_library(
-    name = "trade_processor",
-    srcs = ["TradeProcessor.java"],
+    name = "trade_publisher",
+    srcs = ["CandlePublisher.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party:auto_value",
+    ],
+)
+
+java_library(
+    name = "trade_publisher_impl",
+    srcs = ["CandlePublisherImpl.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
         "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:kafka_clients",
         "//third_party:protobuf_java_util",
+        ":trade_publisher",
     ],
 )
