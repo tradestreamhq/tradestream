@@ -15,6 +15,17 @@ java_library(
 )
 
 java_library(
+  name = "parse_trade",
+  srcs = ["ParseTrades.java"],
+  deps = [
+    "//protos:marketdata_java_proto",
+    "//third_party:beam_sdks_java_core",
+    "//third_party:beam_sdks_java_extensions_protobuf",
+    "//third_party:flogger",
+  ],
+)
+
+java_library(
     name = "trade_publisher",
     srcs = ["TradePublisher.java"],
     deps = [
