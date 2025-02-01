@@ -268,6 +268,7 @@ java_library(
         ":trade_processor",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
+        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice_assistedinject",
