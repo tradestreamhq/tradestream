@@ -56,4 +56,9 @@ abstract class PipelineModule extends AbstractModule {
           StringDeserializer.class,
           ByteArrayDeserializer.class);
   }
+
+  @Provides
+  PipelineConfig providePipelineConfig() {
+    return config();
+  }
 }
