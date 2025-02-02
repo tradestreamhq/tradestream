@@ -14,69 +14,67 @@ import org.apache.beam.sdk.options.StreamingOptions;
 import org.apache.beam.sdk.values.PCollection;
 
 public final class App {
-    public interface Options extends StreamingOptions {
-        @Description("Comma-separated list of Kafka bootstrap servers.")
-        @Default.String("localhost:9092")
-        String getBootstrapServers();
+  public interface Options extends StreamingOptions {
+    @Description("Comma-separated list of Kafka bootstrap servers.")
+    @Default.String("localhost:9092")
+    String getBootstrapServers();
 
-        void setBootstrapServers(String value);
+    void setBootstrapServers(String value);
 
-        @Description("Kafka topic to read trade data from.")
-        @Default.String("trades")
-        String getTradeTopic();
+    @Description("Kafka topic to read trade data from.")
+    @Default.String("trades")
+    String getTradeTopic();
 
-        void setTradeTopic(String value);
+    void setTradeTopic(String value);
 
-        @Description("Run mode: wet or dry.")
-        @Default.String("wet")
-        String getRunMode();
+    @Description("Run mode: wet or dry.")
+    @Default.String("wet")
+    String getRunMode();
 
-        void setRunMode(String value);
-    }
+    void setRunMode(String value);
+  }
 
-    private final CreateCandles createCandles;
-    private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
-    private final ParseTrades parseTrades;
+  private final CreateCandles createCandles;
+  private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
+  private final ParseTrades parseTrades;
 
-    @Inject
-    App(CreateCandles createCandles,
-        KafkaReadTransform<String, byte[]> kafkaReadTransform,
-        ParseTrades parseTrades) {
-        this.createCandles = createCandles;
-        this.kafkaReadTransform = kafkaReadTransform;
-        this.parseTrades = parseTrades;
-    }
+  @Inject
+  App(
+      CreateCandles createCandles,
+      KafkaReadTransform<String, byte[]> kafkaReadTransform,
+      ParseTrades parseTrades) {
+    this.createCandles = createCandles;
+    this.kafkaReadTransform = kafkaReadTransform;
+    this.parseTrades = parseTrades;
+  }
 
-    private Pipeline buildPipeline(Pipeline pipeline) {
-        PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
+  private Pipeline buildPipeline(Pipeline pipeline) {
+    PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
 
-        input.apply("Parse Trades", parseTrades);
+    input.apply("Parse Trades", parseTrades);
 
-        return pipeline;
-    }
+    return pipeline;
+  }
 
-    private void runPipeline(Pipeline pipeline) {
-        buildPipeline(pipeline);
-        pipeline.run();
-    }
+  private void runPipeline(Pipeline pipeline) {
+    buildPipeline(pipeline);
+    pipeline.run();
+  }
 
-    public static void main(String[] args) {
-        // Parse custom options
-        var options = PipelineOptionsFactory.fromArgs(args)
-            .withValidation()
-            .as(Options.class);
+  public static void main(String[] args) {
+    // Parse custom options
+    var options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
 
-        // Convert to FlinkPipelineOptions and set required properties
-        FlinkPipelineOptions flinkOptions = options.as(FlinkPipelineOptions.class);
-        flinkOptions.setAttachedMode(false);
-        flinkOptions.setStreaming(true);
+    // Convert to FlinkPipelineOptions and set required properties
+    FlinkPipelineOptions flinkOptions = options.as(FlinkPipelineOptions.class);
+    flinkOptions.setAttachedMode(false);
+    flinkOptions.setStreaming(true);
 
-        var module = PipelineModule.create(
-            options.getBootstrapServers(),
-            options.getTradeTopic(),
-            options.getRunMode());
-        var app = Guice.createInjector(module).getInstance(App.class);
-        var pipeline = Pipeline.create(options);
-        app.runPipeline(pipeline);
-    }
+    var module =
+        PipelineModule.create(
+            options.getBootstrapServers(), options.getTradeTopic(), options.getRunMode());
+    var app = Guice.createInjector(module).getInstance(App.class);
+    var pipeline = Pipeline.create(options);
+    app.runPipeline(pipeline);
+  }
 }
