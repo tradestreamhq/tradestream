@@ -210,25 +210,3 @@ java_library(
         "//third_party:guice",
     ],
 )
-
-java_library(
-    name = "trade_publisher",
-    srcs = ["CandlePublisher.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-    ],
-)
-
-java_library(
-    name = "trade_publisher_impl",
-    srcs = ["CandlePublisherImpl.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:kafka_clients",
-        "//third_party:protobuf_java_util",
-        ":trade_publisher",
-    ],
-)
