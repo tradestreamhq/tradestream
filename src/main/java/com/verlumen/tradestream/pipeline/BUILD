@@ -78,6 +78,9 @@ tar(
 java_library(
     name = "pipeline_config",
     srcs = ["PipelineConfig.java"],
+    deps = [
+        "//third_party:joda_time"
+    ],
 )
 
 java_library(
