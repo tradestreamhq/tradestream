@@ -85,11 +85,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
                     trade.getTradeId());
                 return;
             }
-            logger.atInfo().log("Processing new trade for %s: ID=%s, price=%f, volume=%f", 
-                trade.getCurrencyPair(), 
-                trade.getTradeId(),
-                trade.getPrice(),
-                trade.getVolume());
             tradePublisher.publishTrade(trade);
             candleManager.processTrade(trade);
         } catch (RuntimeException e) {
