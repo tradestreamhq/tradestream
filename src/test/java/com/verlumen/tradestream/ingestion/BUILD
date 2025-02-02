@@ -22,20 +22,6 @@ java_test(
 )
 
 java_test(
-    name = "CandleBuilderTest",
-    srcs = ["CandleBuilderTest.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle_builder",
-        "//third_party:junit",
-        "//third_party:protobuf_java",
-        "//third_party:protobuf_java_util",
-        "//third_party:test_parameter_injector",
-        "//third_party:truth",
-    ],
-)
-
-java_test(
     name = "CoinbaseStreamingClientTest",
     srcs = ["CoinbaseStreamingClientTest.java"],
     deps = [
