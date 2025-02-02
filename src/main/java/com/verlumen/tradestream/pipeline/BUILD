@@ -74,9 +74,15 @@ tar(
 )
 
 java_library(
+    name = "pipeline_config",
+    srcs = ["PipelineConfig.java"],
+)
+
+java_library(
     name = "pipeline_module",
     srcs = ["PipelineModule.java"],
     deps = [
+        ":pipeline_config",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:execution_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",

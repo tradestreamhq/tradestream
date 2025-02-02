@@ -38,9 +38,11 @@ public final class App {
         void setRunMode(String value);
     }
 
+    private final Duration allowedLateness;
     private final CreateCandles createCandles;
     private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
     private final ParseTrades parseTrades;
+    private final Duration windowDuration;
 
     @Inject
     App(CreateCandles createCandles,
@@ -55,8 +57,12 @@ public final class App {
         PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
 
         input
-            .apply("Parse Trades", parseTrades);
-
+            .apply("Parse Trades", parseTrades)
+            .apply(Window.into(FixedWindows.of(windowDuration))
+                .withAllowedLateness(allowedLateness)
+                .triggering(DefaultTrigger.of())
+                .discardingFiredPanes())
+            .apply("Create Candles", createCandles);
         return pipeline;
     }
 
