@@ -243,11 +243,9 @@ java_library(
     name = "real_time_data_ingestion_impl",
     srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
-        ":candle_publisher",
         ":currency_pair_supply",
         ":exchange_streaming_client",
         ":real_time_data_ingestion",
-        ":thin_market_timer",
         ":trade_processor",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",

@@ -17,26 +17,20 @@ import com.verlumen.tradestream.marketdata.TradePublisher;
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-    private final CandlePublisher candlePublisher;
     private final Provider<CurrencyPairSupply> currencyPairSupply;
     private final ExchangeStreamingClient exchangeClient;
-    private final Provider<ThinMarketTimer> thinMarketTimer;
     private final TradeProcessor tradeProcessor;
     private final TradePublisher tradePublisher;
     
     @Inject
     RealTimeDataIngestionImpl(
-        CandlePublisher candlePublisher,
         Provider<CurrencyPairSupply> currencyPairSupply,
         ExchangeStreamingClient exchangeClient,
-        Provider<ThinMarketTimer> thinMarketTimer,
         TradeProcessor tradeProcessor,
         TradePublisher tradePublisher
     ) {
-        this.candlePublisher = candlePublisher;
         this.currencyPairSupply = currencyPairSupply;
         this.exchangeClient = exchangeClient;
-        this.thinMarketTimer = thinMarketTimer;
         this.tradeProcessor = tradeProcessor;
         this.tradePublisher = tradePublisher;
     }
@@ -47,8 +41,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             exchangeClient.getExchangeName());
 
         startMarketDataIngestion();
-        logger.atInfo().log("Starting thin market timer...");
-        thinMarketTimer.get().start();
+
         logger.atInfo().log("Real-time data ingestion system fully initialized and running");
     }
 
@@ -59,13 +52,9 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         logger.atInfo().log("Stopping exchange streaming...");
         exchangeClient.stopStreaming();
 
-        logger.atInfo().log("Stopping thin market timer...");
-        thinMarketTimer.get().stop();
-
         logger.atInfo().log("Closing trade publisher...");
         try {
             tradePublisher.close();
-            candlePublisher.close();
             logger.atInfo().log("Successfully closed trade publisher");
         } catch (Exception e) {
             logger.atWarning().withCause(e).log("Error closing trade publisher");
@@ -82,11 +71,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
                     trade.getTradeId());
                 return;
             }
-            logger.atInfo().log("Processing new trade for %s: ID=%s, price=%f, volume=%f", 
-                trade.getCurrencyPair(), 
-                trade.getTradeId(),
-                trade.getPrice(),
-                trade.getVolume());
             tradePublisher.publishTrade(trade);
         } catch (RuntimeException e) {
             logger.atSevere().withCause(e).log(
