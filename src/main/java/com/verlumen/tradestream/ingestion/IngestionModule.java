@@ -24,14 +24,7 @@ abstract class IngestionModule extends AbstractModule {
     bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
     bind(RealTimeDataIngestion.class).to(RealTimeDataIngestionImpl.class);
-    bind(ThinMarketTimer.class).to(ThinMarketTimerImpl.class);
-    bind(ThinMarketTimerTask.class).to(ThinMarketTimerTaskImpl.class);
     bind(Timer.class).toProvider(Timer::new);
-
-    install(
-        new FactoryModuleBuilder()
-            .implement(CandleManager.class, CandleManagerImpl.class)
-            .build(CandleManager.Factory.class));
 
     install(
         new FactoryModuleBuilder()
@@ -41,13 +34,6 @@ abstract class IngestionModule extends AbstractModule {
     install(HttpModule.create());
     install(KafkaModule.create(ingestionConfig().kafkaBootstrapServers()));
     install(MarketDataModule.create(MarketDataConfig.create(ingestionConfig().tradeTopic())));
-  }
-
-  @Provides
-  CandleManager provideCandleManager(
-      CandlePublisher candlePublisher, CandleManager.Factory candleManagerFactory) {
-    return candleManagerFactory.create(
-        ingestionConfig().candleIntervalMillis(), candlePublisher);
   }
 
   @Provides

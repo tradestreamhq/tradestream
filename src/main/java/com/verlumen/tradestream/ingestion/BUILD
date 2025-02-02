@@ -34,34 +34,6 @@ java_library(
 )
 
 java_library(
-    name = "candle_manager",
-    srcs = ["CandleManager.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        ":candle_publisher",
-    ],
-)
-
-java_library(
-    name = "candle_manager_impl",
-    srcs = ["CandleManagerImpl.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party:auto_value",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:protobuf_java_util",
-        ":candle_builder",
-        ":candle_manager",
-        ":candle_publisher",
-        ":price_tracker",
-    ],
-)
-
-java_library(
     name = "candle_publisher",
     srcs = ["CandlePublisher.java"],
     deps = [
@@ -215,8 +187,6 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
-        ":candle_manager",
-        ":candle_manager_impl",
         ":coin_market_cap_config",
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
@@ -225,10 +195,6 @@ java_library(
         ":ingestion_config",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
-        ":thin_market_timer",
-        ":thin_market_timer_impl",
-        ":thin_market_timer_task",
-        ":thin_market_timer_task_impl",
         ":trade_processor",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/http:http_module",
@@ -274,46 +240,10 @@ java_library(
         ":currency_pair_supply",
         ":exchange_streaming_client",
         ":real_time_data_ingestion",
-        ":trade_processor",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_publisher",
         "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
-    ],
-)
-
-java_library(
-    name = "thin_market_timer",
-    srcs = ["ThinMarketTimer.java"],
-)
-
-java_library(
-    name = "thin_market_timer_impl",
-    srcs = ["ThinMarketTimerImpl.java"],
-    deps = [
-        ":thin_market_timer",
-        ":thin_market_timer_task",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:xchange_core",
-    ],
-)
-
-java_library(
-    name = "thin_market_timer_task",
-    srcs = ["ThinMarketTimerTask.java"],
-)
-
-java_library(
-    name = "thin_market_timer_task_impl",
-    srcs = ["ThinMarketTimerTaskImpl.java"],
-    deps = [
-        ":candle_manager",
-        ":currency_pair_supply",
-        ":thin_market_timer_task",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:guava",
         "//third_party:guice",
     ],
