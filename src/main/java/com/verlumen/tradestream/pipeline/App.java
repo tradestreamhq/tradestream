@@ -87,10 +87,11 @@ public final class App {
         flinkOptions.setAttachedMode(false);
         flinkOptions.setStreaming(true);
 
-        var module = PipelineModule.create(
+        var config = PipelineConfig.create(
             options.getBootstrapServers(),
             options.getTradeTopic(),
             options.getRunMode());
+        var module = PipelineModule.create(config);
         var app = Guice.createInjector(module).getInstance(App.class);
         var pipeline = Pipeline.create(options);
         app.runPipeline(pipeline);
