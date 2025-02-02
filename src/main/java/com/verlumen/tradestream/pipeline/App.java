@@ -7,6 +7,7 @@ import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.CreateCandles;
 import com.verlumen.tradestream.marketdata.ParseTrades;
+import com.verlumen.tradestream.marketdata.Trade;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
