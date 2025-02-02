@@ -171,7 +171,6 @@ java_library(
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
         ":ingestion_config",
-        ":market_data_config",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
         ":trade_processor",
