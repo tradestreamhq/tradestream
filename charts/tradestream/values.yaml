@@ -21,6 +21,6 @@ dataIngestion:
   image:
     repository: "tradestreamhq/tradestream-data-ingestion"
     pullPolicy: IfNotPresent
-    tag: "v0.0.3-main"
+    tag: "v0.0.4-main"
   service:
     port: 8080
