@@ -15,75 +15,73 @@ import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.marketdata.TradePublisher;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
-    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-    private final Provider<CurrencyPairSupply> currencyPairSupply;
-    private final ExchangeStreamingClient exchangeClient;
-    private final TradePublisher tradePublisher;
-    
-    @Inject
-    RealTimeDataIngestionImpl(
-        Provider<CurrencyPairSupply> currencyPairSupply,
-        ExchangeStreamingClient exchangeClient,
-        TradePublisher tradePublisher
-    ) {
-        this.currencyPairSupply = currencyPairSupply;
-        this.exchangeClient = exchangeClient;
-        this.tradePublisher = tradePublisher;
+  private final Provider<CurrencyPairSupply> currencyPairSupply;
+  private final ExchangeStreamingClient exchangeClient;
+  private final TradePublisher tradePublisher;
+
+  @Inject
+  RealTimeDataIngestionImpl(
+      Provider<CurrencyPairSupply> currencyPairSupply,
+      ExchangeStreamingClient exchangeClient,
+      TradePublisher tradePublisher) {
+    this.currencyPairSupply = currencyPairSupply;
+    this.exchangeClient = exchangeClient;
+    this.tradePublisher = tradePublisher;
+  }
+
+  @Override
+  public void start() {
+    logger.atInfo().log(
+        "Starting real-time data ingestion for %s", exchangeClient.getExchangeName());
+
+    startMarketDataIngestion();
+
+    logger.atInfo().log("Real-time data ingestion system fully initialized and running");
+  }
+
+  @Override
+  public void shutdown() {
+    logger.atInfo().log("Beginning shutdown sequence...");
+
+    logger.atInfo().log("Stopping exchange streaming...");
+    exchangeClient.stopStreaming();
+
+    logger.atInfo().log("Closing trade publisher...");
+    try {
+      tradePublisher.close();
+      logger.atInfo().log("Successfully closed trade publisher");
+    } catch (Exception e) {
+      logger.atWarning().withCause(e).log("Error closing trade publisher");
     }
 
-    @Override
-    public void start() {
-        logger.atInfo().log("Starting real-time data ingestion for %s", 
-            exchangeClient.getExchangeName());
+    logger.atInfo().log("Shutdown sequence complete");
+  }
 
-        startMarketDataIngestion();
-
-        logger.atInfo().log("Real-time data ingestion system fully initialized and running");
+  private void processTrade(Trade trade) {
+    try {
+      tradePublisher.publishTrade(trade);
+    } catch (RuntimeException e) {
+      logger.atSevere().withCause(e).log("Error publishing trade: %s", trade.getTradeId());
+      // Don't rethrow - we want to continue processing other trades
     }
+  }
 
-    @Override
-    public void shutdown() {
-        logger.atInfo().log("Beginning shutdown sequence...");
-        
-        logger.atInfo().log("Stopping exchange streaming...");
-        exchangeClient.stopStreaming();
+  private void startMarketDataIngestion() {
+    exchangeClient.startStreaming(supportedCurrencyPairs(), this::processTrade);
+  }
 
-        logger.atInfo().log("Closing trade publisher...");
-        try {
-            tradePublisher.close();
-            logger.atInfo().log("Successfully closed trade publisher");
-        } catch (Exception e) {
-            logger.atWarning().withCause(e).log("Error closing trade publisher");
-        }
-
-        logger.atInfo().log("Shutdown sequence complete");
-    }
-
-    private void processTrade(Trade trade) {
-        try {
-            tradePublisher.publishTrade(trade);
-        } catch (RuntimeException e) {
-            logger.atSevere().withCause(e).log(
-                "Error publishing trade: %s", trade.getTradeId());
-            // Don't rethrow - we want to continue processing other trades
-        }
-    }
-
-    private void startMarketDataIngestion() {
-        exchangeClient.startStreaming(supportedCurrencyPairs(), this::processTrade);
-    }
-
-    private ImmutableList<CurrencyPair> supportedCurrencyPairs() {
-        ImmutableSet<CurrencyPair> supportedPairs = ImmutableSet.copyOf(
-            exchangeClient.supportedCurrencyPairs());
-        ImmutableSet<CurrencyPair> requestedPairs = ImmutableSet.copyOf(
-            currencyPairSupply.get().currencyPairs());
-        difference(requestedPairs, supportedPairs)
-            .forEach(unsupportedPair -> logger.atInfo().log(
-                "Pair with symbol %s is not supported.", unsupportedPair.symbol()));
-        return intersection(requestedPairs, supportedPairs)
-            .immutableCopy()
-            .asList();
-    }
+  private ImmutableList<CurrencyPair> supportedCurrencyPairs() {
+    ImmutableSet<CurrencyPair> supportedPairs =
+        ImmutableSet.copyOf(exchangeClient.supportedCurrencyPairs());
+    ImmutableSet<CurrencyPair> requestedPairs =
+        ImmutableSet.copyOf(currencyPairSupply.get().currencyPairs());
+    difference(requestedPairs, supportedPairs)
+        .forEach(
+            unsupportedPair ->
+                logger.atInfo().log(
+                    "Pair with symbol %s is not supported.", unsupportedPair.symbol()));
+    return intersection(requestedPairs, supportedPairs).immutableCopy().asList();
+  }
 }
