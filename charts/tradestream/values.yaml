@@ -20,7 +20,6 @@ kafkaUi:
     type: ClusterIP
     port: 8080
 dataIngestion:
-  candlePublisherTopic: candles
   runMode: wet
   replicaCount: 1
   image:
@@ -28,6 +27,7 @@ dataIngestion:
     tag: v0.0.663-develop
   service:
     port: 8080
+  tradeTopic: trades
 pipeline:
   runMode: wet
   image:
