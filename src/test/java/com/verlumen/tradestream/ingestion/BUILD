@@ -71,17 +71,6 @@ java_test(
 )
 
 java_test(
-    name = "PriceTrackerTest",
-    srcs = ["PriceTrackerTest.java"],
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/ingestion:price_tracker",
-        "//third_party:guice",
-        "//third_party:junit",
-        "//third_party:truth",
-    ],
-)
-
-java_test(
     name = "RealTimeDataIngestionImplTest",
     srcs = ["RealTimeDataIngestionImplTest.java"],
     deps = [
