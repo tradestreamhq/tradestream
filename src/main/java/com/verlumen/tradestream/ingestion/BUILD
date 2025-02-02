@@ -276,7 +276,6 @@ java_library(
         ":currency_pair_supply",
         ":exchange_streaming_client",
         ":real_time_data_ingestion",
-        ":trade_processor",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_publisher",

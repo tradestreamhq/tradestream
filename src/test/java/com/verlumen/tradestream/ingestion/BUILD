@@ -110,7 +110,6 @@ java_test(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ingestion:currency_pair_supply",
         "//src/main/java/com/verlumen/tradestream/ingestion:exchange_streaming_client",
-        "//src/main/java/com/verlumen/tradestream/ingestion:trade_processor",
         "//src/main/java/com/verlumen/tradestream/ingestion:real_time_data_ingestion_impl",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_publisher",
