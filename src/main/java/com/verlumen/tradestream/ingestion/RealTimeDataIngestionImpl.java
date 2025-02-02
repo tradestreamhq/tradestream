@@ -46,6 +46,16 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     logger.atInfo().log("Beginning shutdown sequence...");
 
     logger.atInfo().log("Stopping exchange streaming...");
+    exchangeClient.stopStreaming();
+
+    logger.atInfo().log("Closing trade publisher...");
+
+    try {
+      tradePublisher.close();
+      logger.atInfo().log("Successfully closed trade publisher");
+    } catch (Exception e) {
+      logger.atWarning().withCause(e).log("Error closing trade publisher");
+    }
 
     exchangeClient.stopStreaming();
 
