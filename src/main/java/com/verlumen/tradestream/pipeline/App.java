@@ -68,8 +68,8 @@ public final class App {
             .apply("Parse Trades", parseTrades)
             // First convert to KV pairs for grouping
             .apply("Create Trade Pairs", 
-                MapElements.into(TypeDescriptor.of(KV.class))
-                .via((Trade trade) -> KV.of(trade.getCurrencyPair(), trade)))
+                MapElements.into(new TypeDescriptor<KV<String, Trade>>() {})
+                  .via((Trade trade) -> KV.of(trade.getCurrencyPair(), trade)))
             // Apply windowing
             .apply("Apply Windows", 
                 Window.<KV<String, Trade>>into(FixedWindows.of(windowDuration))
