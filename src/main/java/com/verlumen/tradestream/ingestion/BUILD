@@ -274,7 +274,6 @@ java_library(
     srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
         ":candle_manager",
-        ":candle_publisher",
         ":currency_pair_supply",
         ":exchange_streaming_client",
         ":real_time_data_ingestion",
