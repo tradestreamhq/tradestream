@@ -34,34 +34,6 @@ java_library(
 )
 
 java_library(
-    name = "candle_manager",
-    srcs = ["CandleManager.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        ":candle_publisher",
-    ],
-)
-
-java_library(
-    name = "candle_manager_impl",
-    srcs = ["CandleManagerImpl.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party:auto_value",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:protobuf_java_util",
-        ":candle_builder",
-        ":candle_manager",
-        ":candle_publisher",
-        ":price_tracker",
-    ],
-)
-
-java_library(
     name = "candle_publisher",
     srcs = ["CandlePublisher.java"],
     deps = [
@@ -215,8 +187,6 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
-        ":candle_manager",
-        ":candle_manager_impl",
         ":candle_publisher",
         ":candle_publisher_impl",
         ":coin_market_cap_config",

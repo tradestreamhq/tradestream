@@ -28,24 +28,12 @@ abstract class IngestionModule extends AbstractModule {
 
     install(
         new FactoryModuleBuilder()
-            .implement(CandleManager.class, CandleManagerImpl.class)
-            .build(CandleManager.Factory.class));
-
-    install(
-        new FactoryModuleBuilder()
             .implement(CandlePublisher.class, CandlePublisherImpl.class)
             .build(CandlePublisher.Factory.class));
 
     install(HttpModule.create());
     install(KafkaModule.create(ingestionConfig().kafkaBootstrapServers()));
     install(MarketDataModule.create(MarketDataConfig.create(ingestionConfig().tradeTopic())));
-  }
-
-  @Provides
-  CandleManager provideCandleManager(
-      CandlePublisher candlePublisher, CandleManager.Factory candleManagerFactory) {
-    return candleManagerFactory.create(
-        ingestionConfig().candleIntervalMillis(), candlePublisher);
   }
 
   @Provides
