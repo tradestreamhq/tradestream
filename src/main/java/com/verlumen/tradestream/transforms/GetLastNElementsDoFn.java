@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.transforms;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.state.StateSpec;
@@ -12,9 +13,13 @@ import org.apache.beam.sdk.values.TypeDescriptor;
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 import java.io.Serializable;
 
-public class GetLastNElementsDoFn<K, V> extends DoFn<KV<K, V>, KV<K, ImmutableList<V>>> {
+@AutoValue
+public abstract class GetLastNElementsDoFn<K, V> extends DoFn<KV<K, V>, KV<K, ImmutableList<V>>> {
+  public static GetLastNElementsDoFn create(int n) {
+    return new AutoValue_GetLastNElementsDoFn(n);
+  }
 
-  private final int n;
+  abstract int n();
 
   // Use a ValueState to store our CircularFifoQueue. CircularFifoQueue is Serializable,
   // so we can use SerializableCoder with a proper TypeDescriptor.
@@ -23,10 +28,6 @@ public class GetLastNElementsDoFn<K, V> extends DoFn<KV<K, V>, KV<K, ImmutableLi
       StateSpecs.value(
           SerializableCoder.of(new TypeDescriptor<CircularFifoQueue<V>>() {})
       );
-
-  public GetLastNElementsDoFn(int n) {
-    this.n = n;
-  }
 
   @ProcessElement
   public void processElement(
