@@ -49,7 +49,6 @@ public class RealTimeDataIngestionImplTest {
     @Mock @Bind private CurrencyPairSupply mockCurrencyPairSupply;
     @Mock @Bind private ExchangeStreamingClient mockExchangeClient;
     @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
-    @Mock @Bind private TradeProcessor mockTradeProcessor;
     @Mock @Bind private TradePublisher tradePublisher;
 
     @Inject private RealTimeDataIngestionImpl realTimeDataIngestion;
@@ -126,38 +125,11 @@ public class RealTimeDataIngestionImplTest {
             .setVolume(1.0)
             .build();
         
-        when(mockTradeProcessor.isProcessed(trade)).thenReturn(false);
-
         // Act
         handlerCaptor.getValue().accept(trade);
 
         // Assert
         verify(mockCandleManager).processTrade(trade);
-    }
-
-    @Test
-    public void processTrade_skipsDuplicateTrade() {
-        // Arrange
-        ArgumentCaptor<Consumer<Trade>> handlerCaptor = 
-            ArgumentCaptor.forClass(Consumer.class);
-        
-        realTimeDataIngestion.start();
-        verify(mockExchangeClient).startStreaming(any(), handlerCaptor.capture());
-        
-        Trade trade = Trade.newBuilder()
-            .setTradeId("test-trade")
-            .setCurrencyPair("BTC/USD")
-            .setPrice(50000.0)
-            .setVolume(1.0)
-            .build();
-        
-        when(mockTradeProcessor.isProcessed(trade)).thenReturn(true);
-
-        // Act
-        handlerCaptor.getValue().accept(trade);
-
-        // Assert
-        verify(mockCandleManager, never()).processTrade(trade);
     }
 
     @Test
@@ -176,29 +148,5 @@ public class RealTimeDataIngestionImplTest {
         verify(mockExchangeClient).stopStreaming();
         verify(mockThinMarketTimer).stop();
         verify(mockCandlePublisher).close();
-    }
-
-    @Test
-    public void processTrade_handlesTradeProcessorException() {
-        // Arrange
-        ArgumentCaptor<Consumer<Trade>> handlerCaptor = 
-            ArgumentCaptor.forClass(Consumer.class);
-        
-        realTimeDataIngestion.start();
-        verify(mockExchangeClient).startStreaming(any(), handlerCaptor.capture());
-        
-        Trade trade = Trade.newBuilder()
-            .setTradeId("test-trade")
-            .setCurrencyPair("BTC/USD")
-            .build();
-        
-        when(mockTradeProcessor.isProcessed(trade))
-            .thenThrow(new RuntimeException("Test exception"));
-
-        // Act - Should not throw
-        handlerCaptor.getValue().accept(trade);
-
-        // Assert
-        verify(mockCandleManager, never()).processTrade(any());
     }
 }
