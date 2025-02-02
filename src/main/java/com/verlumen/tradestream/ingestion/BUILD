@@ -163,9 +163,6 @@ java_library(
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
         ":trade_publisher",
-        ":trade_publisher_impl",
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
-        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/http:http_module",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
@@ -173,7 +170,6 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
         "//third_party:auto_value",
         "//third_party:guava",
-        "//third_party:guice_assistedinject",
         "//third_party:guice",
     ],
 )
