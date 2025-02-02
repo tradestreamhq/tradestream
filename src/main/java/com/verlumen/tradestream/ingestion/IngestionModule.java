@@ -44,9 +44,4 @@ abstract class IngestionModule extends AbstractModule {
   RunMode provideRunMode() {
     return ingestionConfig().runMode();
   }
-
-  @Provides
-  TradeProcessor provideTradeProcessor() {
-    return TradeProcessor.create(ingestionConfig().candleIntervalMillis());
-  }
 }
