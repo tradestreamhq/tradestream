@@ -99,25 +99,25 @@ public class RealTimeDataIngestionImplTest {
 
     @Test
     public void processTrade_handlesNewTrade() {
-        // Arrange
-        ArgumentCaptor<Consumer<Trade>> handlerCaptor = 
+        // Arrange: Capture the consumer provided to startStreaming.
+        ArgumentCaptor<Consumer<Trade>> handlerCaptor =
             ArgumentCaptor.forClass(Consumer.class);
-        
+
         realTimeDataIngestion.start();
         verify(mockExchangeClient).startStreaming(any(), handlerCaptor.capture());
-        
+
         Trade trade = Trade.newBuilder()
             .setTradeId("test-trade")
             .setCurrencyPair("BTC/USD")
             .setPrice(50000.0)
             .setVolume(1.0)
             .build();
-        
-        // Act
+
+        // Act: Enqueue the trade.
         handlerCaptor.getValue().accept(trade);
 
-        // Assert
-        verify(mockTradePublisher).publishTrade(trade);
+        // Assert: Wait up to 1 second for the background thread to publish the trade.
+        verify(mockTradePublisher, timeout(1000)).publishTrade(trade);
     }
 
     @Test
