@@ -6,7 +6,6 @@ record IngestionConfig(
     String coinMarketCapApiKey,
     int topCryptocurrencyCount,
     String exchangeName,
-    long candleIntervalMillis,
     RunMode runMode,
     String kafkaBootstrapServers,
     String tradeTopic) {}
