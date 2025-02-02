@@ -27,13 +27,13 @@ abstract class PipelineModule extends AbstractModule {
       .build();
 
   static PipelineModule create(
-    String bootstrapServers, String candleTopic, String runMode) {
-    return new AutoValue_PipelineModule(bootstrapServers, candleTopic, runMode);
+    String bootstrapServers, String tradeTopic, String runMode) {
+    return new AutoValue_PipelineModule(bootstrapServers, runMode, tradeTopic);
   }
 
   abstract String bootstrapServers();
-  abstract String candleTopic();
   abstract String runMode();
+  abstract String tradeTopic();
 
   @Override
   protected void configure() {
@@ -47,7 +47,7 @@ abstract class PipelineModule extends AbstractModule {
         return DryRunKafkaReadTransform
             .<String, byte[]>builder()
             .setBootstrapServers(bootstrapServers())
-            .setTopic(candleTopic())
+            .setTopic(tradeTopic())
             .setKeyDeserializerClass(StringDeserializer.class)
             .setValueDeserializerClass(ByteArrayDeserializer.class)
             .setDefaultValue(DRY_RUN_TRADE.toByteArray())
@@ -55,7 +55,7 @@ abstract class PipelineModule extends AbstractModule {
       }
 
       return factory.create(
-          candleTopic(), 
+          tradeTopic(), 
           StringDeserializer.class,
           ByteArrayDeserializer.class);
   }
