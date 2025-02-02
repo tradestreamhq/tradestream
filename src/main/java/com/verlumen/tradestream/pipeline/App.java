@@ -50,7 +50,6 @@ public final class App {
         PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
 
         input
-            .apply("Print Contents", ParDo.of(new PrintBytesAsString()))
             .apply("Parse Trades", parseTrades);
 
         return pipeline;
@@ -59,14 +58,6 @@ public final class App {
     private void runPipeline(Pipeline pipeline) {
         buildPipeline(pipeline);
         pipeline.run();
-    }
-
-    private static class PrintBytesAsString extends DoFn<byte[], byte[]> {
-        @ProcessElement
-        public void processElement(@Element byte[] element, OutputReceiver<byte[]> receiver) {
-            System.out.println(new String(element));
-            receiver.output(element);
-        }
     }
 
     public static void main(String[] args) {
