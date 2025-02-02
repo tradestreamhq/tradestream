@@ -44,7 +44,6 @@ public class RealTimeDataIngestionImplTest {
             .build();
     private static final String TEST_EXCHANGE = "test-exchange";
 
-    @Mock @Bind private CandleManager mockCandleManager;
     @Mock @Bind private CurrencyPairSupply mockCurrencyPairSupply;
     @Mock @Bind private ExchangeStreamingClient mockExchangeClient;
     @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
@@ -131,7 +130,7 @@ public class RealTimeDataIngestionImplTest {
         handlerCaptor.getValue().accept(trade);
 
         // Assert
-        verify(mockCandleManager).processTrade(trade);
+        verify(mockTradePublisher).publishTrade(trade);
     }
 
     @Test
@@ -156,7 +155,7 @@ public class RealTimeDataIngestionImplTest {
         handlerCaptor.getValue().accept(trade);
 
         // Assert
-        verify(mockCandleManager, never()).processTrade(trade);
+        verify(mockTradePublisher, never()).publishTrade(trade);
     }
 
     @Test
@@ -198,6 +197,6 @@ public class RealTimeDataIngestionImplTest {
         handlerCaptor.getValue().accept(trade);
 
         // Assert
-        verify(mockCandleManager, never()).processTrade(any());
+        verify(mockTradePublisher, never()).publishTrade(any());
     }
 }

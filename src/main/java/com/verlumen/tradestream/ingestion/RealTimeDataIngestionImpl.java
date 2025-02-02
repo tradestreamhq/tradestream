@@ -17,7 +17,6 @@ import com.verlumen.tradestream.marketdata.TradePublisher;
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-    private final CandleManager candleManager;
     private final Provider<CurrencyPairSupply> currencyPairSupply;
     private final ExchangeStreamingClient exchangeClient;
     private final Provider<ThinMarketTimer> thinMarketTimer;
@@ -26,14 +25,12 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     
     @Inject
     RealTimeDataIngestionImpl(
-        CandleManager candleManager,
         Provider<CurrencyPairSupply> currencyPairSupply,
         ExchangeStreamingClient exchangeClient,
         Provider<ThinMarketTimer> thinMarketTimer,
         TradeProcessor tradeProcessor,
         TradePublisher tradePublisher
     ) {
-        this.candleManager = candleManager;
         this.currencyPairSupply = currencyPairSupply;
         this.exchangeClient = exchangeClient;
         this.thinMarketTimer = thinMarketTimer;
@@ -87,7 +84,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
                 trade.getPrice(),
                 trade.getVolume());
             tradePublisher.publishTrade(trade);
-            candleManager.processTrade(trade);
         } catch (RuntimeException e) {
             logger.atSevere().withCause(e).log(
                 "Error processing trade: %s", trade.getTradeId());
