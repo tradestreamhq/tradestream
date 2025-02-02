@@ -3,7 +3,6 @@ package com.verlumen.tradestream.ingestion;
 import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.http.HttpModule;
 import com.verlumen.tradestream.kafka.KafkaModule;
@@ -25,11 +24,6 @@ abstract class IngestionModule extends AbstractModule {
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
     bind(RealTimeDataIngestion.class).to(RealTimeDataIngestionImpl.class);
     bind(Timer.class).toProvider(Timer::new);
-
-    install(
-        new FactoryModuleBuilder()
-            .implement(CandlePublisher.class, CandlePublisherImpl.class)
-            .build(CandlePublisher.Factory.class));
 
     install(HttpModule.create());
     install(KafkaModule.create(ingestionConfig().kafkaBootstrapServers()));
