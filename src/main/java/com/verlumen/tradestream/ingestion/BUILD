@@ -273,7 +273,6 @@ java_library(
     name = "real_time_data_ingestion_impl",
     srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
-        ":candle_manager",
         ":candle_publisher",
         ":currency_pair_supply",
         ":exchange_streaming_client",
