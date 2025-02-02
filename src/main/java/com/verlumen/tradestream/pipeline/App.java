@@ -49,7 +49,8 @@ public final class App {
   }
 
   private Pipeline buildPipeline(Pipeline pipeline) {
-    PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
+    PCollection<byte[]> input =
+        pipeline.apply("Read from Kafka", kafkaReadTransform);
 
     input.apply("Parse Trades", parseTrades);
 
