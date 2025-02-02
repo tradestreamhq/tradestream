@@ -64,16 +64,10 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     private void processTrade(Trade trade) {
         try {
-            logger.atInfo().log("Processing new trade for %s: ID=%s, price=%f, volume=%f", 
-                trade.getCurrencyPair(), 
-                trade.getTradeId(),
-                trade.getPrice(),
-                trade.getVolume());
             tradePublisher.publishTrade(trade);
         } catch (RuntimeException e) {
             logger.atSevere().withCause(e).log(
                 "Error processing trade: %s", trade.getTradeId());
-            // Don't rethrow - we want to continue processing other trades
         }
     }
 

@@ -1,14 +1,18 @@
 package com.verlumen.tradestream.marketdata;
 
 import com.google.common.flogger.FluentLogger;
+import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PCollection;
 
-public class ParseTrades extends PTransform<PCollection<byte[]>, PCollection<Trade>> {
+public final class ParseTrades extends PTransform<PCollection<byte[]>, PCollection<Trade>> {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+    @Inject
+    ParseTrades() {}
 
     @Override
     public PCollection<Trade> expand(PCollection<byte[]> input) {

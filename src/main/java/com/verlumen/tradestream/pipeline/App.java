@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.ParseTrades;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
@@ -25,10 +26,10 @@ public final class App {
         String getBootstrapServers();
         void setBootstrapServers(String value);
 
-        @Description("Kafka topic to read candle data from.")
-        @Default.String("candles")
-        String getCandleTopic();
-        void setCandleTopic(String value);
+        @Description("Kafka topic to read trade data from.")
+        @Default.String("trades")
+        String getTradeTopic();
+        void setTradeTopic(String value);
 
         @Description("Run mode: wet or dry.")
         @Default.String("wet")
@@ -37,17 +38,21 @@ public final class App {
     }
 
     private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
+    private final ParseTrades parseTrades;
 
     @Inject
-    App(KafkaReadTransform<String, byte[]> kafkaReadTransform) {
+    App(KafkaReadTransform<String, byte[]> kafkaReadTransform, ParseTrades parseTrades) {
         this.kafkaReadTransform = kafkaReadTransform;
+        this.parseTrades = parseTrades;
     }
 
     private Pipeline buildPipeline(Pipeline pipeline) {
         PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
 
-        input.apply("Convert to String", ParDo.of(new PrintBytesAsString()));
-        
+        input
+            .apply("Print Contents", ParDo.of(new PrintBytesAsString()))
+            .apply("Parse Trades", parseTrades);
+
         return pipeline;
     }
 
@@ -77,7 +82,7 @@ public final class App {
 
         var module = PipelineModule.create(
             options.getBootstrapServers(),
-            options.getCandleTopic(),
+            options.getTradeTopic(),
             options.getRunMode());
         var app = Guice.createInjector(module).getInstance(App.class);
         var pipeline = Pipeline.create(options);
