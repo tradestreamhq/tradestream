@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.marketdata;
 
+import com.google.inject.Inject;
 import com.google.protobuf.util.Timestamps;
 import java.io.Serializable;
 import org.apache.beam.sdk.coders.SerializableCoder;
@@ -23,9 +24,8 @@ import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Duration;
 
 public class CreateCandles extends PTransform<PCollection<KV<String, Trade>>, PCollection<Candle>> {
-  public static CreateCandles create() {
-    return new CreateCandles();
-  }
+  @Inject
+  CreateCandles() {}
 
   @Override
   public PCollection<Candle> expand(PCollection<KV<String, Trade>> input) {
