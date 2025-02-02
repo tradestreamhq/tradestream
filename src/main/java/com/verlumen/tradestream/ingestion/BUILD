@@ -231,7 +231,6 @@ java_library(
         ":thin_market_timer_impl",
         ":thin_market_timer_task",
         ":thin_market_timer_task_impl",
-        ":trade_processor",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/http:http_module",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
