@@ -63,7 +63,8 @@ public final class App {
 
   public static void main(String[] args) {
     // Parse custom options
-    var options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
+    var options =
+        PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
 
     // Convert to FlinkPipelineOptions and set required properties
     FlinkPipelineOptions flinkOptions = options.as(FlinkPipelineOptions.class);
