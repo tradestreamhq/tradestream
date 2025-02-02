@@ -52,7 +52,7 @@ abstract class PipelineModule extends AbstractModule {
       }
 
       return factory.create(
-          tradeTopic(), 
+          config().tradeTopic(), 
           StringDeserializer.class,
           ByteArrayDeserializer.class);
   }
