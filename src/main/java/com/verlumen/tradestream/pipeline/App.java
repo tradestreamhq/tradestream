@@ -64,14 +64,20 @@ public final class App {
     private Pipeline buildPipeline(Pipeline pipeline) {
         PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
 
-    input
-        .apply("Parse Trades", parseTrades)
-        .apply("Apply Windows", 
-            Window.<Trade>into(FixedWindows.of(windowDuration))
-                .withAllowedLateness(allowedLateness)
-                .triggering(DefaultTrigger.of())
-                .discardingFiredPanes())
-        .apply("Create Candles", createCandles);
+        input
+            .apply("Parse Trades", parseTrades)
+            // First convert to KV pairs for grouping
+            .apply("Create Trade Pairs", 
+                MapElements.into(TypeDescriptor.of(KV.class))
+                .via((Trade trade) -> KV.of(trade.getCurrencyPair(), trade)))
+            // Apply windowing
+            .apply("Apply Windows", 
+                Window.<KV<String, Trade>>into(FixedWindows.of(windowDuration))
+                    .withAllowedLateness(allowedLateness)
+                    .triggering(DefaultTrigger.of())
+                    .discardingFiredPanes())
+            // Create candles from windowed trades
+            .apply("Create Candles", createCandles);
 
         return pipeline;
     }
