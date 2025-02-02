@@ -34,28 +34,6 @@ java_library(
 )
 
 java_library(
-    name = "candle_publisher",
-    srcs = ["CandlePublisher.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-    ],
-)
-
-java_library(
-    name = "candle_publisher_impl",
-    srcs = ["CandlePublisherImpl.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:kafka_clients",
-        "//third_party:protobuf_java_util",
-        ":candle_publisher",
-    ],
-)
-
-java_library(
     name = "coinbase_streaming_client",
     srcs = ["CoinbaseStreamingClient.java"],
     deps = [
@@ -187,8 +165,6 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
-        ":candle_publisher",
-        ":candle_publisher_impl",
         ":coin_market_cap_config",
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
@@ -205,7 +181,6 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
         "//third_party:auto_value",
         "//third_party:guava",
-        "//third_party:guice_assistedinject",
         "//third_party:guice",
     ],
 )
