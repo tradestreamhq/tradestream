@@ -36,7 +36,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     logger.atInfo().log(
         "Starting real-time data ingestion for %s", exchangeClient.getExchangeName());
 
-    startMarketDataIngestion();
+    exchangeClient.startStreaming(supportedCurrencyPairs(), tradePublisher::publishTrade);
 
     logger.atInfo().log("Real-time data ingestion system fully initialized and running");
   }
@@ -57,19 +57,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     }
 
     logger.atInfo().log("Shutdown sequence complete");
-  }
-
-  private void processTrade(Trade trade) {
-    try {
-      tradePublisher.publishTrade(trade);
-    } catch (RuntimeException e) {
-      logger.atSevere().withCause(e).log("Error publishing trade: %s", trade.getTradeId());
-      // Don't rethrow - we want to continue processing other trades
-    }
-  }
-
-  private void startMarketDataIngestion() {
-    exchangeClient.startStreaming(supportedCurrencyPairs(), this::processTrade);
   }
 
   private ImmutableList<CurrencyPair> supportedCurrencyPairs() {
