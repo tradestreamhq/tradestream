@@ -44,7 +44,6 @@ public class RealTimeDataIngestionImplTest {
             .build();
     private static final String TEST_EXCHANGE = "test-exchange";
 
-    @Mock @Bind private CandlePublisher mockCandlePublisher;
     @Mock @Bind private CurrencyPairSupply mockCurrencyPairSupply;
     @Mock @Bind private ExchangeStreamingClient mockExchangeClient;
     @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
@@ -90,14 +89,14 @@ public class RealTimeDataIngestionImplTest {
         // Assert
         verify(mockExchangeClient).stopStreaming();
         verify(mockThinMarketTimer).stop();
-        verify(mockCandlePublisher).close();
+        verify(mockTradePublisher).close();
     }
 
     @Test
-    public void shutdown_handlesCandlePublisherException() {
+    public void shutdown_handlesTradePublisherException() {
         // Arrange
         doThrow(new RuntimeException("Test exception"))
-            .when(mockCandlePublisher)
+            .when(mockTradePublisher)
             .close();
 
         // Act - Should not throw
@@ -146,6 +145,6 @@ public class RealTimeDataIngestionImplTest {
         // Assert - Shutdown correctly
         verify(mockExchangeClient).stopStreaming();
         verify(mockThinMarketTimer).stop();
-        verify(mockCandlePublisher).close();
+        verify(mockTradePublisher).close();
     }
 }
