@@ -21,7 +21,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private final CandlePublisher candlePublisher;
     private final Provider<CurrencyPairSupply> currencyPairSupply;
     private final ExchangeStreamingClient exchangeClient;
-    private final Provider<ThinMarketTimer> thinMarketTimer;
     private final TradeProcessor tradeProcessor;
     private final TradePublisher tradePublisher;
     
@@ -31,7 +30,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         CandlePublisher candlePublisher,
         Provider<CurrencyPairSupply> currencyPairSupply,
         ExchangeStreamingClient exchangeClient,
-        Provider<ThinMarketTimer> thinMarketTimer,
         TradeProcessor tradeProcessor,
         TradePublisher tradePublisher
     ) {
@@ -39,7 +37,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         this.candlePublisher = candlePublisher;
         this.currencyPairSupply = currencyPairSupply;
         this.exchangeClient = exchangeClient;
-        this.thinMarketTimer = thinMarketTimer;
         this.tradeProcessor = tradeProcessor;
         this.tradePublisher = tradePublisher;
     }
@@ -50,8 +47,7 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
             exchangeClient.getExchangeName());
 
         startMarketDataIngestion();
-        logger.atInfo().log("Starting thin market timer...");
-        thinMarketTimer.get().start();
+
         logger.atInfo().log("Real-time data ingestion system fully initialized and running");
     }
 
@@ -61,9 +57,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         
         logger.atInfo().log("Stopping exchange streaming...");
         exchangeClient.stopStreaming();
-
-        logger.atInfo().log("Stopping thin market timer...");
-        thinMarketTimer.get().stop();
 
         logger.atInfo().log("Closing trade publisher...");
         try {
