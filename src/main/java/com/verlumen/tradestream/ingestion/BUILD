@@ -173,7 +173,6 @@ java_library(
         ":ingestion_config",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
-        ":trade_processor",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/http:http_module",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
@@ -215,16 +214,5 @@ java_library(
         "//third_party:flogger",
         "//third_party:guava",
         "//third_party:guice",
-    ],
-)
-
-java_library(
-    name = "trade_processor",
-    srcs = ["TradeProcessor.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party:auto_value",
-        "//third_party:flogger",
-        "//third_party:protobuf_java_util",
     ],
 )
