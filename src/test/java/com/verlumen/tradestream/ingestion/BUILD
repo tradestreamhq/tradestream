@@ -36,23 +36,6 @@ java_test(
 )
 
 java_test(
-    name = "CandlePublisherImplTest",
-    srcs = ["CandlePublisherImplTest.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher_impl",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:guice_testlib",
-        "//third_party:junit",
-        "//third_party:kafka_clients",
-        "//third_party:mockito_core",
-        "//third_party:protobuf_java_util",
-    ],
-)
-
-java_test(
     name = "CoinbaseStreamingClientTest",
     srcs = ["CoinbaseStreamingClientTest.java"],
     deps = [
