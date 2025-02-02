@@ -31,6 +31,11 @@ public final class App {
         String getCandleTopic();
         void setCandleTopic(String value);
 
+        @Description("Kafka topic to read trade data from.")
+        @Default.String("trades")
+        String getTradeTopic();
+        void setTradeTopic(String value);
+
         @Description("Run mode: wet or dry.")
         @Default.String("wet")
         String getRunMode();
