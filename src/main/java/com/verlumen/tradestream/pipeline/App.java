@@ -26,11 +26,6 @@ public final class App {
         String getBootstrapServers();
         void setBootstrapServers(String value);
 
-        @Description("Kafka topic to read candle data from.")
-        @Default.String("candles")
-        String getCandleTopic();
-        void setCandleTopic(String value);
-
         @Description("Kafka topic to read trade data from.")
         @Default.String("trades")
         String getTradeTopic();
@@ -87,7 +82,7 @@ public final class App {
 
         var module = PipelineModule.create(
             options.getBootstrapServers(),
-            options.getCandleTopic(),
+            options.getTradeTopic(),
             options.getRunMode());
         var app = Guice.createInjector(module).getInstance(App.class);
         var pipeline = Pipeline.create(options);
