@@ -26,19 +26,16 @@ abstract class PipelineModule extends AbstractModule {
       .setVolume(0.1)
       .build();
 
-  static PipelineModule create(
-    String bootstrapServers, String tradeTopic, String runMode) {
-    return new AutoValue_PipelineModule(bootstrapServers, runMode, tradeTopic);
+  static PipelineModule create(PipelineConfig config) {
+    return new AutoValue_PipelineModule(config);
   }
 
-  abstract String bootstrapServers();
-  abstract String runMode();
-  abstract String tradeTopic();
+  abstract PipelineConfig config();
 
   @Override
   protected void configure() {
-      install(ExecutionModule.create(runMode()));
-      install(KafkaModule.create(bootstrapServers()));
+      install(ExecutionModule.create(config().runMode()));
+      install(KafkaModule.create(config().bootstrapServers()));
   }
 
   @Provides
@@ -46,8 +43,8 @@ abstract class PipelineModule extends AbstractModule {
       if (runMode.equals(RunMode.DRY)) {
         return DryRunKafkaReadTransform
             .<String, byte[]>builder()
-            .setBootstrapServers(bootstrapServers())
-            .setTopic(tradeTopic())
+            .setBootstrapServers(config().bootstrapServers())
+            .setTopic(config().tradeTopic())
             .setKeyDeserializerClass(StringDeserializer.class)
             .setValueDeserializerClass(ByteArrayDeserializer.class)
             .setDefaultValue(DRY_RUN_TRADE.toByteArray())
@@ -55,8 +52,13 @@ abstract class PipelineModule extends AbstractModule {
       }
 
       return factory.create(
-          tradeTopic(), 
+          config().tradeTopic(), 
           StringDeserializer.class,
           ByteArrayDeserializer.class);
+  }
+
+  @Provides
+  PipelineConfig providePipelineConfig() {
+    return config();
   }
 }

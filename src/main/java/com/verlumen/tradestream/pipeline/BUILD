@@ -11,6 +11,7 @@ java_binary(
   main_class = "com.verlumen.tradestream.pipeline.App",
   srcs = ["App.java"],
   deps = [
+    ":pipeline_config",
     ":pipeline_module",
     "//protos:marketdata_java_proto",
     "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
@@ -18,8 +19,11 @@ java_binary(
     "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
     "//third_party:beam_runners_flink_java",
     "//third_party:beam_sdks_java_core",
+    "//third_party:flogger",
     "//third_party:guice",
+    "//third_party:joda_time",
     "//third_party:protobuf_java",
+    "//third_party:protobuf_java_util",
   ],
   runtime_deps = [
     "//third_party:beam_runners_direct_java",
@@ -74,9 +78,18 @@ tar(
 )
 
 java_library(
+    name = "pipeline_config",
+    srcs = ["PipelineConfig.java"],
+    deps = [
+        "//third_party:joda_time"
+    ],
+)
+
+java_library(
     name = "pipeline_module",
     srcs = ["PipelineModule.java"],
     deps = [
+        ":pipeline_config",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:execution_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
