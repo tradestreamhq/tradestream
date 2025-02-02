@@ -22,7 +22,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private final Provider<CurrencyPairSupply> currencyPairSupply;
     private final ExchangeStreamingClient exchangeClient;
     private final Provider<ThinMarketTimer> thinMarketTimer;
-    private final TradeProcessor tradeProcessor;
     private final TradePublisher tradePublisher;
     
     @Inject
@@ -32,7 +31,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         Provider<CurrencyPairSupply> currencyPairSupply,
         ExchangeStreamingClient exchangeClient,
         Provider<ThinMarketTimer> thinMarketTimer,
-        TradeProcessor tradeProcessor,
         TradePublisher tradePublisher
     ) {
         this.candleManager = candleManager;
@@ -40,7 +38,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         this.currencyPairSupply = currencyPairSupply;
         this.exchangeClient = exchangeClient;
         this.thinMarketTimer = thinMarketTimer;
-        this.tradeProcessor = tradeProcessor;
         this.tradePublisher = tradePublisher;
     }
 
@@ -79,12 +76,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     private void processTrade(Trade trade) {
         try {
-            if (tradeProcessor.isProcessed(trade)) {
-                logger.atInfo().log("Skipping duplicate trade for %s: ID=%s",
-                    trade.getCurrencyPair(),
-                    trade.getTradeId());
-                return;
-            }
             logger.atInfo().log("Processing new trade for %s: ID=%s, price=%f, volume=%f", 
                 trade.getCurrencyPair(), 
                 trade.getTradeId(),
