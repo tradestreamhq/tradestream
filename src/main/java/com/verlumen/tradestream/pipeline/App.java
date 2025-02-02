@@ -7,7 +7,6 @@ import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.CreateCandles;
 import com.verlumen.tradestream.marketdata.ParseTrades;
-import java.time.Duration;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
@@ -24,6 +23,7 @@ import org.apache.beam.sdk.transforms.windowing.DiscardingFiredPanes;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.TypeDescriptors;
+import org.joda.time.Duration;
 
 public final class App {
     public interface Options extends StreamingOptions {
