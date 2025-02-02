@@ -35,7 +35,7 @@ abstract class PipelineModule extends AbstractModule {
   @Override
   protected void configure() {
       install(ExecutionModule.create(config().runMode()));
-      install(KafkaModule.create(bootstrapServers()));
+      install(KafkaModule.create(config().bootstrapServers()));
   }
 
   @Provides
