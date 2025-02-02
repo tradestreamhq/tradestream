@@ -19,7 +19,6 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.DefaultTrigger;
-import org.apache.beam.sdk.transforms.windowing.DiscardingFiredPanes;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.TypeDescriptors;
@@ -64,13 +63,15 @@ public final class App {
     private Pipeline buildPipeline(Pipeline pipeline) {
         PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
 
-        input
-            .apply("Parse Trades", parseTrades)
-            .apply(Window.into(FixedWindows.of(windowDuration))
+    input
+        .apply("Parse Trades", parseTrades)
+        .apply("Apply Windows", 
+            Window.<Trade>into(FixedWindows.of(windowDuration))
                 .withAllowedLateness(allowedLateness)
                 .triggering(DefaultTrigger.of())
                 .discardingFiredPanes())
-            .apply("Create Candles", createCandles);
+        .apply("Create Candles", createCandles);
+
         return pipeline;
     }
 
