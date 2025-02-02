@@ -22,6 +22,7 @@ java_binary(
     "//third_party:guice",
     "//third_party:joda_time",
     "//third_party:protobuf_java",
+    "//third_party:protobuf_java_util",
   ],
   runtime_deps = [
     "//third_party:beam_runners_direct_java",
