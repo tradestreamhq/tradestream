@@ -29,6 +29,8 @@ public class CreateCandles extends PTransform<PCollection<KV<String, Trade>>, PC
 
   @Override
   public PCollection<Candle> expand(PCollection<KV<String, Trade>> input) {
+    // IMPORTANT: This transform assumes that the input elements have valid event timestamps
+    // (e.g. they have been stamped using WithTimestamps upstream in the pipeline).
     // Note: Make sure the input is windowed. For example:
     //   input.apply(Window.into(FixedWindows.of(windowDuration))
     //         .withAllowedLateness(allowedLateness)
