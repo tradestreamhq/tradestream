@@ -19,19 +19,16 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     private final Provider<CurrencyPairSupply> currencyPairSupply;
     private final ExchangeStreamingClient exchangeClient;
-    private final TradeProcessor tradeProcessor;
     private final TradePublisher tradePublisher;
     
     @Inject
     RealTimeDataIngestionImpl(
         Provider<CurrencyPairSupply> currencyPairSupply,
         ExchangeStreamingClient exchangeClient,
-        TradeProcessor tradeProcessor,
         TradePublisher tradePublisher
     ) {
         this.currencyPairSupply = currencyPairSupply;
         this.exchangeClient = exchangeClient;
-        this.tradeProcessor = tradeProcessor;
         this.tradePublisher = tradePublisher;
     }
 
@@ -65,16 +62,10 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
 
     private void processTrade(Trade trade) {
         try {
-            if (tradeProcessor.isProcessed(trade)) {
-                logger.atInfo().log("Skipping duplicate trade for %s: ID=%s",
-                    trade.getCurrencyPair(),
-                    trade.getTradeId());
-                return;
-            }
             tradePublisher.publishTrade(trade);
         } catch (RuntimeException e) {
             logger.atSevere().withCause(e).log(
-                "Error processing trade: %s", trade.getTradeId());
+                "Error publishing trade: %s", trade.getTradeId());
             // Don't rethrow - we want to continue processing other trades
         }
     }
