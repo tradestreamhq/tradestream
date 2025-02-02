@@ -5,7 +5,6 @@ import com.google.protobuf.util.Timestamps;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
-import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.CreateCandles;
 import com.verlumen.tradestream.marketdata.ParseTrades;
 import com.verlumen.tradestream.marketdata.Trade;
