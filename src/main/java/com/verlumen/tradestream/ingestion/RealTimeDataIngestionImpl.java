@@ -18,7 +18,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
     private final CandleManager candleManager;
-    private final CandlePublisher candlePublisher;
     private final Provider<CurrencyPairSupply> currencyPairSupply;
     private final ExchangeStreamingClient exchangeClient;
     private final Provider<ThinMarketTimer> thinMarketTimer;
@@ -28,7 +27,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
     @Inject
     RealTimeDataIngestionImpl(
         CandleManager candleManager,
-        CandlePublisher candlePublisher,
         Provider<CurrencyPairSupply> currencyPairSupply,
         ExchangeStreamingClient exchangeClient,
         Provider<ThinMarketTimer> thinMarketTimer,
@@ -36,7 +34,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         TradePublisher tradePublisher
     ) {
         this.candleManager = candleManager;
-        this.candlePublisher = candlePublisher;
         this.currencyPairSupply = currencyPairSupply;
         this.exchangeClient = exchangeClient;
         this.thinMarketTimer = thinMarketTimer;
@@ -68,7 +65,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         logger.atInfo().log("Closing trade publisher...");
         try {
             tradePublisher.close();
-            candlePublisher.close();
             logger.atInfo().log("Successfully closed trade publisher");
         } catch (Exception e) {
             logger.atWarning().withCause(e).log("Error closing trade publisher");
