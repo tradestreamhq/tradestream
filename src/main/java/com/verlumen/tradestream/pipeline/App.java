@@ -50,6 +50,7 @@ public final class App {
   }
 
   private final Duration allowedLateness;
+  private final Duration allowedTimestampSkew;
   private final CreateCandles createCandles;
   private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
   private final ParseTrades parseTrades;
@@ -62,12 +63,16 @@ public final class App {
       ParseTrades parseTrades,
       PipelineConfig config) {
     this.allowedLateness = config.allowedLateness();
+    this.allowedTimestampSkew = config.allowedTimestampSkew();
     this.createCandles = createCandles;
     this.kafkaReadTransform = kafkaReadTransform;
     this.parseTrades = parseTrades;
     this.windowDuration = config.windowDuration();
-    logger.atInfo().log("Initialized App with allowedLateness=%s, windowDuration=%s", allowedLateness,
-        windowDuration);
+    logger.atInfo().log(
+        "Initialized App with allowedLateness=%s, windowDuration=%s, allowedTimestampSkew=%s",
+        allowedLateness,
+        windowDuration,
+        allowedTimestampSkew);
   }
 
   private Pipeline buildPipeline(Pipeline pipeline) {
