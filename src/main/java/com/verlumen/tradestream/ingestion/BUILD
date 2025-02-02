@@ -197,10 +197,6 @@ java_library(
         ":ingestion_config",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
-        ":thin_market_timer",
-        ":thin_market_timer_impl",
-        ":thin_market_timer_task",
-        ":thin_market_timer_task_impl",
         ":trade_processor",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/http:http_module",
@@ -246,45 +242,10 @@ java_library(
         ":currency_pair_supply",
         ":exchange_streaming_client",
         ":real_time_data_ingestion",
-        ":trade_processor",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_publisher",
         "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
-    ],
-)
-
-java_library(
-    name = "thin_market_timer",
-    srcs = ["ThinMarketTimer.java"],
-)
-
-java_library(
-    name = "thin_market_timer_impl",
-    srcs = ["ThinMarketTimerImpl.java"],
-    deps = [
-        ":thin_market_timer",
-        ":thin_market_timer_task",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:xchange_core",
-    ],
-)
-
-java_library(
-    name = "thin_market_timer_task",
-    srcs = ["ThinMarketTimerTask.java"],
-)
-
-java_library(
-    name = "thin_market_timer_task_impl",
-    srcs = ["ThinMarketTimerTaskImpl.java"],
-    deps = [
-        ":currency_pair_supply",
-        ":thin_market_timer_task",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:guava",
         "//third_party:guice",
     ],
