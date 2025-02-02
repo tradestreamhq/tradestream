@@ -19,15 +19,14 @@ public abstract class GetLastNElementsDoFn<K, V> extends DoFn<KV<K, V>, KV<K, Im
     return new AutoValue_GetLastNElementsDoFn(n);
   }
 
+  private static final QUEUE_CODER = SerializableCoder.of(new TypeDescriptor<CircularFifoQueue<V>>() {});
+
   abstract int n();
 
   // Use a ValueState to store our CircularFifoQueue. CircularFifoQueue is Serializable,
   // so we can use SerializableCoder with a proper TypeDescriptor.
   @StateId("buffer")
-  private final StateSpec<ValueState<CircularFifoQueue<V>>> bufferSpec =
-      StateSpecs.value(
-          SerializableCoder.of(new TypeDescriptor<CircularFifoQueue<V>>() {})
-      );
+  private final StateSpec<ValueState<CircularFifoQueue<V>>> bufferSpec = StateSpecs.value(QUEUE_CODER);
 
   @ProcessElement
   public void processElement(
