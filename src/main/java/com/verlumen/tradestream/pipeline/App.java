@@ -87,17 +87,18 @@ public final class App {
     PCollection<Trade> trades = input.apply("Parse Trades", parseTrades);
 
     // 3. Assign proper event timestamps (using the Trade's own timestamp).
-    logger.atInfo().log("Assigning event timestamps based on Trade timestamps.");
+    logger.atInfo().log("Assigning event timestamps based on Trade timestamps with skew=%s", allowedTimestampSkew);
     PCollection<Trade> tradesWithTimestamps =
         trades.apply(
             "Assign Timestamps",
             WithTimestamps.of(
                 (Trade trade) -> {
-                  long millis = Timestamps.toMillis(trade.getTimestamp());
-                  Instant timestamp = new Instant(millis);
-                  logger.atFinest().log("Assigned timestamp %s for trade: %s", timestamp, trade);
-                  return timestamp;
-                }));
+                    long millis = Timestamps.toMillis(trade.getTimestamp());
+                    Instant timestamp = new Instant(millis);
+                    logger.atFinest().log("Assigned timestamp %s for trade: %s", timestamp, trade);
+                    return timestamp;
+                })
+            .withAllowedTimestampSkew(allowedTimestampSkew));
 
     // 4. Convert to KV pairs (keyed by currency pair).
     logger.atInfo().log("Mapping trades to KV pairs keyed by currency pair.");
