@@ -6,7 +6,6 @@ import com.google.inject.Provides;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.http.HttpModule;
 import com.verlumen.tradestream.kafka.KafkaModule;
-import com.verlumen.tradestream.marketdata.MarketDataConfig;
 import com.verlumen.tradestream.marketdata.MarketDataModule;
 
 @AutoValue
@@ -25,7 +24,7 @@ abstract class IngestionModule extends AbstractModule {
 
     install(HttpModule.create());
     install(KafkaModule.create(ingestionConfig().kafkaBootstrapServers()));
-    install(MarketDataModule.create(MarketDataConfig.create(ingestionConfig().tradeTopic())));
+    install(MarketDataModule.create(ingestionConfig().tradeTopic()));
   }
 
   @Provides

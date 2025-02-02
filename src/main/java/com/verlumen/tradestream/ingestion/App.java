@@ -55,7 +55,6 @@ final class App {
       String coinMarketCapApiKey = namespace.getString("coinmarketcap.apiKey");
       int topNCryptocurrencies = namespace.getInt("coinmarketcap.topN");
       String exchangeName = namespace.getString("exchangeName");
-      long candleIntervalMillis = namespace.getInt("candleIntervalSeconds") * 1000L;
       String runModeName = namespace.getString("runMode").toUpperCase();
       RunMode runMode = RunMode.valueOf(runModeName);
       IngestionConfig ingestionConfig =
@@ -63,7 +62,6 @@ final class App {
               coinMarketCapApiKey,
               topNCryptocurrencies,
               exchangeName,
-              candleIntervalMillis,
               runMode,
               namespace.getString("kafka.bootstrap.servers"),
               namespace.getString("tradeTopic"));
@@ -82,12 +80,6 @@ final class App {
       .build()
       .defaultHelp(true)
       .description("Configuration for Kafka producer and exchange settings");
-
-    // Existing arguments
-    parser.addArgument("--candleIntervalSeconds")
-      .type(Integer.class)
-      .setDefault(60)
-      .help("Candle interval in seconds");
 
     // Exchange configuration
     parser.addArgument("--exchangeName")
