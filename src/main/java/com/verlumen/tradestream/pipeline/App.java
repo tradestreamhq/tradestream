@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.CreateCandles;
 import com.verlumen.tradestream.marketdata.ParseTrades;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
@@ -37,11 +38,15 @@ public final class App {
         void setRunMode(String value);
     }
 
+    private final CreateCandles createCandles;
     private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
     private final ParseTrades parseTrades;
 
     @Inject
-    App(KafkaReadTransform<String, byte[]> kafkaReadTransform, ParseTrades parseTrades) {
+    App(CreateCandles createCandles,
+        KafkaReadTransform<String, byte[]> kafkaReadTransform,
+        ParseTrades parseTrades) {
+        this.createCandles = createCandles;
         this.kafkaReadTransform = kafkaReadTransform;
         this.parseTrades = parseTrades;
     }
