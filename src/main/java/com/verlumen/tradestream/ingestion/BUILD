@@ -23,17 +23,6 @@ java_binary(
 )
 
 java_library(
-    name = "candle_builder",
-    srcs = ["CandleBuilder.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party:flogger",
-        "//third_party:protobuf_java",
-        "//third_party:protobuf_java_util",
-    ],
-)
-
-java_library(
     name = "coinbase_streaming_client",
     srcs = ["CoinbaseStreamingClient.java"],
     deps = [
