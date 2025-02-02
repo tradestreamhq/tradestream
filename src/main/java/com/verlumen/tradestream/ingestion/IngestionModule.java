@@ -6,7 +6,6 @@ import com.google.inject.Provides;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.http.HttpModule;
 import com.verlumen.tradestream.kafka.KafkaModule;
-import com.verlumen.tradestream.marketdata.MarketDataConfig;
 import com.verlumen.tradestream.marketdata.MarketDataModule;
 
 @AutoValue
