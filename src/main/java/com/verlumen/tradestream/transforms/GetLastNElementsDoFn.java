@@ -38,7 +38,7 @@ public abstract class GetLastNElementsDoFn<K, V> extends DoFn<KV<K, V>, KV<K, Im
     // Read the current queue from state; if none exists yet, create one.
     CircularFifoQueue<V> queue = state.read();
     if (queue == null) {
-      queue = new CircularFifoQueue<>(n);
+      queue = new CircularFifoQueue<>(n());
     }
 
     // Add the new element. CircularFifoQueue automatically evicts the oldest element when full.
