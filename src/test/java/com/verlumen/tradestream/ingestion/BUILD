@@ -108,7 +108,6 @@ java_test(
     srcs = ["RealTimeDataIngestionImplTest.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/ingestion:candle_manager",
         "//src/main/java/com/verlumen/tradestream/ingestion:candle_publisher",
         "//src/main/java/com/verlumen/tradestream/ingestion:currency_pair_supply",
         "//src/main/java/com/verlumen/tradestream/ingestion:exchange_streaming_client",
