@@ -1,12 +1,12 @@
 package com.verlumen.tradestream.transforms;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.state.StateId;
+import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.state.StateSpec;
 import org.apache.beam.sdk.state.StateSpecs;
 import org.apache.beam.sdk.state.ValueState;
-import org.apache.beam.sdk.coders.SerializableCoder;
+import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.DoFn.StateId;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.TypeDescriptor;
 import org.apache.commons.collections4.queue.CircularFifoQueue;
