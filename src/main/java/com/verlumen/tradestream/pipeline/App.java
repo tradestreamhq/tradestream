@@ -52,10 +52,13 @@ public final class App {
     @Inject
     App(CreateCandles createCandles,
         KafkaReadTransform<String, byte[]> kafkaReadTransform,
-        ParseTrades parseTrades) {
+        ParseTrades parseTrades,
+        PipelineConfig config) {
+        this.allowedLateness = config.allowedLateness();
         this.createCandles = createCandles;
         this.kafkaReadTransform = kafkaReadTransform;
         this.parseTrades = parseTrades;
+        this.windowDuration = config.windowDuration();
     }
 
     private Pipeline buildPipeline(Pipeline pipeline) {
