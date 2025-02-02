@@ -127,10 +127,10 @@ java_library(
 )
 
 java_library(
-    name = "commons_collections",
+    name = "commons_collections4",
     visibility = ["//visibility:public"],
     exports = [
-        "@tradestream_maven//:commons_collections_commons_collections",
+        "@tradestream_maven//:org_apache_commons_commons_collections4",
     ],
 )
 

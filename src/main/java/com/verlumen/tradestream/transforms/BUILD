@@ -7,7 +7,7 @@ java_library(
     srcs = ["GetLastNElementsDoFn.java"],
     deps = [
         "//third_party:beam_sdks_java_core",
-        "//third_party:commons_collections",
+        "//third_party:commons_collections4",
         "//third_party:guava",
     ],
 )
