@@ -37,11 +37,6 @@ abstract class IngestionModule extends AbstractModule {
   }
 
   @Provides
-  CandlePublisher provideCandlePublisher(CandlePublisher.Factory candlePublisherFactory) {
-    return candlePublisherFactory.create(ingestionConfig().candlePublisherTopic());
-  }
-
-  @Provides
   CoinMarketCapConfig provideCoinMarketCapConfig() {
     return CoinMarketCapConfig.create(
         ingestionConfig().topCryptocurrencyCount(), ingestionConfig().coinMarketCapApiKey());
