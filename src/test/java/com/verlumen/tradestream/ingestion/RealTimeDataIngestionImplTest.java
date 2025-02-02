@@ -46,7 +46,6 @@ public class RealTimeDataIngestionImplTest {
 
     @Mock @Bind private CurrencyPairSupply mockCurrencyPairSupply;
     @Mock @Bind private ExchangeStreamingClient mockExchangeClient;
-    @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
     @Mock @Bind private TradePublisher mockTradePublisher;
 
     @Inject private RealTimeDataIngestionImpl realTimeDataIngestion;
@@ -70,15 +69,6 @@ public class RealTimeDataIngestionImplTest {
     }
 
     @Test
-    public void start_startsThinMarketTimer() {
-        // Act
-        realTimeDataIngestion.start();
-
-        // Assert
-        verify(mockThinMarketTimer).start();
-    }
-
-    @Test
     public void shutdown_stopsStreamingAndTimer() {
         // Arrange
         realTimeDataIngestion.start();
@@ -88,7 +78,6 @@ public class RealTimeDataIngestionImplTest {
 
         // Assert
         verify(mockExchangeClient).stopStreaming();
-        verify(mockThinMarketTimer).stop();
         verify(mockTradePublisher).close();
     }
 
@@ -104,7 +93,6 @@ public class RealTimeDataIngestionImplTest {
 
         // Assert
         verify(mockExchangeClient).stopStreaming();
-        verify(mockThinMarketTimer).stop();
     }
 
     @Test
@@ -137,14 +125,12 @@ public class RealTimeDataIngestionImplTest {
 
         // Assert - Started correctly
         verify(mockExchangeClient).startStreaming(any(), any());
-        verify(mockThinMarketTimer).start();
 
         // Act - Shutdown
         realTimeDataIngestion.shutdown();
 
         // Assert - Shutdown correctly
         verify(mockExchangeClient).stopStreaming();
-        verify(mockThinMarketTimer).stop();
         verify(mockTradePublisher).close();
     }
 }
