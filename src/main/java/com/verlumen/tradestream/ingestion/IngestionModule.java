@@ -42,13 +42,6 @@ abstract class IngestionModule extends AbstractModule {
   }
 
   @Provides
-  CandleManager provideCandleManager(
-      CandlePublisher candlePublisher, CandleManager.Factory candleManagerFactory) {
-    return candleManagerFactory.create(
-        ingestionConfig().candleIntervalMillis(), candlePublisher);
-  }
-
-  @Provides
   CandlePublisher provideCandlePublisher(CandlePublisher.Factory candlePublisherFactory) {
     return candlePublisherFactory.create(ingestionConfig().candlePublisherTopic());
   }
