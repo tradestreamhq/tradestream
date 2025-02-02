@@ -44,13 +44,11 @@ public class RealTimeDataIngestionImplTest {
             .build();
     private static final String TEST_EXCHANGE = "test-exchange";
 
-    @Mock @Bind private CandleManager mockCandleManager;
-    @Mock @Bind private CandlePublisher mockCandlePublisher;
     @Mock @Bind private CurrencyPairSupply mockCurrencyPairSupply;
     @Mock @Bind private ExchangeStreamingClient mockExchangeClient;
     @Mock @Bind private ThinMarketTimer mockThinMarketTimer;
     @Mock @Bind private TradeProcessor mockTradeProcessor;
-    @Mock @Bind private TradePublisher tradePublisher;
+    @Mock @Bind private TradePublisher mockTradePublisher;
 
     @Inject private RealTimeDataIngestionImpl realTimeDataIngestion;
 
@@ -92,14 +90,14 @@ public class RealTimeDataIngestionImplTest {
         // Assert
         verify(mockExchangeClient).stopStreaming();
         verify(mockThinMarketTimer).stop();
-        verify(mockCandlePublisher).close();
+        verify(mockTradePublisher).close();
     }
 
     @Test
-    public void shutdown_handlesCandlePublisherException() {
+    public void shutdown_handlesTradePublisherException() {
         // Arrange
         doThrow(new RuntimeException("Test exception"))
-            .when(mockCandlePublisher)
+            .when(mockTradePublisher)
             .close();
 
         // Act - Should not throw
@@ -132,7 +130,7 @@ public class RealTimeDataIngestionImplTest {
         handlerCaptor.getValue().accept(trade);
 
         // Assert
-        verify(mockCandleManager).processTrade(trade);
+        verify(mockTradePublisher).publishTrade(trade);
     }
 
     @Test
@@ -157,7 +155,7 @@ public class RealTimeDataIngestionImplTest {
         handlerCaptor.getValue().accept(trade);
 
         // Assert
-        verify(mockCandleManager, never()).processTrade(trade);
+        verify(mockTradePublisher, never()).publishTrade(trade);
     }
 
     @Test
@@ -175,7 +173,7 @@ public class RealTimeDataIngestionImplTest {
         // Assert - Shutdown correctly
         verify(mockExchangeClient).stopStreaming();
         verify(mockThinMarketTimer).stop();
-        verify(mockCandlePublisher).close();
+        verify(mockTradePublisher).close();
     }
 
     @Test
@@ -199,6 +197,6 @@ public class RealTimeDataIngestionImplTest {
         handlerCaptor.getValue().accept(trade);
 
         // Assert
-        verify(mockCandleManager, never()).processTrade(any());
+        verify(mockTradePublisher, never()).publishTrade(any());
     }
 }
