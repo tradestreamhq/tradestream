@@ -20,6 +20,7 @@ java_binary(
     "//third_party:beam_runners_flink_java",
     "//third_party:beam_sdks_java_core",
     "//third_party:guice",
+    "//third_party:joda_time",
     "//third_party:protobuf_java",
   ],
   runtime_deps = [
