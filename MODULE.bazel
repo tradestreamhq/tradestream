@@ -68,7 +68,6 @@ maven.install(
         "org.knowm.xchange:xchange-core:5.2.0",
         "org.knowm.xchange:xchange-stream-core:5.2.0",
         "org.knowm.xchange:xchange-stream-coinbasepro:5.2.0",
-        "org.slf4j:slf4j-api:2.0.12",
         "org.ta4j:ta4j-core:0.17",
 
         # Test Dependencies
