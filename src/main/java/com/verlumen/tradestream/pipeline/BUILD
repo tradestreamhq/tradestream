@@ -18,6 +18,7 @@ java_binary(
     "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
     "//third_party:beam_runners_flink_java",
     "//third_party:beam_sdks_java_core",
+    "//third_party:flogger",
     "//third_party:guice",
     "//third_party:protobuf_java",
   ],
