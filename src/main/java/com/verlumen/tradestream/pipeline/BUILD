@@ -11,6 +11,7 @@ java_binary(
   main_class = "com.verlumen.tradestream.pipeline.App",
   srcs = ["App.java"],
   deps = [
+    ":pipeline_config",
     ":pipeline_module",
     "//protos:marketdata_java_proto",
     "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
