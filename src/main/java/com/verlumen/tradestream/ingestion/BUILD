@@ -215,14 +215,6 @@ tar(
     srcs = [":app_deploy.jar"],
 )
 
-java_library(
-    name = "price_tracker",
-    srcs = ["PriceTracker.java"],
-    deps = [
-        "//third_party:guice",        
-    ],
-)
-
 oci_push(
     name = "push_image",
     image = ":index",
