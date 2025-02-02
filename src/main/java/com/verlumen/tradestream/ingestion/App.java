@@ -52,7 +52,6 @@ final class App {
     try {
       logger.atInfo().log("Initializing Guice injector with IngestionModule");
       Namespace namespace = createParser().parseArgs(args);
-      String candlePublisherTopic = namespace.getString("candlePublisherTopic");
       String coinMarketCapApiKey = namespace.getString("coinmarketcap.apiKey");
       int topNCryptocurrencies = namespace.getInt("coinmarketcap.topN");
       String exchangeName = namespace.getString("exchangeName");
@@ -61,7 +60,6 @@ final class App {
       RunMode runMode = RunMode.valueOf(runModeName);
       IngestionConfig ingestionConfig =
           new IngestionConfig(
-              candlePublisherTopic,
               coinMarketCapApiKey,
               topNCryptocurrencies,
               exchangeName,
@@ -90,10 +88,6 @@ final class App {
       .type(Integer.class)
       .setDefault(60)
       .help("Candle interval in seconds");
-
-    parser.addArgument("--candlePublisherTopic")
-      .setDefault("candles")
-      .help("Kafka topic to publish candle data");
 
     // Exchange configuration
     parser.addArgument("--exchangeName")
