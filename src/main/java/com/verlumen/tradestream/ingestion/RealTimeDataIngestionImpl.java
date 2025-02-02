@@ -27,8 +27,6 @@ final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
         ExchangeStreamingClient exchangeClient,
         TradePublisher tradePublisher
     ) {
-        this.candleManager = candleManager;
-        this.candlePublisher = candlePublisher;
         this.currencyPairSupply = currencyPairSupply;
         this.exchangeClient = exchangeClient;
         this.tradePublisher = tradePublisher;

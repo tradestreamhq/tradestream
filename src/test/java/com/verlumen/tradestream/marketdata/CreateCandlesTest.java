@@ -61,7 +61,7 @@ public class CreateCandlesTest {
   //–––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
   // Integration Test 1: Single Trade produces a correct candle.
   // Arrange: One KV element for key "EUR/USD" in a fixed window.
-  // Act: Apply windowing and CreateCandles.create().
+  // Act: Apply windowing and new CreateCandles().
   // Assert: The output candle’s open price equals the trade price.
   @Test
   public void testSingleTradeProducesCorrectCandle() {
@@ -88,7 +88,7 @@ public class CreateCandlesTest {
         pipeline
             .apply("Input", stream)
             .apply("Window", Window.<KV<String, Trade>>into(FixedWindows.of(Duration.standardSeconds(10))))
-            .apply("Candle", CreateCandles.create());
+            .apply("Candle", new CreateCandles());
 
     PAssert.that(candles).satisfies((Iterable<Candle> outs) -> {
       int count = 0;
@@ -137,14 +137,14 @@ public class CreateCandlesTest {
     pipeline
         .apply("Input2", stream)
         .apply("Window2", Window.<KV<String, Trade>>into(FixedWindows.of(Duration.standardSeconds(10))))
-        .apply("Candle2", CreateCandles.create());
+        .apply("Candle2", new CreateCandles());
         
     // Assert: Use PAssert to check that the maximum (high) value equals 105.0.
     PAssert.thatSingleton(
             pipeline
                 .apply("InputForPAssert2", stream)
                 .apply("WindowForPAssert2", Window.<KV<String, Trade>>into(FixedWindows.of(Duration.standardSeconds(10))))
-                .apply("CandleForPAssert2", CreateCandles.create())
+                .apply("CandleForPAssert2", new CreateCandles())
                 .apply("ExtractHigh", org.apache.beam.sdk.transforms.MapElements.into(
                     org.apache.beam.sdk.values.TypeDescriptors.doubles())
                     .via((Candle c) -> c.getHigh())))
@@ -170,7 +170,7 @@ public class CreateCandlesTest {
         pipeline
             .apply("EmptyInput", emptyStream)
             .apply("WindowEmpty", Window.<KV<String, Trade>>into(FixedWindows.of(Duration.standardSeconds(10))))
-            .apply("CandleEmpty", CreateCandles.create());
+            .apply("CandleEmpty", new CreateCandles());
 
     // Assert: The output PCollection should be empty.
     PAssert.that(output).empty();
