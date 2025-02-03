@@ -131,8 +131,8 @@ public class GetLastNElementsDoFnTest {
 
     PCollection<KV<Integer, String>> input =
         pipeline
-            .apply(Create.of(KV.of(1, null)))
-            .apply(Window.into(FixedWindows.of(Duration.standardMinutes(5))));
+            .apply(Create.<KV<Integer, String>>of(KV.of(1, null)))
+            .apply(Window.<KV<Integer, String>>into(FixedWindows.of(Duration.standardMinutes(5))));
 
     PCollection<KV<Integer, ImmutableList<String>>> output =
         input.apply(ParDo.of(GetLastNElementsDoFn.<Integer, String>create(3)));
