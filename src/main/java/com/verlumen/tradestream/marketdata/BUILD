@@ -35,10 +35,9 @@ java_library(
 )
 
 java_library(
-  name = "multi_time_frame_candle_transform",
-  srcs = ["MultiTimeframeCandleTransform.java"],
+  name = "generate_multi_timeframe_sliding_candles",
+  srcs = ["GenerateMultiTimeframeSlidingCandles.java"],
   deps = [
-    "//src/main/java/com/verlumen/tradestream/transforms:get_last_n_elements_do_fn",
     "//third_party:beam_sdks_java_core",
     "//third_party:guice",
   ],
