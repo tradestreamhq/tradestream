@@ -131,11 +131,9 @@ public class GetLastNElementsDoFnTest {
       PCollection<KV<Integer, ImmutableList<String>>> output =
           input.apply(ParDo.of(GetLastNElementsDoFn.<Integer, String>create(3)));
       
-      Exception e = assertThrows(Exception.class, () -> {
+      assertThrows(NullPointerException.class, () -> {
           pipeline.run().waitUntilFinish();
       });
-      // Assert that the cause is a NullPointerException.
-      assertTrue(e.getCause() instanceof NullPointerException);
   }
 
   // --- Test 6: Zero capacity should throw an exception ---
