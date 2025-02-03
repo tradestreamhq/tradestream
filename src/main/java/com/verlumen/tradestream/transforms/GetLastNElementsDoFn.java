@@ -15,8 +15,8 @@ import java.io.Serializable;
 
 @AutoValue
 public abstract class GetLastNElementsDoFn<K, V> extends DoFn<KV<K, V>, KV<K, ImmutableList<V>>> {
-  public static GetLastNElementsDoFn create(int n) {
-    return new AutoValue_GetLastNElementsDoFn(n);
+  public static <K, V> GetLastNElementsDoFn<K, V> create(int n) {
+    return new AutoValue_GetLastNElementsDoFn<>(n);
   }
 
   abstract int n();
