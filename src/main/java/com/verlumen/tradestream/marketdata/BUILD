@@ -21,6 +21,7 @@ java_library(
   srcs = ["GenerateMultiTimeframeSlidingCandles.java"],
   deps = [
     ":create_candles",
+    "//protos:marketdata_java_proto",
     "//third_party:auto_value",
     "//third_party:beam_sdks_java_core",
     "//third_party:guava",
