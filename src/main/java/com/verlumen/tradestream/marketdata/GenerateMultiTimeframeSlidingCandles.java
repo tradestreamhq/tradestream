@@ -21,7 +21,7 @@ public class GenerateMultiTimeframeSlidingCandles
   private final Duration slidePeriod;
 
   @Inject
-  GenerateMultiTimeframeSlidingCandles create(Duration slidePeriod) {
+  GenerateMultiTimeframeSlidingCandles(Duration slidePeriod) {
       this.slidePeriod = slidePeriod;
   }
 
