@@ -127,6 +127,14 @@ java_library(
 )
 
 java_library(
+    name = "commons_collections4",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_commons_commons_collections4",
+    ],
+)
+
+java_library(
     name = "flogger",
     visibility = ["//visibility:public"],
     exports = [
