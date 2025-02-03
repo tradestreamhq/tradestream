@@ -17,12 +17,13 @@ import org.joda.time.Duration;
 import org.junit.Test;
 
 public class GetLastNElementsDoFnTest {
+  // Declare the pipeline as a public JUnit rule.
+  @Rule
+  public final transient TestPipeline pipeline = TestPipeline.create();
 
   // --- Test 1: Single element ---
   @Test
   public void testSingleElementOutput() {
-    TestPipeline pipeline = TestPipeline.create();
-
     // Create a keyed input in a fixed window (stateful DoFns require non-global windows)
     PCollection<KV<Integer, String>> input =
         pipeline
