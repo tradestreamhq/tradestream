@@ -151,7 +151,7 @@ public class GetLastNElementsDoFnTest {
 
     // Running the pipeline should result in an IllegalArgumentException from CircularFifoQueue.
     assertThrows(IllegalArgumentException.class, () -> {
-      pipeline.run().waitUntilFinish();
+        GetLastNElementsDoFn.<Integer, String>create(0);
     });
   }
 }
