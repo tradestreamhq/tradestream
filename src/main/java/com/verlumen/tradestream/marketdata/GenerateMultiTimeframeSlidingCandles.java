@@ -14,14 +14,14 @@ import org.apache.beam.sdk.values.PCollectionList;
 import org.apache.beam.sdk.values.TypeDescriptors;
 import org.joda.time.Duration;
 
+@AutoValue
 public class GenerateMultiTimeframeSlidingCandles
     extends PTransform<PCollection<KV<String, Trade>>, PCollection<KV<String, ImmutableList<Candle>>>> {
-
-  private final Duration slidePeriod;
-
-  public GenerateMultiTimeframeSlidingCandles(Duration slidePeriod) {
-    this.slidePeriod = slidePeriod;
+  public static GenerateMultiTimeframeSlidingCandles create(Duration slidePeriod) {
+      return AutoValue_GenerateMultiTimeframeSlidingCandles(slidePeriod);
   }
+
+  abstract Duration slidePeriod();
 
   @Override
   public PCollection<KV<String, ImmutableList<Candle>>> expand(PCollection<KV<String, Trade>> input) {
@@ -33,7 +33,7 @@ public class GenerateMultiTimeframeSlidingCandles
           "SlidingWindow " + timeframe.getLabel(),
           Window.<KV<String, Trade>>into(
               SlidingWindows.of(Duration.standardMinutes(timeframe.getMinutes()))
-                            .every(slidePeriod))
+                            .every(slidePeriod()))
       );
 
       PCollection<KV<String, Iterable<Trade>>> groupedTrades = windowedTrades.apply(
