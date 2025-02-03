@@ -112,11 +112,7 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
                        .setClose(accumulator.close)
                        .setVolume(accumulator.volume)
                        .setTimestamp(accumulator.timestamp)
-                       .setCurrencyPair(
-                           CurrencyPair.newBuilder()
-                                   .setBase(accumulator.currencyPair.split("/")[0])
-                                   .setQuote(accumulator.currencyPair.split("/")[1])
-                                   .build());
+                       .setCurrencyPair(accumulator.currencyPair);
             }
             return builder.build();
         }
