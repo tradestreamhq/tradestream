@@ -51,6 +51,7 @@ java_library(
     name = "sliding_candle_aggregator",
     srcs = ["SlidingCandleAggregator.java"],
     deps = [
+        "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
         "//third_party:protobuf_java",
         "//third_party:joda_time",
