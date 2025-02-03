@@ -38,8 +38,10 @@ java_library(
   name = "generate_multi_timeframe_sliding_candles",
   srcs = ["GenerateMultiTimeframeSlidingCandles.java"],
   deps = [
+    "//third_party:auto_value",
     "//third_party:beam_sdks_java_core",
-    "//third_party:guice",
+    "//third_party:guava",
+    "//third_party:joda_time",
   ],
 )
 
