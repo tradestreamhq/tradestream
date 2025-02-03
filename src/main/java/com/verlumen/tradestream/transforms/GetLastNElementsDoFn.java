@@ -4,11 +4,15 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedSet;
 import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.state.StateSpec;
 import org.apache.beam.sdk.state.StateSpecs;
 import org.apache.beam.sdk.state.ValueState;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.DoFn.Element;
+import org.apache.beam.sdk.transforms.DoFn.OutputReceiver;
+import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
 import org.apache.beam.sdk.transforms.DoFn.StateId;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.TypeDescriptor;
@@ -16,17 +20,17 @@ import org.apache.commons.collections4.queue.CircularFifoQueue;
 import java.io.Serializable;
 
 @AutoValue
-public abstract class GetLastNElementsDoFn<K, V> extends DoFn<KV<K, V>, KV<K, ImmutableList<V>>> {
-public static <K, V> GetLastNElementsDoFn<K, V> create(int n) {
-    checkArgument(n > 0, "Capacity must be > 0");
+public abstract class GetLastNElementsDoFn<K, V extends Comparable<? super V>> 
+    extends DoFn<KV<K, V>, KV<K, ImmutableList<V>>> implements Serializable {
 
+  public static <K, V extends Comparable<? super V>> GetLastNElementsDoFn<K, V> create(int n) {
+    checkArgument(n > 0, "Capacity must be > 0");
     return new AutoValue_GetLastNElementsDoFn<>(n);
   }
 
   abstract int n();
 
-  // Use a ValueState to store our CircularFifoQueue. CircularFifoQueue is Serializable,
-  // so we can use SerializableCoder with a proper TypeDescriptor.
+  // Use a ValueState to store our CircularFifoQueue.
   @StateId("buffer")
   private final StateSpec<ValueState<CircularFifoQueue<V>>> bufferSpec =
       StateSpecs.value(
@@ -51,8 +55,13 @@ public static <K, V> GetLastNElementsDoFn<K, V> create(int n) {
     // Write the updated queue back to state.
     state.write(queue);
 
-    // Emit the current collection as an ImmutableList.
-    ImmutableList<V> immutableList = ImmutableList.copyOf(queue);
-    out.output(KV.of(element.getKey(), immutableList));
+    // Create an ImmutableSortedSet from the queue to enforce sorted order.
+    // Note: This removes duplicate elements.
+    ImmutableSortedSet<V> sortedSet = ImmutableSortedSet.copyOf(queue);
+    // Convert the sorted set to an ImmutableList so that the external interface remains unchanged.
+    ImmutableList<V> sortedList = ImmutableList.copyOf(sortedSet);
+
+    // Emit the current sorted list.
+    out.output(KV.of(element.getKey(), sortedList));
   }
 }
