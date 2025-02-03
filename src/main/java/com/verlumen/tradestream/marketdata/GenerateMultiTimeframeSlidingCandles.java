@@ -3,6 +3,7 @@ package com.verlumen.tradestream.marketdata;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import com.verlumen.tradestream.time.TimeFrame;
 import java.io.Serializable;
 import org.apache.beam.sdk.transforms.Flatten;
 import org.apache.beam.sdk.transforms.GroupByKey;
