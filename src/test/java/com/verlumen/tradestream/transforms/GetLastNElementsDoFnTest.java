@@ -123,18 +123,19 @@ public class GetLastNElementsDoFnTest {
   // --- Test 5: Null value should throw an exception ---
   @Test
   public void testNullValueThrowsException() {
-    PCollection<KV<Integer, String>> input =
-        pipeline
-            .apply(Create.<KV<Integer, String>>of(KV.of(1, null)))
-            .apply(Window.<KV<Integer, String>>into(FixedWindows.of(Duration.standardMinutes(5))));
-
-    PCollection<KV<Integer, ImmutableList<String>>> output =
-        input.apply(ParDo.of(GetLastNElementsDoFn.<Integer, String>create(3)));
-
-    // Running the pipeline should result in a NullPointerException
-    assertThrows(NullPointerException.class, () -> {
-      pipeline.run().waitUntilFinish();
-    });
+      PCollection<KV<Integer, String>> input =
+          pipeline
+              .apply(Create.<KV<Integer, String>>of(KV.of(1, null)))
+              .apply(Window.<KV<Integer, String>>into(FixedWindows.of(Duration.standardMinutes(5))));
+      
+      PCollection<KV<Integer, ImmutableList<String>>> output =
+          input.apply(ParDo.of(GetLastNElementsDoFn.<Integer, String>create(3)));
+      
+      Exception e = assertThrows(Exception.class, () -> {
+          pipeline.run().waitUntilFinish();
+      });
+      // Assert that the cause is a NullPointerException.
+      assertTrue(e.getCause() instanceof NullPointerException);
   }
 
   // --- Test 6: Zero capacity should throw an exception ---
