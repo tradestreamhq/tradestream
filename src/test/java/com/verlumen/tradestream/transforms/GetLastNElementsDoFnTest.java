@@ -43,8 +43,6 @@ public class GetLastNElementsDoFnTest {
   // --- Test 2: Two elements within capacity ---
   @Test
   public void testTwoElementsOutput() {
-    TestPipeline pipeline = TestPipeline.create();
-
     PCollection<KV<Integer, String>> input =
         pipeline
             .apply(Create.of(KV.of(1, "a"), KV.of(1, "b")))
@@ -67,8 +65,6 @@ public class GetLastNElementsDoFnTest {
   // --- Test 3: Buffer eviction when capacity is exceeded ---
   @Test
   public void testEvictionWhenExceedCapacity() {
-    TestPipeline pipeline = TestPipeline.create();
-
     PCollection<KV<Integer, String>> input =
         pipeline
             .apply(Create.of(KV.of(1, "a"), KV.of(1, "b"), KV.of(1, "c"), KV.of(1, "d")))
@@ -106,8 +102,6 @@ public class GetLastNElementsDoFnTest {
   // --- Test 4: Multiple keys state isolation ---
   @Test
   public void testMultipleKeysStateIsolation() {
-    TestPipeline pipeline = TestPipeline.create();
-
     PCollection<KV<Integer, String>> input =
         pipeline
             .apply(Create.of(KV.of(1, "a"), KV.of(2, "x")))
@@ -128,8 +122,6 @@ public class GetLastNElementsDoFnTest {
   // --- Test 5: Null value should throw an exception ---
   @Test
   public void testNullValueThrowsException() {
-    TestPipeline pipeline = TestPipeline.create();
-
     PCollection<KV<Integer, String>> input =
         pipeline
             .apply(Create.<KV<Integer, String>>of(KV.of(1, null)))
@@ -147,8 +139,6 @@ public class GetLastNElementsDoFnTest {
   // --- Test 6: Zero capacity should throw an exception ---
   @Test
   public void testZeroCapacityThrowsException() {
-    TestPipeline pipeline = TestPipeline.create();
-
     PCollection<KV<Integer, String>> input =
         pipeline
             .apply(Create.of(KV.of(1, "a")))
