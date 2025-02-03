@@ -35,6 +35,14 @@ java_library(
 )
 
 java_library(
+  name = "multi_time_frame_candle_transform",
+  srcs = ["MultiTimeframeCandleTransform.java"],
+  deps = [
+    "//third_party:beam_sdks_java_core",
+  ],
+)
+
+java_library(
   name = "parse_trades",
   srcs = ["ParseTrades.java"],
   deps = [
