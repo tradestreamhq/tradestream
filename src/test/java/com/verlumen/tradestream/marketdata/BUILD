@@ -41,6 +41,19 @@ java_test(
 )
 
 java_test(
+    name = "SlidingCandleAggregatorTest",
+    srcs = ["SlidingCandleAggregatorTest.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/marketdata:sliding_candle_aggregator",
+        "//third_party:beam_sdk",
+        "//third_party:junit",
+        "//third_party:protobuf_java",
+        "//third_party:guava",
+    ],
+)
+
+java_test(
     name = "TradePublisherImplTest",
     srcs = ["TradePublisherImplTest.java"],
     deps = [
