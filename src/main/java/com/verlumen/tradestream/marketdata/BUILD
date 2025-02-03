@@ -40,6 +40,7 @@ java_library(
   deps = [
     "//src/main/com/verlumen/tradestream/transforms:get_last_n_elements_do_fn",
     "//third_party:beam_sdks_java_core",
+    "//third_party:guice",
   ],
 )
 
