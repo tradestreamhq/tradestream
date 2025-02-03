@@ -10,6 +10,7 @@ java_test(
         "//third_party:beam_sdks_java_test_utils",
         "//third_party:commons_collections4",
         "//third_party:guava",
+        "//third_party:hamcrest",
         "//third_party:joda_time",
         "//third_party:junit",
     ],
