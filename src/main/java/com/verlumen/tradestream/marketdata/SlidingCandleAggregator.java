@@ -11,14 +11,12 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Duration;
 
-import java.math.BigDecimal;
-
 /**
  * SlidingCandleAggregator aggregates Trade messages into a Candle per sliding window.
  * The input is a PCollection of KV<String, Trade> keyed by currency pair (e.g. "BTC/USD").
  */
 public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, Trade>>, PCollection<KV<String, Candle>>> {
-
+    private static final double ZERO = 0.0;
     private final Duration windowDuration;
     private final Duration slideDuration;
 
@@ -99,11 +97,11 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
             Candle.Builder builder = Candle.newBuilder();
             if (accumulator.firstTrade) {
                 // No trade was received; produce a default candle.
-                builder.setOpen(BigDecimal.ZERO)
-                       .setHigh(BigDecimal.ZERO)
-                       .setLow(BigDecimal.ZERO)
-                       .setClose(BigDecimal.ZERO)
-                       .setVolume(BigDecimal.ZERO)
+                builder.setOpen(ZERO)
+                       .setHigh(ZERO)
+                       .setLow(ZERO)
+                       .setClose(ZERO)
+                       .setVolume(ZERO)
                        .setTimestamp(Timestamp.getDefaultInstance());
             } else {
                 builder.setOpen(accumulator.open)
@@ -126,11 +124,11 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
      * CandleAccumulator holds the intermediate aggregation state.
      */
     public static class CandleAccumulator {
-        BigDecimal open = BigDecimal.ZERO;
-        BigDecimal high = BigDecimal.ZERO;
-        BigDecimal low = BigDecimal.ZERO;
-        BigDecimal close = BigDecimal.ZERO;
-        BigDecimal volume = BigDecimal.ZERO;
+        double open = ZERO;
+        double high = ZERO;
+        double low = ZERO;
+        double close = ZERO;
+        double volume = ZERO;
         Timestamp timestamp;
         String currencyPair;
         boolean firstTrade = true;
