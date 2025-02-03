@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.transforms;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import org.apache.beam.sdk.coders.SerializableCoder;
@@ -15,7 +17,9 @@ import java.io.Serializable;
 
 @AutoValue
 public abstract class GetLastNElementsDoFn<K, V> extends DoFn<KV<K, V>, KV<K, ImmutableList<V>>> {
-  public static <K, V> GetLastNElementsDoFn<K, V> create(int n) {
+public static <K, V> GetLastNElementsDoFn<K, V> create(int n) {
+    checkArgument(n > 0, "Capacity must be > 0");
+
     return new AutoValue_GetLastNElementsDoFn<>(n);
   }
 
