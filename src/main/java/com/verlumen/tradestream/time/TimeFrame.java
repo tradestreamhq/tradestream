@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.time;
 
-import java.util.stream.Arrays;
+import java.util.Arrays;
 
 public enum TimeFrame {
     FIVE_MIN("5m", 5),
