@@ -3,7 +3,6 @@ package com.verlumen.tradestream.marketdata;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.google.protobuf.util.Timestamps;
-import com.verlumen.tradestream.time.TimeFrame;
 import java.io.Serializable;
 import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
@@ -29,12 +28,8 @@ public class CreateCandles extends PTransform<PCollection<KV<String, Trade>>, PC
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private final TimeFrame timeFrame;
-
   @Inject
-  CreateCandles(TimeFrame timeFrame) {
-    this.timeFrame = timeFrame;
-  }
+  CreateCandles() {}
 
   @Override
   public PCollection<Candle> expand(PCollection<KV<String, Trade>> input) {
@@ -48,7 +43,7 @@ public class CreateCandles extends PTransform<PCollection<KV<String, Trade>>, PC
     //         .discardingFiredPanes());
 
     return input.apply(
-        "AggregateToCandle" + timeFrame.getLabel(),
+        "AggregateToCandle",
         ParDo.of(
             new DoFn<KV<String, Trade>, Candle>() {
 
