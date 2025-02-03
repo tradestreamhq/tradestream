@@ -17,6 +17,18 @@ java_library(
 )
 
 java_library(
+  name = "generate_multi_timeframe_sliding_candles",
+  srcs = ["GenerateMultiTimeframeSlidingCandles.java"],
+  deps = [
+    ":create_candles",
+    "//third_party:auto_value",
+    "//third_party:beam_sdks_java_core",
+    "//third_party:guava",
+    "//third_party:joda_time",
+  ],
+)
+
+java_library(
   name = "market_data_config",
   srcs = ["MarketDataConfig.java"],
 )
@@ -31,17 +43,6 @@ java_library(
     "//third_party:auto_value",
     "//third_party:guice",
     "//third_party:guice_assistedinject",
-  ],
-)
-
-java_library(
-  name = "generate_multi_timeframe_sliding_candles",
-  srcs = ["GenerateMultiTimeframeSlidingCandles.java"],
-  deps = [
-    "//third_party:auto_value",
-    "//third_party:beam_sdks_java_core",
-    "//third_party:guava",
-    "//third_party:joda_time",
   ],
 )
 

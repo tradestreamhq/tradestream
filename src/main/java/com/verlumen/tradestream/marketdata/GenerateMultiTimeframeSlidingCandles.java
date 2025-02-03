@@ -1,6 +1,8 @@
 package com.verlumen.tradestream.marketdata;
 
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import java.io.Serializable;
 import org.apache.beam.sdk.transforms.Flatten;
 import org.apache.beam.sdk.transforms.GroupByKey;
@@ -14,14 +16,14 @@ import org.apache.beam.sdk.values.PCollectionList;
 import org.apache.beam.sdk.values.TypeDescriptors;
 import org.joda.time.Duration;
 
-@AutoValue
 public class GenerateMultiTimeframeSlidingCandles
     extends PTransform<PCollection<KV<String, Trade>>, PCollection<KV<String, ImmutableList<Candle>>>> {
-  public static GenerateMultiTimeframeSlidingCandles create(Duration slidePeriod) {
-      return AutoValue_GenerateMultiTimeframeSlidingCandles(slidePeriod);
-  }
+  private final Duration slidePeriod;
 
-  abstract Duration slidePeriod();
+  @Inject
+  GenerateMultiTimeframeSlidingCandles create(Duration slidePeriod) {
+      this.slidePeriod = slidePeriod;
+  }
 
   @Override
   public PCollection<KV<String, ImmutableList<Candle>>> expand(PCollection<KV<String, Trade>> input) {
@@ -33,7 +35,7 @@ public class GenerateMultiTimeframeSlidingCandles
           "SlidingWindow " + timeframe.getLabel(),
           Window.<KV<String, Trade>>into(
               SlidingWindows.of(Duration.standardMinutes(timeframe.getMinutes()))
-                            .every(slidePeriod()))
+                            .every(slidePeriod))
       );
 
       PCollection<KV<String, Iterable<Trade>>> groupedTrades = windowedTrades.apply(
@@ -41,10 +43,9 @@ public class GenerateMultiTimeframeSlidingCandles
           GroupByKey.create()
       );
 
-      // Assume that GenerateCandles is your transform that aggregates trades into a Candle.
       PCollection<KV<String, Candle>> candles = groupedTrades.apply(
           "GenerateCandles " + timeframe.getLabel(),
-          new GenerateCandles(timeframe)
+          new CreateCandles(timeframe)
       );
 
       PCollection<KV<String, ImmutableList<Candle>>> formattedCandles = candles.apply(
