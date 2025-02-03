@@ -19,7 +19,7 @@ java_library(
 
 java_library(
   name = "generate_multi_timeframe_sliding_candles",
-  srcs = ["GenerateMultiTimeframeSlidingCandles.java"],
+  srcs = ["GenerateCandlesFromTradesSliding.java"],
   deps = [
     ":create_candles",
     "//protos:marketdata_java_proto",
