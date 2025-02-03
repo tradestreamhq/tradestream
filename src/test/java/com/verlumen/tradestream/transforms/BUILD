@@ -8,6 +8,7 @@ java_test(
         "//third_party:auto_value",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_test_utils",
+        "//third_party:commons_collections4",
         "//third_party:guava",
         "//third_party:junit",
     ],
