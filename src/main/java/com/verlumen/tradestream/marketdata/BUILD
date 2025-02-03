@@ -7,12 +7,29 @@ java_library(
   srcs = ["CreateCandles.java"],
   deps = [
     "//protos:marketdata_java_proto",
+    "//src/main/java/com/verlumen/tradestream/time:time_frame",
     "//third_party:beam_sdks_java_core",
     "//third_party:beam_sdks_java_extensions_protobuf",
     "//third_party:flogger",
     "//third_party:guice",
     "//third_party:joda_time",
     "//third_party:protobuf_java_util",
+  ],
+)
+
+java_library(
+  name = "generate_multi_timeframe_sliding_candles",
+  srcs = ["GenerateCandlesFromTradesSliding.java"],
+  deps = [
+    ":create_candles",
+    "//protos:marketdata_java_proto",
+    "//src/main/java/com/verlumen/tradestream/time:time_frame",
+    "//third_party:auto_value",
+    "//third_party:beam_sdks_java_core",
+    "//third_party:guava",
+    "//third_party:guice",
+    "//third_party:guice_assistedinject",
+    "//third_party:joda_time",
   ],
 )
 
