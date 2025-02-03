@@ -140,18 +140,9 @@ public class GetLastNElementsDoFnTest {
   // --- Test 6: Zero capacity should throw an exception ---
   @Test
   public void testZeroCapacityThrowsException() {
-    PCollection<KV<Integer, String>> input =
-        pipeline
-            .apply(Create.of(KV.of(1, "a")))
-            .apply(Window.into(FixedWindows.of(Duration.standardMinutes(5))));
-
-    // Creating a DoFn with zero capacity should cause an exception when processing.
-    PCollection<KV<Integer, ImmutableList<String>>> output =
-        input.apply(ParDo.of(GetLastNElementsDoFn.<Integer, String>create(0)));
-
-    // Running the pipeline should result in an IllegalArgumentException from CircularFifoQueue.
-    assertThrows(IllegalArgumentException.class, () -> {
-        GetLastNElementsDoFn.<Integer, String>create(0);
-    });
+      // Simply assert that creating a DoFn with zero capacity throws an exception.
+      assertThrows(IllegalArgumentException.class, () -> {
+          GetLastNElementsDoFn.<Integer, String>create(0);
+      });
   }
 }
