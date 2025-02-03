@@ -1,6 +1,8 @@
 package com.verlumen.tradestream.marketdata;
 
 import com.google.inject.Inject;
+import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.time.TimeFrame;
 
 public class MultiTimeframeCandleTransform
   extends PTransform<PCollection<KV<String, Candle>>, PCollection<KV<String, ImmutableList<Candle>>>> {
