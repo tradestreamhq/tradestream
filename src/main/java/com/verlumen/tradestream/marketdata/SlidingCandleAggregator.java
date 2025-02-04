@@ -46,48 +46,46 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
         public CandleAccumulator addInput(CandleAccumulator accumulator, Trade trade) {
             if (accumulator.firstTrade) {
                 accumulator.open = trade.getPrice();
-                accumulator.high = trade.getPrice();
+                accumulator.high = trade.getPrice(); 
                 accumulator.low = trade.getPrice();
                 accumulator.close = trade.getPrice();
                 accumulator.volume = trade.getVolume();
                 accumulator.timestamp = trade.getTimestamp();
-                // Create a string like "BTC/USD"
-                accumulator.currencyPair = trade.getCurrencyPair().getBase() + "/" + trade.getCurrencyPair().getQuote();
+                accumulator.currencyPair = trade.getCurrencyPair(); // Trade returns String directly
                 accumulator.firstTrade = false;
             } else {
-                accumulator.high = accumulator.high.max(trade.getPrice());
-                accumulator.low = accumulator.low.min(trade.getPrice());
+                // Use direct numeric comparisons instead of object methods
+                accumulator.high = Math.max(accumulator.high, trade.getPrice());
+                accumulator.low = Math.min(accumulator.low, trade.getPrice());
                 accumulator.close = trade.getPrice();
-                accumulator.volume = accumulator.volume.add(trade.getVolume());
+                accumulator.volume += trade.getVolume(); // Use addition operator
             }
-            return accumulator;
         }
 
-        @Override
-        public CandleAccumulator mergeAccumulators(Iterable<CandleAccumulator> accumulators) {
-            CandleAccumulator merged = createAccumulator();
-            boolean first = true;
-            for (CandleAccumulator acc : accumulators) {
-                if (acc.firstTrade) continue;
-                if (first) {
+        @Override 
+        public CandleAccumulator mergeAccumulators(CandleAccumulator merged, CandleAccumulator acc) {
+            if (acc.firstTrade) {
+                return merged;
+            }
+            if (merged.firstTrade) {
+                merged.open = acc.open;
+                merged.high = acc.high;
+                merged.low = acc.low;
+                merged.close = acc.close;
+                merged.volume = acc.volume;
+                merged.timestamp = acc.timestamp;
+                merged.currencyPair = acc.currencyPair;
+                merged.firstTrade = false;
+            } else {
+                // Use timestamp comparison for oldest open
+                if (acc.timestamp.getSeconds() < merged.timestamp.getSeconds()) {
                     merged.open = acc.open;
-                    merged.high = acc.high;
-                    merged.low = acc.low;
-                    merged.close = acc.close;
-                    merged.volume = acc.volume;
                     merged.timestamp = acc.timestamp;
-                    merged.currencyPair = acc.currencyPair;
-                    first = false;
-                } else {
-                    if (compareTimestamps(acc.timestamp, merged.timestamp) < 0) {
-                        merged.open = acc.open;
-                        merged.timestamp = acc.timestamp;
-                    }
-                    merged.high = merged.high.max(acc.high);
-                    merged.low = merged.low.min(acc.low);
-                    merged.close = acc.close;
-                    merged.volume = merged.volume.add(acc.volume);
                 }
+                merged.high = Math.max(merged.high, acc.high);
+                merged.low = Math.min(merged.low, acc.low);
+                merged.close = acc.close;
+                merged.volume += acc.volume; // Use addition operator
             }
             return merged;
         }
