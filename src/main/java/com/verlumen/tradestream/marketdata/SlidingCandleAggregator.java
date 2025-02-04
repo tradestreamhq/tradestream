@@ -60,6 +60,7 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
                 accumulator.close = trade.getPrice();
                 accumulator.volume += trade.getVolume(); // Use addition operator
             }
+            return accumulator;
         }
 
         @Override 
