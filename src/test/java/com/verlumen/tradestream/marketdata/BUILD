@@ -47,6 +47,7 @@ java_test(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/marketdata:sliding_candle_aggregator",
         "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
         "//third_party:beam_sdks_java_test_utils",
         "//third_party:joda_time",
         "//third_party:junit",
