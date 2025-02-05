@@ -20,6 +20,7 @@ java_library(
   name = "last_candles_fn",
   srcs = ["LastCandlesFn.java"],
   deps = [
+    "//protos:marketdata_java_proto",
     "//third_party:beam_sdks_java_core",
     "//third_party:guava",
   ],
