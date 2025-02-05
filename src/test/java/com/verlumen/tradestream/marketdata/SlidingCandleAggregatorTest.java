@@ -55,7 +55,7 @@ public class SlidingCandleAggregatorTest {
             assertEquals(10000, candle.getClose());
             assertEquals(0.5, candle.getVolume());
             assertEquals(ts, candle.getTimestamp());
-            assertEquals("BTC/USD", candle.getCurrencyPair().getBase() + "/" + candle.getCurrencyPair().getQuote());
+            assertEquals("BTC/USD", candle.getCurrencyPair());
             return iterable;
         });
         pipeline.run().waitUntilFinish();
