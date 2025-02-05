@@ -8,7 +8,7 @@ import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.SlidingCandleAggregator.CandleAccumulator;
 import com.verlumen.tradestream.marketdata.SlidingCandleAggregator.CandleCombineFn;
 import com.verlumen.tradestream.marketdata.Trade;
-import org.apache.beam.sdk.coders.KVCoder;
+import org.apache.beam.sdk.coders.KvCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.testing.PAssert;
