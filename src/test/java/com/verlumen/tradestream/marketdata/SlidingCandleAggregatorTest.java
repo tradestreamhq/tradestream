@@ -8,6 +8,7 @@ import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.SlidingCandleAggregator.CandleAccumulator;
 import com.verlumen.tradestream.marketdata.SlidingCandleAggregator.CandleCombineFn;
 import com.verlumen.tradestream.marketdata.Trade;
+import org.apache.beam.sdk.coders.KVCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.testing.PAssert;
@@ -245,7 +246,7 @@ public class SlidingCandleAggregatorTest {
         assertEquals(10000, updatedAcc.low, DELTA);
         assertEquals(10100, updatedAcc.close, DELTA);
         assertEquals(1.2, updatedAcc.volume, DELTA);
-        assertEquals(ts, updatedAcc.openTimestamp);
+        assertEquals(ts1, updatedAcc.openTimestamp);
         assertEquals(ts2, updatedAcc.closeTimestamp);
         assertEquals("BTC/USD", updatedAcc.currencyPair);
         assertEquals(false, updatedAcc.firstTrade);
