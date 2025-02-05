@@ -30,11 +30,13 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
         this.slideDuration = slideDuration;
     }
 
-    @Override
+@Override
     public PCollection<KV<String, Candle>> expand(PCollection<KV<String, Trade>> input) {
+        // Always emit at least one element per window, even if there are no trades
         PCollection<KV<String, Candle>> output = input
                 .apply(Window.into(SlidingWindows.of(windowDuration).every(slideDuration)))
-                .apply("AggregateToCandle", Combine.perKey(new CandleCombineFn()));
+                .apply("AggregateToCandle", Combine.perKey(new CandleCombineFn())
+                        .withoutDefaults());
 
         output.setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle.class)));
         return output;

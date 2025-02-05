@@ -114,19 +114,13 @@ public class SlidingCandleAggregatorTest {
     @Test
     public void testAggregateNoTrades() {
         // Arrange & Act & Assert: When no trades are provided, the CombineFn should produce a default candle.
+    @Test
+    public void testAggregateNoTrades() {
+        // When no trades are provided, no elements should be output
         PAssert.that(
             pipeline.apply(Create.empty(org.apache.beam.sdk.coders.KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Trade.class))))
                     .apply(new SlidingCandleAggregator(Duration.standardMinutes(1), Duration.standardSeconds(30)))
-        ).satisfies(iterable -> {
-            Candle candle = iterable.iterator().next().getValue();
-            assertEquals(ZERO, candle.getOpen(), DELTA);
-            assertEquals(ZERO, candle.getHigh(), DELTA);
-            assertEquals(ZERO, candle.getLow(), DELTA);
-            assertEquals(ZERO, candle.getClose(), DELTA);
-            assertEquals(ZERO, candle.getVolume(), DELTA);
-            assertEquals(Timestamp.getDefaultInstance(), candle.getTimestamp());
-            return null;
-        });
+        ).empty();
         pipeline.run().waitUntilFinish();
     }
 
