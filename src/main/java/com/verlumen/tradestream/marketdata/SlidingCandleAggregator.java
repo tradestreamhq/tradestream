@@ -3,8 +3,7 @@ package com.verlumen.tradestream.marketdata;
 import com.google.protobuf.Timestamp;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.Trade;
-import org.apache.beam.sdk.coders.KvCoder;
-import org.apache.beam.sdk.coders.StringUtf8Coder;
+import org.apache.beam.sdk.coders.*;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.PTransform;
@@ -34,19 +33,20 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
                 .apply(Window.into(SlidingWindows.of(windowDuration).every(slideDuration)))
                 .apply("AggregateToCandle", Combine.perKey(new CandleCombineFn()));
 
-        // Explicitly set the coder so that Beam knows how to encode KV<String, Candle>
         output.setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle.class)));
         return output;
     }
 
-        /**
-         * CandleCombineFn aggregates Trade messages into a Candle.
-         */
     /**
      * CandleCombineFn aggregates Trade messages into a Candle.
      */
     public static class CandleCombineFn extends Combine.CombineFn<Trade, CandleAccumulator, Candle> {
+        @Override
+        public Coder<CandleAccumulator> getAccumulatorCoder(CoderRegistry registry, Coder<Trade> inputCoder) {
+            return new CandleAccumulatorCoder();
+        }
 
+        // Rest of CandleCombineFn implementation remains the same
         @Override
         public CandleAccumulator createAccumulator() {
             return new CandleAccumulator();
@@ -56,7 +56,7 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
         public CandleAccumulator addInput(CandleAccumulator accumulator, Trade trade) {
             if (accumulator.firstTrade) {
                 accumulator.open = trade.getPrice();
-                accumulator.high = trade.getPrice(); 
+                accumulator.high = trade.getPrice();
                 accumulator.low = trade.getPrice();
                 accumulator.close = trade.getPrice();
                 accumulator.volume = trade.getVolume();
@@ -139,5 +139,61 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
         Timestamp timestamp;
         String currencyPair;
         boolean firstTrade = true;
+    }
+
+    /**
+     * Custom coder for CandleAccumulator to enable serialization/deserialization in Beam pipeline.
+     */
+    private static class CandleAccumulatorCoder extends CustomCoder<CandleAccumulator> {
+        private static final Coder<Double> DOUBLE_CODER = DoubleCoder.of();
+        private static final Coder<Boolean> BOOLEAN_CODER = BooleanCoder.of();
+        private static final Coder<String> STRING_CODER = StringUtf8Coder.of();
+        private static final Coder<Timestamp> TIMESTAMP_CODER = ProtoCoder.of(Timestamp.class);
+
+        @Override
+        public void encode(CandleAccumulator value, OutputStream outStream) throws IOException {
+            DOUBLE_CODER.encode(value.open, outStream);
+            DOUBLE_CODER.encode(value.high, outStream);
+            DOUBLE_CODER.encode(value.low, outStream);
+            DOUBLE_CODER.encode(value.close, outStream);
+            DOUBLE_CODER.encode(value.volume, outStream);
+            BOOLEAN_CODER.encode(value.firstTrade, outStream);
+            
+            // Handle nullable fields
+            boolean hasTimestamp = value.timestamp != null;
+            BOOLEAN_CODER.encode(hasTimestamp, outStream);
+            if (hasTimestamp) {
+                TIMESTAMP_CODER.encode(value.timestamp, outStream);
+            }
+            
+            boolean hasCurrencyPair = value.currencyPair != null;
+            BOOLEAN_CODER.encode(hasCurrencyPair, outStream);
+            if (hasCurrencyPair) {
+                STRING_CODER.encode(value.currencyPair, outStream);
+            }
+        }
+
+        @Override
+        public CandleAccumulator decode(InputStream inStream) throws IOException {
+            CandleAccumulator acc = new CandleAccumulator();
+            acc.open = DOUBLE_CODER.decode(inStream);
+            acc.high = DOUBLE_CODER.decode(inStream);
+            acc.low = DOUBLE_CODER.decode(inStream);
+            acc.close = DOUBLE_CODER.decode(inStream);
+            acc.volume = DOUBLE_CODER.decode(inStream);
+            acc.firstTrade = BOOLEAN_CODER.decode(inStream);
+            
+            boolean hasTimestamp = BOOLEAN_CODER.decode(inStream);
+            if (hasTimestamp) {
+                acc.timestamp = TIMESTAMP_CODER.decode(inStream);
+            }
+            
+            boolean hasCurrencyPair = BOOLEAN_CODER.decode(inStream);
+            if (hasCurrencyPair) {
+                acc.currencyPair = STRING_CODER.decode(inStream);
+            }
+            
+            return acc;
+        }
     }
 }
