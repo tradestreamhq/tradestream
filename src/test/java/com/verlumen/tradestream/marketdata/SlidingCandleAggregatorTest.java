@@ -189,11 +189,11 @@ public class SlidingCandleAggregatorTest {
         CandleAccumulator updatedAcc = combineFn.addInput(accumulator, trade);
 
         // Assert
-        assertEquals(10000"), updatedAcc.open);
-        assertEquals(10000"), updatedAcc.high);
-        assertEquals(10000"), updatedAcc.low);
-        assertEquals(10000"), updatedAcc.close);
-        assertEquals(0.5"), updatedAcc.volume);
+        assertEquals(10000, updatedAcc.open);
+        assertEquals(10000, updatedAcc.high);
+        assertEquals(10000, updatedAcc.low);
+        assertEquals(10000, updatedAcc.close);
+        assertEquals(0.5, updatedAcc.volume);
         assertEquals(ts, updatedAcc.timestamp);
         assertEquals("BTC/USD", updatedAcc.currencyPair);
         assertEquals(false, updatedAcc.firstTrade);
@@ -230,11 +230,11 @@ public class SlidingCandleAggregatorTest {
         CandleAccumulator updatedAcc = combineFn.addInput(accumulator, trade2);
 
         // Assert
-        assertEquals(10000"), updatedAcc.open);
-        assertEquals(10100"), updatedAcc.high);
-        assertEquals(10000"), updatedAcc.low);
-        assertEquals(10100"), updatedAcc.close);
-        assertEquals(1.2"), updatedAcc.volume);
+        assertEquals(10000, updatedAcc.open);
+        assertEquals(10100, updatedAcc.high);
+        assertEquals(10000, updatedAcc.low);
+        assertEquals(10100, updatedAcc.close);
+        assertEquals(1.2, updatedAcc.volume);
         assertEquals(ts1, updatedAcc.timestamp);
         assertEquals("BTC/USD", updatedAcc.currencyPair);
         assertEquals(false, updatedAcc.firstTrade);
