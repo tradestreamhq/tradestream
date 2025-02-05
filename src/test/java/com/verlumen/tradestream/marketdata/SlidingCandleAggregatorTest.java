@@ -180,8 +180,8 @@ public class SlidingCandleAggregatorTest {
                 .setTimestamp(ts)
                 .setExchange("BINANCE")
                 .setCurrencyPair("BTC/USD")
-                .setPrice(10000"))
-                .setVolume(0.5"))
+                .setPrice(10000)
+                .setVolume(0.5)
                 .setTradeId("trade1")
                 .build();
 
@@ -211,16 +211,16 @@ public class SlidingCandleAggregatorTest {
                 .setTimestamp(ts1)
                 .setExchange("BINANCE")
                 .setCurrencyPair("BTC/USD")
-                .setPrice(10000"))
-                .setVolume(0.5"))
+                .setPrice(10000)
+                .setVolume(0.5)
                 .setTradeId("trade1")
                 .build();
         Trade trade2 = Trade.newBuilder()
                 .setTimestamp(ts2)
                 .setExchange("BINANCE")
                 .setCurrencyPair("BTC/USD")
-                .setPrice(10100"))
-                .setVolume(0.7"))
+                .setPrice(10100)
+                .setVolume(0.7)
                 .setTradeId("trade2")
                 .build();
 
