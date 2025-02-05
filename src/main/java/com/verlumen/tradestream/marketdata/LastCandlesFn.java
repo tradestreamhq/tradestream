@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.marketdata;
 
 import com.google.common.collect.ImmutableList;
-import com.verlumen.tradestream.marketdata.Candle;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -68,12 +67,7 @@ public class LastCandlesFn {
         }
 
         private boolean isDefaultCandle(Candle candle) {
-            return candle.getOpen().compareTo(BigDecimal.ZERO) == 0 &&
-                   candle.getHigh().compareTo(BigDecimal.ZERO) == 0 &&
-                   candle.getLow().compareTo(BigDecimal.ZERO) == 0 &&
-                   candle.getClose().compareTo(BigDecimal.ZERO) == 0 &&
-                   candle.getVolume().compareTo(BigDecimal.ZERO) == 0 &&
-                   candle.getTimestamp().equals(com.google.protobuf.Timestamp.getDefaultInstance());
+            return Candle.getDefaultInstance().equals(candle);
         }
     }
 }
