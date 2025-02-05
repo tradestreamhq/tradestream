@@ -27,6 +27,13 @@ public class SlidingCandleAggregatorTest {
     @Rule 
     public final TestPipeline pipeline = TestPipeline.create();
 
+    @Before
+    public void setUp() {
+        // Register coders for protobuf messages
+        pipeline.getCoderRegistry().registerCoderForClass(Trade.class, ProtoCoder.of(Trade.class));
+        pipeline.getCoderRegistry().registerCoderForClass(Candle.class, ProtoCoder.of(Candle.class));
+    }
+
     @Test
     public void testAggregateSingleTrade() {
         // Arrange
