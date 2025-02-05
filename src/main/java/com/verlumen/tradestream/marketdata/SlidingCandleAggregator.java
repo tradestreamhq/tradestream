@@ -32,6 +32,9 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
                 .apply("AggregateToCandle", Combine.perKey(new CandleCombineFn()));
     }
 
+        /**
+         * CandleCombineFn aggregates Trade messages into a Candle.
+         */
     /**
      * CandleCombineFn aggregates Trade messages into a Candle.
      */
@@ -51,42 +54,45 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
                 accumulator.close = trade.getPrice();
                 accumulator.volume = trade.getVolume();
                 accumulator.timestamp = trade.getTimestamp();
-                accumulator.currencyPair = trade.getCurrencyPair(); // Trade returns String directly
+                accumulator.currencyPair = trade.getCurrencyPair();
                 accumulator.firstTrade = false;
             } else {
-                // Use direct numeric comparisons instead of object methods
                 accumulator.high = Math.max(accumulator.high, trade.getPrice());
                 accumulator.low = Math.min(accumulator.low, trade.getPrice());
                 accumulator.close = trade.getPrice();
-                accumulator.volume += trade.getVolume(); // Use addition operator
+                accumulator.volume += trade.getVolume();
             }
             return accumulator;
         }
 
-        @Override 
-        public CandleAccumulator mergeAccumulators(CandleAccumulator merged, CandleAccumulator acc) {
-            if (acc.firstTrade) {
-                return merged;
-            }
-            if (merged.firstTrade) {
-                merged.open = acc.open;
-                merged.high = acc.high;
-                merged.low = acc.low;
-                merged.close = acc.close;
-                merged.volume = acc.volume;
-                merged.timestamp = acc.timestamp;
-                merged.currencyPair = acc.currencyPair;
-                merged.firstTrade = false;
-            } else {
-                // Use timestamp comparison for oldest open
-                if (acc.timestamp.getSeconds() < merged.timestamp.getSeconds()) {
-                    merged.open = acc.open;
-                    merged.timestamp = acc.timestamp;
+        @Override
+        public CandleAccumulator mergeAccumulators(Iterable<CandleAccumulator> accumulators) {
+            CandleAccumulator merged = createAccumulator();
+            
+            for (CandleAccumulator acc : accumulators) {
+                if (acc.firstTrade) {
+                    continue;
                 }
-                merged.high = Math.max(merged.high, acc.high);
-                merged.low = Math.min(merged.low, acc.low);
-                merged.close = acc.close;
-                merged.volume += acc.volume; // Use addition operator
+                
+                if (merged.firstTrade) {
+                    merged.open = acc.open;
+                    merged.high = acc.high;
+                    merged.low = acc.low;
+                    merged.close = acc.close;
+                    merged.volume = acc.volume;
+                    merged.timestamp = acc.timestamp;
+                    merged.currencyPair = acc.currencyPair;
+                    merged.firstTrade = false;
+                } else {
+                    if (acc.timestamp.getSeconds() < merged.timestamp.getSeconds()) {
+                        merged.open = acc.open;
+                        merged.timestamp = acc.timestamp;
+                    }
+                    merged.high = Math.max(merged.high, acc.high);
+                    merged.low = Math.min(merged.low, acc.low);
+                    merged.close = acc.close;
+                    merged.volume += acc.volume;
+                }
             }
             return merged;
         }
@@ -95,7 +101,6 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
         public Candle extractOutput(CandleAccumulator accumulator) {
             Candle.Builder builder = Candle.newBuilder();
             if (accumulator.firstTrade) {
-                // No trade was received; produce a default candle.
                 builder.setOpen(ZERO)
                        .setHigh(ZERO)
                        .setLow(ZERO)
@@ -112,10 +117,6 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
                        .setCurrencyPair(accumulator.currencyPair);
             }
             return builder.build();
-        }
-
-        private int compareTimestamps(Timestamp t1, Timestamp t2) {
-            return Long.compare(t1.getSeconds(), t2.getSeconds());
         }
     }
 
