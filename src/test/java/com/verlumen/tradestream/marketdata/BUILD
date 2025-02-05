@@ -23,6 +23,21 @@ java_test(
 )
 
 java_test(
+    name = "LastCandlesFnTest",
+    srcs = ["LastCandlesFnTest.java"],
+    deps = [
+        ":last_candles_fn",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_test_utils",
+        "//third_party:junit",
+    ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
+)
+
+java_test(
     name = "ParseTradesTest",
     srcs = ["ParseTradesTest.java"],
     deps = [
