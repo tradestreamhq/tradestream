@@ -26,8 +26,8 @@ public class LastCandlesFn {
         }
 
         @StateId("candleBuffer")
-        private final StateSpec<ValueState<LinkedList<Candle>>> bufferSpec =
-                StateSpecs.value(ListCoder.of(ProtoCoder.of(Candle.class)));
+        private final StateSpec<ValueState<List<Candle>>> bufferSpec =
+            StateSpecs.value(ListCoder.of(ProtoCoder.of(Candle.class)));
 
         @ProcessElement
         public void processElement(@Element KV<String, Candle> element,
