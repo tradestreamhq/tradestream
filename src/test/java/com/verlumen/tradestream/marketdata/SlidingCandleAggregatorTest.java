@@ -158,11 +158,11 @@ public class SlidingCandleAggregatorTest {
         Candle candle = combineFn.extractOutput(mergedAcc);
 
         // Assert
-        assertEquals(10000, mergedAcc.open);
-        assertEquals(10100, mergedAcc.high);
-        assertEquals(10000, mergedAcc.low);
-        assertEquals(10100, mergedAcc.close);
-        assertEquals(1.2, mergedAcc.volume);
+        assertEquals(10000, mergedAcc.open, DELTA);
+        assertEquals(10100, mergedAcc.high, DELTA);
+        assertEquals(10000, mergedAcc.low, DELTA);
+        assertEquals(10100, mergedAcc.close, DELTA);
+        assertEquals(1.2, mergedAcc.volume, DELTA);
         assertEquals(ts1, mergedAcc.timestamp);
         assertEquals("BTC/USD", mergedAcc.currencyPair);
         assertEquals(10000, candle.getOpen(), DELTA);
@@ -189,11 +189,11 @@ public class SlidingCandleAggregatorTest {
         CandleAccumulator updatedAcc = combineFn.addInput(accumulator, trade);
 
         // Assert
-        assertEquals(10000, updatedAcc.open);
-        assertEquals(10000, updatedAcc.high);
-        assertEquals(10000, updatedAcc.low);
-        assertEquals(10000, updatedAcc.close);
-        assertEquals(0.5, updatedAcc.volume);
+        assertEquals(10000, updatedAcc.open, DELTA);
+        assertEquals(10000, updatedAcc.high, DELTA);
+        assertEquals(10000, updatedAcc.low, DELTA);
+        assertEquals(10000, updatedAcc.close, DELTA);
+        assertEquals(0.5, updatedAcc.volume, DELTA);
         assertEquals(ts, updatedAcc.timestamp);
         assertEquals("BTC/USD", updatedAcc.currencyPair);
         assertEquals(false, updatedAcc.firstTrade);
@@ -230,11 +230,11 @@ public class SlidingCandleAggregatorTest {
         CandleAccumulator updatedAcc = combineFn.addInput(accumulator, trade2);
 
         // Assert
-        assertEquals(10000, updatedAcc.open);
-        assertEquals(10100, updatedAcc.high);
-        assertEquals(10000, updatedAcc.low);
-        assertEquals(10100, updatedAcc.close);
-        assertEquals(1.2, updatedAcc.volume);
+        assertEquals(10000, updatedAcc.open, DELTA);
+        assertEquals(10100, updatedAcc.high, DELTA);
+        assertEquals(10000, updatedAcc.low, DELTA);
+        assertEquals(10100, updatedAcc.close, DELTA);
+        assertEquals(1.2, updatedAcc.volume, DELTA);
         assertEquals(ts1, updatedAcc.timestamp);
         assertEquals("BTC/USD", updatedAcc.currencyPair);
         assertEquals(false, updatedAcc.firstTrade);
