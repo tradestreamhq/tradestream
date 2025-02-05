@@ -22,6 +22,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class SlidingCandleAggregatorTest {
+    private static final double ZERO = 0.0;
+
     @Rule 
     public final TestPipeline pipeline = TestPipeline.create();
 
@@ -109,11 +111,11 @@ public class SlidingCandleAggregatorTest {
                     .apply(new SlidingCandleAggregator(Duration.standardMinutes(1), Duration.standardSeconds(30)))
         ).satisfies(iterable -> {
             Candle candle = iterable.iterator().next().getValue();
-            assertEquals(BigDecimal.ZERO, candle.getOpen());
-            assertEquals(BigDecimal.ZERO, candle.getHigh());
-            assertEquals(BigDecimal.ZERO, candle.getLow());
-            assertEquals(BigDecimal.ZERO, candle.getClose());
-            assertEquals(BigDecimal.ZERO, candle.getVolume());
+            assertEquals(ZERO, candle.getOpen());
+            assertEquals(ZERO, candle.getHigh());
+            assertEquals(ZERO, candle.getLow());
+            assertEquals(ZERO, candle.getClose());
+            assertEquals(ZERO, candle.getVolume());
             assertEquals(Timestamp.getDefaultInstance(), candle.getTimestamp());
             return iterable;
         });
