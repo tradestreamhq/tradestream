@@ -8,7 +8,6 @@ import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.SlidingCandleAggregator.CandleAccumulator;
 import com.verlumen.tradestream.marketdata.SlidingCandleAggregator.CandleCombineFn;
 import com.verlumen.tradestream.marketdata.Trade;
-import java.util.Arrays;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.testing.PAssert;
@@ -30,7 +29,7 @@ public class SlidingCandleAggregatorTest {
 
     @Before
     public void setUp() {
-        // Register coders for protobuf messages
+        // Register coders for protobuf messages.
         pipeline.getCoderRegistry().registerCoderForClass(Trade.class, ProtoCoder.of(Trade.class));
         pipeline.getCoderRegistry().registerCoderForClass(Candle.class, ProtoCoder.of(Candle.class));
     }
@@ -54,6 +53,7 @@ public class SlidingCandleAggregatorTest {
             pipeline.apply(Create.of(KV.of("BTC/USD", trade)))
                     .apply(new SlidingCandleAggregator(Duration.standardMinutes(1), Duration.standardSeconds(30)))
         ).satisfies(iterable -> {
+            // Since we have a single element, we expect one KV.
             KV<String, Candle> kv = iterable.iterator().next();
             assertEquals("BTC/USD", kv.getKey());
             Candle candle = kv.getValue();
@@ -97,15 +97,25 @@ public class SlidingCandleAggregatorTest {
             pipeline.apply(Create.of(KV.of("BTC/USD", trade1), KV.of("BTC/USD", trade2)))
                     .apply(new SlidingCandleAggregator(Duration.standardMinutes(1), Duration.standardSeconds(30)))
         ).satisfies(iterable -> {
-            KV<String, Candle> kv = iterable.iterator().next();
-            assertEquals("BTC/USD", kv.getKey());
-            Candle candle = kv.getValue();
-            assertEquals(10000, candle.getOpen(), DELTA);
-            assertEquals(10100, candle.getHigh(), DELTA);
-            assertEquals(10000, candle.getLow(), DELTA);
-            assertEquals(10100, candle.getClose(), DELTA);
-            assertEquals(1.2, candle.getVolume(), DELTA);
-            assertEquals(ts1, candle.getTimestamp()); // Earliest timestamp
+            // Since the Combine.perKey may output multiple elements (if the same key appears in multiple windows)
+            // we iterate through them to check one window where both trades were combined.
+            boolean found = false;
+            for (KV<String, Candle> kv : iterable) {
+                if ("BTC/USD".equals(kv.getKey())) {
+                    Candle candle = kv.getValue();
+                    // For the window that contains both trades, the open should be 10000 and close 10100.
+                    if (candle.getOpen() == 10000 && candle.getClose() == 10100) {
+                        assertEquals(10000, candle.getOpen(), DELTA);
+                        assertEquals(10100, candle.getHigh(), DELTA);
+                        assertEquals(10000, candle.getLow(), DELTA);
+                        assertEquals(10100, candle.getClose(), DELTA);
+                        assertEquals(1.2, candle.getVolume(), DELTA);
+                        assertEquals(ts1, candle.getTimestamp()); // open timestamp
+                        found = true;
+                    }
+                }
+            }
+            assertTrue("Expected a window with both trades aggregated", found);
             return null;
         });
         pipeline.run().waitUntilFinish();
@@ -113,20 +123,12 @@ public class SlidingCandleAggregatorTest {
 
     @Test
     public void testAggregateNoTrades() {
-        // Arrange & Act & Assert: When no trades are provided, the CombineFn should produce a default candle.
+        // Arrange & Act: Create an empty PCollection.
+        // Because there are no keys, the output should be empty.
         PAssert.that(
-            pipeline.apply(Create.empty(org.apache.beam.sdk.coders.KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Trade.class))))
+            pipeline.apply(Create.empty(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Trade.class))))
                     .apply(new SlidingCandleAggregator(Duration.standardMinutes(1), Duration.standardSeconds(30)))
-        ).satisfies(iterable -> {
-            Candle candle = iterable.iterator().next().getValue();
-            assertEquals(ZERO, candle.getOpen(), DELTA);
-            assertEquals(ZERO, candle.getHigh(), DELTA);
-            assertEquals(ZERO, candle.getLow(), DELTA);
-            assertEquals(ZERO, candle.getClose(), DELTA);
-            assertEquals(ZERO, candle.getVolume(), DELTA);
-            assertEquals(Timestamp.getDefaultInstance(), candle.getTimestamp());
-            return null;
-        });
+        ).empty();
         pipeline.run().waitUntilFinish();
     }
 
@@ -162,7 +164,7 @@ public class SlidingCandleAggregatorTest {
         acc2 = combineFn.addInput(acc2, trade2);
 
         // Act
-        CandleAccumulator mergedAcc = combineFn.mergeAccumulators(Arrays.asList(acc1, acc2));
+        CandleAccumulator mergedAcc = combineFn.mergeAccumulators(java.util.Arrays.asList(acc1, acc2));
         Candle candle = combineFn.extractOutput(mergedAcc);
 
         // Assert
@@ -171,10 +173,9 @@ public class SlidingCandleAggregatorTest {
         assertEquals(10000, mergedAcc.low, DELTA);
         assertEquals(10100, mergedAcc.close, DELTA);
         assertEquals(1.2, mergedAcc.volume, DELTA);
-        assertEquals(ts1, mergedAcc.timestamp);
+        assertEquals(ts1, mergedAcc.openTimestamp);
         assertEquals("BTC/USD", mergedAcc.currencyPair);
         assertEquals(10000, candle.getOpen(), DELTA);
-        return;
     }
 
     @Test
@@ -202,7 +203,8 @@ public class SlidingCandleAggregatorTest {
         assertEquals(10000, updatedAcc.low, DELTA);
         assertEquals(10000, updatedAcc.close, DELTA);
         assertEquals(0.5, updatedAcc.volume, DELTA);
-        assertEquals(ts, updatedAcc.timestamp);
+        assertEquals(ts, updatedAcc.openTimestamp);
+        assertEquals(ts, updatedAcc.closeTimestamp);
         assertEquals("BTC/USD", updatedAcc.currencyPair);
         assertEquals(false, updatedAcc.firstTrade);
     }
@@ -243,7 +245,8 @@ public class SlidingCandleAggregatorTest {
         assertEquals(10000, updatedAcc.low, DELTA);
         assertEquals(10100, updatedAcc.close, DELTA);
         assertEquals(1.2, updatedAcc.volume, DELTA);
-        assertEquals(ts1, updatedAcc.timestamp);
+        assertEquals(ts, updatedAcc.openTimestamp);
+        assertEquals(ts2, updatedAcc.closeTimestamp);
         assertEquals("BTC/USD", updatedAcc.currencyPair);
         assertEquals(false, updatedAcc.firstTrade);
     }
