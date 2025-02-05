@@ -5,13 +5,12 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.protobuf.Timestamp;
 import com.verlumen.tradestream.marketdata.Candle;
-import com.verlumen.tradestream.marketdata.CurrencyPair;
 import com.verlumen.tradestream.marketdata.SlidingCandleAggregator.CandleAccumulator;
 import com.verlumen.tradestream.marketdata.SlidingCandleAggregator.CandleCombineFn;
 import com.verlumen.tradestream.marketdata.Trade;
 import java.util.Arrays;
-import org.apache.beam.sdk.coders.ProtoCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
+import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
