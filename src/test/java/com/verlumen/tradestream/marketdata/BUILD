@@ -56,7 +56,7 @@ java_test(
     ],
     runtime_deps = [
         "//third_party:beam_runners_direct_java",
-        # "//third_party:hamcrest",
+        "//third_party:hamcrest",
     ],
 )
 
