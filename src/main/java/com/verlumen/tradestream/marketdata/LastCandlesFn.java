@@ -19,6 +19,7 @@ import org.apache.beam.sdk.values.KV;
  * using the last real candle’s close price for open, high, low, and close, with volume set to 0.
  */
 public class LastCandlesFn {
+    private static final double ZERO = 0.0;
 
     public static class BufferLastCandles extends DoFn<KV<String, Candle>, KV<String, ImmutableList<Candle>>> {
 
@@ -50,8 +51,8 @@ public class LastCandlesFn {
                         .setHigh(lastReal.getClose())
                         .setLow(lastReal.getClose())
                         .setClose(lastReal.getClose())
-                        .setVolume(BigDecimal.ZERO)
-                        .setTimestamp(incoming.getTimestamp())  // Use the synthetic candle's timestamp
+                        .setVolume(ZERO)
+                        .setTimestamp(incoming.getTimestamp())
                         .setCurrencyPair(incoming.getCurrencyPair())
                         .build();
             }
