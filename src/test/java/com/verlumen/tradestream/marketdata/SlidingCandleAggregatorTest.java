@@ -21,6 +21,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class SlidingCandleAggregatorTest {
+    private static final double DELTA = 1e-6;
     private static final double ZERO = 0.0;
 
     @Rule 
@@ -48,11 +49,11 @@ public class SlidingCandleAggregatorTest {
             KV<String, Candle> kv = iterable.iterator().next();
             assertEquals("BTC/USD", kv.getKey());
             Candle candle = kv.getValue();
-            assertEquals(10000, candle.getOpen());
-            assertEquals(10000, candle.getHigh());
-            assertEquals(10000, candle.getLow());
-            assertEquals(10000, candle.getClose());
-            assertEquals(0.5, candle.getVolume());
+            assertEquals(10000, candle.getOpen(), DELTA);
+            assertEquals(10000, candle.getHigh(), DELTA);
+            assertEquals(10000, candle.getLow(), DELTA);
+            assertEquals(10000, candle.getClose(), DELTA);
+            assertEquals(0.5, candle.getVolume(), DELTA);
             assertEquals(ts, candle.getTimestamp());
             assertEquals("BTC/USD", candle.getCurrencyPair());
             return null;
@@ -91,11 +92,11 @@ public class SlidingCandleAggregatorTest {
             KV<String, Candle> kv = iterable.iterator().next();
             assertEquals("BTC/USD", kv.getKey());
             Candle candle = kv.getValue();
-            assertEquals(10000, candle.getOpen());
-            assertEquals(10100, candle.getHigh());
-            assertEquals(10000, candle.getLow());
-            assertEquals(10100, candle.getClose());
-            assertEquals(1.2, candle.getVolume());
+            assertEquals(10000, candle.getOpen(), DELTA);
+            assertEquals(10100, candle.getHigh(), DELTA);
+            assertEquals(10000, candle.getLow(), DELTA);
+            assertEquals(10100, candle.getClose(), DELTA);
+            assertEquals(1.2, candle.getVolume(), DELTA);
             assertEquals(ts1, candle.getTimestamp()); // Earliest timestamp
             return null;
         });
@@ -110,11 +111,11 @@ public class SlidingCandleAggregatorTest {
                     .apply(new SlidingCandleAggregator(Duration.standardMinutes(1), Duration.standardSeconds(30)))
         ).satisfies(iterable -> {
             Candle candle = iterable.iterator().next().getValue();
-            assertEquals(ZERO, candle.getOpen());
-            assertEquals(ZERO, candle.getHigh());
-            assertEquals(ZERO, candle.getLow());
-            assertEquals(ZERO, candle.getClose());
-            assertEquals(ZERO, candle.getVolume());
+            assertEquals(ZERO, candle.getOpen(), DELTA);
+            assertEquals(ZERO, candle.getHigh(), DELTA);
+            assertEquals(ZERO, candle.getLow(), DELTA);
+            assertEquals(ZERO, candle.getClose(), DELTA);
+            assertEquals(ZERO, candle.getVolume(), DELTA);
             assertEquals(Timestamp.getDefaultInstance(), candle.getTimestamp());
             return null;
         });
@@ -164,7 +165,7 @@ public class SlidingCandleAggregatorTest {
         assertEquals(1.2, mergedAcc.volume);
         assertEquals(ts1, mergedAcc.timestamp);
         assertEquals("BTC/USD", mergedAcc.currencyPair);
-        assertEquals(10000, candle.getOpen());
+        assertEquals(10000, candle.getOpen(), DELTA);
         return;
     }
 
