@@ -55,7 +55,7 @@ public class SlidingCandleAggregatorTest {
             assertEquals(0.5, candle.getVolume());
             assertEquals(ts, candle.getTimestamp());
             assertEquals("BTC/USD", candle.getCurrencyPair());
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
@@ -97,7 +97,7 @@ public class SlidingCandleAggregatorTest {
             assertEquals(10100, candle.getClose());
             assertEquals(1.2, candle.getVolume());
             assertEquals(ts1, candle.getTimestamp()); // Earliest timestamp
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
@@ -116,7 +116,7 @@ public class SlidingCandleAggregatorTest {
             assertEquals(ZERO, candle.getClose());
             assertEquals(ZERO, candle.getVolume());
             assertEquals(Timestamp.getDefaultInstance(), candle.getTimestamp());
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
