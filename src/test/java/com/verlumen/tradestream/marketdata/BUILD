@@ -41,6 +41,26 @@ java_test(
 )
 
 java_test(
+    name = "SlidingCandleAggregatorTest",
+    srcs = ["SlidingCandleAggregatorTest.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/marketdata:sliding_candle_aggregator",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:beam_sdks_java_test_utils",
+        "//third_party:joda_time",
+        "//third_party:junit",
+        "//third_party:protobuf_java",
+        "//third_party:guava",
+    ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
+)
+
+java_test(
     name = "TradePublisherImplTest",
     srcs = ["TradePublisherImplTest.java"],
     deps = [
