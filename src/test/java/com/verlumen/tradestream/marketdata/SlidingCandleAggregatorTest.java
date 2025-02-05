@@ -9,7 +9,6 @@ import com.verlumen.tradestream.marketdata.CurrencyPair;
 import com.verlumen.tradestream.marketdata.SlidingCandleAggregator.CandleAccumulator;
 import com.verlumen.tradestream.marketdata.SlidingCandleAggregator.CandleCombineFn;
 import com.verlumen.tradestream.marketdata.Trade;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import org.apache.beam.sdk.coders.ProtoCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
@@ -35,8 +34,8 @@ public class SlidingCandleAggregatorTest {
                 .setTimestamp(ts)
                 .setExchange("BINANCE")
                 .setCurrencyPair("BTC/USD")
-                .setPrice(new BigDecimal("10000"))
-                .setVolume(new BigDecimal("0.5"))
+                .setPrice(10000)
+                .setVolume(0.5)
                 .setTradeId("trade1")
                 .build();
 
@@ -48,11 +47,11 @@ public class SlidingCandleAggregatorTest {
             KV<String, Candle> kv = iterable.iterator().next();
             assertEquals("BTC/USD", kv.getKey());
             Candle candle = kv.getValue();
-            assertEquals(new BigDecimal("10000"), candle.getOpen());
-            assertEquals(new BigDecimal("10000"), candle.getHigh());
-            assertEquals(new BigDecimal("10000"), candle.getLow());
-            assertEquals(new BigDecimal("10000"), candle.getClose());
-            assertEquals(new BigDecimal("0.5"), candle.getVolume());
+            assertEquals(10000, candle.getOpen());
+            assertEquals(10000, candle.getHigh());
+            assertEquals(10000, candle.getLow());
+            assertEquals(10000, candle.getClose());
+            assertEquals(0.5, candle.getVolume());
             assertEquals(ts, candle.getTimestamp());
             assertEquals("BTC/USD", candle.getCurrencyPair().getBase() + "/" + candle.getCurrencyPair().getQuote());
             return iterable;
@@ -70,16 +69,16 @@ public class SlidingCandleAggregatorTest {
                 .setTimestamp(ts1)
                 .setExchange("BINANCE")
                 .setCurrencyPair("BTC/USD")
-                .setPrice(new BigDecimal("10000"))
-                .setVolume(new BigDecimal("0.5"))
+                .setPrice(10000)
+                .setVolume(0.5)
                 .setTradeId("trade1")
                 .build();
         Trade trade2 = Trade.newBuilder()
                 .setTimestamp(ts2)
                 .setExchange("BINANCE")
                 .setCurrencyPair("BTC/USD")
-                .setPrice(new BigDecimal("10100"))
-                .setVolume(new BigDecimal("0.7"))
+                .setPrice(10100)
+                .setVolume(0.7)
                 .setTradeId("trade2")
                 .build();
 
@@ -91,11 +90,11 @@ public class SlidingCandleAggregatorTest {
             KV<String, Candle> kv = iterable.iterator().next();
             assertEquals("BTC/USD", kv.getKey());
             Candle candle = kv.getValue();
-            assertEquals(new BigDecimal("10000"), candle.getOpen());
-            assertEquals(new BigDecimal("10100"), candle.getHigh());
-            assertEquals(new BigDecimal("10000"), candle.getLow());
-            assertEquals(new BigDecimal("10100"), candle.getClose());
-            assertEquals(new BigDecimal("1.2"), candle.getVolume());
+            assertEquals(10000, candle.getOpen());
+            assertEquals(10100, candle.getHigh());
+            assertEquals(10000, candle.getLow());
+            assertEquals(10100, candle.getClose());
+            assertEquals(1.2, candle.getVolume());
             assertEquals(ts1, candle.getTimestamp()); // Earliest timestamp
             return iterable;
         });
@@ -136,16 +135,16 @@ public class SlidingCandleAggregatorTest {
                 .setTimestamp(ts1)
                 .setExchange("BINANCE")
                 .setCurrencyPair("BTC/USD")
-                .setPrice(new BigDecimal("10000"))
-                .setVolume(new BigDecimal("0.5"))
+                .setPrice(10000"))
+                .setVolume(0.5"))
                 .setTradeId("trade1")
                 .build();
         Trade trade2 = Trade.newBuilder()
                 .setTimestamp(ts2)
                 .setExchange("BINANCE")
                 .setCurrencyPair("BTC/USD")
-                .setPrice(new BigDecimal("10100"))
-                .setVolume(new BigDecimal("0.7"))
+                .setPrice(10100"))
+                .setVolume(0.7"))
                 .setTradeId("trade2")
                 .build();
 
@@ -157,14 +156,14 @@ public class SlidingCandleAggregatorTest {
         Candle candle = combineFn.extractOutput(mergedAcc);
 
         // Assert
-        assertEquals(new BigDecimal("10000"), mergedAcc.open);
-        assertEquals(new BigDecimal("10100"), mergedAcc.high);
-        assertEquals(new BigDecimal("10000"), mergedAcc.low);
-        assertEquals(new BigDecimal("10100"), mergedAcc.close);
-        assertEquals(new BigDecimal("1.2"), mergedAcc.volume);
+        assertEquals(10000"), mergedAcc.open);
+        assertEquals(10100"), mergedAcc.high);
+        assertEquals(10000"), mergedAcc.low);
+        assertEquals(10100"), mergedAcc.close);
+        assertEquals(1.2"), mergedAcc.volume);
         assertEquals(ts1, mergedAcc.timestamp);
         assertEquals("BTC/USD", mergedAcc.currencyPair);
-        assertEquals(new BigDecimal("10000"), candle.getOpen());
+        assertEquals(10000"), candle.getOpen());
         return;
     }
 
@@ -179,8 +178,8 @@ public class SlidingCandleAggregatorTest {
                 .setTimestamp(ts)
                 .setExchange("BINANCE")
                 .setCurrencyPair("BTC/USD")
-                .setPrice(new BigDecimal("10000"))
-                .setVolume(new BigDecimal("0.5"))
+                .setPrice(10000"))
+                .setVolume(0.5"))
                 .setTradeId("trade1")
                 .build();
 
@@ -188,11 +187,11 @@ public class SlidingCandleAggregatorTest {
         CandleAccumulator updatedAcc = combineFn.addInput(accumulator, trade);
 
         // Assert
-        assertEquals(new BigDecimal("10000"), updatedAcc.open);
-        assertEquals(new BigDecimal("10000"), updatedAcc.high);
-        assertEquals(new BigDecimal("10000"), updatedAcc.low);
-        assertEquals(new BigDecimal("10000"), updatedAcc.close);
-        assertEquals(new BigDecimal("0.5"), updatedAcc.volume);
+        assertEquals(10000"), updatedAcc.open);
+        assertEquals(10000"), updatedAcc.high);
+        assertEquals(10000"), updatedAcc.low);
+        assertEquals(10000"), updatedAcc.close);
+        assertEquals(0.5"), updatedAcc.volume);
         assertEquals(ts, updatedAcc.timestamp);
         assertEquals("BTC/USD", updatedAcc.currencyPair);
         assertEquals(false, updatedAcc.firstTrade);
@@ -210,16 +209,16 @@ public class SlidingCandleAggregatorTest {
                 .setTimestamp(ts1)
                 .setExchange("BINANCE")
                 .setCurrencyPair("BTC/USD")
-                .setPrice(new BigDecimal("10000"))
-                .setVolume(new BigDecimal("0.5"))
+                .setPrice(10000"))
+                .setVolume(0.5"))
                 .setTradeId("trade1")
                 .build();
         Trade trade2 = Trade.newBuilder()
                 .setTimestamp(ts2)
                 .setExchange("BINANCE")
                 .setCurrencyPair("BTC/USD")
-                .setPrice(new BigDecimal("10100"))
-                .setVolume(new BigDecimal("0.7"))
+                .setPrice(10100"))
+                .setVolume(0.7"))
                 .setTradeId("trade2")
                 .build();
 
@@ -229,11 +228,11 @@ public class SlidingCandleAggregatorTest {
         CandleAccumulator updatedAcc = combineFn.addInput(accumulator, trade2);
 
         // Assert
-        assertEquals(new BigDecimal("10000"), updatedAcc.open);
-        assertEquals(new BigDecimal("10100"), updatedAcc.high);
-        assertEquals(new BigDecimal("10000"), updatedAcc.low);
-        assertEquals(new BigDecimal("10100"), updatedAcc.close);
-        assertEquals(new BigDecimal("1.2"), updatedAcc.volume);
+        assertEquals(10000"), updatedAcc.open);
+        assertEquals(10100"), updatedAcc.high);
+        assertEquals(10000"), updatedAcc.low);
+        assertEquals(10100"), updatedAcc.close);
+        assertEquals(1.2"), updatedAcc.volume);
         assertEquals(ts1, updatedAcc.timestamp);
         assertEquals("BTC/USD", updatedAcc.currencyPair);
         assertEquals(false, updatedAcc.firstTrade);
