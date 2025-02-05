@@ -27,9 +27,13 @@ public class SlidingCandleAggregator extends PTransform<PCollection<KV<String, T
 
     @Override
     public PCollection<KV<String, Candle>> expand(PCollection<KV<String, Trade>> input) {
-        return input
+        PCollection<KV<String, Candle>> output = input
                 .apply(Window.into(SlidingWindows.of(windowDuration).every(slideDuration)))
                 .apply("AggregateToCandle", Combine.perKey(new CandleCombineFn()));
+
+        // Explicitly set the coder so that Beam knows how to encode KV<String, Candle>
+        output.setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle.class)));
+        return output;
     }
 
         /**
