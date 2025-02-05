@@ -137,16 +137,16 @@ public class SlidingCandleAggregatorTest {
                 .setTimestamp(ts1)
                 .setExchange("BINANCE")
                 .setCurrencyPair("BTC/USD")
-                .setPrice(10000"))
-                .setVolume(0.5"))
+                .setPrice(10000)
+                .setVolume(0.5)
                 .setTradeId("trade1")
                 .build();
         Trade trade2 = Trade.newBuilder()
                 .setTimestamp(ts2)
                 .setExchange("BINANCE")
                 .setCurrencyPair("BTC/USD")
-                .setPrice(10100"))
-                .setVolume(0.7"))
+                .setPrice(10100)
+                .setVolume(0.7)
                 .setTradeId("trade2")
                 .build();
 
@@ -158,14 +158,14 @@ public class SlidingCandleAggregatorTest {
         Candle candle = combineFn.extractOutput(mergedAcc);
 
         // Assert
-        assertEquals(10000"), mergedAcc.open);
-        assertEquals(10100"), mergedAcc.high);
-        assertEquals(10000"), mergedAcc.low);
-        assertEquals(10100"), mergedAcc.close);
-        assertEquals(1.2"), mergedAcc.volume);
+        assertEquals(10000, mergedAcc.open);
+        assertEquals(10100, mergedAcc.high);
+        assertEquals(10000, mergedAcc.low);
+        assertEquals(10100, mergedAcc.close);
+        assertEquals(1.2, mergedAcc.volume);
         assertEquals(ts1, mergedAcc.timestamp);
         assertEquals("BTC/USD", mergedAcc.currencyPair);
-        assertEquals(10000"), candle.getOpen());
+        assertEquals(10000, candle.getOpen());
         return;
     }
 
