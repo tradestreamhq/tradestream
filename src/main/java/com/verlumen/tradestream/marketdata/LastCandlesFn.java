@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
+import java.util.List;
 import java.util.LinkedList;
 import org.apache.beam.sdk.coders.ListCoder;
 import org.apache.beam.sdk.coders.SerializableCoder;
