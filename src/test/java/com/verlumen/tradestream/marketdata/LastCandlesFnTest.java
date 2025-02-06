@@ -19,7 +19,7 @@ import org.junit.Test;
 import java.util.LinkedList;
 
 public class LastCandlesFnTest {
-
+    private static final double ZERO = 0.0;
     @Rule 
     public final TestPipeline pipeline = TestPipeline.create();
 
@@ -64,11 +64,11 @@ public class LastCandlesFnTest {
                 .build();
         // Create a default candle (no trades)
         Candle defaultCandle = Candle.newBuilder()
-                .setOpen(BigDecimal.ZERO)
-                .setHigh(BigDecimal.ZERO)
-                .setLow(BigDecimal.ZERO)
-                .setClose(BigDecimal.ZERO)
-                .setVolume(BigDecimal.ZERO)
+                .setOpen(ZERO)
+                .setHigh(ZERO)
+                .setLow(ZERO)
+                .setClose(ZERO)
+                .setVolume(ZERO)
                 .setTimestamp(Timestamp.getDefaultInstance())
                 .setCurrencyPair(realCandle.getCurrencyPair())
                 .build();
@@ -89,7 +89,7 @@ public class LastCandlesFnTest {
             assertEquals(realCandle.getClose(), filledCandle.getHigh());
             assertEquals(realCandle.getClose(), filledCandle.getLow());
             assertEquals(realCandle.getClose(), filledCandle.getClose());
-            assertEquals(BigDecimal.ZERO, filledCandle.getVolume());
+            assertEquals(ZERO, filledCandle.getVolume());
             return iterable;
         });
         pipeline.run().waitUntilFinish();
