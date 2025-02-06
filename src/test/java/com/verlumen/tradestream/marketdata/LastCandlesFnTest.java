@@ -6,7 +6,7 @@ import static org.junit.Assert.assertTrue;
 import com.google.protobuf.Timestamp;
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.marketdata.LastCandlesFn.BufferLastCandles;
-import org.apache.beam.sdk.coders.ProtoCoder;
+import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
