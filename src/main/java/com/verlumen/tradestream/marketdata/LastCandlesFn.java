@@ -32,16 +32,20 @@ public class LastCandlesFn {
 
         @ProcessElement
         public void processElement(
+            ProcessContext context,
             @Element KV<String, Candle> element,
-            @StateId("candleBuffer") ValueState<List<Candle>> bufferState,
-            OutputReceiver<KV<String, ImmutableList<Candle>>> out) {
+            @StateId("candleBuffer") ValueState<List<Candle>> bufferState) {
 
+            // Read current buffer state
             List<Candle> buffer = bufferState.read();
             if (buffer == null) {
                 buffer = new ArrayList<>();
             }
-            Candle incoming = element.getValue();
 
+            Candle incoming = element.getValue();
+            String key = element.getKey();
+
+            // Handle default candle case
             if (isDefaultCandle(incoming) && !buffer.isEmpty()) {
                 Candle lastReal = buffer.get(buffer.size() - 1);
                 incoming = Candle.newBuilder()
@@ -55,19 +59,28 @@ public class LastCandlesFn {
                         .build();
             }
 
+            // Add new candle and maintain size limit
             buffer.add(incoming);
             while (buffer.size() > maxCandles) {
                 buffer.remove(0);
             }
+
+            // Sort by timestamp
+            buffer.sort(Comparator.comparingLong(c -> c.getTimestamp().getSeconds()));
+            
+            // Write back to state
             bufferState.write(buffer);
 
-            ArrayList<Candle> sorted = new ArrayList<>(buffer);
-            sorted.sort(Comparator.comparingLong(c -> c.getTimestamp().getSeconds()));
-            out.output(KV.of(element.getKey(), ImmutableList.copyOf(sorted)));
+            // Output the current buffer
+            context.output(KV.of(key, ImmutableList.copyOf(buffer)));
         }
 
         private boolean isDefaultCandle(Candle candle) {
-            return Candle.getDefaultInstance().equals(candle);
+            return candle.getOpen() == ZERO 
+                && candle.getHigh() == ZERO 
+                && candle.getLow() == ZERO 
+                && candle.getClose() == ZERO 
+                && candle.getVolume() == ZERO;
         }
     }
 }
