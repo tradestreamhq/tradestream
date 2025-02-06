@@ -31,17 +31,19 @@ public class LastCandlesFn {
             StateSpecs.value(ListCoder.of(ProtoCoder.of(Candle.class)));
 
         @ProcessElement
-        public void processElement(@Element KV<String, Candle> element,
-                                 @StateId("candleBuffer") ValueState<LinkedList<Candle>> bufferState,
-                                 OutputReceiver<KV<String, ImmutableList<Candle>>> out) {
-            LinkedList<Candle> buffer = bufferState.read();
+        public void processElement(
+            @Element KV<String, Candle> element,
+            @StateId("candleBuffer") ValueState<List<Candle>> bufferState,
+            OutputReceiver<KV<String, ImmutableList<Candle>>> out) {
+
+            List<Candle> buffer = bufferState.read();
             if (buffer == null) {
-                buffer = new LinkedList<>();
+                buffer = new ArrayList<>();
             }
             Candle incoming = element.getValue();
-            
+
             if (isDefaultCandle(incoming) && !buffer.isEmpty()) {
-                Candle lastReal = buffer.peekLast();
+                Candle lastReal = buffer.get(buffer.size() - 1);
                 incoming = Candle.newBuilder()
                         .setOpen(lastReal.getClose())
                         .setHigh(lastReal.getClose())
@@ -52,17 +54,15 @@ public class LastCandlesFn {
                         .setCurrencyPair(incoming.getCurrencyPair())
                         .build();
             }
-            buffer.addLast(incoming);
+
+            buffer.add(incoming);
             while (buffer.size() > maxCandles) {
-                buffer.removeFirst();
+                buffer.remove(0);
             }
             bufferState.write(buffer);
 
             ArrayList<Candle> sorted = new ArrayList<>(buffer);
-            sorted.sort((c1, c2) -> Long.compare(
-                c1.getTimestamp().getSeconds(),
-                c2.getTimestamp().getSeconds()
-            ));
+            sorted.sort(Comparator.comparingLong(c -> c.getTimestamp().getSeconds()));
             out.output(KV.of(element.getKey(), ImmutableList.copyOf(sorted)));
         }
 
