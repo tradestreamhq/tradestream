@@ -26,8 +26,10 @@ java_test(
     name = "LastCandlesFnTest",
     srcs = ["LastCandlesFnTest.java"],
     deps = [
+        "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/marketdata:last_candles_fn",
         "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
         "//third_party:beam_sdks_java_test_utils",
         "//third_party:junit",
     ],
