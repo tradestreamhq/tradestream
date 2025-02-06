@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.beam.sdk.coders.ListCoder;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.state.StateId;
+import org.apache.beam.sdk.state.StateSpec;
 import org.apache.beam.sdk.state.StateSpecs;
 import org.apache.beam.sdk.state.ValueState;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -15,10 +16,10 @@ import org.apache.beam.sdk.transforms.DoFn.Key;
 import org.apache.beam.sdk.transforms.DoFn.OnTimer;
 import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
 import org.apache.beam.sdk.transforms.DoFn.TimerId;
-import org.apache.beam.sdk.transforms.DoFn.TimerSpec;
+import org.apache.beam.sdk.transforms.TimerSpec;
+import org.apache.beam.sdk.transforms.TimerSpecs;
 import org.apache.beam.sdk.transforms.DoFn.OnTimerContext;
 import org.apache.beam.sdk.transforms.DoFn.ProcessContext;
-import org.apache.beam.sdk.transforms.DoFn.TimerSpecs;
 import org.apache.beam.sdk.transforms.windowing.GlobalWindow;
 import org.apache.beam.sdk.values.KV;
 import org.joda.time.Duration;
@@ -94,7 +95,7 @@ public class LastCandlesFn {
       // Write the updated state.
       bufferState.write(buffer);
       
-      // (Re-)schedule the flush timer to fire flushDelay from the current element’s timestamp.
+      // (Re-)schedule the flush timer to fire flushDelay from the current element's timestamp.
       flushTimer.set(context.timestamp().plus(flushDelay));
     }
 
