@@ -18,6 +18,7 @@ import org.apache.beam.sdk.transforms.DoFn.TimerId;
 import org.apache.beam.sdk.transforms.DoFn.TimerSpec;
 import org.apache.beam.sdk.transforms.DoFn.OnTimerContext;
 import org.apache.beam.sdk.transforms.DoFn.ProcessContext;
+import org.apache.beam.sdk.transforms.DoFn.TimerSpecs;
 import org.apache.beam.sdk.transforms.windowing.GlobalWindow;
 import org.apache.beam.sdk.values.KV;
 import org.joda.time.Duration;
@@ -28,27 +29,26 @@ public class LastCandlesFn {
 
   /**
    * This stateful DoFn buffers incoming candles (per key) and emits the final sorted list
-   * after no new element has been seen for a configurable delay. (For example, if flushDelay is 10
-   * seconds, then if a key is inactive for 10 seconds its buffered candles are flushed.)
+   * after no new element has been seen for a configurable delay.
    *
-   * In production you might want to use event-time timers (if your pipeline is windowed)
-   * or use more sophisticated logic for firing.
+   * In production you may use event‑time timers when using windowing. Here we use a processing‑time timer
+   * for simplicity.
    */
   public static class BufferLastCandles extends DoFn<KV<String, Candle>, KV<String, ImmutableList<Candle>>> {
     private final int maxCandles;
-    private final Duration flushDelay;  // flush state if no new element arrives within this delay
+    private final Duration flushDelay;  // Flush state if no new element arrives within this delay.
 
     public BufferLastCandles(int maxCandles, Duration flushDelay) {
       this.maxCandles = maxCandles;
       this.flushDelay = flushDelay;
     }
 
-    // The buffered candles for each key.
+    // Define the state to buffer the candles for each key.
     @StateId("candleBuffer")
     private final StateSpec<ValueState<List<Candle>>> bufferSpec =
         StateSpecs.value(ListCoder.of(ProtoCoder.of(Candle.class)));
 
-    // A processing-time timer that fires after flushDelay.
+    // Define a processing-time timer.
     @TimerId("flushTimer")
     private final TimerSpec flushTimerSpec = TimerSpecs.timer(org.apache.beam.sdk.state.TimeDomain.PROCESSING_TIME);
 
@@ -94,9 +94,7 @@ public class LastCandlesFn {
       // Write the updated state.
       bufferState.write(buffer);
       
-      // (Re-)schedule the flush timer to fire flushDelay from now.
-      // Note: Using the element's timestamp here; in production you might use
-      // the processing time clock directly.
+      // (Re-)schedule the flush timer to fire flushDelay from the current element’s timestamp.
       flushTimer.set(context.timestamp().plus(flushDelay));
     }
 
@@ -120,7 +118,7 @@ public class LastCandlesFn {
         // Emit the final state for this key.
         out.output(KV.of(key, ImmutableList.copyOf(sorted)));
       }
-      // Clear the state so that future elements start with a fresh buffer.
+      // Clear the state.
       bufferState.clear();
     }
 
