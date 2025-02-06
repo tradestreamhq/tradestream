@@ -16,7 +16,6 @@ import org.apache.beam.sdk.values.KV;
 import org.joda.time.Instant;
 import org.junit.Rule;
 import org.junit.Test;
-import java.math.BigDecimal;
 import java.util.LinkedList;
 
 public class LastCandlesFnTest {
