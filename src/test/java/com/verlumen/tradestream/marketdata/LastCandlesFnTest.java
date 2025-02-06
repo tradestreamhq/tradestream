@@ -13,6 +13,7 @@ import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
+import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,6 +22,7 @@ import java.util.LinkedList;
 public class LastCandlesFnTest {
     private static final double DELTA = 1e-6;
     private static final double ZERO = 0.0;
+    private static final Duration FLUSH_DELAY = Duration.standardSeconds(5);
 
     @Rule 
     public final TestPipeline pipeline = TestPipeline.create();
@@ -41,7 +43,7 @@ public class LastCandlesFnTest {
         // Act & Assert
         PAssert.that(
             pipeline.apply(Create.of(KV.of("BTC/USD", candle1)))
-                    .apply(ParDo.of(new BufferLastCandles(3)))
+                    .apply(ParDo.of(new BufferLastCandles(3, FLUSH_DELAY)))
         ).satisfies(iterable -> {
             KV<String, ImmutableList<Candle>> kv = iterable.iterator().next();
             assertEquals("BTC/USD", kv.getKey());
@@ -78,7 +80,7 @@ public class LastCandlesFnTest {
         // Act & Assert: When a default candle is added after a real one, it should be replaced.
         PAssert.that(
             pipeline.apply(Create.of(KV.of("BTC/USD", realCandle), KV.of("BTC/USD", defaultCandle)))
-                    .apply(ParDo.of(new BufferLastCandles(3)))
+                    .apply(ParDo.of(new BufferLastCandles(3, FLUSH_DELAY)))
         ).satisfies(iterable -> {
             KV<String, ImmutableList<Candle>> kv = iterable.iterator().next();
             // The buffer should contain two candles: realCandle and then the dummy candle based on realCandle's close.
@@ -144,7 +146,7 @@ public class LastCandlesFnTest {
                         KV.of("BTC/USD", candle2),
                         KV.of("BTC/USD", candle3),
                         KV.of("BTC/USD", candle4)))
-                    .apply(ParDo.of(new BufferLastCandles(3)))
+                    .apply(ParDo.of(new BufferLastCandles(3, FLUSH_DELAY)))
         ).satisfies(iterable -> {
             KV<String, ImmutableList<Candle>> kv = iterable.iterator().next();
             assertEquals("BTC/USD", kv.getKey());
@@ -163,7 +165,7 @@ public class LastCandlesFnTest {
         // Arrange & Act & Assert: When input is empty, no output should be produced.
         PAssert.that(
             pipeline.apply(Create.empty(org.apache.beam.sdk.coders.KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle.class))))
-                    .apply(ParDo.of(new BufferLastCandles(3)))
+                    .apply(ParDo.of(new BufferLastCandles(3, FLUSH_DELAY)))
         ).satisfies(iterable -> {
             assertTrue(!iterable.iterator().hasNext());
             return null;
@@ -187,7 +189,7 @@ public class LastCandlesFnTest {
         // Act & Assert
         PAssert.that(
             pipeline.apply(Create.of(KV.of("BTC/USD", candle1)))
-                    .apply(ParDo.of(new BufferLastCandles(0)))
+                    .apply(ParDo.of(new BufferLastCandles(0, FLUSH_DELAY)))
         ).satisfies(iterable -> {
             KV<String, ImmutableList<Candle>> kv = iterable.iterator().next();
             assertEquals("BTC/USD", kv.getKey());
