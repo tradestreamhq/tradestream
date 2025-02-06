@@ -45,7 +45,7 @@ public class LastCandlesFnTest {
             assertEquals("BTC/USD", kv.getKey());
             assertEquals(1, kv.getValue().size());
             assertEquals(candle1, kv.getValue().get(0));
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
@@ -90,7 +90,7 @@ public class LastCandlesFnTest {
             assertEquals(realCandle.getClose(), filledCandle.getLow());
             assertEquals(realCandle.getClose(), filledCandle.getClose());
             assertEquals(ZERO, filledCandle.getVolume());
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
@@ -151,7 +151,7 @@ public class LastCandlesFnTest {
             assertEquals(candle2, kv.getValue().get(0));
             assertEquals(candle3, kv.getValue().get(1));
             assertEquals(candle4, kv.getValue().get(2));
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
@@ -164,7 +164,7 @@ public class LastCandlesFnTest {
                     .apply(ParDo.of(new BufferLastCandles(3)))
         ).satisfies(iterable -> {
             assertTrue(!iterable.iterator().hasNext());
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
@@ -190,7 +190,7 @@ public class LastCandlesFnTest {
             KV<String, ImmutableList<Candle>> kv = iterable.iterator().next();
             assertEquals("BTC/USD", kv.getKey());
             assertTrue(kv.getValue().isEmpty());
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
