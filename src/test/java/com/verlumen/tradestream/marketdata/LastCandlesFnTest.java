@@ -5,8 +5,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.protobuf.Timestamp;
 import com.google.common.collect.ImmutableList;
-import com.verlumen.tradestream.marketdata.Candle;
-import com.verlumen.tradestream.marketdata.CurrencyPair;
 import com.verlumen.tradestream.marketdata.LastCandlesFn.BufferLastCandles;
 import org.apache.beam.sdk.coders.ProtoCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
@@ -30,13 +28,13 @@ public class LastCandlesFnTest {
     public void testBufferSingleCandle() {
         // Arrange
         Candle candle1 = Candle.newBuilder()
-                .setOpen(new BigDecimal("100"))
-                .setHigh(new BigDecimal("110"))
-                .setLow(new BigDecimal("90"))
-                .setClose(new BigDecimal("105"))
-                .setVolume(new BigDecimal("1"))
+                .setOpen(100)
+                .setHigh(110)
+                .setLow(90)
+                .setClose(105)
+                .setVolume(1)
                 .setTimestamp(Timestamp.newBuilder().setSeconds(1000).build())
-                .setCurrencyPair(CurrencyPair.newBuilder().setBase("BTC").setQuote("USD").build())
+                .setCurrencyPair("BTC/USD")
                 .build();
 
         // Act & Assert
@@ -57,13 +55,13 @@ public class LastCandlesFnTest {
     public void testBufferDefaultCandleReplacement() {
         // Arrange: First, add a real candle, then add a default (dummy) candle.
         Candle realCandle = Candle.newBuilder()
-                .setOpen(new BigDecimal("105"))
-                .setHigh(new BigDecimal("115"))
-                .setLow(new BigDecimal("95"))
-                .setClose(new BigDecimal("110"))
-                .setVolume(new BigDecimal("1.2"))
+                .setOpen(105)
+                .setHigh(115)
+                .setLow(95)
+                .setClose(110)
+                .setVolume(1.2)
                 .setTimestamp(Timestamp.newBuilder().setSeconds(2000).build())
-                .setCurrencyPair(CurrencyPair.newBuilder().setBase("BTC").setQuote("USD").build())
+                .setCurrencyPair("BTC/USD")
                 .build();
         // Create a default candle (no trades)
         Candle defaultCandle = Candle.newBuilder()
@@ -102,40 +100,40 @@ public class LastCandlesFnTest {
     public void testBufferExceedsLimitEviction() {
         // Arrange
         Candle candle1 = Candle.newBuilder()
-                .setOpen(new BigDecimal("100"))
-                .setHigh(new BigDecimal("110"))
-                .setLow(new BigDecimal("90"))
-                .setClose(new BigDecimal("105"))
-                .setVolume(new BigDecimal("1"))
+                .setOpen(100)
+                .setHigh(110)
+                .setLow(90)
+                .setClose(105)
+                .setVolume(1)
                 .setTimestamp(Timestamp.newBuilder().setSeconds(1000).build())
-                .setCurrencyPair(CurrencyPair.newBuilder().setBase("BTC").setQuote("USD").build())
+                .setCurrencyPair("BTC/USD")
                 .build();
         Candle candle2 = Candle.newBuilder()
-                .setOpen(new BigDecimal("105"))
-                .setHigh(new BigDecimal("115"))
-                .setLow(new BigDecimal("95"))
-                .setClose(new BigDecimal("110"))
-                .setVolume(new BigDecimal("1.2"))
+                .setOpen(105)
+                .setHigh(115)
+                .setLow(95)
+                .setClose(110)
+                .setVolume(1.2)
                 .setTimestamp(Timestamp.newBuilder().setSeconds(2000).build())
-                .setCurrencyPair(CurrencyPair.newBuilder().setBase("BTC").setQuote("USD").build())
+                .setCurrencyPair("BTC/USD")
                 .build();
         Candle candle3 = Candle.newBuilder()
-                .setOpen(new BigDecimal("110"))
-                .setHigh(new BigDecimal("120"))
-                .setLow(new BigDecimal("100"))
-                .setClose(new BigDecimal("115"))
-                .setVolume(new BigDecimal("1.5"))
+                .setOpen(110)
+                .setHigh(120)
+                .setLow(100)
+                .setClose(115)
+                .setVolume(1.5)
                 .setTimestamp(Timestamp.newBuilder().setSeconds(3000).build())
-                .setCurrencyPair(CurrencyPair.newBuilder().setBase("BTC").setQuote("USD").build())
+                .setCurrencyPair("BTC/USD")
                 .build();
         Candle candle4 = Candle.newBuilder()
-                .setOpen(new BigDecimal("115"))
-                .setHigh(new BigDecimal("125"))
-                .setLow(new BigDecimal("105"))
-                .setClose(new BigDecimal("120"))
-                .setVolume(new BigDecimal("1.8"))
+                .setOpen(115)
+                .setHigh(125)
+                .setLow(105)
+                .setClose(120)
+                .setVolume(1.8)
                 .setTimestamp(Timestamp.newBuilder().setSeconds(4000).build())
-                .setCurrencyPair(CurrencyPair.newBuilder().setBase("BTC").setQuote("USD").build())
+                .setCurrencyPair("BTC/USD")
                 .build();
 
         // Act & Assert
@@ -176,13 +174,13 @@ public class LastCandlesFnTest {
     public void testBufferZeroSize() {
         // Arrange
         Candle candle1 = Candle.newBuilder()
-                .setOpen(new BigDecimal("100"))
-                .setHigh(new BigDecimal("110"))
-                .setLow(new BigDecimal("90"))
-                .setClose(new BigDecimal("105"))
-                .setVolume(new BigDecimal("1"))
+                .setOpen(100)
+                .setHigh(110)
+                .setLow(90)
+                .setClose(105)
+                .setVolume(1)
                 .setTimestamp(Timestamp.newBuilder().setSeconds(1000).build())
-                .setCurrencyPair(CurrencyPair.newBuilder().setBase("BTC").setQuote("USD").build())
+                .setCurrencyPair("BTC/USD")
                 .build();
 
         // Act & Assert
