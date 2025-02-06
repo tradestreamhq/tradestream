@@ -19,7 +19,9 @@ import org.junit.Test;
 import java.util.LinkedList;
 
 public class LastCandlesFnTest {
+    private static final double DELTA = 1e-6;
     private static final double ZERO = 0.0;
+
     @Rule 
     public final TestPipeline pipeline = TestPipeline.create();
 
@@ -85,11 +87,11 @@ public class LastCandlesFnTest {
             assertEquals(2, list.size());
             Candle filledCandle = list.get(1);
             // Expect open/high/low/close equal to realCandle.getClose() and volume zero.
-            assertEquals(realCandle.getClose(), filledCandle.getOpen());
-            assertEquals(realCandle.getClose(), filledCandle.getHigh());
-            assertEquals(realCandle.getClose(), filledCandle.getLow());
-            assertEquals(realCandle.getClose(), filledCandle.getClose());
-            assertEquals(ZERO, filledCandle.getVolume());
+            assertEquals(realCandle.getClose(), filledCandle.getOpen(), DELTA);
+            assertEquals(realCandle.getClose(), filledCandle.getHigh(), DELTA);
+            assertEquals(realCandle.getClose(), filledCandle.getLow(), DELTA);
+            assertEquals(realCandle.getClose(), filledCandle.getClose(), DELTA);
+            assertEquals(ZERO, filledCandle.getVolume(), DELTA);
             return null;
         });
         pipeline.run().waitUntilFinish();
