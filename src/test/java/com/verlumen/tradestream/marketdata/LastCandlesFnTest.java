@@ -25,6 +25,17 @@ public class LastCandlesFnTest {
     @Rule 
     public final TestPipeline pipeline = TestPipeline.create();
 
+    // A static helper DoFn to flatten grouped values.
+    public static class FlattenGroupedFn extends DoFn<KV<String, Iterable<Candle>>, KV<String, Candle>> {
+        @ProcessElement
+        public void processElement(ProcessContext c) {
+            String key = c.element().getKey();
+            for (Candle candle : c.element().getValue()) {
+                c.output(KV.of(key, candle));
+            }
+        }
+    }
+
     @Test
     public void testBufferSingleCandle() {
         // Arrange
@@ -41,9 +52,9 @@ public class LastCandlesFnTest {
         // Act & Assert: With one candle, the final buffer should contain that candle.
         PAssert.that(
             pipeline.apply(Create.of(KV.of("BTC/USD", candle1)))
+                    // (For a single element, grouping isn’t strictly needed.)
                     .apply(ParDo.of(new BufferLastCandles(3)))
         ).satisfies(iterable -> {
-            // Pick the final output (here the only one) from the stateful DoFn.
             ImmutableList<KV<String, ImmutableList<Candle>>> list = ImmutableList.copyOf(iterable);
             KV<String, ImmutableList<Candle>> kv = list.get(list.size() - 1);
             assertEquals("BTC/USD", kv.getKey());
@@ -78,11 +89,13 @@ public class LastCandlesFnTest {
                 .build();
 
         // Act & Assert:
-        // When processing a real candle followed by a default candle,
-        // the default candle is replaced (filled) with values based on realCandle.getClose().
+        // Force grouping so that both values are processed in the same bundle.
         PAssert.that(
-            pipeline.apply(Create.of(KV.of("BTC/USD", realCandle), KV.of("BTC/USD", defaultCandle)))
-                    .apply(ParDo.of(new BufferLastCandles(3)))
+            pipeline
+              .apply(Create.of(KV.of("BTC/USD", realCandle), KV.of("BTC/USD", defaultCandle)))
+              .apply("GroupByKey", GroupByKey.create())
+              .apply("FlattenGrouped", ParDo.of(new FlattenGroupedFn()))
+              .apply(ParDo.of(new BufferLastCandles(3)))
         ).satisfies(iterable -> {
             ImmutableList<KV<String, ImmutableList<Candle>>> list = ImmutableList.copyOf(iterable);
             // The final output is the one with the fully accumulated state.
@@ -91,10 +104,10 @@ public class LastCandlesFnTest {
             ImmutableList<Candle> buffer = kv.getValue();
             // We expect two candles.
             assertEquals(2, buffer.size());
-            // Since sorting is by timestamp ascending, and the filled candle takes the default candle’s timestamp (0),
-            // the filled (replaced) candle is at index 0, and the real candle is at index 1.
+            // Since sorting is by timestamp ascending and the filled candle uses the default candle’s timestamp (0),
+            // the filled (replaced) candle is at index 0 and the real candle is at index 1.
             Candle filledCandle = buffer.get(0);
-            // The filled candle should have open/high/low/close equal to realCandle.getClose() (110)
+            // The filled candle should have open/high/low/close equal to realCandle.getClose() (i.e. 110)
             // and its volume should remain zero.
             assertEquals(realCandle.getClose(), filledCandle.getOpen(), DELTA);
             assertEquals(realCandle.getClose(), filledCandle.getHigh(), DELTA);
@@ -107,19 +120,6 @@ public class LastCandlesFnTest {
             return null;
         });
         pipeline.run().waitUntilFinish();
-    }
-
-    /**
-     * A static DoFn to flatten grouped values. Making it static prevents capturing the outer instance.
-     */
-    public static class FlattenGroupedFn extends DoFn<KV<String, Iterable<Candle>>, KV<String, Candle>> {
-        @ProcessElement
-        public void processElement(ProcessContext c) {
-            String key = c.element().getKey();
-            for (Candle candle : c.element().getValue()) {
-                c.output(KV.of(key, candle));
-            }
-        }
     }
 
     @Test
@@ -163,8 +163,7 @@ public class LastCandlesFnTest {
                 .build();
 
         // Act & Assert:
-        // When processing 4 candles with maxCandles = 3, the oldest (candle1) should be evicted.
-        // To ensure that all candles for a key are processed together, we group them.
+        // Force grouping so that state is accumulated.
         PAssert.that(
             pipeline
               .apply(Create.of(
@@ -172,11 +171,8 @@ public class LastCandlesFnTest {
                         KV.of("BTC/USD", candle2),
                         KV.of("BTC/USD", candle3),
                         KV.of("BTC/USD", candle4)))
-              // Force grouping so that state is accumulated for the key.
               .apply("GroupByKey", GroupByKey.create())
-              // Flatten the grouped values back to individual KV pairs using our static DoFn.
               .apply("FlattenGrouped", ParDo.of(new FlattenGroupedFn()))
-              // Now apply the stateful DoFn.
               .apply(ParDo.of(new BufferLastCandles(3)))
         ).satisfies(iterable -> {
             ImmutableList<KV<String, ImmutableList<Candle>>> list = ImmutableList.copyOf(iterable);
