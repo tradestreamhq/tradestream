@@ -37,9 +37,8 @@ public class DefaultTradeGenerator extends PTransform<PCollection<KV<String, Voi
         @ProcessElement
         public void processElement(@Element KV<String, Void> element, OutputReceiver<KV<String, Trade>> out) {
             String key = element.getKey();  // Expecting a key like "BTC/USD"
-            // Use the key itself as the currency pair string.
             Instant now = Instant.now();
-            Timestamp ts = Timestamp.newBuilder().setSeconds(now.getMillis() / 1000).build();
+            Timestamp ts = Timestamps.fromMillis(now.getMillis());
             Trade trade = Trade.newBuilder()
                     .setTimestamp(ts)
                     .setExchange("DEFAULT")
