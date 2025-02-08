@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.marketdata;
 
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
 import com.verlumen.tradestream.time.TimeFrame;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,8 @@ import org.apache.beam.sdk.values.PCollectionList;
  */
 public class MultiTimeframeCandleTransform
     extends PTransform<PCollection<KV<String, Candle>>, PCollection<KV<String, ImmutableList<Candle>>>> {
+  @Inject
+  MultiTimeframeCandleTransform() {} 
 
   @Override
   public PCollection<KV<String, ImmutableList<Candle>>> expand(
