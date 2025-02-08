@@ -54,7 +54,7 @@ public class CandleStreamWithDefaultsTest {
                 }
             }
             assertTrue("Expected to find candle for BTC/USD", foundBTC);
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
@@ -83,7 +83,7 @@ public class CandleStreamWithDefaultsTest {
                 assertEquals(0.0, candle.getClose(), 1e-6);
             }
             assertEquals("Expected candles for both currency pairs", 2, count);
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
@@ -139,7 +139,7 @@ public class CandleStreamWithDefaultsTest {
                     assertEquals(2, kv.getValue().size());
                 }
             }
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
