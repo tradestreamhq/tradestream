@@ -1,14 +1,10 @@
 package com.verlumen.tradestream.marketdata;
 
 import com.google.common.collect.ImmutableList;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.List;
-import java.util.LinkedList;
 import org.apache.beam.sdk.coders.ListCoder;
-import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.state.StateSpec;
 import org.apache.beam.sdk.state.StateSpecs;
@@ -16,6 +12,11 @@ import org.apache.beam.sdk.state.ValueState;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
 
+/**
+ * LastCandlesFn buffers and outputs the last N candles per key.
+ * It also replaces a default (dummy) candle with a filled candle using the last real candle’s close.
+ * Additionally, it avoids buffering duplicate default candles.
+ */
 public class LastCandlesFn {
     private static final double ZERO = 0.0;
 
@@ -36,7 +37,7 @@ public class LastCandlesFn {
             @Element KV<String, Candle> element,
             @StateId("candleBuffer") ValueState<List<Candle>> bufferState) {
 
-            // Read current buffer state
+            // Read the current buffer state.
             List<Candle> buffer = bufferState.read();
             if (buffer == null) {
                 buffer = new ArrayList<>();
@@ -45,7 +46,18 @@ public class LastCandlesFn {
             Candle incoming = element.getValue();
             String key = element.getKey();
 
-            // Handle default candle case
+            // If the incoming candle is default (i.e. all zeros) and there is already a default candle
+            // at the end of the buffer, skip adding this duplicate.
+            if (isDefaultCandle(incoming) && !buffer.isEmpty()) {
+                Candle lastCandle = buffer.get(buffer.size() - 1);
+                if (isDefaultCandle(lastCandle)) {
+                    context.output(KV.of(key, ImmutableList.copyOf(buffer)));
+                    return;
+                }
+            }
+            
+            // If the incoming candle is default and there is at least one candle in the buffer,
+            // replace it with a "filled" candle using the last real candle's close.
             if (isDefaultCandle(incoming) && !buffer.isEmpty()) {
                 Candle lastReal = buffer.get(buffer.size() - 1);
                 incoming = Candle.newBuilder()
@@ -54,32 +66,34 @@ public class LastCandlesFn {
                         .setLow(lastReal.getClose())
                         .setClose(lastReal.getClose())
                         .setVolume(ZERO)
-                        .setTimestamp(incoming.getTimestamp())
+                        .setTimestamp(incoming.getTimestamp())  // Preserve the synthetic candle's timestamp.
                         .setCurrencyPair(incoming.getCurrencyPair())
                         .build();
             }
 
-            // Add new candle and maintain size limit
+            // Add the incoming (or modified) candle.
             buffer.add(incoming);
+
+            // Enforce the maximum buffer size.
             while (buffer.size() > maxCandles) {
                 buffer.remove(0);
             }
 
-            // Sort by timestamp
+            // Optionally, sort the buffer by timestamp (ascending).
             buffer.sort(Comparator.comparingLong(c -> c.getTimestamp().getSeconds()));
-            
-            // Write back to state
+
+            // Write back the updated buffer.
             bufferState.write(buffer);
 
-            // Output the current buffer
+            // Output the current buffer as an immutable list.
             context.output(KV.of(key, ImmutableList.copyOf(buffer)));
         }
 
         private boolean isDefaultCandle(Candle candle) {
-            return candle.getOpen() == ZERO 
-                && candle.getHigh() == ZERO 
-                && candle.getLow() == ZERO 
-                && candle.getClose() == ZERO 
+            return candle.getOpen() == ZERO
+                && candle.getHigh() == ZERO
+                && candle.getLow() == ZERO
+                && candle.getClose() == ZERO
                 && candle.getVolume() == ZERO;
         }
     }

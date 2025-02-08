@@ -59,6 +59,17 @@ public class SlidingCandleAggregator
 
         @Override
         public CandleAccumulator addInput(CandleAccumulator accumulator, Trade trade) {
+            // If the trade is synthetic (i.e. default) then ignore it if a real trade is already present.
+            if ("DEFAULT".equals(trade.getExchange())) {
+                // If we already have a real trade, do not update the accumulator.
+                if (!accumulator.firstTrade) {
+                    return accumulator;
+                }
+                // If no real trade is present, do not initialize the accumulator.
+                return accumulator;
+            }
+
+            // Process a real trade normally.
             if (accumulator.firstTrade) {
                 // First trade initializes the accumulator.
                 accumulator.open = trade.getPrice();
@@ -68,7 +79,7 @@ public class SlidingCandleAggregator
                 accumulator.volume = trade.getVolume();
                 accumulator.openTimestamp = trade.getTimestamp();
                 accumulator.closeTimestamp = trade.getTimestamp();
-                accumulator.currencyPair = trade.getCurrencyPair();
+                accumulator.currencyPair = trade.getCurrencyPair();  // Assumed to be a String in this version.
                 accumulator.firstTrade = false;
             } else {
                 // Update high, low, and volume.
