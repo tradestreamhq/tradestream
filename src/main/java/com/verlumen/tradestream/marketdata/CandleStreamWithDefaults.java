@@ -2,6 +2,7 @@ package com.verlumen.tradestream.marketdata;
 
 import com.google.common.collect.ImmutableList;
 import java.util.List;
+import java.util.Arrays;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.Flatten;
@@ -11,12 +12,13 @@ import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.Reshuffle;
 import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.transforms.PTransform;
+import org.apache.beam.sdk.transforms.windowing.FixedWindows;
+import org.apache.beam.sdk.transforms.windowing.GlobalWindows;
+import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
 import org.joda.time.Duration;
-import org.apache.beam.sdk.transforms.windowing.GlobalWindows;
-import org.apache.beam.sdk.transforms.windowing.Window;
 
 /**
  * CandleStreamWithDefaults is a composite transform that:
@@ -63,7 +65,9 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
         // 2. Generate synthetic default trades.
         PCollection<KV<String, Trade>> defaultTrades = keys
             .apply("GenerateDefaultTrades", new DefaultTradeGenerator(defaultPrice))
-            .apply("ReshardDefault", Reshuffle.viaRandomKey());
+            .apply("ReshardDefault", Reshuffle.viaRandomKey())
+            // Force default trades into FixedWindows matching the real trades.
+            .apply("RewindowDefaultTrades", Window.<KV<String, Trade>>into(FixedWindows.of(windowDuration)));
 
         // 3. Reshard real trades.
         PCollection<KV<String, Trade>> realTrades = input.apply("ReshardRealTrades", Reshuffle.viaRandomKey());
