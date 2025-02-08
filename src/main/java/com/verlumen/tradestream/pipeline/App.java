@@ -55,10 +55,8 @@ public final class App {
   private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
   private final ParseTrades parseTrades;
 
-  // In this integration we use our new composite transforms.
   @Inject
   App(
-      CreateCandles createCandles, // may still be injected if used elsewhere
       KafkaReadTransform<String, byte[]> kafkaReadTransform,
       ParseTrades parseTrades,
       PipelineConfig config) {
