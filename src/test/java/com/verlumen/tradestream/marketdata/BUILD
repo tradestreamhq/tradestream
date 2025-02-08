@@ -28,7 +28,7 @@ java_test(
     srcs = ["DefaultTradeGeneratorTest.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/marketdata:default_trade_generator",
-        "//third_party:beam_sdk",
+        "//third_party:beam_sdks_java_core",
         "//third_party:junit",
     ],
     runtime_deps = [
