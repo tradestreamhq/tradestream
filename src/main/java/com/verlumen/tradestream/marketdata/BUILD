@@ -68,7 +68,6 @@ java_library(
     ":market_data_config",
     ":trade_publisher",
     ":trade_publisher_impl",
-    "//protos:marketdata_java_proto",
     "//third_party:auto_value",
     "//third_party:guice",
     "//third_party:guice_assistedinject",
@@ -80,6 +79,7 @@ java_library(
     srcs = ["MultiTimeframeCandleTransform.java"],
     deps = [
         ":last_candles_fn",
+        "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
         "//third_party:guava",
     ],
