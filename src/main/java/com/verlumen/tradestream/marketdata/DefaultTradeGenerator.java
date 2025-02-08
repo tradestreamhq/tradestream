@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.marketdata;
 
 import com.google.protobuf.Timestamp;
+import com.google.protobuf.util.Timestamps;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
