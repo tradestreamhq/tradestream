@@ -88,7 +88,9 @@ java_test(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
         "//third_party:beam_sdks_java_core",
+        "//third_party:guava",
         "//third_party:junit",
+        "//third_party:protobuf_java",
     ],
     runtime_deps = [
         "//third_party:beam_runners_direct_java",
