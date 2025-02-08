@@ -22,6 +22,17 @@ java_test(
     ],
 )
 
+
+java_test(
+    name = "DefaultTradeGeneratorTest",
+    srcs = ["DefaultTradeGeneratorTest.java"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/marketdata:default_trade_generator",
+        "//third_party:beam_sdk",
+        "//third_party:junit",
+    ],
+)
+
 java_test(
     name = "LastCandlesFnTest",
     srcs = ["LastCandlesFnTest.java"],
