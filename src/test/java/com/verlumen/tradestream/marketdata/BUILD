@@ -85,7 +85,7 @@ java_test(
     name = "MultiTimeframeCandleTransformTest",
     srcs = ["MultiTimeframeCandleTransformTest.java"],
     deps = [
-        ":multi_timeframe_candle_transform",
+        "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
         "//third_party:beam_sdks_java_core",
         "//third_party:junit",
     ],
