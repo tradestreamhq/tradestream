@@ -13,6 +13,8 @@ import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.transforms.PTransform;
+import org.apache.beam.sdk.transforms.windowing.Window;
+import org.apache.beam.sdk.transforms.windowing.GlobalWindows;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
@@ -21,9 +23,11 @@ import org.apache.beam.sdk.values.PCollectionList;
  * MultiTimeframeCandleTransform branches a consolidated base candle stream into multiple
  * timeframe views. For each timeframe defined in the TimeFrame enum, it applies a buffering
  * transform (LastCandlesFn.BufferLastCandles) with a buffer size equal to the number of minutes
- * specified. The resulting branches are flattened into one output collection.
+ * specified. Before flattening, each branch is explicitly re-windowed into GlobalWindows so that
+ * all branches have the same windowing.
  *
- * This transform first groups the input by key so that each key appears only once.
+ * This transform assumes that the input is a consolidated candle stream (for example, from
+ * CandleStreamWithDefaults) where each key appears only once.
  */
 public class MultiTimeframeCandleTransform 
     extends PTransform<PCollection<KV<String, Candle>>, PCollection<KV<String, ImmutableList<Candle>>>> {
@@ -34,7 +38,6 @@ public class MultiTimeframeCandleTransform
       PCollection<KV<String, Iterable<Candle>>> grouped = input.apply("GroupByKey", GroupByKey.create());
 
       // Consolidate each key's Iterable<Candle> into a single Candle.
-      // For simplicity, we pick the last element from the iterable.
       PCollection<KV<String, Candle>> consolidated = grouped.apply("ConsolidateCandles",
           ParDo.of(new DoFn<KV<String, Iterable<Candle>>, KV<String, Candle>>() {
               @ProcessElement
@@ -53,18 +56,17 @@ public class MultiTimeframeCandleTransform
       // Create branches for each timeframe defined in the TimeFrame enum.
       List<PCollection<KV<String, ImmutableList<Candle>>>> branches = new ArrayList<>();
       for (TimeFrame tf : TimeFrame.values()) {
-          // Use the timeframe's label to name the branch (e.g., "5mCandles", "1hCandles", etc.)
           String branchName = tf.getLabel() + "Candles";
-          // The buffer size is defined by the timeframe's minutes.
           int bufferSize = tf.getMinutes();
-          // Apply the buffering transform.
+          // For each branch, apply the buffering transform.
           PCollection<KV<String, ImmutableList<Candle>>> branch =
-              consolidated.apply(branchName, ParDo.of(new LastCandlesFn.BufferLastCandles(bufferSize)));
+              consolidated.apply(branchName, ParDo.of(new LastCandlesFn.BufferLastCandles(bufferSize)))
+                        // Force each branch to be in GlobalWindows.
+                        .apply("Rewindow_" + branchName, Window.<KV<String, ImmutableList<Candle>>>into(new GlobalWindows()));
           branches.add(branch);
       }
-
+      
       // Flatten all branches into one output collection.
-      return PCollectionList.of(branches)
-              .apply("FlattenTimeframes", Flatten.pCollections());
+      return PCollectionList.of(branches).apply("FlattenTimeframes", Flatten.pCollections());
   }
 }
