@@ -82,6 +82,20 @@ java_test(
 )
 
 java_test(
+    name = "MultiTimeframeCandleTransformTest",
+    srcs = ["MultiTimeframeCandleTransformTest.java"],
+    deps = [
+        ":multi_timeframe_candle_transform",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:junit",
+    ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
+)
+
+java_test(
     name = "ParseTradesTest",
     srcs = ["ParseTradesTest.java"],
     deps = [
