@@ -51,7 +51,6 @@ public final class App {
   private final Duration allowedLateness;
   private final Duration allowedTimestampSkew;
   private final Duration windowDuration;
-  private final CreateCandles createCandles;  // (Legacy or alternative transform)
   private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
   private final ParseTrades parseTrades;
 
@@ -65,7 +64,6 @@ public final class App {
     this.allowedLateness = config.allowedLateness();
     this.allowedTimestampSkew = config.allowedTimestampSkew();
     this.windowDuration = config.windowDuration(); // e.g. 1 minute windows for candles.
-    this.createCandles = createCandles;
     this.kafkaReadTransform = kafkaReadTransform;
     this.parseTrades = parseTrades;
     logger.atInfo().log(
