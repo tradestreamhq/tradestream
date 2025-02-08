@@ -9,6 +9,7 @@ java_library(
         ":sliding_candle_aggregator",
         ":default_trade_generator",
         ":last_candles_fn",
+        "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf",
         "//third_party:guava",
