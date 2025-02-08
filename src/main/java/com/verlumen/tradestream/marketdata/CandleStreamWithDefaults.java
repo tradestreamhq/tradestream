@@ -93,7 +93,7 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
 
         // 7. Re-window the buffered output into FixedWindows so that GroupByKey can be applied.
         PCollection<KV<String, ImmutableList<Candle>>> rewindowedBuffered =
-            buffered.apply("RewindowBuffered", Window.<KV<String, ImmutableList<Candle>>into(FixedWindows.of(windowDuration)));
+            buffered.apply("RewindowBuffered", Window.<KV<String, ImmutableList<Candle>>>into(FixedWindows.of(windowDuration)));
 
         // 8. Group by key to consolidate outputs from multiple windows into one element per key.
         PCollection<KV<String, Iterable<ImmutableList<Candle>>>> grouped = rewindowedBuffered.apply("GroupByKey", GroupByKey.create());
