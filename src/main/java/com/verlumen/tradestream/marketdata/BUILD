@@ -75,6 +75,18 @@ java_library(
 )
 
 java_library(
+    name = "multi_timeframe_candle_transform",
+    srcs = ["MultiTimeframeCandleTransform.java"],
+    deps = [
+        ":last_candles_fn",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/time:time_frame",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guava",
+    ],
+)
+
+java_library(
   name = "parse_trades",
   srcs = ["ParseTrades.java"],
   deps = [
