@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.ImmutableList;
+import com.verlumen.tradestream.time.TimeFrame;
 import java.util.Arrays;
 import org.apache.beam.sdk.coders.KvCoder;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
@@ -46,6 +47,7 @@ public class MultiTimeframeCandleTransformTest {
                 .setTimestamp(com.google.protobuf.Timestamp.newBuilder().setSeconds(2000).build())
                 .setCurrencyPair("BTC/USD")
                 .build();
+        int expectedBranches = TimeFrame.values().length;
 
         // Create the base stream as a PCollection of KV pairs.
         // Note that the key is "BTC/USD" and the value is the base candle.
@@ -65,7 +67,10 @@ public class MultiTimeframeCandleTransformTest {
                 assertTrue("Expected non-empty buffered list", kv.getValue().size() >= 1);
                 count++;
             }
-            assertEquals("Expected 5 branches (timeframes) in the output", 5, count);
+            assertEquals(
+                "Expected " +
+                expectedBranches +
+                " branches (timeframes) in the output", expectedBranches, count);
             return null;
         });
 
