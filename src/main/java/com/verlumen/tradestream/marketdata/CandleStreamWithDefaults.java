@@ -69,8 +69,10 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
             // Force default trades into FixedWindows matching the real trades.
             .apply("RewindowDefaultTrades", Window.<KV<String, Trade>>into(FixedWindows.of(windowDuration)));
 
-        // 3. Reshard real trades.
-        PCollection<KV<String, Trade>> realTrades = input.apply("ReshardRealTrades", Reshuffle.viaRandomKey());
+        // 3. Reshard real trades and force them into FixedWindows.
+        PCollection<KV<String, Trade>> realTrades = input
+            .apply("ReshardRealTrades", Reshuffle.viaRandomKey())
+            .apply("RewindowRealTrades", Window.<KV<String, Trade>>into(FixedWindows.of(windowDuration)));
 
         // 4. Flatten real and default trades.
         PCollection<KV<String, Trade>> allTrades = PCollectionList.of(realTrades).and(defaultTrades)
