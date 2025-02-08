@@ -1,24 +1,24 @@
 package com.verlumen.tradestream.marketdata;
 
 import com.google.protobuf.Timestamp;
-import com.verlumen.tradestream.marketdata.Trade;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Instant;
-import java.math.BigDecimal;
 
 /**
  * DefaultTradeGenerator generates synthetic Trade messages for a given key.
  * The generated trade has zero volume and uses a default price.
+ * This transform ensures that even when there are no real trades,
+ * a dummy trade is injected to trigger candle creation downstream.
  */
 public class DefaultTradeGenerator extends PTransform<PCollection<KV<String, Void>>, PCollection<KV<String, Trade>>> {
 
-    private final BigDecimal defaultPrice;
+    private final double defaultPrice;
 
-    public DefaultTradeGenerator(BigDecimal defaultPrice) {
+    public DefaultTradeGenerator(double defaultPrice) {
         this.defaultPrice = defaultPrice;
     }
 
@@ -28,28 +28,24 @@ public class DefaultTradeGenerator extends PTransform<PCollection<KV<String, Voi
     }
 
     public static class DefaultTradeGeneratorFn extends DoFn<KV<String, Void>, KV<String, Trade>> {
-        private final BigDecimal defaultPrice;
+        private final double defaultPrice;
 
-        public DefaultTradeGeneratorFn(BigDecimal defaultPrice) {
+        public DefaultTradeGeneratorFn(double defaultPrice) {
             this.defaultPrice = defaultPrice;
         }
 
         @ProcessElement
         public void processElement(@Element KV<String, Void> element, OutputReceiver<KV<String, Trade>> out) {
-            String key = element.getKey();
-            String[] parts = key.split("/");
-            CurrencyPair pair = CurrencyPair.newBuilder()
-                    .setBase(parts[0])
-                    .setQuote(parts[1])
-                    .build();
+            String key = element.getKey();  // Expecting a key like "BTC/USD"
+            // Use the key itself as the currency pair string.
             Instant now = Instant.now();
             Timestamp ts = Timestamp.newBuilder().setSeconds(now.getMillis() / 1000).build();
             Trade trade = Trade.newBuilder()
                     .setTimestamp(ts)
                     .setExchange("DEFAULT")
-                    .setCurrencyPair(pair)
+                    .setCurrencyPair(key)
                     .setPrice(defaultPrice)
-                    .setVolume(BigDecimal.ZERO)
+                    .setVolume(0.0)
                     .setTradeId("DEFAULT-" + key + "-" + now.getMillis())
                     .build();
             out.output(KV.of(key, trade));

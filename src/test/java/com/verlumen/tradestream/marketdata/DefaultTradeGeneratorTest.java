@@ -3,9 +3,6 @@ package com.verlumen.tradestream.marketdata;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.verlumen.tradestream.marketdata.Trade;
-import com.verlumen.tradestream.marketdata.CurrencyPair;
-import java.math.BigDecimal;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
@@ -13,6 +10,9 @@ import org.apache.beam.sdk.values.KV;
 import org.junit.Rule;
 import org.junit.Test;
 
+/**
+ * Unit tests for DefaultTradeGenerator.
+ */
 public class DefaultTradeGeneratorTest {
 
     @Rule 
@@ -22,22 +22,23 @@ public class DefaultTradeGeneratorTest {
     public void testGenerateDefaultTrade() {
         // Arrange
         String key = "BTC/USD";
-        BigDecimal defaultPrice = new BigDecimal("10000");
+        double defaultPrice = 10000.0;
 
         // Act & Assert
         PAssert.that(
             pipeline.apply(Create.of(KV.of(key, (Void) null)))
-                    .apply(new DefaultTradeGenerator(defaultPrice)))
+                    .apply(new DefaultTradeGenerator(defaultPrice))
         ).satisfies(iterable -> {
             KV<String, Trade> kv = iterable.iterator().next();
             assertEquals(key, kv.getKey());
             Trade trade = kv.getValue();
+            // Verify that the synthetic trade is marked appropriately.
             assertTrue(trade.getTradeId().startsWith("DEFAULT-"));
-            assertEquals(defaultPrice, trade.getPrice());
-            assertEquals(BigDecimal.ZERO, trade.getVolume());
             assertEquals("DEFAULT", trade.getExchange());
-            assertEquals("BTC", trade.getCurrencyPair().getBase());
-            assertEquals("USD", trade.getCurrencyPair().getQuote());
+            assertEquals(defaultPrice, trade.getPrice(), 1e-6);
+            assertEquals(0.0, trade.getVolume(), 1e-6);
+            // Since the key is used directly as the currency pair, we expect:
+            assertEquals("BTC/USD", trade.getCurrencyPair());
             return iterable;
         });
         pipeline.run().waitUntilFinish();
@@ -47,22 +48,21 @@ public class DefaultTradeGeneratorTest {
     public void testGenerateDefaultTradeDifferentKey() {
         // Arrange
         String key = "ETH/USD";
-        BigDecimal defaultPrice = new BigDecimal("10000");
+        double defaultPrice = 10000.0;
 
         // Act & Assert
         PAssert.that(
             pipeline.apply(Create.of(KV.of(key, (Void) null)))
-                    .apply(new DefaultTradeGenerator(defaultPrice)))
+                    .apply(new DefaultTradeGenerator(defaultPrice))
         ).satisfies(iterable -> {
             KV<String, Trade> kv = iterable.iterator().next();
             assertEquals(key, kv.getKey());
             Trade trade = kv.getValue();
             assertTrue(trade.getTradeId().startsWith("DEFAULT-"));
-            assertEquals(defaultPrice, trade.getPrice());
-            assertEquals(BigDecimal.ZERO, trade.getVolume());
             assertEquals("DEFAULT", trade.getExchange());
-            assertEquals("ETH", trade.getCurrencyPair().getBase());
-            assertEquals("USD", trade.getCurrencyPair().getQuote());
+            assertEquals(defaultPrice, trade.getPrice(), 1e-6);
+            assertEquals(0.0, trade.getVolume(), 1e-6);
+            assertEquals("ETH/USD", trade.getCurrencyPair());
             return iterable;
         });
         pipeline.run().waitUntilFinish();
@@ -72,17 +72,17 @@ public class DefaultTradeGeneratorTest {
     public void testDefaultPriceConfiguration() {
         // Arrange
         String key = "BTC/USD";
-        BigDecimal customDefaultPrice = new BigDecimal("12345.67");
+        double customDefaultPrice = 12345.67;
 
         // Act & Assert
         PAssert.that(
             pipeline.apply(Create.of(KV.of(key, (Void) null)))
-                    .apply(new DefaultTradeGenerator(customDefaultPrice)))
+                    .apply(new DefaultTradeGenerator(customDefaultPrice))
         ).satisfies(iterable -> {
             KV<String, Trade> kv = iterable.iterator().next();
             assertEquals(key, kv.getKey());
             Trade trade = kv.getValue();
-            assertEquals(customDefaultPrice, trade.getPrice());
+            assertEquals(customDefaultPrice, trade.getPrice(), 1e-6);
             return iterable;
         });
         pipeline.run().waitUntilFinish();
