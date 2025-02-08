@@ -109,6 +109,19 @@ public class LastCandlesFnTest {
         pipeline.run().waitUntilFinish();
     }
 
+    /**
+     * A static DoFn to flatten grouped values. Making it static prevents capturing the outer instance.
+     */
+    public static class FlattenGroupedFn extends DoFn<KV<String, Iterable<Candle>>, KV<String, Candle>> {
+        @ProcessElement
+        public void processElement(ProcessContext c) {
+            String key = c.element().getKey();
+            for (Candle candle : c.element().getValue()) {
+                c.output(KV.of(key, candle));
+            }
+        }
+    }
+
     @Test
     public void testBufferExceedsLimitEviction() {
         // Arrange: Create four candles with increasing timestamps.
@@ -151,7 +164,7 @@ public class LastCandlesFnTest {
 
         // Act & Assert:
         // When processing 4 candles with maxCandles = 3, the oldest (candle1) should be evicted.
-        // To ensure that all candles for a key are processed in the same bundle, we group them.
+        // To ensure that all candles for a key are processed together, we group them.
         PAssert.that(
             pipeline
               .apply(Create.of(
@@ -161,16 +174,8 @@ public class LastCandlesFnTest {
                         KV.of("BTC/USD", candle4)))
               // Force grouping so that state is accumulated for the key.
               .apply("GroupByKey", GroupByKey.create())
-              // Flatten the grouped values back to individual KV pairs.
-              .apply("FlattenGrouped", ParDo.of(new DoFn<KV<String, Iterable<Candle>>, KV<String, Candle>>() {
-                  @ProcessElement
-                  public void processElement(ProcessContext c) {
-                      String key = c.element().getKey();
-                      for (Candle candle : c.element().getValue()) {
-                          c.output(KV.of(key, candle));
-                      }
-                  }
-              }))
+              // Flatten the grouped values back to individual KV pairs using our static DoFn.
+              .apply("FlattenGrouped", ParDo.of(new FlattenGroupedFn()))
               // Now apply the stateful DoFn.
               .apply(ParDo.of(new BufferLastCandles(3)))
         ).satisfies(iterable -> {
