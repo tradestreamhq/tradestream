@@ -14,6 +14,10 @@ java_test(
         "//third_party:junit",
         "//third_party:protobuf_java",
     ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
 )
 
 java_test(
