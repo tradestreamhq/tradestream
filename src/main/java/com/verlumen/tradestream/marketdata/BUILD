@@ -3,6 +3,21 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
+    name = "candle_stream_with_defaults",
+    srcs = ["CandleStreamWithDefaults.java"],
+    deps = [
+        ":sliding_candle_aggregator",
+        ":default_trade_generator",
+        ":last_candles_fn",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:guava",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java",
+    ],
+)
+
+java_library(
   name = "create_candles",
   srcs = ["CreateCandles.java"],
   deps = [
