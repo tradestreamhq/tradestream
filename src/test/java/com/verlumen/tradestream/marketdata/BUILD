@@ -8,6 +8,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_stream_with_defaults",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:guava",
         "//third_party:joda_time",
         "//third_party:junit",
         "//third_party:protobuf_java",
