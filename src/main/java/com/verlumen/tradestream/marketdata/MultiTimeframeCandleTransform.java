@@ -1,6 +1,9 @@
 package com.verlumen.tradestream.marketdata;
 
 import com.google.common.collect.ImmutableList;
+import com.verlumen.tradestream.time.TimeFrame;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.beam.sdk.transforms.Flatten;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
@@ -9,38 +12,36 @@ import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
 
 /**
- * MultiTimeframeCandleTransform creates sliding-window views of a base candle stream
- * (where each candle is 1 minute in resolution) into multiple timeframes.
+ * MultiTimeframeCandleTransform branches a consolidated base candle stream into multiple
+ * timeframe views. For each timeframe defined in the TimeFrame enum, it applies a buffering
+ * transform (LastCandlesFn.BufferLastCandles) with a buffer size equal to the number of minutes
+ * specified. The resulting branches are flattened into one output collection.
  *
- * For example:
- *  - A 1-hour view: last 60 candles (buffer size = 60)
- *  - A 1-day view: last 1440 candles (buffer size = 1440)
- *
- * Each branch applies a stateful buffering transform (LastCandlesFn.BufferLastCandles) with
- * the appropriate buffer size. The outputs of all branches are then flattened into a single
- * PCollection.
- *
- * This transform assumes that the input is a consolidated candle stream (for instance, as produced
- * by CandleStreamWithDefaults) where each key appears only once.
+ * This transform assumes that the input is a consolidated candle stream (for example, from
+ * CandleStreamWithDefaults) where each key appears only once.
  */
 public class MultiTimeframeCandleTransform 
     extends PTransform<PCollection<KV<String, Candle>>, PCollection<KV<String, ImmutableList<Candle>>>> {
 
   @Override
   public PCollection<KV<String, ImmutableList<Candle>>> expand(PCollection<KV<String, Candle>> input) {
-      // Branch for 1-hour view: buffer the last 60 candles.
-      PCollection<KV<String, ImmutableList<Candle>>> oneHourCandles =
-          input.apply("OneHourCandles", ParDo.of(new LastCandlesFn.BufferLastCandles(60)));
-      
-      // Branch for 1-day view: buffer the last 1440 candles.
-      PCollection<KV<String, ImmutableList<Candle>>> oneDayCandles =
-          input.apply("OneDayCandles", ParDo.of(new LastCandlesFn.BufferLastCandles(1440)));
-      
-      // (You can add more branches for additional timeframes if needed.)
+      List<PCollection<KV<String, ImmutableList<Candle>>>> branches = new ArrayList<>();
+
+      // Loop over each timeframe defined in the TimeFrame enum.
+      for (TimeFrame tf : TimeFrame.values()) {
+          // Use the timeframe's label to name the branch (e.g., "5mCandles", "1hCandles", etc.)
+          String branchName = tf.getLabel() + "Candles";
+          // The buffer size is defined by the timeframe's minutes.
+          int bufferSize = tf.getMinutes();
+
+          // For each branch, apply the buffering transform.
+          PCollection<KV<String, ImmutableList<Candle>>> branch =
+              input.apply(branchName, ParDo.of(new LastCandlesFn.BufferLastCandles(bufferSize)));
+          branches.add(branch);
+      }
       
       // Flatten all branches into one output collection.
-      return PCollectionList.of(oneHourCandles)
-                .and(oneDayCandles)
-                .apply("FlattenTimeframes", Flatten.pCollections());
+      return PCollectionList.of(branches)
+              .apply("FlattenTimeframes", Flatten.pCollections());
   }
 }
