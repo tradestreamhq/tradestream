@@ -68,6 +68,7 @@ java_library(
     ":market_data_config",
     ":trade_publisher",
     ":trade_publisher_impl",
+    "//protos:marketdata_java_proto",
     "//third_party:auto_value",
     "//third_party:guice",
     "//third_party:guice_assistedinject",
