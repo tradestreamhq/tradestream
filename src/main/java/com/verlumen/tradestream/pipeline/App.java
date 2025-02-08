@@ -18,6 +18,7 @@ import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.StreamingOptions;
 import org.apache.beam.sdk.transforms.MapElements;
+import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.WithTimestamps;
 import org.apache.beam.sdk.transforms.windowing.DefaultTrigger;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
@@ -134,14 +135,21 @@ public final class App {
         );
 
     // 7. Apply the multi-timeframe view.
-    // Here, MultiTimeframeCandleTransform branches the base candle stream into different timeframes,
+    // MultiTimeframeCandleTransform branches the base candle stream into different timeframes,
     // for example, a 1-hour view (last 60 candles) and a 1-day view (last 1440 candles).
     PCollection<KV<String, ImmutableList<Candle>>> multiTimeframeStream =
         baseCandleStream.apply("MultiTimeframeView", new MultiTimeframeCandleTransform());
 
-    // At this point, multiTimeframeStream contains one element per timeframe per key.
-    // You can write these outputs to your sink (e.g., a database, messaging system, etc.)
-    // For demonstration, we log that the pipeline building is complete.
+    // 8. For debugging, print results to stdout with helpful labels.
+    multiTimeframeStream.apply("PrintResults", ParDo.of(new org.apache.beam.sdk.transforms.DoFn<KV<String, ImmutableList<Candle>>, Void>() {
+      @ProcessElement
+      public void processElement(ProcessContext c) {
+        KV<String, ImmutableList<Candle>> element = c.element();
+        // Print a helpful label that shows the currency pair and the buffered candle list.
+        System.out.println("Currency Pair: " + element.getKey() + " | Buffered Candles: " + element.getValue());
+      }
+    }));
+
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
     return pipeline;
   }
