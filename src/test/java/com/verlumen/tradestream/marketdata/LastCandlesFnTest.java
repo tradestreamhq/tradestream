@@ -6,6 +6,8 @@ import static org.junit.Assert.assertTrue;
 import com.google.protobuf.Timestamp;
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.marketdata.LastCandlesFn.BufferLastCandles;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.testing.PAssert;
@@ -25,12 +27,49 @@ public class LastCandlesFnTest {
     @Rule 
     public final TestPipeline pipeline = TestPipeline.create();
 
-    // A static helper DoFn to flatten grouped values.
-    public static class FlattenGroupedFn extends DoFn<KV<String, Iterable<Candle>>, KV<String, Candle>> {
+    /**
+     * This flattening DoFn sorts the grouped values so that any candle
+     * with nonzero open (i.e. a “real” candle) comes before a default candle.
+     * This is used for the default-candle replacement test.
+     */
+    public static class FlattenGroupedWithOrderingFn extends DoFn<KV<String, Iterable<Candle>>, KV<String, Candle>> {
         @ProcessElement
         public void processElement(ProcessContext c) {
             String key = c.element().getKey();
+            List<Candle> list = new ArrayList<>();
             for (Candle candle : c.element().getValue()) {
+                list.add(candle);
+            }
+            // Sort so that non-default candles (open != 0) come first.
+            list.sort((a, b) -> {
+                boolean aDefault = (a.getOpen() == 0 && a.getHigh() == 0 && a.getLow() == 0 &&
+                                    a.getClose() == 0 && a.getVolume() == 0);
+                boolean bDefault = (b.getOpen() == 0 && b.getHigh() == 0 && b.getLow() == 0 &&
+                                    b.getClose() == 0 && b.getVolume() == 0);
+                if (aDefault && !bDefault) return 1;
+                if (!aDefault && bDefault) return -1;
+                return 0; // otherwise preserve the order in which they arrived.
+            });
+            for (Candle candle : list) {
+                c.output(KV.of(key, candle));
+            }
+        }
+    }
+
+    /**
+     * This flattening DoFn sorts the grouped values by timestamp in ascending order.
+     * It is used in the eviction test.
+     */
+    public static class FlattenGroupedByTimestampFn extends DoFn<KV<String, Iterable<Candle>>, KV<String, Candle>> {
+        @ProcessElement
+        public void processElement(ProcessContext c) {
+            String key = c.element().getKey();
+            List<Candle> list = new ArrayList<>();
+            for (Candle candle : c.element().getValue()) {
+                list.add(candle);
+            }
+            list.sort((a, b) -> Long.compare(a.getTimestamp().getSeconds(), b.getTimestamp().getSeconds()));
+            for (Candle candle : list) {
                 c.output(KV.of(key, candle));
             }
         }
@@ -52,7 +91,7 @@ public class LastCandlesFnTest {
         // Act & Assert: With one candle, the final buffer should contain that candle.
         PAssert.that(
             pipeline.apply(Create.of(KV.of("BTC/USD", candle1)))
-                    // (For a single element, grouping isn’t strictly needed.)
+                    // For a single element, grouping isn’t strictly necessary.
                     .apply(ParDo.of(new BufferLastCandles(3)))
         ).satisfies(iterable -> {
             ImmutableList<KV<String, ImmutableList<Candle>>> list = ImmutableList.copyOf(iterable);
@@ -67,54 +106,55 @@ public class LastCandlesFnTest {
 
     @Test
     public void testBufferDefaultCandleReplacement() {
-        // Arrange: First, a real candle then a default (dummy) candle.
+        // Arrange: a real candle then a default candle.
         Candle realCandle = Candle.newBuilder()
                 .setOpen(105)
                 .setHigh(115)
                 .setLow(95)
-                .setClose(110)  // This close value should be used for replacement.
+                .setClose(110)  // This close value (110) should be used for replacement.
                 .setVolume(1.2)
                 .setTimestamp(Timestamp.newBuilder().setSeconds(2000).build())
                 .setCurrencyPair("BTC/USD")
                 .build();
-        // Create a default candle (no trades).
+        // Default candle (all zeros, including timestamp = 0)
         Candle defaultCandle = Candle.newBuilder()
                 .setOpen(ZERO)
                 .setHigh(ZERO)
                 .setLow(ZERO)
                 .setClose(ZERO)
                 .setVolume(ZERO)
-                .setTimestamp(Timestamp.getDefaultInstance())  // timestamp = 0
+                .setTimestamp(Timestamp.getDefaultInstance())
                 .setCurrencyPair(realCandle.getCurrencyPair())
                 .build();
 
         // Act & Assert:
-        // Force grouping so that both values are processed in the same bundle.
+        // Use a GroupByKey and a specialized flattening DoFn that orders non-default candles first.
         PAssert.that(
             pipeline
               .apply(Create.of(KV.of("BTC/USD", realCandle), KV.of("BTC/USD", defaultCandle)))
               .apply("GroupByKey", GroupByKey.create())
-              .apply("FlattenGrouped", ParDo.of(new FlattenGroupedFn()))
+              .apply("FlattenGrouped", ParDo.of(new FlattenGroupedWithOrderingFn()))
               .apply(ParDo.of(new BufferLastCandles(3)))
         ).satisfies(iterable -> {
             ImmutableList<KV<String, ImmutableList<Candle>>> list = ImmutableList.copyOf(iterable);
-            // The final output is the one with the fully accumulated state.
+            // Get the final output (the fully accumulated state)
             KV<String, ImmutableList<Candle>> kv = list.get(list.size() - 1);
             assertEquals("BTC/USD", kv.getKey());
             ImmutableList<Candle> buffer = kv.getValue();
-            // We expect two candles.
+            // We expect two candles in the buffer.
             assertEquals(2, buffer.size());
-            // Since sorting is by timestamp ascending and the filled candle uses the default candle’s timestamp (0),
-            // the filled (replaced) candle is at index 0 and the real candle is at index 1.
+            // Processing order should be: realCandle processed first, then defaultCandle triggers replacement.
+            // After processing, the default candle is replaced with a "filled" candle.
+            // Note that the stateful DoFn sorts the buffer by timestamp ascending.
+            // The filled candle retains the default candle’s timestamp (0), so it comes first.
             Candle filledCandle = buffer.get(0);
-            // The filled candle should have open/high/low/close equal to realCandle.getClose() (i.e. 110)
-            // and its volume should remain zero.
+            // Expect the filled candle’s open (and other price fields) to equal realCandle.getClose() i.e. 110.
             assertEquals(realCandle.getClose(), filledCandle.getOpen(), DELTA);
             assertEquals(realCandle.getClose(), filledCandle.getHigh(), DELTA);
             assertEquals(realCandle.getClose(), filledCandle.getLow(), DELTA);
             assertEquals(realCandle.getClose(), filledCandle.getClose(), DELTA);
             assertEquals(ZERO, filledCandle.getVolume(), DELTA);
-            // The real candle is still present as the second element.
+            // The real candle should be the second element.
             Candle bufferedRealCandle = buffer.get(1);
             assertEquals(realCandle, bufferedRealCandle);
             return null;
@@ -163,7 +203,10 @@ public class LastCandlesFnTest {
                 .build();
 
         // Act & Assert:
-        // Force grouping so that state is accumulated.
+        // Use GroupByKey and then flatten the values sorted by timestamp.
+        // This ensures that the stateful DoFn processes the candles in ascending order:
+        // [candle1, candle2, candle3, candle4]
+        // With maxCandles=3, the oldest (candle1) should be evicted.
         PAssert.that(
             pipeline
               .apply(Create.of(
@@ -172,16 +215,17 @@ public class LastCandlesFnTest {
                         KV.of("BTC/USD", candle3),
                         KV.of("BTC/USD", candle4)))
               .apply("GroupByKey", GroupByKey.create())
-              .apply("FlattenGrouped", ParDo.of(new FlattenGroupedFn()))
+              .apply("FlattenGrouped", ParDo.of(new FlattenGroupedByTimestampFn()))
               .apply(ParDo.of(new BufferLastCandles(3)))
         ).satisfies(iterable -> {
             ImmutableList<KV<String, ImmutableList<Candle>>> list = ImmutableList.copyOf(iterable);
             KV<String, ImmutableList<Candle>> kv = list.get(list.size() - 1);
             assertEquals("BTC/USD", kv.getKey());
             ImmutableList<Candle> buffer = kv.getValue();
-            // With maxCandles=3 and 4 inputs, the oldest candle (candle1) is evicted.
+            // With maxCandles = 3 and 4 inputs, the oldest candle (candle1) should be evicted.
             assertEquals(3, buffer.size());
-            // Expect the sorted order by timestamp: [candle2, candle3, candle4]
+            // The stateful DoFn sorts the buffer by timestamp ascending.
+            // Expected final buffer: [candle2, candle3, candle4].
             assertEquals(candle2, buffer.get(0));
             assertEquals(candle3, buffer.get(1));
             assertEquals(candle4, buffer.get(2));
@@ -218,7 +262,7 @@ public class LastCandlesFnTest {
                 .setCurrencyPair("BTC/USD")
                 .build();
 
-        // Act & Assert
+        // Act & Assert:
         PAssert.that(
             pipeline.apply(Create.of(KV.of("BTC/USD", candle1)))
                     .apply(ParDo.of(new BufferLastCandles(0)))
