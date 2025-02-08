@@ -39,7 +39,7 @@ public class DefaultTradeGeneratorTest {
             assertEquals(0.0, trade.getVolume(), 1e-6);
             // Since the key is used directly as the currency pair, we expect:
             assertEquals("BTC/USD", trade.getCurrencyPair());
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
@@ -63,7 +63,7 @@ public class DefaultTradeGeneratorTest {
             assertEquals(defaultPrice, trade.getPrice(), 1e-6);
             assertEquals(0.0, trade.getVolume(), 1e-6);
             assertEquals("ETH/USD", trade.getCurrencyPair());
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
@@ -83,7 +83,7 @@ public class DefaultTradeGeneratorTest {
             assertEquals(key, kv.getKey());
             Trade trade = kv.getValue();
             assertEquals(customDefaultPrice, trade.getPrice(), 1e-6);
-            return iterable;
+            return null;
         });
         pipeline.run().waitUntilFinish();
     }
