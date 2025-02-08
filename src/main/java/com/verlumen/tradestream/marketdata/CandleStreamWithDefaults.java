@@ -9,11 +9,13 @@ import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.Reshuffle;
 import org.apache.beam.sdk.transforms.SimpleFunction;
+import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
-import org.apache.beam.sdk.transforms.PTransform;
 import org.joda.time.Duration;
+import org.apache.beam.sdk.transforms.windowing.GlobalWindows;
+import org.apache.beam.sdk.transforms.windowing.Window;
 
 /**
  * CandleStreamWithDefaults is a composite transform that:
@@ -21,12 +23,12 @@ import org.joda.time.Duration;
  *  1. Generates synthetic default trades for a list of currency pairs using DefaultTradeGenerator.
  *  2. Reshuffles and unions real trades with synthetic trades.
  *  3. Aggregates trades into candles via SlidingCandleAggregator.
- *  4. Buffers the last N candles per key via LastCandlesFn.BufferLastCandles.
+ *  4. Re-windows the aggregated candle stream into a GlobalWindow so that each key appears only once.
+ *  5. Buffers the last N candles per key via LastCandlesFn.BufferLastCandles.
  * 
  * For keys that have no real trades, the default trade is used to trigger candle creation.
- * Furthermore, if a window produces a default (dummy) candle, the buffering DoFn replaces it
- * with a filled candle (using the previous real candle’s closing price for open/high/low/close, volume 0)
- * provided a real candle exists in the buffer.
+ * (In that case, our CombineFn produces a default candle with all zero values.)
+ * We also update the buffering DoFn to ignore duplicate default candles.
  */
 public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, Trade>>, PCollection<KV<String, ImmutableList<Candle>>>> {
 
@@ -72,7 +74,11 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
         PCollection<KV<String, Candle>> candles = allTrades.apply("AggregateCandles",
             new SlidingCandleAggregator(windowDuration, slideDuration));
 
+        // 5.1 Re-window aggregated candles into a GlobalWindow to consolidate outputs per key.
+        PCollection<KV<String, Candle>> globalCandles =
+            candles.apply("RewindowToGlobal", Window.<KV<String, Candle>>into(new GlobalWindows()));
+
         // 6. Buffer last N candles per key.
-        return candles.apply("BufferLastCandles", ParDo.of(new LastCandlesFn.BufferLastCandles(bufferSize)));
+        return globalCandles.apply("BufferLastCandles", ParDo.of(new LastCandlesFn.BufferLastCandles(bufferSize)));
     }
 }
