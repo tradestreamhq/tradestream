@@ -6,9 +6,11 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import com.verlumen.tradestream.marketdata.Candle;
-import com.verlumen.tradestream.marketdata.CreateCandles;
+import com.verlumen.tradestream.marketdata.MultiTimeframeCandleTransform;
+import com.verlumen.tradestream.marketdata.CandleStreamWithDefaults;
 import com.verlumen.tradestream.marketdata.ParseTrades;
 import com.verlumen.tradestream.marketdata.Trade;
+import java.util.Arrays;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
@@ -33,101 +35,115 @@ public final class App {
     @Description("Comma-separated list of Kafka bootstrap servers.")
     @Default.String("localhost:9092")
     String getBootstrapServers();
-
     void setBootstrapServers(String value);
 
     @Description("Kafka topic to read trade data from.")
     @Default.String("trades")
     String getTradeTopic();
-
     void setTradeTopic(String value);
 
     @Description("Run mode: wet or dry.")
     @Default.String("wet")
     String getRunMode();
-
     void setRunMode(String value);
   }
 
   private final Duration allowedLateness;
   private final Duration allowedTimestampSkew;
-  private final CreateCandles createCandles;
+  private final Duration windowDuration;
+  private final CreateCandles createCandles;  // (Legacy or alternative transform)
   private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
   private final ParseTrades parseTrades;
-  private final Duration windowDuration;
 
+  // In this integration we use our new composite transforms.
   @Inject
   App(
-      CreateCandles createCandles,
+      CreateCandles createCandles, // may still be injected if used elsewhere
       KafkaReadTransform<String, byte[]> kafkaReadTransform,
       ParseTrades parseTrades,
       PipelineConfig config) {
     this.allowedLateness = config.allowedLateness();
     this.allowedTimestampSkew = config.allowedTimestampSkew();
+    this.windowDuration = config.windowDuration(); // e.g. 1 minute windows for candles.
     this.createCandles = createCandles;
     this.kafkaReadTransform = kafkaReadTransform;
     this.parseTrades = parseTrades;
-    this.windowDuration = config.windowDuration();
     logger.atInfo().log(
         "Initialized App with allowedLateness=%s, windowDuration=%s, allowedTimestampSkew=%s",
-        allowedLateness,
-        windowDuration,
-        allowedTimestampSkew);
+        allowedLateness, windowDuration, allowedTimestampSkew);
   }
 
+  /**
+   * Build the Beam pipeline, integrating all components.
+   */
   private Pipeline buildPipeline(Pipeline pipeline) {
     logger.atInfo().log("Starting to build the pipeline.");
 
-    // 1. Read from Kafka (returns PCollection<byte[]>)
-    logger.atInfo().log("Applying KafkaReadTransform to read from Kafka.");
-    PCollection<byte[]> input = pipeline.apply("Read from Kafka", kafkaReadTransform);
+    // 1. Read from Kafka.
+    PCollection<byte[]> input = pipeline.apply("ReadFromKafka", kafkaReadTransform);
 
-    // 2. Parse bytes into Trade objects.
-    logger.atInfo().log("Applying ParseTrades transform.");
-    PCollection<Trade> trades = input.apply("Parse Trades", parseTrades);
+    // 2. Parse the byte stream into Trade objects.
+    PCollection<Trade> trades = input.apply("ParseTrades", parseTrades);
 
-    // 3. Assign proper event timestamps (using the Trade's own timestamp).
-    logger.atInfo().log("Assigning event timestamps based on Trade timestamps with skew=%s", allowedTimestampSkew);
+    // 3. Assign event timestamps from the Trade's own timestamp.
     PCollection<Trade> tradesWithTimestamps =
         trades.apply(
-            "Assign Timestamps",
-            WithTimestamps.of(
-                (Trade trade) -> {
-                    long millis = Timestamps.toMillis(trade.getTimestamp());
-                    Instant timestamp = new Instant(millis);
-                    logger.atFinest().log("Assigned timestamp %s for trade: %s", timestamp, trade);
-                    return timestamp;
-                })
-            .withAllowedTimestampSkew(allowedTimestampSkew));
+            "AssignTimestamps",
+            WithTimestamps.of((Trade trade) -> {
+              long millis = Timestamps.toMillis(trade.getTimestamp());
+              Instant timestamp = new Instant(millis);
+              logger.atFinest().log("Assigned timestamp %s for trade: %s", timestamp, trade);
+              return timestamp;
+            })
+            .withAllowedTimestampSkew(allowedTimestampSkew)
+        );
 
-    // 4. Convert to KV pairs (keyed by currency pair).
-    logger.atInfo().log("Mapping trades to KV pairs keyed by currency pair.");
+    // 4. Convert trades into KV pairs keyed by currency pair.
     PCollection<KV<String, Trade>> tradePairs =
         tradesWithTimestamps.apply(
-            "Create Trade Pairs",
+            "CreateTradePairs",
             MapElements.into(new TypeDescriptor<KV<String, Trade>>() {})
-                .via(
-                    (Trade trade) -> {
-                      String key = trade.getCurrencyPair();
-                      logger.atFinest().log("Mapping trade %s to key: %s", trade, key);
-                      return KV.of(key, trade);
-                    }));
+                .via((Trade trade) -> {
+                  String key = trade.getCurrencyPair();  // Expect currency pair as String.
+                  logger.atFinest().log("Mapping trade %s to key: %s", trade, key);
+                  return KV.of(key, trade);
+                })
+        );
 
-    // 5. Apply windowing.
-    logger.atInfo().log("Applying fixed windowing of duration %s with allowed lateness %s.", windowDuration,
-        allowedLateness);
-    PCollection<KV<String, Trade>> windowedInput =
+    // 5. Apply fixed windowing (1 minute windows).
+    PCollection<KV<String, Trade>> windowedTradePairs =
         tradePairs.apply(
-            "Apply Windows",
+            "ApplyWindows",
             Window.<KV<String, Trade>>into(FixedWindows.of(windowDuration))
                 .withAllowedLateness(allowedLateness)
                 .triggering(DefaultTrigger.of())
-                .discardingFiredPanes());
+                .discardingFiredPanes()
+        );
 
-    // 6. Create candles from windowed trades.
-    logger.atInfo().log("Creating candles from windowed trade data.");
-    PCollection<Candle> candles = windowedInput.apply("Create Candles", createCandles);
+    // 6. Create a base candle stream from the windowed trades.
+    // This transform (CandleStreamWithDefaults) unites real trades with synthetic default trades,
+    // aggregates them into 1-minute candles (using SlidingCandleAggregator), and buffers the last N candles.
+    PCollection<KV<String, ImmutableList<Candle>>> baseCandleStream =
+        windowedTradePairs.apply(
+            "CreateBaseCandles",
+            new CandleStreamWithDefaults(
+                windowDuration,                  // Use the same 1-minute window for candle aggregation.
+                Duration.standardSeconds(30),    // Slide duration for the candle aggregator.
+                5,                               // Buffer size for base candle consolidation.
+                Arrays.asList("BTC/USD", "ETH/USD"),
+                10000.0                          // Default price for synthetic trades.
+            )
+        );
 
+    // 7. Apply the multi-timeframe view.
+    // Here, MultiTimeframeCandleTransform branches the base candle stream into different timeframes,
+    // for example, a 1-hour view (last 60 candles) and a 1-day view (last 1440 candles).
+    PCollection<KV<String, ImmutableList<Candle>>> multiTimeframeStream =
+        baseCandleStream.apply("MultiTimeframeView", new MultiTimeframeCandleTransform());
+
+    // At this point, multiTimeframeStream contains one element per timeframe per key.
+    // You can write these outputs to your sink (e.g., a database, messaging system, etc.)
+    // For demonstration, we log that the pipeline building is complete.
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
     return pipeline;
   }
