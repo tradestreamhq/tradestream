@@ -11,6 +11,8 @@ import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
+import org.apache.beam.sdk.transforms.GroupByKey;
+import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
 import org.junit.Rule;
@@ -36,12 +38,12 @@ public class LastCandlesFnTest {
                 .setCurrencyPair("BTC/USD")
                 .build();
 
-        // Act & Assert
+        // Act & Assert: With one candle, the final buffer should contain that candle.
         PAssert.that(
             pipeline.apply(Create.of(KV.of("BTC/USD", candle1)))
                     .apply(ParDo.of(new BufferLastCandles(3)))
         ).satisfies(iterable -> {
-            // Collect all outputs and take the last one as the final state.
+            // Pick the final output (here the only one) from the stateful DoFn.
             ImmutableList<KV<String, ImmutableList<Candle>>> list = ImmutableList.copyOf(iterable);
             KV<String, ImmutableList<Candle>> kv = list.get(list.size() - 1);
             assertEquals("BTC/USD", kv.getKey());
@@ -54,47 +56,54 @@ public class LastCandlesFnTest {
 
     @Test
     public void testBufferDefaultCandleReplacement() {
-        // Arrange: First, add a real candle, then a default (dummy) candle.
+        // Arrange: First, a real candle then a default (dummy) candle.
         Candle realCandle = Candle.newBuilder()
                 .setOpen(105)
                 .setHigh(115)
                 .setLow(95)
-                .setClose(110)
+                .setClose(110)  // This close value should be used for replacement.
                 .setVolume(1.2)
                 .setTimestamp(Timestamp.newBuilder().setSeconds(2000).build())
                 .setCurrencyPair("BTC/USD")
                 .build();
-        // Create a default candle (no trades)
+        // Create a default candle (no trades).
         Candle defaultCandle = Candle.newBuilder()
                 .setOpen(ZERO)
                 .setHigh(ZERO)
                 .setLow(ZERO)
                 .setClose(ZERO)
                 .setVolume(ZERO)
-                .setTimestamp(Timestamp.getDefaultInstance())
+                .setTimestamp(Timestamp.getDefaultInstance())  // timestamp = 0
                 .setCurrencyPair(realCandle.getCurrencyPair())
                 .build();
 
-        // Act & Assert: When a default candle is added after a real one,
-        // it should be "filled" using the real candle's close.
+        // Act & Assert:
+        // When processing a real candle followed by a default candle,
+        // the default candle is replaced (filled) with values based on realCandle.getClose().
         PAssert.that(
             pipeline.apply(Create.of(KV.of("BTC/USD", realCandle), KV.of("BTC/USD", defaultCandle)))
                     .apply(ParDo.of(new BufferLastCandles(3)))
         ).satisfies(iterable -> {
-            // Use the last output as the final buffer state.
             ImmutableList<KV<String, ImmutableList<Candle>>> list = ImmutableList.copyOf(iterable);
+            // The final output is the one with the fully accumulated state.
             KV<String, ImmutableList<Candle>> kv = list.get(list.size() - 1);
             assertEquals("BTC/USD", kv.getKey());
             ImmutableList<Candle> buffer = kv.getValue();
+            // We expect two candles.
             assertEquals(2, buffer.size());
-            Candle filledCandle = buffer.get(1);
-            // Check that the filled candle has its open/high/low/close set to realCandle.getClose()
-            // and its volume remains zero.
+            // Since sorting is by timestamp ascending, and the filled candle takes the default candle’s timestamp (0),
+            // the filled (replaced) candle is at index 0, and the real candle is at index 1.
+            Candle filledCandle = buffer.get(0);
+            // The filled candle should have open/high/low/close equal to realCandle.getClose() (110)
+            // and its volume should remain zero.
             assertEquals(realCandle.getClose(), filledCandle.getOpen(), DELTA);
             assertEquals(realCandle.getClose(), filledCandle.getHigh(), DELTA);
             assertEquals(realCandle.getClose(), filledCandle.getLow(), DELTA);
             assertEquals(realCandle.getClose(), filledCandle.getClose(), DELTA);
             assertEquals(ZERO, filledCandle.getVolume(), DELTA);
+            // The real candle is still present as the second element.
+            Candle bufferedRealCandle = buffer.get(1);
+            assertEquals(realCandle, bufferedRealCandle);
             return null;
         });
         pipeline.run().waitUntilFinish();
@@ -102,7 +111,7 @@ public class LastCandlesFnTest {
 
     @Test
     public void testBufferExceedsLimitEviction() {
-        // Arrange
+        // Arrange: Create four candles with increasing timestamps.
         Candle candle1 = Candle.newBuilder()
                 .setOpen(100)
                 .setHigh(110)
@@ -140,18 +149,20 @@ public class LastCandlesFnTest {
                 .setCurrencyPair("BTC/USD")
                 .build();
 
-        // Act & Assert
+        // Act & Assert:
+        // When processing 4 candles with maxCandles = 3, the oldest (candle1) should be evicted.
+        // To ensure that all candles for a key are processed in the same bundle, we group them.
         PAssert.that(
             pipeline
               .apply(Create.of(
-                  KV.of("BTC/USD", candle1),
-                  KV.of("BTC/USD", candle2),
-                  KV.of("BTC/USD", candle3),
-                  KV.of("BTC/USD", candle4)))
-              // Group all candles for the same key together.
+                        KV.of("BTC/USD", candle1),
+                        KV.of("BTC/USD", candle2),
+                        KV.of("BTC/USD", candle3),
+                        KV.of("BTC/USD", candle4)))
+              // Force grouping so that state is accumulated for the key.
               .apply("GroupByKey", GroupByKey.create())
               // Flatten the grouped values back to individual KV pairs.
-              .apply("Flatten", ParDo.of(new DoFn<KV<String, Iterable<Candle>>, KV<String, Candle>>() {
+              .apply("FlattenGrouped", ParDo.of(new DoFn<KV<String, Iterable<Candle>>, KV<String, Candle>>() {
                   @ProcessElement
                   public void processElement(ProcessContext c) {
                       String key = c.element().getKey();
@@ -160,17 +171,16 @@ public class LastCandlesFnTest {
                       }
                   }
               }))
-              // Now process with your stateful DoFn.
+              // Now apply the stateful DoFn.
               .apply(ParDo.of(new BufferLastCandles(3)))
-        ).satisfies(outputs -> {
-            ImmutableList<KV<String, ImmutableList<Candle>>> list = ImmutableList.copyOf(outputs);
-            // Pick the output with the largest buffer (the final accumulated state).
+        ).satisfies(iterable -> {
+            ImmutableList<KV<String, ImmutableList<Candle>>> list = ImmutableList.copyOf(iterable);
             KV<String, ImmutableList<Candle>> kv = list.get(list.size() - 1);
             assertEquals("BTC/USD", kv.getKey());
             ImmutableList<Candle> buffer = kv.getValue();
-            // With maxCandles=3 and 4 inputs, the oldest (candle1) should be evicted.
+            // With maxCandles=3 and 4 inputs, the oldest candle (candle1) is evicted.
             assertEquals(3, buffer.size());
-            // Expect the sorted order: [candle2, candle3, candle4]
+            // Expect the sorted order by timestamp: [candle2, candle3, candle4]
             assertEquals(candle2, buffer.get(0));
             assertEquals(candle3, buffer.get(1));
             assertEquals(candle4, buffer.get(2));
@@ -196,7 +206,7 @@ public class LastCandlesFnTest {
 
     @Test
     public void testBufferZeroSize() {
-        // Arrange
+        // Arrange: With a maximum buffer size of zero, the final state should be empty.
         Candle candle1 = Candle.newBuilder()
                 .setOpen(100)
                 .setHigh(110)
@@ -212,7 +222,6 @@ public class LastCandlesFnTest {
             pipeline.apply(Create.of(KV.of("BTC/USD", candle1)))
                     .apply(ParDo.of(new BufferLastCandles(0)))
         ).satisfies(iterable -> {
-            // Use the last output as the final buffer state.
             ImmutableList<KV<String, ImmutableList<Candle>>> list = ImmutableList.copyOf(iterable);
             KV<String, ImmutableList<Candle>> kv = list.get(list.size() - 1);
             assertEquals("BTC/USD", kv.getKey());
