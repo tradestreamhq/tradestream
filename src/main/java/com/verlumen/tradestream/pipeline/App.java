@@ -56,7 +56,6 @@ public final class App {
   private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
   private final ParseTrades parseTrades;
 
-  // In this integration we use our new composite transforms.
   @Inject
   App(
       /* CreateCandles createCandles, */ // no longer needed for the new design
@@ -94,8 +93,7 @@ public final class App {
               Instant timestamp = new Instant(millis);
               logger.atFinest().log("Assigned timestamp %s for trade: %s", timestamp, trade);
               return timestamp;
-            })
-            .withAllowedTimestampSkew(allowedTimestampSkew)
+            }).withAllowedTimestampSkew(allowedTimestampSkew)
         );
 
     // 4. Convert trades into KV pairs keyed by currency pair.
@@ -121,7 +119,7 @@ public final class App {
         );
 
     // 6. Create a base candle stream from the windowed trades.
-    // This transform (CandleStreamWithDefaults) unites real trades with synthetic default trades,
+    // This transform unites real trades with synthetic default trades,
     // aggregates them into 1-minute candles (using SlidingCandleAggregator), and buffers the last N candles.
     PCollection<KV<String, ImmutableList<Candle>>> baseCandleStream =
         windowedTradePairs.apply(
@@ -142,26 +140,19 @@ public final class App {
             MapElements.into(new TypeDescriptor<KV<String, Candle>>() {})
                 .via((KV<String, ImmutableList<Candle>> kv) -> {
                   ImmutableList<Candle> list = kv.getValue();
-                  // Pick the last candle from the buffered list as the consolidated candle.
                   Candle consolidated = list.get(list.size() - 1);
                   return KV.of(kv.getKey(), consolidated);
                 })
         );
 
     // 8. Apply the multi-timeframe view.
-    // MultiTimeframeCandleTransform branches the base candle stream into different timeframes,
+    // This transform branches the base candle stream into different timeframes,
     // for example, a 1-hour view (last 60 candles) and a 1-day view (last 1440 candles).
     PCollection<KV<String, ImmutableList<Candle>>> multiTimeframeStream =
         consolidatedBaseCandles.apply("MultiTimeframeView", new MultiTimeframeCandleTransform());
 
     // 9. Print the results to stdout with helpful labels.
-    multiTimeframeStream.apply("PrintResults", ParDo.of(new org.apache.beam.sdk.transforms.DoFn<KV<String, ImmutableList<Candle>>, Void>() {
-      @ProcessElement
-      public void processElement(ProcessContext c) {
-        KV<String, ImmutableList<Candle>> element = c.element();
-        System.out.println("Currency Pair: " + element.getKey() + " | Timeframe View: " + element.getValue());
-      }
-    }));
+    multiTimeframeStream.apply("PrintResults", ParDo.of(new PrintResultsDoFn()));
 
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
     return pipeline;
@@ -176,6 +167,14 @@ public final class App {
     } catch (Exception e) {
       logger.atSevere().withCause(e).log("Pipeline execution failed.");
       throw e;
+    }
+  }
+
+  private static class PrintResultsDoFn extends ParDo.SingleOutput<KV<String, ImmutableList<Candle>>, Void> {
+    @ProcessElement
+    public void processElement(ProcessContext c) {
+      KV<String, ImmutableList<Candle>> element = c.element();
+      System.out.println("Currency Pair: " + element.getKey() + " | Timeframe View: " + element.getValue());
     }
   }
 
