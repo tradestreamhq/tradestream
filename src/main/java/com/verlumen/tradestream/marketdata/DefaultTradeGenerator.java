@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.marketdata;
 
-import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Timestamps;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
@@ -39,7 +38,8 @@ public class DefaultTradeGenerator extends PTransform<PCollection<KV<String, Voi
         public void processElement(@Element KV<String, Void> element, OutputReceiver<KV<String, Trade>> out) {
             String key = element.getKey();  // Expecting a key like "BTC/USD"
             Instant now = Instant.now();
-            Timestamp ts = Timestamps.fromMillis(now.getMillis());
+            // Fully qualify the Timestamp to ensure we use the protobuf type.
+            com.google.protobuf.Timestamp ts = Timestamps.fromMillis(now.getMillis());
             Trade trade = Trade.newBuilder()
                     .setTimestamp(ts)
                     .setExchange("DEFAULT")
