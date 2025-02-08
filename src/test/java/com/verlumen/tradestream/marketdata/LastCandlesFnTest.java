@@ -142,20 +142,35 @@ public class LastCandlesFnTest {
 
         // Act & Assert
         PAssert.that(
-            pipeline.apply(Create.of(
-                        KV.of("BTC/USD", candle1),
-                        KV.of("BTC/USD", candle2),
-                        KV.of("BTC/USD", candle3),
-                        KV.of("BTC/USD", candle4)))
-                    .apply(ParDo.of(new BufferLastCandles(3)))
-        ).satisfies(iterable -> {
-            // Use the last output as the final buffer state.
-            ImmutableList<KV<String, ImmutableList<Candle>>> list = ImmutableList.copyOf(iterable);
+            pipeline
+              .apply(Create.of(
+                  KV.of("BTC/USD", candle1),
+                  KV.of("BTC/USD", candle2),
+                  KV.of("BTC/USD", candle3),
+                  KV.of("BTC/USD", candle4)))
+              // Group all candles for the same key together.
+              .apply("GroupByKey", GroupByKey.create())
+              // Flatten the grouped values back to individual KV pairs.
+              .apply("Flatten", ParDo.of(new DoFn<KV<String, Iterable<Candle>>, KV<String, Candle>>() {
+                  @ProcessElement
+                  public void processElement(ProcessContext c) {
+                      String key = c.element().getKey();
+                      for (Candle candle : c.element().getValue()) {
+                          c.output(KV.of(key, candle));
+                      }
+                  }
+              }))
+              // Now process with your stateful DoFn.
+              .apply(ParDo.of(new BufferLastCandles(3)))
+        ).satisfies(outputs -> {
+            ImmutableList<KV<String, ImmutableList<Candle>>> list = ImmutableList.copyOf(outputs);
+            // Pick the output with the largest buffer (the final accumulated state).
             KV<String, ImmutableList<Candle>> kv = list.get(list.size() - 1);
             assertEquals("BTC/USD", kv.getKey());
             ImmutableList<Candle> buffer = kv.getValue();
-            // Expected eviction: candle1 is evicted; remaining should be candle2, candle3, candle4.
+            // With maxCandles=3 and 4 inputs, the oldest (candle1) should be evicted.
             assertEquals(3, buffer.size());
+            // Expect the sorted order: [candle2, candle3, candle4]
             assertEquals(candle2, buffer.get(0));
             assertEquals(candle3, buffer.get(1));
             assertEquals(candle4, buffer.get(2));
