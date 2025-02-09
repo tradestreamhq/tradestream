@@ -1,7 +1,7 @@
 package com.verlumen.tradestream.marketdata;
 
 import com.google.protobuf.Timestamp;
-import com.google.common.flogger.FluentLogger;  // <-- Added FluentLogger import
+import com.google.common.flogger.FluentLogger;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.Trade;
 import java.io.InputStream;
