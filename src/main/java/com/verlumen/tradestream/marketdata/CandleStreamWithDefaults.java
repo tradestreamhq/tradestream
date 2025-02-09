@@ -57,7 +57,6 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
     @Override
     public PCollection<KV<String, ImmutableList<Candle>>> expand(PCollection<KV<String, Trade>> input) {
         // 1. Create keys for all currency pairs.
-        // ... (steps 1-6 remain the same up to 'buffered' PCollection) ...
         PCollection<KV<String, Void>> keys = input.getPipeline()
             .apply("CreateCurrencyPairKeys", Create.of(currencyPairs))
             .apply("PairWithVoid", MapElements.via(new SimpleFunction<String, KV<String, Void>>() {
