@@ -1,5 +1,8 @@
 package com.verlumen.tradestream.pipeline;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.collect.Iterables.getLast;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.protobuf.util.Timestamps;
 import com.google.inject.Guice;
@@ -142,8 +145,8 @@ public final class App {
         baseCandleStream.apply("ConsolidateBufferedCandles",
             MapElements.into(new TypeDescriptor<KV<String, Candle>>() {})
                 .via((KV<String, ImmutableList<Candle>> kv) -> {
-                  ImmutableList<Candle> list = kv.getValue();
-                  Candle consolidated = list.get(list.size() - 1);
+                  ImmutableList<Candle> list = firstNonNull(kv.getValue(), ImmutableList.of());
+                  Candle consolidated = getLast(list, Candle.getDefaultInstance());
                   return KV.of(kv.getKey(), consolidated);
                 })
         );
