@@ -64,7 +64,6 @@ public final class App {
 
   @Inject
   App(
-      /* CreateCandles createCandles, */ // no longer needed for the new design
       KafkaReadTransform<String, byte[]> kafkaReadTransform,
       ParseTrades parseTrades,
       PipelineConfig config) {

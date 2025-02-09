@@ -21,29 +21,6 @@ java_test(
 )
 
 java_test(
-    name = "CreateCandlesTest",
-    srcs = [
-      "CreateCandlesTest.java"
-    ],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/marketdata:create_candles",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
-        "//third_party:beam_sdks_java_test_utils",
-        "//third_party:protobuf_java",
-        "//third_party:protobuf_java_util",
-        "//third_party:joda_time",
-        "//third_party:junit",
-    ],
-    runtime_deps = [
-        "//third_party:beam_runners_direct_java",
-        "//third_party:hamcrest",
-    ],
-)
-
-
-java_test(
     name = "DefaultTradeGeneratorTest",
     srcs = ["DefaultTradeGeneratorTest.java"],
     deps = [
