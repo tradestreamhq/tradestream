@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.pipeline;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.collect.Iterables.getLast;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.protobuf.util.Timestamps;
@@ -145,7 +146,7 @@ public final class App {
             MapElements.into(new TypeDescriptor<KV<String, Candle>>() {})
                 .via((KV<String, ImmutableList<Candle>> kv) -> {
                   ImmutableList<Candle> list = firstNonNull(kv.getValue(), ImmutableList.of());
-                  Candle consolidated = list.get(list == null ? 0 : list.size() - 1);
+                  Candle consolidated = getLast(list, Candle.getDefaultInstance());
                   return KV.of(kv.getKey(), consolidated);
                 })
         );
