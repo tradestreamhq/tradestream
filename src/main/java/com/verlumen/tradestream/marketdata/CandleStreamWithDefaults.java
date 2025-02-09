@@ -12,6 +12,8 @@ import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.Reshuffle;
 import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.transforms.PTransform;
+import org.apache.beam.sdk.transforms.windowing.AfterProcessingTime;
+import org.apache.beam.sdk.transforms.windowing.Repeatedly;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.GlobalWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
@@ -96,7 +98,8 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
         PCollection<KV<String, ImmutableList<Candle>>> rewindowedBuffered =
             buffered.apply("RewindowBuffered", 
                 Window.<KV<String, ImmutableList<Candle>>>into(new GlobalWindows())
-                      .triggering(AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardSeconds(1)))
+                      .triggering(Repeatedly.forever(
+                          AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardSeconds(1))))
                       .discardingFiredPanes()
                       .withAllowedLateness(Duration.ZERO)
             );
