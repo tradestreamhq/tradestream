@@ -21,6 +21,7 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
 import org.joda.time.Duration;
+import com.google.common.flogger.FluentLogger;
 
 /**
  * CandleStreamWithDefaults is a composite transform that:
@@ -39,6 +40,8 @@ import org.joda.time.Duration;
  */
 public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, Trade>>, PCollection<KV<String, ImmutableList<Candle>>>> {
 
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
     private final Duration windowDuration;
     private final Duration slideDuration;
     private final int bufferSize;
@@ -55,6 +58,8 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
 
     @Override
     public PCollection<KV<String, ImmutableList<Candle>>> expand(PCollection<KV<String, Trade>> input) {
+        logger.atInfo().log("CandleStreamWithDefaults: Starting transform expansion.");
+
         // 1. Create keys for all currency pairs.
         PCollection<KV<String, Void>> keys = input.getPipeline()
             .apply("CreateCurrencyPairKeys", Create.of(currencyPairs))
@@ -64,35 +69,41 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
                     return KV.of(input, null);
                 }
             }));
-
+        logger.atInfo().log("CandleStreamWithDefaults: Created keys for currency pairs: %s", currencyPairs);
+        
         // 2. Generate synthetic default trades.
         PCollection<KV<String, Trade>> defaultTrades = keys
             .apply("GenerateDefaultTrades", new DefaultTradeGenerator(defaultPrice))
             .apply("ReshardDefault", Reshuffle.viaRandomKey())
-            // Force default trades into FixedWindows matching the real trades.
             .apply("RewindowDefaultTrades", Window.<KV<String, Trade>>into(FixedWindows.of(windowDuration)));
-
+        logger.atInfo().log("CandleStreamWithDefaults: Generated default trades.");
+        
         // 3. Reshard real trades and force them into the same FixedWindows.
         PCollection<KV<String, Trade>> realTrades = input
             .apply("ReshardRealTrades", Reshuffle.viaRandomKey())
             .apply("RewindowRealTrades", Window.<KV<String, Trade>>into(FixedWindows.of(windowDuration)));
-
+        logger.atInfo().log("CandleStreamWithDefaults: Resharded real trades.");
+        
         // 4. Flatten real and default trades.
         PCollection<KV<String, Trade>> allTrades = PCollectionList.of(realTrades).and(defaultTrades)
             .apply("FlattenTrades", Flatten.pCollections());
-
+        logger.atInfo().log("CandleStreamWithDefaults: Flattened trades.");
+        
         // 5. Aggregate trades into candles using sliding windows.
         PCollection<KV<String, Candle>> candles = allTrades.apply("AggregateCandles",
             new SlidingCandleAggregator(windowDuration, slideDuration));
-
+        logger.atInfo().log("CandleStreamWithDefaults: Aggregated trades into candles.");
+        
         // 5.1 Re-window aggregated candles into a GlobalWindow.
         PCollection<KV<String, Candle>> globalCandles =
             candles.apply("RewindowToGlobal", Window.<KV<String, Candle>>into(new GlobalWindows()));
-
+        logger.atInfo().log("CandleStreamWithDefaults: Re-windowed candles into GlobalWindows.");
+        
         // 6. Buffer last N candles per key.
         PCollection<KV<String, ImmutableList<Candle>>> buffered =
             globalCandles.apply("BufferLastCandles", ParDo.of(new LastCandlesFn.BufferLastCandles(bufferSize)));
-
+        logger.atInfo().log("CandleStreamWithDefaults: Buffered candles.");
+        
         // 7. Re-window the buffered output into a FixedWindow (e.g., 1 day) with a trigger so that GroupByKey can fire.
         PCollection<KV<String, ImmutableList<Candle>>> rewindowedBuffered =
             buffered.apply("RewindowBuffered", 
@@ -101,18 +112,30 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
                       .discardingFiredPanes()
                       .withAllowedLateness(Duration.ZERO)
             );
+        logger.atInfo().log("CandleStreamWithDefaults: Re-windowed buffered candles into 1-day FixedWindows.");
         
         // 8. Group by key to consolidate outputs from multiple windows into one element per key.
         PCollection<KV<String, Iterable<ImmutableList<Candle>>>> grouped = rewindowedBuffered.apply("GroupByKey", GroupByKey.create());
+        logger.atInfo().log("CandleStreamWithDefaults: Applied GroupByKey.");
+        
+        // 9. Combine all buffered lists into one final output.
         PCollection<KV<String, ImmutableList<Candle>>> finalOutput =
             grouped.apply("ExtractLastBuffered", MapElements.via(new SimpleFunction<KV<String, Iterable<ImmutableList<Candle>>>, KV<String, ImmutableList<Candle>>>() {
                 @Override
                 public KV<String, ImmutableList<Candle>> apply(KV<String, Iterable<ImmutableList<Candle>>> input) {
-                    // Guard against a null buffered list by substituting an empty list.
-                    ImmutableList<Candle> last = com.google.common.base.MoreObjects.firstNonNull(ImmutableList.copyOf(input.getValue().iterator().hasNext() ? input.getValue().iterator().next() : null), ImmutableList.of());
-                    return KV.of(input.getKey(), last);
+                    // Combine all buffered lists for this key.
+                    ImmutableList.Builder<Candle> builder = ImmutableList.builder();
+                    for (ImmutableList<Candle> list : input.getValue()) {
+                        if (list != null) {
+                            builder.addAll(list);
+                        }
+                    }
+                    ImmutableList<Candle> combined = builder.build();
+                    logger.atInfo().log("CandleStreamWithDefaults: Consolidated buffered list for key %s: %s", input.getKey(), combined);
+                    return KV.of(input.getKey(), combined);
                 }
             }));
+        logger.atInfo().log("CandleStreamWithDefaults: Final output prepared.");
         return finalOutput;
     }
 }
