@@ -12,12 +12,11 @@ import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.Reshuffle;
 import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.transforms.PTransform;
-import org.apache.beam.sdk.transforms.windowing.AfterProcessingTime;
-import org.apache.beam.sdk.transforms.windowing.Repeatedly;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.GlobalWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.transforms.windowing.AfterProcessingTime;
+import org.apache.beam.sdk.transforms.windowing.Repeatedly;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
@@ -31,7 +30,7 @@ import org.joda.time.Duration;
  *  3. Aggregates trades into candles via SlidingCandleAggregator.
  *  4. Re-windows the aggregated candle stream into a GlobalWindow.
  *  5. Buffers the last N candles per key via LastCandlesFn.BufferLastCandles.
- *  6. Re-windows the buffered output into GlobalWindows with a trigger so that GroupByKey can be applied.
+ *  6. Re-windows the buffered output into a FixedWindow so that GroupByKey can be applied.
  *  7. Groups by key to consolidate multiple outputs into one output per key.
  * 
  * For keys that have no real trades, the default trade is used to trigger candle creation
@@ -85,38 +84,27 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
         // 5. Aggregate trades into candles using sliding windows.
         PCollection<KV<String, Candle>> candles = allTrades.apply("AggregateCandles",
             new SlidingCandleAggregator(windowDuration, slideDuration));
- 
- 
+
         // 5.1 Re-window aggregated candles into a GlobalWindow.
-        // 7. Group by key to consolidate outputs from multiple windows into one element per key.
         PCollection<KV<String, Candle>> globalCandles =
-        PCollection<KV<String, Iterable<ImmutableList<Candle>>>> grouped = buffered.apply("GroupByKey", GroupByKey.create());
             candles.apply("RewindowToGlobal", Window.<KV<String, Candle>>into(new GlobalWindows()));
- 
- 
+
         // 6. Buffer last N candles per key.
-        // 8. Re-window the buffered output into GlobalWindows with a trigger so that GroupByKey can be applied.
         PCollection<KV<String, ImmutableList<Candle>>> buffered =
-        // Remove this entire section:
             globalCandles.apply("BufferLastCandles", ParDo.of(new LastCandlesFn.BufferLastCandles(bufferSize)));
 
-        // 7. Group by key to consolidate outputs from multiple windows into one element per key.
-        PCollection<KV<String, Iterable<ImmutableList<Candle>>>> grouped = buffered.apply("GroupByKey", GroupByKey.create());
+        // 7. Re-window the buffered output into a FixedWindow (e.g., 60 minutes) so that GroupByKey can be applied.
+        // Adjust the duration as needed so that all buffered data in your test is in one window.
+        PCollection<KV<String, ImmutableList<Candle>>> rewindowedBuffered =
+            buffered.apply("RewindowBuffered", 
+                Window.<KV<String, ImmutableList<Candle>>>into(FixedWindows.of(Duration.standardMinutes(60)))
+                      .triggering(AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardSeconds(1)))
+                      .discardingFiredPanes()
+                      .withAllowedLateness(Duration.ZERO)
+            );
 
-        // 8. Re-window the buffered output into GlobalWindows with a trigger so that GroupByKey can be applied.
-        // Remove this entire section:
-        // PCollection<KV<String, ImmutableList<Candle>>> rewindowedBuffered =
-        //    buffered.apply("RewindowBuffered",
-        //        Window.<KV<String, ImmutableList<Candle>>>into(new GlobalWindows())
-        //              .triggering(Repeatedly.forever(
-        //                  AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardSeconds(1))))
-        //              .discardingFiredPanes()
-        //              .withAllowedLateness(Duration.ZERO)
-        //    );
-        // PCollection<KV<String, Iterable<ImmutableList<Candle>>>> grouped = rewindowedBuffered.apply("GroupByKey", GroupByKey.create());
-
-
-        // 8. (was 9) ExtractLastBuffered - remains the same, but now applied to 'grouped'
+        // 8. Group by key to consolidate outputs from multiple windows into one element per key.
+        PCollection<KV<String, Iterable<ImmutableList<Candle>>>> grouped = rewindowedBuffered.apply("GroupByKey", GroupByKey.create());
         PCollection<KV<String, ImmutableList<Candle>>> finalOutput =
             grouped.apply("ExtractLastBuffered", MapElements.via(new SimpleFunction<KV<String, Iterable<ImmutableList<Candle>>>, KV<String, ImmutableList<Candle>>>() {
                 @Override
