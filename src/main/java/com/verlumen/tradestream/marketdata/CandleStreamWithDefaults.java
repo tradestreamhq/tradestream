@@ -30,7 +30,7 @@ import org.joda.time.Duration;
  *  3. Aggregates trades into candles via SlidingCandleAggregator.
  *  4. Re-windows the aggregated candle stream into a GlobalWindow.
  *  5. Buffers the last N candles per key via LastCandlesFn.BufferLastCandles.
- *  6. Re-windows the buffered output into a GlobalWindow with a safe (repeated) trigger so that GroupByKey can be applied.
+ *  6. Re-windows the buffered output into a FixedWindow (here, 1 day) so that GroupByKey can be applied.
  *  7. Groups by key to consolidate multiple outputs into one output per key.
  * 
  * For keys that have no real trades, the default trade is used to trigger candle creation
@@ -93,16 +93,11 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
         PCollection<KV<String, ImmutableList<Candle>>> buffered =
             globalCandles.apply("BufferLastCandles", ParDo.of(new LastCandlesFn.BufferLastCandles(bufferSize)));
 
-        // 7. Re-window the buffered output into a GlobalWindow with a safe (repeated) trigger so that GroupByKey can be applied.
+        // 7. Re-window the buffered output into a FixedWindow (e.g., 1 day) so that GroupByKey can be applied.
         PCollection<KV<String, ImmutableList<Candle>>> rewindowedBuffered =
             buffered.apply("RewindowBuffered", 
-                Window.<KV<String, ImmutableList<Candle>>>into(new GlobalWindows())
-                      .triggering(Repeatedly.forever(
-                          AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardSeconds(1))))
-                      .discardingFiredPanes()
-                      .withAllowedLateness(Duration.ZERO)
-            );
-
+                Window.<KV<String, ImmutableList<Candle>>>into(FixedWindows.of(Duration.standardDays(1))));
+        
         // 8. Group by key to consolidate outputs from multiple windows into one element per key.
         PCollection<KV<String, Iterable<ImmutableList<Candle>>>> grouped = rewindowedBuffered.apply("GroupByKey", GroupByKey.create());
         PCollection<KV<String, ImmutableList<Candle>>> finalOutput =
