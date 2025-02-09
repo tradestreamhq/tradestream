@@ -6,6 +6,6 @@ commandTests:
     args:
       - '-jar'
       - '/src/main/java/com/verlumen/tradestream/ingestion/app_deploy.jar'
-      - '--candlePublisherTopic=fakeTopic'
       - '--runMode=dry'
+      - '--tradeTopic=fakeTopic'
     expectedError: ['.*Starting real-time data ingestion...']

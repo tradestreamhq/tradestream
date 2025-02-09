@@ -1,17 +1,17 @@
 name: Release Tradestream Artifacts
-
 on:
   push:
     branches:
       - main
       - develop
-
 jobs:
-  version:
+  release:
     runs-on: ubuntu-latest
     env:
       DATA_INGESTION_REPO: tradestreamhq/tradestream-data-ingestion
       DATA_INGESTION_SECTION_KEY: dataIngestion
+      PIPELINE_REPO: tradestreamhq/tradestream-data-pipeline
+      PIPELINE_SECTION_KEY: pipeline
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -69,25 +69,41 @@ jobs:
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
 
+      - name: Push the Pipeline image
+        run: |
+          bazel run //src/main/java/com/verlumen/tradestream/pipeline:push_image \
+            --verbose_failures \
+            --sandbox_debug \
+            -- \
+            --tag ${{ steps.version.outputs.version_tag }}
+
       - name: Install yq
         run: |
           sudo wget -O /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64
           sudo chmod +x /usr/bin/yq
 
-      - name: Update values.yaml with new image tag
+      - name: Update values.yaml with new image tags
         run: |
           yq eval-all '
             . as $item ireduce ({}; . * $item ) |
             .["${{ env.DATA_INGESTION_SECTION_KEY }}"].image.repository = "${{ env.DATA_INGESTION_REPO }}" |
-            .["${{ env.DATA_INGESTION_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}"
+            .["${{ env.DATA_INGESTION_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
+            .["${{ env.PIPELINE_SECTION_KEY }}"].image.repository = "${{ env.PIPELINE_REPO }}" |
+            .["${{ env.PIPELINE_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}"
           ' charts/tradestream/values.yaml > charts/tradestream/values.yaml.tmp
           mv charts/tradestream/values.yaml.tmp charts/tradestream/values.yaml
 
-      - name: Commit updated values.yaml
+      - name: Update MODULE.bazel version
+        run: |
+          echo "Updating MODULE.bazel to version ${{ steps.version.outputs.version_tag }}"
+          # Only replace "version" within the module(...) block
+          sed -i.bak '/^module(/,/^)/ s/\(version\s*=\s*"\)[^"]\+"/\1'"${{ steps.version.outputs.version_tag }}"'"/' MODULE.bazel
+        shell: bash
+
+      - name: Commit and Push All Changes
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         run: |
-          git add charts/tradestream/values.yaml
-          git commit -m "Update values.yaml: Set ${{ env.DATA_INGESTION_SECTION_KEY }} image to ${{ steps.version.outputs.version_tag }}" || echo "No changes to commit"
+          git add charts/tradestream/values.yaml MODULE.bazel
+          git commit -m "Bump version to ${{ steps.version.outputs.version_tag }}" || echo "No changes to commit"
           git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
-          

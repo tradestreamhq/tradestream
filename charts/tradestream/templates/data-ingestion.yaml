@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-data-ingestion
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: data-ingestion
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.dataIngestion.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "tradestream.name" . }}
+      component: data-ingestion
+  template:
+    metadata:
+      labels:
+        app: {{ include "tradestream.name" . }}
+        component: data-ingestion
+    spec:
+      containers:
+        - name: data-ingestion
+          args:
+            - "--kafka.bootstrap.servers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+            - "--runMode={{ .Values.dataIngestion.runMode }}"
+            - "--tradeTopic={{ .Values.dataIngestion.tradeTopic }}"
+          image: "{{ .Values.dataIngestion.image.repository }}:{{ .Values.dataIngestion.image.tag }}"
+          imagePullPolicy: {{ default "IfNotPresent" .Values.dataIngestion.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.dataIngestion.service.port }}
+          env:
+            - name: COINMARKETCAP_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: coinmarketcap
+                  key: apiKey

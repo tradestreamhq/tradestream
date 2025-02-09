@@ -2,6 +2,7 @@ package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.collect.Streams.stream;
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.protobuf.util.Timestamps.fromMillis;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
@@ -245,7 +246,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                         long timestamp = Instant.parse(tradeJson.get("time").getAsString()).toEpochMilli();
 
                         Trade trade = Trade.newBuilder()
-                            .setTimestamp(timestamp)
+                            .setTimestamp(fromMillis(timestamp))
                             .setExchange(client.getExchangeName())
                             .setCurrencyPair(tradeJson.get("product_id").getAsString().replace("-", "/"))
                             .setPrice(tradeJson.get("price").getAsDouble())

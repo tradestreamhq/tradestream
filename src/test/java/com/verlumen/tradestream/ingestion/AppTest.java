@@ -6,6 +6,7 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.verlumen.tradestream.execution.RunMode;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
