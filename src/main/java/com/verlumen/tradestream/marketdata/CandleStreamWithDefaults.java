@@ -93,10 +93,14 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
         PCollection<KV<String, ImmutableList<Candle>>> buffered =
             globalCandles.apply("BufferLastCandles", ParDo.of(new LastCandlesFn.BufferLastCandles(bufferSize)));
 
-        // 7. Re-window the buffered output into a FixedWindow (e.g., 1 day) so that GroupByKey can be applied.
+        // 7. Re-window the buffered output into a FixedWindow (e.g., 1 day) with a trigger so that GroupByKey can fire.
         PCollection<KV<String, ImmutableList<Candle>>> rewindowedBuffered =
             buffered.apply("RewindowBuffered", 
-                Window.<KV<String, ImmutableList<Candle>>>into(FixedWindows.of(Duration.standardDays(1))));
+                Window.<KV<String, ImmutableList<Candle>>>into(FixedWindows.of(Duration.standardDays(1)))
+                      .triggering(Repeatedly.forever(AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardSeconds(1))))
+                      .discardingFiredPanes()
+                      .withAllowedLateness(Duration.ZERO)
+            );
         
         // 8. Group by key to consolidate outputs from multiple windows into one element per key.
         PCollection<KV<String, Iterable<ImmutableList<Candle>>>> grouped = rewindowedBuffered.apply("GroupByKey", GroupByKey.create());
@@ -104,10 +108,8 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
             grouped.apply("ExtractLastBuffered", MapElements.via(new SimpleFunction<KV<String, Iterable<ImmutableList<Candle>>>, KV<String, ImmutableList<Candle>>>() {
                 @Override
                 public KV<String, ImmutableList<Candle>> apply(KV<String, Iterable<ImmutableList<Candle>>> input) {
-                    ImmutableList<Candle> last = null;
-                    for (ImmutableList<Candle> list : input.getValue()) {
-                        last = list; // Iterate and take the last list.
-                    }
+                    // Guard against a null buffered list by substituting an empty list.
+                    ImmutableList<Candle> last = com.google.common.base.MoreObjects.firstNonNull(ImmutableList.copyOf(input.getValue().iterator().hasNext() ? input.getValue().iterator().next() : null), ImmutableList.of());
                     return KV.of(input.getKey(), last);
                 }
             }));
