@@ -1,5 +1,5 @@
 kafka:
-  replicaCount: 2
+  replicaCount: 3
   persistence:
     enabled: true
     size: 10Gi
@@ -10,6 +10,18 @@ kafka:
       protocol: PLAINTEXT
     controller:
       protocol: PLAINTEXT
+  configurationOverrides:
+    "controller.quorum.voters": "0@kafka-0.kafka-headless:9093,1@kafka-1.kafka-headless:9093,2@kafka-2.kafka-headless:9093"
+  podSecurityContext:
+    runAsUser: 1001
+    fsGroup: 1001
+  resources:
+    requests:
+      cpu: "1"
+      memory: "2Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
 kafkaUi:
   replicaCount: 1
   image:
