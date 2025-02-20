@@ -7,9 +7,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import com.verlumen.tradestream.backtesting.BacktestRunner.BacktestRequest;
+import com.verlumen.tradestream.backtesting.BacktestRunner.BacktestRequest; // Correct import!
 import com.verlumen.tradestream.strategies.StrategyType;
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -82,7 +83,7 @@ public class RunBacktestTest {
 
         // Assert – one assertion: the output contains exactly the expected result.
         // The FakeBacktestRunner returns a BacktestResult whose value equals the request id.
-        PAssert.that(output).containsInAnyOrder(BacktestResult.create("req-1"));
+        PAssert.that(output).containsInAnyOrder(BacktestResult.newBuilder().setOverallScore(0.5).setId("req-1").build()); // Using builder!
 
         pipeline.run().waitUntilFinish();
     }
@@ -103,9 +104,9 @@ public class RunBacktestTest {
         // Assert – one assertion: the output contains exactly the expected results.
         PAssert.that(output)
             .containsInAnyOrder(
-                BacktestResult.create("req-1"),
-                BacktestResult.create("req-2"),
-                BacktestResult.create("req-3"));
+                BacktestResult.newBuilder().setOverallScore(0.5).setId("req-1").build(), // Using builder!
+                BacktestResult.newBuilder().setOverallScore(0.5).setId("req-2").build(), // Using builder!
+                BacktestResult.newBuilder().setOverallScore(0.5).setId("req-3").build()); // Using builder!
 
         pipeline.run().waitUntilFinish();
     }
@@ -132,10 +133,10 @@ public class RunBacktestTest {
         public void testProcessElementThrowsException() {
            // Arrange
            BacktestRequest request = BacktestRequest.builder().setId("fail").build();
-    
+
            // Configure the mock runner to throw an exception
            when(backtestRunner.runBacktest(any(BacktestRunner.BacktestRequest.class))).thenThrow(new RuntimeException("Test Exception"));
-    
+
            // Act & Assert - Expect a RuntimeException when processing the bundle
            assertThrows(RuntimeException.class, () -> pipeline.apply(Create.of(request)).apply(runBacktest));
        }
@@ -147,11 +148,11 @@ public class RunBacktestTest {
       public void testNullElementProcessing() {
           // Arrange & Act
           PCollection<BacktestResult> output = pipeline.apply(Create.of((BacktestRequest) null)).apply(runBacktest);
-      
+
           // Assert
           pipeline.run().waitUntilFinish();
       }
- 
+
 
     // ===========================================================================
     // Fake and helper classes for testing
@@ -171,7 +172,7 @@ public class RunBacktestTest {
 
         @Override
         public BacktestResult runBacktest(BacktestRequest request) {
-            return BacktestResult.create(request.toString());
+            return BacktestResult.newBuilder().setOverallScore(0.5).setId(request.getId()).build(); // Using builder!
         }
     }
 
