@@ -2,24 +2,26 @@ package com.verlumen.tradestream.backtesting;
 
 import static org.junit.Assert.assertNotNull;
 
+import com.google.auto.value.AutoValue;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.inject.testing.fieldbinder.Bind;
-import java.lang.reflect.Constructor;
+import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.verlumen.tradestream.strategies.StrategyType;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import org.apache.beam.sdk.testing.DoFnTester;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.values.PCollection;
+import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.ta4j.core.BarSeries;
+import org.ta4j.core.Strategy;
 
 /**
  * Test suite for the RunBacktest transform.
@@ -34,83 +36,67 @@ import org.junit.rules.ExpectedException;
 public class RunBacktestTest {
 
   // Use BoundFieldModule to inject our fake runner.
-  @Bind
-  private BacktestRunner backtestRunner = new FakeBacktestRunner();
+  @Bind private BacktestRunner backtestRunner = new FakeBacktestRunner();
 
-  @Inject
-  private RunBacktest runBacktest; // created via Guice injection
+  @Inject private RunBacktest runBacktest; // created via Guice injection
 
   // Allow tests to expect exceptions.
-  @Rule 
-  public ExpectedException thrown = ExpectedException.none();
+  @Rule public ExpectedException thrown = ExpectedException.none();
 
   @Before
   public void setUp() {
-    Injector injector = Guice.createInjector(BoundFieldModule.getModule(this));
-    injector.injectMembers(this);
+      Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
   }
 
-  /**
-   * Verifies that Guice injection works properly.
-   */
+  /** Verifies that Guice injection works properly. */
   @Test
   public void testGuiceInjection() {
     // Assert that the injected RunBacktest instance is not null.
     assertNotNull(runBacktest);
   }
 
-  /**
-   * Tests processing a single backtest request.
-   */
+  /** Tests processing a single backtest request. */
   @Test
   public void testSingleElementProcessing() {
     // Arrange
     TestPipeline pipeline = TestPipeline.create();
-    BacktestRequest request = new BacktestRequest("req-1");
+    BacktestRunner.BacktestRequest request = FakeBacktestRequest.builder().setId("req-1").build();
 
     // Act
-    PCollection<BacktestResult> output =
-        pipeline.apply(Create.of(request))
-                .apply(runBacktest);
+    PCollection<BacktestResult> output = pipeline.apply(Create.of(request)).apply(runBacktest);
 
     // Assert – one assertion: the output contains exactly the expected result.
     // The FakeBacktestRunner returns a FakeBacktestResult whose value equals the request id.
-    PAssert.that(output).containsInAnyOrder(new FakeBacktestResult("req-1"));
+      PAssert.that(output).containsInAnyOrder(FakeBacktestResult.create("req-1"));
 
     pipeline.run().waitUntilFinish();
   }
 
-  /**
-   * Tests processing multiple backtest requests.
-   */
+  /** Tests processing multiple backtest requests. */
   @Test
   public void testMultipleElementsProcessing() {
     // Arrange
     TestPipeline pipeline = TestPipeline.create();
-    List<BacktestRequest> requests = Arrays.asList(
-        new BacktestRequest("req-1"),
-        new BacktestRequest("req-2"),
-        new BacktestRequest("req-3")
+    List<BacktestRunner.BacktestRequest> requests = Arrays.asList(
+            FakeBacktestRequest.builder().setId("req-1").build(),
+            FakeBacktestRequest.builder().setId("req-2").build(),
+            FakeBacktestRequest.builder().setId("req-3").build()
     );
 
     // Act
-    PCollection<BacktestResult> output =
-        pipeline.apply(Create.of(requests))
-                .apply(runBacktest);
+    PCollection<BacktestResult> output = pipeline.apply(Create.of(requests)).apply(runBacktest);
 
     // Assert – one assertion: the output contains exactly the expected results.
-    PAssert.that(output).containsInAnyOrder(
-        new FakeBacktestResult("req-1"),
-        new FakeBacktestResult("req-2"),
-        new FakeBacktestResult("req-3")
-    );
+    PAssert.that(output)
+        .containsInAnyOrder(
+            FakeBacktestResult.create("req-1"),
+            FakeBacktestResult.create("req-2"),
+            FakeBacktestResult.create("req-3"));
 
     pipeline.run().waitUntilFinish();
   }
 
-  /**
-   * Tests processing when the input is empty.
-   */
+  /** Tests processing when the input is empty. */
   @Test
   public void testEmptyInput() {
     // Arrange
@@ -118,8 +104,9 @@ public class RunBacktestTest {
 
     // Act
     PCollection<BacktestResult> output =
-        pipeline.apply(Create.empty(BacktestRequest.class))
-                .apply(runBacktest);
+        pipeline
+            .apply(Create.empty(BacktestRunner.BacktestRequest.class))
+            .apply(runBacktest);
 
     // Assert – one assertion: the output PCollection is empty.
     PAssert.that(output).empty();
@@ -128,61 +115,124 @@ public class RunBacktestTest {
   }
 
   /**
-   * Tests that when the BacktestRunner throws an exception,
-   * the DoFn propagates it.
+   * Tests that when the BacktestRunner throws an exception, the DoFn propagates it.
    */
-  @Test(expected = RuntimeException.class)
-  public void testProcessElementThrowsException() throws Exception {
-    // Arrange: create a DoFn instance with a runner that always throws an exception.
-    ExceptionThrowingBacktestRunner throwingRunner = new ExceptionThrowingBacktestRunner();
-    Constructor<RunBacktest.RunBacktestDoFn> ctor =
-        RunBacktest.RunBacktestDoFn.class.getDeclaredConstructor(BacktestRunner.class);
-    ctor.setAccessible(true);
-    RunBacktest.RunBacktestDoFn doFn = ctor.newInstance(throwingRunner);
-    DoFnTester<BacktestRequest, BacktestResult> tester = DoFnTester.of(doFn);
-    BacktestRequest request = new BacktestRequest("fail");
+    @Test(expected = RuntimeException.class)
+    public void testProcessElementThrowsException() throws Exception {
+        // Arrange: create a DoFn instance with a runner that always throws an exception.
+        ExceptionThrowingBacktestRunner throwingRunner = new ExceptionThrowingBacktestRunner();
 
-    // Act & Assert – expect a RuntimeException when processing the bundle.
-    tester.processBundle(request);
-  }
+      RunBacktest.RunBacktestDoFn doFn = new RunBacktest.RunBacktestDoFn(throwingRunner);
 
-  /**
-   * Tests that processing a null element causes a NullPointerException.
-   */
-  @Test(expected = NullPointerException.class)
-  public void testNullElementProcessing() throws Exception {
-    // Arrange: instantiate the DoFn using the injected (non-throwing) runner.
-    Constructor<RunBacktest.RunBacktestDoFn> ctor =
-        RunBacktest.RunBacktestDoFn.class.getDeclaredConstructor(BacktestRunner.class);
-    ctor.setAccessible(true);
-    RunBacktest.RunBacktestDoFn doFn = ctor.newInstance(backtestRunner);
-    DoFnTester<BacktestRequest, BacktestResult> tester = DoFnTester.of(doFn);
+        DoFnTester<BacktestRunner.BacktestRequest, BacktestResult> tester = DoFnTester.of(doFn);
+        BacktestRunner.BacktestRequest request = FakeBacktestRequest.builder().setId("fail").build();
 
-    // Act & Assert – expect a NullPointerException when a null element is processed.
-    tester.processBundle((BacktestRequest) null);
-  }
+        // Act & Assert – expect a RuntimeException when processing the bundle.
+        tester.processBundle(request);
+    }
+
+    /**
+     * Tests that processing a null element causes a NullPointerException.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testNullElementProcessing() throws Exception {
+        // Arrange: instantiate the DoFn using the injected (non-throwing) runner.
+
+        RunBacktest.RunBacktestDoFn doFn = new RunBacktest.RunBacktestDoFn(backtestRunner);
+        DoFnTester<BacktestRunner.BacktestRequest, BacktestResult> tester = DoFnTester.of(doFn);
+
+        // Act & Assert – expect a NullPointerException when a null element is processed.
+        tester.processBundle((BacktestRunner.BacktestRequest) null);
+    }
+
 
   // ===========================================================================
   // Fake and helper classes for testing
   // ===========================================================================
 
-  /**
-   * A fake BacktestRunner that returns a FakeBacktestResult based on the request id.
-   */
-  private static class FakeBacktestRunner extends BacktestRunner {
-    @Override
-    public BacktestResult runBacktest(BacktestRequest request) {
-      return new FakeBacktestResult(request.getId());
+  /** A fake BacktestRunner that returns a FakeBacktestResult based on the request id. */
+  private static class FakeBacktestRunner implements BacktestRunner {
+
+      private final String id;
+
+      FakeBacktestRunner(String id){
+          this.id = id;
+      }
+      FakeBacktestRunner(){
+          this.id = "";
+      }
+
+      @AutoValue
+      static abstract class FakeBacktestResult implements BacktestResult {
+        static FakeBacktestResult create(String id) {
+            return new AutoValue_RunBacktestTest_FakeBacktestRunner_FakeBacktestResult(id);
+        }
+          @Override
+          public int getTimeframeResultsCount() {
+              return 0;
+          }
+
+          @Override
+          public List<TimeframeResult> getTimeframeResultsList() {
+              return null;
+          }
+
+          @Override
+          public double getOverallScore() {
+              return 0;
+          }
+
+          abstract String id();
     }
+
+      @Override
+      public BacktestResult runBacktest(BacktestRequest request) {
+          return FakeBacktestResult.create(request.toString());
+      }
   }
 
-  /**
-   * A BacktestRunner that always throws a RuntimeException.
-   */
-  private static class ExceptionThrowingBacktestRunner extends BacktestRunner {
-    @Override
-    public BacktestResult runBacktest(BacktestRequest request) {
-      throw new RuntimeException("Test Exception");
+
+    @AutoValue
+    static abstract class FakeBacktestRequest implements BacktestRunner.BacktestRequest {
+        static Builder builder() {
+            return new AutoValue_RunBacktestTest_FakeBacktestRequest.Builder();
+        }
+
+        abstract String id();
+
+        @AutoValue.Builder
+        abstract static class Builder {
+            abstract Builder setId(String id);
+
+            abstract FakeBacktestRequest build();
+        }
+
+        @Override
+        public BarSeries barSeries() {
+            return null;
+        }
+
+        @Override
+        public Strategy strategy() {
+            return null;
+        }
+
+        @Override
+        public StrategyType strategyType() {
+            return null;
+        }
+
+        @Override
+        public Builder toBuilder() {
+            return null;
+        }
     }
+
+  /** A BacktestRunner that always throws a RuntimeException. */
+  private static class ExceptionThrowingBacktestRunner implements BacktestRunner {
+        @Override
+        public BacktestResult runBacktest(BacktestRequest request) {
+          throw new RuntimeException("Test Exception");
+        }
   }
 }
