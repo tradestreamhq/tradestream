@@ -41,3 +41,14 @@ java_test(
         "//third_party:truth",
     ],
 )
+
+java_test(
+    name = "RunBacktestTest",
+    size = "small",
+    srcs = ["RunBacktestTest.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
+        "//src/main/java/com/verlumen/tradestream/backtesting:run_backtest",
+    ],
+)
