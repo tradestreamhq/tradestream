@@ -2,7 +2,6 @@ package com.verlumen.tradestream.backtesting;
 
 import static org.junit.Assert.assertNotNull;
 
-import com.google.auto.value.AutoValue;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
@@ -60,14 +59,14 @@ public class RunBacktestTest {
   public void testSingleElementProcessing() {
     // Arrange
     TestPipeline pipeline = TestPipeline.create();
-    BacktestRunner.BacktestRequest request = FakeBacktestRequest.builder().setId("req-1").build();
+    BacktestRequest request = BacktestRequest.builder().setId("req-1").build();
 
     // Act
     PCollection<BacktestResult> output = pipeline.apply(Create.of(request)).apply(runBacktest);
 
     // Assert – one assertion: the output contains exactly the expected result.
     // The FakeBacktestRunner returns a FakeBacktestResult whose value equals the request id.
-      PAssert.that(output).containsInAnyOrder(FakeBacktestResult.create("req-1"));
+      PAssert.that(output).containsInAnyOrder(BacktestResult.create("req-1"));
 
     pipeline.run().waitUntilFinish();
   }
@@ -78,9 +77,9 @@ public class RunBacktestTest {
     // Arrange
     TestPipeline pipeline = TestPipeline.create();
     List<BacktestRunner.BacktestRequest> requests = Arrays.asList(
-            FakeBacktestRequest.builder().setId("req-1").build(),
-            FakeBacktestRequest.builder().setId("req-2").build(),
-            FakeBacktestRequest.builder().setId("req-3").build()
+            BacktestRequest.builder().setId("req-1").build(),
+            BacktestRequest.builder().setId("req-2").build(),
+            BacktestRequest.builder().setId("req-3").build()
     );
 
     // Act
@@ -125,7 +124,7 @@ public class RunBacktestTest {
       RunBacktest.RunBacktestDoFn doFn = new RunBacktest.RunBacktestDoFn(throwingRunner);
 
         DoFnTester<BacktestRunner.BacktestRequest, BacktestResult> tester = DoFnTester.of(doFn);
-        BacktestRunner.BacktestRequest request = FakeBacktestRequest.builder().setId("fail").build();
+        BacktestRunner.BacktestRequest request = BacktestRequest.builder().setId("fail").build();
 
         // Act & Assert – expect a RuntimeException when processing the bundle.
         tester.processBundle(request);
@@ -162,71 +161,11 @@ public class RunBacktestTest {
           this.id = "";
       }
 
-      @AutoValue
-      static abstract class FakeBacktestResult implements BacktestResult {
-        static FakeBacktestResult create(String id) {
-            return new AutoValue_RunBacktestTest_FakeBacktestRunner_FakeBacktestResult(id);
-        }
-          @Override
-          public int getTimeframeResultsCount() {
-              return 0;
-          }
-
-          @Override
-          public List<TimeframeResult> getTimeframeResultsList() {
-              return null;
-          }
-
-          @Override
-          public double getOverallScore() {
-              return 0;
-          }
-
-          abstract String id();
-    }
-
       @Override
       public BacktestResult runBacktest(BacktestRequest request) {
           return FakeBacktestResult.create(request.toString());
       }
   }
-
-
-    @AutoValue
-    static abstract class FakeBacktestRequest implements BacktestRunner.BacktestRequest {
-        static Builder builder() {
-            return new AutoValue_RunBacktestTest_FakeBacktestRequest.Builder();
-        }
-
-        abstract String id();
-
-        @AutoValue.Builder
-        abstract static class Builder {
-            abstract Builder setId(String id);
-
-            abstract FakeBacktestRequest build();
-        }
-
-        @Override
-        public BarSeries barSeries() {
-            return null;
-        }
-
-        @Override
-        public Strategy strategy() {
-            return null;
-        }
-
-        @Override
-        public StrategyType strategyType() {
-            return null;
-        }
-
-        @Override
-        public Builder toBuilder() {
-            return null;
-        }
-    }
 
   /** A BacktestRunner that always throws a RuntimeException. */
   private static class ExceptionThrowingBacktestRunner implements BacktestRunner {
