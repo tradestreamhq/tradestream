@@ -83,5 +83,6 @@ java_library(
     deps = [
         ":backtest_runner",
         "//third_party:beam_sdks_java_core",
+        "//third_party:guice",
     ],
 )
