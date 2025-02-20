@@ -65,7 +65,7 @@ public class RunBacktestTest {
     PCollection<BacktestResult> output = pipeline.apply(Create.of(request)).apply(runBacktest);
 
     // Assert – one assertion: the output contains exactly the expected result.
-    // The FakeBacktestRunner returns a FakeBacktestResult whose value equals the request id.
+    // The FakeBacktestRunner returns a BacktestResult whose value equals the request id.
       PAssert.that(output).containsInAnyOrder(BacktestResult.create("req-1"));
 
     pipeline.run().waitUntilFinish();
@@ -88,9 +88,9 @@ public class RunBacktestTest {
     // Assert – one assertion: the output contains exactly the expected results.
     PAssert.that(output)
         .containsInAnyOrder(
-            FakeBacktestResult.create("req-1"),
-            FakeBacktestResult.create("req-2"),
-            FakeBacktestResult.create("req-3"));
+            BacktestResult.create("req-1"),
+            BacktestResult.create("req-2"),
+            BacktestResult.create("req-3"));
 
     pipeline.run().waitUntilFinish();
   }
@@ -149,7 +149,7 @@ public class RunBacktestTest {
   // Fake and helper classes for testing
   // ===========================================================================
 
-  /** A fake BacktestRunner that returns a FakeBacktestResult based on the request id. */
+  /** A fake BacktestRunner that returns a BacktestResult based on the request id. */
   private static class FakeBacktestRunner implements BacktestRunner {
 
       private final String id;
@@ -163,7 +163,7 @@ public class RunBacktestTest {
 
       @Override
       public BacktestResult runBacktest(BacktestRequest request) {
-          return FakeBacktestResult.create(request.toString());
+          return BacktestResult.create(request.toString());
       }
   }
 
