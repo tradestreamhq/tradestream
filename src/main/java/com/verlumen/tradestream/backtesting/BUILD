@@ -76,3 +76,12 @@ java_library(
         ":genetic_algorithm_orchestrator",
     ],
 )
+
+java_library(
+    name = "run_backtest",
+    srcs = ["RunBacktest.java"],
+    deps = [
+        ":backtest_runner",
+        "//third_party:apache_beam_sdks_core",
+    ],
+)
