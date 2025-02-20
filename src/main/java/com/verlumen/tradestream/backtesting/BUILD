@@ -82,7 +82,7 @@ java_library(
     srcs = ["RunBacktest.java"],
     deps = [
         ":backtest_runner",
-        "//protos:backtesting_proto",
+        "//protos:backtesting_java_proto",
         "//third_party:beam_sdks_java_core",
         "//third_party:guice",
     ],
