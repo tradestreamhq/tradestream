@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.backtesting;
 
+import com.google.inject.Inject;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
@@ -10,15 +11,16 @@ import org.apache.beam.sdk.values.PCollection;
  */
 public class RunBacktest extends PTransform<PCollection<BacktestRunner.BacktestRequest>, PCollection<BacktestResult>> {
 
-  private final BacktestRunner backtestRunner;
+  private final RunBacktestDoFn runBacktestDoFn;
 
-  public RunBacktest(BacktestRunner backtestRunner) {
-    this.backtestRunner = backtestRunner;
+  @Inject
+  RunBacktest(RunBacktestDoFn runBacktestDoFn) {
+    this.runBacktestDoFn = runBacktestDoFn;
   }
 
   @Override
   public PCollection<BacktestResult> expand(PCollection<BacktestRunner.BacktestRequest> input) {
-    return input.apply("Run Backtest", ParDo.of(new RunBacktestDoFn(backtestRunner)));
+    return input.apply("Run Backtest", ParDo.of(runBacktestDoFn));
   }
 
   /**
@@ -27,7 +29,8 @@ public class RunBacktest extends PTransform<PCollection<BacktestRunner.BacktestR
   private static class RunBacktestDoFn extends DoFn<BacktestRunner.BacktestRequest, BacktestResult> {
     private final BacktestRunner backtestRunner;
 
-    public RunBacktestDoFn(BacktestRunner backtestRunner) {
+    @Inject
+    RunBacktestDoFn(BacktestRunner backtestRunner) {
       this.backtestRunner = backtestRunner;
     }
 
