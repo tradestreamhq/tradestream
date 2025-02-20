@@ -48,12 +48,14 @@ java_test(
     srcs = ["RunBacktestTest.java"],
     deps = [
         "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
         "//src/main/java/com/verlumen/tradestream/backtesting:run_backtest",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_test_utils",
         "//third_party:guice",
         "//third_party:guice_testlib",
+        "//third_party:joda_time",
         "//third_party:ta4j_core",
     ],
 )
