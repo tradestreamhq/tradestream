@@ -82,6 +82,6 @@ java_library(
     srcs = ["RunBacktest.java"],
     deps = [
         ":backtest_runner",
-        "//third_party:apache_beam_sdks_core",
+        "//third_party:beam_sdks_java_core",
     ],
 )
