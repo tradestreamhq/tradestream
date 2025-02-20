@@ -54,5 +54,6 @@ java_test(
         "//third_party:beam_sdks_java_test_utils",
         "//third_party:guice",
         "//third_party:guice_testlib",
+        "//third_party:ta4j_core",
     ],
 )
