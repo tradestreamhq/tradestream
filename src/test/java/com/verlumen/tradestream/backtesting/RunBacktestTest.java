@@ -154,6 +154,8 @@ public class RunBacktestTest {
     }
 
     private static class SerializableStrategy implements Strategy, Serializable {
+        private int unstableBars = 0;
+
         @Override
         public boolean shouldEnter(int index) {
             return false;
@@ -166,12 +168,17 @@ public class RunBacktestTest {
 
         @Override
         public int getUnstableBars() {
-            return 0;
+            return unstableBars;
         }
 
         @Override
         public boolean isUnstableAt(int index) {
-            return index < getUnstableBars();
+            return index < unstableBars;
+        }    
+
+        @Override
+        public void setUnstableBars(int unstableBars) {
+            this.unstableBars = unstableBars;
         }
     }
 
