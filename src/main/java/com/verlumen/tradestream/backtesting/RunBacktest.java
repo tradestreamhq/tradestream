@@ -6,39 +6,56 @@ import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PCollection;
 
+import java.io.Serializable;
+
 /**
  * A PTransform that runs backtests by wrapping the BacktestRunner.
  */
 public class RunBacktest extends PTransform<PCollection<BacktestRunner.BacktestRequest>, PCollection<BacktestResult>> {
 
-  private final RunBacktestDoFn runBacktestDoFn;
-
-  @Inject
-  RunBacktest(RunBacktestDoFn runBacktestDoFn) {
-    this.runBacktestDoFn = runBacktestDoFn;
-  }
-
-  @Override
-  public PCollection<BacktestResult> expand(PCollection<BacktestRunner.BacktestRequest> input) {
-    return input.apply("Run Backtest", ParDo.of(runBacktestDoFn));
-  }
-
-  /**
-   * A DoFn that invokes the BacktestRunner for each backtest request.
-   */
-  private static class RunBacktestDoFn extends DoFn<BacktestRunner.BacktestRequest, BacktestResult> {
-    private final BacktestRunner backtestRunner;
+    private final SerializableBacktestRunnerFactory backtestRunnerFactory;
 
     @Inject
-    RunBacktestDoFn(BacktestRunner backtestRunner) {
-      this.backtestRunner = backtestRunner;
+    RunBacktest(SerializableBacktestRunnerFactory backtestRunnerFactory) {
+        this.backtestRunnerFactory = backtestRunnerFactory;
     }
 
-    @ProcessElement
-    public void processElement(ProcessContext context) {
-      BacktestRunner.BacktestRequest request = context.element();
-      BacktestResult result = backtestRunner.runBacktest(request);
-      context.output(result);
+    @Override
+    public PCollection<BacktestResult> expand(PCollection<BacktestRunner.BacktestRequest> input) {
+        return input.apply("Run Backtest", ParDo.of(new RunBacktestDoFn(backtestRunnerFactory)));
     }
-  }
+
+    /**
+     * A factory for creating BacktestRunner instances that must be serializable.
+     */
+    public interface SerializableBacktestRunnerFactory extends Serializable {
+        BacktestRunner create();
+    }
+
+    /**
+     * A DoFn that invokes the BacktestRunner for each backtest request.
+     */
+    private static class RunBacktestDoFn extends DoFn<BacktestRunner.BacktestRequest, BacktestResult> {
+        private final SerializableBacktestRunnerFactory backtestRunnerFactory;
+        private transient BacktestRunner backtestRunner;
+
+        RunBacktestDoFn(SerializableBacktestRunnerFactory factory) {
+            this.backtestRunnerFactory = factory;
+        }
+
+        @Setup
+        public void setup() {
+            backtestRunner = backtestRunnerFactory.create();
+        }
+
+        @ProcessElement
+        public void processElement(ProcessContext context) {
+            BacktestRunner.BacktestRequest request = context.element();
+            if (request == null) {
+                throw new NullPointerException("BacktestRequest cannot be null");
+            }
+            BacktestResult result = backtestRunner.runBacktest(request);
+            context.output(result);
+        }
+    }
 }
