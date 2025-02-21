@@ -168,6 +168,11 @@ public class RunBacktestTest {
         public int getUnstableBars() {
             return 0;
         }
+
+        @Override
+        public boolean isUnstableAt(int index) {
+            return index < getUnstableBars();
+        }
     }
 
     private static class FakeBacktestRunner implements BacktestRunner {
