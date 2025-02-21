@@ -57,5 +57,6 @@ java_test(
         "//third_party:guice_testlib",
         "//third_party:joda_time",
         "//third_party:ta4j_core",
+        "//third_party:truth",
     ],
 )
