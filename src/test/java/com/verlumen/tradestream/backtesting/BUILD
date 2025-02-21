@@ -61,4 +61,8 @@ java_test(
         "//third_party:ta4j_core",
         "//third_party:truth",
     ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
 )
