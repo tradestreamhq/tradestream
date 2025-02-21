@@ -3,14 +3,13 @@ package com.verlumen.tradestream.backtesting;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.strategies.StrategyType;
+import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
@@ -113,7 +112,7 @@ public class RunBacktestTest {
     @Test
     public void testEmptyInput() {
         PCollection<BacktestResult> output = pipeline
-            .apply(Create.empty(BacktestRunner.BacktestRequest.class))
+            .apply(Create.empty(SerializableCoder.of(BacktestRunner.BacktestRequest.class)))
             .apply(runBacktest);
 
         PAssert.that(output).empty();
