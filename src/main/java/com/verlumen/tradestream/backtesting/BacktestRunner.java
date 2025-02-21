@@ -5,6 +5,7 @@ import com.verlumen.tradestream.backtesting.BacktestResult;
 import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
+import java.io.Serializable;
 
 /**
  * Interface for running backtests on trading strategies.
@@ -22,7 +23,7 @@ interface BacktestRunner {
    * Configuration for a backtest run.
    */
   @AutoValue
-  abstract class BacktestRequest {
+  abstract class BacktestRequest implements Serializable {
     abstract BarSeries barSeries();
     abstract Strategy strategy();
     abstract StrategyType strategyType();
