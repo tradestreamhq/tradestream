@@ -1,6 +1,8 @@
 package com.verlumen.tradestream.ta4j;
 
 import com.google.common.collect.ImmutableList;
+import com.google.protobuf.Timestamp;
+import com.google.protobuf.util.Timestamps;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
