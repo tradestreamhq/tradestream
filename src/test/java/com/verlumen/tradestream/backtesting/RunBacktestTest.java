@@ -180,6 +180,11 @@ public class RunBacktestTest {
         public void setUnstableBars(int unstableBars) {
             this.unstableBars = unstableBars;
         }
+    
+        @Override
+        public Strategy opposite() {
+            return new SerializableStrategy();
+        }
     }
 
     private static class FakeBacktestRunner implements BacktestRunner {
