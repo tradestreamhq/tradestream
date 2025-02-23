@@ -84,6 +84,7 @@ public class LastCandlesFn {
                             .setVolume(ZERO)
                             .setTimestamp(incoming.getTimestamp())  // Keep the synthetic candle's timestamp
                             .setCurrencyPair(incoming.getCurrencyPair())
+                            .setGranularity(lastReal.getGranularity())
                             .build();
                     logger.atFine().log("Replacing default candle with filled candle based on last real candle's close for key: %s", key);
                 }
