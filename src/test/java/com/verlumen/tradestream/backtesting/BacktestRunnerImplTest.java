@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.strategies.StrategyType;
@@ -29,14 +30,16 @@ import org.ta4j.core.Trade;
 public class BacktestRunnerImplTest {
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private BacktestRunnerImpl backtestRunner;
     private BaseBarSeries series;
     private Strategy strategy;
     private ZonedDateTime startTime;
 
+    @Inject private BacktestRunnerImpl backtestRunner;
+
     @Before
     public void setUp() {
-        backtestRunner = new BacktestRunnerImpl();
+        MockitoAnnotations.openMocks(this);
+        Guice.createInjector().injectMembers(this);
 
         // Initialize test data
         series = new BaseBarSeries("test series");
