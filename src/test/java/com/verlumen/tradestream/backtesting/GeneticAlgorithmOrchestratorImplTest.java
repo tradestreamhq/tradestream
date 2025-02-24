@@ -96,7 +96,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
             .runBacktest(backtestCaptor.capture());
         
         BacktestRequest capturedRequest = backtestCaptor.getValue();
-        assertThat(capturedRequest.getStrategy().getType()).isEqualTo(request.getStrategy().getType());
+        assertThat(capturedRequest.getStrategyType()).isEqualTo(request.getStrategy().getType());
         assertThat(capturedRequest.getCandlesList()).isEqualTo(request.getCandlesList());
         assertThat(response.getBestScore()).isEqualTo(mockBacktestResult.getOverallScore());
         assertThat(response.hasBestStrategyParameters()).isTrue();
