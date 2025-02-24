@@ -30,7 +30,6 @@ import org.ta4j.core.Trade;
 @RunWith(JUnit4.class)
 public class BacktestRunnerImplTest {
     private ImmutableList<Candle> candles;
-    private BaseBarSeries series;
     private Strategy strategy;
     private ZonedDateTime startTime;
 
@@ -41,7 +40,7 @@ public class BacktestRunnerImplTest {
         backtestRunner = new BacktestRunnerImpl();
 
         // Initialize test data
-        candles = new BaseBarSeries("test series");
+        candles = ImmutableList.of();
         startTime = ZonedDateTime.now();
 
         // Create a simple strategy that enters on bar index 1 and exits on bar index 3
