@@ -29,18 +29,19 @@ import org.ta4j.core.Trade;
 
 @RunWith(JUnit4.class)
 public class BacktestRunnerImplTest {
-    private BacktestRunnerImpl backtestRunner;
+    private ImmutableList<Candle> candles;
     private BaseBarSeries series;
     private Strategy strategy;
     private ZonedDateTime startTime;
 
+    @Inject private BacktestRunnerImpl backtestRunner;
+    
     @Before
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
         backtestRunner = new BacktestRunnerImpl();
 
         // Initialize test data
-        series = new BaseBarSeries("test series");
+        candles = new BaseBarSeries("test series");
         startTime = ZonedDateTime.now();
 
         // Create a simple strategy that enters on bar index 1 and exits on bar index 3
@@ -54,7 +55,7 @@ public class BacktestRunnerImplTest {
     public void runBacktest_withEmptySeries_throwsException() {
         // Arrange
         BacktestRequest request = BacktestRequest.newBuilder()
-            .setBarSeries(series)
+            .addAllCandles(candles)
             .setStrategyType(StrategyType.SMA_RSI)
             .build();
 
@@ -73,7 +74,7 @@ public class BacktestRunnerImplTest {
         addTestBars(100.0, 101.0, 102.0, 103.0, 104.0);
 
         BacktestRequest request = BacktestRequest.newBuilder()
-            .setBarSeries(series)
+            .addAllCandles(candles)
             .setStrategyType(StrategyType.SMA_RSI)
             .build();
 
@@ -101,7 +102,7 @@ public class BacktestRunnerImplTest {
         addTestBars(100.0, 98.0, 95.0, 92.0, 90.0);
 
         BacktestRequest request = BacktestRequest.newBuilder()
-            .setBarSeries(series)
+            .addAllCandles(candles)
             .setStrategyType(StrategyType.SMA_RSI)
             .build();
 
@@ -122,7 +123,7 @@ public class BacktestRunnerImplTest {
         addTestBars(100.0, 110.0, 95.0, 105.0, 90.0);
 
         BacktestRequest request = BacktestRequest.newBuilder()
-            .setBarSeries(series)
+            .addAllCandles(candles)
             .setStrategyType(StrategyType.SMA_RSI)
             .build();
 
@@ -148,7 +149,7 @@ public class BacktestRunnerImplTest {
         );
 
         BacktestRequest request = BacktestRequest.newBuilder()
-            .setBarSeries(series)
+            .addAllCandles(candles)
             .setStrategy(noTradeStrategy)
             .setStrategyType(StrategyType.SMA_RSI)
             .build();
