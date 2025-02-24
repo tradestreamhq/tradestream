@@ -45,7 +45,7 @@ final class BacktestRunnerImpl implements BacktestRunner {
             ImmutableList.copyOf(request.getCandlesList())
         );
         Strategy strategy = strategyManager.createStrategy(
-            request.getStrategyType(), series, request.getStrategyParameters()
+            request.getStrategy().getType(), series, request.getStrategy().getParameters()
         );
         
         List<TimeframeResult> timeframeResults = new ArrayList<>();
