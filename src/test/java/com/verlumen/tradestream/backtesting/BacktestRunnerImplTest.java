@@ -38,10 +38,9 @@ public class BacktestRunnerImplTest {
     private ZonedDateTime startTime;
 
     @Inject private BacktestRunnerImpl backtestRunner;
-    
+
     @Before
     public void setUp() {
-        backtestRunner = new BacktestRunnerImpl();
         Guice.createInjector().injectMembers(this);
 
         // Initialize test data
