@@ -33,7 +33,9 @@ final class BacktestRunnerImpl implements BacktestRunner {
     private final StrategyManager strategyManager;
 
     @Inject
-    BacktestRunnerImpl() {}
+    BacktestRunnerImpl(StrategyManager strategyManager) {
+        this.strategyManager = strategyManager;
+    }
 
     @Override
     public BacktestResult runBacktest(BacktestRequest request) {
