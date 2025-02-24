@@ -18,7 +18,7 @@ import "protos/strategies.proto";
 message BacktestRequest {
   repeated marketdata.Candle candles = 1;
   strategies.StrategyType strategy_type = 2;
-  google.protobuf.Any strategy_parameters = 3; // Must be provided
+  google.protobuf.Any parameters = 3;
 }
 
 // Multi-timeframe results from the backtest
