@@ -24,23 +24,21 @@ public interface StrategyManager {
    * @return a new instance of a Ta4j {@link Strategy} configured with the default parameters
    * @throws InvalidProtocolBufferException if there is an error unpacking the default parameters
    */
-  default Strategy createStrategy(StrategyType strategyType, BarSeries barSeries)
-      throws InvalidProtocolBufferException {
-    return createStrategy(strategyType, barSeries, getDefaultParameters(strategyType));
+  default Strategy createStrategy(BarSeries barSeries, StrategyType strategyType) throws InvalidProtocolBufferException {
+    return createStrategy(barSeries, strategyType, getDefaultParameters(strategyType));
   }
 
   /**
    * Creates a new Ta4j {@link Strategy} instance for the specified strategy type and bar series,
    * using the provided configuration parameters.
    *
-   * @param strategyType the type of strategy to create
    * @param barSeries    the bar series to associate with the strategy
+   * @param strategyType the type of strategy to create
    * @param parameters   the configuration parameters for the strategy, wrapped in an {@link Any} message
    * @return a new instance of a Ta4j {@link Strategy} configured with the provided parameters
    * @throws InvalidProtocolBufferException if there is an error unpacking the parameters
    */
-  default Strategy createStrategy(StrategyType strategyType, BarSeries barSeries, Any parameters)
-      throws InvalidProtocolBufferException {
+  default Strategy createStrategy(BarSeries barSeries, StrategyType strategyType, Any parameters) throws InvalidProtocolBufferException{
     return getStrategyFactory(strategyType).createStrategy(barSeries, parameters);
   }
 

@@ -3,10 +3,8 @@ package com.verlumen.tradestream.strategies;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.backtesting.GAServiceClient;
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.backtesting.BestStrategyResponse;
@@ -89,12 +87,8 @@ final class StrategyEngineImpl implements StrategyEngine {
 
     // Set default strategy
     this.currentStrategyType = StrategyType.SMA_RSI;
-    try {
       currentStrategy =
-          strategyManager.createStrategy(currentStrategyType, candleBuffer.toBarSeries());
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to initialize default strategy", e);
-    }
+          strategyManager.createStrategy(candleBuffer.toBarSeries(), currentStrategyType);
   }
 
   private void optimizeAndSelectBestStrategy() {
@@ -139,13 +133,9 @@ final class StrategyEngineImpl implements StrategyEngine {
             .orElseThrow(() -> new IllegalStateException("No optimized strategy found"));
 
     currentStrategyType = bestRecord.strategyType();
-    try {
-      currentStrategy =
-          strategyManager.createStrategy(
-            currentStrategyType, candleBuffer.toBarSeries(), bestRecord.parameters());
-    } catch (InvalidProtocolBufferException e) {
-      throw new RuntimeException(e);
-    }
+    currentStrategy =
+        strategyManager.createStrategy(
+                candleBuffer.toBarSeries(), currentStrategyType, bestRecord.parameters());
   }
 
   private boolean shouldOptimize() {
