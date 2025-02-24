@@ -29,6 +29,8 @@ final class BacktestRunnerImpl implements BacktestRunner {
         10080   // 1 week
     };
 
+    private final StrategyManager strategyManager;
+
     @Inject
     BacktestRunnerImpl() {}
 
@@ -36,13 +38,14 @@ final class BacktestRunnerImpl implements BacktestRunner {
     public BacktestResult runBacktest(BacktestRequest request) {
         checkArgument(request.getCandlesList().size() > 0, "Bar series cannot be empty");
         BarSeries series = BarSeriesBuilder.createBarSeries(request.getCandlesList());
+        Strategy strategy = strategyManager.getStrategy(request.strategyType());
         
         List<TimeframeResult> timeframeResults = new ArrayList<>();
         
         // Always evaluate the full series timeframe first
         TimeframeResult fullSeriesResult = evaluateTimeframe(
             series,
-            request.strategy(),
+            strategy,
             request.barSeries().getBarCount()
         );
         timeframeResults.add(fullSeriesResult);
@@ -51,9 +54,7 @@ final class BacktestRunnerImpl implements BacktestRunner {
         for (int timeframe : DEFAULT_TIMEFRAMES) {
             if (timeframe < request.barSeries().getBarCount()) {
                 TimeframeResult result = evaluateTimeframe(
-                    request.barSeries(),
-                    request.strategy(),
-                    timeframe
+                    series, strategy, timeframe
                 );
                 timeframeResults.add(result);
             }
