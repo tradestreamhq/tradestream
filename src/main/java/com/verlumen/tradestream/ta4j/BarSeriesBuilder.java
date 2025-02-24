@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.ta4j;
 
-import static org.ta4j.core.num.DoubleNum.valueOf;
+import static org.ta4j.core.num.DecimalNum.valueOf;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Timestamp;
