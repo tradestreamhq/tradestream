@@ -50,7 +50,7 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
                 : DEFAULT_MAX_GENERATIONS)
             .collect(EvolutionResult.toBestPhenotype());
 
-        Any bestParams = convertToParameters(best.genotype(), request.getStrategyType());
+        Any bestParams = convertToParameters(best.genotype(), request.getStrategy().getType());
 
         return BestStrategyResponse.newBuilder()
             .setBestStrategyParameters(bestParams)
@@ -60,7 +60,7 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
 
     private Engine<DoubleGene, Double> configureEngine(
             GAOptimizationRequest request, BarSeries series) {
-        ParamConfig config = paramConfigManager.getParamConfig(request.getStrategyType());
+        ParamConfig config = paramConfigManager.getParamConfig(request.getStrategy().getType());
 
         // Create chromosomes based on parameter specs
         List<DoubleChromosome> chromosomes = config.getChromosomeSpecs().stream()
@@ -76,11 +76,11 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
 
         Function<Genotype<DoubleGene>, Double> fitness = genotype -> {
             try {
-                Any params = convertToParameters(genotype, request.getStrategyType());
+                Any params = convertToParameters(genotype, request.getStrategy().getType());
                 
                 BacktestRequest backtestRequest = BacktestRequest.newBuilder()
                     .addAllCandles(request.getCandlesList())
-                    .setStrategy(Strategy.newBuilder().setType(request.getStrategyType()).setParameters(params))
+                    .setStrategy(Strategy.newBuilder().setType(request.getStrategy().getType()).setParameters(params))
                     .build();
 
                 BacktestResult result = backtestServiceClient.runBacktest(backtestRequest);
