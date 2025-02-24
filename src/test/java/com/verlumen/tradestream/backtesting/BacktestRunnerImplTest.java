@@ -50,7 +50,7 @@ public class BacktestRunnerImplTest {
     @Test
     public void runBacktest_withEmptySeries_throwsException() {
         // Arrange
-        BacktestRunner.BacktestRequest request = BacktestRunner.BacktestRequest.builder()
+        BacktestRequest request = BacktestRequest.builder()
             .setBarSeries(series)
             .setStrategy(strategy)
             .setStrategyType(StrategyType.SMA_RSI)
@@ -70,7 +70,7 @@ public class BacktestRunnerImplTest {
         // Add test data: steadily increasing prices
         addTestBars(100.0, 101.0, 102.0, 103.0, 104.0);
 
-        BacktestRunner.BacktestRequest request = BacktestRunner.BacktestRequest.builder()
+        BacktestRequest request = BacktestRequest.builder()
             .setBarSeries(series)
             .setStrategy(strategy)
             .setStrategyType(StrategyType.SMA_RSI)
@@ -99,7 +99,7 @@ public class BacktestRunnerImplTest {
         // Add test data: declining prices
         addTestBars(100.0, 98.0, 95.0, 92.0, 90.0);
 
-        BacktestRunner.BacktestRequest request = BacktestRunner.BacktestRequest.builder()
+        BacktestRequest request = BacktestRequest.builder()
             .setBarSeries(series)
             .setStrategy(strategy)
             .setStrategyType(StrategyType.SMA_RSI)
@@ -121,7 +121,7 @@ public class BacktestRunnerImplTest {
         // Add test data: volatile prices
         addTestBars(100.0, 110.0, 95.0, 105.0, 90.0);
 
-        BacktestRunner.BacktestRequest request = BacktestRunner.BacktestRequest.builder()
+        BacktestRequest request = BacktestRequest.builder()
             .setBarSeries(series)
             .setStrategy(strategy)
             .setStrategyType(StrategyType.SMA_RSI)
@@ -148,7 +148,7 @@ public class BacktestRunnerImplTest {
             (index, series) -> false   // Never exit
         );
 
-        BacktestRunner.BacktestRequest request = BacktestRunner.BacktestRequest.builder()
+        BacktestRequest request = BacktestRequest.builder()
             .setBarSeries(series)
             .setStrategy(noTradeStrategy)
             .setStrategyType(StrategyType.SMA_RSI)
