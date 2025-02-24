@@ -3,6 +3,7 @@ package com.verlumen.tradestream.backtesting;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.inject.Inject;
+import com.verlumen.tradestream.strategies.StrategyManager;
 import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
 import org.ta4j.core.AnalysisCriterion;
 import org.ta4j.core.BarSeries;
