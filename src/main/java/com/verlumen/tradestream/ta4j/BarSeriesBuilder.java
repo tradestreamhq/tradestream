@@ -8,6 +8,7 @@ import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.num.DoubleNum;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -33,11 +34,11 @@ public class BarSeriesBuilder {
     return BaseBar.builder()
         .timePeriod(ONE_MINUTE)
         .endTime(dateTime.plus(ONE_MINUTE))
-        .openPrice(candle.getOpen())
-        .highPrice(candle.getHigh())
-        .lowPrice(candle.getLow())
-        .closePrice(candle.getClose())
-        .volume(candle.getVolume())
+        .openPrice(DoubleNum.valueOf(candle.getOpen()))
+        .highPrice(DoubleNum.valueOf(candle.getHigh()))
+        .lowPrice(DoubleNum.valueOf(candle.getLow()))
+        .closePrice(DoubleNum.valueOf(candle.getClose()))
+        .volume(DoubleNum.valueOf(candle.getVolume()))
         .build();
   }
 
