@@ -43,7 +43,9 @@ final class BacktestRunnerImpl implements BacktestRunner {
         BarSeries series = BarSeriesBuilder.createBarSeries(
             ImmutableList.copyOf(request.getCandlesList())
         );
-        Strategy strategy = strategyManager.getStrategy(request.getStrategyType());
+        Strategy strategy = strategyManager.createStrategy(
+            request.getStrategyType(), series, request.getStrategyParameters()
+        );
         
         List<TimeframeResult> timeframeResults = new ArrayList<>();
         
