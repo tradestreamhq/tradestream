@@ -10,6 +10,7 @@ java_library(
         "//protos:strategies_java_proto",
         "//third_party:auto_value",
         "//third_party:guice",
+        "//third_party:protobuf_java",
         "//third_party:ta4j_core",
     ],
 )
