@@ -88,8 +88,12 @@ final class StrategyEngineImpl implements StrategyEngine {
 
     // Set default strategy
     this.currentStrategyType = StrategyType.SMA_RSI;
+    try {
       currentStrategy =
           strategyManager.createStrategy(candleBuffer.toBarSeries(), currentStrategyType);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to initialize default strategy", e);
+    }
   }
 
   private void optimizeAndSelectBestStrategy() {
