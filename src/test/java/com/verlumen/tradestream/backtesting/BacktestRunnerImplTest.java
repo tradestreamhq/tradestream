@@ -114,7 +114,7 @@ public class BacktestRunnerImplTest {
     }
 
     @Test
-    public void runBacktest_withVolatileData_calculatesVolatilityCorrectly() {
+    public void runBacktest_withVolatileData_calculatesVolatilityCorrectly() throws Exception {
         // Arrange
         // Add test data: volatile prices
         addTestBars(100.0, 110.0, 95.0, 105.0, 90.0);
@@ -134,7 +134,7 @@ public class BacktestRunnerImplTest {
     }
 
     @Test
-    public void runBacktest_withNoTrades_returnsZeroMetrics() {
+    public void runBacktest_withNoTrades_returnsZeroMetrics() throws Exception {
         // Arrange
         // Add test data
         addTestBars(100.0, 100.0, 100.0, 100.0, 100.0);
