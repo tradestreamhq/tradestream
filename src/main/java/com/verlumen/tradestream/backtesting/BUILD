@@ -21,7 +21,7 @@ java_library(
         ":backtest_runner",
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream:bar_series_builder",
+        "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_builder",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:ta4j_core",
