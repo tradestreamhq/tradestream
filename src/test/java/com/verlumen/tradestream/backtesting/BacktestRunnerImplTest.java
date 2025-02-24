@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.strategies.StrategyType;
@@ -50,9 +51,8 @@ public class BacktestRunnerImplTest {
     @Test
     public void runBacktest_withEmptySeries_throwsException() {
         // Arrange
-        BacktestRequest request = BacktestRequest.builder()
+        BacktestRequest request = BacktestRequest.newBuilder()
             .setBarSeries(series)
-            .setStrategy(strategy)
             .setStrategyType(StrategyType.SMA_RSI)
             .build();
 
@@ -70,9 +70,8 @@ public class BacktestRunnerImplTest {
         // Add test data: steadily increasing prices
         addTestBars(100.0, 101.0, 102.0, 103.0, 104.0);
 
-        BacktestRequest request = BacktestRequest.builder()
+        BacktestRequest request = BacktestRequest.newBuilder()
             .setBarSeries(series)
-            .setStrategy(strategy)
             .setStrategyType(StrategyType.SMA_RSI)
             .build();
 
@@ -99,9 +98,8 @@ public class BacktestRunnerImplTest {
         // Add test data: declining prices
         addTestBars(100.0, 98.0, 95.0, 92.0, 90.0);
 
-        BacktestRequest request = BacktestRequest.builder()
+        BacktestRequest request = BacktestRequest.newBuilder()
             .setBarSeries(series)
-            .setStrategy(strategy)
             .setStrategyType(StrategyType.SMA_RSI)
             .build();
 
@@ -121,9 +119,8 @@ public class BacktestRunnerImplTest {
         // Add test data: volatile prices
         addTestBars(100.0, 110.0, 95.0, 105.0, 90.0);
 
-        BacktestRequest request = BacktestRequest.builder()
+        BacktestRequest request = BacktestRequest.newBuilder()
             .setBarSeries(series)
-            .setStrategy(strategy)
             .setStrategyType(StrategyType.SMA_RSI)
             .build();
 
@@ -148,7 +145,7 @@ public class BacktestRunnerImplTest {
             (index, series) -> false   // Never exit
         );
 
-        BacktestRequest request = BacktestRequest.builder()
+        BacktestRequest request = BacktestRequest.newBuilder()
             .setBarSeries(series)
             .setStrategy(noTradeStrategy)
             .setStrategyType(StrategyType.SMA_RSI)
