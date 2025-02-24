@@ -51,13 +51,13 @@ final class BacktestRunnerImpl implements BacktestRunner {
         TimeframeResult fullSeriesResult = evaluateTimeframe(
             series,
             strategy,
-            request.barSeries().getBarCount()
+            series.getBarCount()
         );
         timeframeResults.add(fullSeriesResult);
         
         // Then evaluate additional standard timeframes if we have enough data
         for (int timeframe : DEFAULT_TIMEFRAMES) {
-            if (timeframe < request.barSeries().getBarCount()) {
+            if (timeframe < series.getBarCount()) {
                 TimeframeResult result = evaluateTimeframe(
                     series, strategy, timeframe
                 );
