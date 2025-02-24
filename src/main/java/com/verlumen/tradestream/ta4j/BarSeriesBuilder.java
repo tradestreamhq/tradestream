@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.ta4j;
 
+import static org.ta4j.core.num.DoubleNum.valueOf;
+
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Timestamps;
@@ -8,7 +10,6 @@ import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
-import org.ta4j.core.num.DoubleNum;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -34,11 +35,11 @@ public class BarSeriesBuilder {
     return BaseBar.builder()
         .timePeriod(ONE_MINUTE)
         .endTime(dateTime.plus(ONE_MINUTE))
-        .openPrice(DoubleNum.valueOf(candle.getOpen()))
-        .highPrice(DoubleNum.valueOf(candle.getHigh()))
-        .lowPrice(DoubleNum.valueOf(candle.getLow()))
-        .closePrice(DoubleNum.valueOf(candle.getClose()))
-        .volume(DoubleNum.valueOf(candle.getVolume()))
+        .openPrice(valueOf(candle.getOpen()))
+        .highPrice(valueOf(candle.getHigh()))
+        .lowPrice(valueOf(candle.getLow()))
+        .closePrice(valueOf(candle.getClose()))
+        .volume(valueOf(candle.getVolume()))
         .build();
   }
 
