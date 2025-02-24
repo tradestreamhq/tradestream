@@ -3,6 +3,7 @@ package com.verlumen.tradestream.ta4j;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Timestamps;
+import com.verlumen.tradestream.marketdata.Candle;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
@@ -21,7 +22,7 @@ public class BarSeriesBuilder {
 
     candles.forEach(candle ->
         series.addBar(ONE_MINUTE,
-            BarSeriesBuilder.toZonedDateTime(candle.getTimestamp()),
+            BarSeriesBuilder.getZonedDateTime(candle),
             candle.getOpen(),
             candle.getHigh(),
             candle.getLow(),
@@ -32,8 +33,8 @@ public class BarSeriesBuilder {
     return series;
   }
 
-  private static ZonedDateTime toZonedDateTime(Timestamp timestamp) {
-    long epochMillis = Timestamps.toMillis(timestamp);
+  private static ZonedDateTime getZonedDateTime(Candle candle) {
+    long epochMillis = Timestamps.toMillis(candle.getTimestamp());
     ZonedDateTime zonedDateTime = Instant.ofEpochMilli(epochMillis).atZone(UTC);
   }
 }
