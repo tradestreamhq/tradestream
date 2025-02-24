@@ -35,6 +35,6 @@ public class BarSeriesBuilder {
 
   private static ZonedDateTime getZonedDateTime(Candle candle) {
     long epochMillis = Timestamps.toMillis(candle.getTimestamp());
-    ZonedDateTime zonedDateTime = Instant.ofEpochMilli(epochMillis).atZone(UTC);
+    return Instant.ofEpochMilli(epochMillis).atZone(UTC);
   }
 }
