@@ -1,4 +1,4 @@
-name: CI Workflow
+name: Test Kubernetes / Helm Install
 
 on:
   pull_request:
@@ -19,101 +19,156 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Setup Debugging Environment
+        run: |
+          # Enable immediate failure and command echoing
+          echo "::add-mask::"  # For security if needed later
+          set -x -o errexit -o pipefail
+          mkdir -p /tmp/diagnostics
+
       - name: Start minikube
         uses: medyagh/setup-minikube@latest
+        env:
+          MINIKUBE_START_ARGS: "--alsologtostderr -v=5"  # Verbose logging
 
       - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+        uses: azure/setup-helm@v4.2.0
 
       - name: Create Namespace
-        run: kubectl create namespace tradestream-namespace
+        run: |
+          kubectl create namespace tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
+          kubectl get namespaces -o wide 2>&1 | tee /tmp/namespace_creation.log
 
       - name: Create Secrets
         run: |
-          kubectl create secret generic \
-            coinmarketcap \
+          kubectl create secret generic coinmarketcap \
             --from-literal=apiKey=FAKE_API_KEY \
-            --namespace=tradestream-namespace
+            --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
+          kubectl get secrets -n tradestream-namespace -o yaml 2>&1 | tee /tmp/secrets_creation.log
 
       - uses: bazel-contrib/setup-bazel@0.9.1
         with:
-          # Avoid downloading Bazel every time
           bazelisk-cache: true
-          # Store build cache per workflow
           disk-cache: ${{ github.workflow }}
-          # Share repository cache between workflows
           repository-cache: true
 
-      - name: Build and Push the Data Ingestion Image
+      - name: Build and Push Data Ingestion Image
         run: |
-          # Push to local registry
+          function _logger() {
+            while read -r line; do
+              printf '%s %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$line"
+            done | tee -a /tmp/image_build.log
+          }
+          
           bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
             --verbose_failures \
             --sandbox_debug \
             -- \
-            --repository localhost:5000/tradestream-app \
-            --tag "latest"
+            --repository localhost:5000/tradestream-data-ingestion \
+            --tag "latest" 2>&1 | _logger
+          
+          docker images 2>&1 | _logger
 
-      - name: Pull Image into Local Docker Daemon
+      - name: Build and Push Pipeline Image
         run: |
-          # Pull the image from the local registry into the local Docker daemon
-          docker pull localhost:5000/tradestream-app:latest
-          # Retag the image to remove the registry prefix, so Kubernetes doesn't try to pull it remotely
-          docker tag localhost:5000/tradestream-app:latest tradestream-app:latest
+          function _logger() {
+            while read -r line; do
+              printf '%s %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$line"
+            done | tee -a /tmp/image_build.log
+          }
+          
+          bazel run //src/main/java/com/verlumen/tradestream/pipeline:push_image \
+            --verbose_failures \
+            --sandbox_debug \
+            -- \
+            --repository localhost:5000/tradestream-data-pipeline \
+            --tag "latest" 2>&1 | _logger
+          
+          docker images 2>&1 | _logger
 
-      - name: Load Image into Minikube
+      - name: Load Images into Minikube
         run: |
-          # Load the retagged image (tradestream-app:latest) into Minikube's image cache
-          minikube image load tradestream-app:latest
+          {
+            # Load data ingestion image
+            docker pull localhost:5000/tradestream-data-ingestion:latest
+            docker tag localhost:5000/tradestream-data-ingestion:latest tradestream-data-ingestion:latest
+            minikube image load tradestream-data-ingestion:latest
+            
+            # Load pipeline image
+            docker pull localhost:5000/tradestream-data-pipeline:latest
+            docker tag localhost:5000/tradestream-data-pipeline:latest tradestream-data-pipeline:latest
+            minikube image load tradestream-data-pipeline:latest
+            
+            # List all images
+            minikube image ls
+          } 2>&1 | tee /tmp/image_load.log
+
+      - name: Install Cert Manager
+        run: |
+          function _cert_manager_diagnostics() {
+            echo "=== Cert Manager Diagnostics ==="
+            kubectl get pods -n cert-manager
+            kubectl describe deployments -n cert-manager
+            kubectl get events -n cert-manager
+          }
+          
+          trap '_cert_manager_diagnostics' ERR
+          
+          kubectl create namespace cert-manager --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
+          kubectl wait --for=condition=Available -n cert-manager deployment/cert-manager-webhook --timeout=120s 2>&1 | tee /tmp/cert_manager_install.log
 
       - name: Install TradeStream Helm Chart
         run: |
-          helm dependency update charts/tradestream && \
+          function _helm_diagnostics() {
+            echo "=== Helm Release Diagnostics ==="
+            helm status my-tradestream -n tradestream-namespace
+            helm get values my-tradestream -n tradestream-namespace
+          }
+          
+          trap '_helm_diagnostics' ERR
+          
+          helm dependency update charts/tradestream 2>&1 | tee /tmp/helm_dependencies.log
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
-            --set dataIngestion.image.repository=tradestream-app \
+            --set dataIngestion.image.repository=tradestream-data-ingestion \
             --set dataIngestion.image.tag=latest \
-            --set dataIngestion.image.pullPolicy=IfNotPresent \
-            --set 'dataIngestion.args[0]=--runMode=dry'
+            --set dataIngestion.runMode=dry \
+            --set pipeline.image.repository=tradestream-data-ingestion \
+            --set pipeline.image.tag=latest \
+            --set pipeline.runMode=dry \
+            --dry-run 2>&1 | tee /tmp/helm_dryrun.log  # Validate first
+            
+          helm install my-tradestream charts/tradestream \
+            --namespace tradestream-namespace \
+            --set dataIngestion.image.repository=tradestream-data-ingestion \
+            --set dataIngestion.image.tag=latest \
+            --set dataIngestion.runMode=dry \
+            --set pipeline.image.repository=tradestream-data-ingestion \
+            --set pipeline.image.tag=latest \
+            --set pipeline.runMode=dry 2>&1 | tee /tmp/helm_install.log
 
-      - name: Wait for All Pods to be Ready
+      - name: Monitor Deployment
         run: |
-          echo "Waiting for all pods to be ready in namespace 'tradestream-namespace'..."
-          timeout=180  # Total time to wait in seconds
-          interval=10  # Interval between checks in seconds
-          end_time=$((SECONDS+timeout))
+          function _exit_handler() {
+            echo "=== FAILURE DIAGNOSTICS ==="
+            echo "Cluster events:"
+            kubectl get events -A --sort-by='.lastTimestamp' --field-selector type!=Normal
+            echo "Problem pods:"
+            kubectl get pods -A --field-selector=status.phase!=Running
+            echo "Container restarts:"
+            kubectl get pods -A -o jsonpath='{range .items[?(@.status.containerStatuses[*].restartCount>0)]}{.metadata.name}{"\trestarts: "}{.status.containerStatuses[*].restartCount}{"\n"}{end}'
+          }
+          
+          trap '_exit_handler' ERR
+          
+          kubectl wait --for=condition=Ready -n tradestream-namespace pod --all --timeout=300s
 
-          while [ $SECONDS -lt $end_time ]; do
-            not_ready_pods=$(kubectl get pods -n tradestream-namespace --no-headers | grep -vE 'Running|Completed' | wc -l)
-            if [ "$not_ready_pods" -eq "0" ]; then
-              echo "All pods are ready."
-              break
-            else
-              echo "Some pods are not ready yet. Current status:"
-              kubectl get pods -n tradestream-namespace
-              echo "Waiting for $interval seconds before rechecking..."
-              sleep $interval
-            fi
-          done
-
-          if [ $SECONDS -ge $end_time ]; then
-            echo "Timeout reached while waiting for pods to be ready."
-            kubectl get pods -n tradestream-namespace
-            echo -e "\nGathering detailed status and logs for non-ready pods..."
-            not_ready_pod_names=$(kubectl get pods -n tradestream-namespace --no-headers | grep -vE 'Running|Completed' | awk '{print $1}')
-            for pod in $not_ready_pod_names; do
-              echo -e "\nDetails for pod $pod:"
-              kubectl describe pod $pod -n tradestream-namespace
-              containers=$(kubectl get pod $pod -n tradestream-namespace -o jsonpath='{.spec.containers[*].name}')
-              for container in $containers; do
-                echo -e "\nLogs for container '$container' in pod '$pod':"
-                kubectl logs $pod -n tradestream-namespace -c $container
-              done
-            done
-            exit 1
-          fi
-
-      - name: Verify Installations
+      - name: Compact Log Export
+        if: always()
         run: |
-          kubectl get pods -n tradestream-namespace
+          # Capture minimal essential diagnostics directly in job log
+          echo "=== FINAL DIAGNOSTIC SNAPSHOT ==="
+          kubectl get all -n tradestream-namespace -o wide
+          kubectl get events -n tradestream-namespace --sort-by=.metadata.creationTimestamp
+          helm status my-tradestream -n tradestream-namespace

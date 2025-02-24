@@ -1,0 +1,48 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-data-pipeline
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: data-pipeline
+    release: {{ .Release.Name }}
+spec:
+  image: {{ .Values.pipeline.image.repository }}:{{ .Values.pipeline.image.tag }}
+  imagePullPolicy: {{ default "IfNotPresent" .Values.pipeline.image.pullPolicy }}
+  flinkVersion: {{ .Values.pipeline.version }}
+  flinkConfiguration:
+    {{- toYaml .Values.pipeline.configuration | nindent 4 }}
+    # Add configuration to use the new writable directory
+    io.tmp.dirs: "/opt/flink/writable-tmp"
+  serviceAccount: {{ .Values.pipeline.serviceAccount }}
+  jobManager:
+    resource:
+      memory: {{ .Values.pipeline.jobManager.memory }}
+      cpu: {{ .Values.pipeline.jobManager.cpu }}
+  taskManager:
+    resource:
+      memory: {{ .Values.pipeline.taskManager.memory }}
+      cpu: {{ .Values.pipeline.taskManager.cpu }}
+  job:
+    entryClass: {{ .Values.pipeline.job.entryClass }}
+    jarURI: {{ .Values.pipeline.job.jarURI }}
+    args:
+      - "--bootstrapServers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+      - "--runner=FlinkRunner"
+    parallelism: {{ .Values.pipeline.job.parallelism }}
+    upgradeMode: {{ .Values.pipeline.job.upgradeMode }}
+  podTemplate:
+    metadata:
+      labels:
+        custom-pod-template: "true"
+    spec:
+      volumes:
+        - name: flink-writable-volume
+          emptyDir: {}
+      containers:
+        - name: flink-main-container
+          volumeMounts:
+            - name: flink-writable-volume
+              mountPath: /opt/flink/writable-tmp
+              readOnly: false
