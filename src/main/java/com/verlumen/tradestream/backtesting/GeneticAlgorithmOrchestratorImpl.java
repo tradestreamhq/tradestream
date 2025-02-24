@@ -9,6 +9,7 @@ import com.verlumen.tradestream.backtesting.params.ChromosomeSpec;
 import com.verlumen.tradestream.backtesting.params.ParamConfig;
 import com.verlumen.tradestream.backtesting.params.ParamConfigManager;
 import com.verlumen.tradestream.strategies.StrategyType;
+import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
 import io.jenetics.*;
 import io.jenetics.engine.*;
 import java.util.ArrayList;
@@ -103,20 +104,9 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
     }
 
     private BarSeries createBarSeries(GAOptimizationRequest request) {
-        BaseBarSeries series = new BaseBarSeries();
-        ZonedDateTime now = ZonedDateTime.now();
-        
-        request.getCandlesList().forEach(candle -> 
-            series.addBar(Duration.ofMinutes(1), 
-                now.plusMinutes(series.getBarCount()),
-                candle.getOpen(),
-                candle.getHigh(),
-                candle.getLow(),
-                candle.getClose(),
-                candle.getVolume())
+        return BarSeriesBuilder.createBarSeries(
+            ImmutableList.copyOf(request.getCandlesList())
         );
-        
-        return series;
     }
 
     private Any convertToParameters(Genotype<DoubleGene> genotype, StrategyType type) {
