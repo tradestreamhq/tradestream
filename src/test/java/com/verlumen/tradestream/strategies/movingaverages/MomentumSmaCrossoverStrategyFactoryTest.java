@@ -35,7 +35,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
 
   @Before
   public void setUp() throws InvalidProtocolBufferException {
-    factory = new MomentumSmaCrossoverStrategyFactory();
+    factory = MomentumSmaCrossoverStrategyFactory.create();
     params =
         MomentumSmaCrossoverParameters.newBuilder()
             .setMomentumPeriod(MOMENTUM_PERIOD)

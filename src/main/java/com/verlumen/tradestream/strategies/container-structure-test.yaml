@@ -6,4 +6,7 @@ commandTests:
     args:
       - '-jar'
       - '/src/main/java/com/verlumen/tradestream/strategies/app_deploy.jar'
+      - '--candleTopic=fakeCandleTopic'
+      - '--tradeSignalTopic=fakeTradeSignalTopic'
+      - '--runMode=dry'
     expectedError: ['.*Starting real-time strategy discovery...']

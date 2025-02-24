@@ -1,19 +1,17 @@
 name: Release Tradestream Artifacts
-
 on:
   push:
     branches:
       - main
       - develop
-
 jobs:
   release:
     runs-on: ubuntu-latest
     env:
       DATA_INGESTION_REPO: tradestreamhq/tradestream-data-ingestion
       DATA_INGESTION_SECTION_KEY: dataIngestion
-      STRATEGY_ENGINE_REPO: tradestreamhq/tradestream-strategy-engine
-      STRATEGY_ENGINE_SECTION_KEY: strategyEngine
+      PIPELINE_REPO: tradestreamhq/tradestream-data-pipeline
+      PIPELINE_SECTION_KEY: pipeline
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -71,9 +69,9 @@ jobs:
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
 
-      - name: Push the Strategy Engine image
+      - name: Push the Pipeline image
         run: |
-          bazel run //src/main/java/com/verlumen/tradestream/strategies:push_image \
+          bazel run //src/main/java/com/verlumen/tradestream/pipeline:push_image \
             --verbose_failures \
             --sandbox_debug \
             -- \
@@ -84,14 +82,14 @@ jobs:
           sudo wget -O /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64
           sudo chmod +x /usr/bin/yq
 
-      - name: Update values.yaml with new image tag
+      - name: Update values.yaml with new image tags
         run: |
           yq eval-all '
             . as $item ireduce ({}; . * $item ) |
             .["${{ env.DATA_INGESTION_SECTION_KEY }}"].image.repository = "${{ env.DATA_INGESTION_REPO }}" |
             .["${{ env.DATA_INGESTION_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
-            .["${{ env.STRATEGY_ENGINE_SECTION_KEY }}"].image.repository = "${{ env.STRATEGY_ENGINE_REPO }}" |
-            .["${{ env.STRATEGY_ENGINE_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}"
+            .["${{ env.PIPELINE_SECTION_KEY }}"].image.repository = "${{ env.PIPELINE_REPO }}" |
+            .["${{ env.PIPELINE_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}"
           ' charts/tradestream/values.yaml > charts/tradestream/values.yaml.tmp
           mv charts/tradestream/values.yaml.tmp charts/tradestream/values.yaml
 

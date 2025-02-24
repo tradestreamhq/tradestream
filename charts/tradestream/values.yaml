@@ -1,40 +1,63 @@
 kafka:
-  replicaCount: 2
+  replicaCount: 3
   persistence:
     enabled: true
     size: 10Gi
     accessModes:
+      - ReadWriteOnce
   listeners:
     client:
-      protocol: 'PLAINTEXT'
+      protocol: PLAINTEXT
     controller:
-      protocol: 'PLAINTEXT'
+      protocol: PLAINTEXT
+  configurationOverrides:
+    "controller.quorum.voters": "0@kafka-0.kafka-headless:9093,1@kafka-1.kafka-headless:9093,2@kafka-2.kafka-headless:9093"
+  podSecurityContext:
+    runAsUser: 1001
+    fsGroup: 1001
+  resources:
+    requests:
+      cpu: "1"
+      memory: "2Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
 kafkaUi:
   replicaCount: 1
   image:
-    repository: "provectuslabs/kafka-ui"
-    tag: "latest"
+    repository: provectuslabs/kafka-ui
+    tag: latest
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
     port: 8080
 dataIngestion:
-  args:
-    - "--runMode=wet"
-    - "--candlePublisherTopic=candles"
-    - "--kafka.acks=all"
-    - "--kafka.retries=5"
-    - "--kafka.linger.ms=50"
-    # Note: Using only existing args from ConfigArguments.java
+  runMode: wet
   replicaCount: 1
   image:
-    repository: "tradestreamhq/tradestream-data-ingestion"
-    tag: "v0.0.480-develop"
+    repository: tradestreamhq/tradestream-data-ingestion
+    tag: v0.0.710-develop
   service:
     port: 8080
-strategyEngine:
+  tradeTopic: trades
+pipeline:
+  runMode: wet
   image:
-    repository: "tradestreamhq/tradestream-strategy-engine"
-    tag: "v0.0.480-develop"
-  service:
-    port: 8081
+    repository: tradestreamhq/tradestream-data-pipeline
+    tag: v0.0.710-develop
+    pullPolicy: IfNotPresent
+  version: v1_18
+  configuration:
+    taskmanager.numberOfTaskSlots: "1"
+  serviceAccount: flink
+  jobManager:
+    memory: 2048m
+    cpu: 1
+  taskManager:
+    memory: 2048m
+    cpu: 1
+  job:
+    entryClass: com.verlumen.tradestream.pipeline.App
+    jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
+    parallelism: 1
+    upgradeMode: stateless

@@ -7,7 +7,7 @@ import java.util.function.Consumer;
  * Interface for consuming market data from Kafka and forwarding it to
  * registered handlers.
  */
-interface MarketDataConsumer {
+public interface MarketDataConsumer {
     /**
      * Starts consuming market data and forwards it to the provided handler.
      *
@@ -19,4 +19,8 @@ interface MarketDataConsumer {
      * Stops consuming market data and performs cleanup.
      */
     void stopConsuming();
+
+    interface Factory {
+        MarketDataConsumer create(String candleTopic);
+    }
 }

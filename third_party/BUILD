@@ -78,53 +78,70 @@ java_plugin(
 )
 
 java_library(
+    name = "beam_runners_direct_java",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_runners_direct_java",
+    ],
+)
+
+java_library(
+    name = "beam_runners_flink_java",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_runners_flink_1_18",
+    ],
+)
+
+java_library(
+    name = "beam_sdks_java_core",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_sdks_java_core",
+    ],
+)
+
+java_library(
+    name = "beam_sdks_java_extensions_protobuf",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_sdks_java_extensions_protobuf",
+    ],
+)
+
+java_library(
+    name = "beam_sdks_java_io_kafka",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_sdks_java_io_kafka",
+    ],
+)
+
+java_library(
+    name = "beam_sdks_java_test_utils",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_beam_beam_sdks_java_test_utils",
+    ],
+    testonly = True,
+)
+
+java_library(
     name = "flogger",
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:com_google_flogger_flogger",
     ],
+    runtime_deps = [
+        ":flogger_system_backend",
+    ],
 )
 
 java_library(
     name = "flogger_system_backend",
-    visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:com_google_flogger_flogger_system_backend",
     ],
-)
-
-java_library(
-    name = "grpc_java_api",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@tradestream_maven//:io_grpc_grpc_api",
-    ],
-)
-
-java_library(
-    name = "grpc_java_inprocess",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@tradestream_maven//:io_grpc_grpc_inprocess",
-    ],
-    testonly = True,
-)
-
-java_library(
-    name = "grpc_java_stub",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@tradestream_maven//:io_grpc_grpc_stub",
-    ],
-)
-
-java_library(
-    name = "grpc_testing",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@tradestream_maven//:io_grpc_grpc_testing",
-    ],
-    testonly = True,
 )
 
 java_library(
@@ -169,10 +186,27 @@ java_library(
 )
 
 java_library(
+    name = "hamcrest",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_hamcrest_hamcrest",
+    ],
+    testonly = True,
+)
+
+java_library(
     name = "jenetics",
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:io_jenetics_jenetics",
+    ],
+)
+
+java_library(
+    name = "joda_time",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:joda_time_joda_time",
     ],
 )
 
@@ -215,6 +249,14 @@ java_library(
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "protobuf_java_util",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:com_google_protobuf_protobuf_java_util",
     ],
 )
 

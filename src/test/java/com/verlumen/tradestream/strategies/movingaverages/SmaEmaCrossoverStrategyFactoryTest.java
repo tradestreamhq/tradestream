@@ -37,7 +37,7 @@ public class SmaEmaCrossoverStrategyFactoryTest {
 
   @Before
   public void setUp() throws InvalidProtocolBufferException {
-    factory = new SmaEmaCrossoverStrategyFactory();
+    factory = SmaEmaCrossoverStrategyFactory.create();
     params = SmaEmaCrossoverParameters.newBuilder()
         .setSmaPeriod(SMA_PERIOD)
         .setEmaPeriod(EMA_PERIOD)

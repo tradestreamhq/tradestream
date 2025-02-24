@@ -2,7 +2,6 @@ package com.verlumen.tradestream.strategies.movingaverages;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
@@ -16,9 +15,10 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
-public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<DoubleEmaCrossoverParameters> {
-    @Inject
-    DoubleEmaCrossoverStrategyFactory() {}
+final class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<DoubleEmaCrossoverParameters> {
+    static DoubleEmaCrossoverStrategyFactory create() {
+        return new DoubleEmaCrossoverStrategyFactory();
+    }
 
     @Override
     public Strategy createStrategy(BarSeries series, DoubleEmaCrossoverParameters params)
@@ -50,7 +50,17 @@ public class DoubleEmaCrossoverStrategyFactory implements StrategyFactory<Double
     }
 
     @Override
+    public DoubleEmaCrossoverParameters getDefaultParameters() {
+        return DoubleEmaCrossoverParameters.newBuilder()
+            .setShortEmaPeriod(12)
+            .setLongEmaPeriod(26)
+            .build();
+    }
+
+    @Override
     public StrategyType getStrategyType() {
         return StrategyType.DOUBLE_EMA_CROSSOVER;
     }
+
+    private DoubleEmaCrossoverStrategyFactory() {}
 }

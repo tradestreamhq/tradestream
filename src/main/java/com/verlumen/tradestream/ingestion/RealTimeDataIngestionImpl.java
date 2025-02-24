@@ -12,104 +12,113 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.marketdata.TradePublisher;
+import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 final class RealTimeDataIngestionImpl implements RealTimeDataIngestion {
-    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private static final String FORWARD_SLASH = "/";
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-    private final CandleManager candleManager;
-    private final CandlePublisher candlePublisher;
-    private final Provider<CurrencyPairSupply> currencyPairSupply;
-    private final ExchangeStreamingClient exchangeClient;
-    private final Provider<ThinMarketTimer> thinMarketTimer;
-    private final TradeProcessor tradeProcessor;
-    
-    @Inject
-    RealTimeDataIngestionImpl(
-        CandleManager candleManager,
-        CandlePublisher candlePublisher,
-        Provider<CurrencyPairSupply> currencyPairSupply,
-        ExchangeStreamingClient exchangeClient,
-        Provider<ThinMarketTimer> thinMarketTimer,
-        TradeProcessor tradeProcessor
-    ) {
-        logger.atInfo().log("Initializing RealTimeDataIngestion implementation");
-        this.candleManager = candleManager;
-        this.candlePublisher = candlePublisher;
-        this.currencyPairSupply = currencyPairSupply;
-        this.exchangeClient = exchangeClient;
-        this.thinMarketTimer = thinMarketTimer;
-        this.tradeProcessor = tradeProcessor;
-        logger.atInfo().log("RealTimeDataIngestion initialization complete");
-    }
+  private final Provider<CurrencyPairSupply> currencyPairSupply;
+  private final ExchangeStreamingClient exchangeClient;
+  private final TradePublisher tradePublisher;
 
-    @Override
-    public void start() {
-        logger.atInfo().log("Starting real-time data ingestion for %s", 
-            exchangeClient.getExchangeName());
+  // Blocking queue to store incoming trades
+  private final BlockingQueue<Trade> tradeQueue = new LinkedBlockingQueue<>();
+  // Executor to run the trade publishing task
+  private ExecutorService tradePublisherExecutor;
 
-        startMarketDataIngestion();
-        logger.atInfo().log("Starting thin market timer...");
-        thinMarketTimer.get().start();
-        logger.atInfo().log("Real-time data ingestion system fully initialized and running");
-    }
+  @Inject
+  RealTimeDataIngestionImpl(
+      Provider<CurrencyPairSupply> currencyPairSupply,
+      ExchangeStreamingClient exchangeClient,
+      TradePublisher tradePublisher) {
+    this.currencyPairSupply = currencyPairSupply;
+    this.exchangeClient = exchangeClient;
+    this.tradePublisher = tradePublisher;
+  }
 
-    @Override
-    public void shutdown() {
-        logger.atInfo().log("Beginning shutdown sequence...");
-        
-        logger.atInfo().log("Stopping exchange streaming...");
-        exchangeClient.stopStreaming();
+  @Override
+  public void start() {
+    logger.atInfo().log(
+        "Starting real-time data ingestion for %s", exchangeClient.getExchangeName());
 
-        logger.atInfo().log("Stopping thin market timer...");
-        thinMarketTimer.get().stop();
+    // Start streaming and push incoming trades into the blocking queue.
+    exchangeClient.startStreaming(supportedCurrencyPairs(), trade -> {
+      try {
+        tradeQueue.put(trade);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        logger.atWarning().withCause(e).log("Interrupted while adding trade to queue");
+      }
+    });
 
-        logger.atInfo().log("Closing candle publisher...");
-        try {
-            candlePublisher.close();
-            logger.atInfo().log("Successfully closed candle publisher");
-        } catch (Exception e) {
-            logger.atWarning().withCause(e).log("Error closing candle publisher");
+    // Start a background task to read from the blocking queue and publish trades.
+    tradePublisherExecutor = Executors.newSingleThreadExecutor();
+    tradePublisherExecutor.submit(() -> 
+      // Use stream.generate to continuously take trades from the queue.
+      Stream.generate(() -> {
+          try {
+            return tradeQueue.take(); // This call blocks until a trade is available.
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null; // Returning null signals termination.
+          }
+        })
+        .takeWhile(Objects::nonNull) // Stop processing if a null is encountered.
+        .forEach(tradePublisher::publishTrade)
+    );
+
+    logger.atInfo().log("Real-time data ingestion system fully initialized and running");
+  }
+
+  @Override
+  public void shutdown() {
+    logger.atInfo().log("Beginning shutdown sequence...");
+
+    logger.atInfo().log("Stopping exchange streaming...");
+    exchangeClient.stopStreaming();
+
+    logger.atInfo().log("Shutting down trade publisher executor...");
+    if (tradePublisherExecutor != null) {
+      // Shut down the executor service and wait for the publishing task to finish.
+      tradePublisherExecutor.shutdownNow();
+      try {
+        if (!tradePublisherExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+          logger.atWarning().log("Trade publisher executor did not terminate in time.");
         }
-
-        logger.atInfo().log("Shutdown sequence complete");
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        logger.atWarning().withCause(e).log("Interrupted while waiting for trade publisher executor shutdown");
+      }
     }
 
-    private void processTrade(Trade trade) {
-        try {
-            if (!tradeProcessor.isProcessed(trade)) {
-                logger.atInfo().log("Processing new trade for %s: ID=%s, price=%f, volume=%f", 
-                    trade.getCurrencyPair(), 
-                    trade.getTradeId(),
-                    trade.getPrice(),
-                    trade.getVolume());
-                candleManager.processTrade(trade);
-            } else {
-                logger.atInfo().log("Skipping duplicate trade for %s: ID=%s",
-                    trade.getCurrencyPair(),
-                    trade.getTradeId());
-            }
-        } catch (RuntimeException e) {
-            logger.atSevere().withCause(e).log(
-                "Error processing trade: %s", trade.getTradeId());
-            // Don't rethrow - we want to continue processing other trades
-        }
+    logger.atInfo().log("Closing trade publisher...");
+    try {
+      tradePublisher.close();
+      logger.atInfo().log("Successfully closed trade publisher");
+    } catch (Exception e) {
+      logger.atWarning().withCause(e).log("Error closing trade publisher");
     }
 
-    private void startMarketDataIngestion() {
-        exchangeClient.startStreaming(supportedCurrencyPairs(), this::processTrade);
-    }
+    logger.atInfo().log("Shutdown sequence complete");
+  }
 
-    private ImmutableList<CurrencyPair> supportedCurrencyPairs() {
-        ImmutableSet<CurrencyPair> supportedPairs = ImmutableSet.copyOf(
-            exchangeClient.supportedCurrencyPairs());
-        ImmutableSet<CurrencyPair> requestedPairs = ImmutableSet.copyOf(
-            currencyPairSupply.get().currencyPairs());
-        difference(requestedPairs, supportedPairs)
-            .forEach(unsupportedPair -> logger.atInfo().log(
-                "Pair with symbol %s is not supported.", unsupportedPair.symbol()));
-        return intersection(requestedPairs, supportedPairs)
-            .immutableCopy()
-            .asList();
-    }
+  private ImmutableList<CurrencyPair> supportedCurrencyPairs() {
+    ImmutableSet<CurrencyPair> supportedPairs =
+        ImmutableSet.copyOf(exchangeClient.supportedCurrencyPairs());
+    ImmutableSet<CurrencyPair> requestedPairs =
+        ImmutableSet.copyOf(currencyPairSupply.get().currencyPairs());
+    difference(requestedPairs, supportedPairs)
+        .forEach(
+            unsupportedPair ->
+                logger.atInfo().log(
+                    "Pair with symbol %s is not supported.", unsupportedPair.symbol()));
+    return intersection(requestedPairs, supportedPairs).immutableCopy().asList();
+  }
 }

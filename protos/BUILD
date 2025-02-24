@@ -1,5 +1,3 @@
-load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
-
 proto_library(
     name = "backtesting_proto",
     srcs = ["backtesting.proto"],
@@ -8,13 +6,6 @@ proto_library(
         ":marketdata_proto",
         ":strategies_proto",
     ],
-)
-
-java_grpc_library(
-    name = "backtesting_java_grpc",
-    visibility = ["//visibility:public"],
-    srcs = [":backtesting_proto"],
-    deps = [":backtesting_java_proto"],
 )
 
 java_proto_library(
@@ -26,6 +17,9 @@ java_proto_library(
 proto_library(
     name = "marketdata_proto",
     srcs = ["marketdata.proto"],
+    deps = [
+        "@com_google_protobuf//:timestamp_proto",
+    ],
 )
 
 java_proto_library(

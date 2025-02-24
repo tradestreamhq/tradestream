@@ -9,7 +9,6 @@ java_library(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
         "//third_party:guava",
-        "//third_party:guice",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
     ],

@@ -11,82 +11,14 @@ java_binary(
     srcs = ["App.java"],
     main_class = "com.verlumen.tradestream.ingestion.App",
     deps = [
-        "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
+        ":ingestion_config",
         ":ingestion_module",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
-        ":run_mode",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
-)
-
-java_library(
-    name = "candle_builder",
-    srcs = ["CandleBuilder.java"],
-    deps = [
-        "//third_party:flogger",
-        "//protos:marketdata_java_proto",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
-)
-
-java_library(
-    name = "candle_manager",
-    srcs = ["CandleManager.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        ":candle_publisher",
-    ],
-)
-
-java_library(
-    name = "candle_manager_impl",
-    srcs = ["CandleManagerImpl.java"],
-    deps = [
-        "//third_party:auto_value",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party:argparse4j",
         "//third_party:flogger",
         "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        ":candle_builder",
-        ":candle_manager",
-        ":candle_publisher",
-        ":price_tracker",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
-)
-
-java_library(
-    name = "candle_publisher",
-    srcs = ["CandlePublisher.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-    ],
-)
-
-java_library(
-    name = "candle_publisher_impl",
-    srcs = ["CandlePublisherImpl.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:kafka_clients",
-        ":candle_publisher",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
     ],
 )
 
@@ -94,16 +26,14 @@ java_library(
     name = "coinbase_streaming_client",
     srcs = ["CoinbaseStreamingClient.java"],
     deps = [
+        ":exchange_streaming_client",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:flogger",
         "//third_party:gson",
         "//third_party:guava",
         "//third_party:guice",
-        ":exchange_streaming_client",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
+        "//third_party:protobuf_java_util",
     ],
 )
 
@@ -112,17 +42,6 @@ java_library(
     srcs = ["CoinMarketCapConfig.java"],
     deps = [
         "//third_party:auto_value",
-    ],
-)
-
-java_library(
-    name = "config_arguments",
-    srcs = ["ConfigArguments.java"],
-    deps = [
-        "//third_party:argparse4j",
-        "//third_party:auto_value",
-        "//third_party:guava",
-        "//third_party:guice",
     ],
 )
 
@@ -137,8 +56,8 @@ java_library(
     name = "currency_pair_metadata",
     srcs = ["CurrencyPairMetadata.java"],
     deps = [
-        "//third_party:auto_value",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party:auto_value",
     ],
 )
 
@@ -146,10 +65,10 @@ java_library(
     name = "currency_pair_supply",
     srcs = ["CurrencyPairSupply.java"],
     deps = [
+        ":currency_pair_metadata",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:guava",
         "//third_party:auto_value",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        ":currency_pair_metadata",
     ],
 )
 
@@ -157,13 +76,13 @@ java_library(
     name = "currency_pair_supply_provider",
     srcs = ["CurrencyPairSupplyProvider.java"],
     deps = [
-        "//third_party:gson",
-        "//third_party:guava",
-        "//third_party:guice",
         ":coin_market_cap_config",
         ":currency_pair_metadata",
         ":currency_pair_supply",
-        ":http_client",
+        "//src/main/java/com/verlumen/tradestream/http:http_client",
+        "//third_party:gson",
+        "//third_party:guava",
+        "//third_party:guice",
     ],
 )
 
@@ -171,9 +90,9 @@ java_library(
     name = "exchange_streaming_client",
     srcs = ["ExchangeStreamingClient.java"],
     deps = [
-        "//third_party:guava",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party:guava",
     ],
 )
 
@@ -181,10 +100,10 @@ java_library(
     name = "exchange_streaming_client_factory",
     srcs = ["ExchangeStreamingClientFactory.java"],
     deps = [
-        "//third_party:guava",
-        "//third_party:guice",
         ":coinbase_streaming_client",
         ":exchange_streaming_client",
+        "//third_party:guava",
+        "//third_party:guice",
     ],
 )
 
@@ -194,39 +113,6 @@ genrule(
     outs = ["sha256.sum"],
     cmd = "$(JQ_BIN) -r '.manifests[0].digest' $(location :index)/index.json > $@",
     toolchains = ["@jq_toolchains//:resolved_toolchain"],
-)
-
-java_library(
-    name = "http_client",
-    srcs = ["HttpClient.java"],
-)
-
-java_library(
-    name = "http_client_impl",
-    srcs = ["HttpClientImpl.java"],
-    deps = [
-        "//third_party:flogger",
-        "//third_party:guice",
-        ":http_client",
-        ":http_url_connection_factory",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
-)
-
-java_library(
-    name = "http_url_connection_factory",
-    srcs = ["HttpURLConnectionFactory.java"],
-)
-
-java_library(
-    name = "http_url_connection_factory_impl",
-    srcs = ["HttpURLConnectionFactoryImpl.java"],
-    deps = [
-        "//third_party:guice",
-        ":http_url_connection_factory",
-    ],
 )
 
 oci_image(
@@ -257,73 +143,38 @@ oci_image_index(
 )
 
 java_library(
-    name = "ingestion_module",
-    srcs = ["IngestionModule.java"],
+    name = "ingestion_config",
+    srcs = ["IngestionConfig.java"],
     deps = [
-        "//third_party:argparse4j",
-        "//third_party:auto_value",
-        "//third_party:guava",
-        "//third_party:guice_assistedinject",
-        "//third_party:guice",
-        "//third_party:kafka_clients",
-        "//third_party:xchange_stream_core",
-        ":candle_manager",
-        ":candle_manager_impl",
-        ":candle_publisher",
-        ":candle_publisher_impl",
-        ":coin_market_cap_config",
-        ":config_arguments",
-        ":currency_pair_supply",
-        ":currency_pair_supply_provider",
-        ":exchange_streaming_client",
-        ":exchange_streaming_client_factory",
-        ":http_client",
-        ":http_client_impl",
-        ":http_url_connection_factory",
-        ":http_url_connection_factory_impl",
-        ":kafka_producer_provider",
-        ":real_time_data_ingestion",
-        ":real_time_data_ingestion_impl",
-        ":run_mode",
-        ":thin_market_timer",
-        ":thin_market_timer_impl",
-        ":thin_market_timer_task",
-        ":thin_market_timer_task_impl",
-        ":trade_processor",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
     ],
 )
 
 java_library(
-    name = "kafka_producer_provider",
-    srcs = ["KafkaProducerProvider.java"],
+    name = "ingestion_module",
+    srcs = ["IngestionModule.java"],
     deps = [
+        ":coin_market_cap_config",
+        ":currency_pair_supply",
+        ":currency_pair_supply_provider",
+        ":exchange_streaming_client",
+        ":exchange_streaming_client_factory",
+        ":ingestion_config",
+        ":real_time_data_ingestion",
+        ":real_time_data_ingestion_impl",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/http:http_module",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
+        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
+        "//third_party:auto_value",
+        "//third_party:guava",
         "//third_party:guice",
-        "//third_party:kafka_clients",
-        ":kafka_properties",
-    ],    
-)
-
-java_library(
-    name = "kafka_properties",
-    srcs = ["KafkaProperties.java"],
-    deps = [
-        "//third_party:argparse4j",
-        "//third_party:guice",
-        "//third_party:mug",
-    ],    
+    ],
 )
 
 tar(
     name = "layer",
     srcs = [":app_deploy.jar"],
-)
-
-java_library(
-    name = "price_tracker",
-    srcs = ["PriceTracker.java"],
-    deps = [
-        "//third_party:guice",        
-    ],
 )
 
 oci_push(
@@ -342,76 +193,14 @@ java_library(
     name = "real_time_data_ingestion_impl",
     srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
-        "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        ":candle_manager",
-        ":candle_publisher",
         ":currency_pair_supply",
         ":exchange_streaming_client",
         ":real_time_data_ingestion",
-        ":thin_market_timer",
-        ":trade_processor",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
-)
-
-java_library(
-    name = "run_mode",
-    srcs = ["RunMode.java"],
-)
-
-java_library(
-    name = "thin_market_timer",
-    srcs = ["ThinMarketTimer.java"],
-)
-
-java_library(
-    name = "thin_market_timer_impl",
-    srcs = ["ThinMarketTimerImpl.java"],
-    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/marketdata:trade_publisher",
         "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:xchange_core",
-        ":thin_market_timer",
-        ":thin_market_timer_task",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
-    ],
-)
-
-java_library(
-    name = "thin_market_timer_task",
-    srcs = ["ThinMarketTimerTask.java"],
-)
-
-java_library(
-    name = "thin_market_timer_task_impl",
-    srcs = ["ThinMarketTimerTaskImpl.java"],
-    deps = [
         "//third_party:guava",
         "//third_party:guice",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        ":candle_manager",
-        ":currency_pair_supply",
-        ":thin_market_timer_task",
-    ],
-)
-
-java_library(
-    name = "trade_processor",
-    srcs = ["TradeProcessor.java"],
-    deps = [
-        "//third_party:flogger",
-        "//third_party:auto_value",
-        "//protos:marketdata_java_proto",
-    ],
-    runtime_deps = [
-        "//third_party:flogger_system_backend",
     ],
 )

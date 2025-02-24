@@ -35,7 +35,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
 
     @Before
     public void setUp() throws InvalidProtocolBufferException {
-        factory = new DoubleEmaCrossoverStrategyFactory();
+        factory = DoubleEmaCrossoverStrategyFactory.create();
 
         // Standard parameters
         params = DoubleEmaCrossoverParameters.newBuilder()
