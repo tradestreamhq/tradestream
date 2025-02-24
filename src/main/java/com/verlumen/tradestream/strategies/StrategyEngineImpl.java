@@ -5,7 +5,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
-import com.verlumen.tradestream.backtesting.GAServiceClient;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.verlumen.tradestream.backtesting.GAServiceClient0;
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.backtesting.BestStrategyResponse;
 import com.verlumen.tradestream.marketdata.Candle;
