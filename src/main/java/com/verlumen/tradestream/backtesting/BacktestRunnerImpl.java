@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.StrategyManager;
 import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
 import org.ta4j.core.AnalysisCriterion;
@@ -38,7 +39,7 @@ final class BacktestRunnerImpl implements BacktestRunner {
     }
 
     @Override
-    public BacktestResult runBacktest(BacktestRequest request) {
+    public BacktestResult runBacktest(BacktestRequest request) throws InvalidProtocolBufferException {
         checkArgument(request.getCandlesList().size() > 0, "Bar series cannot be empty");
         BarSeries series = BarSeriesBuilder.createBarSeries(
             ImmutableList.copyOf(request.getCandlesList())
