@@ -38,7 +38,9 @@ final class BacktestRunnerImpl implements BacktestRunner {
     @Override
     public BacktestResult runBacktest(BacktestRequest request) {
         checkArgument(request.getCandlesList().size() > 0, "Bar series cannot be empty");
-        BarSeries series = BarSeriesBuilder.createBarSeries(request.getCandlesList());
+        BarSeries series = BarSeriesBuilder.createBarSeries(
+            ImmutableList.copyOf(request.getCandlesList())
+        );
         Strategy strategy = strategyManager.getStrategy(request.strategyType());
         
         List<TimeframeResult> timeframeResults = new ArrayList<>();
