@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
@@ -26,6 +25,8 @@ import org.ta4j.core.Trade;
 
 @RunWith(JUnit4.class)
 public class BacktestRunnerImplTest {
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     private BacktestRunnerImpl backtestRunner;
     private BaseBarSeries series;
     private Strategy strategy;
@@ -33,7 +34,6 @@ public class BacktestRunnerImplTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
         backtestRunner = new BacktestRunnerImpl();
 
         // Initialize test data
