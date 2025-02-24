@@ -134,9 +134,13 @@ final class StrategyEngineImpl implements StrategyEngine {
             .orElseThrow(() -> new IllegalStateException("No optimized strategy found"));
 
     currentStrategyType = bestRecord.strategyType();
-    currentStrategy =
-        strategyManager.createStrategy(
-                candleBuffer.toBarSeries(), currentStrategyType, bestRecord.parameters());
+    try {
+      currentStrategy =
+          strategyManager.createStrategy(
+                  candleBuffer.toBarSeries(), currentStrategyType, bestRecord.parameters());
+    } catch (InvalidProtocolBufferException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private boolean shouldOptimize() {
