@@ -20,17 +20,25 @@ public class BarSeriesBuilder {
   public static BarSeries createBarSeries(ImmutableList<Candle> candles) {
     BaseBarSeries series = new BaseBarSeries();
 
-    candles.forEach(candle ->
-        series.addBar(ONE_MINUTE,
-            BarSeriesBuilder.getZonedDateTime(candle),
-            candle.getOpen(),
-            candle.getHigh(),
-            candle.getLow(),
-            candle.getClose(),
-            candle.getVolume())
-    );
+    candles
+      .stream()
+      .map(BarSeriesBuilder::createBar)
+      .forEach(series::addBar);
 
     return series;
+  }
+
+  private static Bar createBar(Candle candle) {
+    ZonedDateTime dateTime = getZonedDateTime(candle);
+    return BaseBar.builder()
+        .timePeriod(ONE_MINUTE)
+        .endTime(dateTime.plus(ONE_MINUTE))
+        .openPrice(candle.getOpen())
+        .highPrice(candle.getHigh())
+        .lowPrice(candle.getLow())
+        .closePrice(candle.getClose())
+        .volume(candle.getVolume())
+        .build();
   }
 
   private static ZonedDateTime getZonedDateTime(Candle candle) {
