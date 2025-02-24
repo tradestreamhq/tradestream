@@ -173,30 +173,22 @@ public class SlidingCandleAggregator
         @Override
         public Candle extractOutput(CandleAccumulator accumulator) {
             logger.atFiner().log("Extracting Candle from accumulator: %s", accumulator);
-            Candle.Builder builder = Candle.newBuilder();
             if (accumulator.firstTrade) {
                 // No trades were added. Produce a default candle.
-                builder.setOpen(ZERO)
-                       .setHigh(ZERO)
-                       .setLow(ZERO)
-                       .setClose(ZERO)
-                       .setVolume(ZERO)
-                       .setTimestamp(Timestamp.getDefaultInstance());
                 logger.atFiner().log("No real trades found. Returning default Candle.");
-            } else {
-                builder.setOpen(accumulator.open)
-                       .setHigh(accumulator.high)
-                       .setLow(accumulator.low)
-                       .setClose(accumulator.close)
-                       .setVolume(accumulator.volume)
-                       // Use the openTimestamp as the candle’s representative timestamp.
-                       .setTimestamp(accumulator.openTimestamp)
-                       .setCurrencyPair(accumulator.currencyPair);
-                logger.atFiner().log("Returning real Candle from accumulator.");
+                return Candle.getDefaultInstance();
             }
-            Candle result = builder.build();
-            logger.atFiner().log("Final Candle output: %s", result);
-            return result;
+            Candle.Builder builder = Candle.newBuilder();
+            builder.setOpen(accumulator.open)
+                    .setHigh(accumulator.high)
+                    .setLow(accumulator.low)
+                    .setClose(accumulator.close)
+                    .setVolume(accumulator.volume)
+                    // Use the openTimestamp as the candle’s representative timestamp.
+                    .setTimestamp(accumulator.openTimestamp)
+                    .setCurrencyPair(accumulator.currencyPair);
+            logger.atFiner().log("Returning real Candle from accumulator.");
+            return builder.build();
         }
     }
 

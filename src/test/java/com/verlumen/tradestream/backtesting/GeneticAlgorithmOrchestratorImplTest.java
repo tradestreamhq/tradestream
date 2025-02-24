@@ -96,7 +96,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
             .runBacktest(backtestCaptor.capture());
         
         BacktestRequest capturedRequest = backtestCaptor.getValue();
-        assertThat(capturedRequest.getStrategyType()).isEqualTo(request.getStrategyType());
+        assertThat(capturedRequest.getStrategy().getType()).isEqualTo(request.getStrategyType());
         assertThat(capturedRequest.getCandlesList()).isEqualTo(request.getCandlesList());
         assertThat(response.getBestScore()).isEqualTo(mockBacktestResult.getOverallScore());
         assertThat(response.hasBestStrategyParameters()).isTrue();
@@ -164,14 +164,15 @@ public class GeneticAlgorithmOrchestratorImplTest {
 
     private List<Candle> createTestCandles() {
         List<Candle> candles = new ArrayList<>();
+        long initialEpochMillis = Instant.now().toEpochMilli(); // Get current time *once*
         for (int i = 0; i < 10; i++) {
-            candles.add(createCandle(i + 1.0));
+            // Increment timestamp by, say, 1 minute (60000 ms) for each candle.
+            candles.add(createCandle(initialEpochMillis + (i * 60000L), i + 1.0));
         }
         return candles;
     }
 
-    private Candle createCandle(double price) {
-        long epochMillis = Instant.now().toEpochMilli();
+    private Candle createCandle(long epochMillis, double price) {
         return Candle.newBuilder()
             .setTimestamp(fromMillis(epochMillis))
             .setOpen(price)
@@ -179,6 +180,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
             .setLow(price - 1)
             .setClose(price)
             .setVolume(1000)
+            .setCurrencyPair("BTC/USD")
             .build();
     }
 }

@@ -15,11 +15,13 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
@@ -29,6 +31,8 @@ import org.ta4j.core.Trade;
 
 @RunWith(JUnit4.class)
 public class BacktestRunnerImplTest {
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     private ImmutableList<Candle> candles;
     private Strategy strategy;
     private ZonedDateTime startTime;
@@ -38,6 +42,7 @@ public class BacktestRunnerImplTest {
     @Before
     public void setUp() {
         backtestRunner = new BacktestRunnerImpl();
+        Guice.createInjector().injectMembers(this);
 
         // Initialize test data
         candles = ImmutableList.of();
