@@ -18,12 +18,13 @@ java_library(
     name = "backtest_runner_impl",
     srcs = ["BacktestRunnerImpl.java"],
     deps = [
+        ":backtest_runner",
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream:bar_series_builder",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:ta4j_core",
-        ":backtest_runner",
     ],
 )
 
