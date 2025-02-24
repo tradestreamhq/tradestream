@@ -5,6 +5,7 @@ java_test(
     srcs = ["BacktestRunnerImplTest.java"],
     deps = [
         "//protos:backtesting_java_proto",
+        "//protos:marketdata_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner_impl",
