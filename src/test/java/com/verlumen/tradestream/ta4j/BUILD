@@ -2,7 +2,7 @@ java_test(
     name = "BarSeriesBuilderTest",
     srcs = ["BarSeriesBuilderTest.java"],
     deps = [
-        ":bar_series_builder",
+        "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_builder",
         "//third_party:junit",
         "//third_party:guava",
         "//third_party:protobuf_java",
