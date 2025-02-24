@@ -67,7 +67,7 @@ public class BacktestRunnerImplTest {
     }
 
     @Test
-    public void runBacktest_withValidDataAndStrategy_returnsResults() {
+    public void runBacktest_withValidDataAndStrategy_returnsResults() throws Exception {
         // Arrange
         // Add test data: steadily increasing prices
         addTestBars(100.0, 101.0, 102.0, 103.0, 104.0);
