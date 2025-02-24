@@ -3,7 +3,6 @@ package com.verlumen.tradestream.strategies;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -91,7 +90,7 @@ final class StrategyEngineImpl implements StrategyEngine {
     this.currentStrategyType = StrategyType.SMA_RSI;
     try {
       currentStrategy =
-          strategyManager.createStrategy(currentStrategyType, candleBuffer.toBarSeries());
+          strategyManager.createStrategy(candleBuffer.toBarSeries(), currentStrategyType);
     } catch (Exception e) {
       throw new RuntimeException("Failed to initialize default strategy", e);
     }
@@ -142,7 +141,7 @@ final class StrategyEngineImpl implements StrategyEngine {
     try {
       currentStrategy =
           strategyManager.createStrategy(
-            currentStrategyType, candleBuffer.toBarSeries(), bestRecord.parameters());
+                  candleBuffer.toBarSeries(), currentStrategyType, bestRecord.parameters());
     } catch (InvalidProtocolBufferException e) {
       throw new RuntimeException(e);
     }
