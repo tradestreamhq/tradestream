@@ -39,7 +39,6 @@ public class BacktestRunnerImplTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
         Guice.createInjector().injectMembers(this);
 
         // Initialize test data
