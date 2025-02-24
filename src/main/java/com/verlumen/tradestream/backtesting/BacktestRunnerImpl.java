@@ -3,6 +3,7 @@ package com.verlumen.tradestream.backtesting;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.inject.Inject;
+import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
 import org.ta4j.core.AnalysisCriterion;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseTradingRecord;
@@ -32,13 +33,14 @@ final class BacktestRunnerImpl implements BacktestRunner {
 
     @Override
     public BacktestResult runBacktest(BacktestRequest request) {
-        checkArgument(request.barSeries().getBarCount() > 0, "Bar series cannot be empty");
+        checkArgument(request.getCandlesList().size() > 0, "Bar series cannot be empty");
+        BarSeries series = BarSeriesBuilder.createBarSeries(request.getCandlesList());
         
         List<TimeframeResult> timeframeResults = new ArrayList<>();
         
         // Always evaluate the full series timeframe first
         TimeframeResult fullSeriesResult = evaluateTimeframe(
-            request.barSeries(),
+            series,
             request.strategy(),
             request.barSeries().getBarCount()
         );
