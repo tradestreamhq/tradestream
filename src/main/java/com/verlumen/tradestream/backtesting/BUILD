@@ -28,14 +28,6 @@ java_library(
 )
 
 java_library(
-    name = "backtest_service_client",
-    srcs = ["BacktestServiceClient.java"],
-    deps = [
-        "//protos:backtesting_java_proto",
-    ],
-)
-
-java_library(
     name = "backtesting_module",
     srcs = ["BacktestingModule.java"],
     deps = [
@@ -63,6 +55,8 @@ java_library(
     name = "genetic_algorithm_orchestrator_impl",
     srcs = ["GeneticAlgorithmOrchestratorImpl.java"],
     deps = [
+        ":backtest_runner",
+        ":genetic_algorithm_orchestrator",
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto", 
         "//protos:strategies_java_proto",
@@ -73,8 +67,6 @@ java_library(
         "//third_party:jenetics",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
-        ":backtest_service_client",
-        ":genetic_algorithm_orchestrator",
     ],
 )
 
