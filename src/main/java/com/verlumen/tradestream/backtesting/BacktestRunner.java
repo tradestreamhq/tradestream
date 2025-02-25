@@ -1,11 +1,7 @@
 package com.verlumen.tradestream.backtesting;
 
-import com.google.auto.value.AutoValue;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.strategies.StrategyType;
 import java.io.Serializable;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.Strategy;
 
 /**
  * Interface for running backtests on trading strategies.
