@@ -8,6 +8,9 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.strategies.Strategy;
 import com.verlumen.tradestream.strategies.StrategyType;
 import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.testing.PAssert;
@@ -21,12 +24,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.ta4j.core.BaseBarSeries;
-import org.ta4j.core.BaseStrategy;
-import org.ta4j.core.Strategy;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 import java.io.Serializable;
 
 @RunWith(JUnit4.class)
@@ -44,13 +45,8 @@ public class RunBacktestTest {
     @Rule
     public final TestPipeline pipeline = TestPipeline.create();
 
-    private BaseBarSeries dummySeries;
-    private SerializableStrategy dummyStrategy;
-
     @Before
     public void setUp() {
-        dummySeries = new BaseBarSeries("dummy");
-        dummyStrategy = new SerializableStrategy();
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
@@ -61,11 +57,7 @@ public class RunBacktestTest {
 
     @Test
     public void testSingleElementProcessing() {
-        BacktestRunner.BacktestRequest request = BacktestRunner.BacktestRequest.builder()
-            .setBarSeries(dummySeries)
-            .setStrategy(dummyStrategy)
-            .setStrategyType(StrategyType.SMA_RSI)
-            .build();
+        BacktestRequest request = createDummyRequest();
 
         PCollection<BacktestResult> output = pipeline
             .apply(Create.of(request))
@@ -79,7 +71,7 @@ public class RunBacktestTest {
 
     @Test
     public void testMultipleElementsProcessing() {
-        List<BacktestRunner.BacktestRequest> requests = Arrays.asList(
+        List<BacktestRequest> requests = Arrays.asList(
             createDummyRequest(),
             createDummyRequest(),
             createDummyRequest()
@@ -102,7 +94,7 @@ public class RunBacktestTest {
     @Test
     public void testEmptyInput() {
         PCollection<BacktestResult> output = pipeline
-            .apply(Create.empty(SerializableCoder.of(BacktestRunner.BacktestRequest.class)))
+            .apply(Create.empty(SerializableCoder.of(BacktestRequest.class)))
             .apply(runBacktest);
 
         PAssert.that(output).empty();
@@ -111,7 +103,7 @@ public class RunBacktestTest {
 
     @Test
     public void testProcessElementThrowsException() {
-        BacktestRunner.BacktestRequest request = createDummyRequest();
+        BacktestRequest request = createDummyRequest();
         backtestRunnerFactory = new SerializableExceptionThrowingBacktestRunnerFactory();
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
 
@@ -122,18 +114,26 @@ public class RunBacktestTest {
     @Test
     public void testNullElementProcessing() {
         PCollection<BacktestResult> output = pipeline
-            .apply(Create.of((BacktestRunner.BacktestRequest) null))
+            .apply(Create.of((BacktestRequest) null))
             .apply(runBacktest);
             
         pipeline.run();
         // Pipeline should fail with NullPointerException
     }
 
-    private BacktestRunner.BacktestRequest createDummyRequest() {
-        return BacktestRunner.BacktestRequest.builder()
-            .setBarSeries(dummySeries)
-            .setStrategy(dummyStrategy)
-            .setStrategyType(StrategyType.SMA_RSI)
+    private BacktestRequest createDummyRequest() {
+        return BacktestRequest.newBuilder()
+            .addCandles(Candle.newBuilder()
+                .setCurrencyPair("BTC/USD")
+                .setOpen(100.0)
+                .setHigh(110.0)
+                .setLow(90.0)
+                .setClose(105.0)
+                .setVolume(1000.0)
+                .build())
+            .setStrategy(Strategy.newBuilder()
+                .setType(StrategyType.SMA_RSI)
+                .build())
             .build();
     }
 
@@ -153,50 +153,16 @@ public class RunBacktestTest {
         }
     }
 
-    private static class SerializableStrategy implements Strategy, Serializable {
-        private int unstableBars = 0;
-
-        @Override
-        public boolean shouldEnter(int index) {
-            return false;
-        }
-
-        @Override
-        public boolean shouldExit(int index) {
-            return false;
-        }
-
-        @Override
-        public int getUnstableBars() {
-            return unstableBars;
-        }
-
-        @Override
-        public boolean isUnstableAt(int index) {
-            return index < unstableBars;
-        }    
-
-        @Override
-        public void setUnstableBars(int unstableBars) {
-            this.unstableBars = unstableBars;
-        }
-    
-        @Override
-        public Strategy opposite() {
-            return new SerializableStrategy();
-        }
-    }
-
     private static class FakeBacktestRunner implements BacktestRunner {
         @Override
-        public BacktestResult runBacktest(BacktestRunner.BacktestRequest request) {
+        public BacktestResult runBacktest(BacktestRequest request) throws InvalidProtocolBufferException {
             return BacktestResult.newBuilder().setOverallScore(0.5).build();
         }
     }
 
     private static class ExceptionThrowingBacktestRunner implements BacktestRunner {
         @Override
-        public BacktestResult runBacktest(BacktestRunner.BacktestRequest request) {
+        public BacktestResult runBacktest(BacktestRequest request) throws InvalidProtocolBufferException {
             throw new RuntimeException("Test Exception");
         }
     }
