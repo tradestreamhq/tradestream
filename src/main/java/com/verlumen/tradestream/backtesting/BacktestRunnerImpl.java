@@ -2,7 +2,11 @@ package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.verlumen.tradestream.strategies.StrategyManager;
+import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
 import org.ta4j.core.AnalysisCriterion;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseTradingRecord;
@@ -27,30 +31,38 @@ final class BacktestRunnerImpl implements BacktestRunner {
         10080   // 1 week
     };
 
+    private final StrategyManager strategyManager;
+
     @Inject
-    BacktestRunnerImpl() {}
+    BacktestRunnerImpl(StrategyManager strategyManager) {
+        this.strategyManager = strategyManager;
+    }
 
     @Override
-    public BacktestResult runBacktest(BacktestRequest request) {
-        checkArgument(request.barSeries().getBarCount() > 0, "Bar series cannot be empty");
+    public BacktestResult runBacktest(BacktestRequest request) throws InvalidProtocolBufferException {
+        checkArgument(request.getCandlesList().size() > 0, "Bar series cannot be empty");
+        BarSeries series = BarSeriesBuilder.createBarSeries(
+            ImmutableList.copyOf(request.getCandlesList())
+        );
+        Strategy strategy = strategyManager.createStrategy(
+            series,  request.getStrategy().getType(),request.getStrategy().getParameters()
+        );
         
         List<TimeframeResult> timeframeResults = new ArrayList<>();
         
         // Always evaluate the full series timeframe first
         TimeframeResult fullSeriesResult = evaluateTimeframe(
-            request.barSeries(),
-            request.strategy(),
-            request.barSeries().getBarCount()
+            series,
+            strategy,
+            series.getBarCount()
         );
         timeframeResults.add(fullSeriesResult);
         
         // Then evaluate additional standard timeframes if we have enough data
         for (int timeframe : DEFAULT_TIMEFRAMES) {
-            if (timeframe < request.barSeries().getBarCount()) {
+            if (timeframe < series.getBarCount()) {
                 TimeframeResult result = evaluateTimeframe(
-                    request.barSeries(),
-                    request.strategy(),
-                    timeframe
+                    series, strategy, timeframe
                 );
                 timeframeResults.add(result);
             }

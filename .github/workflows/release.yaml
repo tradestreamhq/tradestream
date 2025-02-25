@@ -31,8 +31,7 @@ jobs:
           namespace: "${{ steps.extract_branch.outputs.branch }}"
           major_pattern: "(MAJOR)"
           minor_pattern: "(MINOR)"
-          version_format: "${major}.${minor}.${patch}-prerelease${increment}"
-          enable_prerelease_mode: true
+          version_format: "${major}.${minor}.${patch}"
 
       - name: Set up Git
         run: |

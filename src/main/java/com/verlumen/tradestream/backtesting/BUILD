@@ -10,6 +10,7 @@ java_library(
         "//protos:strategies_java_proto",
         "//third_party:auto_value",
         "//third_party:guice",
+        "//third_party:protobuf_java",
         "//third_party:ta4j_core",
     ],
 )
@@ -18,12 +19,15 @@ java_library(
     name = "backtest_runner_impl",
     srcs = ["BacktestRunnerImpl.java"],
     deps = [
+        ":backtest_runner",
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
+        "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_builder",
         "//third_party:guava",
         "//third_party:guice",
+        "//third_party:protobuf_java",
         "//third_party:ta4j_core",
-        ":backtest_runner",
     ],
 )
 
@@ -67,6 +71,7 @@ java_library(
         "//protos:marketdata_java_proto", 
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
+        "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_builder",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:jenetics",
