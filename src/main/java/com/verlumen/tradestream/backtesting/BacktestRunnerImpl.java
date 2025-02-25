@@ -23,14 +23,6 @@ import java.util.List;
  * Implementation of BacktestRunner that evaluates trading strategies using Ta4j.
  */
 final class BacktestRunnerImpl implements BacktestRunner {
-    // Default timeframes to evaluate (in number of bars)
-    private static final int[] DEFAULT_TIMEFRAMES = {
-        60,     // 1 hour (assuming 1-minute bars)
-        240,    // 4 hours
-        1440,   // 1 day
-        10080   // 1 week
-    };
-
     private final StrategyManager strategyManager;
 
     @Inject
@@ -41,78 +33,44 @@ final class BacktestRunnerImpl implements BacktestRunner {
     @Override
     public BacktestResult runBacktest(BacktestRequest request) throws InvalidProtocolBufferException {
         checkArgument(request.getCandlesList().size() > 0, "Bar series cannot be empty");
+
         BarSeries series = BarSeriesBuilder.createBarSeries(
             ImmutableList.copyOf(request.getCandlesList())
         );
         Strategy strategy = strategyManager.createStrategy(
             series,  request.getStrategy().getType(),request.getStrategy().getParameters()
         );
-        
-        List<TimeframeResult> timeframeResults = new ArrayList<>();
-        
-        // Always evaluate the full series timeframe first
-        TimeframeResult fullSeriesResult = evaluateTimeframe(
-            series,
-            strategy,
-            series.getBarCount()
-        );
-        timeframeResults.add(fullSeriesResult);
-        
-        // Then evaluate additional standard timeframes if we have enough data
-        for (int timeframe : DEFAULT_TIMEFRAMES) {
-            if (timeframe < series.getBarCount()) {
-                TimeframeResult result = evaluateTimeframe(
-                    series, strategy, timeframe
-                );
-                timeframeResults.add(result);
-            }
-        }
-
-        // Calculate overall score as weighted average of timeframe results
-        double overallScore = calculateOverallScore(timeframeResults);
-
-        return BacktestResult.newBuilder()
-            .addAllTimeframeResults(timeframeResults)
-            .setOverallScore(overallScore)
-            .build();
-    }
-
-    private TimeframeResult evaluateTimeframe(BarSeries series, Strategy strategy, int timeframe) {
-        // Get the subseries for this timeframe
-        int startIndex = Math.max(0, series.getBarCount() - timeframe);
-        BarSeries timeframeSeries = series.getSubSeries(startIndex, series.getBarCount());
-        
+                
         // Run the strategy
-        TradingRecord tradingRecord = runStrategy(timeframeSeries, strategy);
+        TradingRecord tradingRecord = runStrategy(series, strategy);
 
         // Calculate basic metrics
-        double cumulativeReturn = calculateMetric(timeframeSeries, tradingRecord, 
+        double cumulativeReturn = calculateMetric(series, tradingRecord, 
             new ProfitLossCriterion());
         
-        double profitFactor = calculateMetric(timeframeSeries, tradingRecord,
+        double profitFactor = calculateMetric(series, tradingRecord,
             new ProfitLossRatioCriterion());
         
-        double annualizedReturn = calculateAnnualizedReturn(timeframeSeries, tradingRecord);
+        double annualizedReturn = calculateAnnualizedReturn(series, tradingRecord);
         
         // Calculate risk metrics
-        double volatility = calculateVolatility(timeframeSeries);
-        double maxDrawdown = calculateMaxDrawdown(timeframeSeries);
+        double volatility = calculateVolatility(series);
+        double maxDrawdown = calculateMaxDrawdown(series);
         
         // Trade statistics
         int numberOfTrades = tradingRecord.getPositions().size();
-        double winRate = calculateWinRate(timeframeSeries, tradingRecord);
+        double winRate = calculateWinRate(series, tradingRecord);
         double averageTradeDuration = calculateAverageTradeDuration(tradingRecord);
 
         // Risk-adjusted returns
         double sharpeRatio = calculateSharpeRatio(cumulativeReturn, volatility);
-        double sortinoRatio = calculateSortinoRatio(timeframeSeries, tradingRecord);
+        double sortinoRatio = calculateSortinoRatio(series, tradingRecord);
 
         // Alpha/Beta (simplified calculation)
         double alpha = 0.0; // TODO: Implement when benchmark data is available
         double beta = 1.0;  // TODO: Implement when benchmark data is available
 
-        return TimeframeResult.newBuilder()
-            .setTimeframe(String.valueOf(timeframe))
+        BacktestResult result = BacktestResult.newBuilder()
             .setCumulativeReturn(cumulativeReturn)
             .setAnnualizedReturn(annualizedReturn)
             .setSharpeRatio(sharpeRatio)
@@ -126,6 +84,8 @@ final class BacktestRunnerImpl implements BacktestRunner {
             .setAlpha(alpha)
             .setBeta(beta)
             .build();
+
+        double score = calculateScore(result);
     }
 
     private TradingRecord runStrategy(BarSeries series, Strategy strategy) {
@@ -285,25 +245,13 @@ final class BacktestRunnerImpl implements BacktestRunner {
         return downsideDeviation == 0 ? 0 : (totalReturn - riskFreeRate) / downsideDeviation;
     }
 
-    private double calculateOverallScore(List<TimeframeResult> results) {
-        if (results.isEmpty()) {
-            return 0.0;
-        }
-
-        double totalScore = 0.0;
-        for (TimeframeResult result : results) {
-            // Weight different metrics based on their importance
-            double timeframeScore = 
-                0.25 * normalize(result.getSharpeRatio()) +          // Risk-adjusted returns
-                0.20 * (1 - result.getMaxDrawdown()) +              // Capital preservation
-                0.20 * result.getWinRate() +                        // Consistency
-                0.20 * normalize(result.getAnnualizedReturn()) +    // Absolute returns
-                0.15 * normalize(result.getProfitFactor());         // Profit efficiency
-                
-            totalScore += timeframeScore;
-        }
-        
-        return totalScore / results.size();
+    private double calculateScore(double sharpeRatio, double maxDrawdown, double winRate, double annualizedReturn, double profitFactor) {
+        return 
+            0.25 * normalize(sharpeRatio) +          // Risk-adjusted returns
+            0.20 * (1 - maxDrawdown) +              // Capital preservation
+            0.20 * winRate +                        // Consistency
+            0.20 * normalize(annualizedReturn) +    // Absolute returns
+            0.15 * normalize(profitFactor);         // Profit efficiency
     }
 
     private double normalize(double value) {
