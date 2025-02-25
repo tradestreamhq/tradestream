@@ -51,7 +51,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
     private BacktestResult mockBacktestResult;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         // Create a mock backtest result
         mockBacktestResult = BacktestResult.newBuilder()
             .setOverallScore(0.75)
@@ -81,7 +81,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
     }
 
     @Test
-    public void runOptimization_withValidRequest_returnsOptimizedParameters() {
+    public void runOptimization_withValidRequest_returnsOptimizedParameters() throws Exception {
         // Act
         BestStrategyResponse response = orchestrator.runOptimization(request);
 
@@ -103,7 +103,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
     }
 
     @Test
-    public void runOptimization_withEmptyCandles_throwsException() {
+    public void runOptimization_withEmptyCandles_throwsException() throws Exception {
         // Arrange
         GAOptimizationRequest emptyCandleRequest = GAOptimizationRequest.newBuilder()
             .setStrategyType(StrategyType.SMA_RSI)
@@ -123,7 +123,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
     }
 
     @Test
-    public void runOptimization_withCustomGenerationsAndPopulation_usesCustomValues() {
+    public void runOptimization_withCustomGenerationsAndPopulation_usesCustomValues() throws Exception {
         // Arrange
         int customGenerations = 5;
         int customPopulation = 10;
