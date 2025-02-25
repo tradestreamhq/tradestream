@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.backtesting;
 
 import com.google.inject.Inject;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
@@ -11,7 +12,7 @@ import java.io.Serializable;
 /**
  * A PTransform that runs backtests by wrapping the BacktestRunner.
  */
-public class RunBacktest extends PTransform<PCollection<BacktestRunner.BacktestRequest>, PCollection<BacktestResult>> {
+public class RunBacktest extends PTransform<PCollection<BacktestRequest>, PCollection<BacktestResult>> {
 
     private final SerializableBacktestRunnerFactory backtestRunnerFactory;
 
@@ -21,7 +22,7 @@ public class RunBacktest extends PTransform<PCollection<BacktestRunner.BacktestR
     }
 
     @Override
-    public PCollection<BacktestResult> expand(PCollection<BacktestRunner.BacktestRequest> input) {
+    public PCollection<BacktestResult> expand(PCollection<BacktestRequest> input) {
         return input.apply("Run Backtest", ParDo.of(new RunBacktestDoFn(backtestRunnerFactory)));
     }
 
@@ -35,7 +36,7 @@ public class RunBacktest extends PTransform<PCollection<BacktestRunner.BacktestR
     /**
      * A DoFn that invokes the BacktestRunner for each backtest request.
      */
-    private static class RunBacktestDoFn extends DoFn<BacktestRunner.BacktestRequest, BacktestResult> {
+    private static class RunBacktestDoFn extends DoFn<BacktestRequest, BacktestResult> {
         private final SerializableBacktestRunnerFactory backtestRunnerFactory;
         private transient BacktestRunner backtestRunner;
 
@@ -49,8 +50,8 @@ public class RunBacktest extends PTransform<PCollection<BacktestRunner.BacktestR
         }
 
         @ProcessElement
-        public void processElement(ProcessContext context) {
-            BacktestRunner.BacktestRequest request = context.element();
+        public void processElement(ProcessContext context) throws InvalidProtocolBufferException {
+            BacktestRequest request = context.element();
             if (request == null) {
                 throw new NullPointerException("BacktestRequest cannot be null");
             }
