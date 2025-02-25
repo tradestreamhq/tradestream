@@ -12,6 +12,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.Strategy;
 import com.verlumen.tradestream.strategies.StrategyType;
+import org.apache.beam.sdk.Pipeline.PipelineExecutionException;
 import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
@@ -104,8 +105,7 @@ public class RunBacktestTest {
     @Test
     public void testNullElementProcessing() {
         // When using null in a Beam pipeline, we need to catch the exception differently
-        // Use ExpectedException rule or assertThrows on the pipeline.run() itself
-        assertThrows(Pipeline$PipelineExecutionException.class, () -> {
+        assertThrows(PipelineExecutionException.class, () -> {
             pipeline
                 .apply(Create.of((BacktestRequest) null))
                 .apply(runBacktest);
@@ -128,7 +128,7 @@ public class RunBacktestTest {
             .apply(runBacktest);
 
         // Assert the pipeline throws an exception when run
-        assertThrows(Pipeline$PipelineExecutionException.class, () -> {
+        assertThrows(PipelineExecutionException.class, () -> {
             pipeline.run().waitUntilFinish();
         });
     }
