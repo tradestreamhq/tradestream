@@ -48,7 +48,7 @@ public class BacktestRunnerImplTest {
     @Inject private BacktestRunnerImpl backtestRunner;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         // Initialize test data
         candlesList = new ArrayList<>();
         startTime = ZonedDateTime.now();
@@ -58,14 +58,14 @@ public class BacktestRunnerImplTest {
             (index, series) -> index == 1, // Entry rule
             (index, series) -> index == 3  // Exit rule
         );
-        
+
         // Setup the mock strategy manager to return our ta4j strategy
         when(mockStrategyManager.createStrategy(
             org.mockito.ArgumentMatchers.any(BarSeries.class),
             org.mockito.ArgumentMatchers.any(StrategyType.class),
             org.mockito.ArgumentMatchers.any(Any.class)))
             .thenReturn(ta4jStrategy);
-            
+
         // Inject our dependencies
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
