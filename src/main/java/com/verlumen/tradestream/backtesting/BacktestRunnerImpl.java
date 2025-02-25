@@ -70,7 +70,9 @@ final class BacktestRunnerImpl implements BacktestRunner {
         double alpha = 0.0; // TODO: Implement when benchmark data is available
         double beta = 1.0;  // TODO: Implement when benchmark data is available
 
-        BacktestResult result = BacktestResult.newBuilder()
+        double score = calculateScore(sharpeRatio, maxDrawdown, winRate, annualizedReturn, profitFactor);
+
+        return BacktestResult.newBuilder()
             .setCumulativeReturn(cumulativeReturn)
             .setAnnualizedReturn(annualizedReturn)
             .setSharpeRatio(sharpeRatio)
@@ -83,9 +85,8 @@ final class BacktestRunnerImpl implements BacktestRunner {
             .setAverageTradeDuration(averageTradeDuration)
             .setAlpha(alpha)
             .setBeta(beta)
+            .setScore(score)
             .build();
-
-        double score = calculateScore(result);
     }
 
     private TradingRecord runStrategy(BarSeries series, Strategy strategy) {
