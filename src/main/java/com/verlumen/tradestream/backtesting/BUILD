@@ -7,7 +7,6 @@ java_library(
     srcs = ["BacktestRunner.java"],
     deps = [
         "//protos:backtesting_java_proto",
-        "//protos:strategies_java_proto",
         "//third_party:protobuf_java",
     ],
 )
