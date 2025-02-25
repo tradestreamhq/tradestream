@@ -36,7 +36,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
     public MockitoRule mockito = MockitoJUnit.rule();
 
     @Bind @Mock
-    private BacktestServiceClient mockBacktestServiceClient;
+    private BacktestRunner mockBacktestRunner;
 
     @Bind @Mock
     private ParamConfigManager mockParamConfigManager;
@@ -51,14 +51,14 @@ public class GeneticAlgorithmOrchestratorImplTest {
     private BacktestResult mockBacktestResult;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         // Create a mock backtest result
         mockBacktestResult = BacktestResult.newBuilder()
             .setOverallScore(0.75)
             .build();
 
-        // Stub the BacktestServiceClient
-        when(mockBacktestServiceClient.runBacktest(any()))
+        // Stub the BacktestRunner
+        when(mockBacktestRunner.runBacktest(any()))
             .thenReturn(mockBacktestResult);
 
         // Return test ChromosomeSpecs
@@ -81,18 +81,18 @@ public class GeneticAlgorithmOrchestratorImplTest {
     }
 
     @Test
-    public void runOptimization_withValidRequest_returnsOptimizedParameters() {
+    public void runOptimization_withValidRequest_returnsOptimizedParameters() throws Exception {
         // Act
         BestStrategyResponse response = orchestrator.runOptimization(request);
 
         // Assert
         // Verify that backtest was called at least once
-        verify(mockBacktestServiceClient, atLeastOnce()).runBacktest(any());
+        verify(mockBacktestRunner, atLeastOnce()).runBacktest(any());
 
         // Capture and verify one of the backtest requests
         ArgumentCaptor<BacktestRequest> backtestCaptor = 
             ArgumentCaptor.forClass(BacktestRequest.class);
-        verify(mockBacktestServiceClient, atLeastOnce())
+        verify(mockBacktestRunner, atLeastOnce())
             .runBacktest(backtestCaptor.capture());
         
         BacktestRequest capturedRequest = backtestCaptor.getValue();
@@ -103,7 +103,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
     }
 
     @Test
-    public void runOptimization_withEmptyCandles_throwsException() {
+    public void runOptimization_withEmptyCandles_throwsException() throws Exception {
         // Arrange
         GAOptimizationRequest emptyCandleRequest = GAOptimizationRequest.newBuilder()
             .setStrategyType(StrategyType.SMA_RSI)
@@ -119,11 +119,11 @@ public class GeneticAlgorithmOrchestratorImplTest {
         assertThat(thrown).hasMessageThat().contains("Candles list cannot be empty");
         
         // Verify no backtests were run
-        verify(mockBacktestServiceClient, never()).runBacktest(any());
+        verify(mockBacktestRunner, never()).runBacktest(any());
     }
 
     @Test
-    public void runOptimization_withCustomGenerationsAndPopulation_usesCustomValues() {
+    public void runOptimization_withCustomGenerationsAndPopulation_usesCustomValues() throws Exception {
         // Arrange
         int customGenerations = 5;
         int customPopulation = 10;
@@ -138,7 +138,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
 
         // Assert
         // Verify backtests occurred but don't enforce exact count
-        verify(mockBacktestServiceClient, atLeastOnce()).runBacktest(any());
+        verify(mockBacktestRunner, atLeastOnce()).runBacktest(any());
         assertThat(response.hasBestStrategyParameters()).isTrue();
         
         // Could add additional assertions about number of generations/population
