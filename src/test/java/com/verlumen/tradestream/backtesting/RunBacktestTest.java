@@ -102,23 +102,35 @@ public class RunBacktestTest {
     }
 
     @Test
-    public void testProcessElementThrowsException() {
-        BacktestRequest request = createDummyRequest();
-        backtestRunnerFactory = new SerializableExceptionThrowingBacktestRunnerFactory();
-        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+    public void testNullElementProcessing() {
+        // When using null in a Beam pipeline, we need to catch the exception differently
+        // Use ExpectedException rule or assertThrows on the pipeline.run() itself
+        assertThrows(Pipeline$PipelineExecutionException.class, () -> {
+            pipeline
+                .apply(Create.of((BacktestRequest) null))
+                .apply(runBacktest);
 
-        assertThrows(RuntimeException.class, 
-            () -> pipeline.apply(Create.of(request)).apply(runBacktest));
+            pipeline.run().waitUntilFinish();
+        });
     }
 
     @Test
-    public void testNullElementProcessing() {
-        PCollection<BacktestResult> output = pipeline
-            .apply(Create.of((BacktestRequest) null))
+    public void testProcessElementThrowsException() {
+        // Redefine the field with new value
+        this.backtestRunnerFactory = new SerializableExceptionThrowingBacktestRunnerFactory();
+        // Re-inject
+        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+
+        // Setup the pipeline and execute
+        BacktestRequest request = createDummyRequest();
+        pipeline
+            .apply(Create.of(request))
             .apply(runBacktest);
-            
-        pipeline.run();
-        // Pipeline should fail with NullPointerException
+
+        // Assert the pipeline throws an exception when run
+        assertThrows(Pipeline$PipelineExecutionException.class, () -> {
+            pipeline.run().waitUntilFinish();
+        });
     }
 
     private BacktestRequest createDummyRequest() {
