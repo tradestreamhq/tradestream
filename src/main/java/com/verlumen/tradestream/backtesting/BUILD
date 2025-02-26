@@ -36,12 +36,26 @@ java_library(
 )
 
 java_library(
-    name = "ga_engine_factory_impl",
-    srcs = ["GAEngineFactoryImpl.java"],
+    name = "fitness_calculator",
+    srcs = ["FitnessCalculator.java"],
     deps = [
-        "//third_party:guice",
+        "//protos:backtesting_java_proto",
         "//third_party:jenetics",
     ],
+)
+
+java_library(
+    name = "ga_engine_factory",
+    srcs = ["GAEngineFactory.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//third_party:jenetics",
+    ],
+)
+
+java_library(
+    name = "ga_engine_factory_impl",
+    srcs = ["GAEngineFactoryImpl.java"],
 )
 
 java_library(
@@ -76,6 +90,16 @@ java_library(
         "//third_party:jenetics",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
+    ],
+)
+
+java_library(
+    name = "genotype_converter",
+    srcs = ["GenotypeConverter.java"],
+    deps = [
+        "//protos:strategies_java_proto",
+        "//third_party:jenetics",
+        "//third_party:protobuf_java",
     ],
 )
 
