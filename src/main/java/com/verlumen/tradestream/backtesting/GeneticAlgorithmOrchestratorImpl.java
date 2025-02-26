@@ -11,7 +11,6 @@ import io.jenetics.Phenotype;
 import io.jenetics.DoubleGene;
 import io.jenetics.engine.EvolutionResult;
 import io.jenetics.engine.Engine;
-import org.ta4j.core.BarSeries;
 
 /**
  * Implementation of the GeneticAlgorithmOrchestrator interface.
