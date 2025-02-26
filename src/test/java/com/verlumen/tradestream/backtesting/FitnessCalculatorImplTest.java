@@ -106,7 +106,7 @@ public class FitnessCalculatorImplTest {
     // Arrange: Configure the mock to throw an exception
     when(mockGenotypeConverter.convertToParameters(
             any(Genotype.class), any(StrategyType.class)))
-        .thenThrow(new InvalidProtocolBufferException("Simulated conversion error"));
+        .thenThrow(new RuntimeException("Simulated conversion error"));
 
     // Act: Create the fitness function and apply it
     var fitnessFunction = fitnessCalculator.createFitnessFunction(optimizationRequest);
