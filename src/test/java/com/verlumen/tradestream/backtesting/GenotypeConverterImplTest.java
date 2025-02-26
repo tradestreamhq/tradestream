@@ -19,6 +19,7 @@ import io.jenetics.DoubleChromosome;
 import io.jenetics.DoubleGene;
 import io.jenetics.Genotype;
 import io.jenetics.IntegerChromosome;
+import io.jenetics.IntegerGene;
 import io.jenetics.NumericChromosome;
 import io.jenetics.util.IntRange;
 import org.junit.Before;
@@ -59,11 +60,17 @@ public class GenotypeConverterImplTest {
         when(mockParamConfig.getChromosomeSpecs()).thenReturn(chromosomeSpecs);
 
         // Create a sample Genotype (ensure it matches the ChromosomeSpecs)
+        IntegerChromosome maPeriodChromosome = IntegerChromosome.of(IntRange.of(5, 50));
+        IntegerChromosome rsiPeriodChromosome = IntegerChromosome.of(IntRange.of(2, 30));
+        DoubleChromosome overboughtChromosome = DoubleChromosome.of(60.0, 85.0);
+        DoubleChromosome oversoldChromosome = DoubleChromosome.of(15.0, 40.0);
+        
+        // Create the genotype with default values
         Genotype<DoubleGene> genotype = Genotype.of(
-                IntegerChromosome.of(5, 50).newInstance(10),     // MA Period = 10
-                IntegerChromosome.of(2, 30).newInstance(15),     // RSI Period = 15
-                DoubleChromosome.of(60.0, 85.0).newInstance(70.0), // Overbought = 70.0
-                DoubleChromosome.of(15.0, 40.0).newInstance(30.0)  // Oversold = 30.0
+                maPeriodChromosome,
+                rsiPeriodChromosome,
+                overboughtChromosome,
+                oversoldChromosome
         );
 
         // Create a sample Any (what your createParameters would return)
@@ -114,7 +121,7 @@ public class GenotypeConverterImplTest {
         // Create a Genotype with mismatching chromosome type (Double instead of Integer)
         Genotype<DoubleGene> invalidGenotype = Genotype.of(
                 // Invalid: using a DoubleChromosome where IntegerChromosome is expected.
-                DoubleChromosome.of(1.0, 10.0)  // This is invalid
+                DoubleChromosome.of(1.0, 10.0)
         );
 
         // Mock the exception when parameter creation is attempted with invalid chromosome types
