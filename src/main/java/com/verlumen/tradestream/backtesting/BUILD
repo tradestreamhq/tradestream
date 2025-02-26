@@ -36,6 +36,15 @@ java_library(
 )
 
 java_library(
+    name = "ga_engine_factory_impl",
+    srcs = ["GAEngineFactoryImpl.java"],
+    deps = [
+        "//third_party:guice",
+        "//third_party:jenetics",
+    ],
+)
+
+java_library(
     name = "ga_service_client",
     srcs = ["GAServiceClient.java"],
     deps = [
