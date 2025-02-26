@@ -84,6 +84,7 @@ java_library(
     name = "genotype_converter_impl",
     srcs = ["GenotypeConverterImpl.java"],
     deps = [
+        ":genotype_converter",
         "//protos:strategies_java_proto",
         "//third_party:guava",
         "//third_party:guice",
