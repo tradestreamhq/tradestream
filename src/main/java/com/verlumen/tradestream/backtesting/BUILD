@@ -61,6 +61,7 @@ java_library(
         ":ga_constants",
         ":ga_engine_factory",
         "//protos:backtesting_java_proto",
+        "//third_party:guice",
         "//third_party:jenetics",
     ],
 )
