@@ -14,11 +14,11 @@ import io.jenetics.NumericChromosome;
  * Converts genotypes from the genetic algorithm into strategy parameters.
  * Encapsulates the conversion logic to make it reusable and testable.
  */
-public class GenotypeConverterImpl implements GenotypeConverter {
+final class GenotypeConverterImpl implements GenotypeConverter {
   private final ParamConfigManager paramConfigManager;
 
   @Inject
-  public GenotypeConverterImpl(ParamConfigManager paramConfigManager) {
+  GenotypeConverterImpl(ParamConfigManager paramConfigManager) {
     this.paramConfigManager = paramConfigManager;
   }
 
