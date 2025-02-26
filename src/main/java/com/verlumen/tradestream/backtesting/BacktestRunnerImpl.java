@@ -85,7 +85,7 @@ final class BacktestRunnerImpl implements BacktestRunner {
             .setAverageTradeDuration(averageTradeDuration)
             .setAlpha(alpha)
             .setBeta(beta)
-            .setScore(score)
+            .setStrategyScore(score)
             .build();
     }
 
