@@ -52,6 +52,7 @@ java_library(
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
         "//third_party:jenetics",
+        "//third_party:protobuf_java",
     ],
 )
 
