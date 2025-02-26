@@ -11,16 +11,10 @@ import io.jenetics.Mutator;
 import io.jenetics.SinglePointCrossover;
 import io.jenetics.TournamentSelector;
 import io.jenetics.engine.Engine;
-import org.ta4j.core.BarSeries;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Factory for creating genetic algorithm engines.
- * Encapsulates the engine configuration logic to make it reusable and testable.
- */
-final class GAEngineFactoryImpl {
+final class GAEngineFactoryImpl implements GAEngineFactory {
     private final ParamConfigManager paramConfigManager;
     private final FitnessCalculator fitnessCalculator;
     
@@ -32,20 +26,8 @@ final class GAEngineFactoryImpl {
         this.fitnessCalculator = fitnessCalculator;
     }
     
-    /**
-     * Creates a genetic algorithm engine configured for the given request.
-     *
-     * @param request the GA optimization request
-     * @param series the bar series for backtesting
-     * @param backtestRunner the backtest runner for fitness evaluation
-     * @return a configured GA engine
-     */
     @Override
-    public Engine<DoubleGene, Double> createEngine(
-            GAOptimizationRequest request,
-            BarSeries series,
-            BacktestRunner backtestRunner) {
-        
+    public Engine<DoubleGene, Double> createEngine(GAOptimizationRequest request) {
         // Create the initial genotype from the parameter specifications
         Genotype<DoubleGene> gtf = createGenotype(request);
         
