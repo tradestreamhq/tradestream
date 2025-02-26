@@ -45,6 +45,16 @@ java_library(
 )
 
 java_library(
+    name = "fitness_calculator_impl",
+    srcs = ["FitnessCalculatorImpl.java"],
+    deps = [
+        ":fitness_calculator",
+        "//protos:backtesting_java_proto",
+        "//third_party:jenetics",
+    ],
+)
+
+java_library(
     name = "ga_engine_factory",
     srcs = ["GAEngineFactory.java"],
     deps = [
