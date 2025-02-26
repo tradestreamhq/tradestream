@@ -47,6 +47,19 @@ java_test(
 )
 
 java_test(
+    name = "GAEngineFactoryImplTest",
+    srcs = ["GAEngineFactoryImplTest.java"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine",
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory_impl",
+        "//third_party:guice",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+    ],
+)
+
+java_test(
     name = "GeneticAlgorithmOrchestratorImplTest",
     size = "small",
     srcs = ["GeneticAlgorithmOrchestratorImplTest.java"],
