@@ -31,6 +31,8 @@ java_library(
     name = "backtesting_module",
     srcs = ["BacktestingModule.java"],
     deps = [
+        ":genotype_converter",
+        ":genotype_converter_impl",
         "//third_party:guice",
     ],
 )
@@ -41,6 +43,21 @@ java_library(
     deps = [
         "//protos:backtesting_java_proto",
         "//third_party:jenetics",
+    ],
+)
+
+java_library(
+    name = "fitness_calculator_impl",
+    srcs = ["FitnessCalculatorImpl.java"],
+    deps = [
+        ":backtest_runner",
+        ":fitness_calculator",
+        ":genotype_converter",
+        "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
+        "//third_party:guice",
+        "//third_party:jenetics",
+        "//third_party:protobuf_java",
     ],
 )
 
@@ -95,6 +112,20 @@ java_library(
     srcs = ["GenotypeConverter.java"],
     deps = [
         "//protos:strategies_java_proto",
+        "//third_party:jenetics",
+        "//third_party:protobuf_java",
+    ],
+)
+
+java_library(
+    name = "genotype_converter_impl",
+    srcs = ["GenotypeConverterImpl.java"],
+    deps = [
+        ":genotype_converter",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
+        "//third_party:guava",
+        "//third_party:guice",
         "//third_party:jenetics",
         "//third_party:protobuf_java",
     ],
