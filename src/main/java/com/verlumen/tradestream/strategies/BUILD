@@ -46,6 +46,7 @@ java_library(
     name = "market_data_consumer_impl",
     srcs = ["MarketDataConsumerImpl.java"],
     deps = [
+        ":market_data_consumer",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
         "//third_party:flogger",
@@ -53,7 +54,6 @@ java_library(
         "//third_party:guice",
         "//third_party:guice_assistedinject",
         "//third_party:kafka_clients",
-        ":market_data_consumer",
     ],
 )
 
@@ -61,14 +61,6 @@ java_library(
     name = "strategies_module",
     srcs = ["StrategiesModule.java"],
     deps = [
-        "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
-        "//src/main/java/com/verlumen/tradestream/signals:signals_module",
-        "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
-        "//third_party:auto_value",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:kafka_clients",
         ":candle_buffer",
         ":candle_buffer_impl",
         ":kafka_consumer_provider",
@@ -80,6 +72,14 @@ java_library(
         ":strategy_factory",
         ":strategy_manager",
         ":strategy_manager_impl",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
+        "//src/main/java/com/verlumen/tradestream/signals:signals_module",
+        "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
+        "//third_party:auto_value",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:kafka_clients",
     ],
 )
 
@@ -96,19 +96,19 @@ java_library(
     name = "strategy_engine_impl",
     srcs = ["StrategyEngineImpl.java"],
     deps = [
+        ":candle_buffer",
+        ":strategy_engine",
+        ":strategy_manager",
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//protos:trade_signals_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_client",
+        "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
         "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
-        ":candle_buffer",
-        ":strategy_engine",
-        ":strategy_manager",
     ],
 )
 
@@ -137,11 +137,11 @@ java_library(
     name = "strategy_manager",
     srcs = ["StrategyManager.java"],
     deps = [
+        ":strategy_factory",
         "//protos:strategies_java_proto",
         "//third_party:guava",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
-        ":strategy_factory",
     ],
 )
 
@@ -149,13 +149,13 @@ java_library(
     name = "strategy_manager_impl",
     srcs = ["StrategyManagerImpl.java"],
     deps = [
+        ":strategy_factory",
+        ":strategy_manager",
         "//protos:strategies_java_proto",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:mug",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
-        ":strategy_factory",
-        ":strategy_manager",
     ],
 )

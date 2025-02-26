@@ -39,7 +39,7 @@ java_test(
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//protos:trade_signals_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_client",
+        "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
         "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
         "//src/main/java/com/verlumen/tradestream/strategies:candle_buffer",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine",
