@@ -29,6 +29,7 @@ public class GenotypeConverterImpl implements GenotypeConverter {
    * @param type the type of trading strategy being optimized
    * @return an Any instance containing the strategy parameters
    */
+  @Override
   public Any convertToParameters(Genotype<DoubleGene> genotype, StrategyType type) {
     ParamConfig config = paramConfigManager.getParamConfig(type);
 
