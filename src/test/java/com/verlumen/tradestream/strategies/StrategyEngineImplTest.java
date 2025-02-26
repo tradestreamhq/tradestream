@@ -87,7 +87,7 @@ public class StrategyEngineImplTest {
 
         // Assert
         // Instead of verify(..., times(1)), expect times(2)
-        verify(mockGeneticAlgorithmOrchestrator, times(2)).requestOptimization(any(GAOptimizationRequest.class));
+        verify(mockGeneticAlgorithmOrchestrator, times(2)).runOptimization(any(GAOptimizationRequest.class));
     }
 
     @Test
@@ -133,14 +133,14 @@ public class StrategyEngineImplTest {
             .setBestScore(0.95)
             .setBestStrategyParameters(Any.getDefaultInstance())
             .build();
-        when(mockGeneticAlgorithmOrchestrator.requestOptimization(any())).thenReturn(bestResponse);
+        when(mockGeneticAlgorithmOrchestrator.runOptimization(any())).thenReturn(bestResponse);
 
         // Act
         engine.optimizeStrategy();
 
         // Assert
         verify(mockStrategyManager).createStrategy(any(), any(), any());
-        verify(mockGeneticAlgorithmOrchestrator, times(2)).requestOptimization(any());
+        verify(mockGeneticAlgorithmOrchestrator, times(2)).runOptimization(any());
     }
 
     @Test
@@ -162,7 +162,7 @@ public class StrategyEngineImplTest {
             .setBestScore(0.95)
             .setBestStrategyParameters(Any.getDefaultInstance())
             .build();
-        when(mockGeneticAlgorithmOrchestrator.requestOptimization(any())).thenReturn(bestResponse);
+        when(mockGeneticAlgorithmOrchestrator.runOptimization(any())).thenReturn(bestResponse);
     }
 
     private Candle createTestCandle(double price) {

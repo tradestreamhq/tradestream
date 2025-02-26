@@ -106,7 +106,7 @@ final class StrategyEngineImpl implements StrategyEngine {
               .build();
 
       try {
-        BestStrategyResponse response = geneticAlgorithmOrchestrator.requestOptimization(request);
+        BestStrategyResponse response = geneticAlgorithmOrchestrator.runOptimization(request);
         Any any = response.getBestStrategyParameters();
         updateStrategyRecord(strategyType, any, response.getBestScore());
       } catch (Exception e) {
