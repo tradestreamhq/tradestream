@@ -57,6 +57,7 @@ java_library(
     name = "ga_engine_factory_impl",
     srcs = ["GAEngineFactoryImpl.java"],
     deps = [
+        ":ga_constants",
         "//protos:backtesting_java_proto",
         "//third_party:jenetics",
     ],
