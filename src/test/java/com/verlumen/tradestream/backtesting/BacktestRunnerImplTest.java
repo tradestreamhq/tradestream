@@ -101,17 +101,15 @@ public class BacktestRunnerImplTest {
         BacktestResult result = backtestRunner.runBacktest(request);
 
         // Assert
-        assertThat(result.getTimeframeResultsCount()).isGreaterThan(0);
-        assertThat(result.getOverallScore()).isGreaterThan(0.0);
+        assertThat(result.getStrategyScore()).isGreaterThan(0.0);
 
-        // Check first timeframe result
-        TimeframeResult firstTimeframe = result.getTimeframeResults(0);
-        assertThat(firstTimeframe.getCumulativeReturn()).isGreaterThan(0.0);
-        assertThat(firstTimeframe.getNumberOfTrades()).isGreaterThan(0);
-        assertThat(firstTimeframe.getMaxDrawdown()).isAtLeast(0.0);
-        assertThat(firstTimeframe.getMaxDrawdown()).isAtMost(1.0);
-        assertThat(firstTimeframe.getWinRate()).isAtLeast(0.0);
-        assertThat(firstTimeframe.getWinRate()).isAtMost(1.0);
+        // Check first backtest result
+        assertThat(result.getCumulativeReturn()).isGreaterThan(0.0);
+        assertThat(result.getNumberOfTrades()).isGreaterThan(0);
+        assertThat(result.getMaxDrawdown()).isAtLeast(0.0);
+        assertThat(result.getMaxDrawdown()).isAtMost(1.0);
+        assertThat(result.getWinRate()).isAtLeast(0.0);
+        assertThat(result.getWinRate()).isAtMost(1.0);
     }
 
     @Test
@@ -129,10 +127,9 @@ public class BacktestRunnerImplTest {
         BacktestResult result = backtestRunner.runBacktest(request);
 
         // Assert
-        TimeframeResult firstTimeframe = result.getTimeframeResults(0);
-        assertThat(firstTimeframe.getCumulativeReturn()).isLessThan(0.0);
-        assertThat(firstTimeframe.getMaxDrawdown()).isGreaterThan(0.0);
-        assertThat(firstTimeframe.getProfitFactor()).isAtMost(1.0);
+        assertThat(result.getCumulativeReturn()).isLessThan(0.0);
+        assertThat(result.getMaxDrawdown()).isGreaterThan(0.0);
+        assertThat(result.getProfitFactor()).isAtMost(1.0);
     }
 
     @Test
@@ -150,10 +147,9 @@ public class BacktestRunnerImplTest {
         BacktestResult result = backtestRunner.runBacktest(request);
 
         // Assert
-        TimeframeResult firstTimeframe = result.getTimeframeResults(0);
-        assertThat(firstTimeframe.getVolatility()).isGreaterThan(0.0);
+        assertThat(result.getVolatility()).isGreaterThan(0.0);
         // We use isWithin() instead of isEqualTo() as calculations might have small differences
-        assertThat(firstTimeframe.getSharpeRatio()).isWithin(0.1).of(-41.43383146756991);
+        assertThat(result.getSharpeRatio()).isWithin(0.1).of(-41.43383146756991);
     }
 
     @Test
@@ -184,10 +180,9 @@ public class BacktestRunnerImplTest {
         BacktestResult result = backtestRunner.runBacktest(request);
 
         // Assert
-        TimeframeResult firstTimeframe = result.getTimeframeResults(0);
-        assertThat(firstTimeframe.getNumberOfTrades()).isEqualTo(0);
-        assertThat(firstTimeframe.getWinRate()).isEqualTo(0.0);
-        assertThat(firstTimeframe.getAverageTradeDuration()).isEqualTo(0.0);
+        assertThat(result.getNumberOfTrades()).isEqualTo(0);
+        assertThat(result.getWinRate()).isEqualTo(0.0);
+        assertThat(result.getAverageTradeDuration()).isEqualTo(0.0);
     }
 
     private void addTestBars(double... prices) {

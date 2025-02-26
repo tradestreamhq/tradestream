@@ -20,8 +20,8 @@ message BacktestRequest {
   strategies.Strategy strategy = 2;
 }
 
-// Multi-timeframe results from the backtest
-message TimeframeResult {
+// The final result from a single backtest
+message BacktestResult {
   string timeframe = 1;
   double cumulative_return = 2;
   double annualized_return = 3;
@@ -35,18 +35,7 @@ message TimeframeResult {
   double average_trade_duration = 11;
   double alpha = 12;
   double beta = 13;
-}
-
-// The final result from a single backtest
-message BacktestResult {
-  repeated TimeframeResult timeframe_results = 1;
-  double overall_score = 2;
-}
-
-// The single service for all backtesting
-service BacktestService {
-  // Always requires strategy parameters, no “plain” concept
-  rpc RunBacktest (BacktestRequest) returns (BacktestResult);
+  double strategy_score = 14;
 }
 
 // =========================
@@ -67,8 +56,4 @@ message GAOptimizationRequest {
 message BestStrategyResponse {
   google.protobuf.Any best_strategy_parameters = 1;
   double best_score = 2;
-}
-
-service GAService {
-  rpc RequestOptimization (GAOptimizationRequest) returns (BestStrategyResponse);
 }

@@ -65,7 +65,7 @@ public class RunBacktestTest {
             .apply(runBacktest);
 
         PAssert.that(output)
-            .containsInAnyOrder(BacktestResult.newBuilder().setOverallScore(0.5).build());
+            .containsInAnyOrder(BacktestResult.newBuilder().setStrategyScore(0.5).build());
 
         pipeline.run().waitUntilFinish();
     }
@@ -84,9 +84,9 @@ public class RunBacktestTest {
 
         PAssert.that(output)
             .containsInAnyOrder(
-                BacktestResult.newBuilder().setOverallScore(0.5).build(),
-                BacktestResult.newBuilder().setOverallScore(0.5).build(),
-                BacktestResult.newBuilder().setOverallScore(0.5).build()
+                BacktestResult.newBuilder().setStrategyScore(0.5).build(),
+                BacktestResult.newBuilder().setStrategyScore(0.5).build(),
+                BacktestResult.newBuilder().setStrategyScore(0.5).build()
             );
 
         pipeline.run().waitUntilFinish();
@@ -168,7 +168,7 @@ public class RunBacktestTest {
     private static class FakeBacktestRunner implements BacktestRunner {
         @Override
         public BacktestResult runBacktest(BacktestRequest request) throws InvalidProtocolBufferException {
-            return BacktestResult.newBuilder().setOverallScore(0.5).build();
+            return BacktestResult.newBuilder().setStrategyScore(0.5).build();
         }
     }
 

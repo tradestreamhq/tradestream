@@ -54,7 +54,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
     public void setUp() throws Exception {
         // Create a mock backtest result
         mockBacktestResult = BacktestResult.newBuilder()
-            .setOverallScore(0.75)
+            .setStrategyScore(0.75)
             .build();
 
         // Stub the BacktestRunner
@@ -98,7 +98,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
         BacktestRequest capturedRequest = backtestCaptor.getValue();
         assertThat(capturedRequest.getStrategy().getType()).isEqualTo(request.getStrategyType());
         assertThat(capturedRequest.getCandlesList()).isEqualTo(request.getCandlesList());
-        assertThat(response.getBestScore()).isEqualTo(mockBacktestResult.getOverallScore());
+        assertThat(response.getBestScore()).isEqualTo(mockBacktestResult.getStrategyScore());
         assertThat(response.hasBestStrategyParameters()).isTrue();
     }
 
