@@ -10,7 +10,7 @@ import java.util.function.Function;
 /**
  * Implementation of the FitnessCalculator interface which calculates fitness scores for genetic algorithm individuals using backtesting.
  */
-public class FitnessCalculatorImpl implements FitnessCalculator {
+final class FitnessCalculatorImpl implements FitnessCalculator {
     private final BacktestRunner backtestRunner;
     private final GenotypeConverter genotypeConverter;
     
