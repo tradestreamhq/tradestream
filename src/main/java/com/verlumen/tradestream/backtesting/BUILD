@@ -48,9 +48,12 @@ java_library(
     name = "fitness_calculator_impl",
     srcs = ["FitnessCalculatorImpl.java"],
     deps = [
+        ":backtest_runner",
         ":fitness_calculator",
+        ":genotype_converter",
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
+        "//third_party:guice",
         "//third_party:jenetics",
         "//third_party:protobuf_java",
     ],
