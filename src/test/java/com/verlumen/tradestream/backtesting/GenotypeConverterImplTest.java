@@ -20,6 +20,7 @@ import io.jenetics.DoubleGene;
 import io.jenetics.Genotype;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
+import io.jenetics.util.IntRange;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -59,10 +60,10 @@ public class GenotypeConverterImplTest {
 
         // Create a sample Genotype (ensure it matches the ChromosomeSpecs)
         Genotype<DoubleGene> genotype = Genotype.of(
-                IntegerChromosome.of(10, 5, 50),     // MA Period = 10
-                IntegerChromosome.of(15, 2, 30),     // RSI Period = 15
-                DoubleChromosome.of(70.0, 60.0, 85.0), // Overbought = 70.0
-                DoubleChromosome.of(30.0, 15.0, 40.0)  // Oversold = 30.0
+                IntegerChromosome.of(5, 50).newInstance(10),     // MA Period = 10
+                IntegerChromosome.of(2, 30).newInstance(15),     // RSI Period = 15
+                DoubleChromosome.of(60.0, 85.0).newInstance(70.0), // Overbought = 70.0
+                DoubleChromosome.of(15.0, 40.0).newInstance(30.0)  // Oversold = 30.0
         );
 
         // Create a sample Any (what your createParameters would return)
@@ -110,11 +111,16 @@ public class GenotypeConverterImplTest {
         when(mockParamConfigManager.getParamConfig(strategyType)).thenReturn(mockParamConfig);
         when(mockParamConfig.getChromosomeSpecs()).thenReturn(chromosomeSpecs);
 
-        // Create a Genotype with mismatching chromosome type (String instead of Integer/Double)
+        // Create a Genotype with mismatching chromosome type (Double instead of Integer)
         Genotype<DoubleGene> invalidGenotype = Genotype.of(
                 // Invalid: using a DoubleChromosome where IntegerChromosome is expected.
                 DoubleChromosome.of(1.0, 10.0)  // This is invalid
         );
+
+        // Mock the exception when parameter creation is attempted with invalid chromosome types
+        when(mockParamConfig.createParameters(
+            ImmutableList.of((NumericChromosome<?, ?>) invalidGenotype.get(0))))
+            .thenThrow(new IllegalArgumentException("Invalid chromosome type"));
 
         // Act and Assert
         assertThrows(
