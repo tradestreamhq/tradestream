@@ -41,7 +41,7 @@ java_library(
     deps = [
         "//protos:backtesting_java_proto",
         "//third_party:jenetics",
-        "//third_party:ta4j",
+        "//third_party:ta4j_core",
     ],
 )
 
