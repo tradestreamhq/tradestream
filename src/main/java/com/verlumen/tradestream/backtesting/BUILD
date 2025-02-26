@@ -31,6 +31,7 @@ java_library(
     name = "backtesting_module",
     srcs = ["BacktestingModule.java"],
     deps = [
+        "//third_party:auto_value",
         "//third_party:guice",
     ],
 )
