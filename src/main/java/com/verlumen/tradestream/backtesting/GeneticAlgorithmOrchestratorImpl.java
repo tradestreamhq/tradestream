@@ -5,8 +5,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
-import com.verlumen.tradestream.strategies.Strategy;
-import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Phenotype;
 import io.jenetics.DoubleGene;
 import io.jenetics.engine.EvolutionResult;
