@@ -31,6 +31,8 @@ java_library(
     name = "backtesting_module",
     srcs = ["BacktestingModule.java"],
     deps = [
+        ":genotype_converter",
+        ":genotype_converter_impl",
         "//third_party:guice",
     ],
 )
