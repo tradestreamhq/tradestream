@@ -2,7 +2,6 @@ package com.verlumen.tradestream.backtesting;
 
 import io.jenetics.DoubleGene;
 import io.jenetics.engine.Engine;
-import org.ta4j.core.BarSeries;
 
 /**
  * Defines the contract for creating genetic algorithm engines.
@@ -16,8 +15,5 @@ interface GAEngineFactory {
      * @param backtestRunner the backtest runner for fitness evaluation
      * @return a configured GA engine
      */
-    Engine<DoubleGene, Double> createEngine(
-            GAOptimizationRequest request,
-            BarSeries series,
-            BacktestRunner backtestRunner);
+    Engine<DoubleGene, Double> createEngine(GAOptimizationRequest request);
 }
