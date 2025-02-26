@@ -36,8 +36,8 @@ java_library(
 )
 
 java_library(
-    name = "fitness_function",
-    srcs = ["FitnessFunction.java"],
+    name = "fitness_calculator",
+    srcs = ["FitnessCalculator.java"],
     deps = [
         "//protos:backtesting_java_proto",
         "//third_party:jenetics",
