@@ -16,7 +16,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.backtesting.BestStrategyResponse;
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
-import com.verlumen.tradestream.backtesting.GAServiceClient;
+import com.verlumen.tradestream.backtesting.GeneticAlgorithmOrchestrator;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.signals.TradeSignal;
 import com.verlumen.tradestream.signals.TradeSignalPublisher;
@@ -41,7 +41,7 @@ import org.ta4j.core.Strategy;
 public class StrategyEngineImplTest {
     @Rule public MockitoRule mockito = MockitoJUnit.rule();
 
-    @Mock @Bind private GAServiceClient mockGaServiceClient;
+    @Mock @Bind private GeneticAlgorithmOrchestrator mockGeneticAlgorithmOrchestrator;
     @Mock @Bind private StrategyManager mockStrategyManager;
     @Mock @Bind private TradeSignalPublisher mockSignalPublisher;
     @Mock @Bind private Strategy mockStrategy;
@@ -87,7 +87,7 @@ public class StrategyEngineImplTest {
 
         // Assert
         // Instead of verify(..., times(1)), expect times(2)
-        verify(mockGaServiceClient, times(2)).requestOptimization(any(GAOptimizationRequest.class));
+        verify(mockGeneticAlgorithmOrchestrator, times(2)).requestOptimization(any(GAOptimizationRequest.class));
     }
 
     @Test
@@ -133,14 +133,14 @@ public class StrategyEngineImplTest {
             .setBestScore(0.95)
             .setBestStrategyParameters(Any.getDefaultInstance())
             .build();
-        when(mockGaServiceClient.requestOptimization(any())).thenReturn(bestResponse);
+        when(mockGeneticAlgorithmOrchestrator.requestOptimization(any())).thenReturn(bestResponse);
 
         // Act
         engine.optimizeStrategy();
 
         // Assert
         verify(mockStrategyManager).createStrategy(any(), any(), any());
-        verify(mockGaServiceClient, times(2)).requestOptimization(any());
+        verify(mockGeneticAlgorithmOrchestrator, times(2)).requestOptimization(any());
     }
 
     @Test
@@ -162,7 +162,7 @@ public class StrategyEngineImplTest {
             .setBestScore(0.95)
             .setBestStrategyParameters(Any.getDefaultInstance())
             .build();
-        when(mockGaServiceClient.requestOptimization(any())).thenReturn(bestResponse);
+        when(mockGeneticAlgorithmOrchestrator.requestOptimization(any())).thenReturn(bestResponse);
     }
 
     private Candle createTestCandle(double price) {
