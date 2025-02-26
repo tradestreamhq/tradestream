@@ -35,7 +35,7 @@ message BacktestResult {
   double average_trade_duration = 11;
   double alpha = 12;
   double beta = 13;
-  double overall_score = 14;
+  double strategy_score = 14;
 }
 
 // =========================
