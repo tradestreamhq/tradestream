@@ -36,6 +36,16 @@ java_library(
 )
 
 java_library(
+    name = "ga_engine_factory",
+    srcs = ["GAEngineFactory.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//third_party:jenetics",
+        "//third_party:ta4j",
+    ],
+)
+
+java_library(
     name = "ga_service_client",
     srcs = ["GAServiceClient.java"],
     deps = [
