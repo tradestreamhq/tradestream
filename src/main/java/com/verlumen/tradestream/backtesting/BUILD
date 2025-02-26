@@ -78,6 +78,7 @@ java_library(
     name = "genetic_algorithm_orchestrator_impl",
     srcs = ["GeneticAlgorithmOrchestratorImpl.java"],
     deps = [
+        ":ga_constants",
         ":ga_engine_factory",
         ":genetic_algorithm_orchestrator",
         ":genotype_converter",
