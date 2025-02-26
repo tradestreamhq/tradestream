@@ -104,13 +104,12 @@ public class BacktestRunnerImplTest {
         assertThat(result.getStrategyScore()).isGreaterThan(0.0);
 
         // Check first backtest result
-        BacktestResult firstBacktest = result.getBacktestResults(0);
-        assertThat(firstBacktest.getCumulativeReturn()).isGreaterThan(0.0);
-        assertThat(firstBacktest.getNumberOfTrades()).isGreaterThan(0);
-        assertThat(firstBacktest.getMaxDrawdown()).isAtLeast(0.0);
-        assertThat(firstBacktest.getMaxDrawdown()).isAtMost(1.0);
-        assertThat(firstBacktest.getWinRate()).isAtLeast(0.0);
-        assertThat(firstBacktest.getWinRate()).isAtMost(1.0);
+        assertThat(result.getCumulativeReturn()).isGreaterThan(0.0);
+        assertThat(result.getNumberOfTrades()).isGreaterThan(0);
+        assertThat(result.getMaxDrawdown()).isAtLeast(0.0);
+        assertThat(result.getMaxDrawdown()).isAtMost(1.0);
+        assertThat(result.getWinRate()).isAtLeast(0.0);
+        assertThat(result.getWinRate()).isAtMost(1.0);
     }
 
     @Test
@@ -128,10 +127,9 @@ public class BacktestRunnerImplTest {
         BacktestResult result = backtestRunner.runBacktest(request);
 
         // Assert
-        BacktestResult firstBacktest = result.getBacktestResults(0);
-        assertThat(firstBacktest.getCumulativeReturn()).isLessThan(0.0);
-        assertThat(firstBacktest.getMaxDrawdown()).isGreaterThan(0.0);
-        assertThat(firstBacktest.getProfitFactor()).isAtMost(1.0);
+        assertThat(result.getCumulativeReturn()).isLessThan(0.0);
+        assertThat(result.getMaxDrawdown()).isGreaterThan(0.0);
+        assertThat(result.getProfitFactor()).isAtMost(1.0);
     }
 
     @Test
@@ -149,10 +147,9 @@ public class BacktestRunnerImplTest {
         BacktestResult result = backtestRunner.runBacktest(request);
 
         // Assert
-        BacktestResult firstBacktest = result.getBacktestResults(0);
-        assertThat(firstBacktest.getVolatility()).isGreaterThan(0.0);
+        assertThat(result.getVolatility()).isGreaterThan(0.0);
         // We use isWithin() instead of isEqualTo() as calculations might have small differences
-        assertThat(firstBacktest.getSharpeRatio()).isWithin(0.1).of(-41.43383146756991);
+        assertThat(result.getSharpeRatio()).isWithin(0.1).of(-41.43383146756991);
     }
 
     @Test
@@ -183,10 +180,9 @@ public class BacktestRunnerImplTest {
         BacktestResult result = backtestRunner.runBacktest(request);
 
         // Assert
-        BacktestResult firstBacktest = result.getBacktestResults(0);
-        assertThat(firstBacktest.getNumberOfTrades()).isEqualTo(0);
-        assertThat(firstBacktest.getWinRate()).isEqualTo(0.0);
-        assertThat(firstBacktest.getAverageTradeDuration()).isEqualTo(0.0);
+        assertThat(result.getNumberOfTrades()).isEqualTo(0);
+        assertThat(result.getWinRate()).isEqualTo(0.0);
+        assertThat(result.getAverageTradeDuration()).isEqualTo(0.0);
     }
 
     private void addTestBars(double... prices) {
