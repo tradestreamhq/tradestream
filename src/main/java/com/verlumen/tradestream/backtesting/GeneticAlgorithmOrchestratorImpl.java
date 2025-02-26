@@ -111,7 +111,7 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
                     .build();
 
                 BacktestResult result = backtestRunner.runBacktest(backtestRequest);
-                return result.getOverallScore();
+                return result.getStrategyScore();
             } catch (Exception e) {
                 // Penalize any invalid genotype by assigning the lowest possible fitness
                 return Double.NEGATIVE_INFINITY;
