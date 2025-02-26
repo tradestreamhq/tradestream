@@ -71,6 +71,16 @@ java_library(
 )
 
 java_library(
+    name = "genotype_converter",
+    srcs = ["GenotypeConverter.java"],
+    deps = [
+        "//protos:strategies_java_proto",
+        "//third_party:jenetics",
+        "//third_party:protobuf_java",
+    ],
+)
+
+java_library(
     name = "run_backtest",
     srcs = ["RunBacktest.java"],
     deps = [
