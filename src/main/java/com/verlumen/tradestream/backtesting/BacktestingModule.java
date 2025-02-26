@@ -8,4 +8,9 @@ public final class BacktestingModule extends AbstractModule {
   public static BacktestingModule create() {
     return new BacktestingModule();
   }
+
+  @Override
+  protected void configure() {
+    bind(GenotypeConverter.class).to(GenotypeConverterImpl.class);
+  }
 }

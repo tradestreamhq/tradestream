@@ -47,6 +47,26 @@ java_test(
 )
 
 java_test(
+    name = "GenotypeConverterImplTest",
+    size = "small",
+    srcs = ["GenotypeConverterImplTest.java"],
+    deps = [
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter",
+        "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter_impl",
+        "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:protobuf_java",
+        "//third_party:jenetics",
+        "//third_party:truth",
+    ],
+)
+
+java_test(
     name = "RunBacktestTest",
     size = "small",
     srcs = ["RunBacktestTest.java"],
