@@ -60,6 +60,11 @@ java_library(
 )
 
 java_library(
+    name = "ga_constants",
+    srcs = ["GAConstants.java"],
+)
+
+java_library(
     name = "ga_engine_factory",
     srcs = ["GAEngineFactory.java"],
     deps = [
