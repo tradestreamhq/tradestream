@@ -50,6 +50,7 @@ java_library(
     deps = [
         ":fitness_calculator",
         "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
         "//third_party:jenetics",
     ],
 )
