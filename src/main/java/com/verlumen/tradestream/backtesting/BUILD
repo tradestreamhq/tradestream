@@ -57,6 +57,7 @@ java_library(
     name = "ga_engine_factory_impl",
     srcs = ["GAEngineFactoryImpl.java"],
     deps = [
+        ":fitness_calculator",
         ":ga_constants",
         ":ga_engine_factory",
         "//protos:backtesting_java_proto",
