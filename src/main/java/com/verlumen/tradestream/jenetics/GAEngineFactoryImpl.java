@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.jenetics;
+package com.verlumen.tradestream.backtesting;
 
 import com.google.inject.Inject;
 import com.verlumen.tradestream.backtesting.params.ChromosomeSpec;
