@@ -23,6 +23,30 @@ java_test(
 )
 
 java_test(
+    name = "FitnessCalculatorImplTest",
+    size = "small",
+    srcs = ["FitnessCalculatorImplTest.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
+        "//src/main/java/com/verlumen/tradestream/backtesting:fitness_calculator",
+        "//src/main/java/com/verlumen/tradestream/backtesting:fitness_calculator_impl",
+        "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:jenetics",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:protobuf_java",
+        "//third_party:truth",
+
+    ],
+)
+
+java_test(
     name = "GeneticAlgorithmOrchestratorImplTest",
     size = "small",
     srcs = ["GeneticAlgorithmOrchestratorImplTest.java"],
