@@ -60,6 +60,12 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
                 return DoubleChromosome.of(min, max);
             })
             .collect(Collectors.toList());
+        
+        // Handle the case where no chromosomes are specified
+        if (chromosomes.isEmpty()) {
+            // Create a default chromosome for testing/fallback
+            chromosomes.add(DoubleChromosome.of(0.0, 1.0));
+        }
             
         return Genotype.of(chromosomes);
     }
