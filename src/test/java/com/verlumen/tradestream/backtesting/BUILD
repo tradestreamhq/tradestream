@@ -54,6 +54,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory_impl",
         "//third_party:guice",
+        "//third_party:guice_testlib",
         "//third_party:junit",
         "//third_party:mockito_core",
         "//third_party:truth",
