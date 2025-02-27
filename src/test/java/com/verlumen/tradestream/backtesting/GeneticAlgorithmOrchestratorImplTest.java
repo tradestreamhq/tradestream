@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableList;
@@ -11,8 +12,10 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyType;
+import com.verlumen.tradestream.strategies.SmaRsiParameters;
 import io.jenetics.DoubleGene;
 import io.jenetics.Genotype;
+import io.jenetics.Phenotype;
 import io.jenetics.engine.Engine;
 import io.jenetics.engine.EvolutionResult;
 import org.junit.Before;
@@ -23,6 +26,8 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import java.util.stream.Stream;
 
 @RunWith(JUnit4.class)
 public class GeneticAlgorithmOrchestratorImplTest {
@@ -38,6 +43,8 @@ public class GeneticAlgorithmOrchestratorImplTest {
   @Mock private EvolutionResult<DoubleGene, Double> mockEvolutionResult;
   
   @Mock private Genotype<DoubleGene> mockGenotype;
+  
+  @Mock private Phenotype<DoubleGene, Double> mockPhenotype;
 
   @Inject private GeneticAlgorithmOrchestratorImpl orchestrator;
 
@@ -48,9 +55,9 @@ public class GeneticAlgorithmOrchestratorImplTest {
     // Mock the engine to return a stream that can be collected into the mockEvolutionResult
     when(mockEngineFactory.createEngine(any())).thenReturn(mockEngine);
     when(mockEngine.stream()).thenReturn(Stream.of(mockEvolutionResult).limit(1));
-    when(mockEvolutionResult.bestPhenotype()).thenReturn(mock(Phenotype.class)); // Ensure bestPhenotype doesn't return null
-    when(mockEvolutionResult.bestPhenotype().genotype()).thenReturn(mockGenotype);
-    when(mockEvolutionResult.bestPhenotype().fitness()).thenReturn(100.0);
+    when(mockEvolutionResult.bestPhenotype()).thenReturn(mockPhenotype); // Use our explicitly defined mock
+    when(mockPhenotype.genotype()).thenReturn(mockGenotype);
+    when(mockPhenotype.fitness()).thenReturn(100.0);
   }
 
   @Test
@@ -60,6 +67,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
         GAOptimizationRequest.newBuilder()
             .setStrategyType(StrategyType.SMA_RSI)
             .setMaxGenerations(10)
+            .addCandles(Candle.getDefaultInstance()) // Add at least one candle to avoid empty list error
             .build();
 
     Any expectedParameters = Any.pack(SmaRsiParameters.getDefaultInstance());
@@ -77,14 +85,18 @@ public class GeneticAlgorithmOrchestratorImplTest {
     verify(mockGenotypeConverter).convertToParameters(mockGenotype, StrategyType.SMA_RSI);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void runOptimization_emptyCandlesList_throwsException() {
     // Arrange
     GAOptimizationRequest request =
         GAOptimizationRequest.newBuilder().setStrategyType(StrategyType.SMA_RSI).build();
 
     // Act & Assert
-    orchestrator.runOptimization(request);
+    IllegalArgumentException thrown = assertThrows(
+        IllegalArgumentException.class,
+        () -> orchestrator.runOptimization(request));
+        
+    assertThat(thrown).hasMessageThat().contains("Candles list cannot be empty");
   }
 
   @Test
