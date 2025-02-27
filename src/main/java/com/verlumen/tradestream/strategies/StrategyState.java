@@ -2,9 +2,6 @@ package com.verlumen.tradestream.pipeline.strategies;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.strategies.Strategy;
-import com.verlumen.tradestream.strategies.StrategyManager;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 
 /**
