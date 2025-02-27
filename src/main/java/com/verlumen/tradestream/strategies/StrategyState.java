@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.pipeline.strategies;
+package com.verlumen.tradestream.strategies;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
