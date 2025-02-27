@@ -11,6 +11,10 @@ public final class BacktestingModule extends AbstractModule {
 
   @Override
   protected void configure() {
+    bind(BacktestRunner.class).to(BacktestRunnerImpl.class);
+    bind(FitnessCalculator.class).to(FitnessCalculatorImpl.class);
+    bind(GAEngineFactory.class).to(GAEngineFactoryImpl.class);
+    bind(GeneticAlgorithmOrchestrator.class).to(GeneticAlgorithmOrchestratorImpl.class);
     bind(GenotypeConverter.class).to(GenotypeConverterImpl.class);
   }
 }
