@@ -53,6 +53,7 @@ java_test(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory_impl",
+        "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
         "//third_party:guice",
         "//third_party:guice_testlib",
         "//third_party:junit",
