@@ -50,7 +50,6 @@ java_test(
     name = "GAEngineFactoryImplTest",
     srcs = ["GAEngineFactoryImplTest.java"],
     deps = [
-        "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory_impl",
         "//third_party:guice",
