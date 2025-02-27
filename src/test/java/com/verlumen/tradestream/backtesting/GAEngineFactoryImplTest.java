@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
@@ -47,7 +48,7 @@ public class GAEngineFactoryImplTest {
         when(mockParamConfigManager.getParamConfig(any(StrategyType.class)))
             .thenReturn(mockParamConfig);
         when(mockParamConfig.getChromosomeSpecs())
-            .thenReturn(java.util.Collections.emptyList());
+            .thenReturn(ImmutableList.of());
             
         // Inject dependencies
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
