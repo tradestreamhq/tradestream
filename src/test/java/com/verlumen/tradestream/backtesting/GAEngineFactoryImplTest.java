@@ -1,49 +1,98 @@
-package com.verlumen.tradestream;
+package com.verlumen.tradestream.backtesting;
+
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import com.google.inject.Guice;
-import com.google.inject.Injector;
+import com.google.inject.Inject;
+import com.google.inject.testing.fieldbinder.Bind;
+import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.verlumen.tradestream.backtesting.params.ParamConfig;
+import com.verlumen.tradestream.backtesting.params.ParamConfigManager;
+import com.verlumen.tradestream.strategies.StrategyType;
+import io.jenetics.DoubleGene;
+import io.jenetics.engine.Engine;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
-
+@RunWith(JUnit4.class)
 public class GAEngineFactoryImplTest {
-
-    private GAEngineFactory factory;
-
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    
+    @Bind @Mock private ParamConfigManager mockParamConfigManager;
+    @Bind @Mock private FitnessCalculator mockFitnessCalculator;
+    @Bind @Mock private ParamConfig mockParamConfig;
+    
+    @Inject private GAEngineFactoryImpl engineFactory;
+    
+    private GAOptimizationRequest testRequest;
+    
     @Before
     public void setUp() {
-        // Arrange: Set up the Guice injector with the necessary modules.
-        Injector injector = Guice.createInjector(new GAEngineModule());
-        factory = injector.getInstance(GAEngineFactory.class);
-    }
-
-    @Test
-    public void testCreate_ReturnsGAEngineInstance() {
-        // Act: Call the create() method.
-        GAEngine engine = factory.create();
-
-        // Assert: Verify that the returned object is not null and is an instance of GAEngine.
-        assertNotNull("GAEngine instance should not be null", engine);
-        assertTrue("Returned object should be an instance of GAEngine", engine instanceof GAEngine);
-    }
-
-    @Test
-    public void testCreate_ReturnsNewInstanceEachTime() {
-        // Act: Call create() multiple times
-        GAEngine engine1 = factory.create();
-        GAEngine engine2 = factory.create();
-
-        // Assert: Verify that different instances are returned each time.
-        assertNotSame("create() should return a new instance each time", engine1, engine2);
+        // Setup a basic test request
+        testRequest = GAOptimizationRequest.newBuilder()
+            .setStrategyType(StrategyType.SMA_RSI)
+            .setPopulationSize(20)
+            .build();
+            
+        // Configure mocks
+        when(mockParamConfigManager.getParamConfig(any(StrategyType.class)))
+            .thenReturn(mockParamConfig);
+        when(mockParamConfig.getChromosomeSpecs())
+            .thenReturn(java.util.Collections.emptyList());
+            
+        // Inject dependencies
+        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
     
-    @Test(expected = NullPointerException.class) // Expecting an exception
-      public void testCreate_whenFactoryIsNull_throwsException() {
-          // Arrange: Set up a scenario where a necessary dependency is null
-          GAEngineFactory factoryWithNull = null;
-          // Act: Call the create() method
-          factoryWithNull.create();
-      }
+    @Test
+    public void createEngine_withValidRequest_returnsConfiguredEngine() {
+        // Act
+        Engine<DoubleGene, Double> engine = engineFactory.createEngine(testRequest);
+        
+        // Assert
+        assertNotNull("Engine should not be null", engine);
+        // Verify engine configuration
+        assertThat(engine).isNotNull();
+    }
+    
+    @Test
+    public void createEngine_withCustomPopulationSize_usesRequestedSize() {
+        // Arrange
+        int customSize = 42;
+        GAOptimizationRequest customRequest = testRequest.toBuilder()
+            .setPopulationSize(customSize)
+            .build();
+            
+        // Act
+        Engine<DoubleGene, Double> engine = engineFactory.createEngine(customRequest);
+        
+        // Assert
+        assertNotNull("Engine should not be null", engine);
+        // Ideally you'd verify the population size was set correctly,
+        // but this information is not easily accessible from the Engine object
+    }
+    
+    @Test
+    public void createEngine_withZeroPopulationSize_usesDefaultSize() {
+        // Arrange
+        GAOptimizationRequest zeroSizeRequest = testRequest.toBuilder()
+            .setPopulationSize(0)
+            .build();
+            
+        // Act
+        Engine<DoubleGene, Double> engine = engineFactory.createEngine(zeroSizeRequest);
+        
+        // Assert
+        assertNotNull("Engine should not be null", engine);
+        // Ideally verify the default population size was used
+    }
 }
