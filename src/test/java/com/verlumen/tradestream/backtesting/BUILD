@@ -42,7 +42,26 @@ java_test(
         "//third_party:mockito_core",
         "//third_party:protobuf_java",
         "//third_party:truth",
+    ],
+)
 
+java_test(
+    name = "GAEngineFactoryImplTest",
+    srcs = ["GAEngineFactoryImplTest.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:fitness_calculator",
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory_impl",
+        "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:jenetics",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:truth",
     ],
 )
 

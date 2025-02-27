@@ -76,6 +76,20 @@ java_library(
 )
 
 java_library(
+    name = "ga_engine_factory_impl",
+    srcs = ["GAEngineFactoryImpl.java"],
+    deps = [
+        ":fitness_calculator",
+        ":ga_constants",
+        ":ga_engine_factory",
+        "//protos:backtesting_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
+        "//third_party:guice",
+        "//third_party:jenetics",
+    ],
+)
+
+java_library(
     name = "genetic_algorithm_orchestrator",
     srcs = ["GeneticAlgorithmOrchestrator.java"],
     deps = [
