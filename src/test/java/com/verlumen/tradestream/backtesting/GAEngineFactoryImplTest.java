@@ -14,6 +14,7 @@ import com.verlumen.tradestream.backtesting.params.ParamConfig;
 import com.verlumen.tradestream.backtesting.params.ParamConfigManager;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.DoubleGene;
+import io.jenetics.Genotype;
 import io.jenetics.engine.Engine;
 import org.junit.Before;
 import org.junit.Rule;
@@ -23,6 +24,7 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import java.util.function.Function;
 
 @RunWith(JUnit4.class)
 public class GAEngineFactoryImplTest {
@@ -49,6 +51,13 @@ public class GAEngineFactoryImplTest {
             .thenReturn(mockParamConfig);
         when(mockParamConfig.getChromosomeSpecs())
             .thenReturn(ImmutableList.of());
+            
+        // Mock the fitness calculator to return a dummy function
+        // This is critical - createFitnessFunction should never return null
+        Function<Genotype<DoubleGene>, Double> dummyFunction = 
+            genotype -> 1.0; // Just return a constant value for testing
+        when(mockFitnessCalculator.createFitnessFunction(any(GAOptimizationRequest.class)))
+            .thenReturn(dummyFunction);
             
         // Inject dependencies
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
