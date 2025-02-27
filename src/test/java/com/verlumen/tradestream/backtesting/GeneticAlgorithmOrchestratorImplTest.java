@@ -18,6 +18,7 @@ import io.jenetics.Genotype;
 import io.jenetics.Phenotype;
 import io.jenetics.engine.Engine;
 import io.jenetics.engine.EvolutionResult;
+import io.jenetics.engine.EvolutionStream;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,8 +27,6 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.stream.Stream;
 
 @RunWith(JUnit4.class)
 public class GeneticAlgorithmOrchestratorImplTest {
@@ -45,6 +44,8 @@ public class GeneticAlgorithmOrchestratorImplTest {
   @Mock private Genotype<DoubleGene> mockGenotype;
   
   @Mock private Phenotype<DoubleGene, Double> mockPhenotype;
+  
+  @Mock private EvolutionStream<DoubleGene, Double> mockEvolutionStream;
 
   @Inject private GeneticAlgorithmOrchestratorImpl orchestrator;
 
@@ -52,10 +53,14 @@ public class GeneticAlgorithmOrchestratorImplTest {
   public void setUp() {
     Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
 
-    // Mock the engine to return a stream that can be collected into the mockEvolutionResult
+    // Mock the engine to return a mock EvolutionStream
     when(mockEngineFactory.createEngine(any())).thenReturn(mockEngine);
-    when(mockEngine.stream()).thenReturn(Stream.of(mockEvolutionResult).limit(1));
-    when(mockEvolutionResult.bestPhenotype()).thenReturn(mockPhenotype); // Use our explicitly defined mock
+    when(mockEngine.stream()).thenReturn(mockEvolutionStream);
+    
+    // Setup the mockEvolutionStream to be collectible into the best phenotype
+    when(mockEvolutionStream.limit(anyInt())).thenReturn(mockEvolutionStream);
+    when(mockEvolutionStream.collect(any())).thenReturn(mockPhenotype);
+    
     when(mockPhenotype.genotype()).thenReturn(mockGenotype);
     when(mockPhenotype.fitness()).thenReturn(100.0);
   }
@@ -113,7 +118,8 @@ public class GeneticAlgorithmOrchestratorImplTest {
       orchestrator.runOptimization(request);
 
       // Assert: Verify that the stream was limited by the DEFAULT_MAX_GENERATIONS (from GAConstants)
-      verify(mockEngine).stream();  // Get the stream from the mockEngine
+      verify(mockEngine).stream();
+      verify(mockEvolutionStream).limit(GAConstants.DEFAULT_MAX_GENERATIONS);
   }
 
   @Test
