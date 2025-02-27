@@ -1,10 +1,10 @@
 package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.protobuf.util.Timestamps.fromMillis;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
@@ -12,175 +12,139 @@ import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
-import com.verlumen.tradestream.backtesting.params.ChromosomeSpec;
-import com.verlumen.tradestream.backtesting.params.ParamConfig;
-import com.verlumen.tradestream.backtesting.params.ParamConfigManager;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyType;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import com.verlumen.tradestream.strategies.SmaRsiParameters;
+import io.jenetics.DoubleChromosome;
+import io.jenetics.DoubleGene;
+import io.jenetics.Genotype;
+import io.jenetics.Phenotype;
+import io.jenetics.engine.Engine;
+import io.jenetics.engine.EvolutionResult;
+import io.jenetics.engine.EvolutionStart;
+import io.jenetics.engine.Limits;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.function.Function;
+import java.util.function.Predicate;
+
 @RunWith(JUnit4.class)
 public class GeneticAlgorithmOrchestratorImplTest {
-    @Rule
-    public MockitoRule mockito = MockitoJUnit.rule();
 
-    @Bind @Mock
-    private BacktestRunner mockBacktestRunner;
+  @Rule public MockitoRule rule = MockitoJUnit.rule();
 
-    @Bind @Mock
-    private ParamConfigManager mockParamConfigManager;
+  @Mock @Bind private GAEngineFactory mockEngineFactory;
+  @Mock @Bind private GenotypeConverter mockGenotypeConverter;
 
-    @Bind @Mock
-    private ParamConfig mockParamConfig;
+  @Inject private GeneticAlgorithmOrchestratorImpl orchestrator;
 
-    @Inject
-    private GeneticAlgorithmOrchestratorImpl orchestrator;
+  // Create a real genotype and phenotype for testing
+  private Genotype<DoubleGene> testGenotype;
+  private Phenotype<DoubleGene, Double> testPhenotype;
 
-    private GAOptimizationRequest request;
-    private BacktestResult mockBacktestResult;
+  @Before
+  public void setUp() {
+    Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
 
-    @Before
-    public void setUp() throws Exception {
-        // Create a mock backtest result
-        mockBacktestResult = BacktestResult.newBuilder()
-            .setStrategyScore(0.75)
-            .build();
+    // Create a simple test genotype with one chromosome
+    testGenotype = Genotype.of(DoubleChromosome.of(0.0, 1.0));
+    
+    // Create a test phenotype with the genotype and a fitness value
+    testPhenotype = Phenotype.of(testGenotype, 1, 100.0);
+    
+    // Configure genotypeConverter mock
+    Any expectedParameters = Any.pack(SmaRsiParameters.getDefaultInstance());
+    when(mockGenotypeConverter.convertToParameters(any(), any())).thenReturn(expectedParameters);
+  }
 
-        // Stub the BacktestRunner
-        when(mockBacktestRunner.runBacktest(any()))
-            .thenReturn(mockBacktestResult);
+  @Test
+  public void runOptimization_validRequest_returnsBestStrategy() {
+    // Arrange
+    GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
+        .setStrategyType(StrategyType.SMA_RSI)
+        .setMaxGenerations(10)
+        .addCandles(Candle.getDefaultInstance()) // Add at least one candle to avoid empty list error
+        .build();
 
-        // Return test ChromosomeSpecs
-        when(mockParamConfig.getChromosomeSpecs())
-            .thenReturn(createMockChromosomeSpecs());
+    // Create a test Engine with a simple fitness function that always returns a constant value
+    Engine<DoubleGene, Double> testEngine = Engine
+        .builder(g -> 100.0, testGenotype)
+        .build();
+    
+    // Configure the mock engine factory to return our test engine
+    when(mockEngineFactory.createEngine(any())).thenReturn(testEngine);
 
-        // Return a dummy Any proto when createParameters(...) is called
-        when(mockParamConfig.createParameters(any()))
-            .thenReturn(Any.getDefaultInstance());
+    // Act
+    BestStrategyResponse response = orchestrator.runOptimization(request);
 
-        // Have the ParamConfigManager return our mocked ParamConfig
-        when(mockParamConfigManager.getParamConfig(any()))
-            .thenReturn(mockParamConfig);
+    // Assert
+    verify(mockEngineFactory).createEngine(request);
+    verify(mockGenotypeConverter).convertToParameters(any(), any());
+    
+    // Since we can't directly mock the stream or control the evolution result,
+    // we're verifying that the process works end-to-end rather than specific method calls
+    assertThat(response).isNotNull();
+    assertThat(response.hasBestStrategyParameters()).isTrue();
+  }
 
-        // Build a basic valid request with small population/generations
-        request = createValidRequest();
+  @Test
+  public void runOptimization_emptyCandlesList_throwsException() {
+    // Arrange
+    GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
+        .setStrategyType(StrategyType.SMA_RSI)
+        .build();
 
-        // Inject all @Bind fields via Guice
-        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
-    }
-
-    @Test
-    public void runOptimization_withValidRequest_returnsOptimizedParameters() throws Exception {
-        // Act
-        BestStrategyResponse response = orchestrator.runOptimization(request);
-
-        // Assert
-        // Verify that backtest was called at least once
-        verify(mockBacktestRunner, atLeastOnce()).runBacktest(any());
-
-        // Capture and verify one of the backtest requests
-        ArgumentCaptor<BacktestRequest> backtestCaptor = 
-            ArgumentCaptor.forClass(BacktestRequest.class);
-        verify(mockBacktestRunner, atLeastOnce())
-            .runBacktest(backtestCaptor.capture());
+    // Act & Assert
+    IllegalArgumentException thrown = assertThrows(
+        IllegalArgumentException.class,
+        () -> orchestrator.runOptimization(request));
         
-        BacktestRequest capturedRequest = backtestCaptor.getValue();
-        assertThat(capturedRequest.getStrategy().getType()).isEqualTo(request.getStrategyType());
-        assertThat(capturedRequest.getCandlesList()).isEqualTo(request.getCandlesList());
-        assertThat(response.getBestScore()).isEqualTo(mockBacktestResult.getStrategyScore());
-        assertThat(response.hasBestStrategyParameters()).isTrue();
-    }
+    assertThat(thrown).hasMessageThat().contains("Candles list cannot be empty");
+  }
 
-    @Test
-    public void runOptimization_withEmptyCandles_throwsException() throws Exception {
-        // Arrange
-        GAOptimizationRequest emptyCandleRequest = GAOptimizationRequest.newBuilder()
-            .setStrategyType(StrategyType.SMA_RSI)
-            .setMaxGenerations(10)
-            .setPopulationSize(20)
-            .build();
+  @Test
+  public void runOptimization_zeroMaxGenerations_usesDefault() {
+    // Arrange
+    GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
+        .setStrategyType(StrategyType.SMA_RSI)
+        .addAllCandles(ImmutableList.of(Candle.getDefaultInstance()))
+        .setMaxGenerations(0) // Set to 0 to use default
+        .build();
 
-        // Act & Assert
-        IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> orchestrator.runOptimization(emptyCandleRequest));
+    // Create a test Engine with a simple fitness function
+    Engine<DoubleGene, Double> testEngine = Engine
+        .builder(g -> 100.0, testGenotype)
+        .build();
+    
+    when(mockEngineFactory.createEngine(any())).thenReturn(testEngine);
 
-        assertThat(thrown).hasMessageThat().contains("Candles list cannot be empty");
-        
-        // Verify no backtests were run
-        verify(mockBacktestRunner, never()).runBacktest(any());
-    }
+    // Act
+    orchestrator.runOptimization(request);
 
-    @Test
-    public void runOptimization_withCustomGenerationsAndPopulation_usesCustomValues() throws Exception {
-        // Arrange
-        int customGenerations = 5;
-        int customPopulation = 10;
+    // Assert that the engine was created with the request
+    verify(mockEngineFactory).createEngine(request);
 
-        GAOptimizationRequest customRequest = request.toBuilder()
-            .setMaxGenerations(customGenerations)
-            .setPopulationSize(customPopulation)
-            .build();
+    // We can't directly verify the limit being set on the stream since we can't mock it
+  }
 
-        // Act
-        BestStrategyResponse response = orchestrator.runOptimization(customRequest);
+  @Test
+  public void runOptimization_engineCreationFails_throwsException() {
+    // Arrange
+    GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
+        .setStrategyType(StrategyType.SMA_RSI)
+        .addAllCandles(ImmutableList.of(Candle.getDefaultInstance()))
+        .build();
 
-        // Assert
-        // Verify backtests occurred but don't enforce exact count
-        verify(mockBacktestRunner, atLeastOnce()).runBacktest(any());
-        assertThat(response.hasBestStrategyParameters()).isTrue();
-        
-        // Could add additional assertions about number of generations/population
-        // but would need to expose those details from the implementation
-    }
+    when(mockEngineFactory.createEngine(any())).thenThrow(new RuntimeException("Engine failure"));
 
-    private ImmutableList<ChromosomeSpec<?>> createMockChromosomeSpecs() {
-        // Use actual implementation for a simple numeric range
-        return ImmutableList.of(
-            ChromosomeSpec.ofDouble(1.0, 10.0)
-        );
-    }
-
-    private GAOptimizationRequest createValidRequest() {
-        return GAOptimizationRequest.newBuilder()
-            .setStrategyType(StrategyType.SMA_RSI)
-            .addAllCandles(createTestCandles())
-            // Use small values to limit GA iterations in tests
-            .setMaxGenerations(2)
-            .setPopulationSize(2)
-            .build();
-    }
-
-    private List<Candle> createTestCandles() {
-        List<Candle> candles = new ArrayList<>();
-        long initialEpochMillis = Instant.now().toEpochMilli(); // Get current time *once*
-        for (int i = 0; i < 10; i++) {
-            // Increment timestamp by, say, 1 minute (60000 ms) for each candle.
-            candles.add(createCandle(initialEpochMillis + (i * 60000L), i + 1.0));
-        }
-        return candles;
-    }
-
-    private Candle createCandle(long epochMillis, double price) {
-        return Candle.newBuilder()
-            .setTimestamp(fromMillis(epochMillis))
-            .setOpen(price)
-            .setHigh(price + 1)
-            .setLow(price - 1)
-            .setClose(price)
-            .setVolume(1000)
-            .setCurrencyPair("BTC/USD")
-            .build();
-    }
+    // Act & Assert
+    assertThrows(RuntimeException.class, () -> orchestrator.runOptimization(request));
+  }
 }
