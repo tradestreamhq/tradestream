@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.strategies;
 
-import com.google.inject.assistedinject.Assisted;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -13,19 +12,25 @@ import org.ta4j.core.BarSeries;
  * This class is serializable to support Beam state APIs.
  */
 public class StrategyStateImpl implements StrategyState {
+    private static final StrategyType DEFAULT_TYPE = StrategyType.SMA_RSI;
+
     private final StrategyManager strategyManager;
     private final Map<StrategyType, StrategyRecord> strategyRecords;
     private StrategyType currentStrategyType;
     private transient org.ta4j.core.Strategy currentStrategy;
     
     @Inject
-    StrategyStateImpl(
-        StrategyManager strategyManager,
-        @Assisted Map<StrategyType, StrategyRecord> strategyRecords,
-        @Assisted StrategyType currentStrategyType) {
+    StrategyStateImpl(StrategyManager strategyManager) {
+        Map<StrategyType, StrategyRecord> strategyRecords = new ConcurrentHashMap<>();
+        for (StrategyType type : strategyManager.getStrategyTypes()) {
+            strategyRecords.put(type, new StrategyRecord(
+                type, 
+                strategyManager.getDefaultParameters(type), 
+                Double.NEGATIVE_INFINITY));
+        }
         this.strategyManager = strategyManager;
         this.strategyRecords = strategyRecords;
-        this.currentStrategyType = currentStrategyType;
+        this.currentStrategyType = DEFAULT_TYPE;
     }
     
     @Override
@@ -36,6 +41,16 @@ public class StrategyStateImpl implements StrategyState {
             currentStrategy = strategyManager.createStrategy(series, currentStrategyType, record.parameters());
         }
         return currentStrategy;
+    }
+
+    @Override
+    public void initialize() {
+        // Initialize the current strategy
+        try {
+            getCurrentStrategy(strategyManager, series);
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException("Failed to initialize default strategy", e);
+        }
     }
     
     @Override
