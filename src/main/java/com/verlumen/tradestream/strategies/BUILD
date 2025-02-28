@@ -185,6 +185,7 @@ java_library(
     srcs = ["StrategyStateImpl.java"],
     deps = [
         ":strategy_manager",
+        ":strategy_record",
         ":strategy_state",
         "//protos:strategies_java_proto",
         "//third_party:guice",
