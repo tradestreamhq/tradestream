@@ -9,17 +9,14 @@ import org.ta4j.core.BarSeries;
  * recording performance for all available strategies.
  */
 public interface StrategyState {
-    
     /**
      * Reconstruct or return the current strategy.
      *
-     * @param strategyManager the strategy manager
      * @param series the market data series
      * @return the current TA4J strategy
      * @throws InvalidProtocolBufferException if the strategy parameters are invalid
      */
-    org.ta4j.core.Strategy getCurrentStrategy(StrategyManager strategyManager, BarSeries series)
-            throws InvalidProtocolBufferException;
+    org.ta4j.core.Strategy getCurrentStrategy(BarSeries series) throws InvalidProtocolBufferException;
     
     /**
      * Update the record for a given strategy type.
@@ -33,11 +30,10 @@ public interface StrategyState {
     /**
      * Select and initialize the best strategy from the recorded strategies.
      *
-     * @param strategyManager the strategy manager
      * @param series the market data series
      * @return the updated strategy state
      */
-    StrategyState selectBestStrategy(StrategyManager strategyManager, BarSeries series);
+    StrategyState selectBestStrategy(BarSeries series);
     
     /**
      * Convert the current state to a strategy message.
