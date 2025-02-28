@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.pipeline.strategies;
+package com.verlumen.tradestream.strategies;
 
 /**
  * Factory interface for creating instances of StrategyState.
