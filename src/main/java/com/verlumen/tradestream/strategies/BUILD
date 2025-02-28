@@ -170,3 +170,11 @@ java_library(
         "//third_party:ta4j_core",
     ],
 )
+
+java_library(
+    name = "strategy_state_factory",
+    srcs = ["StrategyStateFactory.java"],
+    deps = [
+        ":strategy_state",
+    ],
+)
