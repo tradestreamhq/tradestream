@@ -42,16 +42,6 @@ public class StrategyStateImpl implements StrategyState {
         }
         return currentStrategy;
     }
-
-    @Override
-    public void initialize() {
-        // Initialize the current strategy
-        try {
-            getCurrentStrategy(strategyManager, series);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException("Failed to initialize default strategy", e);
-        }
-    }
     
     @Override
     public void updateRecord(StrategyType type, Any parameters, double score) {
