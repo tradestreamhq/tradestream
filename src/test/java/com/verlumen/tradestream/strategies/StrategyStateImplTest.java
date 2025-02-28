@@ -2,9 +2,11 @@ package com.verlumen.tradestream.strategies;
 
 import static org.junit.Assert.*;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
@@ -16,6 +18,8 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.Bar;
+import org.ta4j.core.num.Num;
 
 /**
  * JUnit4 tests for StrategyStateImpl.
@@ -77,7 +81,7 @@ public class StrategyStateImplTest {
         org.ta4j.core.Strategy initial = strategyState.getCurrentStrategy(dummyBarSeries);
         Any newParams = Any.getDefaultInstance();
         // Act
-        strategyState.updateRecord(StrategyType.DUMMY, newParams, 100.0);
+        strategyState.updateRecord(StrategyType.SMA_RSI, newParams, 100.0); // Changed DUMMY to SMA_RSI
         // Assert: the cached strategy remains unchanged.
         assertSame(initial, strategyState.getCurrentStrategy(dummyBarSeries));
     }
@@ -88,11 +92,11 @@ public class StrategyStateImplTest {
     public void testSelectBestStrategyPicksRecordWithHighestScore() {
         // Arrange
         Any paramsDummy = Any.getDefaultInstance();
-        strategyState.updateRecord(StrategyType.DUMMY, paramsDummy, 100.0);
+        strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0); // Changed DUMMY to SMA_RSI
         // Act
         strategyState.selectBestStrategy(dummyBarSeries);
-        // Assert: the current strategy type is updated to DUMMY.
-        assertEquals(StrategyType.DUMMY, strategyState.getCurrentStrategyType());
+        // Assert: the current strategy type is updated to SMA_RSI.
+        assertEquals(StrategyType.SMA_RSI, strategyState.getCurrentStrategyType());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -100,7 +104,7 @@ public class StrategyStateImplTest {
         // Arrange – use a fake manager with no strategy types.
         FakeStrategyManager emptyManager = new FakeStrategyManager(Collections.<StrategyType>emptyList());
         Injector injector = Guice.createInjector(
-            BoundFieldModule.getInstance(this),
+            BoundFieldModule.of(this), // Changed getInstance to of
             new AbstractModule() {
                 @Override
                 protected void configure() {
@@ -126,7 +130,7 @@ public class StrategyStateImplTest {
     public void testSelectBestStrategyThrowsWhenStrategyCreationFails() {
         // Arrange – update record then force exception on creation.
         Any paramsDummy = Any.getDefaultInstance();
-        strategyState.updateRecord(StrategyType.DUMMY, paramsDummy, 100.0);
+        strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0); // Changed DUMMY to SMA_RSI
         fakeStrategyManager.setThrowExceptionOnCreate(true);
         // Act: selectBestStrategy should wrap the exception in a RuntimeException.
         strategyState.selectBestStrategy(dummyBarSeries);
@@ -139,19 +143,19 @@ public class StrategyStateImplTest {
     public void testToStrategyMessageReturnsCorrectType() {
         // Arrange
         Any paramsDummy = Any.getDefaultInstance();
-        strategyState.updateRecord(StrategyType.DUMMY, paramsDummy, 100.0);
+        strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0); // Changed DUMMY to SMA_RSI
         strategyState.selectBestStrategy(dummyBarSeries);
         // Act
         Strategy protoMessage = strategyState.toStrategyMessage();
-        // Assert: the proto message type is DUMMY.
-        assertEquals(StrategyType.DUMMY, protoMessage.getType());
+        // Assert: the proto message type is SMA_RSI.
+        assertEquals(StrategyType.SMA_RSI, protoMessage.getType());
     }
 
     @Test
     public void testToStrategyMessageReturnsCorrectParameters() {
         // Arrange
         Any paramsDummy = Any.getDefaultInstance();
-        strategyState.updateRecord(StrategyType.DUMMY, paramsDummy, 100.0);
+        strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0); // Changed DUMMY to SMA_RSI
         strategyState.selectBestStrategy(dummyBarSeries);
         // Act
         Strategy protoMessage = strategyState.toStrategyMessage();
@@ -170,7 +174,7 @@ public class StrategyStateImplTest {
             typeSet.add(type);
         }
         // Assert: the set equals the expected types.
-        Set<StrategyType> expected = new HashSet<>(Arrays.asList(StrategyType.SMA_RSI, StrategyType.DUMMY));
+        Set<StrategyType> expected = new HashSet<>(Arrays.asList(StrategyType.SMA_RSI));
         assertEquals(expected, typeSet);
     }
 
@@ -192,6 +196,11 @@ public class StrategyStateImplTest {
         private final Iterable<StrategyType> strategyTypes;
         private boolean throwExceptionOnCreate = false;
 
+        @Inject
+        public FakeStrategyManager() {
+            this(Arrays.asList(StrategyType.SMA_RSI));
+        }
+
         public FakeStrategyManager(Iterable<StrategyType> strategyTypes) {
             this.strategyTypes = strategyTypes;
         }
@@ -201,8 +210,8 @@ public class StrategyStateImplTest {
         }
 
         @Override
-        public Iterable<StrategyType> getStrategyTypes() {
-            return strategyTypes;
+        public ImmutableList<StrategyType> getStrategyTypes() {
+            return ImmutableList.copyOf(strategyTypes);
         }
 
         @Override
@@ -256,12 +265,77 @@ public class StrategyStateImplTest {
         public int hashCode() {
             return 31 * type.hashCode() + parameters.hashCode();
         }
+        
+        @Override
+        public boolean shouldEnter(int index) {
+            return false;
+        }
+        
+        @Override
+        public boolean shouldExit(int index) {
+            return false;
+        }
+        
+        @Override
+        public boolean isUnstableAt(int index) {
+            return false;
+        }
     }
 
     /**
      * A minimal dummy implementation of BarSeries.
      */
     public static class DummyBarSeries implements BarSeries {
-        // Minimal stub implementation; add methods if needed.
+        // Implement required methods
+        
+        @Override
+        public String getName() {
+            return "DummyBarSeries";
+        }
+        
+        @Override
+        public Bar getBar(int i) {
+            return null;
+        }
+        
+        @Override
+        public int getBarCount() {
+            return 0;
+        }
+        
+        @Override
+        public int getBeginIndex() {
+            return 0;
+        }
+        
+        @Override
+        public int getEndIndex() {
+            return 0;
+        }
+        
+        @Override
+        public void setMaximumBarCount(int maximumBarCount) {
+            // No implementation needed for testing
+        }
+        
+        @Override
+        public int getMaximumBarCount() {
+            return 0;
+        }
+        
+        @Override
+        public int getRemovedBarsCount() {
+            return 0;
+        }
+        
+        @Override
+        public Num numOf(Number number) {
+            return null;
+        }
+        
+        @Override
+        public BarSeries getSubSeries(int startIndex, int endIndex) {
+            return this;
+        }
     }
 }
