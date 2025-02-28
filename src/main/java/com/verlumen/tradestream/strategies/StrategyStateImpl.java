@@ -1,10 +1,9 @@
-package com.verlumen.tradestream.pipeline.strategies;
+package com.verlumen.tradestream.strategies;
 
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.strategies.Strategy;
-import com.verlumen.tradestream.strategies.StrategyManager;
-import com.verlumen.tradestream.strategies.StrategyType;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.ta4j.core.BarSeries;
@@ -14,18 +13,23 @@ import org.ta4j.core.BarSeries;
  * This class is serializable to support Beam state APIs.
  */
 public class StrategyStateImpl implements StrategyState {
+    private final StrategyManager strategyManager;
     private final Map<StrategyType, StrategyRecord> strategyRecords;
     private StrategyType currentStrategyType;
     private transient org.ta4j.core.Strategy currentStrategy;
     
-    // Package-private constructor used by the factory
-    StrategyStateImpl(Map<StrategyType, StrategyRecord> strategyRecords, StrategyType currentStrategyType) {
+    @Inject
+    StrategyStateImpl(
+        StrategyManager strategyManager,
+        @Assisted Map<StrategyType, StrategyRecord> strategyRecords,
+        @Assisted StrategyType currentStrategyType) {
+        this.strategyManager = strategyManager;
         this.strategyRecords = strategyRecords;
         this.currentStrategyType = currentStrategyType;
     }
     
     @Override
-    public org.ta4j.core.Strategy getCurrentStrategy(StrategyManager strategyManager, BarSeries series)
+    public org.ta4j.core.Strategy getCurrentStrategy(BarSeries series)
             throws InvalidProtocolBufferException {
         if (currentStrategy == null) {
             StrategyRecord record = strategyRecords.get(currentStrategyType);
@@ -40,7 +44,7 @@ public class StrategyStateImpl implements StrategyState {
     }
     
     @Override
-    public StrategyState selectBestStrategy(StrategyManager strategyManager, BarSeries series) {
+    public StrategyState selectBestStrategy(BarSeries series) {
         StrategyRecord bestRecord = strategyRecords.values().stream()
             .max((r1, r2) -> Double.compare(r1.score(), r2.score()))
             .orElseThrow(() -> new IllegalStateException("No optimized strategy found"));
