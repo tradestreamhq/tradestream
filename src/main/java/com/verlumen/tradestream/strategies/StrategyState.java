@@ -8,7 +8,7 @@ import org.ta4j.core.BarSeries;
  * Interface for maintaining the state for the current strategy and
  * recording performance for all available strategies.
  */
-public interface StrategyState {
+interface StrategyState {    
     /**
      * Reconstruct or return the current strategy.
      *
