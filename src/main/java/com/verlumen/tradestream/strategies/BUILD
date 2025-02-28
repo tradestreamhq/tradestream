@@ -164,7 +164,6 @@ java_library(
     name = "strategy_state",
     srcs = ["StrategyState.java"],
     deps = [
-        ":strategy_manager",
         "//protos:strategies_java_proto",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
