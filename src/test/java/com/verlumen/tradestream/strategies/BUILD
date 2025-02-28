@@ -76,3 +76,20 @@ java_test(
         "//third_party:truth",
     ],
 )
+
+java_test(
+    name = "StrategyStateImplTest",
+    srcs = ["StrategyStateImplTest.java"],
+    deps = [
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_state_impl",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:protobuf_java",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:ta4j_core",
+        "//third_party:truth",
+    ],
+)
