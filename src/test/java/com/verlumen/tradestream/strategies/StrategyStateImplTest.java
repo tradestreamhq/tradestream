@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
-import com.google.inject.Injector;
+import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
@@ -37,21 +37,7 @@ public class StrategyStateImplTest {
 
     @Before
     public void setUp() {
-        Injector injector = Guice.createInjector(
-            BoundFieldModule.getInstance(this),
-            new AbstractModule() {
-                @Override
-                protected void configure() {
-                    // Bind a fake strategy manager with a preset list of strategy types.
-                    FakeStrategyManager manager = new FakeStrategyManager(
-                        Arrays.asList(StrategyType.SMA_RSI, StrategyType.DUMMY)
-                    );
-                    bind(StrategyManager.class).toInstance(manager);
-                    bind(FakeStrategyManager.class).toInstance(manager);
-                }
-            }
-        );
-        injector.injectMembers(this);
+        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
     // --- getCurrentStrategy() tests ---
