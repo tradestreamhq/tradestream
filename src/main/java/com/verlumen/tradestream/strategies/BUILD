@@ -177,6 +177,8 @@ java_library(
         ":strategy_manager",
         ":strategy_state",
         "//protos:strategies_java_proto",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
     ],
