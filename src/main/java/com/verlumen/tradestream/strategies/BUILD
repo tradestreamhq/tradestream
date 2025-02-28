@@ -170,3 +170,15 @@ java_library(
         "//third_party:ta4j_core",
     ],
 )
+
+java_library(
+    name = "strategy_state_impl",
+    srcs = ["StrategyStateImpl.java"],
+    deps = [
+        ":strategy_state",
+        ":strategy_manager",
+        "//protos:strategies_java_proto",
+        "//third_party:protobuf_java",
+        "//third_party:ta4j_core",
+    ],
+)
