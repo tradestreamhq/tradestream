@@ -161,6 +161,16 @@ java_library(
 )
 
 java_library(
+    name = "strategy_record",
+    srcs = ["StrategyRecord.java"],
+    deps = [
+        "//protos:strategies_java_proto",
+        "//third_party:guava",
+        "//third_party:protobuf_java",
+    ],
+)
+
+java_library(
     name = "strategy_state",
     srcs = ["StrategyState.java"],
     deps = [
