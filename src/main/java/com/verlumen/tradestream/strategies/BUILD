@@ -177,6 +177,7 @@ java_library(
         ":strategy_record",
         ":strategy_state",
         "//protos:strategies_java_proto",
+        "//third_party:auto_factory",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
         "//third_party:protobuf_java",
