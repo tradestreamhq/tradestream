@@ -58,6 +58,14 @@ java_library(
 )
 
 java_library(
+    name = "optimize_strategies",
+    srcs = ["OptimizeStrategies.java"],
+    deps = [
+        "//third_party:guice",
+    ],
+)
+
+java_library(
     name = "strategies_module",
     srcs = ["StrategiesModule.java"],
     deps = [
