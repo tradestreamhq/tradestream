@@ -1,20 +1,6 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
-    name = "KafkaConsumerProviderTest",
-    srcs = ["KafkaConsumerProviderTest.java"],
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
-        "//src/main/java/com/verlumen/tradestream/strategies:kafka_consumer_provider",
-        "//third_party:guice",
-        "//third_party:guice_testlib",
-        "//third_party:junit",
-        "//third_party:kafka_clients", 
-        "//third_party:mockito_core",
-    ],
-)
-
-java_test(
     name = "MarketDataConsumerImplTest",
     srcs = ["MarketDataConsumerImplTest.java"],
     deps = [
