@@ -11,6 +11,9 @@ java_library(
     exported_plugins = [
         ":auto_factory_plugin",
     ],
+    plugins = [
+        ":auto_factory_plugin",
+    ],
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:com_google_auto_auto_common",
