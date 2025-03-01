@@ -30,14 +30,11 @@ public class OptimizeStrategies
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   
   private final GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator;
-  private final StrategyManager strategyManager;
   
   @Inject
   OptimizeStrategies(
-      GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator,
-      StrategyManager strategyManager) {
+      GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator) {
     this.geneticAlgorithmOrchestrator = geneticAlgorithmOrchestrator;
-    this.strategyManager = strategyManager;
   }
   
   @Override
@@ -45,7 +42,7 @@ public class OptimizeStrategies
       PCollection<KV<String, ImmutableList<Candle>>> input) {
     
     return input.apply("OptimizeStrategiesForCandles", 
-        ParDo.of(new OptimizeStrategiesDoFn(geneticAlgorithmOrchestrator, strategyManager)))
+        ParDo.of(new OptimizeStrategiesDoFn(geneticAlgorithmOrchestrator)))
         .setTypeDescriptor(new TypeDescriptor<KV<String, StrategyState>>() {});
   }
   
@@ -59,13 +56,10 @@ public class OptimizeStrategies
     private final StateSpec<ValueState<StrategyState>> strategyStateSpec = StateSpecs.value();
     
     private final GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator;
-    private final StrategyManager strategyManager;
     
     OptimizeStrategiesDoFn(
-        GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator,
-        StrategyManager strategyManager) {
+        GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator) {
       this.geneticAlgorithmOrchestrator = geneticAlgorithmOrchestrator;
-      this.strategyManager = strategyManager;
     }
     
     @ProcessElement
@@ -90,7 +84,7 @@ public class OptimizeStrategies
       StrategyState state = strategyStateValue.read();
       if (state == null) {
         logger.atInfo().log("Initializing strategy state for key: %s", key);
-        state = StrategyState.initialize(strategyManager, barSeries);
+        state = StrategyState.initialize(barSeries);
       }
       
       // Optimize each strategy type
@@ -112,7 +106,7 @@ public class OptimizeStrategies
       }
       
       // Select the best strategy based on optimization scores
-      state = state.selectBestStrategy(strategyManager, barSeries);
+      state = state.selectBestStrategy(barSeries);
       
       // Update state and output the optimized strategy state
       strategyStateValue.write(state);
