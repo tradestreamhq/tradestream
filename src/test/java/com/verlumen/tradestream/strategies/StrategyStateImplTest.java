@@ -15,6 +15,7 @@ import com.google.protobuf.Message;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
@@ -99,18 +100,9 @@ public class StrategyStateImplTest {
     @Test(expected = IllegalStateException.class)
     public void testSelectBestStrategyThrowsWhenNoRecordsAvailable() {
         // Arrange – use a fake manager with no strategy types.
-        FakeStrategyManager emptyManager = new FakeStrategyManager(Collections.<StrategyType>emptyList());
-        Injector injector = Guice.createInjector(
-            BoundFieldModule.of(this),
-            new AbstractModule() {
-                @Override
-                protected void configure() {
-                    bind(StrategyManager.class).toInstance(emptyManager);
-                    bind(FakeStrategyManager.class).toInstance(emptyManager);
-                }
-            }
-        );
-        injector.injectMembers(this);
+        this.trategyManager.clearStrategyTypes();
+        
+
         // Act: should throw IllegalStateException.
         strategyState.selectBestStrategy(DUMMY_BAR_SERIES);
     }
@@ -190,7 +182,7 @@ public class StrategyStateImplTest {
      * A fake StrategyManager that simulates behavior for testing.
      */
     public static class FakeStrategyManager implements StrategyManager {
-        private final Iterable<StrategyType> strategyTypes;
+        private final List<StrategyType> strategyTypes;
         private boolean throwExceptionOnCreate = false;
 
         @Inject
@@ -198,7 +190,7 @@ public class StrategyStateImplTest {
             this(Arrays.asList(StrategyType.SMA_RSI));
         }
 
-        public FakeStrategyManager(Iterable<StrategyType> strategyTypes) {
+        public FakeStrategyManager(List<StrategyType> strategyTypes) {
             this.strategyTypes = strategyTypes;
         }
 
@@ -229,6 +221,10 @@ public class StrategyStateImplTest {
         public StrategyFactory<?> getStrategyFactory(StrategyType type) {
             // Return a concrete implementation of StrategyFactory
             return new TestStrategyFactory(type);
+        }
+
+        private void clearStrategyTypes() {
+            this.strategyTypes.clear();
         }
     }
 
