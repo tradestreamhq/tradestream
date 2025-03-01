@@ -9,8 +9,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 record StrategyRecord(StrategyType strategyType, Any parameters, double score)
     implements Serializable {
-  
-  public StrategyRecord {
-    checkNotNull(strategyType, "Strategy type cannot be null");
+  static StrategyRecord create(StrategyType strategyType, Any parameters) {
+      new StrategyRecord(strategyType, parameters, Double.NEGATIVE_INFINITY);    
+  }
+
+  StrategyRecord {
+    checkNotNull(strategyType, "Strategy strategyType cannot be null");
   }
 }
