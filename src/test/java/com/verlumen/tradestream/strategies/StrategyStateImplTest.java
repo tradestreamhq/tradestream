@@ -20,8 +20,8 @@ import java.util.HashSet;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
-import org.ta4j.core.BarSeries;
 import org.ta4j.core.Bar;
+import org.ta4j.core.BarSeries;
 import org.ta4j.core.num.Num;
 
 /**
@@ -380,7 +380,6 @@ public class StrategyStateImplTest {
      * Dummy Rule implementation for testing.
      */
     public static class DummyRule implements org.ta4j.core.Rule {
-        // Implement only the method required by the current interface.
         @Override
         public boolean isSatisfied(int index, org.ta4j.core.TradingRecord tradingRecord) {
             return false;
@@ -442,18 +441,23 @@ public class StrategyStateImplTest {
         }
 
         @Override
-        public void addBar(ZonedDateTime endTime, Num openPrice, Num highPrice, 
+        public void addBar(ZonedDateTime endTime, Num openPrice, Num highPrice,
                            Num lowPrice, Num closePrice, Num volume, Num amount) {
             // No implementation needed for testing
         }
 
-        @Override
+        // These two methods are not part of the current BarSeries interface.
+        // Their @Override annotations have been removed.
         public void addBar(Duration timePeriod, ZonedDateTime endTime) {
             // No implementation needed for testing
         }
 
-        @Override
         public void addPrice(Num price) {
+            // No implementation needed for testing
+        }
+
+        @Override
+        public void addTrade(Num amount, Num price) {
             // No implementation needed for testing
         }
     }
