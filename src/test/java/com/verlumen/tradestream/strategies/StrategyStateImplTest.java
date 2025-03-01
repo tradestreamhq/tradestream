@@ -367,6 +367,32 @@ public class StrategyStateImplTest {
         public String getName() {
             return name;
         }
+        
+        @Override
+        public org.ta4j.core.Rule getEntryRule() {
+            return new DummyRule();
+        }
+        
+        @Override
+        public org.ta4j.core.Rule getExitRule() {
+            return new DummyRule();
+        }
+    }
+    
+    /**
+     * Dummy Rule implementation for testing
+     */
+    public static class DummyRule implements org.ta4j.core.Rule {
+        @Override
+        public boolean isSatisfied(int index) {
+            return false;
+        }
+        
+        @Override
+        public boolean isSatisfied(int index, org.ta4j.core.TradingRecord tradingRecord) {
+            return false;
+        }
+    }
     }
 
     /**
@@ -436,6 +462,12 @@ public class StrategyStateImplTest {
         }
         
         @Override
+        public void addBar(ZonedDateTime endTime, Num openPrice, Num highPrice, 
+                          Num lowPrice, Num closePrice, Num volume, Num amount) {
+            // No implementation needed for testing
+        }
+        
+        @Override
         public void addBar(Duration timePeriod, ZonedDateTime endTime, Num openPrice, Num highPrice, 
                           Num lowPrice, Num closePrice, Num volume) {
             // No implementation needed for testing
@@ -446,5 +478,6 @@ public class StrategyStateImplTest {
                           Num lowPrice, Num closePrice, Num volume, Num amount) {
             // No implementation needed for testing
         }
+    }
     }
 }
