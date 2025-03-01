@@ -26,7 +26,7 @@ import org.ta4j.core.num.Num;
 
 /**
  * JUnit4 tests for StrategyStateImpl.
- * 
+ *
  * This suite uses Guice injection (with BoundFieldModule) and the real protobuf-generated
  * Strategy message (imported from the production code) for verifying behavior. Each test
  * follows the arrange–act–assert pattern with a single assertion.
@@ -194,7 +194,6 @@ public class StrategyStateImplTest {
      * A fake StrategyManager that simulates behavior for testing.
      */
     public static class FakeStrategyManager implements StrategyManager {
-
         private final Iterable<StrategyType> strategyTypes;
         private boolean throwExceptionOnCreate = false;
 
@@ -229,46 +228,45 @@ public class StrategyStateImplTest {
             }
             return new DummyStrategy(type, parameters);
         }
-        
+
         @Override
         public StrategyFactory<?> getStrategyFactory(StrategyType type) {
             // Return a concrete implementation of StrategyFactory
             return new DummyStrategyFactory(type);
         }
     }
-    
+
     /**
      * A dummy implementation of StrategyFactory for testing.
      */
     public static class DummyStrategyFactory implements StrategyFactory<Message> {
         private final StrategyType type;
-        
+
         public DummyStrategyFactory(StrategyType type) {
             this.type = type;
         }
-        
+
         @Override
         public org.ta4j.core.Strategy createStrategy(BarSeries series, Message parameters) {
             return new DummyStrategy(type, Any.pack(parameters));
         }
-        
+
         @Override
         public Message getDefaultParameters() {
             return Any.getDefaultInstance();
         }
-        
+
         @Override
         public StrategyType getStrategyType() {
             return type;
         }
     }
-    
+
     /**
      * A dummy implementation of the TA4J Strategy interface.
      * This dummy records its associated StrategyType and parameters.
      */
     public static class DummyStrategy implements org.ta4j.core.Strategy {
-
         private final StrategyType type;
         private final Any parameters;
         private int unstableBars = 0;
@@ -301,87 +299,88 @@ public class StrategyStateImplTest {
         public int hashCode() {
             return 31 * type.hashCode() + parameters.hashCode();
         }
-        
+
         @Override
         public boolean shouldEnter(int index) {
             return false;
         }
-        
+
         @Override
         public boolean shouldExit(int index) {
             return false;
         }
-        
+
         @Override
         public boolean isUnstableAt(int index) {
             return false;
         }
-        
+
         @Override
         public int getUnstableBars() {
             return unstableBars;
         }
-        
+
         @Override
         public void setUnstableBars(int unstableBars) {
             this.unstableBars = unstableBars;
         }
-        
+
         @Override
         public org.ta4j.core.Strategy opposite() {
             return this; // For testing purposes, return self
         }
-        
+
         @Override
         public org.ta4j.core.Strategy or(String name, org.ta4j.core.Strategy strategy, int unstablePeriod) {
-            return this; // For testing purposes, return self
+            return this;
         }
-        
+
         @Override
         public org.ta4j.core.Strategy or(org.ta4j.core.Strategy strategy) {
-            return this; // For testing purposes, return self
+            return this;
         }
-        
+
         @Override
         public org.ta4j.core.Strategy and(String name, org.ta4j.core.Strategy strategy, int unstablePeriod) {
-            return this; // For testing purposes, return self
+            return this;
         }
-        
+
         @Override
         public org.ta4j.core.Strategy and(org.ta4j.core.Strategy strategy) {
-            return this; // For testing purposes, return self
+            return this;
         }
-        
+
         @Override
         public org.ta4j.core.Strategy xor(String name, org.ta4j.core.Strategy strategy, int unstablePeriod) {
-            return this; // For testing purposes, return self
+            return this;
         }
-        
+
         @Override
         public org.ta4j.core.Strategy xor(org.ta4j.core.Strategy strategy) {
-            return this; // For testing purposes, return self
+            return this;
         }
-        
+
         @Override
         public String getName() {
             return name;
         }
-        
+
         @Override
         public org.ta4j.core.Rule getEntryRule() {
             return new DummyRule();
         }
-        
+
         @Override
         public org.ta4j.core.Rule getExitRule() {
             return new DummyRule();
         }
     }
-    
+
     /**
      * Dummy Rule implementation for testing.
      */
     public static class DummyRule implements org.ta4j.core.Rule {
+        // Implement only the method required by the current interface.
         @Override
         public boolean isSatisfied(int index, org.ta4j.core.TradingRecord tradingRecord) {
             return false;
@@ -396,61 +395,65 @@ public class StrategyStateImplTest {
         public String getName() {
             return "DummyBarSeries";
         }
-        
+
         @Override
         public Bar getBar(int i) {
             return null;
         }
-        
+
         @Override
         public int getBarCount() {
             return 0;
         }
-        
+
         @Override
         public int getBeginIndex() {
             return 0;
         }
-        
+
         @Override
         public int getEndIndex() {
             return 0;
         }
-        
+
         @Override
         public void setMaximumBarCount(int maximumBarCount) {
             // No implementation needed for testing
         }
-        
+
         @Override
         public int getMaximumBarCount() {
             return 0;
         }
-        
+
         @Override
         public int getRemovedBarsCount() {
             return 0;
         }
-        
+
         @Override
         public Num numOf(Number number) {
             return null;
         }
-        
+
         @Override
         public BarSeries getSubSeries(int startIndex, int endIndex) {
             return this;
         }
-        
+
         @Override
         public void addBar(ZonedDateTime endTime, Num openPrice, Num highPrice, 
                            Num lowPrice, Num closePrice, Num volume, Num amount) {
             // No implementation needed for testing
         }
-        
-        // Implement the single abstract method required by the current interface.
+
         @Override
         public void addBar(Duration timePeriod, ZonedDateTime endTime) {
+            // No implementation needed for testing
+        }
+
+        @Override
+        public void addPrice(Num price) {
             // No implementation needed for testing
         }
     }
