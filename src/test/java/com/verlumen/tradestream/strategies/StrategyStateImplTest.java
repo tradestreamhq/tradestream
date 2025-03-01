@@ -227,6 +227,12 @@ public class StrategyStateImplTest {
             }
             return new DummyStrategy(type, parameters);
         }
+        
+        @Override
+        public StrategyFactory getStrategyFactory(StrategyType type) {
+            // Implement the missing method - return a dummy factory
+            return (series, parameters) -> new DummyStrategy(type, parameters);
+        }
     }
 
     /**
@@ -279,6 +285,12 @@ public class StrategyStateImplTest {
         @Override
         public boolean isUnstableAt(int index) {
             return false;
+        }
+        
+        @Override
+        public int getUnstableBars() {
+            // Implement the missing method
+            return 0;
         }
     }
 
@@ -336,6 +348,12 @@ public class StrategyStateImplTest {
         @Override
         public BarSeries getSubSeries(int startIndex, int endIndex) {
             return this;
+        }
+        
+        @Override
+        public void addPrice(Num price) {
+            // Implement the missing method
+            // No implementation needed for testing
         }
     }
 }
