@@ -37,6 +37,7 @@ public class StrategyStateImplTest {
 
     @Before
     public void setUp() {
+        fakeStrategyManager = new FakeStrategyManager();
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
