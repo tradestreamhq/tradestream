@@ -383,11 +383,6 @@ public class StrategyStateImplTest {
      */
     public static class DummyRule implements org.ta4j.core.Rule {
         @Override
-        public boolean isSatisfied(int index) {
-            return false;
-        }
-        
-        @Override
         public boolean isSatisfied(int index, org.ta4j.core.TradingRecord tradingRecord) {
             return false;
         }
@@ -397,8 +392,6 @@ public class StrategyStateImplTest {
      * A minimal dummy implementation of BarSeries.
      */
     static class DummyBarSeries implements BarSeries {
-        // Implement required methods
-        
         @Override
         public String getName() {
             return "DummyBarSeries";
@@ -449,30 +442,15 @@ public class StrategyStateImplTest {
             return this;
         }
         
-        // These methods are not part of the BarSeries interface in our version so no @Override annotation is used.
-        public void addPrice(Num price) {
-            // No implementation needed for testing
-        }
-        
-        public void addTrade(Num amount, Num price) {
-            // No implementation needed for testing
-        }
-        
         @Override
         public void addBar(ZonedDateTime endTime, Num openPrice, Num highPrice, 
                            Num lowPrice, Num closePrice, Num volume, Num amount) {
             // No implementation needed for testing
         }
         
+        // Implement the single abstract method required by the current interface.
         @Override
-        public void addBar(Duration timePeriod, ZonedDateTime endTime, Num openPrice, Num highPrice, 
-                           Num lowPrice, Num closePrice, Num volume) {
-            // No implementation needed for testing
-        }
-        
-        @Override
-        public void addBar(Duration timePeriod, ZonedDateTime endTime, Num openPrice, Num highPrice, 
-                           Num lowPrice, Num closePrice, Num volume, Num amount) {
+        public void addBar(Duration timePeriod, ZonedDateTime endTime) {
             // No implementation needed for testing
         }
     }
