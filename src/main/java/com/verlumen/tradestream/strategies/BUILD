@@ -61,7 +61,6 @@ java_library(
     name = "optimize_strategies",
     srcs = ["OptimizeStrategies.java"],
     deps = [
-        ":strategy_manager",
         ":strategy_state",
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
