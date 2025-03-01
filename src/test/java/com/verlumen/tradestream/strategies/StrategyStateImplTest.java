@@ -12,6 +12,7 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -185,7 +186,7 @@ public class StrategyStateImplTest {
 
         @Inject
         public FakeStrategyManager() {
-            this(Arrays.asList(StrategyType.SMA_RSI));
+            this(new ArrayList<>(Arrays.asList(StrategyType.SMA_RSI)));
         }
 
         public FakeStrategyManager(List<StrategyType> strategyTypes) {
