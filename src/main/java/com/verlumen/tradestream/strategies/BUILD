@@ -64,6 +64,7 @@ java_library(
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_builder",
         "//third_party:beam_sdks_java_core",
         "//third_party:guava",
         "//third_party:guice",
