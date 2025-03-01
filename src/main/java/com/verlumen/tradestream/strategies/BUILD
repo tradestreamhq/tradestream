@@ -25,16 +25,6 @@ java_library(
 )
 
 java_library(
-    name = "kafka_consumer_provider",
-    srcs = ["KafkaConsumerProvider.java"],
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
-        "//third_party:guice",
-        "//third_party:kafka_clients",
-    ],
-)
-
-java_library(
     name = "market_data_consumer",
     srcs = ["MarketDataConsumer.java"],
     deps = [
@@ -63,7 +53,6 @@ java_library(
     deps = [
         ":candle_buffer",
         ":candle_buffer_impl",
-        ":kafka_consumer_provider",
         ":market_data_consumer",
         ":market_data_consumer_impl",
         ":strategy_engine",
