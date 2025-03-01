@@ -50,9 +50,14 @@ public class StrategyStateImpl implements StrategyState {
     
     @Override
     public StrategyState selectBestStrategy(BarSeries series) {
+        if (strategyRecords.isEmpty()) {
+            throw new IllegalStateException("No optimized strategy found");
+        }
+        
         StrategyRecord bestRecord = strategyRecords.values().stream()
             .max((r1, r2) -> Double.compare(r1.score(), r2.score()))
             .orElseThrow(() -> new IllegalStateException("No optimized strategy found"));
+            
         this.currentStrategyType = bestRecord.strategyType();
         try {
             this.currentStrategy = strategyManager.createStrategy(series, currentStrategyType, bestRecord.parameters());
