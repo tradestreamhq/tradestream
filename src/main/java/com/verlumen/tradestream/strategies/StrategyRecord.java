@@ -10,7 +10,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 record StrategyRecord(StrategyType strategyType, Any parameters, double score)
     implements Serializable {
   static StrategyRecord create(StrategyType strategyType, Any parameters) {
-      new StrategyRecord(strategyType, parameters, Double.NEGATIVE_INFINITY);    
+      return new StrategyRecord(strategyType, parameters, Double.NEGATIVE_INFINITY);    
   }
 
   StrategyRecord {
