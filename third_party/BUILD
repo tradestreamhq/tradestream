@@ -20,6 +20,17 @@ java_library(
     ],
 )
 
+java_plugin(
+    name = "auto_factory_plugin",
+    processor_class = "com.google.auto.factory.processor.AutoFactoryProcessor",
+    deps = [
+        "@tradestream_maven//:com_google_auto_auto_common",
+        "@tradestream_maven//:com_google_auto_factory_auto_factory",
+        "@tradestream_maven//:javax_annotation_javax_annotation_api",
+        "@tradestream_maven//:javax_inject_javax_inject",
+    ],
+)
+
 java_library(
     name = "auto_value",
     exported_plugins = [
@@ -45,17 +56,6 @@ java_library(
         "@tradestream_maven//:com_ryanharter_auto_value_auto_value_gson",
         "@tradestream_maven//:com_ryanharter_auto_value_auto_value_gson_annotations",
         "@tradestream_maven//:com_ryanharter_auto_value_auto_value_gson_factory",
-    ],
-)
-
-java_plugin(
-    name = "auto_factory_plugin",
-    processor_class = "com.google.auto.factory.processor.AutoFactoryProcessor",
-    deps = [
-        "@tradestream_maven//:com_google_auto_auto_common",
-        "@tradestream_maven//:com_google_auto_factory_auto_factory",
-        "@tradestream_maven//:javax_annotation_javax_annotation_api",
-        "@tradestream_maven//:javax_inject_javax_inject",
     ],
 )
 
