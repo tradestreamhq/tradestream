@@ -26,7 +26,7 @@ import org.ta4j.core.num.Num;
 
 /**
  * JUnit4 tests for StrategyStateImpl.
- *
+ * 
  * This suite uses Guice injection (with BoundFieldModule) and the real protobuf-generated
  * Strategy message (imported from the production code) for verifying behavior. Each test
  * follows the arrange–act–assert pattern with a single assertion.
@@ -140,7 +140,6 @@ public class StrategyStateImplTest {
     }
 
     // --- toStrategyMessage() tests ---
-    // These tests verify that the real protobuf Strategy message is built correctly.
 
     @Test
     public void testToStrategyMessageReturnsCorrectType() {
@@ -263,7 +262,7 @@ public class StrategyStateImplTest {
             return type;
         }
     }
-
+    
     /**
      * A dummy implementation of the TA4J Strategy interface.
      * This dummy records its associated StrategyType and parameters.
@@ -380,7 +379,7 @@ public class StrategyStateImplTest {
     }
     
     /**
-     * Dummy Rule implementation for testing
+     * Dummy Rule implementation for testing.
      */
     public static class DummyRule implements org.ta4j.core.Rule {
         @Override
@@ -393,12 +392,11 @@ public class StrategyStateImplTest {
             return false;
         }
     }
-    }
 
     /**
      * A minimal dummy implementation of BarSeries.
      */
-    public static class DummyBarSeries implements BarSeries {
+    static class DummyBarSeries implements BarSeries {
         // Implement required methods
         
         @Override
@@ -451,33 +449,31 @@ public class StrategyStateImplTest {
             return this;
         }
         
-        @Override
+        // These methods are not part of the BarSeries interface in our version so no @Override annotation is used.
         public void addPrice(Num price) {
             // No implementation needed for testing
         }
         
-        @Override
         public void addTrade(Num amount, Num price) {
             // No implementation needed for testing
         }
         
         @Override
         public void addBar(ZonedDateTime endTime, Num openPrice, Num highPrice, 
-                          Num lowPrice, Num closePrice, Num volume, Num amount) {
+                           Num lowPrice, Num closePrice, Num volume, Num amount) {
             // No implementation needed for testing
         }
         
         @Override
         public void addBar(Duration timePeriod, ZonedDateTime endTime, Num openPrice, Num highPrice, 
-                          Num lowPrice, Num closePrice, Num volume) {
+                           Num lowPrice, Num closePrice, Num volume) {
             // No implementation needed for testing
         }
         
         @Override
         public void addBar(Duration timePeriod, ZonedDateTime endTime, Num openPrice, Num highPrice, 
-                          Num lowPrice, Num closePrice, Num volume, Num amount) {
+                           Num lowPrice, Num closePrice, Num volume, Num amount) {
             // No implementation needed for testing
         }
-    }
     }
 }
