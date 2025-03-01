@@ -40,7 +40,7 @@ final class StrategyStateFactoryImpl implements StrategyState.Factory {
                     type,
                     StrategyRecord.create(
                         type,
-                        strategyManager.getDefaultParameters(type),
+                        strategyManager.getDefaultParameters(type)
                     )
                 );
             }
