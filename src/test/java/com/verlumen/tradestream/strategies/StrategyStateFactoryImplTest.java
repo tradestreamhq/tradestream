@@ -27,7 +27,7 @@ import org.ta4j.core.rules.BooleanRule;
 /**
  * JUnit4 tests for StrategyStateImpl.
  */
-public class StrategyStateImplTest {
+public class StrategyStateFactoryImplTest {
     private static final BarSeries DUMMY_BAR_SERIES = new BaseBarSeries("DummyBarSeries");
 
     @Bind(to = StrategyManager.class)
