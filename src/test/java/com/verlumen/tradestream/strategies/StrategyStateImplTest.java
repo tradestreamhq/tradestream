@@ -27,15 +27,13 @@ import org.ta4j.core.rules.BooleanRule;
  * JUnit4 tests for StrategyStateImpl.
  */
 public class StrategyStateImplTest {
+    private static final BarSeries DUMMY_BAR_SERIES = new BaseBarSeries("DummyBarSeries");
 
-    @Bind
-    private StrategyStateImpl strategyState;
-
-    @Bind
+    @Bind(to = StrategyManager.class)
     private FakeStrategyManager fakeStrategyManager;
 
-    // Use BaseBarSeries from ta4j
-    private BarSeries dummyBarSeries = new BaseBarSeries("DummyBarSeries");
+    @Inject
+    private StrategyStateImpl strategyState;
 
     @Before
     public void setUp() {
@@ -47,7 +45,7 @@ public class StrategyStateImplTest {
     @Test
     public void testGetCurrentStrategyCreatesNonNullStrategy() throws Exception {
         // Arrange & Act
-        org.ta4j.core.Strategy result = strategyState.getCurrentStrategy(dummyBarSeries);
+        org.ta4j.core.Strategy result = strategyState.getCurrentStrategy(DUMMY_BAR_SERIES);
         // Assert: a non-null strategy is returned.
         assertNotNull(result);
     }
@@ -55,7 +53,7 @@ public class StrategyStateImplTest {
     @Test
     public void testGetCurrentStrategyCreatesStrategyWithDefaultType() throws Exception {
         // Arrange & Act
-        org.ta4j.core.Strategy result = strategyState.getCurrentStrategy(dummyBarSeries);
+        org.ta4j.core.Strategy result = strategyState.getCurrentStrategy(DUMMY_BAR_SERIES);
         // Assert: the created strategy (our test strategy) records type SMA_RSI.
         TestStrategy ts = (TestStrategy) result;
         assertEquals(StrategyType.SMA_RSI, ts.getType());
@@ -64,9 +62,9 @@ public class StrategyStateImplTest {
     @Test
     public void testGetCurrentStrategyReturnsSameInstanceOnSubsequentCalls() throws Exception {
         // Arrange
-        org.ta4j.core.Strategy first = strategyState.getCurrentStrategy(dummyBarSeries);
+        org.ta4j.core.Strategy first = strategyState.getCurrentStrategy(DUMMY_BAR_SERIES);
         // Act
-        org.ta4j.core.Strategy second = strategyState.getCurrentStrategy(dummyBarSeries);
+        org.ta4j.core.Strategy second = strategyState.getCurrentStrategy(DUMMY_BAR_SERIES);
         // Assert: the same instance is returned.
         assertSame(first, second);
     }
@@ -76,12 +74,12 @@ public class StrategyStateImplTest {
     @Test
     public void testUpdateRecordDoesNotChangeCurrentStrategyUntilReselect() throws Exception {
         // Arrange
-        org.ta4j.core.Strategy initial = strategyState.getCurrentStrategy(dummyBarSeries);
+        org.ta4j.core.Strategy initial = strategyState.getCurrentStrategy(DUMMY_BAR_SERIES);
         Any newParams = Any.getDefaultInstance();
         // Act
         strategyState.updateRecord(StrategyType.SMA_RSI, newParams, 100.0);
         // Assert: the cached strategy remains unchanged.
-        assertSame(initial, strategyState.getCurrentStrategy(dummyBarSeries));
+        assertSame(initial, strategyState.getCurrentStrategy(DUMMY_BAR_SERIES));
     }
 
     // --- selectBestStrategy() tests ---
@@ -92,7 +90,7 @@ public class StrategyStateImplTest {
         Any paramsDummy = Any.getDefaultInstance();
         strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0);
         // Act
-        strategyState.selectBestStrategy(dummyBarSeries);
+        strategyState.selectBestStrategy(DUMMY_BAR_SERIES);
         // Assert: the current strategy type is updated to SMA_RSI.
         assertEquals(StrategyType.SMA_RSI, strategyState.getCurrentStrategyType());
     }
@@ -113,7 +111,7 @@ public class StrategyStateImplTest {
         );
         injector.injectMembers(this);
         // Act: should throw IllegalStateException.
-        strategyState.selectBestStrategy(dummyBarSeries);
+        strategyState.selectBestStrategy(DUMMY_BAR_SERIES);
     }
 
     @Test(expected = InvalidProtocolBufferException.class)
@@ -121,7 +119,7 @@ public class StrategyStateImplTest {
         // Arrange – force createStrategy to throw an exception.
         fakeStrategyManager.setThrowExceptionOnCreate(true);
         // Act: getCurrentStrategy should throw.
-        strategyState.getCurrentStrategy(dummyBarSeries);
+        strategyState.getCurrentStrategy(DUMMY_BAR_SERIES);
     }
 
     @Test(expected = RuntimeException.class)
@@ -131,7 +129,7 @@ public class StrategyStateImplTest {
         strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0);
         fakeStrategyManager.setThrowExceptionOnCreate(true);
         // Act: selectBestStrategy should wrap the exception in a RuntimeException.
-        strategyState.selectBestStrategy(dummyBarSeries);
+        strategyState.selectBestStrategy(DUMMY_BAR_SERIES);
     }
 
     // --- toStrategyMessage() tests ---
@@ -141,7 +139,7 @@ public class StrategyStateImplTest {
         // Arrange
         Any paramsDummy = Any.getDefaultInstance();
         strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0);
-        strategyState.selectBestStrategy(dummyBarSeries);
+        strategyState.selectBestStrategy(DUMMY_BAR_SERIES);
         // Act
         // Use fully qualified name to avoid confusion with org.ta4j.core.Strategy
         com.verlumen.tradestream.strategies.Strategy protoMessage = strategyState.toStrategyMessage();
@@ -154,7 +152,7 @@ public class StrategyStateImplTest {
         // Arrange
         Any paramsDummy = Any.getDefaultInstance();
         strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0);
-        strategyState.selectBestStrategy(dummyBarSeries);
+        strategyState.selectBestStrategy(DUMMY_BAR_SERIES);
         // Act
         // Use fully qualified name to avoid confusion with org.ta4j.core.Strategy
         com.verlumen.tradestream.strategies.Strategy protoMessage = strategyState.toStrategyMessage();
