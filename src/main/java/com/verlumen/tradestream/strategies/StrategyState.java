@@ -8,8 +8,7 @@ import org.ta4j.core.BarSeries;
  * Interface for maintaining the state for the current strategy and
  * recording performance for all available strategies.
  */
-interface StrategyState {
-    
+interface StrategyState {    
     /**
      * Reconstruct or return the current strategy.
      *
@@ -17,8 +16,7 @@ interface StrategyState {
      * @return the current TA4J strategy
      * @throws InvalidProtocolBufferException if the strategy parameters are invalid
      */
-    org.ta4j.core.Strategy getCurrentStrategy(BarSeries series)
-            throws InvalidProtocolBufferException;
+    org.ta4j.core.Strategy getCurrentStrategy(BarSeries series) throws InvalidProtocolBufferException;
     
     /**
      * Update the record for a given strategy type.
