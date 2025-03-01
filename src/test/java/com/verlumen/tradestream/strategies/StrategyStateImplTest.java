@@ -21,8 +21,6 @@ import org.junit.Test;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.Rule;
-import org.ta4j.core.Strategy;
 import org.ta4j.core.rules.BooleanRule;
 
 /**
@@ -36,7 +34,7 @@ public class StrategyStateImplTest {
     @Bind
     private FakeStrategyManager fakeStrategyManager;
 
-    // Use BaseBarSeries instead of a custom implementation
+    // Use BaseBarSeries from ta4j
     private BarSeries dummyBarSeries = new BaseBarSeries("DummyBarSeries");
 
     @Before
@@ -145,7 +143,8 @@ public class StrategyStateImplTest {
         strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0);
         strategyState.selectBestStrategy(dummyBarSeries);
         // Act
-        Strategy protoMessage = strategyState.toStrategyMessage();
+        // Use fully qualified name to avoid confusion with org.ta4j.core.Strategy
+        com.verlumen.tradestream.strategies.Strategy protoMessage = strategyState.toStrategyMessage();
         // Assert: the proto message type is SMA_RSI.
         assertEquals(StrategyType.SMA_RSI, protoMessage.getType());
     }
@@ -157,7 +156,8 @@ public class StrategyStateImplTest {
         strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0);
         strategyState.selectBestStrategy(dummyBarSeries);
         // Act
-        Strategy protoMessage = strategyState.toStrategyMessage();
+        // Use fully qualified name to avoid confusion with org.ta4j.core.Strategy
+        com.verlumen.tradestream.strategies.Strategy protoMessage = strategyState.toStrategyMessage();
         // Assert: the proto message parameters match the expected value.
         assertEquals(paramsDummy, protoMessage.getParameters());
     }
