@@ -30,64 +30,67 @@ public class OptimizeStrategies
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   
-  private final GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator;
+  private final OptimizeStrategiesDoFn optimizeStrategiesDoFn;
   
   @Inject
   OptimizeStrategies(
-      GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator) {
-    this.geneticAlgorithmOrchestrator = geneticAlgorithmOrchestrator;
+      OptimizeStrategiesDoFn optimizeStrategiesDoFn) {
+    this.optimizeStrategiesDoFn = optimizeStrategiesDoFn;
   }
-  
+
   @Override
   public PCollection<KV<String, StrategyState>> expand(
       PCollection<KV<String, ImmutableList<Candle>>> input) {
-    
+
     return input.apply("OptimizeStrategiesForCandles", 
         ParDo.of(new OptimizeStrategiesDoFn(geneticAlgorithmOrchestrator)))
         .setTypeDescriptor(new TypeDescriptor<KV<String, StrategyState>>() {});
   }
-  
+
   /**
    * Stateful DoFn that maintains strategy state and performs optimization.
    */
   private static class OptimizeStrategiesDoFn 
       extends DoFn<KV<String, ImmutableList<Candle>>, KV<String, StrategyState>> {
-    
+
     @StateId("strategyState")
     private final StateSpec<ValueState<StrategyState>> strategyStateSpec = StateSpecs.value();
-    
-    private final GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator;
-    
+
+    private final GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator; 
+    private final StrategyState.Factory stateFactory;
+
+    @Inject
     OptimizeStrategiesDoFn(
         GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator) {
       this.geneticAlgorithmOrchestrator = geneticAlgorithmOrchestrator;
+      this.stateFactory = stateFactory;
     }
-    
+
     @ProcessElement
     public void processElement(
         ProcessContext context,
         @StateId("strategyState") ValueState<StrategyState> strategyStateValue) {
-      
+
       KV<String, ImmutableList<Candle>> element = context.element();
       String key = element.getKey();
       ImmutableList<Candle> candles = element.getValue();
-      
+
       // Skip empty candle lists
       if (candles == null || candles.isEmpty()) {
         logger.atWarning().log("Received empty candle list for key: %s", key);
         return;
       }
-      
+
       // Convert candles to a BarSeries
       BarSeries barSeries = BarSeriesBuilder.createBarSeries(candles);
-      
+
       // Get or initialize strategy state
       StrategyState state = strategyStateValue.read();
       if (state == null) {
         logger.atInfo().log("Initializing strategy state for key: %s", key);
-        state = StrategyState.initialize(barSeries);
+        state = stateFactory.create();
       }
-      
+
       // Optimize each strategy type
       for (StrategyType strategyType : state.getStrategyTypes()) {
         try {
@@ -95,20 +98,20 @@ public class OptimizeStrategies
               .setStrategyType(strategyType)
               .addAllCandles(candles)
               .build();
-          
+
           logger.atInfo().log("Optimizing strategy %s for key: %s", strategyType, key);
           BestStrategyResponse response = geneticAlgorithmOrchestrator.runOptimization(request);
           state.updateRecord(strategyType, response.getBestStrategyParameters(), response.getBestScore());
-          
+
         } catch (Exception e) {
           logger.atWarning().withCause(e).log(
               "Error optimizing strategy %s for key: %s", strategyType, key);
         }
       }
-      
+
       // Select the best strategy based on optimization scores
       state = state.selectBestStrategy(barSeries);
-      
+
       // Update state and output the optimized strategy state
       strategyStateValue.write(state);
       context.output(KV.of(key, state));
