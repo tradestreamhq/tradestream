@@ -82,6 +82,7 @@ java_test(
     srcs = ["StrategyStateImplTest.java"],
     deps = [
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_state_impl",
         "//third_party:guava",
