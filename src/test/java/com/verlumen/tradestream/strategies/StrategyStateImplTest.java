@@ -11,6 +11,9 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.Message;
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -81,7 +84,7 @@ public class StrategyStateImplTest {
         org.ta4j.core.Strategy initial = strategyState.getCurrentStrategy(dummyBarSeries);
         Any newParams = Any.getDefaultInstance();
         // Act
-        strategyState.updateRecord(StrategyType.SMA_RSI, newParams, 100.0); // Changed DUMMY to SMA_RSI
+        strategyState.updateRecord(StrategyType.SMA_RSI, newParams, 100.0);
         // Assert: the cached strategy remains unchanged.
         assertSame(initial, strategyState.getCurrentStrategy(dummyBarSeries));
     }
@@ -92,7 +95,7 @@ public class StrategyStateImplTest {
     public void testSelectBestStrategyPicksRecordWithHighestScore() {
         // Arrange
         Any paramsDummy = Any.getDefaultInstance();
-        strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0); // Changed DUMMY to SMA_RSI
+        strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0);
         // Act
         strategyState.selectBestStrategy(dummyBarSeries);
         // Assert: the current strategy type is updated to SMA_RSI.
@@ -104,7 +107,7 @@ public class StrategyStateImplTest {
         // Arrange – use a fake manager with no strategy types.
         FakeStrategyManager emptyManager = new FakeStrategyManager(Collections.<StrategyType>emptyList());
         Injector injector = Guice.createInjector(
-            BoundFieldModule.of(this), // Changed getInstance to of
+            BoundFieldModule.of(this),
             new AbstractModule() {
                 @Override
                 protected void configure() {
@@ -130,7 +133,7 @@ public class StrategyStateImplTest {
     public void testSelectBestStrategyThrowsWhenStrategyCreationFails() {
         // Arrange – update record then force exception on creation.
         Any paramsDummy = Any.getDefaultInstance();
-        strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0); // Changed DUMMY to SMA_RSI
+        strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0);
         fakeStrategyManager.setThrowExceptionOnCreate(true);
         // Act: selectBestStrategy should wrap the exception in a RuntimeException.
         strategyState.selectBestStrategy(dummyBarSeries);
@@ -143,7 +146,7 @@ public class StrategyStateImplTest {
     public void testToStrategyMessageReturnsCorrectType() {
         // Arrange
         Any paramsDummy = Any.getDefaultInstance();
-        strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0); // Changed DUMMY to SMA_RSI
+        strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0);
         strategyState.selectBestStrategy(dummyBarSeries);
         // Act
         Strategy protoMessage = strategyState.toStrategyMessage();
@@ -155,7 +158,7 @@ public class StrategyStateImplTest {
     public void testToStrategyMessageReturnsCorrectParameters() {
         // Arrange
         Any paramsDummy = Any.getDefaultInstance();
-        strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0); // Changed DUMMY to SMA_RSI
+        strategyState.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0);
         strategyState.selectBestStrategy(dummyBarSeries);
         // Act
         Strategy protoMessage = strategyState.toStrategyMessage();
@@ -229,18 +232,35 @@ public class StrategyStateImplTest {
         }
         
         @Override
-        public StrategyFactory getStrategyFactory(StrategyType type) {
-            // Return a concrete implementation of StrategyFactory instead of a lambda
-            return new StrategyFactory() {
-                @Override
-                public org.ta4j.core.Strategy createStrategy(BarSeries series, Any parameters) 
-                        throws InvalidProtocolBufferException {
-                    return new DummyStrategy(type, parameters);
-                }
-                
-                // Implement any other abstract methods in StrategyFactory interface
-                // This depends on what methods are in your StrategyFactory interface
-            };
+        public StrategyFactory<?> getStrategyFactory(StrategyType type) {
+            // Return a concrete implementation of StrategyFactory
+            return new DummyStrategyFactory(type);
+        }
+    }
+    
+    /**
+     * A dummy implementation of StrategyFactory for testing.
+     */
+    public static class DummyStrategyFactory implements StrategyFactory<Message> {
+        private final StrategyType type;
+        
+        public DummyStrategyFactory(StrategyType type) {
+            this.type = type;
+        }
+        
+        @Override
+        public org.ta4j.core.Strategy createStrategy(BarSeries series, Message parameters) {
+            return new DummyStrategy(type, Any.pack(parameters));
+        }
+        
+        @Override
+        public Message getDefaultParameters() {
+            return Any.getDefaultInstance();
+        }
+        
+        @Override
+        public StrategyType getStrategyType() {
+            return type;
         }
     }
 
@@ -305,6 +325,11 @@ public class StrategyStateImplTest {
         @Override
         public void setUnstableBars(int unstableBars) {
             this.unstableBars = unstableBars;
+        }
+        
+        @Override
+        public org.ta4j.core.Strategy opposite() {
+            return this; // For testing purposes, return self
         }
     }
 
@@ -371,7 +396,12 @@ public class StrategyStateImplTest {
         
         @Override
         public void addTrade(Num amount, Num price) {
-            // Implemented missing method
+            // No implementation needed for testing
+        }
+        
+        @Override
+        public void addBar(Duration timePeriod, ZonedDateTime endTime, Num openPrice, Num highPrice, 
+                          Num lowPrice, Num closePrice, Num volume, Num amount) {
             // No implementation needed for testing
         }
     }
