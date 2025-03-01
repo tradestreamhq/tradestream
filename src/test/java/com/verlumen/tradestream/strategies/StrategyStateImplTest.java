@@ -33,13 +33,18 @@ public class StrategyStateImplTest {
     @Bind(to = StrategyManager.class)
     private FakeStrategyManager fakeStrategyManager;
 
-    @Inject
+    @Bind
+    private StrategyStateImplFactory strategyStateFactory;
+
     private StrategyStateImpl strategyState;
 
     @Before
     public void setUp() {
         fakeStrategyManager = new FakeStrategyManager();
-        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+        strategyState = Guice
+            .createInjector(BoundFieldModule.of(this))
+            .getInstance(StrategyStateImpl.class)
+            .create();
     }
 
     // --- getCurrentStrategy() tests ---
