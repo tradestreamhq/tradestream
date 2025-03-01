@@ -38,10 +38,9 @@ final class StrategyStateFactoryImpl implements StrategyState.Factory {
             for (StrategyType type : strategyManager.getStrategyTypes()) {
                 strategyRecords.put(
                     type,
-                    new StrategyRecord(
+                    StrategyRecord.create(
                         type,
                         strategyManager.getDefaultParameters(type),
-                        Double.NEGATIVE_INFINITY
                     )
                 );
             }
@@ -57,7 +56,7 @@ final class StrategyStateFactoryImpl implements StrategyState.Factory {
 
         @Override
         public void updateRecord(StrategyType type, Any parameters, double score) {
-            strategyRecords.put(type, new StrategyRecord(type, parameters, score));
+            strategyRecords.put(type, StrategyRecord.create(type, parameters, score));
         }
 
         @Override
