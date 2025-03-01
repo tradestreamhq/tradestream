@@ -230,8 +230,17 @@ public class StrategyStateImplTest {
         
         @Override
         public StrategyFactory getStrategyFactory(StrategyType type) {
-            // Implement the missing method - return a dummy factory
-            return (series, parameters) -> new DummyStrategy(type, parameters);
+            // Return a concrete implementation of StrategyFactory instead of a lambda
+            return new StrategyFactory() {
+                @Override
+                public org.ta4j.core.Strategy createStrategy(BarSeries series, Any parameters) 
+                        throws InvalidProtocolBufferException {
+                    return new DummyStrategy(type, parameters);
+                }
+                
+                // Implement any other abstract methods in StrategyFactory interface
+                // This depends on what methods are in your StrategyFactory interface
+            };
         }
     }
 
@@ -243,6 +252,7 @@ public class StrategyStateImplTest {
 
         private final StrategyType type;
         private final Any parameters;
+        private int unstableBars = 0;
 
         public DummyStrategy(StrategyType type, Any parameters) {
             this.type = type;
@@ -289,8 +299,12 @@ public class StrategyStateImplTest {
         
         @Override
         public int getUnstableBars() {
-            // Implement the missing method
-            return 0;
+            return unstableBars;
+        }
+        
+        @Override
+        public void setUnstableBars(int unstableBars) {
+            this.unstableBars = unstableBars;
         }
     }
 
@@ -352,7 +366,12 @@ public class StrategyStateImplTest {
         
         @Override
         public void addPrice(Num price) {
-            // Implement the missing method
+            // No implementation needed for testing
+        }
+        
+        @Override
+        public void addTrade(Num amount, Num price) {
+            // Implemented missing method
             // No implementation needed for testing
         }
     }
