@@ -446,13 +446,10 @@ public class StrategyStateImplTest {
             // No implementation needed for testing
         }
 
-        // These two methods are not part of the current BarSeries interface.
-        // Their @Override annotations have been removed.
-        public void addBar(Duration timePeriod, ZonedDateTime endTime) {
-            // No implementation needed for testing
-        }
-
-        public void addPrice(Num price) {
+        // This method is now implemented to match the full signature required by BarSeries.
+        @Override
+        public void addBar(Duration timePeriod, ZonedDateTime endTime, Num openPrice, Num highPrice,
+                           Num lowPrice, Num closePrice, Num volume, Num amount) {
             // No implementation needed for testing
         }
 
