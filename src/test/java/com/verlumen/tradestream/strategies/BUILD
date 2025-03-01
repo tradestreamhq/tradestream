@@ -84,6 +84,7 @@ java_test(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_state_impl",
+        "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
         "//third_party:protobuf_java",
