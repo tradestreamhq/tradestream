@@ -1,20 +1,6 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
-    name = "KafkaConsumerProviderTest",
-    srcs = ["KafkaConsumerProviderTest.java"],
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
-        "//src/main/java/com/verlumen/tradestream/strategies:kafka_consumer_provider",
-        "//third_party:guice",
-        "//third_party:guice_testlib",
-        "//third_party:junit",
-        "//third_party:kafka_clients", 
-        "//third_party:mockito_core",
-    ],
-)
-
-java_test(
     name = "MarketDataConsumerImplTest",
     srcs = ["MarketDataConsumerImplTest.java"],
     deps = [
@@ -39,7 +25,7 @@ java_test(
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//protos:trade_signals_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:ga_service_client",
+        "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
         "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
         "//src/main/java/com/verlumen/tradestream/strategies:candle_buffer",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine",
@@ -66,6 +52,25 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager_impl",
         "//third_party:flogger",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:protobuf_java",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:ta4j_core",
+        "//third_party:truth",
+    ],
+)
+
+java_test(
+    name = "StrategyStateImplTest",
+    srcs = ["StrategyStateImplTest.java"],
+    deps = [
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_state_impl",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",

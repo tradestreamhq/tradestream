@@ -3,11 +3,10 @@ package com.verlumen.tradestream.strategies;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.backtesting.GAServiceClient;
+import com.verlumen.tradestream.backtesting.GeneticAlgorithmOrchestrator;
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.backtesting.BestStrategyResponse;
 import com.verlumen.tradestream.marketdata.Candle;
@@ -24,7 +23,7 @@ import org.ta4j.core.TradingRecord;
  */
 final class StrategyEngineImpl implements StrategyEngine {
   private final CandleBuffer candleBuffer;
-  private final GAServiceClient gaServiceClient;
+  private final GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator;
   private final StrategyManager strategyManager;
   private final TradeSignalPublisher signalPublisher;
 
@@ -39,11 +38,11 @@ final class StrategyEngineImpl implements StrategyEngine {
   @Inject
   StrategyEngineImpl(
       CandleBuffer candleBuffer,
-      GAServiceClient gaServiceClient,
+      GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator,
       StrategyManager strategyManager,
       TradeSignalPublisher signalPublisher) {
     this.candleBuffer = candleBuffer;
-    this.gaServiceClient = gaServiceClient;
+    this.geneticAlgorithmOrchestrator = geneticAlgorithmOrchestrator;
     this.strategyManager = strategyManager;
     this.signalPublisher = signalPublisher;
     initializeStrategyRecords();
@@ -91,7 +90,7 @@ final class StrategyEngineImpl implements StrategyEngine {
     this.currentStrategyType = StrategyType.SMA_RSI;
     try {
       currentStrategy =
-          strategyManager.createStrategy(currentStrategyType, candleBuffer.toBarSeries());
+          strategyManager.createStrategy(candleBuffer.toBarSeries(), currentStrategyType);
     } catch (Exception e) {
       throw new RuntimeException("Failed to initialize default strategy", e);
     }
@@ -107,7 +106,7 @@ final class StrategyEngineImpl implements StrategyEngine {
               .build();
 
       try {
-        BestStrategyResponse response = gaServiceClient.requestOptimization(request);
+        BestStrategyResponse response = geneticAlgorithmOrchestrator.runOptimization(request);
         Any any = response.getBestStrategyParameters();
         updateStrategyRecord(strategyType, any, response.getBestScore());
       } catch (Exception e) {
@@ -142,7 +141,7 @@ final class StrategyEngineImpl implements StrategyEngine {
     try {
       currentStrategy =
           strategyManager.createStrategy(
-            currentStrategyType, candleBuffer.toBarSeries(), bestRecord.parameters());
+                  candleBuffer.toBarSeries(), currentStrategyType, bestRecord.parameters());
     } catch (InvalidProtocolBufferException e) {
       throw new RuntimeException(e);
     }

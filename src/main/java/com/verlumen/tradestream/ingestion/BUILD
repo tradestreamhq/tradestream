@@ -57,7 +57,6 @@ java_library(
     srcs = ["CurrencyPairMetadata.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party:auto_value",
     ],
 )
 
