@@ -64,13 +64,13 @@ java_test(
 )
 
 java_test(
-    name = "StrategyStateImplTest",
-    srcs = ["StrategyStateImplTest.java"],
+    name = "StrategyStateFactoryImplTest",
+    srcs = ["StrategyStateFactoryImplTest.java"],
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_state_impl",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_state_factory_impl",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
