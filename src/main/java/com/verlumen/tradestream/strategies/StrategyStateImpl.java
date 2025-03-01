@@ -20,17 +20,20 @@ public class StrategyStateImpl implements StrategyState {
     private transient org.ta4j.core.Strategy currentStrategy;
     
     @Inject
-    StrategyStateImpl(StrategyManager strategyManager) {
-        Map<StrategyType, StrategyRecord> strategyRecords = new ConcurrentHashMap<>();
+    public StrategyStateImpl(StrategyManager strategyManager) {
+        this.strategyManager = strategyManager;
+        this.strategyRecords = new ConcurrentHashMap<>();
+        
+        // Initialize strategy records for all available strategy types
         for (StrategyType type : strategyManager.getStrategyTypes()) {
             strategyRecords.put(type, new StrategyRecord(
                 type, 
                 strategyManager.getDefaultParameters(type), 
                 Double.NEGATIVE_INFINITY));
         }
-        this.strategyManager = strategyManager;
-        this.strategyRecords = strategyRecords;
+        
         this.currentStrategyType = DEFAULT_TYPE;
+        this.currentStrategy = null;
     }
     
     @Override
@@ -38,6 +41,9 @@ public class StrategyStateImpl implements StrategyState {
             throws InvalidProtocolBufferException {
         if (currentStrategy == null) {
             StrategyRecord record = strategyRecords.get(currentStrategyType);
+            if (record == null) {
+                throw new IllegalStateException("No record found for strategy type: " + currentStrategyType);
+            }
             currentStrategy = strategyManager.createStrategy(series, currentStrategyType, record.parameters());
         }
         return currentStrategy;
@@ -59,6 +65,8 @@ public class StrategyStateImpl implements StrategyState {
             .orElseThrow(() -> new IllegalStateException("No optimized strategy found"));
             
         this.currentStrategyType = bestRecord.strategyType();
+        this.currentStrategy = null;  // Force re-creation of strategy with new parameters
+        
         try {
             this.currentStrategy = strategyManager.createStrategy(series, currentStrategyType, bestRecord.parameters());
         } catch (Exception e) {
@@ -70,6 +78,10 @@ public class StrategyStateImpl implements StrategyState {
     @Override
     public Strategy toStrategyMessage() {
         StrategyRecord record = strategyRecords.get(currentStrategyType);
+        if (record == null) {
+            throw new IllegalStateException("No record found for current strategy type: " + currentStrategyType);
+        }
+        
         return Strategy.newBuilder()
                 .setType(currentStrategyType)
                 .setParameters(record.parameters())
