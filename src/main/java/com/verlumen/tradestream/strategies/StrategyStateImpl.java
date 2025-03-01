@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.strategies;
 
+import com.google.auto.factory.AutoFactory;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -11,7 +12,7 @@ import org.ta4j.core.BarSeries;
  * Implementation of the StrategyState interface.
  * This class is serializable to support Beam state APIs.
  */
-public class StrategyStateImpl implements StrategyState {
+final class StrategyStateImpl implements StrategyState {
     private static final StrategyType DEFAULT_TYPE = StrategyType.SMA_RSI;
 
     private final StrategyManager strategyManager;
@@ -19,8 +20,8 @@ public class StrategyStateImpl implements StrategyState {
     private StrategyType currentStrategyType;
     private transient org.ta4j.core.Strategy currentStrategy;
     
-    @Inject
-    StrategyStateImpl(StrategyManager strategyManager) {
+    @AutoFactory
+    StrategyStateImpl(@Provided StrategyManager strategyManager) {
         Map<StrategyType, StrategyRecord> strategyRecords = new ConcurrentHashMap<>();
         for (StrategyType type : strategyManager.getStrategyTypes()) {
             strategyRecords.put(type, new StrategyRecord(
