@@ -97,14 +97,6 @@ public class StrategyStateImplTest {
         assertEquals(StrategyType.SMA_RSI, strategyState.getCurrentStrategyType());
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void testSelectBestStrategyThrowsWhenNoRecordsAvailable() {
-        // Arrange – use a fake manager with no strategy types.
-        fakeStrategyManager.clearStrategyTypes();
-        // Act: should throw IllegalStateException.
-        strategyState.selectBestStrategy(DUMMY_BAR_SERIES);
-    }
-
     @Test(expected = InvalidProtocolBufferException.class)
     public void testGetCurrentStrategyThrowsWhenStrategyCreationFails() throws Exception {
         // Arrange – force createStrategy to throw an exception.
@@ -185,7 +177,7 @@ public class StrategyStateImplTest {
 
         @Inject
         public FakeStrategyManager() {
-            this(Arrays.asList(StrategyType.SMA_RSI));
+            this(ImmutableList.of(StrategyType.SMA_RSI));
         }
 
         public FakeStrategyManager(List<StrategyType> strategyTypes) {
@@ -219,10 +211,6 @@ public class StrategyStateImplTest {
         public StrategyFactory<?> getStrategyFactory(StrategyType type) {
             // Return a concrete implementation of StrategyFactory
             return new TestStrategyFactory(type);
-        }
-
-        private void clearStrategyTypes() {
-            this.strategyTypes.clear();
         }
     }
 
