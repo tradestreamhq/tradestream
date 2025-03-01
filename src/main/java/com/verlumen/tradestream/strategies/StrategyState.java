@@ -55,4 +55,21 @@ interface StrategyState {
      * @return the current strategy type
      */
     StrategyType getCurrentStrategyType();
+
+    /**
+     * Factory interface for creating instances of {@link StrategyState}.
+     * <p>
+     * Implementations of this interface should provide a method to
+     * create a new instance of {@code StrategyState}, which is used to
+     * initialize the state for a trading strategy.
+     * </p>
+     */
+    interface Factory {
+        /**
+         * Creates and returns a new instance of {@link StrategyState}.
+         *
+         * @return a new instance of {@code StrategyState}
+         */
+        StrategyState create();
+    }
 }
