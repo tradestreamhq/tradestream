@@ -273,6 +273,7 @@ public class StrategyStateImplTest {
         private final StrategyType type;
         private final Any parameters;
         private int unstableBars = 0;
+        private String name = "DummyStrategy";
 
         public DummyStrategy(StrategyType type, Any parameters) {
             this.type = type;
@@ -330,6 +331,41 @@ public class StrategyStateImplTest {
         @Override
         public org.ta4j.core.Strategy opposite() {
             return this; // For testing purposes, return self
+        }
+        
+        @Override
+        public org.ta4j.core.Strategy or(String name, org.ta4j.core.Strategy strategy, int unstablePeriod) {
+            return this; // For testing purposes, return self
+        }
+        
+        @Override
+        public org.ta4j.core.Strategy or(org.ta4j.core.Strategy strategy) {
+            return this; // For testing purposes, return self
+        }
+        
+        @Override
+        public org.ta4j.core.Strategy and(String name, org.ta4j.core.Strategy strategy, int unstablePeriod) {
+            return this; // For testing purposes, return self
+        }
+        
+        @Override
+        public org.ta4j.core.Strategy and(org.ta4j.core.Strategy strategy) {
+            return this; // For testing purposes, return self
+        }
+        
+        @Override
+        public org.ta4j.core.Strategy xor(String name, org.ta4j.core.Strategy strategy, int unstablePeriod) {
+            return this; // For testing purposes, return self
+        }
+        
+        @Override
+        public org.ta4j.core.Strategy xor(org.ta4j.core.Strategy strategy) {
+            return this; // For testing purposes, return self
+        }
+        
+        @Override
+        public String getName() {
+            return name;
         }
     }
 
@@ -396,6 +432,12 @@ public class StrategyStateImplTest {
         
         @Override
         public void addTrade(Num amount, Num price) {
+            // No implementation needed for testing
+        }
+        
+        @Override
+        public void addBar(Duration timePeriod, ZonedDateTime endTime, Num openPrice, Num highPrice, 
+                          Num lowPrice, Num closePrice, Num volume) {
             // No implementation needed for testing
         }
         
