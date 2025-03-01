@@ -100,7 +100,7 @@ public class StrategyStateImplTest {
     @Test(expected = IllegalStateException.class)
     public void testSelectBestStrategyThrowsWhenNoRecordsAvailable() {
         // Arrange – use a fake manager with no strategy types.
-        this.trategyManager.clearStrategyTypes();
+        this.strategyManager.clearStrategyTypes();
         
 
         // Act: should throw IllegalStateException.
