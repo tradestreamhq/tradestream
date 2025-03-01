@@ -7,6 +7,7 @@ import com.verlumen.tradestream.backtesting.BestStrategyResponse;
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.backtesting.GeneticAlgorithmOrchestrator;
 import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
 import org.apache.beam.sdk.state.StateId;
 import org.apache.beam.sdk.state.StateSpecs;
 import org.apache.beam.sdk.state.ValueState;
@@ -83,7 +84,7 @@ public class OptimizeStrategies
       }
       
       // Convert candles to a BarSeries
-      BarSeries barSeries = CandlesToBarSeries.convert(candles, key);
+      BarSeries barSeries = BarSeriesBuilder.createBarSeries(candles);
       
       // Get or initialize strategy state
       StrategyState state = strategyStateValue.read();
