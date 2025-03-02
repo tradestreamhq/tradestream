@@ -27,7 +27,6 @@ import org.ta4j.core.BarSeries;
 public class OptimizeStrategies 
     extends PTransform<PCollection<KV<String, ImmutableList<Candle>>>, 
                       PCollection<KV<String, StrategyState>>> {
-
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   
   private final OptimizeStrategiesDoFn optimizeStrategiesDoFn;
@@ -43,7 +42,7 @@ public class OptimizeStrategies
       PCollection<KV<String, ImmutableList<Candle>>> input) {
 
     return input.apply("OptimizeStrategiesForCandles", 
-        ParDo.of(new OptimizeStrategiesDoFn(geneticAlgorithmOrchestrator)))
+        ParDo.of(optimizeStrategiesDoFn)
         .setTypeDescriptor(new TypeDescriptor<KV<String, StrategyState>>() {});
   }
 
@@ -61,7 +60,8 @@ public class OptimizeStrategies
 
     @Inject
     OptimizeStrategiesDoFn(
-        GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator) {
+        GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator,
+        StrategyState.Factory stateFactory) {
       this.geneticAlgorithmOrchestrator = geneticAlgorithmOrchestrator;
       this.stateFactory = stateFactory;
     }
