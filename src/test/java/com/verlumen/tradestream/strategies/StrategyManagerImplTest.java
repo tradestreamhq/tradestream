@@ -71,7 +71,7 @@ public class StrategyManagerImplTest {
 
     // Act
     Strategy result =
-        strategyManager.createStrategy(StrategyType.SMA_RSI, barSeries, packedParams);
+        strategyManager.createStrategy(barSeries, StrategyType.SMA_RSI, packedParams);
 
     // Assert
     assertThat(result).isSameInstanceAs(mockStrategy);
@@ -93,7 +93,7 @@ public class StrategyManagerImplTest {
 
     // Act
     Strategy result =
-        strategyManager.createStrategy(StrategyType.EMA_MACD, barSeries, packedParams);
+        strategyManager.createStrategy(barSeries, StrategyType.EMA_MACD, packedParams);
 
     // Assert
     assertThat(result).isSameInstanceAs(mockStrategy);
@@ -117,7 +117,7 @@ public class StrategyManagerImplTest {
             IllegalArgumentException.class,
             () ->
                 strategyManager.createStrategy(
-                    StrategyType.ADX_STOCHASTIC, barSeries, packedParams));
+                        barSeries, StrategyType.ADX_STOCHASTIC, packedParams));
 
     assertThat(thrown).hasMessageThat().contains("Unsupported strategy type: ADX_STOCHASTIC");
   }
@@ -142,7 +142,7 @@ public class StrategyManagerImplTest {
     InvalidProtocolBufferException thrown =
         assertThrows(
             InvalidProtocolBufferException.class,
-            () -> strategyManager.createStrategy(StrategyType.SMA_RSI, barSeries, packedParams));
+            () -> strategyManager.createStrategy(barSeries, StrategyType.SMA_RSI, packedParams));
 
     assertThat(thrown).isSameInstanceAs(expectedException);
   }
