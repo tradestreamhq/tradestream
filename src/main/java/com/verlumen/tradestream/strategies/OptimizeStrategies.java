@@ -43,7 +43,7 @@ public class OptimizeStrategies
 
     return input.apply("OptimizeStrategiesForCandles", 
         ParDo.of(optimizeStrategiesDoFn)
-        .setTypeDescriptor(new TypeDescriptor<KV<String, StrategyState>>() {});
+        .setTypeDescriptor(new TypeDescriptor<KV<String, StrategyState>>() {}));
   }
 
   /**
