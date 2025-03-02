@@ -2,13 +2,14 @@ package com.verlumen.tradestream.strategies;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import java.io.Serializable;
 import org.ta4j.core.BarSeries;
 
 /**
  * Interface for maintaining the state for the current strategy and
  * recording performance for all available strategies.
  */
-interface StrategyState {    
+interface StrategyState extends Serializable {    
     /**
      * Reconstruct or return the current strategy.
      *
@@ -55,4 +56,21 @@ interface StrategyState {
      * @return the current strategy type
      */
     StrategyType getCurrentStrategyType();
+
+    /**
+     * Factory interface for creating instances of {@link StrategyState}.
+     * <p>
+     * Implementations of this interface should provide a method to
+     * create a new instance of {@code StrategyState}, which is used to
+     * initialize the state for a trading strategy.
+     * </p>
+     */
+    interface Factory extends Serializable {
+        /**
+         * Creates and returns a new instance of {@link StrategyState}.
+         *
+         * @return a new instance of {@code StrategyState}
+         */
+        StrategyState create();
+    }
 }
