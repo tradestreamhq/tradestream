@@ -16,7 +16,11 @@ import com.verlumen.tradestream.backtesting.BestStrategyResponse;
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.backtesting.GeneticAlgorithmOrchestrator;
 import com.verlumen.tradestream.marketdata.Candle;
-import com.verlumen.tradestream.strategies.StrategyState.Factory;
+import org.apache.beam.sdk.coders.Coder;
+import org.apache.beam.sdk.coders.CoderRegistry;
+import org.apache.beam.sdk.coders.KvCoder;
+import org.apache.beam.sdk.coders.StringUtf8Coder;
+import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
@@ -30,6 +34,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import  org.apache.beam.sdk.coders.ListCoder;
+
 
 @RunWith(MockitoJUnitRunner.class)
 public class OptimizeStrategiesTest {
@@ -52,16 +58,16 @@ public class OptimizeStrategiesTest {
       when(mockStateFactory.create()).thenReturn(mockOptimizedState);
   }
 
+    private <K, V> KvCoder<K, V> getKvCoder(Coder<K> keyCoder, Coder<V> valueCoder) {
+        return KvCoder.of(keyCoder, valueCoder);
+    }
+
   @Test
   public void expand_emptyCandleList_doesNotCallOrchestrator() {
     // Arrange
     PCollection<KV<String, ImmutableList<Candle>>> input =
         pipeline.apply("CreateEmptyInput", Create.empty(
-            org.apache.beam.sdk.coders.KvCoder.of(
-                org.apache.beam.sdk.coders.StringUtf8Coder.of(),
-                com.verlumen.tradestream.testing.BeamCoder.of(ImmutableList.class,
-                    com.verlumen.tradestream.testing.BeamCoder.of(Candle.class))
-            )
+            getKvCoder(StringUtf8Coder.of(), ListCoder.of(ProtoCoder.of(Candle.class)))
         ));
 
       // Act
@@ -85,9 +91,12 @@ public class OptimizeStrategiesTest {
 
     ImmutableList<Candle> candles = ImmutableList.of(candle1, candle2);
 
-    PCollection<KV<String, ImmutableList<Candle>>> input =
-        pipeline.apply(
-            "CreateInput", Create.of(KV.of(testKey, candles)));
+        PCollection<KV<String, ImmutableList<Candle>>> input =
+                pipeline.apply(
+                        "CreateInput",
+                        Create.of(KV.of(testKey, candles))
+                                .withCoder(getKvCoder(StringUtf8Coder.of(), ListCoder.of(ProtoCoder.of(Candle.class)))));
+
 
     BestStrategyResponse mockResponse =
         BestStrategyResponse.newBuilder()
@@ -116,8 +125,11 @@ public class OptimizeStrategiesTest {
     // Arrange
     String testKey = "testKey";
     ImmutableList<Candle> candles = ImmutableList.of(Candle.newBuilder().build());
-    PCollection<KV<String, ImmutableList<Candle>>> input =
-            pipeline.apply("CreateInput", Create.of(KV.of(testKey, candles)));
+      PCollection<KV<String, ImmutableList<Candle>>> input =
+              pipeline.apply(
+                      "CreateInput",
+                      Create.of(KV.of(testKey, candles))
+                              .withCoder(getKvCoder(StringUtf8Coder.of(), ListCoder.of(ProtoCoder.of(Candle.class)))));
 
     BestStrategyResponse mockResponse1 = BestStrategyResponse.newBuilder().setBestScore(0.8).build();
     BestStrategyResponse mockResponse2 = BestStrategyResponse.newBuilder().setBestScore(0.9).build();
