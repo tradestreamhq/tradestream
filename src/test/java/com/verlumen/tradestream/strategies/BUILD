@@ -1,6 +1,19 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
+    name = "OptimizeStrategiesTest",
+    srcs = ["OptimizeStrategiesTest.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+    ],
+)
+
+java_test(
     name = "MarketDataConsumerImplTest",
     srcs = ["MarketDataConsumerImplTest.java"],
     deps = [
