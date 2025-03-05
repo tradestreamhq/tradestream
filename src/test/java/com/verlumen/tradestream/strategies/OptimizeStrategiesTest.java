@@ -141,7 +141,7 @@ public class OptimizeStrategiesTest {
 
         pipeline.run().waitUntilFinish();
 
-        verify(mockOrchestrator, times(1)).runOptimization(any(GAOptimizationRequest.class));
+        verify(mockOrchestrator).runOptimization(any(GAOptimizationRequest.class));
         GAOptimizationRequest actualRequest = gaRequestCaptor.getValue();
         assertThat(actualRequest.getCandlesList()).containsExactlyElementsIn(candles).inOrder();
         assertThat(actualRequest.getStrategyType())
