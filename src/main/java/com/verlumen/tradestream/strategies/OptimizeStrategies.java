@@ -17,7 +17,6 @@ import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
-import org.apache.beam.sdk.values.TypeDescriptor;
 import org.ta4j.core.BarSeries;
 
 /**
@@ -42,8 +41,7 @@ public class OptimizeStrategies
       PCollection<KV<String, ImmutableList<Candle>>> input) {
 
     return input.apply("OptimizeStrategiesForCandles", 
-        ParDo.of(optimizeStrategiesDoFn)
-        .setTypeDescriptor(new TypeDescriptor<KV<String, StrategyState>>() {}));
+        ParDo.of(optimizeStrategiesDoFn));
   }
 
   /**
