@@ -9,6 +9,7 @@ java_test(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
         "//src/main/java/com/verlumen/tradestream/strategies:optimize_strategies",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_record",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
         "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_builder",
         "//third_party:beam_sdks_java_core",
