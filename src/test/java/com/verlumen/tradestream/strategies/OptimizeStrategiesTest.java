@@ -46,31 +46,30 @@ public class OptimizeStrategiesTest {
 
   @Rule public final TestPipeline pipeline = TestPipeline.create();
 
-  @Mock private GeneticAlgorithmOrchestrator mockOrchestrator;
+  @Mock @Bind private GeneticAlgorithmOrchestrator mockOrchestrator;
   @Mock @Bind private StrategyState.Factory mockStateFactory;
-  @Bind private StrategyState mockOptimizedState = mock(StrategyState.class);
+  @Mock @Bind private StrategyState mockOptimizedState;
 
   @Captor ArgumentCaptor<GAOptimizationRequest> gaRequestCaptor;
 
   @Inject private OptimizeStrategies optimizeStrategies;
 
-
   @Before
   public void setUp() {
-    Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+      Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
       when(mockStateFactory.create()).thenReturn(mockOptimizedState);
   }
 
-    private <K, V> KvCoder<K, V> getKvCoder(Coder<K> keyCoder, Coder<V> valueCoder) {
-        return KvCoder.of(keyCoder, valueCoder);
-    }
+  private <K, V> KvCoder<K, V> getKvCoder(Coder<K> keyCoder, Coder<V> valueCoder) {
+      return KvCoder.of(keyCoder, valueCoder);
+  }
 
   @Test
   public void expand_emptyCandleList_doesNotCallOrchestrator() {
     // Arrange
-      PCollection<KV<String, ImmutableList<Candle>>> input =
+    PCollection<KV<String, ImmutableList<Candle>>> input =
         pipeline.apply("CreateEmptyInput", Create.empty(
-                getKvCoder(StringUtf8Coder.of(), SerializableCoder.of(new TypeDescriptor<ImmutableList<Candle>>() {})) // Use TypeDescriptor
+              getKvCoder(StringUtf8Coder.of(), SerializableCoder.of(new TypeDescriptor<ImmutableList<Candle>>() {})) // Use TypeDescriptor
         ));
 
       // Act
@@ -83,7 +82,6 @@ public class OptimizeStrategiesTest {
     // Verify that the orchestrator was never called.
     verify(mockOrchestrator, org.mockito.Mockito.never()).runOptimization(any());
   }
-
 
   @Test
   public void expand_nonEmptyCandleList_callsOrchestratorAndOutputsState() throws Exception {
