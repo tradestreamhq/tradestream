@@ -8,6 +8,7 @@ java_test(
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:optimize_strategies",
+        "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_builder",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf",
         "//third_party:guava",
@@ -16,6 +17,8 @@ java_test(
         "//third_party:junit",
         "//third_party:mockito_core",
         "//third_party:protobuf_java",
+        "//third_party:ta4j_core",
+        "//third_party:truth",
     ],
     runtime_deps = [
         "//third_party:beam_runners_direct_java",
