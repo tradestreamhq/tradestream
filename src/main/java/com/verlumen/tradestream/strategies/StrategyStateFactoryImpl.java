@@ -30,7 +30,9 @@ final class StrategyStateFactoryImpl implements StrategyState.Factory {
     private static record StrategyStateImpl(
         StrategyManager strategyManager,
         Map<StrategyType, StrategyRecord> strategyRecords,
-        AtomicReference<StrategyType> currentStrategyType
+        AtomicReference<StrategyType> currentStrategyType,
+        // Use AtomicReference to cache the current strategy instance
+        AtomicReference<org.ta4j.core.Strategy> currentStrategy
     ) implements StrategyState {
 
         private static StrategyStateImpl create(StrategyManager strategyManager) {
@@ -44,14 +46,31 @@ final class StrategyStateFactoryImpl implements StrategyState.Factory {
                     )
                 );
             }
-            return new StrategyStateImpl(strategyManager, strategyRecords, new AtomicReference<>(DEFAULT_STRATEGY_TYPE));
+            return new StrategyStateImpl(
+                strategyManager, 
+                strategyRecords, 
+                new AtomicReference<>(DEFAULT_STRATEGY_TYPE),
+                new AtomicReference<>(null)
+            );
         }
 
         @Override
         public org.ta4j.core.Strategy getCurrentStrategy(BarSeries series)
                 throws InvalidProtocolBufferException {
+            // If we already have a strategy instance, return it
+            org.ta4j.core.Strategy cachedStrategy = currentStrategy.get();
+            if (cachedStrategy != null) {
+                return cachedStrategy;
+            }
+            
             StrategyRecord record = strategyRecords.get(currentStrategyType.get());
-            return strategyManager.createStrategy(series, currentStrategyType.get(), record.parameters());
+            org.ta4j.core.Strategy newStrategy = strategyManager.createStrategy(
+                series, 
+                currentStrategyType.get(), 
+                record.parameters()
+            );
+            currentStrategy.set(newStrategy);
+            return newStrategy;
         }
 
         @Override
@@ -64,7 +83,24 @@ final class StrategyStateFactoryImpl implements StrategyState.Factory {
             StrategyRecord bestRecord = strategyRecords.values().stream()
                 .max((r1, r2) -> Double.compare(r1.score(), r2.score()))
                 .orElseThrow(() -> new IllegalStateException("No optimized strategy found"));
+            
             currentStrategyType.set(bestRecord.strategyType());
+            
+            // Clear the cached strategy
+            currentStrategy.set(null);
+            
+            try {
+                // Create and cache the new strategy
+                org.ta4j.core.Strategy newStrategy = strategyManager.createStrategy(
+                    series, 
+                    currentStrategyType.get(), 
+                    bestRecord.parameters()
+                );
+                currentStrategy.set(newStrategy);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create strategy", e);
+            }
+            
             return this;
         }
 
