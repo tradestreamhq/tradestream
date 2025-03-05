@@ -6,10 +6,19 @@ java_test(
     deps = [
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:optimize_strategies",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
         "//third_party:junit",
         "//third_party:mockito_core",
+        "//third_party:protobuf_java",
+    ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
     ],
 )
 
