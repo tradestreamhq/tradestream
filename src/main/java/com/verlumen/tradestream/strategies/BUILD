@@ -61,7 +61,7 @@ java_library(
         ":strategy_factory",
         ":strategy_manager",
         ":strategy_manager_impl",
-        ":strategy_state_factory",
+        ":strategy_state",
         ":strategy_state_factory_impl",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/signals:signals_module",
