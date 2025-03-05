@@ -24,6 +24,8 @@ import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
+import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.junit.Before;
@@ -35,7 +37,9 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import  org.apache.beam.sdk.coders.ListCoder;
-
+import org.apache.beam.sdk.values.TypeDescriptors;
+import org.apache.beam.sdk.values.TypeDescriptor;
+import org.apache.beam.sdk.coders.SerializableCoder;
 
 @RunWith(MockitoJUnitRunner.class)
 public class OptimizeStrategiesTest {
@@ -43,7 +47,7 @@ public class OptimizeStrategiesTest {
   @Rule public final TestPipeline pipeline = TestPipeline.create();
 
   @Mock private GeneticAlgorithmOrchestrator mockOrchestrator;
-  @Mock private StrategyState.Factory mockStateFactory;
+  @Mock @Bind private StrategyState.Factory mockStateFactory;
   @Bind private StrategyState mockOptimizedState = mock(StrategyState.class);
 
   @Captor ArgumentCaptor<GAOptimizationRequest> gaRequestCaptor;
@@ -54,7 +58,6 @@ public class OptimizeStrategiesTest {
   @Before
   public void setUp() {
     Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
-      optimizeStrategies = new OptimizeStrategies(new OptimizeStrategies.OptimizeStrategiesDoFn(mockOrchestrator, mockStateFactory));
       when(mockStateFactory.create()).thenReturn(mockOptimizedState);
   }
 
@@ -65,9 +68,9 @@ public class OptimizeStrategiesTest {
   @Test
   public void expand_emptyCandleList_doesNotCallOrchestrator() {
     // Arrange
-    PCollection<KV<String, ImmutableList<Candle>>> input =
+      PCollection<KV<String, ImmutableList<Candle>>> input =
         pipeline.apply("CreateEmptyInput", Create.empty(
-            getKvCoder(StringUtf8Coder.of(), ListCoder.of(ProtoCoder.of(Candle.class)))
+                getKvCoder(StringUtf8Coder.of(), SerializableCoder.of(new TypeDescriptor<ImmutableList<Candle>>() {})) // Use TypeDescriptor
         ));
 
       // Act
@@ -95,7 +98,7 @@ public class OptimizeStrategiesTest {
                 pipeline.apply(
                         "CreateInput",
                         Create.of(KV.of(testKey, candles))
-                                .withCoder(getKvCoder(StringUtf8Coder.of(), ListCoder.of(ProtoCoder.of(Candle.class)))));
+                                .withCoder(getKvCoder(StringUtf8Coder.of(), SerializableCoder.of(new TypeDescriptor<ImmutableList<Candle>>() {})))); // Use TypeDescriptor
 
 
     BestStrategyResponse mockResponse =
@@ -129,7 +132,7 @@ public class OptimizeStrategiesTest {
               pipeline.apply(
                       "CreateInput",
                       Create.of(KV.of(testKey, candles))
-                              .withCoder(getKvCoder(StringUtf8Coder.of(), ListCoder.of(ProtoCoder.of(Candle.class)))));
+                              .withCoder(getKvCoder(StringUtf8Coder.of(), SerializableCoder.of(new TypeDescriptor<ImmutableList<Candle>>() {}))));  // Use TypeDescriptor
 
     BestStrategyResponse mockResponse1 = BestStrategyResponse.newBuilder().setBestScore(0.8).build();
     BestStrategyResponse mockResponse2 = BestStrategyResponse.newBuilder().setBestScore(0.9).build();
