@@ -61,6 +61,8 @@ java_library(
         ":strategy_factory",
         ":strategy_manager",
         ":strategy_manager_impl",
+        ":strategy_state",
+        ":strategy_state_factory_impl",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/signals:signals_module",
         "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
@@ -170,8 +172,8 @@ java_library(
 )
 
 java_library(
-    name = "strategy_state_impl",
-    srcs = ["StrategyStateImpl.java"],
+    name = "strategy_state_factory_impl",
+    srcs = ["StrategyStateFactoryImpl.java"],
     deps = [
         ":strategy_manager",
         ":strategy_record",
