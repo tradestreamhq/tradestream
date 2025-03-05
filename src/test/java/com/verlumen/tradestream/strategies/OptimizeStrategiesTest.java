@@ -1,5 +1,3 @@
-// src/test/java/com/verlumen/tradestream/strategies/OptimizeStrategiesTest.java
-
 package com.verlumen.tradestream.strategies;
 
 import static com.google.common.truth.Truth.assertThat;
