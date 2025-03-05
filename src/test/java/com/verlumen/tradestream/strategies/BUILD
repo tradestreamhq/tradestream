@@ -4,6 +4,7 @@ java_test(
     name = "OptimizeStrategiesTest",
     srcs = ["OptimizeStrategiesTest.java"],
     deps = [
+        "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:optimize_strategies",
