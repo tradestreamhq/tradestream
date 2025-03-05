@@ -2,6 +2,7 @@ package com.verlumen.tradestream.strategies;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -25,8 +26,6 @@ import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
-import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.junit.Before;
@@ -34,11 +33,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.rules.BooleanRule;
@@ -48,6 +45,7 @@ import org.ta4j.core.rules.BooleanRule;
 public class OptimizeStrategiesTest {
 
   @Rule public final TestPipeline pipeline = TestPipeline.create();
+  @Rule public MockitoRule mockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   // Use a Fake instead of a Mock for GeneticAlgorithmOrchestrator
   @Bind
@@ -136,40 +134,44 @@ public class OptimizeStrategiesTest {
         .isEqualTo(StrategyType.SMA_RSI); // Check strategy type
   }
 
-    @Test
-    public void expand_multipleStrategies_callsOrchestratorForEachStrategy() throws Exception {
-      // Arrange
-      String testKey = "testKey";
-      ImmutableList<Candle> candles = ImmutableList.of(Candle.newBuilder().build());
-      PCollection<KV<String, ImmutableList<Candle>>> input =
-              pipeline.apply(
-                      "CreateInput",
-                      Create.of(KV.of(testKey, candles))
-                              .withCoder(getKvCoder(StringUtf8Coder.of(), SerializableCoder.of((Class<ImmutableList<Candle>>) (Class<?>) ImmutableList.class))));
+  @Test
+  public void expand_multipleStrategies_callsOrchestratorForEachStrategy() throws Exception {
+    // Arrange
+    String testKey = "testKey";
+    ImmutableList<Candle> candles = ImmutableList.of(Candle.newBuilder().build());
+    PCollection<KV<String, ImmutableList<Candle>>> input =
+        pipeline.apply(
+            "CreateInput",
+            Create.of(KV.of(testKey, candles))
+                .withCoder(
+                    getKvCoder(
+                        StringUtf8Coder.of(),
+                        SerializableCoder.of(
+                            (Class<ImmutableList<Candle>>) (Class<?>) ImmutableList.class))));
 
-      // Act
-      PCollection<KV<String, StrategyState>> output = input.apply(optimizeStrategies);
+    // Act
+    PCollection<KV<String, StrategyState>> output = input.apply(optimizeStrategies);
 
-      // Assert (Using PAssert to verify the output)
-        PAssert.that(output)
-            .satisfies(
-                iterable -> {
-                    KV<String, StrategyState> element = iterable.iterator().next();
-                    assertThat(element.getKey()).isEqualTo(testKey);
-                    assertThat(element.getValue()).isInstanceOf(FakeStrategyState.class);
+    // Assert (Using PAssert to verify the output)
+    PAssert.that(output)
+        .satisfies(
+            iterable -> {
+              KV<String, StrategyState> element = iterable.iterator().next();
+              assertThat(element.getKey()).isEqualTo(testKey);
+              assertThat(element.getValue()).isInstanceOf(FakeStrategyState.class);
 
-                    FakeStrategyState state = (FakeStrategyState) element.getValue();
-                    assertThat(state.updateRecordCalled).isTrue();
-                    // Add assertions to check state for both strategy types if needed
-                    return null;
-                });
+              FakeStrategyState state = (FakeStrategyState) element.getValue();
+              assertThat(state.updateRecordCalled).isTrue();
+              // Add assertions to check state for both strategy types if needed
+              return null;
+            });
 
-      pipeline.run().waitUntilFinish();
+    pipeline.run().waitUntilFinish();
 
-      assertThat(mockOrchestrator.wasRunOptimizationCalled()).isTrue();
-        assertThat(mockOrchestrator.getLastRequest().getStrategyType())
-            .isEqualTo(StrategyType.SMA_RSI); // Check strategy type
-    }
+    assertThat(mockOrchestrator.wasRunOptimizationCalled()).isTrue();
+    assertThat(mockOrchestrator.getLastRequest().getStrategyType())
+        .isEqualTo(StrategyType.SMA_RSI); // Check strategy type
+  }
 
   // Fake implementation of StrategyState.Factory
   public static class FakeStrategyStateFactory implements StrategyState.Factory, Serializable {
@@ -223,33 +225,34 @@ public class OptimizeStrategiesTest {
     }
   }
 
-    /** A fake implementation of GeneticAlgorithmOrchestrator for testing. */
-    private static class FakeGeneticAlgorithmOrchestrator implements GeneticAlgorithmOrchestrator, Serializable {
-        boolean runOptimizationCalled = false;
-        GAOptimizationRequest lastRequest = null;
+  /** A fake implementation of GeneticAlgorithmOrchestrator for testing. */
+  private static class FakeGeneticAlgorithmOrchestrator
+      implements GeneticAlgorithmOrchestrator, Serializable {
+    boolean runOptimizationCalled = false;
+    GAOptimizationRequest lastRequest = null;
 
-        @Override
-        public BestStrategyResponse runOptimization(GAOptimizationRequest request) {
-            runOptimizationCalled = true;
-            lastRequest = request;
-            // Return a simple mock response.  Adapt as needed for your tests.
-            return BestStrategyResponse.newBuilder()
-                .setBestScore(0.8)
-                .setBestStrategyParameters(Any.getDefaultInstance())
-                .build();
-        }
-
-        public boolean wasRunOptimizationCalled() {
-            return runOptimizationCalled;
-        }
-
-        public GAOptimizationRequest getLastRequest() {
-            return lastRequest;
-        }
-
-        public void reset() {
-            runOptimizationCalled = false;
-            lastRequest = null;
-        }
+    @Override
+    public BestStrategyResponse runOptimization(GAOptimizationRequest request) {
+      runOptimizationCalled = true;
+      lastRequest = request;
+      // Return a simple mock response.  Adapt as needed for your tests.
+      return BestStrategyResponse.newBuilder()
+          .setBestScore(0.8)
+          .setBestStrategyParameters(Any.getDefaultInstance())
+          .build();
     }
+
+    public boolean wasRunOptimizationCalled() {
+      return runOptimizationCalled;
+    }
+
+    public GAOptimizationRequest getLastRequest() {
+      return lastRequest;
+    }
+
+    public void reset() {
+      runOptimizationCalled = false;
+      lastRequest = null;
+    }
+  }
 }
