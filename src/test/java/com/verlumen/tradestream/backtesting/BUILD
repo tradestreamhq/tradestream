@@ -97,6 +97,7 @@ java_test(
     srcs = ["GenotypeConverterImplTest.java"],
     deps = [
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
         "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter",
         "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter_impl",
         "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
