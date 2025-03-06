@@ -5,7 +5,6 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.signals.TradeSignal;
-import com.verlumen.tradestream.strategies.StrategyManager;
 import com.verlumen.tradestream.strategies.StrategyState;
 import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
 import org.apache.beam.sdk.state.StateId;
@@ -21,24 +20,23 @@ import org.ta4j.core.BarSeries;
 /**
  * Generates trade signals from optimized strategy states and candle data.
  */
-public class GenerateTradeSignals extends 
+final class GenerateTradeSignals extends 
     PTransform<PCollection<KV<String, StrategyState>>, PCollection<KV<String, TradeSignal>>> {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   
-  private final StrategyManager strategyManager;
+  private final GenerateSignalsDoFn generateSignalsDoFn;
   
   @Inject
-  public GenerateTradeSignals(StrategyManager strategyManager) {
-    this.strategyManager = strategyManager;
+  GenerateTradeSignals(GenerateSignalsDoFn generateSignalsDoFn) {
+      this.generateSignalsDoFn = generateSignalsDoFn;
   }
   
   @Override
   public PCollection<KV<String, TradeSignal>> expand(
       PCollection<KV<String, StrategyState>> input) {
     
-    return input.apply("GenerateSignalsFromOptimizedStrategies",
-        ParDo.of(new GenerateSignalsDoFn(strategyManager)));
+    return input.apply("GenerateSignalsFromOptimizedStrategies", ParDo.of(generateSignalsDoFn));
   }
   
   /**
@@ -54,11 +52,8 @@ public class GenerateTradeSignals extends
     @StateId("lastSignal")
     private final StateSpec<ValueState<TradeSignal>> lastSignalSpec = StateSpecs.value();
     
-    private final StrategyManager strategyManager;
-    
-    GenerateSignalsDoFn(StrategyManager strategyManager) {
-      this.strategyManager = strategyManager;
-    }
+    @Inject
+    GenerateSignalsDoFn() {}
     
     @ProcessElement
     public void processElement(
@@ -107,7 +102,7 @@ public class GenerateTradeSignals extends
       
       try {
         // Get the current TA4J strategy
-        org.ta4j.core.Strategy currentStrategy = state.getCurrentStrategy(strategyManager, barSeries);
+        org.ta4j.core.Strategy currentStrategy = state.getCurrentStrategy(barSeries);
         
         // Check entry/exit conditions
         if (currentStrategy.shouldEnter(endIndex)) {
