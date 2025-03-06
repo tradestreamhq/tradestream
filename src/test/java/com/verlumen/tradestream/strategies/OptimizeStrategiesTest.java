@@ -47,17 +47,19 @@ public class OptimizeStrategiesTest {
   @Rule public final TestPipeline pipeline = TestPipeline.create();
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
-  // Use a Fake instead of a Mock for GeneticAlgorithmOrchestrator
+  // Use a Fake instead of a Mock for GeneticAlgorithmOrchestrator.
   @Bind(to = GeneticAlgorithmOrchestrator.class)
   private FakeGeneticAlgorithmOrchestrator mockOrchestrator = new FakeGeneticAlgorithmOrchestrator();
 
-  // Use a Fake instead of a Mock for StrategyState.Factory
+  // Use a Fake instead of a Mock for StrategyState.Factory.
   @Bind private StrategyState.Factory mockStateFactory = new FakeStrategyStateFactory();
 
   @Inject private OptimizeStrategies optimizeStrategies;
 
   @Before
   public void setUp() {
+    // Reset the static state in the fake orchestrator.
+    FakeGeneticAlgorithmOrchestrator.reset();
     Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
   }
 
@@ -93,8 +95,16 @@ public class OptimizeStrategiesTest {
   public void expand_nonEmptyCandleList_callsOrchestratorAndOutputsState() throws Exception {
     // Arrange
     String testKey = "testKey";
-    Candle candle1 = Candle.newBuilder().setOpen(10).setClose(12).build();
-    Candle candle2 = Candle.newBuilder().setOpen(12).setClose(11).build();
+    Candle candle1 = Candle.newBuilder()
+        .setOpen(10)
+        .setClose(12)
+        .setTimestamp(1L) // assign an increasing timestamp
+        .build();
+    Candle candle2 = Candle.newBuilder()
+        .setOpen(12)
+        .setClose(11)
+        .setTimestamp(2L) // assign a later timestamp
+        .build();
 
     ImmutableList<Candle> candles = ImmutableList.of(candle1, candle2);
 
@@ -124,7 +134,6 @@ public class OptimizeStrategiesTest {
               assertThat(state.updateRecordCalled).isTrue(); // Example assertion on the fake
               return null;
             });
-
     pipeline.run().waitUntilFinish();
 
     assertThat(mockOrchestrator.wasRunOptimizationCalled()).isTrue();
@@ -138,7 +147,12 @@ public class OptimizeStrategiesTest {
   public void expand_multipleStrategies_callsOrchestratorForEachStrategy() throws Exception {
     // Arrange
     String testKey = "testKey";
-    ImmutableList<Candle> candles = ImmutableList.of(Candle.newBuilder().build());
+    // Build a candle with an increasing timestamp.
+    ImmutableList<Candle> candles =
+        ImmutableList.of(
+            Candle.newBuilder()
+                .setTimestamp(1L)
+                .build());
     PCollection<KV<String, ImmutableList<Candle>>> input =
         pipeline.apply(
             "CreateInput",
@@ -165,7 +179,6 @@ public class OptimizeStrategiesTest {
               // Add assertions to check state for both strategy types if needed
               return null;
             });
-
     pipeline.run().waitUntilFinish();
 
     assertThat(mockOrchestrator.wasRunOptimizationCalled()).isTrue();
@@ -173,7 +186,7 @@ public class OptimizeStrategiesTest {
         .isEqualTo(StrategyType.SMA_RSI); // Check strategy type
   }
 
-  // Fake implementation of StrategyState.Factory
+  // Fake implementation of StrategyState.Factory.
   public static class FakeStrategyStateFactory implements StrategyState.Factory, Serializable {
     @Override
     public StrategyState create() {
@@ -181,7 +194,7 @@ public class OptimizeStrategiesTest {
     }
   }
 
-  // Fake implementation of StrategyState
+  // Fake implementation of StrategyState.
   public static class FakeStrategyState implements StrategyState, Serializable {
     private StrategyType currentStrategyType = StrategyType.SMA_RSI;
     private final Map<StrategyType, StrategyRecord> strategyRecords = new ConcurrentHashMap<>();
@@ -228,14 +241,14 @@ public class OptimizeStrategiesTest {
   /** A fake implementation of GeneticAlgorithmOrchestrator for testing. */
   private static class FakeGeneticAlgorithmOrchestrator
       implements GeneticAlgorithmOrchestrator, Serializable {
-    boolean runOptimizationCalled = false;
-    GAOptimizationRequest lastRequest = null;
+    private static boolean runOptimizationCalledStatic = false;
+    private static GAOptimizationRequest lastRequestStatic = null;
 
     @Override
     public BestStrategyResponse runOptimization(GAOptimizationRequest request) {
-      runOptimizationCalled = true;
-      lastRequest = request;
-      // Return a simple mock response.  Adapt as needed for your tests.
+      runOptimizationCalledStatic = true;
+      lastRequestStatic = request;
+      // Return a simple mock response. Adapt as needed for your tests.
       return BestStrategyResponse.newBuilder()
           .setBestScore(0.8)
           .setBestStrategyParameters(Any.getDefaultInstance())
@@ -243,16 +256,16 @@ public class OptimizeStrategiesTest {
     }
 
     public boolean wasRunOptimizationCalled() {
-      return runOptimizationCalled;
+      return runOptimizationCalledStatic;
     }
 
     public GAOptimizationRequest getLastRequest() {
-      return lastRequest;
+      return lastRequestStatic;
     }
 
-    public void reset() {
-      runOptimizationCalled = false;
-      lastRequest = null;
+    public static void reset() {
+      runOptimizationCalledStatic = false;
+      lastRequestStatic = null;
     }
   }
 }
