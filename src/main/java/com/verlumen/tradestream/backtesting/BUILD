@@ -53,8 +53,6 @@ java_library(
         "IntegerChromosomeSpec.java",
     ],
     deps = [
-        ":double_chromosome_spec",
-        ":integer_chromosome_spec",
         "//third_party:guava",
         "//third_party:jenetics",
     ],
