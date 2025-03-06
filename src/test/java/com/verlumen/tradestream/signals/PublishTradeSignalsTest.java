@@ -6,11 +6,9 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import org.apache.beam.sdk.testing.TestPipeline;
-import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
-import org.apache.beam.sdk.values.PDone;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,17 +18,20 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 
-import java.util.Arrays;
-
 @RunWith(org.mockito.junit.MockitoJUnitRunner.class)
 public class PublishTradeSignalsTest {
     
-    @Rule public final MockitoRule rule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
-    @Rule public final TestPipeline pipeline = TestPipeline.create();
+    @Rule 
+    public final MockitoRule rule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
     
-    @Mock private TradeSignalPublisher signalPublisher;
+    @Rule 
+    public final TestPipeline pipeline = TestPipeline.create();
     
-    @Inject private PublishTradeSignals publishTradeSignals;
+    @Mock 
+    private TradeSignalPublisher signalPublisher;
+    
+    @Inject 
+    private PublishTradeSignals publishTradeSignals;
     
     @Before
     public void setup() {
@@ -47,9 +48,9 @@ public class PublishTradeSignalsTest {
             Create.of(KV.of("AAPL", buySignal))
         );
         
-        PDone result = input.apply(publishTradeSignals);
+        input.apply(publishTradeSignals);
         
-        PAssert.that(result).isNotNull();
+        // Execute the pipeline. No PAssert is needed since the transform returns PDone.
         pipeline.run();
 
         verify(signalPublisher).publish(buySignal);
@@ -64,9 +65,9 @@ public class PublishTradeSignalsTest {
             Create.of(KV.of("AAPL", noneSignal))
         );
         
-        PDone result = input.apply(publishTradeSignals);
+        input.apply(publishTradeSignals);
         
-        PAssert.that(result).isNotNull();
+        // Execute the pipeline. No PAssert is needed.
         pipeline.run();
 
         verify(signalPublisher, never()).publish(any());
@@ -84,9 +85,9 @@ public class PublishTradeSignalsTest {
             Create.of(KV.of("GOOGL", sellSignal))
         );
         
-        PDone result = input.apply(publishTradeSignals);
+        input.apply(publishTradeSignals);
         
-        PAssert.that(result).isNotNull();
+        // Execute the pipeline. No PAssert is needed.
         pipeline.run();
 
         verify(signalPublisher).publish(sellSignal);
