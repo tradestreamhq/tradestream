@@ -146,6 +146,11 @@ java_library(
 )
 
 java_library(
+    name = "param_config_manager",
+    srcs = ["ParamConfigManager.java"],
+)
+
+java_library(
     name = "run_backtest",
     srcs = ["RunBacktest.java"],
     deps = [
