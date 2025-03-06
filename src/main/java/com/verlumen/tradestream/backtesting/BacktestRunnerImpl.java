@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.StrategyManager;
-import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
+import com.verlumen.tradestream.ta4j.BarSeriesFactory;
 import org.ta4j.core.AnalysisCriterion;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseTradingRecord;
@@ -23,10 +23,14 @@ import java.util.List;
  * Implementation of BacktestRunner that evaluates trading strategies using Ta4j.
  */
 final class BacktestRunnerImpl implements BacktestRunner {
+    private final BarSeriesFactory barSeriesFactory;
     private final StrategyManager strategyManager;
 
     @Inject
-    BacktestRunnerImpl(StrategyManager strategyManager) {
+    BacktestRunnerImpl(
+        BarSeriesFactory barSeriesFactory,
+        StrategyManager strategyManager) {
+        this.barSeriesFactory = barSeriesFactory;
         this.strategyManager = strategyManager;
     }
 
@@ -34,7 +38,7 @@ final class BacktestRunnerImpl implements BacktestRunner {
     public BacktestResult runBacktest(BacktestRequest request) throws InvalidProtocolBufferException {
         checkArgument(request.getCandlesList().size() > 0, "Bar series cannot be empty");
 
-        BarSeries series = BarSeriesBuilder.createBarSeries(
+        BarSeries series = barSeriesFactory.createBarSeries(
             ImmutableList.copyOf(request.getCandlesList())
         );
         Strategy strategy = strategyManager.createStrategy(
