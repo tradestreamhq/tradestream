@@ -37,11 +37,6 @@ abstract class StrategiesModule extends AbstractModule {
   }
 
   @Provides
-  MarketDataConsumer provideMarketDataConsumer(MarketDataConsumer.Factory factory) {
-    return factory.create(candleTopic());
-  }
-
-  @Provides
   TradeSignalPublisher provideTradeSignalPublisher(TradeSignalPublisher.Factory factory) {
     return factory.create(signalTopic());
   }
