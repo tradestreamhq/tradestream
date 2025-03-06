@@ -12,6 +12,7 @@ import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
+import com.google.protobuf.Timestamp;
 import com.verlumen.tradestream.backtesting.BestStrategyResponse;
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.backtesting.GeneticAlgorithmOrchestrator;
@@ -98,12 +99,12 @@ public class OptimizeStrategiesTest {
     Candle candle1 = Candle.newBuilder()
         .setOpen(10)
         .setClose(12)
-        .setTimestamp(1L) // assign an increasing timestamp
+        .setTimestamp(Timestamp.newBuilder().setSeconds(1L).build()) // assign an increasing timestamp
         .build();
     Candle candle2 = Candle.newBuilder()
         .setOpen(12)
         .setClose(11)
-        .setTimestamp(2L) // assign a later timestamp
+        .setTimestamp(Timestamp.newBuilder().setSeconds(2L).build()) // assign a later timestamp
         .build();
 
     ImmutableList<Candle> candles = ImmutableList.of(candle1, candle2);
@@ -151,7 +152,7 @@ public class OptimizeStrategiesTest {
     ImmutableList<Candle> candles =
         ImmutableList.of(
             Candle.newBuilder()
-                .setTimestamp(1L)
+                .setTimestamp(Timestamp.newBuilder().setSeconds(1L).build())
                 .build());
     PCollection<KV<String, ImmutableList<Candle>>> input =
         pipeline.apply(
