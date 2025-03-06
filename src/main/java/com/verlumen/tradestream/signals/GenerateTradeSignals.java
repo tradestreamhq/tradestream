@@ -29,7 +29,6 @@ final class GenerateTradeSignals extends
   
   @Inject
   GenerateTradeSignals(GenerateSignalsDoFn generateSignalsDoFn) {
-      this.barSeriesFactory = barSeriesFactory;
       this.generateSignalsDoFn = generateSignalsDoFn;
   }
   
