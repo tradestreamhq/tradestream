@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.signals.TradeSignal;
 import com.verlumen.tradestream.strategies.StrategyManager;
+import com.verlumen.tradestream.strategies.StrategyState;
 import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
 import org.apache.beam.sdk.state.StateId;
 import org.apache.beam.sdk.state.StateSpecs;
