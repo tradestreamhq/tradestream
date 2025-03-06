@@ -11,7 +11,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/strategies:optimize_strategies",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_record",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
-        "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_builder",
+        "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf",
         "//third_party:guava",

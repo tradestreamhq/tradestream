@@ -7,7 +7,7 @@ import com.verlumen.tradestream.backtesting.BestStrategyResponse;
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.backtesting.GeneticAlgorithmOrchestrator;
 import com.verlumen.tradestream.marketdata.Candle;
-import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
+import com.verlumen.tradestream.ta4j.BarSeriesFactory;
 import org.apache.beam.sdk.state.StateSpec;
 import org.apache.beam.sdk.state.StateSpecs;
 import org.apache.beam.sdk.state.ValueState;
@@ -53,13 +53,16 @@ public class OptimizeStrategies
     @StateId("strategyState")
     private final StateSpec<ValueState<StrategyState>> strategyStateSpec = StateSpecs.value();
 
+    private final BarSeriesFactory barSeriesFactory;
     private final GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator; 
     private final StrategyState.Factory stateFactory;
 
     @Inject
     OptimizeStrategiesDoFn(
+        BarSeriesFactory barSeriesFactory,
         GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator,
         StrategyState.Factory stateFactory) {
+      this.barSeriesFactory = barSeriesFactory;
       this.geneticAlgorithmOrchestrator = geneticAlgorithmOrchestrator;
       this.stateFactory = stateFactory;
     }
@@ -80,7 +83,7 @@ public class OptimizeStrategies
       }
 
       // Convert candles to a BarSeries
-      BarSeries barSeries = BarSeriesBuilder.createBarSeries(candles);
+      BarSeries barSeries = barSeriesFactory.createBarSeries(candles);
 
       // Get or initialize strategy state
       StrategyState state = strategyStateValue.read();
