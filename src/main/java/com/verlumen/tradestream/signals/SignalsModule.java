@@ -6,7 +6,7 @@ import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 @AutoValue
-public final class SignalsModule extends AbstractModule {
+public abstract class SignalsModule extends AbstractModule {
     public static SignalsModule create(String signalTopic) {
         return new AutoValue_SignalsModule(signalTopic);
     }
