@@ -8,6 +8,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/signals:generate_trade_signals",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
+        "//third_party:beam_sdks_java_core",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
