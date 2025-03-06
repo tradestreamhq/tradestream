@@ -24,7 +24,7 @@ final class PublishTradeSignals extends PTransform<PCollection<KV<String, TradeS
   
   @Override
   public PDone expand(PCollection<KV<String, TradeSignal>> input) {
-    input.apply("PublishSignals", ParDo.of(new PublishSignalsDoFn(signalPublisher)));
+    input.apply("PublishSignals", ParDo.of(publishSignalsDoFn);
     return PDone.in(input.getPipeline());
   }
   
