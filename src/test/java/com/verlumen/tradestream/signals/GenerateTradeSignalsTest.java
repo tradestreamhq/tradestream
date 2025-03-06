@@ -6,11 +6,10 @@ import static org.mockito.Mockito.*;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyState;
-import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
+import com.verlumen.tradestream.ta4j.Ta4jModule;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.KV;
@@ -42,15 +41,15 @@ public class GenerateTradeSignalsTest {
     
     @Mock private StrategyState mockStrategyState;
     @Mock private Strategy mockTa4jStrategy;
-    @Mock private BarSeriesBuilder mockBarSeriesBuilder;
     @Mock private BarSeries mockBarSeries;
     
     @Inject private GenerateTradeSignals.GenerateSignalsDoFn generateSignalsDoFn;
     
     @Before
     public void setUp() {
-        Injector injector = Guice.createInjector(BoundFieldModule.of(this));
-        injector.injectMembers(this);
+        Guice.createInjector(
+            BoundFieldModule.of(this),
+            Ta4jModule.create()).injectMembers(this);
     }
     
     @Test
