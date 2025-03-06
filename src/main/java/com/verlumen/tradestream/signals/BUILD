@@ -5,6 +5,9 @@ package(default_visibility = ["//visibility:public"])
 java_library(
     name = "generate_trade_signals",
     srcs = ["GenerateTradeSignals.java"],
+    deps = [
+        "//protos:trade_signals_java_proto",
+    ],
 )
 
 java_library(
