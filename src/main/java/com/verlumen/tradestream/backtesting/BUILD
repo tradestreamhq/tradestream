@@ -46,6 +46,19 @@ java_library(
 )
 
 java_library(
+    name = "chromosome_spec",
+    srcs = [
+        "ChromosomeSpec.java",
+        "DoubleChromosomeSpec.java",
+        "IntegerChromosomeSpec.java",
+    ],
+    deps = [
+        "//third_party:guava",
+        "//third_party:jenetics",
+    ],
+)
+
+java_library(
     name = "fitness_calculator",
     srcs = ["FitnessCalculator.java"],
     deps = [
@@ -87,6 +100,7 @@ java_library(
     name = "ga_engine_factory_impl",
     srcs = ["GAEngineFactoryImpl.java"],
     deps = [
+        ":chromosome_spec",
         ":fitness_calculator",
         ":ga_constants",
         ":ga_engine_factory",
