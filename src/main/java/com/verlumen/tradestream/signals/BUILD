@@ -6,7 +6,11 @@ java_library(
     name = "generate_trade_signals",
     srcs = ["GenerateTradeSignals.java"],
     deps = [
+        "//protos:marketdata_java_proto",
         "//protos:trade_signals_java_proto",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:ta4j_core",
     ],
 )
 
