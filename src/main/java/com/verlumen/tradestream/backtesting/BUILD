@@ -19,7 +19,7 @@ java_library(
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
-        "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_builder",
+        "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_factory",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:protobuf_java",
