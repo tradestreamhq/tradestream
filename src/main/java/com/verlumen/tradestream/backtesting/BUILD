@@ -100,6 +100,7 @@ java_library(
     name = "ga_engine_factory_impl",
     srcs = ["GAEngineFactoryImpl.java"],
     deps = [
+        ":chromosome_spec",
         ":fitness_calculator",
         ":ga_constants",
         ":ga_engine_factory",
