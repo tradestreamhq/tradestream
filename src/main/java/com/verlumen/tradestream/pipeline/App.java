@@ -62,6 +62,7 @@ public final class App {
   private final Duration windowDuration;
   private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
   private final ParseTrades parseTrades;
+  private final StrategyEnginePipeline strategyEnginePipeline;
 
   @Inject
   App(
@@ -159,7 +160,10 @@ public final class App {
     PCollection<KV<String, ImmutableList<Candle>>> multiTimeframeStream =
         consolidatedBaseCandles.apply("MultiTimeframeView", new MultiTimeframeCandleTransform());
 
-    // 9. Print the results to stdout with helpful labels.
+    // 9. Apply strategy engine pipeline to generate and publish trade signals
+    strategyEnginePipeline.apply(multiTimeframeStream);
+
+    // Print candles for debugging
     multiTimeframeStream.apply("PrintResults", ParDo.of(new PrintResultsDoFn()));
 
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
