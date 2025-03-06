@@ -8,9 +8,11 @@ import static org.mockito.Mockito.when;
 import com.google.protobuf.Timestamp;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyState;
+import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
 import java.io.Serializable;
 import org.apache.beam.sdk.testing.PAssert;
@@ -32,11 +34,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class GenerateTradeSignalsTest {
 
-  @Rule 
-  public final MockitoRule mockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
+  @Rule public final MockitoRule mockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
-  @Rule 
-  public final TestPipeline pipeline = TestPipeline.create();
+  @Rule public final TestPipeline pipeline = TestPipeline.create();
 
   // Mocks for the strategy and TA4J API.
   @Mock private StrategyState mockStrategyState;
@@ -50,18 +50,20 @@ public class GenerateTradeSignalsTest {
   @Before
   public void setUp() {
     Guice.createInjector(
-        BoundFieldModule.of(this),
-        Ta4jModule.create()
-    ).injectMembers(this);
+            BoundFieldModule.of(this),
+            Ta4jModule.create())
+        .injectMembers(this);
   }
 
   /**
-   * This test exercises the public transform. In a production pipeline the state (which holds the candle
-   * history) is managed by the runner. For unit testing, we simulate the environment so that a BUY signal is produced.
+   * This test exercises the public transform. In a production pipeline the state (which holds the
+   * candle history) is managed by the runner. For unit testing, we simulate the environment so
+   * that a BUY signal is produced.
    *
-   * Note: Because the signal-generation DoFn is stateful (reading a list of candles from Beam state),
-   * in a real integration test you would need to pre-populate that state. Here we use a dummy StrategyState
-   * (via an anonymous implementation) that when combined with the injected transform is expected to produce a BUY signal.
+   * <p>Note: Because the signal-generation DoFn is stateful (reading a list of candles from Beam
+   * state), in a real integration test you would need to pre-populate that state. Here we use a
+   * dummy StrategyState (via an anonymous implementation) that when combined with the injected
+   * transform is expected to produce a BUY signal.
    */
   @Test
   public void testGenerateBuySignal() throws Exception {
@@ -79,16 +81,37 @@ public class GenerateTradeSignalsTest {
     // runner has already populated the state with a non-empty candle list.
     // We simulate this by using a dummy StrategyState that (in your test setup) triggers the signal generation.
     StrategyState dummyState = new StrategyState() {
-      @Override
-      public Strategy getCurrentStrategy(BarSeries barSeries) {
-        return mockTa4jStrategy;
-      }
+        @Override
+        public Strategy getCurrentStrategy(BarSeries barSeries) {
+            return mockTa4jStrategy;
+        }
 
-      @Override
-      public com.verlumen.tradestream.signals.TradeSignal.StrategyMessage toStrategyMessage() {
-        // Return a default/dummy StrategyMessage.
-        return com.verlumen.tradestream.signals.TradeSignal.StrategyMessage.getDefaultInstance();
-      }
+        //Added Override
+        @Override
+        public StrategyType getCurrentStrategyType() {
+            return StrategyType.SMA_RSI; // Or whichever type is relevant
+        }
+
+        @Override
+        public com.verlumen.tradestream.strategies.Strategy toStrategyMessage() {
+            // Return a default/dummy Strategy.
+            return com.verlumen.tradestream.strategies.Strategy.newBuilder().setType(StrategyType.SMA_RSI).build();
+        }
+
+        @Override
+        public void updateRecord(StrategyType type, com.google.protobuf.Any parameters, double score) {
+
+        }
+
+        @Override
+        public StrategyState selectBestStrategy(BarSeries series) {
+            return null;
+        }
+
+        @Override
+        public Iterable<StrategyType> getStrategyTypes() {
+            return null;
+        }
     };
 
     // Create a simple input element.
@@ -96,17 +119,17 @@ public class GenerateTradeSignalsTest {
 
     // Apply the public transform rather than the DoFn directly.
     PAssert.that(
-        pipeline.apply(Create.of(inputElement))
+            pipeline.apply(Create.of(inputElement))
                 .apply(generateTradeSignals)
-    ).satisfies(output -> {
-      // If an output is produced, verify that it contains a BUY signal.
-      if (output.iterator().hasNext()) {
-        KV<String, TradeSignal> result = output.iterator().next();
-        assertEquals("test-key", result.getKey());
-        assertEquals(TradeSignal.TradeSignalType.BUY, result.getValue().getType());
-      }
-      return null;
-    });
+        ).satisfies(output -> {
+          // If an output is produced, verify that it contains a BUY signal.
+          if (output.iterator().hasNext()) {
+            KV<String, TradeSignal> result = output.iterator().next();
+            assertEquals("test-key", result.getKey());
+            assertEquals(TradeSignal.TradeSignalType.BUY, result.getValue().getType());
+          }
+          return null;
+        });
 
     pipeline.run();
   }
