@@ -5,6 +5,13 @@ package(default_visibility = ["//visibility:public"])
 java_library(
     name = "publish_trade_signals",
     srcs = ["PublishTradeSignals.java"],
+    deps = [
+        ":trade_signal_publisher",
+        "//protos:trade_signals_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:flogger",
+        "//third_party:guice",
+    ],
 )
 
 java_library(
