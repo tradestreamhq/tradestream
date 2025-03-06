@@ -47,15 +47,17 @@ public class PublishTradeSignals extends PTransform<PCollection<KV<String, Trade
       TradeSignal signal = element.getValue();
       
       // Only publish actionable signals
-      if (signal.getType() != TradeSignal.TradeSignalType.NONE) {
-        try {
-          logger.atInfo().log("Publishing %s signal for %s at price %f", 
-              signal.getType(), key, signal.getPrice());
-          signalPublisher.publish(signal);
-        } catch (Exception e) {
-          logger.atSevere().withCause(e).log(
-              "Error publishing signal for %s: %s", key, e.getMessage());
-        }
+      if (signal.getType().equals(TradeSignal.TradeSignalType.NONE)) {
+        return;
+      }
+
+      try {
+        logger.atInfo().log("Publishing %s signal for %s at price %f", 
+            signal.getType(), key, signal.getPrice());
+        signalPublisher.publish(signal);
+      } catch (Exception e) {
+        logger.atSevere().withCause(e).log(
+            "Error publishing signal for %s: %s", key, e.getMessage());
       }
     }
   }
