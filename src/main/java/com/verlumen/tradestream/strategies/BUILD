@@ -104,6 +104,18 @@ java_library(
 )
 
 java_library(
+    name = "strategy_engine_pipeline",
+    srcs = ["StrategyEnginePipeline.java"],
+    deps = [
+        ":optimize_strategies",
+        "//src/main/java/com/verlumen/tradestream/signals:generate_trade_signals",
+        "//src/main/java/com/verlumen/tradestream/signals:publish_trade_signals",
+        "//third_party:flogger",
+        "//third_party:guava",
+    ],
+)
+
+java_library(
     name = "strategy_factories",
     srcs = ["StrategyFactories.java"],
     deps = [
