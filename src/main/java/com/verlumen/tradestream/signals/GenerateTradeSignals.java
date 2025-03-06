@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.signals.TradeSignal;
 import com.verlumen.tradestream.strategies.StrategyManager;
+import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
 import org.apache.beam.sdk.state.StateId;
 import org.apache.beam.sdk.state.StateSpecs;
 import org.apache.beam.sdk.state.ValueState;
@@ -87,7 +88,7 @@ public class GenerateTradeSignals extends
       Candle lastCandle = candles.get(candles.size() - 1);
       
       // Convert candles to BarSeries for TA4J
-      BarSeries barSeries = CandlesToBarSeries.convert(candles, key);
+      BarSeries barSeries = BarSeriesBuilder.createBarSeries(candles);
       
       // Generate the trade signal
       TradeSignal signal = generateSignal(key, strategyState, barSeries, lastCandle);
