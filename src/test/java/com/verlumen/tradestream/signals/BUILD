@@ -10,7 +10,6 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
         "//third_party:beam_sdks_java_core",
         "//third_party:guice",
-        "//third_party:guice_assistedinject",
         "//third_party:guice_testlib",
         "//third_party:junit",
         "//third_party:kafka_clients",
