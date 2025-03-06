@@ -13,7 +13,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.Int32Value;
 import com.verlumen.tradestream.backtesting.params.ChromosomeSpec;
 import com.verlumen.tradestream.backtesting.params.ParamConfig;
-import com.verlumen.tradestream.backtesting.params.ParamConfigManager;
+import com.verlumen.tradestream.backtesting.ParamConfigManager;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
