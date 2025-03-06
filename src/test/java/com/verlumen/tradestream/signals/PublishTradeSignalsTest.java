@@ -4,6 +4,7 @@ import static org.mockito.Mockito.*;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
@@ -27,7 +28,7 @@ public class PublishTradeSignalsTest {
     @Rule 
     public final TestPipeline pipeline = TestPipeline.create();
     
-    @Mock 
+    @Mock @Bind
     private TradeSignalPublisher signalPublisher;
     
     @Inject 
