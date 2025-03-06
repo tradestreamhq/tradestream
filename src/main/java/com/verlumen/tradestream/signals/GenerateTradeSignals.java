@@ -1,10 +1,9 @@
-package com.verlumen.tradestream.pipeline.strategies;
+package com.verlumen.tradestream.signals;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.marketdata.Candle;
-import com.verlumen.tradestream.signals.TradeSignal;
 import com.verlumen.tradestream.strategies.StrategyState;
 import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
 import org.apache.beam.sdk.state.StateSpec;
