@@ -230,7 +230,8 @@ public class OptimizeStrategiesTest {
 
     @Override
     public Iterable<StrategyType> getStrategyTypes() {
-      return ImmutableList.of(StrategyType.SMA_RSI, StrategyType.EMA_MACD); // All available types
+      // Reversed order so that the last call is for SMA_RSI
+      return ImmutableList.of(StrategyType.EMA_MACD, StrategyType.SMA_RSI);
     }
 
     @Override
