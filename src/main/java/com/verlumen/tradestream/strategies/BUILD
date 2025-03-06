@@ -48,8 +48,6 @@ java_library(
     deps = [
         ":candle_buffer",
         ":candle_buffer_impl",
-        ":strategy_engine",
-        ":strategy_engine_impl",
         ":strategy_factories",
         ":strategy_factory",
         ":strategy_manager",
@@ -63,35 +61,6 @@ java_library(
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:kafka_clients",
-    ],
-)
-
-java_library(
-    name = "strategy_engine",
-    srcs = ["StrategyEngine.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party:ta4j_core",
-    ],
-)
-
-java_library(
-    name = "strategy_engine_impl",
-    srcs = ["StrategyEngineImpl.java"],
-    deps = [
-        ":candle_buffer",
-        ":strategy_engine",
-        ":strategy_manager",
-        "//protos:backtesting_java_proto",
-        "//protos:marketdata_java_proto",
-        "//protos:strategies_java_proto",
-        "//protos:trade_signals_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
-        "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:protobuf_java",
-        "//third_party:ta4j_core",
     ],
 )
 
