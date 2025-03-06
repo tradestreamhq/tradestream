@@ -46,6 +46,15 @@ java_library(
 )
 
 java_library(
+    name = "chromosome_spec",
+    srcs = ["ChromosomeSpec.java"],
+    deps = [
+        "//third_party:guava",
+        "//third_party:jenetics",
+    ],
+)
+
+java_library(
     name = "fitness_calculator",
     srcs = ["FitnessCalculator.java"],
     deps = [
