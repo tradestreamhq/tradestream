@@ -55,6 +55,15 @@ java_library(
 )
 
 java_library(
+    name = "double_chromosome_spec",
+    srcs = ["DoubleChromosomeSpec.java"],
+    deps = [
+        "//third_party:guava",
+        "//third_party:jenetics",
+    ],
+)
+
+java_library(
     name = "fitness_calculator",
     srcs = ["FitnessCalculator.java"],
     deps = [
@@ -151,6 +160,15 @@ java_library(
         "//third_party:guice",
         "//third_party:jenetics",
         "//third_party:protobuf_java",
+    ],
+)
+
+java_library(
+    name = "integer_chromosome_spec",
+    srcs = ["IntegerChromosomeSpec.java"],
+    deps = [
+        "//third_party:guava",
+        "//third_party:jenetics",
     ],
 )
 
