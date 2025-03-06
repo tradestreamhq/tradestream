@@ -13,6 +13,7 @@ import com.verlumen.tradestream.marketdata.MultiTimeframeCandleTransform;
 import com.verlumen.tradestream.marketdata.CandleStreamWithDefaults;
 import com.verlumen.tradestream.marketdata.ParseTrades;
 import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.strategies.StrategyEnginePipeline;
 import java.util.Arrays;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
@@ -66,12 +67,14 @@ public final class App {
   App(
       KafkaReadTransform<String, byte[]> kafkaReadTransform,
       ParseTrades parseTrades,
+      StrategyEnginePipeline strategyEnginePipeline,
       PipelineConfig config) {
     this.allowedLateness = config.allowedLateness();
     this.allowedTimestampSkew = config.allowedTimestampSkew();
-    this.windowDuration = config.windowDuration(); // e.g. 1 minute windows for candles.
+    this.windowDuration = config.windowDuration();
     this.kafkaReadTransform = kafkaReadTransform;
     this.parseTrades = parseTrades;
+    this.strategyEnginePipeline = strategyEnginePipeline;
     logger.atInfo().log(
         "Initialized App with allowedLateness=%s, windowDuration=%s, allowedTimestampSkew=%s",
         allowedLateness, windowDuration, allowedTimestampSkew);
