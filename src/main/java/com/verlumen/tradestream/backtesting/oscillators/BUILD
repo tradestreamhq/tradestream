@@ -3,7 +3,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
-    name = "params_lib",
+    name = "oscillators_lib",
     srcs = glob(["*.java"]),
     deps = [
         "//protos:strategies_java_proto",
