@@ -48,8 +48,8 @@ public class OptimizeStrategiesTest {
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   // Use a Fake instead of a Mock for GeneticAlgorithmOrchestrator
-  @Bind
-  private GeneticAlgorithmOrchestrator mockOrchestrator = new FakeGeneticAlgorithmOrchestrator();
+  @Bind(to = GeneticAlgorithmOrchestrator.class)
+  private FakeGeneticAlgorithmOrchestrator mockOrchestrator = new FakeGeneticAlgorithmOrchestrator();
 
   // Use a Fake instead of a Mock for StrategyState.Factory
   @Bind private StrategyState.Factory mockStateFactory = new FakeStrategyStateFactory();
