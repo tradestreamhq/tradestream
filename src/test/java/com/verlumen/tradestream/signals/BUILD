@@ -8,6 +8,7 @@ java_test(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/signals:publish_trade_signals",
         "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
+        "//third_party:beam_sdks_java_core",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
         "//third_party:guice_testlib",
