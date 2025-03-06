@@ -150,6 +150,7 @@ java_library(
     name = "param_config_manager",
     srcs = ["ParamConfigManager.java"],
     deps = [
+        "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
     ],
 )
