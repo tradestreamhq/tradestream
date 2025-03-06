@@ -25,29 +25,6 @@ java_library(
 )
 
 java_library(
-    name = "market_data_consumer",
-    srcs = ["MarketDataConsumer.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-    ],
-)
-
-java_library(
-    name = "market_data_consumer_impl",
-    srcs = ["MarketDataConsumerImpl.java"],
-    deps = [
-        ":market_data_consumer",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_properties",
-        "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:kafka_clients",
-    ],
-)
-
-java_library(
     name = "optimize_strategies",
     srcs = ["OptimizeStrategies.java"],
     deps = [
