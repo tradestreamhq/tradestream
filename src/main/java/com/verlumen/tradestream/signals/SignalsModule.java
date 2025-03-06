@@ -2,6 +2,7 @@ package com.verlumen.tradestream.signals;
 
 import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 @AutoValue
