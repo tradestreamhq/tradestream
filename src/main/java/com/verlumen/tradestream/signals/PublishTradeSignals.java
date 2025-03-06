@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.pipeline.strategies;
+package com.verlumen.tradestream.pipeline.signals;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
