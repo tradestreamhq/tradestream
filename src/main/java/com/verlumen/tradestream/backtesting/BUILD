@@ -136,12 +136,24 @@ java_library(
     srcs = ["GenotypeConverterImpl.java"],
     deps = [
         ":genotype_converter",
+        ":param_config",
+        ":param_config_manager",
         "//protos:strategies_java_proto",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:jenetics",
         "//third_party:protobuf_java",
     ],
+)
+
+java_library(
+    name = "param_config",
+    srcs = ["ParamConfig.java"],
+)
+
+java_library(
+    name = "param_config_manager",
+    srcs = ["ParamConfigManager.java"],
 )
 
 java_library(
