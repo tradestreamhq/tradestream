@@ -48,8 +48,6 @@ java_library(
     deps = [
         ":candle_buffer",
         ":candle_buffer_impl",
-        ":market_data_consumer",
-        ":market_data_consumer_impl",
         ":strategy_engine",
         ":strategy_engine_impl",
         ":strategy_factories",
