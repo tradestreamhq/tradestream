@@ -53,7 +53,7 @@ public class GenerateTradeSignalsTest {
     }
     
     @Test
-    public void testGenerateBuySignal() {
+    public void testGenerateBuySignal() throws Exception {
         when(mockStrategyState.getCurrentStrategy(any(BarSeries.class))).thenReturn(mockTa4jStrategy);
         when(mockTa4jStrategy.shouldEnter(anyInt())).thenReturn(true);
         when(mockTa4jStrategy.shouldExit(anyInt())).thenReturn(false);
