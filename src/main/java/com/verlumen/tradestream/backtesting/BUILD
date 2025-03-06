@@ -163,6 +163,7 @@ java_library(
     name = "param_config",
     srcs = ["ParamConfig.java"],
     deps = [
+        ":chromosome_spec",
         "//protos:strategies_java_proto",
         "//third_party:guava",
         "//third_party:jenetics",
