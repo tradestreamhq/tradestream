@@ -53,6 +53,7 @@ public class OptimizeStrategies
     @StateId("strategyState")
     private final StateSpec<ValueState<StrategyState>> strategyStateSpec = StateSpecs.value();
 
+    private final BarSeriesFactory barSeriesFactory;
     private final GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator; 
     private final StrategyState.Factory stateFactory;
 
