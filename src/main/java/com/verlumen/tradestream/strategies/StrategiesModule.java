@@ -26,7 +26,6 @@ abstract class StrategiesModule extends AbstractModule {
   protected void configure() {
     bind(CandleBuffer.class).to(CandleBufferImpl.class);
     bind(ExecutorService.class).toProvider(Executors::newSingleThreadExecutor);
-    bind(StrategyEngine.class).to(StrategyEngineImpl.class);
     bind(new TypeLiteral<ImmutableList<StrategyFactory<?>>>() {})
         .toInstance(StrategyFactories.ALL_FACTORIES);
     bind(StrategyManager.class).to(StrategyManagerImpl.class);
