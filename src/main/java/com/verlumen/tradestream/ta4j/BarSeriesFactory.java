@@ -2,6 +2,7 @@ package com.verlumen.tradestream.ta4j;
 
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.marketdata.Candle;
+import java.io.Serializable;
 import org.ta4j.core.BarSeries;
 
 /**
@@ -23,7 +24,7 @@ import org.ta4j.core.BarSeries;
  * @see org.ta4j.core.BarSeries
  * @see com.verlumen.tradestream.marketdata.Candle
  */
-public interface BarSeriesFactory {
+public interface BarSeriesFactory extends Serializable {
 
     /**
      * Creates a {@link BarSeries} from an immutable list of {@link Candle} objects.
