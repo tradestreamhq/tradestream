@@ -5,7 +5,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyState;
-import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
+import com.verlumen.tradestream.ta4j.BarSeriesFactory;
 import org.apache.beam.sdk.state.StateSpec;
 import org.apache.beam.sdk.state.StateSpecs;
 import org.apache.beam.sdk.state.ValueState;
@@ -24,11 +24,12 @@ final class GenerateTradeSignals extends
     PTransform<PCollection<KV<String, StrategyState>>, PCollection<KV<String, TradeSignal>>> {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-  
+
   private final GenerateSignalsDoFn generateSignalsDoFn;
   
   @Inject
   GenerateTradeSignals(GenerateSignalsDoFn generateSignalsDoFn) {
+      this.barSeriesFactory = barSeriesFactory;
       this.generateSignalsDoFn = generateSignalsDoFn;
   }
   
@@ -51,9 +52,13 @@ final class GenerateTradeSignals extends
     
     @StateId("lastSignal")
     private final StateSpec<ValueState<TradeSignal>> lastSignalSpec = StateSpecs.value();
-    
+
+    private final BarSeriesFactory barSeriesFactory;
+
     @Inject
-    GenerateSignalsDoFn() {}
+    GenerateSignalsDoFn(BarSeriesFactory barSeriesFactory) {
+        this.barSeriesFactory = barSeriesFactory;
+    }
     
     @ProcessElement
     public void processElement(
@@ -84,7 +89,7 @@ final class GenerateTradeSignals extends
       Candle lastCandle = candles.get(candles.size() - 1);
       
       // Convert candles to BarSeries for TA4J
-      BarSeries barSeries = BarSeriesBuilder.createBarSeries(candles);
+      BarSeries barSeries = barSeriesFactory.createBarSeries(candles);
       
       // Generate the trade signal
       TradeSignal signal = generateSignal(key, strategyState, barSeries, lastCandle);
