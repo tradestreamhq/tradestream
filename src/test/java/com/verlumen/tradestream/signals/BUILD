@@ -4,6 +4,7 @@ java_test(
     name = "GenerateTradeSignalsTest",
     srcs = ["GenerateTradeSignalsTest.java"],
     deps = [
+        "//protos:marketdata_java_proto",
         "//protos:trade_signals_java_proto",
         "//src/main/java/com/verlumen/tradestream/signals:generate_trade_signals",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
