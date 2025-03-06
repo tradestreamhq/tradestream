@@ -8,6 +8,7 @@ java_library(
     deps = [
         "//protos:marketdata_java_proto",
         "//protos:trade_signals_java_proto",
+        "//third_party:beam_sdks_java_core",
         "//third_party:flogger",
         "//third_party:guava",
         "//third_party:guice",
