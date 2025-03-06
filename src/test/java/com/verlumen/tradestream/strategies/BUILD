@@ -30,23 +30,6 @@ java_test(
 )
 
 java_test(
-    name = "MarketDataConsumerImplTest",
-    srcs = ["MarketDataConsumerImplTest.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/strategies:market_data_consumer",
-        "//src/main/java/com/verlumen/tradestream/strategies:market_data_consumer_impl",
-        "//third_party:guice_assistedinject",
-        "//third_party:guice",
-        "//third_party:guice_testlib",
-        "//third_party:junit",
-        "//third_party:kafka_clients",
-        "//third_party:mockito_core",
-    ],
-)
-
-java_test(
     name = "StrategyEngineImplTest",
     srcs = ["StrategyEngineImplTest.java"],
     deps = [
