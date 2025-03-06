@@ -12,15 +12,14 @@ import org.apache.beam.sdk.values.PDone;
 /**
  * Publishes trade signals using the TradeSignalPublisher service.
  */
-public class PublishTradeSignals extends PTransform<PCollection<KV<String, TradeSignal>>, PDone> {
-
+final class PublishTradeSignals extends PTransform<PCollection<KV<String, TradeSignal>>, PDone> {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-  
-  private final TradeSignalPublisher signalPublisher;
-  
+
+  private final PublishSignalsDoFn publishSignalsDoFn;
+    
   @Inject
-  public PublishTradeSignals(TradeSignalPublisher signalPublisher) {
-    this.signalPublisher = signalPublisher;
+  public PublishTradeSignals(PublishSignalsDoFn publishSignalsDoFn) {
+    this.publishSignalsDoFn = publishSignalsDoFn;
   }
   
   @Override
@@ -33,19 +32,20 @@ public class PublishTradeSignals extends PTransform<PCollection<KV<String, Trade
    * DoFn that publishes trade signals but only if they are actionable (BUY or SELL).
    */
   private static class PublishSignalsDoFn extends DoFn<KV<String, TradeSignal>, Void> {
-    
+
     private final TradeSignalPublisher signalPublisher;
-    
+
+    @Inject
     PublishSignalsDoFn(TradeSignalPublisher signalPublisher) {
       this.signalPublisher = signalPublisher;
     }
-    
+
     @ProcessElement
     public void processElement(ProcessContext context) {
       KV<String, TradeSignal> element = context.element();
       String key = element.getKey();
       TradeSignal signal = element.getValue();
-      
+
       // Only publish actionable signals
       if (signal.getType().equals(TradeSignal.TradeSignalType.NONE)) {
         return;
