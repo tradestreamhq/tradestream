@@ -1,6 +1,20 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
+    name = "GenerateTradeSignalsTest",
+    srcs = ["GenerateTradeSignalsTest.java"],
+    deps = [
+        "//protos:trade_signals_java_proto",
+        "//src/main/java/com/verlumen/tradestream/signals:generate_trade_signals",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:truth",
+    ],
+)
+
+java_test(
     name = "TradeSignalPublisherImplTest",
     srcs = ["TradeSignalPublisherImplTest.java"],
     deps = [
