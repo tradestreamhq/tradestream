@@ -5,12 +5,14 @@ import static com.google.protobuf.util.Timestamps.fromMillis;
 import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.verlumen.tradestream.backtesting.BacktestingModule;
 import com.verlumen.tradestream.execution.ExecutionModule;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.DryRunKafkaReadTransform;
 import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.signals.SignalsModule;
 import java.nio.charset.StandardCharsets;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -34,8 +36,10 @@ abstract class PipelineModule extends AbstractModule {
 
   @Override
   protected void configure() {
+      install(BacktestingModule.create());
       install(ExecutionModule.create(config().runMode()));
       install(KafkaModule.create(config().bootstrapServers()));
+      install(SignalsModule.create());
   }
 
   @Provides
