@@ -7,6 +7,7 @@ java_test(
         "//protos:trade_signals_java_proto",
         "//src/main/java/com/verlumen/tradestream/signals:generate_trade_signals",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
+        "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
