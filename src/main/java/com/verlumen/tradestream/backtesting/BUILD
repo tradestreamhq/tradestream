@@ -49,6 +49,8 @@ java_library(
     name = "chromosome_spec",
     srcs = ["ChromosomeSpec.java"],
     deps = [
+        ":dounle_chromosome_spec",
+        ":integer_chromosome_spec",
         "//third_party:guava",
         "//third_party:jenetics",
     ],
