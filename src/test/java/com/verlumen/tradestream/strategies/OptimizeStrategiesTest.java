@@ -17,6 +17,7 @@ import com.verlumen.tradestream.backtesting.BestStrategyResponse;
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.backtesting.GeneticAlgorithmOrchestrator;
 import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.ta4j.Ta4jModule;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,7 +62,9 @@ public class OptimizeStrategiesTest {
   public void setUp() {
     // Reset the static state in the fake orchestrator.
     FakeGeneticAlgorithmOrchestrator.reset();
-    Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+    Guice.createInjector(
+      BoundFieldModule.of(this),
+      Ta4jModule.create()).injectMembers(this);
   }
 
   private <K, V> KvCoder<K, V> getKvCoder(
