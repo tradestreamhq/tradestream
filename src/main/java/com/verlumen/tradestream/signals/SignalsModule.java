@@ -1,12 +1,17 @@
 package com.verlumen.tradestream.signals;
 
+import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
-public final class SignalsModule extends AbstractModule {
-    public static SignalsModule create() {
-        return new SignalsModule();
+@AutoValue
+public abstract class SignalsModule extends AbstractModule {
+    public static SignalsModule create(String signalTopic) {
+        return new AutoValue_SignalsModule(signalTopic);
     }
+
+    abstract String signalTopic();
 
     @Override
     protected void configure() {
@@ -15,5 +20,8 @@ public final class SignalsModule extends AbstractModule {
             .build(TradeSignalPublisher.Factory.class));
     }
 
-    private SignalsModule() {}
+    @Provides
+    TradeSignalPublisher provideTradeSignalPublisher(TradeSignalPublisher.Factory factory) {
+      return factory.create(signalTopic());
+    }
 }

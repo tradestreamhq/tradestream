@@ -3,12 +3,10 @@ package com.verlumen.tradestream.strategies;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
 import com.verlumen.tradestream.signals.SignalsModule;
-import com.verlumen.tradestream.signals.TradeSignalPublisher;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -32,11 +30,6 @@ abstract class StrategiesModule extends AbstractModule {
     bind(StrategyState.Factory.class).to(StrategyStateFactoryImpl.class);
 
     install(BacktestingModule.create());
-    install(SignalsModule.create());
-  }
-
-  @Provides
-  TradeSignalPublisher provideTradeSignalPublisher(TradeSignalPublisher.Factory factory) {
-    return factory.create(signalTopic());
+    install(SignalsModule.create(signalTopic()));
   }
 }
