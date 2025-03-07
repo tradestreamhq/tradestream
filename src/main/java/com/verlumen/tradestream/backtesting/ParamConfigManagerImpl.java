@@ -2,7 +2,7 @@ package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.strategies.StrategyType;
 import java.io.Serializable;
