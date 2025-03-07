@@ -187,6 +187,7 @@ java_library(
     srcs = ["ParamConfigManagerImpl.java"],
     deps = [
         ":param_config",
+        ":param_config_manager",
         "//protos:strategies_java_proto",
         "//third_party:guava",
         "//third_party:guice",
