@@ -14,83 +14,85 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 
-@RunWith(org.mockito.junit.MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class PublishTradeSignalsTest {
-    
-    @Rule 
-    public final MockitoRule rule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
-    
-    @Rule 
+
+    @Rule public final MockitoRule rule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
+
+    @Rule
     public final TestPipeline pipeline = TestPipeline.create();
-    
+
     @Mock @Bind
     private TradeSignalPublisher signalPublisher;
-    
-    @Inject 
+
+    @Inject
     private PublishTradeSignals publishTradeSignals;
-    
+
     @Before
     public void setup() {
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
-    
+
     @Test
     public void testPublishTradeSignals_whenSignalIsActionable() {
-        TradeSignal buySignal = mock(TradeSignal.class);
-        when(buySignal.getType()).thenReturn(TradeSignal.TradeSignalType.BUY);
-        when(buySignal.getPrice()).thenReturn(100.0);
+        // Arrange
+        TradeSignal buySignal = TradeSignal.newBuilder().setType(TradeSignal.TradeSignalType.BUY).setPrice(100.0).build();
 
         PCollection<KV<String, TradeSignal>> input = pipeline.apply(
             Create.of(KV.of("AAPL", buySignal))
         );
-        
-        input.apply(publishTradeSignals);
-        
-        // Execute the pipeline. No PAssert is needed since the transform returns PDone.
-        pipeline.run();
 
+        input.apply(publishTradeSignals);
+
+        // Act
+        pipeline.run(); // Run the pipeline
+
+        // Assert: Verify that the publisher's publish method was called with the correct signal
         verify(signalPublisher).publish(buySignal);
     }
-    
+
     @Test
     public void testPublishTradeSignals_whenSignalIsNotActionable() {
-        TradeSignal noneSignal = mock(TradeSignal.class);
-        when(noneSignal.getType()).thenReturn(TradeSignal.TradeSignalType.NONE);
-        
+        // Arrange
+        TradeSignal noneSignal = TradeSignal.newBuilder().setType(TradeSignal.TradeSignalType.NONE).build();
+
         PCollection<KV<String, TradeSignal>> input = pipeline.apply(
             Create.of(KV.of("AAPL", noneSignal))
         );
-        
+
         input.apply(publishTradeSignals);
-        
-        // Execute the pipeline. No PAssert is needed.
+
+        // Act
         pipeline.run();
 
+        // Assert: Verify that the publisher's publish method was *not* called
         verify(signalPublisher, never()).publish(any());
     }
-    
+
     @Test
     public void testPublishTradeSignals_logsErrorOnException() {
-        TradeSignal sellSignal = mock(TradeSignal.class);
-        when(sellSignal.getType()).thenReturn(TradeSignal.TradeSignalType.SELL);
-        when(sellSignal.getPrice()).thenReturn(200.0);
+        // Arrange
+        TradeSignal sellSignal = TradeSignal.newBuilder().setType(TradeSignal.TradeSignalType.SELL).setPrice(200.0).build();
         doThrow(new RuntimeException("Publish failed"))
             .when(signalPublisher).publish(sellSignal);
-        
+
         PCollection<KV<String, TradeSignal>> input = pipeline.apply(
             Create.of(KV.of("GOOGL", sellSignal))
         );
-        
+
         input.apply(publishTradeSignals);
-        
-        // Execute the pipeline. No PAssert is needed.
+
+        // Act and Assert:  Even with the exception, the pipeline should complete.
+        // The test will pass as long as it doesn't throw a PipelineExecutionException
+        // because of the injected failure in the mock.
         pipeline.run();
 
-        verify(signalPublisher).publish(sellSignal);
+        verify(signalPublisher).publish(sellSignal); // Ensure publish was called.
     }
 }
