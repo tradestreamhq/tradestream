@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.collect.ImmutableList;
 import com.google.inject.Inject;
-import com.verlumen.tradestream.backtesting.params.ParamConfig;
 import com.verlumen.tradestream.strategies.StrategyType;
 import java.io.Serializable;
 
