@@ -104,6 +104,7 @@ java_library(
         ":fitness_calculator",
         ":ga_constants",
         ":ga_engine_factory",
+        ":param_config_manager",
         "//protos:backtesting_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
         "//third_party:guice",
@@ -151,6 +152,7 @@ java_library(
     deps = [
         ":genotype_converter",
         ":param_config",
+        ":param_config_manager",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
         "//third_party:guava",
@@ -169,6 +171,15 @@ java_library(
         "//third_party:guava",
         "//third_party:jenetics",
         "//third_party:protobuf_java",
+    ],
+)
+
+java_library(
+    name = "param_config_manager",
+    srcs = ["ParamConfigManager.java"],
+    deps = [
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
     ],
 )
 

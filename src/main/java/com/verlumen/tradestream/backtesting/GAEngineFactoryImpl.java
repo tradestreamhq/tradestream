@@ -3,7 +3,7 @@ package com.verlumen.tradestream.backtesting;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.backtesting.ChromosomeSpec;
 import com.verlumen.tradestream.backtesting.params.ParamConfig;
-import com.verlumen.tradestream.backtesting.params.ParamConfigManager;
+import com.verlumen.tradestream.backtesting.ParamConfigManager;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.DoubleGene;
 import io.jenetics.Genotype;
