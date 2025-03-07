@@ -1,11 +1,14 @@
 package com.verlumen.tradestream.signals;
 
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.*;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.values.KV;
@@ -15,21 +18,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
 
 @RunWith(JUnit4.class)
 public class PublishTradeSignalsTest {
 
-    @Rule public final MockitoRule rule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
-
-    @Rule
+    @Rule 
     public final TestPipeline pipeline = TestPipeline.create();
 
-    @Mock @Bind
-    private TradeSignalPublisher signalPublisher;
+    // Bind a fake implementation of TradeSignalPublisher as a static inner class.
+    @Bind
+    private FakeTradeSignalPublisher fakeSignalPublisher = new FakeTradeSignalPublisher();
 
     @Inject
     private PublishTradeSignals publishTradeSignals;
@@ -42,7 +40,10 @@ public class PublishTradeSignalsTest {
     @Test
     public void testPublishTradeSignals_whenSignalIsActionable() {
         // Arrange
-        TradeSignal buySignal = TradeSignal.newBuilder().setType(TradeSignal.TradeSignalType.BUY).setPrice(100.0).build();
+        TradeSignal buySignal = TradeSignal.newBuilder()
+                .setType(TradeSignal.TradeSignalType.BUY)
+                .setPrice(100.0)
+                .build();
 
         PCollection<KV<String, TradeSignal>> input = pipeline.apply(
             Create.of(KV.of("AAPL", buySignal))
@@ -51,16 +52,20 @@ public class PublishTradeSignalsTest {
         input.apply(publishTradeSignals);
 
         // Act
-        pipeline.run(); // Run the pipeline
+        pipeline.run();
 
-        // Assert: Verify that the publisher's publish method was called with the correct signal
-        verify(signalPublisher).publish(buySignal);
+        // Assert: Verify that the fake publisher recorded the published signal.
+        List<TradeSignal> publishedSignals = fakeSignalPublisher.getPublishedSignals();
+        assertEquals(1, publishedSignals.size());
+        assertEquals(buySignal, publishedSignals.get(0));
     }
 
     @Test
     public void testPublishTradeSignals_whenSignalIsNotActionable() {
         // Arrange
-        TradeSignal noneSignal = TradeSignal.newBuilder().setType(TradeSignal.TradeSignalType.NONE).build();
+        TradeSignal noneSignal = TradeSignal.newBuilder()
+                .setType(TradeSignal.TradeSignalType.NONE)
+                .build();
 
         PCollection<KV<String, TradeSignal>> input = pipeline.apply(
             Create.of(KV.of("AAPL", noneSignal))
@@ -71,16 +76,21 @@ public class PublishTradeSignalsTest {
         // Act
         pipeline.run();
 
-        // Assert: Verify that the publisher's publish method was *not* called
-        verify(signalPublisher, never()).publish(any());
+        // Assert: No signals should be published.
+        List<TradeSignal> publishedSignals = fakeSignalPublisher.getPublishedSignals();
+        assertTrue(publishedSignals.isEmpty());
     }
 
     @Test
     public void testPublishTradeSignals_logsErrorOnException() {
         // Arrange
-        TradeSignal sellSignal = TradeSignal.newBuilder().setType(TradeSignal.TradeSignalType.SELL).setPrice(200.0).build();
-        doThrow(new RuntimeException("Publish failed"))
-            .when(signalPublisher).publish(sellSignal);
+        // Configure the fake to throw an exception after recording the signal.
+        fakeSignalPublisher.setThrowException(true);
+
+        TradeSignal sellSignal = TradeSignal.newBuilder()
+                .setType(TradeSignal.TradeSignalType.SELL)
+                .setPrice(200.0)
+                .build();
 
         PCollection<KV<String, TradeSignal>> input = pipeline.apply(
             Create.of(KV.of("GOOGL", sellSignal))
@@ -88,11 +98,38 @@ public class PublishTradeSignalsTest {
 
         input.apply(publishTradeSignals);
 
-        // Act and Assert:  Even with the exception, the pipeline should complete.
-        // The test will pass as long as it doesn't throw a PipelineExecutionException
-        // because of the injected failure in the mock.
+        // Act & Assert: The pipeline should complete even if an exception is thrown.
         pipeline.run();
 
-        verify(signalPublisher).publish(sellSignal); // Ensure publish was called.
+        // Verify that the fake recorded the attempted publish.
+        List<TradeSignal> publishedSignals = fakeSignalPublisher.getPublishedSignals();
+        assertEquals(1, publishedSignals.size());
+        assertEquals(sellSignal, publishedSignals.get(0));
+    }
+
+    /**
+     * A fake implementation of TradeSignalPublisher for testing purposes.
+     * This fake records the signals that were published and can optionally throw an exception.
+     */
+    public static class FakeTradeSignalPublisher implements TradeSignalPublisher, Serializable {
+        private static final long serialVersionUID = 1L;
+        private final List<TradeSignal> publishedSignals = new ArrayList<>();
+        private boolean throwException = false;
+
+        public void setThrowException(boolean throwException) {
+            this.throwException = throwException;
+        }
+
+        @Override
+        public void publish(TradeSignal signal) {
+            publishedSignals.add(signal);
+            if (throwException) {
+                throw new RuntimeException("Publish failed");
+            }
+        }
+
+        public List<TradeSignal> getPublishedSignals() {
+            return publishedSignals;
+        }
     }
 }
