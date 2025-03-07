@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.params;
+package com.verlumen.tradestream.backtesting;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
