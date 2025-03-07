@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
-import com.verlumen.tradestream.signals.TradeSignalPublisher;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -25,10 +24,5 @@ abstract class StrategiesModule extends AbstractModule {
         .toInstance(StrategyFactories.ALL_FACTORIES);
     bind(StrategyManager.class).to(StrategyManagerImpl.class);
     bind(StrategyState.Factory.class).to(StrategyStateFactoryImpl.class);
-  }
-
-  @Provides
-  TradeSignalPublisher provideTradeSignalPublisher(TradeSignalPublisher.Factory factory) {
-    return factory.create(signalTopic());
   }
 }
