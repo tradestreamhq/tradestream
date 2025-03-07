@@ -16,6 +16,7 @@ import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyState;
 import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.ta4j.BarSeriesFactory;
+import com.verlumen.tradestream.ta4j.Ta4jModule;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import org.apache.beam.sdk.testing.PAssert;
