@@ -39,7 +39,7 @@ abstract class PipelineModule extends AbstractModule {
       install(BacktestingModule.create());
       install(ExecutionModule.create(config().runMode()));
       install(KafkaModule.create(config().bootstrapServers()));
-      install(SignalsModule.create());
+      install(SignalsModule.create(config.signalTopic()));
   }
 
   @Provides
