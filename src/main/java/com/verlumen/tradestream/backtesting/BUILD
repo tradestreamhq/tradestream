@@ -107,7 +107,6 @@ java_library(
         ":param_config",
         ":param_config_manager",
         "//protos:backtesting_java_proto",
-        # "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
         "//third_party:guice",
         "//third_party:jenetics",
     ],
@@ -181,7 +180,6 @@ java_library(
     deps = [
         ":param_config",
         "//protos:strategies_java_proto",
-        # "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
     ],
 )
 
