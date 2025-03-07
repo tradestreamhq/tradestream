@@ -3,6 +3,7 @@ package com.verlumen.tradestream.signals;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyInt;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
@@ -128,8 +129,7 @@ public class GenerateTradeSignalsTest {
     BarSeries barSeries = barSeriesFactory.createBarSeries(candles);
 
     // 3. Configure the mocks for StrategyState and Strategy
-    when(mockTa4jStrategy.shouldEnter(0)).thenReturn(true);
-    when(mockTa4jStrategy.shouldExit(0)).thenReturn(false);
+    when(mockTa4jStrategy.shouldEnter(anyInt())).thenReturn(true);
 
     // 4. Create a serializable StrategyState implementation
     StrategyState dummyState = new TestStrategyState(mockTa4jStrategy, StrategyType.SMA_RSI);
