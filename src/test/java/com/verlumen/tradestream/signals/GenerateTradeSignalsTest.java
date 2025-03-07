@@ -13,7 +13,7 @@ import com.google.protobuf.Timestamp;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyState;
 import com.verlumen.tradestream.strategies.StrategyType;
-import com.verlumen.tradestream.ta4j.BarSeriesBuilder;
+import com.verlumen.tradestream.ta4j.BarSeriesFactory;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
 import java.io.Serializable;
 import java.time.Instant;
@@ -46,6 +46,8 @@ public class GenerateTradeSignalsTest {
   @Mock @Bind private StrategyState mockStrategyState;
   @Mock private Strategy mockTa4jStrategy;
 
+  @Inject private BarSeriesFactory barSeriesFactory;
+
   // Instead of injecting the private DoFn, inject the public transform.
   @Inject private GenerateTradeSignals generateTradeSignals;
 
@@ -72,7 +74,7 @@ public class GenerateTradeSignalsTest {
 
     // 2. Create a real BarSeries using BarSeriesBuilder
      ImmutableList<Candle> candles = ImmutableList.of(candle);
-     BarSeries barSeries = BarSeriesBuilder.createBarSeries(candles);
+     BarSeries barSeries = barSeriesFactory.createBarSeries(candles);
 
 
     // 3.  Configure the mocks for StrategyState and Strategy
