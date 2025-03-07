@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.signals;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.protobuf.util.Timestamps.fromMillis;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -9,14 +10,12 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.google.protobuf.Any;
 import com.google.protobuf.Timestamp;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyState;
 import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.ta4j.BarSeriesFactory;
-import com.verlumen.tradestream.ta4j.Ta4jModule;
-import java.io.Serializable;
-import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import org.apache.beam.sdk.testing.PAssert;
@@ -31,11 +30,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(org.mockito.junit.MockitoJUnitRunner.class)
 public class GenerateTradeSignalsTest {
 
   @Rule public final MockitoRule mockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
@@ -53,8 +51,7 @@ public class GenerateTradeSignalsTest {
 
   @Before
   public void setUp() {
-    Guice.createInjector(BoundFieldModule.of(this), Ta4jModule.create())
-        .injectMembers(this);
+    Guice.createInjector(BoundFieldModule.of(this), new Ta4jModule()).injectMembers(this);
   }
 
   @Test
@@ -143,15 +140,13 @@ public class GenerateTradeSignalsTest {
               // If an output is produced, verify that it contains a BUY signal.
               if (output.iterator().hasNext()) {
                 KV<String, TradeSignal> result = output.iterator().next();
-                assertEquals("test-key", result.getKey()); // Check the key
+                  //Updated to use truth framework
+                assertThat(result.getKey()).isEqualTo("BTC/USD"); // Check the key
                 TradeSignal signal = result.getValue();
-                assertEquals(
-                    TradeSignal.TradeSignalType.BUY,
-                    signal.getType()); // Check for a BUY signal
-                assertEquals(
-                    102.0,
-                    signal.getPrice(),
-                    0.001); // Use a small delta for double comparison.  Candle.close()
+                  //Updated to use truth framework
+                assertThat(signal.getType()).isEqualTo(TradeSignal.TradeSignalType.BUY); // Check for a BUY signal
+                  //Updated to use truth framework
+                assertThat(signal.getPrice()).isEqualTo(102.0); // Use a small delta for double comparison.  Candle.close()
               }
               return null;
             });
