@@ -13,6 +13,7 @@ import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.signals.SignalsModule;
+import com.verlumen.tradestream.signals.Ta4jModule;
 import java.nio.charset.StandardCharsets;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -40,6 +41,7 @@ abstract class PipelineModule extends AbstractModule {
       install(ExecutionModule.create(config().runMode()));
       install(KafkaModule.create(config().bootstrapServers()));
       install(SignalsModule.create(config().signalTopic()));
+      install(Ta4jModule.create());
   }
 
   @Provides
