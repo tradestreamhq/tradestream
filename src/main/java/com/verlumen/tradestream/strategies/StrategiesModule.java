@@ -3,7 +3,6 @@ package com.verlumen.tradestream.strategies;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.verlumen.tradestream.signals.TradeSignalPublisher;
@@ -22,9 +21,6 @@ abstract class StrategiesModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(CandleBuffer.class).to(CandleBufferImpl.class);
-    bind(ExecutorService.class).toProvider(Executors::newSingleThreadExecutor);
-    bind(StrategyEngine.class).to(StrategyEngineImpl.class);
     bind(new TypeLiteral<ImmutableList<StrategyFactory<?>>>() {})
         .toInstance(StrategyFactories.ALL_FACTORIES);
     bind(StrategyManager.class).to(StrategyManagerImpl.class);

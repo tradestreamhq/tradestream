@@ -7,6 +7,8 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
+        "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
         "//third_party:guava",
         "//third_party:jenetics",
         "//third_party:protobuf_java",

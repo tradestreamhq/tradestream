@@ -6,6 +6,7 @@ java_library(
     name = "signals_module",
     srcs = ["SignalsModule.java"],
     deps = [
+        "//third_party:auto_value",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
         ":trade_signal_publisher",
