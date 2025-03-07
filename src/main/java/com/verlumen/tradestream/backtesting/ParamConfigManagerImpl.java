@@ -15,8 +15,9 @@ final class ParamConfigManagerImpl implements ParamConfigManager {
     this.configMap = ImmutableMap.of();
   }
 
-  ParamConfig getParamConfig(StrategyType strategyType) {
-    checkArgument(configMap.contains(strategyType));
+  @Override
+  public ParamConfig getParamConfig(StrategyType strategyType) {
+    checkArgument(configMap.containsKey(strategyType));
     return configMap.get(strategyType);
   }
 }
