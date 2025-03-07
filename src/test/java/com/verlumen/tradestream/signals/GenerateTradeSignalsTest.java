@@ -51,7 +51,7 @@ public class GenerateTradeSignalsTest {
 
   @Before
   public void setUp() {
-    Guice.createInjector(BoundFieldModule.of(this), new Ta4jModule()).injectMembers(this);
+    Guice.createInjector(BoundFieldModule.of(this), Ta4jModule.create()).injectMembers(this);
   }
 
   @Test
