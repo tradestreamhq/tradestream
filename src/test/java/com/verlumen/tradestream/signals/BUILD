@@ -18,6 +18,7 @@ java_test(
         "//third_party:junit",
         "//third_party:mockito_core",
         "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
         "//third_party:ta4j_core",
         "//third_party:truth",
     ],
