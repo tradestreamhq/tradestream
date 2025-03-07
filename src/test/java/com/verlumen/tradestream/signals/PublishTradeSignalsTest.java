@@ -111,7 +111,7 @@ public class PublishTradeSignalsTest {
      * A fake implementation of TradeSignalPublisher for testing purposes.
      * This fake records the signals that were published and can optionally throw an exception.
      */
-    public static class FakeTradeSignalPublisher implements TradeSignalPublisher, Serializable {
+    public static class FakeTradeSignalPublisher implements TradeSignalPublisher {
         private static final long serialVersionUID = 1L;
         private final List<TradeSignal> publishedSignals = new ArrayList<>();
         private boolean throwException = false;
