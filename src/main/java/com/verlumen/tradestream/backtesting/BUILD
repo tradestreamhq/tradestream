@@ -184,6 +184,17 @@ java_library(
 )
 
 java_library(
+    name = "param_config_manager_impl",
+    srcs = ["ParamConfigManagerImpl.java"],
+    deps = [
+        ":param_config",
+        "//protos:strategies_java_proto",
+        "//third_party:guava",
+        "//third_party:guice",
+    ],
+)
+
+java_library(
     name = "run_backtest",
     srcs = ["RunBacktest.java"],
     deps = [
