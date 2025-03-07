@@ -150,6 +150,7 @@ java_library(
     srcs = ["GenotypeConverterImpl.java"],
     deps = [
         ":genotype_converter",
+        ":param_config",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
         "//third_party:guava",
