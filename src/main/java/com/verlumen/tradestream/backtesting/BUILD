@@ -154,7 +154,6 @@ java_library(
         ":param_config",
         ":param_config_manager",
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:jenetics",
