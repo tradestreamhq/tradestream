@@ -100,6 +100,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
         "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter",
         "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter_impl",
+        "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
         "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
         "//third_party:guava",
         "//third_party:guice",
