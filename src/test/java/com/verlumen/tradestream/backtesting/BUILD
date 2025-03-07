@@ -55,6 +55,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/backtesting:fitness_calculator",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory_impl",
+        "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
         "//src/main/java/com/verlumen/tradestream/backtesting:param_config_manager",
         "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
         "//third_party:guava",
