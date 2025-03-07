@@ -41,6 +41,8 @@ java_library(
         ":genetic_algorithm_orchestrator_impl",
         ":genotype_converter",
         ":genotype_converter_impl",
+        ":param_config_manager",
+        ":param_config_manager_impl",
         "//third_party:guice",
     ],
 )
