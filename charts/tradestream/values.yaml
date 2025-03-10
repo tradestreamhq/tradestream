@@ -36,7 +36,7 @@ dataIngestion:
   replicaCount: 1
   image:
     repository: tradestreamhq/tradestream-data-ingestion
-    tag: v0.9.0-develop
+    tag: v0.10.0-develop
   service:
     port: 8080
   tradeTopic: trades
@@ -44,7 +44,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v0.9.0-develop
+    tag: v0.10.0-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
