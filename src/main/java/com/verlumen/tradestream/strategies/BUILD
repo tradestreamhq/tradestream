@@ -108,6 +108,8 @@ java_library(
     srcs = ["StrategyEnginePipeline.java"],
     deps = [
         ":optimize_strategies",
+        "//protos:marketdata_java_proto",
+        "//protos:trade_signals_java_proto",
         "//src/main/java/com/verlumen/tradestream/signals:generate_trade_signals",
         "//src/main/java/com/verlumen/tradestream/signals:publish_trade_signals",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
