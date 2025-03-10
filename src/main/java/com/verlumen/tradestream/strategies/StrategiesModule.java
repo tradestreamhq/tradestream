@@ -5,7 +5,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 
 public class StrategiesModule extends AbstractModule {
-  static StrategiesModule create() {
+  public static StrategiesModule create() {
     return new StrategiesModule();
   }
   
