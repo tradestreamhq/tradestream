@@ -17,6 +17,7 @@ import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.Strategy;
 import com.verlumen.tradestream.strategies.StrategyManager;
 import com.verlumen.tradestream.strategies.StrategyType;
+import com.verlumen.tradestream.ta4j.Ta4jModule;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -67,7 +68,9 @@ public class BacktestRunnerImplTest {
             .thenReturn(ta4jStrategy);
 
         // Inject our dependencies
-        Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+        Guice.createInjector(
+            BoundFieldModule.of(this),
+            Ta4jModule.create()).injectMembers(this);
     }
 
     @Test
