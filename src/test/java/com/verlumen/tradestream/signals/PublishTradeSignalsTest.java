@@ -27,7 +27,7 @@ public class PublishTradeSignalsTest {
     public final TestPipeline pipeline = TestPipeline.create();
 
     // Bind a fake implementation of TradeSignalPublisher as a static inner class.
-    @Bind
+    @Bind(to = TradeSignalPublisher.class)
     private FakeTradeSignalPublisher fakeSignalPublisher = new FakeTradeSignalPublisher();
 
     @Inject
