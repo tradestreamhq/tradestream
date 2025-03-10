@@ -8,6 +8,7 @@ import com.verlumen.tradestream.signals.GenerateTradeSignals;
 import com.verlumen.tradestream.signals.PublishTradeSignals;
 import com.verlumen.tradestream.signals.TradeSignal;
 import org.apache.beam.sdk.state.StateSpec;
+import org.apache.beam.sdk.state.StateSpecs;
 import org.apache.beam.sdk.state.ValueState;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.Filter;
