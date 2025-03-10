@@ -20,7 +20,7 @@ import org.ta4j.core.BarSeries;
 /**
  * Generates trade signals from optimized strategy states and candle data.
  */
-final class GenerateTradeSignals extends 
+public final class GenerateTradeSignals extends 
     PTransform<PCollection<KV<String, StrategyState>>, PCollection<KV<String, TradeSignal>>> {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

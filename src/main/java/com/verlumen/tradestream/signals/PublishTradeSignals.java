@@ -12,7 +12,7 @@ import org.apache.beam.sdk.values.PDone;
 /**
  * Publishes trade signals using the TradeSignalPublisher service.
  */
-final class PublishTradeSignals extends PTransform<PCollection<KV<String, TradeSignal>>, PDone> {
+public final class PublishTradeSignals extends PTransform<PCollection<KV<String, TradeSignal>>, PDone> {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final PublishSignalsDoFn publishSignalsDoFn;
