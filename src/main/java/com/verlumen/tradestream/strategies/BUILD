@@ -30,13 +30,8 @@ java_library(
         ":strategy_manager_impl",
         ":strategy_state",
         ":strategy_state_factory_impl",
-        "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
-        "//src/main/java/com/verlumen/tradestream/signals:signals_module",
-        "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
-        "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
-        "//third_party:kafka_clients",
     ],
 )
 

@@ -41,6 +41,8 @@ java_library(
         ":genetic_algorithm_orchestrator_impl",
         ":genotype_converter",
         ":genotype_converter_impl",
+        ":param_config_manager",
+        ":param_config_manager_impl",
         "//third_party:guice",
     ],
 )
@@ -179,6 +181,18 @@ java_library(
     deps = [
         ":param_config",
         "//protos:strategies_java_proto",
+    ],
+)
+
+java_library(
+    name = "param_config_manager_impl",
+    srcs = ["ParamConfigManagerImpl.java"],
+    deps = [
+        ":param_config",
+        ":param_config_manager",
+        "//protos:strategies_java_proto",
+        "//third_party:guava",
+        "//third_party:guice",
     ],
 )
 

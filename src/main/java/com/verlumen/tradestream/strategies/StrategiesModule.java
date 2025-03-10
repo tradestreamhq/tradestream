@@ -1,24 +1,14 @@
 package com.verlumen.tradestream.strategies;
 
-import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
-import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
-import com.verlumen.tradestream.backtesting.BacktestingModule;
-import com.verlumen.tradestream.signals.SignalsModule;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 
-@AutoValue
-abstract class StrategiesModule extends AbstractModule {
-  static StrategiesModule create(String candleTopic, String signalTopic) {
-    return new AutoValue_StrategiesModule(candleTopic, signalTopic);
+public class StrategiesModule extends AbstractModule {
+  public static StrategiesModule create() {
+    return new StrategiesModule();
   }
   
-  abstract String candleTopic();
-  abstract String signalTopic();
 
   @Override
   protected void configure() {
@@ -26,8 +16,7 @@ abstract class StrategiesModule extends AbstractModule {
         .toInstance(StrategyFactories.ALL_FACTORIES);
     bind(StrategyManager.class).to(StrategyManagerImpl.class);
     bind(StrategyState.Factory.class).to(StrategyStateFactoryImpl.class);
-
-    install(BacktestingModule.create());
-    install(SignalsModule.create(signalTopic()));
   }
+
+  private StrategiesModule() {}
 }
