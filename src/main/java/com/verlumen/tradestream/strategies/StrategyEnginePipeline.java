@@ -74,7 +74,7 @@ public class StrategyEnginePipeline {
     private final StateSpec<ValueState<ImmutableList<Candle>>> storedCandlesSpec;
 
     @Inject
-    StrategyEnginePipeline() {
+    StoreCandlesDoFn() {
       this.storedCandlesSpec = StateSpecs.value();
     }
 
