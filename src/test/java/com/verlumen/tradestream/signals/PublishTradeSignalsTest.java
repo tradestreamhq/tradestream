@@ -6,7 +6,6 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import com.verlumen.tradestream.strategies.StrategyType;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +25,7 @@ public class PublishTradeSignalsTest {
     @Rule
     public final TestPipeline pipeline = TestPipeline.create();
 
-    // Bind a fake implementation of TradeSignalPublisher as a static inner class.
+    // Bind a fake implementation of TradeSignalPublisher.
     @Bind(to = TradeSignalPublisher.class)
     private FakeTradeSignalPublisher fakeSignalPublisher = new FakeTradeSignalPublisher();
 
@@ -35,6 +34,8 @@ public class PublishTradeSignalsTest {
 
     @Before
     public void setup() {
+        // Reset the static state before each test.
+        FakeTradeSignalPublisher.reset();
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
     }
 
@@ -56,7 +57,7 @@ public class PublishTradeSignalsTest {
         pipeline.run();
 
         // Assert: Verify that the fake publisher recorded the published signal.
-        List<TradeSignal> publishedSignals = fakeSignalPublisher.getPublishedSignals();
+        List<TradeSignal> publishedSignals = FakeTradeSignalPublisher.getPublishedSignals();
         assertEquals(1, publishedSignals.size());
         assertEquals(buySignal, publishedSignals.get(0));
     }
@@ -78,14 +79,13 @@ public class PublishTradeSignalsTest {
         pipeline.run();
 
         // Assert: No signals should be published.
-        List<TradeSignal> publishedSignals = fakeSignalPublisher.getPublishedSignals();
+        List<TradeSignal> publishedSignals = FakeTradeSignalPublisher.getPublishedSignals();
         assertTrue(publishedSignals.isEmpty());
     }
 
     @Test
     public void testPublishTradeSignals_logsErrorOnException() {
-        // Arrange
-        // Configure the fake to throw an exception after recording the signal.
+        // Arrange: Configure the fake to throw an exception after recording the signal.
         fakeSignalPublisher.setThrowException(true);
 
         TradeSignal sellSignal = TradeSignal.newBuilder()
@@ -103,7 +103,7 @@ public class PublishTradeSignalsTest {
         pipeline.run();
 
         // Verify that the fake recorded the attempted publish.
-        List<TradeSignal> publishedSignals = fakeSignalPublisher.getPublishedSignals();
+        List<TradeSignal> publishedSignals = FakeTradeSignalPublisher.getPublishedSignals();
         assertEquals(1, publishedSignals.size());
         assertEquals(sellSignal, publishedSignals.get(0));
     }
@@ -114,8 +114,13 @@ public class PublishTradeSignalsTest {
      */
     public static class FakeTradeSignalPublisher implements TradeSignalPublisher, Serializable {
         private static final long serialVersionUID = 1L;
-        private final List<TradeSignal> publishedSignals = new ArrayList<>();
+        // Use a static list so all copies share the same state.
+        private static final List<TradeSignal> publishedSignals = new ArrayList<>();
         private boolean throwException = false;
+
+        public static void reset() {
+            publishedSignals.clear();
+        }
 
         public void setThrowException(boolean throwException) {
             this.throwException = throwException;
@@ -131,10 +136,10 @@ public class PublishTradeSignalsTest {
         
         @Override
         public void close() {
-            //No-op for testing
+            // No-op for testing
         }
 
-        public List<TradeSignal> getPublishedSignals() {
+        public static List<TradeSignal> getPublishedSignals() {
             return publishedSignals;
         }
     }
