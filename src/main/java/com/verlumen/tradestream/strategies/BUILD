@@ -110,7 +110,10 @@ java_library(
         ":optimize_strategies",
         "//src/main/java/com/verlumen/tradestream/signals:generate_trade_signals",
         "//src/main/java/com/verlumen/tradestream/signals:publish_trade_signals",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
+        "//third_party:beam_sdks_java_core",
         "//third_party:flogger",
+        "//third_party:guice",
         "//third_party:guava",
     ],
 )
