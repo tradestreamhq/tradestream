@@ -7,6 +7,9 @@ import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.signals.GenerateTradeSignals;
 import com.verlumen.tradestream.signals.PublishTradeSignals;
 import com.verlumen.tradestream.signals.TradeSignal;
+import org.apache.beam.sdk.state.StateSpec;
+import org.apache.beam.sdk.state.StateSpecs;
+import org.apache.beam.sdk.state.ValueState;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.Filter;
 import org.apache.beam.sdk.transforms.ParDo;
@@ -25,6 +28,7 @@ public class StrategyEnginePipeline {
   private final OptimizeStrategies optimizeStrategies;
   private final GenerateTradeSignals generateTradeSignals;
   private final PublishTradeSignals publishTradeSignals;
+  private final StoreCandlesDoFn storeCandlesDoFn;
   
   @Inject
   StrategyEnginePipeline(
