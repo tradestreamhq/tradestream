@@ -19,7 +19,7 @@ java_library(
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
-        "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_builder",
+        "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_factory",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:protobuf_java",
@@ -41,7 +41,22 @@ java_library(
         ":genetic_algorithm_orchestrator_impl",
         ":genotype_converter",
         ":genotype_converter_impl",
+        ":param_config_manager",
+        ":param_config_manager_impl",
         "//third_party:guice",
+    ],
+)
+
+java_library(
+    name = "chromosome_spec",
+    srcs = [
+        "ChromosomeSpec.java",
+        "DoubleChromosomeSpec.java",
+        "IntegerChromosomeSpec.java",
+    ],
+    deps = [
+        "//third_party:guava",
+        "//third_party:jenetics",
     ],
 )
 
@@ -87,11 +102,13 @@ java_library(
     name = "ga_engine_factory_impl",
     srcs = ["GAEngineFactoryImpl.java"],
     deps = [
+        ":chromosome_spec",
         ":fitness_calculator",
         ":ga_constants",
         ":ga_engine_factory",
+        ":param_config",
+        ":param_config_manager",
         "//protos:backtesting_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
         "//third_party:guice",
         "//third_party:jenetics",
     ],
@@ -136,12 +153,46 @@ java_library(
     srcs = ["GenotypeConverterImpl.java"],
     deps = [
         ":genotype_converter",
+        ":param_config",
+        ":param_config_manager",
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting/params:params_lib",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:jenetics",
         "//third_party:protobuf_java",
+    ],
+)
+
+java_library(
+    name = "param_config",
+    srcs = ["ParamConfig.java"],
+    deps = [
+        ":chromosome_spec",
+        "//protos:strategies_java_proto",
+        "//third_party:guava",
+        "//third_party:jenetics",
+        "//third_party:protobuf_java",
+    ],
+)
+
+java_library(
+    name = "param_config_manager",
+    srcs = ["ParamConfigManager.java"],
+    deps = [
+        ":param_config",
+        "//protos:strategies_java_proto",
+    ],
+)
+
+java_library(
+    name = "param_config_manager_impl",
+    srcs = ["ParamConfigManagerImpl.java"],
+    deps = [
+        ":param_config",
+        ":param_config_manager",
+        "//protos:strategies_java_proto",
+        "//third_party:guava",
+        "//third_party:guice",
     ],
 )
 

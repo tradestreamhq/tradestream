@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.params;
+package com.verlumen.tradestream.backtesting;
 
 import com.verlumen.tradestream.strategies.StrategyType;
 import java.io.Serializable;
