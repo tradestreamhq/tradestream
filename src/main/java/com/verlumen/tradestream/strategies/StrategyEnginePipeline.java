@@ -5,6 +5,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.signals.GenerateTradeSignals;
+import com.verlumen.tradestream.signals.PublishTradeSignals;
 import com.verlumen.tradestream.signals.TradeSignal;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.Filter;
