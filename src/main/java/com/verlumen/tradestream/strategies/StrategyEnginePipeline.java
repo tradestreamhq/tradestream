@@ -25,6 +25,7 @@ public class StrategyEnginePipeline {
   private final OptimizeStrategies optimizeStrategies;
   private final GenerateTradeSignals generateTradeSignals;
   private final PublishTradeSignals publishTradeSignals;
+  private final StoreCandlesDoFn storeCandlesDoFn;
   
   @Inject
   StrategyEnginePipeline(
