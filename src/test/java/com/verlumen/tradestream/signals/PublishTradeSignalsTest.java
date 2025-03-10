@@ -6,6 +6,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.verlumen.tradestream.strategies.StrategyType;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class PublishTradeSignalsTest {
 
-    @Rule 
+    @Rule
     public final TestPipeline pipeline = TestPipeline.create();
 
     // Bind a fake implementation of TradeSignalPublisher as a static inner class.
@@ -111,7 +112,7 @@ public class PublishTradeSignalsTest {
      * A fake implementation of TradeSignalPublisher for testing purposes.
      * This fake records the signals that were published and can optionally throw an exception.
      */
-    public static class FakeTradeSignalPublisher implements TradeSignalPublisher {
+    public static class FakeTradeSignalPublisher implements TradeSignalPublisher, Serializable {
         private static final long serialVersionUID = 1L;
         private final List<TradeSignal> publishedSignals = new ArrayList<>();
         private boolean throwException = false;
@@ -126,6 +127,11 @@ public class PublishTradeSignalsTest {
             if (throwException) {
                 throw new RuntimeException("Publish failed");
             }
+        }
+        
+        @Override
+        public void close() {
+            //No-op for testing
         }
 
         public List<TradeSignal> getPublishedSignals() {
