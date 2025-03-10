@@ -25,13 +25,15 @@ public class StrategyEnginePipeline {
   private final PublishTradeSignals publishTradeSignals;
   
   @Inject
-  public StrategyEnginePipeline(
+  StrategyEnginePipeline(
       OptimizeStrategies optimizeStrategies,
       GenerateTradeSignals generateTradeSignals,
-      PublishTradeSignals publishTradeSignals) {
+      PublishTradeSignals publishTradeSignals,
+      StoreCandlesDoFn storeCandlesDoFn) {
     this.optimizeStrategies = optimizeStrategies;
     this.generateTradeSignals = generateTradeSignals;
     this.publishTradeSignals = publishTradeSignals;
+    this.storeCandlesDoFn = storeCandlesDoFn;
   }
   
   /**
@@ -49,7 +51,7 @@ public class StrategyEnginePipeline {
             Filter.by(kv -> kv.getValue() != null && !kv.getValue().isEmpty()));
     
     // Store candles in state for signal generation (side effect)
-    filteredCandles.apply("StoreCandles", ParDo.of(new StoreCandlesDoFn()));
+    filteredCandles.apply("StoreCandles", ParDo.of(storeCandlesDoFn));
     
     // Optimize strategies and generate signals
     PCollection<KV<String, StrategyState>> optimizedStrategies = 
@@ -69,13 +71,17 @@ public class StrategyEnginePipeline {
   private static class StoreCandlesDoFn extends DoFn<KV<String, ImmutableList<Candle>>, Void> {
     
     @StateId("storedCandles")
-    private final StateSpec<ValueState<ImmutableList<Candle>>> storedCandlesSpec = StateSpecs.value();
-    
+    private final StateSpec<ValueState<ImmutableList<Candle>>> storedCandlesSpec;
+
+    @Inject
+    StrategyEnginePipeline() {
+      this.storedCandlesSpec = StateSpecs.value();
+    }
+
     @ProcessElement
     public void processElement(
         ProcessContext context,
         @StateId("storedCandles") ValueState<ImmutableList<Candle>> storedCandlesState) {
-      
       KV<String, ImmutableList<Candle>> element = context.element();
       storedCandlesState.write(element.getValue());
     }
