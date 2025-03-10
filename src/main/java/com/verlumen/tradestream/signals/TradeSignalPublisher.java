@@ -2,7 +2,7 @@ package com.verlumen.tradestream.signals;
 
 import java.io.Serializable;
 
-interface TradeSignalPublisher extends Serializable {
+public interface TradeSignalPublisher extends Serializable {
     void publish(TradeSignal signal);
 
     void close();
