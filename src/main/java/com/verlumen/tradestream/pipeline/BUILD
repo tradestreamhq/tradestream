@@ -101,6 +101,7 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform_factory",
         "//src/main/java/com/verlumen/tradestream/signals:signals_module",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategies_module",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
         "//third_party:auto_value",
         "//third_party:guice",
