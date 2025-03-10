@@ -128,16 +128,13 @@ public class GenerateTradeSignalsTest {
     ImmutableList<Candle> candles = ImmutableList.of(candle);
     BarSeries barSeries = barSeriesFactory.createBarSeries(candles);
 
-    // 3. Configure the mocks for StrategyState and Strategy
-    when(mockTa4jStrategy.shouldEnter(anyInt())).thenReturn(true);
-
-    // 4. Create a serializable StrategyState implementation
+    // 3. Create a serializable StrategyState implementation
     StrategyState dummyState = new TestStrategyState(mockTa4jStrategy, StrategyType.SMA_RSI);
 
-    // 5. Create input for the transform: KV<String, StrategyState>
+    // 4. Create input for the transform: KV<String, StrategyState>
     KV<String, StrategyState> inputElement = KV.of("BTC/USD", dummyState);
 
-    // 6. Apply the transform
+    // 5. Apply the transform
     PAssert.that(pipeline.apply(Create.of(inputElement)).apply(generateTradeSignals))
         .satisfies(
             output -> {
