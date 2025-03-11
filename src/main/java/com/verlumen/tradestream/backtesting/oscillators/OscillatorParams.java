@@ -12,9 +12,10 @@ public final class OscillatorParams {
     /**
      * An immutable list of all oscillator param configs.
      */
-    public static final ImmutableList<ParamConfig<?>> ALL_CONFIGS = ImmutableList.of(
-        SmaRsiParamConfig.create()
-    );
+    public static final ImmutableList<ParamConfig> ALL_CONFIGS = 
+        ImmutableList.<ParamConfig>builder()
+            .add(SmaRsiParamConfig.create())
+            .build();
 
     // Prevent instantiation
     private OscillatorParams() {}
