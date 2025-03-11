@@ -5,6 +5,7 @@ import com.google.common.base.Suppliers;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import java.io.Serializable;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.producer.KafkaProducer;
 
