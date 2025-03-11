@@ -7,7 +7,7 @@ import com.google.protobuf.util.Timestamps;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import java.time.Duration;
-import java.util.funtion.Supplier;
+import java.util.function.Supplier;
 
 /**
  * Kafka-based implementation of TradeSignalPublisher that publishes trade signals to a specified topic.
