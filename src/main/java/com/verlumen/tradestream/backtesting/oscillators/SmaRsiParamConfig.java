@@ -1,7 +1,9 @@
-package com.verlumen.tradestream.backtesting.params;
+package com.verlumen.tradestream.backtesting.oscillators;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
+import com.verlumen.tradestream.backtesting.ChromosomeSpec;
+import com.verlumen.tradestream.backtesting.ParamConfig;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.IntegerChromosome;

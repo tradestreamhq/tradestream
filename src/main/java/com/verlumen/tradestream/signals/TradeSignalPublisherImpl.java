@@ -7,18 +7,19 @@ import com.google.protobuf.util.Timestamps;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import java.time.Duration;
+import java.util.function.Supplier;
 
 /**
  * Kafka-based implementation of TradeSignalPublisher that publishes trade signals to a specified topic.
  */
 final class TradeSignalPublisherImpl implements TradeSignalPublisher {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private final KafkaProducer<String, byte[]> kafkaProducer;
+    private final Supplier<KafkaProducer<String, byte[]>> kafkaProducer;
     private final String topic;
 
     @Inject
     TradeSignalPublisherImpl(
-        KafkaProducer<String, byte[]> kafkaProducer,
+        Supplier<KafkaProducer<String, byte[]>> kafkaProducer,
         @Assisted String topic
     ) {
         logger.atInfo().log("Initializing TradeSignalPublisher for topic: %s", topic);
@@ -47,7 +48,7 @@ final class TradeSignalPublisherImpl implements TradeSignalPublisher {
             signalBytes
         );
 
-        kafkaProducer.send(record, (metadata, exception) -> {
+        kafkaProducer.get().send(record, (metadata, exception) -> {
             if (exception != null) {
                 logger.atSevere().withCause(exception)
                     .log("Failed to publish trade signal for %s to topic %s", 
@@ -67,9 +68,9 @@ final class TradeSignalPublisherImpl implements TradeSignalPublisher {
         logger.atInfo().log("Initiating Kafka producer shutdown");
         try {
             logger.atInfo().log("Flushing any pending messages...");
-            kafkaProducer.flush();
+            kafkaProducer.get().flush();
             logger.atInfo().log("Starting graceful shutdown with 5 second timeout");
-            kafkaProducer.close(Duration.ofSeconds(5));
+            kafkaProducer.get().close(Duration.ofSeconds(5));
             logger.atInfo().log("Kafka producer closed successfully");
         } catch (Exception e) {
             logger.atSevere().withCause(e).log("Error during Kafka producer shutdown");

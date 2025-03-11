@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
 
-public class BarSeriesBuilder {
+final class BarSeriesBuilder {
   private static Duration ONE_MINUTE = Duration.ofMinutes(1);
   private static ZoneId UTC = ZoneId.of("UTC");
 
