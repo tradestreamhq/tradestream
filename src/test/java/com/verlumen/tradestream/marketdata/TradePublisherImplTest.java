@@ -11,6 +11,7 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import java.time.Duration; 
+import java.util.function.Supplier;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,7 +28,8 @@ public class TradePublisherImplTest {
 
     private static final String TOPIC = "test-topic";
 
-    @Mock @Bind private KafkaProducer<String, byte[]> mockProducer;
+    @Mock private KafkaProducer<String, byte[]> mockProducer;
+    @Bind private Supplier<KafkaProducer<String, byte[]>> kafkaProducerSupplier = () -> mockProducer;
     @Inject private TradePublisher.Factory factory;
 
     @Before
