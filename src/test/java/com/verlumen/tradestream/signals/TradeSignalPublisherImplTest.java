@@ -32,7 +32,8 @@ public class TradeSignalPublisherImplTest {
 
     private static final String TOPIC = "test-topic";
     
-    @Mock @Bind private KafkaProducer<String, byte[]> mockProducer;
+    @Mock private KafkaProducer<String, byte[]> mockProducer;
+    @Bind private Supplier<KafkaProducer<String, byte[]>> kafkaProducerSupplier = () -> mockProducer;
     @Inject private TradeSignalPublisher.Factory factory;
 
     @Before

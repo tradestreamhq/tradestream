@@ -10,12 +10,12 @@ import java.time.Duration;
 
 final class TradePublisherImpl implements TradePublisher {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private final KafkaProducer<String, byte[]> kafkaProducer;
+    private final Supplier<KafkaProducer<String, byte[]>> kafkaProducer;
     private final String topic;
 
     @Inject
     TradePublisherImpl(
-        KafkaProducer<String, byte[]> kafkaProducer,
+        Supplier<KafkaProducer<String, byte[]>> kafkaProducer,
         @Assisted String topic
     ) {
         logger.atInfo().log("Initializing TradePublisher for topic: %s", topic);
@@ -48,7 +48,7 @@ final class TradePublisherImpl implements TradePublisher {
             tradeBytes
         );
 
-        kafkaProducer.send(record, (metadata, exception) -> {
+        kafkaProducer.get().send(record, (metadata, exception) -> {
             if (exception != null) {
                 logger.atSevere().withCause(exception)
                     .log("Failed to publish trade for %s to topic %s",
@@ -68,9 +68,9 @@ final class TradePublisherImpl implements TradePublisher {
         logger.atInfo().log("Initiating Kafka producer shutdown");
         try {
             logger.atInfo().log("Flushing any pending messages...");
-            kafkaProducer.flush();
+            kafkaProducer.get().flush();
             logger.atInfo().log("Starting graceful shutdown with 5 second timeout");
-            kafkaProducer.close(Duration.ofSeconds(5));
+            kafkaProducer.get().close(Duration.ofSeconds(5));
             logger.atInfo().log("Kafka producer closed successfully");
         } catch (Exception e) {
             logger.atSevere().withCause(e).log("Error during Kafka producer shutdown");
