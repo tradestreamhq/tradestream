@@ -3,11 +3,12 @@ package com.verlumen.tradestream.backtesting;
 import io.jenetics.DoubleGene;
 import io.jenetics.Genotype;
 import java.util.function.Function;
+import java.io.Serializable;
 
 /**
  * Defines the contract for calculating fitness scores using backtesting.
  */
-interface FitnessCalculator {
+interface FitnessCalculator extends Serializable {
     /**
      * Creates a fitness function for the genetic algorithm.
      *
