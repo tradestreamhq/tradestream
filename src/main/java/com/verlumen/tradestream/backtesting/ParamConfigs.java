@@ -5,7 +5,7 @@ import com.verlumen.tradestream.backtesting.oscillators.OscillatorParams;
 
 final class ParamConfigs {
     static final ImmutableList<ParamConfig> ALL_CONFIGS = 
-        ImmutableList.<ParamConfig<?>>builder()
+        ImmutableList.<ParamConfig>builder()
             .addAll(OscillatorParams.ALL_CONFIGS)
             .build();
 
