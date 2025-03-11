@@ -1,7 +1,7 @@
 package com.verlumen.tradestream.backtesting;
 
 import com.google.common.collect.ImmutableList;
-import com.verlumen.tradestream.backtesting.oscillators.OscillatorStrategies;
+import com.verlumen.tradestream.backtesting.oscillators.OscillatorParams;
 
 public final class ParamConfigs {
     public static final ImmutableList<ParamConfig> ALL_CONFIGS = 
