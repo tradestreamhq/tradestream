@@ -42,7 +42,7 @@ java_library(
         ":genotype_converter",
         ":genotype_converter_impl",
         ":param_config",
-        ":param_configS",
+        ":param_configs",
         ":param_config_manager",
         ":param_config_manager_impl",
         "//third_party:guava",
