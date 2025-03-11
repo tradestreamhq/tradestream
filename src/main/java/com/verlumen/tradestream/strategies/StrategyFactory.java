@@ -4,6 +4,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.verlumen.tradestream.strategies.StrategyType;
+import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import org.ta4j.core.BarSeries;
@@ -17,7 +18,7 @@ import org.ta4j.core.Strategy;
  *
  * @param <T> The specific type of {@link Message} that holds the parameters for the strategy.
  */
-public interface StrategyFactory<T extends Message> {
+public interface StrategyFactory<T extends Message> extends Serializable {
   /**
    * Creates a Ta4j Strategy object from the provided {@link BarSeries} and parameters.
    *
