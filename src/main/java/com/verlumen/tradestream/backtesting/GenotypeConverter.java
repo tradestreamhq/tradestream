@@ -4,13 +4,13 @@ import com.google.protobuf.Any;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.DoubleGene;
 import io.jenetics.Genotype;
+import java.io.Serializable;
 
 /**
  * Converts genotypes from the genetic algorithm into strategy parameters.
  * Encapsulates the conversion logic to make it reusable and testable.
  */
-interface GenotypeConverter {
-
+interface GenotypeConverter extends Serializable {
   /**
    * Converts the genotype from the genetic algorithm into strategy parameters.
    *
