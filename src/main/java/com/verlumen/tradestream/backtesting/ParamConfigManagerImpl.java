@@ -11,8 +11,10 @@ final class ParamConfigManagerImpl implements ParamConfigManager {
   private final ImmutableMap<StrategyType, ParamConfig> configMap;
 
   @Inject
-  ParamConfigManagerImpl() {
-    this.configMap = ImmutableMap.of();
+  ParamConfigManagerImpl(ImmutableList<ParamConfig> configs) {
+    this.configMap = 
+        BiStream.from(configs, StrategyFactory::getStrategyType, identity())
+            .collect(ImmutableMap::toImmutableMap);
   }
 
   @Override
