@@ -27,6 +27,7 @@ java_library(
         ":kafka_read_transform",
         ":kafka_read_transform_factory",
         "//third_party:auto_value",
+        "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
         "//third_party:kafka_clients",
