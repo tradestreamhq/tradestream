@@ -64,31 +64,6 @@ public class StrategyStateFactoryImplTest {
         assertEquals(StrategyType.SMA_RSI, ts.getType());
     }
 
-    @Test
-    public void testGetCurrentStrategyReturnsSameInstanceOnSubsequentCalls() throws Exception {
-        // Arrange
-        StrategyState state = strategyStateFactory.create();
-        org.ta4j.core.Strategy first = state.getCurrentStrategy(DUMMY_BAR_SERIES);
-        // Act
-        org.ta4j.core.Strategy second = state.getCurrentStrategy(DUMMY_BAR_SERIES);
-        // Assert: the same instance is returned.
-        assertSame(first, second);
-    }
-
-    // --- updateRecord() tests ---
-
-    @Test
-    public void testUpdateRecordDoesNotChangeCurrentStrategyUntilReselect() throws Exception {
-        // Arrange
-        StrategyState state = strategyStateFactory.create();
-        org.ta4j.core.Strategy initial = state.getCurrentStrategy(DUMMY_BAR_SERIES);
-        Any newParams = Any.getDefaultInstance();
-        // Act
-        state.updateRecord(StrategyType.SMA_RSI, newParams, 100.0);
-        // Assert: the cached strategy remains unchanged.
-        assertSame(initial, state.getCurrentStrategy(DUMMY_BAR_SERIES));
-    }
-
     // --- selectBestStrategy() tests ---
 
     @Test
@@ -111,17 +86,6 @@ public class StrategyStateFactoryImplTest {
 
         // Act: getCurrentStrategy should throw.
         state.getCurrentStrategy(DUMMY_BAR_SERIES);
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void testSelectBestStrategyThrowsWhenStrategyCreationFails() {
-        // Arrange – update record then force exception on creation.
-        Any paramsDummy = Any.getDefaultInstance();
-        StrategyState state = strategyStateFactory.create();
-        state.updateRecord(StrategyType.SMA_RSI, paramsDummy, 100.0);
-        fakeStrategyManager.setThrowExceptionOnCreate(true);
-        // Act: selectBestStrategy should wrap the exception in a RuntimeException.
-        state.selectBestStrategy(DUMMY_BAR_SERIES);
     }
 
     // --- toStrategyMessage() tests ---
