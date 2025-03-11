@@ -129,21 +129,21 @@ java_library(
 java_library(
     name = "commons_rng_client_api",
     exports = [
-        "@tradestream_maven//org_apache_commons_commons_rng_client_api",
+        "@tradestream_maven//:org_apache_commons_commons_rng_client_api",
     ],
 )
 
 java_library(
     name = "commons_rng_core",
     exports = [
-        "@tradestream_maven//org_apache_commons_commons_rng_core",
+        "@tradestream_maven//:org_apache_commons_commons_rng_core",
     ],
 )
 
 java_library(
     name = "commons_rng_simple",
     exports = [
-        "@tradestream_maven//org_apache_commons_commons_rng_simple",
+        "@tradestream_maven//:org_apache_commons_commons_rng_simple",
     ],
 )
 
