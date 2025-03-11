@@ -2,8 +2,10 @@ package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
+import com.google.mu.util.stream.BiStream;
 import com.verlumen.tradestream.strategies.StrategyType;
 import java.io.Serializable;
 
