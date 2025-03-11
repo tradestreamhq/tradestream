@@ -12,6 +12,8 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.strategies.Strategy;
 import com.verlumen.tradestream.strategies.StrategyType;
+import java.time.Duration;
+import java.util.function.Supplier;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.Before;
@@ -23,8 +25,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.time.Duration;
 
 @RunWith(JUnit4.class)
 public class TradeSignalPublisherImplTest {
