@@ -13,12 +13,12 @@ import java.time.Duration;
  */
 final class TradeSignalPublisherImpl implements TradeSignalPublisher {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-    private final KafkaProducer<String, byte[]> kafkaProducer;
+    private final KafkaProducerFactory kafkaProducerFactory;
     private final String topic;
 
     @Inject
     TradeSignalPublisherImpl(
-        KafkaProducer<String, byte[]> kafkaProducer,
+        KafkaProducerFactory kafkaProducerFactory,
         @Assisted String topic
     ) {
         logger.atInfo().log("Initializing TradeSignalPublisher for topic: %s", topic);
