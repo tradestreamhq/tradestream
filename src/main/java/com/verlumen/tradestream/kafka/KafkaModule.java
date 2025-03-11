@@ -16,7 +16,7 @@ public abstract class KafkaModule extends AbstractModule {
   }
 
   abstract String bootstrapServers();
-  
+
   @Override
   protected void configure() {
     bind(KafkaProperties.class).toInstance(KafkaProperties.create(bootstrapServers()));
@@ -25,6 +25,6 @@ public abstract class KafkaModule extends AbstractModule {
 
   @Provides
   Supplier<KafkaProducer<String, byte[]>> provideKafkaProducerSupplier(KafkaProducerSupplier supplier) {
-    return Suppliers.<KafkaProducer<String, byte[]>>memoize(supplier);
+    return Suppliers.memoize((Supplier<KafkaProducer<String, byte[]>>) supplier);
   }
 }
