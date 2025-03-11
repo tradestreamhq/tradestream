@@ -22,7 +22,7 @@ java_library(
     name = "kafka_module",
     srcs = ["KafkaModule.java"],
     deps = [
-        ":kafka_producer_provider",
+        ":kafka_producer_supplier",
         ":kafka_properties",
         ":kafka_read_transform",
         ":kafka_read_transform_factory",
@@ -34,8 +34,8 @@ java_library(
 )
 
 java_library(
-    name = "kafka_producer_provider",
-    srcs = ["KafkaProducerProvider.java"],
+    name = "kafka_producer_supplier",
+    srcs = ["KafkaProducerSupplier.java"],
     deps = [
         ":kafka_properties",
         "//third_party:guice",
