@@ -7,6 +7,7 @@ import com.google.protobuf.util.Timestamps;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import java.time.Duration;
+import java.util.function.Supplier;
 
 final class TradePublisherImpl implements TradePublisher {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
