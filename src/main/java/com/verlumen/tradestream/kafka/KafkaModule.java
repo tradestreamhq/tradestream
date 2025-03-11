@@ -25,6 +25,6 @@ public abstract class KafkaModule extends AbstractModule {
 
   @Provides
   Supplier<KafkaProducer<String, byte[]>> provideKafkaProducerSupplier(KafkaProducerSupplier supplier) {
-    return Suppliers.memoize((Supplier<KafkaProducer<String, byte[]>>) supplier);
+    return Suppliers.memoize(supplier::get);
   }
 }
