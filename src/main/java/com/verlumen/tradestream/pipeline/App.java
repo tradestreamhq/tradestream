@@ -51,6 +51,11 @@ public final class App {
     String getTradeTopic();
     void setTradeTopic(String value);
 
+    @Description("Kafka topic to publish signal data to.")
+    @Default.String("signals")
+    String getSignalTopic();
+    void setSignalTopic(String value);
+
     @Description("Run mode: wet or dry.")
     @Default.String("wet")
     String getRunMode();
@@ -208,7 +213,11 @@ public final class App {
 
     // Create PipelineConfig and Guice module.
     PipelineConfig config =
-        PipelineConfig.create(options.getBootstrapServers(), options.getTradeTopic(), options.getRunMode());
+        PipelineConfig.create(
+          options.getBootstrapServers(),
+          options.getTradeTopic(),
+          options.getSignalTopic(),
+          options.getRunMode());
     logger.atInfo().log("Created PipelineConfig: %s", config);
 
     var module = PipelineModule.create(config);

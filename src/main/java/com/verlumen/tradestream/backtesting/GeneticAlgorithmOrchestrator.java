@@ -2,6 +2,7 @@ package com.verlumen.tradestream.backtesting;
 
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.backtesting.BestStrategyResponse;
+import java.io.Serializable;
 
 /**
  * Orchestrates a genetic/evolutionary search for the best strategy parameters.
@@ -14,7 +15,7 @@ import com.verlumen.tradestream.backtesting.BestStrategyResponse;
  *   <li>Return a {@link BestStrategyResponse} containing the top parameters and score.</li>
  * </ul>
  */
-public interface GeneticAlgorithmOrchestrator {
+public interface GeneticAlgorithmOrchestrator extends Serializable {
 
     /**
      * Runs a genetic algorithm-based optimization to discover the best
