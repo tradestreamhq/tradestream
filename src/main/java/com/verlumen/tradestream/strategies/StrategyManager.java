@@ -3,6 +3,7 @@ package com.verlumen.tradestream.strategies;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import java.io.Serializable;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 
@@ -13,7 +14,7 @@ import org.ta4j.core.Strategy;
  * {@link StrategyType} and {@link BarSeries}. It leverages a corresponding {@link StrategyFactory}
  * to supply both the strategy instance and its default configuration parameters.
  */
-public interface StrategyManager {
+public interface StrategyManager extends Serializable {
 
   /**
    * Creates a new Ta4j {@link Strategy} instance for the specified strategy type and bar series,
