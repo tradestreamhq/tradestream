@@ -8,10 +8,24 @@ import io.jenetics.Mutator;
 import io.jenetics.SinglePointCrossover;
 import io.jenetics.TournamentSelector;
 import io.jenetics.engine.Engine;
+import io.jenetics.util.RandomRegistry;
+import org.apache.commons.rng.simple.JDKRandomBridge;
+import org.apache.commons.rng.simple.RandomSource;
 import java.util.List;
 import java.util.stream.Collectors;
 
 final class GAEngineFactoryImpl implements GAEngineFactory {
+    static {
+        // Configure the default RNG in Jenetics to use a known implementation
+        RandomRegistry.random(
+            new JDKRandomBridge(
+                new RandomSource.Factory().create(
+                    RandomSource.XOR_SHIFT_1024_S
+                )
+            )
+        );
+    }
+
     private final ParamConfigManager paramConfigManager;
     private final FitnessCalculator fitnessCalculator;
     
