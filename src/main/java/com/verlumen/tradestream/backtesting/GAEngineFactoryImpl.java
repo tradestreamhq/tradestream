@@ -19,9 +19,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
         // Configure the default RNG in Jenetics to use a known implementation
         RandomRegistry.random(
             new JDKRandomBridge(
-                new RandomSource.Factory().create(
-                    RandomSource.XOR_SHIFT_1024_S
-                )
+                RandomSource.create(RandomSource.XOR_SHIFT_1024_S)
             )
         );
     }
