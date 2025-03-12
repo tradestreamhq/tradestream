@@ -142,6 +142,7 @@ java_library(
 
 java_library(
     name = "commons_rng_simple",
+    visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:org_apache_commons_commons_rng_simple",
     ],
