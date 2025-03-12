@@ -112,6 +112,7 @@ java_library(
         ":param_config",
         ":param_config_manager",
         "//protos:backtesting_java_proto",
+        "//third_party:commons_rng_simple",
         "//third_party:guice",
         "//third_party:jenetics",
     ],
