@@ -16,10 +16,14 @@ import java.util.stream.Collectors;
 
 final class GAEngineFactoryImpl implements GAEngineFactory {
     static {
-        // Configure the default RNG in Jenetics to use a known implementation
+        // Configure the default RNG in Jenetics to use a known implementation.
+        // The JDKRandomBridge constructor now expects two arguments:
+        //   1. A RandomSource enum value (e.g., XOR_SHIFT_1024_S)
+        //   2. A seed value (we use System.nanoTime() as the seed)
         RandomRegistry.random(
             new JDKRandomBridge(
-                RandomSource.create(RandomSource.XOR_SHIFT_1024_S)
+                RandomSource.XOR_SHIFT_1024_S,
+                System.nanoTime()
             )
         );
     }
