@@ -31,7 +31,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
         Genotype<DoubleGene> gtf = createGenotype(request);
 
         // Register Flink's XORShiftRandom with Jenetics using the 'with' method
-        RandomRegistry.with(new XORShiftRandom(), r -> {
+        return RandomRegistry.with(new XORShiftRandom(), r -> {
 
           // Build and return the GA engine with the specified settings
           return Engine
