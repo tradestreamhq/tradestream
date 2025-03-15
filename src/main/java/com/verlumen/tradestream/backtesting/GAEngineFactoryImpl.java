@@ -20,7 +20,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
             System.out.println("ALGO: " + factory.name())
         );
 
-        RandomRegistry.random(RandomGeneratorFactory.of("XORShiftRandom"));
+        RandomRegistry.random(RandomGeneratorFactory.of("Random"));
     }
 
     private final ParamConfigManager paramConfigManager;
