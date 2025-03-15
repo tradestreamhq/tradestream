@@ -10,3 +10,4 @@ commandTests:
       - '--runMode=dry'
       - '--tradeTopic=fakeTopic'
     expectedError: ['.*Dry run mode detected - skipping data ingestion']
+    expectedOutput: ['.*Currency Pair: DRY/RUN.*']
