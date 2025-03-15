@@ -19,7 +19,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
     // Static initialization block to set the RandomGenerator directly.
     static {
         RandomGeneratorFactory.all().forEach(factory ->
-            System.out.println("ALGO: " + factory.algorithm())
+            System.out.println("ALGO: " + factory.toString())
         );
 
         RandomRegistry.random(new XORShiftRandom()); // Set XORShiftRandom instance directly
