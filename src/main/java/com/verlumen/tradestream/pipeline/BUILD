@@ -24,6 +24,7 @@ java_binary(
     "//third_party:flogger",
     "//third_party:guava",
     "//third_party:guice",
+    "//third_party:jenetics",
     "//third_party:joda_time",
     "//third_party:protobuf_java",
     "//third_party:protobuf_java_util",
