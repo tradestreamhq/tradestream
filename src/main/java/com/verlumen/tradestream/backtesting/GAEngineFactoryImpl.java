@@ -12,10 +12,11 @@ import io.jenetics.util.RandomRegistry;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.flink.util.XORShiftRandom;
+import java.util.random.RandomGeneratorFactory;
 
 final class GAEngineFactoryImpl implements GAEngineFactory {
     static {
-        RandomRegistry.setRandomGeneratorFactory(XORShiftRandom::new);
+        RandomRegistry.setRandomGeneratorFactory(RandomGeneratorFactory.of("XORShiftRandom"));
     }
 
     private final ParamConfigManager paramConfigManager;
