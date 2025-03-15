@@ -15,9 +15,7 @@ import com.verlumen.tradestream.marketdata.MultiTimeframeCandleTransform;
 import com.verlumen.tradestream.marketdata.ParseTrades;
 import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.strategies.StrategyEnginePipeline;
-import io.jenetics.util.RandomRegistry;
 import java.util.Arrays;
-import java.util.random.RandomGeneratorFactory;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
@@ -202,9 +200,6 @@ public final class App {
   }
 
   public static void main(String[] args) throws Exception {
-      // Set default random number generator for Jenetics
-      RandomRegistry.random(RandomGeneratorFactory.of("Random").create());
-      
     logger.atInfo().log("Application starting with arguments: %s", (Object) args);
 
     // Parse custom options.
