@@ -1,3 +1,4 @@
+# src/main/java/com/verlumen/tradestream/backtesting/GAEngineFactoryImpl.java
 package com.verlumen.tradestream.backtesting;
 
 import com.google.inject.Inject;
@@ -14,6 +15,10 @@ import java.util.stream.Collectors;
 import org.apache.flink.util.XORShiftRandom;
 
 final class GAEngineFactoryImpl implements GAEngineFactory {
+    static {
+        RandomRegistry.setRandomGeneratorFactory(XORShiftRandom::new);
+    }
+
     private final ParamConfigManager paramConfigManager;
     private final FitnessCalculator fitnessCalculator;
 
@@ -30,19 +35,15 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
         // Create the initial genotype from the parameter specifications
         Genotype<DoubleGene> gtf = createGenotype(request);
 
-        // Register Flink's XORShiftRandom with Jenetics using the 'with' method
-        return RandomRegistry.with(new XORShiftRandom(), r -> {
-
-          // Build and return the GA engine with the specified settings
-          return Engine
-              .builder(fitnessCalculator.createFitnessFunction(request), gtf)
-              .populationSize(getPopulationSize(request))
-              .selector(new TournamentSelector<>(3))
-              .alterers(
-                  new Mutator<>(GAConstants.MUTATION_PROBABILITY),
-                  new SinglePointCrossover<>(GAConstants.CROSSOVER_PROBABILITY))
-              .build();
-        });
+        // Build and return the GA engine with the specified settings
+        return Engine
+            .builder(fitnessCalculator.createFitnessFunction(request), gtf)
+            .populationSize(getPopulationSize(request))
+            .selector(new TournamentSelector<>(3))
+            .alterers(
+                new Mutator<>(GAConstants.MUTATION_PROBABILITY),
+                new SinglePointCrossover<>(GAConstants.CROSSOVER_PROBABILITY))
+            .build();
     }
 
     /**
