@@ -127,28 +127,6 @@ java_library(
 )
 
 java_library(
-    name = "commons_rng_client_api",
-    exports = [
-        "@tradestream_maven//:org_apache_commons_commons_rng_client_api",
-    ],
-)
-
-java_library(
-    name = "commons_rng_core",
-    exports = [
-        "@tradestream_maven//:org_apache_commons_commons_rng_core",
-    ],
-)
-
-java_library(
-    name = "commons_rng_simple",
-    visibility = ["//visibility:public"],
-    exports = [
-        "@tradestream_maven//:org_apache_commons_commons_rng_simple",
-    ],
-)
-
-java_library(
     name = "flogger",
     visibility = ["//visibility:public"],
     exports = [
