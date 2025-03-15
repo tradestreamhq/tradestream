@@ -112,6 +112,7 @@ java_library(
         ":param_config",
         ":param_config_manager",
         "//protos:backtesting_java_proto",
+        "//third_party:flink_core",
         "//third_party:guice",
         "//third_party:jenetics",
     ],
@@ -196,6 +197,7 @@ java_library(
         "//protos:strategies_java_proto",
         "//third_party:guava",
         "//third_party:guice",
+        "//third_party:mug",
     ],
 )
 
