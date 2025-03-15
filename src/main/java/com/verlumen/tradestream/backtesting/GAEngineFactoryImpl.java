@@ -30,18 +30,19 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
         // Create the initial genotype from the parameter specifications
         Genotype<DoubleGene> gtf = createGenotype(request);
 
-        // Register Flink's XORShiftRandom with Jenetics
-        RandomRegistry.random(new XORShiftRandom());
+        // Register Flink's XORShiftRandom with Jenetics using the 'with' method
+        RandomRegistry.with(new XORShiftRandom(), r -> {
 
-        // Build and return the GA engine with the specified settings
-        return Engine
-            .builder(fitnessCalculator.createFitnessFunction(request), gtf)
-            .populationSize(getPopulationSize(request))
-            .selector(new TournamentSelector<>(3))
-            .alterers(
-                new Mutator<>(GAConstants.MUTATION_PROBABILITY),
-                new SinglePointCrossover<>(GAConstants.CROSSOVER_PROBABILITY))
-            .build();
+          // Build and return the GA engine with the specified settings
+          return Engine
+              .builder(fitnessCalculator.createFitnessFunction(request), gtf)
+              .populationSize(getPopulationSize(request))
+              .selector(new TournamentSelector<>(3))
+              .alterers(
+                  new Mutator<>(GAConstants.MUTATION_PROBABILITY),
+                  new SinglePointCrossover<>(GAConstants.CROSSOVER_PROBABILITY))
+              .build();
+        });
     }
 
     /**
