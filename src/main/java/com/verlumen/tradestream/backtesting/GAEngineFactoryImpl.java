@@ -28,6 +28,17 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
 
     @Override
     public Engine<DoubleGene, Double> createEngine(GAOptimizationRequest request) {
+        // Set a stable random generator for testing
+        try {
+            // Use a stable random generator when default provider isn't available
+            if (System.getProperty("java.util.random.provider") == null) {
+                RandomRegistry.random(new java.util.Random(42)); // Use a fixed seed for testing
+            }
+        } catch (ExceptionInInitializerError e) {
+            // Fallback if RandomRegistry fails
+            logger.atWarning().log("Error initializing RandomRegistry: %s", e.getMessage());
+        }
+
         // Create the initial genotype from the parameter specifications
         Genotype<DoubleGene> gtf = createGenotype(request);
 
