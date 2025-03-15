@@ -198,9 +198,6 @@ public final class App {
   public static void main(String[] args) {
     logger.atInfo().log("Application starting with arguments: %s", (Object) args);
 
-    // Override the default RNG algorithm to one that is available.
-    System.setProperty("java.util.random.generator", "XOR_SHIFT_1024_S");
-
     // Parse custom options.
     Options options =
         PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
