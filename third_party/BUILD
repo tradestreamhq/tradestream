@@ -200,11 +200,6 @@ java_library(
     exports = [
         "@tradestream_maven//:io_jenetics_jenetics",
     ],
-    runtime_deps = [
-        ":commons_rng_client_api",
-        ":commons_rng_core",
-        ":commons_rng_simple",
-    ],
 )
 
 java_library(
