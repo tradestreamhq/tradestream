@@ -9,12 +9,9 @@ import io.jenetics.SinglePointCrossover;
 import io.jenetics.TournamentSelector;
 import io.jenetics.engine.Engine;
 import io.jenetics.util.RandomRegistry;
-import org.apache.commons.rng.simple.JDKRandomBridge;
-import org.apache.commons.rng.simple.RandomSource;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.apache.flink.util.XORShiftRandom; // ADDED: Import Flink's RNG
+import org.apache.flink.util.XORShiftRandom;
 
 final class GAEngineFactoryImpl implements GAEngineFactory {
     private final ParamConfigManager paramConfigManager;
