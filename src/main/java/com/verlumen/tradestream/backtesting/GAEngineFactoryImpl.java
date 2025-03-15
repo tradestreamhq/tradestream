@@ -15,14 +15,6 @@ import org.apache.flink.util.XORShiftRandom;
 import java.util.random.RandomGeneratorFactory;
 
 final class GAEngineFactoryImpl implements GAEngineFactory {
-    // static {
-    //     RandomGeneratorFactory.all().forEach(factory ->
-    //         System.out.println("ALGO: " + factory.name())
-    //     );
-
-    //     RandomRegistry.random(RandomGeneratorFactory.of("Random"));
-    // }
-
     private final ParamConfigManager paramConfigManager;
     private final FitnessCalculator fitnessCalculator;
 
