@@ -12,12 +12,12 @@ import io.jenetics.util.RandomRegistry;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.flink.util.XORShiftRandom;
-import java.util.random.RandomGeneratorFactory;
+import java.util.random.RandomGenerator;
 
 final class GAEngineFactoryImpl implements GAEngineFactory {
-    // Static initialization block to set the RandomGeneratorFactory VERY early.
+    // Static initialization block to set the RandomGenerator directly.
     static {
-        RandomRegistry.random(RandomGeneratorFactory.of("XORShiftRandom"));
+        RandomRegistry.random(new XORShiftRandom()); // Set XORShiftRandom instance directly
     }
 
     private final ParamConfigManager paramConfigManager;
