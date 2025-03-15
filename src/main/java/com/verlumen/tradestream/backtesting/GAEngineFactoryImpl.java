@@ -1,4 +1,3 @@
-# src/main/java/com/verlumen/tradestream/backtesting/GAEngineFactoryImpl.java
 package com.verlumen.tradestream.backtesting;
 
 import com.google.inject.Inject;
