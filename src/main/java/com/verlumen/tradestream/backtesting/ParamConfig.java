@@ -7,13 +7,12 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Gene;
 import io.jenetics.NumericChromosome;
 import io.jenetics.NumericGene;
-import java.io.Serializable;
 
 /**
  * Represents configuration for a strategy's parameters that supports multiple parameter types.
  * Used by GeneticAlgorithmOrchestrator to optimize parameters.
  */
-public interface ParamConfig extends Serializable {
+public interface ParamConfig {
     /**
      * Returns a list of chromosome specifications, each defining a parameter's type and constraints.
      */
