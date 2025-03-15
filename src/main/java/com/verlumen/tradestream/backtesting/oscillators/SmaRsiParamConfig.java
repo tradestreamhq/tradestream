@@ -20,6 +20,12 @@ final class SmaRsiParamConfig implements ParamConfig {
         ChromosomeSpec.ofDouble(15.0, 40.0)  // Oversold Threshold
     );
 
+    static SmaRsiParamConfig create() {
+        return new SmaRsiParamConfig();
+    }
+
+    private SmaRsiParamConfig() {}
+    
     @Override
     public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
         return SPECS;

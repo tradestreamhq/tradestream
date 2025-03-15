@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.kafka;
 
+import java.io.Serializable;
 import java.util.Properties;
 import java.util.function.Supplier;
 
@@ -14,7 +15,7 @@ public record KafkaProperties(
   String saslJaasConfig,
   String acks,
   int lingerMs,
-  int retries) implements Supplier<Properties> {
+  int retries) implements Serializable, Supplier<Properties> {
 
   public static KafkaProperties create(String bootstrapServers) {
     return new KafkaProperties(

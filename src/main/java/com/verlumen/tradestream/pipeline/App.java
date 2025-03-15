@@ -13,6 +13,7 @@ import com.verlumen.tradestream.marketdata.MultiTimeframeCandleTransform;
 import com.verlumen.tradestream.marketdata.CandleStreamWithDefaults;
 import com.verlumen.tradestream.marketdata.ParseTrades;
 import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.strategies.StrategyEnginePipeline;
 import java.util.Arrays;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
@@ -66,17 +67,20 @@ public final class App {
   private final Duration windowDuration;
   private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
   private final ParseTrades parseTrades;
+  private final StrategyEnginePipeline strategyEnginePipeline;
 
   @Inject
   App(
       KafkaReadTransform<String, byte[]> kafkaReadTransform,
       ParseTrades parseTrades,
+      StrategyEnginePipeline strategyEnginePipeline,
       PipelineConfig config) {
     this.allowedLateness = config.allowedLateness();
     this.allowedTimestampSkew = config.allowedTimestampSkew();
-    this.windowDuration = config.windowDuration(); // e.g. 1 minute windows for candles.
+    this.windowDuration = config.windowDuration();
     this.kafkaReadTransform = kafkaReadTransform;
     this.parseTrades = parseTrades;
+    this.strategyEnginePipeline = strategyEnginePipeline;
     logger.atInfo().log(
         "Initialized App with allowedLateness=%s, windowDuration=%s, allowedTimestampSkew=%s",
         allowedLateness, windowDuration, allowedTimestampSkew);
@@ -161,7 +165,10 @@ public final class App {
     PCollection<KV<String, ImmutableList<Candle>>> multiTimeframeStream =
         consolidatedBaseCandles.apply("MultiTimeframeView", new MultiTimeframeCandleTransform());
 
-    // 9. Print the results to stdout with helpful labels.
+    // 9. Apply strategy engine pipeline to generate and publish trade signals
+    strategyEnginePipeline.apply(multiTimeframeStream);
+
+    // Print candles for debugging
     multiTimeframeStream.apply("PrintResults", ParDo.of(new PrintResultsDoFn()));
 
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");

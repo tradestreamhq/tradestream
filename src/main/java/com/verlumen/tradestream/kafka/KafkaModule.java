@@ -5,7 +5,7 @@ import com.google.common.base.Suppliers;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.google.inject.TypeLiteral;
+import java.io.Serializable;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.producer.KafkaProducer;
 
@@ -24,7 +24,25 @@ public abstract class KafkaModule extends AbstractModule {
   }
 
   @Provides
-  Supplier<KafkaProducer<String, byte[]>> provideKafkaProducerSupplier(KafkaProducerSupplier supplier) {
-    return Suppliers.memoize(supplier::get);
+  Supplier<KafkaProducer<String, byte[]>> provideKafkaProducerSupplier(
+      KafkaProducerSupplier supplier) {
+    return Suppliers.memoize(new SerializableKafkaProducerSupplier(supplier));
+  }
+
+  // Static inner class that implements Guava's Supplier and Serializable
+  private static class SerializableKafkaProducerSupplier 
+      implements com.google.common.base.Supplier<KafkaProducer<String, byte[]>>, Serializable {
+
+    private static final long serialVersionUID = 1L;
+    private final KafkaProducerSupplier delegate;
+
+    SerializableKafkaProducerSupplier(KafkaProducerSupplier delegate) {
+      this.delegate = delegate;
+    }
+
+    @Override
+    public KafkaProducer<String, byte[]> get() {
+      return delegate.get();
+    }
   }
 }

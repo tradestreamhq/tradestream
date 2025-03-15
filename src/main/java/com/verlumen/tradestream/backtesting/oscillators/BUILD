@@ -3,6 +3,16 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
+    name = "oscillator_params",
+    srcs = ["OscillatorParams.java"],
+    deps = [
+        ":sma_rsi_param_config",
+        "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
+        "//third_party:guava",
+    ],
+)
+
+java_library(
     name = "sma_rsi_param_config",
     srcs = ["SmaRsiParamConfig.java"],
     deps = [

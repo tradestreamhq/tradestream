@@ -18,6 +18,7 @@ java_binary(
     "//src/main/java/com/verlumen/tradestream/marketdata:candle_stream_with_defaults",
     "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
     "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
+    "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine_pipeline",
     "//third_party:beam_runners_flink_java",
     "//third_party:beam_sdks_java_core",
     "//third_party:flogger",

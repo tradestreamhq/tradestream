@@ -12,10 +12,11 @@ public final class OscillatorStrategies {
     /**
      * An immutable list of all oscillator strategy factories.
      */
-    public static final ImmutableList<StrategyFactory<?>> ALL_FACTORIES = ImmutableList.of(
-        AdxStochasticStrategyFactory.create(),
-        SmaRsiStrategyFactory.create()
-    );
+    public static final ImmutableList<StrategyFactory<?>> ALL_FACTORIES =
+        ImmutableList.<StrategyFactory<?>>builder()
+            .add(AdxStochasticStrategyFactory.create())
+            .add(SmaRsiStrategyFactory.create())
+            .build();
 
     // Prevent instantiation
     private OscillatorStrategies() {}

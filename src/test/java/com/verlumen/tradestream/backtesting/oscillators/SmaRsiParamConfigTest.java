@@ -21,7 +21,7 @@ public class SmaRsiParamConfigTest {
 
   @Before
   public void setUp() {
-    config = new SmaRsiParamConfig();
+    config = SmaRsiParamConfig.create();
   }
 
   @Test
