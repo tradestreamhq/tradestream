@@ -4,8 +4,9 @@ commandTests:
   - name: test
     command: java
     args:
+      - '-Djava.util.random.provider=java.util.Random'
       - '-jar'
       - '/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar'
       - '--runMode=dry'
-    expectedError:
-      - 'DRY/RUN'
+      - '--tradeTopic=fakeTopic'
+    expectedError: ['.*Dry run mode detected - skipping data ingestion']
