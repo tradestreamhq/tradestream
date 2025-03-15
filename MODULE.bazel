@@ -101,18 +101,6 @@ oci.pull(
 
 use_repo(oci, "openjdk_java")
 
-oci.pull(
-    name = "flink_java17",
-    image = "docker.io/library/flink:1.18-java17",
-    digest = "sha256:e3836db6fbdf5186156cebe9aaa9a8d7a6edfa43450476faa1224fae8d5c4b80",
-    platforms = [
-        "linux/amd64",
-        "linux/arm64/v8",
-    ],
-)
-
-use_repo(oci, "flink_java17")
-
 # Configure Bazel libraries
 bazel_lib = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
 bazel_lib.jq()
