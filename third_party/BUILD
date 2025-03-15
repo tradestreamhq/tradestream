@@ -127,6 +127,14 @@ java_library(
 )
 
 java_library(
+    name = "flink_core",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_flink_flink_core",
+    ],
+)
+
+java_library(
     name = "flogger",
     visibility = ["//visibility:public"],
     exports = [
