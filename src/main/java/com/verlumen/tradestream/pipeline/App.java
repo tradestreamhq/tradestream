@@ -23,8 +23,6 @@ import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.StreamingOptions;
 import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.transforms.DoFn.ProcessContext;
-import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.WithTimestamps;
@@ -179,13 +177,14 @@ public final class App {
   }
 
   private void runPipeline(Pipeline pipeline) throws Exception {
-      logger.atInfo().log("Running the pipeline.");
+    logger.atInfo().log("Running the pipeline.");
 
-      buildPipeline(pipeline);
-      pipeline.run();
+    buildPipeline(pipeline);
+    pipeline.run();
   }
 
   private static class PrintResultsDoFn extends DoFn<KV<String, ImmutableList<Candle>>, Void> {
+    @Override
     @ProcessElement
     public void processElement(ProcessContext c) {
       KV<String, ImmutableList<Candle>> element = c.element();
@@ -198,25 +197,28 @@ public final class App {
     logger.atInfo().log("Application starting with arguments: %s", (Object) args);
 
     // Parse custom options.
-    Options options =
-        PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
-    logger.atInfo().log("Parsed options: BootstrapServers=%s, TradeTopic=%s, RunMode=%s",
-        options.getBootstrapServers(), options.getTradeTopic(), options.getRunMode());
+    Options options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
+    logger.atInfo()
+        .log(
+            "Parsed options: BootstrapServers=%s, TradeTopic=%s, RunMode=%s",
+            options.getBootstrapServers(), options.getTradeTopic(), options.getRunMode());
 
     // Convert to FlinkPipelineOptions and set required properties.
     FlinkPipelineOptions flinkOptions = options.as(FlinkPipelineOptions.class);
     flinkOptions.setAttachedMode(false);
     flinkOptions.setStreaming(true);
-    logger.atInfo().log("Configured FlinkPipelineOptions: AttachedMode=%s, Streaming=%s",
-        flinkOptions.getAttachedMode(), flinkOptions.isStreaming());
+    logger.atInfo()
+        .log(
+            "Configured FlinkPipelineOptions: AttachedMode=%s, Streaming=%s",
+            flinkOptions.getAttachedMode(), flinkOptions.isStreaming());
 
     // Create PipelineConfig and Guice module.
     PipelineConfig config =
         PipelineConfig.create(
-          options.getBootstrapServers(),
-          options.getTradeTopic(),
-          options.getSignalTopic(),
-          options.getRunMode());
+            options.getBootstrapServers(),
+            options.getTradeTopic(),
+            options.getSignalTopic(),
+            options.getRunMode());
     logger.atInfo().log("Created PipelineConfig: %s", config);
 
     var module = PipelineModule.create(config);
