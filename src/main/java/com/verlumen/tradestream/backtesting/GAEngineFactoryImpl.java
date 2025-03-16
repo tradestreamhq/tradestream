@@ -45,7 +45,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
         return Engine
             .builder(fitnessCalculator.createFitnessFunction(request), gtf)
             .populationSize(getPopulationSize(request))
-            .selector(new TournamentSelector<>(3))
+            .selector(new TournamentSelector<>(GAConstants.TOURNAMENT_SIZE))
             .alterers(
                 new Mutator<>(GAConstants.MUTATION_PROBABILITY),
                 new SinglePointCrossover<>(GAConstants.CROSSOVER_PROBABILITY))
