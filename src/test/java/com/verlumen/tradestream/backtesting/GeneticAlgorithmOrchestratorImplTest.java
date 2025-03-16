@@ -17,6 +17,7 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.DoubleGene;
+import io.jenetics.Gene;
 import io.jenetics.Genotype;
 import io.jenetics.Phenotype;
 import io.jenetics.engine.Engine;
@@ -65,6 +66,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked") // Needed for the mock Engine cast
   public void runOptimization_validRequest_returnsBestStrategy() {
     // Arrange
     GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
@@ -74,7 +76,8 @@ public class GeneticAlgorithmOrchestratorImplTest {
         .build();
 
     // Create a test Engine with a simple fitness function that always returns a constant value
-    Engine<DoubleGene, Double> testEngine = Engine
+    // Note: We're using the wildcard type to match the updated GAEngineFactory interface
+    Engine<?, Double> testEngine = (Engine<?, Double>) Engine
         .builder(g -> 100.0, testGenotype)
         .build();
     
@@ -110,6 +113,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked") // Needed for the mock Engine cast
   public void runOptimization_zeroMaxGenerations_usesDefault() {
     // Arrange
     GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
@@ -119,7 +123,8 @@ public class GeneticAlgorithmOrchestratorImplTest {
         .build();
 
     // Create a test Engine with a simple fitness function
-    Engine<DoubleGene, Double> testEngine = Engine
+    // Using wildcard type to match the GAEngineFactory interface
+    Engine<?, Double> testEngine = (Engine<?, Double>) Engine
         .builder(g -> 100.0, testGenotype)
         .build();
     
