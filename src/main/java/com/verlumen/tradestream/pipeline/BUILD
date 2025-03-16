@@ -13,10 +13,6 @@ java_binary(
     jvm_flags = [
         "-Djava.util.random.provider=java.util.Random",
     ],
-    main_class = "com.verlumen.tradestream.pipeline.App",
-    runtime_deps = [
-        "//third_party:beam_runners_direct_java",
-    ],
     deps = [
         ":pipeline_config",
         ":pipeline_module",
