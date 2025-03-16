@@ -15,6 +15,16 @@ import org.apache.flink.util.XORShiftRandom;
 import java.util.random.RandomGeneratorFactory;
 
 final class GAEngineFactoryImpl implements GAEngineFactory {
+    static {
+        try {
+            // Force RandomRegistry to use java.util.Random
+            RandomRegistry.setRandom(new java.util.Random(42));
+        } catch (Throwable t) {
+            // Catching Throwable to handle any potential errors during initialization
+            System.err.println("Error initializing RandomRegistry: " + t.getMessage());
+        }
+    }
+
     private final ParamConfigManager paramConfigManager;
     private final FitnessCalculator fitnessCalculator;
 
@@ -28,16 +38,6 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
 
     @Override
     public Engine<DoubleGene, Double> createEngine(GAOptimizationRequest request) {
-        // Set a stable random generator for testing
-        try {
-            // Use a stable random generator when default provider isn't available
-            if (System.getProperty("java.util.random.provider") == null) {
-                RandomRegistry.random(new java.util.Random(42)); // Use a fixed seed for testing
-            }
-        } catch (ExceptionInInitializerError e) {
-            // Fallback if RandomRegistry fails
-        }
-
         // Create the initial genotype from the parameter specifications
         Genotype<DoubleGene> gtf = createGenotype(request);
 
