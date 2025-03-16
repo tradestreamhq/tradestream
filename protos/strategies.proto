@@ -51,7 +51,6 @@ enum StrategyType {
   //   - signalPeriod (int): The period for the Signal Line (EMA of MACD).
   EMA_MACD = 2;
 
-
   // Average Directional Index (ADX) and Stochastic Oscillator Strategy.
   //
   // Combines the Average Directional Index (ADX) to measure trend strength with the
@@ -77,7 +76,6 @@ enum StrategyType {
   //   - overboughtThreshold (int): Value above which the market is considered overbought.
   //   - oversoldThreshold (int): Value below which the market is considered oversold.
   ADX_STOCHASTIC = 3;
-
 
   // Aroon and Money Flow Index (MFI) Strategy.
   //
@@ -137,28 +135,25 @@ enum StrategyType {
   //   - chikouSpanPeriod (int): Period for the Chikou Span.
   ICHIMOKU_CLOUD = 5;
 
-
-    // Parabolic SAR Strategy.
-    //
-    // Uses the Parabolic SAR (Stop and Reverse) indicator, a trend-following indicator that
-    // provides potential entry and exit points.
-    //
-    // Indicators:
-    //   - Parabolic SAR
-    //
-    // Entry Condition:
-    //    - Buy when the price crosses above the Parabolic SAR.
-    //
-    // Exit Condition:
-    //  - Sell when the price crosses below the Parabolic SAR.
-    //
-    // Parameters:
-    //   - accelerationFactorStart (double): Initial value for the Acceleration Factor.
-    //   - accelerationFactorIncrement (double): Increment for the Acceleration Factor.
-    //   - accelerationFactorMax (double): Maximum value for the Acceleration Factor.
-
-    PARABOLIC_SAR = 6;
-
+  // Parabolic SAR Strategy.
+  //
+  // Uses the Parabolic SAR (Stop and Reverse) indicator, a trend-following indicator that
+  // provides potential entry and exit points.
+  //
+  // Indicators:
+  //   - Parabolic SAR
+  //
+  // Entry Condition:
+  //   - Buy when the price crosses above the Parabolic SAR.
+  //
+  // Exit Condition:
+  //   - Sell when the price crosses below the Parabolic SAR.
+  //
+  // Parameters:
+  //   - accelerationFactorStart (double): Initial value for the Acceleration Factor.
+  //   - accelerationFactorIncrement (double): Increment for the Acceleration Factor.
+  //   - accelerationFactorMax (double): Maximum value for the Acceleration Factor.
+  PARABOLIC_SAR = 6;
 
   // SMA (Simple Moving Average) and EMA (Exponential Moving Average) Crossover.
   //
@@ -174,7 +169,6 @@ enum StrategyType {
   //   - smaPeriod (int): The period for the SMA.
   //   - emaPeriod (int): The period for the EMA.
   SMA_EMA_CROSSOVER = 7;
-
 
   // Double EMA (Exponential Moving Average) Crossover.
   //
@@ -211,186 +205,175 @@ enum StrategyType {
   //   - longEmaPeriod (int): The period for the longest EMA.
   TRIPLE_EMA_CROSSOVER = 9;
 
-    // Heiken Ashi Candlestick Strategy.
-    //
-    // Uses Heiken Ashi candlesticks, which filter out noise from standard candlesticks, to
-    // identify trend direction and potential reversals.
-    //
-    // Indicators:
-    //   - Heiken Ashi Open
-    //   - Heiken Ashi High
-    //   - Heiken Ashi Low
-    //   - Heiken Ashi Close
-    //
-    // Entry Condition (Example):
-    //   - A series of bullish Heiken Ashi candles (e.g., close > open)
-    //     following a bearish candle or a doji.
-    //
-    // Exit Condition (Example):
-    //   - A series of bearish Heiken Ashi candles (e.g., close < open)
-    //     following a bullish candle or a doji.
-    //
-    // Parameters:
-    //   - period (int):  Period for calculating the Heiken Ashi values.  This
-    //                    may not be *directly* configurable as a classic TA4J indicator
-    //                    period, but might affect how many preceding real candles are
-    //                    used to establish the initial Heiken Ashi candle.
+  // Heiken Ashi Candlestick Strategy.
+  //
+  // Uses Heiken Ashi candlesticks, which filter out noise from standard candlesticks, to
+  // identify trend direction and potential reversals.
+  //
+  // Indicators:
+  //   - Heiken Ashi Open
+  //   - Heiken Ashi High
+  //   - Heiken Ashi Low
+  //   - Heiken Ashi Close
+  //
+  // Entry Condition (Example):
+  //   - A series of bullish Heiken Ashi candles (e.g., close > open)
+  //     following a bearish candle or a doji.
+  //
+  // Exit Condition (Example):
+  //   - A series of bearish Heiken Ashi candles (e.g., close < open)
+  //     following a bullish candle or a doji.
+  //
+  // Parameters:
+  //   - period (int):  Period for calculating the Heiken Ashi values.  This
+  //                    may not be *directly* configurable as a classic TA4J indicator
+  //                    period, but might affect how many preceding real candles are
+  //                    used to establish the initial Heiken Ashi candle.
+  HEIKEN_ASHI = 10;
 
-    HEIKEN_ASHI = 10;
+  // Linear Regression Channel Strategy
+  //
+  // Uses linear regression to identify the trend and potential overbought/oversold conditions.
+  //
+  // Indicators:
+  //  - Linear Regression Line
+  //  - Upper Channel Line (Linear Regression Line + (Standard Deviation * Multiplier))
+  //  - Lower Channel Line (Linear Regression Line - (Standard Deviation * Multiplier))
+  //
+  // Entry condition:
+  //  - Buy when price touches or crosses below the Lower Channel Line.
+  // Exit Condition:
+  //  - Sell when price touches or crosses above the Upper Channel Line.
+  //
+  // Parameters:
+  //  - period (int): Period for the linear regression calculation.
+  //  - multiplier (double): Multiplier for standard deviation to form channel lines.
+  LINEAR_REGRESSION_CHANNELS = 11;
 
+  // VWAP Mean Reversion Strategy
+  //
+  // Uses the Volume Weighted Average Price (VWAP) and a moving average of the VWAP to identify mean reversion opportunities.
+  //
+  // Indicators:
+  //   - VWAP
+  //   - Moving Average of VWAP
+  //
+  // Entry Condition (Example):
+  //    - Buy when the price is below the VWAP and the VWAP is below its moving average,
+  //    suggesting a potential upward movement towards the mean.
+  //
+  // Exit Condition (Example):
+  //   - Sell when the price is above the VWAP, and the VWAP is above its moving average,
+  //   suggesting a potential downward movement towards the mean.
+  //
+  // Parameters:
+  //   - vwapPeriod (int):  The period for calculating the VWAP.
+  //   - movingAveragePeriod (int): The period for the moving average of the VWAP.
+  //   - deviationMultiplier (double):  A multiplier for the standard deviation to identify how far from the mean the price must be to trigger entry/exit.
+  VWAP_MEAN_REVERSION = 12;
 
-    // Linear Regression Channel Strategy
-    //
-    // Uses linear regression to identify the trend and potential overbought/oversold conditions.
-    //
-    // Indicators:
-    //  - Linear Regression Line
-    //  - Upper Channel Line (Linear Regression Line + (Standard Deviation * Multiplier))
-    //  - Lower Channel Line (Linear Regression Line - (Standard Deviation * Multiplier))
-    //
-    // Entry condition:
-    //  - Buy when price touches or crosses below the Lower Channel Line.
-    // Exit Condition:
-    //  - Sell when price touches or crosses above the Upper Channel Line.
-    //
-    // Parameters:
-    //  - period (int): Period for the linear regression calculation.
-    //  - multiplier (double): Multiplier for standard deviation to form channel lines.
+  // Bollinger Bands %B and Williams %R Strategy
+  //
+  // Uses Bollinger Bands to measure volatility and identify overbought/oversold conditions
+  // in conjunction with Williams %R for confirmation.
+  //
+  // Indicators:
+  //   - Bollinger Bands (Upper, Middle, Lower)
+  //   - Williams %R
+  //
+  // Entry Condition:
+  //   - Price touches or crosses below the Lower Bollinger Band.
+  //   - Williams %R is in the oversold region (typically below -80).
+  //
+  // Exit Condition:
+  //   - Price touches or crosses above the Upper Bollinger Band.
+  //   - Williams %R is in the overbought region (typically above -20).
+  //
+  // Parameters:
+  //   - bbandsPeriod (int): Period for calculating the Bollinger Bands.
+  //   - wrPeriod (int): Period for calculating Williams %R.
+  //   - stdDevMultiplier (double):  Multiplier for the standard deviation used to calculate
+  //     the Bollinger Bands width.
+  BBAND_W_R = 13;
 
-    LINEAR_REGRESSION_CHANNELS = 11;
+  // ATR (Average True Range) and CCI (Commodity Channel Index) Strategy
+  //
+  // Uses ATR to measure volatility and CCI to identify overbought/oversold conditions and trend direction.
+  //
+  // Indicators:
+  //  - ATR
+  //  - CCI
+  //
+  // Entry Condition (Example):
+  //   - CCI crosses above a threshold (e.g., -100) suggesting a potential uptrend.
+  //   - ATR is increasing, indicating rising volatility.
+  //
+  // Exit Condition (Example):
+  //  - CCI crosses below a threshold (e.g., +100) suggesting a potential downtrend.
+  //  - ATR is decreasing, indicating falling volatility.
+  //
+  // Parameters:
+  //   - atrPeriod (int): Period for calculating the ATR.
+  //   - cciPeriod (int): Period for calculating the CCI.
+  ATR_CCI = 14;
 
+  // Donchian Channel Breakout Strategy.
+  //
+  // Uses the Donchian Channel, a volatility-based indicator that identifies potential breakouts.
+  //
+  // Indicators:
+  //   - Donchian Upper Channel
+  //   - Donchian Lower Channel
+  //
+  // Entry Condition:
+  //   - Buy when the price crosses above the Upper Donchian Channel.
+  //
+  // Exit Condition:
+  //   - Sell when the price crosses below the Lower Donchian Channel.
+  //
+  // Parameters:
+  //   - donchianPeriod (int): Period for calculating the Donchian Channel (e.g., 20 for 20 periods).
+  DONCHIAN_BREAKOUT = 15;
 
-    // VWAP Mean Reversion Strategy
-    //
-    // Uses the Volume Weighted Average Price (VWAP) and a moving average of the VWAP to identify mean reversion opportunities.
-    //
-    // Indicators:
-    //   - VWAP
-    //   - Moving Average of VWAP
-    //
-    // Entry Condition (Example):
-    //    - Buy when the price is below the VWAP and the VWAP is below its moving average,
-    //    suggesting a potential upward movement towards the mean.
-    //
-    // Exit Condition (Example):
-    //   - Sell when the price is above the VWAP, and the VWAP is above its moving average,
-    //   suggesting a potential downward movement towards the mean.
-    //
-    // Parameters:
-    //   - vwapPeriod (int):  The period for calculating the VWAP.
-    //   - movingAveragePeriod (int): The period for the moving average of the VWAP.
-    //   - deviationMultiplier (double):  A multiplier for the standard deviation to identify how far from the mean the price must be to trigger entry/exit.
+  // Volatility Stop Strategy.
+  //
+  // Uses a volatility-based stop-loss mechanism (similar to a trailing stop).
+  //
+  // Indicators:
+  //  - ATR (Average True Range)
+  //
+  // Entry Condition: (This is a stop-loss strategy, so you would need to combine it with other
+  //  entry signals).
+  //
+  // Exit Condition:
+  //  - Long Position: Sell when the price falls below (previous close - ATR * multiplier)
+  //  - Short Position: Buy when the price rises above (previous close + ATR * multiplier).
+  //
+  // Parameters:
+  //  - atrPeriod (int): Period for calculating the ATR.
+  //  - multiplier (double): Multiplier applied to the ATR to set the stop-loss distance.
+  VOLATILITY_STOP = 16;
 
-    VWAP_MEAN_REVERSION = 12;
-
-    // Bollinger Bands %B and Williams %R Strategy
-    //
-    // Uses Bollinger Bands to measure volatility and identify overbought/oversold conditions
-    // in conjunction with Williams %R for confirmation.
-    //
-    // Indicators:
-    //   - Bollinger Bands (Upper, Middle, Lower)
-    //   - Williams %R
-    //
-    // Entry Condition:
-    //   - Price touches or crosses below the Lower Bollinger Band.
-    //   - Williams %R is in the oversold region (typically below -80).
-    //
-    // Exit Condition:
-    //   - Price touches or crosses above the Upper Bollinger Band.
-    //   - Williams %R is in the overbought region (typically above -20).
-    //
-    // Parameters:
-    //   - bbandsPeriod (int): Period for calculating the Bollinger Bands.
-    //   - wrPeriod (int): Period for calculating Williams %R.
-    //   - stdDevMultiplier (double):  Multiplier for the standard deviation used to calculate
-    //     the Bollinger Bands width.
-
-    BBAND_W_R = 13;
-
-    // ATR (Average True Range) and CCI (Commodity Channel Index) Strategy
-    //
-    // Uses ATR to measure volatility and CCI to identify overbought/oversold conditions and trend direction.
-    //
-    // Indicators:
-    //  - ATR
-    //  - CCI
-    //
-    // Entry Condition (Example):
-    //   - CCI crosses above a threshold (e.g., -100) suggesting a potential uptrend.
-    //   - ATR is increasing, indicating rising volatility.
-    //
-    // Exit Condition (Example):
-    //  - CCI crosses below a threshold (e.g., +100) suggesting a potential downtrend.
-    //  - ATR is decreasing, indicating falling volatility.
-    //
-    // Parameters:
-    //   - atrPeriod (int): Period for calculating the ATR.
-    //   - cciPeriod (int): Period for calculating the CCI.
-
-    ATR_CCI = 14;
-
-    // Donchian Channel Breakout Strategy.
-    //
-    // Uses the Donchian Channel, a volatility-based indicator that identifies potential breakouts.
-    //
-    // Indicators:
-    //   - Donchian Upper Channel
-    //   - Donchian Lower Channel
-    //
-    // Entry Condition:
-    //   - Buy when the price crosses above the Upper Donchian Channel.
-    //
-    // Exit Condition:
-    //   - Sell when the price crosses below the Lower Donchian Channel.
-    //
-    // Parameters:
-    //   - donchianPeriod (int): Period for calculating the Donchian Channel (e.g., 20 for 20 periods).
-
-    DONCHIAN_BREAKOUT = 15;
-
-    // Volatility Stop Strategy.
-    //
-    // Uses a volatility-based stop-loss mechanism (similar to a trailing stop).
-    //
-    // Indicators:
-    //  - ATR (Average True Range)
-    //
-    // Entry Condition: (This is a stop-loss strategy, so you would need to combine it with other
-    //  entry signals).
-    //
-    // Exit Condition:
-    //  - Long Position: Sell when the price falls below (previous close - ATR * multiplier)
-    //  - Short Position: Buy when the price rises above (previous close + ATR * multiplier).
-    //
-    // Parameters:
-    //  - atrPeriod (int): Period for calculating the ATR.
-    //  - multiplier (double): Multiplier applied to the ATR to set the stop-loss distance.
-
-    VOLATILITY_STOP = 16;
-
-    // ATR Trailing Stop Strategy.
-    //
-    // Similar to the Volatility Stop, but the stop-loss level "trails" the price as it moves
-    // in a favorable direction.
-    //
-    // Indicators:
-    //   - ATR (Average True Range)
-    //
-    // Entry Condition: (Combine with other entry signals).
-    //
-    // Exit Condition:
-    //   - Long Position: Trailing stop is calculated as (previous close - ATR * multiplier).
-    //     The stop level moves *up* only, never down. Sell when the price falls below the trailing stop.
-    //   - Short Position: Trailing stop is calculated as (previous close + ATR * multiplier).
-    //     The stop level moves *down* only, never up. Buy when the price rises above the trailing stop.
-    //
-    // Parameters:
-    //  - atrPeriod (int): Period for calculating the ATR.
-    //  - multiplier (double): Multiplier applied to the ATR to set the stop-loss distance.
-
-    ATR_TRAILING_STOP = 17;
-
+  // ATR Trailing Stop Strategy.
+  //
+  // Similar to the Volatility Stop, but the stop-loss level "trails" the price as it moves
+  // in a favorable direction.
+  //
+  // Indicators:
+  //   - ATR (Average True Range)
+  //
+  // Entry Condition: (Combine with other entry signals).
+  //
+  // Exit Condition:
+  //   - Long Position: Trailing stop is calculated as (previous close - ATR * multiplier).
+  //     The stop level moves *up* only, never down. Sell when the price falls below the trailing stop.
+  //   - Short Position: Trailing stop is calculated as (previous close + ATR * multiplier).
+  //     The stop level moves *down* only, never up. Buy when the price rises above the trailing stop.
+  //
+  // Parameters:
+  //  - atrPeriod (int): Period for calculating the ATR.
+  //  - multiplier (double): Multiplier applied to the ATR to set the stop-loss distance.
+  ATR_TRAILING_STOP = 17;
 
   // Momentum and SMA Crossover Strategy.
   //
@@ -408,6 +391,7 @@ enum StrategyType {
   //  - momentumPeriod (int): Period for calculating the momentum.
   //  - smaPeriod (int): Period for the SMA of the momentum.
   MOMENTUM_SMA_CROSSOVER = 18;
+
   // KST Oscillator Strategy.
   // The KST Oscillator uses different Rate of Change (ROC) periods with different smoothing.
   //
@@ -428,27 +412,27 @@ enum StrategyType {
   //  - signalPeriod (int): Period for the SMA of the KST.
   KST_OSCILLATOR = 19;
 
-    // Stochastic RSI Strategy.
-    //
-    // Combines RSI and Stochastic Oscillator for more sensitive overbought/oversold signals.
-    //
-    // Indicators:
-    //    - RSI
-    //    - Stochastic Oscillator applied to the RSI values.
-    //
-    // Entry Condition:
-    //   - Buy when Stochastic RSI crosses above a low threshold (e.g., 20).
-    //
-    // Exit Condition:
-    //  - Sell when Stochastic RSI crosses below a high threshold (e.g., 80).
-    //
-    // Parameters:
-    //   - rsiPeriod (int)
-    //   - stochasticKPeriod (int)
-    //   - stochasticDPeriod (int)
-    //   - overboughtThreshold (int)
-    //   - oversoldThreshold (int)
-    STOCHASTIC_RSI = 20;
+  // Stochastic RSI Strategy.
+  //
+  // Combines RSI and Stochastic Oscillator for more sensitive overbought/oversold signals.
+  //
+  // Indicators:
+  //    - RSI
+  //    - Stochastic Oscillator applied to the RSI values.
+  //
+  // Entry Condition:
+  //   - Buy when Stochastic RSI crosses above a low threshold (e.g., 20).
+  //
+  // Exit Condition:
+  //  - Sell when Stochastic RSI crosses below a high threshold (e.g., 80).
+  //
+  // Parameters:
+  //   - rsiPeriod (int)
+  //   - stochasticKPeriod (int)
+  //   - stochasticDPeriod (int)
+  //   - overboughtThreshold (int)
+  //   - oversoldThreshold (int)
+  STOCHASTIC_RSI = 20;
 
   // Relative Vigor Index (RVI) Strategy
   //
@@ -465,401 +449,486 @@ enum StrategyType {
   //   - period (int)
   RVI = 21;
 
-    // Mass Index Strategy
-    //
-    // Designed to identify trend reversals based on changes in the High-Low range.
-    //
-    // Indicators:
-    //   - High-Low range.
-    //   - Exponential Moving Average (EMA) of the High-Low range
-    //   - Double EMA of the High-Low range.
-    //   - Sum of the ratio of the EMA to the Double EMA (Mass Index)
-    //
-    // Entry Condition:
-    //  - Look for a "reversal bulge" (e.g., Mass Index rises above 27 and then falls below 26.5)
-    //
-    // Exit Condition:
-    //  - Opposite of entry, or other strategy-specific conditions.
-    //
-    // Parameters:
-    //   - emaPeriod (int): Period for the EMA.
-    //   - sumPeriod (int): Number of periods to sum the EMA ratio.
-    MASS_INDEX = 22;
+  // Mass Index Strategy
+  //
+  // Designed to identify trend reversals based on changes in the High-Low range.
+  //
+  // Indicators:
+  //   - High-Low range.
+  //   - Exponential Moving Average (EMA) of the High-Low range
+  //   - Double EMA of the High-Low range.
+  //   - Sum of the ratio of the EMA to the Double EMA (Mass Index)
+  //
+  // Entry Condition:
+  //  - Look for a "reversal bulge" (e.g., Mass Index rises above 27 and then falls below 26.5)
+  //
+  // Exit Condition:
+  //  - Opposite of entry, or other strategy-specific conditions.
+  //
+  // Parameters:
+  //   - emaPeriod (int): Period for the EMA.
+  //   - sumPeriod (int): Number of periods to sum the EMA ratio.
+  MASS_INDEX = 22;
 
-    // Momentum Pinball Strategy
-    //
-    // Combines short term and long term momentum
-    //
-    // Indicators:
-    //  - Short period momentum
-    //  - Long period momentum
-    //
-    // Entry Condition:
-    //  - Long momentum is positive, and short momentum crosses above a threshold.
-    // Exit Condition:
-    //  - Long momentum is negative, and short momentum crosses below a threshold.
-    //
-    // Parameters:
-    //  - shortPeriod (int): The period for the short momentum calculation
-    //  - longPeriod (int): The period for the long momentum calculation
-    MOMENTUM_PINBALL = 23;
+  // Momentum Pinball Strategy
+  //
+  // Combines short term and long term momentum
+  //
+  // Indicators:
+  //  - Short period momentum
+  //  - Long period momentum
+  //
+  // Entry Condition:
+  //  - Long momentum is positive, and short momentum crosses above a threshold.
+  // Exit Condition:
+  //  - Long momentum is negative, and short momentum crosses below a threshold.
+  //
+  // Parameters:
+  //  - shortPeriod (int): The period for the short momentum calculation
+  //  - longPeriod (int): The period for the long momentum calculation
+  MOMENTUM_PINBALL = 23;
 
-    // Volume Weighted MACD
-    //
-    // Combines volume into MACD
-    //
-    // Indicators:
-    //  - VWAP
-    //  - Short EMA of (Price * Volume)
-    //  - Long EMA of (Price * Volume)
-    //  - MACD Line = Short EMA - Long EMA
-    //  - Signal Line = EMA of MACD Line
-    //
-    // Parameters:
-    //   - shortPeriod (int): The period for the short EMA.
-    //   - longPeriod (int): The period for the long EMA.
-    //   - signalPeriod (int): The period for the EMA of the MACD line (signal line).
-    VOLUME_WEIGHTED_MACD = 24;
+  // Volume Weighted MACD
+  //
+  // Combines volume into MACD
+  //
+  // Indicators:
+  //  - VWAP
+  //  - Short EMA of (Price * Volume)
+  //  - Long EMA of (Price * Volume)
+  //  - MACD Line = Short EMA - Long EMA
+  //  - Signal Line = EMA of MACD Line
+  //
+  // Parameters:
+  //   - shortPeriod (int): The period for the short EMA.
+  //   - longPeriod (int): The period for the long EMA.
+  //   - signalPeriod (int): The period for the EMA of the MACD line (signal line).
+  VOLUME_WEIGHTED_MACD = 24;
 
-    // OBV EMA Strategy
-    //
-    // Indicators:
-    //  - On Balance Volume (OBV)
-    //  - EMA of OBV
-    //
-    // Entry Condition (Example):
-    //    - Buy when OBV crosses above its EMA.
-    // Exit Condition (Example):
-    //    - Sell when OBV crosses below its EMA.
-    //
-    // Parameters:
-    //    - emaPeriod (int): Period for calculating the EMA of OBV.
-    OBV_EMA = 25;
+  // OBV EMA Strategy
+  //
+  // Indicators:
+  //  - On Balance Volume (OBV)
+  //  - EMA of OBV
+  //
+  // Entry Condition (Example):
+  //    - Buy when OBV crosses above its EMA.
+  // Exit Condition (Example):
+  //    - Sell when OBV crosses below its EMA.
+  //
+  // Parameters:
+  //    - emaPeriod (int): Period for calculating the EMA of OBV.
+  OBV_EMA = 25;
 
-    // Chaikin Oscillator Strategy
-    //
-    // Indicators:
-    // - Accumulation/Distribution Line
-    // - Fast EMA of A/D Line
-    // - Slow EMA of A/D Line
-    // - Chaikin Oscillator = Fast EMA - Slow EMA
-    //
-    // Entry condition: Buy when the Chaikin Oscillator crosses above zero.
-    //
-    // Exit Condition: Sell when the Chaikin Oscillator crosses below zero.
-    //
-    // Parameters:
-    // - fastPeriod (int): The period for the fast EMA of the A/D line.
-    // - slowPeriod (int): The period for the slow EMA of the A/D line.
-    CHAIKIN_OSCILLATOR = 26;
+  // Chaikin Oscillator Strategy
+  //
+  // Indicators:
+  // - Accumulation/Distribution Line
+  // - Fast EMA of A/D Line
+  // - Slow EMA of A/D Line
+  // - Chaikin Oscillator = Fast EMA - Slow EMA
+  //
+  // Entry condition: Buy when the Chaikin Oscillator crosses above zero.
+  //
+  // Exit Condition: Sell when the Chaikin Oscillator crosses below zero.
+  //
+  // Parameters:
+  // - fastPeriod (int): The period for the fast EMA of the A/D line.
+  // - slowPeriod (int): The period for the slow EMA of the A/D line.
+  CHAIKIN_OSCILLATOR = 26;
 
+  // Klinger Volume Oscillator Strategy
+  //
+  // Indicators:
+  //  - Volume Force (VF)
+  //  - Short EMA of VF
+  //  - Long EMA of VF
+  //  - Klinger Oscillator = Short EMA - Long EMA
+  //  - Signal Line: EMA of the Klinger Oscillator
+  //
+  // Entry condition: Buy when the Klinger Oscillator crosses above its signal line.
+  //
+  // Exit Condition: Sell when the Klinger Oscillator crosses below its signal line.
+  //
+  // Parameters:
+  //    - shortPeriod (int): The period for the short EMA.
+  //    - longPeriod (int): The period for the long EMA.
+  //    - signalPeriod (int): The period for the signal line (EMA of Klinger Oscillator)
+  KLINGER_VOLUME = 27;
 
-    // Klinger Volume Oscillator Strategy
-    //
-    // Indicators:
-    //  - Volume Force (VF)
-    //  - Short EMA of VF
-    //  - Long EMA of VF
-    //  - Klinger Oscillator = Short EMA - Long EMA
-    //  - Signal Line: EMA of the Klinger Oscillator
-    //
-    // Entry condition: Buy when the Klinger Oscillator crosses above its signal line.
-    //
-    // Exit Condition: Sell when the Klinger Oscillator crosses below its signal line.
-    //
-    // Parameters:
-    //    - shortPeriod (int): The period for the short EMA.
-    //    - longPeriod (int): The period for the long EMA.
-    //    - signalPeriod (int): The period for the signal line (EMA of Klinger Oscillator)
-    KLINGER_VOLUME = 27;
+  // Volume Breakout Strategy
+  //
+  // Entry condition: Buy when the volume exceeds a multiple of the average volume over a defined period.
+  //
+  // Exit Condition: Sell when the volume drops below a certain threshold or another exit condition is met.
+  //
+  // Parameters:
+  //  - volumeMultiplier (double): The multiple of average volume needed to trigger a breakout signal.
+  VOLUME_BREAKOUT = 28;
 
-    // Volume Breakout Strategy
-    //
-    // Entry condition: Buy when the volume exceeds a multiple of the average volume over a defined period.
-    //
-    // Exit Condition: Sell when the volume drops below a certain threshold or another exit condition is met.
-    //
-    // Parameters:
-    //  - volumeMultiplier (double): The multiple of average volume needed to trigger a breakout signal.
-    VOLUME_BREAKOUT = 28;
+  // Price Volume Trend (PVT) Strategy
+  //
+  // Indicators:
+  // - Price Volume Trend (PVT)
+  //
+  // Entry Condition: Buy when the PVT is rising and crosses a threshold.
+  //
+  // Exit Condition: Sell when the PVT is falling and crosses a threshold.
+  //
+  // Parameters:
+  //  - period (int)
+  PVT = 29;
 
-    // Price Volume Trend (PVT) Strategy
-    //
-    // Indicators:
-    // - Price Volume Trend (PVT)
-    //
-    // Entry Condition: Buy when the PVT is rising and crosses a threshold.
-    //
-    // Exit Condition: Sell when the PVT is falling and crosses a threshold.
-    //
-    // Parameters:
-    //  - period (int)
-    PVT = 29;
+  // Volume Price Trend (VPT) Strategy (sometimes also called Price Volume Trend)
+  //
+  // Note: In some resources, VPT is also referred to as PVT.  Ensure you are
+  // implementing the correct variation.
+  //
+  // Indicators:
+  //    - Volume Price Trend
+  //
+  // Entry Condition (Example):
+  //    - Buy when VPT crosses above its moving average.
+  // Exit Condition (Example):
+  //    - Sell when VPT crosses below its moving average.
+  //
+  // Parameters:
+  //    - period (int)
+  VPT = 30;
 
+  // Volume Spread Analysis (VSA) Strategy
+  //
+  // Parameters:
+  //   - volumePeriod (int): Period for analyzing volume
+  VOLUME_SPREAD_ANALYSIS = 31;
 
-    // Volume Price Trend (VPT) Strategy (sometimes also called Price Volume Trend)
-    //
-    // Note: In some resources, VPT is also referred to as PVT.  Ensure you are
-    // implementing the correct variation.
-    //
-    // Indicators:
-    //    - Volume Price Trend
-    //
-    // Entry Condition (Example):
-    //    - Buy when VPT crosses above its moving average.
-    // Exit Condition (Example):
-    //    - Sell when VPT crosses below its moving average.
-    //
-    // Parameters:
-    //    - period (int)
-    VPT = 30;
+  // Tick Volume Analysis Strategy
+  //
+  // This strategy will focus on the number of trades rather than the volume.
+  //
+  // Parameters:
+  //    - tickPeriod (int): Period for calculating tick volume.
+  TICK_VOLUME_ANALYSIS = 32;
 
-    // Volume Spread Analysis (VSA) Strategy
-    //
-    // Parameters:
-    //   - volumePeriod (int): Period for analyzing volume
-    VOLUME_SPREAD_ANALYSIS = 31;
+  // Volume Profile Deviation Strategy
+  //
+  // Entry/Exit: Based on price movements relative to Value Area and standard deviation levels.
+  //
+  // Parameters:
+  // - period (int): Period for volume profile calculations
+  VOLUME_PROFILE_DEVIATIONS = 33;
 
+  // Volume Profile Strategy.
+  //
+  // Identifies price levels with high volume activity (Point of Control - POC, Value Area High - VAH, Value Area Low - VAL).
+  //
+  // Indicators:
+  // - Volume Profile
+  //
+  // Entry/Exit (example - many variations exist):
+  // - Enter long when price breaks above VAL and retests it as support.
+  // - Enter short when price breaks below VAH and retests it as resistance.
+  // - Exit long when price reaches POC or VAH.
+  // - Exit short when price reaches POC or VAL.
+  //
+  // Parameters:
+  // - period (int): Period for volume profile calculations
+  VOLUME_PROFILE = 34;
 
-    // Tick Volume Analysis Strategy
-    //
-    // This strategy will focus on the number of trades rather than the volume.
-    //
-    // Parameters:
-    //    - tickPeriod (int): Period for calculating tick volume.
-    TICK_VOLUME_ANALYSIS = 32;
+  // Stochastic EMA Strategy.
+  //
+  // Indicators:
+  //   - EMA
+  //   - Stochastic Oscillator K
+  //   - Stochastic Oscillator D
+  //
+  // Entry Condition (Example):
+  //   - Buy when the Stochastic K crosses above Stochastic D, AND both are below the oversold threshold, AND the price is above its EMA.
+  //
+  // Exit Condition (Example):
+  //   - Sell when the Stochastic K crosses below Stochastic D, AND both are above the overbought threshold, AND the price is below its EMA.
+  //
+  // Parameters:
+  //     - emaPeriod (int)
+  //     - stochasticKPeriod (int)
+  //     - stochasticDPeriod (int)
+  //     - overboughtThreshold (int)
+  //     - oversoldThreshold (int)
+  STOCHASTIC_EMA = 35;
 
-    // Volume Profile Deviation Strategy
-    //
-    // Entry/Exit: Based on price movements relative to Value Area and standard deviation levels.
-    //
-    // Parameters:
-    // - period (int): Period for volume profile calculations
-    VOLUME_PROFILE_DEVIATIONS = 33;
+  // Chande Momentum Oscillator (CMO) and Money Flow Index (MFI) Strategy.
+  //
+  // Indicators:
+  //     - CMO
+  //     - MFI
+  //
+  // Entry Condition (Example):
+  //    - Buy when both CMO and MFI are oversold (e.g., below a threshold like 20).
+  // Exit Condition (Example):
+  //    - Sell when both CMO and MFI are overbought (e.g., above a threshold like 80).
+  //
+  // Parameters:
+  //     - cmoPeriod (int): Period for calculating the CMO.
+  //     - mfiPeriod (int): Period for calculating the MFI.
+  CMO_MFI = 36;
 
-    // Volume Profile Strategy.
-    //
-    // Identifies price levels with high volume activity (Point of Control - POC, Value Area High - VAH, Value Area Low - VAL).
-    //
-    // Indicators:
-    // - Volume Profile
-    //
-    // Entry/Exit (example - many variations exist):
-    // - Enter long when price breaks above VAL and retests it as support.
-    // - Enter short when price breaks below VAH and retests it as resistance.
-    // - Exit long when price reaches POC or VAH.
-    // - Exit short when price reaches POC or VAL.
-    //
-    // Parameters:
-    // - period (int): Period for volume profile calculations
-    VOLUME_PROFILE = 34;
+  // RSI EMA Crossover Strategy.
+  //
+  // Indicators:
+  //     - RSI
+  //     - EMA of RSI
+  //
+  // Entry Condition (Example):
+  //    - Buy when RSI crosses above its EMA and RSI is not overbought
+  // Exit Condition (Example):
+  //    - Sell when RSI crosses below its EMA and RSI is not oversold
+  //
+  // Parameters:
+  //     - rsiPeriod (int)
+  //     - emaPeriod (int)
+  RSI_EMA_CROSSOVER = 37;
 
-    // Stochastic EMA Strategy.
-    //
-    // Indicators:
-    //   - EMA
-    //   - Stochastic Oscillator K
-    //   - Stochastic Oscillator D
-    //
-    // Entry Condition (Example):
-    //   - Buy when the Stochastic K crosses above Stochastic D, AND both are below the oversold threshold, AND the price is above its EMA.
-    //
-    // Exit Condition (Example):
-    //   - Sell when the Stochastic K crosses below Stochastic D, AND both are above the overbought threshold, AND the price is below its EMA.
-    //
-    // Parameters:
-    //     - emaPeriod (int)
-    //     - stochasticKPeriod (int)
-    //     - stochasticDPeriod (int)
-    //     - overboughtThreshold (int)
-    //     - oversoldThreshold (int)
-    STOCHASTIC_EMA = 35;
+  // TRIX Signal Line Strategy.
+  //
+  // Indicators:
+  //    - TRIX
+  //    - Signal Line (SMA of TRIX)
+  //
+  // Entry Condition (Example):
+  //    - Buy when TRIX crosses above its Signal Line.
+  // Exit Condition (Example):
+  //    - Sell when TRIX crosses below its Signal Line.
+  //
+  // Parameters:
+  //    - trixPeriod (int)
+  //    - signalPeriod (int)
+  TRIX_SIGNAL_LINE = 38;
 
-    // Chande Momentum Oscillator (CMO) and Money Flow Index (MFI) Strategy.
-    //
-    // Indicators:
-    //     - CMO
-    //     - MFI
-    //
-    // Entry Condition (Example):
-    //    - Buy when both CMO and MFI are oversold (e.g., below a threshold like 20).
-    // Exit Condition (Example):
-    //    - Sell when both CMO and MFI are overbought (e.g., above a threshold like 80).
-    //
-    // Parameters:
-    //     - cmoPeriod (int): Period for calculating the CMO.
-    //     - mfiPeriod (int): Period for calculating the MFI.
-    CMO_MFI = 36;
+  // Chaikin Money Flow (CMF) Zero Line Strategy.
+  //
+  // Indicators:
+  //    - CMF
+  //
+  // Entry Condition (Example):
+  //  - Buy when CMF crosses above zero line, indicating positive money flow
+  // Exit Condition (Example):
+  //  - Sell when CMF crosses below zero line, indicating negative money flow
+  //
+  // Parameters:
+  //  - period (int)
+  CMF_ZERO_LINE = 39;
 
-    // RSI EMA Crossover Strategy.
-    //
-    // Indicators:
-    //     - RSI
-    //     - EMA of RSI
-    //
-    // Entry Condition (Example):
-    //    - Buy when RSI crosses above its EMA and RSI is not overbought
-    // Exit Condition (Example):
-    //    - Sell when RSI crosses below its EMA and RSI is not oversold
-    //
-    // Parameters:
-    //     - rsiPeriod (int)
-    //     - emaPeriod (int)
-    RSI_EMA_CROSSOVER = 37;
+  // Rainbow Oscillator Strategy
+  //
+  // A strategy based on the Rainbow Oscillator, which uses multiple moving averages of the same price data
+  // with different periods to create a "rainbow" effect that can help visualize trend direction and strength
+  //
+  // Parameters:
+  //  - periods: (List<int>) An array or list of integer values representing the periods of the moving averages used in the Rainbow Oscillator.
+  RAINBOW_OSCILLATOR = 40;
 
-    // TRIX Signal Line Strategy.
-    //
-    // Indicators:
-    //    - TRIX
-    //    - Signal Line (SMA of TRIX)
-    //
-    // Entry Condition (Example):
-    //    - Buy when TRIX crosses above its Signal Line.
-    // Exit Condition (Example):
-    //    - Sell when TRIX crosses below its Signal Line.
-    //
-    // Parameters:
-    //    - trixPeriod (int)
-    //    - signalPeriod (int)
-    TRIX_SIGNAL_LINE = 38;
+  // Price Oscillator Signal Strategy
+  //
+  // Parameters:
+  //     - fastPeriod (int): Period for calculating the Fast MA.
+  //     - slowPeriod (int): Period for calculating the Slow MA.
+  //     - signalPeriod (int): Period for calculating the Signal Line
+  PRICE_OSCILLATOR_SIGNAL = 41;
 
-    // Chande Momentum Oscillator (CMF) Zero Line Strategy.
-    //
-    // Indicators:
-    //    - CMF
-    //
-    // Entry Condition (Example):
-    //  - Buy when CMF crosses above zero line, indicating positive money flow
-    // Exit Condition (Example):
-    //  - Sell when CMF crosses below zero line, indicating negative money flow
-    //
-    // Parameters:
-    //  - period (int)
-    CMF_ZERO_LINE = 39;
+  // Awesome Oscillator Strategy
+  //
+  // Entry condition: Buy when AO crosses above zero line.
+  // Exit Condition: Sell when AO crosses below zero line.
+  //
+  // Parameters:
+  //     - shortPeriod (int)
+  //     - longPeriod (int)
+  AWESOME_OSCILLATOR = 42;
 
-    // Rainbow Oscillator Strategy
-    //
-    // A strategy based on the Rainbow Oscillator, which uses multiple moving averages of the same price data
-    // with different periods to create a "rainbow" effect that can help visualize trend direction and strength
-    //
-    // Parameters:
-    //  - periods: (List<int>) An array or list of integer values representing the periods of the moving averages used in the Rainbow Oscillator.
-    RAINBOW_OSCILLATOR = 40;
+  // DEMA/TEMA Crossover Strategy
+  //
+  // Indicators:
+  //   - Double Exponential Moving Average (DEMA)
+  //   - Triple Exponential Moving Average (TEMA)
+  //
+  // Entry Condition (Example):
+  //    - Buy when DEMA crosses above TEMA.
+  // Exit Condition (Example):
+  //    - Sell when DEMA crosses below TEMA.
+  //
+  // Parameters:
+  //    - demaPeriod (int): Period for calculating the DEMA.
+  //    - temaPeriod (int): Period for calculating the TEMA.
+  DEMA_TEMA_CROSSOVER = 43; 
 
+  // MACD Crossover Strategy
+  //
+  // Indicators:
+  //  - MACD Line
+  //  - Signal Line (EMA of MACD Line)
+  //
+  // Entry Condition (Example):
+  //  - Buy when MACD crosses above Signal Line.
+  // Exit Condition (Example):
+  //  - Sell when MACD crosses below Signal Line.
+  //
+  // Parameters:
+  //  - shortEmaPeriod (int): Period for the short EMA used in MACD calculation.
+  //  - longEmaPeriod (int): Period for the long EMA used in MACD calculation.
+  //  - signalPeriod (int): Period for the Signal Line (EMA of MACD).
+  MACD_CROSSOVER = 44;
 
-    // Price Oscillator Signal Strategy
-    //
-    // Parameters:
-    //     - fastPeriod (int): Period for calculating the Fast MA.
-    //     - slowPeriod (int): Period for calculating the Slow MA.
-    //     - signalPeriod (int): Period for calculating the Signal Line
-    PRICE_OSCILLATOR_SIGNAL = 41;
+  // VWAP Crossover Strategy
+  //
+  // Uses the Volume Weighted Average Price (VWAP) and a moving average of the price.
+  //
+  // Indicators:
+  //   - VWAP
+  //   - Moving Average (e.g., SMA, EMA) of Price.
+  //
+  // Entry Condition (Example):
+  //  - Buy when the price crosses above the VWAP
+  // Exit Condition (Example):
+  //  - Sell when the price crosses below the VWAP
+  //
+  // Parameters:
+  //    - vwapPeriod (int): Period for calculating the VWAP
+  //    - movingAveragePeriod (int) : The period for the moving average of the Price.
+  VWAP_CROSSOVER = 45;
 
-    // Awesome Oscillator Strategy
-    //
-    // Entry condition: Buy when AO crosses above zero line.
-    // Exit Condition: Sell when AO crosses below zero line.
-    //
-    // Parameters:
-    //     - shortPeriod (int)
-    //     - longPeriod (int)
-    AWESOME_OSCILLATOR = 42;
+  // ROC-MA Crossover (Rate of Change - Moving Average Crossover)
+  //
+  // Indicators:
+  // - Rate of Change (ROC)
+  // - Moving Average of ROC (e.g. SMA or EMA)
+  //
+  // Entry Condition (Example):
+  // - Buy when ROC crosses above its moving average
+  // Exit Condition (Example):
+  // - Sell when ROC crosses below its moving average
+  //
+  // Parameters:
+  // - rocPeriod (int) : Period for ROC
+  // - maPeriod (int) : Period for Moving Average of the ROC
+  ROC_MA_CROSSOVER = 46;
 
-     // DEMA/TEMA Crossover Strategy
-     //
-     // Indicators:
-     //   - Double Exponential Moving Average (DEMA)
-     //   - Triple Exponential Moving Average (TEMA)
-     //
-     // Entry Condition (Example):
-     //    - Buy when DEMA crosses above TEMA.
-     // Exit Condition (Example):
-     //    - Sell when DEMA crosses below TEMA.
-     //
-     // Parameters:
-     //    - demaPeriod (int): Period for calculating the DEMA.
-     //    - temaPeriod (int): Period for calculating the TEMA.
-    DEMA_TEMA_CROSSOVER = 43; 
-  
-     // MACD Crossover Strategy
-     //
-     // Indicators:
-     //  - MACD Line
-     //  - Signal Line (EMA of MACD Line)
-     //
-     // Entry Condition (Example):
-     //  - Buy when MACD crosses above Signal Line.
-     // Exit Condition (Example):
-     //  - Sell when MACD crosses below Signal Line.
-     //
-     // Parameters:
-     //  - shortEmaPeriod (int): Period for the short EMA used in MACD calculation.
-     //  - longEmaPeriod (int): Period for the long EMA used in MACD calculation.
-     //  - signalPeriod (int): Period for the Signal Line (EMA of MACD).
-    MACD_CROSSOVER = 44;
+  // Regression Channel Strategy
+  //
+  // Parameters:
+  //   - period (int)
+  REGRESSION_CHANNEL = 47; 
 
-    // VWAP Crossover Strategy
-    //
-    // Uses the Volume Weighted Average Price (VWAP) and a moving average of the price.
-    //
-    // Indicators:
-    //   - VWAP
-    //   - Moving Average (e.g., SMA, EMA) of Price.
-    //
-    // Entry Condition (Example):
-    //  - Buy when the price crosses above the VWAP
-    // Exit Condition (Example):
-    //  - Sell when the price crosses below the VWAP
-    //
-    // Parameters:
-    //    - vwapPeriod (int): Period for calculating the VWAP
-    //    - movingAveragePeriod (int) : The period for the moving average of the Price.
-    VWAP_CROSSOVER = 45;
+  // FRAMA (Fractal Adaptive Moving Average) Strategy.
+  //
+  // Uses a FRAMA indicator, which adjusts its smoothing based on market volatility.
+  //
+  // Parameters:
+  //  - sc (double): Scaling constant
+  //  - fc (int): Fast EMA period
+  //  - alpha (double): A parameter for the FRAMA calculation
+  FRAMA = 48;
 
-    // ROC-MA Crossover (Rate of Change - Moving Average Crossover)
-    //
-    // Indicators:
-    // - Rate of Change (ROC)
-    // - Moving Average of ROC (e.g. SMA or EMA)
-    //
-    // Entry Condition (Example):
-    // - Buy when ROC crosses above its moving average
-    // Exit Condition (Example):
-    // - Sell when ROC crosses below its moving average
-    //
-    // Parameters:
-    // - rocPeriod (int) : Period for ROC
-    // - maPeriod (int) : Period for Moving Average of the ROC
-    ROC_MA_CROSSOVER = 46;
+  // Pivot Points Strategy
+  //
+  // Uses pivot points to identify potential support and resistance levels.
+  //
+  // Parameters:
+  //  - period (int): Period for calculating pivot points
+  PIVOT = 49;
 
-    // Regression Channel Strategy
-    //
-    // Parameters:
-    //   - period (int)
-    REGRESSION_CHANNEL = 47; 
+  // Double Top/Bottom Pattern Strategy
+  //
+  // Identifies potential double top and double bottom chart patterns.
+  //
+  // Parameters:
+  //  - period (int): Lookback period for pattern identification
+  DOUBLE_TOP_BOTTOM = 50;
 
-    // FRAMA (Fractal Adaptive Moving Average) Strategy.
-    //
-    // Uses a FRAMA indicator, which adjusts its smoothing based on market volatility.
-    //
-    // Parameters:
-    //  - sc (double): Scaling constant
-    //  - fc (int): Fast EMA period
-    //  - alpha (double): A parameter for the FRAMA calculation
-    
-  FRAMA = 47;
-  PIVOT = 48;
-  DOUBLE_TOP_BOTTOM = 49;
-  FIBONACCI_RETRACEMENTS = 50;
-  PRICE_GAP = 51;
-  RENKO_CHART = 52;
-  RANGE_BARS = 53;
-  GANN_SWING = 54;
-  SAR_MFI = 55;
-  ADX_DMI = 56;
-  ELDER_RAY_MA = 57;
-  DPO_CROSSOVER = 58;
-  VARIABLE_PERIOD_EMA = 59;
+  // Fibonacci Retracements Strategy
+  //
+  // Uses Fibonacci retracement levels to identify potential support and resistance.
+  //
+  // Parameters:
+  //  - period (int): Period for calculating Fibonacci levels
+  FIBONACCI_RETRACEMENTS = 51;
+
+  // Price Gap Strategy
+  //
+  // Identifies and trades based on price gaps.
+  //
+  // Parameters:
+  //  - period (int): Lookback period for gap analysis
+  PRICE_GAP = 52;
+
+  // Renko Chart Strategy
+  //
+  // Uses Renko charts which filter out small price movements.
+  //
+  // Parameters:
+  //  - brickSize (double): Size of each Renko brick
+  RENKO_CHART = 53;
+
+  // Range Bars Strategy
+  //
+  // Uses range bars which are based on price movement rather than time.
+  //
+  // Parameters:
+  //  - rangeSize (double): Size of each range bar
+  RANGE_BARS = 54;
+
+  // Gann Swing Strategy
+  //
+  // Based on W.D. Gann's swing trading methodology.
+  //
+  // Parameters:
+  //  - gannPeriod (int): Period for Gann calculations
+  GANN_SWING = 55;
+
+  // SAR-MFI Strategy
+  //
+  // Combines Parabolic SAR with Money Flow Index.
+  //
+  // Parameters:
+  //  - accelerationFactorStart (double): Initial value for the Acceleration Factor
+  //  - accelerationFactorIncrement (double): Increment for the Acceleration Factor
+  //  - accelerationFactorMax (double): Maximum value for the Acceleration Factor
+  //  - mfiPeriod (int): Period for MFI calculation
+  SAR_MFI = 56;
+
+  // ADX-DMI Strategy
+  //
+  // Combines Average Directional Index (ADX) with Directional Movement Index (DMI).
+  //
+  // Parameters:
+  //  - adxPeriod (int): Period for ADX calculation
+  //  - diPeriod (int): Period for DMI calculation
+  ADX_DMI = 57;
+
+  // Elder Ray with Moving Average Strategy
+  //
+  // Combines Elder Ray indicator with a moving average.
+  //
+  // Parameters:
+  //  - emaPeriod (int): Period for EMA calculation
+  ELDER_RAY_MA = 58;
+
+  // Detrended Price Oscillator (DPO) Crossover Strategy
+  //
+  // Uses DPO crossing a moving average as signals.
+  //
+  // Parameters:
+  //  - dpoPeriod (int): Period for DPO calculation
+  //  - maPeriod (int): Period for moving average
+  DPO_CROSSOVER = 59;
+
+  // Variable Period EMA Strategy
+  //
+  // Uses an EMA with period that varies based on market conditions.
+  //
+  // Parameters:
+  //  - minPeriod (int): Minimum period for the EMA
+  //  - maxPeriod (int): Maximum period for the EMA
+  VARIABLE_PERIOD_EMA = 60;
 }
 
 message SmaRsiParameters {
