@@ -1,11 +1,11 @@
 package com.verlumen.tradestream.backtesting;
 
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
-import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
