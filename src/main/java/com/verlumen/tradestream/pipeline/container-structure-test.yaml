@@ -4,7 +4,7 @@ commandTests:
   - name: "Dry pipeline run"
     command: java
     args:
-      - '-Dio.jenetics.util.defaultRandomGenerator=L64X1024MixRandom'
+      - '-Dio.jenetics.util.defaultRandomGenerator=Random'
       - '-jar'
       - '/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar'
       - '--runMode=dry'
