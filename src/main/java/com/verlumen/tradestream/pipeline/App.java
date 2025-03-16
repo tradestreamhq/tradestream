@@ -179,16 +179,11 @@ public final class App {
     return pipeline;
   }
 
-  private void runPipeline(Pipeline pipeline) {
+  private void runPipeline(Pipeline pipeline) throws Exception {
     logger.atInfo().log("Running the pipeline.");
+
     buildPipeline(pipeline);
-    try {
-      pipeline.run();
-      logger.atInfo().log("Pipeline submitted successfully.");
-    } catch (Exception e) {
-      logger.atSevere().withCause(e).log("Pipeline execution failed.");
-      throw e;
-    }
+    pipeline.run();
   }
 
   private static class PrintResultsDoFn extends DoFn<KV<String, ImmutableList<Candle>>, Void> {
@@ -200,7 +195,7 @@ public final class App {
     }
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     logger.atInfo().log("Application starting with arguments: %s", (Object) args);
 
     // Parse custom options.

@@ -10,6 +10,9 @@ java_binary(
     name = "app",
     main_class = "com.verlumen.tradestream.pipeline.App",
     srcs = ["App.java"],
+    jvm_flags = [
+        "-Dio.jenetics.util.defaultRandomGenerator=Random",
+    ],
     deps = [
         ":pipeline_config",
         ":pipeline_module",
