@@ -11,7 +11,7 @@ java_binary(
     main_class = "com.verlumen.tradestream.pipeline.App",
     srcs = ["App.java"],
     jvm_flags = [
-        "-Djava.util.random.provider=java.util.Random",
+        "-Dio.jenetics.util.defaultRandomGenerator=Random",
     ],
     deps = [
         ":pipeline_config",
