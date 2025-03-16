@@ -123,6 +123,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/backtesting:param_configs",
         "//third_party:guava",
         "//third_party:junit",
+        "//third_party:test_parameter_injector",
         "//third_party:truth",
     ],
 )
