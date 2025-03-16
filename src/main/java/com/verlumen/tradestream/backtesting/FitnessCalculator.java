@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.backtesting;
 
+import io.jenetics.Gene;
 import io.jenetics.Genotype;
 import java.util.function.Function;
 import java.io.Serializable;

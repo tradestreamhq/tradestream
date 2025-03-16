@@ -3,7 +3,6 @@ package com.verlumen.tradestream.backtesting;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.strategies.Strategy;
-import io.jenetics.DoubleGene;
 import io.jenetics.Gene;
 import io.jenetics.Genotype;
 import java.util.function.Function;
@@ -24,7 +23,7 @@ final class FitnessCalculatorImpl implements FitnessCalculator {
   }
 
   @Override
-  public Function<Genotype<Gene<?, ?>>, Double> createFitnessFunction(GAOptimizationRequest request) {
+  public Function<Genotype<?>, Double> createFitnessFunction(GAOptimizationRequest request) {
     return genotype -> {
       try {
         Any params = genotypeConverter.convertToParameters(genotype, request.getStrategyType());

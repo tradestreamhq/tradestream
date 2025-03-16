@@ -16,6 +16,6 @@ interface GenotypeConverter extends Serializable {
    * @param genotype the genotype resulting from the GA optimization
    * @param type the type of trading strategy being optimized
    * @return an Any instance containing the strategy parameters
-  */
+   */
   Any convertToParameters(Genotype<?> genotype, StrategyType type);
 }

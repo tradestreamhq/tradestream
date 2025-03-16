@@ -7,12 +7,13 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.DoubleGene;
-import io.jenetics.Gene;
 import io.jenetics.Genotype;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.LongChromosome;
 import io.jenetics.NumericChromosome;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Converts genotypes from the genetic algorithm into strategy parameters. Encapsulates the
@@ -35,30 +36,19 @@ final class GenotypeConverterImpl implements GenotypeConverter {
    * @return an Any instance containing the strategy parameters
    */
   @Override
-  public Any convertToParameters(Genotype<?> genotype, StrategyType type) { // Corrected generic type
-    return convertToParametersHelper(genotype, type);
-  }
-
-  /**
-   * Helper function for convertToParameters to handle different chromosome types. It uses the correct
-   * generic type for Genotype and works for all the numeric types.
-   */
-  private Any convertToParametersHelper(Genotype<?> genotype, StrategyType type) {
+  public Any convertToParameters(Genotype<?> genotype, StrategyType type) {
     ParamConfig config = paramConfigManager.getParamConfig(type);
 
-    ImmutableList.Builder<NumericChromosome<?, ?>> builder = ImmutableList.builder();
+    List<NumericChromosome<?, ?>> chromosomes = new ArrayList<>();
     for (Chromosome<?> chromosome : genotype) {
-      // Now we can check the instance type of the chromosome
-      if (chromosome instanceof IntegerChromosome) {
-        builder.add((IntegerChromosome) chromosome);
-      } else if (chromosome instanceof LongChromosome) {
-        builder.add((LongChromosome) chromosome);
-      } else if (chromosome instanceof DoubleChromosome) {
-        builder.add((DoubleChromosome) chromosome);
+      if (chromosome instanceof NumericChromosome) {
+        chromosomes.add((NumericChromosome<?, ?>) chromosome);
+      } else {
+        throw new IllegalArgumentException("Unsupported chromosome type: " + 
+            chromosome.getClass().getName());
       }
     }
 
-    ImmutableList<? extends NumericChromosome<?, ?>> chromosomes = builder.build();
-    return config.createParameters(chromosomes);
+    return config.createParameters(ImmutableList.copyOf(chromosomes));
   }
 }

@@ -1,15 +1,18 @@
 package com.verlumen.tradestream.backtesting;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
+import io.jenetics.Gene;
 import io.jenetics.Genotype;
+import io.jenetics.IntegerChromosome;
 import io.jenetics.Mutator;
 import io.jenetics.SinglePointCrossover;
 import io.jenetics.TournamentSelector;
 import io.jenetics.engine.Engine;
-import io.jenetics.Gene;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 final class GAEngineFactoryImpl implements GAEngineFactory {
@@ -25,7 +28,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
     }
 
     @Override
-    public Engine<Gene<?, ?>, Double> createEngine(GAOptimizationRequest request) {
+    public Engine<?, Double> createEngine(GAOptimizationRequest request) {
         // Create the initial genotype from the parameter specifications
         Genotype<?> gtf = createGenotype(request);
 
@@ -49,18 +52,33 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
      private Genotype<?> createGenotype(GAOptimizationRequest request) {
        ParamConfig config = paramConfigManager.getParamConfig(request.getStrategyType());
 
-       // Create chromosomes based on parameter specifications
-       List<Chromosome<?>> chromosomes = config.getChromosomeSpecs().stream()
-           .map(ChromosomeSpec::createChromosome)
-           .collect(Collectors.toList());
-
-       // Handle the case where no chromosomes are specified
-       if (chromosomes.isEmpty()) {
-           // Create a default chromosome for testing/fallback
-           chromosomes.add(DoubleChromosome.of(0.0, 1.0));
+       // Get the chromosomes from the parameter configuration
+       List<? extends NumericChromosome<?, ?>> numericChromosomes = config.initialChromosomes();
+       
+       // If no chromosomes are specified, create a default one
+       if (numericChromosomes.isEmpty()) {
+           return Genotype.of(DoubleChromosome.of(0.0, 1.0));
        }
-
-       return Genotype.of(chromosomes);
+       
+       // Check the type of the first chromosome to determine the genotype type
+       Chromosome<?> firstChromosome = numericChromosomes.get(0);
+       
+       if (firstChromosome instanceof DoubleChromosome) {
+           List<DoubleChromosome> doubleChromosomes = new ArrayList<>();
+           for (NumericChromosome<?, ?> chr : numericChromosomes) {
+               doubleChromosomes.add((DoubleChromosome) chr);
+           }
+           return Genotype.of(doubleChromosomes);
+       } else if (firstChromosome instanceof IntegerChromosome) {
+           List<IntegerChromosome> integerChromosomes = new ArrayList<>();
+           for (NumericChromosome<?, ?> chr : numericChromosomes) {
+               integerChromosomes.add((IntegerChromosome) chr);
+           }
+           return Genotype.of(integerChromosomes);
+       } else {
+           throw new IllegalArgumentException("Unsupported chromosome type: " + 
+               firstChromosome.getClass().getName());
+       }
      }
 
     private int getPopulationSize(GAOptimizationRequest request) {
