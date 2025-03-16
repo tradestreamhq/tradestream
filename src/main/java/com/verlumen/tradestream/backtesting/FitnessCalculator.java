@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.backtesting;
 
-import io.jenetics.DoubleGene;
 import io.jenetics.Genotype;
 import java.util.function.Function;
 import java.io.Serializable;
@@ -15,5 +14,5 @@ interface FitnessCalculator extends Serializable {
      * @param request the GA optimization request
      * @return a function that evaluates the fitness of a genotype
      */
-    Function<Genotype<DoubleGene>, Double> createFitnessFunction(GAOptimizationRequest request);
+    Function<Genotype<?>, Double> createFitnessFunction(GAOptimizationRequest request);
 }
