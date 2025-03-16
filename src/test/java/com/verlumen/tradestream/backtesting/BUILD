@@ -115,6 +115,19 @@ java_test(
 )
 
 java_test(
+    name = "ParamConfigsTest",
+    srcs = ["ParamConfigsTest.java"],
+    deps = [
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
+        "//src/main/java/com/verlumen/tradestream/backtesting:param_configs",
+        "//third_party:guava",
+        "//third_party:junit",
+        "//third_party:truth",
+    ],
+)
+
+java_test(
     name = "RunBacktestTest",
     size = "small",
     srcs = ["RunBacktestTest.java"],
