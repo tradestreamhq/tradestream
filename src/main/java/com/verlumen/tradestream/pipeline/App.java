@@ -178,16 +178,11 @@ public final class App {
     return pipeline;
   }
 
-  private void runPipeline(Pipeline pipeline) {
+  private void runPipeline(Pipeline pipeline) throws Exception {
       logger.atInfo().log("Running the pipeline.");
 
       buildPipeline(pipeline);
-      try {
-          pipeline.run();
-      } catch (Exception e) {
-          logger.atSevere().withCause(e).log("Pipeline execution failed.");
-          throw e;
-      }
+      pipeline.run();
   }
 
   private static class PrintResultsDoFn extends DoFn<KV<String, ImmutableList<Candle>>, Void> {
