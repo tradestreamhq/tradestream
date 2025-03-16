@@ -15,5 +15,5 @@ commandTests:
       "--execute",
       "System.out.println(java.util.random.RandomGenerator.getDefault().getClass().getName());"
     ]
-    expected_output:
+    expectedOutput:
       - "java.util.Random"
