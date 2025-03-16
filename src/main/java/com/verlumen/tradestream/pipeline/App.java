@@ -187,7 +187,6 @@ public final class App {
   }
 
   private static class PrintResultsDoFn extends DoFn<KV<String, ImmutableList<Candle>>, Void> {
-    @Override
     @ProcessElement
     public void processElement(ProcessContext c) {
       KV<String, ImmutableList<Candle>> element = c.element();
