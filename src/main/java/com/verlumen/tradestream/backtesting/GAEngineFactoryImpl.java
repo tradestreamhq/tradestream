@@ -8,23 +8,10 @@ import io.jenetics.Mutator;
 import io.jenetics.SinglePointCrossover;
 import io.jenetics.TournamentSelector;
 import io.jenetics.engine.Engine;
-import io.jenetics.util.RandomRegistry;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.flink.util.XORShiftRandom;
-import java.util.random.RandomGeneratorFactory;
 
 final class GAEngineFactoryImpl implements GAEngineFactory {
-    static {
-        try {
-            // Force RandomRegistry to use java.util.Random
-            RandomRegistry.random(new java.util.Random(42));
-        } catch (Throwable t) {
-            // Catching Throwable to handle any potential errors during initialization
-            System.err.println("Error initializing RandomRegistry: " + t.getMessage());
-        }
-    }
-
     private final ParamConfigManager paramConfigManager;
     private final FitnessCalculator fitnessCalculator;
 
