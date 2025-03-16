@@ -1,8 +1,8 @@
 # See https://github.com/GoogleContainerTools/container-structure-test#command-tests
 schemaVersion: 2.0.0
 commandTests:
-  - name: test
-    command: "Dry pipeline run"
+  - name: "Dry pipeline run"
+    command: java
     args:
       - '-Djava.util.random.provider=java.util.Random'
       - '-jar'
