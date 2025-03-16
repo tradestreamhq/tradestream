@@ -8,6 +8,7 @@ package(default_visibility = ["//visibility:public"])
 
 java_binary(
     name = "app",
+    main_class = "com.verlumen.tradestream.pipeline.App",
     srcs = ["App.java"],
     jvm_flags = [
         "-Djava.util.random.provider=java.util.Random",
