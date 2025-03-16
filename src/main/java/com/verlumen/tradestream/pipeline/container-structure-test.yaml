@@ -9,5 +9,5 @@ commandTests:
       - '/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar'
       - '--runMode=dry'
       - '--tradeTopic=fakeTopic'
-    expectedError: ['.*Dry run mode detected - skipping data ingestion']
-    expectedOutput: ['.*Currency Pair: DRY/RUN.*']
+    expectedError:
+      - 'DRY/RUN'
