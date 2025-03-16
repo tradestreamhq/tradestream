@@ -9,10 +9,10 @@ commandTests:
       - '--runMode=dry'
     expectedError:
       - 'DRY/RUN'
-- name: "Verify RandomGenerator instance retrieval"
-  command: "jshell"
-  args:
-    - "--execute"
-    - "System.out.println(java.util.random.RandomGenerator.getDefault().getClass().getName());"
-  expectedOutput:
-    - "java.util.Random"
+  - name: "Verify RandomGenerator instance retrieval"
+    command: "jshell"
+    args:
+      - "--execute"
+      - "System.out.println(java.util.random.RandomGenerator.getDefault().getClass().getName());"
+    expectedOutput:
+      - "java.util.Random"
