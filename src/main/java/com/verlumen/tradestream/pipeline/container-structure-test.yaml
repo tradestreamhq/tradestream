@@ -2,10 +2,18 @@
 schemaVersion: 2.0.0
 commandTests:
   - name: test
-    command: java
+    command: "Dry pipeline run"
     args:
       - '-jar'
       - '/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar'
       - '--runMode=dry'
     expectedError:
       - 'DRY/RUN'
+  - name: "Verify RandomGenerator instance retrieval"
+    command: [
+      "jshell",
+      "--execute",
+      "System.out.println(java.util.random.RandomGenerator.getDefault().getClass().getName());"
+    ]
+    expected_output:
+      - "java.util.Random"
