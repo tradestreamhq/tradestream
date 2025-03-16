@@ -36,7 +36,6 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
             }
         } catch (ExceptionInInitializerError e) {
             // Fallback if RandomRegistry fails
-            logger.atWarning().log("Error initializing RandomRegistry: %s", e.getMessage());
         }
 
         // Create the initial genotype from the parameter specifications
