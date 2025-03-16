@@ -6,6 +6,7 @@ import static org.junit.Assume.assumeTrue;
 
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import com.verlumen.tradestream.strategies.StrategyType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
