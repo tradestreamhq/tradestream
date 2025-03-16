@@ -1,13 +1,14 @@
 package com.verlumen.tradestream.backtesting;
 
 import com.google.inject.Inject;
+import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
-import io.jenetics.DoubleGene;
 import io.jenetics.Genotype;
 import io.jenetics.Mutator;
 import io.jenetics.SinglePointCrossover;
 import io.jenetics.TournamentSelector;
 import io.jenetics.engine.Engine;
+import io.jenetics.Gene;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,9 +25,9 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
     }
 
     @Override
-    public Engine<DoubleGene, Double> createEngine(GAOptimizationRequest request) {
+    public Engine<Gene<?, ?>, Double> createEngine(GAOptimizationRequest request) {
         // Create the initial genotype from the parameter specifications
-        Genotype<DoubleGene> gtf = createGenotype(request);
+        Genotype<?> gtf = createGenotype(request);
 
         // Build and return the GA engine with the specified settings
         return Engine
@@ -45,27 +46,22 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
      * @param request the GA optimization request
      * @return a genotype with chromosomes configured according to parameter specifications
      */
-    private Genotype<DoubleGene> createGenotype(GAOptimizationRequest request) {
-        ParamConfig config = paramConfigManager.getParamConfig(request.getStrategyType());
+     private Genotype<?> createGenotype(GAOptimizationRequest request) {
+       ParamConfig config = paramConfigManager.getParamConfig(request.getStrategyType());
 
-        // Create chromosomes based on parameter specifications
-        List<DoubleChromosome> chromosomes = config.getChromosomeSpecs().stream()
-            .map(spec -> {
-                ChromosomeSpec<?> paramSpec = spec;
-                double min = ((Number) paramSpec.getRange().lowerEndpoint()).doubleValue();
-                double max = ((Number) paramSpec.getRange().upperEndpoint()).doubleValue();
-                return DoubleChromosome.of(min, max);
-            })
-            .collect(Collectors.toList());
+       // Create chromosomes based on parameter specifications
+       List<Chromosome<?>> chromosomes = config.getChromosomeSpecs().stream()
+           .map(ChromosomeSpec::createChromosome)
+           .collect(Collectors.toList());
 
-        // Handle the case where no chromosomes are specified
-        if (chromosomes.isEmpty()) {
-            // Create a default chromosome for testing/fallback
-            chromosomes.add(DoubleChromosome.of(0.0, 1.0));
-        }
+       // Handle the case where no chromosomes are specified
+       if (chromosomes.isEmpty()) {
+           // Create a default chromosome for testing/fallback
+           chromosomes.add(DoubleChromosome.of(0.0, 1.0));
+       }
 
-        return Genotype.of(chromosomes);
-    }
+       return Genotype.of(chromosomes);
+     }
 
     private int getPopulationSize(GAOptimizationRequest request) {
         return request.getPopulationSize() > 0
