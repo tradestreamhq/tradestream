@@ -181,10 +181,6 @@ public final class App {
   private void runPipeline(Pipeline pipeline) {
       logger.atInfo().log("Running the pipeline.");
 
-      if ("dry".equalsIgnoreCase(config().runMode())) {
-          logger.atInfo().log("Dry run mode detected - skipping data ingestion");
-      }
-
       buildPipeline(pipeline);
       try {
           pipeline.run();
