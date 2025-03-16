@@ -34,6 +34,9 @@ java_binary(
         "//third_party:protobuf_java",
         "//third_party:protobuf_java_util",
     ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+    ],
 )
 
 container_structure_test(
