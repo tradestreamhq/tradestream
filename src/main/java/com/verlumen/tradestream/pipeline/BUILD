@@ -11,6 +11,7 @@ java_binary(
     main_class = "com.verlumen.tradestream.pipeline.App",
     srcs = ["App.java"],
     jvm_flags = [
+        # This flag specifies the default random provider
         "-Djava.util.random.provider=java.util.Random",
     ],
     deps = [
@@ -51,28 +52,32 @@ genrule(
     toolchains = ["@jq_toolchains//:resolved_toolchain"],
 )
 
+# Define where the RandomGenerator service file is stored in the workspace
 filegroup(
     name = "random_generator_patch",
-    srcs = ["patches/java/conf/services/java.util.random.RandomGenerator"],
+    srcs = ["//patches/java/conf/services:java.util.random.RandomGenerator"],
 )
 
+# Create a tar layer for the RandomGenerator configuration
 tar(
     name = "patch_layer",
     srcs = [":random_generator_patch"],
-    # Important: This path is relative to the *root* of the image filesystem.
-    # It *must* match the path inside the base image.
-    out = "java.util.random.RandomGenerator.tar",
+    # This is the output file name
+    out = "random_generator.tar",
     mode = "0644",
     owner = "0.0",
+    # This path is relative to the root of the image filesystem
+    # and should match the location in the base OpenJDK image
     package_dir = "/opt/java/openjdk/conf/services",
-  
 )
 
 oci_image(
     name = "image",
     base = "@openjdk_java",
     entrypoint = [
-        "java",
+        "java", 
+        # Pass the JVM flag in the entrypoint to ensure it's used at runtime
+        "-Djava.util.random.provider=java.util.Random",
         "-jar",
         "/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar",
     ],
