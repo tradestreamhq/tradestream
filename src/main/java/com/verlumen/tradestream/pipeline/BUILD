@@ -7,33 +7,33 @@ load("//platforms:transition.bzl", "multi_arch")
 package(default_visibility = ["//visibility:public"])
 
 java_binary(
-  name = "app",
-  main_class = "com.verlumen.tradestream.pipeline.App",
-  srcs = ["App.java"],
-  jvm_flags = [
-      "-Djava.util.random.provider=java.util.Random",
-  ],
-  deps = [
-    ":pipeline_config",
-    ":pipeline_module",
-    "//protos:marketdata_java_proto",
-    "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
-    "//src/main/java/com/verlumen/tradestream/marketdata:candle_stream_with_defaults",
-    "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
-    "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
-    "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine_pipeline",
-    "//third_party:beam_runners_flink_java",
-    "//third_party:beam_sdks_java_core",
-    "//third_party:flogger",
-    "//third_party:guava",
-    "//third_party:guice",
-    "//third_party:joda_time",
-    "//third_party:protobuf_java",
-    "//third_party:protobuf_java_util",
-  ],
-  runtime_deps = [
-    "//third_party:beam_runners_direct_java",
-  ],
+    name = "app",
+    srcs = ["App.java"],
+    jvm_flags = [
+        "-Djava.util.random.provider=java.util.Random",
+    ],
+    main_class = "com.verlumen.tradestream.pipeline.App",
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+    ],
+    deps = [
+        ":pipeline_config",
+        ":pipeline_module",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_stream_with_defaults",
+        "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
+        "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine_pipeline",
+        "//third_party:beam_runners_flink_java",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:flogger",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+    ],
 )
 
 container_structure_test(
