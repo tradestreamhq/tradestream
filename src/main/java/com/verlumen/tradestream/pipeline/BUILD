@@ -51,15 +51,34 @@ genrule(
     toolchains = ["@jq_toolchains//:resolved_toolchain"],
 )
 
+# Define where the RandomGenerator service file is stored in the workspace.
+filegroup(
+    name = "random_generator_patch",
+    srcs = ["//patches/java/conf/services:java.util.random.RandomGenerator"],
+)
+
+# Create a tar layer for the RandomGenerator configuration.
+tar(
+    name = "patch_layer",
+    srcs = [":random_generator_patch"],
+    out = "random_generator.tar",
+    mode = "create",
+)
+
 oci_image(
     name = "image",
     base = "@flink_java17",
     entrypoint = [
         "java",
+        # Pass the JVM flag in the entrypoint to ensure it's used at runtime.
+        "-Djava.util.random.provider=java.util.Random",
         "-jar",
         "/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar",
     ],
-    tars = [":layer"],
+    tars = [
+        ":layer",
+        ":patch_layer",
+    ],
 )
 
 multi_arch(
@@ -87,7 +106,7 @@ java_library(
     name = "pipeline_config",
     srcs = ["PipelineConfig.java"],
     deps = [
-        "//third_party:joda_time"
+        "//third_party:joda_time",
     ],
 )
 
