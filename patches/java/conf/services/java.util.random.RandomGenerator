@@ -1,6 +1,4 @@
 java.util.random.RandomGenerator$SplittableRandom
-java.util.random.RandomGenerator$Xoroshiro128PlusPlus
-java.util.random.RandomGenerator$Xoshiro256PlusPlus
 java.util.random.RandomGenerator$L64X128MixRandom
 java.util.random.RandomGenerator$L64X128StarStarRandom
 java.util.random.RandomGenerator$L128X128MixRandom
