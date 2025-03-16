@@ -62,13 +62,8 @@ filegroup(
 tar(
     name = "patch_layer",
     srcs = [":random_generator_patch"],
-    # This is the output file name
     out = "random_generator.tar",
-    mode = "0644",
-    owner = "0.0",
-    # This path is relative to the root of the image filesystem
-    # and should match the location in the base OpenJDK image
-    package_dir = "/opt/java/openjdk/conf/services",
+    mode = "create",
 )
 
 oci_image(
