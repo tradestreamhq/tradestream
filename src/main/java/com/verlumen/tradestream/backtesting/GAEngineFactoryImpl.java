@@ -18,7 +18,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
     static {
         try {
             // Force RandomRegistry to use java.util.Random
-            RandomRegistry.setRandom(new java.util.Random(42));
+            RandomRegistry.random(new java.util.Random(42));
         } catch (Throwable t) {
             // Catching Throwable to handle any potential errors during initialization
             System.err.println("Error initializing RandomRegistry: " + t.getMessage());
