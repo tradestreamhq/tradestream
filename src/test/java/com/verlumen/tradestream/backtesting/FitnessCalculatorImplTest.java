@@ -38,7 +38,7 @@ public class FitnessCalculatorImplTest {
 
   @Inject private FitnessCalculatorImpl fitnessCalculator;
 
-  private Genotype<DoubleGene> testGenotype;
+  private Genotype<?> testGenotype;
 
   @Before
   public void setUp() throws Exception {
