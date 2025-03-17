@@ -15,9 +15,12 @@ import io.jenetics.TournamentSelector;
 import io.jenetics.engine.Engine;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 final class GAEngineFactoryImpl implements GAEngineFactory {
+    private static final Logger logger = Logger.getLogger(GAEngineFactoryImpl.class.getName());
+
     private final ParamConfigManager paramConfigManager;
     private final FitnessCalculator fitnessCalculator;
 
@@ -55,48 +58,29 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
        try {
            ParamConfig config = paramConfigManager.getParamConfig(request.getStrategyType());
 
-           // Get the chromosomes from the parameter configuration
+           // Always use the exact chromosomes from the config's initialChromosomes method
+           // This ensures we have the correct number and types of chromosomes
            List<? extends NumericChromosome<?, ?>> numericChromosomes = config.initialChromosomes();
            
-           // If no chromosomes are specified, create a default one
            if (numericChromosomes.isEmpty()) {
+               logger.warning("No chromosomes defined for strategy type: " + request.getStrategyType());
                return Genotype.of(DoubleChromosome.of(0.0, 1.0));
            }
            
-           // Check the type of the first chromosome to determine the genotype type
-           Chromosome<?> firstChromosome = numericChromosomes.get(0);
-           
-           if (firstChromosome instanceof DoubleChromosome) {
-               // Handle DoubleChromosome type
-               List<DoubleChromosome> doubleChromosomes = new ArrayList<>();
-               for (NumericChromosome<?, ?> chr : numericChromosomes) {
-                   if (chr instanceof DoubleChromosome) {
-                       doubleChromosomes.add((DoubleChromosome) chr);
-                   } else {
-                       throw new IllegalArgumentException("Mixed chromosome types are not supported. Found " + 
-                           chr.getClass().getName() + " while expecting DoubleChromosome");
-                   }
-               }
-               return Genotype.of(doubleChromosomes);
-           } else if (firstChromosome instanceof IntegerChromosome) {
-               // Handle IntegerChromosome type
-               List<IntegerChromosome> integerChromosomes = new ArrayList<>();
-               for (NumericChromosome<?, ?> chr : numericChromosomes) {
-                   if (chr instanceof IntegerChromosome) {
-                       integerChromosomes.add((IntegerChromosome) chr);
-                   } else {
-                       throw new IllegalArgumentException("Mixed chromosome types are not supported. Found " + 
-                           chr.getClass().getName() + " while expecting IntegerChromosome");
-                   }
-               }
-               return Genotype.of(integerChromosomes);
-           } else {
-               throw new IllegalArgumentException("Unsupported chromosome type: " + 
-                   firstChromosome.getClass().getName());
+           // Instead of trying to categorize and convert, just use the chromosomes directly
+           // The initialChromosomes() method should return properly formatted chromosomes
+           List<Chromosome<?>> chromosomes = new ArrayList<>();
+           for (NumericChromosome<?, ?> chr : numericChromosomes) {
+               chromosomes.add(chr);
            }
-       } catch (IllegalArgumentException e) {
-           // For missing parameter configurations, create a default genotype
-           // This is a fallback to prevent the application from crashing
+           
+           // Create genotype from the chromosomes
+           return Genotype.of(chromosomes);
+           
+       } catch (Exception e) {
+           logger.warning("Error creating genotype for strategy type " + 
+               request.getStrategyType() + ": " + e.getMessage());
+           // Fallback to a simple genotype with a single chromosome
            return Genotype.of(DoubleChromosome.of(0.0, 1.0));
        }
      }
