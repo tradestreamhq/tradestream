@@ -13,7 +13,6 @@ import io.jenetics.IntegerGene;
 import io.jenetics.NumericChromosome;
 import java.util.List;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -35,13 +34,15 @@ public class AdxStochasticParamConfigTest {
 
   @Test
   public void testCreateParameters_validChromosomes_returnsPackedParameters() {
+    // Create chromosomes with correct parameter order: min, max, value
     List<NumericChromosome<?, ?>> chromosomes =
         List.of(
-            IntegerChromosome.of(15, 10, 30),
-            IntegerChromosome.of(10, 5, 20),
-            IntegerChromosome.of(5, 3, 15),
-            IntegerChromosome.of(70, 60, 90),
-            IntegerChromosome.of(20, 10, 40));
+            IntegerChromosome.of(10, 30, 15), // ADX Period
+            IntegerChromosome.of(5, 20, 10),  // Stochastic K Period
+            IntegerChromosome.of(3, 15, 5),   // Stochastic D Period
+            IntegerChromosome.of(60, 90, 70), // Overbought Threshold
+            IntegerChromosome.of(10, 40, 20)  // Oversold Threshold
+        );
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(AdxStochasticParameters.class)).isTrue();
@@ -49,12 +50,14 @@ public class AdxStochasticParamConfigTest {
 
   @Test
   public void testCreateParameters_invalidChromosomeSize_throwsException() {
+    // Create a single chromosome with correct parameter order: min, max, value
     List<NumericChromosome<?, ?>> chromosomes =
-        List.of(IntegerChromosome.of(15, 10, 30)); // Only one chromosome
+        List.of(IntegerChromosome.of(10, 30, 15)); // Only one chromosome
 
     IllegalArgumentException thrown =
         assertThrows(
-            IllegalArgumentException.class, () -> config.createParameters(ImmutableList.copyOf(chromosomes)));
+            IllegalArgumentException.class, 
+            () -> config.createParameters(ImmutableList.copyOf(chromosomes)));
     assertThat(thrown).hasMessageThat().contains("Expected 5 chromosomes but got 1");
   }
 
