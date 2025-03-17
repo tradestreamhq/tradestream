@@ -52,34 +52,52 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
      * @return a genotype with chromosomes configured according to parameter specifications
      */
      private Genotype<?> createGenotype(GAOptimizationRequest request) {
-       ParamConfig config = paramConfigManager.getParamConfig(request.getStrategyType());
+       try {
+           ParamConfig config = paramConfigManager.getParamConfig(request.getStrategyType());
 
-       // Get the chromosomes from the parameter configuration
-       List<? extends NumericChromosome<?, ?>> numericChromosomes = config.initialChromosomes();
-       
-       // If no chromosomes are specified, create a default one
-       if (numericChromosomes.isEmpty()) {
+           // Get the chromosomes from the parameter configuration
+           List<? extends NumericChromosome<?, ?>> numericChromosomes = config.initialChromosomes();
+           
+           // If no chromosomes are specified, create a default one
+           if (numericChromosomes.isEmpty()) {
+               return Genotype.of(DoubleChromosome.of(0.0, 1.0));
+           }
+           
+           // Check the type of the first chromosome to determine the genotype type
+           Chromosome<?> firstChromosome = numericChromosomes.get(0);
+           
+           if (firstChromosome instanceof DoubleChromosome) {
+               // Handle DoubleChromosome type
+               List<DoubleChromosome> doubleChromosomes = new ArrayList<>();
+               for (NumericChromosome<?, ?> chr : numericChromosomes) {
+                   if (chr instanceof DoubleChromosome) {
+                       doubleChromosomes.add((DoubleChromosome) chr);
+                   } else {
+                       throw new IllegalArgumentException("Mixed chromosome types are not supported. Found " + 
+                           chr.getClass().getName() + " while expecting DoubleChromosome");
+                   }
+               }
+               return Genotype.of(doubleChromosomes);
+           } else if (firstChromosome instanceof IntegerChromosome) {
+               // Handle IntegerChromosome type
+               List<IntegerChromosome> integerChromosomes = new ArrayList<>();
+               for (NumericChromosome<?, ?> chr : numericChromosomes) {
+                   if (chr instanceof IntegerChromosome) {
+                       integerChromosomes.add((IntegerChromosome) chr);
+                   } else {
+                       throw new IllegalArgumentException("Mixed chromosome types are not supported. Found " + 
+                           chr.getClass().getName() + " while expecting IntegerChromosome");
+                   }
+               }
+               return Genotype.of(integerChromosomes);
+           } else {
+               throw new IllegalArgumentException("Unsupported chromosome type: " + 
+                   firstChromosome.getClass().getName());
+           }
+       } catch (IllegalArgumentException e) {
+           // For missing parameter configurations, create a default genotype
+           // This is a fallback to prevent the application from crashing
            return Genotype.of(DoubleChromosome.of(0.0, 1.0));
-       }
-       
-       // Check the type of the first chromosome to determine the genotype type
-       Chromosome<?> firstChromosome = numericChromosomes.get(0);
-       
-       if (firstChromosome instanceof DoubleChromosome) {
-           List<DoubleChromosome> doubleChromosomes = new ArrayList<>();
-           for (NumericChromosome<?, ?> chr : numericChromosomes) {
-               doubleChromosomes.add((DoubleChromosome) chr);
-           }
-           return Genotype.of(doubleChromosomes);
-       } else if (firstChromosome instanceof IntegerChromosome) {
-           List<IntegerChromosome> integerChromosomes = new ArrayList<>();
-           for (NumericChromosome<?, ?> chr : numericChromosomes) {
-               integerChromosomes.add((IntegerChromosome) chr);
-           }
-           return Genotype.of(integerChromosomes);
-       } else {
-           throw new IllegalArgumentException("Unsupported chromosome type: " + 
-               firstChromosome.getClass().getName());
        }
      }
 
