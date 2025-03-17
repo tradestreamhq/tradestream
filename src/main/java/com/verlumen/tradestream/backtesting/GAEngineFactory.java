@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.backtesting;
 
-import io.jenetics.DoubleGene;
+import io.jenetics.Gene;
 import io.jenetics.engine.Engine;
 import java.io.Serializable;
 
@@ -14,5 +14,5 @@ interface GAEngineFactory extends Serializable {
      * @param request the GA optimization request
      * @return a configured GA engine
      */
-    Engine<DoubleGene, Double> createEngine(GAOptimizationRequest request);
+    Engine<?, Double> createEngine(GAOptimizationRequest request);
 }

@@ -112,6 +112,7 @@ java_library(
         ":param_config",
         ":param_config_manager",
         "//protos:backtesting_java_proto",
+        "//third_party:guava",
         "//third_party:guice",
         "//third_party:jenetics",
     ],
