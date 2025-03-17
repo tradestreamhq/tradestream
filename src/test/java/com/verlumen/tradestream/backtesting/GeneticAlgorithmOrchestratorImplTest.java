@@ -66,7 +66,6 @@ public class GeneticAlgorithmOrchestratorImplTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked") // Needed for the mock Engine cast
   public void runOptimization_validRequest_returnsBestStrategy() {
     // Arrange
     GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
@@ -76,13 +75,15 @@ public class GeneticAlgorithmOrchestratorImplTest {
         .build();
 
     // Create a test Engine with a simple fitness function that always returns a constant value
-    // Note: We're using the wildcard type to match the updated GAEngineFactory interface
-    Engine<?, Double> testEngine = (Engine<?, Double>) Engine
+    Engine<DoubleGene, Double> testEngine = Engine
         .builder(g -> 100.0, testGenotype)
         .build();
     
     // Configure the mock engine factory to return our test engine
-    when(mockEngineFactory.createEngine(any())).thenReturn(testEngine);
+    // Using raw type to work around generic wildcard issues
+    @SuppressWarnings("unchecked")
+    Engine<?, Double> mockedEngine = (Engine<?, Double>) testEngine;
+    when(mockEngineFactory.createEngine(any())).thenReturn(mockedEngine);
 
     // Act
     BestStrategyResponse response = orchestrator.runOptimization(request);
@@ -113,7 +114,6 @@ public class GeneticAlgorithmOrchestratorImplTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked") // Needed for the mock Engine cast
   public void runOptimization_zeroMaxGenerations_usesDefault() {
     // Arrange
     GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
@@ -123,12 +123,14 @@ public class GeneticAlgorithmOrchestratorImplTest {
         .build();
 
     // Create a test Engine with a simple fitness function
-    // Using wildcard type to match the GAEngineFactory interface
-    Engine<?, Double> testEngine = (Engine<?, Double>) Engine
+    Engine<DoubleGene, Double> testEngine = Engine
         .builder(g -> 100.0, testGenotype)
         .build();
     
-    when(mockEngineFactory.createEngine(any())).thenReturn(testEngine);
+    // Using raw type to work around generic wildcard issues
+    @SuppressWarnings("unchecked")
+    Engine<?, Double> mockedEngine = (Engine<?, Double>) testEngine;
+    when(mockEngineFactory.createEngine(any())).thenReturn(mockedEngine);
 
     // Act
     orchestrator.runOptimization(request);
