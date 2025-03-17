@@ -10,6 +10,7 @@ java_test(
         "//third_party:guava",
         "//third_party:jenetics",
         "//third_party:junit",
+        "//third_party:protobuf_java",
         "//third_party:truth",
     ],
 )
