@@ -58,8 +58,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
        try {
            ParamConfig config = paramConfigManager.getParamConfig(request.getStrategyType());
 
-           // Always use the exact chromosomes from the config's initialChromosomes method
-           // This ensures we have the correct number and types of chromosomes
+           // Get the chromosomes from the parameter configuration
            List<? extends NumericChromosome<?, ?>> numericChromosomes = config.initialChromosomes();
            
            if (numericChromosomes.isEmpty()) {
@@ -67,16 +66,42 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
                return Genotype.of(DoubleChromosome.of(0.0, 1.0));
            }
            
-           // Instead of trying to categorize and convert, just use the chromosomes directly
-           // The initialChromosomes() method should return properly formatted chromosomes
-           List<Chromosome<?>> chromosomes = new ArrayList<>();
-           for (NumericChromosome<?, ?> chr : numericChromosomes) {
-               chromosomes.add(chr);
+           // For simplicity and to avoid generic type issues, we'll use the first chromosome as a template
+           // and recreate all chromosomes to have the same type
+           Chromosome<?> firstChromosome = numericChromosomes.get(0);
+           
+           if (firstChromosome instanceof DoubleChromosome) {
+               // Handle case where we need DoubleChromosome type
+               List<DoubleChromosome> doubleChromosomes = new ArrayList<>();
+               for (NumericChromosome<?, ?> chr : numericChromosomes) {
+                   if (chr instanceof DoubleChromosome) {
+                       doubleChromosomes.add((DoubleChromosome) chr);
+                   } else {
+                       // Convert to DoubleChromosome
+                       double value = chr.gene().doubleValue();
+                       doubleChromosomes.add(DoubleChromosome.of(value, value * 2));
+                   }
+               }
+               return Genotype.of(doubleChromosomes);
+           } else if (firstChromosome instanceof IntegerChromosome) {
+               // Handle case where we need IntegerChromosome type
+               List<IntegerChromosome> integerChromosomes = new ArrayList<>();
+               for (NumericChromosome<?, ?> chr : numericChromosomes) {
+                   if (chr instanceof IntegerChromosome) {
+                       integerChromosomes.add((IntegerChromosome) chr);
+                   } else {
+                       // Convert to IntegerChromosome
+                       int value = (int) chr.gene().doubleValue();
+                       integerChromosomes.add(IntegerChromosome.of(value, value * 2));
+                   }
+               }
+               return Genotype.of(integerChromosomes);
+           } else {
+               // Default to DoubleChromosome if the type is unknown
+               logger.warning("Unsupported chromosome type: " + 
+                   firstChromosome.getClass().getName() + ". Using default DoubleChromosome.");
+               return Genotype.of(DoubleChromosome.of(0.0, 1.0));
            }
-           
-           // Create genotype from the chromosomes
-           return Genotype.of(chromosomes);
-           
        } catch (Exception e) {
            logger.warning("Error creating genotype for strategy type " + 
                request.getStrategyType() + ": " + e.getMessage());
