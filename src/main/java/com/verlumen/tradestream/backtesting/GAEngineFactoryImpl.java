@@ -8,6 +8,8 @@ import io.jenetics.Gene;
 import io.jenetics.Genotype;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.Mutator;
+import io.jenetics.NumericChromosome;
+import io.jenetics.NumericGene;
 import io.jenetics.SinglePointCrossover;
 import io.jenetics.TournamentSelector;
 import io.jenetics.engine.Engine;
