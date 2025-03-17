@@ -14,6 +14,7 @@ public final class OscillatorParams {
      */
     public static final ImmutableList<ParamConfig> ALL_CONFIGS = 
         ImmutableList.<ParamConfig>builder()
+            .add(AdxStochasticParamConfig.create())
             .add(SmaRsiParamConfig.create())
             .build();
 
