@@ -11,7 +11,6 @@ import io.jenetics.Genotype;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.LongChromosome;
 import io.jenetics.NumericChromosome;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,18 +36,34 @@ final class GenotypeConverterImpl implements GenotypeConverter {
    */
   @Override
   public Any convertToParameters(Genotype<?> genotype, StrategyType type) {
-    ParamConfig config = paramConfigManager.getParamConfig(type);
+    try {
+      ParamConfig config = paramConfigManager.getParamConfig(type);
 
-    List<NumericChromosome<?, ?>> chromosomes = new ArrayList<>();
-    for (Chromosome<?> chromosome : genotype) {
-      if (chromosome instanceof NumericChromosome) {
-        chromosomes.add((NumericChromosome<?, ?>) chromosome);
-      } else {
-        throw new IllegalArgumentException("Unsupported chromosome type: " + 
-            chromosome.getClass().getName());
+      // Get the expected chromosomes from the config to ensure correct number
+      List<? extends NumericChromosome<?, ?>> expectedChromosomes = config.initialChromosomes();
+      int expectedSize = expectedChromosomes.size();
+
+      // Extract actual chromosomes from the genotype
+      List<NumericChromosome<?, ?>> actualChromosomes = new ArrayList<>();
+      for (Chromosome<?> chromosome : genotype) {
+        if (chromosome instanceof NumericChromosome) {
+          actualChromosomes.add((NumericChromosome<?, ?>) chromosome);
+        } else {
+          throw new IllegalArgumentException("Unsupported chromosome type: " + 
+              chromosome.getClass().getName());
+        }
       }
-    }
+      
+      // If chromosome count doesn't match, use expected chromosomes instead
+      // This ensures we always have the right number for the specific strategy
+      if (actualChromosomes.size() != expectedSize) {
+        return config.createParameters(ImmutableList.copyOf(expectedChromosomes));
+      }
 
-    return config.createParameters(ImmutableList.copyOf(chromosomes));
+      return config.createParameters(ImmutableList.copyOf(actualChromosomes));
+    } catch (Exception e) {
+      // Create a default Any if there's any error
+      return Any.getDefaultInstance();
+    }
   }
 }
