@@ -53,6 +53,7 @@ oci_image(
     base = "@flink_java17",
     entrypoint = [
         "java",
+        "-Dio.jenetics.util.defaultRandomGenerator=Random",
         "-jar",
         "/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar",
     ],
