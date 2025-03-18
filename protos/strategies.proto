@@ -1234,13 +1234,6 @@ message DpoCrossoverParameters {
   int32 maPeriod  = 2;
 }
 
-message IchimokuCloudParameters {
-  int32 tenkanSenPeriod = 1;
-  int32 kijunSenPeriod  = 2;
-  int32 senkouSpanBPeriod = 3;
-  int32 chikouSpanPeriod = 4;
-}
-
 message VariablePeriodEmaParameters {
   int32 minPeriod = 1;
   int32 maxPeriod = 2;
