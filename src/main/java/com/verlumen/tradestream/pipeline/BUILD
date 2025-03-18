@@ -1,6 +1,7 @@
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 load("//platforms:transition.bzl", "multi_arch")
 
@@ -93,9 +94,9 @@ java_library(
     ],
 )
 
-java_library(
+kt_jvm_library(
     name = "pipeline_module",
-    srcs = ["PipelineModule.java"],
+    srcs = ["PipelineModule.kt"],
     deps = [
         ":pipeline_config",
         "//protos:marketdata_java_proto",
