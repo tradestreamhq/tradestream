@@ -16,7 +16,7 @@ import com.verlumen.tradestream.ta4j.Ta4jModule
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.kafka.common.serialization.StringDeserializer
 
-class PipelineModule private constructor(val config: PipelineConfig) : AbstractModule() {
+internal class PipelineModule private constructor(private val config: PipelineConfig) : AbstractModule() {
     companion object {
         private val DRY_RUN_TRADE = Trade.newBuilder()
             .setExchange("FakeExhange")
@@ -27,7 +27,7 @@ class PipelineModule private constructor(val config: PipelineConfig) : AbstractM
             .setVolume(0.1)
             .build()
             
-        fun create(config: PipelineConfig) = PipelineModule(config)
+        internal fun create(config: PipelineConfig) = PipelineModule(config)
     }
 
     override fun configure() {
@@ -58,5 +58,5 @@ class PipelineModule private constructor(val config: PipelineConfig) : AbstractM
         }
 
     @Provides
-    fun providePipelineConfig(): PipelineConfig = config
+    internal fun providePipelineConfig(): PipelineConfig = config
 }
