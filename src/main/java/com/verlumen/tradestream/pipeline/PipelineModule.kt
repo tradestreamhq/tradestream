@@ -1,3 +1,4 @@
+@file:JvmName("PipelineModuleUtility")
 package com.verlumen.tradestream.pipeline
 
 import com.google.protobuf.util.Timestamps.fromMillis
@@ -16,8 +17,9 @@ import com.verlumen.tradestream.ta4j.Ta4jModule
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.kafka.common.serialization.StringDeserializer
 
+// In Java, this would be equivalent to a package-private class with static factory method
 class PipelineModule private constructor(private val config: PipelineConfig) : AbstractModule() {
-    companion object {
+    private companion object {
         private val DRY_RUN_TRADE = Trade.newBuilder()
             .setExchange("FakeExhange")
             .setCurrencyPair("DRY/RUN")
@@ -26,9 +28,6 @@ class PipelineModule private constructor(private val config: PipelineConfig) : A
             .setPrice(50000.0)
             .setVolume(0.1)
             .build()
-            
-        @JvmStatic
-        fun create(config: PipelineConfig) = PipelineModule(config)
     }
 
     override fun configure() {
@@ -59,5 +58,12 @@ class PipelineModule private constructor(private val config: PipelineConfig) : A
         }
 
     @Provides
-    internal fun providePipelineConfig(): PipelineConfig = config
+    fun providePipelineConfig(): PipelineConfig = config
 }
+
+// This is the Java-accessible static factory method
+@JvmName("create")
+fun createPipelineModule(config: PipelineConfig): PipelineModule = 
+    PipelineModule::class.java.getDeclaredConstructor(PipelineConfig::class.java).apply {
+        isAccessible = true 
+    }.newInstance(config)
