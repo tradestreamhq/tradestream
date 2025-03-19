@@ -28,6 +28,7 @@ spec:
     entryClass: {{ .Values.pipeline.job.entryClass }}
     jarURI: {{ .Values.pipeline.job.jarURI }}
     args:
+      - "-Dio.jenetics.util.defaultRandomGenerator=Random"
       - "--bootstrapServers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
       - "--runner=FlinkRunner"
     parallelism: {{ .Values.pipeline.job.parallelism }}
