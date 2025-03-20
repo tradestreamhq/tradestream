@@ -209,6 +209,7 @@ java_library(
     deps = [
         ":param_config",
         "//src/main/java/com/verlumen/tradestream/backtesting/momentumoscillators:momentum_oscillator_params",
+        "//src/main/java/com/verlumen/tradestream/backtesting/movingaverages:moving_average_params",
         "//third_party:guava",
     ],
 )
