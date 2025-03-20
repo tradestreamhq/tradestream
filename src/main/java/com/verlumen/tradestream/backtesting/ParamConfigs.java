@@ -10,6 +10,7 @@ final class ParamConfigs {
         ImmutableList.<ParamConfig>builder()
             .addAll(MomentumOscillatorParams.allConfigs)
             .addAll(MovingAverageParams.allConfigs)
+            .addAll(TrendFollowingParams.allConfigs)
             .build();
 
     // Prevent instantiation
