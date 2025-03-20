@@ -7,7 +7,7 @@ import com.verlumen.tradestream.backtesting.movingaverages.MovingAverageParams;
 final class ParamConfigs {
     static final ImmutableList<ParamConfig> ALL_CONFIGS = 
         ImmutableList.<ParamConfig>builder()
-            .addAll(MomentumOscillatorParams.ALL_CONFIGS)
+            .addAll(MomentumOscillatorParams.allConfigs)
             .addAll(MovingAverageParams.allConfigs)
             .build();
 
