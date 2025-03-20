@@ -48,6 +48,8 @@ pipeline:
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
+    env.java.opts.jobmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
+    env.java.opts.taskmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
     taskmanager.numberOfTaskSlots: "1"
   serviceAccount: flink
   jobManager:
