@@ -16,7 +16,7 @@ java_library(
 )
 
 java_library(
-    name = "oscillator_params",
+    name = "momentum_oscillator_params",
     srcs = ["MomentumOscillatorParams.java"],
     deps = [
         ":adx_stochastic_param_config",
