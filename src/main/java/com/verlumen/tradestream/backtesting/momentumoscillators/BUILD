@@ -1,3 +1,4 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@rules_java//java:defs.bzl", "java_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -15,14 +16,13 @@ java_library(
     ],
 )
 
-java_library(
+kt_jvm_library(
     name = "momentum_oscillator_params",
-    srcs = ["MomentumOscillatorParams.java"],
+    srcs = ["MomentumOscillatorParams.kt"],
     deps = [
         ":adx_stochastic_param_config",
         ":sma_rsi_param_config",
         "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
-        "//third_party:guava",
     ],
 )
 
