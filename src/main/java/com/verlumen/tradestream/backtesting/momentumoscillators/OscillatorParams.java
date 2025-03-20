@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.oscillators;
+package com.verlumen.tradestream.backtesting.momentumoscillators;
 
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.backtesting.ParamConfig;
@@ -8,7 +8,7 @@ import com.verlumen.tradestream.backtesting.ParamConfig;
  * This class is immutable and thread-safe. As more oscillator strategies are added,
  * they should be included in ALL_CONFIGS.
  */
-public final class OscillatorParams {
+public final class MomentumOscillatorParams {
     /**
      * An immutable list of all oscillator param configs.
      */
@@ -19,5 +19,5 @@ public final class OscillatorParams {
             .build();
 
     // Prevent instantiation
-    private OscillatorParams() {}
+    private MomentumOscillatorParams() {}
 }

@@ -58,7 +58,7 @@ java_library(
     deps = [
         ":strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/movingaverages:movingaverages_lib",
-        "//src/main/java/com/verlumen/tradestream/strategies/oscillators:oscillators_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/momentumoscillators:oscillators_lib",
         "//third_party:guava",
     ],
 )

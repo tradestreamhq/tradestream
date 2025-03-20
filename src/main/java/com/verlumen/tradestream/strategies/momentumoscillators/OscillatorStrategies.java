@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.oscillators;
+package com.verlumen.tradestream.strategies.momentumoscillators;
 
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.strategies.StrategyFactory;

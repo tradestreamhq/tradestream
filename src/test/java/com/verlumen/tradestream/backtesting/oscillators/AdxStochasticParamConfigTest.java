@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.oscillators;
+package com.verlumen.tradestream.backtesting.momentumoscillators;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;

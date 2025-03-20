@@ -6,7 +6,7 @@ java_test(
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
-        "//src/main/java/com/verlumen/tradestream/backtesting/oscillators:adx_stochastic_param_config",
+        "//src/main/java/com/verlumen/tradestream/backtesting/momentumoscillators:adx_stochastic_param_config",
         "//third_party:guava",
         "//third_party:jenetics",
         "//third_party:junit",
@@ -22,7 +22,7 @@ java_test(
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
-        "//src/main/java/com/verlumen/tradestream/backtesting/oscillators:sma_rsi_param_config",
+        "//src/main/java/com/verlumen/tradestream/backtesting/momentumoscillators:sma_rsi_param_config",
         "//third_party:guava",
         "//third_party:jenetics",
         "//third_party:junit",
