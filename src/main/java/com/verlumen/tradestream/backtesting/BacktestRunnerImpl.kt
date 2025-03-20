@@ -60,41 +60,38 @@ internal class BacktestRunnerImpl @Inject constructor(
 
         val score = calculateScore(sharpeRatio, maxDrawdown, winRate, annualizedReturn, profitFactor)
 
-        return BacktestResult.newBuilder()
-            .setCumulativeReturn(cumulativeReturn)
-            .setAnnualizedReturn(annualizedReturn)
-            .setSharpeRatio(sharpeRatio)
-            .setSortinoRatio(sortinoRatio)
-            .setMaxDrawdown(maxDrawdown)
-            .setVolatility(volatility)
-            .setWinRate(winRate)
-            .setProfitFactor(profitFactor)
-            .setNumberOfTrades(numberOfTrades)
-            .setAverageTradeDuration(averageTradeDuration)
-            .setAlpha(alpha)
-            .setBeta(beta)
-            .setStrategyScore(score)
-            .build()
+        return createBacktestResult(
+            cumulativeReturn = cumulativeReturn,
+            annualizedReturn = annualizedReturn,
+            sharpeRatio = sharpeRatio,
+            sortinoRatio = sortinoRatio,
+            maxDrawdown = maxDrawdown,
+            volatility = volatility,
+            winRate = winRate,
+            profitFactor = profitFactor,
+            numberOfTrades = numberOfTrades,
+            averageTradeDuration = averageTradeDuration,
+            alpha = alpha,
+            beta = beta,
+            strategyScore = score
+        )
     }
 
-    private fun runStrategy(series: BarSeries, strategy: Strategy): TradingRecord {
-        val tradingRecord = BaseTradingRecord()
-        
-        // Skip unstable period at the start
-        for (i in strategy.unstableBars until series.barCount) {
-            // Check if we should enter long position
-            if (strategy.shouldEnter(i)) {
-                // Enter with a position size of 1 unit
-                tradingRecord.enter(i, series.getBar(i).closePrice, series.numOf(1))
-            }
-            // Check if we should exit an open position
-            else if (strategy.shouldExit(i) && tradingRecord.currentPosition.isOpened) {
-                tradingRecord.exit(i, series.getBar(i).closePrice, series.numOf(1))
+    private fun runStrategy(series: BarSeries, strategy: Strategy): TradingRecord =
+        BaseTradingRecord().apply {
+            // Skip unstable period at the start
+            for (i in strategy.unstableBars until series.barCount) {
+                when {
+                    strategy.shouldEnter(i) -> {
+                        // Enter with a position size of 1 unit
+                        enter(i, series.getBar(i).closePrice, series.numOf(1))
+                    }
+                    strategy.shouldExit(i) && currentPosition.isOpened -> {
+                        exit(i, series.getBar(i).closePrice, series.numOf(1))
+                    }
+                }
             }
         }
-        
-        return tradingRecord
-    }
 
     private fun calculateMetric(
         series: BarSeries, 
@@ -103,9 +100,7 @@ internal class BacktestRunnerImpl @Inject constructor(
     ): Double = criterion.calculate(series, record).doubleValue()
 
     private fun calculateVolatility(series: BarSeries): Double {
-        if (series.barCount < 2) {
-            return 0.0
-        }
+        if (series.barCount < 2) return 0.0
 
         val returns = (1 until series.barCount).map { i ->
             val previousClose = series.getBar(i - 1).closePrice
@@ -123,9 +118,7 @@ internal class BacktestRunnerImpl @Inject constructor(
     }
 
     private fun calculateMaxDrawdown(series: BarSeries): Double {
-        if (series.barCount == 0) {
-            return 0.0
-        }
+        if (series.barCount == 0) return 0.0
 
         var maxDrawdown = 0.0
         var peak = series.getBar(0).closePrice.doubleValue()
@@ -133,9 +126,7 @@ internal class BacktestRunnerImpl @Inject constructor(
         (1 until series.barCount).forEach { i ->
             val price = series.getBar(i).closePrice.doubleValue()
             
-            if (price > peak) {
-                peak = price
-            }
+            if (price > peak) peak = price
             
             val drawdown = (peak - price) / peak
             maxDrawdown = max(maxDrawdown, drawdown)
@@ -145,26 +136,17 @@ internal class BacktestRunnerImpl @Inject constructor(
     }
 
     private fun calculateWinRate(series: BarSeries, record: TradingRecord): Double {
-        if (record.positions.isEmpty()) {
-            return 0.0
-        }
+        if (record.positions.isEmpty()) return 0.0
 
-        val winningTrades = record.positions
-            .count { it.isClosed && it.profit.isPositive }
-        
+        val winningTrades = record.positions.count { it.isClosed && it.profit.isPositive }
         return winningTrades.toDouble() / record.positions.size
     }
 
     private fun calculateAverageTradeDuration(record: TradingRecord): Double {
         val closedPositions = record.positions.filter { it.isClosed }
-        if (closedPositions.isEmpty()) {
-            return 0.0
-        }
+        if (closedPositions.isEmpty()) return 0.0
 
-        val totalDuration = closedPositions.sumOf { 
-            it.exit.index - it.entry.index 
-        }
-        
+        val totalDuration = closedPositions.sumOf { it.exit.index - it.entry.index }
         return totalDuration.toDouble() / closedPositions.size
     }
 
@@ -192,9 +174,7 @@ internal class BacktestRunnerImpl @Inject constructor(
             }
             .filter { it < 0 }
         
-        if (negativeReturns.isEmpty()) {
-            return 0.0
-        }
+        if (negativeReturns.isEmpty()) return 0.0
         
         // Calculate downside deviation
         val meanNegativeReturn = negativeReturns.average()
