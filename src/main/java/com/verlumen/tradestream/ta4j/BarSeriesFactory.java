@@ -3,12 +3,13 @@ package com.verlumen.tradestream.ta4j;
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.marketdata.Candle;
 import java.io.Serializable;
+import java.util.List;
 import org.ta4j.core.BarSeries;
 
 /**
  * Factory interface for creating {@link BarSeries} instances from market data candles.
  *
- * <p>This interface defines a single method for converting an immutable list of
+ * <p>This interface defines methods for converting lists of
  * {@link com.verlumen.tradestream.marketdata.Candle} objects into a {@link BarSeries} object,
  * which represents a sequence of trading bars used for technical analysis in TA4J-based systems.
  * Implementations of this interface are responsible for defining the conversion logic,
@@ -16,9 +17,14 @@ import org.ta4j.core.BarSeries;
  *
  * <p>Example usage:
  * <pre>{@code
- * ImmutableList<Candle> candles = ...;
+ * // Using ImmutableList
+ * ImmutableList<Candle> candles = ...
  * BarSeriesFactory factory = new MyBarSeriesFactoryImpl();
  * BarSeries series = factory.createBarSeries(candles);
+ *
+ * // Using regular List
+ * List<Candle> candleList = ...
+ * BarSeries seriesFromList = factory.createBarSeries(candleList);
  * }</pre>
  *
  * @see org.ta4j.core.BarSeries
@@ -38,4 +44,18 @@ public interface BarSeriesFactory extends Serializable {
      * @throws IllegalArgumentException if the candles list is null or empty
      */
     BarSeries createBarSeries(ImmutableList<Candle> candles);
+
+    /**
+     * Overload that accepts a regular {@link List} of {@link Candle} objects.
+     * <p>
+     * Internally, this method creates an {@link ImmutableList} from the provided list
+     * and then delegates to {@link #createBarSeries(ImmutableList)}.
+     *
+     * @param candles a {@link List} of {@link Candle} instances representing market data
+     * @return a {@link BarSeries} constructed from the provided candles
+     * @throws IllegalArgumentException if the candles list is null or empty
+     */
+    default BarSeries createBarSeries(List<Candle> candles) {
+        return createBarSeries(ImmutableList.copyOf(candles));
+    }
 }
