@@ -23,7 +23,6 @@ kt_jvm_library(
         ":adx_stochastic_param_config",
         ":sma_rsi_param_config",
         "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
-        "//third_party:guava",
     ],
 )
 
