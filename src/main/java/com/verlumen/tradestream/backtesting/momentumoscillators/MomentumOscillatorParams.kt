@@ -8,7 +8,7 @@ import com.verlumen.tradestream.backtesting.ParamConfig
  * they should be included in ALL_CONFIGS.
  */
 object MomentumOscillatorParams {
-    val ALL_CONFIGS: List<ParamConfig> = listOf(
+    public val ALL_CONFIGS: List<ParamConfig> = listOf(
         AdxStochasticParamConfig.create(),
         SmaRsiParamConfig.create()
     )
