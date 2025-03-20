@@ -16,7 +16,7 @@ final class StrategyFactories {
     static final ImmutableList<StrategyFactory<?>> ALL_FACTORIES = 
         ImmutableList.<StrategyFactory<?>>builder()
             .addAll(MovingAverageStrategies.ALL_FACTORIES)
-            .addAll(OscillatorStrategies.ALL_FACTORIES)
+            .addAll(MomentumOscillatorStrategies.ALL_FACTORIES)
             .build();
 
     // Prevent instantiation
