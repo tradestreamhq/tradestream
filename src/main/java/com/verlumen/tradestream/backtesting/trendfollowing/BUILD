@@ -1,4 +1,4 @@
-load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -15,12 +15,11 @@ java_library(
     ],
 )
 
-java_library(
-  name = "trendfollowing_params",
-  srcs = ["TrendFollowingParams.java"],
-  deps = [
-      ":ichimoku_cloud_param_config",
-      "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
-      "//third_party:guava",
-  ]
+kt_jvm_library(
+    name = "trend_following_params",
+    srcs = ["TrendFollowingParams.kt"],
+    deps = [
+        ":ichimoku_cloud_param_config",
+        "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
+    ],
 )

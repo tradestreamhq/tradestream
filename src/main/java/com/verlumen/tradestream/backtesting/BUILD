@@ -1,3 +1,4 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -11,16 +12,15 @@ java_library(
     ],
 )
 
-java_library(
+kt_jvm_library(
     name = "backtest_runner_impl",
-    srcs = ["BacktestRunnerImpl.java"],
+    srcs = ["BacktestRunnerImpl.kt"],
     deps = [
         ":backtest_runner",
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
         "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_factory",
-        "//third_party:guava",
         "//third_party:guice",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
@@ -208,7 +208,10 @@ java_library(
     ],
     deps = [
         ":param_config",
-        "//src/main/java/com/verlumen/tradestream/backtesting/oscillators:oscillator_params",
+        "//src/main/java/com/verlumen/tradestream/backtesting/momentumoscillators:momentum_oscillator_params",
+        "//src/main/java/com/verlumen/tradestream/backtesting/movingaverages:moving_average_params",
+        "//src/main/java/com/verlumen/tradestream/backtesting/patternrecognition:pattern_recognition_params",
+        "//src/main/java/com/verlumen/tradestream/backtesting/trendfollowing:trend_following_params",
         "//third_party:guava",
     ],
 )

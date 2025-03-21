@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.oscillators;
+package com.verlumen.tradestream.strategies.momentumoscillators;
 
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.strategies.StrategyFactory;
@@ -8,7 +8,7 @@ import com.verlumen.tradestream.strategies.StrategyFactory;
  * This class is immutable and thread-safe. As more oscillator strategies are added,
  * they should be included in ALL_FACTORIES.
  */
-public final class OscillatorStrategies {
+public final class MomentumOscillatorStrategies {
     /**
      * An immutable list of all oscillator strategy factories.
      */
@@ -19,5 +19,5 @@ public final class OscillatorStrategies {
             .build();
 
     // Prevent instantiation
-    private OscillatorStrategies() {}
+    private MomentumOscillatorStrategies() {}
 }

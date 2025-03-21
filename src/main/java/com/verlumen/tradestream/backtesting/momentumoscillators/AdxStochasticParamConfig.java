@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.oscillators;
+package com.verlumen.tradestream.backtesting.momentumoscillators;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
