@@ -2,12 +2,13 @@ package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.verlumen.tradestream.strategies.StrategyType;
+import com.verlumen.tradestream.strategies.StrategyConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -20,7 +21,7 @@ public class ParamConfigsTest {
     @Test
     public void testParamConfigNotNullForStrategyType(@TestParameter StrategyType strategyType) {
         // Arrange: Skip this test if the strategy type is unspecified.
-        assumeFalse("Skipping test for unsupported strategy type", UNSUPPORTED_STRATEGY_TYPES.contains(strategyType));
+        assumeTrue("Skipping test for unsupported strategy type", StrategyConstants.supportedStrategyTypes.contains(strategyType));
 
         // Act: Find the ParamConfig corresponding to the provided strategy type.
         ParamConfig configOptional = ParamConfigs.ALL_CONFIGS.stream()
