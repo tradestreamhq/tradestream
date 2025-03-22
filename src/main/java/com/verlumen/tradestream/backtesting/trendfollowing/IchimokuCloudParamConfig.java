@@ -12,10 +12,10 @@ import io.jenetics.NumericChromosome;
 final class IchimokuCloudParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
-          ChromosomeSpec.ofInteger(5, 30), // tenkanSenPeriod
-          ChromosomeSpec.ofInteger(10, 60), // kijunSenPeriod
-          ChromosomeSpec.ofInteger(20, 120), // senkouSpanBPeriod
-          ChromosomeSpec.ofInteger(10, 60) // chikouSpanPeriod
+          ChromosomeSpec.ofInteger(5, 60), // tenkanSenPeriod
+          ChromosomeSpec.ofInteger(10, 120), // kijunSenPeriod
+          ChromosomeSpec.ofInteger(20, 240), // senkouSpanBPeriod
+          ChromosomeSpec.ofInteger(10, 120) // chikouSpanPeriod
           );
 
   static IchimokuCloudParamConfig create() {
