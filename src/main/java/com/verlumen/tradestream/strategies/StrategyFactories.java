@@ -1,12 +1,12 @@
 package com.verlumen.tradestream.strategies;
 
 import com.google.common.collect.ImmutableList;
+import com.verlumen.tradestream.strategies.momentumoscillators.MomentumOscillatorStrategies;
 import com.verlumen.tradestream.strategies.movingaverages.MovingAverageStrategies;
-import com.verlumen.tradestream.strategies.oscillators.OscillatorStrategies;
 
 /**
  * Provides a centralized collection of all available strategy factories across all categories.
- * This class aggregates factories from child packages (moving averages, oscillators, etc.)
+ * This class aggregates factories from child packages (moving averages, momentumoscillators, etc.)
  * and is immutable and thread-safe.
  */
 final class StrategyFactories {
@@ -16,7 +16,7 @@ final class StrategyFactories {
     static final ImmutableList<StrategyFactory<?>> ALL_FACTORIES = 
         ImmutableList.<StrategyFactory<?>>builder()
             .addAll(MovingAverageStrategies.ALL_FACTORIES)
-            .addAll(OscillatorStrategies.ALL_FACTORIES)
+            .addAll(MomentumOscillatorStrategies.ALL_FACTORIES)
             .build();
 
     // Prevent instantiation

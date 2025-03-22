@@ -2,7 +2,6 @@ package com.verlumen.tradestream.backtesting;
 
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.strategies.StrategyType;
-import io.jenetics.DoubleGene;
 import io.jenetics.Genotype;
 import java.io.Serializable;
 
@@ -18,5 +17,5 @@ interface GenotypeConverter extends Serializable {
    * @param type the type of trading strategy being optimized
    * @return an Any instance containing the strategy parameters
    */
-  Any convertToParameters(Genotype<DoubleGene> genotype, StrategyType type);
+  Any convertToParameters(Genotype<?> genotype, StrategyType type);
 }

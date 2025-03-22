@@ -1,6 +1,6 @@
 module(
     name = "tradestream",
-    version = "v0.18.0-develop",
+    version = "v0.25.0-develop",
     compatibility_level = 1,
 )
 
@@ -11,7 +11,8 @@ bazel_dep(name = "container_structure_test", version = "1.16.0")
 bazel_dep(name = "protobuf", repo_name = "com_google_protobuf", version = "29.1")
 bazel_dep(name = "rules_java", version = "8.5.1")
 bazel_dep(name = "rules_jvm_external", version = "6.5")
-bazel_dep(name = "rules_oci", version = "2.0.1")
+bazel_dep(name = "rules_kotlin", version = "2.1.3")
+bazel_dep(name = "rules_oci", version = "2.2.3")
 
 # Add Java toolchain configuration
 JAVA_LANGUAGE_LEVEL = "17"

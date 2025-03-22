@@ -6,7 +6,7 @@ java_test(
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
-        "//src/main/java/com/verlumen/tradestream/strategies/oscillators:oscillators_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/momentumoscillators:oscillators_lib",
         "//third_party:flogger",
         "//third_party:guava",
         "//third_party:junit",
@@ -23,7 +23,7 @@ java_test(
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
-        "//src/main/java/com/verlumen/tradestream/strategies/oscillators:oscillators_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/momentumoscillators:oscillators_lib",
         "//third_party:flogger",
         "//third_party:guava",
         "//third_party:junit",

@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.oscillators;
+package com.verlumen.tradestream.strategies.momentumoscillators;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
