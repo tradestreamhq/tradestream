@@ -4,7 +4,6 @@ import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.verlumen.tradestream.strategies.StrategyType;
@@ -14,10 +13,6 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public class ParamConfigsTest {
-    private static final ImmutableSet<StrategyType> UNSUPPORTED_STRATEGY_TYPES = ImmutableSet.of(
-        StrategyType.UNSPECIFIED, StrategyType.UNRECOGNIZED
-    );
-
     @Test
     public void testParamConfigNotNullForStrategyType(@TestParameter StrategyType strategyType) {
         // Arrange: Skip this test if the strategy type is unspecified.
