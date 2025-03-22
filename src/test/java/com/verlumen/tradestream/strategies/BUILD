@@ -50,6 +50,21 @@ java_test(
 )
 
 java_test(
+    name = "StrategyFactoriesTest",
+    srcs = ["StrategyFactoriesTest.java"],
+    deps = [
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_constants",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factories",
+        "//third_party:guava",
+        "//third_party:junit",
+        "//third_party:test_parameter_injector",
+        "//third_party:truth",
+    ],
+)
+
+java_test(
     name = "StrategyStateFactoryImplTest",
     srcs = ["StrategyStateFactoryImplTest.java"],
     deps = [
