@@ -34,10 +34,10 @@ public class IchimokuCloudParamConfigTest {
       public void testCreateParameters_validChromosomes_returnsPackedParameters() throws Exception {
         // Create chromosomes with correct parameter order: min, max, value
         List<NumericChromosome<?, ?>> chromosomes = List.of(
-            IntegerChromosome.of(5, 30, 9),    // tenkanSenPeriod
-            IntegerChromosome.of(10, 60, 26),   // kijunSenPeriod
-            IntegerChromosome.of(20, 120, 52),  // senkouSpanBPeriod
-            IntegerChromosome.of(10, 60, 26)    // chikouSpanPeriod
+            IntegerChromosome.of(5, 60, 9),     // tenkanSenPeriod
+            IntegerChromosome.of(10, 120, 26),   // kijunSenPeriod
+            IntegerChromosome.of(20, 240, 52),   // senkouSpanBPeriod
+            IntegerChromosome.of(10, 120, 26)    // chikouSpanPeriod
         );
     
         Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
@@ -54,7 +54,7 @@ public class IchimokuCloudParamConfigTest {
       public void testCreateParameters_invalidChromosomeSize_throwsException() {
         // Create a single chromosome with correct parameter order: min, max, value
         List<NumericChromosome<?, ?>> chromosomes =
-            List.of(IntegerChromosome.of(5, 30, 9)); // Only one chromosome
+            List.of(IntegerChromosome.of(5, 60, 9)); // Only one chromosome
     
         config.createParameters(ImmutableList.copyOf(chromosomes));
       }
@@ -71,7 +71,7 @@ public class IchimokuCloudParamConfigTest {
         // Verify ranges
         IntegerChromosome tenkanSenPeriod = (IntegerChromosome) chromosomes.get(0);
         assertThat(tenkanSenPeriod.min()).isEqualTo(5);
-        assertThat(tenkanSenPeriod.max()).isEqualTo(30);
+        assertThat(tenkanSenPeriod.max()).isEqualTo(60);
       }
     
       @Test
