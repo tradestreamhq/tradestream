@@ -32,17 +32,11 @@ public class IchimokuCloudParamConfigTest {
     
       @Test
       public void testCreateParameters_validChromosomes_returnsPackedParameters() throws Exception {
-        // Define test values to use
-        final int TEST_TENKAN_SEN = 11;
-        final int TEST_KIJUN_SEN = 26;  
-        final int TEST_SENKOU_SPAN_B = 52;
-        final int TEST_CHIKOU_SPAN = 26;
-        
-        // Create single-gene chromosomes with known values
-        IntegerChromosome tenkanSenChromosome = IntegerChromosome.of(5, 60, TEST_TENKAN_SEN);
-        IntegerChromosome kijunSenChromosome = IntegerChromosome.of(10, 120, TEST_KIJUN_SEN);
-        IntegerChromosome senkouSpanBChromosome = IntegerChromosome.of(20, 240, TEST_SENKOU_SPAN_B);
-        IntegerChromosome chikouSpanChromosome = IntegerChromosome.of(10, 120, TEST_CHIKOU_SPAN);
+        // Create chromosomes (we won't try to control their values anymore)
+        IntegerChromosome tenkanSenChromosome = IntegerChromosome.of(5, 60);
+        IntegerChromosome kijunSenChromosome = IntegerChromosome.of(10, 120);
+        IntegerChromosome senkouSpanBChromosome = IntegerChromosome.of(20, 240);
+        IntegerChromosome chikouSpanChromosome = IntegerChromosome.of(10, 120);
         
         // Create the list of chromosomes
         List<NumericChromosome<?, ?>> chromosomes = List.of(
@@ -55,18 +49,24 @@ public class IchimokuCloudParamConfigTest {
         Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
         assertThat(packedParams.is(IchimokuCloudParameters.class)).isTrue();
     
+        // Extract the expected values directly from chromosomes
+        int expectedTenkanSen = tenkanSenChromosome.get(0).allele();
+        int expectedKijunSen = kijunSenChromosome.get(0).allele();
+        int expectedSenkouSpanB = senkouSpanBChromosome.get(0).allele();
+        int expectedChikouSpan = chikouSpanChromosome.get(0).allele();
+        
         IchimokuCloudParameters params = packedParams.unpack(IchimokuCloudParameters.class);
-        assertThat(params.getTenkanSenPeriod()).isEqualTo(TEST_TENKAN_SEN);
-        assertThat(params.getKijunSenPeriod()).isEqualTo(TEST_KIJUN_SEN);
-        assertThat(params.getSenkouSpanBPeriod()).isEqualTo(TEST_SENKOU_SPAN_B);
-        assertThat(params.getChikouSpanPeriod()).isEqualTo(TEST_CHIKOU_SPAN);
+        assertThat(params.getTenkanSenPeriod()).isEqualTo(expectedTenkanSen);
+        assertThat(params.getKijunSenPeriod()).isEqualTo(expectedKijunSen);
+        assertThat(params.getSenkouSpanBPeriod()).isEqualTo(expectedSenkouSpanB);
+        assertThat(params.getChikouSpanPeriod()).isEqualTo(expectedChikouSpan);
       }
 
       @Test(expected = IllegalArgumentException.class)
       public void testCreateParameters_invalidChromosomeSize_throwsException() {
-        // Create a single chromosome with correct parameter order: min, max, value
+        // Create a single chromosome
         List<NumericChromosome<?, ?>> chromosomes =
-            List.of(IntegerChromosome.of(5, 60, 9)); // Only one chromosome
+            List.of(IntegerChromosome.of(5, 60));
     
         config.createParameters(ImmutableList.copyOf(chromosomes));
       }
