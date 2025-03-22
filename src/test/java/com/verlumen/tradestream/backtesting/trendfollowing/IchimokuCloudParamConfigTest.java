@@ -44,7 +44,7 @@ public class IchimokuCloudParamConfigTest {
         assertThat(packedParams.is(IchimokuCloudParameters.class)).isTrue();
     
         IchimokuCloudParameters params = packedParams.unpack(IchimokuCloudParameters.class);
-        assertThat(params.getTenkanSenPeriod()).isEqualTo(9);
+        assertThat(params.getTenkanSenPeriod()).isEqualTo(15);
         assertThat(params.getKijunSenPeriod()).isEqualTo(26);
         assertThat(params.getSenkouSpanBPeriod()).isEqualTo(52);
         assertThat(params.getChikouSpanPeriod()).isEqualTo(26);
