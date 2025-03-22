@@ -13,13 +13,13 @@ final class IchimokuCloudParamConfig implements ParamConfig {
   // Individual chromosome specs
   private static final ChromosomeSpec<?> TENKAN_SEN_PERIOD_SPEC = 
       ChromosomeSpec.ofInteger(5, 60);
-  
+
   private static final ChromosomeSpec<?> KIJUN_SEN_PERIOD_SPEC = 
       ChromosomeSpec.ofInteger(10, 120);
-  
+
   private static final ChromosomeSpec<?> SENKOU_SPAN_B_PERIOD_SPEC = 
       ChromosomeSpec.ofInteger(20, 240);
-  
+
   private static final ChromosomeSpec<?> CHIKOU_SPAN_PERIOD_SPEC = 
       ChromosomeSpec.ofInteger(10, 120);
   
@@ -30,7 +30,7 @@ final class IchimokuCloudParamConfig implements ParamConfig {
           SENKOU_SPAN_B_PERIOD_SPEC,
           CHIKOU_SPAN_PERIOD_SPEC
           );
-  
+
   static IchimokuCloudParamConfig create() {
     return new IchimokuCloudParamConfig();
   }
@@ -48,10 +48,17 @@ final class IchimokuCloudParamConfig implements ParamConfig {
         throw new IllegalArgumentException("Expected " + SPECS.size() + " chromosomes, but got " + chromosomes.size());
     }
 
-    int tenkanSenPeriod = ((IntegerChromosome) chromosomes.get(0)).gene().allele();
-    int kijunSenPeriod = ((IntegerChromosome) chromosomes.get(1)).gene().allele();
-    int senkouSpanBPeriod = ((IntegerChromosome) chromosomes.get(2)).gene().allele();
-    int chikouSpanPeriod = ((IntegerChromosome) chromosomes.get(3)).gene().allele();
+    // Extract the value from each chromosome
+    // Note: For single-gene chromosomes, we get the first (and only) gene
+    IntegerChromosome tenkanSenChromosome = (IntegerChromosome) chromosomes.get(0);
+    IntegerChromosome kijunSenChromosome = (IntegerChromosome) chromosomes.get(1);
+    IntegerChromosome senkouSpanBChromosome = (IntegerChromosome) chromosomes.get(2);
+    IntegerChromosome chikouSpanChromosome = (IntegerChromosome) chromosomes.get(3);
+    
+    int tenkanSenPeriod = tenkanSenChromosome.gene().allele();
+    int kijunSenPeriod = kijunSenChromosome.gene().allele();
+    int senkouSpanBPeriod = senkouSpanBChromosome.gene().allele();
+    int chikouSpanPeriod = chikouSpanChromosome.gene().allele();
 
 
     IchimokuCloudParameters parameters =
