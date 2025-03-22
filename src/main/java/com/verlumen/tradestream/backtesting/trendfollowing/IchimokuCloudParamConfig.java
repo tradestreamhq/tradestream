@@ -22,7 +22,7 @@ final class IchimokuCloudParamConfig implements ParamConfig {
 
   private static final ChromosomeSpec<?> CHIKOU_SPAN_PERIOD_SPEC = 
       ChromosomeSpec.ofInteger(10, 120);
-  
+
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
           TENKAN_SEN_PERIOD_SPEC,
@@ -48,18 +48,17 @@ final class IchimokuCloudParamConfig implements ParamConfig {
         throw new IllegalArgumentException("Expected " + SPECS.size() + " chromosomes, but got " + chromosomes.size());
     }
 
-    // Extract the value from each chromosome
-    // Note: For single-gene chromosomes, we get the first (and only) gene
+    // Directly get the first value from each chromosome
     IntegerChromosome tenkanSenChromosome = (IntegerChromosome) chromosomes.get(0);
     IntegerChromosome kijunSenChromosome = (IntegerChromosome) chromosomes.get(1);
     IntegerChromosome senkouSpanBChromosome = (IntegerChromosome) chromosomes.get(2);
     IntegerChromosome chikouSpanChromosome = (IntegerChromosome) chromosomes.get(3);
     
-    int tenkanSenPeriod = tenkanSenChromosome.gene().allele();
-    int kijunSenPeriod = kijunSenChromosome.gene().allele();
-    int senkouSpanBPeriod = senkouSpanBChromosome.gene().allele();
-    int chikouSpanPeriod = chikouSpanChromosome.gene().allele();
-
+    // Use the get(0) method to access the first gene
+    int tenkanSenPeriod = tenkanSenChromosome.get(0).allele();
+    int kijunSenPeriod = kijunSenChromosome.get(0).allele();
+    int senkouSpanBPeriod = senkouSpanBChromosome.get(0).allele();
+    int chikouSpanPeriod = chikouSpanChromosome.get(0).allele();
 
     IchimokuCloudParameters parameters =
         IchimokuCloudParameters.newBuilder()
