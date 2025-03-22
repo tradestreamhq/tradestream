@@ -1,3 +1,4 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@rules_java//java:defs.bzl", "java_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -32,6 +33,14 @@ java_library(
         ":strategy_state_factory_impl",
         "//third_party:guava",
         "//third_party:guice",
+    ],
+)
+
+kt_jvm_library(
+    name = "strategy_constants",
+    srcs = ["StrategyConstants.kt"],
+    deps = [
+        "//protos:strategies_java_proto",
     ],
 )
 
