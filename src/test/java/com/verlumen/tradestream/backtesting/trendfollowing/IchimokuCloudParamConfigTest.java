@@ -32,22 +32,34 @@ public class IchimokuCloudParamConfigTest {
     
       @Test
       public void testCreateParameters_validChromosomes_returnsPackedParameters() throws Exception {
-        // Create chromosomes with correct parameter order: min, max, value
+        // Define test values to use
+        final int TEST_TENKAN_SEN = 11;
+        final int TEST_KIJUN_SEN = 26;  
+        final int TEST_SENKOU_SPAN_B = 52;
+        final int TEST_CHIKOU_SPAN = 26;
+        
+        // Create single-gene chromosomes with known values
+        IntegerChromosome tenkanSenChromosome = IntegerChromosome.of(5, 60, TEST_TENKAN_SEN);
+        IntegerChromosome kijunSenChromosome = IntegerChromosome.of(10, 120, TEST_KIJUN_SEN);
+        IntegerChromosome senkouSpanBChromosome = IntegerChromosome.of(20, 240, TEST_SENKOU_SPAN_B);
+        IntegerChromosome chikouSpanChromosome = IntegerChromosome.of(10, 120, TEST_CHIKOU_SPAN);
+        
+        // Create the list of chromosomes
         List<NumericChromosome<?, ?>> chromosomes = List.of(
-            IntegerChromosome.of(5, 60, 9),     // tenkanSenPeriod
-            IntegerChromosome.of(10, 120, 26),   // kijunSenPeriod
-            IntegerChromosome.of(20, 240, 52),   // senkouSpanBPeriod
-            IntegerChromosome.of(10, 120, 26)    // chikouSpanPeriod
+            tenkanSenChromosome,
+            kijunSenChromosome,
+            senkouSpanBChromosome,
+            chikouSpanChromosome
         );
     
         Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
         assertThat(packedParams.is(IchimokuCloudParameters.class)).isTrue();
     
         IchimokuCloudParameters params = packedParams.unpack(IchimokuCloudParameters.class);
-        assertThat(params.getTenkanSenPeriod()).isEqualTo(11);
-        assertThat(params.getKijunSenPeriod()).isEqualTo(26);
-        assertThat(params.getSenkouSpanBPeriod()).isEqualTo(52);
-        assertThat(params.getChikouSpanPeriod()).isEqualTo(26);
+        assertThat(params.getTenkanSenPeriod()).isEqualTo(TEST_TENKAN_SEN);
+        assertThat(params.getKijunSenPeriod()).isEqualTo(TEST_KIJUN_SEN);
+        assertThat(params.getSenkouSpanBPeriod()).isEqualTo(TEST_SENKOU_SPAN_B);
+        assertThat(params.getChikouSpanPeriod()).isEqualTo(TEST_CHIKOU_SPAN);
       }
 
       @Test(expected = IllegalArgumentException.class)
