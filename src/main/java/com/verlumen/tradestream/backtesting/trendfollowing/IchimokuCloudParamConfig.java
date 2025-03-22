@@ -31,14 +31,6 @@ final class IchimokuCloudParamConfig implements ParamConfig {
           CHIKOU_SPAN_PERIOD_SPEC
           );
   
-  private static final ImmutableList<ChromosomeSpec<?>> SPECS =
-      ImmutableList.of(
-          TENKAN_SEN_PERIOD_SPEC,
-          KIJUN_SEN_PERIOD_SPEC,
-          SENKOU_SPAN_B_PERIOD_SPEC,
-          CHIKOU_SPAN_PERIOD_SPEC
-          );
-
   static IchimokuCloudParamConfig create() {
     return new IchimokuCloudParamConfig();
   }
