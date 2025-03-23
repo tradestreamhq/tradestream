@@ -140,6 +140,15 @@ java_library(
     ],
 )
 
+kt_jvm_library(
+    name = "strategy_processing_request",
+    srcs = ["StrategyProcessingRequest.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+    ],
+)
+
 java_library(
     name = "strategy_record",
     srcs = ["StrategyRecord.java"],
