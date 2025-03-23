@@ -45,6 +45,7 @@ java_library(
     srcs = ["OptimizeStrategiesIsolated.java"],
     deps = [
         ":optimize_each_strategy_do_fn",
+        ":split_by_strategy_type",
         ":strategy_processing_request",
         ":strategy_state",
         "//protos:marketdata_java_proto",
