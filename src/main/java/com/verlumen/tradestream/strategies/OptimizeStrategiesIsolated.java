@@ -31,7 +31,6 @@ final class OptimizeStrategiesIsolated
     PCollection<KV<String, StrategyProcessingRequest>> split = input.apply(ParDo.of(optimizeEachStrategyDoFn));
 
     // Process each strategy type record.
-    return split.apply("OptimizeEachStrategy", ParDo.of(optimizeEachStrategyDoFn))
-    ));
+    return split.apply("OptimizeEachStrategy", ParDo.of(optimizeEachStrategyDoFn));
   }
 }
