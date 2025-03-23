@@ -4,6 +4,24 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
+    name = "optimize_each_strategy_do_fn",
+    srcs = ["OptimizeEachStrategyDoFn.java"],
+    deps = [
+        ":strategy_state",
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
+        "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_factory",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:flogger",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:ta4j_core",
+    ],
+)
+
+java_library(
     name = "optimize_strategies",
     srcs = ["OptimizeStrategies.java"],
     deps = [
