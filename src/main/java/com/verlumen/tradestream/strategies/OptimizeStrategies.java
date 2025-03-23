@@ -13,7 +13,7 @@ import javax.inject.Inject;
  * Composite PTransform that chains the splitting of input records per strategy type
  * with the isolated processing of each strategy type.
  */
-public class OptimizeStrategies 
+final class OptimizeStrategies 
     extends PTransform<PCollection<KV<String, ImmutableList<Candle>>>, 
                       PCollection<KV<String, StrategyState>>> {
 
@@ -21,8 +21,9 @@ public class OptimizeStrategies
     private final OptimizeEachStrategyDoFn optimizeEachStrategyDoFn;
 
     @Inject
-    public OptimizeStrategies(SplitByStrategyType splitByStrategyType,
-                              OptimizeEachStrategyDoFn optimizeEachStrategyDoFn) {
+    OptimizeStrategies(
+        SplitByStrategyType splitByStrategyType,
+        OptimizeEachStrategyDoFn optimizeEachStrategyDoFn) {
         this.splitByStrategyType = splitByStrategyType;
         this.optimizeEachStrategyDoFn = optimizeEachStrategyDoFn;
     }
