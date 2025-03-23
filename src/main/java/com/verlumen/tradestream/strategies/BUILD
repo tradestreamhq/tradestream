@@ -22,6 +22,19 @@ java_library(
 )
 
 java_library(
+    name = "optimize_strategies_isolated",
+    srcs = ["OptimizeStrategiesIsolated.java"],
+    deps = [
+        ":optimize_each_strategy_do_fn",
+        ":strategy_state",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guava",
+        "//third_party:guice",
+    ],
+)
+
+java_library(
     name = "strategies_module",
     srcs = ["StrategiesModule.java"],
     deps = [
