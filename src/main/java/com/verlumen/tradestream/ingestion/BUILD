@@ -40,9 +40,6 @@ java_library(
 java_library(
     name = "coin_market_cap_config",
     srcs = ["CoinMarketCapConfig.java"],
-    deps = [
-        "//third_party:auto_value",
-    ],
 )
 
 container_structure_test(
