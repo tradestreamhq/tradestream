@@ -7,7 +7,6 @@ java_library(
     name = "optimize_strategies",
     srcs = ["OptimizeStrategies.java"],
     deps = [
-        ":strategy_constants",
         ":strategy_state",
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
@@ -134,6 +133,7 @@ java_library(
     name = "strategy_state_factory_impl",
     srcs = ["StrategyStateFactoryImpl.java"],
     deps = [
+        ":strategy_constants",
         ":strategy_manager",
         ":strategy_record",
         ":strategy_state",
