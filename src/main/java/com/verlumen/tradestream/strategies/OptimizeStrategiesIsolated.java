@@ -19,8 +19,8 @@ final class OptimizeStrategiesIsolated
   private final SplitByStrategyType splitByStrategyType;
 
   @Inject
-  public OptimizeStrategiesIsolated(OptimizeEachStrategyDoFn optimizeEachStrategyDoFn,
-                                    SplitByStrategyType splitByStrategyType) {
+  OptimizeStrategiesIsolated(OptimizeEachStrategyDoFn optimizeEachStrategyDoFn,
+                             SplitByStrategyType splitByStrategyType) {
     this.optimizeEachStrategyDoFn = optimizeEachStrategyDoFn;
     this.splitByStrategyType = splitByStrategyType;
   }
