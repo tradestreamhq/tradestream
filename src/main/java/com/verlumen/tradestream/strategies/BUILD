@@ -86,6 +86,7 @@ java_library(
     name = "strategy_manager",
     srcs = ["StrategyManager.java"],
     deps = [
+        "strategy_constants",
         ":strategy_factory",
         "//protos:strategies_java_proto",
         "//third_party:guava",
