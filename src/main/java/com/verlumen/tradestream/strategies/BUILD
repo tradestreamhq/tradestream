@@ -24,7 +24,7 @@ java_library(
 
 java_library(
     name = "optimize_strategies",
-    srcs = ["OptimizeStrategiesIsolated.java"],
+    srcs = ["OptimizeStrategies.java"],
     deps = [
         ":optimize_each_strategy_do_fn",
         ":split_by_strategy_type",
