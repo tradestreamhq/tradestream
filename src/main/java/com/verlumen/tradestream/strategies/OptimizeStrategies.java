@@ -93,7 +93,7 @@ public class OptimizeStrategies
       }
 
       // Optimize each strategy type
-      for (StrategyType strategyType : state.getStrategyTypes()) {
+      for (StrategyType strategyType : StrategyConstants.supportedStrategyTypes) {
         try {
           GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
               .setStrategyType(strategyType)
