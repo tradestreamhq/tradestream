@@ -18,7 +18,7 @@ public interface StrategyState extends Serializable {
      * @throws InvalidProtocolBufferException if the strategy parameters are invalid
      */
     org.ta4j.core.Strategy getCurrentStrategy(BarSeries series) throws InvalidProtocolBufferException;
-    
+
     /**
      * Update the record for a given strategy type.
      *
@@ -27,7 +27,7 @@ public interface StrategyState extends Serializable {
      * @param score the performance score
      */
     void updateRecord(StrategyType type, Any parameters, double score);
-    
+
     /**
      * Select and initialize the best strategy from the recorded strategies.
      *
