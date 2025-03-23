@@ -7,6 +7,7 @@ java_library(
     name = "optimize_each_strategy_do_fn",
     srcs = ["OptimizeEachStrategyDoFn.java"],
     deps = [
+        ":strategy_processing_request",
         ":strategy_state",
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
