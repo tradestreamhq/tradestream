@@ -6,8 +6,6 @@ package(default_visibility = ["//visibility:public"])
 java_library(
     name = "ema_macd_param_config",
     srcs = ["EmaMacdParamConfig.java"],
-    resources =
-        ["//src/main/resources/com/verlumen/tradestream/backtesting/movingaverages:EmaMacdParamConfig.properties"],  # Add resource
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
