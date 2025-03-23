@@ -184,7 +184,6 @@ java_library(
     srcs = ["ParamConfigManager.java"],
     deps = [
         ":param_config",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_constants",
         "//protos:strategies_java_proto",
     ],
 )
@@ -196,6 +195,7 @@ java_library(
         ":param_config",
         ":param_config_manager",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_constants",
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:mug",
