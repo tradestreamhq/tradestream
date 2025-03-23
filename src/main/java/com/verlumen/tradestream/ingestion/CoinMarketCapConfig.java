@@ -1,14 +1,7 @@
 package com.verlumen.tradestream.ingestion;
 
-import com.google.auto.value.AutoValue;
-
-@AutoValue
-abstract class CoinMarketCapConfig {
+record CoinMarketCapConfig(int topN, String apiKey) {
   static CoinMarketCapConfig create(int topN, String apiKey) {
-      return new AutoValue_CoinMarketCapConfig(topN, apiKey);
+      return new CoinMarketCapConfig(topN, apiKey);
   }
-
-  abstract int topN();
-
-  abstract String apiKey();
 }
