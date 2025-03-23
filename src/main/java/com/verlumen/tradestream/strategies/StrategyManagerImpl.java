@@ -18,6 +18,7 @@ final class StrategyManagerImpl implements StrategyManager {
   StrategyManagerImpl(ImmutableList<StrategyFactory<?>> factories) {
     this.factoryMap =
         BiStream.from(factories, StrategyFactory::getStrategyType, identity())
+            .filterKeys(StrategyConstant.supportedStrategyTypes::containsKey)
             .collect(ImmutableMap::toImmutableMap);
   }
 
