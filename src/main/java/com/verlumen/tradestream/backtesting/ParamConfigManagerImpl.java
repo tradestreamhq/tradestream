@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.mu.util.stream.BiStream;
+import com.verlumen.tradestream.strategies.StrategyConstants;
 import com.verlumen.tradestream.strategies.StrategyType;
 import java.io.Serializable;
 
@@ -25,6 +26,7 @@ final class ParamConfigManagerImpl implements ParamConfigManager {
     // Create an immutable map from strategy type to its corresponding configuration.
     this.configMap = 
         BiStream.from(configs, ParamConfig::getStrategyType, identity())
+            .filterKeys(StrategyConstants.supportedStrategyTypes::containsKey)
             .collect(ImmutableMap::toImmutableMap);
   }
 
