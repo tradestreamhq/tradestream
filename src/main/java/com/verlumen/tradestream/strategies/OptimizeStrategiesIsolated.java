@@ -15,27 +15,23 @@ import org.apache.beam.sdk.values.PCollection;
 final class OptimizeStrategiesIsolated 
     extends PTransform<PCollection<KV<String, ImmutableList<Candle>>>, PCollection<KV<String, StrategyState>>> {
 
-  private final BarSeriesFactory barSeriesFactory;
-  private final GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator;
-  private final StrategyState.Factory stateFactory;
+  private final OptimizeEachStrategyDoFn optimizeEachStrategyDoFn;
+  private final SplitByStrategyType splitByStrategyType;
 
   @Inject
-  public OptimizeStrategiesIsolated(BarSeriesFactory barSeriesFactory,
-                                    GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator,
-                                    StrategyState.Factory stateFactory) {
-    this.barSeriesFactory = barSeriesFactory;
-    this.geneticAlgorithmOrchestrator = geneticAlgorithmOrchestrator;
-    this.stateFactory = stateFactory;
+  public OptimizeStrategiesIsolated(OptimizeEachStrategyDoFn optimizeEachStrategyDoFn,
+                                    SplitByStrategyType splitByStrategyType) {
+    this.optimizeEachStrategyDoFn = optimizeEachStrategyDoFn;
+    this.splitByStrategyType = splitByStrategyType;
   }
 
   @Override
   public PCollection<KV<String, StrategyState>> expand(PCollection<KV<String, ImmutableList<Candle>>> input) {
     // Split input so that each strategy type is processed individually.
-    PCollection<KV<String, StrategyProcessingRequest>> split = input.apply(new SplitByStrategyType());
+    PCollection<KV<String, StrategyProcessingRequest>> split = input.apply(ParDo.of(optimizeEachStrategyDoFn));
 
     // Process each strategy type record.
-    return split.apply("OptimizeEachStrategy", ParDo.of(
-        new OptimizeEachStrategyDoFn(barSeriesFactory, geneticAlgorithmOrchestrator, stateFactory)
+    return split.apply("OptimizeEachStrategy", ParDo.of(optimizeEachStrategyDoFn))
     ));
   }
 }
