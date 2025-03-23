@@ -28,7 +28,8 @@ final class OptimizeStrategiesIsolated
   @Override
   public PCollection<KV<String, StrategyState>> expand(PCollection<KV<String, ImmutableList<Candle>>> input) {
     // Split input so that each strategy type is processed individually.
-    PCollection<KV<String, StrategyProcessingRequest>> split = input.apply(ParDo.of(optimizeEachStrategyDoFn));
+    PCollection<KV<String, StrategyProcessingRequest>> split =
+        input.apply("SplitByStrategyType", splitByStrategyType);
 
     // Process each strategy type record.
     return split.apply("OptimizeEachStrategy", ParDo.of(optimizeEachStrategyDoFn));
