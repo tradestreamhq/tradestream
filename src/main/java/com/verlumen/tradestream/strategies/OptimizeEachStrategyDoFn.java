@@ -32,17 +32,19 @@ final class OptimizeEachStrategyDoFn
   private final StateSpec<ValueState<StrategyState>> stateSpec = StateSpecs.value();
 
   @Inject
-  OptimizeEachStrategyDoFn(BarSeriesFactory barSeriesFactory,
-                                  GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator,
-                                  StrategyState.Factory stateFactory) {
+  OptimizeEachStrategyDoFn(
+      BarSeriesFactory barSeriesFactory,
+      GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator,
+      StrategyState.Factory stateFactory) {
     this.barSeriesFactory = barSeriesFactory;
     this.geneticAlgorithmOrchestrator = geneticAlgorithmOrchestrator;
     this.stateFactory = stateFactory;
   }
 
   @ProcessElement
-  public void processElement(ProcessContext context,
-                             @StateId("strategyState") ValueState<StrategyState> sharedState) {
+  public void processElement(
+      ProcessContext context,
+      @StateId("strategyState") ValueState<StrategyState> sharedState) {
     KV<String, StrategyProcessingRequest> element = context.element();
     String key = element.getKey();
     StrategyProcessingRequest request = element.getValue();
