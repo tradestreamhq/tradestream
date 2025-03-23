@@ -18,7 +18,7 @@ import org.ta4j.core.BarSeries;
 /**
  * DoFn that processes each strategy type in isolation while maintaining shared state.
  */
-public class OptimizeEachStrategyDoFn 
+final class OptimizeEachStrategyDoFn 
     extends DoFn<KV<String, StrategyProcessingRequest>, KV<String, StrategyState>> {
 
   private final BarSeriesFactory barSeriesFactory;
@@ -29,7 +29,7 @@ public class OptimizeEachStrategyDoFn
   private final StateSpec<ValueState<StrategyState>> stateSpec = StateSpecs.value();
 
   @Inject
-  public OptimizeEachStrategyDoFn(BarSeriesFactory barSeriesFactory,
+  OptimizeEachStrategyDoFn(BarSeriesFactory barSeriesFactory,
                                   GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator,
                                   StrategyState.Factory stateFactory) {
     this.barSeriesFactory = barSeriesFactory;
