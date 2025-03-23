@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.strategies;
 
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
 import com.verlumen.tradestream.marketdata.Candle;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
@@ -12,18 +13,27 @@ import org.apache.beam.sdk.values.PCollection;
  * A PTransform that splits the input KV<String, ImmutableList<Candle>> into one record
  * per strategy type.
  */
-class SplitByStrategyType 
+final class SplitByStrategyType 
     extends PTransform<PCollection<KV<String, ImmutableList<Candle>>>,
                        PCollection<KV<String, StrategyProcessingRequest>>> {
+
+  private final SplitByStrategyTypeFn splitByStrategyTypeFn;
+
+  @Inject
+  SplitByStrategyType(SplitByStrategyTypeFn splitByStrategyTypeFn) {
+      this.splitByStrategyTypeFn = splitByStrategyTypeFn;
+  }
 
   @Override
   public PCollection<KV<String, StrategyProcessingRequest>> expand(
       PCollection<KV<String, ImmutableList<Candle>>> input) {
-    return input.apply("SplitPerStrategyType", ParDo.of(new SplitByStrategyTypeFn()));
+    return input.apply("SplitPerStrategyType", ParDo.of(splitByStrategyTypeFn));
   }
   
   private static class SplitByStrategyTypeFn 
       extends DoFn<KV<String, ImmutableList<Candle>>, KV<String, StrategyProcessingRequest>> {
+    @Inject
+    SplitByStrategyTypeFn() {}
 
     @ProcessElement
     public void processElement(
