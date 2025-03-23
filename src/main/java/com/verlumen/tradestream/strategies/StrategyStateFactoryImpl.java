@@ -35,7 +35,7 @@ final class StrategyStateFactoryImpl implements StrategyState.Factory {
 
         private static StrategyStateImpl create(StrategyManager strategyManager) {
             Map<StrategyType, StrategyRecord> strategyRecords = new ConcurrentHashMap<>();
-            for (StrategyType type : strategyManager.getStrategyTypes()) {
+            for (StrategyType type : StrategyConstants.supportedStrategyTypes) {
                 strategyRecords.put(
                     type,
                     StrategyRecord.create(
