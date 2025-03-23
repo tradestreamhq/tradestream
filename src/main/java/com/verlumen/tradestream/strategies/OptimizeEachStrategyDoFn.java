@@ -44,7 +44,7 @@ public class OptimizeEachStrategyDoFn
     String key = element.getKey();
     StrategyProcessingRequest request = element.getValue();
     StrategyType strategyType = request.getStrategyType();
-    ImmutableList<Candle> candles = request.getCandles();
+    ImmutableList<Candle> candles = ImmutableList.copyOf(request.getCandles());
 
     if (candles == null || candles.isEmpty()) {
       // Optionally log a warning here.
