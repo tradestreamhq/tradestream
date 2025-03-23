@@ -4,9 +4,10 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
-    name = "optimize_strategies",
-    srcs = ["OptimizeStrategies.java"],
+    name = "optimize_each_strategy_do_fn",
+    srcs = ["OptimizeEachStrategyDoFn.java"],
     deps = [
+        ":strategy_processing_request",
         ":strategy_state",
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
@@ -18,6 +19,35 @@ java_library(
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:ta4j_core",
+    ],
+)
+
+java_library(
+    name = "optimize_strategies",
+    srcs = ["OptimizeStrategies.java"],
+    deps = [
+        ":optimize_each_strategy_do_fn",
+        ":split_by_strategy_type",
+        ":strategy_processing_request",
+        ":strategy_state",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guava",
+        "//third_party:guice",
+    ],
+)
+
+java_library(
+    name = "split_by_strategy_type",
+    srcs = ["SplitByStrategyType.java"],
+    deps = [
+        ":strategy_constants",
+        ":strategy_processing_request",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guava",
+        "//third_party:guice",
     ],
 )
 
@@ -106,6 +136,15 @@ java_library(
         "//third_party:mug",
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
+    ],
+)
+
+kt_jvm_library(
+    name = "strategy_processing_request",
+    srcs = ["StrategyProcessingRequest.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
     ],
 )
 
