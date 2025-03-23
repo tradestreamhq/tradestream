@@ -35,14 +35,21 @@ public interface StrategyState extends Serializable {
      * @return the updated strategy state
      */
     StrategyState selectBestStrategy(BarSeries series);
-    
+
     /**
      * Convert the current state to a strategy message.
      *
      * @return the strategy message
      */
     Strategy toStrategyMessage();
-    
+
+    /**
+     * Get all strategy types recorded.
+     *
+     * @return an iterable of strategy types
+     */
+    Iterable<StrategyType> getStrategyTypes();
+
     /**
      * Get the type of the currently active strategy.
      *
