@@ -44,13 +44,6 @@ public interface StrategyState extends Serializable {
     Strategy toStrategyMessage();
 
     /**
-     * Get all strategy types recorded.
-     *
-     * @return an iterable of strategy types
-     */
-    Iterable<StrategyType> getStrategyTypes();
-
-    /**
      * Get the type of the currently active strategy.
      *
      * @return the current strategy type
