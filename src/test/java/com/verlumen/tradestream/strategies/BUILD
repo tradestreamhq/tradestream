@@ -44,13 +44,11 @@ java_test(
     ],
 )
 
-
 java_test(
     name = "StrategyManagerImplTest",
     srcs = ["StrategyManagerImplTest.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_constants",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager_impl",
