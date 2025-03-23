@@ -26,13 +26,12 @@ import org.ta4j.core.BarSeries;
 public class OptimizeStrategies 
     extends PTransform<PCollection<KV<String, ImmutableList<Candle>>>, 
                       PCollection<KV<String, StrategyState>>> {
+
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-  
   private final OptimizeStrategiesDoFn optimizeStrategiesDoFn;
-  
+
   @Inject
-  OptimizeStrategies(
-      OptimizeStrategiesDoFn optimizeStrategiesDoFn) {
+  public OptimizeStrategies(OptimizeStrategiesDoFn optimizeStrategiesDoFn) {
     this.optimizeStrategiesDoFn = optimizeStrategiesDoFn;
   }
 
@@ -40,14 +39,13 @@ public class OptimizeStrategies
   public PCollection<KV<String, StrategyState>> expand(
       PCollection<KV<String, ImmutableList<Candle>>> input) {
 
-    return input.apply("OptimizeStrategiesForCandles", 
-        ParDo.of(optimizeStrategiesDoFn));
+    return input.apply("OptimizeStrategiesForCandles", ParDo.of(optimizeStrategiesDoFn));
   }
 
   /**
    * Stateful DoFn that maintains strategy state and performs optimization.
    */
-  private static class OptimizeStrategiesDoFn 
+  static class OptimizeStrategiesDoFn 
       extends DoFn<KV<String, ImmutableList<Candle>>, KV<String, StrategyState>> {
 
     @StateId("strategyState")
@@ -58,7 +56,7 @@ public class OptimizeStrategies
     private final StrategyState.Factory stateFactory;
 
     @Inject
-    OptimizeStrategiesDoFn(
+    public OptimizeStrategiesDoFn(
         BarSeriesFactory barSeriesFactory,
         GeneticAlgorithmOrchestrator geneticAlgorithmOrchestrator,
         StrategyState.Factory stateFactory) {
@@ -68,31 +66,26 @@ public class OptimizeStrategies
     }
 
     @ProcessElement
-    public void processElement(
-        ProcessContext context,
-        @StateId("strategyState") ValueState<StrategyState> strategyStateValue) {
+    public void processElement(ProcessContext context,
+                               @StateId("strategyState") ValueState<StrategyState> strategyStateValue) {
 
       KV<String, ImmutableList<Candle>> element = context.element();
       String key = element.getKey();
       ImmutableList<Candle> candles = element.getValue();
 
-      // Skip empty candle lists
       if (candles == null || candles.isEmpty()) {
         logger.atWarning().log("Received empty candle list for key: %s", key);
         return;
       }
 
-      // Convert candles to a BarSeries
       BarSeries barSeries = barSeriesFactory.createBarSeries(candles);
-
-      // Get or initialize strategy state
       StrategyState state = strategyStateValue.read();
       if (state == null) {
         logger.atInfo().log("Initializing strategy state for key: %s", key);
         state = stateFactory.create();
       }
 
-      // Optimize each strategy type
+      // Loop over each strategy type to optimize.
       for (StrategyType strategyType : state.getStrategyTypes()) {
         try {
           GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
@@ -105,15 +98,11 @@ public class OptimizeStrategies
           state.updateRecord(strategyType, response.getBestStrategyParameters(), response.getBestScore());
 
         } catch (Exception e) {
-          logger.atWarning().withCause(e).log(
-              "Error optimizing strategy %s for key: %s", strategyType, key);
+          logger.atWarning().withCause(e).log("Error optimizing strategy %s for key: %s", strategyType, key);
         }
       }
 
-      // Select the best strategy based on optimization scores
       state = state.selectBestStrategy(barSeries);
-
-      // Update state and output the optimized strategy state
       strategyStateValue.write(state);
       context.output(KV.of(key, state));
     }
