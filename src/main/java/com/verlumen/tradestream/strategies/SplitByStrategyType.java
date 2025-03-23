@@ -50,7 +50,7 @@ final class SplitByStrategyType
       String key = element.getKey();
       ImmutableList<Candle> candles = element.getValue();
 
-      for (StrategyType strategyType : StrategyType.values()) {
+      for (StrategyType strategyType : StrategyConstants.supportedStrategyTypes) {
         StrategyProcessingRequest request = new StrategyProcessingRequest(strategyType, candles);
         out.output(KV.of(key, request));
       }
