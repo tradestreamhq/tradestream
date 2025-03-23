@@ -26,7 +26,7 @@ final class ParamConfigManagerImpl implements ParamConfigManager {
     // Create an immutable map from strategy type to its corresponding configuration.
     this.configMap = 
         BiStream.from(configs, ParamConfig::getStrategyType, identity())
-            .filterKeys(StrategyConstants.supportedStrategyTypes::containsKey)
+            .filterKeys(StrategyConstants.supportedStrategyTypes::contains)
             .collect(ImmutableMap::toImmutableMap);
   }
 
