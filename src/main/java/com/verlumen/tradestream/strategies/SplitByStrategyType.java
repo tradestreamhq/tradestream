@@ -27,9 +27,14 @@ final class SplitByStrategyType
   @Override
   public PCollection<KV<String, StrategyProcessingRequest>> expand(
       PCollection<KV<String, ImmutableList<Candle>>> input) {
-    return input.apply("SplitPerStrategyType", ParDo.of(splitByStrategyTypeFn));
+    return input
+        .apply("SplitPerStrategyType", ParDo.of(splitByStrategyTypeFn))
+        .setCoder(KvCoder.of(
+            StringUtf8Coder.of(),
+            SerializableCoder.of(StrategyProcessingRequest.class)
+        ));
   }
-  
+
   private static class SplitByStrategyTypeFn 
       extends DoFn<KV<String, ImmutableList<Candle>>, KV<String, StrategyProcessingRequest>> {
     @Inject
