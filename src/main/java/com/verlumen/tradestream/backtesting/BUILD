@@ -184,6 +184,7 @@ java_library(
     srcs = ["ParamConfigManager.java"],
     deps = [
         ":param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_constants",
         "//protos:strategies_java_proto",
     ],
 )
@@ -212,7 +213,6 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/backtesting/movingaverages:moving_average_params",
         "//src/main/java/com/verlumen/tradestream/backtesting/patternrecognition:pattern_recognition_params",
         "//src/main/java/com/verlumen/tradestream/backtesting/trendfollowing:trend_following_params",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_constants",
         "//third_party:guava",
     ],
 )
