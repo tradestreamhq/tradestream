@@ -12,7 +12,7 @@ import org.apache.beam.sdk.values.PCollection;
  * A composite PTransform that first splits the input per strategy type and then processes
  * each strategy type in isolation while sharing the state.
  */
-public class OptimizeStrategiesIsolated 
+final class OptimizeStrategiesIsolated 
     extends PTransform<PCollection<KV<String, ImmutableList<Candle>>>, PCollection<KV<String, StrategyState>>> {
 
   private final BarSeriesFactory barSeriesFactory;
