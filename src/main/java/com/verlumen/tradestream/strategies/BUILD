@@ -41,6 +41,7 @@ java_library(
     name = "split_by_strategy_type",
     srcs = ["SplitByStrategyType.java"],
     deps = [
+        ":strategy_constants",
         ":strategy_processing_request",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
