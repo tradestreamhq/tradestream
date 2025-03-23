@@ -45,6 +45,7 @@ java_library(
     srcs = ["OptimizeStrategiesIsolated.java"],
     deps = [
         ":optimize_each_strategy_do_fn",
+        ":strategy_processing_request",
         ":strategy_state",
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
