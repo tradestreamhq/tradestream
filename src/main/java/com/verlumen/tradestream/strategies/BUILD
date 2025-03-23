@@ -99,6 +99,7 @@ java_library(
     name = "strategy_manager_impl",
     srcs = ["StrategyManagerImpl.java"],
     deps = [
+        "strategy_constants",
         ":strategy_factory",
         ":strategy_manager",
         "//protos:strategies_java_proto",
