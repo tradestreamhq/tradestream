@@ -45,14 +45,6 @@ container_structure_test(
 )
 
 java_library(
-    name = "currency_pair_metadata",
-    srcs = ["CurrencyPairMetadata.java"],
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-    ],
-)
-
-java_library(
     name = "exchange_streaming_client",
     srcs = ["ExchangeStreamingClient.java"],
     deps = [
