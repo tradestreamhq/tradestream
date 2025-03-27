@@ -34,7 +34,7 @@ java_library(
 
 kt_jvm_library(
   name = "exchange_client_unbounded_source",
-  srcs = ["WebSocketTradeUnboundedSource.kt"],
+  srcs = ["ExchangeClientUnboundedSource.kt"],
   deps = [
     ":trade_checkpoint_mark",
     "//protos:marketdata_java_proto",
@@ -44,7 +44,7 @@ kt_jvm_library(
 
 kt_jvm_library(
   name = "exchange_client_unbounded_source_impl",
-  srcs = ["WebSocketTradeUnboundedSourceImpl.kt"],
+  srcs = ["ExchangeClientUnboundedSourceImpl.kt"],
   deps = [
     ":exchange_client_unbounded_source",
     ":trade_checkpoint_mark",
