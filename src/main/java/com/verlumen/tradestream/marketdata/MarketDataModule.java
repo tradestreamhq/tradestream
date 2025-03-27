@@ -15,6 +15,8 @@ public abstract class MarketDataModule extends AbstractModule {
 
   @Override
   protected void configure() {
+    bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
+
     install(
         new FactoryModuleBuilder()
             .implement(TradePublisher.class, TradePublisherImpl.class)
