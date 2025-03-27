@@ -131,3 +131,12 @@ java_library(
         "//third_party:protobuf_java_util",
     ],
 )
+
+kt_jvm_library(
+    name = "web_socket_trade_unbounded_source",
+    srcs = ["WebSocketTradeUnboundedSource .kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+    ],
+)
