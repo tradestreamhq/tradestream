@@ -19,7 +19,6 @@ abstract class IngestionModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
-    bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
     bind(RealTimeDataIngestion.class).to(RealTimeDataIngestionImpl.class);
 
     install(HttpModule.create());
@@ -31,12 +30,6 @@ abstract class IngestionModule extends AbstractModule {
   CoinMarketCapConfig provideCoinMarketCapConfig() {
     return CoinMarketCapConfig.create(
         ingestionConfig().topCryptocurrencyCount(), ingestionConfig().coinMarketCapApiKey());
-  }
-
-  @Provides
-  ExchangeStreamingClient provideExchangeStreamingClient(
-      ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
-    return exchangeStreamingClientFactory.create(ingestionConfig().exchangeName());
   }
 
   @Provides
