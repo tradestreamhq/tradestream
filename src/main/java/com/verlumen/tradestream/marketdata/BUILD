@@ -39,6 +39,7 @@ kt_jvm_library(
     ":trade_checkpoint_mark",
     "//protos:marketdata_java_proto",
     "//third_party:beam_sdks_java_core",
+    "//third_party:beam_sdks_java_extensions_protobuf",
   ],
 )
 
