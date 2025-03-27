@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.ingestion;
+package com.verlumen.tradestream.marketdata;
 
 import static com.google.common.collect.Streams.stream;
 import static com.google.common.collect.ImmutableList.toImmutableList;
@@ -12,8 +12,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.instruments.CurrencyPair;
-import com.verlumen.tradestream.marketdata.Trade;
-
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
