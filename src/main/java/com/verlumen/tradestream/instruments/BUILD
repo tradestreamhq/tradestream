@@ -26,6 +26,14 @@ java_library(
 )
 
 java_library(
+    name = "currency_pair_metadata",
+    srcs = ["CurrencyPairMetadata.java"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+    ],
+)
+
+java_library(
     name = "currency_pair_supply",
     srcs = ["CurrencyPairSupply.java"],
     deps = [
