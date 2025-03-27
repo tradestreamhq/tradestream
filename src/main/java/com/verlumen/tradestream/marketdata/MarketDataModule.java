@@ -20,4 +20,10 @@ public abstract class MarketDataModule extends AbstractModule {
             .implement(TradePublisher.class, TradePublisherImpl.class)
             .build(TradePublisher.Factory.class));
   }
+
+  @Provides
+  ExchangeStreamingClient provideExchangeStreamingClient(
+      ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
+    return exchangeStreamingClientFactory.create(ingestionConfig().exchangeName());
+  }
 }
