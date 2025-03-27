@@ -32,6 +32,15 @@ java_library(
     ],
 )
 
+kt_jvm_library(
+    name = "exchange_client_unbounded_source",
+    srcs = ["WebSocketTradeUnboundedSource.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+    ],
+)
+
 java_library(
   name = "last_candles_fn",
   srcs = ["LastCandlesFn.java"],
@@ -129,14 +138,5 @@ java_library(
         "//third_party:guice_assistedinject",
         "//third_party:kafka_clients",
         "//third_party:protobuf_java_util",
-    ],
-)
-
-kt_jvm_library(
-    name = "web_socket_trade_unbounded_source",
-    srcs = ["WebSocketTradeUnboundedSource.kt"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
     ],
 )
