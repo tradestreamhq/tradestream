@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.ingestion;
+package com.verlumen.tradestream.marketdata;
 
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.instruments.CurrencyPair;
