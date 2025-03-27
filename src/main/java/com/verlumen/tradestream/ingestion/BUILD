@@ -151,10 +151,10 @@ java_library(
     srcs = ["RealTimeDataIngestionImpl.java"],
     deps = [
         ":currency_pair_supply",
-        ":exchange_streaming_client",
         ":real_time_data_ingestion",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_publisher",
         "//third_party:flogger",
         "//third_party:guava",
