@@ -7,8 +7,8 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
-  public static MarketDataModule create(String tradeTopic) {
-    return new AutoValue_MarketDataModule(MarketDataConfig.create(tradeTopic));
+  public static MarketDataModule create(String exchangeName) {
+    return new AutoValue_MarketDataModule(MarketDataConfig.create(exchangeName));
   }
 
   abstract MarketDataConfig config();
@@ -19,10 +19,5 @@ public abstract class MarketDataModule extends AbstractModule {
         new FactoryModuleBuilder()
             .implement(TradePublisher.class, TradePublisherImpl.class)
             .build(TradePublisher.Factory.class));
-  }
-
-  @Provides
-  TradePublisher provideTradePublisher(TradePublisher.Factory tradePublisherFactory) {
-    return tradePublisherFactory.create(config().tradeTopic());
   }
 }
