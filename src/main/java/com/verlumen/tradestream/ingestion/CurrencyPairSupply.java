@@ -2,17 +2,13 @@ package com.verlumen.tradestream.ingestion;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
-import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 
-@AutoValue
-abstract class CurrencyPairSupply {
+record CurrencyPairSupply(ImmutableList<CurrencyPairMetadata> metadataList) {
   static CurrencyPairSupply create(ImmutableList<CurrencyPairMetadata> metadataList) {
-    return new AutoValue_CurrencyPairSupply(metadataList);
+    return new CurrencyPairSupply(metadataList);
   }
-
-  abstract ImmutableList<CurrencyPairMetadata> metadataList();
 
   ImmutableList<CurrencyPair> currencyPairs() {
     return metadataList()
