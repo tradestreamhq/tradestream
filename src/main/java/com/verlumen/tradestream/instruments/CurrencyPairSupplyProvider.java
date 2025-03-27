@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.ingestion;
+package com.verlumen.tradestream.instruments;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
