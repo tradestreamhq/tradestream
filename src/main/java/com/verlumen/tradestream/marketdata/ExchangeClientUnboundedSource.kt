@@ -33,12 +33,11 @@ class ExchangeClientUnboundedSourceImpl @Inject constructor(
      * Creates the reader using the injected factory, passing necessary runtime info.
      */
     @Throws(IOException::class)
-    override fun createReader(options: PipelineOptions, checkpointMark: TradeCheckpointMark?): ExchangeClientUnboundedReader {
+    override fun createReader(checkpointMark: TradeCheckpointMark?): ExchangeClientUnboundedReader {
         LOG.info("Creating ExchangeClientUnboundedReader using factory. Checkpoint: {}", checkpointMark)
         // Call the factory to create the reader, passing @Assisted parameters
         return readerFactory.create(
             this,
-            options,
             checkpointMark ?: TradeCheckpointMark.INITIAL
         )
     }
