@@ -1,4 +1,3 @@
-# src/main/java/com/verlumen/tradestream/marketdata/ExchangeClientUnboundedSource.kt
 package com.verlumen.tradestream.marketdata
 
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
