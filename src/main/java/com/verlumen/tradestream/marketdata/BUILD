@@ -89,6 +89,9 @@ java_library(
   name = "market_data_module",
   srcs = ["MarketDataModule.java"],
   deps = [
+    ":coin_market_cap_config",,
+    ":exchange_streaming_client",
+    ":exchange_streaming_client_factory",
     ":market_data_config",
     ":trade_publisher",
     ":trade_publisher_impl",
