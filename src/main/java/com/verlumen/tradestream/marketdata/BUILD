@@ -39,6 +39,17 @@ kt_jvm_library(
     ":trade_checkpoint_mark",
     "//protos:marketdata_java_proto",
     "//third_party:beam_sdks_java_core",
+  ],
+)
+
+kt_jvm_library(
+  name = "exchange_client_unbounded_source_impl",
+  srcs = ["WebSocketTradeUnboundedSourceImpl.kt"],
+  deps = [
+    ":exchange_client_unbounded_source",
+    ":trade_checkpoint_mark",
+    "//protos:marketdata_java_proto",
+    "//third_party:beam_sdks_java_core",
     "//third_party:beam_sdks_java_extensions_protobuf",
   ],
 )
