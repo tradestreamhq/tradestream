@@ -21,6 +21,24 @@ java_test(
 )
 
 java_test(
+    name = "CoinbaseStreamingClientTest",
+    srcs = ["CoinbaseStreamingClientTest.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/ingestion:coinbase_streaming_client",
+        "//src/main/java/com/verlumen/tradestream/ingestion:exchange_streaming_client",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party:gson",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:truth",
+    ],
+)
+
+java_test(
     name = "DefaultTradeGeneratorTest",
     srcs = ["DefaultTradeGeneratorTest.java"],
     deps = [
