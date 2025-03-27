@@ -1,40 +1,45 @@
 package com.verlumen.tradestream.marketdata
 
-import org.apache.beam.sdk.coders.Coder
-import org.apache.beam.sdk.coders.ProtoCoder
-import org.apache.beam.sdk.coders.SerializableCoder
+import com.google.common.base.Preconditions.checkArgument
+import com.google.inject.Inject
+import com.verlumen.tradestream.ingestion.CurrencyPairSupply
+import com.verlumen.tradestream.ingestion.ExchangeStreamingClient
 import org.apache.beam.sdk.io.UnboundedSource
 import org.apache.beam.sdk.options.PipelineOptions
 import org.slf4j.LoggerFactory
 import java.io.IOException
-import javax.annotation.Nullable
+import java.util.Collections
 
 /**
- * An abstract UnboundedSource configured to read Trade objects.
- * Base class for implementing exchange client unbounded sources.
+ * A concrete implementation of ExchangeClientUnboundedSource configured to read Trade objects.
+ * Uses an injected factory to create readers which in turn obtain an ExchangeStreamingClient at runtime.
+ * This is a no-op implementation.
  */
-abstract class ExchangeClientUnboundedSource : UnboundedSource<Trade, TradeCheckpointMark>() {
+class ExchangeClientUnboundedSourceImpl @Inject constructor(
+    private val readerFactory: ExchangeClientUnboundedReader.Factory
+) : ExchangeClientUnboundedSource() {
     companion object {
         private const val serialVersionUID = 8L
-        private val LOG = LoggerFactory.getLogger(ExchangeClientUnboundedSource::class.java)
+        private val LOG = LoggerFactory.getLogger(ExchangeClientUnboundedSourceImpl::class.java)
     }
 
+    @Throws(Exception::class)
+    override fun split(desiredNumSplits: Int, options: PipelineOptions): List<UnboundedSource<Trade, TradeCheckpointMark>> {
+        // No-op implementation returns itself as the only source
+        return Collections.singletonList(this)
+    }
+
+    /**
+     * Creates the reader using the injected factory, passing necessary runtime info.
+     */
     @Throws(IOException::class)
-    abstract override fun createReader(
-        options: PipelineOptions, 
-        checkpointMark: TradeCheckpointMark?
-    ): ExchangeClientUnboundedReader
-
-    @Nullable
-    override fun getCheckpointMarkCoder(): Coder<TradeCheckpointMark> {
-        return SerializableCoder.of(TradeCheckpointMark::class.java)
-    }
-
-    override fun getOutputCoder(): Coder<Trade> {
-        return ProtoCoder.of(Trade::class.java)
-    }
-
-    override fun requiresDeduping(): Boolean {
-        return true
+    override fun createReader(options: PipelineOptions, checkpointMark: TradeCheckpointMark?): ExchangeClientUnboundedReader {
+        LOG.info("Creating ExchangeClientUnboundedReader using factory. Checkpoint: {}", checkpointMark)
+        // Call the factory to create the reader, passing @Assisted parameters
+        return readerFactory.create(
+            this,
+            options,
+            checkpointMark ?: TradeCheckpointMark.INITIAL
+        )
     }
 }
