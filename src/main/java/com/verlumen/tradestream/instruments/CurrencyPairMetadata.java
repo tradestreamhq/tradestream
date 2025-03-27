@@ -1,7 +1,5 @@
 package com.verlumen.tradestream.instruments;
 
-import com.verlumen.tradestream.instruments.CurrencyPair;
-
 import java.math.BigDecimal;
 
 /**
