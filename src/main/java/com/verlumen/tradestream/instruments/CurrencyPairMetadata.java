@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.ingestion;
+package com.verlumen.tradestream.instruments;
 
 import com.verlumen.tradestream.instruments.CurrencyPair;
 
