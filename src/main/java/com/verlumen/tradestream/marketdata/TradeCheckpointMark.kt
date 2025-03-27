@@ -1,4 +1,4 @@
-package com.tradestream.beam.source
+package com.verlumen.tradestream.marketdata
 
 import org.apache.beam.sdk.io.UnboundedSource
 import org.joda.time.Instant
