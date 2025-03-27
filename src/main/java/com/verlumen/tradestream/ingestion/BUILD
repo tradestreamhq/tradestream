@@ -64,7 +64,6 @@ java_library(
         ":currency_pair_metadata",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:guava",
-        "//third_party:auto_value",
     ],
 )
 
