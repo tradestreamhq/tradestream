@@ -25,9 +25,9 @@ java_test(
     srcs = ["CoinbaseStreamingClientTest.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/ingestion:coinbase_streaming_client",
-        "//src/main/java/com/verlumen/tradestream/ingestion:exchange_streaming_client",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/marketdata:coinbase_streaming_client",
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
         "//third_party:gson",
         "//third_party:guava",
         "//third_party:guice",
