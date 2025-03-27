@@ -12,6 +12,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.marketdata.ExchangeStreamingClient;
 import com.verlumen.tradestream.marketdata.TradePublisher;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
