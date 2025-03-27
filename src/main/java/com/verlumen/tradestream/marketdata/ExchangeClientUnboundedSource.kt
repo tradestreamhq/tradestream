@@ -1,3 +1,4 @@
+# src/main/java/com/verlumen/tradestream/marketdata/ExchangeClientUnboundedSource.kt
 package com.verlumen.tradestream.marketdata
 
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
@@ -5,21 +6,22 @@ import org.apache.beam.sdk.io.UnboundedSource
 import org.apache.beam.sdk.options.PipelineOptions
 import java.io.IOException
 import java.io.Serializable
+import javax.annotation.Nullable
 
 /**
  * Abstract base class for exchange client unbounded source that provides trades
  * from streaming exchange APIs.
- * 
+ *
  * This serves as the base class for implementations that connect to specific exchanges
  * and provide data to Apache Beam pipelines as an unbounded source.
  */
-abstract class ExchangeClientUnboundedSource : 
+abstract class ExchangeClientUnboundedSource :
     UnboundedSource<Trade, TradeCheckpointMark>(), Serializable {
-    
+
     companion object {
         private const val serialVersionUID = 7L
     }
-    
+
     /**
      * Splits this source into multiple sources for parallel processing.
      * Most exchange API implementations will not support true splitting,
@@ -30,21 +32,30 @@ abstract class ExchangeClientUnboundedSource :
         // Default implementation: no splitting
         return listOf(this)
     }
-    
+
     /**
      * Creates a new reader to read from this source with the specified checkpoint.
-     * 
-     * Note: Using deprecated version without PipelineOptions since we don't need it.
-     * 
+     * This is the required method signature by the Beam SDK.
+     *
+     * @param options Pipeline options
      * @param checkpointMark Last checkpoint mark or null if starting fresh
      * @return A new reader for this source
      */
     @Throws(IOException::class)
-    @Deprecated("Marked as deprecated to match Beam's API, but this is the version we're using")
-    override fun createReader(checkpointMark: TradeCheckpointMark?): UnboundedSource.UnboundedReader<Trade>
-    
+    abstract override fun createReader(options: PipelineOptions, @Nullable checkpointMark: TradeCheckpointMark?): UnboundedSource.UnboundedReader<Trade>
+
     /**
      * Gets the expected output coder for Trade objects.
      */
     override fun getOutputCoder() = org.apache.beam.sdk.extensions.protobuf.ProtoCoder.of(Trade::class.java)
+
+    /**
+     * Deprecated createReader method without PipelineOptions.
+     * Implementations should primarily rely on the version with PipelineOptions.
+     * We declare it abstract here to satisfy the compiler as the base class might still
+     * have this signature depending on the exact Beam version and how it's invoked internally.
+     */
+    @Throws(IOException::class)
+    @Deprecated("Use createReader(PipelineOptions, TradeCheckpointMark) instead.")
+    abstract override fun createReader(@Nullable checkpointMark: TradeCheckpointMark?): UnboundedSource.UnboundedReader<Trade>
 }
