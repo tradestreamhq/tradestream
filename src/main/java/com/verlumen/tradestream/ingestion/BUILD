@@ -114,11 +114,8 @@ java_library(
     name = "ingestion_module",
     srcs = ["IngestionModule.java"],
     deps = [
-        ":coin_market_cap_config",
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
-        ":exchange_streaming_client",
-        ":exchange_streaming_client_factory",
         ":ingestion_config",
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
