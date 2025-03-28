@@ -4,6 +4,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.instruments.InstrumentsModule;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -59,14 +60,15 @@ final class App {
       RunMode runMode = RunMode.valueOf(runModeName);
       IngestionConfig ingestionConfig =
           new IngestionConfig(
-              coinMarketCapApiKey,
-              topNCryptocurrencies,
               exchangeName,
               runMode,
               namespace.getString("kafka.bootstrap.servers"),
               namespace.getString("tradeTopic"));
       IngestionModule module = IngestionModule.create(ingestionConfig);
-      App app = Guice.createInjector(module).getInstance(App.class);
+      InstrumentsModule instrumentsModule = InstrumentsModule.create(
+          coinMarketCapApiKey, topNCryptocurrencies);
+      App app = Guice.createInjector(
+        module, instrumentsModule).getInstance(App.class);
       logger.atInfo().log("Guice initialization complete, running application");
       app.run();
     } catch (Exception e) {

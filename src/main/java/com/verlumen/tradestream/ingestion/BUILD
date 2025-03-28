@@ -16,6 +16,7 @@ java_binary(
         ":real_time_data_ingestion",
         ":real_time_data_ingestion_impl",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/instruments:instruments_module",
         "//third_party:argparse4j",
         "//third_party:flogger",
         "//third_party:guice",
