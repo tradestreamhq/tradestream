@@ -1,13 +1,13 @@
 package com.verlumen.tradestream.marketdata
 
 import com.google.common.base.Preconditions.checkArgument
+import com.google.inject.Inject;
 import com.verlumen.tradestream.ingestion.CurrencyPairSupply
 import org.apache.beam.sdk.io.UnboundedSource
 import org.apache.beam.sdk.options.PipelineOptions
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.util.Collections
-import javax.inject.Inject
 
 /**
  * A concrete implementation of ExchangeClientUnboundedSource configured to read Trade objects.
