@@ -59,7 +59,7 @@ kt_jvm_library(
     ":exchange_client_unbounded_source",
     ":trade_checkpoint_mark",
     "//protos:marketdata_java_proto",
-    "//src/main/com/verlumen/tradestream/instruments:currency_pair_supply",
+    "//src/main/java/com/verlumen/tradestream/instruments:currency_pair_supply",
     "//third_party:beam_sdks_java_core",
     "//third_party:beam_sdks_java_extensions_protobuf",
   ],
