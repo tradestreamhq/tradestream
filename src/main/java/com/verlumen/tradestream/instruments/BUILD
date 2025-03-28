@@ -74,6 +74,7 @@ java_library(
     srcs = ["InstrumentsModule.java"],
     deps = [
         ":coin_market_cap_config",
+        "//third_party:auto_value",
         "//third_party:guice",
     ],
 )
