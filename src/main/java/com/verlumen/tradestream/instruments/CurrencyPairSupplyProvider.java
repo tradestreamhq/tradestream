@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.ingestion;
+package com.verlumen.tradestream.instruments;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
@@ -85,7 +85,7 @@ final class CurrencyPairSupplyProvider implements Provider<CurrencyPairSupply> {
                 listBuilder.add(metadata);
             });
 
-            return CurrencyPairSupply.create(listBuilder.build());
+            return CurrencyPairSupplyImpl.create(listBuilder.build());
         } catch (IOException e) {
             // Handle exceptions
             throw new RuntimeException("Failed to fetch currency data", e);

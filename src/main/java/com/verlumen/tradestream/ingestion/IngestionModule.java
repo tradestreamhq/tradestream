@@ -18,18 +18,11 @@ abstract class IngestionModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
     bind(RealTimeDataIngestion.class).to(RealTimeDataIngestionImpl.class);
 
     install(HttpModule.create());
     install(KafkaModule.create(ingestionConfig().kafkaBootstrapServers()));
     install(MarketDataModule.create(ingestionConfig().exchangeName(), ingestionConfig().tradeTopic()));
-  }
-
-  @Provides
-  CoinMarketCapConfig provideCoinMarketCapConfig() {
-    return CoinMarketCapConfig.create(
-        ingestionConfig().topCryptocurrencyCount(), ingestionConfig().coinMarketCapApiKey());
   }
 
   @Provides

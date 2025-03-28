@@ -1,6 +1,4 @@
-package com.verlumen.tradestream.ingestion;
-
-import com.verlumen.tradestream.instruments.CurrencyPair;
+package com.verlumen.tradestream.instruments;
 
 import java.math.BigDecimal;
 
