@@ -27,12 +27,6 @@ abstract class IngestionModule extends AbstractModule {
   }
 
   @Provides
-  CoinMarketCapConfig provideCoinMarketCapConfig() {
-    return CoinMarketCapConfig.create(
-        ingestionConfig().topCryptocurrencyCount(), ingestionConfig().coinMarketCapApiKey());
-  }
-
-  @Provides
   RunMode provideRunMode() {
     return ingestionConfig().runMode();
   }
