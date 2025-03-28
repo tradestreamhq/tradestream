@@ -48,6 +48,7 @@ java_library(
     srcs = ["CurrencyPairSupplyImpl.java"],
     deps = [
         ":currency_pair_metadata",
+        ":currency_pair_supply",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:guava",
     ],
