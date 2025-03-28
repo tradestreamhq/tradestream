@@ -18,7 +18,6 @@ abstract class IngestionModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
     bind(RealTimeDataIngestion.class).to(RealTimeDataIngestionImpl.class);
 
     install(HttpModule.create());
