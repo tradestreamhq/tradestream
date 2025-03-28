@@ -72,5 +72,8 @@ java_library(
 java_library(
     name = "Instruments_module",
     srcs = ["InstrumentsModule.java"],
-    deps = [],
+    deps = [
+        ":coin_market_cap_config",
+        "//third_party:guice",
+    ],
 )
