@@ -47,14 +47,4 @@ abstract class ExchangeClientUnboundedSource :
      * Gets the expected output coder for Trade objects.
      */
     override fun getOutputCoder() = org.apache.beam.sdk.extensions.protobuf.ProtoCoder.of(Trade::class.java)
-
-    /**
-     * Deprecated createReader method without PipelineOptions.
-     * Implementations should primarily rely on the version with PipelineOptions.
-     * We declare it abstract here to satisfy the compiler as the base class might still
-     * have this signature depending on the exact Beam version and how it's invoked internally.
-     */
-    @Throws(IOException::class)
-    @Deprecated("Use createReader(PipelineOptions, TradeCheckpointMark) instead.")
-    abstract override fun createReader(@Nullable checkpointMark: TradeCheckpointMark?): UnboundedSource.UnboundedReader<Trade>
 }
