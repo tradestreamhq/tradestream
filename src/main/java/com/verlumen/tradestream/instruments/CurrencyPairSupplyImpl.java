@@ -11,7 +11,7 @@ record CurrencyPairSupplyImpl(ImmutableList<CurrencyPairMetadata> metadataList)
   }
 
   @Override
-  ImmutableList<CurrencyPair> get() {
+  public ImmutableList<CurrencyPair> get() {
     return metadataList()
       .stream()
       .map(CurrencyPairMetadata::currencyPair)
