@@ -68,3 +68,9 @@ java_library(
         "//third_party:guice",
     ],
 )
+
+java_library(
+    name = "Instruments_module",
+    srcs = ["InstrumentsModule.java"],
+    deps = [],
+)
