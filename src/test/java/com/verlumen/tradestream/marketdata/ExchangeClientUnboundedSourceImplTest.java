@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
@@ -27,87 +28,35 @@ import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.joda.time.Instant;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * Unit tests for {@link ExchangeClientUnboundedSourceImpl}.
  */
 @RunWith(JUnit4.class)
 public class ExchangeClientUnboundedSourceImplTest {
-  /**
-   * A fake implementation of ExchangeStreamingClient for testing.
-   */
-  static class FakeExchangeStreamingClient implements ExchangeStreamingClient {
-    private Consumer<Trade> tradeCallback;
-    private final LinkedBlockingQueue<Trade> queuedTrades = new LinkedBlockingQueue<>();
-    private boolean isStreaming = false;
-    private ImmutableList<CurrencyPair> subscribedPairs;
 
-    @Override
-    public void startStreaming(ImmutableList<CurrencyPair> currencyPairs, Consumer<Trade> callback) {
-      this.subscribedPairs = currencyPairs;
-      this.tradeCallback = callback;
-      this.isStreaming = true;
-      
-      // Process any queued trades
-      List<Trade> tradesToProcess = new ArrayList<>();
-      queuedTrades.drainTo(tradesToProcess);
-      for (Trade trade : tradesToProcess) {
-        callback.accept(trade);
-      }
-    }
-
-    @Override
-    public void stopStreaming() {
-      this.isStreaming = false;
-    }
-    
-    @Override
-    public ImmutableList<CurrencyPair> supportedCurrencyPairs() {
-      return subscribedPairs != null ? subscribedPairs : ImmutableList.of();
-    }
-    
-    @Override
-    public String getExchangeName() {
-      return "FakeExchange";
-    }
-
-    public void queueTrade(Trade trade) {
-      if (isStreaming && tradeCallback != null) {
-        tradeCallback.accept(trade);
-      } else {
-        queuedTrades.add(trade);
-      }
-    }
-
-    public Trade createTrade(String id, Instant timestamp) {
-      Timestamp protoTimestamp = Timestamps.fromMillis(timestamp.getMillis());
-      
-      return Trade.newBuilder()
-          .setTradeId(id)
-          .setPrice(1000.0)
-          // Use volume instead of quantity
-          .setVolume(1.0)
-          .setTimestamp(protoTimestamp)
-          .build();
-    }
-  }
-
-  // Our fake client instance
-  private FakeExchangeStreamingClient fakeClient;
-  
   // We still need to mock the currency pair supply
   @Mock
   private CurrencyPairSupply mockCurrencyPairSupply;
+  
+  // Mockito rule to initialize mocks
+  @Rule
+  public MockitoRule mockitoRule = MockitoJUnit.rule();
   
   // Test currency pairs
   private final ImmutableList<CurrencyPair> TEST_PAIRS = ImmutableList.of(
       CurrencyPair.fromSymbol("BTC/USD")
   );
+  
+  // Our fake client instance
+  private FakeExchangeStreamingClient fakeClient;
   
   // Instance under test
   private ExchangeClientUnboundedSourceImpl source;
@@ -115,8 +64,6 @@ public class ExchangeClientUnboundedSourceImplTest {
 
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
-    
     // Configure mock
     when(mockCurrencyPairSupply.currencyPairs()).thenReturn(TEST_PAIRS);
     
@@ -140,15 +87,8 @@ public class ExchangeClientUnboundedSourceImplTest {
       }
     });
 
-    // Create the reader factory from our injector
-    ExchangeClientUnboundedReader.Factory readerFactory = 
-        injector.getInstance(ExchangeClientUnboundedReader.Factory.class);
-    
-    // Create the source instance
-    source = new ExchangeClientUnboundedSourceImpl(
-        readerFactory,
-        currencyPairSupplyProvider
-    );
+    // Use Guice to inject dependencies
+    source = injector.getInstance(ExchangeClientUnboundedSourceImpl.class);
 
     // Create default pipeline options
     pipelineOptions = PipelineOptionsFactory.create();
@@ -258,5 +198,64 @@ public class ExchangeClientUnboundedSourceImplTest {
     // Assert
     // ProtoCoder actually returns Message.class as raw type since Trade is a Protocol Buffer
     assertThat(coder).isInstanceOf(ProtoCoder.class);
+  }
+
+  /**
+   * A fake implementation of ExchangeStreamingClient for testing.
+   */
+  static class FakeExchangeStreamingClient implements ExchangeStreamingClient {
+    private Consumer<Trade> tradeCallback;
+    private final LinkedBlockingQueue<Trade> queuedTrades = new LinkedBlockingQueue<>();
+    private boolean isStreaming = false;
+    private ImmutableList<CurrencyPair> subscribedPairs;
+
+    @Override
+    public void startStreaming(ImmutableList<CurrencyPair> currencyPairs, Consumer<Trade> callback) {
+      this.subscribedPairs = currencyPairs;
+      this.tradeCallback = callback;
+      this.isStreaming = true;
+      
+      // Process any queued trades
+      List<Trade> tradesToProcess = new ArrayList<>();
+      queuedTrades.drainTo(tradesToProcess);
+      for (Trade trade : tradesToProcess) {
+        callback.accept(trade);
+      }
+    }
+
+    @Override
+    public void stopStreaming() {
+      this.isStreaming = false;
+    }
+    
+    @Override
+    public ImmutableList<CurrencyPair> supportedCurrencyPairs() {
+      return subscribedPairs != null ? subscribedPairs : ImmutableList.of();
+    }
+    
+    @Override
+    public String getExchangeName() {
+      return "FakeExchange";
+    }
+
+    public void queueTrade(Trade trade) {
+      if (isStreaming && tradeCallback != null) {
+        tradeCallback.accept(trade);
+      } else {
+        queuedTrades.add(trade);
+      }
+    }
+
+    public Trade createTrade(String id, Instant timestamp) {
+      Timestamp protoTimestamp = Timestamps.fromMillis(timestamp.getMillis());
+      
+      return Trade.newBuilder()
+          .setTradeId(id)
+          .setPrice(1000.0)
+          // Use volume instead of quantity
+          .setVolume(1.0)
+          .setTimestamp(protoTimestamp)
+          .build();
+    }
   }
 }
