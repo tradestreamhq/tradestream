@@ -169,25 +169,16 @@ public class ExchangeClientUnboundedSourceImplTest {
   // --- getOutputCoder() Tests ---
 
   @Test
-  public void getOutputCoder_returnsProtoCoder() {
+  public void getOutputCoder_returnsProtoCoderInstanceForTrade() {
+    // Arrange
+    Coder<Trade> expectedCoder = ProtoCoder.of(Trade.class);
+
     // Act
-    Coder<Trade> coder = source.getOutputCoder();
+    Coder<Trade> actualCoder = source.getOutputCoder();
 
     // Assert
-    assertThat(coder).isInstanceOf(ProtoCoder.class);
-    // Additional check to verify it's for Trade class
-    ProtoCoder<?> protoCoder = (ProtoCoder<?>) coder;
-    assertThat(protoCoder.toString()).contains("Trade");
-  }
-
-  @Test
-  public void getOutputCoder_returnsCoderForTrade() {
-    // Act
-    Coder<Trade> coder = source.getOutputCoder();
-
-    // Assert
-    // ProtoCoder actually returns Message.class as raw type since Trade is a Protocol Buffer
-    assertThat(coder).isInstanceOf(ProtoCoder.class);
+    assertThat(actualCoder).isInstanceOf(ProtoCoder.class); // Keep this check
+    assertThat(actualCoder).isEqualTo(expectedCoder);      // Compare with expected coder instance
   }
 
   /**
