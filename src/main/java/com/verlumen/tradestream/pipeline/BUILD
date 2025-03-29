@@ -102,7 +102,6 @@ java_library(
     deps = [
         ":pipeline_config",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
-        "//src/main/java/com/verlumen/tradestream/execution:execution_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
         "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source",

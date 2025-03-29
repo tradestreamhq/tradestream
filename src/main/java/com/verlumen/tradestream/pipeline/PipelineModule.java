@@ -6,7 +6,6 @@ import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
-import com.verlumen.tradestream.execution.ExecutionModule;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.marketdata.DryRunExchangeClientUnboundedSource;
 import com.verlumen.tradestream.marketdata.ExchangeClientUnboundedSource;
@@ -27,8 +26,6 @@ abstract class PipelineModule extends AbstractModule {
   @Override
   protected void configure() {
       install(BacktestingModule.create());
-      install(ExecutionModule.create(config().runMode()));
-      // Install MarketDataModule - provides dependencies for ExchangeClientUnboundedSourceImpl
       install(MarketDataModule.create("coinbase", config().tradeTopic()));
       install(SignalsModule.create(config().signalTopic()));
       install(StrategiesModule.create());
