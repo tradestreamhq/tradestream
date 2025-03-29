@@ -192,11 +192,11 @@ PCollection<Trade> trades = pipeline.apply("ReadFromExchange", Read.from(exchang
   }
 
   private static String getCmcApiKey(Options options) {
-      if (isNullOrEmpty(options.getCmcApiKey())) {
+      if (isNullOrEmpty(options.getCoinMarketCapApiKey())) {
            return System.getenv().getOrDefault(CMC_API_KEY_ENV_VAR, DEFAULT_API_KEY);
       } 
 
-      return options.getCmcApiKey();
+      return options.getCoinMarketCapApiKey();
   }
 
   public static void main(String[] args) throws Exception {
