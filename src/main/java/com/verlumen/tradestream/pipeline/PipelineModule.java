@@ -50,3 +50,7 @@ abstract class PipelineModule extends AbstractModule {
   }
 
   @Provides
+  PipelineConfig providePipelineConfig() {
+    return config();
+  }
+}
