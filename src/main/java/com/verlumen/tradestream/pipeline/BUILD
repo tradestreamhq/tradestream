@@ -89,6 +89,7 @@ java_library(
     name = "pipeline_config",
     srcs = ["PipelineConfig.java"],
     deps = [
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:joda_time",
     ],
 )
