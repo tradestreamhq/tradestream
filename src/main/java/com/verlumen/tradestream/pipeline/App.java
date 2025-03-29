@@ -44,12 +44,6 @@ public final class App {
 
     void setBootstrapServers(String value);
 
-    @Description("Kafka topic to read trade data from.")
-    @Default.String("trades")
-    String getTradeTopic();
-
-    void setTradeTopic(String value);
-
     @Description("Kafka topic to publish signal data to.")
     @Default.String("signals")
     String getSignalTopic();
@@ -210,7 +204,6 @@ public final class App {
     PipelineConfig config =
         PipelineConfig.create(
             options.getBootstrapServers(),
-            options.getTradeTopic(),
             options.getSignalTopic(),
             options.getRunMode());
     logger.atInfo().log("Created PipelineConfig: %s", config);
