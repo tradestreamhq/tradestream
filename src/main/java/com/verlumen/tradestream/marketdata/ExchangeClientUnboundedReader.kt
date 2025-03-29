@@ -5,9 +5,9 @@ import com.google.common.base.Preconditions.checkState
 import com.google.common.collect.ImmutableList
 import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.util.Timestamps
-import com.verlumen.tradestream.ingestion.CurrencyPairSupply
-import com.verlumen.tradestream.ingestion.ExchangeStreamingClient
 import com.verlumen.tradestream.instruments.CurrencyPair
+import com.verlumen.tradestream.instruments.CurrencyPairSupply
+import com.verlumen.tradestream.marketdata.ExchangeStreamingClient
 import org.apache.beam.sdk.io.UnboundedSource
 import org.joda.time.Duration
 import org.joda.time.Instant
