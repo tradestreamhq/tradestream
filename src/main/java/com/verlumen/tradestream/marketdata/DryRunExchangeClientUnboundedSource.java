@@ -58,7 +58,6 @@ class DryRunExchangeClientUnboundedSource extends ExchangeClientUnboundedSource 
     @Override
     public UnboundedSource.UnboundedReader<Trade> createReader(
             PipelineOptions options, TradeCheckpointMark checkpointMark) throws IOException {
-        LOG.info("Creating DryRunExchangeClientUnboundedReader. Checkpoint: {}", checkpointMark);
         return new DryRunExchangeClientUnboundedReader(this, checkpointMark);
     }
 
