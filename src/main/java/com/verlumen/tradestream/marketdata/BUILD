@@ -7,9 +7,9 @@ java_library(
     name = "candle_stream_with_defaults",
     srcs = ["CandleStreamWithDefaults.java"],
     deps = [
-        ":sliding_candle_aggregator",
         ":default_trade_generator",
         ":last_candles_fn",
+        ":sliding_candle_aggregator",
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf",
@@ -18,7 +18,6 @@ java_library(
         "//third_party:protobuf_java",
     ],
 )
-
 
 java_library(
     name = "coinbase_streaming_client",
@@ -39,56 +38,56 @@ java_library(
     name = "default_trade_generator",
     srcs = ["DefaultTradeGenerator.java"],
     deps = [
-      "//protos:marketdata_java_proto",
-      "//third_party:beam_sdks_java_core",
-      "//third_party:beam_sdks_java_extensions_protobuf",
-      "//third_party:joda_time",
-      "//third_party:protobuf_java",
-      "//third_party:protobuf_java_util",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
     ],
 )
 
 kt_jvm_library(
-  name = "exchange_client_unbounded_reader",
-  srcs = ["ExchangeClientUnboundedReader.kt"],
-  deps = [
-    ":exchange_client_unbounded_source",
-    ":trade_checkpoint_mark",
-    "//protos:marketdata_java_proto",
-    "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-    "//src/main/java/com/verlumen/tradestream/instruments:currency_pair_supply",
-    "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
-    "//third_party:beam_sdks_java_core",
-    "//third_party:guava",
-    "//third_party:guice",
-    "//third_party:guice_assistedinject",
-    "//third_party:protobuf_java_util",
-  ],
+    name = "exchange_client_unbounded_reader",
+    srcs = ["ExchangeClientUnboundedReader.kt"],
+    deps = [
+        ":exchange_client_unbounded_source",
+        ":trade_checkpoint_mark",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair_supply",
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:protobuf_java_util",
+    ],
 )
 
 kt_jvm_library(
-  name = "exchange_client_unbounded_source",
-  srcs = ["ExchangeClientUnboundedSource.kt"],
-  deps = [
-    ":trade_checkpoint_mark",
-    "//protos:marketdata_java_proto",
-    "//third_party:beam_sdks_java_core",
-    "//third_party:beam_sdks_java_extensions_protobuf",
-  ],
+    name = "exchange_client_unbounded_source",
+    srcs = ["ExchangeClientUnboundedSource.kt"],
+    deps = [
+        ":trade_checkpoint_mark",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+    ],
 )
 
 kt_jvm_library(
-  name = "exchange_client_unbounded_source_impl",
-  srcs = ["ExchangeClientUnboundedSourceImpl.kt"],
-  deps = [
-    ":exchange_client_unbounded_reader",
-    ":exchange_client_unbounded_source",
-    ":trade_checkpoint_mark",
-    "//protos:marketdata_java_proto",
-    "//third_party:beam_sdks_java_core",
-    "//third_party:beam_sdks_java_extensions_protobuf",
-    "//third_party:guice",
-  ],
+    name = "exchange_client_unbounded_source_impl",
+    srcs = ["ExchangeClientUnboundedSourceImpl.kt"],
+    deps = [
+        ":exchange_client_unbounded_reader",
+        ":exchange_client_unbounded_source",
+        ":trade_checkpoint_mark",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:guice",
+    ],
 )
 
 java_library(
@@ -113,38 +112,38 @@ java_library(
 )
 
 java_library(
-  name = "last_candles_fn",
-  srcs = ["LastCandlesFn.java"],
-  deps = [
-    "//protos:marketdata_java_proto",
-    "//third_party:beam_sdks_java_core",
-    "//third_party:beam_sdks_java_extensions_protobuf",
-    "//third_party:flogger",
-    "//third_party:guava",
-  ],
+    name = "last_candles_fn",
+    srcs = ["LastCandlesFn.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:flogger",
+        "//third_party:guava",
+    ],
 )
 
 java_library(
-  name = "market_data_config",
-  srcs = ["MarketDataConfig.java"],
+    name = "market_data_config",
+    srcs = ["MarketDataConfig.java"],
 )
 
 java_library(
-  name = "market_data_module",
-  srcs = ["MarketDataModule.java"],
-  deps = [
-    "exchange_client_unbounded_reader",
-    "exchange_client_unbounded_source",
-    "exchange_client_unbounded_source_impl",
-    ":exchange_streaming_client",
-    ":exchange_streaming_client_factory",
-    ":market_data_config",
-    ":trade_publisher",
-    ":trade_publisher_impl",
-    "//third_party:auto_value",
-    "//third_party:guice",
-    "//third_party:guice_assistedinject",
-  ],
+    name = "market_data_module",
+    srcs = ["MarketDataModule.java"],
+    deps = [
+        ":exchange_client_unbounded_reader",
+        ":exchange_client_unbounded_source",
+        ":exchange_client_unbounded_source_impl",
+        ":exchange_streaming_client",
+        ":exchange_streaming_client_factory",
+        ":market_data_config",
+        ":trade_publisher",
+        ":trade_publisher_impl",
+        "//third_party:auto_value",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+    ],
 )
 
 java_library(
@@ -161,16 +160,16 @@ java_library(
 )
 
 java_library(
-  name = "parse_trades",
-  srcs = ["ParseTrades.java"],
-  deps = [
-    "//protos:marketdata_java_proto",
-    "//third_party:beam_sdks_java_core",
-    "//third_party:beam_sdks_java_extensions_protobuf",
-    "//third_party:flogger",
-    "//third_party:guice",
-    "//third_party:protobuf_java",
-  ],
+    name = "parse_trades",
+    srcs = ["ParseTrades.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:protobuf_java",
+    ],
 )
 
 java_library(
