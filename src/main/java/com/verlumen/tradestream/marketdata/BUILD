@@ -54,6 +54,7 @@ java_library(
         ":exchange_client_unbounded_reader",
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
+        "//third_party:guava",
         "//third_party:joda_time",
         "//third_party:protobuf_java_util",
     ],
