@@ -35,4 +35,12 @@ abstract class PipelineModule extends AbstractModule {
   PipelineConfig providePipelineConfig() {
     return config();
   }
+
+  private MarketDataModule marketDataModule() {
+    switch(config().runMode()) {
+      case DRY: return MarketDataModule.createDryRunModule();
+      case WET: return MarketDataModule.create(config().exchangeName());
+      default: throw new UnsupportedOperationException();
+    }    
+  }
 }
