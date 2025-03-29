@@ -17,7 +17,8 @@ import java.nio.charset.StandardCharsets
 import java.util.NoSuchElementException
 import java.util.concurrent.LinkedBlockingQueue
 
-class ExchangeClientUnboundedReader @Inject constructor(
+// Add the 'open' keyword to the class to make it mockable with Mockito
+open class ExchangeClientUnboundedReader @Inject constructor(
     private val exchangeClient: ExchangeStreamingClient,
     @Assisted private val source: ExchangeClientUnboundedSource,
     @Assisted private val currencyPairSupply: CurrencyPairSupply,
@@ -44,7 +45,8 @@ class ExchangeClientUnboundedReader @Inject constructor(
         LOG.info("ExchangeClientUnboundedReader created via factory. Checkpoint: {}", this.currentCheckpointMark)
     }
 
-    override fun start(): Boolean {
+    // Make methods open for mocking
+    override open fun start(): Boolean {
         LOG.info("Reader start() called with injected ExchangeStreamingClient: {}", exchangeClient.javaClass.name)
 
         val pairsToStream: ImmutableList<CurrencyPair>
@@ -90,7 +92,7 @@ class ExchangeClientUnboundedReader @Inject constructor(
         return advance()
     }
 
-    override fun advance(): Boolean {
+    override open fun advance(): Boolean {
         checkState(clientStreamingActive || incomingMessagesQueue.isNotEmpty(),
             "Cannot advance: Exchange client streaming not active and queue empty.")
 
@@ -119,17 +121,17 @@ class ExchangeClientUnboundedReader @Inject constructor(
         }
     }
 
-    override fun getCurrentTimestamp(): Instant {
+    override open fun getCurrentTimestamp(): Instant {
         checkState(currentTradeTimestamp != null, "Timestamp not available. advance() must return true first.")
         return currentTradeTimestamp!!
     }
 
-    override fun getCurrent(): Trade {
+    override open fun getCurrent(): Trade {
         checkState(currentTrade != null, "No current trade available. advance() must return true first.")
         return currentTrade!!
     }
 
-    override fun getCurrentRecordId(): ByteArray {
+    override open fun getCurrentRecordId(): ByteArray {
         checkState(currentTrade != null, "Cannot get record ID: No current trade.")
         val uniqueId = currentTrade!!.getTradeId()
         
@@ -138,7 +140,7 @@ class ExchangeClientUnboundedReader @Inject constructor(
         return uniqueId.toByteArray(StandardCharsets.UTF_8)
     }
 
-    override fun getWatermark(): Instant {
+    override open fun getWatermark(): Instant {
         val lastKnownTimestamp = currentCheckpointMark.lastProcessedTimestamp
         var potentialWatermark = lastKnownTimestamp
         val now = Instant.now()
@@ -152,7 +154,7 @@ class ExchangeClientUnboundedReader @Inject constructor(
         return potentialWatermark
     }
 
-    override fun getCheckpointMark(): TradeCheckpointMark {
+    override open fun getCheckpointMark(): TradeCheckpointMark {
         // Checkpoint based on the timestamp of the last successfully *processed* trade
         val checkpointTimestamp = currentTradeTimestamp 
             ?: currentCheckpointMark.lastProcessedTimestamp // Re-use last mark if no new trade advanced
@@ -163,11 +165,11 @@ class ExchangeClientUnboundedReader @Inject constructor(
         return this.currentCheckpointMark
     }
 
-    override fun getCurrentSource(): UnboundedSource<Trade, *> {
+    override open fun getCurrentSource(): UnboundedSource<Trade, *> {
         return source
     }
 
-    override fun close() {
+    override open fun close() {
         LOG.info("Closing ExchangeClient reader...")
         clientStreamingActive = false // Signal callback loops to stop processing
         try {
