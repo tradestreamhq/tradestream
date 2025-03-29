@@ -8,11 +8,10 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.protobuf.util.Timestamps;
-import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.CandleStreamWithDefaults;
+import com.verlumen.tradestream.marketdata.ExchangeClientUnboundedSource;
 import com.verlumen.tradestream.marketdata.MultiTimeframeCandleTransform;
-import com.verlumen.tradestream.marketdata.ParseTrades;
 import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.strategies.StrategyEnginePipeline;
 import java.util.Arrays;
@@ -23,8 +22,6 @@ import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.StreamingOptions;
 import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.transforms.DoFn.ProcessContext;
-import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.WithTimestamps;
@@ -69,21 +66,18 @@ public final class App {
   private final Duration allowedLateness;
   private final Duration allowedTimestampSkew;
   private final Duration windowDuration;
-  private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
-  private final ParseTrades parseTrades;
+  private final ExchangeClientUnboundedSource exchangeClientUnboundedSource;
   private final StrategyEnginePipeline strategyEnginePipeline;
 
   @Inject
   App(
-      KafkaReadTransform<String, byte[]> kafkaReadTransform,
-      ParseTrades parseTrades,
+      ExchangeClientUnboundedSource exchangeClientUnboundedSource,
       StrategyEnginePipeline strategyEnginePipeline,
       PipelineConfig config) {
     this.allowedLateness = config.allowedLateness();
     this.allowedTimestampSkew = config.allowedTimestampSkew();
     this.windowDuration = config.windowDuration();
-    this.kafkaReadTransform = kafkaReadTransform;
-    this.parseTrades = parseTrades;
+    this.exchangeClientUnboundedSource = exchangeClientUnboundedSource;
     this.strategyEnginePipeline = strategyEnginePipeline;
     logger.atInfo().log(
         "Initialized App with allowedLateness=%s, windowDuration=%s, allowedTimestampSkew=%s",
@@ -94,11 +88,9 @@ public final class App {
   private Pipeline buildPipeline(Pipeline pipeline) {
     logger.atInfo().log("Starting to build the pipeline.");
 
-    // 1. Read from Kafka.
-    PCollection<byte[]> input = pipeline.apply("ReadFromKafka", kafkaReadTransform);
-
-    // 2. Parse the byte stream into Trade objects.
-    PCollection<Trade> trades = input.apply("ParseTrades", parseTrades);
+    // 1. Read from the exchange using the Unbounded Source.
+    // The source directly produces Trade objects.
+    PCollection<Trade> trades = pipeline.apply("ReadFromExchange", exchangeClientUnboundedSource);
 
     // 3. Assign event timestamps from the Trade's own timestamp.
     PCollection<Trade> tradesWithTimestamps =
