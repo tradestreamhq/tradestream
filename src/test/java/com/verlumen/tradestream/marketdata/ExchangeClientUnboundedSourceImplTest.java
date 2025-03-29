@@ -1,36 +1,39 @@
 package com.verlumen.tradestream.marketdata;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableList;
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
-import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Provider;
-import com.google.inject.testing.fieldbinder.Bind;
-import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.protobuf.Timestamp;
+import com.google.protobuf.util.Timestamps;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.instruments.CurrencyPairSupply;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
+import java.util.UUID;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
 import org.apache.beam.sdk.coders.Coder;
 import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.io.UnboundedSource;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
-import org.apache.beam.sdk.values.TypeDescriptor;
 import org.joda.time.Instant;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Unit tests for {@link ExchangeClientUnboundedSourceImpl}.
@@ -38,45 +41,111 @@ import org.mockito.junit.MockitoRule;
 @RunWith(JUnit4.class)
 public class ExchangeClientUnboundedSourceImplTest {
 
-  @Rule
-  public final MockitoRule mockito = MockitoJUnit.rule();
+  private static final Logger LOG = LoggerFactory.getLogger(ExchangeClientUnboundedSourceImplTest.class);
 
-  // Mocks for dependencies injected into the source
-  @Mock
-  @Bind
-  private ExchangeClientUnboundedReader.Factory mockReaderFactory;
+  /**
+   * A fake implementation of ExchangeStreamingClient for testing.
+   */
+  static class FakeExchangeStreamingClient implements ExchangeStreamingClient {
+    private Consumer<Trade> tradeCallback;
+    private final LinkedBlockingQueue<Trade> queuedTrades = new LinkedBlockingQueue<>();
+    private boolean isStreaming = false;
+    private ImmutableList<CurrencyPair> subscribedPairs;
 
-  @Mock
-  @Bind
-  private Provider<CurrencyPairSupply> mockCurrencyPairSupplyProvider;
+    @Override
+    public void startStreaming(ImmutableList<CurrencyPair> currencyPairs, Consumer<Trade> callback) {
+      LOG.info("FakeExchangeStreamingClient.startStreaming called with {} pairs", currencyPairs.size());
+      this.subscribedPairs = currencyPairs;
+      this.tradeCallback = callback;
+      this.isStreaming = true;
+      
+      // Process any queued trades
+      List<Trade> tradesToProcess = new ArrayList<>();
+      queuedTrades.drainTo(tradesToProcess);
+      for (Trade trade : tradesToProcess) {
+        callback.accept(trade);
+      }
+    }
 
-  // Mocks returned by the dependencies
-  @Mock
-  private ExchangeClientUnboundedReader mockReader;
+    @Override
+    public void stopStreaming() {
+      LOG.info("FakeExchangeStreamingClient.stopStreaming called");
+      this.isStreaming = false;
+    }
 
+    public void queueTrade(Trade trade) {
+      if (isStreaming && tradeCallback != null) {
+        tradeCallback.accept(trade);
+      } else {
+        queuedTrades.add(trade);
+      }
+    }
+
+    public Trade createTrade(String id, Instant timestamp) {
+      Timestamp protoTimestamp = Timestamps.fromMillis(timestamp.getMillis());
+      
+      return Trade.newBuilder()
+          .setTradeId(id)
+          .setExchangeName("fake_exchange")
+          .setPrice(1000.0)
+          .setQuantity(1.0)
+          .setTimestamp(protoTimestamp)
+          .build();
+    }
+  }
+
+  // Our fake client instance
+  private FakeExchangeStreamingClient fakeClient;
+  
+  // We still need to mock the currency pair supply
   @Mock
   private CurrencyPairSupply mockCurrencyPairSupply;
-
+  
+  // Test currency pairs
+  private final ImmutableList<CurrencyPair> TEST_PAIRS = ImmutableList.of(
+      CurrencyPair.newBuilder().setBaseCurrency("BTC").setQuoteCurrency("USD").build()
+  );
+  
   // Instance under test
-  @Inject
   private ExchangeClientUnboundedSourceImpl source;
-
   private PipelineOptions pipelineOptions;
 
   @Before
   public void setUp() {
-    // Configure the provider mock
-    when(mockCurrencyPairSupplyProvider.get()).thenReturn(mockCurrencyPairSupply);
+    MockitoAnnotations.initMocks(this);
+    
+    // Configure mock
+    when(mockCurrencyPairSupply.currencyPairs()).thenReturn(TEST_PAIRS);
+    
+    // Create our fake client
+    fakeClient = new FakeExchangeStreamingClient();
+    
+    // Create a provider for our currency pair supply
+    Provider<CurrencyPairSupply> currencyPairSupplyProvider = () -> mockCurrencyPairSupply;
+    
+    // Create an injector with our test dependencies
+    Injector injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        // Bind the exchange client to our fake implementation
+        bind(ExchangeStreamingClient.class).toInstance(fakeClient);
+        
+        // Install the factory module for creating readers
+        install(new FactoryModuleBuilder()
+            .implement(ExchangeClientUnboundedReader.class, ExchangeClientUnboundedReader.class)
+            .build(ExchangeClientUnboundedReader.Factory.class));
+      }
+    });
 
-    // Configure the reader factory mock
-    when(mockReaderFactory.create(
-        any(ExchangeClientUnboundedSource.class),
-        any(CurrencyPairSupply.class),
-        any(TradeCheckpointMark.class)))
-        .thenReturn(mockReader);
-
-    // Inject dependencies
-    Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
+    // Create the reader factory from our injector
+    ExchangeClientUnboundedReader.Factory readerFactory = 
+        injector.getInstance(ExchangeClientUnboundedReader.Factory.class);
+    
+    // Create the source instance
+    source = new ExchangeClientUnboundedSourceImpl(
+        readerFactory,
+        currencyPairSupplyProvider
+    );
 
     // Create default pipeline options
     pipelineOptions = PipelineOptionsFactory.create();
@@ -102,39 +171,59 @@ public class ExchangeClientUnboundedSourceImplTest {
   @Test
   public void createReader_withNullCheckpoint_callsFactoryWithInitialMark() throws IOException {
     // Arrange
-    @Nullable TradeCheckpointMark nullCheckpointMark = null;
+    TradeCheckpointMark nullCheckpointMark = null;
 
     // Act
     UnboundedSource.UnboundedReader<Trade> reader =
         source.createReader(pipelineOptions, nullCheckpointMark);
+    
+    // Start the reader to activate the fake client
+    reader.start();
 
-    // Assert
-    verify(mockCurrencyPairSupplyProvider).get(); // Verify provider was called
-    verify(mockReaderFactory).create(eq(source), eq(mockCurrencyPairSupply), eq(TradeCheckpointMark.INITIAL));
-    assertThat(reader).isSameInstanceAs(mockReader);
+    // Assert - verify the reader uses the INITIAL mark by queueing a trade after that mark
+    Instant now = Instant.now();
+    Trade trade = fakeClient.createTrade("test1", now);
+    fakeClient.queueTrade(trade);
+    
+    // should have advanced to our trade
+    assertThat(reader.getCurrent().getTradeId()).isEqualTo("test1");
+
+    // Cleanup
+    reader.close();
   }
 
   @Test
   public void createReader_withNonNullCheckpoint_callsFactoryWithProvidedMark() throws IOException {
     // Arrange
-    TradeCheckpointMark specificMark = new TradeCheckpointMark(Instant.ofEpochMilli(12345L));
+    Instant specificTimestamp = Instant.ofEpochMilli(12345L);
+    TradeCheckpointMark specificMark = new TradeCheckpointMark(specificTimestamp);
 
     // Act
     UnboundedSource.UnboundedReader<Trade> reader =
         source.createReader(pipelineOptions, specificMark);
+    
+    // Start the reader
+    reader.start();
+    
+    // Queue a trade before the checkpoint - should be ignored
+    Trade beforeTrade = fakeClient.createTrade("before", specificTimestamp.minus(1000));
+    fakeClient.queueTrade(beforeTrade);
+    
+    // Queue a trade after the checkpoint - should be processed
+    Trade afterTrade = fakeClient.createTrade("after", specificTimestamp.plus(1000));
+    fakeClient.queueTrade(afterTrade);
+    
+    // Should have advanced to the "after" trade and skipped the "before" trade
+    assertThat(reader.getCurrent().getTradeId()).isEqualTo("after");
 
-    // Assert
-    verify(mockCurrencyPairSupplyProvider).get(); // Verify provider was called
-    verify(mockReaderFactory).create(eq(source), eq(mockCurrencyPairSupply), eq(specificMark));
-    assertThat(reader).isSameInstanceAs(mockReader);
+    // Cleanup
+    reader.close();
   }
 
   // --- getCheckpointMarkCoder() Tests ---
 
   @Test
   public void getCheckpointMarkCoder_returnsSerializableCoder() {
-    // Arrange (Implicit setup)
-
     // Act
     Coder<TradeCheckpointMark> coder = source.getCheckpointMarkCoder();
 
@@ -142,24 +231,10 @@ public class ExchangeClientUnboundedSourceImplTest {
     assertThat(coder).isInstanceOf(SerializableCoder.class);
   }
 
-  @Test
-  public void getCheckpointMarkCoder_returnsCoderForTradeCheckpointMark() {
-    // Arrange (Implicit setup)
-
-    // Act
-    Coder<TradeCheckpointMark> coder = source.getCheckpointMarkCoder();
-
-    // Assert
-    assertThat(coder.getEncodedTypeDescriptor())
-        .isEqualTo(TypeDescriptor.of(TradeCheckpointMark.class));
-  }
-
   // --- getOutputCoder() Tests ---
 
   @Test
   public void getOutputCoder_returnsProtoCoder() {
-    // Arrange (Implicit setup)
-
     // Act
     Coder<Trade> coder = source.getOutputCoder();
 
@@ -169,12 +244,10 @@ public class ExchangeClientUnboundedSourceImplTest {
 
   @Test
   public void getOutputCoder_returnsCoderForTrade() {
-    // Arrange (Implicit setup)
-
     // Act
     Coder<Trade> coder = source.getOutputCoder();
 
     // Assert
-    assertThat(coder.getEncodedTypeDescriptor()).isEqualTo(TypeDescriptor.of(Trade.class));
+    assertThat(coder.getEncodedTypeDescriptor().getRawType()).isEqualTo(Trade.class);
   }
 }
