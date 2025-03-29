@@ -260,3 +260,13 @@ java_library(
         "//third_party:beam_sdks_java_core",
     ],
 )
+
+java_library(
+    name = "trade_source_impl",
+    srcs = ["TradeSourceImpl.java"],
+    deps = [
+        ":trade_source",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+    ],
+)
