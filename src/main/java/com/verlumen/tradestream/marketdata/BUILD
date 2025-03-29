@@ -270,5 +270,6 @@ java_library(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
         "//third_party:beam_sdks_java_core",
+        "//third_party:guice",
     ],
 )
