@@ -19,7 +19,7 @@ public abstract class MarketDataModule extends AbstractModule {
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
 
     install(new FactoryModuleBuilder()
-            .implement(ExchangeClientUnboundedReader.class, ExchangeClientUnboundedReader.class)
+            .implement(ExchangeClientUnboundedReader.class, ExchangeClientUnboundedReaderImpl.class)
             .build(ExchangeClientUnboundedReader.Factory.class));
     install(
         new FactoryModuleBuilder()
