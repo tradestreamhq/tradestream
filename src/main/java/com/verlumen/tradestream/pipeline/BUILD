@@ -16,11 +16,10 @@ java_binary(
     deps = [
         ":pipeline_config",
         ":pipeline_module",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
+        "//protos:marketdata_java_proto", # Still needed for Candle/Trade
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_stream_with_defaults",
         "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
-        "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine_pipeline",
         "//third_party:beam_runners_flink_java",
         "//third_party:beam_sdks_java_core",
@@ -102,16 +101,13 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/execution:execution_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
-        "//src/main/java/com/verlumen/tradestream/kafka:dry_run_kafka_read_transform",
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform_factory",
+        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module", # Added to provide ExchangeClientUnboundedSource
         "//src/main/java/com/verlumen/tradestream/signals:signals_module",
         "//src/main/java/com/verlumen/tradestream/strategies:strategies_module",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
         "//third_party:auto_value",
         "//third_party:guice",
-        "//third_party:kafka_clients",
+        "//third_party:kafka_clients", # Still needed by SignalsModule
         "//third_party:protobuf_java_util",
     ],
 )
