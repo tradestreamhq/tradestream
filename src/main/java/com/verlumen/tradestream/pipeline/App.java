@@ -44,7 +44,7 @@ public final class App {
       void setBootstrapServers(String value);
 
       @Description("Name of the exchange.")
-      @Default.String("default_exchange")
+      @Default.String("coinbase")
       String getExchangeName();
       void setExchangeName(String value);
 
