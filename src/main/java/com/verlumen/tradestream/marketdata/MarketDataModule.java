@@ -47,5 +47,6 @@ public class MarketDataModule extends AbstractModule {
     @Override
     protected void configure() {
       bind(ExchangeClientUnboundedSource.class).to(DryRunExchangeClientUnboundedSource.class);
+    }
   }
 }
