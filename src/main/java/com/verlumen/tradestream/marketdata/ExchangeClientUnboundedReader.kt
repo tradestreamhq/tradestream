@@ -3,6 +3,7 @@ package com.verlumen.tradestream.marketdata
 import com.google.common.base.Preconditions.checkArgument
 import com.google.common.base.Preconditions.checkState
 import com.google.common.collect.ImmutableList
+import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.instruments.CurrencyPair
@@ -16,7 +17,6 @@ import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.NoSuchElementException
 import java.util.concurrent.LinkedBlockingQueue
-import javax.inject.Inject
 
 class ExchangeClientUnboundedReader @Inject constructor(
     private val exchangeClient: ExchangeStreamingClient,
