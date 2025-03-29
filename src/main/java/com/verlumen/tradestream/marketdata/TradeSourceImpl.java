@@ -8,6 +8,9 @@ import org.apache.beam.sdk.values.PCollection;
  * Now generic on K (key) and V (value).
  */
 final class TradeSourceImpl extends TradeSource {
+  private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
+  private final ParseTrades parseTrades;
+
   @Inject
   TradeSourceImpl(
       KafkaReadTransform<String, byte[]> kafkaReadTransform,
