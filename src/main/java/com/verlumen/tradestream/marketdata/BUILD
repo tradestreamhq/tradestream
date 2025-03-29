@@ -36,6 +36,7 @@ kt_jvm_library(
   name = "exchange_client_unbounded_reader",
   srcs = ["ExchangeClientUnboundedReader.kt"],
   deps = [
+    ":trade_checkpoint_mark",
     "//protos:marketdata_java_proto",
     "//third_party:beam_sdks_java_core",
   ],
