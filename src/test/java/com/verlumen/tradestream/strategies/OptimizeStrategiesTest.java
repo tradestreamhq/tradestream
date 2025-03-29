@@ -144,7 +144,7 @@ public class OptimizeStrategiesTest {
     GAOptimizationRequest actualRequest = mockOrchestrator.getLastRequest();
     assertThat(actualRequest.getCandlesList()).containsExactlyElementsIn(candles).inOrder();
     assertThat(actualRequest.getStrategyType())
-        .isEqualTo(StrategyType.EMA_MACD);
+        .isEqualTo(StrategyType.ADX_STOCHASTIC);
   }
 
   @Test
@@ -187,7 +187,7 @@ public class OptimizeStrategiesTest {
 
     assertThat(mockOrchestrator.wasRunOptimizationCalled()).isTrue();
     assertThat(mockOrchestrator.getLastRequest().getStrategyType())
-        .isEqualTo(StrategyType.EMA_MACD);
+        .isEqualTo(StrategyType.ADX_STOCHASTIC);
   }
 
   // Fake implementation of StrategyState.Factory.
