@@ -73,7 +73,7 @@ public class ExchangeClientUnboundedSourceImplTest {
     Injector injector = Guice.createInjector(
         BoundFieldModule.of(this),
         new FactoryModuleBuilder()
-            .implement(ExchangeClientUnboundedReader.class, ExchangeClientUnboundedReader.class)
+            .implement(ExchangeClientUnboundedReader.class, ExchangeClientUnboundedReaderImpl.class)
             .build(ExchangeClientUnboundedReader.Factory.class)
     );
 
