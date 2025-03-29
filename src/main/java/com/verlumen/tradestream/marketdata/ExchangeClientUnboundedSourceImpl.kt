@@ -2,12 +2,12 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.base.Preconditions.checkArgument
 import com.google.inject.Inject
-import com.verlumen.tradestream.instruments.CurrencyPairSupply // Assuming this can be injected or accessed differently
-import org.apache.beam.sdk.coders.Coder // Import Coder
-import org.apache.beam.sdk.coders.SerializableCoder // Import SerializableCoder
+import com.google.inject.Provider
+import com.verlumen.tradestream.instruments.CurrencyPairSupply
+import org.apache.beam.sdk.coders.Coder
+import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.io.UnboundedSource
 import org.apache.beam.sdk.options.PipelineOptions
-import javax.inject.Provider // Import Provider
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.util.Collections
