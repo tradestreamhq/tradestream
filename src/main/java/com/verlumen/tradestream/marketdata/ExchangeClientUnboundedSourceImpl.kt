@@ -3,7 +3,6 @@ package com.verlumen.tradestream.marketdata
 import com.google.common.base.Preconditions.checkArgument
 import com.google.inject.Inject
 import com.google.inject.Provider
-import com.verlumen.tradestream.instruments.CurrencyPairSupply
 import org.apache.beam.sdk.coders.Coder
 import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.io.UnboundedSource
@@ -17,8 +16,7 @@ import java.util.Collections
  * Uses an injected factory to create readers which in turn obtain an ExchangeStreamingClient at runtime.
  */
 class ExchangeClientUnboundedSourceImpl @Inject constructor(
-    private val readerFactory: ExchangeClientUnboundedReader.Factory,
-    private val currencyPairSupplyProvider: Provider<CurrencyPairSupply> // Inject Provider instead
+    private val readerFactory: ExchangeClientUnboundedReader.Factory
 ) : ExchangeClientUnboundedSource() {
     
     companion object {
@@ -45,8 +43,6 @@ class ExchangeClientUnboundedSourceImpl @Inject constructor(
         // Call the factory to create the reader, passing @Assisted parameters
         return readerFactory.create(
             this,
-            // Get CurrencyPairSupply via the injected provider
-            currencyPairSupplyProvider.get(),
             checkpointMark ?: TradeCheckpointMark.INITIAL
         )
     }
