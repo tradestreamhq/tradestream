@@ -43,10 +43,12 @@ java_test(
     srcs = ["ExchangeClientUnboundedSourceImplTest.java"],
     deps = [
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair_supply",
         "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_reader",
         "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source",
         "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source_impl",
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_checkpoint_mark",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf",
