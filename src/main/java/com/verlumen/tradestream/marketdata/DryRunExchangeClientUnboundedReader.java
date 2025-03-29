@@ -3,8 +3,6 @@ package com.verlumen.tradestream.marketdata;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableList;
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 import com.google.protobuf.util.Timestamps;
 import java.io.IOException;
 import java.io.Serializable;
@@ -24,10 +22,9 @@ class DryRunExchangeClientUnboundedReader extends ExchangeClientUnboundedReader 
     private Instant currentTradeTimestamp = null;
     private TradeCheckpointMark currentCheckpointMark;
 
-    @Inject
     DryRunExchangeClientUnboundedReader(
-        @Assisted DryRunExchangeClientUnboundedSource source,
-        @Assisted TradeCheckpointMark checkpointMark) {
+        DryRunExchangeClientUnboundedSource source,
+        TradeCheckpointMark checkpointMark) {
         this.source = source;
         this.trades = source.getTrades();
         this.currentCheckpointMark = checkpointMark != null ? checkpointMark : TradeCheckpointMark.INITIAL;
@@ -106,10 +103,5 @@ class DryRunExchangeClientUnboundedReader extends ExchangeClientUnboundedReader 
     @Override
     public void close() throws IOException {
         // No resources to close
-    }
-
-    static interface Factory extends Serializable {
-        DryRunExchangeClientUnboundedReader create(
-            DryRunExchangeClientUnboundedSource source, TradeCheckpointMark checkpointMark);
     }
 }

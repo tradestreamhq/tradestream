@@ -52,17 +52,13 @@ class DryRunExchangeClientUnboundedSource extends ExchangeClientUnboundedSource 
                     .build()
     );
 
-    private final DryRunExchangeClientUnboundedReader.Factory readerFactory;
-
     @Inject
-    DryRunExchangeClientUnboundedSource(DryRunExchangeClientUnboundedReader.Factory readerFactory) {
-            this.readerFactory = readerFactory;
-        }
+    DryRunExchangeClientUnboundedSource() {}
 
     @Override
     public UnboundedSource.UnboundedReader<Trade> createReader(
             PipelineOptions options, TradeCheckpointMark checkpointMark) throws IOException {
-        return readerFactory.create(this, checkpointMark);
+        return new DryRunExchangeClientUnboundedReader(this, checkpointMark);
     }
 
     @Override
