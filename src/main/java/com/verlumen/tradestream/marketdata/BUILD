@@ -49,12 +49,12 @@ java_library(
 
 java_library(
     name = "dry_run_exchange_client_unbounded_reader",
-    srcs = ["DryRunExchangeClientUnbundedReader.java"],
+    srcs = ["DryRunExchangeClientUnboundedReader.java"],
 )
 
 java_library(
     name = "dry_run_exchange_client_unbounded_source",
-    srcs = ["DryRunExchangeClientUnbundedSource.java"],
+    srcs = ["DryRunExchangeClientUnboundedSource.java"],
 )
 
 kt_jvm_library(
