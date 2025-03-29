@@ -9,8 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.NoSuchElementException;
 import org.apache.beam.sdk.io.UnboundedSource;
 import org.joda.time.Instant;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 /**
  * An UnboundedReader that reads from a predefined, finite list of Trades for dry runs.
