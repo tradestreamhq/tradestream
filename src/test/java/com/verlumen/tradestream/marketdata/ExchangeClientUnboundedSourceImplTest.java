@@ -65,6 +65,11 @@ public class ExchangeClientUnboundedSourceImplTest {
     public void stopStreaming() {
       this.isStreaming = false;
     }
+    
+    @Override
+    public ImmutableList<CurrencyPair> supportedCurrencyPairs() {
+      return subscribedPairs != null ? subscribedPairs : ImmutableList.of();
+    }
 
     public void queueTrade(Trade trade) {
       if (isStreaming && tradeCallback != null) {
@@ -79,7 +84,6 @@ public class ExchangeClientUnboundedSourceImplTest {
       
       return Trade.newBuilder()
           .setTradeId(id)
-          .setExchangeName("fake_exchange")
           .setPrice(1000.0)
           .setQuantity(1.0)
           .setTimestamp(protoTimestamp)
@@ -96,8 +100,16 @@ public class ExchangeClientUnboundedSourceImplTest {
   
   // Test currency pairs
   private final ImmutableList<CurrencyPair> TEST_PAIRS = ImmutableList.of(
-      CurrencyPair.newBuilder().setBaseCurrency("BTC").setQuoteCurrency("USD").build()
+      createCurrencyPair("BTC", "USD")
   );
+  
+  // Helper method to create CurrencyPair instances
+  private CurrencyPair createCurrencyPair(String base, String quote) {
+      CurrencyPair.Builder builder = CurrencyPair.newBuilder();
+      builder.setBaseCurrency(base);
+      builder.setQuoteCurrency(quote);
+      return builder.build();
+  }
   
   // Instance under test
   private ExchangeClientUnboundedSourceImpl source;
