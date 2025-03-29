@@ -4,7 +4,6 @@ import org.joda.time.Duration;
 
 record PipelineConfig(
     String bootstrapServers,
-    String tradeTopic,
     String signalTopic,
     String runMode,
     Duration allowedLateness,
