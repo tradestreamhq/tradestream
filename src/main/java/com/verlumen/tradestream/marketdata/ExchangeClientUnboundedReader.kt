@@ -66,7 +66,7 @@ class ExchangeClientUnboundedReader @Inject constructor(
                     try {
                         if (it.hasTimestamp()) {
                             val eventTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(it.getTimestamp()))
-                            if (eventTimestamp.isAfter(currentCheckpointMark.getLastProcessedTimestamp())) {
+                            if (eventTimestamp.isAfter(currentCheckpointMark.lastProcessedTimestamp)) {
                                 if (!incomingMessagesQueue.offer(it)) {
                                     LOG.warn("Reader queue full. Dropping trade: {}", it.getTradeId())
                                 }
@@ -156,7 +156,7 @@ class ExchangeClientUnboundedReader @Inject constructor(
     override fun getCheckpointMark(): TradeCheckpointMark {
         // Checkpoint based on the timestamp of the last successfully *processed* trade
         val checkpointTimestamp = currentTradeTimestamp 
-            ?: currentCheckpointMark.getLastProcessedTimestamp() // Re-use last mark if no new trade advanced
+            ?: currentCheckpointMark.lastProcessedTimestamp // Re-use last mark if no new trade advanced
 
         LOG.debug("Creating checkpoint mark with timestamp: {}", checkpointTimestamp)
         // Update the internal state for the *next* filtering check in the callback
