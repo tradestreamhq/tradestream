@@ -47,10 +47,5 @@ public class MarketDataModule extends AbstractModule {
     @Override
     protected void configure() {
       bind(ExchangeClientUnboundedSource.class).to(DryRunExchangeClientUnboundedSource.class);
-
-      install(new FactoryModuleBuilder()
-              .implement(ExchangeClientUnboundedReader.class, DryRunExchangeClientUnboundedReader.class)
-              .build(DryRunExchangeClientUnboundedReader.Factory.class));
-    }
   }
 }
