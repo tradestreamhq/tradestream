@@ -15,12 +15,10 @@ record PipelineConfig(
 
   static PipelineConfig create(
       String bootstrapServers,
-      String tradeTopic,
       String signalTopic,
       String runMode) {
     return new PipelineConfig(
         bootstrapServers,
-        tradeTopic,
         signalTopic,
         runMode,
         FIVE_SECONDS,
