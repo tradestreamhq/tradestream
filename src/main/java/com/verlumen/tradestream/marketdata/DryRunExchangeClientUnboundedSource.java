@@ -13,7 +13,7 @@ import org.apache.beam.sdk.options.PipelineOptions;
 /**
  * An UnboundedSource that produces a predefined, finite list of Trades for dry runs.
  */
-class DryRunExchangeClientUnboundedSource extends ExchangeClientUnboundedSource {
+public class DryRunExchangeClientUnboundedSource extends ExchangeClientUnboundedSource {
     private static final long serialVersionUID = 1L; // Add serialVersionUID
 
     // Predefined list of trades for the dry run
