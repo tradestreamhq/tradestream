@@ -1,5 +1,5 @@
 package com.verlumen.tradestream.marketdata
-
+import org.apache.beam.sdk.coders.Coder
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.io.UnboundedSource
 import org.apache.beam.sdk.options.PipelineOptions
@@ -16,11 +16,10 @@ import javax.annotation.Nullable
  */
 abstract class ExchangeClientUnboundedSource :
     UnboundedSource<Trade, TradeCheckpointMark>(), Serializable {
-
     companion object {
         private const val serialVersionUID = 7L
     }
-
+    
     /**
      * Splits this source into multiple sources for parallel processing.
      * Most exchange API implementations will not support true splitting,
@@ -31,7 +30,7 @@ abstract class ExchangeClientUnboundedSource :
         // Default implementation: no splitting
         return listOf(this)
     }
-
+    
     /**
      * Creates a new reader to read from this source with the specified checkpoint.
      * This is the required method signature by the Beam SDK.
@@ -42,9 +41,11 @@ abstract class ExchangeClientUnboundedSource :
      */
     @Throws(IOException::class)
     abstract override fun createReader(options: PipelineOptions, @Nullable checkpointMark: TradeCheckpointMark?): UnboundedSource.UnboundedReader<Trade>
-
+    
     /**
      * Gets the expected output coder for Trade objects.
+     * Changed return type from specific ProtoCoder to generic Coder
+     * for compatibility with implementing classes.
      */
-    override fun getOutputCoder() = org.apache.beam.sdk.extensions.protobuf.ProtoCoder.of(Trade::class.java)
+    override fun getOutputCoder(): Coder<Trade> = ProtoCoder.of(Trade::class.java)
 }
