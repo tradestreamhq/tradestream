@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.NoSuchElementException;
 import org.apache.beam.sdk.io.UnboundedSource;
+import org.apache.beam.sdk.transforms.windowing.GlobalWindow;
 import org.joda.time.Instant;
 
 /**
@@ -92,16 +93,13 @@ class DryRunExchangeClientUnboundedReader extends ExchangeClientUnboundedReader 
     public Instant getWatermark() {
         // If advance() has returned false (meaning currentTrade is null),
         // we've processed all the predefined trades. Signal completion by
-        // advancing the watermark to infinity. Otherwise, return the
-        // timestamp of the last processed trade.
+        // advancing the watermark to the maximum allowed value. Otherwise,
+        // return the timestamp of the last processed trade.
         if (currentTrade == null) {
-            return Instant.MAX_VALUE; // Signal end of stream
-        } else {
-            return currentTradeTimestamp;
+            return GlobalWindow.INSTANCE.maxTimestamp();
         }
-        // Note: Relying on currentCheckpointMark might be problematic if the
-        // checkpoint was taken *before* the last element was processed,
-        // so directly using currentTradeTimestamp or MAX_VALUE is safer here.
+
+        return currentTradeTimestamp;
     }
 
     @Override
