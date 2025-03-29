@@ -6,7 +6,7 @@ record PipelineConfig(
     String bootstrapServers,
     String tradeTopic,
     String signalTopic,
-    String runMode,
+    RunMode runMode,
     Duration allowedLateness,
     Duration windowDuration,
     Duration allowedTimestampSkew) {
@@ -23,7 +23,7 @@ record PipelineConfig(
         bootstrapServers,
         tradeTopic,
         signalTopic,
-        runMode,
+        RunMode.fromString(runMode),
         FIVE_SECONDS,
         ONE_MINUTE,
         THIRTY_MINUTES);
