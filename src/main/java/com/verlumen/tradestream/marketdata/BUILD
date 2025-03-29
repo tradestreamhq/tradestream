@@ -50,11 +50,17 @@ java_library(
 java_library(
     name = "dry_run_exchange_client_unbounded_reader",
     srcs = ["DryRunExchangeClientUnboundedReader.java"],
+    deps = [
+        ":exchange_client_unbounded_reader",
+    ],
 )
 
 java_library(
     name = "dry_run_exchange_client_unbounded_source",
     srcs = ["DryRunExchangeClientUnboundedSource.java"],
+    deps = [
+        ":exchange_client_unbounded_source",
+    ],
 )
 
 kt_jvm_library(
