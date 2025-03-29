@@ -190,8 +190,8 @@ public final class App {
     Options options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
     logger.atInfo()
         .log(
-            "Parsed options: BootstrapServers=%s, TradeTopic=%s, RunMode=%s",
-            options.getBootstrapServers(), options.getTradeTopic(), options.getRunMode());
+            "Parsed options: BootstrapServers=%s, RunMode=%s",
+            options.getBootstrapServers(), options.getRunMode());
 
     // Convert to FlinkPipelineOptions and set required properties.
     FlinkPipelineOptions flinkOptions = options.as(FlinkPipelineOptions.class);
