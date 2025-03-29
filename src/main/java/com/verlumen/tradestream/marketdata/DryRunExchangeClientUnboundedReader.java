@@ -90,9 +90,18 @@ class DryRunExchangeClientUnboundedReader extends ExchangeClientUnboundedReader 
 
     @Override
     public Instant getWatermark() {
-        // For a finite dry run source, the watermark can simply be the timestamp of the last emitted record.
-        Instant watermark = currentTradeTimestamp != null ? currentTradeTimestamp : currentCheckpointMark.getLastProcessedTimestamp();
-        return watermark;
+        // If advance() has returned false (meaning currentTrade is null),
+        // we've processed all the predefined trades. Signal completion by
+        // advancing the watermark to infinity. Otherwise, return the
+        // timestamp of the last processed trade.
+        if (currentTrade == null) {
+            return Instant.MAX_VALUE; // Signal end of stream
+        } else {
+            return currentTradeTimestamp;
+        }
+        // Note: Relying on currentCheckpointMark might be problematic if the
+        // checkpoint was taken *before* the last element was processed,
+        // so directly using currentTradeTimestamp or MAX_VALUE is safer here.
     }
 
     @Override
