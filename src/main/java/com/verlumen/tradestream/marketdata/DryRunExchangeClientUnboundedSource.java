@@ -66,8 +66,13 @@ class DryRunExchangeClientUnboundedSource extends ExchangeClientUnboundedSource 
         return SerializableCoder.of(TradeCheckpointMark.class);
     }
 
+    /**
+     * Returns the Coder for the output type of this source.
+     * Overrides the parent method to specify the correct ProtoCoder for Trade.
+     * @return ProtoCoder<Trade>
+     */
     @Override
-    public Coder<Trade> getOutputCoder() {
+    public ProtoCoder<Trade> getOutputCoder() { // Changed return type to ProtoCoder<Trade>
         return ProtoCoder.of(Trade.class);
     }
 
