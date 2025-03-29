@@ -256,6 +256,7 @@ java_library(
     name = "trade_source",
     srcs = ["TradeSource.java"],
     deps = [
+        "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
     ],
 )
