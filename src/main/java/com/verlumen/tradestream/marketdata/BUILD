@@ -64,6 +64,7 @@ java_library(
     name = "dry_run_exchange_client_unbounded_source",
     srcs = ["DryRunExchangeClientUnboundedSource.java"],
     deps = [
+        ":dry_run_exchange_client_unbounded_reader",
         ":exchange_client_unbounded_source",
         ":trade_checkpoint_mark",
         "//protos:marketdata_java_proto",
