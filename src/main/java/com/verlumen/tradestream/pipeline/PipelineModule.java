@@ -46,7 +46,7 @@ abstract class PipelineModule extends AbstractModule {
 
   @Provides
   KafkaReadTransform<String, byte[]> provideKafkaReadTransform(KafkaReadTransform.Factory factory) {
-      if (config.runMode().equals(RunMode.DRY)) {
+      if (config().runMode().equals(RunMode.DRY)) {
         return DryRunKafkaReadTransform
             .<String, byte[]>builder()
             .setBootstrapServers(config().bootstrapServers())
