@@ -4,12 +4,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.Provider;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.testing.fieldbinder.Bind;
+import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.instruments.CurrencyPair;
@@ -42,7 +42,7 @@ import org.mockito.junit.MockitoRule;
 @RunWith(JUnit4.class)
 public class ExchangeClientUnboundedSourceImplTest {
 
-  // We still need to mock the currency pair supply
+  @Bind
   @Mock
   private CurrencyPairSupply mockCurrencyPairSupply;
   
@@ -56,9 +56,11 @@ public class ExchangeClientUnboundedSourceImplTest {
   );
   
   // Our fake client instance
-  private FakeExchangeStreamingClient fakeClient;
+  @Bind(to = ExchangeStreamingClient.class)
+  private FakeExchangeStreamingClient fakeClient = new FakeExchangeStreamingClient();
   
   // Instance under test
+  @Inject
   private ExchangeClientUnboundedSourceImpl source;
   private PipelineOptions pipelineOptions;
 
@@ -67,29 +69,17 @@ public class ExchangeClientUnboundedSourceImplTest {
     // Configure mock
     when(mockCurrencyPairSupply.currencyPairs()).thenReturn(TEST_PAIRS);
     
-    // Create our fake client
-    fakeClient = new FakeExchangeStreamingClient();
-    
-    // Create a provider for our currency pair supply
-    Provider<CurrencyPairSupply> currencyPairSupplyProvider = () -> mockCurrencyPairSupply;
-    
-    // Create an injector with our test dependencies
-    Injector injector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        // Bind the exchange client to our fake implementation
-        bind(ExchangeStreamingClient.class).toInstance(fakeClient);
-        
-        // Install the factory module for creating readers
-        install(new FactoryModuleBuilder()
+    // Create an injector with BoundFieldModule and FactoryModule
+    Injector injector = Guice.createInjector(
+        BoundFieldModule.of(this),
+        new FactoryModuleBuilder()
             .implement(ExchangeClientUnboundedReader.class, ExchangeClientUnboundedReader.class)
-            .build(ExchangeClientUnboundedReader.Factory.class));
-      }
-    });
+            .build(ExchangeClientUnboundedReader.Factory.class)
+    );
 
-    // Use Guice to inject dependencies
-    source = injector.getInstance(ExchangeClientUnboundedSourceImpl.class);
-
+    // Inject members into the test class
+    injector.injectMembers(this);
+    
     // Create default pipeline options
     pipelineOptions = PipelineOptionsFactory.create();
   }
