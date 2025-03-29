@@ -25,6 +25,7 @@ abstract class PipelineModule extends AbstractModule {
   @Override
   protected void configure() {
       install(BacktestingModule.create());
+      install(KafkaModule.create(config().bootstrapServers()));
       install(marketDataModule());
       install(SignalsModule.create(config().signalTopic()));
       install(StrategiesModule.create());
