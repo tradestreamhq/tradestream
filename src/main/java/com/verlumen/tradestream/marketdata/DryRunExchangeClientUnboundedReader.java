@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.protobuf.util.Timestamps;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.NoSuchElementException;
 import org.apache.beam.sdk.io.UnboundedSource;
@@ -107,7 +108,7 @@ class DryRunExchangeClientUnboundedReader extends ExchangeClientUnboundedReader 
         // No resources to close
     }
 
-    static interface Factory {
+    static interface Factory extends Serializable {
         DryRunExchangeClientUnboundedReader create(
             DryRunExchangeClientUnboundedSource source, TradeCheckpointMark checkpointMark);
     }
