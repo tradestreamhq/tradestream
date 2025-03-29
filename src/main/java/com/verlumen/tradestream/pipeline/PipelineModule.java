@@ -7,6 +7,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.marketdata.ExchangeClientUnboundedSource;
 import com.verlumen.tradestream.marketdata.ExchangeClientUnboundedSourceImpl;
 import com.verlumen.tradestream.marketdata.MarketDataModule;
