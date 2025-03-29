@@ -140,7 +140,7 @@ class ExchangeClientUnboundedReader @Inject constructor(
     }
 
     override fun getWatermark(): Instant {
-        val lastKnownTimestamp = currentCheckpointMark.getLastProcessedTimestamp()
+        val lastKnownTimestamp = currentCheckpointMark.lastProcessedTimestamp
         var potentialWatermark = lastKnownTimestamp
         val now = Instant.now()
 
