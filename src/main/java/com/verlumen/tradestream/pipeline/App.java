@@ -17,6 +17,7 @@ import com.verlumen.tradestream.strategies.StrategyEnginePipeline;
 import java.util.Arrays;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
+import org.apache.beam.sdk.io.Read;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
@@ -86,7 +87,7 @@ public final class App {
 
     // 1. Read from the exchange using the Unbounded Source.
     // The source directly produces Trade objects.
-    PCollection<Trade> trades = pipeline.apply("ReadFromExchange", exchangeClientUnboundedSource);
+PCollection<Trade> trades = pipeline.apply("ReadFromExchange", Read.from(exchangeClientUnboundedSource));
 
     // 3. Assign event timestamps from the Trade's own timestamp.
     PCollection<Trade> tradesWithTimestamps =
