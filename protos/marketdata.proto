@@ -7,6 +7,16 @@ option java_package = "com.verlumen.tradestream.marketdata";
 
 import "google/protobuf/timestamp.proto";
 
+// Granularity enum definition
+enum Granularity {
+  GRANULARITY_UNSPECIFIED = 0; // Default value if not set
+  ONE_MINUTE = 1;
+  FIVE_MINUTES = 2;
+  FIFTEEN_MINUTES = 3;
+  ONE_HOUR = 4;
+  ONE_DAY = 5;
+}
+
 // Trade message definition
 message Trade {
   google.protobuf.Timestamp timestamp = 1; // Epoch time in milliseconds
@@ -26,4 +36,5 @@ message Candle {
   double low = 5;                          // Lowest price
   double close = 6;                        // Closing price
   double volume = 7;                       // Total volume
+  Granularity granularity = 8;             // Candle granularity
 }
