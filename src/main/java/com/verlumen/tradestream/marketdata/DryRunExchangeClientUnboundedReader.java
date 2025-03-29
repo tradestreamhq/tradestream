@@ -3,6 +3,7 @@ package com.verlumen.tradestream.marketdata;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.protobuf.util.Timestamps;
 import java.io.IOException;
@@ -22,6 +23,7 @@ class DryRunExchangeClientUnboundedReader extends ExchangeClientUnboundedReader 
     private Instant currentTradeTimestamp = null;
     private TradeCheckpointMark currentCheckpointMark;
 
+    @Inject
     DryRunExchangeClientUnboundedReader(
         @Assisted DryRunExchangeClientUnboundedSource source,
         @Assisted TradeCheckpointMark checkpointMark) {
