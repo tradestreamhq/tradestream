@@ -43,7 +43,7 @@ java_test(
     srcs = ["ExchangeClientUnboundedSourceImplTest.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/marketdata:last_candles_fn",
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source_impl",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf",
         "//third_party:beam_sdks_java_test_utils",
