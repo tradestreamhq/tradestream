@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.protobuf.util.Timestamps;
 import java.io.IOException;
-import javax.annotation.Nullable;
 import org.apache.beam.sdk.coders.Coder;
 import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
@@ -58,7 +57,7 @@ class DryRunExchangeClientUnboundedSource extends ExchangeClientUnboundedSource 
 
     @Override
     public UnboundedSource.UnboundedReader<Trade> createReader(
-            PipelineOptions options, @Nullable TradeCheckpointMark checkpointMark) throws IOException {
+            PipelineOptions options, TradeCheckpointMark checkpointMark) throws IOException {
         LOG.info("Creating DryRunExchangeClientUnboundedReader. Checkpoint: {}", checkpointMark);
         return new DryRunExchangeClientUnboundedReader(this, checkpointMark);
     }
