@@ -92,22 +92,27 @@ java_library(
     ],
 )
 
+
 java_library(
     name = "pipeline_module",
-    srcs = ["PipelineModule.java"],
+    srcs = [
+        "PipelineModule.java",
+    ],
+    visibility = ["//visibility:public"],
     deps = [
         ":pipeline_config",
-        "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/execution:execution_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
-        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module", # Added to provide ExchangeClientUnboundedSource
+        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source",
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source_impl",
         "//src/main/java/com/verlumen/tradestream/signals:signals_module",
         "//src/main/java/com/verlumen/tradestream/strategies:strategies_module",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
         "//third_party:auto_value",
         "//third_party:guice",
-        "//third_party:kafka_clients", # Still needed by SignalsModule
+        "//third_party:kafka_clients",
         "//third_party:protobuf_java_util",
     ],
 )
