@@ -16,8 +16,6 @@ import org.slf4j.Logger;
  * An UnboundedReader that reads from a predefined, finite list of Trades for dry runs.
  */
 class DryRunExchangeClientUnboundedReader extends UnboundedSource.UnboundedReader<Trade> {
-    private static final Logger LOG = LoggerFactory.getLogger(DryRunExchangeClientUnboundedReader.class);
-
     private final DryRunExchangeClientUnboundedSource source;
     private final ImmutableList<Trade> trades;
     private int currentIndex = -1; // Index of the *next* trade to return
@@ -29,12 +27,10 @@ class DryRunExchangeClientUnboundedReader extends UnboundedSource.UnboundedReade
         this.source = source;
         this.trades = source.getTrades();
         this.currentCheckpointMark = checkpointMark != null ? checkpointMark : TradeCheckpointMark.INITIAL;
-        LOG.info("DryRunExchangeClientUnboundedReader created. Initial checkpoint: {}", this.currentCheckpointMark);
     }
 
     @Override
     public boolean start() throws IOException {
-        LOG.info("DryRunExchangeClientUnboundedReader starting...");
         // Advance to the first trade *after* the checkpoint timestamp
         currentIndex = 0;
         while (currentIndex < trades.size()) {
@@ -43,10 +39,8 @@ class DryRunExchangeClientUnboundedReader extends UnboundedSource.UnboundedReade
                  LOG.info("Starting at index {} (Timestamp: {}) after checkpoint {}", currentIndex, tradeTimestamp, currentCheckpointMark.getLastProcessedTimestamp());
                  return advance(); // Read the first valid element
             }
-            LOG.trace("Skipping trade at index {} (Timestamp: {}) due to checkpoint", currentIndex, tradeTimestamp);
             currentIndex++;
         }
-         LOG.info("No trades found after initial checkpoint. Start returns false.");
         return false; // No trades after checkpoint
     }
 
@@ -55,13 +49,11 @@ class DryRunExchangeClientUnboundedReader extends UnboundedSource.UnboundedReade
         if (currentIndex >= trades.size()) {
             currentTrade = null;
             currentTradeTimestamp = null; // Keep watermark advancing based on processing time if needed
-            LOG.info("Reached end of predefined trades. Advance returns false.");
             return false;
         }
 
         currentTrade = trades.get(currentIndex);
         currentTradeTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(currentTrade.getTimestamp()));
-        LOG.debug("Advanced to trade index {}: ID {}, Timestamp: {}", currentIndex, currentTrade.getTradeId(), currentTradeTimestamp);
         currentIndex++;
         return true;
     }
@@ -91,18 +83,15 @@ class DryRunExchangeClientUnboundedReader extends UnboundedSource.UnboundedReade
                 ? currentTradeTimestamp
                 : currentCheckpointMark.getLastProcessedTimestamp(); // Re-use last mark if no new trade advanced
 
-        LOG.debug("Creating checkpoint mark with timestamp: {}", checkpointTimestamp);
         // Update the internal state for the *next* filtering check in start() if checkpoint is restored
         this.currentCheckpointMark = new TradeCheckpointMark(checkpointTimestamp);
         return this.currentCheckpointMark;
     }
 
-
     @Override
     public Instant getWatermark() {
         // For a finite dry run source, the watermark can simply be the timestamp of the last emitted record.
         Instant watermark = currentTradeTimestamp != null ? currentTradeTimestamp : currentCheckpointMark.getLastProcessedTimestamp();
-        LOG.debug("Emitting watermark: {}", watermark);
         return watermark;
     }
 
@@ -113,7 +102,6 @@ class DryRunExchangeClientUnboundedReader extends UnboundedSource.UnboundedReade
 
     @Override
     public void close() throws IOException {
-        LOG.info("Closing DryRunExchangeClientUnboundedReader.");
         // No resources to close
     }
 }
