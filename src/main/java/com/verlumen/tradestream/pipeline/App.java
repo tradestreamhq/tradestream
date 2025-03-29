@@ -60,8 +60,8 @@ public final class App {
       String getRunMode();
       void setRunMode(String value);
 
-      @Description("Coin Market Cap API key for accessing market data.")
-      @Default.String("")
+      @Description("CoinMarketCap API Key (default: value of " + CMC_API_KEY_ENV_VAR + " environment variable)")
+      @Default.String(System.getenv().getOrDefault(CMC_API_KEY_ENV_VAR, "INVALID_API_KEY"))
       String getCoinMarketCapApiKey();
       void setCoinMarketCapApiKey(String value);
   }
