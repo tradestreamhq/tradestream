@@ -53,6 +53,7 @@ jobs:
             --tag "latest"
 
           # Load images into minikube
+
           docker pull localhost:5000/tradestream-data-pipeline:latest
           docker tag localhost:5000/tradestream-data-pipeline:latest tradestream-data-pipeline:latest
           minikube image load tradestream-data-pipeline:latest
@@ -68,7 +69,7 @@ jobs:
         run: |
           set -eo pipefail
           helm dependency update charts/tradestream
-          
+
           # Fixed pipeline image repository to use correct image
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
