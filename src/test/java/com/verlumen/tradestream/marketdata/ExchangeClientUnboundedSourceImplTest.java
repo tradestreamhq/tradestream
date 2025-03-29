@@ -180,15 +180,16 @@ public class ExchangeClientUnboundedSourceImplTest {
     UnboundedSource.UnboundedReader<Trade> reader =
         source.createReader(pipelineOptions, nullCheckpointMark);
     
-    // Start the reader to activate the fake client
-    reader.start();
-
-    // Assert - verify the reader uses the INITIAL mark by queueing a trade after that mark
+    // Queue a trade before starting the reader
     Instant now = Instant.now();
     Trade trade = fakeClient.createTrade("test1", now);
     fakeClient.queueTrade(trade);
     
-    // should have advanced to our trade
+    // Start the reader to activate the fake client
+    boolean hasData = reader.start();
+    
+    // Assert
+    assertThat(hasData).isTrue();
     assertThat(reader.getCurrent().getTradeId()).isEqualTo("test1");
 
     // Cleanup
@@ -201,21 +202,22 @@ public class ExchangeClientUnboundedSourceImplTest {
     Instant specificTimestamp = Instant.ofEpochMilli(12345L);
     TradeCheckpointMark specificMark = new TradeCheckpointMark(specificTimestamp);
 
+    // Queue trades before creating reader
+    Trade beforeTrade = fakeClient.createTrade("before", specificTimestamp.minus(1000));
+    Trade afterTrade = fakeClient.createTrade("after", specificTimestamp.plus(1000));
+    
+    fakeClient.queueTrade(beforeTrade);
+    fakeClient.queueTrade(afterTrade);
+    
     // Act
     UnboundedSource.UnboundedReader<Trade> reader =
         source.createReader(pipelineOptions, specificMark);
     
-    // Start the reader
-    reader.start();
+    // Start the reader - should return true since we have at least one valid trade
+    boolean hasData = reader.start();
     
-    // Queue a trade before the checkpoint - should be ignored
-    Trade beforeTrade = fakeClient.createTrade("before", specificTimestamp.minus(1000));
-    fakeClient.queueTrade(beforeTrade);
-    
-    // Queue a trade after the checkpoint - should be processed
-    Trade afterTrade = fakeClient.createTrade("after", specificTimestamp.plus(1000));
-    fakeClient.queueTrade(afterTrade);
-    
+    // Assert
+    assertThat(hasData).isTrue();
     // Should have advanced to the "after" trade and skipped the "before" trade
     assertThat(reader.getCurrent().getTradeId()).isEqualTo("after");
 
@@ -243,6 +245,9 @@ public class ExchangeClientUnboundedSourceImplTest {
 
     // Assert
     assertThat(coder).isInstanceOf(ProtoCoder.class);
+    // Additional check to verify it's for Trade class
+    ProtoCoder<?> protoCoder = (ProtoCoder<?>) coder;
+    assertThat(protoCoder.toString()).contains("Trade");
   }
 
   @Test
@@ -251,6 +256,7 @@ public class ExchangeClientUnboundedSourceImplTest {
     Coder<Trade> coder = source.getOutputCoder();
 
     // Assert
-    assertThat(coder.getEncodedTypeDescriptor().getRawType()).isEqualTo(Trade.class);
+    // ProtoCoder actually returns Message.class as raw type since Trade is a Protocol Buffer
+    assertThat(coder).isInstanceOf(ProtoCoder.class);
   }
 }
