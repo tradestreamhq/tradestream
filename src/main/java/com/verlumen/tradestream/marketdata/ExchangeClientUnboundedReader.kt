@@ -20,8 +20,8 @@ import java.util.concurrent.LinkedBlockingQueue
 // Add the 'open' keyword to the class to make it mockable with Mockito
 open class ExchangeClientUnboundedReader @Inject constructor(
     private val exchangeClient: ExchangeStreamingClient,
+    private val currencyPairSupply: CurrencyPairSupply,
     @Assisted private val source: ExchangeClientUnboundedSource,
-    @Assisted private val currencyPairSupply: CurrencyPairSupply,
     @Assisted private var currentCheckpointMark: TradeCheckpointMark
 ) : UnboundedSource.UnboundedReader<Trade>() {
 
@@ -36,7 +36,6 @@ open class ExchangeClientUnboundedReader @Inject constructor(
     interface Factory {
         fun create(
             source: ExchangeClientUnboundedSource,
-            supply: CurrencyPairSupply,
             mark: TradeCheckpointMark
         ): ExchangeClientUnboundedReader
     }
