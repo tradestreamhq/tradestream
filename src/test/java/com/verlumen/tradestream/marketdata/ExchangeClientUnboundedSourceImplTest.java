@@ -100,16 +100,8 @@ public class ExchangeClientUnboundedSourceImplTest {
   
   // Test currency pairs
   private final ImmutableList<CurrencyPair> TEST_PAIRS = ImmutableList.of(
-      createCurrencyPair("BTC", "USD")
+      CurrencyPair.fromSymbol("BTC/USD")
   );
-  
-  // Helper method to create CurrencyPair instances
-  private CurrencyPair createCurrencyPair(String base, String quote) {
-      CurrencyPair.Builder builder = CurrencyPair.newBuilder();
-      builder.setBaseCurrency(base);
-      builder.setQuoteCurrency(quote);
-      return builder.build();
-  }
   
   // Instance under test
   private ExchangeClientUnboundedSourceImpl source;
