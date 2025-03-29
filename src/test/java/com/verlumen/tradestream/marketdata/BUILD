@@ -64,6 +64,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair_supply",
         "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_reader",
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_reader_impl",
         "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source",
         "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source_impl",
         "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
