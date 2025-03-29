@@ -7,11 +7,11 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 public class MarketDataModule extends AbstractModule {
   public static MarketDataModule create(String exchangeName) {
-    switch(config().runMode()) {
-      case DRY: return DryRunModule.create();
-      case WET: return ProdModule.create(exchangeName);
-      default: throw new UnsupportedOperationException();
-    }    
+    return ProdModule.create(exchangeName); 
+  }
+
+  public static MarketDataModule createDryRunModule() {
+    return DryRunModule.create();
   }
 
   @AutoValue
