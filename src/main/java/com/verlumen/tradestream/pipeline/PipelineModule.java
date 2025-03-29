@@ -7,7 +7,6 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
 import com.verlumen.tradestream.execution.RunMode;
-import com.verlumen.tradestream.marketdata.DryRunExchangeClientUnboundedSource;
 import com.verlumen.tradestream.marketdata.ExchangeClientUnboundedSource;
 import com.verlumen.tradestream.marketdata.ExchangeClientUnboundedSourceImpl;
 import com.verlumen.tradestream.marketdata.MarketDataModule;
@@ -26,7 +25,7 @@ abstract class PipelineModule extends AbstractModule {
   @Override
   protected void configure() {
       install(BacktestingModule.create());
-      install(marketDataModule());
+      install(MarketDataModule.create(config.exchangeName()));
       install(SignalsModule.create(config().signalTopic()));
       install(StrategiesModule.create());
       install(Ta4jModule.create());
@@ -35,13 +34,5 @@ abstract class PipelineModule extends AbstractModule {
   @Provides
   PipelineConfig providePipelineConfig() {
     return config();
-  }
-
-  private MarketDataModule marketDataModule() {
-    switch(config().runMode()) {
-      case DRY: return MarketDataModule.DryRunModule.create();
-      case WET: return MarketDataModule.ProdModule.create(config().exchangeName());
-      default: throw new UnsupportedOperationException();
-    }    
   }
 }
