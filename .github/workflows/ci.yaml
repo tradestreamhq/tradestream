@@ -44,26 +44,26 @@ jobs:
       - name: Build and Load Images
         run: |
           set -eo pipefail
-          
+
           # Build and push data ingestion image
           bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
             --verbose_failures \
             -- \
             --repository localhost:5000/tradestream-data-ingestion \
             --tag "latest"
-          
+
           # Build and push pipeline image
           bazel run //src/main/java/com/verlumen/tradestream/pipeline:push_image \
             --verbose_failures \
             -- \
             --repository localhost:5000/tradestream-data-pipeline \
             --tag "latest"
-          
+
           # Load images into minikube
           docker pull localhost:5000/tradestream-data-ingestion:latest
           docker tag localhost:5000/tradestream-data-ingestion:latest tradestream-data-ingestion:latest
           minikube image load tradestream-data-ingestion:latest
-          
+
           docker pull localhost:5000/tradestream-data-pipeline:latest
           docker tag localhost:5000/tradestream-data-pipeline:latest tradestream-data-pipeline:latest
           minikube image load tradestream-data-pipeline:latest
@@ -79,7 +79,7 @@ jobs:
         run: |
           set -eo pipefail
           helm dependency update charts/tradestream
-          
+
           # Fixed pipeline image repository to use correct image
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
