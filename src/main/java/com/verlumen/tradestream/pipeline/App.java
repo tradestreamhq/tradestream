@@ -38,23 +38,25 @@ public final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   public interface Options extends StreamingOptions {
-    @Description("Comma-separated list of Kafka bootstrap servers.")
-    @Default.String("localhost:9092")
-    String getBootstrapServers();
+      @Description("Comma-separated list of Kafka bootstrap servers.")
+      @Default.String("localhost:9092")
+      String getBootstrapServers();
+      void setBootstrapServers(String value);
 
-    void setBootstrapServers(String value);
+      @Description("Name of the exchange.")
+      @Default.String("default_exchange")
+      String getExchangeName();
+      void setExchangeName(String value);
 
-    @Description("Kafka topic to publish signal data to.")
-    @Default.String("signals")
-    String getSignalTopic();
+      @Description("Kafka topic to publish signal data to.")
+      @Default.String("signals")
+      String getSignalTopic();
+      void setSignalTopic(String value);
 
-    void setSignalTopic(String value);
-
-    @Description("Run mode: wet or dry.")
-    @Default.String("wet")
-    String getRunMode();
-
-    void setRunMode(String value);
+      @Description("Run mode: wet or dry.")
+      @Default.String("wet")
+      String getRunMode();
+      void setRunMode(String value);
   }
 
   private final Duration allowedLateness;
@@ -203,6 +205,7 @@ public final class App {
     // Create PipelineConfig and Guice module.
     PipelineConfig config =
         PipelineConfig.create(
+            options.getExchangeName(),
             options.getBootstrapServers(),
             options.getSignalTopic(),
             options.getRunMode());
