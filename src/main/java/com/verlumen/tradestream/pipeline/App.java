@@ -37,6 +37,7 @@ import org.joda.time.Instant;
 
 public final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private static final String CMC_API_KEY_ENV_VAR = "COINMARKETCAP_API_KEY";
 
   public interface Options extends StreamingOptions {
       @Description("Comma-separated list of Kafka bootstrap servers.")
@@ -58,6 +59,11 @@ public final class App {
       @Default.String("wet")
       String getRunMode();
       void setRunMode(String value);
+
+      @Description("Coin Market Cap API key for accessing market data.")
+      @Default.String("")
+      String getCoinMarketCapApiKey();
+      void setCoinMarketCapApiKey(String value);
   }
 
   private final Duration allowedLateness;
