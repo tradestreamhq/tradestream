@@ -53,6 +53,7 @@ java_test(
         "//third_party:beam_sdks_java_test_utils",
         "//third_party:guava",
         "//third_party:guice",
+        "//third_party:guice_assistedinject",
         "//third_party:guice_testlib",
         "//third_party:joda_time",
         "//third_party:junit",
