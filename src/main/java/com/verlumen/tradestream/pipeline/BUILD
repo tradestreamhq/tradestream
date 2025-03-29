@@ -89,6 +89,7 @@ java_library(
     name = "pipeline_config",
     srcs = ["PipelineConfig.java"],
     deps = [
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:joda_time",
     ],
 )
@@ -100,7 +101,6 @@ java_library(
         ":pipeline_config",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
-        "//src/main/java/com/verlumen/tradestream/execution:execution_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/kafka:dry_run_kafka_read_transform",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
