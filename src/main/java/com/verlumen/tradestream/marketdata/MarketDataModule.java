@@ -4,17 +4,8 @@ import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.verlumen.tradestream.execution.RunMode;
 
 public class MarketDataModule extends AbstractModule {
-  public static MarketDataModule create(RunMode runMode) {
-    switch(runMode) {
-      case DRY: return DryRunModule.create();
-      case WET: return ProdModule.create();
-      default: throw new IllegalStateException();
-    }
-  }
-
   @AutoValue
   public abstract static class ProdModule extends MarketDataModule {
     public static ProdModule create(String exchangeName) {
