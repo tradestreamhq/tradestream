@@ -7,18 +7,30 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
-  public static MarketDataModule create(String tradeTopic) {
-    return new AutoValue_MarketDataModule(MarketDataConfig.create(tradeTopic));
+  public static MarketDataModule create(String exchangeName, String tradeTopic) {
+    return new AutoValue_MarketDataModule(MarketDataConfig.create(exchangeName, tradeTopic));
   }
 
   abstract MarketDataConfig config();
 
   @Override
   protected void configure() {
+    bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
+    bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
+
+    install(new FactoryModuleBuilder()
+            .implement(ExchangeClientUnboundedReader.class, ExchangeClientUnboundedReader.class)
+            .build(ExchangeClientUnboundedReader.Factory.class));
     install(
         new FactoryModuleBuilder()
             .implement(TradePublisher.class, TradePublisherImpl.class)
             .build(TradePublisher.Factory.class));
+  }
+
+  @Provides
+  ExchangeStreamingClient provideExchangeStreamingClient(
+      ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
+    return exchangeStreamingClientFactory.create(config().exchangeName());
   }
 
   @Provides

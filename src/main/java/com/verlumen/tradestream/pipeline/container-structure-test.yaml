@@ -1,11 +1,13 @@
 # See https://github.com/GoogleContainerTools/container-structure-test#command-tests
 schemaVersion: 2.0.0
 commandTests:
-  - name: test
+  - name: "Dry pipeline run"
     command: java
     args:
+      - '-Dio.jenetics.util.defaultRandomGenerator=Random'
       - '-jar'
       - '/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar'
       - '--runMode=dry'
+      - '--tradeTopic=fakeTopic'
     expectedError:
       - 'DRY/RUN'

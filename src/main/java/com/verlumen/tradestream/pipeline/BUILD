@@ -7,29 +7,33 @@ load("//platforms:transition.bzl", "multi_arch")
 package(default_visibility = ["//visibility:public"])
 
 java_binary(
-  name = "app",
-  main_class = "com.verlumen.tradestream.pipeline.App",
-  srcs = ["App.java"],
-  deps = [
-    ":pipeline_config",
-    ":pipeline_module",
-    "//protos:marketdata_java_proto",
-    "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
-    "//src/main/java/com/verlumen/tradestream/marketdata:candle_stream_with_defaults",
-    "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
-    "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
-    "//third_party:beam_runners_flink_java",
-    "//third_party:beam_sdks_java_core",
-    "//third_party:flogger",
-    "//third_party:guava",
-    "//third_party:guice",
-    "//third_party:joda_time",
-    "//third_party:protobuf_java",
-    "//third_party:protobuf_java_util",
-  ],
-  runtime_deps = [
-    "//third_party:beam_runners_direct_java",
-  ],
+    name = "app",
+    main_class = "com.verlumen.tradestream.pipeline.App",
+    srcs = ["App.java"],
+    jvm_flags = [
+        "-Dio.jenetics.util.defaultRandomGenerator=Random",
+    ],
+    deps = [
+        ":pipeline_config",
+        ":pipeline_module",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_stream_with_defaults",
+        "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
+        "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine_pipeline",
+        "//third_party:beam_runners_flink_java",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:flogger",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+    ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+    ],
 )
 
 container_structure_test(
@@ -55,7 +59,9 @@ oci_image(
         "-jar",
         "/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar",
     ],
-    tars = [":layer"],
+    tars = [
+        ":layer",
+    ],
 )
 
 multi_arch(
@@ -83,7 +89,8 @@ java_library(
     name = "pipeline_config",
     srcs = ["PipelineConfig.java"],
     deps = [
-        "//third_party:joda_time"
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party:joda_time",
     ],
 )
 
@@ -94,7 +101,6 @@ java_library(
         ":pipeline_config",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
-        "//src/main/java/com/verlumen/tradestream/execution:execution_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/kafka:dry_run_kafka_read_transform",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",

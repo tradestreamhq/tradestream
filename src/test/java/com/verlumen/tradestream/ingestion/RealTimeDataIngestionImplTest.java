@@ -10,6 +10,8 @@ import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.instruments.CurrencyPair;
+import com.verlumen.tradestream.instruments.CurrencyPairSupply;
+import com.verlumen.tradestream.marketdata.ExchangeStreamingClient;
 import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.marketdata.TradePublisher;
 import java.lang.reflect.Field;

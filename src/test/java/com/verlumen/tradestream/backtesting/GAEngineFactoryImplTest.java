@@ -47,12 +47,12 @@ public class GAEngineFactoryImplTest {
         // Configure mocks
         when(mockParamConfigManager.getParamConfig(any(StrategyType.class)))
             .thenReturn(mockParamConfig);
-        when(mockParamConfig.getChromosomeSpecs())
+        when(mockParamConfig.initialChromosomes())
             .thenReturn(ImmutableList.of());
             
         // Mock the fitness calculator to return a dummy function
         // This is critical - createFitnessFunction should never return null
-        Function<Genotype<DoubleGene>, Double> dummyFunction = 
+        Function<Genotype<?>, Double> dummyFunction = 
             genotype -> 1.0; // Just return a constant value for testing
         when(mockFitnessCalculator.createFitnessFunction(any(GAOptimizationRequest.class)))
             .thenReturn(dummyFunction);
@@ -64,7 +64,7 @@ public class GAEngineFactoryImplTest {
     @Test
     public void createEngine_withValidRequest_returnsConfiguredEngine() {
         // Act
-        Engine<DoubleGene, Double> engine = engineFactory.createEngine(testRequest);
+        Engine<?, Double> engine = engineFactory.createEngine(testRequest);
         
         // Assert
         assertNotNull("Engine should not be null", engine);
@@ -81,7 +81,7 @@ public class GAEngineFactoryImplTest {
             .build();
             
         // Act
-        Engine<DoubleGene, Double> engine = engineFactory.createEngine(customRequest);
+        Engine<?, Double> engine = engineFactory.createEngine(customRequest);
         
         // Assert
         assertNotNull("Engine should not be null", engine);
@@ -97,7 +97,7 @@ public class GAEngineFactoryImplTest {
             .build();
             
         // Act
-        Engine<DoubleGene, Double> engine = engineFactory.createEngine(zeroSizeRequest);
+        Engine<?, Double> engine = engineFactory.createEngine(zeroSizeRequest);
         
         // Assert
         assertNotNull("Engine should not be null", engine);

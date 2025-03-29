@@ -36,7 +36,7 @@ dataIngestion:
   replicaCount: 1
   image:
     repository: tradestreamhq/tradestream-data-ingestion
-    tag: v0.1.0-main
+    tag: v0.34.0-develop
   service:
     port: 8080
   tradeTopic: trades
@@ -44,10 +44,12 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v0.1.0-main
+    tag: v0.34.0-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
+    env.java.opts.jobmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
+    env.java.opts.taskmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
     taskmanager.numberOfTaskSlots: "1"
   serviceAccount: flink
   jobManager:

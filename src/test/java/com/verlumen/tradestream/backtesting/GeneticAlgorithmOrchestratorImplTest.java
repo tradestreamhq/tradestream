@@ -5,6 +5,7 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
@@ -17,6 +18,7 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.DoubleGene;
+import io.jenetics.Gene;
 import io.jenetics.Genotype;
 import io.jenetics.Phenotype;
 import io.jenetics.engine.Engine;
@@ -48,6 +50,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
   // Create a real genotype and phenotype for testing
   private Genotype<DoubleGene> testGenotype;
   private Phenotype<DoubleGene, Double> testPhenotype;
+  private Engine<DoubleGene, Double> testEngine;
 
   @Before
   public void setUp() {
@@ -59,12 +62,16 @@ public class GeneticAlgorithmOrchestratorImplTest {
     // Create a test phenotype with the genotype and a fitness value
     testPhenotype = Phenotype.of(testGenotype, 1, 100.0);
     
+    // Create the test engine
+    testEngine = Engine.builder(g -> 100.0, testGenotype).build();
+    
     // Configure genotypeConverter mock
     Any expectedParameters = Any.pack(SmaRsiParameters.getDefaultInstance());
     when(mockGenotypeConverter.convertToParameters(any(), any())).thenReturn(expectedParameters);
   }
 
   @Test
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public void runOptimization_validRequest_returnsBestStrategy() {
     // Arrange
     GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
@@ -72,14 +79,9 @@ public class GeneticAlgorithmOrchestratorImplTest {
         .setMaxGenerations(10)
         .addCandles(Candle.getDefaultInstance()) // Add at least one candle to avoid empty list error
         .build();
-
-    // Create a test Engine with a simple fitness function that always returns a constant value
-    Engine<DoubleGene, Double> testEngine = Engine
-        .builder(g -> 100.0, testGenotype)
-        .build();
     
-    // Configure the mock engine factory to return our test engine
-    when(mockEngineFactory.createEngine(any())).thenReturn(testEngine);
+    // Use raw types to bypass generic type checking
+    when((Engine) mockEngineFactory.createEngine(any())).thenReturn((Engine) testEngine);
 
     // Act
     BestStrategyResponse response = orchestrator.runOptimization(request);
@@ -88,8 +90,6 @@ public class GeneticAlgorithmOrchestratorImplTest {
     verify(mockEngineFactory).createEngine(request);
     verify(mockGenotypeConverter).convertToParameters(any(), any());
     
-    // Since we can't directly mock the stream or control the evolution result,
-    // we're verifying that the process works end-to-end rather than specific method calls
     assertThat(response).isNotNull();
     assertThat(response.hasBestStrategyParameters()).isTrue();
   }
@@ -110,6 +110,7 @@ public class GeneticAlgorithmOrchestratorImplTest {
   }
 
   @Test
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public void runOptimization_zeroMaxGenerations_usesDefault() {
     // Arrange
     GAOptimizationRequest request = GAOptimizationRequest.newBuilder()
@@ -118,20 +119,14 @@ public class GeneticAlgorithmOrchestratorImplTest {
         .setMaxGenerations(0) // Set to 0 to use default
         .build();
 
-    // Create a test Engine with a simple fitness function
-    Engine<DoubleGene, Double> testEngine = Engine
-        .builder(g -> 100.0, testGenotype)
-        .build();
-    
-    when(mockEngineFactory.createEngine(any())).thenReturn(testEngine);
+    // Use raw types to bypass generic type checking
+    when((Engine) mockEngineFactory.createEngine(any())).thenReturn((Engine) testEngine);
 
     // Act
     orchestrator.runOptimization(request);
 
     // Assert that the engine was created with the request
     verify(mockEngineFactory).createEngine(request);
-
-    // We can't directly verify the limit being set on the stream since we can't mock it
   }
 
   @Test

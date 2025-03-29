@@ -6,7 +6,6 @@ import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
-import com.verlumen.tradestream.execution.ExecutionModule;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.DryRunKafkaReadTransform;
 import com.verlumen.tradestream.kafka.KafkaModule;
@@ -39,7 +38,6 @@ abstract class PipelineModule extends AbstractModule {
   @Override
   protected void configure() {
       install(BacktestingModule.create());
-      install(ExecutionModule.create(config().runMode()));
       install(KafkaModule.create(config().bootstrapServers()));
       install(SignalsModule.create(config().signalTopic()));
       install(StrategiesModule.create());
@@ -47,8 +45,8 @@ abstract class PipelineModule extends AbstractModule {
   }
 
   @Provides
-  KafkaReadTransform<String, byte[]> provideKafkaReadTransform(KafkaReadTransform.Factory factory, RunMode runMode) {
-      if (runMode.equals(RunMode.DRY)) {
+  KafkaReadTransform<String, byte[]> provideKafkaReadTransform(KafkaReadTransform.Factory factory) {
+      if (config().runMode().equals(RunMode.DRY)) {
         return DryRunKafkaReadTransform
             .<String, byte[]>builder()
             .setBootstrapServers(config().bootstrapServers())

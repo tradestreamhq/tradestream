@@ -2,11 +2,10 @@ package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import io.jenetics.Phenotype;
-import io.jenetics.DoubleGene;
+import io.jenetics.Gene;
 import io.jenetics.engine.EvolutionResult;
 import io.jenetics.engine.Engine;
 
@@ -39,10 +38,10 @@ final class GeneticAlgorithmOrchestratorImpl implements GeneticAlgorithmOrchestr
         checkArgument(!request.getCandlesList().isEmpty(), "Candles list cannot be empty");
         
         // Configure the genetic algorithm engine with the strategy and backtest service
-        Engine<DoubleGene, Double> engine = engineFactory.createEngine(request);
+        Engine<?, Double> engine = engineFactory.createEngine(request);
 
         // Execute the GA and collect the best phenotype from the evolution process
-        Phenotype<DoubleGene, Double> best = engine.stream()
+        Phenotype<?, Double> best = engine.stream()
             .limit(getMaxGenerations(request))
             .collect(EvolutionResult.toBestPhenotype());
 
