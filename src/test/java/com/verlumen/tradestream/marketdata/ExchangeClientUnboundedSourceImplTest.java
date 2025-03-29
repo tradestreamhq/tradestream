@@ -70,6 +70,11 @@ public class ExchangeClientUnboundedSourceImplTest {
     public ImmutableList<CurrencyPair> supportedCurrencyPairs() {
       return subscribedPairs != null ? subscribedPairs : ImmutableList.of();
     }
+    
+    @Override
+    public String getExchangeName() {
+      return "FakeExchange";
+    }
 
     public void queueTrade(Trade trade) {
       if (isStreaming && tradeCallback != null) {
@@ -85,7 +90,8 @@ public class ExchangeClientUnboundedSourceImplTest {
       return Trade.newBuilder()
           .setTradeId(id)
           .setPrice(1000.0)
-          .setQuantity(1.0)
+          // Use volume instead of quantity
+          .setVolume(1.0)
           .setTimestamp(protoTimestamp)
           .build();
     }
