@@ -2,6 +2,7 @@ package com.verlumen.tradestream.pipeline;
 
 import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
@@ -49,7 +50,3 @@ abstract class PipelineModule extends AbstractModule {
   }
 
   @Provides
-  PipelineConfig providePipelineConfig() {
-    return config();
-  }
-}
