@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 /**
  * An UnboundedReader that reads from a predefined, finite list of Trades for dry runs.
  */
-class DryRunExchangeClientUnboundedReader extends UnboundedSource.UnboundedReader<Trade> {
+class DryRunExchangeClientUnboundedReader extends ExchangeClientUnboundedSource {
     private final DryRunExchangeClientUnboundedSource source;
     private final ImmutableList<Trade> trades;
     private int currentIndex = -1; // Index of the *next* trade to return
