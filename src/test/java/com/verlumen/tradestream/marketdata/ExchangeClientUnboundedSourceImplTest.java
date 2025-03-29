@@ -32,17 +32,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Unit tests for {@link ExchangeClientUnboundedSourceImpl}.
  */
 @RunWith(JUnit4.class)
 public class ExchangeClientUnboundedSourceImplTest {
-
-  private static final Logger LOG = LoggerFactory.getLogger(ExchangeClientUnboundedSourceImplTest.class);
-
   /**
    * A fake implementation of ExchangeStreamingClient for testing.
    */
@@ -54,7 +49,6 @@ public class ExchangeClientUnboundedSourceImplTest {
 
     @Override
     public void startStreaming(ImmutableList<CurrencyPair> currencyPairs, Consumer<Trade> callback) {
-      LOG.info("FakeExchangeStreamingClient.startStreaming called with {} pairs", currencyPairs.size());
       this.subscribedPairs = currencyPairs;
       this.tradeCallback = callback;
       this.isStreaming = true;
@@ -69,7 +63,6 @@ public class ExchangeClientUnboundedSourceImplTest {
 
     @Override
     public void stopStreaming() {
-      LOG.info("FakeExchangeStreamingClient.stopStreaming called");
       this.isStreaming = false;
     }
 
