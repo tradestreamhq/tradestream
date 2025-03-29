@@ -25,7 +25,7 @@ abstract class PipelineModule extends AbstractModule {
   @Override
   protected void configure() {
       install(BacktestingModule.create());
-      install(MarketDataModule.create(config.exchangeName()));
+      install(marketDataModule());
       install(SignalsModule.create(config().signalTopic()));
       install(StrategiesModule.create());
       install(Ta4jModule.create());
