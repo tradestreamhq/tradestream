@@ -6,8 +6,16 @@ import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 public class MarketDataModule extends AbstractModule {
+  public static MarketDataModule create() {
+    switch(config().runMode()) {
+      case DRY: return DryRunModule.create();
+      case WET: return ProdModule.create(config().exchangeName());
+      default: throw new UnsupportedOperationException();
+    }    
+  }
+
   @AutoValue
-  public abstract static class ProdModule extends MarketDataModule {
+  abstract static class ProdModule extends MarketDataModule {
     public static ProdModule create(String exchangeName) {
       return new AutoValue_MarketDataModule_ProdModule(exchangeName);
     }
@@ -31,7 +39,7 @@ public class MarketDataModule extends AbstractModule {
     }
   }
 
-  public static class DryRunModule extends MarketDataModule {
+  static class DryRunModule extends MarketDataModule {
     public static DryRunModule create() {
       return new DryRunModule();
     }
