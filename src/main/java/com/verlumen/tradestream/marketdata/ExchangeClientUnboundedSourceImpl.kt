@@ -1,10 +1,13 @@
 package com.verlumen.tradestream.marketdata
 
 import com.google.common.base.Preconditions.checkArgument
-import com.google.inject.Inject;
-import com.verlumen.tradestream.instruments.CurrencyPairSupply
+import com.google.inject.Inject
+import com.verlumen.tradestream.instruments.CurrencyPairSupply // Assuming this can be injected or accessed differently
+import org.apache.beam.sdk.coders.Coder // Import Coder
+import org.apache.beam.sdk.coders.SerializableCoder // Import SerializableCoder
 import org.apache.beam.sdk.io.UnboundedSource
 import org.apache.beam.sdk.options.PipelineOptions
+import javax.inject.Provider // Import Provider
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.util.Collections
@@ -14,7 +17,8 @@ import java.util.Collections
  * Uses an injected factory to create readers which in turn obtain an ExchangeStreamingClient at runtime.
  */
 class ExchangeClientUnboundedSourceImpl @Inject constructor(
-    private val readerFactory: ExchangeClientUnboundedReader.Factory
+    private val readerFactory: ExchangeClientUnboundedReader.Factory,
+    private val currencyPairSupplyProvider: Provider<CurrencyPairSupply> // Inject Provider instead
 ) : ExchangeClientUnboundedSource() {
     
     companion object {
@@ -31,40 +35,26 @@ class ExchangeClientUnboundedSourceImpl @Inject constructor(
         // No-op implementation returns itself as the only source
         return Collections.singletonList(this)
     }
-
-    /**
-     * Creates the reader using the injected factory, passing necessary runtime info.
-     * This implementation uses the deprecated version without PipelineOptions.
-     */
-    @Throws(IOException::class)
-    @Deprecated("Marked as deprecated to match base class")
-    override fun createReader(checkpointMark: TradeCheckpointMark?): ExchangeClientUnboundedReader {
-        LOG.info("Creating ExchangeClientUnboundedReader using factory. Checkpoint: {}", checkpointMark)
-        
-        // Call the factory to create the reader, passing @Assisted parameters
-        return readerFactory.create(
-            this,
-            // Get CurrencyPairSupply from some other source since we don't have options
-            getCurrencyPairSupply(), 
-            checkpointMark ?: TradeCheckpointMark.INITIAL
-        )
-    }
     
     /**
      * Implementation of the newer createReader method that delegates to our simpler version.
      */
     @Throws(IOException::class)
     override fun createReader(options: PipelineOptions, checkpointMark: TradeCheckpointMark?): ExchangeClientUnboundedReader {
-        // Just delegate to the main implementation
-        return createReader(checkpointMark)
+        LOG.info("Creating ExchangeClientUnboundedReader using factory. Checkpoint: {}", checkpointMark)
+        // Call the factory to create the reader, passing @Assisted parameters
+        return readerFactory.create(
+            this,
+            // Get CurrencyPairSupply via the injected provider
+            currencyPairSupplyProvider.get(),
+            checkpointMark ?: TradeCheckpointMark.INITIAL
+        )
     }
-    
     /**
-     * Helper method to obtain CurrencyPairSupply.
-     * This would need to be implemented based on your application structure.
+     * Returns the Coder for the CheckpointMark object.
+     * Required by UnboundedSource.
      */
-    private fun getCurrencyPairSupply(): CurrencyPairSupply {
-        // This is a placeholder - implement based on how CurrencyPairSupply is made available
-        throw UnsupportedOperationException("Not yet implemented")
+    override fun getCheckpointMarkCoder(): Coder<TradeCheckpointMark> {
+        return SerializableCoder.of(TradeCheckpointMark::class.java)
     }
 }
