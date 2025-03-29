@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.pipeline;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getLast;
 
 import com.google.common.collect.ImmutableList;
@@ -61,7 +62,7 @@ public final class App {
       void setRunMode(String value);
 
       @Description("CoinMarketCap API Key (default: value of " + CMC_API_KEY_ENV_VAR + " environment variable)")
-      @Default.String(System.getenv().getOrDefault(CMC_API_KEY_ENV_VAR, "INVALID_API_KEY"))
+      @Default.String("")
       String getCoinMarketCapApiKey();
       void setCoinMarketCapApiKey(String value);
   }
@@ -188,6 +189,14 @@ PCollection<Trade> trades = pipeline.apply("ReadFromExchange", Read.from(exchang
       System.out.println(
           "Currency Pair: " + element.getKey() + " | Timeframe View: " + element.getValue());
     }
+  }
+
+  private static String getCmcApiKey(Options options) {
+      if (isNullOrEmpty(options.getCmcApiKey())) {
+           return System.getenv().getOrDefault(CMC_API_KEY_ENV_VAR, DEFAULT_API_KEY);
+      } 
+
+      return options.getCmcApiKey();
   }
 
   public static void main(String[] args) throws Exception {
