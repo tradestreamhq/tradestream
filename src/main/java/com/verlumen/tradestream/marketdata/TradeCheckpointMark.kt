@@ -16,7 +16,8 @@ package com.verlumen.tradestream.marketdata
      companion object {
          private const val serialVersionUID = 1L
          // Define INITIAL using the primary constructor's default
-         val INITIAL = TradeCheckpointMark()
+         @JvmField // Expose as public static final field for Java
+         val INITIAL = TradeCheckpointMark() 
      }
 
      override fun finalizeCheckpoint() {
