@@ -26,28 +26,22 @@ abstract class PipelineModule extends AbstractModule {
   @Override
   protected void configure() {
       install(BacktestingModule.create());
-      install(MarketDataModule.create("coinbase", config().tradeTopic()));
+      install(marketDataModule());
       install(SignalsModule.create(config().signalTopic()));
       install(StrategiesModule.create());
       install(Ta4jModule.create());
   }
 
   @Provides
-  @Singleton
-  ExchangeClientUnboundedSource provideExchangeClientUnboundedSource(
-      RunMode runMode,
-      Provider<DryRunExchangeClientUnboundedSource> fakeSourceProvider,
-      Provider<ExchangeClientUnboundedSourceImpl> realSourceProvider) {
-    if (runMode.equals(RunMode.DRY)) {
-      return fakeSourceProvider.get();
-    }
-
-    // Get an instance of the real source implementation via its provider
-    return realSourceProvider.get();
-  }
-
-  @Provides
   PipelineConfig providePipelineConfig() {
     return config();
+  }
+
+  private MarketDataModule marketDataModule() {
+    switch(config().runMode()) {
+      case DRY: return MarketDataModule.DryRunModule.create();
+      case WET: return MarketDataModule.ProdModule.create(config().exchangeName());
+      default: throw new UnsupportedOperationException();
+    }    
   }
 }
