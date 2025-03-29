@@ -65,6 +65,7 @@ kt_jvm_library(
   name = "exchange_client_unbounded_source_impl",
   srcs = ["ExchangeClientUnboundedSourceImpl.kt"],
   deps = [
+    ":exchange_client_unbounded_reader",
     ":exchange_client_unbounded_source",
     ":trade_checkpoint_mark",
     "//protos:marketdata_java_proto",
