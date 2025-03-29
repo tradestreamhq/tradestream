@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -45,6 +46,49 @@ java_library(
       "//third_party:protobuf_java",
       "//third_party:protobuf_java_util",
     ],
+)
+
+kt_jvm_library(
+  name = "exchange_client_unbounded_reader",
+  srcs = ["ExchangeClientUnboundedReader.kt"],
+  deps = [
+    ":exchange_client_unbounded_source",
+    ":trade_checkpoint_mark",
+    "//protos:marketdata_java_proto",
+    "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+    "//src/main/java/com/verlumen/tradestream/instruments:currency_pair_supply",
+    "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
+    "//third_party:beam_sdks_java_core",
+    "//third_party:guava",
+    "//third_party:guice",
+    "//third_party:guice_assistedinject",
+    "//third_party:protobuf_java_util",
+  ],
+)
+
+kt_jvm_library(
+  name = "exchange_client_unbounded_source",
+  srcs = ["ExchangeClientUnboundedSource.kt"],
+  deps = [
+    ":trade_checkpoint_mark",
+    "//protos:marketdata_java_proto",
+    "//third_party:beam_sdks_java_core",
+    "//third_party:beam_sdks_java_extensions_protobuf",
+  ],
+)
+
+kt_jvm_library(
+  name = "exchange_client_unbounded_source_impl",
+  srcs = ["ExchangeClientUnboundedSourceImpl.kt"],
+  deps = [
+    ":exchange_client_unbounded_reader",
+    ":exchange_client_unbounded_source",
+    ":trade_checkpoint_mark",
+    "//protos:marketdata_java_proto",
+    "//third_party:beam_sdks_java_core",
+    "//third_party:beam_sdks_java_extensions_protobuf",
+    "//third_party:guice",
+  ],
 )
 
 java_library(
@@ -136,6 +180,15 @@ java_library(
         "//third_party:flogger",
         "//third_party:joda_time",
         "//third_party:protobuf_java",
+    ],
+)
+
+kt_jvm_library(
+    name = "trade_checkpoint_mark",
+    srcs = ["TradeCheckpointMark.kt"],
+    deps = [
+        "//third_party:beam_sdks_java_core",
+        "//third_party:joda_time",
     ],
 )
 
