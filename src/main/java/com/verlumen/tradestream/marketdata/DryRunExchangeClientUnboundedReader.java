@@ -34,7 +34,6 @@ class DryRunExchangeClientUnboundedReader extends ExchangeClientUnboundedReader 
         while (currentIndex < trades.size()) {
             Instant tradeTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(trades.get(currentIndex).getTimestamp()));
             if (tradeTimestamp.isAfter(currentCheckpointMark.getLastProcessedTimestamp())) {
-                 LOG.info("Starting at index {} (Timestamp: {}) after checkpoint {}", currentIndex, tradeTimestamp, currentCheckpointMark.getLastProcessedTimestamp());
                  return advance(); // Read the first valid element
             }
             currentIndex++;
