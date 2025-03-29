@@ -42,6 +42,12 @@ spec:
           emptyDir: {}
       containers:
         - name: flink-main-container
+          env:
+            - name: COINMARKETCAP_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: coinmarketcap
+                  key: apiKey
           volumeMounts:
             - name: flink-writable-volume
               mountPath: /opt/flink/writable-tmp
