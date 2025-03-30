@@ -8,6 +8,5 @@ commandTests:
       - '-jar'
       - '/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar'
       - '--runMode=dry'
-      - '--tradeTopic=fakeTopic'
     expectedError:
       - 'DRY/RUN'
