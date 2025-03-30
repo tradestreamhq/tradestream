@@ -14,11 +14,6 @@ public abstract class InstrumentsModule extends AbstractModule {
   abstract String coinMarketCapApiKey();
   abstract int topCryptocurrencyCount();
 
-  @Override
-  protected void configure() {
-    bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
-  }
-
   @Provides
   CoinMarketCapConfig provideCoinMarketCapConfig() {
     return CoinMarketCapConfig.create(
