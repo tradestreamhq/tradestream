@@ -8,7 +8,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.execution.RunMode;
 
 @AutoValue
@@ -33,10 +32,6 @@ public abstract class MarketDataModule extends AbstractModule {
   protected void configure() {
     bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
-
-    install(new FactoryModuleBuilder()
-            .implement(ExchangeClientUnboundedReader.class, ExchangeClientUnboundedReaderImpl.class)
-            .build(ExchangeClientUnboundedReader.Factory.class));
   }
 
   @Provides
