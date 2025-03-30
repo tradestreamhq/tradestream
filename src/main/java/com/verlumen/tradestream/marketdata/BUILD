@@ -210,6 +210,7 @@ java_library(
         ":trade_publisher",
         ":trade_publisher_impl",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
         "//third_party:guice",
         "//third_party:guice_assistedinject",

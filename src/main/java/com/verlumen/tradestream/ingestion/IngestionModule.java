@@ -22,7 +22,14 @@ abstract class IngestionModule extends AbstractModule {
 
     install(HttpModule.create());
     install(KafkaModule.create(ingestionConfig().kafkaBootstrapServers()));
-    install(MarketDataModule.create(ingestionConfig().exchangeName(), ingestionConfig().tradeTopic()));
+    install(marketDataModule());
+  }
+
+  MarketDataModule marketDataModule() {
+    return MarketDataModule.create(
+      ingestionConfig().exchangeName(),
+      ingestionConfig().tradeTopic(),
+      ingestionConfig().runMode());
   }
 
   @Provides

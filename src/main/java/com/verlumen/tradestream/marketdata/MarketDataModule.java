@@ -6,11 +6,12 @@ import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.verlumen.tradestream.execution.RunMode;
 
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
-  public static MarketDataModule create(String exchangeName, String tradeTopic) {
-    return new AutoValue_MarketDataModule(exchangeName, tradeTopic);
+  public static MarketDataModule create(String exchangeName, String tradeTopic, RunMode runMode) {
+    return new AutoValue_MarketDataModule(exchangeName, tradeTopic, runMode);
   }
 
   private static final Trade DRY_RUN_TRADE = Trade.newBuilder()
@@ -24,6 +25,7 @@ public abstract class MarketDataModule extends AbstractModule {
 
   abstract String exchangeName();
   abstract String tradeTopic();
+  abstract RunMode runMode();
 
   @Override
   protected void configure() {
