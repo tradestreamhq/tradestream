@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.pipeline;
 
+import static com.google.protobuf.util.Timestamps.fromMillis;
+
 import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
