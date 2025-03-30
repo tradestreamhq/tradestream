@@ -67,6 +67,14 @@ java_library(
     ],
 )
 
+java_library(
+    name = "exchange_client_trade_source",
+    srcs = ["ExchangeClientTradeSource.java"],
+    deps = [
+        ":exchange_client_unbounded_source",
+    ],
+)
+
 kt_jvm_library(
     name = "exchange_client_unbounded_reader",
     srcs = ["ExchangeClientUnboundedReader.kt"],
