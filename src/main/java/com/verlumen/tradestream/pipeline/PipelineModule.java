@@ -8,6 +8,7 @@ import com.google.inject.Provides;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.KafkaModule;
+import com.verlumen.tradestream.marketdata.MarketDataModule;
 import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.signals.SignalsModule;
 import com.verlumen.tradestream.strategies.StrategiesModule;
