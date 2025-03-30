@@ -1,15 +1,13 @@
 package com.verlumen.tradestream.instruments;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
  * Represents metadata for a currency pair, including its {@link CurrencyPair}
  * and associated market capitalization.
  */
-record CurrencyPairMetadata(
-  CurrencyPair currencyPair,
-  BigDecimal marketCap
-) {
+record CurrencyPairMetadata(CurrencyPair currencyPair, BigDecimal marketCap) implements Serializable {
 
   /**
    * Factory method to create a {@link CurrencyPairMetadata} instance from a symbol and market cap value.
