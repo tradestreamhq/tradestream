@@ -61,6 +61,11 @@ public final class App {
     String getRunMode();
     void setRunMode(String value);
 
+    @Description("Kafka topic to read trade data from.")
+    @Default.String("trades")
+    String getTradeTopic();
+    void setTradeTopic(String value);
+
     @Description("CoinMarketCap API Key (default: value of " + CMC_API_KEY_ENV_VAR + " environment variable)")
     @Default.String("")
     String getCoinMarketCapApiKey();
