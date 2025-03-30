@@ -9,10 +9,11 @@ import com.verlumen.tradestream.execution.RunMode;
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
   public static MarketDataModule create(String exchangeName, String tradeTopic, RunMode runMode) {
-    return new AutoValue_MarketDataModule(MarketDataConfig.create(exchangeName, tradeTopic), runMode);
+    return new AutoValue_MarketDataModule(exchangeName, tradeTopic, runMode);
   }
 
-  abstract MarketDataConfig config();
+  abstract String exchangeName();
+  abstract String tradeTopic();
   abstract RunMode runMode();
 
   @Override
@@ -32,11 +33,11 @@ public abstract class MarketDataModule extends AbstractModule {
   @Provides
   ExchangeStreamingClient provideExchangeStreamingClient(
       ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
-    return exchangeStreamingClientFactory.create(config().exchangeName());
+    return exchangeStreamingClientFactory.create(exchangeName());
   }
 
   @Provides
   TradePublisher provideTradePublisher(TradePublisher.Factory tradePublisherFactory) {
-    return tradePublisherFactory.create(config().tradeTopic());
+    return tradePublisherFactory.create(tradeTopic());
   }
 }
