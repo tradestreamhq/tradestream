@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.pipeline;
 
-import com.verlumen.tradestream.execution.RunMode;
 import org.joda.time.Duration;
 
 record TimingConfig(
