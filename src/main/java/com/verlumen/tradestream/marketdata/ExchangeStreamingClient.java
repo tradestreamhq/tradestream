@@ -11,7 +11,7 @@ import java.util.function.Consumer;
  * This allows different exchanges to provide their own implementations
  * while maintaining a consistent interface for the data ingestion system.
  */
-public interface ExchangeStreamingClient {
+public interface ExchangeStreamingClient extends Serializable {
     /**
      * Starts streaming market data for the given currency pairs.
      *
