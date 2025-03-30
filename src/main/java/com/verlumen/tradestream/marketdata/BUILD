@@ -201,6 +201,7 @@ java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
     deps = [
+        ":dry_run_trade_source",
         ":exchange_client_unbounded_reader",
         ":exchange_client_unbounded_reader_impl",
         ":exchange_client_unbounded_source",
@@ -211,6 +212,7 @@ java_library(
         ":trade_publisher_impl",
         ":trade_source",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
