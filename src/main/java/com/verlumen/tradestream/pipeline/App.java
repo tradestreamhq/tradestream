@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.pipeline;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getLast;
 
 import com.google.common.collect.ImmutableList;
@@ -39,6 +40,7 @@ import org.joda.time.Instant;
 
 public final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private static final String CMC_API_KEY_ENV_VAR = "COINMARKETCAP_API_KEY";
 
   public interface Options extends StreamingOptions {
