@@ -63,11 +63,6 @@ public final class App {
     String getRunMode();
     void setRunMode(String value);
 
-    @Description("Kafka topic to read trade data from.")
-    @Default.String("trades")
-    String getTradeTopic();
-    void setTradeTopic(String value);
-
     @Description("CoinMarketCap API Key (default: value of " + CMC_API_KEY_ENV_VAR + " environment variable)")
     @Default.String("")
     String getCoinMarketCapApiKey();
@@ -220,8 +215,7 @@ public final class App {
 
     // Create Guice module.
     RunMode runMode = RunMode.fromString(options.getRunMode());
-    var module = PipelineModule.create(
-      options.getBootstrapServers(), options.getSignalTopic(),  options.getTradeTopic(), runMode);
+    var module = PipelineModule.create(options.getBootstrapServers(), options.getSignalTopic(), runMode);
     logger.atInfo().log("Created Guice module.");
 
     // Initialize the application via Guice.
