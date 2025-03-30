@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.marketdata;
 
 import com.google.inject.Inject;
+import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.values.PBegin;
