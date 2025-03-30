@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions.checkArgument
 import com.google.common.base.Preconditions.checkState
 import com.google.common.collect.ImmutableList
 import com.google.common.flogger.FluentLogger
+import com.google.inject.Inject
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.instruments.CurrencyPair
 import com.verlumen.tradestream.instruments.CurrencyPairSupply
@@ -15,79 +16,14 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.LinkedBlockingQueue
 
 /**
- * Abstract base class for an unbounded reader that streams trade data from an exchange.
- */
-abstract class ExchangeClientUnboundedReader : UnboundedSource.UnboundedReader<Trade>() {
-    /**
-     * Starts the reader and begins streaming trade data.
-     * @return boolean indicating if the reader successfully advanced to the first element
-     */
-    @Throws(IOException::class)
-    abstract override fun start(): Boolean
-    
-    /**
-     * Advances the reader to the next trade.
-     * @return boolean indicating if there is a current trade after advancing
-     */
-    @Throws(IOException::class)
-    abstract override fun advance(): Boolean
-    
-    /**
-     * Gets the timestamp of the current trade.
-     * @return the timestamp of the current trade
-     */
-    abstract override fun getCurrentTimestamp(): Instant
-    
-    /**
-     * Gets the current trade object.
-     * @return the current trade
-     */
-    abstract override fun getCurrent(): Trade
-    
-    /**
-     * Gets the unique ID of the current trade.
-     * @return the byte array representation of the trade ID
-     */
-    abstract override fun getCurrentRecordId(): ByteArray
-    
-    /**
-     * Gets the current watermark for this reader.
-     * @return the watermark instant
-     */
-    abstract override fun getWatermark(): Instant
-    
-    /**
-     * Gets the checkpoint mark for this reader.
-     * @return the trade checkpoint mark
-     */
-    abstract override fun getCheckpointMark(): TradeCheckpointMark
-    
-    /**
-     * Gets the source that created this reader.
-     * @return the unbounded source
-     */
-    abstract override fun getCurrentSource(): UnboundedSource<Trade, *>
-    
-    /**
-     * Closes the reader and stops streaming.
-     */
-    @Throws(IOException::class)
-    abstract override fun close()
-
-    companion object {
-        private val WATERMARK_IDLE_THRESHOLD = Duration.standardSeconds(5)
-    }
-}
-
-/**
- * Implementation of ExchangeClientUnboundedReader that streams trade data from an exchange.
+ * An unbounded reader that streams trade data from an exchange.
  */
 class ExchangeClientUnboundedReader(
     private val exchangeClient: ExchangeStreamingClient,
     private val currencyPairSupply: CurrencyPairSupply,
     private val source: ExchangeClientUnboundedSource,
     private var currentCheckpointMark: TradeCheckpointMark
-) : ExchangeClientUnboundedReader() {
+) : UnboundedSource.UnboundedReader<Trade>() {
 
     private val incomingMessagesQueue = LinkedBlockingQueue<Trade>(10000)
     private var clientStreamingActive = false
@@ -98,6 +34,34 @@ class ExchangeClientUnboundedReader(
         logger.atInfo().log("ExchangeClientUnboundedReader created. Checkpoint: %s", this.currentCheckpointMark)
     }
 
+    /**
+     * Guice factory for creating ExchangeClientUnboundedReader instances.
+     */
+    class Factory @Inject constructor(
+        private val exchangeClient: ExchangeStreamingClient,
+        private val currencyPairSupply: CurrencyPairSupply
+    ) : java.io.Serializable {
+        /**
+         * Creates a new ExchangeClientUnboundedReader instance.
+         */
+        fun create(
+            source: ExchangeClientUnboundedSource,
+            mark: TradeCheckpointMark
+        ): ExchangeClientUnboundedReader {
+            return ExchangeClientUnboundedReader(
+                exchangeClient,
+                currencyPairSupply,
+                source,
+                mark
+            )
+        }
+    }
+
+    /**
+     * Starts the reader and begins streaming trade data.
+     * @return boolean indicating if the reader successfully advanced to the first element
+     */
+    @Throws(IOException::class)
     override fun start(): Boolean {
         logger.atInfo().log("Reader start() called with ExchangeStreamingClient: %s", exchangeClient.javaClass.name)
 
@@ -144,6 +108,11 @@ class ExchangeClientUnboundedReader(
         return advance()
     }
 
+    /**
+     * Advances the reader to the next trade.
+     * @return boolean indicating if there is a current trade after advancing
+     */
+    @Throws(IOException::class)
     override fun advance(): Boolean {
         checkState(clientStreamingActive || incomingMessagesQueue.isNotEmpty(),
             "Cannot advance: Exchange client streaming not active and queue empty.")
@@ -173,16 +142,28 @@ class ExchangeClientUnboundedReader(
         }
     }
 
+    /**
+     * Gets the timestamp of the current trade.
+     * @return the timestamp of the current trade
+     */
     override fun getCurrentTimestamp(): Instant {
         checkState(currentTradeTimestamp != null, "Timestamp not available. advance() must return true first.")
         return currentTradeTimestamp!!
     }
 
+    /**
+     * Gets the current trade object.
+     * @return the current trade
+     */
     override fun getCurrent(): Trade {
         checkState(currentTrade != null, "No current trade available. advance() must return true first.")
         return currentTrade!!
     }
 
+    /**
+     * Gets the unique ID of the current trade.
+     * @return the byte array representation of the trade ID
+     */
     override fun getCurrentRecordId(): ByteArray {
         checkState(currentTrade != null, "Cannot get record ID: No current trade.")
         val uniqueId = currentTrade!!.getTradeId()
@@ -192,6 +173,10 @@ class ExchangeClientUnboundedReader(
         return uniqueId.toByteArray(StandardCharsets.UTF_8)
     }
 
+    /**
+     * Gets the current watermark for this reader.
+     * @return the watermark instant
+     */
     override fun getWatermark(): Instant {
         val lastKnownTimestamp = currentCheckpointMark.lastProcessedTimestamp
         var potentialWatermark = lastKnownTimestamp
@@ -206,6 +191,10 @@ class ExchangeClientUnboundedReader(
         return potentialWatermark
     }
 
+    /**
+     * Gets the checkpoint mark for this reader.
+     * @return the trade checkpoint mark
+     */
     override fun getCheckpointMark(): TradeCheckpointMark {
         // Checkpoint based on the timestamp of the last successfully *processed* trade
         val checkpointTimestamp = currentTradeTimestamp 
@@ -217,10 +206,18 @@ class ExchangeClientUnboundedReader(
         return this.currentCheckpointMark
     }
 
+    /**
+     * Gets the source that created this reader.
+     * @return the unbounded source
+     */
     override fun getCurrentSource(): UnboundedSource<Trade, *> {
         return source
     }
 
+    /**
+     * Closes the reader and stops streaming.
+     */
+    @Throws(IOException::class)
     override fun close() {
         logger.atInfo().log("Closing ExchangeClient reader...")
         clientStreamingActive = false // Signal callback loops to stop processing
@@ -239,5 +236,8 @@ class ExchangeClientUnboundedReader(
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
+        private val WATERMARK_IDLE_THRESHOLD = Duration.standardSeconds(5)
+        
+        private const val serialVersionUID = 1L
     }
 }
