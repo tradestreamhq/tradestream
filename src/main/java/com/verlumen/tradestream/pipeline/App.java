@@ -84,9 +84,6 @@ public final class App {
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig,
       TradeSource tradeSource) {
-    this.allowedLateness = timingConfig.allowedLateness();
-    this.allowedTimestampSkew = timingConfig.allowedTimestampSkew();
-    this.windowDuration = timingConfig.windowDuration();
     this.strategyEnginePipeline = strategyEnginePipeline;
     this.timingConfig = timingConfig;
     this.tradeSource = tradeSource;
