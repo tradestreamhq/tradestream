@@ -6,13 +6,11 @@ TradeStream is an algorithmic trading platform that leverages real-time data str
 
 TradeStream consists of several key components:
 
-1. **Data Ingestion**: Fetches real-time market data from exchanges (currently Coinbase) and publishes it to Kafka
-2. **Data Pipeline**: An Apache Beam pipeline running on Apache Flink that processes trade data and computes technical indicators
-3. **Strategy Engine**: Consumes candlestick data and uses Ta4J to evaluate trading strategies
-4. **Trade Signals**: Output from the strategy engine that can be consumed by an order executor
-5. **Kafka**: Message broker for all data streams, running in KRaft mode (Zookeeper-less)
-6. **Kafka UI**: Web interface for monitoring Kafka topics
-7. **Deployment**: Managed via Helm charts on Kubernetes, with CI/CD through GitHub Actions
+1. **Data Pipeline**: An Apache Beam pipeline running on Apache Flink that processes trade data, computes technical indicators, handles data ingestion, and includes the Strategy Engine which uses Ta4J to evaluate trading strategies
+2. **Trade Signals**: Output from the pipeline that can be consumed by an order executor
+4. **Kafka**: Message broker for all data streams, running in KRaft mode (Zookeeper-less)
+5. **Kafka UI**: Web interface for monitoring Kafka topics
+6. **Deployment**: Managed via Helm charts on Kubernetes, with CI/CD through GitHub Actions
 
 ### Data Flow
 
@@ -24,30 +22,24 @@ graph LR
     end
 
     subgraph TradeStream
-        DataIngestion[Data Ingestion] --> Kafka["Kafka (Trades Topic)"]
-        Kafka --> DataPipeline["Data Pipeline (Flink)"]
-        DataPipeline --> Kafka2["Kafka (Candles Topic)"]
-        Kafka2 --> StrategyEngine[Strategy Engine]
-        StrategyEngine --> Kafka3["Kafka (Signals Topic)"]
+        DataPipeline["Data Pipeline (Flink)"] --> Kafka["Kafka (Trades Topic)"]
+        Kafka --> DataPipeline
+        DataPipeline --> Kafka3["Kafka (Signals Topic)"]
     end
 
     subgraph Monitoring
       Kafka --> KafkaUI[Kafka UI]
     end
 
-    style DataIngestion fill:#ccf,stroke:#333,stroke-width:2px
     style DataPipeline fill:#ccf,stroke:#333,stroke-width:2px
     style Kafka fill:#f5f,stroke:#333,stroke-width:2px
-    style StrategyEngine fill:#ccf,stroke:#333,stroke-width:2px
     style KafkaUI fill:#ccf,stroke:#333,stroke-width:2px
 ```
 
 The platform processes data through the following steps:
 
-1. **Data Ingestion**: Connects to Coinbase via WebSocket to stream real-time trade data to Kafka
-2. **Data Pipeline**: Processes trades into candlesticks, generating technical indicators
-3. **Strategy Engine**: Evaluates trading strategies using Ta4j and generates signals
-4. **Monitoring**: Provides visibility into data flows through Kafka UI
+1. **Data Pipeline**: Connects to Coinbase via WebSocket to stream real-time trade data to Kafka, processes trades, generates technical indicators, evaluates trading strategies using Ta4j, and generates signals
+3. **Monitoring**: Provides visibility into data flows through Kafka UI
 
 ## Installation
 
@@ -67,8 +59,7 @@ Key configuration parameters in `values.yaml`:
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `kafka.replicaCount` | Number of Kafka brokers | 3 |
-| `dataIngestion.runMode` | Run mode: `wet` (live) or `dry` (simulated) | `wet` |
-| `pipeline.runMode` | Pipeline run mode | `wet` |
+| `pipeline.runMode` | Pipeline run mode: `wet` (live) or `dry` (simulated) | `wet` |
 | `pipeline.version` | Flink version | `v1_18` |
 
 ## Project Structure
@@ -82,12 +73,11 @@ Key configuration parameters in `values.yaml`:
 │   ├── backtesting/          # Backtest implementations
 │   ├── execution/            # Run mode and Guice module
 │   ├── http/                 # External API clients
-│   ├── ingestion/            # Data ingestion logic
 │   ├── instruments/          # Financial instruments
 │   ├── kafka/                # Kafka utilities
 │   ├── marketdata/           # Market data processing
-│   ├── pipeline/             # Main Beam pipeline
-│   └── strategies/           # Trading strategies
+│   ├── pipeline/             # Main Beam pipeline with ingestion and strategies
+│   └── strategies/           # Trading strategy definitions
 └── platforms/                # Platform configs
 ```
 
