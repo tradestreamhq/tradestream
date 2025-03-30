@@ -10,7 +10,7 @@ record TimingConfig(
   private static final Duration ONE_MINUTE = Duration.standardMinutes(1);
   private static final Duration THIRTY_MINUTES = Duration.standardMinutes(30);
 
-  static PipelineConfig create() {
+  static TimingConfig create() {
     return new TimingConfig(
         FIVE_SECONDS,
         ONE_MINUTE,
