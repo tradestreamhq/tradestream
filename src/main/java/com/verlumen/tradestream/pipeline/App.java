@@ -135,7 +135,7 @@ public final class App {
     PCollection<KV<String, Trade>> windowedTradePairs =
         tradePairs.apply(
             "ApplyWindows",
-            Window.<KV<String, Trade>>into(FixedWindows.of(windowDuration))
+            Window.<KV<String, Trade>>into(FixedWindows.of(timingConfig.windowDuration()))
                 .withAllowedLateness(timingConfig.allowedLateness())
                 .triggering(DefaultTrigger.of())
                 .discardingFiredPanes());
