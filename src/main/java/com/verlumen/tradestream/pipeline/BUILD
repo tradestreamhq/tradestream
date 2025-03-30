@@ -107,7 +107,6 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
         "//third_party:auto_value",
         "//third_party:guice",
-        "//third_party:kafka_clients",
         "//third_party:protobuf_java_util",
     ],
 )
