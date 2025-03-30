@@ -4,7 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
--import com.google.common.base.Splitter;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
