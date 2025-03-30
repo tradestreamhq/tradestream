@@ -48,22 +48,28 @@ java_library(
 )
 
 java_library(
-    name = "dry_run_exchange_client_unbounded_source",
-    srcs = [
-        "DryRunExchangeClientUnboundedReader.java",
-        "DryRunExchangeClientUnboundedSource.java",
-    ],
+    name = "dry_run_trade_source",
+    srcs = ["DryRunTradeSource.java"],
     deps = [
-        ":exchange_client_unbounded_reader",
-        ":exchange_client_unbounded_source",
-        ":trade_checkpoint_mark",
+        ":trade_source",
         "//protos:marketdata_java_proto",
+        "//third_party:auto_value",
         "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
         "//third_party:guava",
+    ],
+)
+
+java_library(
+    name = "exchange_client_trade_source",
+    srcs = ["ExchangeClientTradeSource.java"],
+    deps = [
+        ":exchange_client_unbounded_source",
+        ":trade_source",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
+        "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
+        "//third_party:beam_sdks_java_core",
         "//third_party:guice",
-        "//third_party:joda_time",
-        "//third_party:protobuf_java_util",
     ],
 )
 
@@ -147,6 +153,19 @@ java_library(
 )
 
 java_library(
+    name = "kafka_trade_source",
+    srcs = ["KafkaTradeSource.java"],
+    deps = [
+        ":parse_trades",
+        ":trade_source",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guice",
+    ],
+)
+
+java_library(
     name = "last_candles_fn",
     srcs = ["LastCandlesFn.java"],
     deps = [
@@ -159,11 +178,6 @@ java_library(
 )
 
 java_library(
-    name = "market_data_config",
-    srcs = ["MarketDataConfig.java"],
-)
-
-java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
     deps = [
@@ -173,12 +187,14 @@ java_library(
         ":exchange_client_unbounded_source_impl",
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
-        ":market_data_config",
         ":trade_publisher",
         ":trade_publisher_impl",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
+        "//third_party:protobuf_java_util",
     ],
 )
 
@@ -249,5 +265,14 @@ java_library(
         "//third_party:guice_assistedinject",
         "//third_party:kafka_clients",
         "//third_party:protobuf_java_util",
+    ],
+)
+
+java_library(
+    name = "trade_source",
+    srcs = ["TradeSource.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
     ],
 )
