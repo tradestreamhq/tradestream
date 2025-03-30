@@ -1,5 +1,5 @@
 package com.verlumen.tradestream.marketdata
-import org.apache.beam.sdk.coders.Coder
+
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.io.UnboundedSource
 import org.apache.beam.sdk.options.PipelineOptions
