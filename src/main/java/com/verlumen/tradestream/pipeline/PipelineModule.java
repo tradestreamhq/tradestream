@@ -28,8 +28,8 @@ abstract class PipelineModule extends AbstractModule {
       bootstrapServers, coinMarketCapApiKey, exchangeName, runMode, signalTopic, topCurrencyCount);
   }
 
-  abstract String coinMarketCapApiKey();
   abstract String bootstrapServers();
+  abstract String coinMarketCapApiKey();
   abstract String exchangeName();
   abstract RunMode runMode();
   abstract String signalTopic();
