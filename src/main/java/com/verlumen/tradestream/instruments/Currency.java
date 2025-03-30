@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.instruments;
 
-import com.google.auto.value.AutoValue;
+import java.io.Serializable;
 
 /**
  * Represents a currency with a unique symbol.
@@ -8,8 +8,7 @@ import com.google.auto.value.AutoValue;
  * A {@link Currency} object encapsulates the symbol of a currency, which can be used in contexts
  * such as trading, forex, or financial applications.
  */
-@AutoValue
-public abstract class Currency {
+public record Currency(String symbol) implements Serializable {
   /**
    * Factory method to create a {@link Currency} instance.
    *
@@ -22,16 +21,6 @@ public abstract class Currency {
     if (symbol == null || symbol.isEmpty()) {
       throw new IllegalArgumentException("Currency symbol must not be null or empty.");
     }
-    return new AutoValue_Currency(symbol);
+    return new Currency(symbol);
   }
-
-  /**
-   * Returns the symbol of the currency.
-   *
-   * The symbol is typically a three-character code (e.g., "USD", "EUR", "JPY"), but it can also
-   * represent other forms of currency identifiers, such as cryptocurrency symbols (e.g., "BTC").
-   *
-   * @return the symbol of the currency.
-   */
-  public abstract String symbol();
 }
