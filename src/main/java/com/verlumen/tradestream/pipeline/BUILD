@@ -122,3 +122,11 @@ oci_push(
     remote_tags = ["latest"],
     repository = "tradestreamhq/tradestream-data-pipeline",
 )
+
+java_library(
+    name = "timing_config",
+    srcs = ["TimingConfig.java"],
+    deps = [
+        "//third_party:joda_time",
+    ],
+)
