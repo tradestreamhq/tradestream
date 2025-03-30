@@ -13,8 +13,8 @@ import com.verlumen.tradestream.execution.RunMode;
 
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
-  public static MarketDataModule create(String exchangeName, String tradeTopic, RunMode runMode) {
-    return new AutoValue_MarketDataModule(exchangeName, tradeTopic, runMode);
+  public static MarketDataModule create(String exchangeName, RunMode runMode) {
+    return new AutoValue_MarketDataModule(exchangeName, runMode);
   }
 
   private static final Trade DRY_RUN_TRADE = Trade.newBuilder()
@@ -27,7 +27,6 @@ public abstract class MarketDataModule extends AbstractModule {
       .build();
 
   abstract String exchangeName();
-  abstract String tradeTopic();
   abstract RunMode runMode();
 
   @Override
@@ -48,11 +47,6 @@ public abstract class MarketDataModule extends AbstractModule {
   ExchangeStreamingClient provideExchangeStreamingClient(
       ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
     return exchangeStreamingClientFactory.create(exchangeName());
-  }
-
-  @Provides
-  TradePublisher provideTradePublisher(TradePublisher.Factory tradePublisherFactory) {
-    return tradePublisherFactory.create(tradeTopic());
   }
 
   @Provides
