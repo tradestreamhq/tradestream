@@ -26,6 +26,8 @@ import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.StreamingOptions;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.DoFn.ProcessContext;
+import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.WithTimestamps;
@@ -223,7 +225,7 @@ public final class App {
     RunMode runMode = RunMode.fromString(options.getRunMode());
     var module = PipelineModule.create(
       options.getBootstrapServers(),
-      options.getCoinMarketCapApiKey(),
+      getCmcApiKey(options),
       options.getExchangeName(),
       runMode,
       options.getSignalTopic(),
