@@ -17,7 +17,6 @@ import com.verlumen.tradestream.ta4j.Ta4jModule;
 import java.nio.charset.StandardCharsets;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.joda.time.Duration;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
