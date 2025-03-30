@@ -30,19 +30,11 @@ abstract class PipelineModule extends AbstractModule {
       .setVolume(0.1)
       .build();
 
-  static PipelineModule create(
-    PipelineConfig config,
-    Duration allowedLateness,
-    Duration allowedTimestampSkew,
-    Duration windowDuration) {
-    return new AutoValue_PipelineModule(
-      config, allowedLateness, allowedTimestampSkew, windowDuration);
+  static PipelineModule create(PipelineConfig config) {
+    return new AutoValue_PipelineModule(config);
   }
 
   abstract PipelineConfig config();
-  abstract Duration allowedLateness();
-  abstract Duration allowedTimestampSkew();
-  abstract Duration windowDuration();
 
   @Override
   protected void configure() {
