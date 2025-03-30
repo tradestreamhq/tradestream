@@ -24,7 +24,7 @@ import java.util.stream.Stream;
  * EUR).
  * </p>
  */
-public record class CurrencyPair(Currency base, Currency counter) implements Serializable {
+public record CurrencyPair(Currency base, Currency counter) implements Serializable {
   // Constants for possible delimiters in the currency pair symbol.
   private static final String FORWARD_SLASH = "/";
   private static final String HYPHEN = "-";
