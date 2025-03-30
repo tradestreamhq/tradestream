@@ -53,8 +53,8 @@ abstract class PipelineModule extends AbstractModule {
       if (runMode().equals(RunMode.DRY)) {
         return DryRunKafkaReadTransform
             .<String, byte[]>builder()
-            .setBootstrapServers(config().bootstrapServers())
-            .setTopic(config().tradeTopic())
+            .setBootstrapServers(bootstrapServers())
+            .setTopic(tradeTopic())
             .setKeyDeserializerClass(StringDeserializer.class)
             .setValueDeserializerClass(ByteArrayDeserializer.class)
             .setDefaultValue(DRY_RUN_TRADE.toByteArray())
