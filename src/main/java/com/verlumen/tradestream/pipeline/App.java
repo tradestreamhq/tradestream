@@ -73,7 +73,7 @@ public final class App {
 
   @Inject
   App(
-      PipelineConfig config
+      PipelineConfig config,
       StrategyEnginePipeline strategyEnginePipeline,
       TradeSource tradeSource) {
     this.allowedLateness = config.allowedLateness();
