@@ -3,6 +3,7 @@ package com.verlumen.tradestream.marketdata;
 import static com.google.protobuf.util.Timestamps.fromMillis;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
 import com.google.inject.Provides;
@@ -57,7 +58,7 @@ public abstract class MarketDataModule extends AbstractModule {
   @Singleton
   TradeSource provideTradeSource(Provider<ExchangeClientTradeSource> exchangeClientTradeSource) {
     if (runMode().equals(RunMode.DRY)) {
-      return DryRunTradeSource.create();
+      return DryRunTradeSource.create(ImmutableList.of(DRY_RUN_TRADE));
     }
 
     return exchangeClientTradeSource.get();
