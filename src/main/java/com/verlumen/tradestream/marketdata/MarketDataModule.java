@@ -9,10 +9,11 @@ import com.verlumen.tradestream.execution.RunMode;
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
   public static MarketDataModule create(String exchangeName, String tradeTopic, RunMode runMode) {
-    return new AutoValue_MarketDataModule(MarketDataConfig.create(exchangeName, tradeTopic, runMode));
+    return new AutoValue_MarketDataModule(MarketDataConfig.create(exchangeName, tradeTopic), runMode);
   }
 
   abstract MarketDataConfig config();
+  abstract RunMode runMode();
 
   @Override
   protected void configure() {
