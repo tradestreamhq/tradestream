@@ -209,10 +209,12 @@ java_library(
         ":exchange_streaming_client_factory",
         ":trade_publisher",
         ":trade_publisher_impl",
+        "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
+        "//third_party:protobuf_java_util",
     ],
 )
 
