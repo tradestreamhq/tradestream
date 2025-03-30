@@ -9,13 +9,10 @@ import com.verlumen.tradestream.backtesting.BacktestingModule;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.marketdata.MarketDataModule;
-import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.signals.SignalsModule;
 import com.verlumen.tradestream.strategies.StrategiesModule;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
 import java.nio.charset.StandardCharsets;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
