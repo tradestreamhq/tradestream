@@ -16,8 +16,8 @@ java_library(
     name = "currency_pair",
     srcs = ["CurrencyPair.java"],
     deps = [
-        "//third_party:guava",
         ":currency",
+        "//third_party:guava",
     ],
 )
 
