@@ -33,7 +33,10 @@ public abstract class InstrumentsModule extends AbstractModule {
   @Singleton
   Supplier<ImmutableList<CurrencyPair>> provideCurrencyPairSupplier(
     CurrencyPairSupplyProvider provider) {
+    Supplier<ImmutableList<CurrencyPair>> baseSupplier = provider.get();
     return Suppliers.memoizeWithExpiration(
-      provider.get(), INSTRUMENT_REFRESH_INTERVAL.toMillis(), TimeUnit.MILLISECONDS);
+      Suppliers.ofInstance(baseSupplier.get()),
+      INSTRUMENT_REFRESH_INTERVAL.toMillis(),
+      TimeUnit.MILLISECONDS);
   }
 }
