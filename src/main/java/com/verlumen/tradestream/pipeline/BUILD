@@ -14,10 +14,10 @@ java_binary(
         "-Dio.jenetics.util.defaultRandomGenerator=Random",
     ],
     deps = [
-        ":pipeline_config",
         ":pipeline_module",
         ":timing_config",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_stream_with_defaults",
         "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
@@ -87,18 +87,9 @@ tar(
 )
 
 java_library(
-    name = "pipeline_config",
-    srcs = ["PipelineConfig.java"],
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
-    ],
-)
-
-java_library(
     name = "pipeline_module",
     srcs = ["PipelineModule.java"],
     deps = [
-        ":pipeline_config",
         ":timing_config",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",

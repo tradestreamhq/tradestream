@@ -8,6 +8,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.protobuf.util.Timestamps;
+import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.CandleStreamWithDefaults;
@@ -221,15 +222,10 @@ public final class App {
             flinkOptions.getAttachedMode(), flinkOptions.isStreaming());
 
     // Create PipelineConfig and Guice module.
-    PipelineConfig config =
-        PipelineConfig.create(
-            options.getBootstrapServers(),
-            options.getTradeTopic(),
-            options.getSignalTopic(),
-            options.getRunMode());
-    logger.atInfo().log("Created PipelineConfig: %s", config);
+    RunMode runMode = RunMode.fromString(options.getRunMode());
 
-    var module = PipelineModule.create(config);
+    var module = PipelineModule.create(
+      options.getBootstrapServers(), options.getSignalTopic(),  options.getTradeTopic(), runMode);
     logger.atInfo().log("Created Guice module.");
 
     // Initialize the application via Guice.

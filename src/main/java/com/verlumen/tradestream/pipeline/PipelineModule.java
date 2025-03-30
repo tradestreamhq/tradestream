@@ -29,28 +29,32 @@ abstract class PipelineModule extends AbstractModule {
       .setVolume(0.1)
       .build();
 
-  static PipelineModule create(PipelineConfig config) {
-    return new AutoValue_PipelineModule(config);
+  static PipelineModule create(
+    String bootstrapServers, String signalTopic, String tradeTopic, RunMode runMode) {
+    return new AutoValue_PipelineModule(bootstrapServers, signalTopic, tradeTopic, runMode);
   }
 
-  abstract PipelineConfig config();
+  abstract String bootstrapServers();
+  abstract String signalTopic();
+  abstract String tradeTopic();
+  abstract RunMode runMode();
 
   @Override
   protected void configure() {
       install(BacktestingModule.create());
-      install(KafkaModule.create(config().bootstrapServers()));
-      install(SignalsModule.create(config().signalTopic()));
+      install(KafkaModule.create(bootstrapServers()));
+      install(SignalsModule.create(signalTopic()));
       install(StrategiesModule.create());
       install(Ta4jModule.create());
   }
 
   @Provides
   KafkaReadTransform<String, byte[]> provideKafkaReadTransform(KafkaReadTransform.Factory factory) {
-      if (config().runMode().equals(RunMode.DRY)) {
+      if (runMode().equals(RunMode.DRY)) {
         return DryRunKafkaReadTransform
             .<String, byte[]>builder()
-            .setBootstrapServers(config().bootstrapServers())
-            .setTopic(config().tradeTopic())
+            .setBootstrapServers(bootstrapServers())
+            .setTopic(tradeTopic())
             .setKeyDeserializerClass(StringDeserializer.class)
             .setValueDeserializerClass(ByteArrayDeserializer.class)
             .setDefaultValue(DRY_RUN_TRADE.toByteArray())
@@ -58,14 +62,9 @@ abstract class PipelineModule extends AbstractModule {
       }
 
       return factory.create(
-          config().tradeTopic(), 
+          tradeTopic(), 
           StringDeserializer.class,
           ByteArrayDeserializer.class);
-  }
-
-  @Provides
-  PipelineConfig providePipelineConfig() {
-    return config();
   }
 
   @Provides
