@@ -86,8 +86,6 @@ java_library(
         ":exchange_client_unbounded_source",
         ":trade_source",
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
-        "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
         "//third_party:beam_sdks_java_core",
         "//third_party:guice",
     ],
@@ -168,19 +166,6 @@ java_library(
         ":coinbase_streaming_client",
         ":exchange_streaming_client",
         "//third_party:guava",
-        "//third_party:guice",
-    ],
-)
-
-java_library(
-    name = "kafka_trade_source",
-    srcs = ["KafkaTradeSource.java"],
-    deps = [
-        ":parse_trades",
-        ":trade_source",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
-        "//third_party:beam_sdks_java_core",
         "//third_party:guice",
     ],
 )
