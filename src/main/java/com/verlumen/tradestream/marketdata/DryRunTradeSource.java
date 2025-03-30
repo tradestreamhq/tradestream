@@ -2,12 +2,17 @@ package com.verlumen.tradestream.marketdata;
 
 import com.google.auto.value.AutoValue;
 import org.apache.beam.sdk.transforms.Create;
+import org.apache.beam.sdk.transforms.PTransform;
+import org.apache.beam.sdk.values.PBegin;
+import org.apache.beam.sdk.values.PCollection;
 
 @AutoValue
 abstract class DryRunTradeSource extends TradeSource {
-  abstract ImmutableList<Trade> trades();
+  static DryRunTradeSource create(ImmutableList<Trade> trades) {
+    return new AutoValue_DryRunTradeSource(trades);
+  }
 
-  DryRunTradeSource
+  abstract ImmutableList<Trade> trades();
   
   @Override
   public PCollection<Trade> expand(PBegin input) {
