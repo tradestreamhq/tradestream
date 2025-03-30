@@ -101,7 +101,6 @@ java_library(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
-        "//src/main/java/com/verlumen/tradestream/kafka:dry_run_kafka_read_transform",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
         "//src/main/java/com/verlumen/tradestream/signals:signals_module",
