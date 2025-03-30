@@ -7,20 +7,20 @@ import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.instruments.CurrencyPair
-import com.verlumen.tradestream.instruments.CurrencyPairSupply
 import org.apache.beam.sdk.io.UnboundedSource
 import org.joda.time.Duration
 import org.joda.time.Instant
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.function.Supplier;
 
 /**
  * An unbounded reader that streams trade data from an exchange.
  */
 class ExchangeClientUnboundedReader(
     private val exchangeClient: ExchangeStreamingClient,
-    private val currencyPairSupply: CurrencyPairSupply,
+    private val currencyPairSupply: Supplier<ImmutableList<CurrencyPair>>,
     private val source: ExchangeClientUnboundedSource,
     private var currentCheckpointMark: TradeCheckpointMark
 ) : UnboundedSource.UnboundedReader<Trade>() {
@@ -39,7 +39,7 @@ class ExchangeClientUnboundedReader(
      */
     class Factory @Inject constructor(
         private val exchangeClient: ExchangeStreamingClient,
-        private val currencyPairSupply: CurrencyPairSupply
+        private val currencyPairSupply: Supplier<ImmutableList<CurrencyPair>>
     ) : java.io.Serializable {
         /**
          * Creates a new ExchangeClientUnboundedReader instance.
@@ -67,13 +67,13 @@ class ExchangeClientUnboundedReader(
 
         val pairsToStream: ImmutableList<CurrencyPair>
         try {
-            logger.atFine().log("Calling currencyPairSupply.currencyPairs()...")
-            pairsToStream = currencyPairSupply.currencyPairs()
-            checkArgument(pairsToStream.isNotEmpty(), "CurrencyPairSupply returned empty list via currencyPairs()")
-            logger.atInfo().log("Obtained %d currency pairs from CurrencyPairSupply.", pairsToStream.size)
+            logger.atFine().log("Calling currencyPairSupply.get()...")
+            pairsToStream = currencyPairSupply.get()
+            checkArgument(pairsToStream.isNotEmpty(), "CurrencyPair Supplier returned empty list via currencyPairs()")
+            logger.atInfo().log("Obtained %d currency pairs from CurrencyPair Supplier.", pairsToStream.size)
         } catch (e: Exception) {
-            logger.atSevere().withCause(e).log("Failed to get currency pairs from CurrencyPairSupply")
-            throw IOException("Failed to get currency pairs from CurrencyPairSupply", e)
+            logger.atSevere().withCause(e).log("Failed to get currency pairs from CurrencyPair Supplier")
+            throw IOException("Failed to get currency pairs from CurrencyPair Supplier", e)
         }
 
         logger.atInfo().log("Calling exchangeClient.startStreaming for %d pairs.", pairsToStream.size)

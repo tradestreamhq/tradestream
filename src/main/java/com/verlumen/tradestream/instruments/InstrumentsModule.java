@@ -1,8 +1,10 @@
 package com.verlumen.tradestream.instruments;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import java.util.function.Supplier;
 
 @AutoValue
 public abstract class InstrumentsModule extends AbstractModule {
@@ -13,14 +15,15 @@ public abstract class InstrumentsModule extends AbstractModule {
   abstract String coinMarketCapApiKey();
   abstract int topCryptocurrencyCount();
 
-  @Override
-  protected void configure() {
-    bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
-  }
-
   @Provides
   CoinMarketCapConfig provideCoinMarketCapConfig() {
     return CoinMarketCapConfig.create(
         topCryptocurrencyCount(), coinMarketCapApiKey());
+  }
+
+  @Provides
+  Supplier<ImmutableList<CurrencyPair>> provideCurrencyPairSupplier(
+    CurrencyPairSupplyProvider provider) {
+    return provider.get();
   }
 }
