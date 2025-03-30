@@ -28,6 +28,7 @@ public abstract class MarketDataModule extends AbstractModule {
 
   abstract String exchangeName();
   abstract String tradeTopic();
+  abstract RunMode runMode();
 
   @Override
   protected void configure() {

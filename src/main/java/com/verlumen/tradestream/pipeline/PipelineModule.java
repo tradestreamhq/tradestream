@@ -44,4 +44,9 @@ abstract class PipelineModule extends AbstractModule {
   PipelineConfig providePipelineConfig() {
     return config();
   }
+
+  @Provides
+  TimingConfig provideTimingConfig() {
+    return TimingConfig.create();
+  }
 }

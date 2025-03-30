@@ -48,26 +48,6 @@ java_library(
 )
 
 java_library(
-    name = "dry_run_exchange_client_unbounded_source",
-    srcs = [
-        "DryRunExchangeClientUnboundedReader.java",
-        "DryRunExchangeClientUnboundedSource.java",
-    ],
-    deps = [
-        ":exchange_client_unbounded_reader",
-        ":exchange_client_unbounded_source",
-        ":trade_checkpoint_mark",
-        "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:joda_time",
-        "//third_party:protobuf_java_util",
-    ],
-)
-
-java_library(
     name = "dry_run_trade_source",
     srcs = ["DryRunTradeSource.java"],
     deps = [

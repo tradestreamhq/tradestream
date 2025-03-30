@@ -39,11 +39,12 @@ import org.joda.time.Instant;
 public final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
+  private static final String CMC_API_KEY_ENV_VAR = "COINMARKETCAP_API_KEY";
+
   public interface Options extends StreamingOptions {
     @Description("Comma-separated list of Kafka bootstrap servers.")
     @Default.String("localhost:9092")
     String getBootstrapServers();
-
     void setBootstrapServers(String value);
 
     @Description("Name of the exchange.")
@@ -51,23 +52,30 @@ public final class App {
     String getExchangeName();
     void setExchangeName(String value);
 
-    @Description("Kafka topic to read trade data from.")
-    @Default.String("trades")
-    String getTradeTopic();
-
-    void setTradeTopic(String value);
-
     @Description("Kafka topic to publish signal data to.")
     @Default.String("signals")
     String getSignalTopic();
-
     void setSignalTopic(String value);
 
     @Description("Run mode: wet or dry.")
     @Default.String("wet")
     String getRunMode();
-
     void setRunMode(String value);
+
+    @Description("Kafka topic to read trade data from.")
+    @Default.String("trades")
+    String getTradeTopic();
+    void setTradeTopic(String value);
+
+    @Description("CoinMarketCap API Key (default: value of " + CMC_API_KEY_ENV_VAR + " environment variable)")
+    @Default.String("")
+    String getCoinMarketCapApiKey();
+    void setCoinMarketCapApiKey(String value);
+
+    @Description("Number of top cryptocurrencies to track (default: 10)")
+    @Default.Integer(10)
+    int getCoinMarketCapTopCurrencyCount();
+    void setCoinMarketCapTopCurrencyCount(int value);
   }
 
   private final Duration allowedLateness;
@@ -80,10 +88,11 @@ public final class App {
   App(
       PipelineConfig config,
       StrategyEnginePipeline strategyEnginePipeline,
+      TimingConfig timingConfig,
       TradeSource tradeSource) {
-    this.allowedLateness = config.allowedLateness();
-    this.allowedTimestampSkew = config.allowedTimestampSkew();
-    this.windowDuration = config.windowDuration();
+    this.allowedLateness = timingConfig.allowedLateness();
+    this.allowedTimestampSkew = timingConfig.allowedTimestampSkew();
+    this.windowDuration = timingConfig.windowDuration();
     this.strategyEnginePipeline = strategyEnginePipeline;
     this.tradeSource = tradeSource;
     logger.atInfo().log(
