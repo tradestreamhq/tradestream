@@ -39,7 +39,6 @@ import org.joda.time.Instant;
 
 public final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-
   private static final String CMC_API_KEY_ENV_VAR = "COINMARKETCAP_API_KEY";
 
   public interface Options extends StreamingOptions {
@@ -190,6 +189,14 @@ public final class App {
     }
   }
 
+  private static String getCmcApiKey(Options options) {
+      if (isNullOrEmpty(options.getCoinMarketCapApiKey())) {
+           return System.getenv().getOrDefault(CMC_API_KEY_ENV_VAR, "INVALID_API_KEY");
+      } 
+
+      return options.getCoinMarketCapApiKey();
+  }
+
   public static void main(String[] args) throws Exception {
     logger.atInfo().log("Application starting with arguments: %s", (Object) args);
 
@@ -213,7 +220,7 @@ public final class App {
     RunMode runMode = RunMode.fromString(options.getRunMode());
     var module = PipelineModule.create(
       options.getBootstrapServers(),
-      options.getCoinMarketCapApiKey(),
+      getCmcApiKey(options),
       options.getExchangeName(),
       runMode,
       options.getSignalTopic(),
