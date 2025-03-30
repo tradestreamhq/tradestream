@@ -10,9 +10,6 @@ java_library(
 java_library(
     name = "currency",
     srcs = ["Currency.java"],
-    deps = [
-        "//third_party:auto_value",
-    ],
 )
 
 java_library(
