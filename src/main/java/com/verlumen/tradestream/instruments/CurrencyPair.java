@@ -4,8 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
-import com.google.auto.value.AutoValue;
-import com.google.common.base.Splitter;
+-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
@@ -24,8 +23,7 @@ import java.util.stream.Stream;
  * EUR).
  * </p>
  */
-@AutoValue
-public abstract class CurrencyPair {
+public record class CurrencyPair {
   // Constants for possible delimiters in the currency pair symbol.
   private static final String FORWARD_SLASH = "/";
   private static final String HYPHEN = "-";
@@ -57,7 +55,7 @@ public abstract class CurrencyPair {
     ImmutableList<String> symbolParts = splitSymbol(symbol);
     Currency base = Currency.create(symbolParts.get(0));
     Currency counter = Currency.create(symbolParts.get(1));
-    return create(base, counter);
+    return new CurrencyPair(base, counter);
   }
 
   /**
@@ -94,36 +92,6 @@ public abstract class CurrencyPair {
           String.format("Unable to parse currency pair, invalid symbol: \"%s\".", symbol), e);
     }
   }
-
-  /**
-   * Creates a {@link CurrencyPair} instance from the given base and counter currencies.
-   *
-   * @param base the base currency (e.g., EUR in EUR/USD)
-   * @param counter the counter currency (e.g., USD in EUR/USD)
-   * @return a new {@link CurrencyPair} instance
-   */
-  private static CurrencyPair create(Currency base, Currency counter) {
-    return new AutoValue_CurrencyPair(base, counter);
-  }
-
-  /**
-   * Returns the base currency of this currency pair.
-   *
-   * <p>The base currency is the first currency listed in the pair and is the one being traded.
-   *
-   * @return the base {@link Currency}
-   */
-  public abstract Currency base();
-
-  /**
-   * Returns the counter currency of this currency pair.
-   *
-   * <p>The counter currency is the second currency listed in the pair and is the one used to quote
-   * the value of the base currency.
-   *
-   * @return the counter {@link Currency}
-   */
-  public abstract Currency counter();
 
   public String symbol() {
     return base().symbol() + FORWARD_SLASH + counter().symbol();
