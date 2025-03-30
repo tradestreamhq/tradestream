@@ -29,17 +29,21 @@ abstract class PipelineModule extends AbstractModule {
       .setVolume(0.1)
       .build();
 
-  static PipelineModule create(PipelineConfig config) {
+  static PipelineModule create(
+    PipelineConfig config, String bootstrapServers, String signalTopic, String tradeTopic) {
     return new AutoValue_PipelineModule(config);
   }
 
   abstract PipelineConfig config();
+  abstract String bootstrapServers();
+  abstract String signalTopic();
+  abstract String tradeTopic();
 
   @Override
   protected void configure() {
       install(BacktestingModule.create());
-      install(KafkaModule.create(config().bootstrapServers()));
-      install(SignalsModule.create(config().signalTopic()));
+      install(KafkaModule.create(bootstrapServers()));
+      install(SignalsModule.create(signalTopic()));
       install(StrategiesModule.create());
       install(Ta4jModule.create());
   }
@@ -58,7 +62,7 @@ abstract class PipelineModule extends AbstractModule {
       }
 
       return factory.create(
-          config().tradeTopic(), 
+          tradeTopic(), 
           StringDeserializer.class,
           ByteArrayDeserializer.class);
   }
