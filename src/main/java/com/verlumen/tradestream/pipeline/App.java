@@ -44,26 +44,32 @@ public final class App {
     @Description("Comma-separated list of Kafka bootstrap servers.")
     @Default.String("localhost:9092")
     String getBootstrapServers();
-
     void setBootstrapServers(String value);
 
-    @Description("Kafka topic to read trade data from.")
-    @Default.String("trades")
-    String getTradeTopic();
-
-    void setTradeTopic(String value);
+    @Description("Name of the exchange.")
+    @Default.String("coinbase")
+    String getExchangeName();
+    void setExchangeName(String value);
 
     @Description("Kafka topic to publish signal data to.")
     @Default.String("signals")
     String getSignalTopic();
-
     void setSignalTopic(String value);
 
     @Description("Run mode: wet or dry.")
     @Default.String("wet")
     String getRunMode();
-
     void setRunMode(String value);
+
+    @Description("CoinMarketCap API Key (default: value of " + CMC_API_KEY_ENV_VAR + " environment variable)")
+    @Default.String("")
+    String getCoinMarketCapApiKey();
+    void setCoinMarketCapApiKey(String value);
+
+    @Description("Number of top cryptocurrencies to track (default: 10)")
+    @Default.Integer(10)
+    int getCoinMarketCapTopCurrencyCount();
+    void setCoinMarketCapTopCurrencyCount(int value);
   }
 
   private final Duration allowedLateness;
