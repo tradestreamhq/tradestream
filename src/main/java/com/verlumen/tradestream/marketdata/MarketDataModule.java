@@ -37,10 +37,6 @@ public abstract class MarketDataModule extends AbstractModule {
     install(new FactoryModuleBuilder()
             .implement(ExchangeClientUnboundedReader.class, ExchangeClientUnboundedReaderImpl.class)
             .build(ExchangeClientUnboundedReader.Factory.class));
-    install(
-        new FactoryModuleBuilder()
-            .implement(TradePublisher.class, TradePublisherImpl.class)
-            .build(TradePublisher.Factory.class));
   }
 
   @Provides
