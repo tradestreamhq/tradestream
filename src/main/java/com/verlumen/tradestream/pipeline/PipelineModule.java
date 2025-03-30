@@ -31,7 +31,7 @@ abstract class PipelineModule extends AbstractModule {
 
   static PipelineModule create(
     String bootstrapServers, String signalTopic, String tradeTopic, RunMode runMode) {
-    return new AutoValue_PipelineModule(config, bootstrapServers, signalTopic, tradeTopic, runMode);
+    return new AutoValue_PipelineModule(bootstrapServers, signalTopic, tradeTopic, runMode);
   }
 
   abstract String bootstrapServers();
