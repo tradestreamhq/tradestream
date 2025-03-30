@@ -2,7 +2,6 @@ package com.verlumen.tradestream.marketdata;
 
 import com.google.inject.Inject;
 import com.verlumen.tradestream.kafka.KafkaReadTransform;
-import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
@@ -10,14 +9,11 @@ import org.apache.beam.sdk.values.PCollection;
 final class KafkaTradeSource extends TradeSource {
   private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
   private final ParseTrades parseTrades;
-  private final Pipeline pipeline;
 
   @Inject
   KafkaTradeSource(
-      Pipeline pipeline,
       KafkaReadTransform<String, byte[]> kafkaReadTransform,
       ParseTrades parseTrades) {
-    this.pipeline = pipeline;
     this.kafkaReadTransform = kafkaReadTransform;
     this.parseTrades = parseTrades;
   }
