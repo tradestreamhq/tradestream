@@ -12,13 +12,13 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.instruments.CurrencyPair;
-import com.verlumen.tradestream.instruments.CurrencyPairSupply;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.apache.beam.sdk.coders.Coder;
 import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
@@ -43,7 +43,7 @@ public class ExchangeClientUnboundedSourceImplTest {
 
   @Bind
   @Mock
-  private CurrencyPairSupply mockCurrencyPairSupply;
+  private Supplier<ImmutableList<CurrencyPair>> mockCurrencyPairSupply;
   
   // Mockito rule to initialize mocks
   @Rule
@@ -66,7 +66,7 @@ public class ExchangeClientUnboundedSourceImplTest {
   @Before
   public void setUp() {
     // Configure mock
-    when(mockCurrencyPairSupply.currencyPairs()).thenReturn(TEST_PAIRS);
+    when(mockCurrencyPairSupply.get()).thenReturn(TEST_PAIRS);
     
     // Create an injector with BoundFieldModule and FactoryModule
     Injector injector = Guice.createInjector(

@@ -67,8 +67,8 @@ class ExchangeClientUnboundedReader(
 
         val pairsToStream: ImmutableList<CurrencyPair>
         try {
-            logger.atFine().log("Calling currencyPairSupply.currencyPairs()...")
-            pairsToStream = currencyPairSupply.currencyPairs()
+            logger.atFine().log("Calling currencyPairSupply.get()...")
+            pairsToStream = currencyPairSupply.get()
             checkArgument(pairsToStream.isNotEmpty(), "CurrencyPairSupply returned empty list via currencyPairs()")
             logger.atInfo().log("Obtained %d currency pairs from CurrencyPairSupply.", pairsToStream.size)
         } catch (e: Exception) {
