@@ -8,8 +8,6 @@ import com.google.inject.Singleton;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.kafka.KafkaModule;
-import com.verlumen.tradestream.marketdata.ExchangeClientUnboundedSource;
-import com.verlumen.tradestream.marketdata.ExchangeClientUnboundedSourceImpl;
 import com.verlumen.tradestream.marketdata.MarketDataModule;
 import com.verlumen.tradestream.signals.SignalsModule;
 import com.verlumen.tradestream.strategies.StrategiesModule;
@@ -39,10 +37,6 @@ abstract class PipelineModule extends AbstractModule {
   }
 
   private MarketDataModule marketDataModule() {
-    switch(config().runMode()) {
-      case DRY: return MarketDataModule.createDryRunModule();
-      case WET: return MarketDataModule.create(config().exchangeName());
-      default: throw new UnsupportedOperationException();
-    }    
+    return MarketDataModule.create();
   }
 }
