@@ -67,6 +67,20 @@ java_library(
     ],
 )
 
+java_library(
+    name = "exchange_client_trade_source",
+    srcs = ["ExchangeClientTradeSource.java"],
+    deps = [
+        ":exchange_client_unbounded_source",
+        ":trade_source",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
+        "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guice",
+    ],
+)
+
 kt_jvm_library(
     name = "exchange_client_unbounded_reader",
     srcs = ["ExchangeClientUnboundedReader.kt"],
