@@ -39,7 +39,7 @@ class ExchangeClientUnboundedReader(
      */
     class Factory @Inject constructor(
         private val exchangeClient: ExchangeStreamingClient,
-        private val currencyPairSupply: CurrencyPairSupply
+        private val currencyPairSupply: Supplier<ImmutableList<CurrencyPair>>
     ) : java.io.Serializable {
         /**
          * Creates a new ExchangeClientUnboundedReader instance.
@@ -69,11 +69,11 @@ class ExchangeClientUnboundedReader(
         try {
             logger.atFine().log("Calling currencyPairSupply.get()...")
             pairsToStream = currencyPairSupply.get()
-            checkArgument(pairsToStream.isNotEmpty(), "CurrencyPairSupply returned empty list via currencyPairs()")
-            logger.atInfo().log("Obtained %d currency pairs from CurrencyPairSupply.", pairsToStream.size)
+            checkArgument(pairsToStream.isNotEmpty(), "CurrencyPair Supplier returned empty list via currencyPairs()")
+            logger.atInfo().log("Obtained %d currency pairs from CurrencyPair Supplier.", pairsToStream.size)
         } catch (e: Exception) {
-            logger.atSevere().withCause(e).log("Failed to get currency pairs from CurrencyPairSupply")
-            throw IOException("Failed to get currency pairs from CurrencyPairSupply", e)
+            logger.atSevere().withCause(e).log("Failed to get currency pairs from CurrencyPair Supplier")
+            throw IOException("Failed to get currency pairs from CurrencyPair Supplier", e)
         }
 
         logger.atInfo().log("Calling exchangeClient.startStreaming for %d pairs.", pairsToStream.size)
