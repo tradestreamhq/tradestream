@@ -6,6 +6,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
@@ -23,7 +24,7 @@ import java.util.stream.Stream;
  * EUR).
  * </p>
  */
-public record class CurrencyPair {
+public record class CurrencyPair(Currency base, Currency counter) implements Serializable {
   // Constants for possible delimiters in the currency pair symbol.
   private static final String FORWARD_SLASH = "/";
   private static final String HYPHEN = "-";
