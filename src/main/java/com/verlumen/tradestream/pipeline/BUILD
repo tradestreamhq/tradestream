@@ -113,6 +113,7 @@ java_library(
         "//third_party:auto_value",
         "//third_party:guice",
         "//third_party:joda_time",
+        "//third_party:kafka_clients",
         "//third_party:protobuf_java_util",
     ],
 )
