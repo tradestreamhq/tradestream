@@ -16,6 +16,7 @@ java_binary(
     deps = [
         ":pipeline_config",
         ":pipeline_module",
+        ":timing_config",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_stream_with_defaults",
@@ -90,7 +91,6 @@ java_library(
     srcs = ["PipelineConfig.java"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
-        "//third_party:joda_time",
     ],
 )
 
@@ -99,6 +99,7 @@ java_library(
     srcs = ["PipelineModule.java"],
     deps = [
         ":pipeline_config",
+        ":timing_config",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
@@ -121,4 +122,12 @@ oci_push(
     image = ":index",
     remote_tags = ["latest"],
     repository = "tradestreamhq/tradestream-data-pipeline",
+)
+
+java_library(
+    name = "timing_config",
+    srcs = ["TimingConfig.java"],
+    deps = [
+        "//third_party:joda_time",
+    ],
 )
