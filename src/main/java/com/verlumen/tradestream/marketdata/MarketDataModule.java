@@ -17,6 +17,7 @@ public abstract class MarketDataModule extends AbstractModule {
   protected void configure() {
     bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
+    bind(TradeSource.class).to(KafkaTradeSource.class);
 
     install(new FactoryModuleBuilder()
             .implement(ExchangeClientUnboundedReader.class, ExchangeClientUnboundedReaderImpl.class)
