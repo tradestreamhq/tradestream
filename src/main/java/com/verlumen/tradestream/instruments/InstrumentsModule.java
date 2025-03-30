@@ -8,6 +8,7 @@ import com.google.inject.Singleton;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -17,7 +18,7 @@ public abstract class InstrumentsModule extends AbstractModule {
     return new AutoValue_InstrumentsModule(coinMarketCapApiKey, topCryptocurrencyCount);
   }
 
-  private static final long ONE = 1L;
+  private static final Duration INSTRUMENT_REFRESH_INTERVAL = Duration.ofDays(1);
 
   abstract String coinMarketCapApiKey();
   abstract int topCryptocurrencyCount();
@@ -32,6 +33,7 @@ public abstract class InstrumentsModule extends AbstractModule {
   @Singleton
   Supplier<ImmutableList<CurrencyPair>> provideCurrencyPairSupplier(
     CurrencyPairSupplyProvider provider) {
-    return Suppliers.memoizeWithExpiration(provider.get(), ONE, TimeUnit.DAYS);
+    return Suppliers.memoizeWithExpiration(
+      provider.get(), INSTRUMENT_REFRESH_INTERVAL.toMillis(), TimeUnit.MILLISECONDS);
   }
 }
