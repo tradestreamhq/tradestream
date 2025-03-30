@@ -7,6 +7,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.http.HttpModule;
 import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.marketdata.MarketDataModule;
 import com.verlumen.tradestream.signals.SignalsModule;
@@ -25,11 +26,16 @@ abstract class PipelineModule extends AbstractModule {
   @Override
   protected void configure() {
       install(BacktestingModule.create());
+      install(HttpModule.create());
       install(KafkaModule.create(config().bootstrapServers()));
-      install(MarketDataModule.create(config().exchangeName(), config().tradeTopic(), config().runMode()));
+      install(marketDataModule());
       install(SignalsModule.create(config().signalTopic()));
       install(StrategiesModule.create());
       install(Ta4jModule.create());
+  }
+
+  MarketDataModule marketDataModule() {
+    return MarketDataModule.create(config().exchangeName(), config().tradeTopic(), config().runMode());
   }
 
   @Provides
