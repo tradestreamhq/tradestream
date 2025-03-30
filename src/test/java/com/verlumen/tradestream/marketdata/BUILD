@@ -166,20 +166,3 @@ java_test(
         "//third_party:hamcrest",
     ],
 )
-
-java_test(
-    name = "TradePublisherImplTest",
-    srcs = ["TradePublisherImplTest.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/marketdata:trade_publisher",
-        "//src/main/java/com/verlumen/tradestream/marketdata:trade_publisher_impl",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:guice_testlib",
-        "//third_party:junit",
-        "//third_party:kafka_clients",
-        "//third_party:mockito_core",
-        "//third_party:protobuf_java_util",
-    ],
-)

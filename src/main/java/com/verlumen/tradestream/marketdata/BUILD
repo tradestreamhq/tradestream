@@ -174,8 +174,6 @@ java_library(
         ":exchange_client_unbounded_source_impl",
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
-        ":trade_publisher",
-        ":trade_publisher_impl",
         ":trade_source",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
@@ -232,28 +230,6 @@ kt_jvm_library(
     deps = [
         "//third_party:beam_sdks_java_core",
         "//third_party:joda_time",
-    ],
-)
-
-java_library(
-    name = "trade_publisher",
-    srcs = ["TradePublisher.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-    ],
-)
-
-java_library(
-    name = "trade_publisher_impl",
-    srcs = ["TradePublisherImpl.java"],
-    deps = [
-        ":trade_publisher",
-        "//protos:marketdata_java_proto",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:kafka_clients",
-        "//third_party:protobuf_java_util",
     ],
 )
 
