@@ -1,9 +1,15 @@
 package com.verlumen.tradestream.instruments;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Suppliers;
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 @AutoValue
@@ -11,6 +17,8 @@ public abstract class InstrumentsModule extends AbstractModule {
   public static InstrumentsModule create(String coinMarketCapApiKey, int topCryptocurrencyCount) {
     return new AutoValue_InstrumentsModule(coinMarketCapApiKey, topCryptocurrencyCount);
   }
+
+  private static final Duration INSTRUMENT_REFRESH_INTERVAL = Duration.ofDays(1);
 
   abstract String coinMarketCapApiKey();
   abstract int topCryptocurrencyCount();
@@ -22,8 +30,13 @@ public abstract class InstrumentsModule extends AbstractModule {
   }
 
   @Provides
+  @Singleton
   Supplier<ImmutableList<CurrencyPair>> provideCurrencyPairSupplier(
     CurrencyPairSupplyProvider provider) {
-    return provider.get();
+    Supplier<ImmutableList<CurrencyPair>> baseSupplier = provider.get();
+    return Suppliers.memoizeWithExpiration(
+      Suppliers.ofInstance(baseSupplier.get()),
+      INSTRUMENT_REFRESH_INTERVAL.toMillis(),
+      TimeUnit.MILLISECONDS);
   }
 }
