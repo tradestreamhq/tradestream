@@ -78,10 +78,10 @@ public final class App {
       KafkaReadTransform<String, byte[]> kafkaReadTransform,
       ParseTrades parseTrades,
       StrategyEnginePipeline strategyEnginePipeline,
-      PipelineConfig config) {
-    this.allowedLateness = config.allowedLateness();
-    this.allowedTimestampSkew = config.allowedTimestampSkew();
-    this.windowDuration = config.windowDuration();
+      TimingConfig timingConfig) {
+    this.allowedLateness = timingConfig.allowedLateness();
+    this.allowedTimestampSkew = timingConfig.allowedTimestampSkew();
+    this.windowDuration = timingConfig.windowDuration();
     this.kafkaReadTransform = kafkaReadTransform;
     this.parseTrades = parseTrades;
     this.strategyEnginePipeline = strategyEnginePipeline;
