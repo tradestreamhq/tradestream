@@ -88,7 +88,6 @@ tar(
 java_library(
     name = "pipeline_module",
     srcs = ["PipelineModule.java"],
-    visibility = ["//visibility:public"],
     deps = [
         ":timing_config",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
