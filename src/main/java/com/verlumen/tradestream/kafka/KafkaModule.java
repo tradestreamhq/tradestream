@@ -20,7 +20,6 @@ public abstract class KafkaModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(KafkaProperties.class).toInstance(KafkaProperties.create(bootstrapServers()));
-    bind(KafkaReadTransform.Factory.class).to(KafkaReadTransformFactory.class);
   }
 
   @Provides
