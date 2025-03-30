@@ -17,11 +17,9 @@ java_binary(
         ":pipeline_module",
         ":timing_config",
         "//protos:marketdata_java_proto",
-
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_stream_with_defaults",
         "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source",
-        "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_source",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine_pipeline",
         "//third_party:beam_runners_flink_java",
@@ -89,9 +87,7 @@ tar(
 
 java_library(
     name = "pipeline_module",
-    srcs = [
-        "PipelineModule.java",
-    ],
+    srcs = ["PipelineModule.java"],
     visibility = ["//visibility:public"],
     deps = [
         ":timing_config",
