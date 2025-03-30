@@ -7,20 +7,20 @@ import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.instruments.CurrencyPair
-import com.verlumen.tradestream.instruments.CurrencyPairSupply
 import org.apache.beam.sdk.io.UnboundedSource
 import org.joda.time.Duration
 import org.joda.time.Instant
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.function.Supplier;
 
 /**
  * An unbounded reader that streams trade data from an exchange.
  */
 class ExchangeClientUnboundedReader(
     private val exchangeClient: ExchangeStreamingClient,
-    private val currencyPairSupply: CurrencyPairSupply,
+    private val currencyPairSupply: Supplier<ImmutableList<CurrencyPair>>,
     private val source: ExchangeClientUnboundedSource,
     private var currentCheckpointMark: TradeCheckpointMark
 ) : UnboundedSource.UnboundedReader<Trade>() {
