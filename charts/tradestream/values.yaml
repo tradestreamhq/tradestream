@@ -31,15 +31,6 @@ kafkaUi:
   service:
     type: ClusterIP
     port: 8080
-dataIngestion:
-  runMode: wet
-  replicaCount: 1
-  image:
-    repository: tradestreamhq/tradestream-data-ingestion
-    tag: v0.45.1-develop
-  service:
-    port: 8080
-  tradeTopic: trades
 pipeline:
   runMode: wet
   image:
