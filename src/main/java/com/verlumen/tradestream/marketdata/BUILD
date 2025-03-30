@@ -199,19 +199,6 @@ java_library(
 )
 
 java_library(
-    name = "parse_trades",
-    srcs = ["ParseTrades.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:protobuf_java",
-    ],
-)
-
-java_library(
     name = "sliding_candle_aggregator",
     srcs = ["SlidingCandleAggregator.java"],
     deps = [
