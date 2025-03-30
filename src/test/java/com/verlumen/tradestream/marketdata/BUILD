@@ -130,24 +130,6 @@ java_test(
 )
 
 java_test(
-    name = "ParseTradesTest",
-    srcs = ["ParseTradesTest.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_test_utils",
-        "//third_party:junit",
-        "//third_party:protobuf_java",
-        "//third_party:protobuf_java_util",
-    ],
-    runtime_deps = [
-        "//third_party:beam_runners_direct_java",
-        "//third_party:hamcrest",
-    ],
-)
-
-java_test(
     name = "SlidingCandleAggregatorTest",
     srcs = ["SlidingCandleAggregatorTest.java"],
     deps = [
