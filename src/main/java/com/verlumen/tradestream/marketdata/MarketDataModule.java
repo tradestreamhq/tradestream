@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.marketdata;
 
+import static com.google.protobuf.util.Timestamps.fromMillis;
+
 import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -10,6 +12,15 @@ public abstract class MarketDataModule extends AbstractModule {
   public static MarketDataModule create(String exchangeName, String tradeTopic) {
     return new AutoValue_MarketDataModule(exchangeName, tradeTopic);
   }
+
+  private static final Trade DRY_RUN_TRADE = Trade.newBuilder()
+      .setExchange("FakeExhange")
+      .setCurrencyPair("DRY/RUN")
+      .setTradeId("trade-123")
+      .setTimestamp(fromMillis(1234567))
+      .setPrice(50000.0)
+      .setVolume(0.1)
+      .build();
 
   abstract String exchangeName();
   abstract String tradeTopic();
