@@ -3,6 +3,7 @@ package com.verlumen.tradestream.instruments;
 import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import java.util.function.Supplier;
 
 @AutoValue
 public abstract class InstrumentsModule extends AbstractModule {
@@ -22,5 +23,11 @@ public abstract class InstrumentsModule extends AbstractModule {
   CoinMarketCapConfig provideCoinMarketCapConfig() {
     return CoinMarketCapConfig.create(
         topCryptocurrencyCount(), coinMarketCapApiKey());
+  }
+
+  @Provides
+  Supplier<ImmutableList<CurrencyPair>> provideCurrencyPairSupplier(
+    CurrencyPairSupplyProvider provider) {
+    return provider.get();
   }
 }
