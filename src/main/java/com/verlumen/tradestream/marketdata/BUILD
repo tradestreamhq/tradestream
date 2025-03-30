@@ -202,6 +202,7 @@ java_library(
     srcs = ["MarketDataModule.java"],
     deps = [
         ":dry_run_trade_source",
+        ":exchange_client_trade_source",
         ":exchange_client_unbounded_reader",
         ":exchange_client_unbounded_reader_impl",
         ":exchange_client_unbounded_source",
