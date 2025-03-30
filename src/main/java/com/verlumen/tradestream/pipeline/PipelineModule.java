@@ -14,9 +14,7 @@ import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.signals.SignalsModule;
 import com.verlumen.tradestream.strategies.StrategiesModule;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
-import java.nio.charset.StandardCharsets;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
+import org.joda.time.Duration;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
@@ -34,7 +32,8 @@ abstract class PipelineModule extends AbstractModule {
     Duration allowedLateness,
     Duration allowedTimestampSkew,
     Duration windowDuration) {
-    return new AutoValue_PipelineModule(config);
+    return new AutoValue_PipelineModule(
+      config, allowedLateness, allowedTimestampSkew, windowDuration);
   }
 
   abstract PipelineConfig config();
