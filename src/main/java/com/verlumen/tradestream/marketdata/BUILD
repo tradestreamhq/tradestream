@@ -147,6 +147,19 @@ java_library(
 )
 
 java_library(
+    name = "kafka_trade_source",
+    srcs = ["KafkaTradeSource.java"],
+    deps = [
+        ":parse_trades",
+        ":trade_source",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guice",
+    ],
+)
+
+java_library(
     name = "last_candles_fn",
     srcs = ["LastCandlesFn.java"],
     deps = [
