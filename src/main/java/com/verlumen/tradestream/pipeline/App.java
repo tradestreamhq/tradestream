@@ -9,12 +9,11 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.execution.RunMode;
-import com.verlumen.tradestream.kafka.KafkaReadTransform;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.CandleStreamWithDefaults;
 import com.verlumen.tradestream.marketdata.MultiTimeframeCandleTransform;
-import com.verlumen.tradestream.marketdata.ParseTrades;
 import com.verlumen.tradestream.marketdata.Trade;
+import com.verlumen.tradestream.marketdata.TradeSource;
 import com.verlumen.tradestream.strategies.StrategyEnginePipeline;
 import java.util.Arrays;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
@@ -64,11 +63,6 @@ public final class App {
     String getRunMode();
     void setRunMode(String value);
 
-    @Description("Kafka topic to read trade data from.")
-    @Default.String("trades")
-    String getTradeTopic();
-    void setTradeTopic(String value);
-
     @Description("CoinMarketCap API Key (default: value of " + CMC_API_KEY_ENV_VAR + " environment variable)")
     @Default.String("")
     String getCoinMarketCapApiKey();
@@ -80,34 +74,28 @@ public final class App {
     void setCoinMarketCapTopCurrencyCount(int value);
   }
 
-  private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
-  private final ParseTrades parseTrades;
   private final StrategyEnginePipeline strategyEnginePipeline;
   private final TimingConfig timingConfig;
+  private final TradeSource tradeSource;
 
   @Inject
   App(
-      KafkaReadTransform<String, byte[]> kafkaReadTransform,
-      ParseTrades parseTrades,
       StrategyEnginePipeline strategyEnginePipeline,
-      TimingConfig timingConfig) {
-    this.kafkaReadTransform = kafkaReadTransform;
-    this.parseTrades = parseTrades;
+      TimingConfig timingConfig,
+      TradeSource tradeSource) {
     this.strategyEnginePipeline = strategyEnginePipeline;
     this.timingConfig = timingConfig;
+    this.tradeSource = tradeSource;
   }
 
   /** Build the Beam pipeline, integrating all components. */
   private Pipeline buildPipeline(Pipeline pipeline) {
     logger.atInfo().log("Starting to build the pipeline.");
 
-    // 1. Read from Kafka.
-    PCollection<byte[]> input = pipeline.apply("ReadFromKafka", kafkaReadTransform);
+    // 1. Read trades.
+    PCollection<Trade> trades = pipeline.apply("ReadTrades", tradeSource);
 
-    // 2. Parse the byte stream into Trade objects.
-    PCollection<Trade> trades = input.apply("ParseTrades", parseTrades);
-
-    // 3. Assign event timestamps from the Trade's own timestamp.
+    // 2. Assign event timestamps from the Trade's own timestamp.
     PCollection<Trade> tradesWithTimestamps =
         trades.apply(
             "AssignTimestamps",
@@ -120,7 +108,7 @@ public final class App {
                     })
                 .withAllowedTimestampSkew(timingConfig.allowedTimestampSkew()));
 
-    // 4. Convert trades into KV pairs keyed by currency pair.
+    // 3. Convert trades into KV pairs keyed by currency pair.
     PCollection<KV<String, Trade>> tradePairs =
         tradesWithTimestamps.apply(
             "CreateTradePairs",
@@ -132,7 +120,7 @@ public final class App {
                       return KV.of(key, trade);
                     }));
 
-    // 5. Apply fixed windowing (1 minute windows).
+    // 4. Apply fixed windowing (1 minute windows).
     PCollection<KV<String, Trade>> windowedTradePairs =
         tradePairs.apply(
             "ApplyWindows",
@@ -141,7 +129,7 @@ public final class App {
                 .triggering(DefaultTrigger.of())
                 .discardingFiredPanes());
 
-    // 6. Create a base candle stream from the windowed trades.
+    // 5. Create a base candle stream from the windowed trades.
     // This transform unites real trades with synthetic default trades,
     // aggregates them into 1-minute candles (using SlidingCandleAggregator), and buffers the last
     // N candles.
@@ -156,7 +144,7 @@ public final class App {
                 10000.0 // Default price for synthetic trades.
                 ));
 
-    // 7. Convert the buffered list into a single consolidated candle per key.
+    // 6. Convert the buffered list into a single consolidated candle per key.
     // For example, take the last element of the buffered list.
     PCollection<KV<String, Candle>> consolidatedBaseCandles =
         baseCandleStream.apply(
@@ -170,13 +158,13 @@ public final class App {
                       return KV.of(kv.getKey(), consolidated);
                     }));
 
-    // 8. Apply the multi-timeframe view.
+    // 7. Apply the multi-timeframe view.
     // This transform branches the base candle stream into different timeframes,
     // for example, a 1-hour view (last 60 candles) and a 1-day view (last 1440 candles).
     PCollection<KV<String, ImmutableList<Candle>>> multiTimeframeStream =
         consolidatedBaseCandles.apply("MultiTimeframeView", new MultiTimeframeCandleTransform());
 
-    // 9. Apply strategy engine pipeline to generate and publish trade signals
+    // 8. Apply strategy engine pipeline to generate and publish trade signals
     strategyEnginePipeline.apply(multiTimeframeStream);
 
     // Print candles for debugging
@@ -209,8 +197,8 @@ public final class App {
     Options options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
     logger.atInfo()
         .log(
-            "Parsed options: BootstrapServers=%s, TradeTopic=%s, RunMode=%s",
-            options.getBootstrapServers(), options.getTradeTopic(), options.getRunMode());
+            "Parsed options: BootstrapServers=%s, RunMode=%s",
+            options.getBootstrapServers(), options.getRunMode());
 
     // Convert to FlinkPipelineOptions and set required properties.
     FlinkPipelineOptions flinkOptions = options.as(FlinkPipelineOptions.class);
@@ -221,11 +209,15 @@ public final class App {
             "Configured FlinkPipelineOptions: AttachedMode=%s, Streaming=%s",
             flinkOptions.getAttachedMode(), flinkOptions.isStreaming());
 
-    // Create PipelineConfig and Guice module.
+    // Create Guice module.
     RunMode runMode = RunMode.fromString(options.getRunMode());
-
     var module = PipelineModule.create(
-      options.getBootstrapServers(), options.getSignalTopic(),  options.getTradeTopic(), runMode);
+      options.getBootstrapServers(),
+      options.getCoinMarketCapApiKey(),
+      options.getExchangeName(),
+      runMode,
+      options.getSignalTopic(),
+      options.getCoinMarketCapTopCurrencyCount());
     logger.atInfo().log("Created Guice module.");
 
     // Initialize the application via Guice.

@@ -3,15 +3,18 @@ package com.verlumen.tradestream.marketdata;
 import static com.google.protobuf.util.Timestamps.fromMillis;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provider;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.execution.RunMode;
 
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
-  public static MarketDataModule create(String exchangeName, String tradeTopic, RunMode runMode) {
-    return new AutoValue_MarketDataModule(exchangeName, tradeTopic, runMode);
+  public static MarketDataModule create(String exchangeName, RunMode runMode) {
+    return new AutoValue_MarketDataModule(exchangeName, runMode);
   }
 
   private static final Trade DRY_RUN_TRADE = Trade.newBuilder()
@@ -24,7 +27,6 @@ public abstract class MarketDataModule extends AbstractModule {
       .build();
 
   abstract String exchangeName();
-  abstract String tradeTopic();
   abstract RunMode runMode();
 
   @Override
@@ -48,7 +50,12 @@ public abstract class MarketDataModule extends AbstractModule {
   }
 
   @Provides
-  TradePublisher provideTradePublisher(TradePublisher.Factory tradePublisherFactory) {
-    return tradePublisherFactory.create(tradeTopic());
+  @Singleton
+  TradeSource provideTradeSource(Provider<ExchangeClientTradeSource> exchangeClientTradeSource) {
+    if (runMode().equals(RunMode.DRY)) {
+      return DryRunTradeSource.create(ImmutableList.of(DRY_RUN_TRADE));
+    }
+
+    return exchangeClientTradeSource.get();
   }
 }
