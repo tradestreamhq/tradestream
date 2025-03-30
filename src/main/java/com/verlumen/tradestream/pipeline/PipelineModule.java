@@ -30,14 +30,14 @@ abstract class PipelineModule extends AbstractModule {
       .build();
 
   static PipelineModule create(
-    PipelineConfig config, String bootstrapServers, String signalTopic, String tradeTopic) {
-    return new AutoValue_PipelineModule(config);
+    String bootstrapServers, String signalTopic, String tradeTopic, RunMode runMode) {
+    return new AutoValue_PipelineModule(config, bootstrapServers, signalTopic, tradeTopic, runMode);
   }
 
-  abstract PipelineConfig config();
   abstract String bootstrapServers();
   abstract String signalTopic();
   abstract String tradeTopic();
+  abstract RunMode runMode();
 
   @Override
   protected void configure() {
@@ -50,7 +50,7 @@ abstract class PipelineModule extends AbstractModule {
 
   @Provides
   KafkaReadTransform<String, byte[]> provideKafkaReadTransform(KafkaReadTransform.Factory factory) {
-      if (config().runMode().equals(RunMode.DRY)) {
+      if (runMode().equals(RunMode.DRY)) {
         return DryRunKafkaReadTransform
             .<String, byte[]>builder()
             .setBootstrapServers(config().bootstrapServers())
