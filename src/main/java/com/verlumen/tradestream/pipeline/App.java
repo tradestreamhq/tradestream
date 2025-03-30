@@ -80,7 +80,6 @@ public final class App {
 
   @Inject
   App(
-      PipelineConfig config,
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig,
       TradeSource tradeSource) {
