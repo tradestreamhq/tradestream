@@ -98,7 +98,6 @@ java_library(
     srcs = ["PipelineModule.java"],
     deps = [
         ":pipeline_config",
-        "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
