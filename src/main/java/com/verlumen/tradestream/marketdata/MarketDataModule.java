@@ -8,7 +8,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
   public static MarketDataModule create(String exchangeName, String tradeTopic) {
-    return new AutoValue_MarketDataModule(MarketDataConfig.create(exchangeName, tradeTopic));
+    return new AutoValue_MarketDataModule(exchangeName, tradeTopic);
   }
 
   private static final Trade DRY_RUN_TRADE = Trade.newBuilder()
@@ -20,7 +20,8 @@ public abstract class MarketDataModule extends AbstractModule {
       .setVolume(0.1)
       .build();
 
-  abstract MarketDataConfig config();
+  abstract String exchangeName();
+  abstract String tradeTopic();
 
   @Override
   protected void configure() {
@@ -39,11 +40,11 @@ public abstract class MarketDataModule extends AbstractModule {
   @Provides
   ExchangeStreamingClient provideExchangeStreamingClient(
       ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
-    return exchangeStreamingClientFactory.create(config().exchangeName());
+    return exchangeStreamingClientFactory.create(exchangeName());
   }
 
   @Provides
   TradePublisher provideTradePublisher(TradePublisher.Factory tradePublisherFactory) {
-    return tradePublisherFactory.create(config().tradeTopic());
+    return tradePublisherFactory.create(tradeTopic());
   }
 }
