@@ -91,7 +91,7 @@ public final class App {
     logger.atInfo().log("Starting to build the pipeline.");
 
     // 1. Read trades.
-    PCollection<Trade> trades = input.apply("ParseTrades", tradeSource);
+    PCollection<Trade> trades = pipeline.apply("ReadTrades", tradeSource);
 
     // 2. Assign event timestamps from the Trade's own timestamp.
     PCollection<Trade> tradesWithTimestamps =
