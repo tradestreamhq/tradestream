@@ -46,6 +46,11 @@ public final class App {
 
     void setBootstrapServers(String value);
 
+    @Description("Name of the exchange.")
+    @Default.String("coinbase")
+    String getExchangeName();
+    void setExchangeName(String value);
+
     @Description("Kafka topic to read trade data from.")
     @Default.String("trades")
     String getTradeTopic();
@@ -210,6 +215,7 @@ public final class App {
     // Create PipelineConfig and Guice module.
     PipelineConfig config =
         PipelineConfig.create(
+            options.getExchangeName(),
             options.getBootstrapServers(),
             options.getTradeTopic(),
             options.getSignalTopic(),
