@@ -17,14 +17,22 @@ import com.verlumen.tradestream.ta4j.Ta4jModule;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
-  static PipelineModule create(String bootstrapServers, String signalTopic, RunMode runMode) {
-    return new AutoValue_PipelineModule(bootstrapServers, signalTopic, runMode);
+  static PipelineModule create(
+    String bootstrapServers,
+    String coinMarketCapApiKey,
+    String exchangeName,
+    RunMode runMode,
+    String signalTopic,
+    int topCurrencyCount) {
+    return new AutoValue_PipelineModule(
+      bootstrapServers, coinMarketCapApiKey, exchangeName, runMode, signalTopic, topCurrencyCount);
   }
 
   abstract String coinMarketCapApiKey();
   abstract String bootstrapServers();
-  abstract String signalTopic();
+  abstract String exchangeName();
   abstract RunMode runMode();
+  abstract String signalTopic();
   abstract int topCurrencyCount();
 
   @Override
