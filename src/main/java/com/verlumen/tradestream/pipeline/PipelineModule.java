@@ -18,17 +18,19 @@ import java.nio.charset.StandardCharsets;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
-  static PipelineModule create(PipelineConfig config) {
-    return new AutoValue_PipelineModule(config);
+  static PipelineModule create(PipelineConfig config, String coinMarketCapApiKey, int topCurrencyCount) {
+    return new AutoValue_PipelineModule(config, coinMarketCapApiKey, topCurrencyCount);
   }
 
   abstract PipelineConfig config();
+  abstract String coinMarketCapApiKey();
+  abstract int topCurrencyCount();
 
   @Override
   protected void configure() {
       install(BacktestingModule.create());
       install(HttpModule.create());
-      install(InstrumentsModule.create());
+      install(InstrumentsModule.create(coinMarketCapApiKey(), topCurrencyCount()));
       install(KafkaModule.create(config().bootstrapServers()));
       install(marketDataModule());
       install(SignalsModule.create(config().signalTopic()));
