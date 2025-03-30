@@ -77,6 +77,7 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_read_transform",
         "//src/main/java/com/verlumen/tradestream/marketdata:parse_trades",
         "//third_party:beam_sdks_java_core",
+        "//third_party:guice",
     ],
 )
 
