@@ -4,6 +4,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.base.Suppliers;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -28,6 +29,7 @@ public abstract class InstrumentsModule extends AbstractModule {
   }
 
   @Provides
+  @Singleton
   Supplier<ImmutableList<CurrencyPair>> provideCurrencyPairSupplier(
     CurrencyPairSupplyProvider provider) {
     return Suppliers.memoizeWithExpiration(provider.get(), ONE, TimeUnit.DAYS);
