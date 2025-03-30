@@ -4,6 +4,7 @@ import com.verlumen.tradestream.execution.RunMode;
 import org.joda.time.Duration;
 
 record PipelineConfig(
+    String exchangeName,
     String bootstrapServers,
     String tradeTopic,
     String signalTopic,
@@ -16,11 +17,13 @@ record PipelineConfig(
   private static final Duration THIRTY_MINUTES = Duration.standardMinutes(30);
 
   static PipelineConfig create(
+      String exchangeName,
       String bootstrapServers,
       String tradeTopic,
       String signalTopic,
       String runMode) {
     return new PipelineConfig(
+        exchangeName,
         bootstrapServers,
         tradeTopic,
         signalTopic,
