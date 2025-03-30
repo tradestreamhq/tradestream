@@ -215,7 +215,13 @@ public final class App {
 
     // Create Guice module.
     RunMode runMode = RunMode.fromString(options.getRunMode());
-    var module = PipelineModule.create(options.getBootstrapServers(), options.getSignalTopic(), runMode);
+    var module = PipelineModule.create(
+      options.getBootstrapServers(),
+      options.getCoinMarketCapApiKey(),
+      options.getExchangeName(),
+      runMode,
+      options.getSignalTopic(),
+      options.getCoinMarketCapTopCurrencyCount());
     logger.atInfo().log("Created Guice module.");
 
     // Initialize the application via Guice.
