@@ -79,12 +79,10 @@ public final class App {
     void setCoinMarketCapTopCurrencyCount(int value);
   }
 
-  private final Duration allowedLateness;
-  private final Duration allowedTimestampSkew;
-  private final Duration windowDuration;
   private final KafkaReadTransform<String, byte[]> kafkaReadTransform;
   private final ParseTrades parseTrades;
   private final StrategyEnginePipeline strategyEnginePipeline;
+  private final TimingConfig timingConfig;
 
   @Inject
   App(
@@ -92,15 +90,10 @@ public final class App {
       ParseTrades parseTrades,
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig) {
-    this.allowedLateness = timingConfig.allowedLateness();
-    this.allowedTimestampSkew = timingConfig.allowedTimestampSkew();
-    this.windowDuration = timingConfig.windowDuration();
     this.kafkaReadTransform = kafkaReadTransform;
     this.parseTrades = parseTrades;
     this.strategyEnginePipeline = strategyEnginePipeline;
-    logger.atInfo().log(
-        "Initialized App with allowedLateness=%s, windowDuration=%s, allowedTimestampSkew=%s",
-        allowedLateness, windowDuration, allowedTimestampSkew);
+    this.timingConfig = timingConfig;
   }
 
   /** Build the Beam pipeline, integrating all components. */
@@ -124,7 +117,7 @@ public final class App {
                       logger.atFinest().log("Assigned timestamp %s for trade: %s", timestamp, trade);
                       return timestamp;
                     })
-                .withAllowedTimestampSkew(allowedTimestampSkew));
+                .withAllowedTimestampSkew(timingConfig.allowedTimestampSkew()));
 
     // 4. Convert trades into KV pairs keyed by currency pair.
     PCollection<KV<String, Trade>> tradePairs =
@@ -142,8 +135,8 @@ public final class App {
     PCollection<KV<String, Trade>> windowedTradePairs =
         tradePairs.apply(
             "ApplyWindows",
-            Window.<KV<String, Trade>>into(FixedWindows.of(windowDuration))
-                .withAllowedLateness(allowedLateness)
+            Window.<KV<String, Trade>>into(FixedWindows.of(timingConfig.windowDuration()))
+                .withAllowedLateness(timingConfig.allowedLateness())
                 .triggering(DefaultTrigger.of())
                 .discardingFiredPanes());
 
@@ -155,7 +148,7 @@ public final class App {
         windowedTradePairs.apply(
             "CreateBaseCandles",
             new CandleStreamWithDefaults(
-                windowDuration, // Use the same 1-minute window for candle aggregation.
+                timingConfig.windowDuration(), // Use the same 1-minute window for candle aggregation.
                 Duration.standardSeconds(30), // Slide duration for the candle aggregator.
                 5, // Buffer size for base candle consolidation.
                 Arrays.asList("BTC/USD", "ETH/USD"),
