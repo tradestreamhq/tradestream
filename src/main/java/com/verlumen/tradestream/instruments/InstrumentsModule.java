@@ -4,7 +4,11 @@ import com.google.auto.value.AutoValue;
 import com.google.common.base.Suppliers;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.common.collect.ImmutableList;
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 @AutoValue
 public abstract class InstrumentsModule extends AbstractModule {
@@ -17,11 +21,6 @@ public abstract class InstrumentsModule extends AbstractModule {
   abstract String coinMarketCapApiKey();
   abstract int topCryptocurrencyCount();
 
-  @Override
-  protected void configure() {
-    bind(CurrencyPairSupply.class).toProvider(CurrencyPairSupplyProvider.class);
-  }
-
   @Provides
   CoinMarketCapConfig provideCoinMarketCapConfig() {
     return CoinMarketCapConfig.create(
@@ -29,7 +28,8 @@ public abstract class InstrumentsModule extends AbstractModule {
   }
 
   @Provides
-  Supplier<CurrencyPair> provideCurrencyPairSupply(CurrencyPairSupplyProvider provider) {
+  Supplier<ImmutableList<CurrencyPair>> provideCurrencyPairSupplier(
+    CurrencyPairSupplyProvider provider) {
     return Suppliers.memoizeWithExpiration(provider.get(), ONE, TimeUnit.DAYS);
   }
 }

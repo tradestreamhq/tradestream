@@ -78,6 +78,7 @@ java_library(
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
         "//third_party:auto_value",
+        "//third_party:guava",
         "//third_party:guice",
     ],
 )
