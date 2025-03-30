@@ -39,6 +39,7 @@ abstract class PipelineModule extends AbstractModule {
   protected void configure() {
       install(BacktestingModule.create());
       install(KafkaModule.create(config().bootstrapServers()));
+      install(MarketDataModule.create());
       install(SignalsModule.create(config().signalTopic()));
       install(StrategiesModule.create());
       install(Ta4jModule.create());
