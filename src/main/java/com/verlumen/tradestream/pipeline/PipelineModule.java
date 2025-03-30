@@ -31,12 +31,17 @@ abstract class PipelineModule extends AbstractModule {
       install(Ta4jModule.create());
   }
 
+  private MarketDataModule marketDataModule() {
+    return MarketDataModule.create();
+  }
+
   @Provides
   PipelineConfig providePipelineConfig() {
     return config();
   }
 
-  private MarketDataModule marketDataModule() {
-    return MarketDataModule.create();
+  @Provides
+  TimingConfig provideTimingConfig() {
+    return TimingConfig.create();
   }
 }
