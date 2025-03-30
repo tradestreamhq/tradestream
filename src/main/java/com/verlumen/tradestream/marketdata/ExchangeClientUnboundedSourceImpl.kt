@@ -1,4 +1,3 @@
-// ExchangeClientUnboundedSourceImpl.kt
 package com.verlumen.tradestream.marketdata
 
 import com.google.common.base.Preconditions.checkArgument
