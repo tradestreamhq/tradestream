@@ -17,24 +17,13 @@ import com.verlumen.tradestream.ta4j.Ta4jModule;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
-  private static final Trade DRY_RUN_TRADE = Trade.newBuilder()
-      .setExchange("FakeExhange")
-      .setCurrencyPair("DRY/RUN")
-      .setTradeId("trade-123")
-      .setTimestamp(fromMillis(1234567))
-      .setPrice(50000.0)
-      .setVolume(0.1)
-      .build();
-
-  static PipelineModule create(
-    String bootstrapServers, String signalTopic, String tradeTopic, RunMode runMode) {
-    return new AutoValue_PipelineModule(bootstrapServers, signalTopic, tradeTopic, runMode);
+  static PipelineModule create(String bootstrapServers, String signalTopic, RunMode runMode) {
+    return new AutoValue_PipelineModule(bootstrapServers, signalTopic, runMode);
   }
 
   abstract String coinMarketCapApiKey();
   abstract String bootstrapServers();
   abstract String signalTopic();
-  abstract String tradeTopic();
   abstract RunMode runMode();
   abstract int topCurrencyCount();
 
@@ -51,7 +40,7 @@ abstract class PipelineModule extends AbstractModule {
   }
 
   MarketDataModule marketDataModule() {
-    return MarketDataModule.create(config().exchangeName(), config().tradeTopic(), config().runMode());
+    return MarketDataModule.create(exchangeName(), runMode());
   }
 
   @Provides
