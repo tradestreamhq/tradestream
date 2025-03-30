@@ -14,16 +14,28 @@ import com.verlumen.tradestream.marketdata.MarketDataModule;
 import com.verlumen.tradestream.signals.SignalsModule;
 import com.verlumen.tradestream.strategies.StrategiesModule;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
-import java.nio.charset.StandardCharsets;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
-  static PipelineModule create(PipelineConfig config, String coinMarketCapApiKey, int topCurrencyCount) {
-    return new AutoValue_PipelineModule(config, coinMarketCapApiKey, topCurrencyCount);
+  private static final Trade DRY_RUN_TRADE = Trade.newBuilder()
+      .setExchange("FakeExhange")
+      .setCurrencyPair("DRY/RUN")
+      .setTradeId("trade-123")
+      .setTimestamp(fromMillis(1234567))
+      .setPrice(50000.0)
+      .setVolume(0.1)
+      .build();
+
+  static PipelineModule create(
+    String bootstrapServers, String signalTopic, String tradeTopic, RunMode runMode) {
+    return new AutoValue_PipelineModule(bootstrapServers, signalTopic, tradeTopic, runMode);
   }
 
-  abstract PipelineConfig config();
   abstract String coinMarketCapApiKey();
+  abstract String bootstrapServers();
+  abstract String signalTopic();
+  abstract String tradeTopic();
+  abstract RunMode runMode();
   abstract int topCurrencyCount();
 
   @Override
@@ -31,20 +43,15 @@ abstract class PipelineModule extends AbstractModule {
       install(BacktestingModule.create());
       install(HttpModule.create());
       install(InstrumentsModule.create(coinMarketCapApiKey(), topCurrencyCount()));
-      install(KafkaModule.create(config().bootstrapServers()));
+      install(KafkaModule.create(bootstrapServers()));
       install(marketDataModule());
-      install(SignalsModule.create(config().signalTopic()));
+      install(SignalsModule.create(signalTopic()));
       install(StrategiesModule.create());
       install(Ta4jModule.create());
   }
 
   MarketDataModule marketDataModule() {
     return MarketDataModule.create(config().exchangeName(), config().tradeTopic(), config().runMode());
-  }
-
-  @Provides
-  PipelineConfig providePipelineConfig() {
-    return config();
   }
 
   @Provides
