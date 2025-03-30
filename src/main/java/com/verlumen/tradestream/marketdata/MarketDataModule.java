@@ -11,6 +11,15 @@ public abstract class MarketDataModule extends AbstractModule {
     return new AutoValue_MarketDataModule(MarketDataConfig.create(exchangeName, tradeTopic));
   }
 
+  private static final Trade DRY_RUN_TRADE = Trade.newBuilder()
+      .setExchange("FakeExhange")
+      .setCurrencyPair("DRY/RUN")
+      .setTradeId("trade-123")
+      .setTimestamp(fromMillis(1234567))
+      .setPrice(50000.0)
+      .setVolume(0.1)
+      .build();
+
   abstract MarketDataConfig config();
 
   @Override
