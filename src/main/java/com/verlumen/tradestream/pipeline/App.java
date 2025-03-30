@@ -40,6 +40,8 @@ import org.joda.time.Instant;
 public final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
+  private static final String CMC_API_KEY_ENV_VAR = "COINMARKETCAP_API_KEY";
+
   public interface Options extends StreamingOptions {
     @Description("Comma-separated list of Kafka bootstrap servers.")
     @Default.String("localhost:9092")
