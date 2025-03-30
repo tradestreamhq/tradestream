@@ -52,10 +52,10 @@ public abstract class MarketDataModule extends AbstractModule {
   @Provides
   @Singleton
   TradeSource provideTradeSource(Provider<ExchangeClientTradeSource> exchangeClientTradeSource) {
-    if (runMode().equals(RunMode.DRY)) {
-      return DryRunTradeSource.create(ImmutableList.of(DRY_RUN_TRADE));
+    switch (runMode()) {
+      case DRY: return DryRunTradeSource.create(ImmutableList.of(DRY_RUN_TRADE));
+      case WET: return exchangeClientTradeSource.get();
+      default: throw new UnsupportedOperationException();
     }
-
-    return exchangeClientTradeSource.get();
   }
 }
