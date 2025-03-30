@@ -68,6 +68,18 @@ java_library(
 )
 
 java_library(
+    name = "dry_run_trade_source",
+    srcs = ["DryRunTradeSource.java"],
+    deps = [
+        ":trade_source",
+        "//protos:marketdata_java_proto",
+        "//third_party:auto_value",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guava",
+    ],
+)
+
+java_library(
     name = "exchange_client_trade_source",
     srcs = ["ExchangeClientTradeSource.java"],
     deps = [
