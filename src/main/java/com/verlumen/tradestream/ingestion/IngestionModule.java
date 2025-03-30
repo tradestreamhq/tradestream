@@ -22,7 +22,7 @@ abstract class IngestionModule extends AbstractModule {
 
     install(HttpModule.create());
     install(KafkaModule.create(ingestionConfig().kafkaBootstrapServers()));
-    install(marketDataModule();
+    install(marketDataModule());
   }
 
   MarketDataModule marketDataModule() {
