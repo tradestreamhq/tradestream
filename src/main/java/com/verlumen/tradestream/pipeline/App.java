@@ -228,15 +228,11 @@ public final class App {
             flinkOptions.getAttachedMode(), flinkOptions.isStreaming());
 
     // Create PipelineConfig and Guice module.
-    PipelineConfig config =
-        PipelineConfig.create(
-            options.getBootstrapServers(),
-            options.getTradeTopic(),
-            options.getSignalTopic(),
-            options.getRunMode());
+    PipelineConfig config = PipelineConfig.create(options.getRunMode());
     logger.atInfo().log("Created PipelineConfig: %s", config);
 
-    var module = PipelineModule.create(config);
+    var module = PipelineModule.create(
+      config, options.getBootstrapServers(), options.getSignalTopic(),  options.getTradeTopic());
     logger.atInfo().log("Created Guice module.");
 
     // Initialize the application via Guice.
