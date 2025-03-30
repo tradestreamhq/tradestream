@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Timestamp;
@@ -71,10 +70,7 @@ public class ExchangeClientUnboundedSourceImplTest {
     
     // Create an injector with BoundFieldModule and FactoryModule
     Injector injector = Guice.createInjector(
-        BoundFieldModule.of(this),
-        new FactoryModuleBuilder()
-            .implement(ExchangeClientUnboundedReader.class, ExchangeClientUnboundedReaderImpl.class)
-            .build(ExchangeClientUnboundedReader.Factory.class)
+        BoundFieldModule.of(this)
     );
 
     // Inject members into the test class
