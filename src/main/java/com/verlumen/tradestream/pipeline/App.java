@@ -9,6 +9,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.protobuf.util.Timestamps;
+import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.CandleStreamWithDefaults;
 import com.verlumen.tradestream.marketdata.ExchangeClientUnboundedSource;
@@ -220,16 +221,11 @@ PCollection<Trade> trades = pipeline.apply("ReadFromExchange", Read.from(exchang
             "Configured FlinkPipelineOptions: AttachedMode=%s, Streaming=%s",
             flinkOptions.getAttachedMode(), flinkOptions.isStreaming());
 
-    // Create PipelineConfig and Guice module.
-    PipelineConfig config =
-        PipelineConfig.create(
-            options.getExchangeName(),
-            options.getBootstrapServers(),
-            options.getSignalTopic(),
-            options.getRunMode());
-    logger.atInfo().log("Created PipelineConfig: %s", config);
+    // Create Guice module.
+    RunMode runMode = RunMode.fromString(options.getRunMode());
 
-    var module = PipelineModule.create(config);
+    var module = PipelineModule.create(
+      options.getBootstrapServers(), options.getSignalTopic(),  options.getTradeTopic(), runMode);
     logger.atInfo().log("Created Guice module.");
 
     // Initialize the application via Guice.

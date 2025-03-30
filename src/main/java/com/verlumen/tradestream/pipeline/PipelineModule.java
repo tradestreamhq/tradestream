@@ -15,11 +15,24 @@ import com.verlumen.tradestream.ta4j.Ta4jModule;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
-  static PipelineModule create(PipelineConfig config) {
-    return new AutoValue_PipelineModule(config);
+  private static final Trade DRY_RUN_TRADE = Trade.newBuilder()
+      .setExchange("FakeExhange")
+      .setCurrencyPair("DRY/RUN")
+      .setTradeId("trade-123")
+      .setTimestamp(fromMillis(1234567))
+      .setPrice(50000.0)
+      .setVolume(0.1)
+      .build();
+
+  static PipelineModule create(
+    String bootstrapServers, String signalTopic, String tradeTopic, RunMode runMode) {
+    return new AutoValue_PipelineModule(bootstrapServers, signalTopic, tradeTopic, runMode);
   }
 
-  abstract PipelineConfig config();
+  abstract String bootstrapServers();
+  abstract String signalTopic();
+  abstract String tradeTopic();
+  abstract RunMode runMode();
 
   @Override
   protected void configure() {
@@ -33,11 +46,6 @@ abstract class PipelineModule extends AbstractModule {
 
   private MarketDataModule marketDataModule() {
     return MarketDataModule.create();
-  }
-
-  @Provides
-  PipelineConfig providePipelineConfig() {
-    return config();
   }
 
   @Provides
