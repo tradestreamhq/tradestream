@@ -119,7 +119,8 @@ class ExchangeClientUnboundedReader(
 
         currentTrade = incomingMessagesQueue.poll()
 
-        return if (currentTrade != null) {
+        // Only return true if we actually have a trade
+        if (currentTrade != null) {
             if (currentTrade!!.hasTimestamp()) {
                 currentTradeTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(currentTrade!!.getTimestamp()))
             } else {
@@ -129,7 +130,7 @@ class ExchangeClientUnboundedReader(
             }
             logger.atFine().log("Advanced to trade: ID %s, Timestamp: %s", 
                 currentTrade!!.getTradeId(), currentTradeTimestamp)
-            true
+            return true
         } else {
             logger.atFiner().log("No message in queue, advance() returns false.")
             // Watermark advancement when idle
@@ -137,8 +138,8 @@ class ExchangeClientUnboundedReader(
             if (currentTradeTimestamp == null || now.minus(WATERMARK_IDLE_THRESHOLD).isAfter(currentTradeTimestamp)) {
                 currentTradeTimestamp = now
             }
-            // Only return true if clientStreamingActive is still true, otherwise false.
-            clientStreamingActive
+            // Return false since we don't have a trade yet
+            return false
         }
     }
 
