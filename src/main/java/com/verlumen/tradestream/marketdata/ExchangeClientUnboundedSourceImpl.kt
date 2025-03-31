@@ -9,6 +9,8 @@ import org.apache.beam.sdk.io.UnboundedSource
 import org.apache.beam.sdk.options.PipelineOptions
 import org.slf4j.LoggerFactory
 import java.io.IOException
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.util.Collections
 
 /**
@@ -52,5 +54,14 @@ class ExchangeClientUnboundedSourceImpl @Inject constructor(
      */
     override fun getCheckpointMarkCoder(): Coder<TradeCheckpointMark> {
         return SerializableCoder.of(TradeCheckpointMark::class.java)
+    }
+    
+    // Add custom serialization methods
+    private fun writeObject(out: ObjectOutputStream) {
+        out.defaultWriteObject()
+    }
+
+    private fun readObject(input: ObjectInputStream) {
+        input.defaultReadObject()
     }
 }
