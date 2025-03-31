@@ -1,3 +1,4 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 load("@rules_java//java:defs.bzl", "java_test")
 
 
@@ -49,6 +50,18 @@ java_test(
         "//third_party:joda_time",
         "//third_party:junit",
         "//third_party:protobuf_java",
+    ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
+)
+
+kt_jvm_test(
+    name = "ExchangeClientUnboundedReaderTest",
+    srcs = ["ExchangeClientUnboundedReaderTest.kt"],
+    deps = [
+
     ],
     runtime_deps = [
         "//third_party:beam_runners_direct_java",
