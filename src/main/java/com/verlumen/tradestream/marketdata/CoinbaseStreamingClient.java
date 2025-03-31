@@ -13,6 +13,7 @@ import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -265,7 +266,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         }
     }
 
-    private static class WebSocketConnector {
+    private static class WebSocketConnector implements Serializable {
         private static final FluentLogger logger = FluentLogger.forEnclosingClass();
         private final CoinbaseStreamingClient client;
 
