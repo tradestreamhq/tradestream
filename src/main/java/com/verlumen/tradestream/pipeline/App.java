@@ -127,8 +127,11 @@ public final class App {
             "ApplyWindows",
             Window.<KV<String, Trade>>into(FixedWindows.of(timingConfig.windowDuration()))
                 .withAllowedLateness(timingConfig.allowedLateness())
-                .triggering(DefaultTrigger.of())
-                .discardingFiredPanes());
+                .triggering(
+                    AfterProcessingTime.pastFirstElementInPane()
+                        .plusDelayOf(Duration.standardSeconds(10))
+                        .orFinally(AfterWatermark.pastEndOfWindow()))
+                .accumulatingFiredPanes());
 
     // 5. Create a base candle stream from the windowed trades.
     // This transform unites real trades with synthetic default trades,
