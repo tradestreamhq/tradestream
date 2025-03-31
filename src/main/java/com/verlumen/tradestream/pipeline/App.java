@@ -139,7 +139,7 @@ public final class App {
     PCollection<KV<String, ImmutableList<Candle>>> baseCandleStream =
         windowedTradePairs.apply(
             "CreateBaseCandles",
-            cndleStreamFactory.create(
+            candleStreamFactory.create(
                 // Use the same 1-minute window for candle aggregation.
                 timingConfig.windowDuration()));
 
