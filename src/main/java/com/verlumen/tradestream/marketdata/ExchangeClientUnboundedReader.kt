@@ -118,38 +118,31 @@ class ExchangeClientUnboundedReader(
         checkState(clientStreamingActive || incomingMessagesQueue.isNotEmpty(),
             "Cannot advance: Exchange client streaming not active and queue empty.")
 
-        try {
-            // Poll with a timeout instead of blocking indefinitely
-            // This allows Beam to properly handle watermarking and backpressure
-            currentTrade = incomingMessagesQueue.poll(100, TimeUnit.MILLISECONDS)
-
-            if (currentTrade != null) {
-                if (currentTrade!!.hasTimestamp()) {
-                    currentTradeTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(currentTrade!!.getTimestamp()))
-                } else {
-                    currentTradeTimestamp = Instant.now()
-                    logger.atWarning().log("Trade %s missing event timestamp, using processing time %s.", 
-                        currentTrade!!.getTradeId(), currentTradeTimestamp)
-                }
-                logger.atFine().log("Advanced to trade: ID %s, Timestamp: %s", 
-                    currentTrade!!.getTradeId(), currentTradeTimestamp)
-                return true
-            } else {
-                logger.atFiner().log("No message in queue after timeout, advance() returns false.")
-                // Watermark advancement when idle
-                val now = Instant.now()
-                if (currentTradeTimestamp == null || now.minus(WATERMARK_IDLE_THRESHOLD).isAfter(currentTradeTimestamp)) {
-                    currentTradeTimestamp = now
-                }
-                // Return false to indicate no element is available yet
-                return false
+        currentTrade = incomingMessagesQueue.poll()
+        
+        // If no trade is available, update watermark and return false
+        if (currentTrade == null) {
+            logger.atFiner().log("No message in queue, advance() returns false.")
+            val now = Instant.now()
+            if (currentTradeTimestamp == null || now.minus(WATERMARK_IDLE_THRESHOLD).isAfter(currentTradeTimestamp)) {
+                currentTradeTimestamp = now
             }
-        } catch (e: InterruptedException) {
-            Thread.currentThread().interrupt()
-            logger.atWarning().withCause(e).log("Interrupted while waiting for next trade")
-            clientStreamingActive = false // Signal that we're shutting down
             return false
         }
+        
+        // Process the retrieved trade
+        if (!currentTrade!!.hasTimestamp()) {
+            currentTradeTimestamp = Instant.now()
+            logger.atWarning().log("Trade %s missing event timestamp, using processing time %s.", 
+                currentTrade!!.getTradeId(), currentTradeTimestamp)
+        } else {
+            currentTradeTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(currentTrade!!.getTimestamp()))
+        }
+        
+        logger.atFine().log("Advanced to trade: ID %s, Timestamp: %s", 
+            currentTrade!!.getTradeId(), currentTradeTimestamp)
+        return true
+    }
     }
 
     /**
