@@ -46,7 +46,7 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
     private final Supplier<ImmutableList<CurrencyPair>> currencyPairSupply;
     private final double defaultPrice;
 
-    private CandleStreamWithDefaults(
+    CandleStreamWithDefaults(
         Duration windowDuration,
         Duration slideDuration,
         int bufferSize,
