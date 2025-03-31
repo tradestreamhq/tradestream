@@ -11,6 +11,7 @@ import org.apache.beam.sdk.io.UnboundedSource
 import org.joda.time.Duration
 import org.joda.time.Instant
 import java.io.IOException
+import java.io.Serializable
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.function.Supplier;
@@ -23,7 +24,7 @@ class ExchangeClientUnboundedReader(
     private val currencyPairSupply: Supplier<ImmutableList<CurrencyPair>>,
     private val source: ExchangeClientUnboundedSource,
     private var currentCheckpointMark: TradeCheckpointMark
-) : UnboundedSource.UnboundedReader<Trade>() {
+) : UnboundedSource.UnboundedReader<Trade>(), Serializable {
 
     private val incomingMessagesQueue = LinkedBlockingQueue<Trade>(10000)
     private var clientStreamingActive = false
@@ -54,6 +55,14 @@ class ExchangeClientUnboundedReader(
                 source,
                 mark
             )
+        }
+        
+        private fun writeObject(out: java.io.ObjectOutputStream) {
+            out.defaultWriteObject()
+        }
+
+        private fun readObject(input: java.io.ObjectInputStream) {
+            input.defaultReadObject()
         }
     }
 
@@ -232,6 +241,18 @@ class ExchangeClientUnboundedReader(
 
         incomingMessagesQueue.clear()
         logger.atInfo().log("ExchangeClient reader closed.")
+    }
+    
+    private fun writeObject(out: java.io.ObjectOutputStream) {
+        out.defaultWriteObject()
+    }
+
+    private fun readObject(input: java.io.ObjectInputStream) {
+        input.defaultReadObject()
+        // Recreate the queue if it was null
+        if (incomingMessagesQueue == null) {
+            incomingMessagesQueue = LinkedBlockingQueue<Trade>(10000)
+        }
     }
 
     companion object {
