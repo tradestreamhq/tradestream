@@ -35,7 +35,6 @@ import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.TypeDescriptor;
-import org.joda.time.Duration;
 import org.joda.time.Instant;
 
 public final class App {
@@ -141,11 +140,8 @@ public final class App {
         windowedTradePairs.apply(
             "CreateBaseCandles",
             cndleStreamFactory.create(
-                timingConfig.windowDuration(), // Use the same 1-minute window for candle aggregation.
-                Duration.standardSeconds(30), // Slide duration for the candle aggregator.
-                5, // Buffer size for base candle consolidation.
-                10000.0 // Default price for synthetic trades.
-                ));
+                // Use the same 1-minute window for candle aggregation.
+                timingConfig.windowDuration()));
 
     // 6. Convert the buffered list into a single consolidated candle per key.
     // For example, take the last element of the buffered list.
