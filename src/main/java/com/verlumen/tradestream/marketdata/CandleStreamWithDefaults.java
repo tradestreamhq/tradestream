@@ -139,5 +139,6 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
                 BUFFER_SIZE,  // Buffer size for base candle consolidation.
                 currencyPairSupply,
                 DEFAULT_SYNTHETIC_TRADE_PRICE);
+        }
     }
 }
