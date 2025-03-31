@@ -61,9 +61,11 @@ kt_jvm_test(
     name = "ExchangeClientUnboundedReaderTest",
     srcs = ["ExchangeClientUnboundedReaderTest.kt"],
     deps = [
-
+        "//third_party:joda_time",
+        "//third_party:truth",
     ],
     runtime_deps = [
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_reader",
         "//third_party:beam_runners_direct_java",
         "//third_party:hamcrest",
     ],
