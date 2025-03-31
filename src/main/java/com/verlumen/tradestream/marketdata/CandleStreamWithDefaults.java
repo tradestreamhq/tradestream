@@ -50,7 +50,7 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
         Duration windowDuration,
         Duration slideDuration,
         int bufferSize,
-        Supplier<ImmutableList<CurrencyPair> currencyPairSupply,
+        Supplier<ImmutableList<CurrencyPair>> currencyPairSupply,
         double defaultPrice) {
         this.windowDuration = windowDuration;
         this.slideDuration = slideDuration;
