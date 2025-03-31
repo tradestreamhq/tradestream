@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.marketdata.Candle;
@@ -33,7 +34,6 @@ import org.apache.beam.sdk.transforms.windowing.DefaultTrigger;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
-import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.TypeDescriptor;
 import org.joda.time.Instant;
 
@@ -190,11 +190,10 @@ public final class App {
   }
 
   private static String getCmcApiKey(Options options) {
-      if (isNullOrEmpty(options.getCoinMarketCapApiKey())) {
-           return System.getenv().getOrDefault(CMC_API_KEY_ENV_VAR, "INVALID_API_KEY");
-      } 
-
-      return options.getCoinMarketCapApiKey();
+    if (isNullOrEmpty(options.getCoinMarketCapApiKey())) {
+      return System.getenv().getOrDefault(CMC_API_KEY_ENV_VAR, "INVALID_API_KEY");
+    }
+    return options.getCoinMarketCapApiKey();
   }
 
   public static void main(String[] args) throws Exception {
@@ -218,17 +217,18 @@ public final class App {
 
     // Create Guice module.
     RunMode runMode = RunMode.fromString(options.getRunMode());
-    var module = PipelineModule.create(
-      options.getBootstrapServers(),
-      getCmcApiKey(options),
-      options.getExchangeName(),
-      runMode,
-      options.getSignalTopic(),
-      options.getCoinMarketCapTopCurrencyCount());
+    // Replaced "var" with explicit type declaration.
+    com.google.inject.Module module = PipelineModule.create(
+        options.getBootstrapServers(),
+        getCmcApiKey(options),
+        options.getExchangeName(),
+        runMode,
+        options.getSignalTopic(),
+        options.getCoinMarketCapTopCurrencyCount());
     logger.atInfo().log("Created Guice module.");
 
     // Initialize the application via Guice.
-    var injector = Guice.createInjector(module);
+    Injector injector = Guice.createInjector(module);
     App app = injector.getInstance(App.class);
     logger.atInfo().log("Retrieved App instance from Guice injector.");
 
