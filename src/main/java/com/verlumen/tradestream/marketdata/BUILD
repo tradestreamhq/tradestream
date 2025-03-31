@@ -11,6 +11,7 @@ java_library(
         ":last_candles_fn",
         ":sliding_candle_aggregator",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf",
         "//third_party:guava",
