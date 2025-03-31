@@ -3,6 +3,7 @@ package com.verlumen.tradestream.marketdata;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.google.inject.Inject;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.transforms.Create;
@@ -119,22 +120,28 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
     }
 
     public static class Factory {
+        private static final int BUFFER_SIZE = 5;  // Buffer size for base candle consolidation.
+        private static final Duration SLIDE_DURATION = Duration.standardSeconds(30);
+        private static final double DEFAULT_SYNTHETIC_TRADE_PRICE = 10000.0;
+
+        private final Supplier<ImmutableList<CurrencyPair>> currencyPairSupply;
+
         @Inject
         Factory(Supplier<ImmutableList<CurrencyPair> currencyPairSupply) {
             this.currencyPairSupply = currencyPairSupply;
         }
-
-        CandleStreamWithDefaults create(
-            Duration windowDuration,
-            Duration slideDuration,
-            int bufferSize,
-            double defaultPrice) {
+            cndleStreamFactory.create(
+                timingConfig.windowDuration(), // Use the same 1-minute window for candle aggregation.
+                Duration.standardSeconds(30), // Slide duration for the candle aggregator.
+                10000.0 // Default price for synthetic trades.
+                ));
+        CandleStreamWithDefaults create(Duration windowDuration) {
             return new CandleStreamWithDefaults(
                 windowDuration,
-                slideDuration,
-                bufferSize,
+                SLIDE_DURATION,
+                BUFFER_SIZE,  // Buffer size for base candle consolidation.
                 Supplier<ImmutableList<CurrencyPair> currencyPairSupply,
-                defaultPrice);
+                DEFAULT_SYNTHETIC_TRADE_PRICE);
         }
     }
 }
