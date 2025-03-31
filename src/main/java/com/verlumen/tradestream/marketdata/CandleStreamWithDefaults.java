@@ -128,7 +128,7 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
         private final Supplier<ImmutableList<CurrencyPair>> currencyPairSupply;
 
         @Inject
-        Factory(Supplier<ImmutableList<CurrencyPair> currencyPairSupply) {
+        Factory(Supplier<ImmutableList<CurrencyPair>> currencyPairSupply) {
             this.currencyPairSupply = currencyPairSupply;
         }
             cndleStreamFactory.create(
