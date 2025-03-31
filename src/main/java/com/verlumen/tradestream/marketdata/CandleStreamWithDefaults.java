@@ -132,7 +132,7 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
             this.currencyPairSupply = currencyPairSupply;
         }
 
-        CandleStreamWithDefaults create(Duration windowDuration) {
+        public CandleStreamWithDefaults create(Duration windowDuration) {
             return new CandleStreamWithDefaults(
                 windowDuration,
                 SLIDE_DURATION,
