@@ -6,7 +6,7 @@ import static org.junit.Assert.assertTrue;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.instruments.CurrencyPair;
-import java.util.Arrays;
+import java.util.Stream;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.values.KV;
@@ -34,6 +34,9 @@ public class CandleStreamWithDefaultsTest {
             .setVolume(1.0)
             .setTradeId("trade-1")
             .build();
+        ImmutableList<CurrencyPair> currencyPairs = Stream.of("BTC/USD", "ETH/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
 
         // Act: Apply the composite transform with two currency pairs.
         PAssert.that(
@@ -42,7 +45,7 @@ public class CandleStreamWithDefaultsTest {
                         Duration.standardMinutes(1),
                         Duration.standardSeconds(30),
                         5,
-                        Suppliers.ofInstance(ImmutableList.of("BTC/USD", "ETH/USD")),
+                        Suppliers.ofInstance(currencyPairs),
                         10000.0))
         ).satisfies(iterable -> {
             boolean foundBTC = false;
@@ -63,6 +66,9 @@ public class CandleStreamWithDefaultsTest {
     @Test
     public void testCompositeTransformEmitsCandlesWithNoRealTrades() {
         // Arrange: Provide an empty input for real trades.
+        ImmutableList<CurrencyPair> currencyPairs = Stream.of("BTC/USD", "ETH/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
         PAssert.that(
             pipeline.apply("CreateEmptyRealTrades", Create.empty(
                     org.apache.beam.sdk.coders.KvCoder.of(
@@ -72,7 +78,7 @@ public class CandleStreamWithDefaultsTest {
                         Duration.standardMinutes(1),
                         Duration.standardSeconds(30),
                         5,
-                        Suppliers.ofInstance(ImmutableList.of("BTC/USD", "ETH/USD")),
+                        Suppliers.ofInstance(currencyPairs),
                         10000.0))
         ).satisfies(iterable -> {
             int count = 0;
@@ -120,6 +126,9 @@ public class CandleStreamWithDefaultsTest {
             .setVolume(1.0)
             .setTradeId("trade-3")
             .build();
+        ImmutableList<CurrencyPair> currencyPairs = Stream.of("BTC/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
 
         // Act: Apply composite transform with a buffer size of 2.
         PAssert.that(
@@ -131,7 +140,7 @@ public class CandleStreamWithDefaultsTest {
                     Duration.standardMinutes(1),
                     Duration.standardSeconds(30),
                     2, // bufferSize = 2
-                    Suppliers.ofInstance(ImmutableList.of("BTC/USD")),
+                    Suppliers.ofInstance(currencyPairs),
                     10000.0))
         ).satisfies(iterable -> {
             for (KV<String, ImmutableList<Candle>> kv : iterable) {
