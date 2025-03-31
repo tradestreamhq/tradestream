@@ -75,15 +75,18 @@ public final class App {
     void setCoinMarketCapTopCurrencyCount(int value);
   }
 
+  private final CandleStreamWithDefaults.Factory candleStreamFactory;
   private final StrategyEnginePipeline strategyEnginePipeline;
   private final TimingConfig timingConfig;
   private final TradeSource tradeSource;
 
   @Inject
   App(
+      CandleStreamWithDefaults.Factory candleStreamFactory,
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig,
       TradeSource tradeSource) {
+    this.candleStreamFactory = candleStreamFactory;
     this.strategyEnginePipeline = strategyEnginePipeline;
     this.timingConfig = timingConfig;
     this.tradeSource = tradeSource;
@@ -137,11 +140,10 @@ public final class App {
     PCollection<KV<String, ImmutableList<Candle>>> baseCandleStream =
         windowedTradePairs.apply(
             "CreateBaseCandles",
-            new CandleStreamWithDefaults(
+            cndleStreamFactory.create(
                 timingConfig.windowDuration(), // Use the same 1-minute window for candle aggregation.
                 Duration.standardSeconds(30), // Slide duration for the candle aggregator.
                 5, // Buffer size for base candle consolidation.
-                Arrays.asList("BTC/USD", "ETH/USD"),
                 10000.0 // Default price for synthetic trades.
                 ));
 
