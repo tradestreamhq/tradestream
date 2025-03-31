@@ -26,4 +26,5 @@ message Candle {
   double low = 5;                          // Lowest price
   double close = 6;                        // Closing price
   double volume = 7;                       // Total volume
+  bool synthetic = 8;                      // Whether this is a synthetic/interpolated candle
 }

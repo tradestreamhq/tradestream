@@ -251,4 +251,50 @@ public class SlidingCandleAggregatorTest {
         assertEquals("BTC/USD", updatedAcc.currencyPair);
         assertEquals(false, updatedAcc.firstTrade);
     }
+
+    @Test
+    public void testCandleTimestampIsMiddleOfPeriod() {
+        // Arrange
+        CandleCombineFn combineFn = new CandleCombineFn();
+        CandleAccumulator accumulator = combineFn.createAccumulator();
+        
+        // Create two trades 10 seconds apart
+        Instant now = Instant.now();
+        Timestamp ts1 = Timestamp.newBuilder()
+            .setSeconds(now.getMillis() / 1000)
+            .setNanos(0)
+            .build();
+        Timestamp ts2 = Timestamp.newBuilder()
+            .setSeconds(now.plus(Duration.standardSeconds(10)).getMillis() / 1000)
+            .setNanos(0)
+            .build();
+            
+        Trade trade1 = Trade.newBuilder()
+            .setTimestamp(ts1)
+            .setExchange("BINANCE")
+            .setCurrencyPair("BTC/USD")
+            .setPrice(10000)
+            .setVolume(0.5)
+            .setTradeId("trade1")
+            .build();
+            
+        Trade trade2 = Trade.newBuilder()
+            .setTimestamp(ts2)
+            .setExchange("BINANCE")
+            .setCurrencyPair("BTC/USD")
+            .setPrice(10100)
+            .setVolume(0.7)
+            .setTradeId("trade2")
+            .build();
+
+        // Act
+        accumulator = combineFn.addInput(accumulator, trade1);
+        accumulator = combineFn.addInput(accumulator, trade2);
+        Candle candle = combineFn.extractOutput(accumulator);
+
+        // Assert
+        // The middle timestamp should be 5 seconds after the first trade
+        assertEquals(ts1.getSeconds() + 5, candle.getTimestamp().getSeconds());
+        assertEquals(ts1.getNanos(), candle.getTimestamp().getNanos());
+    }
 }

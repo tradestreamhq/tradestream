@@ -178,16 +178,24 @@ public class SlidingCandleAggregator
                 logger.atFiner().log("No real trades found. Returning default Candle.");
                 return Candle.getDefaultInstance();
             }
+            
+            // Calculate the middle timestamp of the candle period
+            long middleSeconds = accumulator.openTimestamp.getSeconds() + 
+                (accumulator.closeTimestamp.getSeconds() - accumulator.openTimestamp.getSeconds()) / 2;
+            Timestamp middleTimestamp = Timestamp.newBuilder()
+                .setSeconds(middleSeconds)
+                .setNanos(accumulator.openTimestamp.getNanos())  // Keep the same nanosecond precision
+                .build();
+            
             Candle.Builder builder = Candle.newBuilder();
             builder.setOpen(accumulator.open)
                     .setHigh(accumulator.high)
                     .setLow(accumulator.low)
                     .setClose(accumulator.close)
                     .setVolume(accumulator.volume)
-                    // Use the openTimestamp as the candle’s representative timestamp.
-                    .setTimestamp(accumulator.openTimestamp)
+                    .setTimestamp(middleTimestamp)  // Use the calculated middle timestamp
                     .setCurrencyPair(accumulator.currencyPair);
-            logger.atFiner().log("Returning real Candle from accumulator.");
+            logger.atFiner().log("Returning real Candle from accumulator with middle timestamp: %s", middleTimestamp);
             return builder.build();
         }
     }

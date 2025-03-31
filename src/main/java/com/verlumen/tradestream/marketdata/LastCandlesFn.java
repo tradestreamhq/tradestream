@@ -15,7 +15,7 @@ import org.apache.beam.sdk.values.KV;
 
 /**
  * LastCandlesFn buffers and outputs the last N candles per key.
- * It also replaces a default (dummy) candle with a filled candle using the last real candle’s close.
+ * It also replaces a default (dummy) candle with a filled candle using the last real candle's close.
  * Additionally, it avoids buffering duplicate default candles.
  */
 public class LastCandlesFn {
@@ -73,19 +73,24 @@ public class LastCandlesFn {
                 }
 
                 // If it's a default candle but there is at least one candle in the buffer,
-                // replace with a 'filled' candle using the last real candle's close.
+                // create a synthetic candle using linear interpolation between the last real candle
+                // and the next known price (if available).
                 if (!buffer.isEmpty()) {
                     Candle lastReal = buffer.get(buffer.size() - 1);
-                    incoming = Candle.newBuilder()
-                            .setOpen(lastReal.getClose())
-                            .setHigh(lastReal.getClose())
-                            .setLow(lastReal.getClose())
-                            .setClose(lastReal.getClose())
-                            .setVolume(ZERO)
-                            .setTimestamp(incoming.getTimestamp())  // Keep the synthetic candle's timestamp
-                            .setCurrencyPair(incoming.getCurrencyPair())
-                            .build();
-                    logger.atFine().log("Replacing default candle with filled candle based on last real candle's close for key: %s", key);
+                    Candle nextReal = null;
+                    
+                    // Find the next real candle in the buffer
+                    for (int i = buffer.size() - 2; i >= 0; i--) {
+                        if (!isDefaultCandle(buffer.get(i))) {
+                            nextReal = buffer.get(i);
+                            break;
+                        }
+                    }
+                    
+                    // Create a synthetic candle using linear interpolation
+                    Candle synthetic = createSyntheticCandle(lastReal, nextReal, incoming.getTimestamp());
+                    logger.atFine().log("Created synthetic candle for key: %s using interpolation", key);
+                    incoming = synthetic;
                 }
             }
 
@@ -118,6 +123,46 @@ public class LastCandlesFn {
                 && candle.getLow() == ZERO
                 && candle.getClose() == ZERO
                 && candle.getVolume() == ZERO;
+        }
+
+        private Candle createSyntheticCandle(Candle lastReal, Candle nextReal, Timestamp targetTime) {
+            Candle.Builder builder = Candle.newBuilder()
+                .setTimestamp(targetTime)
+                .setCurrencyPair(lastReal.getCurrencyPair())
+                .setSynthetic(true);
+
+            if (nextReal == null) {
+                // If we only have one real candle, use its close price
+                double price = lastReal.getClose();
+                builder.setOpen(price)
+                       .setHigh(price)
+                       .setLow(price)
+                       .setClose(price)
+                       .setVolume(0.0);
+            } else {
+                // Linear interpolation between last and next real candles
+                long timeDiff = targetTime.getSeconds() - lastReal.getTimestamp().getSeconds();
+                long totalTimeDiff = nextReal.getTimestamp().getSeconds() - lastReal.getTimestamp().getSeconds();
+                double progress = (double) timeDiff / totalTimeDiff;
+                
+                // Interpolate each price component
+                double open = interpolate(lastReal.getOpen(), nextReal.getOpen(), progress);
+                double close = interpolate(lastReal.getClose(), nextReal.getClose(), progress);
+                double high = Math.max(open, close);
+                double low = Math.min(open, close);
+                
+                builder.setOpen(open)
+                       .setHigh(high)
+                       .setLow(low)
+                       .setClose(close)
+                       .setVolume(0.0);
+            }
+            
+            return builder.build();
+        }
+
+        private double interpolate(double start, double end, double progress) {
+            return start + (end - start) * progress;
         }
     }
 }
