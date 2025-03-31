@@ -13,6 +13,7 @@ import org.joda.time.Instant
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 import java.util.function.Supplier;
 
 /**
@@ -65,38 +66,44 @@ class ExchangeClientUnboundedReader(
     override fun start(): Boolean {
         logger.atInfo().log("Reader start() called with ExchangeStreamingClient: %s", exchangeClient.javaClass.name)
 
-        val pairsToStream: ImmutableList<CurrencyPair>
+        // Get currency pairs to stream
+        val pairsToStream = getCurrencyPairs()
+        
+        // Start streaming
+        startExchangeStreaming(pairsToStream)
+        
+        // Try to advance to the first element
+        return advance()
+    }
+    
+    /**
+     * Gets currency pairs from the supplier.
+     * @return list of currency pairs
+     */
+    @Throws(IOException::class)
+    private fun getCurrencyPairs(): ImmutableList<CurrencyPair> {
+        logger.atFine().log("Calling currencyPairSupply.get()...")
         try {
-            logger.atFine().log("Calling currencyPairSupply.get()...")
-            pairsToStream = currencyPairSupply.get()
-            checkArgument(pairsToStream.isNotEmpty(), "CurrencyPair Supplier returned empty list via currencyPairs()")
-            logger.atInfo().log("Obtained %d currency pairs from CurrencyPair Supplier.", pairsToStream.size)
+            val pairs = currencyPairSupply.get()
+            checkArgument(pairs.isNotEmpty(), "CurrencyPair Supplier returned empty list via currencyPairs()")
+            logger.atInfo().log("Obtained %d currency pairs from CurrencyPair Supplier.", pairs.size)
+            return pairs
         } catch (e: Exception) {
             logger.atSevere().withCause(e).log("Failed to get currency pairs from CurrencyPair Supplier")
             throw IOException("Failed to get currency pairs from CurrencyPair Supplier", e)
         }
-
+    }
+    
+    /**
+     * Starts streaming from the exchange.
+     * @param pairsToStream list of currency pairs to stream
+     */
+    @Throws(IOException::class)
+    private fun startExchangeStreaming(pairsToStream: ImmutableList<CurrencyPair>) {
         logger.atInfo().log("Calling exchangeClient.startStreaming for %d pairs.", pairsToStream.size)
         try {
             exchangeClient.startStreaming(pairsToStream) { trade ->
-                trade?.let {
-                    try {
-                        if (it.hasTimestamp()) {
-                            val eventTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(it.getTimestamp()))
-                            if (eventTimestamp.isAfter(currentCheckpointMark.lastProcessedTimestamp)) {
-                                if (!incomingMessagesQueue.offer(it)) {
-                                    logger.atWarning().log("Reader queue full. Dropping trade: %s", it.getTradeId())
-                                }
-                            } else {
-                                logger.atFiner().log("Skipping old trade: ID %s, Timestamp %s", it.getTradeId(), eventTimestamp)
-                            }
-                        } else {
-                            logger.atWarning().log("Trade missing timestamp: %s", it.getTradeId())
-                        }
-                    } catch (e: Exception) {
-                        logger.atSevere().withCause(e).log("Error in trade callback: %s", it.getTradeId())
-                    }
-                }
+                processTrade(trade)
             }
             clientStreamingActive = true
             logger.atInfo().log("exchangeClient.startStreaming called successfully.")
@@ -105,7 +112,33 @@ class ExchangeClientUnboundedReader(
             logger.atSevere().withCause(e).log("Failed to start streaming via ExchangeStreamingClient")
             throw IOException("Failed to start ExchangeStreamingClient", e)
         }
-        return advance()
+    }
+    
+    /**
+     * Processes a trade from the exchange.
+     * @param trade the trade to process
+     */
+    private fun processTrade(trade: Trade?) {
+        trade ?: return
+        
+        try {
+            if (!trade.hasTimestamp()) {
+                logger.atWarning().log("Trade missing timestamp: %s", trade.getTradeId())
+                return
+            }
+            
+            val eventTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(trade.getTimestamp()))
+            if (!eventTimestamp.isAfter(currentCheckpointMark.lastProcessedTimestamp)) {
+                logger.atFiner().log("Skipping old trade: ID %s, Timestamp %s", trade.getTradeId(), eventTimestamp)
+                return
+            }
+            
+            if (!incomingMessagesQueue.offer(trade)) {
+                logger.atWarning().log("Reader queue full. Dropping trade: %s", trade.getTradeId())
+            }
+        } catch (e: Exception) {
+            logger.atSevere().withCause(e).log("Error processing trade: %s", trade.getTradeId())
+        }
     }
 
     /**
@@ -118,28 +151,29 @@ class ExchangeClientUnboundedReader(
             "Cannot advance: Exchange client streaming not active and queue empty.")
 
         currentTrade = incomingMessagesQueue.poll()
-
-        return if (currentTrade != null) {
-            if (currentTrade!!.hasTimestamp()) {
-                currentTradeTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(currentTrade!!.getTimestamp()))
-            } else {
-                currentTradeTimestamp = Instant.now()
-                logger.atWarning().log("Trade %s missing event timestamp, using processing time %s.", 
-                    currentTrade!!.getTradeId(), currentTradeTimestamp)
-            }
-            logger.atFine().log("Advanced to trade: ID %s, Timestamp: %s", 
-                currentTrade!!.getTradeId(), currentTradeTimestamp)
-            true
-        } else {
+        
+        // If no trade is available, update watermark and return false
+        if (currentTrade == null) {
             logger.atFiner().log("No message in queue, advance() returns false.")
-            // Watermark advancement when idle
             val now = Instant.now()
             if (currentTradeTimestamp == null || now.minus(WATERMARK_IDLE_THRESHOLD).isAfter(currentTradeTimestamp)) {
                 currentTradeTimestamp = now
             }
-            // Only return true if clientStreamingActive is still true, otherwise false.
-            clientStreamingActive
+            return false
         }
+        
+        // Process the retrieved trade
+        if (!currentTrade!!.hasTimestamp()) {
+            currentTradeTimestamp = Instant.now()
+            logger.atWarning().log("Trade %s missing event timestamp, using processing time %s.", 
+                currentTrade!!.getTradeId(), currentTradeTimestamp)
+        } else {
+            currentTradeTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(currentTrade!!.getTimestamp()))
+        }
+        
+        logger.atFine().log("Advanced to trade: ID %s, Timestamp: %s", 
+            currentTrade!!.getTradeId(), currentTradeTimestamp)
+        return true
     }
 
     /**
