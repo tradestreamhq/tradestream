@@ -175,7 +175,6 @@ class ExchangeClientUnboundedReader(
             currentTrade!!.getTradeId(), currentTradeTimestamp)
         return true
     }
-    }
 
     /**
      * Gets the timestamp of the current trade.
