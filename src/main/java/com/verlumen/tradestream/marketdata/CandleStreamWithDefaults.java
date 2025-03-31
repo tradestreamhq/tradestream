@@ -131,11 +131,7 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
         Factory(Supplier<ImmutableList<CurrencyPair>> currencyPairSupply) {
             this.currencyPairSupply = currencyPairSupply;
         }
-            cndleStreamFactory.create(
-                timingConfig.windowDuration(), // Use the same 1-minute window for candle aggregation.
-                Duration.standardSeconds(30), // Slide duration for the candle aggregator.
-                10000.0 // Default price for synthetic trades.
-                ));
+
         CandleStreamWithDefaults create(Duration windowDuration) {
             return new CandleStreamWithDefaults(
                 windowDuration,
