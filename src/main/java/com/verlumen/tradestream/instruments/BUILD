@@ -30,6 +30,7 @@ java_library(
         "//third_party:gson",
         "//third_party:guava",
         "//third_party:guice",
+        "//third_party:mug",
     ],
 )
 
