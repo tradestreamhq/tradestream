@@ -49,7 +49,7 @@ final class CurrencyPairProvider implements Serializable, Provider<ImmutableList
 
             ImmutableList.Builder<CurrencyPairMetadata> listBuilder = ImmutableList.builder();
 
-            biStream(obj -> obj.get("symbol"), stream(dataElement.getAsJsonArray()).map(node -> node.getAsJsonObject()))
+            return biStream(obj -> obj.get("symbol"), stream(dataElement.getAsJsonArray()).map(node -> node.getAsJsonObject()))
                 .mapValues(obj -> obj.get("quote"))
                 .filter((symbolElement, quoteElement) -> 
                         Stream.of(symbolElement, quoteElement)
@@ -58,45 +58,12 @@ final class CurrencyPairProvider implements Serializable, Provider<ImmutableList
                 .mapKeys(JsonElement::getAsString)
                 .mapValues(JsonElement::getAsJsonObject)
                 .mapValues(quoteObj -> quoteObj.get("USD"))
-                .filterValues(usdQuoteObj -> )
-                .mapToObj((symbol, usdQuoteObj) -> usdQuoteObj.get("market_cap") != null && !usdQuoteObj.get("market_cap").isJsonNull())
-            dataElement.getAsJsonArray().forEach(currencyNode -> {
-                // JsonObject currencyObj = currencyNode.getAsJsonObject();
-                // JsonElement symbolElement = currencyObj.get("symbol");
-                // if (symbolElement == null || symbolElement.isJsonNull()) {
-                //     return; // Skip if symbol is missing
-                // }
-                // String symbol = symbolElement.getAsString();
-
-                JsonElement quoteElement = currencyObj.get("quote");
-                if (quoteElement == null || !quoteElement.isJsonObject()) {
-                    return; // Skip if quote is missing
-                }
-
-                JsonObject quoteObj = quoteElement.getAsJsonObject();
-                JsonElement usdQuoteElement = quoteObj.get("USD");
-                if (usdQuoteElement == null || !usdQuoteElement.isJsonObject()) {
-                    return; // Skip if USD quote is missing
-                }
-
-                JsonObject usdQuoteObj = usdQuoteElement.getAsJsonObject();
-                JsonElement marketCapElement = usdQuoteObj.get("market_cap");
-                if (marketCapElement == null || marketCapElement.isJsonNull()) {
-                    return; // Skip if market_cap is missing
-                }
-
-                BigDecimal marketCap = marketCapElement.getAsBigDecimal();
-
-                // Create pair string
-                String pair = symbol + "/USD";
-
-                // Create CurrencyPairMetadata
-                CurrencyPairMetadata metadata = CurrencyPairMetadata.create(pair, marketCap);
-
-                listBuilder.add(metadata);
-            });
-
-            return CurrencyPairSupplyImpl.create(listBuilder.build());
+                .filterValues(usdQuoteObj ->
+                      usdQuoteObj.get("market_cap") != null && !usdQuoteObj.get("market_cap").isJsonNull())
+                .mapToObj((baseCurrency, unused) -> baseCurrency + "/USD")
+                .distinct()
+                .map(CurrencyPair::fromSymbol)
+                .collect(toImmutableList());
         } catch (IOException e) {
             // Handle exceptions
             throw new RuntimeException("Failed to fetch currency data", e);
