@@ -1,79 +1,62 @@
-package com.verlumen.tradestream.instruments;
+package com.verlumen.tradestream.instruments
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.Streams.stream;
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import com.google.inject.Inject
+import com.google.inject.Provider
+import com.verlumen.tradestream.http.HttpClient
+import java.io.IOException
+import java.io.Serializable
 
-import com.google.common.collect.ImmutableList;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.mu.util.stream.BiStream;
-import com.verlumen.tradestream.http.HttpClient;
-import java.io.IOException;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Stream;
+class CurrencyPairProvider @Inject constructor(
+    private val coinMarketCapConfig: CoinMarketCapConfig,
+    private val httpClient: HttpClient
+) : Serializable, Provider<List<CurrencyPair>> {
 
-final class CurrencyPairProvider implements Serializable, Provider<ImmutableList<CurrencyPair>> {
-    private final CoinMarketCapConfig coinMarketCapConfig;
-    private final HttpClient httpClient;
-
-    @Inject
-    CurrencyPairProvider(CoinMarketCapConfig coinMarketCapConfig, HttpClient httpClient) {
-        this.coinMarketCapConfig = coinMarketCapConfig;
-        this.httpClient = httpClient;
-    }
-
-    @Override
-    public ImmutableList<CurrencyPair> get() {
-        String url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest";
+    override fun get(): List<CurrencyPair> {
+        val url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
+        
         try {
-            String parameters = "start=1&limit=" + coinMarketCapConfig.topN() + "&convert=USD";
-            String fullUrl = url + "?" + parameters;
+            val parameters = "start=1&limit=${coinMarketCapConfig.topN()}&convert=USD"
+            val fullUrl = "$url?$parameters"
 
             // Set the headers
-            Map<String, String> headers = new HashMap<>();
-            headers.put("X-CMC_PRO_API_KEY", coinMarketCapConfig.apiKey());
-            headers.put("Accept", "application/json");
+            val headers = mapOf(
+                "X-CMC_PRO_API_KEY" to coinMarketCapConfig.apiKey(),
+                "Accept" to "application/json"
+            )
 
-            String responseStr = httpClient.get(fullUrl, headers);
+            val responseStr = httpClient.get(fullUrl, headers)
 
-            // Parse JSON response using Gson
-            JsonObject rootNode = JsonParser.parseString(responseStr).getAsJsonObject();
-            JsonElement dataElement = rootNode.get("data");
+            // Parse JSON response
+            val rootNode = JsonParser.parseString(responseStr).asJsonObject
+            val dataElement = rootNode.get("data") ?: throw IOException("Missing data in response")
 
-            if (dataElement == null || !dataElement.isJsonArray()) {
-                throw new IOException("Invalid response from CoinMarketCap API");
+            if (!dataElement.isJsonArray) {
+                throw IOException("Invalid response format from CoinMarketCap API")
             }
 
-            ImmutableList<JsonObject> jsonObjects = stream(dataElement.getAsJsonArray())
-                .map(node -> node.getAsJsonObject())
-                .collect(toImmutableList());
-
-            return BiStream.from(jsonObjects.stream(), obj -> obj.get("symbol"), obj -> obj.get("quote"))
-                .filter((symbolElement, quoteElement) -> 
-                        Stream.of(symbolElement, quoteElement)
-                        .allMatch(element -> element != null && !element.isJsonNull()))
-                .filterValues(quoteElement ->  quoteElement.isJsonObject())
-                .mapKeys(JsonElement::getAsString)
-                .mapValues(JsonElement::getAsJsonObject)
-                .mapValues(quoteObj -> quoteObj.get("USD"))
-                .filterValues(usdQuoteObj ->
-                      usdQuoteObj.get("market_cap") != null && !usdQuoteObj.get("market_cap").isJsonNull())
-                .mapToObj((baseCurrency, unused) -> baseCurrency + "/USD")
+            // Convert to list of currency pairs
+            return dataElement.asJsonArray
+                .mapNotNull { it.asJsonObject }
+                .mapNotNull { currencyObj ->
+                    val symbol = currencyObj.get("symbol")?.takeIf { !it.isJsonNull }?.asString ?: return@mapNotNull null
+                    val quoteObj = currencyObj.get("quote")?.takeIf { it.isJsonObject }?.asJsonObject ?: return@mapNotNull null
+                    val usdQuoteObj = quoteObj.get("USD")?.takeIf { it.isJsonObject }?.asJsonObject ?: return@mapNotNull null
+                    
+                    // Check for market cap
+                    if (usdQuoteObj.has("market_cap") && !usdQuoteObj.get("market_cap").isJsonNull) {
+                        "$symbol/USD"
+                    } else null
+                }
                 .distinct()
-                .map(CurrencyPair::fromSymbol)
-                .collect(toImmutableList());
-        } catch (IOException e) {
-            // Handle exceptions
-            throw new RuntimeException("Failed to fetch currency data", e);
-        } catch (Exception e) {
-            // Catch other parsing exceptions
-            throw new RuntimeException("Error parsing currency data", e);
+                .map { CurrencyPair.fromSymbol(it) }
+                
+        } catch (e: IOException) {
+            throw RuntimeException("Failed to fetch currency data", e)
+        } catch (e: Exception) {
+            throw RuntimeException("Error parsing currency data", e)
         }
     }
 }
