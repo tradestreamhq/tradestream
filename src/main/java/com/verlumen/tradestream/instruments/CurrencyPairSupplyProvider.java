@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.instruments;
 
 import com.google.common.collect.ImmutableList;
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -15,13 +14,11 @@ import java.util.Map;
 
 final class CurrencyPairSupplyProvider implements Provider<CurrencyPairSupply> {
     private final CoinMarketCapConfig coinMarketCapConfig;
-    private final Gson gson;
     private final HttpClient httpClient;
 
     @Inject
-    CurrencyPairSupplyProvider(CoinMarketCapConfig coinMarketCapConfig, Gson gson, HttpClient httpClient) {
+    CurrencyPairSupplyProvider(CoinMarketCapConfig coinMarketCapConfig, HttpClient httpClient) {
         this.coinMarketCapConfig = coinMarketCapConfig;
-        this.gson = gson;
         this.httpClient = httpClient;
     }
 
