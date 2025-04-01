@@ -5,6 +5,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import org.apache.beam.sdk.Pipeline;
 import java.util.function.Supplier;
 import org.apache.beam.sdk.transforms.Create;
@@ -125,7 +126,7 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
         private static final Duration SLIDE_DURATION = Duration.standardSeconds(30);
         private static final double DEFAULT_SYNTHETIC_TRADE_PRICE = 10000.0;
 
-        private final Supplier<ImmutableList<CurrencyPair>> currencyPairSupply;
+        private final Provider<Supplier<ImmutableList<CurrencyPair>>> currencyPairSupply;
 
         @Inject
         Factory(Supplier<ImmutableList<CurrencyPair>> currencyPairSupply) {
@@ -137,7 +138,7 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
                 windowDuration,
                 SLIDE_DURATION,
                 BUFFER_SIZE,  // Buffer size for base candle consolidation.
-                currencyPairSupply,
+                currencyPairSupply.get(),
                 DEFAULT_SYNTHETIC_TRADE_PRICE);
         }
     }
