@@ -5,10 +5,10 @@ import com.google.common.base.Suppliers;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -25,18 +25,20 @@ public abstract class InstrumentsModule extends AbstractModule {
 
   @Provides
   CoinMarketCapConfig provideCoinMarketCapConfig() {
-    return CoinMarketCapConfig.create(
-        topCryptocurrencyCount(), coinMarketCapApiKey());
+    return CoinMarketCapConfig.create(topCryptocurrencyCount(), coinMarketCapApiKey());
   }
 
   @Provides
   @Singleton
-  Supplier<ImmutableList<CurrencyPair>> provideCurrencyPairSupplier(
-    CurrencyPairSupplyProvider provider) {
-    Supplier<ImmutableList<CurrencyPair>> baseSupplier = provider.get();
+  Supplier<List<CurrencyPair>> provideCurrencyPairSupply(CurrencyPairProvider provider) {
     return Suppliers.memoizeWithExpiration(
-      Suppliers.ofInstance(baseSupplier.get()),
+      provider::get,
       INSTRUMENT_REFRESH_INTERVAL.toMillis(),
       TimeUnit.MILLISECONDS);
+  }
+
+  @Provides
+  List<CurrencyPair> provideCurrencyPairs(Supplier<List<CurrencyPair>> supplier) {
+    return supplier.get();
   }
 }

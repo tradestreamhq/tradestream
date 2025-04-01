@@ -40,17 +40,13 @@ import org.mockito.junit.MockitoRule;
  */
 @RunWith(JUnit4.class)
 public class ExchangeClientUnboundedSourceImplTest {
-
-  @Bind
-  @Mock
-  private Supplier<ImmutableList<CurrencyPair>> mockCurrencyPairSupply;
   
   // Mockito rule to initialize mocks
   @Rule
   public MockitoRule mockitoRule = MockitoJUnit.rule();
   
-  // Test currency pairs
-  private final ImmutableList<CurrencyPair> TEST_PAIRS = ImmutableList.of(
+  @Bind
+  private final List<CurrencyPair> TEST_PAIRS = ImmutableList.of(
       CurrencyPair.fromSymbol("BTC/USD")
   );
   
@@ -64,10 +60,7 @@ public class ExchangeClientUnboundedSourceImplTest {
   private PipelineOptions pipelineOptions;
 
   @Before
-  public void setUp() {
-    // Configure mock
-    when(mockCurrencyPairSupply.get()).thenReturn(TEST_PAIRS);
-    
+  public void setUp() {  
     // Create an injector with BoundFieldModule and FactoryModule
     Injector injector = Guice.createInjector(
         BoundFieldModule.of(this)
