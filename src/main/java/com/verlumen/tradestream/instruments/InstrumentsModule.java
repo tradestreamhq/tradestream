@@ -30,10 +30,15 @@ public abstract class InstrumentsModule extends AbstractModule {
 
   @Provides
   @Singleton
-  List<CurrencyPair> provideCurrencyPairs(CurrencyPairProvider provider) {
+  Supplier<List<CurrencyPair>> provideCurrencyPairSupply(CurrencyPairProvider provider) {
     return Suppliers.memoizeWithExpiration(
       provider::get,
       INSTRUMENT_REFRESH_INTERVAL.toMillis(),
-      TimeUnit.MILLISECONDS)::get;
+      TimeUnit.MILLISECONDS);
+  }
+
+  @Provides
+  List<CurrencyPair> provideCurrencyPairs(Supplier<List<CurrencyPair>> supplier) {
+    return supplier.get();
   }
 }
