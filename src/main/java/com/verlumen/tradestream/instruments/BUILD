@@ -26,6 +26,7 @@ java_library(
     srcs = ["CurrencyPairProvider.java"],
     deps = [
         ":coin_market_cap_config",
+        ":currency_pair",
         "//src/main/java/com/verlumen/tradestream/http:http_client",
         "//third_party:gson",
         "//third_party:guava",
