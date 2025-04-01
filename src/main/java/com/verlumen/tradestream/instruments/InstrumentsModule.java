@@ -25,18 +25,15 @@ public abstract class InstrumentsModule extends AbstractModule {
 
   @Provides
   CoinMarketCapConfig provideCoinMarketCapConfig() {
-    return CoinMarketCapConfig.create(
-        topCryptocurrencyCount(), coinMarketCapApiKey());
+    return CoinMarketCapConfig.create(topCryptocurrencyCount(), coinMarketCapApiKey());
   }
 
   @Provides
   @Singleton
-  Supplier<ImmutableList<CurrencyPair>> provideCurrencyPairSupplier(
-    CurrencyPairSupplyProvider provider) {
-    Supplier<ImmutableList<CurrencyPair>> baseSupplier = provider.get();
+  ImmutableList<CurrencyPair> provideCurrencyPairs(CurrencyPairProvider provider) {
     return Suppliers.memoizeWithExpiration(
-      Suppliers.ofInstance(baseSupplier.get()),
+      Suppliers.ofInstance(provider::get),
       INSTRUMENT_REFRESH_INTERVAL.toMillis(),
-      TimeUnit.MILLISECONDS);
+      TimeUnit.MILLISECONDS)::get;
   }
 }
