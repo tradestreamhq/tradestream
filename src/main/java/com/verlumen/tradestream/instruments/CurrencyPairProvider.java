@@ -50,8 +50,6 @@ final class CurrencyPairProvider implements Serializable, Provider<ImmutableList
                 throw new IOException("Invalid response from CoinMarketCap API");
             }
 
-            ImmutableList.Builder<CurrencyPairMetadata> listBuilder = ImmutableList.builder();
-
             return biStream(obj -> obj.get("symbol"), stream(dataElement.getAsJsonArray()).map(node -> node.getAsJsonObject()))
                 .mapValues(obj -> obj.get("quote"))
                 .filter((symbolElement, quoteElement) -> 
