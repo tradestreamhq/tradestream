@@ -2,7 +2,6 @@ package com.verlumen.tradestream.instruments;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Streams.stream;
-import static com.google.mu.util.stream.BiStream.bistream;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
@@ -10,6 +9,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.mu.util.stream.BiStream;
 import com.verlumen.tradestream.http.HttpClient;
 import java.io.IOException;
 import java.io.Serializable;
@@ -50,8 +50,11 @@ final class CurrencyPairProvider implements Serializable, Provider<ImmutableList
                 throw new IOException("Invalid response from CoinMarketCap API");
             }
 
-            return biStream(obj -> obj.get("symbol"), stream(dataElement.getAsJsonArray()).map(node -> node.getAsJsonObject()))
-                .mapValues(obj -> obj.get("quote"))
+            ImmutableList<JsonObject> jsonObjects = stream(dataElement.getAsJsonArray())
+                .map(node -> node.getAsJsonObject())
+                .collect(toImmutableList());
+
+            return BiStream.from(jsonObjects.stream(), obj -> obj.get("symbol"), obj -> obj.get("quote"))
                 .filter((symbolElement, quoteElement) -> 
                         Stream.of(symbolElement, quoteElement)
                         .allMatch(element -> element != null && !element.isJsonNull()))
