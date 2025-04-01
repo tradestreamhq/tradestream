@@ -79,7 +79,7 @@ class ExchangeClientUnboundedReader(
         val pairsToStream = getCurrencyPairs()
         
         // Start streaming
-        startExchangeStreaming(pairsToStream)
+        startExchangeStreaming(ImmutableList.copyOf(pairsToStream))
         
         // Try to advance to the first element
         logger.atInfo().log("Attempting first advance() call to read initial trade")
