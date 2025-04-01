@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 final class CurrencyPairProvider implements Serializable, Provider<ImmutableList<CurrencyPair>> {
     private final CoinMarketCapConfig coinMarketCapConfig;
