@@ -2,6 +2,7 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.base.Preconditions.checkArgument
 import com.google.common.base.Preconditions.checkState
+import com.google.common.collect.ImmutableList
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.inject.Provider
