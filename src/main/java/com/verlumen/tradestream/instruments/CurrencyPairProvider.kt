@@ -9,7 +9,8 @@ import com.verlumen.tradestream.http.HttpClient
 import java.io.IOException
 import java.io.Serializable
 
-class CurrencyPairProvider @Inject constructor(
+// Using internal visibility to match Java's package-private
+internal class CurrencyPairProvider @Inject constructor(
     private val coinMarketCapConfig: CoinMarketCapConfig,
     private val httpClient: HttpClient
 ) : Serializable, Provider<List<CurrencyPair>> {
