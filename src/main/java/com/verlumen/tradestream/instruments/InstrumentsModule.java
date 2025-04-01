@@ -30,7 +30,7 @@ public abstract class InstrumentsModule extends AbstractModule {
 
   @Provides
   @Singleton
-  ImmutableList<CurrencyPair> provideCurrencyPairs(CurrencyPairProvider provider) {
+  List<CurrencyPair> provideCurrencyPairs(CurrencyPairProvider provider) {
     return Suppliers.memoizeWithExpiration(
       provider::get,
       INSTRUMENT_REFRESH_INTERVAL.toMillis(),
