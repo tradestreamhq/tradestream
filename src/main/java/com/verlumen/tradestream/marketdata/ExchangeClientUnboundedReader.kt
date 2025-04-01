@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions.checkState
 import com.google.common.collect.ImmutableList
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
+import com.google.inject.Provider
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.instruments.CurrencyPair
 import org.apache.beam.sdk.io.UnboundedSource
@@ -22,7 +23,7 @@ import java.util.function.Supplier;
  */
 class ExchangeClientUnboundedReader(
     private val exchangeClient: ExchangeStreamingClient,
-    private val currencyPairSupply: Supplier<ImmutableList<CurrencyPair>>,
+    private val currencyPairSupply: Provider<ImmutableList<CurrencyPair>>,
     private val source: ExchangeClientUnboundedSource,
     private var currentCheckpointMark: TradeCheckpointMark
 ) : UnboundedSource.UnboundedReader<Trade>(), Serializable {
@@ -41,7 +42,7 @@ class ExchangeClientUnboundedReader(
      */
     class Factory @Inject constructor(
         private val exchangeClient: ExchangeStreamingClient,
-        private val currencyPairSupply: Supplier<ImmutableList<CurrencyPair>>
+        private val currencyPairSupply: Provider<ImmutableList<CurrencyPair>>
     ) : java.io.Serializable {
         /**
          * Creates a new ExchangeClientUnboundedReader instance.
