@@ -46,7 +46,7 @@ public class ExchangeClientUnboundedSourceImplTest {
   public MockitoRule mockitoRule = MockitoJUnit.rule();
   
   @Bind
-  private final ImmutableList<CurrencyPair> TEST_PAIRS = ImmutableList.of(
+  private final List<CurrencyPair> TEST_PAIRS = ImmutableList.of(
       CurrencyPair.fromSymbol("BTC/USD")
   );
   
