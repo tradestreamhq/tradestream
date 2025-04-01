@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -21,9 +22,9 @@ java_library(
     ],
 )
 
-java_library(
+kt_jvm_library(
     name = "currency_pair_provider",
-    srcs = ["CurrencyPairProvider.java"],
+    srcs = ["CurrencyPairProvider.kt"],
     deps = [
         ":coin_market_cap_config",
         ":currency_pair",
