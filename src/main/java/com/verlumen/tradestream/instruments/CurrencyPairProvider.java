@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.instruments;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Streams.stream;
 import static com.google.mu.util.stream.BiStream.bistream;
 
