@@ -1,7 +1,8 @@
 package com.verlumen.tradestream.instruments;
 
+import static com.google.common.collect.Streams.stream;
+
 import com.google.common.collect.ImmutableList;
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -16,11 +17,10 @@ import java.util.Map;
 
 final class CurrencyPairProvider implements Serializable, Provider<ImmutableList<CurrencyPair>> {
     private final CoinMarketCapConfig coinMarketCapConfig;
-    private final ProviderGson gson;
     private final HttpClient httpClient;
 
     @Inject
-    CurrencyPairSupplyProvider(CoinMarketCapConfig coinMarketCapConfig, Gson gson, HttpClient httpClient) {
+    CurrencyPairSupplyProvider(CoinMarketCapConfig coinMarketCapConfig, HttpClient httpClient) {
         this.coinMarketCapConfig = coinMarketCapConfig;
         this.httpClient = httpClient;
     }
@@ -49,13 +49,24 @@ final class CurrencyPairProvider implements Serializable, Provider<ImmutableList
 
             ImmutableList.Builder<CurrencyPairMetadata> listBuilder = ImmutableList.builder();
 
+            biStream(obj -> obj.get("symbol"), stream(dataElement.getAsJsonArray()).map(node -> node.getAsJsonObject()))
+                .mapValues(obj -> obj.get("quote"))
+                .filter((symbolElement, quoteElement) -> 
+                        Stream.of(symbolElement, quoteElement)
+                        .allMatch(element -> element != null && !element.isJsonNull()))
+                .filterValues(quoteElement ->  quoteElement.isJsonObject())
+                .mapKeys(JsonElement::getAsString)
+                .mapValues(JsonElement::getAsJsonObject)
+                .mapValues(quoteObj -> quoteObj.get("USD"))
+                .filterValues(usdQuoteObj -> )
+                .mapToObj((symbol, usdQuoteObj) -> usdQuoteObj.get("market_cap") != null && !usdQuoteObj.get("market_cap").isJsonNull())
             dataElement.getAsJsonArray().forEach(currencyNode -> {
-                JsonObject currencyObj = currencyNode.getAsJsonObject();
-                JsonElement symbolElement = currencyObj.get("symbol");
-                if (symbolElement == null || symbolElement.isJsonNull()) {
-                    return; // Skip if symbol is missing
-                }
-                String symbol = symbolElement.getAsString();
+                // JsonObject currencyObj = currencyNode.getAsJsonObject();
+                // JsonElement symbolElement = currencyObj.get("symbol");
+                // if (symbolElement == null || symbolElement.isJsonNull()) {
+                //     return; // Skip if symbol is missing
+                // }
+                // String symbol = symbolElement.getAsString();
 
                 JsonElement quoteElement = currencyObj.get("quote");
                 if (quoteElement == null || !quoteElement.isJsonObject()) {
