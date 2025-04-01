@@ -9,24 +9,24 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.verlumen.tradestream.http.HttpClient;
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-final class CurrencyPairSupplyProvider implements Provider<CurrencyPairSupply> {
+final class CurrencyPairProvider implements Serializable, Provider<ImmutableList<CurrencyPair>> {
     private final CoinMarketCapConfig coinMarketCapConfig;
-    private final Gson gson;
+    private final ProviderGson gson;
     private final HttpClient httpClient;
 
     @Inject
     CurrencyPairSupplyProvider(CoinMarketCapConfig coinMarketCapConfig, Gson gson, HttpClient httpClient) {
         this.coinMarketCapConfig = coinMarketCapConfig;
-        this.gson = gson;
         this.httpClient = httpClient;
     }
 
     @Override
-    public CurrencyPairSupply get() {
+    public ImmutableList<CurrencyPair> get() {
         String url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest";
         try {
             String parameters = "start=1&limit=" + coinMarketCapConfig.topN() + "&convert=USD";
