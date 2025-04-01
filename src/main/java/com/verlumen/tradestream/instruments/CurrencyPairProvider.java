@@ -20,7 +20,7 @@ final class CurrencyPairProvider implements Serializable, Provider<ImmutableList
     private final HttpClient httpClient;
 
     @Inject
-    CurrencyPairSupplyProvider(CoinMarketCapConfig coinMarketCapConfig, HttpClient httpClient) {
+    CurrencyPairProvider(CoinMarketCapConfig coinMarketCapConfig, HttpClient httpClient) {
         this.coinMarketCapConfig = coinMarketCapConfig;
         this.httpClient = httpClient;
     }
