@@ -13,7 +13,7 @@ spec:
   flinkVersion: {{ .Values.pipeline.version }}
   flinkConfiguration:
     {{- toYaml .Values.pipeline.configuration | nindent 4 }}
-    # Add configuration to use the new writable directory
+    # Ensure Flink itself uses the writable directory for its I/O temp
     io.tmp.dirs: "/opt/flink/writable-tmp"
   serviceAccount: {{ .Values.pipeline.serviceAccount }}
   jobManager:
@@ -43,6 +43,10 @@ spec:
       containers:
         - name: flink-main-container
           env:
+            # Add this environment variable
+            - name: TMPDIR
+              value: /opt/flink/writable-tmp
+            # Keep your existing env vars
             - name: COINMARKETCAP_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -51,4 +55,5 @@ spec:
           volumeMounts:
             - name: flink-writable-volume
               mountPath: /opt/flink/writable-tmp
+              # This mount MUST be writable
               readOnly: false
