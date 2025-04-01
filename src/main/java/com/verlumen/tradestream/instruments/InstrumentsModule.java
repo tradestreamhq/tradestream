@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.instruments;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Suppliers;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -25,18 +24,15 @@ public abstract class InstrumentsModule extends AbstractModule {
 
   @Provides
   CoinMarketCapConfig provideCoinMarketCapConfig() {
-    return CoinMarketCapConfig.create(
-        topCryptocurrencyCount(), coinMarketCapApiKey());
+    return CoinMarketCapConfig.create(topCryptocurrencyCount(), coinMarketCapApiKey());
   }
 
   @Provides
   @Singleton
-  Supplier<ImmutableList<CurrencyPair>> provideCurrencyPairSupplier(
-    CurrencyPairSupplyProvider provider) {
-    Supplier<ImmutableList<CurrencyPair>> baseSupplier = provider.get();
+  ImmutableList<CurrencyPair> provideCurrencyPairs(CurrencyPairProvider provider) {
     return Suppliers.memoizeWithExpiration(
-      Suppliers.ofInstance(baseSupplier.get()),
+      provider::get,
       INSTRUMENT_REFRESH_INTERVAL.toMillis(),
-      TimeUnit.MILLISECONDS);
+      TimeUnit.MILLISECONDS)::get;
   }
 }
