@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.instruments
 
+import com.google.common.base.Supplier
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -7,7 +8,6 @@ import com.google.inject.Inject
 import com.verlumen.tradestream.http.HttpClient
 import java.io.IOException
 import java.io.Serializable
-import java.util.function.Supplier
 
 internal class CurrencyPairSupplier @Inject constructor(
     private val coinMarketCapConfig: CoinMarketCapConfig,
