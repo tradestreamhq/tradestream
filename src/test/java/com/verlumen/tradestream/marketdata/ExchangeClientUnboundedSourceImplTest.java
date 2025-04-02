@@ -3,6 +3,7 @@ package com.verlumen.tradestream.marketdata;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -46,9 +47,8 @@ public class ExchangeClientUnboundedSourceImplTest {
   public MockitoRule mockitoRule = MockitoJUnit.rule();
   
   @Bind
-  private final List<CurrencyPair> TEST_PAIRS = ImmutableList.of(
-      CurrencyPair.fromSymbol("BTC/USD")
-  );
+  private final Supplier<List<CurrencyPair>> TEST_PAIRS = Suppliers.ofInstance(
+    ImmutableList.of(CurrencyPair.fromSymbol("BTC/USD")));
   
   // Our fake client instance
   @Bind(to = ExchangeStreamingClient.class)
