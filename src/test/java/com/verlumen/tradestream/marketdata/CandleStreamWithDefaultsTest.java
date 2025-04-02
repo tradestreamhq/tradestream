@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Provider;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import java.util.function.Supplier;
+import java.util.List;
 import java.util.stream.Stream;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
