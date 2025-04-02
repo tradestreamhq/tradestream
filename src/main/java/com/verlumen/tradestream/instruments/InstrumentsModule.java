@@ -32,7 +32,7 @@ public abstract class InstrumentsModule extends AbstractModule {
   @Singleton
   Supplier<List<CurrencyPair>> provideCurrencyPairSupply(CurrencyPairSupplier supplier) {
     return Suppliers.memoizeWithExpiration(
-      supplier::get,
+      supplier,
       INSTRUMENT_REFRESH_INTERVAL.toMillis(),
       TimeUnit.MILLISECONDS);
   }
