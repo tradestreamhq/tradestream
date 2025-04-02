@@ -4,17 +4,15 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.inject.Inject
-import com.google.inject.Provider
 import com.verlumen.tradestream.http.HttpClient
 import java.io.IOException
 import java.io.Serializable
+import java.util.function.Supplier
 
-// Using internal visibility to match Java's package-private
-internal class CurrencyPairProvider @Inject constructor(
+internal class CurrencyPairSupplier @Inject constructor(
     private val coinMarketCapConfig: CoinMarketCapConfig,
     private val httpClient: HttpClient
-) : Serializable, Provider<List<CurrencyPair>> {
-
+) : Serializable, Supplier<List<CurrencyPair>> {
     override fun get(): List<CurrencyPair> {
         val url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
         

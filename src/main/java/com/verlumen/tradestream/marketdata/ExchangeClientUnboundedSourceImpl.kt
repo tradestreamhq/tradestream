@@ -2,7 +2,6 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.base.Preconditions.checkArgument
 import com.google.inject.Inject
-import com.google.inject.Provider
 import org.apache.beam.sdk.coders.Coder
 import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.io.UnboundedSource
