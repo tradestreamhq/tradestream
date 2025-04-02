@@ -12,7 +12,7 @@ import java.io.Serializable
 internal class CurrencyPairSupplier @Inject constructor(
     private val coinMarketCapConfig: CoinMarketCapConfig,
     private val httpClient: HttpClient
-) : Serializable, Supplier<List<CurrencyPair>> {
+) : Serializable, Supplier<@JvmSuppressWildcards List<CurrencyPair>> {
     override fun get(): List<CurrencyPair> {
         val url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
         
