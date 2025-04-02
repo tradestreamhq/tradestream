@@ -126,10 +126,10 @@ public class CandleStreamWithDefaults
         private static final Duration SLIDE_DURATION = Duration.standardSeconds(30);
         private static final double DEFAULT_SYNTHETIC_TRADE_PRICE = 10000.0;
 
-        private final Supplier<ImmutableList<CurrencyPair>> currencyPairs;
+        private final Supplier<List<CurrencyPair>> currencyPairs;
 
         @Inject
-        Factory(Supplier<ImmutableList<CurrencyPair>> currencyPairs) {
+        Factory(Supplier<List<CurrencyPair>> currencyPairs) {
             this.currencyPairs = currencyPairs;
         }
 
