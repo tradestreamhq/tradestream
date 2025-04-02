@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import java.util.List;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.Flatten;
