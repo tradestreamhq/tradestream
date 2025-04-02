@@ -42,7 +42,7 @@ public class CandleStreamWithDefaultsTest {
 
         // Create a Provider that returns a Supplier of currency pairs
         Supplier<List<CurrencyPair>> currencyPairSupplier = 
-            () -> () -> currencyPairs;
+            () -> currencyPairs;
 
         // Act: Apply the composite transform with two currency pairs.
         PAssert.that(
