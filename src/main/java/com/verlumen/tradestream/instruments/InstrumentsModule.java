@@ -36,9 +36,4 @@ public abstract class InstrumentsModule extends AbstractModule {
       INSTRUMENT_REFRESH_INTERVAL.toMillis(),
       TimeUnit.MILLISECONDS);
   }
-
-  @Provides
-  List<CurrencyPair> provideCurrencyPairs(Supplier<List<CurrencyPair>> supplier) {
-    return supplier.get();
-  }
 }
