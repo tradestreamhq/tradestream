@@ -5,8 +5,8 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.google.common.collect.ImmutableList;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import java.util.List;
+import java.util.function.Supplier;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.Flatten;
@@ -39,19 +39,19 @@ import org.joda.time.Duration;
  * (producing a default candle with all zero values). Duplicate default candles are deduplicated
  * in LastCandlesFn.
  */
-public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, Trade>>, PCollection<KV<String, ImmutableList<Candle>>>> {
-
+public class CandleStreamWithDefaults 
+    extends PTransform<PCollection<KV<String, Trade>>, PCollection<KV<String, ImmutableList<Candle>>>> {
     private final Duration windowDuration;
     private final Duration slideDuration;
     private final int bufferSize;
-    private final Provider<List<CurrencyPair>> currencyPairs;
+    private final Supplier<List<CurrencyPair>> currencyPairs;
     private final double defaultPrice;
 
     CandleStreamWithDefaults(
         Duration windowDuration,
         Duration slideDuration,
         int bufferSize,
-        Provider<List<CurrencyPair>> currencyPairs,
+        Supplier<List<CurrencyPair>> currencyPairs,
         double defaultPrice) {
         this.windowDuration = windowDuration;
         this.slideDuration = slideDuration;
@@ -126,10 +126,10 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
         private static final Duration SLIDE_DURATION = Duration.standardSeconds(30);
         private static final double DEFAULT_SYNTHETIC_TRADE_PRICE = 10000.0;
 
-        private final Provider<Supplier<ImmutableList<CurrencyPair>>> currencyPairs;
+        private final Supplier<Supplier<ImmutableList<CurrencyPair>>> currencyPairs;
 
         @Inject
-        Factory(Provider<Supplier<ImmutableList<CurrencyPair>>> currencyPairs) {
+        Factory(Supplier<Supplier<ImmutableList<CurrencyPair>>> currencyPairs) {
             this.currencyPairs = currencyPairs;
         }
 
