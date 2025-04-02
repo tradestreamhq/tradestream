@@ -23,8 +23,8 @@ java_library(
 )
 
 kt_jvm_library(
-    name = "currency_pair_provider",
-    srcs = ["CurrencyPairProvider.kt"],
+    name = "currency_pair_supplier",
+    srcs = ["CurrencyPairSupplier.kt"],
     deps = [
         ":coin_market_cap_config",
         ":currency_pair",
@@ -42,7 +42,7 @@ java_library(
     deps = [
         ":coin_market_cap_config",
         ":currency_pair",
-        ":currency_pair_provider",
+        ":currency_pair_supplier",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
