@@ -40,7 +40,7 @@ public class CandleStreamWithDefaultsTest {
             .collect(toImmutableList());
 
         // Create a Provider that returns a Supplier of currency pairs
-        Provider<Supplier<ImmutableList<CurrencyPair>>> currencyPairsProvider = 
+        Supplier<List<CurrencyPair>> currencyPairSupplier = 
             () -> () -> currencyPairs;
 
         // Act: Apply the composite transform with two currency pairs.
@@ -50,7 +50,7 @@ public class CandleStreamWithDefaultsTest {
                         Duration.standardMinutes(1),
                         Duration.standardSeconds(30),
                         5,
-                        currencyPairsProvider,
+                        currencyPairSupplier,
                         10000.0))
         ).satisfies(iterable -> {
             boolean foundBTC = false;
@@ -78,8 +78,8 @@ public class CandleStreamWithDefaultsTest {
             .collect(toImmutableList());
             
         // Create a Provider that returns a Supplier of currency pairs
-        Provider<Supplier<ImmutableList<CurrencyPair>>> currencyPairsProvider = 
-            () -> () -> currencyPairs;
+        Supplier<List<CurrencyPair>> currencyPairSupplier = 
+            () -> currencyPairs;
             
         PAssert.that(
             pipeline.apply("CreateEmptyRealTrades", Create.empty(
@@ -90,7 +90,7 @@ public class CandleStreamWithDefaultsTest {
                         Duration.standardMinutes(1),
                         Duration.standardSeconds(30),
                         5,
-                        currencyPairsProvider,
+                        currencyPairSupplier,
                         10000.0))
         ).satisfies(iterable -> {
             int count = 0;
@@ -147,8 +147,8 @@ public class CandleStreamWithDefaultsTest {
             .collect(toImmutableList());
             
         // Create a Provider that returns a Supplier of currency pairs
-        Provider<Supplier<ImmutableList<CurrencyPair>>> currencyPairsProvider = 
-            () -> () -> currencyPairs;
+        Supplier<List<CurrencyPair>> currencyPairSupplier = 
+            () -> currencyPairs;
 
         // Act: Apply composite transform with a buffer size of 2.
         PAssert.that(
@@ -160,7 +160,7 @@ public class CandleStreamWithDefaultsTest {
                     Duration.standardMinutes(1),
                     Duration.standardSeconds(30),
                     2, // bufferSize = 2
-                    currencyPairsProvider,
+                    currencyPairSupplier,
                     10000.0))
         ).satisfies(iterable -> {
             for (KV<String, ImmutableList<Candle>> kv : iterable) {
