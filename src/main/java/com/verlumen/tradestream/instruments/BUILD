@@ -73,6 +73,7 @@ java_library(
         ":currency_pair",
         ":currency_pair_supply",
         ":currency_pair_supply_provider",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
