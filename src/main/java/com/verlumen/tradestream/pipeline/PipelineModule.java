@@ -39,7 +39,7 @@ abstract class PipelineModule extends AbstractModule {
   protected void configure() {
       install(BacktestingModule.create());
       install(HttpModule.create());
-      install(InstrumentsModule.create(coinMarketCapApiKey(), topCurrencyCount()));
+      install(InstrumentsModule.create(runMode(), coinMarketCapApiKey(), topCurrencyCount()));
       install(KafkaModule.create(bootstrapServers()));
       install(marketDataModule());
       install(SignalsModule.create(signalTopic()));
