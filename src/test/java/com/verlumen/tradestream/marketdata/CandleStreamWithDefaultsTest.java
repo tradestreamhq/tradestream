@@ -40,9 +40,7 @@ public class CandleStreamWithDefaultsTest {
             .map(CurrencyPair::fromSymbol)
             .collect(toImmutableList());
 
-        // Create a Provider that returns a Supplier of currency pairs
-        Supplier<List<CurrencyPair>> currencyPairSupplier = 
-            () -> currencyPairs;
+        Supplier<List<CurrencyPair>> currencyPairSupplier = Suppliers.ofInstance(currencyPairs);
 
         // Act: Apply the composite transform with two currency pairs.
         PAssert.that(
@@ -78,9 +76,7 @@ public class CandleStreamWithDefaultsTest {
             .map(CurrencyPair::fromSymbol)
             .collect(toImmutableList());
             
-        // Create a Provider that returns a Supplier of currency pairs
-        Supplier<List<CurrencyPair>> currencyPairSupplier = 
-            () -> currencyPairs;
+        Supplier<List<CurrencyPair>> currencyPairSupplier = Suppliers.ofInstance(currencyPairs);
             
         PAssert.that(
             pipeline.apply("CreateEmptyRealTrades", Create.empty(
@@ -147,9 +143,7 @@ public class CandleStreamWithDefaultsTest {
             .map(CurrencyPair::fromSymbol)
             .collect(toImmutableList());
             
-        // Create a Provider that returns a Supplier of currency pairs
-        Supplier<List<CurrencyPair>> currencyPairSupplier = 
-            () -> currencyPairs;
+        Supplier<List<CurrencyPair>> currencyPairSupplier = Suppliers.ofInstance(currencyPairs);
 
         // Act: Apply composite transform with a buffer size of 2.
         PAssert.that(
