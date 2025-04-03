@@ -30,9 +30,9 @@ public class CandleStreamWithDefaultsTest {
     public void testCompositeTransformEmitsCandlesWithRealTrade() {
         // Arrange: Create a single real trade.
         Trade trade = Trade.newBuilder()
-            .setPrice(50000.0)
             .setCurrencyPair("BTC/USD")
             .setTimestamp(com.google.protobuf.Timestamp.newBuilder().setSeconds(1000).build())
+            .setPrice(10500.0)
             .setVolume(1.0)
             .setTradeId("trade-1")
             .build();
