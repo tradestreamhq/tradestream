@@ -66,7 +66,7 @@ public class CandleStreamWithDefaultsTest {
             assertTrue(foundETH);
             return null;
         });
-        pipeline.run();
+        pipeline.run().waitUntilFinish();
     }
 
     @Test
@@ -112,7 +112,7 @@ public class CandleStreamWithDefaultsTest {
             assertTrue(foundETH);
             return null;
         });
-        pipeline.run();
+        pipeline.run().waitUntilFinish();
     }
 
     @Test
@@ -170,6 +170,6 @@ public class CandleStreamWithDefaultsTest {
             }
             return null;
         });
-        pipeline.run();
+        pipeline.run().waitUntilFinish();
     }
 }
