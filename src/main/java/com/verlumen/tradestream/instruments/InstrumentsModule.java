@@ -8,18 +8,20 @@ import com.google.inject.Singleton;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.verlumen.tradestream.execution.RunMode;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 @AutoValue
 public abstract class InstrumentsModule extends AbstractModule {
-  public static InstrumentsModule create(String coinMarketCapApiKey, int topCryptocurrencyCount) {
-    return new AutoValue_InstrumentsModule(coinMarketCapApiKey, topCryptocurrencyCount);
+  public static InstrumentsModule create(RunMode runMode, String coinMarketCapApiKey, int topCryptocurrencyCount) {
+    return new AutoValue_InstrumentsModule(runMode, coinMarketCapApiKey, topCryptocurrencyCount);
   }
 
   private static final Duration INSTRUMENT_REFRESH_INTERVAL = Duration.ofDays(1);
 
+  abstract RunMode runMode();
   abstract String coinMarketCapApiKey();
   abstract int topCryptocurrencyCount();
 
@@ -33,6 +35,9 @@ public abstract class InstrumentsModule extends AbstractModule {
   @Singleton
   Supplier<ImmutableList<CurrencyPair>> provideCurrencyPairSupplier(
     CurrencyPairSupplyProvider provider) {
+    if (RunMode.DRY.equals(runMode())):
+      return Suppliers.ofInstance(ImmutableList.of(CurrencyPair.fromSymbol("DRY/RUN")));
+
     Supplier<ImmutableList<CurrencyPair>> baseSupplier = provider.get();
     return Suppliers.memoizeWithExpiration(
       Suppliers.ofInstance(baseSupplier.get()),
