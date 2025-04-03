@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  */
 class ExchangeClientUnboundedReader(
     private val exchangeClient: ExchangeStreamingClient,
-    private val currencyPairSupply: Supplier<ImmutableList<CurrencyPair>>,
+    private val currencyPairSupply: Supplier<List<CurrencyPair>>,
     private val source: ExchangeClientUnboundedSource,
     private var currentCheckpointMark: TradeCheckpointMark
 ) : UnboundedSource.UnboundedReader<Trade>(), Serializable {
@@ -41,7 +41,7 @@ class ExchangeClientUnboundedReader(
      */
     class Factory @Inject constructor(
         private val exchangeClient: ExchangeStreamingClient,
-        private val currencyPairSupply: Supplier<ImmutableList<CurrencyPair>>
+        private val currencyPairSupply: Supplier<List<CurrencyPair>>
     ) : java.io.Serializable {
         /**
          * Creates a new ExchangeClientUnboundedReader instance.
@@ -93,7 +93,7 @@ class ExchangeClientUnboundedReader(
      * @return list of currency pairs
      */
     @Throws(IOException::class)
-    private fun getCurrencyPairs(): ImmutableList<CurrencyPair> {
+    private fun getCurrencyPairs(): List<CurrencyPair> {
         logger.atInfo().log("Calling currencyPairSupply.get()...")
         try {
             val pairs = currencyPairSupply.get()
@@ -111,10 +111,10 @@ class ExchangeClientUnboundedReader(
      * @param pairsToStream list of currency pairs to stream
      */
     @Throws(IOException::class)
-    private fun startExchangeStreaming(pairsToStream: ImmutableList<CurrencyPair>) {
+    private fun startExchangeStreaming(pairsToStream: List<CurrencyPair>) {
         logger.atInfo().log("Calling exchangeClient.startStreaming for %d pairs.", pairsToStream.size)
         try {
-            exchangeClient.startStreaming(pairsToStream) { trade ->
+            exchangeClient.startStreaming(ImmutableList.copyOf(pairsToStream)) { trade ->
                 processTrade(trade)
             }
             clientStreamingActive = true

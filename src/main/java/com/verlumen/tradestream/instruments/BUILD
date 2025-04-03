@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -21,47 +22,17 @@ java_library(
     ],
 )
 
-java_library(
-    name = "currency_pair_metadata",
-    srcs = ["CurrencyPairMetadata.java"],
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-    ],
-)
-
-java_library(
-    name = "currency_pair_supply",
-    srcs = ["CurrencyPairSupply.java"],
-    deps = [
-        ":currency_pair_metadata",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party:guava",
-    ],
-)
-
-java_library(
-    name = "currency_pair_supply_impl",
-    srcs = ["CurrencyPairSupplyImpl.java"],
-    deps = [
-        ":currency_pair_metadata",
-        ":currency_pair_supply",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party:guava",
-    ],
-)
-
-java_library(
-    name = "currency_pair_supply_provider",
-    srcs = ["CurrencyPairSupplyProvider.java"],
+kt_jvm_library(
+    name = "currency_pair_supplier",
+    srcs = ["CurrencyPairSupplier.kt"],
     deps = [
         ":coin_market_cap_config",
-        ":currency_pair_metadata",
-        ":currency_pair_supply",
-        ":currency_pair_supply_impl",
+        ":currency_pair",
         "//src/main/java/com/verlumen/tradestream/http:http_client",
         "//third_party:gson",
         "//third_party:guava",
         "//third_party:guice",
+        "//third_party:mug",
     ],
 )
 
@@ -71,8 +42,7 @@ java_library(
     deps = [
         ":coin_market_cap_config",
         ":currency_pair",
-        ":currency_pair_supply",
-        ":currency_pair_supply_provider",
+        ":currency_pair_supplier",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
         "//third_party:guava",

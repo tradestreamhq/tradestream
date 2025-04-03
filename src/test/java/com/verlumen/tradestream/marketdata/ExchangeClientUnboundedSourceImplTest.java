@@ -3,6 +3,7 @@ package com.verlumen.tradestream.marketdata;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -40,19 +41,14 @@ import org.mockito.junit.MockitoRule;
  */
 @RunWith(JUnit4.class)
 public class ExchangeClientUnboundedSourceImplTest {
-
-  @Bind
-  @Mock
-  private Supplier<ImmutableList<CurrencyPair>> mockCurrencyPairSupply;
   
   // Mockito rule to initialize mocks
   @Rule
   public MockitoRule mockitoRule = MockitoJUnit.rule();
   
-  // Test currency pairs
-  private final ImmutableList<CurrencyPair> TEST_PAIRS = ImmutableList.of(
-      CurrencyPair.fromSymbol("BTC/USD")
-  );
+  @Bind
+  private final Supplier<List<CurrencyPair>> TEST_PAIRS = Suppliers.ofInstance(
+    ImmutableList.of(CurrencyPair.fromSymbol("BTC/USD")));
   
   // Our fake client instance
   @Bind(to = ExchangeStreamingClient.class)
@@ -64,10 +60,7 @@ public class ExchangeClientUnboundedSourceImplTest {
   private PipelineOptions pipelineOptions;
 
   @Before
-  public void setUp() {
-    // Configure mock
-    when(mockCurrencyPairSupply.get()).thenReturn(TEST_PAIRS);
-    
+  public void setUp() {  
     // Create an injector with BoundFieldModule and FactoryModule
     Injector injector = Guice.createInjector(
         BoundFieldModule.of(this)

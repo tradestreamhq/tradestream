@@ -5,11 +5,11 @@ import com.google.common.base.Suppliers;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.verlumen.tradestream.execution.RunMode;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -27,20 +27,14 @@ public abstract class InstrumentsModule extends AbstractModule {
 
   @Provides
   CoinMarketCapConfig provideCoinMarketCapConfig() {
-    return CoinMarketCapConfig.create(
-        topCryptocurrencyCount(), coinMarketCapApiKey());
+    return CoinMarketCapConfig.create(topCryptocurrencyCount(), coinMarketCapApiKey());
   }
 
   @Provides
   @Singleton
-  Supplier<ImmutableList<CurrencyPair>> provideCurrencyPairSupplier(
-    CurrencyPairSupplyProvider provider) {
-    if (RunMode.DRY.equals(runMode())):
-      return Suppliers.ofInstance(ImmutableList.of(CurrencyPair.fromSymbol("DRY/RUN")));
-
-    Supplier<ImmutableList<CurrencyPair>> baseSupplier = provider.get();
+  Supplier<List<CurrencyPair>> provideCurrencyPairSupply(CurrencyPairSupplier supplier) {
     return Suppliers.memoizeWithExpiration(
-      Suppliers.ofInstance(baseSupplier.get()),
+      supplier,
       INSTRUMENT_REFRESH_INTERVAL.toMillis(),
       TimeUnit.MILLISECONDS);
   }
