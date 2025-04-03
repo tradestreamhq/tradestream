@@ -41,14 +41,10 @@ abstract class PipelineModule extends AbstractModule {
       install(HttpModule.create());
       install(InstrumentsModule.create(runMode(), coinMarketCapApiKey(), topCurrencyCount()));
       install(KafkaModule.create(bootstrapServers()));
-      install(marketDataModule());
+      install(MarketDataModule.create(exchangeName(), runMode()));
       install(SignalsModule.create(signalTopic()));
       install(StrategiesModule.create());
       install(Ta4jModule.create());
-  }
-
-  MarketDataModule marketDataModule() {
-    return MarketDataModule.create(exchangeName(), runMode());
   }
 
   @Provides
