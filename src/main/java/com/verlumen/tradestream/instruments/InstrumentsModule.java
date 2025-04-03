@@ -33,6 +33,10 @@ public abstract class InstrumentsModule extends AbstractModule {
   @Provides
   @Singleton
   Supplier<List<CurrencyPair>> provideCurrencyPairSupply(CurrencyPairSupplier supplier) {
+    if (RunMode.DRY.equals(runMode())) {
+      return Suppliers.ofInstance(ImmutableList.of(CurrencyPair.fromSymbol("DRY/RUN")));
+    }
+
     return Suppliers.memoizeWithExpiration(
       supplier,
       INSTRUMENT_REFRESH_INTERVAL.toMillis(),
