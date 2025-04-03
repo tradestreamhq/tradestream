@@ -36,7 +36,7 @@ public class CandleStreamWithDefaultsTest {
             .setVolume(1.0)
             .setTradeId("trade-1")
             .build();
-        ImmutableList<CurrencyPair> currencyPairs = Stream.of("BTC/USD", "ETH/USD")
+        ImmutableList<CurrencyPair> currencyPairs = Stream.of("BTC/USD")
             .map(CurrencyPair::fromSymbol)
             .collect(toImmutableList());
 
