@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.marketdata.Candle;
@@ -35,7 +36,6 @@ import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.TypeDescriptor;
-import org.joda.time.Duration;
 import org.joda.time.Instant;
 
 public final class App {
@@ -75,15 +75,18 @@ public final class App {
     void setCoinMarketCapTopCurrencyCount(int value);
   }
 
+  private final CandleStreamWithDefaults.Factory candleStreamFactory;
   private final StrategyEnginePipeline strategyEnginePipeline;
   private final TimingConfig timingConfig;
   private final TradeSource tradeSource;
 
   @Inject
   App(
+      CandleStreamWithDefaults.Factory candleStreamFactory,
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig,
       TradeSource tradeSource) {
+    this.candleStreamFactory = candleStreamFactory;
     this.strategyEnginePipeline = strategyEnginePipeline;
     this.timingConfig = timingConfig;
     this.tradeSource = tradeSource;
@@ -137,13 +140,9 @@ public final class App {
     PCollection<KV<String, ImmutableList<Candle>>> baseCandleStream =
         windowedTradePairs.apply(
             "CreateBaseCandles",
-            new CandleStreamWithDefaults(
-                timingConfig.windowDuration(), // Use the same 1-minute window for candle aggregation.
-                Duration.standardSeconds(30), // Slide duration for the candle aggregator.
-                5, // Buffer size for base candle consolidation.
-                Arrays.asList("BTC/USD", "ETH/USD"),
-                10000.0 // Default price for synthetic trades.
-                ));
+            candleStreamFactory.create(
+                // Use the same 1-minute window for candle aggregation.
+                timingConfig.windowDuration()));
 
     // 6. Convert the buffered list into a single consolidated candle per key.
     // For example, take the last element of the buffered list.
@@ -192,11 +191,10 @@ public final class App {
   }
 
   private static String getCmcApiKey(Options options) {
-      if (isNullOrEmpty(options.getCoinMarketCapApiKey())) {
-           return System.getenv().getOrDefault(CMC_API_KEY_ENV_VAR, "INVALID_API_KEY");
-      } 
-
-      return options.getCoinMarketCapApiKey();
+    if (isNullOrEmpty(options.getCoinMarketCapApiKey())) {
+      return System.getenv().getOrDefault(CMC_API_KEY_ENV_VAR, "INVALID_API_KEY");
+    }
+    return options.getCoinMarketCapApiKey();
   }
 
   public static void main(String[] args) throws Exception {
@@ -220,17 +218,18 @@ public final class App {
 
     // Create Guice module.
     RunMode runMode = RunMode.fromString(options.getRunMode());
-    var module = PipelineModule.create(
-      options.getBootstrapServers(),
-      getCmcApiKey(options),
-      options.getExchangeName(),
-      runMode,
-      options.getSignalTopic(),
-      options.getCoinMarketCapTopCurrencyCount());
+    // Replaced "var" with explicit type declaration.
+    com.google.inject.Module module = PipelineModule.create(
+        options.getBootstrapServers(),
+        getCmcApiKey(options),
+        options.getExchangeName(),
+        runMode,
+        options.getSignalTopic(),
+        options.getCoinMarketCapTopCurrencyCount());
     logger.atInfo().log("Created Guice module.");
 
     // Initialize the application via Guice.
-    var injector = Guice.createInjector(module);
+    Injector injector = Guice.createInjector(module);
     App app = injector.getInstance(App.class);
     logger.atInfo().log("Retrieved App instance from Guice injector.");
 

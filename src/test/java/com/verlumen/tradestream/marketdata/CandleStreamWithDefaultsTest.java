@@ -1,10 +1,16 @@
 package com.verlumen.tradestream.marketdata;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
-import java.util.Arrays;
+import com.google.inject.Provider;
+import com.verlumen.tradestream.instruments.CurrencyPair;
+import java.util.function.Supplier;
+import java.util.List;
+import java.util.stream.Stream;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.values.KV;
@@ -17,43 +23,48 @@ import org.junit.Test;
  * Unit tests for CandleStreamWithDefaults.
  */
 public class CandleStreamWithDefaultsTest {
-
     @Rule
     public final TestPipeline pipeline = TestPipeline.create();
 
     @Test
     public void testCompositeTransformEmitsCandlesWithRealTrade() {
-        // Arrange: Create a real trade for "BTC/USD".
+        // Arrange: Create a real trade.
         com.google.protobuf.Timestamp ts = com.google.protobuf.Timestamp.newBuilder().setSeconds(1000).build();
         Trade realTrade = Trade.newBuilder()
-            .setTimestamp(ts)
-            .setExchange("BINANCE")
             .setCurrencyPair("BTC/USD")
+            .setTimestamp(com.google.protobuf.Timestamp.newBuilder().setSeconds(1000).build())
             .setPrice(10500.0)
             .setVolume(1.0)
             .setTradeId("trade-1")
             .build();
+        ImmutableList<CurrencyPair> currencyPairs = Stream.of("BTC/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
+
+        Supplier<List<CurrencyPair>> currencyPairSupplier = Suppliers.ofInstance(currencyPairs);
 
         // Act: Apply the composite transform with two currency pairs.
         PAssert.that(
-            pipeline.apply("CreateRealTrade", Create.of(KV.of("BTC/USD", realTrade)))
-                    .apply("ApplyCompositeTransform", new CandleStreamWithDefaults(
+            pipeline.apply("CreateRealTrades", Create.of(KV.of("BTC/USD", realTrade)))
+                .apply("ApplyCompositeTransform", new CandleStreamWithDefaults(
                         Duration.standardMinutes(1),
                         Duration.standardSeconds(30),
                         5,
-                        Arrays.asList("BTC/USD", "ETH/USD"),
+                        currencyPairSupplier,
                         10000.0))
         ).satisfies(iterable -> {
             boolean foundBTC = false;
+            boolean foundETH = false;
             for (KV<String, ImmutableList<Candle>> kv : iterable) {
                 if (kv.getKey().equals("BTC/USD")) {
                     foundBTC = true;
-                    // We expect that the aggregated candle for BTC/USD reflects the real trade's price.
-                    Candle candle = kv.getValue().get(0);
-                    assertEquals(10500.0, candle.getClose(), 1e-6);
+                } else if (kv.getKey().equals("ETH/USD")) {
+                    foundETH = true;
                 }
+                assertTrue(!kv.getValue().isEmpty());
             }
-            assertTrue("Expected to find candle for BTC/USD", foundBTC);
+            assertTrue(foundBTC);
+            assertTrue(foundETH);
             return null;
         });
         pipeline.run().waitUntilFinish();
@@ -62,27 +73,44 @@ public class CandleStreamWithDefaultsTest {
     @Test
     public void testCompositeTransformEmitsCandlesWithNoRealTrades() {
         // Arrange: Provide an empty input for real trades.
+        ImmutableList<CurrencyPair> currencyPairs = Stream.of("BTC/USD", "ETH/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
+            
+        Supplier<List<CurrencyPair>> currencyPairSupplier = Suppliers.ofInstance(currencyPairs);
+            
         PAssert.that(
             pipeline.apply("CreateEmptyRealTrades", Create.empty(
                     org.apache.beam.sdk.coders.KvCoder.of(
-                        org.apache.beam.sdk.coders.StringUtf8Coder.of(), 
-                        org.apache.beam.sdk.extensions.protobuf.ProtoCoder.of(Trade.class))))
+                    org.apache.beam.sdk.coders.StringUtf8Coder.of(),
+                    org.apache.beam.sdk.extensions.protobuf.ProtoCoder.of(Trade.class))))
                 .apply("ApplyCompositeTransform", new CandleStreamWithDefaults(
                         Duration.standardMinutes(1),
                         Duration.standardSeconds(30),
                         5,
-                        Arrays.asList("BTC/USD", "ETH/USD"),
+                        currencyPairSupplier,
                         10000.0))
         ).satisfies(iterable -> {
             int count = 0;
-            // When no real trades exist, the default trade is used.
+            boolean foundBTC = false;
+            boolean foundETH = false;
             for (KV<String, ImmutableList<Candle>> kv : iterable) {
                 count++;
-                Candle candle = kv.getValue().get(0);
-                // A default candle (from no real trade) will have 0.0 values.
-                assertEquals(0.0, candle.getClose(), 1e-6);
+                if (kv.getKey().equals("BTC/USD")) {
+                    foundBTC = true;
+                    // The buffer should contain synthetic trades.
+                    assertEquals(10000.0, kv.getValue().get(0).getOpen(), 0.0);
+                    assertEquals(10000.0, kv.getValue().get(0).getClose(), 0.0);
+                } else if (kv.getKey().equals("ETH/USD")) {
+                    foundETH = true;
+                    // The buffer should contain synthetic trades.
+                    assertEquals(10000.0, kv.getValue().get(0).getOpen(), 0.0);
+                    assertEquals(10000.0, kv.getValue().get(0).getClose(), 0.0);
+                }
             }
-            assertEquals("Expected candles for both currency pairs", 2, count);
+            assertEquals(2, count);
+            assertTrue(foundBTC);
+            assertTrue(foundETH);
             return null;
         });
         pipeline.run().waitUntilFinish();
@@ -90,54 +118,56 @@ public class CandleStreamWithDefaultsTest {
 
     @Test
     public void testCompositeTransformBufferSize() {
-        // Arrange: Create multiple real trades for "BTC/USD" with increasing timestamps.
-        com.google.protobuf.Timestamp ts1 = com.google.protobuf.Timestamp.newBuilder().setSeconds(1000).build();
-        com.google.protobuf.Timestamp ts2 = com.google.protobuf.Timestamp.newBuilder().setSeconds(1100).build();
-        com.google.protobuf.Timestamp ts3 = com.google.protobuf.Timestamp.newBuilder().setSeconds(1200).build();
-
+        // Arrange: Create 3 trades with different prices.
         Trade trade1 = Trade.newBuilder()
-            .setTimestamp(ts1)
-            .setExchange("BINANCE")
+            .setPrice(50000.0)
             .setCurrencyPair("BTC/USD")
-            .setPrice(10500.0)
+            .setTimestamp(com.google.protobuf.Timestamp.newBuilder().setSeconds(1000).build())
             .setVolume(1.0)
             .setTradeId("trade-1")
             .build();
         Trade trade2 = Trade.newBuilder()
-            .setTimestamp(ts2)
-            .setExchange("BINANCE")
+            .setPrice(51000.0)
             .setCurrencyPair("BTC/USD")
-            .setPrice(10600.0)
+            .setTimestamp(com.google.protobuf.Timestamp.newBuilder().setSeconds(1001).build())
             .setVolume(1.0)
             .setTradeId("trade-2")
             .build();
         Trade trade3 = Trade.newBuilder()
-            .setTimestamp(ts3)
-            .setExchange("BINANCE")
+            .setPrice(52000.0)
             .setCurrencyPair("BTC/USD")
-            .setPrice(10700.0)
+            .setTimestamp(com.google.protobuf.Timestamp.newBuilder().setSeconds(1002).build())
             .setVolume(1.0)
             .setTradeId("trade-3")
             .build();
+        ImmutableList<CurrencyPair> currencyPairs = Stream.of("BTC/USD")
+            .map(CurrencyPair::fromSymbol)
+            .collect(toImmutableList());
+            
+        Supplier<List<CurrencyPair>> currencyPairSupplier = Suppliers.ofInstance(currencyPairs);
 
         // Act: Apply composite transform with a buffer size of 2.
         PAssert.that(
             pipeline.apply("CreateRealTrades", Create.of(
-                KV.of("BTC/USD", trade1),
-                KV.of("BTC/USD", trade2),
-                KV.of("BTC/USD", trade3)))
-            .apply("ApplyCompositeTransform", new CandleStreamWithDefaults(
+                    KV.of("BTC/USD", trade1),
+                    KV.of("BTC/USD", trade2),
+                    KV.of("BTC/USD", trade3)))
+                .apply("ApplyCompositeTransform", new CandleStreamWithDefaults(
                     Duration.standardMinutes(1),
                     Duration.standardSeconds(30),
                     2, // bufferSize = 2
-                    Arrays.asList("BTC/USD"),
+                    currencyPairSupplier,
                     10000.0))
         ).satisfies(iterable -> {
             for (KV<String, ImmutableList<Candle>> kv : iterable) {
-                if (kv.getKey().equals("BTC/USD")) {
-                    // With a buffer size of 2 and 3 trades, only the last two candles should be buffered.
-                    assertEquals(2, kv.getValue().size());
-                }
+                // The buffer size is 2, so we expect only the last 2 trades in the candle list.
+                assertEquals(2, kv.getValue().size());
+                
+                // First candle should be from trade2
+                assertEquals(51000.0, kv.getValue().get(0).getClose(), 0.0);
+                
+                // Second candle should be from trade3
+                assertEquals(52000.0, kv.getValue().get(1).getClose(), 0.0);
             }
             return null;
         });

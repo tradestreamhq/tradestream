@@ -1,7 +1,12 @@
 package com.verlumen.tradestream.marketdata;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.common.collect.ImmutableList;
+import com.verlumen.tradestream.instruments.CurrencyPair;
+import com.google.inject.Inject;
 import java.util.List;
+import java.util.function.Supplier;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.Flatten;
@@ -34,15 +39,20 @@ import org.joda.time.Duration;
  * (producing a default candle with all zero values). Duplicate default candles are deduplicated
  * in LastCandlesFn.
  */
-public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, Trade>>, PCollection<KV<String, ImmutableList<Candle>>>> {
-
+public class CandleStreamWithDefaults 
+    extends PTransform<PCollection<KV<String, Trade>>, PCollection<KV<String, ImmutableList<Candle>>>> {
     private final Duration windowDuration;
     private final Duration slideDuration;
     private final int bufferSize;
-    private final List<String> currencyPairs;
+    private final Supplier<List<CurrencyPair>> currencyPairs;
     private final double defaultPrice;
 
-    public CandleStreamWithDefaults(Duration windowDuration, Duration slideDuration, int bufferSize, List<String> currencyPairs, double defaultPrice) {
+    CandleStreamWithDefaults(
+        Duration windowDuration,
+        Duration slideDuration,
+        int bufferSize,
+        Supplier<List<CurrencyPair>> currencyPairs,
+        double defaultPrice) {
         this.windowDuration = windowDuration;
         this.slideDuration = slideDuration;
         this.bufferSize = bufferSize;
@@ -54,7 +64,7 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
     public PCollection<KV<String, ImmutableList<Candle>>> expand(PCollection<KV<String, Trade>> input) {
         // 1. Create keys for all currency pairs.
         PCollection<KV<String, Void>> keys = input.getPipeline()
-            .apply("CreateCurrencyPairKeys", Create.of(currencyPairs))
+            .apply("CreateCurrencyPairKeys", Create.of(currencyPairs.get().stream().map(CurrencyPair::symbol).collect(toImmutableList())))
             .apply("PairWithVoid", MapElements.via(new SimpleFunction<String, KV<String, Void>>() {
                 @Override
                 public KV<String, Void> apply(String input) {
@@ -109,5 +119,27 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
                 }
             }));
         return finalOutput;
+    }
+
+    public static class Factory {
+        private static final int BUFFER_SIZE = 5;  // Buffer size for base candle consolidation.
+        private static final Duration SLIDE_DURATION = Duration.standardSeconds(30);
+        private static final double DEFAULT_SYNTHETIC_TRADE_PRICE = 10000.0;
+
+        private final Supplier<List<CurrencyPair>> currencyPairs;
+
+        @Inject
+        Factory(Supplier<List<CurrencyPair>> currencyPairs) {
+            this.currencyPairs = currencyPairs;
+        }
+
+        public CandleStreamWithDefaults create(Duration windowDuration) {
+            return new CandleStreamWithDefaults(
+                windowDuration,
+                SLIDE_DURATION,
+                BUFFER_SIZE,  // Buffer size for base candle consolidation.
+                currencyPairs,
+                DEFAULT_SYNTHETIC_TRADE_PRICE);
+        }
     }
 }
