@@ -4,6 +4,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.getLast;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
@@ -141,7 +142,7 @@ public final class App {
                 timingConfig.windowDuration(), // Use the same 1-minute window for candle aggregation.
                 Duration.standardSeconds(30), // Slide duration for the candle aggregator.
                 5, // Buffer size for base candle consolidation.
-                Arrays.asList("BTC/USD", "ETH/USD"),
+                Suppliers.ofInstance(ImmutableList.of("BTC/USD", "ETH/USD")),
                 10000.0 // Default price for synthetic trades.
                 ));
 
