@@ -1,7 +1,7 @@
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//visibility:public"]) 
 
 java_library(
     name = "coin_market_cap_config",
