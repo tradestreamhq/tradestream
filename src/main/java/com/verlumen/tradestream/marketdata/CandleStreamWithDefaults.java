@@ -2,7 +2,7 @@ package com.verlumen.tradestream.marketdata;
 
 import com.google.common.collect.ImmutableList;
 import java.util.List;
-import java.util.Supplier;
+import java.util.function.Supplier;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.Flatten;
