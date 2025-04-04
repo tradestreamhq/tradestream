@@ -3,6 +3,7 @@ package com.verlumen.tradestream.marketdata;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
