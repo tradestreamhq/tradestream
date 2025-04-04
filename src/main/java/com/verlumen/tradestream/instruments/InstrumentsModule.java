@@ -2,7 +2,7 @@ package com.verlumen.tradestream.instruments;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList; 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
