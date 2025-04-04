@@ -43,6 +43,7 @@ java_library(
         ":coin_market_cap_config",
         ":currency_pair",
         ":currency_pair_supplier",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
