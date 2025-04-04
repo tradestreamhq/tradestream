@@ -28,8 +28,9 @@ public class CandleStreamWithDefaultsTest {
 
     @Test
     public void testCompositeTransformEmitsCandlesWithRealTrade() {
-        // Arrange: Create a single real trade.
-        Trade trade = Trade.newBuilder()
+        // Arrange: Create a real trade.
+        com.google.protobuf.Timestamp ts = com.google.protobuf.Timestamp.newBuilder().setSeconds(1000).build();
+        Trade realTrade = Trade.newBuilder()
             .setCurrencyPair("BTC/USD")
             .setTimestamp(com.google.protobuf.Timestamp.newBuilder().setSeconds(1000).build())
             .setPrice(10500.0)
@@ -44,7 +45,7 @@ public class CandleStreamWithDefaultsTest {
 
         // Act: Apply the composite transform with two currency pairs.
         PAssert.that(
-            pipeline.apply("CreateRealTrades", Create.of(KV.of("BTC/USD", trade)))
+            pipeline.apply("CreateRealTrades", Create.of(KV.of("BTC/USD", realTrade)))
                 .apply("ApplyCompositeTransform", new CandleStreamWithDefaults(
                         Duration.standardMinutes(1),
                         Duration.standardSeconds(30),
