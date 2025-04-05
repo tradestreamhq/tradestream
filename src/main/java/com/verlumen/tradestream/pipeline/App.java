@@ -11,13 +11,15 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.execution.RunMode;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.CandleStreamWithDefaults;
 import com.verlumen.tradestream.marketdata.MultiTimeframeCandleTransform;
 import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.marketdata.TradeSource;
 import com.verlumen.tradestream.strategies.StrategyEnginePipeline;
-import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
@@ -76,15 +78,18 @@ public final class App {
     void setCoinMarketCapTopCurrencyCount(int value);
   }
 
+  private final Supplier<List<CurrencyPair>> currencyPairs;
   private final StrategyEnginePipeline strategyEnginePipeline;
   private final TimingConfig timingConfig;
   private final TradeSource tradeSource;
 
   @Inject
   App(
+      Supplier<List<CurrencyPair>> currencyPairs,
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig,
       TradeSource tradeSource) {
+    this.currencyPairs = currencyPairs;
     this.strategyEnginePipeline = strategyEnginePipeline;
     this.timingConfig = timingConfig;
     this.tradeSource = tradeSource;
