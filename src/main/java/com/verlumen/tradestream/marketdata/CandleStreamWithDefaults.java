@@ -1,6 +1,9 @@
 package com.verlumen.tradestream.marketdata;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.common.collect.ImmutableList;
+import com.verlumen.tradestream.instruments.CurrencyPair;
 import java.util.List;
 import java.util.function.Supplier;
 import org.apache.beam.sdk.Pipeline;
@@ -40,10 +43,10 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
     private final Duration windowDuration;
     private final Duration slideDuration;
     private final int bufferSize;
-    private final Supplier<List<String>> currencyPairs;
+    private final Supplier<List<CurrencyPair>> currencyPairs;
     private final double defaultPrice;
 
-    public CandleStreamWithDefaults(Duration windowDuration, Duration slideDuration, int bufferSize, Supplier<List<String>> currencyPairs, double defaultPrice) {
+    public CandleStreamWithDefaults(Duration windowDuration, Duration slideDuration, int bufferSize, Supplier<List<CurrencyPair>> currencyPairs, double defaultPrice) {
         this.windowDuration = windowDuration;
         this.slideDuration = slideDuration;
         this.bufferSize = bufferSize;
@@ -55,7 +58,7 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
     public PCollection<KV<String, ImmutableList<Candle>>> expand(PCollection<KV<String, Trade>> input) {
         // 1. Create keys for all currency pairs.
         PCollection<KV<String, Void>> keys = input.getPipeline()
-            .apply("CreateCurrencyPairKeys", Create.of(currencyPairs.get()))
+            .apply("CreateCurrencyPairKeys", Create.of(currencyPairs.get().stream().map(CurrencyPair::symbol).collect(toImmutableList())))
             .apply("PairWithVoid", MapElements.via(new SimpleFunction<String, KV<String, Void>>() {
                 @Override
                 public KV<String, Void> apply(String input) {
