@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
+import java.util.stream.Stream;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.values.KV;
@@ -41,7 +42,7 @@ public class CandleStreamWithDefaultsTest {
                         Duration.standardMinutes(1),
                         Duration.standardSeconds(30),
                         5,
-                        Suppliers.ofInstance(ImmutableList.of("BTC/USD", "ETH/USD")),
+                        Suppliers.ofInstance(Stream.of("BTC/USD", "ETH/USD").map(CurrencyPair::fromSymbol).collect(toImmutableList())),
                         10000.0))
         ).satisfies(iterable -> {
             boolean foundBTC = false;
@@ -71,7 +72,7 @@ public class CandleStreamWithDefaultsTest {
                         Duration.standardMinutes(1),
                         Duration.standardSeconds(30),
                         5,
-                        Suppliers.ofInstance(ImmutableList.of("BTC/USD", "ETH/USD")),
+                        Suppliers.ofInstance(Stream.of("BTC/USD", "ETH/USD").map(CurrencyPair::fromSymbol).collect(toImmutableList())),
                         10000.0))
         ).satisfies(iterable -> {
             int count = 0;
@@ -130,7 +131,7 @@ public class CandleStreamWithDefaultsTest {
                     Duration.standardMinutes(1),
                     Duration.standardSeconds(30),
                     2, // bufferSize = 2
-                    Suppliers.ofInstance(ImmutableList.of("BTC/USD")),
+                    Suppliers.ofInstance(Stream.of("BTC/USD").map(CurrencyPair::fromSymbol).collect(toImmutableList())),
                     10000.0))
         ).satisfies(iterable -> {
             for (KV<String, ImmutableList<Candle>> kv : iterable) {
