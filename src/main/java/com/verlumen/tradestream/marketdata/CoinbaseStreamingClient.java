@@ -13,6 +13,7 @@ import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -35,11 +36,11 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
 
     private final Map<WebSocket, List<String>> connectionProducts;
     private final List<WebSocket> connections;
-    private final HttpClient httpClient;
+    private transient HttpClient httpClient;
     private final Map<WebSocket, CompletableFuture<Void>> pendingMessages;
-    private Consumer<Trade> tradeHandler;
-    private final WebSocketConnector connector;
-    private final MessageHandler messageHandler;
+    private transient Consumer<Trade> tradeHandler;
+    private transient WebSocketConnector connector;
+    private transient MessageHandler messageHandler;
 
     @Inject
     CoinbaseStreamingClient(HttpClient httpClient) {
@@ -49,6 +50,20 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         this.pendingMessages = new ConcurrentHashMap<>();
         this.connector = new WebSocketConnector(this);
         this.messageHandler = new MessageHandler(this);
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        // Only serialize what's needed - httpClient, tradeHandler, connector, and messageHandler are transient
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        // Recreate the transient fields during deserialization
+        this.httpClient = HttpClient.newBuilder().build();
+        this.connector = new WebSocketConnector(this);
+        this.messageHandler = new MessageHandler(this);
+        // Note: tradeHandler will be set when startStreaming is called
     }
 
     @Override
@@ -182,7 +197,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         webSocket.sendText(messageStr, true);
     }
 
-    private static class MessageHandler {
+    private static class MessageHandler implements Serializable {
         private static final FluentLogger logger = FluentLogger.forEnclosingClass();
         private final CoinbaseStreamingClient client;
 
@@ -265,7 +280,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         }
     }
 
-    private static class WebSocketConnector {
+    private static class WebSocketConnector implements Serializable {
         private static final FluentLogger logger = FluentLogger.forEnclosingClass();
         private final CoinbaseStreamingClient client;
 
@@ -275,6 +290,10 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
 
         void connect(List<String> productIds) {
             logger.atInfo().log("Attempting to connect WebSocket for products: %s", productIds);
+            if (client.httpClient == null) {
+                client.httpClient = HttpClient.newBuilder().build();
+                logger.atInfo().log("Created new HttpClient instance during connect");
+            }
             WebSocket.Builder builder = client.httpClient.newWebSocketBuilder();
         
             CompletableFuture<WebSocket> futureWs = builder.buildAsync(URI.create(WEBSOCKET_URL), 
@@ -299,9 +318,9 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         }
     }
 
-    private static class WebSocketListener implements WebSocket.Listener {
+    private static class WebSocketListener implements WebSocket.Listener, Serializable {
         private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-        private final StringBuilder messageBuffer;
+        private transient StringBuilder messageBuffer;
         private final CoinbaseStreamingClient client;
         private final List<String> productIds;
 
@@ -309,6 +328,15 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
             this.messageBuffer = new StringBuilder();
             this.client = client;
             this.productIds = productIds;
+        }
+        
+        private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+            out.defaultWriteObject();
+        }
+
+        private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+            in.defaultReadObject();
+            this.messageBuffer = new StringBuilder();
         }
 
         @Override

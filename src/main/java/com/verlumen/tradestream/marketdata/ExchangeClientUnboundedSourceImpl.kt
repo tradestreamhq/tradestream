@@ -2,13 +2,14 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.base.Preconditions.checkArgument
 import com.google.inject.Inject
-import com.google.inject.Provider
 import org.apache.beam.sdk.coders.Coder
 import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.io.UnboundedSource
 import org.apache.beam.sdk.options.PipelineOptions
 import org.slf4j.LoggerFactory
 import java.io.IOException
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.util.Collections
 
 /**
@@ -52,5 +53,14 @@ class ExchangeClientUnboundedSourceImpl @Inject constructor(
      */
     override fun getCheckpointMarkCoder(): Coder<TradeCheckpointMark> {
         return SerializableCoder.of(TradeCheckpointMark::class.java)
+    }
+    
+    // Add custom serialization methods
+    private fun writeObject(out: ObjectOutputStream) {
+        out.defaultWriteObject()
+    }
+
+    private fun readObject(input: ObjectInputStream) {
+        input.defaultReadObject()
     }
 }

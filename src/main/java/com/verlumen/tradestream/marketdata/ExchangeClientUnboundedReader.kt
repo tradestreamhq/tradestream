@@ -3,134 +3,232 @@ package com.verlumen.tradestream.marketdata
 import com.google.common.base.Preconditions.checkArgument
 import com.google.common.base.Preconditions.checkState
 import com.google.common.collect.ImmutableList
+import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
-import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.instruments.CurrencyPair
-import com.verlumen.tradestream.instruments.CurrencyPairSupply
 import org.apache.beam.sdk.io.UnboundedSource
 import org.joda.time.Duration
 import org.joda.time.Instant
-import org.slf4j.LoggerFactory
 import java.io.IOException
+import java.io.Serializable
 import java.nio.charset.StandardCharsets
-import java.util.NoSuchElementException
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
+import java.util.function.Supplier;
 
-// Add the 'open' keyword to the class to make it mockable with Mockito
-open class ExchangeClientUnboundedReader @Inject constructor(
+/**
+ * An unbounded reader that streams trade data from an exchange.
+ */
+class ExchangeClientUnboundedReader(
     private val exchangeClient: ExchangeStreamingClient,
-    private val currencyPairSupply: CurrencyPairSupply,
-    @Assisted private val source: ExchangeClientUnboundedSource,
-    @Assisted private var currentCheckpointMark: TradeCheckpointMark
-) : UnboundedSource.UnboundedReader<Trade>() {
+    private val currencyPairSupply: Supplier<List<CurrencyPair>>,
+    private val source: ExchangeClientUnboundedSource,
+    private var currentCheckpointMark: TradeCheckpointMark
+) : UnboundedSource.UnboundedReader<Trade>(), Serializable {
 
     private val incomingMessagesQueue = LinkedBlockingQueue<Trade>(10000)
     private var clientStreamingActive = false
     private var currentTrade: Trade? = null
     private var currentTradeTimestamp: Instant? = null
 
+    init {
+        logger.atInfo().log("ExchangeClientUnboundedReader created. Checkpoint: %s", this.currentCheckpointMark)
+    }
+
     /**
-     * Define the factory interface for Guice's FactoryModuleBuilder.
+     * Guice factory for creating ExchangeClientUnboundedReader instances.
      */
-    interface Factory {
+    class Factory @Inject constructor(
+        private val exchangeClient: ExchangeStreamingClient,
+        private val currencyPairSupply: Supplier<List<CurrencyPair>>
+    ) : java.io.Serializable {
+        /**
+         * Creates a new ExchangeClientUnboundedReader instance.
+         */
         fun create(
             source: ExchangeClientUnboundedSource,
             mark: TradeCheckpointMark
-        ): ExchangeClientUnboundedReader
-    }
-
-    init {
-        LOG.info("ExchangeClientUnboundedReader created via factory. Checkpoint: {}", this.currentCheckpointMark)
-    }
-
-    // Make methods open for mocking
-    override open fun start(): Boolean {
-        LOG.info("Reader start() called with injected ExchangeStreamingClient: {}", exchangeClient.javaClass.name)
-
-        val pairsToStream: ImmutableList<CurrencyPair>
-        try {
-            LOG.debug("Calling currencyPairSupply.currencyPairs()...")
-            pairsToStream = currencyPairSupply.currencyPairs()
-            checkArgument(pairsToStream.isNotEmpty(), "CurrencyPairSupply returned empty list via currencyPairs()")
-            LOG.info("Obtained {} currency pairs from CurrencyPairSupply.", pairsToStream.size)
-        } catch (e: Exception) {
-            LOG.error("Failed to get currency pairs from CurrencyPairSupply", e)
-            throw IOException("Failed to get currency pairs from CurrencyPairSupply", e)
+        ): ExchangeClientUnboundedReader {
+            return ExchangeClientUnboundedReader(
+                exchangeClient,
+                currencyPairSupply,
+                source,
+                mark
+            )
+        }
+        
+        private fun writeObject(out: java.io.ObjectOutputStream) {
+            out.defaultWriteObject()
         }
 
-        LOG.info("Calling exchangeClient.startStreaming for {} pairs.", pairsToStream.size)
+        private fun readObject(input: java.io.ObjectInputStream) {
+            input.defaultReadObject()
+        }
+    }
+
+    /**
+     * Starts the reader and begins streaming trade data.
+     * @return boolean indicating if the reader successfully advanced to the first element
+     */
+    @Throws(IOException::class)
+    override fun start(): Boolean {
+        logger.atInfo().log("Reader start() called with ExchangeStreamingClient: %s", exchangeClient.javaClass.name)
+
+        // Get currency pairs to stream
+        val pairsToStream = getCurrencyPairs()
+        
+        // Start streaming
+        startExchangeStreaming(pairsToStream)
+        
+        // Try to advance to the first element
+        logger.atInfo().log("Attempting first advance() call to read initial trade")
+        val result = advance()
+        logger.atInfo().log("Initial advance() returned: %b", result)
+        return result
+    }
+    
+    /**
+     * Gets currency pairs from the supplier.
+     * @return list of currency pairs
+     */
+    @Throws(IOException::class)
+    private fun getCurrencyPairs(): List<CurrencyPair> {
+        logger.atInfo().log("Calling currencyPairSupply.get()...")
         try {
-            exchangeClient.startStreaming(pairsToStream) { trade ->
-                trade?.let {
-                    try {
-                        if (it.hasTimestamp()) {
-                            val eventTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(it.getTimestamp()))
-                            if (eventTimestamp.isAfter(currentCheckpointMark.lastProcessedTimestamp)) {
-                                if (!incomingMessagesQueue.offer(it)) {
-                                    LOG.warn("Reader queue full. Dropping trade: {}", it.getTradeId())
-                                }
-                            } else {
-                                LOG.trace("Skipping old trade: ID {}, Timestamp {}", it.getTradeId(), eventTimestamp)
-                            }
-                        } else {
-                            LOG.warn("Trade missing timestamp: {}", it.getTradeId())
-                        }
-                    } catch (e: Exception) {
-                        LOG.error("Error in trade callback: {}", it.getTradeId(), e)
-                    }
-                }
+            val pairs = currencyPairSupply.get()
+            checkArgument(pairs.isNotEmpty(), "CurrencyPair Supplier returned empty list via currencyPairs()")
+            logger.atInfo().log("Obtained %d currency pairs from CurrencyPair Supplier: %s", pairs.size, pairs)
+            return pairs
+        } catch (e: Exception) {
+            logger.atSevere().withCause(e).log("Failed to get currency pairs from CurrencyPair Supplier")
+            throw IOException("Failed to get currency pairs from CurrencyPair Supplier", e)
+        }
+    }
+    
+    /**
+     * Starts streaming from the exchange.
+     * @param pairsToStream list of currency pairs to stream
+     */
+    @Throws(IOException::class)
+    private fun startExchangeStreaming(pairsToStream: List<CurrencyPair>) {
+        logger.atInfo().log("Calling exchangeClient.startStreaming for %d pairs.", pairsToStream.size)
+        try {
+            exchangeClient.startStreaming(ImmutableList.copyOf(pairsToStream)) { trade ->
+                processTrade(trade)
             }
             clientStreamingActive = true
-            LOG.info("exchangeClient.startStreaming called successfully.")
+            logger.atInfo().log("exchangeClient.startStreaming called successfully.")
         } catch (e: Exception) {
             clientStreamingActive = false
-            LOG.error("Failed to start streaming via ExchangeStreamingClient", e)
+            logger.atSevere().withCause(e).log("Failed to start streaming via ExchangeStreamingClient")
             throw IOException("Failed to start ExchangeStreamingClient", e)
         }
-        return advance()
+    }
+    
+    /**
+     * Processes a trade from the exchange.
+     * @param trade the trade to process
+     */
+    private fun processTrade(trade: Trade?) {
+        if (trade == null) {
+            logger.atInfo().log("Received null trade from exchange")
+            return
+        }
+        
+        try {
+            logger.atInfo().log("Received trade: ID %s, Exchange: %s, Pair: %s, Price: %.2f", 
+                trade.getTradeId(), trade.getExchange(), trade.getCurrencyPair(), trade.getPrice())
+            
+            if (!trade.hasTimestamp()) {
+                logger.atWarning().log("Trade missing timestamp: %s", trade.getTradeId())
+                return
+            }
+            
+            val eventTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(trade.getTimestamp()))
+            if (!eventTimestamp.isAfter(currentCheckpointMark.lastProcessedTimestamp)) {
+                logger.atInfo().log("Skipping old trade: ID %s, Timestamp %s, Last processed: %s", 
+                    trade.getTradeId(), eventTimestamp, currentCheckpointMark.lastProcessedTimestamp)
+                return
+            }
+            
+            if (!incomingMessagesQueue.offer(trade)) {
+                logger.atWarning().log("Reader queue full. Dropping trade: %s", trade.getTradeId())
+            } else {
+                logger.atInfo().log("Added trade to queue: %s, Queue size: %d", 
+                    trade.getTradeId(), incomingMessagesQueue.size)
+            }
+        } catch (e: Exception) {
+            logger.atSevere().withCause(e).log("Error processing trade: %s", trade.getTradeId())
+        }
     }
 
-    override open fun advance(): Boolean {
+    /**
+     * Advances the reader to the next trade.
+     * @return boolean indicating if there is a current trade after advancing
+     */
+    @Throws(IOException::class)
+    override fun advance(): Boolean {
+        logger.atInfo().log("advance() called. Queue size: %d, Streaming active: %b", 
+            incomingMessagesQueue.size, clientStreamingActive)
+        
         checkState(clientStreamingActive || incomingMessagesQueue.isNotEmpty(),
             "Cannot advance: Exchange client streaming not active and queue empty.")
 
         currentTrade = incomingMessagesQueue.poll()
-
-        return if (currentTrade != null) {
-            if (currentTrade!!.hasTimestamp()) {
-                currentTradeTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(currentTrade!!.getTimestamp()))
-            } else {
-                currentTradeTimestamp = Instant.now()
-                LOG.warn("Trade {} missing event timestamp, using processing time {}.", 
-                    currentTrade!!.getTradeId(), currentTradeTimestamp)
-            }
-            LOG.debug("Advanced to trade: ID {}, Timestamp: {}", 
-                currentTrade!!.getTradeId(), currentTradeTimestamp)
-            true
-        } else {
-            LOG.trace("No message in queue, advance() returns false.")
-            // Watermark advancement when idle
+        
+        // If no trade is available, update watermark and return false
+        if (currentTrade == null) {
+            logger.atInfo().log("No message in queue, advance() returns false.")
             val now = Instant.now()
             if (currentTradeTimestamp == null || now.minus(WATERMARK_IDLE_THRESHOLD).isAfter(currentTradeTimestamp)) {
                 currentTradeTimestamp = now
             }
-            // Only return true if clientStreamingActive is still true, otherwise false.
-            clientStreamingActive
+            return false
         }
+        
+        // Process the retrieved trade
+        if (!currentTrade!!.hasTimestamp()) {
+            currentTradeTimestamp = Instant.now()
+            logger.atWarning().log("Trade %s missing event timestamp, using processing time %s.", 
+                currentTrade!!.getTradeId(), currentTradeTimestamp)
+        } else {
+            currentTradeTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(currentTrade!!.getTimestamp()))
+        }
+        
+        logger.atInfo().log("Advanced to trade: ID %s, Exchange: %s, Pair: %s, Price: %.2f, Timestamp: %s", 
+            currentTrade!!.getTradeId(), 
+            currentTrade!!.getExchange(),
+            currentTrade!!.getCurrencyPair(),
+            currentTrade!!.getPrice(),
+            currentTradeTimestamp)
+        return true
     }
 
-    override open fun getCurrentTimestamp(): Instant {
+    /**
+     * Gets the timestamp of the current trade.
+     * @return the timestamp of the current trade
+     */
+    override fun getCurrentTimestamp(): Instant {
         checkState(currentTradeTimestamp != null, "Timestamp not available. advance() must return true first.")
         return currentTradeTimestamp!!
     }
 
-    override open fun getCurrent(): Trade {
+    /**
+     * Gets the current trade object.
+     * @return the current trade
+     */
+    override fun getCurrent(): Trade {
         checkState(currentTrade != null, "No current trade available. advance() must return true first.")
+        logger.atInfo().log("getCurrent() called, returning trade ID: %s", currentTrade!!.getTradeId())
         return currentTrade!!
     }
 
-    override open fun getCurrentRecordId(): ByteArray {
+    /**
+     * Gets the unique ID of the current trade.
+     * @return the byte array representation of the trade ID
+     */
+    override fun getCurrentRecordId(): ByteArray {
         checkState(currentTrade != null, "Cannot get record ID: No current trade.")
         val uniqueId = currentTrade!!.getTradeId()
         
@@ -139,7 +237,11 @@ open class ExchangeClientUnboundedReader @Inject constructor(
         return uniqueId.toByteArray(StandardCharsets.UTF_8)
     }
 
-    override open fun getWatermark(): Instant {
+    /**
+     * Gets the current watermark for this reader.
+     * @return the watermark instant
+     */
+    override fun getWatermark(): Instant {
         val lastKnownTimestamp = currentCheckpointMark.lastProcessedTimestamp
         var potentialWatermark = lastKnownTimestamp
         val now = Instant.now()
@@ -147,45 +249,74 @@ open class ExchangeClientUnboundedReader @Inject constructor(
         // Advance based on processing time only if idle relative to last checkpoint
         if (now.minus(WATERMARK_IDLE_THRESHOLD).isAfter(potentialWatermark)) {
             potentialWatermark = now.minus(WATERMARK_IDLE_THRESHOLD)
-            LOG.trace("Advancing watermark due to idle threshold relative to last checkpoint: {}", potentialWatermark)
+            logger.atInfo().log("Advancing watermark due to idle threshold relative to last checkpoint: %s", potentialWatermark)
         }
-        LOG.debug("Emitting watermark: {}", potentialWatermark)
+        logger.atInfo().log("Emitting watermark: %s", potentialWatermark)
         return potentialWatermark
     }
 
-    override open fun getCheckpointMark(): TradeCheckpointMark {
+    /**
+     * Gets the checkpoint mark for this reader.
+     * @return the trade checkpoint mark
+     */
+    override fun getCheckpointMark(): TradeCheckpointMark {
         // Checkpoint based on the timestamp of the last successfully *processed* trade
         val checkpointTimestamp = currentTradeTimestamp 
             ?: currentCheckpointMark.lastProcessedTimestamp // Re-use last mark if no new trade advanced
 
-        LOG.debug("Creating checkpoint mark with timestamp: {}", checkpointTimestamp)
+        logger.atInfo().log("Creating checkpoint mark with timestamp: %s", checkpointTimestamp)
         // Update the internal state for the *next* filtering check in the callback
         this.currentCheckpointMark = TradeCheckpointMark(checkpointTimestamp)
         return this.currentCheckpointMark
     }
 
-    override open fun getCurrentSource(): UnboundedSource<Trade, *> {
+    /**
+     * Gets the source that created this reader.
+     * @return the unbounded source
+     */
+    override fun getCurrentSource(): UnboundedSource<Trade, *> {
         return source
     }
 
-    override open fun close() {
-        LOG.info("Closing ExchangeClient reader...")
+    /**
+     * Closes the reader and stops streaming.
+     */
+    @Throws(IOException::class)
+    override fun close() {
+        logger.atInfo().log("Closing ExchangeClient reader...")
         clientStreamingActive = false // Signal callback loops to stop processing
         try {
-            LOG.info("Calling exchangeClient.stopStreaming()...")
+            logger.atInfo().log("Calling exchangeClient.stopStreaming()...")
             exchangeClient.stopStreaming()
-            LOG.info("exchangeClient.stopStreaming() called successfully.")
+            logger.atInfo().log("exchangeClient.stopStreaming() called successfully.")
         } catch (e: Exception) {
             // Log error but don't prevent rest of close
-            LOG.error("Exception during exchangeClient.stopStreaming()", e)
+            logger.atSevere().withCause(e).log("Exception during exchangeClient.stopStreaming()")
         }
 
         incomingMessagesQueue.clear()
-        LOG.info("ExchangeClient reader closed.")
+        logger.atInfo().log("ExchangeClient reader closed.")
+    }
+    
+    private fun writeObject(out: java.io.ObjectOutputStream) {
+        out.defaultWriteObject()
+    }
+
+    private fun readObject(input: java.io.ObjectInputStream) {
+        input.defaultReadObject()
+        // Since incomingMessagesQueue is declared with val, we can't reassign it
+        // Instead we should make it nullable or use a different approach
+        // For example, we could use a backing field pattern:
+        if (incomingMessagesQueue.isEmpty()) {
+            // Clear and repopulate the queue if needed
+            incomingMessagesQueue.clear()
+        }
     }
 
     companion object {
-        private val LOG = LoggerFactory.getLogger(ExchangeClientUnboundedReader::class.java)
+        private val logger = FluentLogger.forEnclosingClass()
         private val WATERMARK_IDLE_THRESHOLD = Duration.standardSeconds(5)
+        
+        private const val serialVersionUID = 1L
     }
 }

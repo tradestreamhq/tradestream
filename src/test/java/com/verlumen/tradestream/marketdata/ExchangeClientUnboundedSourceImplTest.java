@@ -3,23 +3,23 @@ package com.verlumen.tradestream.marketdata;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.instruments.CurrencyPair;
-import com.verlumen.tradestream.instruments.CurrencyPairSupply;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.apache.beam.sdk.coders.Coder;
 import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
@@ -41,19 +41,14 @@ import org.mockito.junit.MockitoRule;
  */
 @RunWith(JUnit4.class)
 public class ExchangeClientUnboundedSourceImplTest {
-
-  @Bind
-  @Mock
-  private CurrencyPairSupply mockCurrencyPairSupply;
   
   // Mockito rule to initialize mocks
   @Rule
   public MockitoRule mockitoRule = MockitoJUnit.rule();
   
-  // Test currency pairs
-  private final ImmutableList<CurrencyPair> TEST_PAIRS = ImmutableList.of(
-      CurrencyPair.fromSymbol("BTC/USD")
-  );
+  @Bind
+  private final Supplier<List<CurrencyPair>> TEST_PAIRS = Suppliers.ofInstance(
+    ImmutableList.of(CurrencyPair.fromSymbol("BTC/USD")));
   
   // Our fake client instance
   @Bind(to = ExchangeStreamingClient.class)
@@ -65,16 +60,10 @@ public class ExchangeClientUnboundedSourceImplTest {
   private PipelineOptions pipelineOptions;
 
   @Before
-  public void setUp() {
-    // Configure mock
-    when(mockCurrencyPairSupply.currencyPairs()).thenReturn(TEST_PAIRS);
-    
+  public void setUp() {  
     // Create an injector with BoundFieldModule and FactoryModule
     Injector injector = Guice.createInjector(
-        BoundFieldModule.of(this),
-        new FactoryModuleBuilder()
-            .implement(ExchangeClientUnboundedReader.class, ExchangeClientUnboundedReader.class)
-            .build(ExchangeClientUnboundedReader.Factory.class)
+        BoundFieldModule.of(this)
     );
 
     // Inject members into the test class
