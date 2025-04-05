@@ -30,7 +30,8 @@ import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.WithTimestamps;
-import org.apache.beam.sdk.transforms.windowing.DefaultTrigger;
+import org.apache.beam.sdk.transforms.windowing.AfterProcessingTime;
+import org.apache.beam.sdk.transforms.windowing.AfterWatermark;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
@@ -128,8 +129,11 @@ public final class App {
             "ApplyWindows",
             Window.<KV<String, Trade>>into(FixedWindows.of(timingConfig.windowDuration()))
                 .withAllowedLateness(timingConfig.allowedLateness())
-                .triggering(DefaultTrigger.of())
-                .discardingFiredPanes());
+                .triggering(
+                    AfterProcessingTime.pastFirstElementInPane()
+                        .plusDelayOf(Duration.standardSeconds(10))
+                        .orFinally(AfterWatermark.pastEndOfWindow()))
+                .accumulatingFiredPanes());
 
     // 5. Create a base candle stream from the windowed trades.
     // This transform unites real trades with synthetic default trades,
