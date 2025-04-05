@@ -142,7 +142,7 @@ public final class App {
                 timingConfig.windowDuration(), // Use the same 1-minute window for candle aggregation.
                 Duration.standardSeconds(30), // Slide duration for the candle aggregator.
                 5, // Buffer size for base candle consolidation.
-                Suppliers.ofInstance(ImmutableList.of("BTC/USD", "ETH/USD")),
+                currencyPairs,
                 10000.0 // Default price for synthetic trades.
                 ));
 
