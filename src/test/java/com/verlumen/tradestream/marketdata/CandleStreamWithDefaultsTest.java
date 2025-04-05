@@ -3,8 +3,8 @@ package com.verlumen.tradestream.marketdata;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
-import java.util.Arrays;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.values.KV;
@@ -41,7 +41,7 @@ public class CandleStreamWithDefaultsTest {
                         Duration.standardMinutes(1),
                         Duration.standardSeconds(30),
                         5,
-                        Arrays.asList("BTC/USD", "ETH/USD"),
+                        Suppliers.ofInstance(ImmutableList.of("BTC/USD", "ETH/USD")),
                         10000.0))
         ).satisfies(iterable -> {
             boolean foundBTC = false;
@@ -71,7 +71,7 @@ public class CandleStreamWithDefaultsTest {
                         Duration.standardMinutes(1),
                         Duration.standardSeconds(30),
                         5,
-                        Arrays.asList("BTC/USD", "ETH/USD"),
+                        Suppliers.ofInstance(ImmutableList.of("BTC/USD", "ETH/USD")),
                         10000.0))
         ).satisfies(iterable -> {
             int count = 0;
@@ -130,7 +130,7 @@ public class CandleStreamWithDefaultsTest {
                     Duration.standardMinutes(1),
                     Duration.standardSeconds(30),
                     2, // bufferSize = 2
-                    Arrays.asList("BTC/USD"),
+                    Suppliers.ofInstance(ImmutableList.of("BTC/USD")),
                     10000.0))
         ).satisfies(iterable -> {
             for (KV<String, ImmutableList<Candle>> kv : iterable) {
