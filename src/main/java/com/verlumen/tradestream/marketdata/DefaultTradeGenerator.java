@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.marketdata;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.protobuf.util.Timestamps;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
@@ -28,6 +29,7 @@ public class DefaultTradeGenerator extends PTransform<PCollection<KV<String, Voi
     }
 
     public static class DefaultTradeGeneratorFn extends DoFn<KV<String, Void>, KV<String, Trade>> {
+        private static final FluentLogger logger = FluentLogger.forEnclosingClass();
         private final double defaultPrice;
 
         public DefaultTradeGeneratorFn(double defaultPrice) {
@@ -38,6 +40,8 @@ public class DefaultTradeGenerator extends PTransform<PCollection<KV<String, Voi
         public void processElement(@Element KV<String, Void> element, OutputReceiver<KV<String, Trade>> out) {
             String key = element.getKey();  // Expecting a key like "BTC/USD"
             Instant now = Instant.now();
+            logger.atInfo().log("Generating default trade for currency pair: %s", key);
+            
             // Fully qualify the Timestamp to ensure we use the protobuf type.
             com.google.protobuf.Timestamp ts = Timestamps.fromMillis(now.getMillis());
             Trade trade = Trade.newBuilder()
@@ -48,6 +52,9 @@ public class DefaultTradeGenerator extends PTransform<PCollection<KV<String, Voi
                     .setVolume(0.0)
                     .setTradeId("DEFAULT-" + key + "-" + now.getMillis())
                     .build();
+            
+            logger.atInfo().log("Created default trade: %s for pair %s with price %.2f", 
+                trade.getTradeId(), key, defaultPrice);
             out.output(KV.of(key, trade));
         }
     }

@@ -47,14 +47,14 @@ public class SlidingCandleAggregator
             "ApplySlidingWindow",
             Window.<KV<String, Trade>>into(SlidingWindows.of(windowDuration).every(slideDuration))
         );
-        logger.atFine().log("Applied sliding window. Output PCollection: %s", windowed);
+        logger.atInfo().log("Applied sliding window. Output PCollection: %s", windowed);
 
         // Aggregate trades into Candles per key.
         PCollection<KV<String, Candle>> output = windowed.apply(
             "AggregateToCandle",
             Combine.perKey(new CandleCombineFn())
         );
-        logger.atFine().log("Applied Combine.perKey with CandleCombineFn. Output PCollection: %s", output);
+        logger.atInfo().log("Applied Combine.perKey with CandleCombineFn. Output PCollection: %s", output);
 
         // Set coder for the output.
         output.setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle.class)));
@@ -72,26 +72,43 @@ public class SlidingCandleAggregator
 
         @Override
         public Coder<CandleAccumulator> getAccumulatorCoder(CoderRegistry registry, Coder<Trade> inputCoder) {
-            logger.atFine().log("getAccumulatorCoder called for CandleCombineFn.");
+            logger.atInfo().log("getAccumulatorCoder called for CandleCombineFn.");
             return new CandleAccumulatorCoder();
         }
 
         @Override
         public CandleAccumulator createAccumulator() {
             CandleAccumulator accumulator = new CandleAccumulator();
-            logger.atFine().log("Created new CandleAccumulator: %s", accumulator);
+            logger.atInfo().log("Created new CandleAccumulator: %s", accumulator);
             return accumulator;
         }
 
         @Override
         public CandleAccumulator addInput(CandleAccumulator accumulator, Trade trade) {
-            logger.atFiner().log("Adding input trade %s to accumulator: %s", trade, accumulator);
+            logger.atInfo().log("Adding input trade %s to accumulator: %s", trade, accumulator);
 
             // If the trade is synthetic (i.e. "DEFAULT"), ignore if we already have a real trade.
             if ("DEFAULT".equals(trade.getExchange())) {
                 if (!accumulator.firstTrade) {
-                    logger.atFiner().log("Synthetic trade ignored. Accumulator already has a real trade.");
+                    logger.atInfo().log("Synthetic trade ignored. Accumulator already has a real trade.");
+                } else {
+                    logger.atInfo().log("Processing synthetic DEFAULT trade for first time");
                 }
+                
+                if (accumulator.firstTrade) {
+                    // Initialize with synthetic trade if it's the first trade
+                    accumulator.open = trade.getPrice();
+                    accumulator.high = trade.getPrice();
+                    accumulator.low = trade.getPrice();
+                    accumulator.close = trade.getPrice();
+                    accumulator.volume = trade.getVolume();
+                    accumulator.openTimestamp = trade.getTimestamp();
+                    accumulator.closeTimestamp = trade.getTimestamp();
+                    accumulator.currencyPair = trade.getCurrencyPair();
+                    accumulator.firstTrade = false;
+                    logger.atInfo().log("Initialized accumulator with synthetic DEFAULT trade. Accumulator now: %s", accumulator);
+                }
+                
                 return accumulator;
             }
 
@@ -107,7 +124,7 @@ public class SlidingCandleAggregator
                 accumulator.closeTimestamp = trade.getTimestamp();
                 accumulator.currencyPair = trade.getCurrencyPair();
                 accumulator.firstTrade = false;
-                logger.atFiner().log("Initialized accumulator with first real trade. Accumulator now: %s", accumulator);
+                logger.atInfo().log("Initialized accumulator with first real trade. Accumulator now: %s", accumulator);
             } else {
                 // Update high, low, and volume.
                 accumulator.high = Math.max(accumulator.high, trade.getPrice());
@@ -123,18 +140,18 @@ public class SlidingCandleAggregator
                     accumulator.close = trade.getPrice();
                     accumulator.closeTimestamp = trade.getTimestamp();
                 }
-                logger.atFiner().log("Updated accumulator with real trade. Accumulator now: %s", accumulator);
+                logger.atInfo().log("Updated accumulator with real trade. Accumulator now: %s", accumulator);
             }
             return accumulator;
         }
 
         @Override
         public CandleAccumulator mergeAccumulators(Iterable<CandleAccumulator> accumulators) {
-            logger.atFine().log("Merging accumulators in CandleCombineFn.");
+            logger.atInfo().log("Merging accumulators in CandleCombineFn.");
             CandleAccumulator merged = createAccumulator();
 
             for (CandleAccumulator acc : accumulators) {
-                logger.atFiner().log("Merging accumulator: %s into: %s", acc, merged);
+                logger.atInfo().log("Merging accumulator: %s into: %s", acc, merged);
                 if (acc.firstTrade) {
                     // This accumulator has no real trades, skip it.
                     continue;
@@ -164,18 +181,18 @@ public class SlidingCandleAggregator
                     merged.low = Math.min(merged.low, acc.low);
                     merged.volume += acc.volume;
                 }
-                logger.atFiner().log("Post-merge state: %s", merged);
+                logger.atInfo().log("Post-merge state: %s", merged);
             }
-            logger.atFine().log("Finished merging accumulators. Final merged: %s", merged);
+            logger.atInfo().log("Finished merging accumulators. Final merged: %s", merged);
             return merged;
         }
 
         @Override
         public Candle extractOutput(CandleAccumulator accumulator) {
-            logger.atFiner().log("Extracting Candle from accumulator: %s", accumulator);
+            logger.atInfo().log("Extracting Candle from accumulator: %s", accumulator);
             if (accumulator.firstTrade) {
                 // No trades were added. Produce a default candle.
-                logger.atFiner().log("No real trades found. Returning default Candle.");
+                logger.atInfo().log("No real trades found. Returning default Candle.");
                 return Candle.getDefaultInstance();
             }
             Candle.Builder builder = Candle.newBuilder();
@@ -184,11 +201,20 @@ public class SlidingCandleAggregator
                     .setLow(accumulator.low)
                     .setClose(accumulator.close)
                     .setVolume(accumulator.volume)
-                    // Use the openTimestamp as the candle’s representative timestamp.
+                    // Use the openTimestamp as the candle's representative timestamp.
                     .setTimestamp(accumulator.openTimestamp)
                     .setCurrencyPair(accumulator.currencyPair);
-            logger.atFiner().log("Returning real Candle from accumulator.");
-            return builder.build();
+            
+            Candle candle = builder.build();
+            logger.atInfo().log("Created candle for %s: O=%.2f, H=%.2f, L=%.2f, C=%.2f, V=%.2f", 
+                candle.getCurrencyPair(), 
+                candle.getOpen(), 
+                candle.getHigh(), 
+                candle.getLow(), 
+                candle.getClose(), 
+                candle.getVolume());
+            
+            return candle;
         }
     }
 

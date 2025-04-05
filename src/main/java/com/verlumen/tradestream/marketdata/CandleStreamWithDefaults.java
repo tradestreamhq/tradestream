@@ -3,6 +3,7 @@ package com.verlumen.tradestream.marketdata;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.flogger.FluentLogger;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import java.util.List;
 import java.util.function.Supplier;
@@ -39,6 +40,7 @@ import org.joda.time.Duration;
  * in LastCandlesFn.
  */
 public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, Trade>>, PCollection<KV<String, ImmutableList<Candle>>>> {
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
     private final Duration windowDuration;
     private final Duration slideDuration;
@@ -56,12 +58,25 @@ public class CandleStreamWithDefaults extends PTransform<PCollection<KV<String, 
 
     @Override
     public PCollection<KV<String, ImmutableList<Candle>>> expand(PCollection<KV<String, Trade>> input) {
+        logger.atInfo().log("CandleStreamWithDefaults.expand() called with input: %s", input);
+        
+        // Get currency pairs and log them
+        List<CurrencyPair> pairs = currencyPairs.get();
+        List<String> pairSymbols = pairs.stream().map(CurrencyPair::symbol).collect(toImmutableList());
+        
+        logger.atInfo().log("Retrieved %d currency pairs: %s", pairs.size(), pairSymbols);
+        
+        if (pairSymbols.isEmpty()) {
+            logger.atSevere().log("No currency pairs available! Check CurrencyPairSupplier configuration.");
+        }
+        
         // 1. Create keys for all currency pairs.
         PCollection<KV<String, Void>> keys = input.getPipeline()
-            .apply("CreateCurrencyPairKeys", Create.of(currencyPairs.get().stream().map(CurrencyPair::symbol).collect(toImmutableList())))
+            .apply("CreateCurrencyPairKeys", Create.of(pairSymbols))
             .apply("PairWithVoid", MapElements.via(new SimpleFunction<String, KV<String, Void>>() {
                 @Override
                 public KV<String, Void> apply(String input) {
+                    logger.atFine().log("Creating key for currency pair: %s", input);
                     return KV.of(input, null);
                 }
             }));

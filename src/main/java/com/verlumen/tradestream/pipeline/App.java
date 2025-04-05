@@ -189,9 +189,13 @@ public final class App {
   }
 
   private static class PrintResultsDoFn extends DoFn<KV<String, ImmutableList<Candle>>, Void> {
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+    
     @ProcessElement
     public void processElement(ProcessContext c) {
       KV<String, ImmutableList<Candle>> element = c.element();
+      logger.atInfo().log("Currency Pair: %s | Timeframe View: %s", element.getKey(), element.getValue());
+      // Keep System.out for additional visibility
       System.out.println(
           "Currency Pair: " + element.getKey() + " | Timeframe View: " + element.getValue());
     }
