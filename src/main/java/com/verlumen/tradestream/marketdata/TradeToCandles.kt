@@ -1,50 +1,42 @@
 package com.verlumen.tradestream.marketdata
 
 import com.google.common.flogger.FluentLogger
-import com.google.protobuf.Timestamp
+import com.google.inject.assistedinject.Assisted
+import com.google.inject.assistedinject.AssistedInject
 import com.verlumen.tradestream.instruments.CurrencyPair
-import com.verlumen.tradestream.marketdata.Candle
-import com.verlumen.tradestream.marketdata.Trade
-import org.apache.beam.sdk.coders.SetCoder
-import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
-import org.apache.beam.sdk.state.StateSpec
-import org.apache.beam.sdk.state.StateSpecs
-import org.apache.beam.sdk.state.TimeDomain
-import org.apache.beam.sdk.state.Timer
-import org.apache.beam.sdk.state.TimerSpec
-import org.apache.beam.sdk.state.TimerSpecs
-import org.apache.beam.sdk.state.ValueState
-import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.MapElements
 import org.apache.beam.sdk.transforms.PTransform
 import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.transforms.SimpleFunction
-import org.apache.beam.sdk.transforms.windowing.BoundedWindow
 import org.apache.beam.sdk.transforms.windowing.FixedWindows
 import org.apache.beam.sdk.transforms.windowing.Window
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
 import org.joda.time.Duration
-import org.joda.time.Instant
 import java.util.function.Supplier
 
 /**
- * Transforms a stream of trades into one-minute OHLCV candles.
+ * Transforms a stream of trades into OHLCV candles.
  * Uses a stateful DoFn with timers to ensure candles are produced
  * for all tracked currency pairs, even when no trades occur.
  */
-class TradeToOneMinuteCandles(
+class TradeToCandle @AssistedInject constructor(
+    @Assisted private val windowDuration: Duration,
+    @Assisted private val defaultPrice: Double,
     private val currencyPairsSupplier: Supplier<List<CurrencyPair>>,
-    private val defaultPrice: Double
+    private val candleCreatorFnFactory: CandleCreatorFn.Factory
 ) : PTransform<PCollection<Trade>, PCollection<KV<String, Candle>>>() {
     
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
-        private val ONE_MINUTE = Duration.standardMinutes(1)
+    }
+    
+    interface Factory {
+        fun create(windowDuration: Duration, defaultPrice: Double): TradeToCandle
     }
     
     override fun expand(input: PCollection<Trade>): PCollection<KV<String, Candle>> {
-        logger.atInfo().log("Starting TradeToOneMinuteCandles transform")
+        logger.atInfo().log("Starting TradeToCandle transform with window duration: %s", windowDuration)
         
         // Key trades by currency pair
         val keyedTrades = input.apply("KeyByCurrencyPair", 
@@ -56,12 +48,12 @@ class TradeToOneMinuteCandles(
                 }
             }))
         
-        // Apply fixed 1-minute windows
-        val windowedTrades = keyedTrades.apply("FixedOneMinuteWindows", 
-            Window.into(FixedWindows.of(ONE_MINUTE)))
+        // Apply fixed windows
+        val windowedTrades = keyedTrades.apply("FixedWindows", 
+            Window.into(FixedWindows.of(windowDuration)))
         
         // Process into candles with defaults for missing data
         return windowedTrades.apply("CreateCandles", 
-            ParDo.of(CandleCreatorFn(currencyPairsSupplier, defaultPrice)))
+            ParDo.of(candleCreatorFnFactory.create(windowDuration, defaultPrice)))
     }
 }
