@@ -32,6 +32,14 @@ public abstract class MarketDataModule extends AbstractModule {
   protected void configure() {
     bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
+
+    install(FactoryModuleBuilder()
+        .implement(CandleCreatorFn::class.java, CandleCreatorFn::class.java)
+        .build(CandleCreatorFn.Factory::class.java));
+
+    install(FactoryModuleBuilder()
+        .implement(TradeToCandle::class.java, TradeToCandle::class.java)
+        .build(TradeToCandle.Factory::class.java));
   }
 
   @Provides
