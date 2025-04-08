@@ -1,10 +1,10 @@
-package com.verlumen.tradestream.marketdata.v2
+package com.verlumen.tradestream.marketdata
 
 import com.google.common.flogger.FluentLogger
+import com.google.inject.Inject
+import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.Timestamp
 import com.verlumen.tradestream.instruments.CurrencyPair
-import com.verlumen.tradestream.marketdata.Candle
-import com.verlumen.tradestream.marketdata.Trade
 import org.apache.beam.sdk.coders.SetCoder
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.state.StateSpec
@@ -17,20 +17,28 @@ import org.apache.beam.sdk.state.ValueState
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow
 import org.apache.beam.sdk.values.KV
+import org.joda.time.Duration
 import org.joda.time.Instant
+import java.io.Serializable
 import java.util.function.Supplier
 
 /**
  * Stateful DoFn that creates candles from trades, with default candles
- * for currency pairs that don't have trades in a given minute.
+ * for currency pairs that don't have trades in a given window.
  */
-class CandleCreatorFn(
-    private val currencyPairsSupplier: Supplier<List<CurrencyPair>>,
-    private val defaultPrice: Double
-) : DoFn<KV<String, Trade>, KV<String, Candle>>() {
+class CandleCreatorFn @Inject constructor(
+    @Assisted private val windowDuration: Duration,
+    @Assisted private val defaultPrice: Double,
+    private val currencyPairsSupplier: Supplier<List<CurrencyPair>>
+) : DoFn<KV<String, Trade>, KV<String, Candle>>(), Serializable {
     
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
+        private const val serialVersionUID = 1L
+    }
+    
+    interface Factory {
+        fun create(windowDuration: Duration, defaultPrice: Double): CandleCreatorFn
     }
     
     @StateId("activeCurrencyPairs")
@@ -46,7 +54,7 @@ class CandleCreatorFn(
     
     @Setup
     fun setup() {
-        logger.atInfo().log("Setting up CandleCreatorFn")
+        logger.atInfo().log("Setting up CandleCreatorFn with window duration: %s", windowDuration)
     }
     
     @ProcessElement
@@ -168,6 +176,7 @@ class CandleCreatorFn(
         
         // Clear state for next window
         currentCandleState.clear()
+        activePairsState.clear()
     }
     
     private fun buildCandleFromAccumulator(acc: CandleAccumulator): Candle {
