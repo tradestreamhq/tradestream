@@ -1,8 +1,14 @@
 package com.verlumen.tradestream.marketdata
 
 import com.google.common.collect.ImmutableList
+import com.google.inject.AbstractModule
 import com.google.inject.Guice
+import com.google.inject.Inject
+import com.google.inject.Module
+import com.google.inject.TypeLiteral
+import com.google.inject.assistedinject.FactoryModuleBuilder
 import com.google.protobuf.Timestamp
+import com.spotify.mobius.test.BoundFieldModule
 import com.verlumen.tradestream.instruments.CurrencyPair
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
@@ -12,9 +18,9 @@ import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
 import org.joda.time.Duration
 import org.joda.time.Instant
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
 import java.util.function.Supplier
 
 class TradeToCandleTest {
@@ -22,6 +28,37 @@ class TradeToCandleTest {
     @Rule
     @JvmField
     val pipeline: TestPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(false)
+    
+    @Inject
+    lateinit var tradeToCandleFactory: TradeToCandle.Factory
+    
+    private val currencyPairs = ImmutableList.of(
+        CurrencyPair.fromSymbol("BTC/USD"),
+        CurrencyPair.fromSymbol("ETH/USD")
+    )
+    
+    @Before
+    fun setUp() {
+        // Setup test injection with BoundFieldModule
+        val testModule = BoundFieldModule.of(this)
+        
+        // Add our market data module and any test-specific bindings
+        val modules: List<Module> = listOf(
+            testModule,
+            MarketDataModule(),
+            object : AbstractModule() {
+                override fun configure() {
+                    // Bind currency pairs supplier for tests
+                    bind(object : TypeLiteral<Supplier<List<CurrencyPair>>>() {})
+                        .toInstance(Supplier { currencyPairs })
+                }
+            }
+        )
+        
+        // Create the injector and inject fields
+        val injector = Guice.createInjector(modules)
+        injector.injectMembers(this)
+    }
     
     @Test
     fun testTradeToCandlesOneMinute() {
@@ -42,13 +79,8 @@ class TradeToCandleTest {
             .setTimestamp(Timestamp.newBuilder().setSeconds(Instant.parse("2023-01-01T10:00:30Z").millis / 1000))
             .build()
         
-        val currencyPairs = ImmutableList.of(
-            CurrencyPair.fromSymbol("BTC/USD"),
-            CurrencyPair.fromSymbol("ETH/USD")
-        )
-        
         // Run the transform
-        val result = runTransform(trades, currencyPairs, Duration.standardMinutes(1))
+        val result = runTransform(trades, Duration.standardMinutes(1))
         
         // Verify expectations
         PAssert.that(result)
@@ -87,13 +119,8 @@ class TradeToCandleTest {
             createTrade("BTC/USD", 50100.0, 0.5, Instant.parse("2023-01-01T10:04:45Z"))
         )
         
-        val currencyPairs = ImmutableList.of(
-            CurrencyPair.fromSymbol("BTC/USD"),
-            CurrencyPair.fromSymbol("ETH/USD")
-        )
-        
         // Run the transform with 5-minute window
-        val result = runTransform(trades, currencyPairs, Duration.standardMinutes(5))
+        val result = runTransform(trades, Duration.standardMinutes(5))
         
         // Verify expectations
         PAssert.that(result)
@@ -116,29 +143,41 @@ class TradeToCandleTest {
         pipeline.run()
     }
     
+    @Test
+    fun testTradeToCandles_defaultsOnly() {
+        // No trades, should produce default candles for all currency pairs
+        val trades = listOf<Trade>()
+        
+        // Run the transform
+        val result = runTransform(trades, Duration.standardMinutes(1))
+        
+        // Verify expectations
+        PAssert.that(result)
+            .satisfies(object : SerializableFunction<Iterable<KV<String, Candle>>, Void?> {
+                override fun apply(output: Iterable<KV<String, Candle>>): Void? {
+                    val candles = output.toList()
+                    
+                    // Should have default candles for both pairs
+                    assert(candles.size == 2) { "Expected 2 default candles, found ${candles.size}" }
+                    
+                    // Verify default values
+                    for (kv in candles) {
+                        assert(kv.value.volume == 0.0) { "Expected zero volume for default candle" }
+                        assert(kv.value.open == 0.0) { "Expected default price 0.0" }
+                    }
+                    
+                    return null
+                }
+            })
+        
+        pipeline.run()
+    }
+    
     private fun runTransform(
         trades: List<Trade>,
-        currencyPairs: List<CurrencyPair>,
         windowDuration: Duration
     ): PCollection<KV<String, Candle>> {
-        // Setup injector with our module
-        val injector = Guice.createInjector(object : AbstractModule() {
-            override fun configure() {
-                bind(object : TypeLiteral<Supplier<List<CurrencyPair>>>() {})
-                    .toInstance(Supplier { currencyPairs })
-                    
-                install(FactoryModuleBuilder()
-                    .implement(TradeToCandle::class.java, TradeToCandle::class.java)
-                    .build(TradeToCandle.Factory::class.java))
-                    
-                install(FactoryModuleBuilder()
-                    .implement(CandleCreatorFn::class.java, CandleCreatorFn::class.java)
-                    .build(CandleCreatorFn.Factory::class.java))
-            }
-        })
-        
-        // Get the TradeToCandle factory and create our transform
-        val tradeToCandleFactory = injector.getInstance(TradeToCandle.Factory::class.java)
+        // Create our transform using the injected factory
         val transform = tradeToCandleFactory.create(windowDuration, 0.0)
         
         // Apply the transform to our test data
