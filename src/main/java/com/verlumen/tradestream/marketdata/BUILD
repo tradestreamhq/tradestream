@@ -3,6 +3,28 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
+kt_jvm_library(
+    name = "candle_accumulator",
+    srcs = ["CandleAccumulator.kt"],
+)
+
+kt_jvm_library(
+    name = "candle_creator_fn",
+    srcs = ["CandleCreatorFn.kt"],
+    deps = [
+        ":candle_accumulator",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java",
+    ],
+)
+
 java_library(
     name = "candle_stream_with_defaults",
     srcs = ["CandleStreamWithDefaults.java"],
@@ -211,3 +233,19 @@ java_library(
         "//third_party:beam_sdks_java_core",
     ],
 )
+
+kt_jvm_library(
+    name = "trades_to_candle",
+    srcs = ["TradesToCandles.kt"],
+    deps = [
+        ":candle_creator_fn",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
+    ],
+)
+
