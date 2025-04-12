@@ -26,17 +26,18 @@ class TradeToCandle @Inject constructor(
     private val currencyPairsSupplier: Supplier<List<CurrencyPair>>,
     private val candleCreatorFnFactory: CandleCreatorFn.Factory
 ) : PTransform<PCollection<Trade>, PCollection<KV<String, Candle>>>() {
+    
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
     }
-
+    
     interface Factory {
         fun create(windowDuration: Duration, defaultPrice: Double): TradeToCandle
     }
-
+    
     override fun expand(input: PCollection<Trade>): PCollection<KV<String, Candle>> {
         logger.atInfo().log("Starting TradeToCandle transform with window duration: %s", windowDuration)
-
+        
         // Key trades by currency pair
         val keyedTrades = input.apply("KeyByCurrencyPair", 
             MapElements.via(object : SimpleFunction<Trade, KV<String, Trade>>() {
@@ -46,11 +47,11 @@ class TradeToCandle @Inject constructor(
                     return KV.of(trade.currencyPair, trade)
                 }
             }))
-
+        
         // Apply fixed windows
         val windowedTrades = keyedTrades.apply("FixedWindows", 
             Window.into(FixedWindows.of(windowDuration)))
-
+        
         // Process into candles with defaults for missing data
         return windowedTrades.apply("CreateCandles", 
             ParDo.of(candleCreatorFnFactory.create(windowDuration, defaultPrice)))
