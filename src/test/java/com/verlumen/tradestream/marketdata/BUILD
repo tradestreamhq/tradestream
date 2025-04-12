@@ -1,3 +1,4 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 load("@rules_java//java:defs.bzl", "java_test")
 
 
@@ -147,7 +148,7 @@ java_test(
     ],
 )
 
-java_test(
+kt_jvm_test(
     name = "TradeToCandleTest",
     srcs = ["TradeToCandleTest.kt"],
     test_class = "com.verlumen.tradestream.marketdata.TradeToCandleTest",
