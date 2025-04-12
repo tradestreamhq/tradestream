@@ -235,8 +235,8 @@ java_library(
 )
 
 kt_jvm_library(
-    name = "trades_to_candle",
-    srcs = ["TradesToCandles.kt"],
+    name = "trade_to_candle",
+    srcs = ["TradeToCandle.kt"],
     deps = [
         ":candle_creator_fn",
         "//protos:marketdata_java_proto",
