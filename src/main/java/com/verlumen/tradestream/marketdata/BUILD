@@ -174,6 +174,7 @@ java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
     deps = [
+        ":candle_creator_fn",
         ":dry_run_trade_source",
         ":exchange_client_trade_source",
         ":exchange_client_unbounded_source",
@@ -181,11 +182,13 @@ java_library(
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
         ":trade_source",
+        ":trade_to_candle",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
+        "//third_party:guice_assistedinject",
         "//third_party:protobuf_java_util",
     ],
 )
