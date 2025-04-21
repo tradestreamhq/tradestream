@@ -102,6 +102,19 @@ public final class App {
     // 1. Read trades.
     PCollection<Trade> trades = pipeline.apply("ReadTrades", tradeSource);
 
+    // 2. Assign event timestamps from the Trade's own timestamp.
+    PCollection<Trade> tradesWithTimestamps =
+        trades.apply(
+            "AssignTimestamps",
+            WithTimestamps.<Trade>of(
+                    trade -> {
+                      long millis = Timestamps.toMillis(trade.getTimestamp());
+                      Instant timestamp = new Instant(millis);
+                      logger.atFinest().log("Assigned timestamp %s for trade: %s", timestamp, trade);
+                      return timestamp;
+                    })
+                .withAllowedTimestampSkew(timingConfig.allowedTimestampSkew()));
+
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
     return pipeline;
   }
