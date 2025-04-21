@@ -110,7 +110,7 @@ public final class App {
                     trade -> {
                       long millis = Timestamps.toMillis(trade.getTimestamp());
                       Instant timestamp = new Instant(millis);
-                      logger.atFinest().log("Assigned timestamp %s for trade: %s", timestamp, trade);
+                      logger.atInfo().log("Assigned timestamp %s for trade: %s", timestamp, trade);
                       return timestamp;
                     })
                 .withAllowedTimestampSkew(timingConfig.allowedTimestampSkew()));
