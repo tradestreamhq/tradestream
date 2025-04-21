@@ -5,6 +5,7 @@ import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.Timestamp
 import com.verlumen.tradestream.instruments.CurrencyPair
+import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.coders.SetCoder
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.state.StateSpec
@@ -46,8 +47,8 @@ class CandleCreatorFn @Inject constructor(
         StateSpecs.value(SetCoder.of(org.apache.beam.sdk.coders.StringUtf8Coder.of()))
     
     @StateId("currentCandle")
-    private val currentCandleSpec: StateSpec<ValueState<CandleAccumulator>> = 
-        StateSpecs.value(ProtoCoder.of(CandleAccumulator::class.java))
+    private val currentCandleSpec: StateSpec<ValueState<CandleAccumulator>> =
+        StateSpecs.value(SerializableCoder.of(CandleAccumulator::class.java))
     
     @TimerId("endOfWindowTimer")
     private val timerSpec: TimerSpec = TimerSpecs.timer(TimeDomain.EVENT_TIME)
