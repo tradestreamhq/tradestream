@@ -17,15 +17,6 @@ public abstract class MarketDataModule extends AbstractModule {
     return new AutoValue_MarketDataModule(exchangeName, runMode);
   }
 
-  private static final Trade DRY_RUN_TRADE = Trade.newBuilder()
-      .setExchange("FakeExhange")
-      .setCurrencyPair("DRY/RUN")
-      .setTradeId("trade-123")
-      .setTimestamp(fromMillis(1234567))
-      .setPrice(50000.0)
-      .setVolume(0.1)
-      .build();
-
   abstract String exchangeName();
   abstract RunMode runMode();
 
@@ -53,7 +44,16 @@ public abstract class MarketDataModule extends AbstractModule {
   @Singleton
   TradeSource provideTradeSource(Provider<ExchangeClientTradeSource> exchangeClientTradeSource) {
     switch (runMode()) {
-      case DRY: return DryRunTradeSource.create(ImmutableList.of(DRY_RUN_TRADE));
+      case DRY: return DryRunTradeSource.create(
+        ImmutableList.of(
+          Trade.newBuilder()
+          .setExchange(exchangeName())
+          .setCurrencyPair("DRY/RUN")
+          .setTradeId("trade-123")
+          .setTimestamp(fromMillis(1234567))
+          .setPrice(50000.0)
+          .setVolume(0.1)
+          .build()));
       case WET: return exchangeClientTradeSource.get();
       default: throw new UnsupportedOperationException();
     }

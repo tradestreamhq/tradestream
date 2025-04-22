@@ -8,7 +8,7 @@ import com.google.inject.Module
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import com.google.protobuf.Timestamp
-import com.spotify.mobius.test.BoundFieldModule
+import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.verlumen.tradestream.instruments.CurrencyPair
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
@@ -45,7 +45,6 @@ class TradeToCandleTest {
         // Add our market data module and any test-specific bindings
         val modules: List<Module> = listOf(
             testModule,
-            MarketDataModule(),
             object : AbstractModule() {
                 override fun configure() {
                     // Bind currency pairs supplier for tests
