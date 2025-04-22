@@ -3,7 +3,7 @@ package com.verlumen.tradestream.marketdata
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
-import com.google.protobuf.Timestamp
+import com.google.protobuf.timestamp
 import com.verlumen.tradestream.instruments.CurrencyPair
 import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.coders.SetCoder
@@ -189,11 +189,9 @@ class CandleCreatorFn @Inject constructor(
             .setVolume(acc.volume)
             .setCurrencyPair(acc.currencyPair)
         
-        val timestamp = Timestamp.newBuilder()
-            .setSeconds(acc.timestamp)
-            .build()
-        
-        builder.setTimestamp(timestamp)
+        builder.setTimestamp(timestamp {
+            seconds = acc.timestamp
+        })
         
         return builder.build()
     }
@@ -209,11 +207,9 @@ class CandleCreatorFn @Inject constructor(
             .setVolume(0.0)
             .setCurrencyPair(currencyPair)
         
-        val timestamp = Timestamp.newBuilder()
-            .setSeconds(windowTime.getMillis() / 1000)
-            .build()
-        
-        builder.setTimestamp(timestamp)
+        builder.setTimestamp(timestamp {
+            seconds = windowTime.getMillis() / 1000
+        })
         
         return builder.build()
     }
