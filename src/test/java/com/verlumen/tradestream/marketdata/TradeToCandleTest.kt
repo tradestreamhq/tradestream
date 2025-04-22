@@ -45,6 +45,12 @@ class TradeToCandleTest {
         // Add our market data module and any test-specific bindings
         val modules: List<Module> = listOf(
             testModule,
+            FactoryModuleBuilder()
+                .implement(CandleCreatorFn.class, CandleCreatorFn.class)
+                .build(CandleCreatorFn.Factory.class),
+            FactoryModuleBuilder()
+                .implement(TradeToCandle.class, TradeToCandle.class)
+                .build(TradeToCandle.Factory.class),
             object : AbstractModule() {
                 override fun configure() {
                     // Bind currency pairs supplier for tests
