@@ -1,7 +1,5 @@
 package com.verlumen.tradestream.marketdata;
 
-import static com.google.protobuf.util.Timestamps.fromMillis;
-
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
@@ -25,19 +23,20 @@ public abstract class MarketDataModule extends AbstractModule {
     bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
 
-    install(FactoryModuleBuilder()
-        .implement(CandleCreatorFn::class.java, CandleCreatorFn::class.java)
-        .build(CandleCreatorFn.Factory::class.java));
+    install(new FactoryModuleBuilder()
+        .implement(CandleCreatorFn.class, CandleCreatorFn.class)
+        .build(CandleCreatorFn.Factory.class));
 
-    install(FactoryModuleBuilder()
-        .implement(TradeToCandle::class.java, TradeToCandle::class.java)
-        .build(TradeToCandle.Factory::class.java));
+    install(new FactoryModuleBuilder()
+        .implement(TradeToCandle.class, TradeToCandle.class)
+        .build(TradeToCandle.Factory.class));
   }
 
   @Provides
+  @Singleton
   ExchangeStreamingClient provideExchangeStreamingClient(
-      ExchangeStreamingClient.Factory exchangeStreamingClientFactory) {
-    return exchangeStreamingClientFactory.create(exchangeName());
+      ExchangeStreamingClient.Factory factory) {
+    return factory.create(exchangeName());
   }
 
   @Provides
