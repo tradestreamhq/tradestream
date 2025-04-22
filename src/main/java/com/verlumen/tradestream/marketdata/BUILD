@@ -22,6 +22,7 @@ kt_jvm_library(
         "//third_party:guice_assistedinject",
         "//third_party:joda_time",
         "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
     ],
 )
 
