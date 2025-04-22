@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.marketdata;
 
+import static com.google.protobuf.util.Timestamps.fromMillis;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
