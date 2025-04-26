@@ -10,7 +10,6 @@ import org.apache.beam.sdk.transforms.join.CoGroupByKey
 import org.apache.beam.sdk.transforms.join.KeyedPCollectionTuple
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow
 import org.apache.beam.sdk.transforms.windowing.FixedWindows
-import org.apache.beam.sdk.transforms.windowing.IntervalWindow
 import org.apache.beam.sdk.transforms.windowing.Window
 import org.apache.beam.sdk.values.*
 import org.joda.time.Duration
@@ -36,31 +35,83 @@ class TradeToCandle @Inject constructor(
         private const val CANDLE_TAG = "candles"
         private const val IMPULSE_TAG = "impulses"
         
+        // Min/max valid timestamps for Protobuf (in seconds)
+        private const val MIN_VALID_TIMESTAMP_SECONDS = -62135596800L  // 0001-01-01T00:00:00Z
+        private const val MAX_VALID_TIMESTAMP_SECONDS = 253402300799L  // 9999-12-31T23:59:59Z
+        
         fun createDefaultCandle(currencyPair: String, windowEnd: Instant, defaultPrice: Double): Candle {
             logger.atFine().log("Creating default candle for %s at window end %s with price %.2f",
                 currencyPair, windowEnd, defaultPrice)
 
+            // Handle extreme timestamp values
             if (windowEnd.millis == Long.MIN_VALUE || windowEnd.millis == Long.MAX_VALUE) {
-                logger.atSevere().log("Cannot create default candle for %s, windowEnd timestamp is invalid: %s", currencyPair, windowEnd)
-                throw IllegalStateException("Default candle generation failed due to invalid timestamp ($windowEnd) for pair $currencyPair")
+                logger.atWarning().log("Invalid window end timestamp: %s. Using current time instead.", windowEnd)
+                // Use current time as fallback
+                val currentTimeMillis = System.currentTimeMillis()
+                val protoTimestamp = Timestamps.fromMillis(currentTimeMillis)
+                
+                return Candle.newBuilder()
+                    .setOpen(defaultPrice)
+                    .setHigh(defaultPrice)
+                    .setLow(defaultPrice)
+                    .setClose(defaultPrice)
+                    .setVolume(0.0)
+                    .setCurrencyPair(currencyPair)
+                    .setTimestamp(protoTimestamp)
+                    .build()
             }
-            val protoTimestamp = try {
-                Timestamps.fromMillis(windowEnd.millis)
-            } catch (e: IllegalArgumentException) {
-                logger.atSevere().withCause(e).log("Failed to convert windowEnd Instant %s (millis: %d) to Protobuf Timestamp for %s",
-                    windowEnd, windowEnd.millis, currencyPair)
-                throw IllegalStateException("Timestamp conversion failed for default candle $currencyPair", e)
+            
+            try {
+                // Check if timestamp is within valid Protobuf range
+                val timestampSeconds = windowEnd.getMillis() / 1000
+                if (timestampSeconds < MIN_VALID_TIMESTAMP_SECONDS || timestampSeconds > MAX_VALID_TIMESTAMP_SECONDS) {
+                    logger.atWarning().log(
+                        "Window end timestamp %s (seconds: %d) is outside valid Protobuf range. Using current time instead.",
+                        windowEnd, timestampSeconds
+                    )
+                    // Use current time as fallback
+                    val currentTimeMillis = System.currentTimeMillis()
+                    val protoTimestamp = Timestamps.fromMillis(currentTimeMillis)
+                    
+                    return Candle.newBuilder()
+                        .setOpen(defaultPrice)
+                        .setHigh(defaultPrice)
+                        .setLow(defaultPrice)
+                        .setClose(defaultPrice)
+                        .setVolume(0.0)
+                        .setCurrencyPair(currencyPair)
+                        .setTimestamp(protoTimestamp)
+                        .build()
+                }
+                
+                val protoTimestamp = Timestamps.fromMillis(windowEnd.millis)
+                return Candle.newBuilder()
+                    .setOpen(defaultPrice)
+                    .setHigh(defaultPrice)
+                    .setLow(defaultPrice)
+                    .setClose(defaultPrice)
+                    .setVolume(0.0)
+                    .setCurrencyPair(currencyPair)
+                    .setTimestamp(protoTimestamp)
+                    .build()
+            } catch (e: Exception) {
+                logger.atSevere().withCause(e).log(
+                    "Failed to convert timestamp for %s. Using current time instead.", currencyPair
+                )
+                // Use current time as fallback in case of any error
+                val currentTimeMillis = System.currentTimeMillis()
+                val protoTimestamp = Timestamps.fromMillis(currentTimeMillis)
+                
+                return Candle.newBuilder()
+                    .setOpen(defaultPrice)
+                    .setHigh(defaultPrice)
+                    .setLow(defaultPrice)
+                    .setClose(defaultPrice)
+                    .setVolume(0.0)
+                    .setCurrencyPair(currencyPair)
+                    .setTimestamp(protoTimestamp)
+                    .build()
             }
-
-            return Candle.newBuilder()
-                .setOpen(defaultPrice)
-                .setHigh(defaultPrice)
-                .setLow(defaultPrice)
-                .setClose(defaultPrice)
-                .setVolume(0.0)
-                .setCurrencyPair(currencyPair)
-                .setTimestamp(protoTimestamp)
-                .build()
         }
     }
 
@@ -124,17 +175,17 @@ class TradeToCandle @Inject constructor(
 
                     if (candles.isNotEmpty()) {
                         candles.forEach { candle ->
-                            context.outputWithTimestamp(
-                                KV.of(currencyPair, candle),
-                                Instant(Timestamps.toMillis(candle.timestamp))
-                            )
+                            // Always use the current window's timestamp instead of the candle's timestamp
+                            // to avoid timestamp skew issues
+                            context.output(KV.of(currencyPair, candle))
                         }
                         logger.atFine().log("Output actual candle for %s", currencyPair)
                     } else if (impulses.isNotEmpty()) {
                         val windowEnd = window.maxTimestamp()
                         try {
                             val defaultCandle = createDefaultCandle(currencyPair, windowEnd, defaultPrice)
-                            context.outputWithTimestamp(KV.of(currencyPair, defaultCandle), windowEnd)
+                            // Use output instead of outputWithTimestamp to use the current element's timestamp
+                            context.output(KV.of(currencyPair, defaultCandle))
                             logger.atFine().log("Output default candle for %s at window end %s", currencyPair, windowEnd)
                         } catch (e: Exception) {
                             logger.atSevere().withCause(e).log(
