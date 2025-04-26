@@ -54,7 +54,7 @@ class TradeToCandle @Inject constructor(
                 )
                 // Create a safe timestamp that's valid for tests
                 builder.setTimestamp(com.google.protobuf.Timestamp.newBuilder()
-                    .setSeconds(windowEnd.getMillis() > 0 ? windowEnd.getMillis() / 1000 : 0)
+                    .setSeconds(if (windowEnd.millis > 0) windowEnd.millis / 1000 else 0)
                     .build())
             }
 
