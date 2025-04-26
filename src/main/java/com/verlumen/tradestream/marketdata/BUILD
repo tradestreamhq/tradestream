@@ -244,7 +244,6 @@ kt_jvm_library(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_join_library",
         "//third_party:flogger",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
