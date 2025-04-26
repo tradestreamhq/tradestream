@@ -30,6 +30,7 @@ import org.junit.rules.TestRule
 import org.apache.beam.sdk.options.PipelineOptionsFactory
 
 // Top-level or Companion object function to avoid serialization issues with PAssert
+// (Copied from previous answer - no changes needed here)
 private fun assertCandle(expected: Candle, actual: Candle, checkTimestampSecs: Boolean = true) {
     val tolerance = 0.00001
     assert(expected.currencyPair == actual.currencyPair) {
@@ -54,27 +55,22 @@ private fun assertCandle(expected: Candle, actual: Candle, checkTimestampSecs: B
         assert(expected.timestamp.seconds == actual.timestamp.seconds) {
             "Timestamp mismatch (seconds) for ${actual.currencyPair}: Expected ${expected.timestamp.seconds}, got ${actual.timestamp.seconds}"
         }
-        // Optionally check nanos if needed, depending on windowing precision
-        // assert(expected.timestamp.nanos == actual.timestamp.nanos) { "Timestamp nanos mismatch..." }
     }
 }
 
-class TradeToCandleTest {
 
-    // Enable DirectRunner logging for easier debugging if needed
-    // init {
-    //     PipelineOptionsFactory.register(org.apache.beam.runners.direct.DirectOptions::class.java)
-    //     val options = PipelineOptionsFactory.`as`(org.apache.beam.runners.direct.DirectOptions::class.java)
-    //     // options.setBlockOnRun(false); // Example option
-    // }
+class TradeToCandleTest {
 
     @Rule
     @JvmField
     val pipeline: TestRule = TestPipeline.create().enableAbandonedNodeEnforcement(false)
-    // Note: Using TestRule to potentially avoid some static init issues with TestPipeline
 
     @Inject
     lateinit var tradeToCandleFactory: TradeToCandle.Factory
+
+    // Inject the simplified CandleCreatorFn dependency needed by TradeToCandle
+    @Inject
+    lateinit var candleCreatorFn: CandleCreatorFn
 
     private val btcUsd = CurrencyPair.fromSymbol("BTC/USD")
     private val ethUsd = CurrencyPair.fromSymbol("ETH/USD")
@@ -86,22 +82,43 @@ class TradeToCandleTest {
     private val currencyPairSupplier: Supplier<List<CurrencyPair>> =
         Suppliers.ofInstance(currencyPairsInstance)
 
+    // Bind the CandleCreatorFn instance so TradeToCandle can inject it
+    // Since it has an @Inject constructor now, Guice can create it.
+    @Bind
+    private lateinit var boundCandleCreatorFn: CandleCreatorFn
+
+
     @Before
     fun setUp() {
         // Setup Guice for dependency injection
         val testModule = BoundFieldModule.of(this)
         val modules: List<Module> = listOf(
             testModule,
-            FactoryModuleBuilder()
-                .implement(CandleCreatorFn::class.java, CandleCreatorFn::class.java)
-                .build(CandleCreatorFn.Factory::class.java),
+            // Bind CandleCreatorFn directly
+             com.google.inject.AbstractModule() {
+                 override fun configure() {
+                     bind(CandleCreatorFn::class.java)
+                 }
+             },
+            // Keep FactoryModuleBuilder for TradeToCandle
             FactoryModuleBuilder()
                 .implement(TradeToCandle::class.java, TradeToCandle::class.java)
                 .build(TradeToCandle.Factory::class.java)
         )
         val injector = Guice.createInjector(modules)
         injector.injectMembers(this)
+
+        // Need to ensure the bound instance is assigned if @Bind doesn't automatically do it
+        // for non-mocks/non-providers when using @Inject on the field.
+        // Alternatively, inject it directly via constructor or method if needed.
+        // Let's assume Guice handles injecting the created instance into the @Bind field.
+        boundCandleCreatorFn = candleCreatorFn // Ensure the bound field points to the injected instance
+
     }
+
+    // --- Test methods remain the same as the previously fixed version ---
+    // The expected outputs (actual candles + default candles) are the same,
+    // even though the internal implementation generating defaults has changed.
 
     @Test
     fun testTradeToCandlesOneMinuteWindow() {
@@ -231,14 +248,13 @@ class TradeToCandleTest {
         val windowDuration = Duration.standardMinutes(1)
         val trades = emptyList<Trade>() // No input trades
 
-        // We need to know the time context for default candle generation.
-        // TestPipeline advances the watermark implicitly. Let's assume it processes
-        // up to a certain point, triggering the timer for the first window.
-        // The exact timestamp depends on runner behavior, but it should correspond
-        // to the end of *some* window. We'll check for the default values primarily.
-        // Let's simulate the pipeline running past T=1min.
-        // Window [T0, T0 + 1min) -> maxTimestamp = T0 + 1min - 1ms
-        // Since there's no data, the exact T0 is hard to pin, but defaults should appear.
+        // Expected default candle timestamp should be the window end time.
+        // Since there's no data, the pipeline might advance time to infinity or
+        // a predefined point. PAssert might struggle without explicit time.
+        // However, the CoGroupByKey approach should still generate defaults
+        // for the first window processed. Let's assume a window ending near epoch+1min for checking.
+        // Window [T0, T0+1min) -> T0+1min-1ms
+        // Let's primarily check content, less strictly the timestamp.
 
         val result = runTransform(trades, windowDuration)
 
@@ -257,14 +273,10 @@ class TradeToCandleTest {
                         assert(candle.low == defaultTestPrice) { "Expected default price $defaultTestPrice for ${pairSymbol}, got ${candle.low}" }
                         assert(candle.close == defaultTestPrice) { "Expected default price $defaultTestPrice for ${pairSymbol}, got ${candle.close}" }
                         assert(candle.volume == 0.0) { "Expected zero volume for default candle ${pairSymbol}, got ${candle.volume}" }
-                        // Timestamp check is tricky without explicit watermark control in TestPipeline,
-                        // but we expect *some* valid timestamp near a window boundary.
                         assert(candle.timestamp.seconds > 0 || candle.timestamp.nanos > 0) {
                             "Default candle timestamp for $pairSymbol appears uninitialized: ${candle.timestamp}"
                         }
-                         // Example check if we knew the exact window boundary
-                         // val expectedWindowEnd = Instant.parse("...")
-                         // assert(candle.timestamp == Timestamps.fromMillis(expectedWindowEnd.millis))
+                        // We know the timestamp should be the end of the window.
                     }
 
                     return null
@@ -275,6 +287,7 @@ class TradeToCandleTest {
     }
 
     // Helper to create input PCollection, handling empty list and timestamps
+    // (Copied from previous answer - no changes needed here)
     private fun runTransform(
         trades: List<Trade>,
         windowDuration: Duration
@@ -303,7 +316,9 @@ class TradeToCandleTest {
         return input.apply("TradeToCandles", transform)
     }
 
+
     // Helper to create Trade objects
+    // (Copied from previous answer - no changes needed here)
     private fun createTrade(
         currencyPair: String,
         price: Double,
