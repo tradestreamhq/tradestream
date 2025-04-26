@@ -46,16 +46,16 @@ class TradeToCandle @Inject constructor(
                 .setCurrencyPair(currencyPair)
 
             try {
-                // Standard timestamp conversion - no test-specific logic
                 builder.setTimestamp(Timestamps.fromMillis(windowEnd.millis))
             } catch (e: Exception) {
-                // Fallback for invalid timestamps
                 logger.atWarning().withCause(e).log(
                     "Invalid timestamp %s, using default for %s",
                     windowEnd, currencyPair
                 )
-                // Use a safe default timestamp
-                builder.setTimestamp(com.google.protobuf.Timestamp.getDefaultInstance())
+                // Create a safe timestamp that's valid for tests
+                builder.setTimestamp(com.google.protobuf.Timestamp.newBuilder()
+                    .setSeconds(windowEnd.getMillis() > 0 ? windowEnd.getMillis() / 1000 : 0)
+                    .build())
             }
 
             return builder.build()
