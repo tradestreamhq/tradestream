@@ -26,9 +26,9 @@ class CandleCreatorFn @Inject constructor() :
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
         private const val serialVersionUID = 1L
-        
+
         private fun candleToString(candle: Candle): String {
-             return "Candle{Pair:${candle.currencyPair}, T:${Timestamps.toString(candle.timestamp)}, O:${candle.open}, H:${candle.high}, L:${candle.low}, C:${candle.close}, V:${candle.volume}}"
+            return "Candle{Pair:${candle.currencyPair}, T:${Timestamps.toString(candle.timestamp)}, O:${candle.open}, H:${candle.high}, L:${candle.low}, C:${candle.close}, V:${candle.volume}}"
         }
     }
 
@@ -58,7 +58,7 @@ class CandleCreatorFn @Inject constructor() :
         logger.atFine().log("Processing trade for %s: %s in window %s", currencyPair, trade.tradeId, window)
 
         timer.set(window.maxTimestamp())
-        
+
         processTradeIntoCandle(currencyPair, trade, currentCandleState)
     }
 
@@ -68,7 +68,7 @@ class CandleCreatorFn @Inject constructor() :
         currentCandleState: ValueState<CandleAccumulator>
     ) {
         var accumulator = currentCandleState.read()
-    
+
         if (accumulator == null) {
             // First trade for this key-window
             accumulator = CandleAccumulator()
@@ -82,6 +82,7 @@ class CandleCreatorFn @Inject constructor() :
             accumulator.initialized = true
             accumulator.isDefault = trade.exchange == "DEFAULT"
             accumulator.firstTradeTimestamp = trade.timestamp.seconds
+            accumulator.latestTradeTimestamp = trade.timestamp.seconds
         } else {
             // Skip default trades if we already have real trades
             if (trade.exchange == "DEFAULT" && !accumulator.isDefault) {
@@ -98,6 +99,7 @@ class CandleCreatorFn @Inject constructor() :
                 accumulator.volume = trade.volume
                 accumulator.isDefault = trade.exchange == "DEFAULT"
                 accumulator.firstTradeTimestamp = trade.timestamp.seconds
+                accumulator.latestTradeTimestamp = trade.timestamp.seconds
             } else if (trade.exchange != "DEFAULT") {
                 if (accumulator.isDefault) {
                     // First real trade replaces a default
@@ -108,6 +110,7 @@ class CandleCreatorFn @Inject constructor() :
                     accumulator.volume = trade.volume
                     accumulator.isDefault = false
                     accumulator.firstTradeTimestamp = trade.timestamp.seconds
+                    accumulator.latestTradeTimestamp = trade.timestamp.seconds
                 } else {
                     // Check if this is an earlier trade than what we've seen
                     if (trade.timestamp.seconds < accumulator.firstTradeTimestamp) {
@@ -115,11 +118,17 @@ class CandleCreatorFn @Inject constructor() :
                         accumulator.open = trade.price
                         accumulator.firstTradeTimestamp = trade.timestamp.seconds
                     }
-                
-                    // Always update high, low, close and volume
+
+                    // Check if this is the latest trade we've seen
+                    if (trade.timestamp.seconds >= accumulator.latestTradeTimestamp) {
+                        // This is the latest trade, use for close price
+                        accumulator.close = trade.price
+                        accumulator.latestTradeTimestamp = trade.timestamp.seconds
+                    }
+
+                    // Always update high, low and volume
                     accumulator.high = maxOf(accumulator.high, trade.price)
                     accumulator.low = minOf(accumulator.low, trade.price)
-                    accumulator.close = trade.price
                     accumulator.volume += trade.volume
                 }
             }
