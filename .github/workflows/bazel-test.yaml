@@ -28,4 +28,5 @@ jobs:
           --experimental_ui_max_stdouterr_bytes=2097152 \
           --test_output=all \
           --verbose_failures \
-          --nolegacy_important_outputs
+          --nolegacy_important_outputs \
+          --experimental_remote_cache_compression
