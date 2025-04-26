@@ -16,6 +16,7 @@ import org.joda.time.Duration
 import org.joda.time.Instant
 import java.util.function.Supplier
 import com.google.protobuf.util.Timestamps
+import com.google.protobuf.Timestamp
 
 /**
  * Transforms a stream of trades into OHLCV candles for a predefined list of currency pairs.
@@ -32,43 +33,72 @@ class TradeToCandle @Inject constructor(
         private const val CANDLE_TAG = "candles"
         private const val IMPULSE_TAG = "impulses"
         
+        // Minimum and maximum valid seconds for Protobuf timestamp
+        private const val MIN_SECONDS = -62135596800L  // 0001-01-01T00:00:00Z
+        private const val MAX_SECONDS = 253402300799L  // 9999-12-31T23:59:59Z
+        
+        /**
+         * Creates a Protobuf Timestamp from a Joda Instant, clamping to valid range if needed.
+         * 
+         * @param instant Joda Instant to convert
+         * @return Valid Protobuf Timestamp
+         */
+        private fun createValidTimestamp(instant: Instant): Timestamp {
+            val seconds = instant.getMillis() / 1000
+            val nanos = ((instant.getMillis() % 1000) * 1_000_000).toInt()
+            
+            // Clamp to valid Protobuf timestamp range
+            val clampedSeconds = when {
+                seconds < MIN_SECONDS -> MIN_SECONDS
+                seconds > MAX_SECONDS -> MAX_SECONDS
+                else -> seconds
+            }
+            
+            return Timestamp.newBuilder()
+                .setSeconds(clampedSeconds)
+                .setNanos(nanos)
+                .build()
+        }
+        
+        /**
+         * Creates a default candle for a currency pair at the specified window end time.
+         */
         fun createDefaultCandle(currencyPair: String, windowEnd: Instant, defaultPrice: Double): Candle {
             logger.atFine().log("Creating default candle for %s at window end %s with price %.2f",
                 currencyPair, windowEnd, defaultPrice)
 
-            // For test compatibility, directly use original window timestamp even if invalid 
-            // for Protobuf. In production, this would need better error handling.
-            val candle = Candle.newBuilder()
+            // Build default candle with price values
+            val builder = Candle.newBuilder()
                 .setOpen(defaultPrice)
                 .setHigh(defaultPrice)
                 .setLow(defaultPrice)
                 .setClose(defaultPrice)
                 .setVolume(0.0)
                 .setCurrencyPair(currencyPair)
-
+            
             try {
-                val timestamp = com.google.protobuf.Timestamp.newBuilder()
-                    .setSeconds(windowEnd.getMillis() / 1000)
-                    .setNanos(((windowEnd.getMillis() % 1000) * 1_000_000).toInt())
-                    .build()
-
-                candle.setTimestamp(timestamp)
+                // Create a valid timestamp from the window end
+                val timestamp = createValidTimestamp(windowEnd)
+                builder.setTimestamp(timestamp)
+                
+                // Log a warning if the timestamp was clamped
+                val originalSeconds = windowEnd.getMillis() / 1000
+                if (originalSeconds != timestamp.seconds) {
+                    logger.atWarning().log(
+                        "Window end timestamp %s was clamped from %d to %d seconds for %s",
+                        windowEnd, originalSeconds, timestamp.seconds, currencyPair
+                    )
+                }
             } catch (e: Exception) {
-                logger.atWarning().withCause(e).log(
-                    "Error setting timestamp for default candle, using window end directly: %s", windowEnd
+                // Fallback to current time in case of any exception
+                logger.atSevere().withCause(e).log(
+                    "Failed to create timestamp for %s at window end %s, using current time",
+                    currencyPair, windowEnd
                 )
-        
-                // For test compatibility, force the timestamp to match expected value
-                // This bypasses Protobuf's normal validation
-                val timestamp = com.google.protobuf.Timestamp.newBuilder()
-                    .setSeconds(windowEnd.getMillis() / 1000)
-                    .setNanos(0)
-                    .build()
-        
-                candle.setTimestamp(timestamp)
+                builder.setTimestamp(Timestamps.fromMillis(System.currentTimeMillis()))
             }
-    
-            return candle.build()
+            
+            return builder.build()
         }
     }
 
