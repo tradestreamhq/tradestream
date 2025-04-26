@@ -2,13 +2,8 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
-import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.util.Timestamps
-import com.verlumen.tradestream.instruments.CurrencyPair
 import org.apache.beam.sdk.coders.SerializableCoder
-import org.apache.beam.sdk.coders.SetCoder
-import org.apache.beam.sdk.coders.StringUtf8Coder
-import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.state.StateSpec
 import org.apache.beam.sdk.state.StateSpecs
 import org.apache.beam.sdk.state.TimeDomain
@@ -18,35 +13,28 @@ import org.apache.beam.sdk.state.TimerSpecs
 import org.apache.beam.sdk.state.ValueState
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow
-import org.apache.beam.sdk.transforms.windowing.IntervalWindow // Import IntervalWindow
 import org.apache.beam.sdk.values.KV
-import org.joda.time.Duration
-import org.joda.time.Instant
+import org.joda.time.Instant // Keep for outputWithTimestamp
 import java.io.Serializable
-import java.util.function.Supplier
 
 /**
- * Stateful DoFn that creates candles from trades, with default candles
- * for currency pairs that don't have trades in a given window.
+ * Stateful DoFn that aggregates Trades into a single Candle per key per window.
+ * It does NOT handle default generation for missing keys.
  */
-class CandleCreatorFn @Inject constructor(
-    @Assisted private val windowDuration: Duration,
-    @Assisted private val defaultPrice: Double,
-    private val currencyPairsSupplier: Supplier<List<CurrencyPair>>
-) : DoFn<KV<String, Trade>, KV<String, Candle>>(), Serializable {
+class CandleCreatorFn @Inject constructor() : // No assisted injection needed now
+    DoFn<KV<String, Trade>, KV<String, Candle>>(), Serializable {
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
         private const val serialVersionUID = 1L
+
+        // Helper moved here or kept external
+        private fun candleToString(candle: Candle): String {
+             return "Candle{Pair:${candle.currencyPair}, T:${Timestamps.toString(candle.timestamp)}, O:${candle.open}, H:${candle.high}, L:${candle.low}, C:${candle.close}, V:${candle.volume}}"
+        }
     }
 
-    interface Factory {
-        fun create(windowDuration: Duration, defaultPrice: Double): CandleCreatorFn
-    }
-
-    @StateId("activeCurrencyPairs")
-    private val activePairsSpec: StateSpec<ValueState<MutableSet<String>>> =
-        StateSpecs.value(SetCoder.of(StringUtf8Coder.of()))
+    // No factory needed if no assisted inject
 
     @StateId("currentCandle")
     private val currentCandleSpec: StateSpec<ValueState<CandleAccumulator>> =
@@ -57,14 +45,13 @@ class CandleCreatorFn @Inject constructor(
 
     @Setup
     fun setup() {
-        logger.atInfo().log("Setting up CandleCreatorFn with window duration: %s", windowDuration)
+        logger.atInfo().log("Setting up CandleCreatorFn (aggregator only)")
     }
 
     @ProcessElement
     fun processElement(
         context: ProcessContext,
         @Element element: KV<String, Trade>,
-        @StateId("activeCurrencyPairs") activePairsState: ValueState<MutableSet<String>>,
         @StateId("currentCandle") currentCandleState: ValueState<CandleAccumulator>,
         @TimerId("endOfWindowTimer") timer: Timer,
         window: BoundedWindow
@@ -74,33 +61,15 @@ class CandleCreatorFn @Inject constructor(
 
         logger.atFine().log("Processing trade for %s: %s in window %s", currencyPair, trade.tradeId, window)
 
-        // Track active currency pairs
-        trackActiveCurrencyPair(currencyPair, activePairsState)
-
-        // Set window end timer for all currency pairs *relative to the window*
+        // Set window end timer - it's okay to set this multiple times
         timer.set(window.maxTimestamp())
-        logger.atFine().log("Setting timer for key %s to window max timestamp: %s", currencyPair, window.maxTimestamp())
+        // logger.atFine().log("Setting timer for key %s to window max timestamp: %s", currencyPair, window.maxTimestamp()) // Optional logging
 
         // Process the trade into our candle accumulator
         processTradeIntoCandle(currencyPair, trade, currentCandleState)
     }
 
-    private fun trackActiveCurrencyPair(
-        currencyPair: String,
-        activePairsState: ValueState<MutableSet<String>>
-    ) {
-        var activePairs = activePairsState.read()
-        if (activePairs == null) {
-            activePairs = mutableSetOf()
-        }
-
-        if (!activePairs.contains(currencyPair)) {
-            logger.atFine().log("Adding %s to active currency pairs", currencyPair)
-            activePairs.add(currencyPair)
-            activePairsState.write(activePairs)
-        }
-    }
-
+    // processTradeIntoCandle remains largely the same as before
     private fun processTradeIntoCandle(
         currencyPair: String,
         trade: Trade,
@@ -131,12 +100,12 @@ class CandleCreatorFn @Inject constructor(
             accumulator.low = trade.price
             accumulator.close = trade.price
             accumulator.volume = trade.volume
-            accumulator.isDefault = trade.exchange == "DEFAULT"
+            accumulator.isDefault = trade.exchange == "DEFAULT" // Track if only default trades seen
 
-            logger.atFine().log("Initialized accumulator with %s trade (Price: %.2f, Volume: %.2f)",
-                if (accumulator.isDefault) "DEFAULT" else "real", trade.price, trade.volume)
+            logger.atFine().log("Initialized accumulator for %s with %s trade (Price: %.2f, Volume: %.2f)",
+                currencyPair, if (accumulator.isDefault) "DEFAULT" else "real", trade.price, trade.volume)
         } else if (trade.exchange != "DEFAULT") {
-            // Update with real trade (overwriting default if needed)
+             // Update with real trade (overwriting default if needed)
              if (accumulator.isDefault) {
                  // First real trade overwrites default completely
                  logger.atFine().log("Overwriting default accumulator with first real trade for %s", currencyPair)
@@ -156,96 +125,51 @@ class CandleCreatorFn @Inject constructor(
                  accumulator.volume += trade.volume
                  // isDefault remains false
              }
-            logger.atFine().log("Updated accumulator with real trade, price: %.2f", trade.price)
+            logger.atFine().log("Updated accumulator for %s with real trade, price: %.2f", currencyPair, trade.price)
         }
         // If initialized and trade is DEFAULT, do nothing further
 
         currentCandleState.write(accumulator)
     }
 
+
     @OnTimer("endOfWindowTimer")
     fun onWindowEnd(
         context: OnTimerContext,
-        @StateId("activeCurrencyPairs") activePairsState: ValueState<MutableSet<String>>,
         @StateId("currentCandle") currentCandleState: ValueState<CandleAccumulator>,
         window: BoundedWindow // Get window information
     ) {
-        val activePairs = activePairsState.read() ?: mutableSetOf()
-        val currentKey = context.key() // Get the key for which the timer fired
         val accumulator = currentCandleState.read() // Read state for the current key
-
-        // Use window.maxTimestamp() as the definitive time for this timer firing
         val windowEndTime = window.maxTimestamp()
 
-        logger.atInfo().log(
-            "Window timer fired for key '%s'. Context timestamp: %s, WindowEnd: %s. Active pairs in state: %d.",
-            currentKey, context.timestamp(), windowEndTime, activePairs.size
-        )
-
-        // Output accumulated candle for the *current key* if it exists and was initialized
-        if (accumulator != null && accumulator.initialized) {
+        // Output accumulated candle for the *current key* IF it exists, was initialized,
+        // AND was based on at least one real trade (or if default trades are acceptable outputs).
+        // Let's assume we only want to output if !isDefault.
+        if (accumulator != null && accumulator.initialized && !accumulator.isDefault) {
             val candle = buildCandleFromAccumulator(accumulator)
-            // Output with timestamp matching the *first trade* seen in the window
+            // Output with timestamp matching the *first real trade* seen in the window
             context.outputWithTimestamp(KV.of(accumulator.currencyPair, candle), Instant(accumulator.timestamp * 1000))
-            logger.atFine().log("Output actual candle for %s: %s with event time %d",
-                accumulator.currencyPair, candleToString(candle), accumulator.timestamp)
+            logger.atFine().log("Output actual candle for %s at window end %s: %s",
+                accumulator.currencyPair, windowEndTime, candleToString(candle))
         } else {
-             logger.atInfo().log("No initialized accumulator found for key '%s' at window end.", currentKey)
+             val reason = when {
+                 accumulator == null -> "no accumulator found"
+                 !accumulator.initialized -> "accumulator not initialized"
+                 accumulator.isDefault -> "accumulator only contained default trades"
+                 else -> "unknown reason"
+             }
+             // Log why nothing was output for this key, if desired
+             logger.atFine().log("No actual candle output for key '%s' at window end %s (%s).",
+                 accumulator?.currencyPair ?: "unknown", windowEndTime, reason)
         }
-
-        // Check all known currency pairs and output default candles *if this key matches*
-        // This prevents duplicate default generation if multiple keys fire timers
-        // A more robust design might involve a downstream step, but this works for basic cases.
-        val allKnownPairs = currencyPairsSupplier.get()
-        val currentPairSymbol = currentKey // Assuming key is the currency pair symbol
-
-        if (allKnownPairs.any { it.symbol() == currentPairSymbol }) {
-            if (!activePairs.contains(currentPairSymbol)) {
-                 // If the timer fired for a key that ended up having no *initialized* accumulator (e.g., only default trades skipped)
-                 // OR more likely, if a timer fires for a key that never received *any* elements in the window (depends on runner behavior)
-                 // We should still generate a default candle for this key if it's in the known list.
-                 logger.atInfo().log("Generating default candle for key '%s' as it was not marked active.", currentPairSymbol)
-                 try {
-                     val defaultCandle = createDefaultCandle(currentPairSymbol, windowEndTime)
-                     // Output default candle using the window end time
-                     context.outputWithTimestamp(KV.of(currentPairSymbol, defaultCandle), windowEndTime)
-                     logger.atFine().log("Output default candle for inactive pair %s at window end %s", currentPairSymbol, windowEndTime)
-                 } catch (e: IllegalStateException) {
-                     logger.atSevere().withCause(e).log("Failed to generate default candle for %s", currentPairSymbol)
-                 }
-            }
-        } else {
-             logger.atWarning().log("Timer fired for key '%s' which is not in the known currency pair list.", currentKey)
-        }
-
-
-        // Simplified logic (Original): Generate defaults for ALL inactive pairs here.
-        // This can lead to duplicates if multiple timers fire near-simultaneously in distributed runners.
-        // Keep the improved logic above.
-        /*
-        for (pair in currencyPairsSupplier.get()) {
-            val symbol = pair.symbol()
-            if (!activePairs.contains(symbol)) {
-                // Create default candle for inactive pair
-                try {
-                    val defaultCandle = createDefaultCandle(symbol, windowEndTime)
-                    // Output default candle using the window end time
-                    context.outputWithTimestamp(KV.of(symbol, defaultCandle), windowEndTime)
-                    logger.atFine().log("Output default candle for inactive pair %s at window end %s", symbol, windowEndTime)
-                } catch (e: IllegalStateException) {
-                     logger.atSevere().withCause(e).log("Failed to generate default candle for %s", symbol)
-                }
-            }
-        }
-        */
 
         // Clear state for the *current key* for the next window
         currentCandleState.clear()
-        activePairsState.clear() // Clears the set for this key
-        logger.atFine().log("Cleared state for key '%s'", currentKey)
+        // No need to clear activePairsState as it's removed
     }
 
-    private fun buildCandleFromAccumulator(acc: CandleAccumulator): Candle {
+    // buildCandleFromAccumulator remains the same
+     private fun buildCandleFromAccumulator(acc: CandleAccumulator): Candle {
         val builder = Candle.newBuilder()
             .setOpen(acc.open)
             .setHigh(acc.high)
@@ -254,43 +178,12 @@ class CandleCreatorFn @Inject constructor(
             .setVolume(acc.volume)
             .setCurrencyPair(acc.currencyPair)
 
-        // Timestamp represents the first trade's timestamp (in seconds)
+        // Timestamp represents the first real trade's timestamp (in seconds)
         builder.setTimestamp(Timestamps.fromSeconds(acc.timestamp))
 
         return builder.build()
     }
 
-    private fun createDefaultCandle(currencyPair: String, windowEnd: Instant): Candle {
-        logger.atFine().log("Creating default candle for %s at window end %s", currencyPair, windowEnd)
-
-        // Check if the timestamp is valid before creating the Candle proto
-        if (windowEnd.millis == Long.MIN_VALUE || windowEnd.millis == Long.MAX_VALUE ) {
-             logger.atSevere().log("Cannot create default candle for %s, windowEnd timestamp is invalid: %s", currencyPair, windowEnd)
-             // Throw exception to signal failure clearly
-             throw IllegalStateException("Default candle generation failed due to invalid timestamp ($windowEnd) for pair $currencyPair")
-        }
-        val protoTimestamp = try {
-             Timestamps.fromMillis(windowEnd.millis)
-        } catch (e: IllegalArgumentException) {
-             logger.atSevere().withCause(e).log("Failed to convert windowEnd Instant %s (millis: %d) to Protobuf Timestamp for %s",
-                 windowEnd, windowEnd.millis, currencyPair)
-             throw IllegalStateException("Timestamp conversion failed for default candle $currencyPair", e)
-        }
-
-
-        val builder = Candle.newBuilder()
-            .setOpen(defaultPrice)
-            .setHigh(defaultPrice)
-            .setLow(defaultPrice)
-            .setClose(defaultPrice)
-            .setVolume(0.0)
-            .setCurrencyPair(currencyPair)
-            .setTimestamp(protoTimestamp) // Use the validated & converted timestamp
-
-        return builder.build()
-    }
-
-    private fun candleToString(candle: Candle): String {
-        return "Candle{Pair:${candle.currencyPair}, T:${Timestamps.toString(candle.timestamp)}, O:${candle.open}, H:${candle.high}, L:${candle.low}, C:${candle.close}, V:${candle.volume}}"
-    }
+    // createDefaultCandle is no longer needed here
+    // candleToString moved to companion object or external util
 }
