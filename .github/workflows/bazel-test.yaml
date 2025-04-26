@@ -15,10 +15,13 @@ jobs:
       with:
         # Avoid downloading Bazel every time.
         bazelisk-cache: true
-        # Store build cache per workflow.
-        disk-cache: ${{ github.workflow }}
-        # Share repository cache between workflows.
-        repository-cache: true
+        bazelrc: |
+          build --color=yes
+          build --show_timestamps
+          build --bes_results_url=https://app.buildbuddy.io/invocation/
+          build --bes_backend=grpcs://remote.buildbuddy.io
+          build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
+
     - run: |
         bazel test //... \
           --experimental_ui_max_stdouterr_bytes=2097152 \
