@@ -14,27 +14,23 @@ import org.apache.beam.sdk.state.ValueState
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow
 import org.apache.beam.sdk.values.KV
-import org.joda.time.Instant // Keep for outputWithTimestamp
+import org.joda.time.Instant
 import java.io.Serializable
 
 /**
  * Stateful DoFn that aggregates Trades into a single Candle per key per window.
- * It does NOT handle default generation for missing keys.
  */
-class CandleCreatorFn @Inject constructor() : // No assisted injection needed now
+class CandleCreatorFn @Inject constructor() :
     DoFn<KV<String, Trade>, KV<String, Candle>>(), Serializable {
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
         private const val serialVersionUID = 1L
-
-        // Helper moved here or kept external
+        
         private fun candleToString(candle: Candle): String {
              return "Candle{Pair:${candle.currencyPair}, T:${Timestamps.toString(candle.timestamp)}, O:${candle.open}, H:${candle.high}, L:${candle.low}, C:${candle.close}, V:${candle.volume}}"
         }
     }
-
-    // No factory needed if no assisted inject
 
     @StateId("currentCandle")
     private val currentCandleSpec: StateSpec<ValueState<CandleAccumulator>> =
@@ -61,15 +57,11 @@ class CandleCreatorFn @Inject constructor() : // No assisted injection needed no
 
         logger.atFine().log("Processing trade for %s: %s in window %s", currencyPair, trade.tradeId, window)
 
-        // Set window end timer - it's okay to set this multiple times
         timer.set(window.maxTimestamp())
-        // logger.atFine().log("Setting timer for key %s to window max timestamp: %s", currencyPair, window.maxTimestamp()) // Optional logging
-
-        // Process the trade into our candle accumulator
+        
         processTradeIntoCandle(currencyPair, trade, currentCandleState)
     }
 
-    // processTradeIntoCandle remains largely the same as before
     private fun processTradeIntoCandle(
         currencyPair: String,
         trade: Trade,
@@ -79,9 +71,7 @@ class CandleCreatorFn @Inject constructor() : // No assisted injection needed no
         if (accumulator == null) {
             accumulator = CandleAccumulator()
             accumulator.currencyPair = currencyPair
-            // Store timestamp (seconds) of the *first* trade seen for this candle
             accumulator.timestamp = trade.timestamp.seconds
-
             logger.atFine().log("Created new accumulator for %s with first trade timestamp %d",
                  currencyPair, accumulator.timestamp)
         }
@@ -100,7 +90,7 @@ class CandleCreatorFn @Inject constructor() : // No assisted injection needed no
             accumulator.low = trade.price
             accumulator.close = trade.price
             accumulator.volume = trade.volume
-            accumulator.isDefault = trade.exchange == "DEFAULT" // Track if only default trades seen
+            accumulator.isDefault = trade.exchange == "DEFAULT"
 
             logger.atFine().log("Initialized accumulator for %s with %s trade (Price: %.2f, Volume: %.2f)",
                 currencyPair, if (accumulator.isDefault) "DEFAULT" else "real", trade.price, trade.volume)
@@ -139,15 +129,13 @@ class CandleCreatorFn @Inject constructor() : // No assisted injection needed no
         window: BoundedWindow
     ) {
         val accumulator = currentCandleState.read()
-        val windowEndTime = window.maxTimestamp()
 
         if (accumulator != null && accumulator.initialized && !accumulator.isDefault) {
             val candle = buildCandleFromAccumulator(accumulator)
-            // Use the window's end timestamp instead of the first trade timestamp
-            // to avoid timestamp skew issues
+            // Simply use output instead of outputWithTimestamp to avoid timestamp skew issues
             context.output(KV.of(accumulator.currencyPair, candle))
             logger.atFine().log("Output actual candle for %s at window end %s: %s",
-                accumulator.currencyPair, windowEndTime, candleToString(candle))
+                accumulator.currencyPair, window.maxTimestamp(), candleToString(candle))
         } else {
             val reason = when {
                 accumulator == null -> "no accumulator found"
@@ -156,15 +144,13 @@ class CandleCreatorFn @Inject constructor() : // No assisted injection needed no
                 else -> "unknown reason"
             }
             logger.atFine().log("No actual candle output for key '%s' at window end %s (%s).",
-                accumulator?.currencyPair ?: "unknown", windowEndTime, reason)
-        }    
+                accumulator?.currencyPair ?: "unknown", window.maxTimestamp(), reason)
+        }
 
-        // Clear state for the next window
         currentCandleState.clear()
     }
 
-    // buildCandleFromAccumulator remains the same
-     private fun buildCandleFromAccumulator(acc: CandleAccumulator): Candle {
+    private fun buildCandleFromAccumulator(acc: CandleAccumulator): Candle {
         val builder = Candle.newBuilder()
             .setOpen(acc.open)
             .setHigh(acc.high)
@@ -173,12 +159,8 @@ class CandleCreatorFn @Inject constructor() : // No assisted injection needed no
             .setVolume(acc.volume)
             .setCurrencyPair(acc.currencyPair)
 
-        // Timestamp represents the first real trade's timestamp (in seconds)
         builder.setTimestamp(Timestamps.fromSeconds(acc.timestamp))
 
         return builder.build()
     }
-
-    // createDefaultCandle is no longer needed here
-    // candleToString moved to companion object or external util
 }
