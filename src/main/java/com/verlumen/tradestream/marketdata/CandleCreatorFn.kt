@@ -132,40 +132,35 @@ class CandleCreatorFn @Inject constructor() : // No assisted injection needed no
         currentCandleState.write(accumulator)
     }
 
-
     @OnTimer("endOfWindowTimer")
     fun onWindowEnd(
         context: OnTimerContext,
         @StateId("currentCandle") currentCandleState: ValueState<CandleAccumulator>,
-        window: BoundedWindow // Get window information
+        window: BoundedWindow
     ) {
-        val accumulator = currentCandleState.read() // Read state for the current key
+        val accumulator = currentCandleState.read()
         val windowEndTime = window.maxTimestamp()
 
-        // Output accumulated candle for the *current key* IF it exists, was initialized,
-        // AND was based on at least one real trade (or if default trades are acceptable outputs).
-        // Let's assume we only want to output if !isDefault.
         if (accumulator != null && accumulator.initialized && !accumulator.isDefault) {
             val candle = buildCandleFromAccumulator(accumulator)
-            // Output with timestamp matching the *first real trade* seen in the window
-            context.outputWithTimestamp(KV.of(accumulator.currencyPair, candle), Instant(accumulator.timestamp * 1000))
+            // Use the window's end timestamp instead of the first trade timestamp
+            // to avoid timestamp skew issues
+            context.output(KV.of(accumulator.currencyPair, candle))
             logger.atFine().log("Output actual candle for %s at window end %s: %s",
                 accumulator.currencyPair, windowEndTime, candleToString(candle))
         } else {
-             val reason = when {
-                 accumulator == null -> "no accumulator found"
-                 !accumulator.initialized -> "accumulator not initialized"
-                 accumulator.isDefault -> "accumulator only contained default trades"
-                 else -> "unknown reason"
-             }
-             // Log why nothing was output for this key, if desired
-             logger.atFine().log("No actual candle output for key '%s' at window end %s (%s).",
-                 accumulator?.currencyPair ?: "unknown", windowEndTime, reason)
-        }
+            val reason = when {
+                accumulator == null -> "no accumulator found"
+                !accumulator.initialized -> "accumulator not initialized"
+                accumulator.isDefault -> "accumulator only contained default trades"
+                else -> "unknown reason"
+            }
+            logger.atFine().log("No actual candle output for key '%s' at window end %s (%s).",
+                accumulator?.currencyPair ?: "unknown", windowEndTime, reason)
+        }    
 
-        // Clear state for the *current key* for the next window
+        // Clear state for the next window
         currentCandleState.clear()
-        // No need to clear activePairsState as it's removed
     }
 
     // buildCandleFromAccumulator remains the same
