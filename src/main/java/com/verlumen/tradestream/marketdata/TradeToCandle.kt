@@ -19,9 +19,6 @@ import com.google.protobuf.util.Timestamps
 
 /**
  * Transforms a stream of trades into OHLCV candles for a predefined list of currency pairs.
- *
- * Ensures that a candle (either actual or default) is produced for every known
- * currency pair in every window.
  */
 class TradeToCandle @Inject constructor(
     @Assisted private val windowDuration: Duration,
@@ -43,75 +40,49 @@ class TradeToCandle @Inject constructor(
             logger.atFine().log("Creating default candle for %s at window end %s with price %.2f",
                 currencyPair, windowEnd, defaultPrice)
 
-            // Handle extreme timestamp values
-            if (windowEnd.millis == Long.MIN_VALUE || windowEnd.millis == Long.MAX_VALUE) {
-                logger.atWarning().log("Invalid window end timestamp: %s. Using current time instead.", windowEnd)
-                // Use current time as fallback
-                val currentTimeMillis = System.currentTimeMillis()
-                val protoTimestamp = Timestamps.fromMillis(currentTimeMillis)
-                
-                return Candle.newBuilder()
-                    .setOpen(defaultPrice)
-                    .setHigh(defaultPrice)
-                    .setLow(defaultPrice)
-                    .setClose(defaultPrice)
-                    .setVolume(0.0)
-                    .setCurrencyPair(currencyPair)
-                    .setTimestamp(protoTimestamp)
-                    .build()
+            // Handle protobuf timestamp limitations for all environments
+            val timestampSeconds = windowEnd.getMillis() / 1000
+            val timestampBuilder = Candle.newBuilder()
+                .setOpen(defaultPrice)
+                .setHigh(defaultPrice)
+                .setLow(defaultPrice)
+                .setClose(defaultPrice)
+                .setVolume(0.0)
+                .setCurrencyPair(currencyPair)
+            
+            // If the timestamp is valid for Protobuf, use it
+            if (timestampSeconds >= MIN_VALID_TIMESTAMP_SECONDS && 
+                timestampSeconds <= MAX_VALID_TIMESTAMP_SECONDS) {
+                try {
+                    timestampBuilder.setTimestamp(Timestamps.fromMillis(windowEnd.millis))
+                } catch (e: Exception) {
+                    // Use epoch as fallback (Jan 1, 1970) - valid in tests and production
+                    logger.atWarning().withCause(e).log(
+                        "Invalid timestamp %s for %s, using epoch time instead", 
+                        windowEnd, currencyPair
+                    )
+                    timestampBuilder.setTimestamp(Timestamps.fromMillis(0))
+                }
+            } else {
+                // For test fixtures, we'll use a valid timestamp that testing code can check against
+                // For extremely early dates, use year 1 (minimum valid)
+                // For extremely late dates, use year 9999 (maximum valid)
+                if (timestampSeconds < MIN_VALID_TIMESTAMP_SECONDS) {
+                    logger.atWarning().log(
+                        "Timestamp %s before minimum valid protobuf time for %s, using min valid time",
+                        windowEnd, currencyPair
+                    )
+                    timestampBuilder.setTimestamp(Timestamps.fromSeconds(MIN_VALID_TIMESTAMP_SECONDS))
+                } else {
+                    logger.atWarning().log(
+                        "Timestamp %s after maximum valid protobuf time for %s, using max valid time",
+                        windowEnd, currencyPair
+                    )
+                    timestampBuilder.setTimestamp(Timestamps.fromSeconds(MAX_VALID_TIMESTAMP_SECONDS))
+                }
             }
             
-            try {
-                // Check if timestamp is within valid Protobuf range
-                val timestampSeconds = windowEnd.getMillis() / 1000
-                if (timestampSeconds < MIN_VALID_TIMESTAMP_SECONDS || timestampSeconds > MAX_VALID_TIMESTAMP_SECONDS) {
-                    logger.atWarning().log(
-                        "Window end timestamp %s (seconds: %d) is outside valid Protobuf range. Using current time instead.",
-                        windowEnd, timestampSeconds
-                    )
-                    // Use current time as fallback
-                    val currentTimeMillis = System.currentTimeMillis()
-                    val protoTimestamp = Timestamps.fromMillis(currentTimeMillis)
-                    
-                    return Candle.newBuilder()
-                        .setOpen(defaultPrice)
-                        .setHigh(defaultPrice)
-                        .setLow(defaultPrice)
-                        .setClose(defaultPrice)
-                        .setVolume(0.0)
-                        .setCurrencyPair(currencyPair)
-                        .setTimestamp(protoTimestamp)
-                        .build()
-                }
-                
-                val protoTimestamp = Timestamps.fromMillis(windowEnd.millis)
-                return Candle.newBuilder()
-                    .setOpen(defaultPrice)
-                    .setHigh(defaultPrice)
-                    .setLow(defaultPrice)
-                    .setClose(defaultPrice)
-                    .setVolume(0.0)
-                    .setCurrencyPair(currencyPair)
-                    .setTimestamp(protoTimestamp)
-                    .build()
-            } catch (e: Exception) {
-                logger.atSevere().withCause(e).log(
-                    "Failed to convert timestamp for %s. Using current time instead.", currencyPair
-                )
-                // Use current time as fallback in case of any error
-                val currentTimeMillis = System.currentTimeMillis()
-                val protoTimestamp = Timestamps.fromMillis(currentTimeMillis)
-                
-                return Candle.newBuilder()
-                    .setOpen(defaultPrice)
-                    .setHigh(defaultPrice)
-                    .setLow(defaultPrice)
-                    .setClose(defaultPrice)
-                    .setVolume(0.0)
-                    .setCurrencyPair(currencyPair)
-                    .setTimestamp(protoTimestamp)
-                    .build()
-            }
+            return timestampBuilder.build()
         }
     }
 
@@ -175,8 +146,6 @@ class TradeToCandle @Inject constructor(
 
                     if (candles.isNotEmpty()) {
                         candles.forEach { candle ->
-                            // Always use the current window's timestamp instead of the candle's timestamp
-                            // to avoid timestamp skew issues
                             context.output(KV.of(currencyPair, candle))
                         }
                         logger.atFine().log("Output actual candle for %s", currencyPair)
@@ -184,7 +153,6 @@ class TradeToCandle @Inject constructor(
                         val windowEnd = window.maxTimestamp()
                         try {
                             val defaultCandle = createDefaultCandle(currencyPair, windowEnd, defaultPrice)
-                            // Use output instead of outputWithTimestamp to use the current element's timestamp
                             context.output(KV.of(currencyPair, defaultCandle))
                             logger.atFine().log("Output default candle for %s at window end %s", currencyPair, windowEnd)
                         } catch (e: Exception) {
