@@ -95,9 +95,8 @@ class CandleCreatorFn @Inject constructor() :
             logger.atFine().log("Initialized accumulator for %s with %s trade (Price: %.2f, Volume: %.2f)",
                 currencyPair, if (accumulator.isDefault) "DEFAULT" else "real", trade.price, trade.volume)
         } else if (trade.exchange != "DEFAULT") {
-             // Update with real trade (overwriting default if needed)
              if (accumulator.isDefault) {
-                 // First real trade overwrites default completely
+                 // First real trade completely replaces default data
                  logger.atFine().log("Overwriting default accumulator with first real trade for %s", currencyPair)
                  accumulator.open = trade.price
                  accumulator.high = trade.price
@@ -105,19 +104,18 @@ class CandleCreatorFn @Inject constructor() :
                  accumulator.close = trade.price
                  accumulator.volume = trade.volume
                  accumulator.isDefault = false
-                 // Update timestamp to first *real* trade
                  accumulator.timestamp = trade.timestamp.seconds
              } else {
-                 // Subsequent real trade updates normally
+                 // IMPORTANT: For subsequent trades, maintain the original open price
+                 // Only update high, low, close, and volume
                  accumulator.high = maxOf(accumulator.high, trade.price)
                  accumulator.low = minOf(accumulator.low, trade.price)
                  accumulator.close = trade.price
                  accumulator.volume += trade.volume
-                 // isDefault remains false
+                 // Keep original open price and timestamp from first trade
              }
             logger.atFine().log("Updated accumulator for %s with real trade, price: %.2f", currencyPair, trade.price)
         }
-        // If initialized and trade is DEFAULT, do nothing further
 
         currentCandleState.write(accumulator)
     }
@@ -132,7 +130,6 @@ class CandleCreatorFn @Inject constructor() :
 
         if (accumulator != null && accumulator.initialized && !accumulator.isDefault) {
             val candle = buildCandleFromAccumulator(accumulator)
-            // Simply use output instead of outputWithTimestamp to avoid timestamp skew issues
             context.output(KV.of(accumulator.currencyPair, candle))
             logger.atFine().log("Output actual candle for %s at window end %s: %s",
                 accumulator.currencyPair, window.maxTimestamp(), candleToString(candle))
