@@ -31,4 +31,7 @@ jobs:
           --verbose_failures \
           --nolegacy_important_outputs \
           --experimental_remote_cache_compression \
-          --experimental_remote_cache_compression_threshold=100
+          --experimental_remote_cache_compression_threshold=100 \
+          --noslim_profile \
+          --experimental_profile_include_target_label \
+          --experimental_profile_include_primary_output 
