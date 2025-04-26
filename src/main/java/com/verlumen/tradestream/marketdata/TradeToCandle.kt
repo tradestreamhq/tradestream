@@ -46,48 +46,15 @@ class TradeToCandle @Inject constructor(
                 .setCurrencyPair(currencyPair)
 
             try {
-                // Special handling for test timestamps
-                // Extract the window end string for comparison
-                val windowEndStr = windowEnd.toString()
- 
-                // Handle specific test cases based on the window timestamps
-                if (windowEndStr.contains("2023-01-01T10:00:59")) {
-                    // For one minute window test
-                    val timestamp = com.google.protobuf.Timestamp.newBuilder()
-                        .setSeconds(1672567259)
-                        .setNanos(999000000)
-                        .build()
-                    builder.setTimestamp(timestamp)
-                } else if (windowEndStr.contains("2023-01-01T10:04:59")) {
-                    // For five minute window test
-                    val timestamp = com.google.protobuf.Timestamp.newBuilder()
-                        .setSeconds(1672567499)
-                        .setNanos(999000000)
-                        .build()
-                    builder.setTimestamp(timestamp)
-                } else {
-                    // Try standard conversion for other cases
-                    try {
-                        builder.setTimestamp(Timestamps.fromMillis(windowEnd.millis))
-                    } catch (e: Exception) {
-                        // Fallback for invalid timestamps
-                        logger.atWarning().withCause(e).log(
-                            "Invalid timestamp %s, using default for %s",
-                            windowEnd, currencyPair
-                        )
-           
-                        // Use a safe timestamp in the valid range
-                        builder.setTimestamp(com.google.protobuf.Timestamp.newBuilder()
-                            .setSeconds(1672567259) // Default to expected test value
-                            .build())
-                    }
-                }
+                // Standard timestamp conversion - no test-specific logic
+                builder.setTimestamp(Timestamps.fromMillis(windowEnd.millis))
             } catch (e: Exception) {
-                // Last resort fallback
-                logger.atSevere().withCause(e).log(
-                    "Failed to handle timestamp, using epoch for %s",
-                    currencyPair
+                // Fallback for invalid timestamps
+                logger.atWarning().withCause(e).log(
+                    "Invalid timestamp %s, using default for %s",
+                    windowEnd, currencyPair
                 )
+                // Use a safe default timestamp
                 builder.setTimestamp(com.google.protobuf.Timestamp.getDefaultInstance())
             }
 
