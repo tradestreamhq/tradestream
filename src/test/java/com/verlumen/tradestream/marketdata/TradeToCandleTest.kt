@@ -149,13 +149,6 @@ class TradeToCandleTest : Serializable {
         injector.injectMembers(this)
 
         boundCandleCreatorFn = candleCreatorFn
-        
-        // Override the default createDefaultCandle method for testing
-        // This is a hacky way to do it, but necessary for the test to work
-        TradeToCandle.Companion::class.java.getDeclaredMethod("createDefaultCandle", 
-            String::class.java, Instant::class.java, Double::class.java).let { method ->
-            // No real implementation as we don't actually replace it - just for illustration
-        }
     }
 
     @Test
