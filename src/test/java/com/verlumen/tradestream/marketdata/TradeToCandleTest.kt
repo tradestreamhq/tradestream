@@ -21,13 +21,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.function.Supplier
-import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
 import org.apache.beam.sdk.coders.Coder
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.values.TimestampedValue
 import org.junit.rules.TestRule
-import org.apache.beam.sdk.options.PipelineOptionsFactory
 
 private fun assertCandle(expected: Candle, actual: Candle, checkTimestampSecs: Boolean = true) {
     val tolerance = 0.00001
@@ -78,7 +76,7 @@ class TradeToCandleTest {
     private val currencyPairSupplier: Supplier<List<CurrencyPair>> =
         Suppliers.ofInstance(currencyPairsInstance)
 
-    @Bind
+    // Remove the @Bind annotation - we'll handle CandleCreatorFn through the Guice module
     private lateinit var boundCandleCreatorFn: CandleCreatorFn
 
     @Before
@@ -86,7 +84,6 @@ class TradeToCandleTest {
         val testModule = BoundFieldModule.of(this)
         val modules: List<Module> = listOf(
             testModule,
-            // Properly create a subclass of AbstractModule
             object : com.google.inject.AbstractModule() {
                 override fun configure() {
                     bind(CandleCreatorFn::class.java)
@@ -99,6 +96,7 @@ class TradeToCandleTest {
         val injector = Guice.createInjector(modules)
         injector.injectMembers(this)
 
+        // After injection, set the boundCandleCreatorFn
         boundCandleCreatorFn = candleCreatorFn
     }
 
