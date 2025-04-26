@@ -12,15 +12,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: bazel-contrib/setup-bazel@0.9.1
-      with:
-        # Avoid downloading Bazel every time.
-        bazelisk-cache: true
-        # Store build cache per workflow.
-        disk-cache: ${{ github.workflow }}
-        # Share repository cache between workflows.
-        repository-cache: true
+    - name: bazel-github-actions-cache
+      uses: tsawada/bazel-github-actions-cache@v0
     - run: |
         bazel test //... \
           --experimental_ui_max_stdouterr_bytes=2097152 \
           --test_output=all \
-          --verbose_failures
+          --verbose_failures \
+          --remote_cache=http://localhost:3055
