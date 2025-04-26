@@ -159,7 +159,6 @@ kt_jvm_test(
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module", # For Guice setup
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_to_candle",
         "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_join_library", # Added for CoGroupByKey used in TradeToCandle
         "//third_party:beam_sdks_java_extensions_protobuf", # For ProtoCoder
         "//third_party:beam_sdks_java_test_utils",
         "//third_party:flogger",
