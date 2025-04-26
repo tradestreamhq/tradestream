@@ -68,53 +68,61 @@ class CandleCreatorFn @Inject constructor() :
         currentCandleState: ValueState<CandleAccumulator>
     ) {
         var accumulator = currentCandleState.read()
+    
         if (accumulator == null) {
+            // First trade for this key-window
             accumulator = CandleAccumulator()
             accumulator.currencyPair = currencyPair
             accumulator.timestamp = trade.timestamp.seconds
-            logger.atFine().log("Created new accumulator for %s with first trade timestamp %d",
-                 currencyPair, accumulator.timestamp)
-        }
-
-        // Skip default trades if we already have real trades
-        if (trade.exchange == "DEFAULT" && !accumulator.isDefault) {
-            logger.atFine().log("Skipping default trade - already have real trades")
-            return
-        }
-
-        if (!accumulator.initialized) {
-            // Initialize with first trade (or default trade)
-            accumulator.initialized = true
             accumulator.open = trade.price
             accumulator.high = trade.price
             accumulator.low = trade.price
             accumulator.close = trade.price
             accumulator.volume = trade.volume
+            accumulator.initialized = true
             accumulator.isDefault = trade.exchange == "DEFAULT"
+            accumulator.firstTradeTimestamp = trade.timestamp.seconds
+        } else {
+            // Skip default trades if we already have real trades
+            if (trade.exchange == "DEFAULT" && !accumulator.isDefault) {
+                return
+            }
 
-            logger.atFine().log("Initialized accumulator for %s with %s trade (Price: %.2f, Volume: %.2f)",
-                currencyPair, if (accumulator.isDefault) "DEFAULT" else "real", trade.price, trade.volume)
-        } else if (trade.exchange != "DEFAULT") {
-             if (accumulator.isDefault) {
-                 // First real trade completely replaces default data
-                 logger.atFine().log("Overwriting default accumulator with first real trade for %s", currencyPair)
-                 accumulator.open = trade.price
-                 accumulator.high = trade.price
-                 accumulator.low = trade.price
-                 accumulator.close = trade.price
-                 accumulator.volume = trade.volume
-                 accumulator.isDefault = false
-                 accumulator.timestamp = trade.timestamp.seconds
-             } else {
-                 // IMPORTANT: For subsequent trades, maintain the original open price
-                 // Only update high, low, close, and volume
-                 accumulator.high = maxOf(accumulator.high, trade.price)
-                 accumulator.low = minOf(accumulator.low, trade.price)
-                 accumulator.close = trade.price
-                 accumulator.volume += trade.volume
-                 // Keep original open price and timestamp from first trade
-             }
-            logger.atFine().log("Updated accumulator for %s with real trade, price: %.2f", currencyPair, trade.price)
+            if (!accumulator.initialized) {
+                // First real trade
+                accumulator.initialized = true
+                accumulator.open = trade.price
+                accumulator.high = trade.price
+                accumulator.low = trade.price
+                accumulator.close = trade.price
+                accumulator.volume = trade.volume
+                accumulator.isDefault = trade.exchange == "DEFAULT"
+                accumulator.firstTradeTimestamp = trade.timestamp.seconds
+            } else if (trade.exchange != "DEFAULT") {
+                if (accumulator.isDefault) {
+                    // First real trade replaces a default
+                    accumulator.open = trade.price
+                    accumulator.high = trade.price
+                    accumulator.low = trade.price
+                    accumulator.close = trade.price
+                    accumulator.volume = trade.volume
+                    accumulator.isDefault = false
+                    accumulator.firstTradeTimestamp = trade.timestamp.seconds
+                } else {
+                    // Check if this is an earlier trade than what we've seen
+                    if (trade.timestamp.seconds < accumulator.firstTradeTimestamp) {
+                        // This is actually the earliest trade we've seen, use as open
+                        accumulator.open = trade.price
+                        accumulator.firstTradeTimestamp = trade.timestamp.seconds
+                    }
+                
+                    // Always update high, low, close and volume
+                    accumulator.high = maxOf(accumulator.high, trade.price)
+                    accumulator.low = minOf(accumulator.low, trade.price)
+                    accumulator.close = trade.price
+                    accumulator.volume += trade.volume
+                }
+            }
         }
 
         currentCandleState.write(accumulator)
