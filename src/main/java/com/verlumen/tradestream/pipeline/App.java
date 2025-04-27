@@ -13,6 +13,7 @@ import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.CandleStreamWithDefaults;
 import com.verlumen.tradestream.marketdata.MultiTimeframeCandleTransform;
 import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.marketdata.TradeSource;
