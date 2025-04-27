@@ -155,17 +155,18 @@ kt_jvm_test(
     deps = [
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//src/main/java/com/verlumen/tradestream/marketdata:candle_creator_fn", # Still needed by TradeToCandle
-        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module", # For Guice setup
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_creator_fn",
+        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_to_candle",
         "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf", # For ProtoCoder
+        "//third_party:beam_sdks_java_extensions_protobuf",
         "//third_party:beam_sdks_java_test_utils",
         "//third_party:flogger",
         "//third_party:guava",
         "//third_party:guice",
-        "//third_party:guice_assistedinject", # For TradeToCandle factory
+        "//third_party:guice_assistedinject",
         "//third_party:guice_testlib",
+        "//third_party:hamcrest",
         "//third_party:joda_time",
         "//third_party:junit",
         "//third_party:mockito_core",
@@ -175,6 +176,5 @@ kt_jvm_test(
     ],
     runtime_deps = [
         "//third_party:beam_runners_direct_java",
-        "//third_party:hamcrest",
     ],
 )
