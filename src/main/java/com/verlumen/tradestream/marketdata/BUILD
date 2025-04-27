@@ -174,13 +174,6 @@ java_library(
     srcs = ["MarketDataModule.java"],
     deps = [
         ":candle_creator_fn",
-        ":dry_run_trade_source",
-        ":exchange_client_trade_source",
-        ":exchange_client_unbounded_source",
-        ":exchange_client_unbounded_source_impl",
-        ":exchange_streaming_client",
-        ":exchange_streaming_client_factory",
-        ":trade_source",
         ":trade_to_candle",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
@@ -242,7 +235,6 @@ kt_jvm_library(
     deps = [
         ":candle_creator_fn",
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:beam_sdks_java_core",
         "//third_party:flogger",
         "//third_party:guice",
@@ -250,4 +242,3 @@ kt_jvm_library(
         "//third_party:joda_time",
     ],
 )
-
