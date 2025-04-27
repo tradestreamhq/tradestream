@@ -47,7 +47,6 @@ jobs:
 
           # Build and push pipeline image
           bazel run //src/main/java/com/verlumen/tradestream/pipeline:push_image \
-            --verbose_failures \
             -- \
             --repository localhost:5000/tradestream-data-pipeline \
             --tag "latest"
