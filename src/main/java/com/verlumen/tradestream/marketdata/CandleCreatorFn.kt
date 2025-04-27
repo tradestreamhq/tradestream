@@ -16,6 +16,7 @@ import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow
 import org.apache.beam.sdk.values.KV
 import org.joda.time.Instant
+import com.verlumen.tradestream.protos.marketdata.*
 import java.io.Serializable
 
 /**
@@ -55,33 +56,22 @@ class CandleCreatorFn @Inject constructor() :
     @ProcessElement
     fun processElement(
         context: ProcessContext,
+        window: BoundedWindow,
         @Element element: KV<String, Trade>,
         @StateId("currentCandle") currentCandleState: ValueState<CandleAccumulator>,
-        @TimerId("endOfWindowTimer") timer: Timer,
-        window: BoundedWindow
+        @TimerId("endOfWindowTimer") endOfWindowTimer: Timer
     ) {
         val currencyPair = element.key
         val trade = element.value
+        endOfWindowTimer.set(window.maxTimestamp()) // Ensure timer fires at window end
 
-        logger.atFine().log("Processing trade for %s: %s in window %s", currencyPair, trade.tradeId, window)
-
-        timer.set(window.maxTimestamp())
-
-        processTradeIntoCandle(currencyPair, trade, currentCandleState)
-    }
-
-    private fun processTradeIntoCandle(
-        currencyPair: String,
-        trade: Trade,
-        currentCandleState: ValueState<CandleAccumulator>
-    ) {
         var accumulator = currentCandleState.read()
 
         if (accumulator == null || !accumulator.initialized) {
             // First trade for this key-window
             accumulator = CandleAccumulator()
             accumulator.currencyPair = currencyPair
-            accumulator.timestamp = trade.timestamp.seconds
+            accumulator.timestamp = window.maxTimestamp().millis / 1000 // Tentative timestamp, use first trade time later
             accumulator.open = trade.price
             accumulator.high = trade.price
             accumulator.low = trade.price
@@ -114,7 +104,7 @@ class CandleCreatorFn @Inject constructor() :
         currentCandleState.write(accumulator)
     }
 
-    @OnTimer("endOfWindowTimer")
+    @OnTimer(timerId = "endOfWindowTimer")
     fun onWindowEnd(
         context: OnTimerContext,
         @StateId("currentCandle") currentCandleState: ValueState<CandleAccumulator>,
@@ -123,7 +113,7 @@ class CandleCreatorFn @Inject constructor() :
     ) {
         val accumulator = currentCandleState.read()
         val lastCandle = lastCandleState.read()
-        
+
         // Get the key using either the accumulator or lastCandle
         val key = when {
             accumulator != null -> accumulator.currencyPair
