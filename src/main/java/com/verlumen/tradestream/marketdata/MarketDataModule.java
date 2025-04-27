@@ -1,5 +1,7 @@
 package com.verlumen.tradestream.marketdata;
 
+import static com.google.protobuf.util.Timestamps.fromMillis;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
@@ -9,11 +11,9 @@ import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.execution.RunMode;
 
-import static com.google.protobuf.util.Timestamps.fromMillis;
-
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
-  static MarketDataModule create(String exchangeName, RunMode runMode) {
+  public static MarketDataModule create(String exchangeName, RunMode runMode) {
     return new AutoValue_MarketDataModule(exchangeName, runMode);
   }
 
