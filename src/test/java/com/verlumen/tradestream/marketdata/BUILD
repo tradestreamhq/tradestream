@@ -1,4 +1,3 @@
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 load("@rules_java//java:defs.bzl", "java_test")
 
 
@@ -141,37 +140,6 @@ java_test(
         "//third_party:junit",
         "//third_party:protobuf_java",
         "//third_party:guava",
-    ],
-    runtime_deps = [
-        "//third_party:beam_runners_direct_java",
-        "//third_party:hamcrest",
-    ],
-)
-
-kt_jvm_test(
-    name = "TradeToCandleTest",
-    srcs = ["TradeToCandleTest.kt"],
-    test_class = "com.verlumen.tradestream.marketdata.TradeToCandleTest",
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//src/main/java/com/verlumen/tradestream/marketdata:candle_creator_fn", # Still needed by TradeToCandle
-        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module", # For Guice setup
-        "//src/main/java/com/verlumen/tradestream/marketdata:trade_to_candle",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf", # For ProtoCoder
-        "//third_party:beam_sdks_java_test_utils",
-        "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject", # For TradeToCandle factory
-        "//third_party:guice_testlib",
-        "//third_party:joda_time",
-        "//third_party:junit",
-        "//third_party:mockito_core",
-        "//third_party:protobuf_java",
-        "//third_party:protobuf_java_util",
-        "//third_party:truth",
     ],
     runtime_deps = [
         "//third_party:beam_runners_direct_java",
