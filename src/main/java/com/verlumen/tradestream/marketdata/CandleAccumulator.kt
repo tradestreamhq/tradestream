@@ -14,7 +14,6 @@ class CandleAccumulator : Serializable {
     var volume: Double = 0.0
     var timestamp: Long = 0 // Used for candle timestamp in final output
     var initialized: Boolean = false
-    var isDefault: Boolean = false
     var firstTradeTimestamp: Long = Long.MAX_VALUE // Track earliest trade timestamp
     var latestTradeTimestamp: Long = Long.MIN_VALUE // Track latest trade timestamp for close price
 
@@ -24,6 +23,6 @@ class CandleAccumulator : Serializable {
 
     override fun toString(): String {
         return "CandleAccumulator{initialized=$initialized, open=$open, high=$high, " +
-                "low=$low, close=$close, volume=$volume, currencyPair='$currencyPair', isDefault=$isDefault}"
+                "low=$low, close=$close, volume=$volume, currencyPair='$currencyPair'}"
     }
 }
