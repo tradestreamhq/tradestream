@@ -44,8 +44,19 @@ class CandleCreatorFn @Inject constructor() :
     private val lastCandleSpec: StateSpec<ValueState<Candle>> =
         StateSpecs.value(ProtoCoder.of(Candle::class.java))
 
+    /**
+     * Special state flag to determine if we need to register interest in future windows,
+     * which is needed for creating fill-forward candles when no trades occur.
+     */
+    @StateId("needsFutureWindows")
+    private val needsFutureWindowsSpec: StateSpec<ValueState<Boolean>> =
+        StateSpecs.value(SerializableCoder.of(Boolean::class.java))
+
     @TimerId("endOfWindowTimer")
     private val timerSpec: TimerSpec = TimerSpecs.timer(TimeDomain.EVENT_TIME)
+    
+    @TimerId("ensureFutureWindowTimer")
+    private val futureWindowTimerSpec: TimerSpec = TimerSpecs.timer(TimeDomain.EVENT_TIME)
 
     @Setup
     fun setup() {
@@ -57,7 +68,10 @@ class CandleCreatorFn @Inject constructor() :
         context: ProcessContext,
         @Element element: KV<String, Trade>,
         @StateId("currentCandle") currentCandleState: ValueState<CandleAccumulator>,
+        @StateId("lastEmittedCandle") lastCandleState: ValueState<Candle>,
+        @StateId("needsFutureWindows") needsFutureWindowsState: ValueState<Boolean>,
         @TimerId("endOfWindowTimer") timer: Timer,
+        @TimerId("ensureFutureWindowTimer") futureWindowTimer: Timer,
         window: BoundedWindow
     ) {
         val currencyPair = element.key
@@ -66,6 +80,19 @@ class CandleCreatorFn @Inject constructor() :
         logger.atFine().log("Processing trade for %s: %s in window %s", currencyPair, trade.tradeId, window)
 
         timer.set(window.maxTimestamp())
+        
+        // If this is the first time we've seen this key or we already know we want future windows
+        if (lastCandleState.read() != null || needsFutureWindowsState.read() == true) {
+            // Mark that we want to receive future windows for this key
+            needsFutureWindowsState.write(true)
+            
+            // Set a timer for the next window to ensure we get called even if there are no elements
+            // We add 1ms to ensure it's in the next window
+            val nextWindowStart = window.maxTimestamp().plus(1) 
+            futureWindowTimer.set(nextWindowStart)
+            
+            logger.atFine().log("Setting future window timer for %s at %s", currencyPair, nextWindowStart)
+        }
 
         processTradeIntoCandle(currencyPair, trade, currentCandleState)
     }
@@ -114,6 +141,32 @@ class CandleCreatorFn @Inject constructor() :
         currentCandleState.write(accumulator)
     }
 
+    @OnTimer("ensureFutureWindowTimer")
+    fun onFutureWindowTimer(
+        context: OnTimerContext,
+        @TimerId("endOfWindowTimer") endOfWindowTimer: Timer,
+        window: BoundedWindow,
+        @StateId("needsFutureWindows") needsFutureWindowsState: ValueState<Boolean>,
+        @StateId("lastEmittedCandle") lastCandleState: ValueState<Candle>
+    ) {
+        // If we still need future windows (have lastEmittedCandle state),
+        // set the endOfWindow timer for this window to ensure we either output
+        // a regular candle or a fill-forward candle
+        if (lastCandleState.read() != null) {
+            endOfWindowTimer.set(window.maxTimestamp())
+            
+            // Set a timer for the next window too
+            val nextWindowStart = window.maxTimestamp().plus(1)
+            context.timer("ensureFutureWindowTimer").set(nextWindowStart)
+            
+            logger.atFine().log("Future window timer: Set end-of-window timer for window %s", window)
+        } else {
+            // No more history, we can stop tracking this key
+            needsFutureWindowsState.clear()
+            logger.atFine().log("Future window timer: No lastEmittedCandle, stopping future windows")
+        }
+    }
+
     @OnTimer("endOfWindowTimer")
     fun onWindowEnd(
         context: OnTimerContext,
@@ -133,6 +186,9 @@ class CandleCreatorFn @Inject constructor() :
                 return // No key, no output possible
             }
         }
+
+        logger.atFine().log("Processing end of window for %s at %s (has accumulator: %s, has lastCandle: %s)", 
+            key, window.maxTimestamp(), accumulator != null, lastCandle != null)
 
         if (accumulator != null && accumulator.initialized) {
             // Case 1: Trades occurred in this window - create standard candle
