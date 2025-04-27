@@ -20,7 +20,4 @@ jobs:
         # Share repository cache between workflows.
         repository-cache: true
     - run: |
-        bazel test //... \
-          --experimental_ui_max_stdouterr_bytes=2097152 \
-          --test_output=all \
-          --verbose_failures
+        bazel test //...
