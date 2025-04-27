@@ -3,18 +3,19 @@ package com.verlumen.tradestream.marketdata
 import java.io.Serializable
 
 /**
- * Class to hold the intermediate candle data for aggregation.
+ * Accumulator for building a Candle within a single window.
+ * Used by stateful DoFn [CandleCreatorFn].
  */
 class CandleAccumulator : Serializable {
     var currencyPair: String = ""
     var open: Double = 0.0
-    var high: Double = 0.0
-    var low: Double = 0.0
+    var high: Double = Double.MIN_VALUE
+    var low: Double = Double.MAX_VALUE
     var close: Double = 0.0
     var volume: Double = 0.0
-    var timestamp: Long = 0 // Used for candle timestamp in final output
+    var timestamp: Long = 0 // Used for candle timestamp (first trade time) in final output
     var initialized: Boolean = false
-    var firstTradeTimestamp: Long = Long.MAX_VALUE // Track earliest trade timestamp
+    var firstTradeTimestamp: Long = Long.MAX_VALUE // Track earliest trade timestamp for open price and candle timestamp
     var latestTradeTimestamp: Long = Long.MIN_VALUE // Track latest trade timestamp for close price
 
     companion object {
