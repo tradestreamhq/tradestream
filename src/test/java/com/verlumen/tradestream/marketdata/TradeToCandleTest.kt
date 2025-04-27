@@ -16,10 +16,10 @@ import org.apache.beam.sdk.transforms.SerializableFunction
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
 import org.joda.time.Duration
-import org.joda.time.Instant
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.time.Instant
 import java.util.function.Supplier
 import java.io.Serializable
 import com.google.protobuf.util.Timestamps
