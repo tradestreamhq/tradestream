@@ -16,10 +16,10 @@ import org.apache.beam.sdk.transforms.SerializableFunction
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
 import org.joda.time.Duration
+import org.joda.time.Instant  // Changed to org.joda.time.Instant
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.time.Instant
 import java.util.function.Supplier
 import java.io.Serializable
 import com.google.protobuf.util.Timestamps
@@ -27,7 +27,7 @@ import org.apache.beam.sdk.coders.Coder
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.values.TimestampedValue
 import com.google.protobuf.Timestamp
-import com.google.inject.AbstractModule  // Import AbstractModule
+import com.google.inject.AbstractModule
 
 // Make assertions in a serializable helper
 class CandleChecker(
@@ -152,9 +152,9 @@ class TradeToCandleTest : Serializable {
 
     // Corrected expected default candle timestamps (representing window end second)
     // Window [10:00:00, 10:01:00) -> maxTimestamp is 10:00:59.999 -> second is 10:00:59
-    private val oneMinWindowEndTs = Timestamps.fromSeconds(Instant.parse("2023-01-01T10:00:59Z").epochSecond)
+    private val oneMinWindowEndTs = Timestamps.fromSeconds(Instant.parse("2023-01-01T10:00:59.000Z").getMillis() / 1000)
     // Window [10:00:00, 10:05:00) -> maxTimestamp is 10:04:59.999 -> second is 10:04:59
-    private val fiveMinWindowEndTs = Timestamps.fromSeconds(Instant.parse("2023-01-01T10:04:59Z").epochSecond)
+    private val fiveMinWindowEndTs = Timestamps.fromSeconds(Instant.parse("2023-01-01T10:04:59.000Z").getMillis() / 1000)
 
 
     @Before
@@ -184,8 +184,8 @@ class TradeToCandleTest : Serializable {
     fun testTradeToCandlesOneMinuteWindow() {
         val windowDuration = Duration.standardMinutes(1)
         // Trades within the [10:00:00, 10:01:00) window
-        val t1 = Instant.parse("2023-01-01T10:00:15Z") // First trade
-        val t2 = Instant.parse("2023-01-01T10:00:45Z") // Last trade
+        val t1 = Instant.parse("2023-01-01T10:00:15.000Z") // First trade
+        val t2 = Instant.parse("2023-01-01T10:00:45.000Z") // Last trade
 
         val trades = listOf(
             createTrade("BTC/USD", 50000.0, 1.0, t1), // Open=50k, Low=50k
@@ -201,7 +201,7 @@ class TradeToCandleTest : Serializable {
             .setClose(50100.0)
             .setVolume(1.5)
              // Timestamp based on the *first* trade in CandleCreatorFn logic
-            .setTimestamp(Timestamps.fromMillis(t1.millis))
+            .setTimestamp(Timestamps.fromMillis(t1.getMillis()))
             .build()
 
         // Expected default candle for ETH/USD (no trades)
@@ -229,12 +229,12 @@ class TradeToCandleTest : Serializable {
     fun testTradeToCandlesFiveMinuteWindow() {
         val windowDuration = Duration.standardMinutes(5)
          // Trades within the [10:00:00, 10:05:00) window
-        val t1 = Instant.parse("2023-01-01T10:01:30Z") // First trade
-        val t2 = Instant.parse("2023-01-01T10:04:45Z") // Last trade
+        val t1 = Instant.parse("2023-01-01T10:01:30.000Z") // First trade
+        val t2 = Instant.parse("2023-01-01T10:04:45.000Z") // Last trade
 
         val trades = listOf(
             createTrade("BTC/USD", 50000.0, 1.0, t1), // Open=50k, Low=50k
-             createTrade("BTC/USD", 49900.0, 0.2, Instant.parse("2023-01-01T10:02:00Z")), // Lower Low=49.9k
+             createTrade("BTC/USD", 49900.0, 0.2, Instant.parse("2023-01-01T10:02:00.000Z")), // Lower Low=49.9k
             createTrade("BTC/USD", 50100.0, 0.5, t2)  // High=50.1k, Close=50.1k, Vol=1.7
         )
 
@@ -247,7 +247,7 @@ class TradeToCandleTest : Serializable {
             .setClose(50100.0)
             .setVolume(1.7)
             // Timestamp based on the *first* trade
-            .setTimestamp(Timestamps.fromMillis(t1.millis))
+            .setTimestamp(Timestamps.fromMillis(t1.getMillis()))
             .build()
 
         // Expected default candle for ETH/USD
@@ -326,7 +326,7 @@ class TradeToCandleTest : Serializable {
             .setVolume(volume)
             .setExchange("TEST") // Use a non-"DEFAULT" exchange name
             .setTradeId("test-${System.nanoTime()}")
-            .setTimestamp(Timestamps.fromMillis(timestamp.millis))
+            .setTimestamp(Timestamps.fromMillis(timestamp.getMillis()))
             .build()
     }
 }
