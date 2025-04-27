@@ -1,9 +1,7 @@
 package com.verlumen.tradestream.marketdata
 
-import com.verlumen.tradestream.protos.marketdata.Candle
 import com.google.protobuf.Timestamp
 import java.io.Serializable
-import org.joda.time.Instant
 
 /**
  * Accumulator for creating OHLCV candles.
