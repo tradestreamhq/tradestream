@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.marketdata
 
-import com.google.protobuf.Timestamp
 import java.io.Serializable
 
 /**
