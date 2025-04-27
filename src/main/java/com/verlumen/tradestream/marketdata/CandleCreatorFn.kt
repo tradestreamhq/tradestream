@@ -122,49 +122,44 @@ class CandleCreatorFn @Inject constructor() :
         window: BoundedWindow
     ) {
         val accumulator = currentCandleState.read()
-        val lastEmittedCandle = lastCandleState.read() // Read the candle emitted in the previous window
+        val lastActualCandleFromState = lastCandleState.read() // Read the *actual* candle emitted previously
 
-        // Determine the key (currency pair)
         val key = when {
             accumulator != null && accumulator.initialized -> accumulator.currencyPair
-            lastEmittedCandle != null -> lastEmittedCandle.currencyPair
+            lastActualCandleFromState != null -> lastActualCandleFromState.currencyPair // Use key from last actual candle
             else -> {
                 logger.atFine().log("No key found for window %s, cannot output.", window.maxTimestamp())
-                // Clear states for this window as no output is possible
                 currentCandleState.clear()
-                // Consider if lastCandleState should be cleared too, depends on desired behavior after a complete gap
+                // Decide if lastCandleState should be cleared depending on desired behavior for long gaps
                 // lastCandleState.clear()
                 return
             }
         }
 
         val candleToOutput: Candle?
-        val candleToRemember: Candle? // This is the candle state we'll store for the *next* window
 
         if (accumulator != null && accumulator.initialized) {
-            // Case 1: Trades occurred in this window. Output a standard candle.
+            // Case 1: Trades occurred. Output actual candle and update state.
             val actualCandle = buildCandleFromAccumulator(accumulator)
             candleToOutput = actualCandle
-            candleToRemember = actualCandle // Remember this actual candle's state
+            lastCandleState.write(actualCandle) // <<< CHANGE: Store the ACTUAL candle state
             logger.atFine().log(
                 "Output actual candle for %s at window end %s: %s",
                 key, window.maxTimestamp(), candleToString(actualCandle)
             )
-        } else if (lastEmittedCandle != null) {
-            // Case 2: No trades, but there was a previously emitted candle. Output a fill-forward candle.
-            val fillForwardCandle = buildFillForwardCandle(key, lastEmittedCandle, window.maxTimestamp())
+        } else if (lastActualCandleFromState != null) {
+            // Case 2: No trades, but previous actual candle exists. Output fill-forward.
+            val fillForwardCandle = buildFillForwardCandle(key, lastActualCandleFromState, window.maxTimestamp())
             candleToOutput = fillForwardCandle
-            // IMPORTANT: Remember the state of the fill-forward candle itself for the next window.
-            // Its close price (which is the same as lastEmittedCandle's close) will be used if the next window is also empty.
-            candleToRemember = fillForwardCandle
+            // <<< CHANGE: DO NOT write fillForwardCandle back to lastCandleState. State retains lastActualCandleFromState.
             logger.atFine().log(
                 "Output fill-forward candle for %s at window end %s: %s",
                 key, window.maxTimestamp(), candleToString(fillForwardCandle)
             )
         } else {
-            // Case 3: No trades in this window AND no previous candle history for this key. Output nothing.
+            // Case 3: No trades and no prior actual candle. Output nothing.
             candleToOutput = null
-            candleToRemember = null // Nothing to remember
+            lastCandleState.clear() // Clear state if there's a gap with no history
             logger.atFine().log(
                 "No candle output for key '%s' at window end %s (no trades and no prior candle).",
                 key, window.maxTimestamp()
@@ -174,16 +169,6 @@ class CandleCreatorFn @Inject constructor() :
         // Output the candle determined above (if any)
         candleToOutput?.let {
             context.outputWithTimestamp(KV.of(key, it), window.maxTimestamp())
-        }
-
-        // Update the state for the next window's potential fill-forward
-        if (candleToRemember != null) {
-             lastCandleState.write(candleToRemember)
-        } else {
-             // If we are in Case 3 (output nothing), clear the state
-             // so we don't incorrectly fill-forward across a large gap
-             // where no candles were produced at all.
-             lastCandleState.clear()
         }
 
         // Always clear the trade accumulator for the current window
