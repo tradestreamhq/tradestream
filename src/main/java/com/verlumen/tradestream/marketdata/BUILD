@@ -178,6 +178,7 @@ java_library(
         ":exchange_client_trade_source",
         ":exchange_client_unbounded_source",
         ":exchange_streaming_client",
+        ":exchange_client_unbounded_source_impl",
         ":exchange_streaming_client_factory",
         ":trade_source",
         ":trade_to_candle",
