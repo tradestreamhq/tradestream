@@ -15,13 +15,13 @@ build --sandbox_debug
 test --experimental_ui_max_stdouterr_bytes=2097152
 test --test_output=all
 test --verbose_failures
-test --nolegacy_important_outputs
-test --experimental_remote_cache_compression
 test --experimental_remote_cache_compression_threshold=100
 
 # Build Buddy configuration
 build --bes_results_url=https://app.buildbuddy.io/invocation/
 build --bes_backend=grpcs://remote.buildbuddy.io
-build --remote_cache=grpcs://remote.buildbuddy.io
+build --experimental_remote_cache_compression
+build --nolegacy_important_outputs
 build --noremote_upload_local_results # Uploads logs & artifacts without writing to cache
+build --remote_cache=grpcs://remote.buildbuddy.io
 build --remote_timeout=10m
