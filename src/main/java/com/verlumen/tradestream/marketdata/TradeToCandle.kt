@@ -10,6 +10,7 @@ import org.apache.beam.sdk.transforms.join.CoGroupByKey
 import org.apache.beam.sdk.transforms.join.KeyedPCollectionTuple
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow
 import org.apache.beam.sdk.transforms.windowing.FixedWindows
+import org.apache.beam.sdk.transforms.windowing.IntervalWindow
 import org.apache.beam.sdk.transforms.windowing.Window
 import org.apache.beam.sdk.values.*
 import org.joda.time.Duration
@@ -24,7 +25,7 @@ class TradeToCandle @Inject constructor(
     @Assisted private val windowDuration: Duration,
     @Assisted private val defaultPrice: Double,
     private val currencyPairsSupplier: Supplier<List<CurrencyPair>>,
-    private val candleCreatorFn: CandleCreatorFn
+    private val candleCreatorFn: CandleCreatorFn // Inject the aggregator DoFn
 ) : PTransform<PCollection<Trade>, PCollection<KV<String, Candle>>>() {
 
     companion object {
@@ -32,9 +33,10 @@ class TradeToCandle @Inject constructor(
         private const val CANDLE_TAG = "candles"
         private const val IMPULSE_TAG = "impulses"
 
-        fun createDefaultCandle(currencyPair: String, windowEnd: Instant, defaultPrice: Double): Candle {
-            logger.atFine().log("Creating default candle for %s at window end %s with price %.2f",
-                currencyPair, windowEnd, defaultPrice)
+        // Updated to accept an Instant
+        fun createDefaultCandle(currencyPair: String, timestampInstant: Instant, defaultPrice: Double): Candle {
+            logger.atFine().log("Creating default candle for %s at timestamp %s with price %.2f",
+                currencyPair, timestampInstant, defaultPrice)
 
             // Create the basic candle builder
             val builder = Candle.newBuilder()
@@ -45,37 +47,18 @@ class TradeToCandle @Inject constructor(
                 .setVolume(0.0)
                 .setCurrencyPair(currencyPair)
 
-            // Extract the window end string for easier pattern matching
-            val windowEndStr = windowEnd.toString()
-            
-            // Handle expected test patterns based on window duration
-            if (windowEndStr.contains("-290308-12-21T20:00:59") || windowEndStr.contains("T10:00:59")) {
-                // For one minute window test
-                return builder.setTimestamp(com.google.protobuf.Timestamp.newBuilder()
-                    .setSeconds(1672567259)
-                    .setNanos(999000000)
-                    .build())
-                    .build()
-            } else if (windowEndStr.contains("-290308-12-21T20:04:59") || windowEndStr.contains("T10:04:59")) {
-                // For five minute window test
-                return builder.setTimestamp(com.google.protobuf.Timestamp.newBuilder()
-                    .setSeconds(1672567290)
-                    .setNanos(999000000)
-                    .build())
-                    .build()
-            }
-            
-            // For non-test cases, use standard timestamp conversion
             try {
-                builder.setTimestamp(Timestamps.fromMillis(windowEnd.millis))
-            } catch (e: Exception) {
+                // Attempt conversion using the provided Instant
+                builder.setTimestamp(Timestamps.fromMillis(timestampInstant.millis))
+            } catch (e: IllegalArgumentException) {
+                // This catch might still be needed if the fallback Instant is somehow invalid
+                // for Timestamps, although less likely than Instant.MIN/MAX.
                 logger.atWarning().withCause(e).log(
-                    "Invalid timestamp %s, using default for %s",
-                    windowEnd, currencyPair
+                    "Failed to convert potentially valid Instant to Timestamp: %s. Using EPOCH for %s",
+                    timestampInstant, currencyPair
                 )
-                
-                // Default to a safe value that won't cause errors
-                builder.setTimestamp(com.google.protobuf.Timestamp.getDefaultInstance())
+                // Provide a guaranteed valid timestamp as ultimate fallback
+                builder.setTimestamp(Timestamps.EPOCH) // Use EPOCH instead of a potentially invalid calculated default
             }
 
             return builder.build()
@@ -102,23 +85,29 @@ class TradeToCandle @Inject constructor(
             Window.into<KV<String, Trade>>(FixedWindows.of(windowDuration))
         )
 
+        // Use the injected CandleCreatorFn instance
         val actualCandles: PCollection<KV<String, Candle>> = windowedTrades
             .apply("AggregateCandles", ParDo.of(candleCreatorFn))
             .setTypeDescriptor(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptor.of(Candle::class.java)))
 
+
         val allKeys = currencyPairsSupplier.get().map { it.symbol() }
         if (allKeys.isEmpty()) {
             logger.atWarning().log("Currency pair supplier returned empty list. No default candles will be generated.")
-            return actualCandles
+            return actualCandles // Return only actual candles if no keys are expected
         }
 
+        // Create impulse - Note: Timestamps default to Instant.MIN here, which might be problematic
+        // if not handled carefully downstream, especially regarding window determination.
         val impulse = pipeline
             .apply("CreateAllKeys", Create.of(allKeys))
             .apply("MapKeysToKV", MapElements
                 .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.booleans()))
                 .via(SerializableFunction<String, KV<String, Boolean>> { key -> KV.of(key, true) })
             )
+            // Apply the same windowing to the impulse stream
             .apply("WindowImpulses", Window.into<KV<String, Boolean>>(FixedWindows.of(windowDuration)))
+
 
         val candleTag = TupleTag<Candle>(CANDLE_TAG)
         val impulseTag = TupleTag<Boolean>(IMPULSE_TAG)
@@ -127,13 +116,14 @@ class TradeToCandle @Inject constructor(
             .and(impulseTag, impulse)
             .apply("JoinCandlesWithImpulses", CoGroupByKey.create())
 
+        // Updated DoFn to handle timestamp calculation robustly
         val finalCandles = joined.apply("GenerateDefaults", ParDo.of(
             object : DoFn<KV<String, CoGbkResult>, KV<String, Candle>>() {
                 @ProcessElement
                 fun process(
                     @Element element: KV<String, CoGbkResult>,
                     context: ProcessContext,
-                    window: BoundedWindow
+                    window: BoundedWindow // Make window accessible
                 ) {
                     val currencyPair = element.key
                     val result = element.value
@@ -146,18 +136,57 @@ class TradeToCandle @Inject constructor(
                         }
                         logger.atFine().log("Output actual candle for %s", currencyPair)
                     } else if (impulses.isNotEmpty()) {
-                        val windowEnd = window.maxTimestamp()
+                        // Generate default candle only if impulse exists and no actual candle exists
+                        var windowEndInstant: Instant? = null
                         try {
-                            val defaultCandle = createDefaultCandle(currencyPair, windowEnd, defaultPrice)
-                            context.output(KV.of(currencyPair, defaultCandle))
-                            logger.atFine().log("Output default candle for %s at window end %s", currencyPair, windowEnd)
+                            // Prefer maxTimestamp as it's the intended trigger/end time for the window
+                            windowEndInstant = window.maxTimestamp()
+                            // Basic check for Beam's MIN/MAX sentinel values
+                             if (windowEndInstant.millis <= Timestamps.MIN_VALUE.seconds * 1000 ||
+                                 windowEndInstant.millis >= Timestamps.MAX_VALUE.seconds * 1000) {
+                                 // Consider these invalid for our purpose, force fallback
+                                 throw IllegalArgumentException("Window maxTimestamp is MIN/MAX or outside Protobuf range")
+                             }
+                             // Attempt conversion here to catch Protobuf range issues early
+                             Timestamps.fromMillis(windowEndInstant.millis)
+                             logger.atFinest().log("Using window.maxTimestamp() for default: %s", windowEndInstant)
+
                         } catch (e: Exception) {
+                            logger.atWarning().log("window.maxTimestamp() is invalid or caused exception (%s). Attempting fallback using IntervalWindow for key %s.", e.message, currencyPair)
+                            if (window is IntervalWindow) {
+                                // IntervalWindow.end() is exclusive upper bound.
+                                // BoundedWindow.maxTimestamp() is inclusive upper bound.
+                                // So, end() - 1ms should ideally equal maxTimestamp(). Use this as fallback.
+                                windowEndInstant = window.end().minus(Duration.millis(1))
+                                logger.atFine().log("Fallback timestamp from IntervalWindow.end() - 1ms: %s", windowEndInstant)
+                            } else {
+                                logger.atSevere().log("Cannot determine window end timestamp for default candle for key %s in non-IntervalWindow %s", currencyPair, window)
+                                // Skip creating default candle if timestamp is indeterminable
+                                return
+                            }
+                        }
+
+                        // Ensure we have a valid instant before proceeding
+                        if (windowEndInstant == null) {
+                             logger.atSevere().log("Failed to determine a valid timestamp for default candle for key %s", currencyPair)
+                             return
+                        }
+
+                        try {
+                            // Pass the determined Instant to createDefaultCandle
+                            val defaultCandle = createDefaultCandle(currencyPair, windowEndInstant, defaultPrice)
+                            context.output(KV.of(currencyPair, defaultCandle))
+                            logger.atFine().log("Output default candle for %s at effective window end %s", currencyPair, windowEndInstant)
+                        } catch (e: Exception) {
+                            // Catch potential timestamp conversion error even from fallback logic
                             logger.atSevere().withCause(e).log(
-                                "Failed to generate or output default candle for %s at window end %s",
-                                currencyPair, windowEnd
+                                "Failed to generate or output default candle for %s with calculated timestamp %s",
+                                currencyPair, windowEndInstant
                             )
                         }
                     } else {
+                        // This case (no candles, no impulses) shouldn't happen with CoGroupByKey
+                        // if the impulse side covers all keys, but log if it does.
                         logger.atWarning().log(
                             "Unexpected CoGbkResult for key %s: No candles and no impulses.",
                             currencyPair
@@ -166,6 +195,7 @@ class TradeToCandle @Inject constructor(
                 }
             }
         )).setTypeDescriptor(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptor.of(Candle::class.java)))
+
 
         return finalCandles.setName("FinalCandlesWithDefaults")
     }
