@@ -52,10 +52,6 @@ jobs:
 
           # Build and push pipeline image
           bazel run //src/main/java/com/verlumen/tradestream/pipeline:push_image \
-            --verbose_failures \
-            --nolegacy_important_outputs \
-            --experimental_remote_cache_compression \
-            --experimental_remote_cache_compression_threshold=100 \
             -- \
             --repository localhost:5000/tradestream-data-pipeline \
             --tag "latest"
