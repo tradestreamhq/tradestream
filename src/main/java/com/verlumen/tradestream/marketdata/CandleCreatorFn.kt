@@ -41,7 +41,6 @@ class CandleCreatorFn @Inject constructor() :
         StateSpecs.value(SerializableCoder.of(CandleAccumulator::class.java))
 
     @StateId("lastEmittedCandle")
-    // State to remember the last EMITTED candle (could be actual or fill-forward)
     private val lastCandleSpec: StateSpec<ValueState<Candle>> =
         StateSpecs.value(ProtoCoder.of(Candle::class.java))
 
@@ -83,34 +82,30 @@ class CandleCreatorFn @Inject constructor() :
             // First trade for this key-window
             accumulator = CandleAccumulator()
             accumulator.currencyPair = currencyPair
-            accumulator.timestamp = trade.timestamp.seconds // Initialize candle timestamp
+            accumulator.timestamp = trade.timestamp.seconds
             accumulator.open = trade.price
             accumulator.high = trade.price
             accumulator.low = trade.price
             accumulator.close = trade.price
             accumulator.volume = trade.volume
             accumulator.initialized = true
-            accumulator.firstTradeTimestamp = trade.timestamp.seconds // Track earliest trade for candle timestamp
-            accumulator.latestTradeTimestamp = trade.timestamp.seconds // Track latest trade for close price
+            accumulator.firstTradeTimestamp = trade.timestamp.seconds
+            accumulator.latestTradeTimestamp = trade.timestamp.seconds
         } else {
-            // Update high and low always
+            // Update based on incoming trade
             accumulator.high = maxOf(accumulator.high, trade.price)
             accumulator.low = minOf(accumulator.low, trade.price)
-            
-            // Update open if this is an earlier trade
-            if (trade.timestamp.seconds < accumulator.firstTradeTimestamp) {
-                accumulator.open = trade.price
-                accumulator.firstTradeTimestamp = trade.timestamp.seconds
-            }
-            
-            // Update close if this is a later trade
-            if (trade.timestamp.seconds >= accumulator.latestTradeTimestamp) {
-                accumulator.close = trade.price
-                accumulator.latestTradeTimestamp = trade.timestamp.seconds
-            }
-            
-            // Always add volume
             accumulator.volume += trade.volume
+            
+            if (trade.timestamp.seconds < accumulator.firstTradeTimestamp) {
+                accumulator.firstTradeTimestamp = trade.timestamp.seconds
+                accumulator.open = trade.price
+            }
+            
+            if (trade.timestamp.seconds >= accumulator.latestTradeTimestamp) {
+                accumulator.latestTradeTimestamp = trade.timestamp.seconds
+                accumulator.close = trade.price
+            }
         }
 
         currentCandleState.write(accumulator)
@@ -126,36 +121,30 @@ class CandleCreatorFn @Inject constructor() :
         val accumulator = currentCandleState.read()
         val lastEmittedCandle = lastCandleState.read()
 
-        // Determine the key for output candle
-        val key = when {
-            accumulator != null && accumulator.initialized -> accumulator.currencyPair
-            lastEmittedCandle != null -> lastEmittedCandle.currencyPair
-            else -> {
-                logger.atFine().log("No key found for window %s, cannot output.", window.maxTimestamp())
-                currentCandleState.clear()
-                return
-            }
-        }
-
+        // Determine if we have data to emit a candle
         if (accumulator != null && accumulator.initialized) {
-            // Case 1: Trades occurred in this window - create an actual candle
+            // Case 1: Trades occurred in this window
             val actualCandle = buildCandleFromAccumulator(accumulator)
-            context.outputWithTimestamp(KV.of(key, actualCandle), window.maxTimestamp())
             
-            // Important: Update the state with the latest actual candle
+            // Output the actual candle
+            context.outputWithTimestamp(KV.of(accumulator.currencyPair, actualCandle), window.maxTimestamp())
+            
+            // Update the last emitted candle state for future fill-forward
             lastCandleState.write(actualCandle)
             
             logger.atFine().log(
                 "Output actual candle for %s at window end %s: %s",
-                key, window.maxTimestamp(), candleToString(actualCandle)
+                accumulator.currencyPair, window.maxTimestamp(), candleToString(actualCandle)
             )
         } else if (lastEmittedCandle != null) {
-            // Case 2: No trades, but we have a previous candle state - create fill-forward
+            // Case 2: No trades, but we have a previous candle state
+            val key = lastEmittedCandle.currencyPair
             val fillForwardCandle = buildFillForwardCandle(key, lastEmittedCandle, window.maxTimestamp())
+            
+            // Output the fill-forward candle
             context.outputWithTimestamp(KV.of(key, fillForwardCandle), window.maxTimestamp())
             
-            // Critical fix: We must update the state with the fill-forward candle
-            // so that future empty windows can continue the chain
+            // CRITICAL FIX: Update the state with the fill-forward candle for chain continuation
             lastCandleState.write(fillForwardCandle)
             
             logger.atFine().log(
@@ -165,39 +154,37 @@ class CandleCreatorFn @Inject constructor() :
         } else {
             // Case 3: No trades and no prior candle history for this key
             logger.atFine().log(
-                "No candle output for key '%s' at window end %s (no trades and no prior candle).",
-                key, window.maxTimestamp()
+                "No candle output at window end %s (no trades and no prior candle).",
+                window.maxTimestamp()
             )
         }
 
-        // Always clear the trade accumulator for the processed window
+        // Always clear the accumulator for the current window
         currentCandleState.clear()
     }
 
-    // Helper to build candle from accumulator data
     private fun buildCandleFromAccumulator(acc: CandleAccumulator): Candle {
-        return Candle.newBuilder()
+        val builder = Candle.newBuilder()
             .setCurrencyPair(acc.currencyPair)
             .setOpen(acc.open)
             .setHigh(acc.high)
             .setLow(acc.low)
             .setClose(acc.close)
             .setVolume(acc.volume)
-            // Use the first trade timestamp for the candle timestamp
             .setTimestamp(Timestamps.fromSeconds(acc.firstTradeTimestamp))
-            .build()
+        
+        return builder.build()
     }
 
-    // Helper to build a fill-forward candle
     private fun buildFillForwardCandle(key: String, lastEmittedCandle: Candle, windowEnd: Instant): Candle {
         return Candle.newBuilder()
             .setCurrencyPair(key)
-            .setTimestamp(Timestamps.fromMillis(windowEnd.millis)) // Timestamp is the end of the empty window
-            .setOpen(lastEmittedCandle.close)  // Use last emitted close price
+            .setTimestamp(Timestamps.fromMillis(windowEnd.millis))
+            .setOpen(lastEmittedCandle.close)
             .setHigh(lastEmittedCandle.close)
             .setLow(lastEmittedCandle.close)
             .setClose(lastEmittedCandle.close)
-            .setVolume(0.0) // Zero volume indicates fill-forward
+            .setVolume(0.0)
             .build()
     }
 }
