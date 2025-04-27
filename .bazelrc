@@ -9,6 +9,9 @@ build --tool_java_language_version=17
 # Enable platform-based toolchain resolution
 build --incompatible_enable_cc_toolchain_resolution
 
+build --verbose_failures
+build --sandbox_debug
+
 test --experimental_ui_max_stdouterr_bytes=2097152
 test --test_output=all
 test --verbose_failures
