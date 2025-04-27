@@ -123,7 +123,16 @@ class CandleCreatorFn @Inject constructor() :
     ) {
         val accumulator = currentCandleState.read()
         val lastCandle = lastCandleState.read()
-        val key = context.key() as String
+        
+        // Get the key from either the accumulator or the last candle
+        val key = when {
+            accumulator != null -> accumulator.currencyPair
+            lastCandle != null -> lastCandle.currencyPair
+            else -> {
+                logger.atFine().log("No key found for window %s", window.maxTimestamp())
+                return // No key, no output possible
+            }
+        }
 
         if (accumulator != null && accumulator.initialized) {
             // Case 1: Trades occurred in this window - create standard candle
