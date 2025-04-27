@@ -3,6 +3,27 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
+kt_jvm_library(
+    name = "candle_accumulator",
+    srcs = ["CandleAccumulator.kt"],
+)
+
+kt_jvm_library(
+    name = "candle_creator_fn",
+    srcs = ["CandleCreatorFn.kt"],
+    deps = [
+        ":candle_accumulator",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+    ],
+)
+
 java_library(
     name = "candle_stream_with_defaults",
     srcs = ["CandleStreamWithDefaults.java"],
@@ -152,6 +173,7 @@ java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
     deps = [
+        ":candle_creator_fn",
         ":dry_run_trade_source",
         ":exchange_client_trade_source",
         ":exchange_client_unbounded_source",
@@ -159,11 +181,13 @@ java_library(
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
         ":trade_source",
+        ":trade_to_candle",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
+        "//third_party:guice_assistedinject",
         "//third_party:protobuf_java_util",
     ],
 )
@@ -211,3 +235,19 @@ java_library(
         "//third_party:beam_sdks_java_core",
     ],
 )
+
+kt_jvm_library(
+    name = "trade_to_candle",
+    srcs = ["TradeToCandle.kt"],
+    deps = [
+        ":candle_creator_fn",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
+    ],
+)
+
