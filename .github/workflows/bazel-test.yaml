@@ -19,10 +19,4 @@ jobs:
           build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
 
     - run: |
-        bazel test //... \
-          --experimental_ui_max_stdouterr_bytes=2097152 \
-          --test_output=all \
-          --verbose_failures \
-          --nolegacy_important_outputs \
-          --experimental_remote_cache_compression \
-          --experimental_remote_cache_compression_threshold=100
+        bazel test //...
