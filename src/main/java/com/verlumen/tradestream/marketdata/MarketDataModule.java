@@ -24,15 +24,11 @@ public abstract class MarketDataModule extends AbstractModule {
   protected void configure() {
     bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
-    // Bind CandleCreatorFn directly if no factory/assisted inject is needed
-    // bind(CandleCreatorFn.class); // Uncomment if needed, but @Inject constructor should suffice
+    
+    // Bind CandleCreatorFn directly
+    bind(CandleCreatorFn.class);
 
-    // Remove FactoryModuleBuilder for CandleCreatorFn as it no longer uses assisted inject
-    // install(new FactoryModuleBuilder()
-    //     .implement(CandleCreatorFn.class, CandleCreatorFn.class)
-    //     .build(CandleCreatorFn.Factory.class));
-
-    // Keep FactoryModuleBuilder for TradeToCandle
+    // Install FactoryModuleBuilder for TradeToCandle
     install(new FactoryModuleBuilder()
         .implement(TradeToCandle.class, TradeToCandle.class)
         .build(TradeToCandle.Factory.class));

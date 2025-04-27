@@ -25,23 +25,6 @@ kt_jvm_library(
 )
 
 java_library(
-    name = "candle_stream_with_defaults",
-    srcs = ["CandleStreamWithDefaults.java"],
-    deps = [
-        ":default_trade_generator",
-        ":last_candles_fn",
-        ":sliding_candle_aggregator",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
-        "//third_party:guava",
-        "//third_party:joda_time",
-        "//third_party:protobuf_java",
-    ],
-)
-
-java_library(
     name = "coinbase_streaming_client",
     srcs = ["CoinbaseStreamingClient.java"],
     deps = [
@@ -242,7 +225,6 @@ kt_jvm_library(
     deps = [
         ":candle_creator_fn",
         "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:beam_sdks_java_core",
         "//third_party:flogger",
         "//third_party:guice",
@@ -250,4 +232,3 @@ kt_jvm_library(
         "//third_party:joda_time",
     ],
 )
-
