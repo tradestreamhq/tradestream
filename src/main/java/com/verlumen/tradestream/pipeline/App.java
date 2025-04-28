@@ -82,17 +82,20 @@ public final class App {
   private final StrategyEnginePipeline strategyEnginePipeline;
   private final TimingConfig timingConfig;
   private final TradeSource tradeSource;
+  private final TradeToCandle.Factory tradeToCandleFactory;
 
   @Inject
   App(
       Supplier<List<CurrencyPair>> currencyPairs,
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig,
-      TradeSource tradeSource) {
+      TradeSource tradeSource,
+      TradeToCandle.Factory tradeToCandleFactory) {
     this.currencyPairs = currencyPairs;
     this.strategyEnginePipeline = strategyEnginePipeline;
     this.timingConfig = timingConfig;
     this.tradeSource = tradeSource;
+    this.tradeToCandleFactory = tradeToCandleFactory;
   }
 
   /** Build the Beam pipeline, integrating all components. */
