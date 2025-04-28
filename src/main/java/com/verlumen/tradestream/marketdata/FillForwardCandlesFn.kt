@@ -28,7 +28,8 @@ import java.io.Serializable
  * Fill-forward candles are emitted with timestamps corresponding to the *start* of the interval they fill.
  */
 class FillForwardCandlesFn @Inject constructor(
-    @Assisted private val intervalDuration: Duration // The expected duration between candles (e.g., 1 minute)
+    @Assisted private val intervalDuration: Duration, // The expected duration between candles (e.g., 1 minute)
+    @Assisted private val maxForwardIntervals: Int = Int.MAX_VALUE // Maximum number of intervals to fill forward
 ) : DoFn<KV<String, Candle>, KV<String, Candle>>(), Serializable {
 
     companion object {
@@ -112,14 +113,17 @@ class FillForwardCandlesFn @Inject constructor(
         logger.atFine().log("Timer fired for key %s at %s. Last actual candle timestamp: %s. Last output timestamp: %s",
             key, timerTimestamp, lastActualTimestamp, lastOutputTimestamp)
 
-        // *** REFINED CONDITION ***
-        // Condition 1: The timer must fire for an interval *after* the last actual candle's interval ended.
-        // Condition 2: The timer must correspond to the interval *immediately* following the last outputted element (actual or fill-forward).
-        if (timerTimestamp.isAfter(lastActualTimestamp) && // Ensures we don't fill *over* the last actual data
-            timerTimestamp.isEqual(lastOutputTimestamp.plus(intervalDuration))) {
+        // Calculate how many intervals we've filled forward so far
+        val intervalsSinceLastActual = Duration(lastActualTimestamp, timerTimestamp).dividedBy(intervalDuration.millis).toStandardSeconds().seconds / 
+            intervalDuration.toStandardSeconds().seconds
 
-            logger.atFine().log("Gap confirmed for key %s at interval start %s. Generating fill-forward.",
-                key, timerTimestamp)
+        // *** REFINED CONDITION WITH MAX INTERVAL LIMIT ***
+        if (timerTimestamp.isAfter(lastActualTimestamp) && // Ensures we don't fill *over* the last actual data
+            timerTimestamp.isEqual(lastOutputTimestamp.plus(intervalDuration)) &&
+            intervalsSinceLastActual <= maxForwardIntervals) {
+
+            logger.atFine().log("Gap confirmed for key %s at interval start %s. Generating fill-forward (interval %d of max %d).",
+                key, timerTimestamp, intervalsSinceLastActual, maxForwardIntervals)
 
             // Generate fill-forward using the last *actual* candle's close price
             val fillForwardCandle = buildFillForwardCandle(key, lastActualCandle, timerTimestamp)
@@ -135,15 +139,15 @@ class FillForwardCandlesFn @Inject constructor(
 
             // Set the timer for the next potential interval boundary
             val nextTimerInstant = timerTimestamp.plus(intervalDuration)
-            // No need for MAX_LOOKAHEAD here, the conditions above should handle termination.
             timer.set(nextTimerInstant)
             logger.atFine().log("Set next timer for key %s at %s (after generating fill-forward for %s)",
                 key, nextTimerInstant, timerTimestamp)
 
         } else {
-             logger.atFine().log("Timer fired for key %s at %s, but conditions not met (lastActual: %s, lastOutput: %s). Skipping fill-forward.",
-                 key, timerTimestamp, lastActualTimestamp, lastOutputTimestamp)
-             // This timer might be stale or for an interval already covered by an actual candle.
+             logger.atFine().log("Timer fired for key %s at %s, but conditions not met (lastActual: %s, lastOutput: %s, intervals: %d/%d). Skipping fill-forward.",
+                 key, timerTimestamp, lastActualTimestamp, lastOutputTimestamp, intervalsSinceLastActual, maxForwardIntervals)
+             // This timer might be stale or for an interval already covered by an actual candle,
+             // or we've reached the maximum number of intervals to fill forward.
         }
     }
 
@@ -164,6 +168,6 @@ class FillForwardCandlesFn @Inject constructor(
 
     // Factory interface for Guice AssistedInject
     interface Factory {
-        fun create(intervalDuration: Duration): FillForwardCandlesFn
+        fun create(intervalDuration: Duration, maxForwardIntervals: Int = Int.MAX_VALUE): FillForwardCandlesFn
     }
 }
