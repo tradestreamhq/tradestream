@@ -16,6 +16,7 @@ import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.MultiTimeframeCandleTransform;
 import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.marketdata.TradeSource;
+import com.verlumen.tradestream.marketdata.TradeToCandle;
 import com.verlumen.tradestream.strategies.StrategyEnginePipeline;
 import java.util.List;
 import java.util.function.Supplier;
@@ -44,6 +45,7 @@ public final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final String CMC_API_KEY_ENV_VAR = "COINMARKETCAP_API_KEY";
+  private static final Duration ONE_MINUTE = Duration.standardMinutes(1);
 
   public interface Options extends StreamingOptions {
     @Description("Comma-separated list of Kafka bootstrap servers.")
@@ -81,17 +83,20 @@ public final class App {
   private final StrategyEnginePipeline strategyEnginePipeline;
   private final TimingConfig timingConfig;
   private final TradeSource tradeSource;
+  private final TradeToCandle.Factory tradeToCandleFactory;
 
   @Inject
   App(
       Supplier<List<CurrencyPair>> currencyPairs,
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig,
-      TradeSource tradeSource) {
+      TradeSource tradeSource,
+      TradeToCandle.Factory tradeToCandleFactory) {
     this.currencyPairs = currencyPairs;
     this.strategyEnginePipeline = strategyEnginePipeline;
     this.timingConfig = timingConfig;
     this.tradeSource = tradeSource;
+    this.tradeToCandleFactory = tradeToCandleFactory;
   }
 
   /** Build the Beam pipeline, integrating all components. */
@@ -113,6 +118,12 @@ public final class App {
                       return timestamp;
                     })
                 .withAllowedTimestampSkew(timingConfig.allowedTimestampSkew()));
+
+    // 3. Create candles from trades.
+    PCollection<KV<String, Candle>> candles = tradesWithTimestamps.apply(
+        "Create Candle",
+        tradeToCandleFactory.create(ONE_MINUTE)
+    );
 
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
     return pipeline;

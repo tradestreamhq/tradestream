@@ -21,6 +21,7 @@ java_binary(
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_source",
+        "//src/main/java/com/verlumen/tradestream/marketdata:trade_to_candle",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine_pipeline",
         "//third_party:beam_runners_flink_java",
         "//third_party:beam_sdks_java_core",
