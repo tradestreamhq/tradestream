@@ -24,14 +24,23 @@ public abstract class MarketDataModule extends AbstractModule {
   protected void configure() {
     bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
-    
-    // Bind CandleCreatorFn directly
+
+    // Bind CandleCreatorFn as it's used by the stateful TradeToCandle
     bind(CandleCreatorFn.class);
 
-    // Install FactoryModuleBuilder for TradeToCandle
+    // Remove binding for CandleCombineFn if it was only for the Combine.perKey approach
+    // If CandleCombineFn is used elsewhere, keep its binding.
+    // For this revert, assuming it's not needed elsewhere:
+    // tryUnbind(Key.get(SlidingCandleAggregator.CandleCombineFn.class)); // Or just remove the bind() call if added manually
+
+    // Install FactoryModuleBuilder for TradeToCandle (which now depends on CandleCreatorFn)
     install(new FactoryModuleBuilder()
         .implement(TradeToCandle.class, TradeToCandle.class)
         .build(TradeToCandle.Factory.class));
+
+    // Remove factories related to the separate FillForward transform if they were added
+    // tryUnbind(Key.get(FillForwardCandlesFn.Factory.class));
+    // tryUnbind(Key.get(FillForwardCandles.Factory.class));
   }
 
   @Provides
