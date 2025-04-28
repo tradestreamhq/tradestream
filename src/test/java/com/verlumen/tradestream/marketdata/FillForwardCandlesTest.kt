@@ -64,7 +64,7 @@ class FillForwardCandlesTest {
             .apply(fillForwardCandlesFactory.create(intervalDuration, 3))
             .apply(Values.create())
 
-        PAssert.that(result).containsInAnyOrder(listOf(candleWin1.value, expectedFillForwardWin2))
+        PAssert.that(result).containsInAnyOrder(candleWin1.value.value, expectedFillForwardWin2)
 
         pipeline.run().waitUntilFinish(Duration.standardMinutes(2))
     }
@@ -84,7 +84,7 @@ class FillForwardCandlesTest {
             .advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(10)))
             .advanceWatermarkToInfinity()
 
-        val expectedFillForwardCandles = mutableListOf(candleWin1.value)
+        val expectedFillForwardCandles = mutableListOf(candleWin1.value.value)
         for (i in 1L..3L) {
             expectedFillForwardCandles.add(createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(i))))
         }
@@ -117,8 +117,8 @@ class FillForwardCandlesTest {
             .advanceWatermarkToInfinity()
 
         val expectedCandles = mutableListOf(
-            btcCandleWin1.value,
-            ethCandleWin1.value,
+            btcCandleWin1.value.value,
+            ethCandleWin1.value.value,
             createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration)),
             createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(2))),
             createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration)),
