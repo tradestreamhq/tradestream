@@ -1,7 +1,7 @@
 """Build rules for marketdata components."""
 
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test") # Added kt_jvm_test
-load("@rules_java//java:defs.bzl", "java_library", "java_test") # Added java_test
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+load("@rules_java//java:defs.bzl", "java_library", "java_test")
 
 package(default_visibility = ["//visibility:public"])
 
