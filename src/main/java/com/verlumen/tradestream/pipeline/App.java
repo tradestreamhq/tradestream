@@ -190,9 +190,9 @@ public final class App {
     var module = PipelineModule.create(
       options.getBootstrapServers(),
       options.getCandleDurationMinutes(),
-      options.getMaxForwardIntervals(),
       getCmcApiKey(options),
       options.getExchangeName(),
+      options.getMaxForwardIntervals(),
       runMode,
       options.getSignalTopic(),
       options.getCoinMarketCapTopCurrencyCount());
