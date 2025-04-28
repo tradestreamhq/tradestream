@@ -114,11 +114,13 @@ constructor(
 
         // Set a timer for the next expected interval boundary
         val nextTimerInstant = actualCandleTimestamp.plus(intervalDuration)
-        timer.set(nextTimerInstant)
+        // Set timer to fire at next interval, but associate its output time with the current element
+        timer.withOutputTimestamp(actualCandleTimestamp).set(nextTimerInstant)
         logger.atInfo().log(
-            "Set timer for key %s at %s (after processing actual candle %s)",
+            "Set timer for key %s at %s (outputting at %s) (after processing actual candle %s)",
             key,
             nextTimerInstant,
+            actualCandleTimestamp,
             actualCandleTimestamp
         )
     }
@@ -209,11 +211,13 @@ constructor(
             // Only set the timer for the next potential interval boundary if we haven't reached the max
             if (newCount < maxForwardIntervals) {
                 val nextTimerInstant = timerTimestamp.plus(intervalDuration)
-                timer.set(nextTimerInstant)
+                // Set timer to fire at next interval, but associate its output time with the current timer's fire time
+                timer.withOutputTimestamp(timerTimestamp).set(nextTimerInstant)
                 logger.atInfo().log(
-                    "Set next timer for key %s at %s (after generating fill-forward for %s)",
+                    "Set next timer for key %s at %s (outputting at %s) (after generating fill-forward for %s)",
                     key,
                     nextTimerInstant,
+                    timerTimestamp,
                     timerTimestamp
                  )
             } else {
