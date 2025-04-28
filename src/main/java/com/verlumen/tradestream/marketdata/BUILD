@@ -4,6 +4,18 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
+    name = "candle_combine_fn",
+    srcs = ["CandleCombineFn.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:flogger",
+        "//third_party:protobuf_java",
+    ],
+)
+
+java_library(
     name = "coinbase_streaming_client",
     srcs = ["CoinbaseStreamingClient.java"],
     deps = [
@@ -168,6 +180,7 @@ java_library(
     name = "sliding_candle_aggregator",
     srcs = ["SlidingCandleAggregator.java"],
     deps = [
+        ":candle_combine_fn",
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf",
