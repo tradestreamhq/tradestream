@@ -45,7 +45,7 @@ public final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final String CMC_API_KEY_ENV_VAR = "COINMARKETCAP_API_KEY";
-  private static final Duration ONE_MINUTE = Duration.standardMinutes(1)
+  private static final Duration ONE_MINUTE = Duration.standardMinutes(1);
 
   public interface Options extends StreamingOptions {
     @Description("Comma-separated list of Kafka bootstrap servers.")
