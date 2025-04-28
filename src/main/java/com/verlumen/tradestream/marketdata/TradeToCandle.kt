@@ -3,30 +3,32 @@ package com.verlumen.tradestream.marketdata
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
+import org.apache.beam.sdk.coders.KvCoder
+import org.apache.beam.sdk.coders.StringUtf8Coder
+import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.transforms.*
 import org.apache.beam.sdk.transforms.windowing.FixedWindows
 import org.apache.beam.sdk.transforms.windowing.Window
 import org.apache.beam.sdk.values.*
 import org.joda.time.Duration
 import java.io.Serializable
+import com.google.protobuf.Timestamp // Ensure correct Timestamp import
 
 /**
- * Transforms a stream of trades into OHLCV candles using stateful aggregation.
- * When no trades occur in a window, it uses the previous candle's close price
- * to create a continuation candle with zero volume. If no previous candle exists,
- * no candle will be produced.
- * (Reverted to use stateful DoFn approach)
+ * Transforms a stream of trades into OHLCV candles using Combine.perKey.
+ * This version ONLY produces candles for windows containing actual trades.
+ * Fill-forward logic needs to be handled by a separate downstream transform.
  */
 class TradeToCandle @Inject constructor(
     @Assisted private val windowDuration: Duration,
-    // Inject the stateful DoFn
-    private val candleCreatorFn: CandleCreatorFn
+    // CandleCombineFn needs to be injectable or accessible
+    // Assuming SlidingCandleAggregator.CandleCombineFn is accessible/injectable
+    private val candleCombineFn: SlidingCandleAggregator.CandleCombineFn
 ) : PTransform<PCollection<Trade>, PCollection<KV<String, Candle>>>(), Serializable {
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
-        // Use a different serialVersionUID if reverting from a previous structural change
-        private const val serialVersionUID = 4L
+        private const val serialVersionUID = 3L // Use version 3 for this implementation
     }
 
     // Factory remains the same
@@ -35,26 +37,26 @@ class TradeToCandle @Inject constructor(
     }
 
     override fun expand(input: PCollection<Trade>): PCollection<KV<String, Candle>> {
-        logger.atInfo().log("Starting TradeToCandle transform (Stateful DoFn version) with window duration: %s", windowDuration)
+        logger.atInfo().log("Starting TradeToCandle transform (Combine.perKey version) with window duration: %s", windowDuration)
 
         // Key trades by currency pair
-        val keyedTrades = input.apply("KeyByCurrencyPair",
+        val keyedTrades: PCollection<KV<String, Trade>> = input.apply("KeyByCurrencyPair",
             MapElements.into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptor.of(Trade::class.java)))
-                .via(SerializableFunction<Trade, KV<String, Trade>> { trade -> KV.of(trade.currencyPair, trade) })
-        )
+                .via(SerializableFunction<Trade, KV<String, Trade>> { trade ->
+                    KV.of(trade.currencyPair, trade)
+                })
+        ).setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Trade::class.java))) // Ensure coder is set
 
         // Apply windowing
-        val windowedTrades = keyedTrades.apply("WindowTrades",
+        val windowedTrades: PCollection<KV<String, Trade>> = keyedTrades.apply("WindowTrades",
             Window.into<KV<String, Trade>>(FixedWindows.of(windowDuration))
         )
 
-        // Process with stateful DoFn that handles both actual candles and fill-forward logic
-        val candles = windowedTrades
-            .apply("AggregateAndFillForwardCandles", ParDo.of(candleCreatorFn))
-            // Ensure the output type descriptor is set correctly
-             .setTypeDescriptor(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptor.of(Candle::class.java)))
+        // Aggregate trades into Candles per key using Combine.perKey
+        val candles: PCollection<KV<String, Candle>> = windowedTrades.apply("AggregateToCandle",
+            Combine.perKey(candleCombineFn) // Use the injected CandleCombineFn
+        ).setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java))) // Ensure coder is set
 
-
-        return candles.setName("CandlesWithFillForward")
+        return candles.setName("AggregatedCandles")
     }
 }
