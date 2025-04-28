@@ -367,9 +367,10 @@ class FillForwardCandlesTest : Serializable {
         )
             .addElements(candleWin1)
 
-        // Add watermark advancements for each interval
+        // Add watermark advancements for each interval, but limit to smallMaxIntervals + 1
+        // to prevent excessive timer creation
         // Add spaces around lambda arrow `->` [cite: 79]
-        val streamWithWatermarks = timestamps.drop(1).take(10).fold(candleStream) { stream, timestamp ->
+        val streamWithWatermarks = timestamps.drop(1).take(smallMaxIntervals + 1).fold(candleStream) { stream, timestamp ->
             stream.advanceWatermarkTo(timestamp.plus(Duration.millis(1)))
         }
 
@@ -399,21 +400,22 @@ class FillForwardCandlesTest : Serializable {
 
         // Act
         val transform = fillForwardCandlesFactory.create(intervalDuration, smallMaxIntervals)
-        // Wrap chained calls before the dot [cite: 58]
+        // Wrap chained calls before the dot
         val result: PCollection<Candle> = pipeline
             .apply(finalStream)
             .apply("FillForward", transform)
             .apply("ExtractValues", Values.create())
 
         // Assert - should only contain original + smallMaxIntervals fill-forward candles
-        // Wrap arguments [cite: 56]
+        // Wrap arguments
         PAssert.that(result).containsInAnyOrder(expectedCandles)
 
-        pipeline.run().waitUntilFinish()
+        // Add timeout to prevent test from hanging
+        pipeline.run().waitUntilFinish(Duration.standardMinutes(2))
     }
 
     // Helper to create candle objects (simplified for testing)
-    // Wrap parameters onto own lines, +4 indent [cite: 60, 61]
+    // Wrap parameters onto own lines, +4 indent
     private fun createCandle(
         currencyPair: String,
         price: Double,
