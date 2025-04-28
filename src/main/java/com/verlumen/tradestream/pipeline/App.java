@@ -123,10 +123,9 @@ public final class App {
                 .withAllowedTimestampSkew(timingConfig.allowedTimestampSkew()));
 
     // 3. Create candles from trades.
-    PCollection<KV<String, Candle>> candles = tradesWithTimestamps.apply(
-        "Create Candle",
-        tradeToCandleFactory.create(ONE_MINUTE)
-    );
+    PCollection<KV<String, Candle>> candles = tradesWithTimestamps
+      .apply("Create Candle", tradeToCandleFactory.create(ONE_MINUTE))
+      .apply("Add Candle if Missing", fillForwardCandlesFactory.create(ONE_MINUTE);
 
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
     return pipeline;
