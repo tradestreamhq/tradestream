@@ -25,7 +25,7 @@ public abstract class MarketDataModule extends AbstractModule {
     bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
 
-    // Install FactoryModuleBuilder for TradeToCandle (which now depends on CandleCreatorFn)
+    // Install FactoryModuleBuilder for TradeToCandle
     install(new FactoryModuleBuilder()
         .implement(TradeToCandle.class, TradeToCandle.class)
         .build(TradeToCandle.Factory.class));
