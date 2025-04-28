@@ -14,7 +14,6 @@ import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.testing.TestStream
 import org.apache.beam.sdk.transforms.Values
 import org.apache.beam.sdk.values.KV
-import org.apache.beam.sdk.values.PCollection
 import org.apache.beam.sdk.values.TimestampedValue
 import org.joda.time.Duration
 import org.joda.time.Instant
@@ -55,17 +54,17 @@ class FillForwardCandlesTest {
 
         val candleStream = TestStream.create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
             .addElements(candleWin1)
-            .advanceWatermarkTo(baseTime.plus(Duration.standardMinutes(5))) // advance sufficiently
+            .advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(5)))
             .advanceWatermarkToInfinity()
 
         val expectedFillForwardWin2 = createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration))
 
-        val result: PCollection<Candle> = pipeline
+        val result = pipeline
             .apply(candleStream)
             .apply(fillForwardCandlesFactory.create(intervalDuration, 3))
             .apply(Values.create())
 
-        PAssert.that(result).containsInAnyOrder(candleWin1.value, expectedFillForwardWin2)
+        PAssert.that(result).containsInAnyOrder(listOf(candleWin1.value, expectedFillForwardWin2))
 
         pipeline.run().waitUntilFinish(Duration.standardMinutes(2))
     }
@@ -82,14 +81,15 @@ class FillForwardCandlesTest {
 
         val candleStream = TestStream.create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
             .addElements(candleWin1)
-            .advanceWatermarkTo(baseTime.plus(Duration.standardMinutes(10)))
+            .advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(10)))
             .advanceWatermarkToInfinity()
 
-        val expectedFillForwardCandles = (1..3).map {
-            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(it)))
-        } + candleWin1.value
+        val expectedFillForwardCandles = mutableListOf(candleWin1.value)
+        for (i in 1L..3L) {
+            expectedFillForwardCandles.add(createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(i))))
+        }
 
-        val result: PCollection<Candle> = pipeline
+        val result = pipeline
             .apply(candleStream)
             .apply(fillForwardCandlesFactory.create(intervalDuration, 3))
             .apply(Values.create())
@@ -113,10 +113,10 @@ class FillForwardCandlesTest {
 
         val candleStream = TestStream.create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
             .addElements(btcCandleWin1, ethCandleWin1)
-            .advanceWatermarkTo(baseTime.plus(Duration.standardMinutes(10)))
+            .advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(10)))
             .advanceWatermarkToInfinity()
 
-        val expectedCandles = listOf(
+        val expectedCandles = mutableListOf(
             btcCandleWin1.value,
             ethCandleWin1.value,
             createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration)),
@@ -125,7 +125,7 @@ class FillForwardCandlesTest {
             createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(2)))
         )
 
-        val result: PCollection<Candle> = pipeline
+        val result = pipeline
             .apply(candleStream)
             .apply(fillForwardCandlesFactory.create(intervalDuration, 2))
             .apply(Values.create())
