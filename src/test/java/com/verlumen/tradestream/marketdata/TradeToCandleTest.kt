@@ -47,7 +47,7 @@ class TradeToCandleTest : Serializable {
     // Bind the CandleCombineFn needed by the simplified TradeToCandle
     // Assuming CandleCombineFn has a default constructor or is otherwise injectable
     @Bind
-    private val candleCombineFn = SlidingCandleAggregator.CandleCombineFn()
+    private val candleCombineFn = CandleCombineFn()
 
     private val btcUsd = CurrencyPair.fromSymbol("BTC/USD")
     private val ethUsd = CurrencyPair.fromSymbol("ETH/USD")
