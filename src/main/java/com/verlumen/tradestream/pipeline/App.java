@@ -54,6 +54,11 @@ public final class App {
     String getBootstrapServers();
     void setBootstrapServers(String value);
 
+    @Description("Duration of candles in minutes.")
+    @Default.Integer(1)
+    int getCandleDurationMinutes();
+    void setCandleDurationMinutes(int value);
+
     @Description("Name of the exchange.")
     @Default.String("coinbase")
     String getExchangeName();
@@ -184,6 +189,8 @@ public final class App {
     RunMode runMode = RunMode.fromString(options.getRunMode());
     var module = PipelineModule.create(
       options.getBootstrapServers(),
+      options.getCandleDurationMinutes(),
+      options.getMaxForwardIntervals(),
       getCmcApiKey(options),
       options.getExchangeName(),
       runMode,
