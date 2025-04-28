@@ -114,7 +114,7 @@ class FillForwardCandlesTest : Serializable {
         PAssert.that(result)
             .containsInAnyOrder(expectedCandleWin1, expectedFillForwardWin2)
 
-        pipeline.run().waitUntilFinish()
+        pipeline.run().waitUntilFinish(Duration.standardMinutes(2))
     }
 
     @Test
@@ -181,7 +181,7 @@ class FillForwardCandlesTest : Serializable {
             expectedFillForwardWin3
         )
 
-        pipeline.run().waitUntilFinish()
+        pipeline.run().waitUntilFinish(Duration.standardMinutes(2))
     }
 
     @Test
@@ -249,7 +249,7 @@ class FillForwardCandlesTest : Serializable {
             expectedCandleWin3
         )
 
-        pipeline.run().waitUntilFinish()
+        pipeline.run().waitUntilFinish(Duration.standardMinutes(2))
     }
 
     @Test
@@ -336,7 +336,7 @@ class FillForwardCandlesTest : Serializable {
                 expEthWin1, expEthWin2FF, expEthWin3
             )
 
-        pipeline.run().waitUntilFinish()
+        pipeline.run().waitUntilFinish(Duration.standardMinutes(2))
     }
 
     @Test
