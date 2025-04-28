@@ -80,6 +80,7 @@ public final class App {
   }
 
   private final Supplier<List<CurrencyPair>> currencyPairs;
+  private final FillForwardCandles.Factory fillForwardCandlesFactory;
   private final StrategyEnginePipeline strategyEnginePipeline;
   private final TimingConfig timingConfig;
   private final TradeSource tradeSource;
@@ -88,11 +89,13 @@ public final class App {
   @Inject
   App(
       Supplier<List<CurrencyPair>> currencyPairs,
+      FillForwardCandles.Factory fillForwardCandlesFactory;
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig,
       TradeSource tradeSource,
       TradeToCandle.Factory tradeToCandleFactory) {
     this.currencyPairs = currencyPairs;
+    this.fillForwardCandlesFactory = fillForwardCandlesFactory;
     this.strategyEnginePipeline = strategyEnginePipeline;
     this.timingConfig = timingConfig;
     this.tradeSource = tradeSource;
