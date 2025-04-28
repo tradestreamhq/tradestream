@@ -126,7 +126,7 @@ public final class App {
     // 3. Create candles from trades.
     PCollection<KV<String, Candle>> candles = tradesWithTimestamps
       .apply("Create Candle", tradeToCandleFactory.create(ONE_MINUTE))
-      .apply("Add Candle if Missing", fillForwardCandlesFactory.create(ONE_MINUTE);
+      .apply("Add Candle if Missing", fillForwardCandlesFactory.create(ONE_MINUTE, Integer.MAX_VALUE);
 
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
     return pipeline;
