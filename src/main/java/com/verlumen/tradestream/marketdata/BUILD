@@ -5,29 +5,6 @@ load("@rules_java//java:defs.bzl", "java_library", "java_test") # Added java_tes
 
 package(default_visibility = ["//visibility:public"])
 
-# Accumulator used within CandleCreatorFn
-kt_jvm_library(
-    name = "candle_accumulator",
-    srcs = ["CandleAccumulator.kt"],
-)
-
-# Stateful DoFn for creating candles, including fill-forward
-kt_jvm_library(
-    name = "candle_creator_fn",
-    srcs = ["CandleCreatorFn.kt"],
-    deps = [
-        ":candle_accumulator",
-        "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:joda_time",
-        "//third_party:protobuf_java",
-        "//third_party:protobuf_java_util",
-    ],
-)
-
 # Coinbase specific streaming client
 java_library(
     name = "coinbase_streaming_client",
