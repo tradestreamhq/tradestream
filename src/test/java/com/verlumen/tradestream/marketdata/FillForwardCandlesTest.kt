@@ -30,6 +30,7 @@ import com.google.inject.AbstractModule
 class FillForwardCandlesTest : Serializable {
     companion object {
         private const val serialVersionUID = 1L
+        private const val MAX_FORWARD_INTERVALS = 10 // Reasonable value for testing
     }
 
     @Rule
@@ -94,7 +95,7 @@ class FillForwardCandlesTest : Serializable {
             .build()
 
         // Act
-        val transform = fillForwardCandlesFactory.create(intervalDuration)
+        val transform = fillForwardCandlesFactory.create(intervalDuration, MAX_FORWARD_INTERVALS)
         val result: PCollection<Candle> = pipeline
             .apply(candleStream)
             .apply("FillForward", transform)
@@ -139,7 +140,7 @@ class FillForwardCandlesTest : Serializable {
             .build()
 
         // Act
-        val transform = fillForwardCandlesFactory.create(intervalDuration)
+        val transform = fillForwardCandlesFactory.create(intervalDuration, MAX_FORWARD_INTERVALS)
         val result: PCollection<Candle> = pipeline
             .apply(candleStream)
             .apply("FillForward", transform)
@@ -189,7 +190,7 @@ class FillForwardCandlesTest : Serializable {
 
 
         // Act
-        val transform = fillForwardCandlesFactory.create(intervalDuration)
+        val transform = fillForwardCandlesFactory.create(intervalDuration, MAX_FORWARD_INTERVALS)
         val result: PCollection<Candle> = pipeline
             .apply(candleStream)
             .apply("FillForward", transform)
@@ -239,7 +240,7 @@ class FillForwardCandlesTest : Serializable {
         val expEthWin3 = createCandle("ETH/USD", 2100.0, 1.5, t3_start)
 
         // Act
-        val transform = fillForwardCandlesFactory.create(intervalDuration)
+        val transform = fillForwardCandlesFactory.create(intervalDuration, MAX_FORWARD_INTERVALS)
         val result: PCollection<Candle> = pipeline
             .apply(candleStream)
             .apply("FillForward", transform)
@@ -255,6 +256,64 @@ class FillForwardCandlesTest : Serializable {
         pipeline.run().waitUntilFinish()
     }
 
+    // NEW TEST: Verify max interval limiting behavior
+    @Test
+    fun testMaxForwardIntervalLimit() {
+        // Arrange
+        val intervalDuration = Duration.standardMinutes(1)
+        val smallMaxIntervals = 3 // Smaller limit for this test
+        val baseTime = Instant.parse("2023-01-01T10:00:00.000Z")
+        val t1_start = baseTime // 10:00:00
+        
+        // Generate timestamps for many intervals
+        val timestamps = (0..15).map { i -> baseTime.plus(intervalDuration.multipliedBy(i)) }
+        
+        // Just one actual candle at the beginning
+        val candleWin1 = TimestampedValue.of(
+            KV.of("BTC/USD", createCandle("BTC/USD", 50000.0, 1.0, timestamps[0])), timestamps[0]
+        )
+
+        // Create stream with a single input candle, then advance watermark past many intervals
+        val candleStream = TestStream.create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
+            .addElements(candleWin1)
+            
+        // Add watermark advancements for each interval
+        val streamWithWatermarks = timestamps.drop(1).take(10).fold(candleStream) { stream, timestamp ->
+            stream.advanceWatermarkTo(timestamp.plus(Duration.millis(1)))
+        }
+        
+        val finalStream = streamWithWatermarks.advanceWatermarkToInfinity()
+
+        // Expected Candles: original + smallMaxIntervals fill-forward candles
+        val expectedCandles = mutableListOf<Candle>()
+        // Add the original candle
+        expectedCandles.add(createCandle("BTC/USD", 50000.0, 1.0, timestamps[0]))
+        
+        // Add the expected fill-forward candles (only up to smallMaxIntervals)
+        for (i in 1..smallMaxIntervals) {
+            expectedCandles.add(Candle.newBuilder()
+                .setCurrencyPair("BTC/USD")
+                .setOpen(50000.0)
+                .setHigh(50000.0)
+                .setLow(50000.0)
+                .setClose(50000.0)
+                .setVolume(0.0)
+                .setTimestamp(Timestamps.fromMillis(timestamps[i].millis))
+                .build())
+        }
+
+        // Act
+        val transform = fillForwardCandlesFactory.create(intervalDuration, smallMaxIntervals)
+        val result: PCollection<Candle> = pipeline
+            .apply(finalStream)
+            .apply("FillForward", transform)
+            .apply("ExtractValues", Values.create())
+
+        // Assert - should only contain original + smallMaxIntervals fill-forward candles
+        PAssert.that(result).containsInAnyOrder(expectedCandles)
+
+        pipeline.run().waitUntilFinish()
+    }
 
     // Helper to create candle objects (simplified for testing)
     private fun createCandle(
