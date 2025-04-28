@@ -59,6 +59,11 @@ public final class App {
     String getExchangeName();
     void setExchangeName(String value);
 
+    @Description("Maximum number of forward intervals to fill for missing candles.")
+    @Default.Integer(Integer.MAX_VALUE)
+    int getMaxForwardIntervals();
+    void setMaxForwardIntervals(int value);
+
     @Description("Kafka topic to publish signal data to.")
     @Default.String("signals")
     String getSignalTopic();
