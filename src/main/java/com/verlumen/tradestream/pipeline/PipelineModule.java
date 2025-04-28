@@ -60,7 +60,17 @@ abstract class PipelineModule extends AbstractModule {
   }
 
   @Provides
+  FillForwardCandles provideFillForwardCandles(FillForwardCandles.Factory factory) {
+    return factory.create(candleDuration(), maxForwardIntervals());
+  }
+  
+  @Provides
   TimingConfig provideTimingConfig() {
     return TimingConfig.create();
+  }
+
+  @Provides
+  TradeToCandle provideTradeToCandle(FillForwardCandles.Factory factory) {
+      return factory.create(candleDuration());
   }
 }
