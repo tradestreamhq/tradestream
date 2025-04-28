@@ -2,12 +2,12 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
+import java.io.Serializable
 import org.apache.beam.sdk.transforms.PTransform
 import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
 import org.joda.time.Duration
-import java.io.Serializable
 
 /**
  * PTransform that applies the FillForwardCandlesFn to fill gaps in a candle stream.
@@ -15,7 +15,7 @@ import java.io.Serializable
 class FillForwardCandles @Inject constructor(
     @Assisted private val intervalDuration: Duration,
     @Assisted private val maxForwardIntervals: Int = Int.MAX_VALUE,
-    private val fillForwardFnFactory: FillForwardCandlesFn.Factory // Inject the factory
+    private val fillForwardFnFactory: FillForwardCandlesFn.Factory
 ) : PTransform<PCollection<KV<String, Candle>>, PCollection<KV<String, Candle>>>(), Serializable {
 
     companion object {
@@ -30,6 +30,9 @@ class FillForwardCandles @Inject constructor(
 
     // Factory interface for Guice AssistedInject for this PTransform
     interface Factory {
-        fun create(intervalDuration: Duration, maxForwardIntervals: Int = Int.MAX_VALUE): FillForwardCandles
+        fun create(
+            intervalDuration: Duration,
+            maxForwardIntervals: Int = Int.MAX_VALUE
+        ): FillForwardCandles
     }
 }
