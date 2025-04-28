@@ -119,6 +119,12 @@ public final class App {
                     })
                 .withAllowedTimestampSkew(timingConfig.allowedTimestampSkew()));
 
+    // 3. Create candles from trades.
+    PCollection<Candle> candles = tradesWithTimestamps.apply(
+        "Create Candle"
+        tradeToCandleFactory.create(ONE_MINUTE)
+    );
+
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
     return pipeline;
   }
