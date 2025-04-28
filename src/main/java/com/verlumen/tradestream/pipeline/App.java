@@ -91,26 +91,26 @@ public final class App {
   }
 
   private final Supplier<List<CurrencyPair>> currencyPairs;
-  private final FillForwardCandles.Factory fillForwardCandlesFactory;
+  private final FillForwardCandles fillForwardCandles;
   private final StrategyEnginePipeline strategyEnginePipeline;
   private final TimingConfig timingConfig;
   private final TradeSource tradeSource;
-  private final TradeToCandle.Factory tradeToCandleFactory;
+  private final TradeToCandle tradeToCandle;
 
   @Inject
   App(
       Supplier<List<CurrencyPair>> currencyPairs,
-      FillForwardCandles.Factory fillForwardCandlesFactory,
+      FillForwardCandles fillForwardCandles,
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig,
       TradeSource tradeSource,
-      TradeToCandle.Factory tradeToCandleFactory) {
+      TradeToCandle tradeToCandle) {
     this.currencyPairs = currencyPairs;
-    this.fillForwardCandlesFactory = fillForwardCandlesFactory;
+    this.fillForwardCandles = fillForwardCandles;
     this.strategyEnginePipeline = strategyEnginePipeline;
     this.timingConfig = timingConfig;
     this.tradeSource = tradeSource;
-    this.tradeToCandleFactory = tradeToCandleFactory;
+    this.tradeToCandle = tradeToCandle;
   }
 
   /** Build the Beam pipeline, integrating all components. */
@@ -135,8 +135,8 @@ public final class App {
 
     // 3. Create candles from trades.
     PCollection<KV<String, Candle>> candles = tradesWithTimestamps
-      .apply("Create Candle", tradeToCandleFactory.create(ONE_MINUTE))
-      .apply("Add Candle if Missing", fillForwardCandlesFactory.create(ONE_MINUTE, Integer.MAX_VALUE));
+      .apply("Create Candle", tradeToCandle)
+      .apply("Add Candle if Missing", fillForwardCandles);
 
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
     return pipeline;
