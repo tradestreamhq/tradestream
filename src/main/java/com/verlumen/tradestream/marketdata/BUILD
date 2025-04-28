@@ -148,7 +148,6 @@ java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
     deps = [
-        ":candle_creator_fn", # Keep binding
         ":dry_run_trade_source",
         ":exchange_client_trade_source",
         ":exchange_client_unbounded_source",
