@@ -8,7 +8,7 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.util.Timestamps
 import org.apache.beam.sdk.coders.KvCoder
 import org.apache.beam.sdk.coders.StringUtf8Coder
-import org.apache.beam.sdk.coders.VarLongCoder
+import org.apache.beam.sdk.coders.VarLongCoder // Import VarLongCoder
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
@@ -23,7 +23,7 @@ import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.transforms.SimpleFunction
 import org.apache.beam.sdk.transforms.Values
 import org.apache.beam.sdk.transforms.WithTimestamps
-import org.apache.beam.sdk.transforms.windowing.FixedWindows
+import org.apache.beam.sdk.transforms.windowing.FixedWindows // Import FixedWindows
 import org.apache.beam.sdk.transforms.windowing.Window // Import Window
 import org.apache.beam.sdk.transforms.windowing.AfterWatermark // Import AfterWatermark
 import org.apache.beam.sdk.transforms.windowing.GlobalWindows // Import GlobalWindows
@@ -192,8 +192,8 @@ class FillForwardCandlesTest {
 
         val btcCandleCount: PCollection<Long> = result
              .apply("FilterBTC", Filter.by(SerializableFunction { kv: KV<String, Candle> -> kv.key == "BTC/USD" }))
-             // *** FIX: Apply GlobalWindow with trigger before GroupByKey-based operation (Count) ***
-             .apply("WindowBeforeCount", Window.into<KV<String, Candle>>(GlobalWindows.create())
+             // *** FIX: Use GlobalWindows.of() ***
+             .apply("WindowBeforeCount", Window.into<KV<String, Candle>>(GlobalWindows.of())
                  .triggering(AfterWatermark.pastEndOfWindow())
                  .withAllowedLateness(Duration.ZERO)
                  .discardingFiredPanes())
@@ -291,8 +291,8 @@ class FillForwardCandlesTest {
              .apply("ExtractCurrencyPair", MapElements.into(TypeDescriptor.of(String::class.java)).via(
                  SerializableFunction { kv: KV<String, Candle> -> kv.key }
              ))
-             // *** FIX: Apply GlobalWindow with trigger before GroupByKey-based operation (Count) ***
-             .apply("WindowBeforeCount", Window.into<String>(GlobalWindows.create())
+             // *** FIX: Use GlobalWindows.of() ***
+             .apply("WindowBeforeCount", Window.into<String>(GlobalWindows.of())
                  .triggering(AfterWatermark.pastEndOfWindow())
                  .withAllowedLateness(Duration.ZERO)
                  .discardingFiredPanes())
