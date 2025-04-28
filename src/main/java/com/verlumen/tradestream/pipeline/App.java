@@ -121,7 +121,7 @@ public final class App {
 
     // 3. Create candles from trades.
     PCollection<Candle> candles = tradesWithTimestamps.apply(
-        "Create Candle"
+        "Create Candle",
         tradeToCandleFactory.create(ONE_MINUTE)
     );
 
