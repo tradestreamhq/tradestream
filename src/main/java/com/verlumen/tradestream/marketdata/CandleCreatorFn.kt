@@ -141,17 +141,14 @@ class CandleCreatorFn @Inject constructor() :
     ) {
         val accumulator = currentCandleState.read()
         val lastEmittedCandle = lastCandleState.read()
-        var candleToOutput: Candle? = null // Use a variable to hold the candle to output
-        var key: String? = null // Variable to hold the key
+        var candleToOutput: Candle? = null
+        var key: String? = null
 
         try {
-            // Determine the key for this timer context
-            // It must come from either the accumulator (if it exists for this window)
-            // or the last emitted candle state.
+            // Determine the key for this timer context from available state
             key = accumulator?.currencyPair ?: lastEmittedCandle?.currencyPair
 
             if (key == null) {
-                // This should ideally not happen if a timer was set, but handle defensively.
                 logger.atWarning().log(
                     "Timer fired for window end %s, but could not determine key (accumulator and lastCandleState were null).",
                     window.maxTimestamp()
@@ -159,61 +156,44 @@ class CandleCreatorFn @Inject constructor() :
                 return // Cannot proceed without a key
             }
 
+            logger.atFine().log("Timer fired for key %s, window %s. Accumulator: %s, LastEmitted: %s",
+                key, window, accumulator, candleToString(lastEmittedCandle))
+
             if (accumulator != null && accumulator.initialized) {
-                // Case 1: Trades occurred in this window - create actual candle
+                // Case 1: Trades occurred - build actual candle
                 candleToOutput = buildCandleFromAccumulator(accumulator)
-                logger.atFine().log(
-                    "Built actual candle for %s at window end %s: %s",
-                    key, window.maxTimestamp(), candleToString(candleToOutput)
-                )
+                logger.atFine().log("Built actual candle for %s: %s", key, candleToString(candleToOutput))
+
+            } else if (lastEmittedCandle != null && lastEmittedCandle.currencyPair == key) {
+                 // Case 2: No trades, but have previous state for the *same key* - build fill-forward
+                candleToOutput = buildFillForwardCandle(key, lastEmittedCandle, window.maxTimestamp())
+                logger.atFine().log("Built fill-forward candle for %s: %s", key, candleToString(candleToOutput))
+
             } else {
-                // Case 2: No trades occurred in this window
-                if (lastEmittedCandle != null) {
-                    // Subcase 2a: Have previous state - create fill-forward candle
-                    // Ensure the last candle belongs to the same key (should be guaranteed by Beam state)
-                    if (lastEmittedCandle.currencyPair == key) {
-                        candleToOutput = buildFillForwardCandle(key, lastEmittedCandle, window.maxTimestamp())
-                        logger.atFine().log(
-                            "Built fill-forward candle for %s at window end %s: %s (based on last close: ${lastEmittedCandle.close})",
-                            key, window.maxTimestamp(), candleToString(candleToOutput)
-                        )
-                    } else {
-                         logger.atWarning().log(
-                            "State key mismatch at window end %s for timer key %s. Last emitted candle was for %s. Cannot fill-forward.",
-                             window.maxTimestamp(), key, lastEmittedCandle.currencyPair
-                         )
-                    }
-                } else {
-                    // Subcase 2b: No trades and no prior history for this key - do nothing
-                    logger.atFine().log(
-                        "No candle output for key %s at window end %s (no trades and no prior candle).",
-                        key, window.maxTimestamp()
-                    )
-                }
+                // Case 3: No trades and no relevant prior history for this key
+                logger.atFine().log("No candle to output for key %s at window end %s.", key, window.maxTimestamp())
             }
 
-            // Output the candle if one was created
+            // Output the candle and update state *only if* a candle was generated
             if (candleToOutput != null) {
-                // Output with the window's end timestamp to ensure correct downstream windowing
+                // Output with the window's end timestamp
                 context.outputWithTimestamp(KV.of(key, candleToOutput), window.maxTimestamp())
-                // Update the state with the candle *that was just outputted*
-                // This is crucial for the next potential fill-forward
+                // Update the state with the candle that was just outputted
                 lastCandleState.write(candleToOutput)
-                logger.atFine().log("Outputted and updated lastCandleState for %s", key)
+                logger.atFine().log("Outputted and updated lastCandleState for %s with: %s", key, candleToString(candleToOutput))
             }
 
-        } finally {
-            // Always clear the accumulator state for the *current* window
-            // This prevents it from being reused incorrectly in the next window
+        } catch (e: Exception) {
+            // Log any unexpected errors during timer processing
+             logger.atSevere().withCause(e).log("Error processing timer for key %s, window %s", key ?: "UNKNOWN", window)
+        }
+        finally {
+            // Always clear the accumulator state for the current window after processing
             currentCandleState.clear()
-            // Log the key for which the state is being cleared
-            if (key != null) {
-                logger.atFine().log("Cleared currentCandleState for key %s, window ending %s", key, window.maxTimestamp())
-            } else {
-                 logger.atWarning().log("Cleared currentCandleState for an unknown key (timer fired without key context?), window ending %s", window.maxTimestamp())
-            }
+            logger.atFine().log("Cleared currentCandleState for key %s, window ending %s", key ?: "UNKNOWN", window.maxTimestamp())
         }
     }
+
 
     /**
      * Builds an actual Candle protobuf message from the accumulator state.
