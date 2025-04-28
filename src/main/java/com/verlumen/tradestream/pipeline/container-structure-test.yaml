@@ -7,6 +7,7 @@ commandTests:
       - '-Dio.jenetics.util.defaultRandomGenerator=Random'
       - '-jar'
       - '/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar'
+      - '--maxForwardIntervals=3'
       - '--runMode=dry'
     expectedError:
       - 'DRY/RUN'
