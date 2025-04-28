@@ -1,3 +1,6 @@
+"""Build rules for marketdata tests."""
+
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 load("@rules_java//java:defs.bzl", "java_test")
 
 kt_jvm_test(
@@ -5,9 +8,9 @@ kt_jvm_test(
     srcs = ["FillForwardCandlesTest.kt"],
     test_class = "com.verlumen.tradestream.marketdata.FillForwardCandlesTest",
     deps = [
-        "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/marketdata:fill_forward_candles",
         "//src/main/java/com/verlumen/tradestream/marketdata:fill_forward_candles_fn",
+        "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf",
         "//third_party:beam_sdks_java_test_utils",
@@ -27,6 +30,7 @@ kt_jvm_test(
         "//third_party:beam_runners_direct_java",
     ],
 )
+
 
 java_test(
     name = "CoinbaseStreamingClientTest",
