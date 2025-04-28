@@ -3,12 +3,12 @@ package com.verlumen.tradestream.marketdata
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
+import java.io.Serializable
 import org.apache.beam.sdk.transforms.*
 import org.apache.beam.sdk.transforms.windowing.FixedWindows
 import org.apache.beam.sdk.transforms.windowing.Window
 import org.apache.beam.sdk.values.*
 import org.joda.time.Duration
-import java.io.Serializable
 
 /**
  * Transforms a stream of trades into OHLCV candles using stateful aggregation.
