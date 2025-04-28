@@ -13,7 +13,9 @@ import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.testing.TestStream
 import org.apache.beam.sdk.transforms.Count
-import org.apache.beam.sdk.transforms.Filter
+// Import SerializableFunction
+import org.apache.beam.sdk.transforms.SerializableFunction
+import org.apache.beam.sdk.transforms.Filter // Keep Filter import
 import org.apache.beam.sdk.transforms.GroupByKey
 import org.apache.beam.sdk.transforms.Keys
 import org.apache.beam.sdk.transforms.MapElements
@@ -30,7 +32,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.ArrayList
-import java.io.Serializable // Ensure Serializable is imported if not already
+import java.io.Serializable
 
 /**
  * Alternative approach to testing FillForwardCandles using more focused tests.
@@ -64,7 +66,6 @@ class FillForwardCandlesTest {
         val intervalDuration = Duration.standardMinutes(1)
         val baseTime = Instant.parse("2023-01-01T10:00:00Z")
 
-        // Create a few original candles with non-zero volume
         val originalCandles = listOf(
             KV.of("BTC/USD", createCandle("BTC/USD", 50000.0, 1.0, baseTime)),
             KV.of("ETH/USD", createCandle("ETH/USD", 2000.0, 2.0, baseTime)),
@@ -83,19 +84,18 @@ class FillForwardCandlesTest {
             .apply(candleStream)
             .apply(fillForwardCandlesFactory.create(intervalDuration, 3))
 
-        // Verify all original candles are present in the output
         for (originalCandle in originalCandles) {
             val timestamp = Instant(Timestamps.toMillis(originalCandle.value.timestamp))
 
-            // Filter to find the matching original candle in the output
             PAssert.that(
                 result.apply("Filter${originalCandle.key}At${timestamp}",
-                    // *** FIX: Added explicit type for kv ***
-                    Filter.by { kv: KV<String, Candle> ->
+                    // *** FIX: Use Filter.byPredicate with SerializableFunction ***
+                    Filter.byPredicate(SerializableFunction { kv: KV<String, Candle> ->
                         kv.key == originalCandle.key &&
                         Timestamps.toMillis(kv.value.timestamp) == timestamp.millis &&
                         kv.value.volume > 0.0
                     })
+                )
             ).containsInAnyOrder(originalCandle)
         }
 
@@ -122,50 +122,50 @@ class FillForwardCandlesTest {
             .apply(candleStream)
             .apply(fillForwardCandlesFactory.create(intervalDuration, maxForwardIntervals))
 
-        // Filter to get only fill-forward candles
         val fillForwardCandles = result.apply("GetFillForwardCandles",
-             // *** FIX: Added explicit type for kv ***
-            Filter.by { kv: KV<String, Candle> ->
+            // *** FIX: Use Filter.byPredicate with SerializableFunction ***
+            Filter.byPredicate(SerializableFunction { kv: KV<String, Candle> ->
                 Timestamps.toMillis(kv.value.timestamp) != baseTime.millis &&
                 kv.key == "BTC/USD"
             })
+        )
 
         // Verify fill-forward candles properties
-        PAssert.that(fillForwardCandles).satisfies { candles ->
+        // *** FIX: Wrap lambda in SerializableFunction and explicitly return null on success ***
+        PAssert.that(fillForwardCandles).satisfies(SerializableFunction { candles ->
             val candlesList = candles.toList()
+            var errorMessage: String? = null // Use var to modify
 
-            // Check we have fill-forward candles
             if (candlesList.isEmpty()) {
-                // *** FIX: Return String only on failure ***
-                 "No fill-forward candles found"
+                errorMessage = "No fill-forward candles found" // Assign error message
             } else {
-                // Check fill-forward candles have expected properties
                 for (candle in candlesList) {
-                    // Check volume is zero
                     if (candle.value.volume != 0.0) {
-                        // *** FIX: Return String only on failure ***
-                        return@satisfies "Fill-forward candle has non-zero volume: ${candle.value.volume}"
+                        errorMessage = "Fill-forward candle has non-zero volume: ${candle.value.volume}"
+                        break // Exit loop on first failure
                     }
-
-                    // Check prices match the original close price
                     if (candle.value.open != 50000.0 ||
                         candle.value.high != 50000.0 ||
                         candle.value.low != 50000.0 ||
                         candle.value.close != 50000.0) {
-                        // *** FIX: Return String only on failure ***
-                        return@satisfies "Fill-forward candle prices don't match original close price: ${candle.value}"
+                        errorMessage = "Fill-forward candle prices don't match original close price: ${candle.value}"
+                        break
                     }
-
-                    // Check currency pair
                     if (candle.value.currencyPair != "BTC/USD") {
-                         // *** FIX: Return String only on failure ***
-                        return@satisfies "Fill-forward candle has unexpected currency pair: ${candle.value.currencyPair}"
+                        errorMessage = "Fill-forward candle has unexpected currency pair: ${candle.value.currencyPair}"
+                        break
                     }
                 }
-                // *** FIX: Return null on success ***
-                null
             }
-        }
+
+            // Explicitly return null on success, or the error message string on failure
+            if (errorMessage != null) {
+                errorMessage // Return the String
+            } else {
+                null // Return null (Void)
+            }
+        })
+
 
         pipeline.run().waitUntilFinish(Duration.standardMinutes(2))
     }
@@ -183,7 +183,6 @@ class FillForwardCandlesTest {
 
         val candleStream = TestStream.create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
             .addElements(TimestampedValue.of(originalCandle, baseTime))
-            // Advance watermark far beyond maxForwardIntervals
             .advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(10)))
             .advanceWatermarkToInfinity()
 
@@ -191,14 +190,11 @@ class FillForwardCandlesTest {
             .apply(candleStream)
             .apply(fillForwardCandlesFactory.create(intervalDuration, maxForwardIntervals))
 
-        // Count total number of candles for "BTC/USD"
         val btcCandleCount = result
-            // *** FIX: Added explicit type for kv ***
-            .apply("FilterBTC", Filter.by { kv: KV<String, Candle> -> kv.key == "BTC/USD" })
+             // *** FIX: Use Filter.byPredicate with SerializableFunction ***
+            .apply("FilterBTC", Filter.byPredicate(SerializableFunction { kv: KV<String, Candle> -> kv.key == "BTC/USD" }))
             .apply("Count", Count.globally())
 
-        // Verify we have at most maxForwardIntervals + 1 candles (original + fill-forwards)
-        // *** FIX: Use thatSingleton().isEqualTo() for PCollection<Long> ***
         PAssert.thatSingleton(btcCandleCount).isEqualTo(maxForwardIntervals.toLong() + 1L)
 
         pipeline.run().waitUntilFinish(Duration.standardMinutes(2))
@@ -225,10 +221,9 @@ class FillForwardCandlesTest {
             .apply(candleStream)
             .apply(fillForwardCandlesFactory.create(intervalDuration, maxForwardIntervals))
 
-        // Extract timestamps from all BTC/USD candles
         val timestamps = result
-             // *** FIX: Added explicit type for kv ***
-            .apply("FilterBTC", Filter.by { kv: KV<String, Candle> -> kv.key == "BTC/USD" })
+            // *** FIX: Use Filter.byPredicate with SerializableFunction ***
+            .apply("FilterBTC", Filter.byPredicate(SerializableFunction { kv: KV<String, Candle> -> kv.key == "BTC/USD" }))
             .apply("ExtractTimestamps", MapElements.via(
                 object : SimpleFunction<KV<String, Candle>, Long>() {
                     override fun apply(input: KV<String, Candle>): Long {
@@ -238,40 +233,36 @@ class FillForwardCandlesTest {
             ))
 
         // Check that we have candles at the expected timestamps
-        PAssert.that(timestamps).satisfies { ts ->
+        // *** FIX: Wrap lambda in SerializableFunction and explicitly return null on success ***
+        PAssert.that(timestamps).satisfies(SerializableFunction { ts ->
             val timestampList = ts.toList().sorted()
+            var errorMessage: String? = null
 
-            // Check we have the original timestamp
             if (!timestampList.contains(baseTime.millis)) {
-                 // *** FIX: Return String only on failure ***
-                "Original timestamp not found"
+                errorMessage = "Original timestamp not found"
             } else {
-                 // Check we have the expected fill-forward timestamps
-                var success = true
-                var errorMessage: String? = null
+                // Check we have the expected fill-forward timestamps
                 for (i in 1..maxForwardIntervals) {
-                     // *** FIX: Convert Int `i` to Long for multipliedBy ***
                     val expectedTimestamp = baseTime.plus(intervalDuration.multipliedBy(i.toLong())).millis
                     if (!timestampList.contains(expectedTimestamp)) {
-                         // *** FIX: Return String only on failure ***
                         errorMessage = "Expected fill-forward timestamp not found: $expectedTimestamp"
-                        success = false
-                        break // Exit loop on first failure
+                        break
                     }
                 }
-
-                if (success) {
-                     // Check we don't have too many timestamps
-                    if (timestampList.size > maxForwardIntervals + 1) {
-                         // *** FIX: Return String only on failure ***
-                        errorMessage = "Too many timestamps found. Expected ${maxForwardIntervals + 1}, got ${timestampList.size}"
-                    }
+                // Check we don't have too many timestamps (only if no previous error)
+                if (errorMessage == null && timestampList.size > maxForwardIntervals + 1) {
+                   errorMessage = "Too many timestamps found. Expected ${maxForwardIntervals + 1}, got ${timestampList.size}"
                 }
-
-                // *** FIX: Return null on success, String on failure ***
-                errorMessage
             }
-        }
+
+            // Explicitly return null or the error message
+            if (errorMessage != null) {
+               errorMessage
+            } else {
+                null
+            }
+        })
+
 
         pipeline.run().waitUntilFinish(Duration.standardMinutes(2))
     }
@@ -300,7 +291,6 @@ class FillForwardCandlesTest {
             .apply(candleStream)
             .apply(fillForwardCandlesFactory.create(intervalDuration, maxForwardIntervals))
 
-        // Count candles per currency pair
         val candlesPerPair = result
             .apply("ExtractCurrencyPair", MapElements.via(
                 object : SimpleFunction<KV<String, Candle>, String>() {
@@ -312,28 +302,28 @@ class FillForwardCandlesTest {
             .apply("CountPerPair", Count.perElement())
 
         // Check that each pair has the expected number of candles
-        PAssert.that(candlesPerPair).satisfies { counts ->
+        // *** FIX: Wrap lambda in SerializableFunction and explicitly return null on success ***
+        PAssert.that(candlesPerPair).satisfies(SerializableFunction { counts ->
             val countsList = counts.toList()
-
-            // Find the count for each pair
             val btcCount = countsList.find { it.key == "BTC/USD" }?.value ?: 0L
             val ethCount = countsList.find { it.key == "ETH/USD" }?.value ?: 0L
-
-            // Each pair should have original + maxForwardIntervals candles
             val expectedCount = maxForwardIntervals.toLong() + 1L
-
             var errorMessage: String? = null
+
             if (btcCount != expectedCount) {
-                // *** FIX: Return String only on failure ***
                 errorMessage = "Unexpected BTC/USD candle count. Expected $expectedCount, got $btcCount"
             } else if (ethCount != expectedCount) {
-                 // *** FIX: Return String only on failure ***
                 errorMessage = "Unexpected ETH/USD candle count. Expected $expectedCount, got $ethCount"
             }
 
-             // *** FIX: Return null on success, String on failure ***
-            errorMessage
-        }
+            // Explicitly return null or the error message
+            if (errorMessage != null) {
+               errorMessage
+            } else {
+                null
+            }
+        })
+
 
         pipeline.run().waitUntilFinish(Duration.standardMinutes(2))
     }
