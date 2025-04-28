@@ -1,7 +1,21 @@
-load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+"""Build rules for marketdata components."""
+
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+load("@rules_java//java:defs.bzl", "java_library", "java_test")
 
 package(default_visibility = ["//visibility:public"])
+
+java_library(
+    name = "candle_combine_fn",
+    srcs = ["CandleCombineFn.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:flogger",
+        "//third_party:protobuf_java",
+    ],
+)
 
 # Coinbase specific streaming client
 java_library(
@@ -128,7 +142,7 @@ java_library(
     ],
 )
 
-# NEW: Stateful DoFn for filling forward candle gaps
+# Stateful DoFn for filling forward candle gaps
 kt_jvm_library(
     name = "fill_forward_candles_fn",
     srcs = ["FillForwardCandlesFn.kt"],
@@ -144,7 +158,7 @@ kt_jvm_library(
     ],
 )
 
-# NEW: PTransform wrapping the FillForwardCandlesFn
+# PTransform wrapping the FillForwardCandlesFn
 kt_jvm_library(
     name = "fill_forward_candles",
     srcs = ["FillForwardCandles.kt"],
@@ -187,6 +201,7 @@ java_library(
         ":fill_forward_candles_fn",
         ":sliding_candle_aggregator",
         ":trade_source",
+        ":trade_to_candle",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
@@ -216,6 +231,7 @@ java_library(
     name = "sliding_candle_aggregator",
     srcs = ["SlidingCandleAggregator.java"],
     deps = [
+        ":candle_combine_fn",
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf",
@@ -242,5 +258,21 @@ java_library(
     deps = [
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
+    ],
+)
+
+# PTransform to convert Trades to Candles (now uses ParDo with CandleCreatorFn)
+kt_jvm_library(
+    name = "trade_to_candle",
+    srcs = ["TradeToCandle.kt"],
+    deps = [
+        ":candle_combine_fn",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java",
     ],
 )

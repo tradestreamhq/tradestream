@@ -34,6 +34,10 @@ public abstract class MarketDataModule extends AbstractModule {
     install(new FactoryModuleBuilder()
         .implement(FillForwardCandles.class, FillForwardCandles.class)
         .build(FillForwardCandles.Factory.class));
+    // Install FactoryModuleBuilder for TradeToCandle
+    install(new FactoryModuleBuilder()
+        .implement(TradeToCandle.class, TradeToCandle.class)
+        .build(TradeToCandle.Factory.class));
   }
 
   @Provides
