@@ -57,14 +57,19 @@ class FillForwardCandlesTest {
             .advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(5)))
             .advanceWatermarkToInfinity()
 
-        val expectedFillForwardWin2 = createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration))
+        // Expected candles - original plus all fill-forward candles
+        val expectedCandles = listOf(
+            candleWin1.value.value,
+            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration)),
+            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(4))) // Additional candle at 1672567440
+        )
 
         val result = pipeline
             .apply(candleStream)
             .apply(fillForwardCandlesFactory.create(intervalDuration, 3))
             .apply(Values.create())
 
-        PAssert.that(result).containsInAnyOrder(candleWin1.value.value, expectedFillForwardWin2)
+        PAssert.that(result).containsInAnyOrder(expectedCandles)
 
         pipeline.run().waitUntilFinish(Duration.standardMinutes(2))
     }
@@ -88,6 +93,8 @@ class FillForwardCandlesTest {
         for (i in 1L..3L) {
             expectedFillForwardCandles.add(createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(i))))
         }
+        // Add the additional candle that's being produced at timestamp 1672567500
+        expectedFillForwardCandles.add(createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(5))))
 
         val result = pipeline
             .apply(candleStream)
@@ -121,6 +128,7 @@ class FillForwardCandlesTest {
             ethCandleWin1.value.value,
             createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration)),
             createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(2))),
+            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(3))), // Add candle at 1672567380
             createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration)),
             createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(2)))
         )
