@@ -12,7 +12,7 @@ import org.apache.beam.sdk.transforms.windowing.Window
 import org.apache.beam.sdk.values.*
 import org.joda.time.Duration
 import java.io.Serializable
-import com.google.protobuf.Timestamp // Ensure correct Timestamp import
+import com.google.protobuf.Timestamp
 
 /**
  * Transforms a stream of trades into OHLCV candles using Combine.perKey.
@@ -23,7 +23,7 @@ class TradeToCandle @Inject constructor(
     @Assisted private val windowDuration: Duration,
     // CandleCombineFn needs to be injectable or accessible
     // Assuming SlidingCandleAggregator.CandleCombineFn is accessible/injectable
-    private val candleCombineFn: SlidingCandleAggregator.CandleCombineFn
+    private val candleCombineFn: CandleCombineFn
 ) : PTransform<PCollection<Trade>, PCollection<KV<String, Candle>>>(), Serializable {
 
     companion object {
