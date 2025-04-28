@@ -6,9 +6,6 @@ build --java_language_version=17
 build --tool_java_runtime_version=remotejdk_17
 build --tool_java_language_version=17
 
-# Enable platform-based toolchain resolution
-build --incompatible_enable_cc_toolchain_resolution
-
 build --verbose_failures
 build --sandbox_debug
 
@@ -28,3 +25,10 @@ build --experimental_remote_cache_compression_threshold=100
 build --noslim_profile
 build --experimental_profile_include_target_label
 build --experimental_profile_include_primary_output 
+# Fix for absolute path inclusions in protobuf
+build --sandbox_add_mount_pair=/usr/lib/gcc
+
+# Additional helpful settings
+build --incompatible_enable_cc_toolchain_resolution=false
+build --action_env=CC=gcc
+build --action_env=CXX=g++
