@@ -5,7 +5,6 @@ load("@rules_java//java:defs.bzl", "java_library", "java_test")
 
 package(default_visibility = ["//visibility:public"])
 
-# Coinbase specific streaming client
 java_library(
     name = "candle_combine_fn",
     srcs = ["CandleCombineFn.java"],
@@ -18,6 +17,7 @@ java_library(
     ],
 )
 
+# Coinbase specific streaming client
 java_library(
     name = "coinbase_streaming_client",
     srcs = ["CoinbaseStreamingClient.java"],
@@ -142,6 +142,37 @@ java_library(
     ],
 )
 
+# Stateful DoFn for filling forward candle gaps
+kt_jvm_library(
+    name = "fill_forward_candles_fn",
+    srcs = ["FillForwardCandlesFn.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java_util",
+    ],
+)
+
+# PTransform wrapping the FillForwardCandlesFn
+kt_jvm_library(
+    name = "fill_forward_candles",
+    srcs = ["FillForwardCandles.kt"],
+    deps = [
+        ":fill_forward_candles_fn",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
+    ],
+)
+
+
 # DoFn for buffering the last N candles
 java_library(
     name = "last_candles_fn",
@@ -166,7 +197,9 @@ java_library(
         ":exchange_client_unbounded_source_impl",
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
-        ":sliding_candle_aggregator", # Keep dependency for CandleCombineFn if needed elsewhere
+        ":fill_forward_candles",
+        ":fill_forward_candles_fn",
+        ":sliding_candle_aggregator",
         ":trade_source",
         ":trade_to_candle",
         "//protos:marketdata_java_proto",

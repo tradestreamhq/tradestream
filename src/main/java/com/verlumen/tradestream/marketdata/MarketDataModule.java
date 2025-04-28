@@ -5,6 +5,7 @@ import static com.google.protobuf.util.Timestamps.fromMillis;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
+import com.google.inject.Key; // Import Key
 import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -25,6 +26,14 @@ public abstract class MarketDataModule extends AbstractModule {
     bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
 
+    // Install FactoryModuleBuilder for FillForwardCandlesFn (NEW)
+    install(new FactoryModuleBuilder()
+        .build(FillForwardCandlesFn.Factory.class));
+
+    // Install FactoryModuleBuilder for FillForwardCandles PTransform (NEW)
+    install(new FactoryModuleBuilder()
+        .implement(FillForwardCandles.class, FillForwardCandles.class)
+        .build(FillForwardCandles.Factory.class));
     // Install FactoryModuleBuilder for TradeToCandle
     install(new FactoryModuleBuilder()
         .implement(TradeToCandle.class, TradeToCandle.class)
