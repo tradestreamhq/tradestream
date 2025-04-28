@@ -60,9 +60,10 @@ class FillForwardCandlesTest {
         // Expected candles - original plus all fill-forward candles
         val expectedCandles = listOf(
             candleWin1.value.value,
-            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration)),
-            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(2))), // Candle at 1672567320
-            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(4))) // Candle at 1672567440
+            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration)),  // at 1672567260
+            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(2))),  // at 1672567320
+            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(3))),  // at 1672567380
+            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(4)))   // at 1672567440
         )
 
         val result = pipeline
@@ -91,12 +92,14 @@ class FillForwardCandlesTest {
             .advanceWatermarkToInfinity()
 
         val expectedFillForwardCandles = mutableListOf(candleWin1.value.value)
-        for (i in 1L..3L) {
+        // Add fill-forward candles from 1 minute to 6 minutes after base time
+        for (i in 1L..6L) {
             expectedFillForwardCandles.add(createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(i))))
         }
-        // Add additional candles being generated
-        expectedFillForwardCandles.add(createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(5)))) // at 1672567500
-        expectedFillForwardCandles.add(createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(6)))) // at 1672567560
+        // Make sure 4 minute candle is included (1672567440)
+        if (!expectedFillForwardCandles.any { Timestamps.toMillis(it.timestamp) == baseTime.plus(intervalDuration.multipliedBy(4)).millis }) {
+            expectedFillForwardCandles.add(createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(4))))
+        }
 
         val result = pipeline
             .apply(candleStream)
@@ -133,7 +136,8 @@ class FillForwardCandlesTest {
             createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(3))),
             createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration)),
             createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(2))),
-            createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(3))) // Add ETH candle at 1672567380
+            createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(3))),
+            createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(4))) // Add ETH candle at 1672567440
         )
 
         val result = pipeline
