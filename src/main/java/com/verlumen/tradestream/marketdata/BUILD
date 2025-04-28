@@ -221,8 +221,6 @@ kt_jvm_library(
     name = "trade_to_candle",
     srcs = ["TradeToCandle.kt"],
     deps = [
-        ":candle_creator_fn", # Re-added dependency
-        # Removed :sliding_candle_aggregator dependency
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
         "//third_party:flogger",
