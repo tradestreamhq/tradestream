@@ -72,7 +72,7 @@ abstract class PipelineModule extends AbstractModule {
   }
 
   @Provides
-  TradeToCandle provideTradeToCandle(FillForwardCandles.Factory factory) {
+  TradeToCandle provideTradeToCandle(TradeToCandle.Factory factory) {
       return factory.create(candleDuration());
   }
 }
