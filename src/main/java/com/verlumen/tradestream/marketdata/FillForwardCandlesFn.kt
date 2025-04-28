@@ -58,7 +58,7 @@ constructor(
     @StateId("lastOutputTimestamp")
     private val lastOutputTimestampSpec: StateSpec<ValueState<Instant>> =
         StateSpecs.value(InstantCoder.of())
-        
+
     // State: Counter to track how many fill-forward intervals we've created
     @StateId("fillForwardCount")
     private val fillForwardCountSpec: StateSpec<ValueState<Int>> =
@@ -95,10 +95,10 @@ constructor(
         // Update state
         lastActualCandleState.write(actualCandle)
         lastOutputTimestampState.write(actualCandleTimestamp) // Update last output timestamp
-        
+
         // Reset the fill-forward counter since we got a new actual candle
         fillForwardCountState.write(0)
-        
+
         logger.atInfo().log(
             "Updated lastActualCandleState for key %s with actual candle at %s: %s",
             key,
@@ -195,13 +195,13 @@ constructor(
                 key,
                 timerTimestamp
             )
-            
+
             // Increment the fill-forward counter
             val newCount = currentFillForwardCount + 1
             fillForwardCountState.write(newCount)
             logger.atInfo().log(
-                "Updated fillForwardCount for key %s to %d/%d", 
-                key, 
+                "Updated fillForwardCount for key %s to %d/%d",
+                key,
                 newCount,
                 maxForwardIntervals
             )
@@ -215,7 +215,7 @@ constructor(
                     key,
                     nextTimerInstant,
                     timerTimestamp
-                )
+                 )
             } else {
                 logger.atInfo().log(
                     "Reached maximum fill-forward limit (%d) for key %s. Not scheduling more timers.",
@@ -235,13 +235,13 @@ constructor(
             if (currentFillForwardCount >= maxForwardIntervals) {
                 reasons.add("reached maximum fill-forward count (${currentFillForwardCount}/${maxForwardIntervals})")
             }
-            
+
             logger.atInfo().log(
                 "Timer fired for key %s at %s, but not filling forward. Reasons: %s",
                 key,
                 timerTimestamp,
                 reasons.joinToString(", ")
-            )
+             )
         }
     }
 
@@ -262,6 +262,14 @@ constructor(
             .setVolume(0.0)
             .build()
     }
+
+    /**
+     * Allows timestamp skew when outputting elements.
+     * Required to handle scenarios where processing time might cause elements
+     * to be emitted slightly after their intended event time window boundary,
+     * especially when dealing with timers.
+     */
+    override fun getAllowedTimestampSkew(): Duration = intervalDuration
 
     // Factory interface for Guice AssistedInject
     interface Factory {
