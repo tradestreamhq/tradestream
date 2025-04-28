@@ -28,10 +28,7 @@ import org.hamcrest.Matchers.closeTo        // Direct import for closeTo
 import org.hamcrest.Matchers.containsInAnyOrder // Direct import for containsInAnyOrder
 import org.hamcrest.Matchers.equalTo         // Direct import for equalTo
 
-/**
- * Test class for TradeToCandle that verifies both actual candle generation
- * and fill-forward behavior when no trades occur.
- */
+
 class TradeToCandleTest : Serializable {
     companion object {
         private const val serialVersionUID = 1L
@@ -46,7 +43,7 @@ class TradeToCandleTest : Serializable {
     @Inject
     lateinit var tradeToCandleFactory: TradeToCandle.Factory
 
-    // Inject CandleCreatorFn directly if needed for setup, otherwise rely on TradeToCandleFactory
+    // Inject CandleCreatorFn as it's used by the stateful TradeToCandle
     @Inject
     lateinit var candleCreatorFn: CandleCreatorFn
 
@@ -59,12 +56,13 @@ class TradeToCandleTest : Serializable {
         val testModule = BoundFieldModule.of(this)
         val modules: List<Module> = listOf(
             testModule,
+            // Bind CandleCreatorFn
             object : AbstractModule() {
                 override fun configure() {
-                    // Bind CandleCreatorFn if it's needed directly or rely on its injection into TradeToCandle
                     bind(CandleCreatorFn::class.java)
                 }
             },
+            // FactoryModuleBuilder for TradeToCandle
             FactoryModuleBuilder()
                 .implement(TradeToCandle::class.java, TradeToCandle::class.java)
                 .build(TradeToCandle.Factory::class.java)
@@ -81,7 +79,7 @@ class TradeToCandleTest : Serializable {
         // Arrange
         val windowDuration = Duration.standardMinutes(1)
         val baseTime = Instant.parse("2023-01-01T10:00:00.000Z")
-        // val win1End = baseTime.plus(windowDuration) // 10:01:00 // Not needed for watermark advance in this test
+        val win1End = baseTime.plus(windowDuration) // 10:01:00
         val t1 = baseTime.plus(Duration.standardSeconds(15)) // 10:00:15
         val t2 = baseTime.plus(Duration.standardSeconds(45)) // 10:00:45
 
@@ -94,6 +92,7 @@ class TradeToCandleTest : Serializable {
 
         val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
             .addElements(tradeWin1, tradeWin1Late)
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1))) // Advance watermark just past the end of the window
             .advanceWatermarkToInfinity()
 
         val expectedBtcCandle = Candle.newBuilder()
@@ -114,19 +113,20 @@ class TradeToCandleTest : Serializable {
             .apply("ExtractValues", Values.create())
 
         // Assert
-        PAssert.that(result).containsInAnyOrder(expectedBtcCandle) // Check contents directly
+        PAssert.that(result).containsInAnyOrder(expectedBtcCandle)
 
         pipeline.run().waitUntilFinish()
     }
 
     /**
-     * Verifies that no candle is output for a currency pair with no history.
+     * Verifies that no candle is output for a currency pair with no trades at all.
      */
     @Test
     fun testNoOutputForPairWithNoHistory() {
         // Arrange
         val windowDuration = Duration.standardMinutes(1)
         val baseTime = Instant.parse("2023-01-01T10:00:00.000Z")
+        val win1End = baseTime.plus(windowDuration)
         val t1 = baseTime.plus(Duration.standardSeconds(30))
 
         // Only BTC trades, no ETH trades
@@ -134,6 +134,7 @@ class TradeToCandleTest : Serializable {
             .addElements(
                 TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1)
             )
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
         val expectedBtcCandle = Candle.newBuilder()
@@ -166,7 +167,7 @@ class TradeToCandleTest : Serializable {
                 assertThat("Low price should match", actualCandle.low, closeTo(expectedBtcCandle.low, TOLERANCE))
                 assertThat("Close price should match", actualCandle.close, closeTo(expectedBtcCandle.close, TOLERANCE))
                 assertThat("Volume should match", actualCandle.volume, closeTo(expectedBtcCandle.volume, TOLERANCE))
-                assertThat("Timestamp seconds should match", actualCandle.timestamp.seconds, equalTo(expectedBtcCandle.timestamp.seconds))
+                 assertThat("Timestamp seconds should match", actualCandle.timestamp.seconds, equalTo(expectedBtcCandle.timestamp.seconds))
                 return null
             }
         })
@@ -174,9 +175,8 @@ class TradeToCandleTest : Serializable {
         pipeline.run().waitUntilFinish()
     }
 
-    /**
-     * Verifies fill-forward behavior when a window has no trades.
-     */
+    // --- Fill-Forward Tests (Re-enabled) ---
+
     @Test
     fun testFillForwardOnEmptyWindow() {
         // Arrange
@@ -184,19 +184,16 @@ class TradeToCandleTest : Serializable {
         val baseTime = Instant.parse("2023-01-01T10:00:00.000Z")
         val win1End = baseTime.plus(windowDuration) // 10:01:00
         val win2End = win1End.plus(windowDuration)  // 10:02:00
-        val t1 = baseTime.plus(Duration.standardSeconds(30)) // Trade time
+        val t1 = baseTime.plus(Duration.standardSeconds(30)) // Trade time in window 1
 
         val tradeWin1 = TimestampedValue.of(
             createTrade("BTC/USD", 50000.0, 1.0, t1), t1
         )
 
-        // TestStream with trade in window 1, no trades in window 2
         val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
             .addElements(tradeWin1) // Trade in window 1
-             // Correctly advance watermark past the window end to trigger finalization
-            .advanceWatermarkTo(win1End.plus(Duration.standardSeconds(1)))
-            // Advance watermark past the second window end to trigger its finalization (empty)
-            .advanceWatermarkTo(win2End.plus(Duration.standardSeconds(1)))
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
+            .advanceWatermarkTo(win2End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
         // Expected candle for window 1 (actual trades)
@@ -234,10 +231,6 @@ class TradeToCandleTest : Serializable {
         pipeline.run().waitUntilFinish()
     }
 
-
-    /**
-     * Verifies that fill-forward continues across multiple empty windows.
-     */
     @Test
     fun testMultipleFillForwardWindows() {
         // Arrange
@@ -252,12 +245,11 @@ class TradeToCandleTest : Serializable {
             createTrade("BTC/USD", 50000.0, 1.0, t1), t1
         )
 
-        // TestStream with trade in window 1, no trades in windows 2 and 3
         val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
             .addElements(tradeWin1) // Trade in window 1
-            .advanceWatermarkTo(win1End.plus(Duration.standardSeconds(1)))
-            .advanceWatermarkTo(win2End.plus(Duration.standardSeconds(1)))
-            .advanceWatermarkTo(win3End.plus(Duration.standardSeconds(1)))
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
+            .advanceWatermarkTo(win2End.plus(Duration.millis(1)))
+            .advanceWatermarkTo(win3End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
         // Expected Candles
@@ -270,7 +262,7 @@ class TradeToCandleTest : Serializable {
             .setClose(50000.0).setVolume(0.0).setTimestamp(Timestamps.fromMillis(win2End.millis))
             .build()
         val expectedFillForwardWin3 = Candle.newBuilder() // Window 3 fill-forward
-            .setCurrencyPair("BTC/USD").setOpen(50000.0).setHigh(50000.0).setLow(50000.0)
+            .setCurrencyPair("BTC/USD").setOpen(50000.0).setHigh(50000.0).setLow(50000.0) // Based on Win2 FF close
             .setClose(50000.0).setVolume(0.0).setTimestamp(Timestamps.fromMillis(win3End.millis))
             .build()
 
@@ -289,9 +281,6 @@ class TradeToCandleTest : Serializable {
         pipeline.run().waitUntilFinish()
     }
 
-    /**
-     * Verifies that fill-forward stops when trades resume.
-     */
     @Test
     fun testFillForwardResetsAfterNewTrade() {
         // Arrange
@@ -307,14 +296,11 @@ class TradeToCandleTest : Serializable {
         val tradeWin1 = TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1)
         val tradeWin3 = TimestampedValue.of(createTrade("BTC/USD", 51000.0, 0.5, t3), t3)
 
-        // TestStream with trades in windows 1 and 3, no trades in window 2
         val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
             .addElements(tradeWin1)
-            // Advance watermark past Win1 and Win2 to trigger their finalizations
-            .advanceWatermarkTo(win2End.plus(Duration.standardSeconds(1)))
-            .addElements(tradeWin3) // Add Win3 trade
-            // Advance watermark past Win3 end
-             .advanceWatermarkTo(win3End.plus(Duration.standardSeconds(1)))
+            .advanceWatermarkTo(win2End.plus(Duration.millis(1))) // Advance past win1 and win2
+            .addElements(tradeWin3)
+            .advanceWatermarkTo(win3End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
         // Expected Candles
@@ -346,9 +332,6 @@ class TradeToCandleTest : Serializable {
         pipeline.run().waitUntilFinish()
     }
 
-    /**
-     * Verifies that fill-forward works independently for different currency pairs.
-     */
     @Test
     fun testIndependentFillForwardForMultiplePairs() {
         // Arrange
@@ -362,34 +345,27 @@ class TradeToCandleTest : Serializable {
         val t2 = win1End.plus(Duration.standardSeconds(30))  // 10:01:30
         val t3 = win2End.plus(Duration.standardSeconds(30))  // 10:02:30
 
-        // Create trades with timestamps
         val btcWin1 = TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1)
         val ethWin1 = TimestampedValue.of(createTrade("ETH/USD", 2000.0, 2.0, t1), t1)
         val btcWin2 = TimestampedValue.of(createTrade("BTC/USD", 50500.0, 0.5, t2), t2)
-        // No ETH trade in Win2
         val ethWin3 = TimestampedValue.of(createTrade("ETH/USD", 2100.0, 1.5, t3), t3)
-        // No BTC trade in Win3
 
-        // TestStream with different trade patterns for BTC and ETH
         val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
-            .addElements(btcWin1, ethWin1) // Both in window 1
-            .advanceWatermarkTo(win1End.plus(Duration.standardSeconds(1)))
-            .addElements(btcWin2) // Only BTC in window 2
-            .advanceWatermarkTo(win2End.plus(Duration.standardSeconds(1)))
-            .addElements(ethWin3) // Only ETH in window 3
-            .advanceWatermarkTo(win3End.plus(Duration.standardSeconds(1))) // Ensure win3 finalizes
+            .addElements(btcWin1, ethWin1)
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
+            .addElements(btcWin2)
+            .advanceWatermarkTo(win2End.plus(Duration.millis(1)))
+            .addElements(ethWin3)
+            .advanceWatermarkTo(win3End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
         // Expected Candles
-        // BTC: win1(actual), win2(actual), win3(fill-forward)
         val expBtcWin1 = Candle.newBuilder().setCurrencyPair("BTC/USD").setOpen(50000.0).setHigh(50000.0).setLow(50000.0).setClose(50000.0).setVolume(1.0).setTimestamp(Timestamps.fromMillis(t1.millis)).build()
         val expBtcWin2 = Candle.newBuilder().setCurrencyPair("BTC/USD").setOpen(50500.0).setHigh(50500.0).setLow(50500.0).setClose(50500.0).setVolume(0.5).setTimestamp(Timestamps.fromMillis(t2.millis)).build()
         val expBtcWin3FF = Candle.newBuilder().setCurrencyPair("BTC/USD").setOpen(50500.0).setHigh(50500.0).setLow(50500.0).setClose(50500.0).setVolume(0.0).setTimestamp(Timestamps.fromMillis(win3End.millis)).build()
-        // ETH: win1(actual), win2(fill-forward), win3(actual)
         val expEthWin1 = Candle.newBuilder().setCurrencyPair("ETH/USD").setOpen(2000.0).setHigh(2000.0).setLow(2000.0).setClose(2000.0).setVolume(2.0).setTimestamp(Timestamps.fromMillis(t1.millis)).build()
         val expEthWin2FF = Candle.newBuilder().setCurrencyPair("ETH/USD").setOpen(2000.0).setHigh(2000.0).setLow(2000.0).setClose(2000.0).setVolume(0.0).setTimestamp(Timestamps.fromMillis(win2End.millis)).build()
         val expEthWin3 = Candle.newBuilder().setCurrencyPair("ETH/USD").setOpen(2100.0).setHigh(2100.0).setLow(2100.0).setClose(2100.0).setVolume(1.5).setTimestamp(Timestamps.fromMillis(t3.millis)).build()
-
 
         // Act
         val transform = tradeToCandleFactory.create(windowDuration)
@@ -398,7 +374,6 @@ class TradeToCandleTest : Serializable {
             .apply("TradeToCandle", transform)
 
         // Assert
-        // Check the entire PCollection content for all 6 expected candles
         PAssert.that(result.apply("ExtractValuesOnly", Values.create()))
             .containsInAnyOrder(
                 expBtcWin1, expBtcWin2, expBtcWin3FF,
