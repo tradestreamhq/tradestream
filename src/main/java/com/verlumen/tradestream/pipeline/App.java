@@ -120,7 +120,7 @@ public final class App {
                 .withAllowedTimestampSkew(timingConfig.allowedTimestampSkew()));
 
     // 3. Create candles from trades.
-    PCollection<Candle> candles = tradesWithTimestamps.apply(
+    PCollection<KV<String, Candle>> candles = tradesWithTimestamps.apply(
         "Create Candle",
         tradeToCandleFactory.create(ONE_MINUTE)
     );
