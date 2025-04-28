@@ -4,10 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.google.protobuf.Timestamp;
-import com.verlumen.tradestream.marketdata.Candle;
-import com.verlumen.tradestream.marketdata.CandleCombineFn;
 import com.verlumen.tradestream.marketdata.CandleCombineFn.CandleAccumulator;
-import com.verlumen.tradestream.marketdata.Trade;
 import org.apache.beam.sdk.coders.KvCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
