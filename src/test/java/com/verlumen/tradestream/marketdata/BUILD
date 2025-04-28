@@ -134,6 +134,7 @@ kt_jvm_test(
     deps = [
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_combine_fn",
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_to_candle",
         "//third_party:beam_sdks_java_core",
