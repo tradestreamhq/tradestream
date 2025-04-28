@@ -140,11 +140,25 @@ class CandleCreatorFn @Inject constructor() :
         window: BoundedWindow
     ) {
         val accumulator = currentCandleState.read()
+        val lastEmittedCandle = lastCandleState.read()
         var candleToOutput: Candle? = null // Use a variable to hold the candle to output
-
-        val key = context.key() // Get the key for which the timer fired
+        var key: String? = null // Variable to hold the key
 
         try {
+            // Determine the key for this timer context
+            // It must come from either the accumulator (if it exists for this window)
+            // or the last emitted candle state.
+            key = accumulator?.currencyPair ?: lastEmittedCandle?.currencyPair
+
+            if (key == null) {
+                // This should ideally not happen if a timer was set, but handle defensively.
+                logger.atWarning().log(
+                    "Timer fired for window end %s, but could not determine key (accumulator and lastCandleState were null).",
+                    window.maxTimestamp()
+                )
+                return // Cannot proceed without a key
+            }
+
             if (accumulator != null && accumulator.initialized) {
                 // Case 1: Trades occurred in this window - create actual candle
                 candleToOutput = buildCandleFromAccumulator(accumulator)
@@ -154,10 +168,9 @@ class CandleCreatorFn @Inject constructor() :
                 )
             } else {
                 // Case 2: No trades occurred in this window
-                val lastEmittedCandle = lastCandleState.read()
                 if (lastEmittedCandle != null) {
                     // Subcase 2a: Have previous state - create fill-forward candle
-                    // Ensure the last candle belongs to the same key
+                    // Ensure the last candle belongs to the same key (should be guaranteed by Beam state)
                     if (lastEmittedCandle.currencyPair == key) {
                         candleToOutput = buildFillForwardCandle(key, lastEmittedCandle, window.maxTimestamp())
                         logger.atFine().log(
@@ -166,7 +179,7 @@ class CandleCreatorFn @Inject constructor() :
                         )
                     } else {
                          logger.atWarning().log(
-                            "State mismatch at window end %s for key %s. Last emitted candle was for %s. Cannot fill-forward.",
+                            "State key mismatch at window end %s for timer key %s. Last emitted candle was for %s. Cannot fill-forward.",
                              window.maxTimestamp(), key, lastEmittedCandle.currencyPair
                          )
                     }
@@ -193,7 +206,12 @@ class CandleCreatorFn @Inject constructor() :
             // Always clear the accumulator state for the *current* window
             // This prevents it from being reused incorrectly in the next window
             currentCandleState.clear()
-            logger.atFine().log("Cleared currentCandleState for key %s, window ending %s", key, window.maxTimestamp())
+            // Log the key for which the state is being cleared
+            if (key != null) {
+                logger.atFine().log("Cleared currentCandleState for key %s, window ending %s", key, window.maxTimestamp())
+            } else {
+                 logger.atWarning().log("Cleared currentCandleState for an unknown key (timer fired without key context?), window ending %s", window.maxTimestamp())
+            }
         }
     }
 
