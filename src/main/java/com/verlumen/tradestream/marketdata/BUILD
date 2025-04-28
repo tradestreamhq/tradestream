@@ -3,6 +3,7 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
+# Coinbase specific streaming client
 java_library(
     name = "coinbase_streaming_client",
     srcs = ["CoinbaseStreamingClient.java"],
@@ -18,6 +19,7 @@ java_library(
     ],
 )
 
+# Generates default/dummy trades
 java_library(
     name = "default_trade_generator",
     srcs = ["DefaultTradeGenerator.java"],
@@ -31,6 +33,7 @@ java_library(
     ],
 )
 
+# Trade source for dry runs
 java_library(
     name = "dry_run_trade_source",
     srcs = ["DryRunTradeSource.java"],
@@ -43,6 +46,7 @@ java_library(
     ],
 )
 
+# Trade source using an exchange client
 java_library(
     name = "exchange_client_trade_source",
     srcs = ["ExchangeClientTradeSource.java"],
@@ -55,6 +59,7 @@ java_library(
     ],
 )
 
+# Beam UnboundedReader implementation for exchange clients
 kt_jvm_library(
     name = "exchange_client_unbounded_reader",
     srcs = ["ExchangeClientUnboundedReader.kt"],
@@ -73,6 +78,7 @@ kt_jvm_library(
     ],
 )
 
+# Abstract base class for exchange client unbounded sources
 kt_jvm_library(
     name = "exchange_client_unbounded_source",
     srcs = ["ExchangeClientUnboundedSource.kt"],
@@ -84,6 +90,7 @@ kt_jvm_library(
     ],
 )
 
+# Concrete implementation of the unbounded source
 kt_jvm_library(
     name = "exchange_client_unbounded_source_impl",
     srcs = ["ExchangeClientUnboundedSourceImpl.kt"],
@@ -98,6 +105,7 @@ kt_jvm_library(
     ],
 )
 
+# Interface for exchange streaming clients
 java_library(
     name = "exchange_streaming_client",
     srcs = ["ExchangeStreamingClient.java"],
@@ -108,6 +116,7 @@ java_library(
     ],
 )
 
+# Factory for creating exchange streaming clients
 java_library(
     name = "exchange_streaming_client_factory",
     srcs = ["ExchangeStreamingClientFactory.java"],
@@ -119,6 +128,38 @@ java_library(
     ],
 )
 
+# NEW: Stateful DoFn for filling forward candle gaps
+kt_jvm_library(
+    name = "fill_forward_candles_fn",
+    srcs = ["FillForwardCandlesFn.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java_util",
+    ],
+)
+
+# NEW: PTransform wrapping the FillForwardCandlesFn
+kt_jvm_library(
+    name = "fill_forward_candles",
+    srcs = ["FillForwardCandles.kt"],
+    deps = [
+        ":fill_forward_candles_fn",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
+    ],
+)
+
+
+# DoFn for buffering the last N candles
 java_library(
     name = "last_candles_fn",
     srcs = ["LastCandlesFn.java"],
@@ -131,26 +172,34 @@ java_library(
     ],
 )
 
+# Guice module for market data components
 java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
     deps = [
+        ":candle_creator_fn", # Keep binding even if unused by TradeToCandle
         ":dry_run_trade_source",
         ":exchange_client_trade_source",
         ":exchange_client_unbounded_source",
         ":exchange_client_unbounded_source_impl",
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
+        ":fill_forward_candles", # Add dependency for new transform
+        ":fill_forward_candles_fn", # Add dependency for new DoFn
+        ":sliding_candle_aggregator", # Add dependency for CandleCombineFn
         ":trade_source",
+        ":trade_to_candle",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
+        "//third_party:guice_assistedinject",
         "//third_party:protobuf_java_util",
     ],
 )
 
+# Transform for creating multi-timeframe views
 java_library(
     name = "multi_timeframe_candle_transform",
     srcs = ["MultiTimeframeCandleTransform.java"],
@@ -164,10 +213,12 @@ java_library(
     ],
 )
 
+# PTransform for aggregating trades using sliding windows (contains CandleCombineFn)
 java_library(
     name = "sliding_candle_aggregator",
     srcs = ["SlidingCandleAggregator.java"],
     deps = [
+        ":candle_accumulator", # Add dependency
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf",
@@ -177,6 +228,7 @@ java_library(
     ],
 )
 
+# Checkpoint mark for the unbounded source
 kt_jvm_library(
     name = "trade_checkpoint_mark",
     srcs = ["TradeCheckpointMark.kt"],
@@ -186,11 +238,187 @@ kt_jvm_library(
     ],
 )
 
+# Abstract base class for trade sources
 java_library(
     name = "trade_source",
     srcs = ["TradeSource.java"],
     deps = [
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
+    ],
+)
+
+# PTransform to convert Trades to Candles (now uses Combine.perKey)
+kt_jvm_library(
+    name = "trade_to_candle",
+    srcs = ["TradeToCandle.kt"],
+    deps = [
+        # Removed :candle_creator_fn dependency
+        ":sliding_candle_aggregator", # Added dependency for CandleCombineFn
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java", # Added dependency
+    ],
+)
+
+# --- Tests ---
+
+# NEW Test for FillForwardCandles
+kt_jvm_test(
+    name = "FillForwardCandlesTest",
+    srcs = ["FillForwardCandlesTest.kt"],
+    test_class = "com.verlumen.tradestream.marketdata.FillForwardCandlesTest",
+    deps = [
+        ":fill_forward_candles", # Depend on the new transform
+        ":fill_forward_candles_fn", # Depend on the new DoFn
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:beam_sdks_java_test_utils",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:guice_testlib",
+        "//third_party:hamcrest",
+        "//third_party:joda_time",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+        "//third_party:truth",
+    ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+    ],
+)
+
+# (Keep existing tests for other components)
+java_test(
+    name = "CoinbaseStreamingClientTest",
+    srcs = ["CoinbaseStreamingClientTest.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/marketdata:coinbase_streaming_client",
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
+        "//third_party:gson",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:truth",
+    ],
+)
+
+java_test(
+    name = "DefaultTradeGeneratorTest",
+    srcs = ["DefaultTradeGeneratorTest.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/marketdata:default_trade_generator",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:joda_time",
+        "//third_party:junit",
+        "//third_party:protobuf_java",
+    ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
+)
+
+java_test(
+    name = "ExchangeClientUnboundedSourceImplTest",
+    srcs = ["ExchangeClientUnboundedSourceImplTest.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_reader",
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source",
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source_impl",
+        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
+        "//src/main/java/com/verlumen/tradestream/marketdata:trade_checkpoint_mark",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:beam_sdks_java_test_utils",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:joda_time",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+        "//third_party:truth",
+    ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
+)
+
+java_test(
+    name = "LastCandlesFnTest",
+    srcs = ["LastCandlesFnTest.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/marketdata:last_candles_fn",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:beam_sdks_java_test_utils",
+        "//third_party:guava",
+        "//third_party:joda_time",
+        "//third_party:junit",
+        "//third_party:protobuf_java",
+    ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
+)
+
+java_test(
+    name = "MultiTimeframeCandleTransformTest",
+    srcs = ["MultiTimeframeCandleTransformTest.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
+        "//src/main/java/com/verlumen/tradestream/time:time_frame",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:guava",
+        "//third_party:joda_time",
+        "//third_party:junit",
+        "//third_party:protobuf_java",
+    ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
+)
+
+java_test(
+    name = "SlidingCandleAggregatorTest",
+    srcs = ["SlidingCandleAggregatorTest.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/marketdata:sliding_candle_aggregator",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:beam_sdks_java_test_utils",
+        "//third_party:joda_time",
+        "//third_party:junit",
+        "//third_party:protobuf_java",
+        "//third_party:guava",
+    ],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
     ],
 )
