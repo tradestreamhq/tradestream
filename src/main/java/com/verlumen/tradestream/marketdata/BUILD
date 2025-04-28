@@ -1,8 +1,11 @@
-load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+"""Build rules for marketdata components."""
+
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+load("@rules_java//java:defs.bzl", "java_library", "java_test")
 
 package(default_visibility = ["//visibility:public"])
 
+# Coinbase specific streaming client
 java_library(
     name = "candle_combine_fn",
     srcs = ["CandleCombineFn.java"],
@@ -30,6 +33,7 @@ java_library(
     ],
 )
 
+# Generates default/dummy trades
 java_library(
     name = "default_trade_generator",
     srcs = ["DefaultTradeGenerator.java"],
@@ -43,6 +47,7 @@ java_library(
     ],
 )
 
+# Trade source for dry runs
 java_library(
     name = "dry_run_trade_source",
     srcs = ["DryRunTradeSource.java"],
@@ -55,6 +60,7 @@ java_library(
     ],
 )
 
+# Trade source using an exchange client
 java_library(
     name = "exchange_client_trade_source",
     srcs = ["ExchangeClientTradeSource.java"],
@@ -67,6 +73,7 @@ java_library(
     ],
 )
 
+# Beam UnboundedReader implementation for exchange clients
 kt_jvm_library(
     name = "exchange_client_unbounded_reader",
     srcs = ["ExchangeClientUnboundedReader.kt"],
@@ -85,6 +92,7 @@ kt_jvm_library(
     ],
 )
 
+# Abstract base class for exchange client unbounded sources
 kt_jvm_library(
     name = "exchange_client_unbounded_source",
     srcs = ["ExchangeClientUnboundedSource.kt"],
@@ -96,6 +104,7 @@ kt_jvm_library(
     ],
 )
 
+# Concrete implementation of the unbounded source
 kt_jvm_library(
     name = "exchange_client_unbounded_source_impl",
     srcs = ["ExchangeClientUnboundedSourceImpl.kt"],
@@ -110,6 +119,7 @@ kt_jvm_library(
     ],
 )
 
+# Interface for exchange streaming clients
 java_library(
     name = "exchange_streaming_client",
     srcs = ["ExchangeStreamingClient.java"],
@@ -120,6 +130,7 @@ java_library(
     ],
 )
 
+# Factory for creating exchange streaming clients
 java_library(
     name = "exchange_streaming_client_factory",
     srcs = ["ExchangeStreamingClientFactory.java"],
@@ -131,6 +142,7 @@ java_library(
     ],
 )
 
+# DoFn for buffering the last N candles
 java_library(
     name = "last_candles_fn",
     srcs = ["LastCandlesFn.java"],
@@ -143,6 +155,7 @@ java_library(
     ],
 )
 
+# Guice module for market data components
 java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
@@ -153,16 +166,20 @@ java_library(
         ":exchange_client_unbounded_source_impl",
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
+        ":sliding_candle_aggregator", # Keep dependency for CandleCombineFn if needed elsewhere
         ":trade_source",
+        ":trade_to_candle",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
         "//third_party:guava",
         "//third_party:guice",
+        "//third_party:guice_assistedinject",
         "//third_party:protobuf_java_util",
     ],
 )
 
+# Transform for creating multi-timeframe views
 java_library(
     name = "multi_timeframe_candle_transform",
     srcs = ["MultiTimeframeCandleTransform.java"],
@@ -176,6 +193,7 @@ java_library(
     ],
 )
 
+# PTransform for aggregating trades using sliding windows (contains CandleCombineFn)
 java_library(
     name = "sliding_candle_aggregator",
     srcs = ["SlidingCandleAggregator.java"],
@@ -190,6 +208,7 @@ java_library(
     ],
 )
 
+# Checkpoint mark for the unbounded source
 kt_jvm_library(
     name = "trade_checkpoint_mark",
     srcs = ["TradeCheckpointMark.kt"],
@@ -199,11 +218,28 @@ kt_jvm_library(
     ],
 )
 
+# Abstract base class for trade sources
 java_library(
     name = "trade_source",
     srcs = ["TradeSource.java"],
     deps = [
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
+    ],
+)
+
+# PTransform to convert Trades to Candles (now uses ParDo with CandleCreatorFn)
+kt_jvm_library(
+    name = "trade_to_candle",
+    srcs = ["TradeToCandle.kt"],
+    deps = [
+        ":candle_combine_fn",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java",
     ],
 )
