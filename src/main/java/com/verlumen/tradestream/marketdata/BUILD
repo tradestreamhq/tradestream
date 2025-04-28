@@ -177,16 +177,15 @@ java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
     deps = [
-        ":candle_creator_fn", # Keep binding even if unused by TradeToCandle
         ":dry_run_trade_source",
         ":exchange_client_trade_source",
         ":exchange_client_unbounded_source",
         ":exchange_client_unbounded_source_impl",
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
-        ":fill_forward_candles", # Add dependency for new transform
-        ":fill_forward_candles_fn", # Add dependency for new DoFn
-        ":sliding_candle_aggregator", # Add dependency for CandleCombineFn
+        ":fill_forward_candles",
+        ":fill_forward_candles_fn",
+        ":sliding_candle_aggregator",
         ":trade_source",
         ":trade_to_candle",
         "//protos:marketdata_java_proto",
