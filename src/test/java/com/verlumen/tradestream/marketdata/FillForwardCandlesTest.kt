@@ -1,12 +1,12 @@
 package com.verlumen.tradestream.marketdata
 
-import com.google.inject.AbstractModule // Sorted import
+import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.google.inject.Inject
 import com.google.inject.Module
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import com.google.inject.testing.fieldbinder.BoundFieldModule
-import com.google.protobuf.util.Timestamps // Sorted import
+import com.google.protobuf.util.Timestamps
 import java.io.Serializable
 import org.apache.beam.sdk.coders.KvCoder
 import org.apache.beam.sdk.coders.StringUtf8Coder
@@ -351,7 +351,7 @@ class FillForwardCandlesTest : Serializable {
         // Add space around binary operator `..` is incorrect per style guide [cite: 84]
         // Use lambda argument name other than 'i' if possible, but 'i' is common for index.
         val timestamps = (0..15).map { index ->
-            baseTime.plus(intervalDuration.multipliedBy(index))
+            baseTime.plus(intervalDuration.multipliedBy(index.toLong()))
         }
 
         // Just one actual candle at the beginning
