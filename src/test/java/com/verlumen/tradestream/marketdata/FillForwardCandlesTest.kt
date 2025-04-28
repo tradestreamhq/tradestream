@@ -64,7 +64,8 @@ class FillForwardCandlesTest {
             createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(2))),  // at 1672567320
             createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(3))),  // at 1672567380
             createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(4))),  // at 1672567440
-            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(5)))   // at 1672567500
+            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(5))),  // at 1672567500
+            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(6)))   // at 1672567560
         )
 
         val result = pipeline
@@ -92,10 +93,10 @@ class FillForwardCandlesTest {
             .advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(10)))
             .advanceWatermarkToInfinity()
 
-        // Add all expected fill-forward candles from 1 minute to 9 minutes after base time
+        // Add all expected fill-forward candles
         val expectedFillForwardCandles = mutableListOf(candleWin1.value.value)
-        // Add all sequential candles from 1 to 6 minutes after base time
-        for (i in 1L..6L) {
+        // Add sequential candles from 1 to 7 minutes after base time
+        for (i in 1L..7L) {
             expectedFillForwardCandles.add(createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(i))))
         }
         // Add the candle at 9 minutes after base time (1672567740)
@@ -134,11 +135,12 @@ class FillForwardCandlesTest {
             createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration)),
             createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(2))),
             createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(3))),
-            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(4))), // Add BTC candle at 1672567440
+            createCandle("BTC/USD", 50000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(4))),
             createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration)),
             createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(2))),
             createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(3))),
-            createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(4)))
+            createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(4))),
+            createCandle("ETH/USD", 2000.0, 0.0, baseTime.plus(intervalDuration.multipliedBy(5))) // Add ETH candle at 1672567500
         )
 
         val result = pipeline
