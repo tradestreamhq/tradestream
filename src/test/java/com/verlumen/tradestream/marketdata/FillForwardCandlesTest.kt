@@ -192,8 +192,8 @@ class FillForwardCandlesTest {
 
         val btcCandleCount: PCollection<Long> = result
              .apply("FilterBTC", Filter.by(SerializableFunction { kv: KV<String, Candle> -> kv.key == "BTC/USD" }))
-             // *** FIX: Use GlobalWindows.of() ***
-             .apply("WindowBeforeCount", Window.into<KV<String, Candle>>(GlobalWindows.of())
+             // *** FIX: Use GlobalWindows() directly ***
+             .apply("WindowBeforeCount", Window.into<KV<String, Candle>>(GlobalWindows())
                  .triggering(AfterWatermark.pastEndOfWindow())
                  .withAllowedLateness(Duration.ZERO)
                  .discardingFiredPanes())
@@ -291,8 +291,8 @@ class FillForwardCandlesTest {
              .apply("ExtractCurrencyPair", MapElements.into(TypeDescriptor.of(String::class.java)).via(
                  SerializableFunction { kv: KV<String, Candle> -> kv.key }
              ))
-             // *** FIX: Use GlobalWindows.of() ***
-             .apply("WindowBeforeCount", Window.into<String>(GlobalWindows.of())
+             // *** FIX: Use GlobalWindows() directly ***
+             .apply("WindowBeforeCount", Window.into<String>(GlobalWindows())
                  .triggering(AfterWatermark.pastEndOfWindow())
                  .withAllowedLateness(Duration.ZERO)
                  .discardingFiredPanes())
