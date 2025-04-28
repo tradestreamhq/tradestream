@@ -16,6 +16,7 @@ import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.MultiTimeframeCandleTransform;
 import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.marketdata.TradeSource;
+import com.verlumen.tradestream.marketdata.TradeToCandle;
 import com.verlumen.tradestream.strategies.StrategyEnginePipeline;
 import java.util.List;
 import java.util.function.Supplier;
