@@ -10,4 +10,4 @@ commandTests:
       - '--runMode=dry'
     expectedError:
       - 'DRY/RUN'
-      - '.*Starting TradeToCandle transform \(Combine\.perKey version\) with window duration: PT60S'
+      - 'Starting TradeToCandle transform \(Combine\.perKey version\) with window duration: PT60S'
