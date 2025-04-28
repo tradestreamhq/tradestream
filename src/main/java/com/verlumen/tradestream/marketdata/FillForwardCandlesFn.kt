@@ -10,7 +10,6 @@ import org.apache.beam.sdk.state.StateSpec
 import org.apache.beam.sdk.state.StateSpecs
 import org.apache.beam.sdk.state.TimeDomain
 import org.apache.beam.sdk.state.Timer
-import org.apache.beam.sdk.state.TimerMap
 import org.apache.beam.sdk.state.TimerSpec
 import org.apache.beam.sdk.state.TimerSpecs
 import org.apache.beam.sdk.state.ValueState
@@ -35,8 +34,6 @@ class FillForwardCandlesFn @Inject constructor(
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
         private const val serialVersionUID = 1L
-        // Define a reasonable lookahead for setting timers to prevent infinite loops in tests
-        private val MAX_TIMER_LOOKAHEAD = Duration.standardHours(1)
 
         // Helper function for logging candle details
         private fun candleToString(candle: Candle?): String {
@@ -81,7 +78,7 @@ class FillForwardCandlesFn @Inject constructor(
 
         // Update state
         lastActualCandleState.write(actualCandle)
-        lastOutputTimestampState.write(actualCandleTimestamp)
+        lastOutputTimestampState.write(actualCandleTimestamp) // Update last output timestamp
         logger.atFine().log("Updated lastActualCandleState for key %s with actual candle at %s: %s",
              key, actualCandleTimestamp, candleToString(actualCandle))
         logger.atFine().log("Updated lastOutputTimestampState for key %s to %s", key, actualCandleTimestamp)
@@ -98,7 +95,7 @@ class FillForwardCandlesFn @Inject constructor(
         context: OnTimerContext,
         @StateId("lastActualCandle") lastActualCandleState: ValueState<Candle>,
         @StateId("lastOutputTimestamp") lastOutputTimestampState: ValueState<Instant>,
-        @TimerId("gapCheckTimer") timer: Timer // Changed from TimerMap to Timer
+        @TimerId("gapCheckTimer") timer: Timer
     ) {
         val timerTimestamp = context.timestamp()
         val lastActualCandle = lastActualCandleState.read()
@@ -115,36 +112,38 @@ class FillForwardCandlesFn @Inject constructor(
         logger.atFine().log("Timer fired for key %s at %s. Last actual candle timestamp: %s. Last output timestamp: %s",
             key, timerTimestamp, lastActualTimestamp, lastOutputTimestamp)
 
-        // Check if this timer corresponds to the interval *immediately* following the last *outputted* element.
-        if (timerTimestamp.isEqual(lastOutputTimestamp.plus(intervalDuration))) {
-            logger.atFine().log("Gap confirmed for key %s at interval start %s (based on last output %s). Generating fill-forward.",
-                key, timerTimestamp, lastOutputTimestamp)
+        // *** REFINED CONDITION ***
+        // Condition 1: The timer must fire for an interval *after* the last actual candle's interval ended.
+        // Condition 2: The timer must correspond to the interval *immediately* following the last outputted element (actual or fill-forward).
+        if (timerTimestamp.isAfter(lastActualTimestamp) && // Ensures we don't fill *over* the last actual data
+            timerTimestamp.isEqual(lastOutputTimestamp.plus(intervalDuration))) {
 
+            logger.atFine().log("Gap confirmed for key %s at interval start %s. Generating fill-forward.",
+                key, timerTimestamp)
+
+            // Generate fill-forward using the last *actual* candle's close price
             val fillForwardCandle = buildFillForwardCandle(key, lastActualCandle, timerTimestamp)
+
+            // Output the fill-forward candle
             context.outputWithTimestamp(KV.of(key, fillForwardCandle), timerTimestamp)
             logger.atFine().log("Generated and outputted fill-forward for key %s at %s: %s",
                 key, timerTimestamp, candleToString(fillForwardCandle))
 
+            // Update the last output timestamp state
             lastOutputTimestampState.write(timerTimestamp)
             logger.atFine().log("Updated lastOutputTimestampState for key %s to %s (after fill-forward)", key, timerTimestamp)
 
             // Set the timer for the next potential interval boundary
             val nextTimerInstant = timerTimestamp.plus(intervalDuration)
-
-            // *** ADDED CHECK TO PREVENT EXCESSIVE FUTURE TIMERS ***
-            // Only set the next timer if it's within a reasonable lookahead from the last actual data
-            if (nextTimerInstant.isBefore(lastActualTimestamp.plus(MAX_TIMER_LOOKAHEAD))) {
-                timer.set(nextTimerInstant)
-                logger.atFine().log("Set next timer for key %s at %s (after generating fill-forward for %s)",
-                    key, nextTimerInstant, timerTimestamp)
-            } else {
-                 logger.atFine().log("Skipping setting next timer for key %s at %s because it's too far beyond last actual candle %s",
-                    key, nextTimerInstant, lastActualTimestamp)
-            }
+            // No need for MAX_LOOKAHEAD here, the conditions above should handle termination.
+            timer.set(nextTimerInstant)
+            logger.atFine().log("Set next timer for key %s at %s (after generating fill-forward for %s)",
+                key, nextTimerInstant, timerTimestamp)
 
         } else {
-             logger.atFine().log("Timer fired for key %s at %s, but it does not immediately follow the last output timestamp %s. Skipping fill-forward.",
-                 key, timerTimestamp, lastOutputTimestamp)
+             logger.atFine().log("Timer fired for key %s at %s, but conditions not met (lastActual: %s, lastOutput: %s). Skipping fill-forward.",
+                 key, timerTimestamp, lastActualTimestamp, lastOutputTimestamp)
+             // This timer might be stale or for an interval already covered by an actual candle.
         }
     }
 
