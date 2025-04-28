@@ -90,7 +90,7 @@ public final class App {
   @Inject
   App(
       Supplier<List<CurrencyPair>> currencyPairs,
-      FillForwardCandles.Factory fillForwardCandlesFactory;
+      FillForwardCandles.Factory fillForwardCandlesFactory,
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig,
       TradeSource tradeSource,
