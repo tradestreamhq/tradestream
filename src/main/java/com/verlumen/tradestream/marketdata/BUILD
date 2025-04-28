@@ -187,7 +187,6 @@ java_library(
         ":fill_forward_candles_fn",
         ":sliding_candle_aggregator",
         ":trade_source",
-        ":trade_to_candle",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party:auto_value",
