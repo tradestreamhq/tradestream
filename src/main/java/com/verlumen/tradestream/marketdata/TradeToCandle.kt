@@ -3,35 +3,39 @@ package com.verlumen.tradestream.marketdata
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
-import java.io.Serializable
 import org.apache.beam.sdk.transforms.*
 import org.apache.beam.sdk.transforms.windowing.FixedWindows
 import org.apache.beam.sdk.transforms.windowing.Window
 import org.apache.beam.sdk.values.*
 import org.joda.time.Duration
+import java.io.Serializable
 
 /**
  * Transforms a stream of trades into OHLCV candles using stateful aggregation.
  * When no trades occur in a window, it uses the previous candle's close price
  * to create a continuation candle with zero volume. If no previous candle exists,
  * no candle will be produced.
+ * (Reverted to use stateful DoFn approach)
  */
 class TradeToCandle @Inject constructor(
     @Assisted private val windowDuration: Duration,
+    // Inject the stateful DoFn
     private val candleCreatorFn: CandleCreatorFn
 ) : PTransform<PCollection<Trade>, PCollection<KV<String, Candle>>>(), Serializable {
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
-        private const val serialVersionUID = 1L
+        // Use a different serialVersionUID if reverting from a previous structural change
+        private const val serialVersionUID = 4L
     }
 
+    // Factory remains the same
     interface Factory {
         fun create(windowDuration: Duration): TradeToCandle
     }
 
     override fun expand(input: PCollection<Trade>): PCollection<KV<String, Candle>> {
-        logger.atInfo().log("Starting TradeToCandle transform with window duration: %s", windowDuration)
+        logger.atInfo().log("Starting TradeToCandle transform (Stateful DoFn version) with window duration: %s", windowDuration)
 
         // Key trades by currency pair
         val keyedTrades = input.apply("KeyByCurrencyPair",
@@ -47,7 +51,9 @@ class TradeToCandle @Inject constructor(
         // Process with stateful DoFn that handles both actual candles and fill-forward logic
         val candles = windowedTrades
             .apply("AggregateAndFillForwardCandles", ParDo.of(candleCreatorFn))
-            .setTypeDescriptor(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptor.of(Candle::class.java)))
+            // Ensure the output type descriptor is set correctly
+             .setTypeDescriptor(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptor.of(Candle::class.java)))
+
 
         return candles.setName("CandlesWithFillForward")
     }
