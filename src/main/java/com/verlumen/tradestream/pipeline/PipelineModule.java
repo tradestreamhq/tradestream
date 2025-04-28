@@ -14,12 +14,13 @@ import com.verlumen.tradestream.marketdata.MarketDataModule;
 import com.verlumen.tradestream.signals.SignalsModule;
 import com.verlumen.tradestream.strategies.StrategiesModule;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
+import org.joda.time.Duration;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
   static PipelineModule create(
     String bootstrapServers,
-    Duration candleDuration,
+    int candleDurationMinutes,
     String coinMarketCapApiKey,
     String exchangeName,
     int maxForwardIntervals,
@@ -28,7 +29,7 @@ abstract class PipelineModule extends AbstractModule {
     int topCurrencyCount) {
     return new AutoValue_PipelineModule(
       bootstrapServers,
-      candleDuration,
+      Duration.standardMinutes(candleDurationMinutes),
       coinMarketCapApiKey,
       exchangeName,
       maxForwardIntervals,
