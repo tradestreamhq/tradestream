@@ -5,7 +5,7 @@ import static com.google.protobuf.util.Timestamps.fromMillis;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
-import com.google.inject.Key; // Import Key
+import com.google.inject.Key;
 import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -57,7 +57,7 @@ public abstract class MarketDataModule extends AbstractModule {
           .setExchange(exchangeName())
           .setCurrencyPair("DRY/RUN")
           .setTradeId("trade-123")
-          .setTimestamp(fromMillis(1234567))
+          .setTimestamp(fromMillis(1259999L))
           .setPrice(50000.0)
           .setVolume(0.1)
           .build()));

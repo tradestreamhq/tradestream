@@ -13,6 +13,7 @@ import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.FillForwardCandles;
 import com.verlumen.tradestream.marketdata.MultiTimeframeCandleTransform;
 import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.marketdata.TradeSource;
@@ -53,10 +54,20 @@ public final class App {
     String getBootstrapServers();
     void setBootstrapServers(String value);
 
+    @Description("Duration of candles in minutes.")
+    @Default.Integer(1)
+    int getCandleDurationMinutes();
+    void setCandleDurationMinutes(int value);
+
     @Description("Name of the exchange.")
     @Default.String("coinbase")
     String getExchangeName();
     void setExchangeName(String value);
+
+    @Description("Maximum number of forward intervals to fill for missing candles.")
+    @Default.Integer(Integer.MAX_VALUE)
+    int getMaxForwardIntervals();
+    void setMaxForwardIntervals(int value);
 
     @Description("Kafka topic to publish signal data to.")
     @Default.String("signals")
@@ -80,23 +91,26 @@ public final class App {
   }
 
   private final Supplier<List<CurrencyPair>> currencyPairs;
+  private final FillForwardCandles fillForwardCandles;
   private final StrategyEnginePipeline strategyEnginePipeline;
   private final TimingConfig timingConfig;
   private final TradeSource tradeSource;
-  private final TradeToCandle.Factory tradeToCandleFactory;
+  private final TradeToCandle tradeToCandle;
 
   @Inject
   App(
       Supplier<List<CurrencyPair>> currencyPairs,
+      FillForwardCandles fillForwardCandles,
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig,
       TradeSource tradeSource,
-      TradeToCandle.Factory tradeToCandleFactory) {
+      TradeToCandle tradeToCandle) {
     this.currencyPairs = currencyPairs;
+    this.fillForwardCandles = fillForwardCandles;
     this.strategyEnginePipeline = strategyEnginePipeline;
     this.timingConfig = timingConfig;
     this.tradeSource = tradeSource;
-    this.tradeToCandleFactory = tradeToCandleFactory;
+    this.tradeToCandle = tradeToCandle;
   }
 
   /** Build the Beam pipeline, integrating all components. */
@@ -120,10 +134,9 @@ public final class App {
                 .withAllowedTimestampSkew(timingConfig.allowedTimestampSkew()));
 
     // 3. Create candles from trades.
-    PCollection<KV<String, Candle>> candles = tradesWithTimestamps.apply(
-        "Create Candle",
-        tradeToCandleFactory.create(ONE_MINUTE)
-    );
+    PCollection<KV<String, Candle>> candles = tradesWithTimestamps
+      .apply("Create Candle", tradeToCandle)
+      .apply("Add Candle if Missing", fillForwardCandles);
 
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
     return pipeline;
@@ -176,8 +189,10 @@ public final class App {
     RunMode runMode = RunMode.fromString(options.getRunMode());
     var module = PipelineModule.create(
       options.getBootstrapServers(),
+      options.getCandleDurationMinutes(),
       getCmcApiKey(options),
       options.getExchangeName(),
+      options.getMaxForwardIntervals(),
       runMode,
       options.getSignalTopic(),
       options.getCoinMarketCapTopCurrencyCount());

@@ -9,238 +9,181 @@ import org.apache.beam.sdk.coders.InstantCoder
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.state.StateSpec
 import org.apache.beam.sdk.state.StateSpecs
-import org.apache.beam.sdk.state.TimeDomain
 import org.apache.beam.sdk.state.Timer
 import org.apache.beam.sdk.state.TimerSpec
 import org.apache.beam.sdk.state.TimerSpecs
 import org.apache.beam.sdk.state.ValueState
 import org.apache.beam.sdk.transforms.DoFn
+import org.apache.beam.sdk.transforms.DoFn.OnTimer
+import org.apache.beam.sdk.transforms.DoFn.ProcessElement
+import org.apache.beam.sdk.transforms.DoFn.TimerId
 import org.apache.beam.sdk.values.KV
 import org.joda.time.Duration
 import org.joda.time.Instant
 
 /**
- * Stateful DoFn to fill forward candle data.
- *
- * Takes KV<String, Candle> as input (output from an aggregation step). Outputs KV<String, Candle>
- * including original candles and generated fill-forward candles. Assumes input candles arrive with
- * timestamps corresponding to the *start* of their interval. Fill-forward candles are emitted with
- * timestamps corresponding to the *start* of the interval they fill.
+ * Stateful DoFn to fill forward candle data using event time timers.
  */
 class FillForwardCandlesFn
 @Inject
 constructor(
-    @Assisted private val intervalDuration: Duration, // The expected duration between candles (e.g., 1 minute)
-    @Assisted private val maxForwardIntervals: Int = Int.MAX_VALUE // Maximum number of intervals to fill forward
+    @Assisted private val intervalDuration: Duration, // The expected duration between candles
+    @Assisted private val maxForwardIntervals: Int = Int.MAX_VALUE // Max intervals to fill
 ) : DoFn<KV<String, Candle>, KV<String, Candle>>(), Serializable {
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
-        private const val serialVersionUID = 1L
+        private const val serialVersionUID = 2L // Increment version due to logic change
+        private const val FILL_FORWARD_TIMER = "fillForwardTimer"
 
         // Helper function for logging candle details
         private fun candleToString(candle: Candle?): String {
             if (candle == null) return "null"
-            // Using string templates for better readability, wrapped for length
             return "Candle{Pair=${candle.currencyPair}, " +
-                "T=${Timestamps.toString(candle.timestamp)}, " +
-                "O=${candle.open}, H=${candle.high}, L=${candle.low}, " +
-                "C=${candle.close}, V=${candle.volume}}"
+                    "T=${Timestamps.toString(candle.timestamp)}, " +
+                    "O=${candle.open}, H=${candle.high}, L=${candle.low}, " +
+                    "C=${candle.close}, V=${candle.volume}}"
         }
     }
 
-    // State to keep track of the last *actual* candle received for a key.
+    // State: Last actual candle received
     @StateId("lastActualCandle")
     private val lastActualCandleSpec: StateSpec<ValueState<Candle>> =
         StateSpecs.value(ProtoCoder.of(Candle::class.java))
 
-    // State: Stores the timestamp of the last outputted candle (actual or fill-forward).
+    // State: Timestamp of the last outputted candle (actual or fill-forward)
     @StateId("lastOutputTimestamp")
     private val lastOutputTimestampSpec: StateSpec<ValueState<Instant>> =
         StateSpecs.value(InstantCoder.of())
-        
-    // State: Counter to track how many fill-forward intervals we've created
+
+    // State: Count of consecutive fill-forward candles generated
     @StateId("fillForwardCount")
     private val fillForwardCountSpec: StateSpec<ValueState<Int>> =
         StateSpecs.value(org.apache.beam.sdk.coders.VarIntCoder.of())
 
-    // Timer to trigger checks for gaps. Set based on event time.
-    @TimerId("gapCheckTimer")
-    private val timerSpec: TimerSpec = TimerSpecs.timer(TimeDomain.EVENT_TIME)
+    // Timer: Used to schedule potential fill-forward generation
+    @TimerId(FILL_FORWARD_TIMER)
+    private val timerSpec: TimerSpec = TimerSpecs.timer(org.apache.beam.sdk.state.TimeDomain.EVENT_TIME)
 
     @ProcessElement
     fun processElement(
         context: ProcessContext,
-        @Element element: KV<String, Candle>,
         @StateId("lastActualCandle") lastActualCandleState: ValueState<Candle>,
         @StateId("lastOutputTimestamp") lastOutputTimestampState: ValueState<Instant>,
         @StateId("fillForwardCount") fillForwardCountState: ValueState<Int>,
-        @TimerId("gapCheckTimer") timer: Timer
+        @TimerId(FILL_FORWARD_TIMER) timer: Timer
     ) {
-        val key = element.key
-        val actualCandle = element.value
+        val key = context.element().key
+        val actualCandle = context.element().value
         val actualCandleTimestamp = Instant(Timestamps.toMillis(actualCandle.timestamp))
 
         logger.atInfo().log(
             "Processing actual candle for key %s at %s: %s",
-            key,
-            actualCandleTimestamp,
-            candleToString(actualCandle)
+            key, actualCandleTimestamp, candleToString(actualCandle)
         )
 
-        // Output the actual candle received
+        // Output the actual candle received.
         context.outputWithTimestamp(KV.of(key, actualCandle), actualCandleTimestamp)
         logger.atInfo().log("Outputted actual candle for key %s at %s", key, actualCandleTimestamp)
 
-        // Update state
+        // Update state with the new actual candle.
         lastActualCandleState.write(actualCandle)
-        lastOutputTimestampState.write(actualCandleTimestamp) // Update last output timestamp
-        
-        // Reset the fill-forward counter since we got a new actual candle
-        fillForwardCountState.write(0)
-        
+        lastOutputTimestampState.write(actualCandleTimestamp)
+        fillForwardCountState.write(0) // Reset fill count as we received actual data.
+
         logger.atInfo().log(
             "Updated lastActualCandleState for key %s with actual candle at %s: %s",
-            key,
-            actualCandleTimestamp,
-            candleToString(actualCandle)
+            key, actualCandleTimestamp, candleToString(actualCandle)
         )
         logger.atInfo().log(
-            "Updated lastOutputTimestampState for key %s to %s", key, actualCandleTimestamp
-        )
-        logger.atInfo().log(
-            "Reset fillForwardCount for key %s to 0", key
+            "Updated lastOutputTimestampState for key %s to %s and reset fill count",
+            key, actualCandleTimestamp
         )
 
-        // Set a timer for the next expected interval boundary
-        val nextTimerInstant = actualCandleTimestamp.plus(intervalDuration)
-        timer.set(nextTimerInstant)
-        logger.atInfo().log(
-            "Set timer for key %s at %s (after processing actual candle %s)",
-            key,
-            nextTimerInstant,
-            actualCandleTimestamp
-        )
+        // Set a timer for the end of the current interval to potentially generate a fill-forward candle.
+        val nextTimerTimestamp = actualCandleTimestamp
+        logger.atInfo().log("Setting timer for key %s at %s", key, nextTimerTimestamp)
+        timer.set(nextTimerTimestamp)
     }
 
-    @OnTimer("gapCheckTimer")
-    fun onTimer(
-        context: OnTimerContext,
+    @OnTimer(FILL_FORWARD_TIMER)
+    fun onFillForwardTimer(
+        context: OnTimerContext, // Correct type for @OnTimer
         @StateId("lastActualCandle") lastActualCandleState: ValueState<Candle>,
         @StateId("lastOutputTimestamp") lastOutputTimestampState: ValueState<Instant>,
         @StateId("fillForwardCount") fillForwardCountState: ValueState<Int>,
-        @TimerId("gapCheckTimer") timer: Timer
+        @TimerId(FILL_FORWARD_TIMER) timer: Timer
     ) {
         val timerTimestamp = context.timestamp()
         val lastActualCandle = lastActualCandleState.read()
-        // Use Elvis operator for default value, avoiding nullable Instant
-        val lastOutputTimestamp = lastOutputTimestampState.read() ?: Instant.EPOCH
-        // Get current fill-forward count, defaulting to 0 if not set
-        val currentFillForwardCount = fillForwardCountState.read() ?: 0
 
+        // If state is missing (e.g., expired), we cannot proceed.
         if (lastActualCandle == null) {
-            logger.atWarning().log(
-                "Timer fired at %s but lastActualCandleState is null. Cannot fill forward.",
-                timerTimestamp
-            )
-            return // Early return requires braces if the block isn't empty
+             logger.atWarning().log("Timer fired at %s but lastActualCandle state is missing. Skipping.", timerTimestamp)
+             return
         }
-
+        // The key is implicitly associated with the state and timer. Get it from the last candle.
         val key = lastActualCandle.currencyPair
-        val lastActualTimestamp = Instant(Timestamps.toMillis(lastActualCandle.timestamp))
+
+        val lastOutputTimestamp = lastOutputTimestampState.read()
+        var fillCount = fillForwardCountState.read() ?: 0
 
         logger.atInfo().log(
-            "Timer fired for key %s at %s. Last actual candle timestamp: %s. Last output timestamp: %s. Current fill-forward count: %d/%d",
-            key,
-            timerTimestamp,
-            lastActualTimestamp,
-            lastOutputTimestamp,
-            currentFillForwardCount,
-            maxForwardIntervals
+            "Timer fired for key %s at %s. LastOutput: %s, LastActual: %s, FillCount: %d",
+            key, timerTimestamp, lastOutputTimestamp, candleToString(lastActualCandle), fillCount
         )
 
-        // Check if a fill-forward is needed and allowed
-        // Breaking long line before logical operators
-        // Added braces as per rule
-        if (
-            timerTimestamp.isAfter(lastActualTimestamp) && // Ensures we don't fill *over* the last actual data
-            timerTimestamp.isEqual(lastOutputTimestamp.plus(intervalDuration)) && // Checks if this is the immediate next interval
-            currentFillForwardCount < maxForwardIntervals // Strict check against the maximum allowed
-        ) {
+        // Check if an actual candle arrived *after* this timer timestamp already.
+        // If the lastOutputTimestamp is later than this timer's timestamp, it means newer data arrived.
+        // If lastOutputTimestamp is null or is NOT equal to the timer timestamp, the timer is obsolete.
+        if (lastOutputTimestamp == null || !timerTimestamp.isEqual(lastOutputTimestamp)) {
             logger.atInfo().log(
-                "Gap confirmed for key %s at interval start %s. " +
-                    "Generating fill-forward (interval %d of max %d).",
-                key,
-                timerTimestamp,
-                currentFillForwardCount + 1,
-                maxForwardIntervals
+                "Timer for key %s at %s is obsolete or state is missing. LastOutput: %s. Skipping.",
+                 key, timerTimestamp, lastOutputTimestamp
             )
+            return // Do nothing, an actual candle covered this interval or state is missing/unexpected.
+        }
 
-            // Generate fill-forward using the last *actual* candle's close price
-            val fillForwardCandle = buildFillForwardCandle(key, lastActualCandle, timerTimestamp)
-
-            // Output the fill-forward candle
-            context.outputWithTimestamp(KV.of(key, fillForwardCandle), timerTimestamp)
+        // Check if we've exceeded the max fill forward intervals.
+        if (fillCount >= maxForwardIntervals) {
             logger.atInfo().log(
-                "Generated and outputted fill-forward for key %s at %s: %s",
-                key,
-                timerTimestamp,
-                candleToString(fillForwardCandle)
+                "Max fill-forward intervals (%d) reached for key %s at %s. Skipping.",
+                 maxForwardIntervals, key, timerTimestamp
             )
+            return
+        }
 
-            // Update the last output timestamp state
-            lastOutputTimestampState.write(timerTimestamp)
-            logger.atInfo().log(
-                "Updated lastOutputTimestampState for key %s to %s (after fill-forward)",
-                key,
-                timerTimestamp
-            )
-            
-            // Increment the fill-forward counter
-            val newCount = currentFillForwardCount + 1
-            fillForwardCountState.write(newCount)
-            logger.atInfo().log(
-                "Updated fillForwardCount for key %s to %d/%d", 
-                key, 
-                newCount,
-                maxForwardIntervals
-            )
+        // Calculate the timestamp for the fill-forward candle.
+        val fillForwardTimestamp = timerTimestamp.plus(intervalDuration)
 
-            // Only set the timer for the next potential interval boundary if we haven't reached the max
-            if (newCount < maxForwardIntervals) {
-                val nextTimerInstant = timerTimestamp.plus(intervalDuration)
-                timer.set(nextTimerInstant)
-                logger.atInfo().log(
-                    "Set next timer for key %s at %s (after generating fill-forward for %s)",
-                    key,
-                    nextTimerInstant,
-                    timerTimestamp
-                )
-            } else {
-                logger.atInfo().log(
-                    "Reached maximum fill-forward limit (%d) for key %s. Not scheduling more timers.",
-                    maxForwardIntervals,
-                    key
-                )
-            }
+        // Generate and output the fill-forward candle.
+        val fillForwardCandle = buildFillForwardCandle(key, lastActualCandle, fillForwardTimestamp)
+        // Use context.output() as timestamp is implicitly the timer's timestamp
+        // Output with the *fill-forward* timestamp, not the timer's timestamp.
+        context.outputWithTimestamp(KV.of(key, fillForwardCandle), fillForwardTimestamp)
+        logger.atInfo().log(
+            "Generated and outputted fill-forward candle for key %s at %s: %s (Fill count %d/%d)",
+            key, fillForwardTimestamp, candleToString(fillForwardCandle), fillCount + 1, maxForwardIntervals
+        )
+
+        // Update state for the generated fill-forward candle.
+        lastOutputTimestampState.write(fillForwardTimestamp) // Use the timestamp of the generated candle
+        fillForwardCountState.write(++fillCount)
+
+        logger.atInfo().log(
+            "Updated lastOutputTimestampState for key %s to %s (fill-forward), incremented fill count to %d",
+            key, fillForwardTimestamp, fillCount
+        )
+
+        // Set the timer for the next interval if we haven't reached the limit.
+        if (fillCount < maxForwardIntervals) {
+            val nextTimerTimestamp = fillForwardTimestamp // Set next timer relative to the filled candle's time
+            logger.atInfo().log("Setting next timer for key %s at %s", key, nextTimerTimestamp)
+            timer.set(nextTimerTimestamp)
         } else {
-            // Provide detailed logging about why we're not filling forward
-            val reasons = mutableListOf<String>()
-            if (!timerTimestamp.isAfter(lastActualTimestamp)) {
-                reasons.add("timer timestamp ${timerTimestamp} is not after last actual timestamp ${lastActualTimestamp}")
-            }
-            if (!timerTimestamp.isEqual(lastOutputTimestamp.plus(intervalDuration))) {
-                reasons.add("timer timestamp ${timerTimestamp} is not the next expected interval after ${lastOutputTimestamp}")
-            }
-            if (currentFillForwardCount >= maxForwardIntervals) {
-                reasons.add("reached maximum fill-forward count (${currentFillForwardCount}/${maxForwardIntervals})")
-            }
-            
-            logger.atInfo().log(
-                "Timer fired for key %s at %s, but not filling forward. Reasons: %s",
-                key,
-                timerTimestamp,
-                reasons.joinToString(", ")
+             logger.atInfo().log(
+                "Reached max fill-forward intervals (%d) for key %s after generating candle at %s. Not setting further timers.",
+                 maxForwardIntervals, key, fillForwardTimestamp
             )
         }
     }
@@ -251,15 +194,14 @@ constructor(
         lastActualCandle: Candle,
         timestamp: Instant
     ): Candle {
-        // Using builder pattern with indentation
         return Candle.newBuilder()
             .setCurrencyPair(key)
             .setTimestamp(Timestamps.fromMillis(timestamp.millis))
-            .setOpen(lastActualCandle.close)
+            .setOpen(lastActualCandle.close) // Use last actual close price
             .setHigh(lastActualCandle.close)
             .setLow(lastActualCandle.close)
             .setClose(lastActualCandle.close)
-            .setVolume(0.0)
+            .setVolume(0.0) // Zero volume for fill-forward
             .build()
     }
 
@@ -268,6 +210,6 @@ constructor(
         fun create(
             intervalDuration: Duration,
             maxForwardIntervals: Int = Int.MAX_VALUE
-        ): FillForwardCandlesFn // Parameters on new lines for long signature
+        ): FillForwardCandlesFn
     }
 }

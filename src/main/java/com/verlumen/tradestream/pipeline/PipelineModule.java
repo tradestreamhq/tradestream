@@ -10,27 +10,41 @@ import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.http.HttpModule;
 import com.verlumen.tradestream.instruments.InstrumentsModule;
 import com.verlumen.tradestream.kafka.KafkaModule;
+import com.verlumen.tradestream.marketdata.FillForwardCandles;
 import com.verlumen.tradestream.marketdata.MarketDataModule;
+import com.verlumen.tradestream.marketdata.TradeToCandle;
 import com.verlumen.tradestream.signals.SignalsModule;
 import com.verlumen.tradestream.strategies.StrategiesModule;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
+import org.joda.time.Duration;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
   static PipelineModule create(
     String bootstrapServers,
+    int candleDurationMinutes,
     String coinMarketCapApiKey,
     String exchangeName,
+    int maxForwardIntervals,
     RunMode runMode,
     String signalTopic,
     int topCurrencyCount) {
     return new AutoValue_PipelineModule(
-      bootstrapServers, coinMarketCapApiKey, exchangeName, runMode, signalTopic, topCurrencyCount);
+      bootstrapServers,
+      Duration.standardMinutes(candleDurationMinutes),
+      coinMarketCapApiKey,
+      exchangeName,
+      maxForwardIntervals,
+      runMode,
+      signalTopic,
+      topCurrencyCount);
   }
 
   abstract String bootstrapServers();
+  abstract Duration candleDuration();
   abstract String coinMarketCapApiKey();
   abstract String exchangeName();
+  abstract int maxForwardIntervals();
   abstract RunMode runMode();
   abstract String signalTopic();
   abstract int topCurrencyCount();
@@ -48,7 +62,17 @@ abstract class PipelineModule extends AbstractModule {
   }
 
   @Provides
+  FillForwardCandles provideFillForwardCandles(FillForwardCandles.Factory factory) {
+    return factory.create(candleDuration(), maxForwardIntervals());
+  }
+  
+  @Provides
   TimingConfig provideTimingConfig() {
     return TimingConfig.create();
+  }
+
+  @Provides
+  TradeToCandle provideTradeToCandle(TradeToCandle.Factory factory) {
+      return factory.create(candleDuration());
   }
 }
