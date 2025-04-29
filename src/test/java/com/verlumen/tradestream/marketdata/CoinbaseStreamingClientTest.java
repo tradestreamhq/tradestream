@@ -144,8 +144,7 @@ public class CoinbaseStreamingClientTest {
     public void onClose_attemptsReconnection() {
         // Arrange
         client.startStreaming(TEST_PAIRS, mockTradeHandler);
-        captureWebSocketListener();
-        WebSocket.Listener listener = listenerCaptor.getValue();
+        WebSocket.Listener listener = captureWebSocketListener();
 
         // Reset the mock to verify new connection attempts
         reset(mockWebSocketBuilder);
@@ -186,8 +185,7 @@ public class CoinbaseStreamingClientTest {
     public void handleMessage_handlesPartialMessages() {
         // Arrange
         client.startStreaming(TEST_PAIRS, mockTradeHandler);
-        captureWebSocketListener();
-        WebSocket.Listener listener = listenerCaptor.getValue();
+        WebSocket.Listener listener = captureWebSocketListener();
 
         String messageStart = """
             {
@@ -391,7 +389,7 @@ public class CoinbaseStreamingClientTest {
     }
 
     @Test
-    public void handleMessage_acceptsSameCurrencyPairTradesWithIdenticalTimestamps() {
+    public void handleMessage_processesIdenticalTimestampTrades() {
         // Arrange
         client.startStreaming(TEST_PAIRS, mockTradeHandler);
         captureWebSocketListener();
@@ -413,7 +411,7 @@ public class CoinbaseStreamingClientTest {
             """;
 
         // Second trade for BTC/USD with exact same timestamp
-        // This would typically happen with high-frequency trading or batched updates
+        // With current implementation, trades with identical timestamps are valid
         String sameTimestampTradeMessage = """
             {
               "channel": "market_trades",
@@ -429,7 +427,7 @@ public class CoinbaseStreamingClientTest {
             }
             """;
 
-        // Third trade with later timestamp (should be processed)
+        // Third trade with later timestamp
         String laterTradeMessage = """
             {
               "channel": "market_trades",
@@ -446,28 +444,27 @@ public class CoinbaseStreamingClientTest {
             """;
 
         // Act
-        simulateWebSocketMessage(firstTradeMessage);       // First trade - processed
-        simulateWebSocketMessage(sameTimestampTradeMessage); // Duplicate timestamp - should be skipped
-        simulateWebSocketMessage(laterTradeMessage);       // Later trade - processed
+        simulateWebSocketMessage(firstTradeMessage);      // First trade - processed
+        simulateWebSocketMessage(sameTimestampTradeMessage); // Same timestamp - should be processed
+        simulateWebSocketMessage(laterTradeMessage);      // Later trade - processed
 
         // Assert
         ArgumentCaptor<Trade> tradeCaptor = ArgumentCaptor.forClass(Trade.class);
-        verify(mockTradeHandler, times(2)).accept(tradeCaptor.capture());
+        verify(mockTradeHandler, times(3)).accept(tradeCaptor.capture());
         
-        // We should only have the first and third trade (IDs 12345 and 12347)
+        // We should have all three trades
         List<String> capturedTradeIds = tradeCaptor.getAllValues().stream()
             .map(Trade::getTradeId)
             .collect(Collectors.toList());
         
-        assertThat(capturedTradeIds).containsExactly("12345", "12347");
-        assertThat(capturedTradeIds).doesNotContain("12346"); // Same timestamp trade is skipped
+        assertThat(capturedTradeIds).containsExactly("12345", "12346", "12347");
     }
 
     @Test
     public void handleMessage_acceptsTradesAfterStreamingIsStopped() {
         // Arrange
         client.startStreaming(TEST_PAIRS, mockTradeHandler);
-        captureWebSocketListener();
+        WebSocket.Listener firstListener = captureWebSocketListener();
 
         // First trade with timestamp t1
         String firstTradeMessage = """
@@ -486,11 +483,20 @@ public class CoinbaseStreamingClientTest {
             """;
 
         // Act - Send trade, stop streaming, then send another trade
-        simulateWebSocketMessage(firstTradeMessage);
-    
+        firstListener.onText(mockWebSocket, firstTradeMessage, true);
+        
         // Stop streaming and clear timestamp tracking
         client.stopStreaming();
-    
+        
+        // Reset mocks to clear interaction history
+        reset(mockWebSocketBuilder);
+        when(mockWebSocketBuilder.buildAsync(any(URI.class), any(WebSocket.Listener.class)))
+            .thenReturn(CompletableFuture.completedFuture(mockWebSocket));
+        
+        // Restart streaming
+        client.startStreaming(TEST_PAIRS, mockTradeHandler);
+        WebSocket.Listener secondListener = captureWebSocketListener();
+        
         // Second trade with EARLIER timestamp (should now be accepted since tracking was reset)
         String earlierTradeAfterReset = """
             {
@@ -506,31 +512,24 @@ public class CoinbaseStreamingClientTest {
               }]
             }
             """;
-    
-        // Restart streaming and capture listener again
-        reset(mockWebSocketBuilder); // Reset the mock to clear previous interactions
-        when(mockWebSocketBuilder.buildAsync(any(URI.class), any(WebSocket.Listener.class)))
-            .thenReturn(CompletableFuture.completedFuture(mockWebSocket));
-    
-        client.startStreaming(TEST_PAIRS, mockTradeHandler);
-        captureWebSocketListener();
-
+        
         // Send the earlier trade (should now be processed since tracking was reset)
-        simulateWebSocketMessage(earlierTradeAfterReset);
+        secondListener.onText(mockWebSocket, earlierTradeAfterReset, true);
 
         // Assert - Both trades should be processed
         ArgumentCaptor<Trade> tradeCaptor = ArgumentCaptor.forClass(Trade.class);
         verify(mockTradeHandler, times(2)).accept(tradeCaptor.capture());
-    
+        
         List<String> capturedTradeIds = tradeCaptor.getAllValues().stream()
             .map(Trade::getTradeId)
             .collect(Collectors.toList());
-    
+        
         assertThat(capturedTradeIds).containsExactly("12345", "12346");
     }
 
-    private void captureWebSocketListener() {
+    private WebSocket.Listener captureWebSocketListener() {
         verify(mockWebSocketBuilder).buildAsync(any(), listenerCaptor.capture());
+        return listenerCaptor.getValue();
     }
 
     private void simulateWebSocketMessage(String message) {
