@@ -100,8 +100,8 @@ constructor(
             key, actualCandleTimestamp
         )
 
-        // Set a timer for the next expected interval to potentially generate a fill-forward candle.
-        val nextTimerTimestamp = actualCandleTimestamp.plus(intervalDuration)
+        // Set a timer for the end of the current interval to potentially generate a fill-forward candle.
+        val nextTimerTimestamp = actualCandleTimestamp
         logger.atInfo().log("Setting timer for key %s at %s", key, nextTimerTimestamp)
         timer.set(nextTimerTimestamp)
     }
@@ -123,7 +123,7 @@ constructor(
              return
         }
         // The key is implicitly associated with the state and timer. Get it from the last candle.
-        val key = lastActualCandle.currencyPair 
+        val key = lastActualCandle.currencyPair
 
         val lastOutputTimestamp = lastOutputTimestampState.read()
         var fillCount = fillForwardCountState.read() ?: 0
@@ -144,13 +144,13 @@ constructor(
 
         // Check if we've exceeded the max fill forward intervals.
         if (fillCount >= maxForwardIntervals) {
-             logger.atInfo().log(
+            logger.atInfo().log(
                 "Max fill-forward intervals (%d) reached for key %s at %s. Skipping.",
                  maxForwardIntervals, key, timerTimestamp
             )
             return
         }
-        
+
         // Ensure the timer is for the *next* expected interval after the last output.
         val expectedTimerTimestamp = lastOutputTimestamp.plus(intervalDuration)
         if (!timerTimestamp.isEqual(expectedTimerTimestamp)) {
@@ -166,7 +166,7 @@ constructor(
         // Generate and output the fill-forward candle.
         val fillForwardCandle = buildFillForwardCandle(key, lastActualCandle, timerTimestamp)
         // Use context.output() as timestamp is implicitly the timer's timestamp
-        context.output(KV.of(key, fillForwardCandle)) 
+        context.output(KV.of(key, fillForwardCandle))
         logger.atInfo().log(
             "Generated and outputted fill-forward candle for key %s at %s: %s (Fill count %d/%d)",
             key, timerTimestamp, candleToString(fillForwardCandle), fillCount + 1, maxForwardIntervals
