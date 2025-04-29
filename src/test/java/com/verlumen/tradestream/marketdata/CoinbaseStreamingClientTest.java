@@ -487,10 +487,10 @@ public class CoinbaseStreamingClientTest {
 
         // Act - Send trade, stop streaming, then send another trade
         simulateWebSocketMessage(firstTradeMessage);
-        
+    
         // Stop streaming and clear timestamp tracking
         client.stopStreaming();
-        
+    
         // Second trade with EARLIER timestamp (should now be accepted since tracking was reset)
         String earlierTradeAfterReset = """
             {
@@ -506,22 +506,26 @@ public class CoinbaseStreamingClientTest {
               }]
             }
             """;
-        
-        // Restart streaming
+    
+        // Restart streaming and capture listener again
+        reset(mockWebSocketBuilder); // Reset the mock to clear previous interactions
+        when(mockWebSocketBuilder.buildAsync(any(URI.class), any(WebSocket.Listener.class)))
+            .thenReturn(CompletableFuture.completedFuture(mockWebSocket));
+    
         client.startStreaming(TEST_PAIRS, mockTradeHandler);
         captureWebSocketListener();
-        
+
         // Send the earlier trade (should now be processed since tracking was reset)
         simulateWebSocketMessage(earlierTradeAfterReset);
 
         // Assert - Both trades should be processed
         ArgumentCaptor<Trade> tradeCaptor = ArgumentCaptor.forClass(Trade.class);
         verify(mockTradeHandler, times(2)).accept(tradeCaptor.capture());
-        
+    
         List<String> capturedTradeIds = tradeCaptor.getAllValues().stream()
             .map(Trade::getTradeId)
             .collect(Collectors.toList());
-        
+    
         assertThat(capturedTradeIds).containsExactly("12345", "12346");
     }
 
