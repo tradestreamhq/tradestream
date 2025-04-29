@@ -134,14 +134,13 @@ constructor(
         )
 
         // Check if an actual candle arrived *after* this timer timestamp already.
-        // If the lastOutputTimestamp is later than this timer's timestamp, it means newer data arrived.
-        // If lastOutputTimestamp is null or is NOT equal to the timer timestamp, the timer is obsolete.
-        if (lastOutputTimestamp == null || !timerTimestamp.isEqual(lastOutputTimestamp)) {
+        // If the lastOutputTimestamp is later than this timer's timestamp, it means newer data arrived, and the timer is obsolete.
+        if (lastOutputTimestamp != null && lastOutputTimestamp.isAfter(timerTimestamp)) {
             logger.atInfo().log(
-                "Timer for key %s at %s is obsolete or state is missing. LastOutput: %s. Skipping.",
+                "Timer for key %s at %s is obsolete. Newer data already output at %s. Skipping.",
                  key, timerTimestamp, lastOutputTimestamp
             )
-            return // Do nothing, an actual candle covered this interval or state is missing/unexpected.
+            return // Do nothing, a newer actual candle covered this interval or state is missing/unexpected.
         }
 
         // Check if we've exceeded the max fill forward intervals.
@@ -153,12 +152,23 @@ constructor(
             return
         }
 
+        // Ensure the timer is for the *next* expected interval after the last output.
+        // If lastOutputTimestamp is null, this timer must be for the first candle, which shouldn't happen here.
+        // If timerTimestamp is not equal to lastOutputTimestamp, something is off (e.g. late timer).
+        if (lastOutputTimestamp == null || !timerTimestamp.isEqual(lastOutputTimestamp)) {
+             logger.atWarning().log(
+                 "Timer fired for key %s at %s, but last output timestamp was %s. Skipping potentially out-of-order timer.",
+                 key, timerTimestamp, lastOutputTimestamp
+             )
+             return
+        }
+
+
         // Calculate the timestamp for the fill-forward candle.
         val fillForwardTimestamp = timerTimestamp.plus(intervalDuration)
 
         // Generate and output the fill-forward candle.
         val fillForwardCandle = buildFillForwardCandle(key, lastActualCandle, fillForwardTimestamp)
-        // Use context.output() as timestamp is implicitly the timer's timestamp
         // Output with the *fill-forward* timestamp, not the timer's timestamp.
         context.outputWithTimestamp(KV.of(key, fillForwardCandle), fillForwardTimestamp)
         logger.atInfo().log(
