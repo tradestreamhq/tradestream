@@ -169,8 +169,9 @@ constructor(
 
         // Generate and output the fill-forward candle.
         val fillForwardCandle = buildFillForwardCandle(key, lastActualCandle, fillForwardTimestamp)
-        // Output with the *fill-forward* timestamp, not the timer's timestamp.
-        context.outputWithTimestamp(KV.of(key, fillForwardCandle), fillForwardTimestamp)
+        // Output the candle using the TIMER'S timestamp to satisfy Beam's check.
+        // This signifies the candle represents the state valid *up to* the timerTimestamp.
+        context.outputWithTimestamp(KV.of(key, fillForwardCandle), timerTimestamp)
         logger.atInfo().log(
             "Generated and outputted fill-forward candle for key %s at %s: %s (Fill count %d/%d)",
             key, fillForwardTimestamp, candleToString(fillForwardCandle), fillCount + 1, maxForwardIntervals
