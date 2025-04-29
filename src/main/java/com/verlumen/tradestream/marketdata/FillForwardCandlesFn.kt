@@ -52,7 +52,7 @@ constructor(
     private val lastOutputTimestampSpec: StateSpec<ValueState<Instant>> =
         StateSpecs.value(InstantCoder.of())
     
-    // State: Keeps track of how many fill-forward candles we've generated
+    // State: Keeps track of how many fill-forward candles we've generated since the last actual candle
     @StateId("fillForwardCount")
     private val fillForwardCountSpec: StateSpec<ValueState<Int>> =
         StateSpecs.value(org.apache.beam.sdk.coders.VarIntCoder.of())
@@ -80,40 +80,45 @@ constructor(
 
         // Get the last actual candle and output timestamp (if any)
         val lastActualCandle = lastActualCandleState.read()
-        val lastOutputTimestamp = lastOutputTimestampState.read()
+        var lastOutputTimestamp = lastOutputTimestampState.read() ?: Instant.EPOCH // Initialize if null
 
         // Reset fill-forward count since we have a real candle
         fillForwardCountState.write(0)
 
+        // Timestamp to track the latest output in this processing step
+        var latestOutputTimestampInStep = lastOutputTimestamp
+
         // Detect and fill forward any gaps if we have previous data
-        if (lastActualCandle != null && lastOutputTimestamp != null) {
+        if (lastActualCandle != null && lastOutputTimestamp != Instant.EPOCH) {
             // Check for gaps between the last output candle and the current actual candle first.
             var nextExpectedTimestamp = lastOutputTimestamp.plus(intervalDuration)
             if (actualCandleTimestamp.isAfter(nextExpectedTimestamp)) {
-                generateFillForwardBetweenCandles(
+                latestOutputTimestampInStep = generateFillForwardBetweenCandles(
                     context,
                     key,
                     lastActualCandle,
-                    lastOutputTimestamp,
+                    lastOutputTimestamp, // Pass the state value directly
                     actualCandleTimestamp,
                     fillForwardCountState
                 )
+                // Update lastOutputTimestamp for the next check based on the result of filling
+                lastOutputTimestamp = latestOutputTimestampInStep
             }
 
             // Then, check if we need to fill forward based on watermark/element timestamp advancement.
             // This handles scenarios where the pipeline progresses without new data.
             // Use >= to potentially generate a candle right at the element timestamp if needed
             if (elementTimestamp.isAfter(lastOutputTimestamp.plus(intervalDuration.multipliedBy(2)))) {
-                // Make sure to read the potentially updated lastOutputTimestamp after the previous fill
-                val currentLastOutputTimestamp = lastOutputTimestampState.read() ?: lastOutputTimestamp
-                generateFillForwardBasedOnElementTimestamp(
+                latestOutputTimestampInStep = generateFillForwardBasedOnElementTimestamp(
                     context,
                     key,
                     lastActualCandle,
-                    currentLastOutputTimestamp,
+                    lastOutputTimestamp, // Pass the potentially updated lastOutputTimestamp
                     elementTimestamp,
                     fillForwardCountState
                 )
+                // Update lastOutputTimestamp based on the result of this filling step
+                lastOutputTimestamp = latestOutputTimestampInStep
             }
         }
 
@@ -121,10 +126,12 @@ constructor(
         context.output(KV.of(key, actualCandle))
         logger.atInfo().log("Outputted actual candle for key %s at %s", key, actualCandleTimestamp)
 
-        // Update state
+        // Update state with the current actual candle info
         lastActualCandleState.write(actualCandle)
+        // Update last output timestamp state with the *actual* candle's timestamp,
+        // as it's the latest event we've processed and outputted.
         lastOutputTimestampState.write(actualCandleTimestamp)
-        
+
         logger.atInfo().log(
             "Updated lastActualCandleState for key %s with actual candle at %s: %s",
             key,
@@ -132,8 +139,8 @@ constructor(
             candleToString(actualCandle)
         )
         logger.atInfo().log(
-            "Updated lastOutputTimestampState for key %s to %s", 
-            key, 
+            "Updated lastOutputTimestampState for key %s to %s",
+            key,
             actualCandleTimestamp
         )
     }
@@ -141,25 +148,26 @@ constructor(
     /**
      * Generates fill-forward candles based on element timestamp advancement.
      * This is used to fill forward when the watermark advances significantly without new data.
+     * Returns the timestamp of the last generated fill-forward candle, or the initial lastOutputTimestamp if none generated.
      */
     private fun generateFillForwardBasedOnElementTimestamp(
         context: ProcessContext,
         key: String,
         lastActualCandle: Candle,
-        lastOutputTimestamp: Instant, // Use the potentially updated timestamp
+        initialLastOutputTimestamp: Instant, // Timestamp before this fill loop started
         currentElementTimestamp: Instant,
         fillForwardCountState: ValueState<Int>
-    ) {
+    ): Instant { // Return the timestamp of the last generated candle
         logger.atInfo().log(
             "Generating fill-forward candles based on element timestamp for key %s from %s up to %s",
             key,
-            lastOutputTimestamp,
+            initialLastOutputTimestamp,
             currentElementTimestamp
         )
 
         var fillCount = fillForwardCountState.read() ?: 0
-        var nextTimestamp = lastOutputTimestamp.plus(intervalDuration)
-        var currentLastOutput = lastOutputTimestamp
+        var nextTimestamp = initialLastOutputTimestamp.plus(intervalDuration)
+        var lastGeneratedTimestamp = initialLastOutputTimestamp // Track the last *generated* timestamp
 
         // Generate fill-forward candles until we reach the max count or current element timestamp
         while (nextTimestamp.isBefore(currentElementTimestamp) && fillCount < maxForwardIntervals) {
@@ -178,7 +186,7 @@ constructor(
             )
 
             context.outputWithTimestamp(KV.of(key, fillForwardCandle), nextTimestamp)
-            currentLastOutput = nextTimestamp // Track the last *outputted* timestamp
+            lastGeneratedTimestamp = nextTimestamp // Update the timestamp of the last generated candle
 
             logger.atInfo().log(
                 "Generated and outputted fill-forward candle for key %s at %s: %s",
@@ -192,42 +200,39 @@ constructor(
         }
 
         fillForwardCountState.write(fillCount)
-        // Update the last output timestamp state after this fill-forward loop
-        (context.pipelineOptions.asStateInternals().state(
-            context.key() as org.apache.beam.sdk.state.StateNamespace,
-            org.apache.beam.sdk.state.StateTags.tagForSpec("lastOutputTimestamp", lastOutputTimestampSpec)
-        ) as ValueState<Instant>).write(currentLastOutput)
 
         logger.atInfo().log(
-            "Finished generating fill-forward (element timestamp). Updated count for key %s to %d/%d. Last output timestamp now %s",
+            "Finished generating fill-forward (element timestamp). Updated count for key %s to %d/%d. Last generated timestamp %s",
             key,
             fillCount,
             maxForwardIntervals,
-            currentLastOutput
+            lastGeneratedTimestamp
         )
+        return lastGeneratedTimestamp // Return the timestamp of the last generated candle
     }
     
     /**
      * Generates fill-forward candles between two actual candles.
+     * Returns the timestamp of the last generated fill-forward candle, or the initial lastOutputTimestamp if none generated.
      */
     private fun generateFillForwardBetweenCandles(
         context: ProcessContext,
         key: String,
         lastActualCandle: Candle,
-        lastOutputTimestamp: Instant, // Timestamp of the last output (actual or filled)
+        initialLastOutputTimestamp: Instant, // Timestamp of the last output (actual or filled)
         currentActualCandleTimestamp: Instant, // Timestamp of the current actual candle
         fillForwardCountState: ValueState<Int>
-    ) {
+    ): Instant { // Return the timestamp of the last generated candle
         logger.atInfo().log(
             "Generating fill-forward candles between actual candles for key %s from %s to %s",
             key,
-            lastOutputTimestamp,
+            initialLastOutputTimestamp,
             currentActualCandleTimestamp
         )
 
         var fillCount = fillForwardCountState.read() ?: 0
-        var nextTimestamp = lastOutputTimestamp.plus(intervalDuration)
-        var currentLastOutput = lastOutputTimestamp // Track the last *outputted* timestamp in this loop
+        var nextTimestamp = initialLastOutputTimestamp.plus(intervalDuration)
+        var lastGeneratedTimestamp = initialLastOutputTimestamp // Track the last *generated* timestamp in this loop
 
         // Generate fill-forward candles until we reach the current actual candle's timestamp or max count
         while (nextTimestamp.isBefore(currentActualCandleTimestamp) && fillCount < maxForwardIntervals) {
@@ -246,7 +251,7 @@ constructor(
             )
 
             context.outputWithTimestamp(KV.of(key, fillForwardCandle), nextTimestamp)
-            currentLastOutput = nextTimestamp // Update last output time
+            lastGeneratedTimestamp = nextTimestamp // Update last generated time
 
             logger.atInfo().log(
                 "Generated and outputted fill-forward candle for key %s at %s: %s",
@@ -260,19 +265,15 @@ constructor(
         }
 
         fillForwardCountState.write(fillCount)
-        // Update the last output timestamp state after this fill-forward loop
-        (context.pipelineOptions.asStateInternals().state(
-            context.key() as org.apache.beam.sdk.state.StateNamespace,
-            org.apache.beam.sdk.state.StateTags.tagForSpec("lastOutputTimestamp", lastOutputTimestampSpec)
-        ) as ValueState<Instant>).write(currentLastOutput)
 
         logger.atInfo().log(
-            "Finished generating fill-forward (between candles). Updated count for key %s to %d/%d. Last output timestamp now %s",
+            "Finished generating fill-forward (between candles). Updated count for key %s to %d/%d. Last generated timestamp %s",
             key,
             fillCount,
             maxForwardIntervals,
-            currentLastOutput
+            lastGeneratedTimestamp
         )
+        return lastGeneratedTimestamp // Return the timestamp of the last generated candle
     }
 
     /** Builds a fill-forward Candle protobuf message. */
