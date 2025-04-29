@@ -354,9 +354,9 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
 
         private boolean isTradeNewerThanLastProcessed(String currencyPairStr, long timestamp) {
             Long lastTimestamp = client.lastTimestampByCurrencyPair.get(currencyPairStr);
-            if (lastTimestamp != null && timestamp <= lastTimestamp) {
+            if (lastTimestamp != null && timestamp < lastTimestamp) {
                 logger.atFine().log(
-                    "Skipping out-of-order trade for %s: current timestamp %d <= last timestamp %d",
+                    "Skipping out-of-order trade for %s: current timestamp %d < last timestamp %d",
                     currencyPairStr, timestamp, lastTimestamp);
                 return false;
             }
