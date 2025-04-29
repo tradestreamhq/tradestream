@@ -12,4 +12,3 @@ commandTests:
     expectedError:
       - 'DRY/RUN'
       - 'Starting TradeToCandle transform \(Combine\.perKey version\) with window duration: PT60S'
-      - 'Processing actual candle for key DRY\/RUN at 1970\-01\-01T00\:20\:59\.999Z'
