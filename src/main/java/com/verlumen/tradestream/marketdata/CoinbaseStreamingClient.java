@@ -38,6 +38,8 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
     private final List<WebSocket> connections;
     private transient HttpClient httpClient;
     private final Map<WebSocket, CompletableFuture<Void>> pendingMessages;
+    // Map to track the last timestamp for each currency pair
+    private final Map<String, Long> lastTimestampByCurrencyPair;
     private transient Consumer<Trade> tradeHandler;
     private transient WebSocketConnector connector;
     private transient MessageHandler messageHandler;
@@ -48,6 +50,7 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         this.connections = new CopyOnWriteArrayList<>();
         this.httpClient = httpClient;
         this.pendingMessages = new ConcurrentHashMap<>();
+        this.lastTimestampByCurrencyPair = new ConcurrentHashMap<>();
         this.connector = new WebSocketConnector(this);
         this.messageHandler = new MessageHandler(this);
     }
@@ -97,6 +100,8 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
         }
         connections.clear();
         connectionProducts.clear();
+        // Clear timestamp tracking when stopping
+        lastTimestampByCurrencyPair.clear();
     }
 
     @Override
@@ -257,11 +262,25 @@ final class CoinbaseStreamingClient implements ExchangeStreamingClient {
                         logger.atFiner().log("Processing trade: %s", tradeJson);
 
                         long timestamp = Instant.parse(tradeJson.get("time").getAsString()).toEpochMilli();
+                        String productId = tradeJson.get("product_id").getAsString();
+                        String currencyPairStr = productId.replace("-", "/");
+
+                        // Check if this trade is newer than the last one for this currency pair
+                        Long lastTimestamp = client.lastTimestampByCurrencyPair.get(currencyPairStr);
+                        if (lastTimestamp != null && timestamp <= lastTimestamp) {
+                            logger.atFine().log(
+                                "Skipping out-of-order trade for %s: current timestamp %d <= last timestamp %d",
+                                currencyPairStr, timestamp, lastTimestamp);
+                            return;
+                        }
+
+                        // Update the last timestamp for this currency pair
+                        client.lastTimestampByCurrencyPair.put(currencyPairStr, timestamp);
 
                         Trade trade = Trade.newBuilder()
                             .setTimestamp(fromMillis(timestamp))
                             .setExchange(client.getExchangeName())
-                            .setCurrencyPair(tradeJson.get("product_id").getAsString().replace("-", "/"))
+                            .setCurrencyPair(currencyPairStr)
                             .setPrice(tradeJson.get("price").getAsDouble())
                             .setVolume(tradeJson.get("size").getAsDouble())
                             .setTradeId(tradeJson.get("trade_id").getAsString())
