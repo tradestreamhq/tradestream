@@ -111,7 +111,7 @@ class ExchangeClientUnboundedReader(
             checkArgument(pairs.isNotEmpty(), "CurrencyPair Supplier returned empty list via currencyPairs()")
             // Log count at INFO, specific pairs at FINER (might be sensitive/verbose)
             logger.atInfo().log("Obtained %d currency pairs from CurrencyPair Supplier.", pairs.size)
-            logger.atFiner().log("Currency pairs: %s", pairs)
+            logger.atFine().log("Currency pairs: %s", pairs)
             return pairs
         } catch (e: Exception) {
             logger.atSevere().withCause(e).log("Failed to get currency pairs from CurrencyPair Supplier")
@@ -146,7 +146,7 @@ class ExchangeClientUnboundedReader(
     private fun processTrade(trade: Trade?) {
         if (trade == null) {
             // This might happen for keep-alives or end-of-stream signals. Log lightly.
-            logger.atFiner().log("Received null trade from exchange client callback.")
+            logger.atFine().log("Received null trade from exchange client callback.")
             return
         }
         
@@ -182,7 +182,7 @@ class ExchangeClientUnboundedReader(
                 logger.atWarning().log("Reader queue full. Dropping trade: %s. Current queue size: %d",
                     trade.getTradeId(), incomingMessagesQueue.size)
             } else {
-                logger.atFiner().log("Added trade to queue: %s, Queue size: %d", 
+                logger.atFine().log("Added trade to queue: %s, Queue size: %d", 
                     trade.getTradeId(), incomingMessagesQueue.size)
             }
         } catch (e: Exception) {
@@ -198,7 +198,7 @@ class ExchangeClientUnboundedReader(
      */
     @Throws(IOException::class)
     override fun advance(): Boolean {
-        logger.atFiner().log("advance() called. Queue size: %d, Streaming active: %b", 
+        logger.atFine().log("advance() called. Queue size: %d, Streaming active: %b", 
             incomingMessagesQueue.size, clientStreamingActive)
         
         // Check state: We can only advance if streaming is active OR if there are items left in the queue
@@ -212,7 +212,7 @@ class ExchangeClientUnboundedReader(
         
         // If no trade is available *right now*, update watermark based on idle time and return false
         if (currentTrade == null) {
-            logger.atFiner().log("No message polled from queue, advance() returns false.")
+            logger.atFine().log("No message polled from queue, advance() returns false.")
             // Watermark logic moved primarily to getWatermark(), but ensure timestamp exists for it
             if (currentTradeTimestamp == null) {
                 currentTradeTimestamp = currentCheckpointMark.lastProcessedTimestamp // Start from last known good time
@@ -256,7 +256,7 @@ class ExchangeClientUnboundedReader(
     override fun getCurrent(): Trade {
         checkState(currentTrade != null, "No current trade available. advance() must return true first.")
         // Log at FINER level as this is called for every element processed by Beam
-        logger.atFiner().log("getCurrent() returning trade ID: %s", currentTrade!!.getTradeId())
+        logger.atFine().log("getCurrent() returning trade ID: %s", currentTrade!!.getTradeId())
         return currentTrade!!
     }
 
@@ -295,7 +295,7 @@ class ExchangeClientUnboundedReader(
             logger.atFine().log("Advancing watermark due to idle threshold. Watermark set to: %s (now - %s)",
                 potentialWatermark, WATERMARK_IDLE_THRESHOLD)
         } else {
-            logger.atFiner().log("Watermark based on last event time: %s", potentialWatermark)
+            logger.atFine().log("Watermark based on last event time: %s", potentialWatermark)
         }
 
         // Ensure watermark doesn't go backward if processing time was used for a missing timestamp
@@ -368,7 +368,7 @@ class ExchangeClientUnboundedReader(
     private fun writeObject(out: java.io.ObjectOutputStream) {
         out.defaultWriteObject()
         // No need to write transient fields like the queue explicitly
-        logger.atFiner().log("Serializing ExchangeClientUnboundedReader")
+        logger.atFine().log("Serializing ExchangeClientUnboundedReader")
     }
 
     private fun readObject(input: java.io.ObjectInputStream) {
@@ -380,7 +380,7 @@ class ExchangeClientUnboundedReader(
             // Clear and repopulate the queue if needed
             incomingMessagesQueue.clear()
         }
-        logger.atFiner().log("Deserialized ExchangeClientUnboundedReader. Reinitialized queue. Checkpoint: %s", currentCheckpointMark)
+        logger.atFine().log("Deserialized ExchangeClientUnboundedReader. Reinitialized queue. Checkpoint: %s", currentCheckpointMark)
     }
 
     companion object {
