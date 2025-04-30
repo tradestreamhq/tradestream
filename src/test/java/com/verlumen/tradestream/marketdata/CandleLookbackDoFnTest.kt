@@ -3,6 +3,9 @@ package com.verlumen.tradestream.marketdata // Updated package
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.util.Timestamps
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.io.Serializable
 import org.apache.beam.sdk.coders.*
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
@@ -49,16 +52,24 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
     // --- Coders ---
     private val candleCoder: Coder<Candle> = ProtoCoder.of(Candle::class.java)
     private val inputCoder: Coder<KV<String, Candle>> = KvCoder.of(StringUtf8Coder.of(), candleCoder)
+    
     // Coder for the immutable list of candles in the output KV value
-    private val outputListCoder: Coder<ImmutableList<Candle>> = ListCoder.of(candleCoder)
-         .let { listCoder ->
-            CoderUtils.beamCoderForSerializableFunction(
-                TypeDescriptor.of(ImmutableList::class.java) as TypeDescriptor<ImmutableList<Candle>>,
-                SerializableFunction { immutableList: ImmutableList<Candle> -> ArrayList(immutableList) },
-                SerializableFunction { list: List<Candle> -> ImmutableList.copyOf(list) },
-                listCoder
-            )
+    private val outputListCoder: Coder<ImmutableList<Candle>> = object : CustomCoder<ImmutableList<Candle>>() {
+        private val listCoder: Coder<List<Candle>> = ListCoder.of(candleCoder)
+        
+        override fun encode(value: ImmutableList<Candle>, outStream: OutputStream) {
+            listCoder.encode(ArrayList(value), outStream)
         }
+
+        override fun decode(inStream: InputStream): ImmutableList<Candle> {
+            return ImmutableList.copyOf(listCoder.decode(inStream))
+        }
+
+        override fun verifyDeterministic() {
+            listCoder.verifyDeterministic()
+        }
+    }
+    
     // Coder for the final output structure: KV<String, KV<Int, ImmutableList<Candle>>>
     private val outputCoder: Coder<KV<String, KV<Int, ImmutableList<Candle>>>> = KvCoder.of(
         StringUtf8Coder.of(), KvCoder.of(VarIntCoder.of(), outputListCoder)
@@ -71,7 +82,7 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
         val intervalMillis = Duration.standardMinutes(1).millis
         val lookbackSizesToTest = listOf(1, 3, 5) // Arbitrary sizes <= queue size
 
-        var testStream = TestStream.create(inputCoder)
+        val testStreamBuilder = TestStream.create(inputCoder)
 
         // Create 6 candles (less than TEST_MAX_QUEUE_SIZE)
         val candles = (0 until 6).map { i ->
@@ -80,19 +91,20 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
         }
 
         var currentTime = Instant(baseTimeMillis)
+        var testStream = testStreamBuilder
         for (candleKv in candles) {
-             currentTime = Instant(Timestamps.toMillis(candleKv.value.timestamp))
+            currentTime = Instant(Timestamps.toMillis(candleKv.value.timestamp))
             testStream = testStream.addElements(TimestampedValue.of(candleKv, currentTime))
         }
 
-         // Advance watermark past the elements to trigger the final window
-         val finalTime = currentTime.plus(Duration.standardMinutes(5))
-         testStream = testStream.advanceWatermarkTo(finalTime)
-         testStream = testStream.advanceWatermarkToInfinity()
-
+        // Advance watermark past the elements to trigger the final window
+        val finalTime = currentTime.plus(Duration.standardMinutes(5))
+        testStream = testStream.advanceWatermarkTo(finalTime)
+        // Create final test stream
+        val finalTestStream = testStream.advanceWatermarkToInfinity()
 
         val output = pipeline
-            .apply(testStream)
+            .apply(finalTestStream)
             // Use FixedWindows matching the candle interval for simple testing of state changes
             .apply("ApplyWindow", Window.into<KV<String, Candle>>(
                     FixedWindows.of(Duration.standardMinutes(1)))
@@ -150,7 +162,7 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
         // Request lookbacks up to size 8. Max queue size is 10.
         val lookbackSizesToTest = listOf(1, 3, 5, 8)
 
-        var testStream = TestStream.create(inputCoder)
+        val testStreamBuilder = TestStream.create(inputCoder)
         // Create 15 candles (more than TEST_MAX_QUEUE_SIZE 10)
         val candles = (0 until 15).map { i ->
             val time = baseTimeMillis + i * intervalMillis
@@ -158,6 +170,7 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
         }
 
         var currentTime = Instant(baseTimeMillis)
+        var testStream = testStreamBuilder
         for (candleKv in candles) {
             currentTime = Instant(Timestamps.toMillis(candleKv.value.timestamp))
             testStream = testStream.addElements(TimestampedValue.of(candleKv, currentTime))
@@ -165,10 +178,11 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
 
         val finalTime = currentTime.plus(Duration.standardMinutes(5))
         testStream = testStream.advanceWatermarkTo(finalTime)
-        testStream = testStream.advanceWatermarkToInfinity()
+        // Create final test stream
+        val finalTestStream = testStream.advanceWatermarkToInfinity()
 
         val output = pipeline
-            .apply(testStream)
+            .apply(finalTestStream)
             .apply("ApplyWindow", Window.into<KV<String, Candle>>(
                     FixedWindows.of(Duration.standardMinutes(1)))
                 .triggering(AfterWatermark.pastEndOfWindow())
