@@ -20,9 +20,6 @@ java_library(
 kt_jvm_library(
     name = "candle_lookback_do_fn",
     srcs = ["CandleLookbackDoFn.kt"],
-    # Keep visibility consistent with the package
-    # package(default_visibility = ["//visibility:public"])
-    visibility = ["//visibility:public"], # Or adjust as needed
     deps = [
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
