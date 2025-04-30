@@ -178,7 +178,7 @@ public final class App {
         .map(String::trim)
         .filter(s -> !s.isEmpty())
         .map(Integer::parseInt)
-        .filter(i -> i > 0)
+        .filter(i -> i > 1440)
         .distinct()
         .toList();
   }
