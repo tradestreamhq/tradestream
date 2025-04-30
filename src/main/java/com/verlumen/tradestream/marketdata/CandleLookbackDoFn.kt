@@ -143,15 +143,18 @@ class CandleLookbackDoFn(
         val newCandle: Candle = element.value ?: return
         val key: String = element.key
 
-        // *** FIX: Store the key in state ***
+        // Debug existing queue
+        val queue = queueState.read() ?: SerializableArrayDeque<Candle>(internalQueueMaxSize)
+        System.err.println("DEBUG: Queue before add, key=$key, size=${queue.size}, maxSize=${queue.maxSize}")
+        
+        // Store the key in state
         keyState.write(key)
 
-        var queue: SerializableArrayDeque<Candle>? = queueState.read()
-        if (queue == null) {
-            queue = SerializableArrayDeque(internalQueueMaxSize)
-        }
-
+        // Add the new candle
         queue.add(newCandle)
+        System.err.println("DEBUG: Queue after add, key=$key, size=${queue.size}, maxSize=${queue.maxSize}")
+        
+        // Save the updated queue
         queueState.write(queue)
 
         // Set the timer to fire at the end of the current window.
