@@ -10,7 +10,6 @@ import kotlin.collections.ArrayList
 import org.apache.beam.sdk.coders.*
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.state.*
-// Explicit import for Beam Timer
 import org.apache.beam.sdk.state.Timer
 import org.apache.beam.sdk.transforms.*
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow
@@ -154,7 +153,7 @@ class CandleLookbackDoFn(
         queueState.write(queue)
 
         // Set the timer to fire at the end of the current window.
-        timer.set(window.maxTimestamp())  // Use the window parameter directly
+        timer.set(window.maxTimestamp())
     }
 
     @OnTimer("processWindowTimer")
