@@ -163,9 +163,9 @@ class CandleLookbackDoFn(
         context: OnTimerContext,
         window: BoundedWindow,
         @StateId("internalCandleQueue") queueState: ValueState<SerializableArrayDeque<Candle>>,
-        @StateId("storedKey") keyState: ValueState<String> // *** FIX: Add key state parameter ***
+        @StateId("storedKey") keyState: ValueState<String>
     ) {
-        // *** FIX: Read key from state ***
+        // Read key from state
         val key: String? = keyState.read()
         val queue: SerializableArrayDeque<Candle>? = queueState.read()
 
@@ -175,31 +175,46 @@ class CandleLookbackDoFn(
             return
         }
 
+        // Convert the queue to a List for easier handling
         val currentQueueSize = queue.size
-        val currentQueueSnapshot = ImmutableList.copyOf(queue) // Oldest to newest
-
+        val currentQueueItems = ArrayList<Candle>(queue)
+        
+        // Add debug logs
+        System.err.println("DEBUG: Processing timer for key=$key with queueSize=$currentQueueSize, lookbackSizes=${lookbackSizes}")
+        
+        // Process each requested lookback size
         for (lookbackSize in lookbackSizes) {
             if (lookbackSize > currentQueueSize) {
+                System.err.println("DEBUG: Skipping lookbackSize=$lookbackSize as it's larger than queueSize=$currentQueueSize")
                 continue
             }
-
-            val lookbackElements: ImmutableList<Candle> = try {
-                // Create proper sublist - need to use ImmutableList.copyOf() to handle the sublist correctly
-                ImmutableList.copyOf(currentQueueSnapshot.subList(currentQueueSize - lookbackSize, currentQueueSize))
-            } catch (e: IndexOutOfBoundsException) {
-                 System.err.println("Error creating sublist: lookbackSize=$lookbackSize, queueSize=$currentQueueSize for key $key. Exception: ${e.message}")
-                ImmutableList.of()
-            }
-
-            if (lookbackElements.isNotEmpty()) {
-                context.outputWithTimestamp(
-                    KV.of(key, KV.of(lookbackSize, lookbackElements)),
-                    window.maxTimestamp()
-                )
+            
+            try {
+                // Calculate start index for this lookback size
+                val startIndex = currentQueueSize - lookbackSize
+                
+                // Create a separate list for this lookback to ensure proper serialization
+                val lookbackElements = ArrayList<Candle>()
+                for (i in startIndex until currentQueueSize) {
+                    lookbackElements.add(currentQueueItems[i])
+                }
+                
+                // Convert to ImmutableList for output
+                val immutableLookback = ImmutableList.copyOf(lookbackElements)
+                
+                System.err.println("DEBUG: Emitting lookbackSize=$lookbackSize with ${immutableLookback.size} elements")
+                
+                // Only emit if we have elements
+                if (immutableLookback.isNotEmpty()) {
+                    context.outputWithTimestamp(
+                        KV.of(key, KV.of(lookbackSize, immutableLookback)),
+                        window.maxTimestamp()
+                    )
+                }
+            } catch (e: Exception) {
+                System.err.println("ERROR: Failed to process lookbackSize=$lookbackSize: ${e.message}")
+                e.printStackTrace()
             }
         }
-        // Optional: Clear state if needed
-        // queueState.clear()
-        // keyState.clear()
     }
 }
