@@ -16,7 +16,7 @@ import org.apache.beam.sdk.values.KV
 import org.joda.time.Instant
 
 // Provides a serializable, bounded ArrayDeque suitable for Beam state.
-class SerializableArrayDeque<E : Serializable>(val maxSize: Int) :
+public class SerializableArrayDeque<E : Serializable>(val maxSize: Int) :
     ArrayDeque<E>(maxSize.coerceAtLeast(1)), Serializable {
 
     companion object {
@@ -114,7 +114,8 @@ class CandleLookbackDoFn(
 
         // Helper to get the custom coder for the state queue of Candles
         fun getCandleQueueCoder(): Coder<SerializableArrayDeque<Candle>> {
-            return SerializableArrayDeque.SerializableArrayDequeCoder(ProtoCoder.of(Candle::class.java))
+             // Instantiate nested class directly from companion object
+            return SerializableArrayDequeCoder(ProtoCoder.of(Candle::class.java))
         }
     }
 
