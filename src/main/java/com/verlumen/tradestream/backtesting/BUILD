@@ -3,6 +3,16 @@ load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 
 package(default_visibility = ["//visibility:public"])
 
+kt_jvm_library(
+    name = "backtest_request_factory",
+    srcs = ["BacktestRequestFactory.kt"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+    ],
+)
+
 java_library(
     name = "backtest_runner",
     srcs = ["BacktestRunner.java"],
