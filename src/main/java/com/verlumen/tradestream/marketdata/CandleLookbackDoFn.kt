@@ -16,7 +16,7 @@ import org.apache.beam.sdk.values.KV
 import org.joda.time.Instant
 
 // Provides a serializable, bounded ArrayDeque suitable for Beam state.
-public class SerializableArrayDeque<E : Serializable>(val maxSize: Int) : // Changed internal to public
+class SerializableArrayDeque<E : Serializable>(val maxSize: Int) :
     ArrayDeque<E>(maxSize.coerceAtLeast(1)), Serializable {
 
     companion object {
