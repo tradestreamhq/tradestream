@@ -58,7 +58,8 @@ public class SerializableArrayDeque<E : Serializable>(val maxSize: Int) : // Cha
         while (size >= maxSize) {
             pollFirst()
         }
-        return super.addLast(element) // Return result of super.addLast
+        super.addLast(element) // Call the super method
+        return true // Return true as per the 'add' contract
     }
 
 
