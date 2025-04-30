@@ -13,6 +13,7 @@ import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
+import com.verlumen.tradestream.marketdata.CandleLookbackDoFn;
 import com.verlumen.tradestream.marketdata.FillForwardCandles;
 import com.verlumen.tradestream.marketdata.MultiTimeframeCandleTransform;
 import com.verlumen.tradestream.marketdata.Trade;
@@ -20,6 +21,7 @@ import com.verlumen.tradestream.marketdata.TradeSource;
 import com.verlumen.tradestream.marketdata.TradeToCandle;
 import com.verlumen.tradestream.strategies.StrategyEnginePipeline;
 import java.util.List;
+import java.util.Arrays;
 import java.util.function.Supplier;
 import org.apache.beam.runners.flink.FlinkPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
@@ -88,6 +90,16 @@ public final class App {
     @Default.Integer(10)
     int getCoinMarketCapTopCurrencyCount();
     void setCoinMarketCapTopCurrencyCount(int value);
+    
+    @Description("Candle lookback sizes (comma-separated list of integers)")
+    @Default.String("1,5,15,30,60")
+    String getCandleLookbackSizes();
+    void setCandleLookbackSizes(String value);
+    
+    @Description("Maximum size of the internal lookback buffer per key")
+    @Default.Integer(100)
+    int getMaxCandleLookbackSize();
+    void setMaxCandleLookbackSize(int value);
   }
 
   private final Supplier<List<CurrencyPair>> currencyPairs;
@@ -114,7 +126,7 @@ public final class App {
   }
 
   /** Build the Beam pipeline, integrating all components. */
-  private Pipeline buildPipeline(Pipeline pipeline) {
+  private Pipeline buildPipeline(Pipeline pipeline, Options options) {
     logger.atInfo().log("Starting to build the pipeline.");
 
     // 1. Read trades.
@@ -135,15 +147,61 @@ public final class App {
     // 3. Create candles from trades.
     PCollection<KV<String, Candle>> candles = tradesWithTimestamps
       .apply("Create Candle", tradeToCandle);
+      
+    // 4. Apply window for candle processing - use a single large window for stateful processing
+    Duration windowDuration = Duration.standardMinutes(options.getCandleDurationMinutes() * 10);
+    PCollection<KV<String, Candle>> windowedCandles = candles.apply(
+        "Apply Processing Window",
+        Window.<KV<String, Candle>>into(FixedWindows.of(windowDuration))
+            .triggering(DefaultTrigger.of())
+            .discardingFiredPanes());
+            
+    // 5. Parse lookback sizes from options
+    List<Integer> lookbackSizes = parseLookbackSizes(options.getCandleLookbackSizes());
+    int maxLookbackSize = options.getMaxCandleLookbackSize();
+    
+    // 6. Add lookback processing
+    PCollection<KV<String, KV<Integer, ImmutableList<Candle>>>> lookbacks = windowedCandles.apply(
+        "Generate Candle Lookbacks",
+        ParDo.of(new CandleLookbackDoFn(maxLookbackSize, lookbackSizes)));
+        
+    // 7. Log lookback results for debugging
+    lookbacks.apply("Log Lookbacks", ParDo.of(new LogLookbacksDoFn()));
 
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
     return pipeline;
   }
 
-  private void runPipeline(Pipeline pipeline) throws Exception {
+  /** Parse the comma-separated lookback sizes into a List of Integers */
+  private List<Integer> parseLookbackSizes(String sizesString) {
+    return Arrays.stream(sizesString.split(","))
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .map(Integer::parseInt)
+        .toList();
+  }
+  
+  /** DoFn to log lookback results */
+  private static class LogLookbacksDoFn extends DoFn<KV<String, KV<Integer, ImmutableList<Candle>>>, Void> {
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+    
+    @ProcessElement
+    public void processElement(ProcessContext c) {
+      KV<String, KV<Integer, ImmutableList<Candle>>> element = c.element();
+      String currencyPair = element.getKey();
+      int lookbackSize = element.getValue().getKey();
+      ImmutableList<Candle> candles = element.getValue().getValue();
+      
+      logger.atInfo().log(
+          "Generated lookback for %s: size=%d, elements=%d",
+          currencyPair, lookbackSize, candles.size());
+    }
+  }
+
+  private void runPipeline(Pipeline pipeline, Options options) throws Exception {
     logger.atInfo().log("Running the pipeline.");
 
-    buildPipeline(pipeline);
+    buildPipeline(pipeline, options);
     pipeline.run();
   }
 
@@ -204,6 +262,6 @@ public final class App {
     // Create and run the Beam pipeline.
     Pipeline pipeline = Pipeline.create(options);
     logger.atInfo().log("Created Beam pipeline.");
-    app.runPipeline(pipeline);
+    app.runPipeline(pipeline, options);
   }
 }
