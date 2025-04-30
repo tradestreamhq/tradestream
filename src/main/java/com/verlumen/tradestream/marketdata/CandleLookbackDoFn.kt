@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.marketdata
 
 import com.google.common.collect.ImmutableList
-import com.verlumen.tradestream.marketdata.Candle // Specific import
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -14,18 +13,17 @@ import org.apache.beam.sdk.state.*
 import org.apache.beam.sdk.transforms.*
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow
 import org.apache.beam.sdk.values.KV
-import org.joda.time.Instant // Keep using Joda Time if consistent with the project
+import org.joda.time.Instant
 
-// --- Serializable Deque Wrapper ---
 // Provides a serializable, bounded ArrayDeque suitable for Beam state.
-internal class SerializableArrayDeque<E : Serializable>(val maxSize: Int) :
+public class SerializableArrayDeque<E : Serializable>(val maxSize: Int) : // Changed internal to public
     ArrayDeque<E>(maxSize.coerceAtLeast(1)), Serializable {
 
     companion object {
         private const val serialVersionUID = 1L
 
         // Custom Coder using Beam Coders for elements
-        class SerializableArrayDequeCoder<E : Serializable>(private val elementCoder: Coder<E>) :
+        public class SerializableArrayDequeCoder<E : Serializable>(private val elementCoder: Coder<E>) : // Changed internal to public
             CustomCoder<SerializableArrayDeque<E>>() {
 
             private val listCoder: Coder<List<E>> = ListCoder.of(elementCoder)
@@ -46,7 +44,7 @@ internal class SerializableArrayDeque<E : Serializable>(val maxSize: Int) :
                 return deque
             }
 
-            override fun getCoderArguments(): List<Coder<*>>? = listOf(elementCoder)
+            override fun getCoderArguments(): List<Coder<*>> = listOf(elementCoder)
 
             override fun verifyDeterministic() {
                 elementCoder.verifyDeterministic()
@@ -60,8 +58,9 @@ internal class SerializableArrayDeque<E : Serializable>(val maxSize: Int) :
         while (size >= maxSize) {
             pollFirst()
         }
-        return super.addLast(element)
+        return super.addLast(element) // Return result of super.addLast
     }
+
 
     // Basic serialization methods - Using the Custom Coder with Beam is preferred.
     @Throws(IOException::class)
@@ -85,9 +84,6 @@ internal class SerializableArrayDeque<E : Serializable>(val maxSize: Int) :
         }
     }
 }
-
-
-// --- Candle Lookback DoFn ---
 
 /**
  * Buffers the last N `Candle` elements per key (String) and emits lookbacks.
@@ -131,11 +127,13 @@ class CandleLookbackDoFn(
 
     @ProcessElement
     fun processElement(
-        @Element element: KV<String, Candle>,
+        context: ProcessContext, // Use ProcessContext here
         @StateId("internalCandleQueue") queueState: ValueState<SerializableArrayDeque<Candle>>
         // Timer registration is handled by the Beam runner based on windowing
     ) {
+        val element = context.element() // Get element from ProcessContext
         val newCandle: Candle = element.value ?: return // Ignore null candles
+        val key: String = element.key // Get key from ProcessContext
 
         var queue: SerializableArrayDeque<Candle>? = queueState.read()
         if (queue == null) {
@@ -148,11 +146,11 @@ class CandleLookbackDoFn(
 
     @OnTimer("processWindowTimer")
     fun onTimer(
-        context: OnTimerContext,
+        context: OnTimerContext, // Correct type for @OnTimer
         window: BoundedWindow,
         @StateId("internalCandleQueue") queueState: ValueState<SerializableArrayDeque<Candle>>
     ) {
-        val key: String = context.key()
+        val key: String = context.key() // context.key() should work on OnTimerContext
         val queue: SerializableArrayDeque<Candle>? = queueState.read()
 
         if (queue == null || queue.isEmpty()) {
