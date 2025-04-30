@@ -17,6 +17,21 @@ java_library(
     ],
 )
 
+kt_jvm_library(
+    name = "candle_lookback_do_fn",
+    srcs = ["CandleLookbackDoFn.kt"],
+    # Keep visibility consistent with the package
+    # package(default_visibility = ["//visibility:public"])
+    visibility = ["//visibility:public"], # Or adjust as needed
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf", # For ProtoCoder
+        "//third_party:guava", # For ImmutableList
+        "//third_party:joda_time", # For Instant
+    ],
+)
+
 # Coinbase specific streaming client
 java_library(
     name = "coinbase_streaming_client",
