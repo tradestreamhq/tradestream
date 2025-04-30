@@ -130,8 +130,7 @@ public final class App {
                       Instant timestamp = new Instant(millis);
                       logger.atInfo().log("Assigned timestamp %s for trade: %s", timestamp, trade);
                       return timestamp;
-                    })
-                .withAllowedTimestampSkew(timingConfig.allowedTimestampSkew()));
+                    }));
 
     // 3. Create candles from trades.
     PCollection<KV<String, Candle>> candles = tradesWithTimestamps
