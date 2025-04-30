@@ -94,11 +94,11 @@ class ExchangeClientUnboundedReader(
      */
     @Throws(IOException::class)
     private fun getCurrencyPairs(): List<CurrencyPair> {
-        logger.atInfo().log("Calling currencyPairSupply.get()...")
+        logger.atFine().log("Calling currencyPairSupply.get()...")
         try {
             val pairs = currencyPairSupply.get()
             checkArgument(pairs.isNotEmpty(), "CurrencyPair Supplier returned empty list via currencyPairs()")
-            logger.atInfo().log("Obtained %d currency pairs from CurrencyPair Supplier: %s", pairs.size, pairs)
+            logger.atFine().log("Obtained %d currency pairs from CurrencyPair Supplier: %s", pairs.size, pairs)
             return pairs
         } catch (e: Exception) {
             logger.atSevere().withCause(e).log("Failed to get currency pairs from CurrencyPair Supplier")
@@ -132,12 +132,12 @@ class ExchangeClientUnboundedReader(
      */
     private fun processTrade(trade: Trade?) {
         if (trade == null) {
-            logger.atInfo().log("Received null trade from exchange")
+            logger.atWarning().log("Received null trade from exchange")
             return
         }
         
         try {
-            logger.atInfo().log("Received trade: ID %s, Exchange: %s, Pair: %s, Price: %.2f", 
+            logger.atFine().log("Received trade: ID %s, Exchange: %s, Pair: %s, Price: %.2f", 
                 trade.getTradeId(), trade.getExchange(), trade.getCurrencyPair(), trade.getPrice())
             
             if (!trade.hasTimestamp()) {
@@ -147,7 +147,7 @@ class ExchangeClientUnboundedReader(
             
             val eventTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(trade.getTimestamp()))
             if (!eventTimestamp.isAfter(currentCheckpointMark.lastProcessedTimestamp)) {
-                logger.atInfo().log("Skipping old trade: ID %s, Timestamp %s, Last processed: %s", 
+                logger.atFine().log("Skipping old trade: ID %s, Timestamp %s, Last processed: %s", 
                     trade.getTradeId(), eventTimestamp, currentCheckpointMark.lastProcessedTimestamp)
                 return
             }
@@ -155,7 +155,7 @@ class ExchangeClientUnboundedReader(
             if (!incomingMessagesQueue.offer(trade)) {
                 logger.atWarning().log("Reader queue full. Dropping trade: %s", trade.getTradeId())
             } else {
-                logger.atInfo().log("Added trade to queue: %s, Queue size: %d", 
+                logger.atFine().log("Added trade to queue: %s, Queue size: %d", 
                     trade.getTradeId(), incomingMessagesQueue.size)
             }
         } catch (e: Exception) {
@@ -169,7 +169,7 @@ class ExchangeClientUnboundedReader(
      */
     @Throws(IOException::class)
     override fun advance(): Boolean {
-        logger.atInfo().log("advance() called. Queue size: %d, Streaming active: %b", 
+        logger.atFine().log("advance() called. Queue size: %d, Streaming active: %b", 
             incomingMessagesQueue.size, clientStreamingActive)
         
         checkState(clientStreamingActive || incomingMessagesQueue.isNotEmpty(),
@@ -179,7 +179,7 @@ class ExchangeClientUnboundedReader(
         
         // If no trade is available, update watermark and return false
         if (currentTrade == null) {
-            logger.atInfo().log("No message in queue, advance() returns false.")
+            logger.atFine().log("No message in queue, advance() returns false.")
             val now = Instant.now()
             if (currentTradeTimestamp == null || now.minus(WATERMARK_IDLE_THRESHOLD).isAfter(currentTradeTimestamp)) {
                 currentTradeTimestamp = now
@@ -220,7 +220,7 @@ class ExchangeClientUnboundedReader(
      */
     override fun getCurrent(): Trade {
         checkState(currentTrade != null, "No current trade available. advance() must return true first.")
-        logger.atInfo().log("getCurrent() called, returning trade ID: %s", currentTrade!!.getTradeId())
+        logger.atFine().log("getCurrent() called, returning trade ID: %s", currentTrade!!.getTradeId())
         return currentTrade!!
     }
 
@@ -249,9 +249,9 @@ class ExchangeClientUnboundedReader(
         // Advance based on processing time only if idle relative to last checkpoint
         if (now.minus(WATERMARK_IDLE_THRESHOLD).isAfter(potentialWatermark)) {
             potentialWatermark = now.minus(WATERMARK_IDLE_THRESHOLD)
-            logger.atInfo().log("Advancing watermark due to idle threshold relative to last checkpoint: %s", potentialWatermark)
+            logger.atFine().log("Advancing watermark due to idle threshold relative to last checkpoint: %s", potentialWatermark)
         }
-        logger.atInfo().log("Emitting watermark: %s", potentialWatermark)
+        logger.atFine().log("Emitting watermark: %s", potentialWatermark)
         return potentialWatermark
     }
 
@@ -264,7 +264,7 @@ class ExchangeClientUnboundedReader(
         val checkpointTimestamp = currentTradeTimestamp 
             ?: currentCheckpointMark.lastProcessedTimestamp // Re-use last mark if no new trade advanced
 
-        logger.atInfo().log("Creating checkpoint mark with timestamp: %s", checkpointTimestamp)
+        logger.atFine().log("Creating checkpoint mark with timestamp: %s", checkpointTimestamp)
         // Update the internal state for the *next* filtering check in the callback
         this.currentCheckpointMark = TradeCheckpointMark(checkpointTimestamp)
         return this.currentCheckpointMark
