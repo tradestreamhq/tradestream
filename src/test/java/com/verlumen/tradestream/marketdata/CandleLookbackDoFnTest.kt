@@ -112,9 +112,9 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
                 .withAllowedLateness(Duration.ZERO)
                 .discardingFiredPanes()
             )
-            // Instantiate DoFn with explicit max size and lookback list
+            // Updated: Only pass lookback sizes, no max queue size
             .apply("CandleLookbacks", ParDo.of(
-                CandleLookbackDoFn(TEST_MAX_QUEUE_SIZE, lookbackSizesToTest)
+                CandleLookbackDoFn(lookbackSizesToTest)
             ))
             .setCoder(outputCoder) // Set output coder
 
@@ -189,8 +189,9 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
                 .withAllowedLateness(Duration.ZERO)
                 .discardingFiredPanes()
             )
+            // Updated: Only pass lookback sizes, no max queue size
             .apply("CandleLookbacks", ParDo.of(
-                CandleLookbackDoFn(TEST_MAX_QUEUE_SIZE, lookbackSizesToTest) // Use TEST_MAX_QUEUE_SIZE
+                CandleLookbackDoFn(lookbackSizesToTest) 
             ))
             .setCoder(outputCoder)
 
@@ -207,7 +208,7 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
 
                  val emittedLookbackSizes = finalStateOutputs.map { it.value.key }.toSet()
 
-                 // Max queue size is 10. Requested lookbacks are 1, 3, 5, 8. All should be present.
+                 // All requested lookbacks (1, 3, 5, 8) should be present.
                  val expectedEmittedSizes = setOf(1, 3, 5, 8)
                  assertThat(emittedLookbackSizes).containsExactlyElementsIn(expectedEmittedSizes)
 
@@ -215,8 +216,9 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
                  val lookback8Output = finalStateOutputs.find { it.value.key == 8 }
                  assertThat(lookback8Output).isNotNull()
                  assertThat(lookback8Output!!.value.value).hasSize(8)
-                 // Queue holds last 10: indices 5..14 (15 candles -> indices 0..14; max size 10 -> keeps 5..14)
-                 // Lookback 8 uses indices 7..14 (14 - 8 + 1 = 7)
+                 
+                 // Queue size is automatically determined by largest lookback (8)
+                 // with a buffer, so we expect elements 7-14
                  assertThat(Timestamps.toMillis(lookback8Output.value.value.first().timestamp))
                      .isEqualTo(baseTimeMillis + 7 * intervalMillis) // Candle at index 7
                  assertThat(Timestamps.toMillis(lookback8Output.value.value.last().timestamp))

@@ -93,22 +93,31 @@ public class SerializableArrayDeque<E : Serializable>(val maxSize: Int) :
  *
  * Upon timer firing (triggered by the Beam runner based on windowing strategy),
  * this DoFn emits the last `s` candles for each size `s` specified in the `lookbackSizes` list.
- * The internal buffer size (`internalQueueMaxSize`) determines the maximum history retained.
+ * The internal buffer size is automatically determined from the largest lookback size.
  */
 class CandleLookbackDoFn(
-    private val internalQueueMaxSize: Int,
     lookbackSizes: List<Int>
 ) : DoFn<KV<String, Candle>, KV<String, KV<Int, ImmutableList<Candle>>>>() {
 
     private val lookbackSizes: List<Int> // Stores filtered, sorted, positive lookback sizes
+    private val internalQueueMaxSize: Int // Derived from the maximum lookback size
 
     init {
-        val positiveLookbacks = lookbackSizes.filter { it > 0 && it <= internalQueueMaxSize }
-        this.lookbackSizes = ImmutableList.copyOf(positiveLookbacks.toSortedSet())
-        require(this.lookbackSizes.isNotEmpty()) {
-            "Lookback sizes list cannot be empty or contain only values > internalQueueMaxSize or <= 0."
+        val positiveLookbacks = lookbackSizes.filter { it > 0 }
+        require(positiveLookbacks.isNotEmpty()) {
+            "Lookback sizes list cannot be empty or contain only non-positive values."
         }
-        require(internalQueueMaxSize > 0) { "internalQueueMaxSize must be positive."}
+        
+        // Sort the lookback sizes for consistent processing
+        this.lookbackSizes = ImmutableList.copyOf(positiveLookbacks.toSortedSet())
+        
+        // Set the internal queue size to the maximum lookback size
+        // Add a buffer of 10% to handle potential edge cases
+        val largestLookback = this.lookbackSizes.maxOrNull() ?: 1
+        this.internalQueueMaxSize = (largestLookback * 1.1).toInt().coerceAtLeast(1)
+        
+        // Log the configuration for debugging
+        System.err.println("Initialized CandleLookbackDoFn with lookbackSizes=$lookbackSizes, internalQueueMaxSize=$internalQueueMaxSize")
     }
 
     companion object {
@@ -123,7 +132,6 @@ class CandleLookbackDoFn(
     private val queueSpec: StateSpec<ValueState<SerializableArrayDeque<Candle>>> =
         StateSpecs.value(getCandleQueueCoder())
 
-    // *** FIX: Add state to store the key ***
     @StateId("storedKey")
     private val keySpec: StateSpec<ValueState<String>> = StateSpecs.value(StringUtf8Coder.of())
 
@@ -134,7 +142,7 @@ class CandleLookbackDoFn(
     @ProcessElement
     fun processElement(
         context: ProcessContext,
-        window: BoundedWindow,  // Added window parameter here
+        window: BoundedWindow,
         @StateId("internalCandleQueue") queueState: ValueState<SerializableArrayDeque<Candle>>,
         @StateId("storedKey") keyState: ValueState<String>,
         @TimerId("processWindowTimer") timer: Timer
@@ -158,7 +166,7 @@ class CandleLookbackDoFn(
         queueState.write(queue)
 
         // Set the timer to fire at the end of the current window.
-        timer.set(window.maxTimestamp())  // Use window parameter directly
+        timer.set(window.maxTimestamp())
     }
 
     @OnTimer("processWindowTimer")
