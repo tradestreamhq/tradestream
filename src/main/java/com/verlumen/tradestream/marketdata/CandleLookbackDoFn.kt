@@ -130,19 +130,19 @@ class CandleLookbackDoFn(
     @TimerId("processWindowTimer")
     private val timerSpec: TimerSpec = TimerSpecs.timer(TimeDomain.EVENT_TIME)
 
-
     @ProcessElement
     fun processElement(
         context: ProcessContext,
+        window: BoundedWindow,  // Add window parameter here
         @StateId("internalCandleQueue") queueState: ValueState<SerializableArrayDeque<Candle>>,
-        @StateId("storedKey") keyState: ValueState<String>, // *** FIX: Add key state parameter ***
+        @StateId("storedKey") keyState: ValueState<String>,
         @TimerId("processWindowTimer") timer: Timer
     ) {
         val element = context.element()
         val newCandle: Candle = element.value ?: return
         val key: String = element.key
 
-        // *** FIX: Store the key in state ***
+        // Store the key in state
         keyState.write(key)
 
         var queue: SerializableArrayDeque<Candle>? = queueState.read()
@@ -154,7 +154,7 @@ class CandleLookbackDoFn(
         queueState.write(queue)
 
         // Set the timer to fire at the end of the current window.
-        timer.set(context.window().maxTimestamp())
+        timer.set(window.maxTimestamp())  // Use the window parameter directly
     }
 
     @OnTimer("processWindowTimer")
