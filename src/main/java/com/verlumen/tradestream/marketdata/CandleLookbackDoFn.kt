@@ -184,7 +184,8 @@ class CandleLookbackDoFn(
             }
 
             val lookbackElements: ImmutableList<Candle> = try {
-                currentQueueSnapshot.subList(currentQueueSize - lookbackSize, currentQueueSize)
+                // Create proper sublist - need to use ImmutableList.copyOf() to handle the sublist correctly
+                ImmutableList.copyOf(currentQueueSnapshot.subList(currentQueueSize - lookbackSize, currentQueueSize))
             } catch (e: IndexOutOfBoundsException) {
                  System.err.println("Error creating sublist: lookbackSize=$lookbackSize, queueSize=$currentQueueSize for key $key. Exception: ${e.message}")
                 ImmutableList.of()
