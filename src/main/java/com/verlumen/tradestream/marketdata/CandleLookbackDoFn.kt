@@ -10,6 +10,7 @@ import kotlin.collections.ArrayList
 import org.apache.beam.sdk.coders.*
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.state.*
+// Explicit import for Beam Timer
 import org.apache.beam.sdk.state.Timer
 import org.apache.beam.sdk.transforms.*
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow
@@ -129,10 +130,11 @@ class CandleLookbackDoFn(
     @TimerId("processWindowTimer")
     private val timerSpec: TimerSpec = TimerSpecs.timer(TimeDomain.EVENT_TIME)
 
+
     @ProcessElement
     fun processElement(
         context: ProcessContext,
-        window: BoundedWindow,  // Add window parameter here
+        window: BoundedWindow,  // Added window parameter here
         @StateId("internalCandleQueue") queueState: ValueState<SerializableArrayDeque<Candle>>,
         @StateId("storedKey") keyState: ValueState<String>,
         @TimerId("processWindowTimer") timer: Timer
@@ -141,7 +143,7 @@ class CandleLookbackDoFn(
         val newCandle: Candle = element.value ?: return
         val key: String = element.key
 
-        // Store the key in state
+        // *** FIX: Store the key in state ***
         keyState.write(key)
 
         var queue: SerializableArrayDeque<Candle>? = queueState.read()
@@ -153,7 +155,7 @@ class CandleLookbackDoFn(
         queueState.write(queue)
 
         // Set the timer to fire at the end of the current window.
-        timer.set(window.maxTimestamp())
+        timer.set(window.maxTimestamp())  // Use window parameter directly
     }
 
     @OnTimer("processWindowTimer")
