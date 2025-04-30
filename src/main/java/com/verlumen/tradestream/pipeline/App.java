@@ -48,6 +48,14 @@ public final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final String CMC_API_KEY_ENV_VAR = "COINMARKETCAP_API_KEY";
+  /**
+   * A constant string holding the Fibonacci sequence values less than 526,000.
+   *
+   * The upper limit (526,000) was chosen as it approximates the number of
+   * minutes in an average Gregorian year (365.25 days).
+   * Calculation: 365.25 days * 24 hours/day * 60 minutes/hour = 525,960 minutes.
+   */
+  private static final String FIBONACCI_UNDER_APPROX_MINUTES_IN_YEAR = "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811, 514229";
   private static final Duration ONE_MINUTE = Duration.standardMinutes(1);
 
   public interface Options extends StreamingOptions {
@@ -92,7 +100,7 @@ public final class App {
     void setCoinMarketCapTopCurrencyCount(int value);
     
     @Description("Candle lookback sizes (comma-separated list of integers)")
-    @Default.String("1,5,15,30,60")
+    @Default.String(FIBONACCI_UNDER_APPROX_MINUTES_IN_YEAR)
     String getCandleLookbackSizes();
     void setCandleLookbackSizes(String value);
   }
@@ -170,6 +178,8 @@ public final class App {
         .map(String::trim)
         .filter(s -> !s.isEmpty())
         .map(Integer::parseInt)
+        .filter(i -> i > 0)
+        .distinct()
         .toList();
   }
   
