@@ -13,6 +13,19 @@ kt_jvm_library(
     ],
 )
 
+kt_jvm_library(
+    name = "backtest_request_factory_impl",
+    srcs = ["BacktestRequestFactoryImpl.kt"],
+    deps = [
+        ":backtest_request_factory",
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//third_party:flogger",
+        "//third_party:guice",
+    ],
+)
+
 java_library(
     name = "backtest_runner",
     srcs = ["BacktestRunner.java"],

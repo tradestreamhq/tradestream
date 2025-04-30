@@ -1,4 +1,31 @@
 load("@rules_java//java:defs.bzl", "java_test")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+kt_jvm_test(
+    name = "BacktestRequestFactoryImplTest",
+    srcs = ["BacktestRequestFactoryImplTest.kt"],
+    # If using Kotlin 1.6+, you might need:
+    # jvm_target = "17",
+    # toolchain = "@rules_kotlin//toolchains/kotlin_jvm:kt_jvm_toolchain_alias",
+    test_class = "com.verlumen.tradestream.backtesting.BacktestRequestFactoryImplTest",
+    deps = [
+        # Library under test
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory_impl",
+        # Interface (needed if the test references the interface type)
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory",
+        # Protobuf dependencies
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        # Testing libraries
+        "//third_party:junit",
+        "//third_party:truth",
+        # Other direct dependencies (if any are added to the test)
+        "//third_party:flogger", # Included because the Impl uses it, might be needed for test setup/verification later
+        "//third_party:protobuf_java_util", # For Timestamps
+        "//third_party:guava", # For ImmutableList if used directly in test
+    ],
+)
 
 java_test(
     name = "BacktestRunnerImplTest",
