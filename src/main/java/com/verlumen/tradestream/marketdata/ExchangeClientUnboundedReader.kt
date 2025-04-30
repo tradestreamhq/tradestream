@@ -186,10 +186,10 @@ class ExchangeClientUnboundedReader(
                 // If the queue is full, log a warning and drop the trade.
                 // Consider adding metrics here (e.g., dropped message count).
                 logger.atWarning().log("Reader queue full. Dropping trade: %s. Current queue size: %d",
-                    trade.getTradeId(), incomingMessagesQueue.size())
+                    trade.getTradeId(), incomingMessagesQueue.size)
             } else {
                 logger.atFiner().log("Added trade to queue: %s, Queue size: %d",
-                    trade.getTradeId(), incomingMessagesQueue.size())
+                    trade.getTradeId(), incomingMessagesQueue.size)
             }
         } catch (e: Exception) {
             // Log severe error but don't crash the callback thread if possible
