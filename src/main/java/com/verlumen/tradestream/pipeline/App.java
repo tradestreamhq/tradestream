@@ -95,11 +95,6 @@ public final class App {
     @Default.String("1,5,15,30,60")
     String getCandleLookbackSizes();
     void setCandleLookbackSizes(String value);
-    
-    @Description("Maximum size of the internal lookback buffer per key")
-    @Default.Integer(100)
-    int getMaxCandleLookbackSize();
-    void setMaxCandleLookbackSize(int value);
   }
 
   private final Supplier<List<CurrencyPair>> currencyPairs;
@@ -156,14 +151,11 @@ public final class App {
             .triggering(DefaultTrigger.of())
             .discardingFiredPanes());
             
-    // 5. Parse lookback sizes from options
+    // 5. Parse lookback sizes from options and add lookback processing
     List<Integer> lookbackSizes = parseLookbackSizes(options.getCandleLookbackSizes());
-    int maxLookbackSize = options.getMaxCandleLookbackSize();
-    
-    // 6. Add lookback processing
     PCollection<KV<String, KV<Integer, ImmutableList<Candle>>>> lookbacks = windowedCandles.apply(
         "Generate Candle Lookbacks",
-        ParDo.of(new CandleLookbackDoFn(maxLookbackSize, lookbackSizes)));
+        ParDo.of(new CandleLookbackDoFn(lookbackSizes)));
         
     // 7. Log lookback results for debugging
     lookbacks.apply("Log Lookbacks", ParDo.of(new LogLookbacksDoFn()));
