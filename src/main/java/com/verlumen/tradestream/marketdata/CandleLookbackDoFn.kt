@@ -23,10 +23,8 @@ public class SerializableArrayDeque<E : Serializable>(val maxSize: Int) :
 
     companion object {
         private const val serialVersionUID = 1L
-        // Coder moved outside companion object for easier access from other classes
     }
 
-    // --- Coder moved outside companion object ---
     // Custom Coder using Beam Coders for elements
     public class SerializableArrayDequeCoder<E : Serializable>(private val elementCoder: Coder<E>) :
         CustomCoder<SerializableArrayDeque<E>>() {
@@ -37,17 +35,15 @@ public class SerializableArrayDeque<E : Serializable>(val maxSize: Int) :
         @Throws(IOException::class)
         override fun encode(value: SerializableArrayDeque<E>, outStream: OutputStream) {
             intCoder.encode(value.maxSize, outStream)
-            // Convert to ArrayList for serialization using ListCoder
-            listCoder.encode(ArrayList(value), outStream)
+            listCoder.encode(ArrayList(value), outStream) // Serialize as List
         }
 
         @Throws(IOException::class)
         override fun decode(inStream: InputStream): SerializableArrayDeque<E> {
             val maxSize = intCoder.decode(inStream)
             val list = listCoder.decode(inStream)
-            // Reconstruct from the deserialized List
             val deque = SerializableArrayDeque<E>(maxSize)
-            deque.addAll(list)
+            deque.addAll(list) // Reconstruct from List
             return deque
         }
 
@@ -57,22 +53,20 @@ public class SerializableArrayDeque<E : Serializable>(val maxSize: Int) :
             elementCoder.verifyDeterministic()
         }
     }
-    // --- End of Coder ---
 
 
     // Enforces maxSize by removing oldest elements first.
     override fun add(element: E): Boolean {
         if (maxSize <= 0) return false
-        // Use addLast and pollFirst for standard deque behavior
         while (size >= maxSize) {
-            pollFirst() // Remove from the front (oldest)
+            pollFirst()
         }
-        super.addLast(element) // Add to the end (newest)
+        super.addLast(element) // Call the super method
         return true // Return true as per the 'add' contract
     }
 
 
-    // Basic serialization methods - Using the Custom Coder with Beam is preferred for state.
+    // Basic serialization methods - Using the Custom Coder with Beam is preferred.
     @Throws(IOException::class)
     private fun writeObject(oos: java.io.ObjectOutputStream) {
         oos.defaultWriteObject()
@@ -84,15 +78,12 @@ public class SerializableArrayDeque<E : Serializable>(val maxSize: Int) :
     @Throws(IOException::class, ClassNotFoundException::class)
     private fun readObject(ois: java.io.ObjectInputStream) {
         ois.defaultReadObject()
-        // Read maxSize but don't reassign if final
         val readMaxSize = ois.readInt()
         val size = ois.readInt()
-        // Clear existing elements before adding deserialized ones
-        this.clear()
+        this.clear() // Clear existing elements before adding deserialized ones
         for (i in 0 until size) {
              @Suppress("UNCHECKED_CAST")
-             // Use addLast to maintain order during deserialization
-             addLast(ois.readObject() as E)
+             addLast(ois.readObject() as E) // Use addLast to maintain order
         }
     }
 }
@@ -112,9 +103,7 @@ class CandleLookbackDoFn(
     private val lookbackSizes: List<Int> // Stores filtered, sorted, positive lookback sizes
 
     init {
-        // Filter lookback sizes to be positive and not exceed the internal queue size.
         val positiveLookbacks = lookbackSizes.filter { it > 0 && it <= internalQueueMaxSize }
-        // Store as an immutable sorted list to ensure uniqueness and order.
         this.lookbackSizes = ImmutableList.copyOf(positiveLookbacks.toSortedSet())
         require(this.lookbackSizes.isNotEmpty()) {
             "Lookback sizes list cannot be empty or contain only values > internalQueueMaxSize or <= 0."
@@ -125,109 +114,90 @@ class CandleLookbackDoFn(
     companion object {
         private const val serialVersionUID = 1L
 
-        // Helper to get the custom coder for the state queue of Candles
         fun getCandleQueueCoder(): Coder<SerializableArrayDeque<Candle>> {
-             // Use the moved coder class directly
             return SerializableArrayDeque.SerializableArrayDequeCoder(ProtoCoder.of(Candle::class.java))
         }
     }
 
-    // State specification for storing the candle queue.
     @StateId("internalCandleQueue")
     private val queueSpec: StateSpec<ValueState<SerializableArrayDeque<Candle>>> =
         StateSpecs.value(getCandleQueueCoder())
 
-    // Timer specification for processing at the end of a window.
-    // The timer ID matches the one used in the @OnTimer annotation.
+    // *** FIX: Add state to store the key ***
+    @StateId("storedKey")
+    private val keySpec: StateSpec<ValueState<String>> = StateSpecs.value(StringUtf8Coder.of())
+
     @TimerId("processWindowTimer")
     private val timerSpec: TimerSpec = TimerSpecs.timer(TimeDomain.EVENT_TIME)
 
 
-    /**
-     * Processes each incoming candle element.
-     * Adds the candle to the stateful queue for the corresponding key.
-     * Timers are implicitly set by Beam's windowing/triggering mechanism to call @OnTimer.
-     */
     @ProcessElement
     fun processElement(
-        context: ProcessContext, // Use ProcessContext here
-        @StateId("internalCandleQueue") queueState: ValueState<SerializableArrayDeque<Candle>>
-        // Timer parameter removed - timer setting is handled by the runner/windowing
+        context: ProcessContext,
+        @StateId("internalCandleQueue") queueState: ValueState<SerializableArrayDeque<Candle>>,
+        @StateId("storedKey") keyState: ValueState<String>, // *** FIX: Add key state parameter ***
+        @TimerId("processWindowTimer") timer: Timer
     ) {
-        val element = context.element() // Get element from ProcessContext
-        val newCandle: Candle = element.value ?: return // Ignore null candles
-        val key: String = element.key // Get key from ProcessContext
+        val element = context.element()
+        val newCandle: Candle = element.value ?: return
+        val key: String = element.key
 
-        // Read the current queue state, initializing if null.
+        // *** FIX: Store the key in state ***
+        keyState.write(key)
+
         var queue: SerializableArrayDeque<Candle>? = queueState.read()
         if (queue == null) {
             queue = SerializableArrayDeque(internalQueueMaxSize)
         }
 
-        // Add the new candle to the queue (maintains max size).
         queue.add(newCandle)
-        // Write the updated queue back to state.
         queueState.write(queue)
 
-        // *** Timer setting removed from here ***
-        // The @OnTimer method will be called automatically by the Beam runner
-        // based on the windowing strategy (e.g., when the watermark passes the end of the window).
+        // Set the timer to fire at the end of the current window.
+        timer.set(context.window().maxTimestamp())
     }
 
-    /**
-     * Called when the timer fires for a specific key and window.
-     * Emits lookback lists for the specified sizes based on the buffered candles.
-     */
     @OnTimer("processWindowTimer")
     fun onTimer(
-        context: OnTimerContext, // Correct type for @OnTimer
-        window: BoundedWindow,   // Access the window the timer fired for
-        @StateId("internalCandleQueue") queueState: ValueState<SerializableArrayDeque<Candle>>
+        context: OnTimerContext,
+        window: BoundedWindow,
+        @StateId("internalCandleQueue") queueState: ValueState<SerializableArrayDeque<Candle>>,
+        @StateId("storedKey") keyState: ValueState<String> // *** FIX: Add key state parameter ***
     ) {
-        // Access key directly from OnTimerContext.
-        // If this still causes an "unresolved reference" error, it likely points to
-        // a Beam SDK version mismatch or build configuration issue.
-        val key: String = context.key()
+        // *** FIX: Read key from state ***
+        val key: String? = keyState.read()
         val queue: SerializableArrayDeque<Candle>? = queueState.read()
 
-        // If the queue is empty or null, nothing to emit.
-        if (queue == null || queue.isEmpty()) {
+        // If key or queue is missing, we can't proceed.
+        if (key == null || queue == null || queue.isEmpty()) {
+            // Optionally log a warning if state is unexpectedly missing
             return
         }
 
         val currentQueueSize = queue.size
-        // Create an immutable snapshot for stable iteration and sublist creation.
-        // The queue stores elements oldest to newest internally due to addLast/pollFirst.
         val currentQueueSnapshot = ImmutableList.copyOf(queue) // Oldest to newest
 
-        // Iterate through the requested lookback sizes.
         for (lookbackSize in lookbackSizes) {
-            // Check if the current queue has enough elements for this lookback size.
             if (lookbackSize > currentQueueSize) {
-                continue // Skip if not enough history
+                continue
             }
 
-            // Extract the last 'lookbackSize' elements (most recent candles).
             val lookbackElements: ImmutableList<Candle> = try {
-                // Sublist from the end of the snapshot.
                 currentQueueSnapshot.subList(currentQueueSize - lookbackSize, currentQueueSize)
             } catch (e: IndexOutOfBoundsException) {
-                 // Log error and return empty list if sublist fails unexpectedly
                  System.err.println("Error creating sublist: lookbackSize=$lookbackSize, queueSize=$currentQueueSize for key $key. Exception: ${e.message}")
                 ImmutableList.of()
             }
 
-            // Only emit if the lookback list is not empty.
             if (lookbackElements.isNotEmpty()) {
-                // Emit the result: Key -> <Lookback Size, List of Candles>
-                // Timestamp the output with the end of the window for consistency.
                 context.outputWithTimestamp(
                     KV.of(key, KV.of(lookbackSize, lookbackElements)),
                     window.maxTimestamp()
                 )
             }
         }
-        // Optional: Clear the state if it should not persist across windows.
+        // Optional: Clear state if needed
         // queueState.clear()
+        // keyState.clear()
     }
 }
