@@ -79,7 +79,7 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
     @Test
     fun testLookbackEmission() {
         val baseTimeMillis = 1000L * 60 * 10 // 10 minutes epoch millis
-        val intervalMillis = Duration.standardMinutes(1).millis
+        val intervalMillis = Duration.standardSeconds(1).millis // Use seconds instead of minutes
         val lookbackSizesToTest = listOf(1, 3, 5) // Arbitrary sizes <= queue size
 
         val testStreamBuilder = TestStream.create(inputCoder)
@@ -105,9 +105,9 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
 
         val output = pipeline
             .apply(finalTestStream)
-            // Use FixedWindows matching the candle interval for simple testing of state changes
+            // Use a large window to include all elements
             .apply("ApplyWindow", Window.into<KV<String, Candle>>(
-                    FixedWindows.of(Duration.standardMinutes(1)))
+                    FixedWindows.of(Duration.standardMinutes(10))) // Use a window large enough to include all events
                 .triggering(AfterWatermark.pastEndOfWindow())
                 .withAllowedLateness(Duration.ZERO)
                 .discardingFiredPanes()
@@ -158,7 +158,7 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
     @Test
     fun testQueueBounding() {
         val baseTimeMillis = 1000L * 60 * 10
-        val intervalMillis = Duration.standardMinutes(1).millis
+        val intervalMillis = Duration.standardSeconds(1).millis // Use seconds instead of minutes
         // Request lookbacks up to size 8. Max queue size is 10.
         val lookbackSizesToTest = listOf(1, 3, 5, 8)
 
@@ -184,7 +184,7 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
         val output = pipeline
             .apply(finalTestStream)
             .apply("ApplyWindow", Window.into<KV<String, Candle>>(
-                    FixedWindows.of(Duration.standardMinutes(1)))
+                    FixedWindows.of(Duration.standardMinutes(10))) // Use a large window
                 .triggering(AfterWatermark.pastEndOfWindow())
                 .withAllowedLateness(Duration.ZERO)
                 .discardingFiredPanes()
