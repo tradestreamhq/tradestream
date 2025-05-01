@@ -12,12 +12,16 @@ import java.util.function.Function;
  * algorithm individuals using backtesting.
  */
 final class FitnessCalculatorImpl implements FitnessCalculator {
+  private final BacktestRequestFactory backtestRequestFactory;
   private final BacktestRunner backtestRunner;
   private final GenotypeConverter genotypeConverter;
 
   @Inject
   FitnessCalculatorImpl(
-      BacktestRunner backtestRunner, GenotypeConverter genotypeConverter) {
+    BacktestRequestFactory backtestRequestFactory,
+    BacktestRunner backtestRunner,
+    GenotypeConverter genotypeConverter) {
+    this.backtestRequestFactory = backtestRequestFactory;
     this.backtestRunner = backtestRunner;
     this.genotypeConverter = genotypeConverter;
   }
@@ -29,13 +33,12 @@ final class FitnessCalculatorImpl implements FitnessCalculator {
         Any params = genotypeConverter.convertToParameters(genotype, request.getStrategyType());
 
         BacktestRequest backtestRequest =
-            BacktestRequest.newBuilder()
-                .addAllCandles(request.getCandlesList())
-                .setStrategy(
-                    Strategy.newBuilder()
-                        .setType(request.getStrategyType())
-                        .setParameters(params))
-                .build();
+            backtestRequestFactory.create(
+              request.getCandlesList(),
+              Strategy.newBuilder()
+                .setType(request.getStrategyType())
+                .setParameters(params)
+                .build());
 
         BacktestResult result = backtestRunner.runBacktest(backtestRequest);
         return result.getStrategyScore();
