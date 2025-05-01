@@ -143,7 +143,6 @@ public final class App {
                     trade -> {
                       long millis = Timestamps.toMillis(trade.getTimestamp());
                       Instant timestamp = new Instant(millis);
-                      logger.atInfo().log("Assigned timestamp %s for trade: %s", timestamp, trade);
                       return timestamp;
                     }));
 
