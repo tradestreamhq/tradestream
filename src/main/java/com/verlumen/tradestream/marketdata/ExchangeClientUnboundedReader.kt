@@ -196,7 +196,7 @@ class ExchangeClientUnboundedReader(
             currentTradeTimestamp = Instant.ofEpochMilli(Timestamps.toMillis(currentTrade!!.getTimestamp()))
         }
         
-        logger.atInfo().log("Advanced to trade: ID %s, Exchange: %s, Pair: %s, Price: %.2f, Timestamp: %s", 
+        logger.atFine().log("Advanced to trade: ID %s, Exchange: %s, Pair: %s, Price: %.2f, Timestamp: %s", 
             currentTrade!!.getTradeId(), 
             currentTrade!!.getExchange(),
             currentTrade!!.getCurrencyPair(),
