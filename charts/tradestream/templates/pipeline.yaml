@@ -15,11 +15,39 @@ spec:
     {{- toYaml .Values.pipeline.configuration | nindent 4 }}
     # Ensure Flink itself uses the writable directory for its I/O temp
     io.tmp.dirs: "/opt/flink/writable-tmp"
+    
+    # Enable checkpointing
+    execution.checkpointing.enabled: "true"
+    execution.checkpointing.interval: "60000"
+    execution.checkpointing.min-pause: "30000"
+    execution.checkpointing.timeout: "600000"
+    execution.checkpointing.mode: "EXACTLY_ONCE"
+    execution.checkpointing.max-concurrent-checkpoints: "1"
+    
+    # Configure state backend
+    state.backend: "filesystem"
+    state.checkpoints.dir: "file:///flink-checkpoints"
+    state.savepoints.dir: "file:///flink-savepoints"
+    
+    # Enable monitoring
+    metrics.enabled: "true"
+    metrics.latency.interval: "60000"
+    metrics.system-resource: "true"
+    metrics.system-resource-probing-interval: "5000"
+    
+    # High Availability Configuration
+    high-availability: "org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory"
+    high-availability.storageDir: "file:///flink-ha"
+    high-availability.kubernetes.leader-election.lease-duration: "15s"
+    high-availability.kubernetes.leader-election.renew-deadline: "15s"
+    high-availability.kubernetes.leader-election.retry-period: "5s"
+    
   serviceAccount: {{ .Values.pipeline.serviceAccount }}
   jobManager:
     resource:
       memory: {{ .Values.pipeline.jobManager.memory }}
       cpu: {{ .Values.pipeline.jobManager.cpu }}
+    replicas: 1
   taskManager:
     resource:
       memory: {{ .Values.pipeline.taskManager.memory }}
@@ -40,13 +68,17 @@ spec:
       volumes:
         - name: flink-writable-volume
           emptyDir: {}
+        - name: checkpoint-volume
+          persistentVolumeClaim:
+            claimName: {{ include "tradestream.fullname" . }}-checkpoints
+        - name: ha-volume
+          persistentVolumeClaim:
+            claimName: {{ include "tradestream.fullname" . }}-ha
       containers:
         - name: flink-main-container
           env:
-            # Add this environment variable
             - name: TMPDIR
               value: /opt/flink/writable-tmp
-            # Keep your existing env vars
             - name: COINMARKETCAP_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -55,5 +87,13 @@ spec:
           volumeMounts:
             - name: flink-writable-volume
               mountPath: /opt/flink/writable-tmp
-              # This mount MUST be writable
+              readOnly: false
+            - name: checkpoint-volume
+              mountPath: /flink-checkpoints
+              readOnly: false
+            - name: checkpoint-volume
+              mountPath: /flink-savepoints
+              readOnly: false
+            - name: ha-volume
+              mountPath: /flink-ha
               readOnly: false
