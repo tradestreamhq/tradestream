@@ -101,6 +101,7 @@ java_library(
     name = "fitness_calculator_impl",
     srcs = ["FitnessCalculatorImpl.java"],
     deps = [
+        ":backtest_request_factory",
         ":backtest_runner",
         ":fitness_calculator",
         ":genotype_converter",

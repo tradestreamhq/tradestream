@@ -32,9 +32,10 @@ import org.mockito.junit.MockitoRule;
 public class FitnessCalculatorImplTest {
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-  @Bind @Mock BacktestRunner mockBacktestRunner;
-  @Bind @Mock GenotypeConverter mockGenotypeConverter;
-  @Bind private GAOptimizationRequest optimizationRequest; // Bind as concrete type
+  @Bind private BacktestRequestFactory backtestRequestFactory;
+  @Bind @Mock private BacktestRunner mockBacktestRunner;
+  @Bind @Mock private GenotypeConverter mockGenotypeConverter;
+  @Bind private GAOptimizationRequest optimizationRequest;
 
   @Inject private FitnessCalculatorImpl fitnessCalculator;
 
@@ -43,6 +44,7 @@ public class FitnessCalculatorImplTest {
   @Before
   public void setUp() throws Exception {
     // Setup
+    backtestRequestFactory = new BacktestRequestFactoryImpl();
     optimizationRequest =
         GAOptimizationRequest.newBuilder()
             .setStrategyType(StrategyType.SMA_RSI)
