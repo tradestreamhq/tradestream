@@ -32,6 +32,7 @@ import org.mockito.junit.MockitoRule;
 public class FitnessCalculatorImplTest {
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
+  @Bind(as = BacktestRequestFactory.class) private BacktestRequestFactoryImpl backtestRequestFactory;
   @Bind @Mock BacktestRunner mockBacktestRunner;
   @Bind @Mock GenotypeConverter mockGenotypeConverter;
   @Bind private GAOptimizationRequest optimizationRequest; // Bind as concrete type
