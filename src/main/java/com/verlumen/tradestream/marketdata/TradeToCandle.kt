@@ -1,14 +1,14 @@
 package com.verlumen.tradestream.marketdata
 
-import com.google.common.collect.Lists
 import com.google.common.flogger.FluentLogger
-import com.google.inject.Inject
+import com.google.googleinject.Inject
 import com.google.inject.assistedinject.Assisted
 import org.apache.beam.sdk.coders.Coder
 import org.apache.beam.sdk.coders.KvCoder
 import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.coders.StringUtf8Coder
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
+import org.apache.beam.sdk.state.StateId
 import org.apache.beam.sdk.state.StateSpec
 import org.apache.beam.sdk.state.StateSpecs
 import org.apache.beam.sdk.state.ValueState
@@ -37,40 +37,37 @@ class TradeToCandle @Inject constructor(
         private const val serialVersionUID = 1L
     }
 
-    // Factory interface
     interface Factory {
         fun create(candleInterval: Duration): TradeToCandle
     }
 
     override fun expand(input: PCollection<Trade>): PCollection<KV<String, Candle>> {
         logger.atInfo().log("Starting TradeToCandle transform with candle interval: %s", candleInterval)
-
-        // Apply stateful transformation
-        return input.apply("StatefulCandleProcessing", 
-            ParDo.of(StatefulTradeProcessor(candleInterval, candleCombineFn)))
+        return input
+            .apply(
+                "StatefulCandleProcessing",
+                ParDo.of(StatefulTradeProcessor(candleInterval, candleCombineFn))
+            )
             .setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
     }
 
-    /**
-     * Stateful DoFn that processes trades and emits candles when trades cross interval boundaries.
-     */
     private class StatefulTradeProcessor(
         private val candleInterval: Duration,
         private val candleCombineFn: CandleCombineFn
     ) : DoFn<Trade, KV<String, Candle>>(), Serializable {
-        
+
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
             private const val serialVersionUID = 1L
         }
 
-        // State to store trades for each key
         @StateId("trades")
-        private val tradesSpec = StateSpecs.value(SerializableCoder.of(ArrayList::class.java) as Coder<ArrayList<Trade>>)
-        
-        // State to track the current interval end time
+        private val tradesSpec: StateSpec<ValueState<ArrayList<Trade>>> =
+            StateSpecs.value(SerializableCoder.of(ArrayList::class.java) as Coder<ArrayList<Trade>>)
+
         @StateId("currentIntervalEnd")
-        private val currentIntervalEndSpec = StateSpecs.value(SerializableCoder.of(Instant::class.java))
+        private val currentIntervalEndSpec: StateSpec<ValueState<Instant>> =
+            StateSpecs.value(SerializableCoder.of(Instant::class.java))
 
         @ProcessElement
         fun processElement(
@@ -81,106 +78,86 @@ class TradeToCandle @Inject constructor(
             val trade = context.element()
             val currencyPair = trade.currencyPair
             val eventTime = context.timestamp()
-            
-            // Get or create trade list
-            var tradeList = trades.read()
-            if (tradeList == null) {
-                tradeList = ArrayList<Trade>()
-                logger.atInfo().log("Created new trade list for currency pair: %s", currencyPair)
-                
-                // Initialize current interval
-                val initialIntervalEnd = calculateIntervalBoundary(eventTime)
-                currentIntervalEnd.write(initialIntervalEnd)
-                logger.atInfo().log("Initialized first interval end for %s: %s", currencyPair, initialIntervalEnd)
+
+            // initialize or retrieve the per-key list of trades
+            var tradeList = trades.read() ?: ArrayList<Trade>().also {
+                logger.atInfo().log("Created new trade list for %s", currencyPair)
+                val initEnd = calculateIntervalBoundary(eventTime)
+                currentIntervalEnd.write(initEnd)
+                logger.atInfo().log("Initialized first interval end for %s: %s", currencyPair, initEnd)
             }
-            
-            // Check if this trade crosses an interval boundary
-            val intervalEnd = currentIntervalEnd.read()
+
+            // force non-null Instant
+            val intervalEnd = currentIntervalEnd.read()!!
+
+            // if we've crossed into a new candle interval, emit the old one
             if (eventTime.isAfter(intervalEnd)) {
-                // This trade belongs to a new interval, so emit the candle for the previous one
                 emitCandleForPreviousInterval(context, tradeList, intervalEnd)
-                
-                // Remove trades from the previous interval
-                // The current trade is for the new interval, so we'll keep it
-                val newTradeList = ArrayList<Trade>()
-                
-                // Update to the new interval
-                val newIntervalEnd = calculateIntervalBoundary(eventTime)
-                currentIntervalEnd.write(newIntervalEnd)
-                logger.atInfo().log("Updated interval end for %s to %s", currencyPair, newIntervalEnd)
-                
-                // Clear the trade list by setting it to a new empty list
-                tradeList = newTradeList
+                tradeList = ArrayList()
+                val nextEnd = calculateIntervalBoundary(eventTime)
+                currentIntervalEnd.write(nextEnd)
+                logger.atInfo().log("Updated interval end for %s to %s", currencyPair, nextEnd)
             }
-            
-            // Add the trade to the list
+
+            // always add this trade to the pending list
             tradeList.add(trade)
             trades.write(tradeList)
-            
-            logger.atFine().log("Added trade to list for %s, list size: %d, timestamp: %s", 
+            logger.atFine().log("Added trade to %s list (size=%d) at %s",
                 currencyPair, tradeList.size, eventTime)
         }
-        
-        /**
-         * Emit a candle for the previous interval.
-         */
+
         private fun emitCandleForPreviousInterval(
             context: ProcessContext,
             tradeList: ArrayList<Trade>,
             intervalEnd: Instant
         ) {
-            val intervalStart = intervalEnd.minus(candleInterval)
-            
             if (tradeList.isEmpty()) return
+            val intervalStart = intervalEnd.minus(candleInterval)
             val currencyPair = tradeList.first().currencyPair
-            
-            // Filter trades that belong to the previous interval
-            val tradesInInterval = tradeList.filter { trade -> 
-                val tradeTime = Instant(trade.timestamp.seconds * 1000 + trade.timestamp.nanos / 1000000)
-                tradeTime.isAfter(intervalStart) && !tradeTime.isAfter(intervalEnd)
+
+            // select only the trades in that last interval
+            val tradesInWindow = tradeList.filter { t ->
+                val tMs = t.timestamp.seconds * 1000 + t.timestamp.nanos / 1_000_000
+                val ts = Instant(tMs)
+                ts.isAfter(intervalStart) && !ts.isAfter(intervalEnd)
             }
-            
-            if (tradesInInterval.isEmpty()) {
-                logger.atInfo().log("No trades found in previous interval for %s, skipping candle", currencyPair)
+
+            if (tradesInWindow.isEmpty()) {
+                logger.atInfo().log("No trades in last interval for %s, skipping", currencyPair)
                 return
             }
-            
-            logger.atInfo().log("Creating candle from %d trades in previous interval for %s", 
-                tradesInInterval.size, currencyPair)
-            
-            // Use the combiner to create a candle from only the trades in this interval
-            val candle = candleCombineFn.createAccumulator()
-            
-            for (trade in tradesInInterval) {
-                candleCombineFn.addInput(candle, trade)
-            }
-            
-            val outputCandle = candleCombineFn.extractOutput(candle)
-            
-            // Set timestamp on the candle
-            val protoTimestamp = Timestamp.newBuilder()
-                .setSeconds(intervalEnd.getMillis() / 1000)
-                .setNanos(((intervalEnd.getMillis() % 1000) * 1000000).toInt())
+
+            logger.atInfo().log("Building candle from %d trades for %s",
+                tradesInWindow.size, currencyPair)
+
+            // combine them into a candle
+            val acc = candleCombineFn.createAccumulator()
+            tradesInWindow.forEach { candleCombineFn.addInput(acc, it) }
+            val baseCandle = candleCombineFn.extractOutput(acc)
+
+            // build a proper protobuf Timestamp
+            val pbTs = Timestamp
+                .getDefaultInstance()
+                .toBuilder()
+                .setSeconds(intervalEnd.millis / 1000)
+                .setNanos(((intervalEnd.millis % 1000) * 1_000_000).toInt())
                 .build()
-                
-            val timestampedCandle = outputCandle.toBuilder()
-                .setTimestamp(protoTimestamp)
-                .setInterval(candleInterval.getMillis())
+
+            // and set it, plus the interval length
+            val finalCandle = baseCandle
+                .toBuilder()
+                .setTimestamp(pbTs)
+                .setIntervalMillis(candleInterval.millis)
                 .build()
-            
-            // Emit the candle
-            context.outputWithTimestamp(KV.of(currencyPair, timestampedCandle), intervalEnd)
+
+            context.outputWithTimestamp(KV.of(currencyPair, finalCandle), intervalEnd)
         }
-        
-        /**
-         * Calculate the interval boundary for a given timestamp.
-         */
-        private fun calculateIntervalBoundary(timestamp: Instant): Instant {
-            val millis = timestamp.getMillis()
-            val intervalMillis = candleInterval.getMillis()
-            val intervalNumber = millis / intervalMillis
-            val nextIntervalBoundary = (intervalNumber + 1) * intervalMillis
-            return Instant(nextIntervalBoundary)
+
+        private fun calculateIntervalBoundary(ts: Instant): Instant {
+            val ms = ts.millis
+            val iv = candleInterval.millis
+            val boundary = (ms / iv + 1) * iv
+            return Instant(boundary)
         }
     }
 }
