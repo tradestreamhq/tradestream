@@ -6,12 +6,12 @@ import com.google.common.reflect.TypeToken
 import org.apache.beam.sdk.coders.Coder
 import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.coders.StringUtf8Coder
-import org.apache.beam.sdk.coders.TypeDescriptor
 import org.apache.beam.sdk.state.StateSpec
 import org.apache.beam.sdk.state.StateSpecs
 import org.apache.beam.sdk.state.ValueState
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.values.KV
+import org.apache.beam.sdk.values.TypeDescriptor
 import org.slf4j.LoggerFactory
 
 /**
