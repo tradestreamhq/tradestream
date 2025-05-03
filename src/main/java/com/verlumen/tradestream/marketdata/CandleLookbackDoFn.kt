@@ -3,54 +3,14 @@ package com.verlumen.tradestream.marketdata
 import com.google.common.collect.EvictingQueue
 import com.google.common.collect.ImmutableList
 import com.google.common.flogger.FluentLogger
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import java.io.Serializable
 import org.apache.beam.sdk.coders.Coder
-import org.apache.beam.sdk.coders.CustomCoder
-import org.apache.beam.sdk.coders.ListCoder
+import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.coders.StringUtf8Coder
-import org.apache.beam.sdk.coders.VarIntCoder
-import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.state.StateSpec
 import org.apache.beam.sdk.state.StateSpecs
 import org.apache.beam.sdk.state.ValueState
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.values.KV
-
-/**
- * A custom coder for EvictingQueue<Candle> that works with Beam's serialization.
- */
-class EvictingQueueCoder<T>(private val elementCoder: Coder<T>) : CustomCoder<EvictingQueue<T>>() {
-    private val listCoder: Coder<List<T>> = ListCoder.of(elementCoder)
-    private val intCoder: Coder<Int> = VarIntCoder.of()
-
-    override fun encode(value: EvictingQueue<T>, outStream: OutputStream) {
-        // Encode the max size first
-        intCoder.encode(value.remainingCapacity() + value.size, outStream)
-        // Then encode the elements as a list
-        listCoder.encode(value.toList(), outStream)
-    }
-
-    override fun decode(inStream: InputStream): EvictingQueue<T> {
-        // Decode the max size
-        val maxSize = intCoder.decode(inStream)
-        // Decode the elements
-        val list = listCoder.decode(inStream)
-        // Create a new queue with the appropriate size
-        val queue = EvictingQueue.create<T>(maxSize)
-        // Add all elements
-        queue.addAll(list)
-        return queue
-    }
-
-    override fun getCoderArguments(): List<Coder<*>> = listOf(elementCoder)
-
-    override fun verifyDeterministic() {
-        elementCoder.verifyDeterministic()
-    }
-}
 
 /**
  * Buffers the most recent candles per key and emits lookbacks of specified sizes
@@ -82,7 +42,8 @@ class CandleLookbackDoFn(
 
     companion object {
         fun getCandleQueueCoder(): Coder<EvictingQueue<Candle>> {
-            return EvictingQueueCoder(ProtoCoder.of(Candle::class.java))
+            @Suppress("UNCHECKED_CAST")
+            return SerializableCoder.of(EvictingQueue::class.java) as Coder<EvictingQueue<Candle>>
         }
     }
 
