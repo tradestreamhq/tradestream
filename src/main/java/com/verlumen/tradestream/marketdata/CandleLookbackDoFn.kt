@@ -146,7 +146,7 @@ class CandleLookbackDoFn(
         
         // Log skipped timeframes together at FINE level
         if (skippedSizes.isNotEmpty()) {
-            logger.atFine().log("Skipped lookback sizes for key=%s: %s (insufficient data, queue size=%d)", 
+            logger.atInfo().log("Skipped lookback sizes for key=%s: %s (insufficient data, queue size=%d)", 
                 key, skippedSizes, currentSize)
         }
         
