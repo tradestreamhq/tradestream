@@ -21,8 +21,6 @@ import org.apache.beam.sdk.values.KV
 class CandleLookbackDoFn(
     lookbackSizes: List<Int>
 ) : DoFn<KV<String, Candle>, KV<String, KV<Int, ImmutableList<Candle>>>>() {
-
-    private val logger = FluentLogger.forEnclosingClass()
     private val lookbackSizes: List<Int>
     private val maxQueueSize: Int
 
@@ -41,6 +39,9 @@ class CandleLookbackDoFn(
     }
 
     companion object {
+        // Static logger for all instances
+        private val logger = FluentLogger.forEnclosingClass()
+        
         fun getCandleQueueCoder(): Coder<EvictingQueue<Candle>> {
             @Suppress("UNCHECKED_CAST")
             return SerializableCoder.of(EvictingQueue::class.java) as Coder<EvictingQueue<Candle>>
