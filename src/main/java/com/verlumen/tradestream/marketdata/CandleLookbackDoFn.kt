@@ -116,17 +116,16 @@ class CandleLookbackDoFn(
         val queueList = ImmutableList.copyOf(queue)
         val currentSize = queueList.size
         
-        logger.atFine().log("Processing lookbacks for key=%s, available candles=%d, lookback sizes=%s", 
-            key, currentSize, lookbackSizes)
+        // Log queue size at INFO level
+        logger.atInfo().log("Processing lookbacks for key=%s, queue size=%d/%d", 
+            key, currentSize, queue.remainingCapacity() + queue.size)
         
         var emittedCount = 0
-        var skippedCount = 0
+        val skippedSizes = mutableListOf<Int>()
         
         for (lookbackSize in lookbackSizes) {
             if (lookbackSize > currentSize) {
-                logger.atFine().log("Skipping lookback size=%d (insufficient data), key=%s", 
-                    lookbackSize, key)
-                skippedCount++
+                skippedSizes.add(lookbackSize)
                 continue
             }
             
@@ -145,7 +144,13 @@ class CandleLookbackDoFn(
             }
         }
         
-        logger.atInfo().log("Lookback processing complete for key=%s: emitted=%d, skipped=%d", 
-            key, emittedCount, skippedCount)
+        // Log skipped timeframes together at FINE level
+        if (skippedSizes.isNotEmpty()) {
+            logger.atInfo().log("Skipped lookback sizes for key=%s: %s (insufficient data, queue size=%d)", 
+                key, skippedSizes, currentSize)
+        }
+        
+        logger.atInfo().log("Lookback processing complete for key=%s: emitted=%d", 
+            key, emittedCount)
     }
 }
