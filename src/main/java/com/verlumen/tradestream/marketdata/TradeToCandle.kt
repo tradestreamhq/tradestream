@@ -1,7 +1,7 @@
 package com.verlumen.tradestream.marketdata
 
 import com.google.common.flogger.FluentLogger
-import com.google.googleinject.Inject
+import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import org.apache.beam.sdk.coders.Coder
 import org.apache.beam.sdk.coders.KvCoder
