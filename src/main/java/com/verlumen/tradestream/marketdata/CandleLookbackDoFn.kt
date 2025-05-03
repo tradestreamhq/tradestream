@@ -2,6 +2,7 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.collect.EvictingQueue
 import com.google.common.collect.ImmutableList
+import com.google.common.flogger.FluentLogger
 import com.google.common.reflect.TypeToken
 import org.apache.beam.sdk.coders.Coder
 import org.apache.beam.sdk.coders.SerializableCoder
@@ -12,7 +13,10 @@ import org.apache.beam.sdk.state.ValueState
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.TypeDescriptor
-import org.slf4j.LoggerFactory
+import org.apache.beam.sdk.state.StateSpecs
+import org.apache.beam.sdk.state.ValueState
+import org.apache.beam.sdk.transforms.DoFn
+import org.apache.beam.sdk.values.KV
 
 /**
  * Buffers the most recent candles per key and emits lookbacks of specified sizes
@@ -24,7 +28,7 @@ class CandleLookbackDoFn(
     lookbackSizes: List<Int>
 ) : DoFn<KV<String, Candle>, KV<String, KV<Int, ImmutableList<Candle>>>>() {
 
-    private val logger = LoggerFactory.getLogger(CandleLookbackDoFn::class.java)
+    private val logger = FluentLogger.forEnclosingClass()
     private val lookbackSizes: List<Int>
     private val maxQueueSize: Int
 
@@ -38,7 +42,7 @@ class CandleLookbackDoFn(
         val largestLookback = positiveLookbacks.last()
         this.maxQueueSize = (largestLookback * 1.1).toInt().coerceAtLeast(1)
         
-        logger.info("Initialized CandleLookbackDoFn with lookbackSizes={}, maxQueueSize={}", 
+        logger.atInfo().log("Initialized CandleLookbackDoFn with lookbackSizes=%s, maxQueueSize=%s", 
             this.lookbackSizes, this.maxQueueSize)
     }
 
@@ -68,12 +72,12 @@ class CandleLookbackDoFn(
     ) {
         val element = context.element()
         val newCandle = element.value ?: run {
-            logger.warn("Received null candle value, skipping")
+            logger.atWarning().log("Received null candle value, skipping")
             return
         }
         val key = element.key
         
-        logger.debug("Processing candle for key={}, timestamp={}", 
+        logger.atFine().log("Processing candle for key=%s, timestamp=%s", 
             key, newCandle.timestamp)
 
         keyState.write(key)
@@ -82,16 +86,16 @@ class CandleLookbackDoFn(
         var queue = queueState.read()
         if (queue == null) {
             queue = EvictingQueue.create<Candle>(maxQueueSize)
-            logger.info("Created new queue for key={} with maxSize={}", key, maxQueueSize)
+            logger.atInfo().log("Created new queue for key=%s with maxSize=%d", key, maxQueueSize)
         } else {
-            logger.debug("Retrieved existing queue for key={}, current size={}/{}", 
+            logger.atFine().log("Retrieved existing queue for key=%s, current size=%d/%d", 
                 key, queue.size, queue.remainingCapacity() + queue.size)
         }
         
         // Check if we're about to evict elements
         val willEvict = queue.size == queue.remainingCapacity() + queue.size && queue.size > 0
-        if (willEvict && logger.isDebugEnabled()) {
-            logger.debug("Queue is full, oldest candle will be evicted for key={}", key)
+        if (willEvict) {
+            logger.atFine().log("Queue is full, oldest candle will be evicted for key=%s", key)
         }
         
         // Add the new candle
@@ -99,7 +103,7 @@ class CandleLookbackDoFn(
         
         // Save updated queue
         queueState.write(queue)
-        logger.debug("Updated queue for key={}, new size={}", key, queue.size)
+        logger.atFine().log("Updated queue for key=%s, new size=%d", key, queue.size)
         
         // Process lookbacks immediately
         processLookbacks(context, key, queue)
@@ -114,14 +118,14 @@ class CandleLookbackDoFn(
         queue: EvictingQueue<Candle>
     ) {
         if (queue.isEmpty()) {
-            logger.warn("Attempted to process lookbacks for empty queue, key={}", key)
+            logger.atWarning().log("Attempted to process lookbacks for empty queue, key=%s", key)
             return
         }
         
         val queueList = ImmutableList.copyOf(queue)
         val currentSize = queueList.size
         
-        logger.debug("Processing lookbacks for key={}, available candles={}, lookback sizes={}", 
+        logger.atFine().log("Processing lookbacks for key=%s, available candles=%d, lookback sizes=%s", 
             key, currentSize, lookbackSizes)
         
         var emittedCount = 0
@@ -129,7 +133,7 @@ class CandleLookbackDoFn(
         
         for (lookbackSize in lookbackSizes) {
             if (lookbackSize > currentSize) {
-                logger.debug("Skipping lookback size={} (insufficient data), key={}", 
+                logger.atFine().log("Skipping lookback size=%d (insufficient data), key=%s", 
                     lookbackSize, key)
                 skippedCount++
                 continue
@@ -142,15 +146,15 @@ class CandleLookbackDoFn(
                 context.output(KV.of(key, KV.of(lookbackSize, immutableLookback)))
                 emittedCount++
                 
-                logger.debug("Emitted lookback: key={}, size={}, from={} to={}", 
+                logger.atFine().log("Emitted lookback: key=%s, size=%d, from=%d to=%d", 
                     key, lookbackSize, startIndex, currentSize)
             } catch (e: Exception) {
-                logger.error("Failed to process lookback: key={}, size={}, error={}", 
-                    key, lookbackSize, e.message, e)
+                logger.atSevere().withCause(e).log(
+                    "Failed to process lookback: key=%s, size=%d", key, lookbackSize)
             }
         }
         
-        logger.info("Lookback processing complete for key={}: emitted={}, skipped={}", 
+        logger.atInfo().log("Lookback processing complete for key=%s: emitted=%d, skipped=%d", 
             key, emittedCount, skippedCount)
     }
 }
