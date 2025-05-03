@@ -1,231 +1,151 @@
 package com.verlumen.tradestream.marketdata
 
+import com.google.common.collect.EvictingQueue
 import com.google.common.collect.ImmutableList
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import java.io.Serializable
-import java.util.*
-import kotlin.collections.ArrayList
-import org.apache.beam.sdk.coders.*
-import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
-import org.apache.beam.sdk.state.*
-// Explicit import for Beam Timer
-import org.apache.beam.sdk.state.Timer
-import org.apache.beam.sdk.transforms.*
-import org.apache.beam.sdk.transforms.windowing.BoundedWindow
+import com.google.common.flogger.FluentLogger
+import org.apache.beam.sdk.coders.Coder
+import org.apache.beam.sdk.coders.SerializableCoder
+import org.apache.beam.sdk.coders.StringUtf8Coder
+import org.apache.beam.sdk.state.StateSpec
+import org.apache.beam.sdk.state.StateSpecs
+import org.apache.beam.sdk.state.ValueState
+import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.values.KV
-import org.joda.time.Instant
-
-// Provides a serializable, bounded ArrayDeque suitable for Beam state.
-public class SerializableArrayDeque<E : Serializable>(val maxSize: Int) :
-    ArrayDeque<E>(maxSize.coerceAtLeast(1)), Serializable {
-
-    companion object {
-        private const val serialVersionUID = 1L
-    }
-
-    // Custom Coder using Beam Coders for elements
-    public class SerializableArrayDequeCoder<E : Serializable>(private val elementCoder: Coder<E>) :
-        CustomCoder<SerializableArrayDeque<E>>() {
-
-        private val listCoder: Coder<List<E>> = ListCoder.of(elementCoder)
-        private val intCoder: Coder<Int> = VarIntCoder.of()
-
-        @Throws(IOException::class)
-        override fun encode(value: SerializableArrayDeque<E>, outStream: OutputStream) {
-            intCoder.encode(value.maxSize, outStream)
-            listCoder.encode(ArrayList(value), outStream) // Serialize as List
-        }
-
-        @Throws(IOException::class)
-        override fun decode(inStream: InputStream): SerializableArrayDeque<E> {
-            val maxSize = intCoder.decode(inStream)
-            val list = listCoder.decode(inStream)
-            val deque = SerializableArrayDeque<E>(maxSize)
-            deque.addAll(list) // Reconstruct from List
-            return deque
-        }
-
-        override fun getCoderArguments(): List<Coder<*>> = listOf(elementCoder)
-
-        override fun verifyDeterministic() {
-            elementCoder.verifyDeterministic()
-        }
-    }
-
-
-    // Enforces maxSize by removing oldest elements first.
-    override fun add(element: E): Boolean {
-        if (maxSize <= 0) return false
-        while (size >= maxSize) {
-            pollFirst()
-        }
-        super.addLast(element) // Call the super method
-        return true // Return true as per the 'add' contract
-    }
-
-
-    // Basic serialization methods - Using the Custom Coder with Beam is preferred.
-    @Throws(IOException::class)
-    private fun writeObject(oos: java.io.ObjectOutputStream) {
-        oos.defaultWriteObject()
-        oos.writeInt(maxSize)
-        oos.writeInt(size)
-        for (element in this) { oos.writeObject(element) }
-    }
-
-    @Throws(IOException::class, ClassNotFoundException::class)
-    private fun readObject(ois: java.io.ObjectInputStream) {
-        ois.defaultReadObject()
-        val readMaxSize = ois.readInt()
-        val size = ois.readInt()
-        this.clear() // Clear existing elements before adding deserialized ones
-        for (i in 0 until size) {
-             @Suppress("UNCHECKED_CAST")
-             addLast(ois.readObject() as E) // Use addLast to maintain order
-        }
-    }
-}
 
 /**
- * Buffers the last N `Candle` elements per key (String) and emits lookbacks.
+ * Buffers the most recent candles per key and emits lookbacks of specified sizes
+ * whenever a new candle arrives.
  *
- * Upon timer firing (triggered by the Beam runner based on windowing strategy),
- * this DoFn emits the last `s` candles for each size `s` specified in the `lookbackSizes` list.
- * The internal buffer size is automatically determined from the largest lookback size.
+ * Uses Guava's EvictingQueue for efficient fixed-size buffer management.
  */
 class CandleLookbackDoFn(
     lookbackSizes: List<Int>
 ) : DoFn<KV<String, Candle>, KV<String, KV<Int, ImmutableList<Candle>>>>() {
-
-    private val lookbackSizes: List<Int> // Stores filtered, sorted, positive lookback sizes
-    private val internalQueueMaxSize: Int // Derived from the maximum lookback size
+    private val lookbackSizes: List<Int>
+    private val maxQueueSize: Int
 
     init {
-        val positiveLookbacks = lookbackSizes.filter { it > 0 }
+        val positiveLookbacks = lookbackSizes.filter { it > 0 }.toSortedSet()
         require(positiveLookbacks.isNotEmpty()) {
             "Lookback sizes list cannot be empty or contain only non-positive values."
         }
         
-        // Sort the lookback sizes for consistent processing
-        this.lookbackSizes = ImmutableList.copyOf(positiveLookbacks.toSortedSet())
+        this.lookbackSizes = ImmutableList.copyOf(positiveLookbacks)
+        val largestLookback = positiveLookbacks.last()
+        this.maxQueueSize = (largestLookback * 1.1).toInt().coerceAtLeast(1)
         
-        // Set the internal queue size to the maximum lookback size
-        // Add a buffer of 10% to handle potential edge cases
-        val largestLookback = this.lookbackSizes.maxOrNull() ?: 1
-        this.internalQueueMaxSize = (largestLookback * 1.1).toInt().coerceAtLeast(1)
-        
-        // Log the configuration for debugging
-        System.err.println("Initialized CandleLookbackDoFn with lookbackSizes=$lookbackSizes, internalQueueMaxSize=$internalQueueMaxSize")
+        logger.atInfo().log("Initialized CandleLookbackDoFn with lookbackSizes=%s, maxQueueSize=%s", 
+            this.lookbackSizes, this.maxQueueSize)
     }
 
     companion object {
-        private const val serialVersionUID = 1L
-
-        fun getCandleQueueCoder(): Coder<SerializableArrayDeque<Candle>> {
-            return SerializableArrayDeque.SerializableArrayDequeCoder(ProtoCoder.of(Candle::class.java))
+        // Static logger for all instances
+        private val logger = FluentLogger.forEnclosingClass()
+        
+        fun getCandleQueueCoder(): Coder<EvictingQueue<Candle>> {
+            @Suppress("UNCHECKED_CAST")
+            return SerializableCoder.of(EvictingQueue::class.java) as Coder<EvictingQueue<Candle>>
         }
     }
 
-    @StateId("internalCandleQueue")
-    private val queueSpec: StateSpec<ValueState<SerializableArrayDeque<Candle>>> =
+    @StateId("candleQueue")
+    private val queueSpec: StateSpec<ValueState<EvictingQueue<Candle>>> =
         StateSpecs.value(getCandleQueueCoder())
 
     @StateId("storedKey")
     private val keySpec: StateSpec<ValueState<String>> = StateSpecs.value(StringUtf8Coder.of())
 
-    @TimerId("processWindowTimer")
-    private val timerSpec: TimerSpec = TimerSpecs.timer(TimeDomain.EVENT_TIME)
-
-
     @ProcessElement
     fun processElement(
         context: ProcessContext,
-        window: BoundedWindow,
-        @StateId("internalCandleQueue") queueState: ValueState<SerializableArrayDeque<Candle>>,
-        @StateId("storedKey") keyState: ValueState<String>,
-        @TimerId("processWindowTimer") timer: Timer
-    ) {
-        val element = context.element()
-        val newCandle: Candle = element.value ?: return
-        val key: String = element.key
-
-        // Debug existing queue
-        val queue = queueState.read() ?: SerializableArrayDeque<Candle>(internalQueueMaxSize)
-        System.err.println("DEBUG: Queue before add, key=$key, size=${queue.size}, maxSize=${queue.maxSize}")
-        
-        // Store the key in state
-        keyState.write(key)
-
-        // Add the new candle
-        queue.add(newCandle)
-        System.err.println("DEBUG: Queue after add, key=$key, size=${queue.size}, maxSize=${queue.maxSize}")
-        
-        // Save the updated queue
-        queueState.write(queue)
-
-        // Set the timer to fire at the end of the current window.
-        timer.set(window.maxTimestamp())
-    }
-
-    @OnTimer("processWindowTimer")
-    fun onTimer(
-        context: OnTimerContext,
-        window: BoundedWindow,
-        @StateId("internalCandleQueue") queueState: ValueState<SerializableArrayDeque<Candle>>,
+        @StateId("candleQueue") queueState: ValueState<EvictingQueue<Candle>>,
         @StateId("storedKey") keyState: ValueState<String>
     ) {
-        // Read key from state
-        val key: String? = keyState.read()
-        val queue: SerializableArrayDeque<Candle>? = queueState.read()
-
-        // If key or queue is missing, we can't proceed.
-        if (key == null || queue == null || queue.isEmpty()) {
-            // Optionally log a warning if state is unexpectedly missing
+        val element = context.element()
+        val newCandle = element.value ?: run {
+            logger.atWarning().log("Received null candle value, skipping")
             return
         }
+        val key = element.key
+        
+        logger.atFine().log("Processing candle for key=%s, timestamp=%s", 
+            key, newCandle.timestamp)
 
-        // Convert the queue to a List for easier handling
-        val currentQueueSize = queue.size
-        val currentQueueItems = ArrayList<Candle>(queue)
+        keyState.write(key)
         
-        // Add debug logs
-        System.err.println("DEBUG: Processing timer for key=$key with queueSize=$currentQueueSize, lookbackSizes=${lookbackSizes}")
+        // Get or create queue
+        var queue = queueState.read()
+        if (queue == null) {
+            queue = EvictingQueue.create<Candle>(maxQueueSize)
+            logger.atInfo().log("Created new queue for key=%s with maxSize=%d", key, maxQueueSize)
+        } else {
+            logger.atFine().log("Retrieved existing queue for key=%s, current size=%d/%d", 
+                key, queue.size, queue.remainingCapacity() + queue.size)
+        }
         
-        // Process each requested lookback size
+        // Check if we're about to evict elements
+        val willEvict = queue.size == queue.remainingCapacity() + queue.size && queue.size > 0
+        if (willEvict) {
+            logger.atFine().log("Queue is full, oldest candle will be evicted for key=%s", key)
+        }
+        
+        // Add the new candle
+        queue.add(newCandle)
+        
+        // Save updated queue
+        queueState.write(queue)
+        logger.atFine().log("Updated queue for key=%s, new size=%d", key, queue.size)
+        
+        // Process lookbacks immediately
+        processLookbacks(context, key, queue)
+    }
+    
+    /**
+     * Process all lookbacks and emit them to the output.
+     */
+    private fun processLookbacks(
+        context: ProcessContext,
+        key: String,
+        queue: EvictingQueue<Candle>
+    ) {
+        if (queue.isEmpty()) {
+            logger.atWarning().log("Attempted to process lookbacks for empty queue, key=%s", key)
+            return
+        }
+        
+        val queueList = ImmutableList.copyOf(queue)
+        val currentSize = queueList.size
+        
+        logger.atFine().log("Processing lookbacks for key=%s, available candles=%d, lookback sizes=%s", 
+            key, currentSize, lookbackSizes)
+        
+        var emittedCount = 0
+        var skippedCount = 0
+        
         for (lookbackSize in lookbackSizes) {
-            if (lookbackSize > currentQueueSize) {
-                System.err.println("DEBUG: Skipping lookbackSize=$lookbackSize as it's larger than queueSize=$currentQueueSize")
+            if (lookbackSize > currentSize) {
+                logger.atFine().log("Skipping lookback size=%d (insufficient data), key=%s", 
+                    lookbackSize, key)
+                skippedCount++
                 continue
             }
             
             try {
-                // Calculate start index for this lookback size
-                val startIndex = currentQueueSize - lookbackSize
+                val startIndex = currentSize - lookbackSize
+                val immutableLookback = queueList.subList(startIndex, currentSize)
                 
-                // Create a separate list for this lookback to ensure proper serialization
-                val lookbackElements = ArrayList<Candle>()
-                for (i in startIndex until currentQueueSize) {
-                    lookbackElements.add(currentQueueItems[i])
-                }
+                context.output(KV.of(key, KV.of(lookbackSize, immutableLookback)))
+                emittedCount++
                 
-                // Convert to ImmutableList for output
-                val immutableLookback = ImmutableList.copyOf(lookbackElements)
-                
-                System.err.println("DEBUG: Emitting lookbackSize=$lookbackSize with ${immutableLookback.size} elements")
-                
-                // Only emit if we have elements
-                if (immutableLookback.isNotEmpty()) {
-                    context.outputWithTimestamp(
-                        KV.of(key, KV.of(lookbackSize, immutableLookback)),
-                        window.maxTimestamp()
-                    )
-                }
+                logger.atFine().log("Emitted lookback: key=%s, size=%d, from=%d to=%d", 
+                    key, lookbackSize, startIndex, currentSize)
             } catch (e: Exception) {
-                System.err.println("ERROR: Failed to process lookbackSize=$lookbackSize: ${e.message}")
-                e.printStackTrace()
+                logger.atSevere().withCause(e).log(
+                    "Failed to process lookback: key=%s, size=%d", key, lookbackSize)
             }
         }
+        
+        logger.atInfo().log("Lookback processing complete for key=%s: emitted=%d, skipped=%d", 
+            key, emittedCount, skippedCount)
     }
 }
