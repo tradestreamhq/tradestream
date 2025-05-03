@@ -2,9 +2,11 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.collect.EvictingQueue
 import com.google.common.collect.ImmutableList
+import com.google.common.reflect.TypeToken
 import org.apache.beam.sdk.coders.Coder
 import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.coders.StringUtf8Coder
+import org.apache.beam.sdk.coders.TypeDescriptor
 import org.apache.beam.sdk.state.StateSpec
 import org.apache.beam.sdk.state.StateSpecs
 import org.apache.beam.sdk.state.ValueState
@@ -42,7 +44,12 @@ class CandleLookbackDoFn(
 
     companion object {
         fun getCandleQueueCoder(): Coder<EvictingQueue<Candle>> {
-            return SerializableCoder.of(EvictingQueue::class.java)
+            // Create a custom coder that correctly handles the generic type
+            return object : SerializableCoder<EvictingQueue<Candle>>(EvictingQueue::class.java) {
+                override fun getEncodedTypeDescriptor(): TypeDescriptor<EvictingQueue<Candle>> {
+                    return TypeDescriptor.of(object : TypeToken<EvictingQueue<Candle>>() {})
+                }
+            }
         }
     }
 
