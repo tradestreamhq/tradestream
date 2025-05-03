@@ -24,6 +24,7 @@ kt_jvm_library(
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_extensions_protobuf", # For ProtoCoder
+        "//third_party:flogger",
         "//third_party:guava", # For ImmutableList
         "//third_party:joda_time", # For Instant
     ],
