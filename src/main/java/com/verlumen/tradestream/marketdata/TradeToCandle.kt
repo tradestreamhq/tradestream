@@ -31,7 +31,6 @@ import org.joda.time.Duration
 import org.joda.time.Instant
 import java.io.Serializable
 import java.util.ArrayList
-import com.google.protobuf.Timestamp as ProtoTimestamp
 import com.google.protobuf.util.Timestamps
 
 class TradeToCandle @Inject constructor(
