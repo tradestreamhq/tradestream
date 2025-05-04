@@ -37,9 +37,15 @@ class TiingoCryptoFetcherFnTest {
     @Mock
     private lateinit var mockHttpClient: HttpClient
 
-    // Use a non-mock Provider for the test
-    private lateinit var mockHttpClientProvider: Provider<HttpClient>
+    // Create a more robust serializable provider implementation
+    private class TestHttpClientProvider(private val client: HttpClient) : Provider<HttpClient>, Serializable {
+        override fun get(): HttpClient = client
+        
+        // Add readResolve method to handle serialization/deserialization
+        private fun readResolve(): Any = this
+    }
 
+    private lateinit var mockHttpClientProvider: Provider<HttpClient>
     private lateinit var fetcherFnDaily: TiingoCryptoFetcherFn
     private val testApiKey = "TEST_API_KEY_123"
 
@@ -52,13 +58,12 @@ class TiingoCryptoFetcherFnTest {
     
     @Before
     fun setUp() {
-        // Wrap the mock in a simple Provider implementation
-        mockHttpClientProvider = object : Provider<HttpClient>, Serializable {
-             // Add @Transient annotation to suppress potential warnings
-            @Transient private val client = mockHttpClient 
-            override fun get(): HttpClient = client
-        }
+        // Use our improved provider implementation
+        mockHttpClientProvider = TestHttpClientProvider(mockHttpClient)
         fetcherFnDaily = TiingoCryptoFetcherFn(mockHttpClientProvider, Duration.standardDays(1), testApiKey)
+        
+        // Initialize the DoFn manually for tests
+        fetcherFnDaily.setup()
     }
 
     @Test
@@ -107,6 +112,10 @@ class TiingoCryptoFetcherFnTest {
     @Test
     fun invalidApiKeySkipsFetch() {
         val invalidFn = TiingoCryptoFetcherFn(mockHttpClientProvider, Duration.standardDays(1), "")
+        
+        // Initialize the DoFn manually for tests
+        invalidFn.setup()
+        
         val currencyPair = "BTC/USD"
 
         val input: PCollection<KV<String, Void>> = pipeline
