@@ -23,6 +23,7 @@ import org.joda.time.Instant
 import java.io.Serializable
 import java.util.ArrayList
 import com.google.protobuf.Timestamp
+import com.google.protobuf.util.Timestamps
 
 /**
  * Transforms a stream of trades into OHLCV candles using stateful processing.
@@ -80,6 +81,7 @@ class TradeToCandle @Inject constructor(
             val currencyPair = trade.currencyPair
             val eventTime = context.timestamp()
 
+            // initialize or retrieve the per-key list of trades
             var tradeList = trades.read() ?: ArrayList<Trade>().also {
                 logger.atInfo().log("Created new list for %s", currencyPair)
                 val initEnd = calculateIntervalBoundary(eventTime)
@@ -89,14 +91,19 @@ class TradeToCandle @Inject constructor(
 
             val intervalEnd = currentIntervalEnd.read()!!
 
+            // if we've crossed into a new candle interval, emit and clear the previous interval
             if (eventTime.isAfter(intervalEnd)) {
                 emitCandleForPreviousInterval(context, tradeList, intervalEnd)
+                // clear the old trades state
+                trades.clear()
+                // start a fresh list for the new interval
                 tradeList = ArrayList()
                 val nextEnd = calculateIntervalBoundary(eventTime)
                 currentIntervalEnd.write(nextEnd)
                 logger.atInfo().log("Updated interval-end for %s to %s", currencyPair, nextEnd)
             }
 
+            // add this trade and write state
             tradeList.add(trade)
             trades.write(tradeList)
             logger.atFine().log("Trade added to %s (size=%d) at %s", currencyPair, tradeList.size, eventTime)
@@ -128,11 +135,10 @@ class TradeToCandle @Inject constructor(
             tradesInWindow.forEach { candleCombineFn.addInput(acc, it) }
             val baseCandle = candleCombineFn.extractOutput(acc)
 
-            val pbTs = Timestamp.newBuilder()
-                .setSeconds(intervalEnd.millis / 1000)
-                .setNanos(((intervalEnd.millis % 1000) * 1_000_000).toInt())
-                .build()
+            // build a protobuf Timestamp via util
+            val pbTs: Timestamp = Timestamps.fromMillis(intervalEnd.millis)
 
+            // set timestamp and interval
             val finalCandle = baseCandle.toBuilder()
                 .setTimestamp(pbTs)
                 .setInterval(candleInterval.millis)
