@@ -230,6 +230,14 @@ public final class App {
       return options.getCoinMarketCapApiKey();
   }
 
+  private static String getTiingoApiKey(Options options) {
+      if (isNullOrEmpty(options.getTiingoApiKey())) {
+           return System.getenv().getOrDefault(TIINGO_API_KEY_ENV_VAR, "INVALID_API_KEY");
+      } 
+
+      return options.getTiingoApiKey();
+  }
+
   public static void main(String[] args) throws Exception {
     logger.atInfo().log("Application starting with arguments: %s", (Object) args);
 
