@@ -58,22 +58,22 @@ constructor(
     override fun expand(input: PCollection<Trade>): PCollection<KV<String, Candle>> {
         val keyed: PCollection<KV<String, Trade>> =
             input.apply<PCollection<KV<String, Trade>>>(
-                "KeyByPair",
-                MapElements.into<KV<String, Trade>>(
-                        TypeDescriptors.kvs(
-                            TypeDescriptors.strings(),
-                            TypeDescriptor.of(Trade::class.java)
+                    "KeyByPair",
+                    MapElements.into<KV<String, Trade>>(
+                            TypeDescriptors.kvs(
+                                TypeDescriptors.strings(),
+                                TypeDescriptor.of(Trade::class.java)
+                            )
                         )
-                    )
-                    .via(SerializableFunction { t: Trade -> KV.of(t.currencyPair, t) })
-            )
-            .setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Trade::class.java)))
+                        .via(SerializableFunction { t: Trade -> KV.of(t.currencyPair, t) })
+                )
+                .setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Trade::class.java)))
 
         return keyed.apply(
-                "StatefulCandle",
-                ParDo.of(StatefulTradeProcessor(candleInterval, candleCombineFn))
-            )
-            .setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
+                    "StatefulCandle",
+                    ParDo.of(StatefulTradeProcessor(candleInterval, candleCombineFn))
+                )
+                .setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
     }
 
     private class StatefulTradeProcessor(
@@ -230,69 +230,56 @@ constructor(
 
             var currentTrades = tradesState.read() ?: ArrayList()
             var intervalEnd = currentIntervalEndState.read()
+            val tradeIntervalEnd = getIntervalEnd(tradeTimestamp)
 
-            // Initialize state if first element for this key
+            // Initialize state if first element for this key or for a new interval implicitly
             if (intervalEnd == null) {
-                intervalEnd = getIntervalEnd(tradeTimestamp)
+                intervalEnd = tradeIntervalEnd
                 logger.atInfo().log("Initializing state for key $key. First interval end: $intervalEnd")
                 currentIntervalEndState.write(intervalEnd)
-                // **FIX:** Set the first timer for the *end* of the current interval
                 intervalEndTimer.set(intervalEnd)
-                logger.atInfo().log(
-                    "Set initial interval end timer for key $key to $intervalEnd"
-                )
+                logger.atInfo().log("Set initial interval end timer for key $key to $intervalEnd")
             }
 
-            // If the trade belongs to a future interval, finalize the current one(s) by emitting
-            // candles
-            while (intervalEnd != null && (tradeTimestamp.isEqual(intervalEnd) ||
-                    tradeTimestamp.isAfter(intervalEnd))
-                ) {
+            // If the trade belongs to a future interval, finalize the current one(s)
+            while (intervalEnd != null && tradeIntervalEnd.isAfter(intervalEnd)) {
                 logger.atInfo().log(
-                    "Trade at $tradeTimestamp is at or after current interval end $intervalEnd" +
-                        " for key $key. Emitting previous candle."
+                    "Trade at $tradeTimestamp (interval end $tradeIntervalEnd) is after current interval end $intervalEnd" +
+                        " for key $key. Finalizing previous interval(s)."
                 )
                 // Emit candle for the completed interval
-                val candleToEmit = buildOrFillCandle(currentTrades, lastCandleState) // Pass state
+                val candleToEmit = buildOrFillCandle(currentTrades, lastCandleState)
 
                 if (candleToEmit != null) {
-                    outputCandleFromProcessContext(
-                        context,
-                        key,
-                        candleToEmit,
-                        intervalEnd,
-                        lastCandleState
-                    )
+                    outputCandleFromProcessContext(context, key, candleToEmit, intervalEnd, lastCandleState)
                 } else {
                     logger.atWarning().log(
-                        "No candle to emit for key $key at interval end $intervalEnd (no prior" +
-                            " trades/state)."
+                        "No candle to emit for key $key at interval end $intervalEnd (no prior trades/state)."
                     )
                 }
 
                 // Clear trades for the completed interval
                 currentTrades.clear()
-                // Do NOT write the empty list back immediately, wait until the next trade or timer
-
                 // Move state to the next interval
                 val nextIntervalEnd = intervalEnd.plus(candleInterval)
                 currentIntervalEndState.write(nextIntervalEnd)
                 intervalEnd = nextIntervalEnd // Update local variable for loop condition
-
-                // **FIX:** Reset the timer for the *end* of the *new* interval
-                intervalEndTimer.set(intervalEnd)
+                intervalEndTimer.set(intervalEnd) // Reset timer for the new interval end
                 logger.atInfo().log(
-                    "Advanced to next interval for key $key. New end: $intervalEnd. Reset timer" +
-                        " to $intervalEnd"
+                    "Advanced to next interval for key $key. New end: $intervalEnd. Set timer to $intervalEnd"
                 )
             }
 
-            // Add the current trade to the list for the current interval
-            currentTrades.add(trade)
-            tradesState.write(currentTrades) // Write state after adding the trade
-            logger.atFine().log(
-                "Added trade to buffer for key $key. Buffer size: ${currentTrades.size}"
-            )
+            // Add the current trade to the list IF it belongs to the CURRENT interval
+            if (intervalEnd != null && tradeIntervalEnd.isEqual(intervalEnd)) {
+                currentTrades.add(trade)
+                tradesState.write(currentTrades) // Write state after adding the trade
+                logger.atFine().log("Added trade to buffer for key $key. Buffer size: ${currentTrades.size}")
+            } else if (intervalEnd != null) {
+                 logger.atWarning().log("Trade $tradeTimestamp arrived for key $key, but current interval end is $intervalEnd. This might indicate late data or state issue.")
+                 // Optionally handle late data - could ignore, or process immediately if watermark allows
+                 // For simplicity, we might ignore it if the intervalEnd state has already advanced
+            }
         }
 
         @OnTimer(INTERVAL_END_TIMER)
@@ -313,16 +300,20 @@ constructor(
                      "Ignoring timer fired at %s. Expected interval end: %s. State might be missing or timer is late/early.",
                      timerFireTimestamp, intervalEnd
                  )
+                 // Do NOT set the next timer here if ignoring the current one.
                  return
             }
 
-            // We need to determine the currency pair from the last candle or trades
-             val key = lastCandle?.currencyPair ?: tradesState.read()?.firstOrNull()?.currencyPair
+            // Determine key - crucial for outputting KV
+            val trades = tradesState.read() ?: ArrayList()
+            // Derive key from trades first, fallback to last candle
+            val key = trades.firstOrNull()?.currencyPair ?: lastCandle?.currencyPair
              if (key == null) {
                  logger.atWarning().log("Timer fired at %s but cannot determine key (no last candle or trades in state). Skipping.", timerFireTimestamp)
+                 tradesState.clear() // Clear potentially stale state
+                 currentIntervalEndState.clear() // Clear potentially stale state
                  return
              }
-
 
             logger.atInfo().log(
                 "Timer fired for key %s at interval end %s. Last Output Candle: %s",
@@ -330,37 +321,37 @@ constructor(
             )
 
             // Timer fired at the correct interval end. Emit candle for this interval.
-            val trades = tradesState.read() ?: ArrayList()
             val candleToEmit = buildOrFillCandle(trades, lastCandleState) // Attempt fill-forward
 
             if (candleToEmit != null) {
-                // Output the candle for the interval that just ended
-                outputCandleFromTimerContext(
+                 // Output the candle for the interval that just ended
+                 outputCandleFromTimerContext(
                     context,
                     candleToEmit,
                     intervalEnd, // Use the interval end this timer represents
                     lastCandleState
-                )
+                 )
             } else {
-                logger.atWarning().log(
+                 logger.atWarning().log(
                     "Timer fired for key %s at interval end %s, but no candle could be generated (no prior trades/state for fill-forward).",
                     key, intervalEnd
-                )
+                 )
             }
 
             // Clear trades for the emitted interval
-            trades.clear()
-            tradesState.write(trades) // Persist cleared trades list
+            tradesState.clear() // Persist cleared trades list
 
-            // Advance state to the next interval
+            // *** FIX: Clear the interval state ***
+            currentIntervalEndState.clear()
+
+            // Now, set timer for the *next* interval to handle potential gaps (fill-forward trigger)
             val nextIntervalEnd = intervalEnd.plus(candleInterval)
-            currentIntervalEndState.write(nextIntervalEnd)
+            currentIntervalEndState.write(nextIntervalEnd) // Store the *next* expected end
+            intervalEndTimer.set(nextIntervalEnd)          // Set timer for that *next* end
 
-            // Set the timer for the *next* interval end
-            intervalEndTimer.set(nextIntervalEnd)
             logger.atInfo().log(
-                "Timer processed for key %s. Advanced interval end to %s. Set next timer for %s",
-                key, nextIntervalEnd, nextIntervalEnd
+                "Timer processed for key %s at %s. State cleared. Next interval end: %s. Set next timer for %s",
+                key, intervalEnd, nextIntervalEnd, nextIntervalEnd
             )
         }
     }
