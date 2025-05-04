@@ -57,11 +57,13 @@ class TiingoCryptoFetcherFnTest {
         Mockito.`when`(mockHttpClient.get(Mockito.anyString(), Mockito.anyMap()))
             .thenReturn(sampleResponseDaily)
 
-        val input: PCollection<KV<String, Void?>> = pipeline
-            .apply(Create.of(KV.of(currencyPair, null)))
+        // Create input PCollection<KV<String, Void>> with explicit type
+        val input: PCollection<KV<String, Void>> = pipeline
+            .apply(Create.of<KV<String, Void>>(KV.of(currencyPair, null)))
 
+        // Apply the DoFn with explicit type parameters
         val output: PCollection<KV<String, Candle>> = input
-            .apply(ParDo.of(fetcherFnDaily))
+            .apply(ParDo.<KV<String, Void>, KV<String, Candle>>of(fetcherFnDaily))
 
         PAssert.that(output).satisfies { candles ->
             val results = candles.toList()
@@ -82,11 +84,11 @@ class TiingoCryptoFetcherFnTest {
         Mockito.`when`(mockHttpClient.get(Mockito.anyString(), Mockito.anyMap()))
             .thenThrow(IOException("network error"))
 
-        val input: PCollection<KV<String, Void?>> = pipeline
-            .apply(Create.of(KV.of(currencyPair, null)))
+        val input: PCollection<KV<String, Void>> = pipeline
+            .apply(Create.of<KV<String, Void>>(KV.of(currencyPair, null)))
 
         val output: PCollection<KV<String, Candle>> = input
-            .apply(ParDo.of(fetcherFnDaily))
+            .apply(ParDo.<KV<String, Void>, KV<String, Candle>>of(fetcherFnDaily))
 
         PAssert.that(output).empty()
 
@@ -98,11 +100,11 @@ class TiingoCryptoFetcherFnTest {
         val invalidFn = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), "")
         val currencyPair = "BTC/USD"
 
-        val input: PCollection<KV<String, Void?>> = pipeline
-            .apply(Create.of(KV.of(currencyPair, null)))
+        val input: PCollection<KV<String, Void>> = pipeline
+            .apply(Create.of<KV<String, Void>>(KV.of(currencyPair, null)))
 
         val output: PCollection<KV<String, Candle>> = input
-            .apply(ParDo.of(invalidFn))
+            .apply(ParDo.<KV<String, Void>, KV<String, Candle>>of(invalidFn))
 
         PAssert.that(output).empty()
 
