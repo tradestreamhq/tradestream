@@ -7,6 +7,7 @@ import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
 import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.values.KV
+import org.apache.beam.sdk.values.PCollection
 import org.joda.time.Duration
 import org.junit.Before
 import org.junit.Rule
@@ -56,8 +57,8 @@ class TiingoCryptoFetcherFnTest {
         Mockito.`when`(mockHttpClient.get(Mockito.anyString(), Mockito.anyMap()))
             .thenReturn(sampleResponseDaily)
 
-        val output = pipeline
-            .apply(Create.of(KV.of(currencyPair, null)))
+        val output: PCollection<KV<String, Candle>> = pipeline
+            .apply(Create.of(KV.of(currencyPair, null as Void?)))
             .apply(ParDo.of(fetcherFnDaily))
 
         PAssert.that(output).satisfies { candles ->
@@ -79,8 +80,8 @@ class TiingoCryptoFetcherFnTest {
         Mockito.`when`(mockHttpClient.get(Mockito.anyString(), Mockito.anyMap()))
             .thenThrow(IOException("network error"))
 
-        val output = pipeline
-            .apply(Create.of(KV.of(currencyPair, null)))
+        val output: PCollection<KV<String, Candle>> = pipeline
+            .apply(Create.of(KV.of(currencyPair, null as Void?)))
             .apply(ParDo.of(fetcherFnDaily))
 
         PAssert.that(output).empty()
@@ -93,8 +94,8 @@ class TiingoCryptoFetcherFnTest {
         val invalidFn = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), "")
         val currencyPair = "BTC/USD"
 
-        val output = pipeline
-            .apply(Create.of(KV.of(currencyPair, null)))
+        val output: PCollection<KV<String, Candle>> = pipeline
+            .apply(Create.of(KV.of(currencyPair, null as Void?)))
             .apply(ParDo.of(invalidFn))
 
         PAssert.that(output).empty()
