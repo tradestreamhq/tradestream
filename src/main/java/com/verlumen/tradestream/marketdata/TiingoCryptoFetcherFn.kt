@@ -25,7 +25,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
     private val apiKey: String
 ) : DoFn<KV<String, Void>, KV<String, Candle>>(), Serializable { // Ensure DoFn implements Serializable
 
-    @Transient private lateinit var httpClient: HttpClient // Mark field as transient
+    @Transient private var httpClient: HttpClient? = null // Make nullable instead of lateinit
 
     @Setup
     fun setup() {
@@ -56,6 +56,11 @@ class TiingoCryptoFetcherFn @Inject constructor(
 
     @ProcessElement
     fun processElement(context: ProcessContext) {
+        // Initialize on-demand if not already initialized
+        if (httpClient == null) {
+            httpClient = httpClientProvider.get()
+        }
+        
         val currencyPair = context.element().key
         val ticker = currencyPair.replace("/", "").lowercase()
         val resampleFreq = durationToResampleFreq(granularity)
@@ -75,7 +80,10 @@ class TiingoCryptoFetcherFn @Inject constructor(
         logger.atFine().log("Requesting URL: %s", url)
 
         try {
-            val response = httpClient.get(url, emptyMap())
+            // Use null-safe operator and handle potential null case
+            val response = httpClient?.get(url, emptyMap())
+                ?: throw IllegalStateException("HttpClient not initialized")
+                
             val fetchedCandles = TiingoResponseParser.parseCandles(response, currencyPair)
 
             if (fetchedCandles.isNotEmpty()) {
