@@ -12,6 +12,7 @@ import com.verlumen.tradestream.instruments.InstrumentsModule;
 import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.marketdata.FillForwardCandles;
 import com.verlumen.tradestream.marketdata.MarketDataModule;
+import com.verlumen.tradestream.marketdata.TiingoCryptoCandleTransform;
 import com.verlumen.tradestream.marketdata.TradeToCandle;
 import com.verlumen.tradestream.signals.SignalsModule;
 import com.verlumen.tradestream.strategies.StrategiesModule;
@@ -28,7 +29,8 @@ abstract class PipelineModule extends AbstractModule {
     int maxForwardIntervals,
     RunMode runMode,
     String signalTopic,
-    int topCurrencyCount) {
+    int topCurrencyCount,
+    String tiingoApiKey) {
     return new AutoValue_PipelineModule(
       bootstrapServers,
       Duration.standardMinutes(candleDurationMinutes),
@@ -37,7 +39,8 @@ abstract class PipelineModule extends AbstractModule {
       maxForwardIntervals,
       runMode,
       signalTopic,
-      topCurrencyCount);
+      topCurrencyCount,
+      tiingoApiKey);
   }
 
   abstract String bootstrapServers();
@@ -48,6 +51,7 @@ abstract class PipelineModule extends AbstractModule {
   abstract RunMode runMode();
   abstract String signalTopic();
   abstract int topCurrencyCount();
+  abstract String tiingoApiKey();
 
   @Override
   protected void configure() {
@@ -65,7 +69,7 @@ abstract class PipelineModule extends AbstractModule {
   FillForwardCandles provideFillForwardCandles(FillForwardCandles.Factory factory) {
     return factory.create(candleDuration(), maxForwardIntervals());
   }
-  
+
   @Provides
   TimingConfig provideTimingConfig() {
     return TimingConfig.create();
@@ -74,5 +78,12 @@ abstract class PipelineModule extends AbstractModule {
   @Provides
   TradeToCandle provideTradeToCandle(TradeToCandle.Factory factory) {
       return factory.create(candleDuration());
+  }
+
+  @Provides
+  TiingoCryptoCandleTransform provideTiingo1MinCandleTransform(
+     TiingoCryptoCandleTransform.Factory factory
+  ) {
+     return factory.create(candleDuration(), tiingoApiKey());
   }
 }
