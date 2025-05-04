@@ -29,6 +29,7 @@ import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.transforms.SerializableFunction
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
+import org.apache.beam.sdk.values.TypeDescriptor
 import org.apache.beam.sdk.values.TypeDescriptors
 import org.joda.time.Duration
 import org.joda.time.Instant
@@ -51,24 +52,23 @@ constructor(
 
     override fun expand(input: PCollection<Trade>): PCollection<KV<String, Candle>> {
         val keyed: PCollection<KV<String, Trade>> =
-            input // Explicit type for clarity
-                .apply(
-                    "KeyByPair",
-                    MapElements.into(
-                            TypeDescriptors.kvs(
-                                TypeDescriptors.strings(),
-                                TypeDescriptors.of(Trade::class.java)
-                            )
-                        ) // Corrected TypeDescriptors
-                        .via(SerializableFunction { t: Trade -> KV.of(t.currencyPair, t) })
-                )
-        // Removed incorrect setCoder call
+            input.apply<PCollection<KV<String, Trade>>>(
+                "KeyByPair",
+                MapElements.into<KV<String, Trade>>(
+                        TypeDescriptors.kvs(
+                            TypeDescriptors.strings(),
+                            TypeDescriptor.of(Trade::class.java)
+                        )
+                    )
+                    .via(SerializableFunction { t: Trade -> KV.of(t.currencyPair, t) })
+            )
+            .setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Trade::class.java)))
 
         return keyed.apply(
                 "StatefulCandle",
                 ParDo.of(StatefulTradeProcessor(candleInterval, candleCombineFn))
             )
-        // Removed incorrect setCoder call
+            .setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
     }
 
     private class StatefulTradeProcessor(
@@ -187,13 +187,13 @@ constructor(
         ) {
             if (candle == Candle.getDefaultInstance()) {
                 logger.atFine().log(
-                    "Attempted to output default instance from timer for key ${context.key()} at" +
+                    "Attempted to output default instance from timer for key ${context.element().key} at" +
                         " $intervalEnd, skipping."
                 )
                 return
             }
 
-            val key = context.key() // Correct way to get key in OnTimerContext
+            val key = context.element().key // Get key from the KV element
             // Set the candle timestamp to the interval end time
             val finalCandle =
                 candle.toBuilder().setTimestamp(Timestamps.fromMillis(intervalEnd.millis)).build()
@@ -240,10 +240,8 @@ constructor(
 
             // If the trade belongs to a future interval, finalize the current one(s) by emitting
             // candles
-            while (tradeTimestamp.isEqual(intervalEnd!!) ||
-                    tradeTimestamp.isAfter(
-                        intervalEnd!!
-                    ) // Use non-null assertion - OK if logic guarantees non-null
+            while (tradeTimestamp.isEqual(intervalEnd) ||
+                    tradeTimestamp.isAfter(intervalEnd)
                 ) {
                 logger.atInfo().log(
                     "Trade at $tradeTimestamp is at or after current interval end $intervalEnd" +
@@ -257,9 +255,9 @@ constructor(
                         context,
                         key,
                         candleToEmit,
-                        intervalEnd!!,
+                        intervalEnd,
                         lastCandleState
-                    ) // Use non-null assertion
+                    )
                 } else {
                     logger.atWarning().log(
                         "No candle to emit for key $key at interval end $intervalEnd (no prior" +
@@ -272,8 +270,7 @@ constructor(
                 // Do NOT write the empty list back immediately, wait until the next trade or timer
 
                 // Move state to the next interval
-                val nextIntervalEnd =
-                    intervalEnd!!.plus(candleInterval) // Use non-null assertion
+                val nextIntervalEnd = intervalEnd.plus(candleInterval)
                 currentIntervalEndState.write(nextIntervalEnd)
                 intervalEnd = nextIntervalEnd // Update local variable for loop condition
 
@@ -295,15 +292,14 @@ constructor(
 
         @OnTimer("gapTimer")
         fun onTimer(
-            // Use fully qualified type for OnTimerContext
-            context: DoFn<KV<String, Trade>, KV<String, Candle>>.OnTimerContext,
+            context: OnTimerContext,
             @StateId("trades") tradesState: ValueState<ArrayList<Trade>>,
             @StateId("currentIntervalEnd") currentIntervalEndState: ValueState<Instant>,
             @StateId("lastCandle") lastCandleState: ValueState<Candle>,
             @TimerId("gapTimer") gapTimer: Timer
         ) {
             val timerFireTimestamp = context.timestamp()
-            val key = context.key() // Get key from timer context
+            val key = context.element().key // Get key from the KV element
             val intervalEnd = currentIntervalEndState.read()
 
             logger.atInfo().log(
@@ -332,7 +328,7 @@ constructor(
                     candleToEmit,
                     intervalEnd,
                     lastCandleState
-                ) // Pass non-null intervalEnd
+                )
             } else {
                 logger.atWarning().log(
                     "Timer fired for key $key at interval end $intervalEnd, but no candle to" +
@@ -345,7 +341,7 @@ constructor(
             tradesState.write(trades) // Persist cleared trades list
 
             // Advance state to the next interval
-            val nextIntervalEnd = intervalEnd.plus(candleInterval) // intervalEnd is non-null here
+            val nextIntervalEnd = intervalEnd.plus(candleInterval)
             currentIntervalEndState.write(nextIntervalEnd)
 
             // Set the timer for the *next* gap
