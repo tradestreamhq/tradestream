@@ -2,6 +2,7 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.truth.Truth.assertThat
 import com.verlumen.tradestream.http.HttpClient
+import com.google.inject.Provider
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
@@ -47,7 +48,7 @@ class TiingoCryptoFetcherFnTest {
 
     @Before
     fun setUp() {
-        fetcherFnDaily = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), testApiKey)
+        fetcherFnDaily = TiingoCryptoFetcherFn(Provider { mockHttpClient }, Duration.standardDays(1), testApiKey)
     }
 
     @Test
@@ -95,7 +96,7 @@ class TiingoCryptoFetcherFnTest {
 
     @Test
     fun invalidApiKeySkipsFetch() {
-        val invalidFn = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), "")
+        val invalidFn = TiingoCryptoFetcherFn(Provider { mockHttpClient }, Duration.standardDays(1), "")
         val currencyPair = "BTC/USD"
 
         val input: PCollection<KV<String, Void>> = pipeline
