@@ -34,6 +34,10 @@ import org.apache.beam.sdk.values.TypeDescriptors
 import org.joda.time.Duration
 import org.joda.time.Instant
 
+/**
+ * PTransform that aggregates Trades into Candles using a stateful DoFn with event time timers.
+ * Handles gaps by potentially outputting fill-forward candles.
+ */
 class TradeToCandle
 @Inject
 constructor(
@@ -43,7 +47,7 @@ constructor(
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
-        private const val serialVersionUID = 4L // Increment version due to logic change
+        private const val serialVersionUID = 5L // Increment version due to logic change
     }
 
     interface Factory {
@@ -78,7 +82,8 @@ constructor(
 
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
-            private const val serialVersionUID = 4L // Increment version due to logic change
+            private const val serialVersionUID = 5L // Increment version due to logic change
+            private const val GAP_TIMER = "gapTimer"
 
             // Helper function for logging candle details
             private fun candleToString(candle: Candle?): String {
@@ -102,7 +107,7 @@ constructor(
         private val lastCandleStateSpec: StateSpec<ValueState<Candle>> =
             StateSpecs.value(ProtoCoder.of(Candle::class.java))
 
-        @TimerId("gapTimer")
+        @TimerId(GAP_TIMER)
         private val gapTimerSpec: TimerSpec = TimerSpecs.timer(TimeDomain.EVENT_TIME)
 
         // Helper to get interval boundary
@@ -112,7 +117,7 @@ constructor(
             // Calculate the end of the interval containing the timestamp
             return Instant(
                 (ms / intervalMillis) * intervalMillis + intervalMillis
-            ) // Corrected boundary calculation
+            )
         }
 
         // Helper to build or fill-forward a candle
@@ -135,14 +140,13 @@ constructor(
                     )
                     // Create a new candle based on the last actual one, but set volume to zero
                     // and keep OHLC the same (as last close)
+                    // Timestamp will be set by the calling function (outputCandle...)
                     lastActualCandle
                         .toBuilder()
                         .setOpen(lastActualCandle.close)
                         .setHigh(lastActualCandle.close)
                         .setLow(lastActualCandle.close)
-                        // Close price remains the same (lastActualCandle.close)
                         .setVolume(0.0) // Explicitly set volume to zero for fill-forward
-                        // Timestamp will be set by the calling function (outputCandle...)
                         .build()
                 } else {
                     logger.atFine().log("Attempted fill-forward, but no valid last candle found.")
@@ -174,7 +178,8 @@ constructor(
                 "Outputting candle (process) for key $key at interval end $intervalEnd:" +
                     " ${candleToString(finalCandle)}"
             )
-            context.outputWithTimestamp(KV.of(key, finalCandle), intervalEnd)
+            // **FIX:** Output with the context's timestamp (triggering element's timestamp)
+            context.outputWithTimestamp(KV.of(key, finalCandle), context.timestamp())
             lastCandleState.write(finalCandle) // Update last *outputted* candle state
         }
 
@@ -194,7 +199,7 @@ constructor(
 
             // Get currency pair directly from the candle
             val currencyPair = candle.currencyPair
-            
+
             // Set the candle timestamp to the interval end time
             val finalCandle =
                 candle.toBuilder().setTimestamp(Timestamps.fromMillis(intervalEnd.millis)).build()
@@ -203,7 +208,8 @@ constructor(
                 "Outputting candle (timer) for currency pair $currencyPair at interval end $intervalEnd:" +
                     " ${candleToString(finalCandle)}"
             )
-            context.outputWithTimestamp(KV.of(currencyPair, finalCandle), intervalEnd)
+            // **FIX:** Output with the context's timestamp (timer's fire timestamp)
+            context.outputWithTimestamp(KV.of(currencyPair, finalCandle), context.timestamp())
             lastCandleState.write(finalCandle) // Update last *outputted* candle state
         }
 
@@ -213,12 +219,12 @@ constructor(
             @StateId("trades") tradesState: ValueState<ArrayList<Trade>>,
             @StateId("currentIntervalEnd") currentIntervalEndState: ValueState<Instant>,
             @StateId("lastCandle") lastCandleState: ValueState<Candle>, // Add lastCandleState here
-            @TimerId("gapTimer") gapTimer: Timer
+            @TimerId(GAP_TIMER) gapTimer: Timer
         ) {
             val kv = context.element()
             val key = kv.key
             val trade = kv.value
-            val tradeTimestamp = Instant(context.timestamp().millis) // Use element timestamp
+            val tradeTimestamp = context.timestamp() // Use element timestamp
             logger.atFine().log("Processing trade for key $key at $tradeTimestamp")
 
             var currentTrades = tradesState.read() ?: ArrayList()
@@ -230,10 +236,8 @@ constructor(
                 logger.atInfo().log("Initializing state for key $key. First interval end: $intervalEnd")
                 currentIntervalEndState.write(intervalEnd)
                 // Set the first gap timer relative to the *end* of the interval containing the
-                // first trade
-                gapTimer.set(
-                    intervalEnd.plus(candleInterval)
-                ) // Set timer relative to interval end + candle duration
+                // first trade + candle duration
+                gapTimer.set(intervalEnd.plus(candleInterval))
                 logger.atInfo().log(
                     "Set initial gap timer for key $key to ${intervalEnd.plus(candleInterval)}"
                 )
@@ -275,7 +279,7 @@ constructor(
                 currentIntervalEndState.write(nextIntervalEnd)
                 intervalEnd = nextIntervalEnd // Update local variable for loop condition
 
-                // Reset the timer for the *new* interval end + grace period
+                // Reset the timer for the *new* interval end + candle duration
                 gapTimer.set(intervalEnd.plus(candleInterval))
                 logger.atInfo().log(
                     "Advanced to next interval for key $key. New end: $intervalEnd. Reset timer" +
@@ -291,46 +295,52 @@ constructor(
             )
         }
 
-        @OnTimer("gapTimer")
+        @OnTimer(GAP_TIMER)
         fun onTimer(
-            context: OnTimerContext,
+            context: OnTimerContext, // Correct type for @OnTimer
             @StateId("trades") tradesState: ValueState<ArrayList<Trade>>,
             @StateId("currentIntervalEnd") currentIntervalEndState: ValueState<Instant>,
             @StateId("lastCandle") lastCandleState: ValueState<Candle>,
-            @TimerId("gapTimer") gapTimer: Timer
+            @TimerId(GAP_TIMER) gapTimer: Timer
         ) {
             val timerFireTimestamp = context.timestamp()
-            // We need to determine the currency pair from the last candle
-            val lastCandle = lastCandleState.read()
-            if (lastCandle == null || lastCandle == Candle.getDefaultInstance()) {
-                logger.atInfo().log("Timer fired but no last candle available, skipping")
-                return
-            }
-            
-            val currencyPair = lastCandle.currencyPair
             val intervalEnd = currentIntervalEndState.read()
+            val lastCandle = lastCandleState.read()
+
+            // If state is missing (e.g., expired), we cannot proceed.
+            if (intervalEnd == null || lastCandle == null || lastCandle == Candle.getDefaultInstance()) {
+                 logger.atWarning().log(
+                     "Timer fired at %s but state is missing or invalid. Skipping. IntervalEnd: %s, LastCandle: %s",
+                     timerFireTimestamp, intervalEnd, candleToString(lastCandle)
+                 )
+                 return
+            }
+
+            // The key is implicitly associated with the state and timer. Get it from the last candle.
+            val key = lastCandle.currencyPair
 
             logger.atInfo().log(
-                "Timer fired for currency pair $currencyPair at $timerFireTimestamp. Expected interval end +" +
-                    " duration: ${intervalEnd?.plus(candleInterval)}"
+                "Timer fired for key %s at %s. Current Interval End: %s, Last Output Candle: %s",
+                key, timerFireTimestamp, intervalEnd, candleToString(lastCandle)
             )
 
-            // If state is missing or timer is for an old interval, ignore
-            if (intervalEnd == null || !timerFireTimestamp.isEqual(intervalEnd.plus(candleInterval))) {
+            // Check if the timer is for the expected interval (timer should fire at intervalEnd + duration)
+            val expectedTimerFireTime = intervalEnd.plus(candleInterval)
+            if (!timerFireTimestamp.isEqual(expectedTimerFireTime)) {
                 logger.atWarning().log(
-                    "Ignoring timer for currency pair $currencyPair at $timerFireTimestamp. Current IntervalEnd:" +
-                        " $intervalEnd. Timer might be late, state missing, or for an already" +
-                        " processed interval."
+                    "Ignoring unexpected timer for key %s. Fired at: %s, Expected: %s (IntervalEnd: %s)",
+                    key, timerFireTimestamp, expectedTimerFireTime, intervalEnd
                 )
                 return
             }
 
-            // Emit candle for the interval that just ended (which might be empty -> fill-forward)
+            // Timer fired at the right time, means the interval 'intervalEnd' just completed without new trades.
+            // Emit a candle for this completed interval.
             val trades = tradesState.read() ?: ArrayList()
-            val candleToEmit = buildOrFillCandle(trades, lastCandleState)
+            val candleToEmit = buildOrFillCandle(trades, lastCandleState) // Attempt fill-forward
 
             if (candleToEmit != null) {
-                // Output with the timestamp of the interval end the timer corresponds to
+                // Output the filled candle for the interval that just ended
                 outputCandleFromTimerContext(
                     context,
                     candleToEmit,
@@ -339,8 +349,8 @@ constructor(
                 )
             } else {
                 logger.atWarning().log(
-                    "Timer fired for currency pair $currencyPair at interval end $intervalEnd, but no candle to" +
-                        " emit (no prior trades/state for fill-forward)."
+                    "Timer fired for key %s at interval end %s, but no candle could be generated (no prior trades/state for fill-forward).",
+                    key, intervalEnd
                 )
             }
 
@@ -355,8 +365,8 @@ constructor(
             // Set the timer for the *next* gap
             gapTimer.set(nextIntervalEnd.plus(candleInterval))
             logger.atInfo().log(
-                "Timer processed for currency pair $currencyPair. Advanced interval end to $nextIntervalEnd. Set" +
-                    " next timer for ${nextIntervalEnd.plus(candleInterval)}"
+                "Timer processed for key %s. Advanced interval end to %s. Set next timer for %s",
+                key, nextIntervalEnd, nextIntervalEnd.plus(candleInterval)
             )
         }
     }
