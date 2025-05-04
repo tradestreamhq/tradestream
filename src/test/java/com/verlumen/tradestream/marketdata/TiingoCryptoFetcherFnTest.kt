@@ -1,17 +1,15 @@
 package com.verlumen.tradestream.marketdata
 
-import com.google.common.truth.Truth.assertThat
-import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.http.HttpClient
-import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
-import org.apache.beam.sdk.transforms.Create
 import org.apache.beam.sdk.transforms.DoFnTester
 import org.apache.beam.sdk.values.KV
 import org.joda.time.Duration
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatcher
@@ -20,6 +18,7 @@ import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 import java.io.IOException
+import java.util.Arrays
 import java.util.Collections
 
 @RunWith(JUnit4::class)
@@ -75,20 +74,21 @@ class TiingoCryptoFetcherFnTest {
         Mockito.`when`(mockHttpClient.get(urlMatcher, Collections.emptyMap())).thenReturn(sampleResponseDaily)
 
         val tester = DoFnTester.of(fetcherFnDaily)
-        // Fix processBundle call by using an Iterable
-        val outputKVs = tester.processBundle(listOf(input))
+        // Use an array for processBundle
+        val outputKVs = tester.processBundle(Arrays.asList(input))
 
-        // Use Truth assertions with proper syntax
-        assertThat(outputKVs).hasSize(2)
-        val firstKey = outputKVs[0].getKey()
-        val firstValue = outputKVs[0].getValue()
-        assertThat(firstKey).isEqualTo(currencyPair)
-        assertThat(firstValue.close).isEqualTo(34650.0)
+        // Use JUnit assertions instead of Truth
+        assertEquals("Expected 2 output elements", 2, outputKVs.size)
         
-        val secondKey = outputKVs[1].getKey()
-        val secondValue = outputKVs[1].getValue()
-        assertThat(secondKey).isEqualTo(currencyPair)
-        assertThat(secondValue.close).isEqualTo(34950.0)
+        // For first result
+        val firstResult = outputKVs[0]
+        assertEquals("Expected currency pair to match", currencyPair, firstResult.getKey())
+        assertEquals("Expected close price to match", 34650.0, firstResult.getValue().close, 0.001)
+        
+        // For second result
+        val secondResult = outputKVs[1]
+        assertEquals("Expected currency pair to match", currencyPair, secondResult.getKey())
+        assertEquals("Expected close price to match", 34950.0, secondResult.getValue().close, 0.001)
     }
 
     @Test
@@ -97,7 +97,6 @@ class TiingoCryptoFetcherFnTest {
         val input = KV.of(currencyPair, null as Void?)
 
         val expectedStartDate = "2019-01-02"
-         // Use standard Mockito when() instead of whenever()
         val urlMatcher = argThat(UrlMatcher(
              "startDate=$expectedStartDate",
              "resampleFreq=5min",
@@ -106,45 +105,42 @@ class TiingoCryptoFetcherFnTest {
         ))
         Mockito.`when`(mockHttpClient.get(urlMatcher, Collections.emptyMap())).thenReturn(sampleResponseMinute)
 
-        val tester = DoFnTester.of(fetcherFnMinute) // Use 5-min fetcher
-        val outputKVs = tester.processBundle(listOf(input))
+        val tester = DoFnTester.of(fetcherFnMinute)
+        val outputKVs = tester.processBundle(Arrays.asList(input))
 
-        // Use Truth assertions
-        assertThat(outputKVs).hasSize(1)
-        val outputKey = outputKVs[0].getKey()
-        val outputValue = outputKVs[0].getValue()
-        assertThat(outputKey).isEqualTo(currencyPair)
-        assertThat(outputValue.close).isEqualTo(34965.0)
+        // Use JUnit assertions
+        assertEquals("Expected 1 output element", 1, outputKVs.size)
+        val result = outputKVs[0]
+        assertEquals("Expected currency pair to match", currencyPair, result.getKey())
+        assertEquals("Expected close price to match", 34965.0, result.getValue().close, 0.001)
     }
-
 
     @Test
     fun `processElement handles empty api response`() {
         val currencyPair = "BTC/USD"
         val input = KV.of(currencyPair, null as Void?)
-        val urlMatcher = argThat(UrlMatcher("token=$testApiKey")) // Ensure key is still passed
+        val urlMatcher = argThat(UrlMatcher("token=$testApiKey"))
         Mockito.`when`(mockHttpClient.get(urlMatcher, Collections.emptyMap())).thenReturn(emptyResponse)
 
         val tester = DoFnTester.of(fetcherFnDaily)
-        val outputKVs = tester.processBundle(listOf(input))
+        val outputKVs = tester.processBundle(Arrays.asList(input))
 
-        assertThat(outputKVs).isEmpty()
+        assertTrue("Expected empty result list", outputKVs.isEmpty())
     }
 
-     @Test
+    @Test
     fun `processElement skips fetch if api key is invalid`() {
         val currencyPair = "BTC/USD"
         val input = KV.of(currencyPair, null as Void?)
-        val fetcherFnInvalidKey = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), "") // Empty Key
+        val fetcherFnInvalidKey = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), "")
 
         val tester = DoFnTester.of(fetcherFnInvalidKey)
-        val outputKVs = tester.processBundle(listOf(input))
+        val outputKVs = tester.processBundle(Arrays.asList(input))
 
-        assertThat(outputKVs).isEmpty()
-        // Fix verify with correct Mockito syntax
+        assertTrue("Expected empty result list", outputKVs.isEmpty())
         Mockito.verify(mockHttpClient, Mockito.never()).get(
             Mockito.anyString(),
-            Mockito.anyMap<String, String>()
+            Mockito.<Map<String, String>>anyMap()
         )
     }
 
@@ -156,9 +152,9 @@ class TiingoCryptoFetcherFnTest {
         Mockito.`when`(mockHttpClient.get(urlMatcher, Collections.emptyMap())).thenThrow(IOException("Network Error"))
 
         val tester = DoFnTester.of(fetcherFnDaily)
-        val outputKVs = tester.processBundle(listOf(input))
+        val outputKVs = tester.processBundle(Arrays.asList(input))
 
-        assertThat(outputKVs).isEmpty()
+        assertTrue("Expected empty result list", outputKVs.isEmpty())
     }
 
     // --- Standard Mockito ArgumentMatcher Implementation ---
@@ -170,7 +166,7 @@ class TiingoCryptoFetcherFnTest {
     }
 
     // Helper function to use the standard Mockito matcher
-    private fun argThat(matcher: ArgumentMatcher<String>): String {
-        return Mockito.argThat<String> { arg -> matcher.matches(arg) } ?: ""
+    private fun <T> argThat(matcher: ArgumentMatcher<T>): T {
+        return Mockito.argThat<T> { arg -> matcher.matches(arg as Any) }
     }
 }
