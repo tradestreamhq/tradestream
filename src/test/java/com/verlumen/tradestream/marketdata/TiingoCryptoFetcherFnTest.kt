@@ -20,6 +20,7 @@ import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 import java.io.IOException
+import java.util.Collections
 
 @RunWith(JUnit4::class)
 class TiingoCryptoFetcherFnTest {
@@ -71,20 +72,23 @@ class TiingoCryptoFetcherFnTest {
             "tickers=btcusd",
             "token=$testApiKey"
         ))
-        Mockito.`when`(mockHttpClient.get(urlMatcher, emptyMap())).thenReturn(sampleResponseDaily)
+        Mockito.`when`(mockHttpClient.get(urlMatcher, Collections.emptyMap())).thenReturn(sampleResponseDaily)
 
         val tester = DoFnTester.of(fetcherFnDaily)
-        // Fix processBundle call by using vararg
-        val outputKVs = tester.processBundle(input)
+        // Fix processBundle call by using an Iterable
+        val outputKVs = tester.processBundle(listOf(input))
 
-        // Fix assertion chain with correct methods
-        assertThat(outputKVs.size).isEqualTo(2)
-        val firstResult = outputKVs[0]
-        assertThat(firstResult.key).isEqualTo(currencyPair)
-        assertThat(firstResult.value.close).isEqualTo(34650.0)
-        val secondResult = outputKVs[1]
-        assertThat(secondResult.key).isEqualTo(currencyPair)
-        assertThat(secondResult.value.close).isEqualTo(34950.0)
+        // Use Truth assertions with proper syntax
+        assertThat(outputKVs).hasSize(2)
+        val firstKey = outputKVs[0].getKey()
+        val firstValue = outputKVs[0].getValue()
+        assertThat(firstKey).isEqualTo(currencyPair)
+        assertThat(firstValue.close).isEqualTo(34650.0)
+        
+        val secondKey = outputKVs[1].getKey()
+        val secondValue = outputKVs[1].getValue()
+        assertThat(secondKey).isEqualTo(currencyPair)
+        assertThat(secondValue.close).isEqualTo(34950.0)
     }
 
     @Test
@@ -100,16 +104,17 @@ class TiingoCryptoFetcherFnTest {
              "tickers=btcusd",
              "token=$testApiKey"
         ))
-        Mockito.`when`(mockHttpClient.get(urlMatcher, emptyMap())).thenReturn(sampleResponseMinute)
+        Mockito.`when`(mockHttpClient.get(urlMatcher, Collections.emptyMap())).thenReturn(sampleResponseMinute)
 
         val tester = DoFnTester.of(fetcherFnMinute) // Use 5-min fetcher
-        val outputKVs = tester.processBundle(input)
+        val outputKVs = tester.processBundle(listOf(input))
 
-        // Fix assertion chain with correct methods
-        assertThat(outputKVs.size).isEqualTo(1)
-        val result = outputKVs[0]
-        assertThat(result.key).isEqualTo(currencyPair)
-        assertThat(result.value.close).isEqualTo(34965.0)
+        // Use Truth assertions
+        assertThat(outputKVs).hasSize(1)
+        val outputKey = outputKVs[0].getKey()
+        val outputValue = outputKVs[0].getValue()
+        assertThat(outputKey).isEqualTo(currencyPair)
+        assertThat(outputValue.close).isEqualTo(34965.0)
     }
 
 
@@ -118,10 +123,10 @@ class TiingoCryptoFetcherFnTest {
         val currencyPair = "BTC/USD"
         val input = KV.of(currencyPair, null as Void?)
         val urlMatcher = argThat(UrlMatcher("token=$testApiKey")) // Ensure key is still passed
-        Mockito.`when`(mockHttpClient.get(urlMatcher, emptyMap())).thenReturn(emptyResponse)
+        Mockito.`when`(mockHttpClient.get(urlMatcher, Collections.emptyMap())).thenReturn(emptyResponse)
 
         val tester = DoFnTester.of(fetcherFnDaily)
-        val outputKVs = tester.processBundle(input)
+        val outputKVs = tester.processBundle(listOf(input))
 
         assertThat(outputKVs).isEmpty()
     }
@@ -133,11 +138,14 @@ class TiingoCryptoFetcherFnTest {
         val fetcherFnInvalidKey = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), "") // Empty Key
 
         val tester = DoFnTester.of(fetcherFnInvalidKey)
-        val outputKVs = tester.processBundle(input)
+        val outputKVs = tester.processBundle(listOf(input))
 
         assertThat(outputKVs).isEmpty()
-        // Fix verify with correct Mockito syntax using matchers
-        Mockito.verify(mockHttpClient, Mockito.never()).get(Mockito.anyString(), Mockito.anyMap())
+        // Fix verify with correct Mockito syntax
+        Mockito.verify(mockHttpClient, Mockito.never()).get(
+            Mockito.anyString(),
+            Mockito.anyMap<String, String>()
+        )
     }
 
     @Test
@@ -145,10 +153,10 @@ class TiingoCryptoFetcherFnTest {
         val currencyPair = "BTC/USD"
         val input = KV.of(currencyPair, null as Void?)
         val urlMatcher = argThat(UrlMatcher("token=$testApiKey"))
-        Mockito.`when`(mockHttpClient.get(urlMatcher, emptyMap())).thenThrow(IOException("Network Error"))
+        Mockito.`when`(mockHttpClient.get(urlMatcher, Collections.emptyMap())).thenThrow(IOException("Network Error"))
 
         val tester = DoFnTester.of(fetcherFnDaily)
-        val outputKVs = tester.processBundle(input)
+        val outputKVs = tester.processBundle(listOf(input))
 
         assertThat(outputKVs).isEmpty()
     }
@@ -163,6 +171,6 @@ class TiingoCryptoFetcherFnTest {
 
     // Helper function to use the standard Mockito matcher
     private fun argThat(matcher: ArgumentMatcher<String>): String {
-        return Mockito.argThat(matcher) ?: "" // Use Mockito's argThat
+        return Mockito.argThat<String> { arg -> matcher.matches(arg) } ?: ""
     }
 }
