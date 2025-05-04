@@ -65,10 +65,12 @@ class TiingoCryptoFetcherFnTest {
 
         // Mock HTTP client for initial fetch (daily)
         val expectedStartDate = "2019-01-02" // Should always use default for now
-        val expectedUrl = contains("startDate=$expectedStartDate") and
-                          contains("resampleFreq=1day") and
-                          contains("tickers=btcusd") and
-                          contains("token=$testApiKey")
+        val expectedUrl = org.hamcrest.Matchers.allOf(
+            org.hamcrest.Matchers.containsString("startDate=$expectedStartDate"),
+            org.hamcrest.Matchers.containsString("resampleFreq=daily"),
+            org.hamcrest.Matchers.containsString("tickers=btcusd"),
+            org.hamcrest.Matchers.containsString("token=$testApiKey")
+        )
         whenever(mockHttpClient.get(argThat(expectedUrl), any())).thenReturn(sampleResponseDaily)
 
         // Use DoFnTester to test the DoFn in isolation
