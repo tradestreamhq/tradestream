@@ -22,7 +22,7 @@ import java.io.Serializable
  * This version does *not* yet include state management or fill-forward logic.
  */
 class TiingoCryptoFetcherFn @Inject constructor(
-    private val httpClientProvider: Provider<HttpClient>, // Inject Provider
+    @Transient private val httpClientProvider: Provider<HttpClient>, // Inject Provider
     private val granularity: Duration,
     private val apiKey: String
 ) : DoFn<KV<String, Void>, KV<String, Candle>>(), Serializable { // Ensure DoFn implements Serializable
@@ -54,7 +54,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
-        private val TIINGO_DATE_FORMATTER_DAILY = DateTimeFormatter.ISO_LOCAL_DATE // YYYY-MM-dd for daily
+        private val TIINGO_DATE_FORMATTER_DAILY = DateTimeFormatter.ISO_LOCAL_DATE // yyyy-MM-dd for daily
         private const val DEFAULT_START_DATE = "2019-01-02"
         private const val TIINGO_API_URL = "https://api.tiingo.com/tiingo/crypto/prices"
 
