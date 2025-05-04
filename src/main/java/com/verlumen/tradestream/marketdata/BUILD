@@ -213,6 +213,8 @@ java_library(
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
         ":sliding_candle_aggregator",
+        ":tiingo_crypto_candle_transform",
+        ":tiingo_crypto_fetcher_fn",
         ":trade_source",
         ":trade_to_candle",
         "//protos:marketdata_java_proto",
@@ -251,6 +253,47 @@ java_library(
         "//third_party:flogger",
         "//third_party:joda_time",
         "//third_party:protobuf_java",
+    ],
+)
+
+# New Tiingo Crypto Candle Transform components
+kt_jvm_library(
+    name = "tiingo_response_parser",
+    srcs = ["TiingoResponseParser.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:gson",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+    ],
+)
+
+kt_jvm_library(
+    name = "tiingo_crypto_fetcher_fn",
+    srcs = ["TiingoCryptoFetcherFn.kt"],
+    deps = [
+        ":tiingo_response_parser",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/http:http_client",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf", # For ProtoCoder
+        "//third_party:flogger",
+        "//third_party:guice", # For @Inject
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+    ],
+)
+
+kt_jvm_library(
+    name = "tiingo_crypto_candle_transform",
+    srcs = ["TiingoCryptoCandleTransform.kt"],
+    deps = [
+        ":tiingo_crypto_fetcher_fn",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guice", # For @Inject
+        "//third_party:joda_time",
     ],
 )
 
