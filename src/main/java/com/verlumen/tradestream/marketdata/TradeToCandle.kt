@@ -22,7 +22,6 @@ import org.joda.time.Duration
 import org.joda.time.Instant
 import java.io.Serializable
 import java.util.ArrayList
-import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
 
 /**
@@ -136,12 +135,12 @@ class TradeToCandle @Inject constructor(
             val baseCandle = candleCombineFn.extractOutput(acc)
 
             // build a protobuf Timestamp via util
-            val pbTs: Timestamp = Timestamps.fromMillis(intervalEnd.millis)
+            val pbTs = Timestamps.fromMillis(intervalEnd.millis)
 
             // set timestamp and interval
             val finalCandle = baseCandle.toBuilder()
                 .setTimestamp(pbTs)
-                .setInterval(candleInterval.millis)
+                .setIntervalMillis(candleInterval.millis)
                 .build()
 
             context.outputWithTimestamp(KV.of(currencyPair, finalCandle), intervalEnd)
