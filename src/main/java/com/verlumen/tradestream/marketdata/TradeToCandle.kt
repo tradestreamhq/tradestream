@@ -137,10 +137,9 @@ class TradeToCandle @Inject constructor(
             // build a protobuf Timestamp via util
             val pbTs = Timestamps.fromMillis(intervalEnd.millis)
 
-            // set timestamp and interval
+            // set timestamp
             val finalCandle = baseCandle.toBuilder()
                 .setTimestamp(pbTs)
-                .setInterval(candleInterval.millis)
                 .build()
 
             context.outputWithTimestamp(KV.of(currencyPair, finalCandle), intervalEnd)
