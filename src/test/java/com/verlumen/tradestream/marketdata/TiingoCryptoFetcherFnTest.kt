@@ -57,11 +57,11 @@ class TiingoCryptoFetcherFnTest {
         Mockito.`when`(mockHttpClient.get(Mockito.anyString(), Mockito.anyMap()))
             .thenReturn(sampleResponseDaily)
 
-        val input: PCollection<KV<String, Void?>> = pipeline
-            .apply(Create.of<KV<String, Void?>>(KV.of(currencyPair, null as Void?)))
+        val input: PCollection<KV<String, Void>> = pipeline
+            .apply(Create.of<KV<String, Void>>(KV.of(currencyPair, null as Void?)))
 
         val output: PCollection<KV<String, Candle>> = input
-            .apply(ParDo.of<KV<String, Void?>, KV<String, Candle>>(fetcherFnDaily))
+            .apply(ParDo.of<KV<String, Void>, KV<String, Candle>>(fetcherFnDaily))
 
         PAssert.that(output).satisfies { candles: Iterable<KV<String, Candle>> ->
             val results = candles.toList()
@@ -82,11 +82,11 @@ class TiingoCryptoFetcherFnTest {
         Mockito.`when`(mockHttpClient.get(Mockito.anyString(), Mockito.anyMap()))
             .thenThrow(IOException("network error"))
 
-        val input: PCollection<KV<String, Void?>> = pipeline
-            .apply(Create.of<KV<String, Void?>>(KV.of(currencyPair, null as Void?)))
+        val input: PCollection<KV<String, Void>> = pipeline
+            .apply(Create.of<KV<String, Void>>(KV.of(currencyPair, null as Void?)))
 
         val output: PCollection<KV<String, Candle>> = input
-            .apply(ParDo.of<KV<String, Void?>, KV<String, Candle>>(fetcherFnDaily))
+            .apply(ParDo.of<KV<String, Void>, KV<String, Candle>>(fetcherFnDaily))
 
         PAssert.that(output).empty()
 
@@ -98,11 +98,11 @@ class TiingoCryptoFetcherFnTest {
         val invalidFn = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), "")
         val currencyPair = "BTC/USD"
 
-        val input: PCollection<KV<String, Void?>> = pipeline
-            .apply(Create.of<KV<String, Void?>>(KV.of(currencyPair, null as Void?)))
+        val input: PCollection<KV<String, Void>> = pipeline
+            .apply(Create.of<KV<String, Void>>(KV.of(currencyPair, null as Void?)))
 
         val output: PCollection<KV<String, Candle>> = input
-            .apply(ParDo.of<KV<String, Void?>, KV<String, Candle>>(invalidFn))
+            .apply(ParDo.of<KV<String, Void>, KV<String, Candle>>(invalidFn))
 
         PAssert.that(output).empty()
 
