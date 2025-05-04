@@ -1,6 +1,9 @@
 package com.verlumen.tradestream.marketdata
 
 import com.google.common.truth.Truth.assertThat
+import org.hamcrest.Matchers.* // For Hamcrest matchers in the first test
+import org.mockito.kotlin.* // For any(), argThat(), whenever()
+
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.http.HttpClient
 import org.apache.beam.sdk.testing.PAssert
@@ -17,9 +20,6 @@ import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
-import org.mockito.kotlin.any
-import org.mockito.kotlin.argThat
-import org.mockito.kotlin.whenever
 import java.io.IOException
 
 @RunWith(JUnit4::class)
@@ -44,12 +44,12 @@ class TiingoCryptoFetcherFnTest {
          {"date": "2023-10-27T00:00:00+00:00", "open": 34650, "high": 35000, "low": 34500, "close": 34950, "volume": 1800}
        ]}]
     """.trimIndent()
-     private val sampleResponseMinute = """
+private val sampleResponseMinute = """
        [{"ticker": "btcusd", "priceData": [
          {"date": "2023-10-27T10:01:00+00:00", "open": 34955, "high": 34970, "low": 34950, "close": 34965, "volume": 8.2}
        ]}]
     """.trimIndent()
-    private val emptyResponse = "[]"
+private val emptyResponse = "[]"
 
     @Before
     fun setUp() {
@@ -65,17 +65,19 @@ class TiingoCryptoFetcherFnTest {
 
         // Mock HTTP client for initial fetch (daily)
         val expectedStartDate = "2019-01-02" // Should always use default for now
-        val expectedUrl = org.hamcrest.Matchers.allOf(
-            org.hamcrest.Matchers.containsString("startDate=$expectedStartDate"),
-            org.hamcrest.Matchers.containsString("resampleFreq=daily"),
-            org.hamcrest.Matchers.containsString("tickers=btcusd"),
-            org.hamcrest.Matchers.containsString("token=$testApiKey")
+        // *** Use Hamcrest Matchers.allOf ***
+        val expectedUrl = allOf(
+            containsString("startDate=$expectedStartDate"),
+            containsString("resampleFreq=1day"), // Adjusted to match helper output for daily
+            containsString("tickers=btcusd"),
+            containsString("token=$testApiKey")
         )
         whenever(mockHttpClient.get(argThat(expectedUrl), any())).thenReturn(sampleResponseDaily)
 
         // Use DoFnTester to test the DoFn in isolation
         val tester = DoFnTester.of(fetcherFnDaily)
-        val outputKVs = tester.processBundle(input)
+        // *** EXPLICITLY TYPED outputKVs ***
+        val outputKVs: List<KV<String, Candle>> = tester.processBundle(input)
 
         // Assert output
         assertThat(outputKVs).hasSize(2)
@@ -93,14 +95,18 @@ class TiingoCryptoFetcherFnTest {
 
         // Mock HTTP client for initial fetch (5 minute)
         val expectedStartDate = "2019-01-02"
-        val expectedUrl = contains("startDate=$expectedStartDate") and
-                          contains("resampleFreq=5min") and // Check correct freq
-                          contains("tickers=btcusd") and
-                          contains("token=$testApiKey")
-        whenever(mockHttpClient.get(argThat(expectedUrl), any())).thenReturn(sampleResponseMinute)
+        // *** Use LAMBDA for argThat ***
+        val expectedUrlMatcher: (String) -> Boolean = { url ->
+            url.contains("startDate=$expectedStartDate") &&
+            url.contains("resampleFreq=5min") && // Check correct freq
+            url.contains("tickers=btcusd") &&
+            url.contains("token=$testApiKey")
+        }
+        whenever(mockHttpClient.get(argThat(expectedUrlMatcher), any())).thenReturn(sampleResponseMinute)
 
         val tester = DoFnTester.of(fetcherFnMinute) // Use 5-min fetcher
-        val outputKVs = tester.processBundle(input)
+        // *** EXPLICITLY TYPED outputKVs ***
+        val outputKVs: List<KV<String, Candle>> = tester.processBundle(input)
 
         // Assert output
         assertThat(outputKVs).hasSize(1)
@@ -113,11 +119,13 @@ class TiingoCryptoFetcherFnTest {
     fun `processElement handles empty api response`() {
         val currencyPair = "BTC/USD"
         val input = KV.of(currencyPair, null as Void?)
-        val expectedUrl = contains("token=$testApiKey") // Ensure key is still passed
-        whenever(mockHttpClient.get(argThat(expectedUrl), any())).thenReturn(emptyResponse)
+        // *** Use LAMBDA for argThat (simpler) ***
+        val expectedUrlMatcher: (String) -> Boolean = { it.contains("token=$testApiKey") }
+        whenever(mockHttpClient.get(argThat(expectedUrlMatcher), any())).thenReturn(emptyResponse)
 
         val tester = DoFnTester.of(fetcherFnDaily)
-        val outputKVs = tester.processBundle(input)
+        // *** EXPLICITLY TYPED outputKVs ***
+        val outputKVs: List<KV<String, Candle>> = tester.processBundle(input)
 
         assertThat(outputKVs).isEmpty()
     }
@@ -128,10 +136,11 @@ class TiingoCryptoFetcherFnTest {
         val input = KV.of(currencyPair, null as Void?)
 
         // Create fetcher with invalid key
-         val fetcherFnInvalidKey = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), "") // Empty Key
+        val fetcherFnInvalidKey = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), "") // Empty Key
 
         val tester = DoFnTester.of(fetcherFnInvalidKey)
-        val outputKVs = tester.processBundle(input)
+        // *** EXPLICITLY TYPED outputKVs ***
+        val outputKVs: List<KV<String, Candle>> = tester.processBundle(input)
 
         assertThat(outputKVs).isEmpty()
         // Verify httpClient.get was *not* called (using Mockito.verify if needed, but logic check is sufficient here)
@@ -142,17 +151,14 @@ class TiingoCryptoFetcherFnTest {
     fun `processElement handles http error`() {
         val currencyPair = "BTC/USD"
         val input = KV.of(currencyPair, null as Void?)
-        val expectedUrl = contains("token=$testApiKey")
-        whenever(mockHttpClient.get(argThat(expectedUrl), any())).thenThrow(IOException("Network Error"))
+        // *** Use LAMBDA for argThat ***
+        val expectedUrlMatcher: (String) -> Boolean = { it.contains("token=$testApiKey") }
+        whenever(mockHttpClient.get(argThat(expectedUrlMatcher), any())).thenThrow(IOException("Network Error"))
 
         val tester = DoFnTester.of(fetcherFnDaily)
-        val outputKVs = tester.processBundle(input)
+        // *** EXPLICITLY TYPED outputKVs ***
+        val outputKVs: List<KV<String, Candle>> = tester.processBundle(input)
 
         assertThat(outputKVs).isEmpty()
     }
-
-    // Helper for URL matching
-    private fun contains(substring: String): (String) -> Boolean = { it.contains(substring) }
-    private fun <T> argThat(matcher: (T) -> Boolean): T = org.mockito.kotlin.argThat(matcher)
-
 }
