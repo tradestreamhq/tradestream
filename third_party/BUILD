@@ -237,6 +237,15 @@ java_library(
 )
 
 java_library(
+    name = "mockito_kotlin",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_mockito_kotlin_mockito_kotlin",
+    ],
+    testonly = True,
+)
+
+java_library(
     name = "mug",
     visibility = ["//visibility:public"],
     exports = [
