@@ -186,6 +186,77 @@ java_test(
 )
 
 kt_jvm_test(
+    name = "TiingoResponseParserTest",
+    srcs = ["TiingoResponseParserTest.kt"],
+    test_class = "com.verlumen.tradestream.marketdata.TiingoResponseParserTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_response_parser",
+        "//protos:marketdata_java_proto",
+        "//third_party:gson",
+        "//third_party:junit",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+        "//third_party:truth",
+    ],
+)
+
+kt_jvm_test(
+    name = "TiingoCryptoFetcherFnTest",
+    srcs = ["TiingoCryptoFetcherFnTest.kt"],
+    test_class = "com.verlumen.tradestream.marketdata.TiingoCryptoFetcherFnTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_crypto_fetcher_fn",
+        "//src/main/java/com/verlumen/tradestream/http:http_client", # Needed for mock binding
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:beam_sdks_java_test_utils",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+        "//third_party:truth",
+    ],
+    runtime_deps = [
+         "//third_party:beam_runners_direct_java",
+         "//third_party:hamcrest",
+    ],
+)
+
+kt_jvm_test(
+    name = "TiingoCryptoCandleTransformTest",
+    srcs = ["TiingoCryptoCandleTransformTest.kt"],
+    test_class = "com.verlumen.tradestream.marketdata.TiingoCryptoCandleTransformTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_crypto_candle_transform",
+        "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_crypto_fetcher_fn", # Needed by transform
+        "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_response_parser",  # Needed by fetcher
+        "//src/main/java/com/verlumen/tradestream/http:http_client",                 # Needed for binding
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",       # Needed for binding supplier
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:beam_sdks_java_test_utils",
+        "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
+        "//third_party:joda_time",
+        "//third_party:junit",
+        "//third_party:mockito_core",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+        "//third_party:truth",
+    ],
+     runtime_deps = [
+         "//third_party:beam_runners_direct_java",
+         "//third_party:hamcrest",
+    ],
+)
+
+kt_jvm_test(
     name = "TradeToCandleTest",
     srcs = ["TradeToCandleTest.kt"],
     test_class = "com.verlumen.tradestream.marketdata.TradeToCandleTest",
