@@ -48,6 +48,8 @@ public final class App {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final String CMC_API_KEY_ENV_VAR = "COINMARKETCAP_API_KEY";
+  private static final String TIINGO_API_KEY_ENV_VAR = "TIINGO_API_KEY";
+
   /**
    * A constant string holding the Fibonacci sequence values less than 526,000.
    *
@@ -103,6 +105,11 @@ public final class App {
     @Default.String(FIBONACCI_UNDER_APPROX_MINUTES_IN_YEAR)
     String getCandleLookbackSizes();
     void setCandleLookbackSizes(String value);
+
+    @Description("Tiingo API Key (default: value of " + TIINGO_API_KEY_ENV_VAR + " environment variable)")
+    @Default.String("")
+    String getTiingoApiKey();
+    void setTiingoApiKey(String value);
   }
 
   private final Supplier<List<CurrencyPair>> currencyPairs;
@@ -221,6 +228,14 @@ public final class App {
       } 
 
       return options.getCoinMarketCapApiKey();
+  }
+
+  private static String getTiingoApiKey(Options options) {
+      if (isNullOrEmpty(options.getTiingoApiKey())) {
+           return System.getenv().getOrDefault(TIINGO_API_KEY_ENV_VAR, "INVALID_API_KEY");
+      } 
+
+      return options.getTiingoApiKey();
   }
 
   public static void main(String[] args) throws Exception {
