@@ -47,7 +47,8 @@ constructor(
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
-        private const val serialVersionUID = 5L // Increment version due to logic change
+        // Increment version due to timer logic change
+        private const val serialVersionUID = 6L
     }
 
     interface Factory {
@@ -82,8 +83,8 @@ constructor(
 
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
-            private const val serialVersionUID = 5L // Increment version due to logic change
-            private const val GAP_TIMER = "gapTimer"
+            private const val serialVersionUID = 6L // Increment version
+            private const val INTERVAL_END_TIMER = "intervalEndTimer" // Renamed timer ID
 
             // Helper function for logging candle details
             private fun candleToString(candle: Candle?): String {
@@ -107,8 +108,8 @@ constructor(
         private val lastCandleStateSpec: StateSpec<ValueState<Candle>> =
             StateSpecs.value(ProtoCoder.of(Candle::class.java))
 
-        @TimerId(GAP_TIMER)
-        private val gapTimerSpec: TimerSpec = TimerSpecs.timer(TimeDomain.EVENT_TIME)
+        @TimerId(INTERVAL_END_TIMER)
+        private val intervalEndTimerSpec: TimerSpec = TimerSpecs.timer(TimeDomain.EVENT_TIME)
 
         // Helper to get interval boundary
         private fun getIntervalEnd(timestamp: Instant): Instant {
@@ -219,7 +220,7 @@ constructor(
             @StateId("trades") tradesState: ValueState<ArrayList<Trade>>,
             @StateId("currentIntervalEnd") currentIntervalEndState: ValueState<Instant>,
             @StateId("lastCandle") lastCandleState: ValueState<Candle>, // Add lastCandleState here
-            @TimerId(GAP_TIMER) gapTimer: Timer
+            @TimerId(INTERVAL_END_TIMER) intervalEndTimer: Timer // Use renamed timer ID
         ) {
             val kv = context.element()
             val key = kv.key
@@ -235,11 +236,10 @@ constructor(
                 intervalEnd = getIntervalEnd(tradeTimestamp)
                 logger.atInfo().log("Initializing state for key $key. First interval end: $intervalEnd")
                 currentIntervalEndState.write(intervalEnd)
-                // Set the first gap timer relative to the *end* of the interval containing the
-                // first trade + candle duration
-                gapTimer.set(intervalEnd.plus(candleInterval))
+                // **FIX:** Set the first timer for the *end* of the current interval
+                intervalEndTimer.set(intervalEnd)
                 logger.atInfo().log(
-                    "Set initial gap timer for key $key to ${intervalEnd.plus(candleInterval)}"
+                    "Set initial interval end timer for key $key to $intervalEnd"
                 )
             }
 
@@ -279,11 +279,11 @@ constructor(
                 currentIntervalEndState.write(nextIntervalEnd)
                 intervalEnd = nextIntervalEnd // Update local variable for loop condition
 
-                // Reset the timer for the *new* interval end + candle duration
-                gapTimer.set(intervalEnd.plus(candleInterval))
+                // **FIX:** Reset the timer for the *end* of the *new* interval
+                intervalEndTimer.set(intervalEnd)
                 logger.atInfo().log(
                     "Advanced to next interval for key $key. New end: $intervalEnd. Reset timer" +
-                        " to ${intervalEnd.plus(candleInterval)}"
+                        " to $intervalEnd"
                 )
             }
 
@@ -295,56 +295,50 @@ constructor(
             )
         }
 
-        @OnTimer(GAP_TIMER)
+        @OnTimer(INTERVAL_END_TIMER)
         fun onTimer(
             context: OnTimerContext, // Correct type for @OnTimer
             @StateId("trades") tradesState: ValueState<ArrayList<Trade>>,
             @StateId("currentIntervalEnd") currentIntervalEndState: ValueState<Instant>,
             @StateId("lastCandle") lastCandleState: ValueState<Candle>,
-            @TimerId(GAP_TIMER) gapTimer: Timer
+            @TimerId(INTERVAL_END_TIMER) intervalEndTimer: Timer
         ) {
             val timerFireTimestamp = context.timestamp()
             val intervalEnd = currentIntervalEndState.read()
             val lastCandle = lastCandleState.read()
 
-            // If state is missing (e.g., expired), we cannot proceed.
-            if (intervalEnd == null || lastCandle == null || lastCandle == Candle.getDefaultInstance()) {
+            // If state is missing or timer is for an old interval, ignore
+            if (intervalEnd == null || !timerFireTimestamp.isEqual(intervalEnd)) {
                  logger.atWarning().log(
-                     "Timer fired at %s but state is missing or invalid. Skipping. IntervalEnd: %s, LastCandle: %s",
-                     timerFireTimestamp, intervalEnd, candleToString(lastCandle)
+                     "Ignoring timer fired at %s. Expected interval end: %s. State might be missing or timer is late/early.",
+                     timerFireTimestamp, intervalEnd
                  )
                  return
             }
 
-            // The key is implicitly associated with the state and timer. Get it from the last candle.
-            val key = lastCandle.currencyPair
+            // We need to determine the currency pair from the last candle or trades
+             val key = lastCandle?.currencyPair ?: tradesState.read()?.firstOrNull()?.currencyPair
+             if (key == null) {
+                 logger.atWarning().log("Timer fired at %s but cannot determine key (no last candle or trades in state). Skipping.", timerFireTimestamp)
+                 return
+             }
+
 
             logger.atInfo().log(
-                "Timer fired for key %s at %s. Current Interval End: %s, Last Output Candle: %s",
-                key, timerFireTimestamp, intervalEnd, candleToString(lastCandle)
+                "Timer fired for key %s at interval end %s. Last Output Candle: %s",
+                key, timerFireTimestamp, candleToString(lastCandle)
             )
 
-            // Check if the timer is for the expected interval (timer should fire at intervalEnd + duration)
-            val expectedTimerFireTime = intervalEnd.plus(candleInterval)
-            if (!timerFireTimestamp.isEqual(expectedTimerFireTime)) {
-                logger.atWarning().log(
-                    "Ignoring unexpected timer for key %s. Fired at: %s, Expected: %s (IntervalEnd: %s)",
-                    key, timerFireTimestamp, expectedTimerFireTime, intervalEnd
-                )
-                return
-            }
-
-            // Timer fired at the right time, means the interval 'intervalEnd' just completed without new trades.
-            // Emit a candle for this completed interval.
+            // Timer fired at the correct interval end. Emit candle for this interval.
             val trades = tradesState.read() ?: ArrayList()
             val candleToEmit = buildOrFillCandle(trades, lastCandleState) // Attempt fill-forward
 
             if (candleToEmit != null) {
-                // Output the filled candle for the interval that just ended
+                // Output the candle for the interval that just ended
                 outputCandleFromTimerContext(
                     context,
                     candleToEmit,
-                    intervalEnd,
+                    intervalEnd, // Use the interval end this timer represents
                     lastCandleState
                 )
             } else {
@@ -362,11 +356,11 @@ constructor(
             val nextIntervalEnd = intervalEnd.plus(candleInterval)
             currentIntervalEndState.write(nextIntervalEnd)
 
-            // Set the timer for the *next* gap
-            gapTimer.set(nextIntervalEnd.plus(candleInterval))
+            // Set the timer for the *next* interval end
+            intervalEndTimer.set(nextIntervalEnd)
             logger.atInfo().log(
                 "Timer processed for key %s. Advanced interval end to %s. Set next timer for %s",
-                key, nextIntervalEnd, nextIntervalEnd.plus(candleInterval)
+                key, nextIntervalEnd, nextIntervalEnd
             )
         }
     }
