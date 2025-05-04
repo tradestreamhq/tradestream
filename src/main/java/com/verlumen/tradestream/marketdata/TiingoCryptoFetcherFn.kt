@@ -2,6 +2,7 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
+import com.google.inject.Provider
 import com.verlumen.tradestream.http.HttpClient
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.DoFn.ProcessContext
@@ -10,8 +11,7 @@ import org.apache.beam.sdk.values.KV
 import org.joda.time.Duration
 import java.io.IOException
 import java.time.format.DateTimeFormatter
-import javax.inject.Provider // Import Provider
-import java.io.Serializable // Ensure Serializable is imported
+import java.io.Serializable
 
 // NOTE: This is a basic implementation. State and AssistedInject will be added later.
 
