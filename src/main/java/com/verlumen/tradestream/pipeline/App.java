@@ -177,7 +177,7 @@ public final class App {
         .map(String::trim)
         .filter(s -> !s.isEmpty())
         .map(Integer::parseInt)
-        .filter(i -> i > 1440)
+        .filter(i -> i > 20_160) // TWO WEEKS
         .distinct()
         .toList();
   }
