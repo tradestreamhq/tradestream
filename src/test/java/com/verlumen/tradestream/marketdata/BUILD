@@ -189,7 +189,6 @@ kt_jvm_test(
     name = "TiingoCryptoFetcherFnTest",
     srcs = ["TiingoCryptoFetcherFnTest.kt"],
     test_class = "com.verlumen.tradestream.marketdata.TiingoCryptoFetcherFnTest",
-    jvm_target = "17",
     deps = [
         # Main library target
         "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_crypto_fetcher_fn",
