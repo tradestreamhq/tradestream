@@ -180,20 +180,19 @@ constructor(
 
         // Helper to output candle from timer context
         private fun outputCandleFromTimerContext(
-            context: OnTimerContext, // Specific type needed for context.key()
+            context: OnTimerContext, // Specific type needed for context
             candle: Candle,
             intervalEnd: Instant, // Not nullable here
             lastCandleState: ValueState<Candle>
         ) {
             if (candle == Candle.getDefaultInstance()) {
                 logger.atFine().log(
-                    "Attempted to output default instance from timer for key ${context.element().key} at" +
-                        " $intervalEnd, skipping."
+                    "Attempted to output default instance from timer at $intervalEnd, skipping."
                 )
                 return
             }
 
-            val key = context.element().key // Get key from the KV element
+            // For timer context, we need to get key from state since we can't get element
             // Set the candle timestamp to the interval end time
             val finalCandle =
                 candle.toBuilder().setTimestamp(Timestamps.fromMillis(intervalEnd.millis)).build()
@@ -240,8 +239,8 @@ constructor(
 
             // If the trade belongs to a future interval, finalize the current one(s) by emitting
             // candles
-            while (tradeTimestamp.isEqual(intervalEnd) ||
-                    tradeTimestamp.isAfter(intervalEnd)
+            while (intervalEnd != null && (tradeTimestamp.isEqual(intervalEnd) ||
+                    tradeTimestamp.isAfter(intervalEnd))
                 ) {
                 logger.atInfo().log(
                     "Trade at $tradeTimestamp is at or after current interval end $intervalEnd" +
@@ -299,7 +298,14 @@ constructor(
             @TimerId("gapTimer") gapTimer: Timer
         ) {
             val timerFireTimestamp = context.timestamp()
-            val key = context.element().key // Get key from the KV element
+            // We need to determine the key from the last candle
+            val lastCandle = lastCandleState.read()
+            if (lastCandle == null || lastCandle == Candle.getDefaultInstance()) {
+                logger.atInfo().log("Timer fired but no last candle available, skipping")
+                return
+            }
+            
+            val key = lastCandle.currencyPair
             val intervalEnd = currentIntervalEndState.read()
 
             logger.atInfo().log(
