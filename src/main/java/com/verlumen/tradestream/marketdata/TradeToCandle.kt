@@ -298,25 +298,25 @@ constructor(
             @TimerId("gapTimer") gapTimer: Timer
         ) {
             val timerFireTimestamp = context.timestamp()
-            // We need to determine the key from the last candle
+            // We need to determine the currency pair from the last candle
             val lastCandle = lastCandleState.read()
             if (lastCandle == null || lastCandle == Candle.getDefaultInstance()) {
                 logger.atInfo().log("Timer fired but no last candle available, skipping")
                 return
             }
             
-            val key = lastCandle.currencyPair
+            val currencyPair = lastCandle.currencyPair
             val intervalEnd = currentIntervalEndState.read()
 
             logger.atInfo().log(
-                "Timer fired for key $key at $timerFireTimestamp. Expected interval end +" +
+                "Timer fired for currency pair $currencyPair at $timerFireTimestamp. Expected interval end +" +
                     " duration: ${intervalEnd?.plus(candleInterval)}"
             )
 
             // If state is missing or timer is for an old interval, ignore
             if (intervalEnd == null || !timerFireTimestamp.isEqual(intervalEnd.plus(candleInterval))) {
                 logger.atWarning().log(
-                    "Ignoring timer for key $key at $timerFireTimestamp. Current IntervalEnd:" +
+                    "Ignoring timer for currency pair $currencyPair at $timerFireTimestamp. Current IntervalEnd:" +
                         " $intervalEnd. Timer might be late, state missing, or for an already" +
                         " processed interval."
                 )
@@ -337,7 +337,7 @@ constructor(
                 )
             } else {
                 logger.atWarning().log(
-                    "Timer fired for key $key at interval end $intervalEnd, but no candle to" +
+                    "Timer fired for currency pair $currencyPair at interval end $intervalEnd, but no candle to" +
                         " emit (no prior trades/state for fill-forward)."
                 )
             }
@@ -353,7 +353,7 @@ constructor(
             // Set the timer for the *next* gap
             gapTimer.set(nextIntervalEnd.plus(candleInterval))
             logger.atInfo().log(
-                "Timer processed for key $key. Advanced interval end to $nextIntervalEnd. Set" +
+                "Timer processed for currency pair $currencyPair. Advanced interval end to $nextIntervalEnd. Set" +
                     " next timer for ${nextIntervalEnd.plus(candleInterval)}"
             )
         }
