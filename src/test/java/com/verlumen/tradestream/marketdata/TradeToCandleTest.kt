@@ -7,18 +7,17 @@ import com.google.inject.assistedinject.FactoryModuleBuilder
 import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.util.Timestamps
+import org.apache.beam.sdk.coders.KvCoder
+import org.apache.beam.sdk.coders.StringUtf8Coder
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.testing.TestStream
 import org.apache.beam.sdk.transforms.SerializableFunction
 import org.apache.beam.sdk.transforms.Values
-import org.apache.beam.sdk.coders.KvCoder
-import org.apache.beam.sdk.coders.StringUtf8Coder
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
 import org.apache.beam.sdk.values.TimestampedValue
-import org.apache.beam.sdk.values.TypeDescriptor
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.closeTo
 import org.hamcrest.Matchers.equalTo
@@ -83,7 +82,8 @@ class TradeToCandleTest : Serializable {
 
         val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
             .addElements(tradeWin1, tradeWin1Late)
-            .advanceWatermarkTo(win1End.plus(Duration.millis(1))) // Ensure window closes
+            // **FIX:** Advance watermark PAST the interval end to trigger the timer
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
         val expectedBtcCandle = Candle.newBuilder()
@@ -380,11 +380,13 @@ class TradeToCandleTest : Serializable {
             .addElements(
                 TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1)
             )
-            .advanceWatermarkTo(t2) // Advance watermark to trigger first window
+            // **FIX:** Advance watermark past the *first* interval end to trigger its timer
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
             .addElements(
                 TimestampedValue.of(createTrade("BTC/USD", 50200.0, 0.5, t2), t2)
             )
-            .advanceWatermarkTo(win2End.plus(Duration.millis(1))) // Advance past second window
+            // **FIX:** Advance watermark past the *second* interval end
+            .advanceWatermarkTo(win2End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
         // Act
@@ -400,8 +402,8 @@ class TradeToCandleTest : Serializable {
                 assertThat("Should produce exactly two candles (one per interval)",
                            candles.size, equalTo(2))
 
-                val timestamps = candles.map { Instant(Timestamps.toMillis(it.value.timestamp)) }
-                assertThat(timestamps).containsExactly(win1End, win2End)
+                val timestamps = candles.map { Instant(Timestamps.toMillis(it.value.timestamp)) }.sorted()
+                assertThat(timestamps).containsExactly(win1End, win2End).inOrder()
 
                 return null
             }
@@ -429,11 +431,15 @@ class TradeToCandleTest : Serializable {
             .addElements(
                 TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1)
             )
-            .advanceWatermarkTo(win2End) // Advance watermark past second window (empty interval)
+            // **FIX:** Advance watermark past win1End to trigger first candle and timer for win2End
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
+            // **FIX:** Advance watermark past win2End to trigger the timer for the empty interval
+            .advanceWatermarkTo(win2End.plus(Duration.millis(1)))
             .addElements(
                 TimestampedValue.of(createTrade("BTC/USD", 50200.0, 0.5, t3), t3)
             )
-            .advanceWatermarkTo(win3End.plus(Duration.millis(1))) // Advance past third window
+            // **FIX:** Advance watermark past win3End to trigger the last candle
+            .advanceWatermarkTo(win3End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
         // Act
@@ -487,11 +493,12 @@ class TradeToCandleTest : Serializable {
             .addElements(
                 TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1, originalClosePrice), t1)
             )
-            .advanceWatermarkTo(win2End) // Advance watermark past second window
+            // **FIX:** Advance watermark past win1End and win2End
+            .advanceWatermarkTo(win2End.plus(Duration.millis(1)))
             .addElements(
                 TimestampedValue.of(createTrade("BTC/USD", 50200.0, 0.5, t3), t3)
             )
-            .advanceWatermarkTo(win3End.plus(Duration.millis(1))) // Advance past third window
+            .advanceWatermarkTo(win3End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
         // Act
