@@ -10,6 +10,8 @@ import org.apache.beam.sdk.values.KV
 import org.joda.time.Duration
 import java.io.IOException
 import java.time.format.DateTimeFormatter
+import javax.inject.Provider // Import Provider
+import java.io.Serializable // Ensure Serializable is imported
 
 // NOTE: This is a basic implementation. State and AssistedInject will be added later.
 
@@ -18,14 +20,22 @@ import java.time.format.DateTimeFormatter
  * This version does *not* yet include state management or fill-forward logic.
  */
 class TiingoCryptoFetcherFn @Inject constructor(
-    private val httpClient: HttpClient,
+    private val httpClientProvider: Provider<HttpClient>, // Inject Provider
     private val granularity: Duration,
     private val apiKey: String
-) : DoFn<KV<String, Void>, KV<String, Candle>>() {
+) : DoFn<KV<String, Void>, KV<String, Candle>>(), Serializable { // Ensure DoFn implements Serializable
+
+    @Transient private lateinit var httpClient: HttpClient // Mark field as transient
+
+    @Setup
+    fun setup() {
+        httpClient = httpClientProvider.get() // Initialize in setup
+    }
+
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
-        private val TIINGO_DATE_FORMATTER_DAILY = DateTimeFormatter.ISO_LOCAL_DATE // yyyy-MM-dd for daily
+        private val TIINGO_DATE_FORMATTER_DAILY = DateTimeFormatter.ISO_LOCAL_DATE // YYYY-MM-dd for daily
         private const val DEFAULT_START_DATE = "2019-01-02"
         private const val TIINGO_API_URL = "https://api.tiingo.com/tiingo/crypto/prices"
 
