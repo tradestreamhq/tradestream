@@ -55,7 +55,7 @@ class TiingoCryptoFetcherFn @Inject constructor( // Temporarily use @Inject for 
     @ProcessElement
     fun processElement(context: ProcessContext) {
         val currencyPair = context.element().key
-        val ticker = currencyPair.replace("/", "").toLowerCase()
+        val ticker = currencyPair.replace("/", "").lowercase()
         val resampleFreq = durationToResampleFreq(granularity)
 
          // Basic API Key validation
