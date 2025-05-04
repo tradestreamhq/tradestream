@@ -82,7 +82,7 @@ class TradeToCandleTest : Serializable {
 
         val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
             .addElements(tradeWin1, tradeWin1Late)
-            // **FIX:** Advance watermark PAST the interval end to trigger the timer
+            // Advance watermark PAST the interval end to trigger the timer
             .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
@@ -380,12 +380,12 @@ class TradeToCandleTest : Serializable {
             .addElements(
                 TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1)
             )
-            // **FIX:** Advance watermark past the *first* interval end to trigger its timer
+            // Advance watermark past the *first* interval end to trigger its timer
             .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
             .addElements(
                 TimestampedValue.of(createTrade("BTC/USD", 50200.0, 0.5, t2), t2)
             )
-            // **FIX:** Advance watermark past the *second* interval end
+            // Advance watermark past the *second* interval end
             .advanceWatermarkTo(win2End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
@@ -402,8 +402,12 @@ class TradeToCandleTest : Serializable {
                 assertThat("Should produce exactly two candles (one per interval)",
                            candles.size, equalTo(2))
 
+                // Check timestamps individually
                 val timestamps = candles.map { Instant(Timestamps.toMillis(it.value.timestamp)) }.sorted()
-                assertThat(timestamps).containsExactly(win1End, win2End).inOrder()
+                assertThat("First candle should be at first interval end", 
+                           timestamps[0], equalTo(win1End))
+                assertThat("Second candle should be at second interval end", 
+                           timestamps[1], equalTo(win2End))
 
                 return null
             }
@@ -431,19 +435,19 @@ class TradeToCandleTest : Serializable {
             .addElements(
                 TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1)
             )
-            // **FIX:** Advance watermark past win1End to trigger first candle and timer for win2End
+            // Advance watermark past win1End to trigger first candle and timer for win2End
             .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
-            // **FIX:** Advance watermark past win2End to trigger the timer for the empty interval
+            // Advance watermark past win2End to trigger the timer for the empty interval
             .advanceWatermarkTo(win2End.plus(Duration.millis(1)))
             .addElements(
                 TimestampedValue.of(createTrade("BTC/USD", 50200.0, 0.5, t3), t3)
             )
-            // **FIX:** Advance watermark past win3End to trigger the last candle
+            // Advance watermark past win3End to trigger the last candle
             .advanceWatermarkTo(win3End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
         // Act
-        val transform = tradeToCandleFactory.create(windowDuration, 3) // Allow fill-forward
+        val transform = tradeToCandleFactory.create(windowDuration)
         val result: PCollection<KV<String, Candle>> = pipeline
             .apply(tradeStream)
             .apply("TradeToCandle", transform)
@@ -455,8 +459,14 @@ class TradeToCandleTest : Serializable {
                 assertThat("Should produce exactly three candles including fill-forward",
                            candles.size, equalTo(3))
 
+                // Check timestamps individually
                 val timestamps = candles.map { Instant(Timestamps.toMillis(it.value.timestamp)) }
-                assertThat(timestamps).containsExactly(win1End, win2End, win3End).inOrder()
+                assertThat("First candle should be at first interval end", 
+                           timestamps[0], equalTo(win1End))
+                assertThat("Second candle should be at second interval end", 
+                           timestamps[1], equalTo(win2End))
+                assertThat("Third candle should be at third interval end", 
+                           timestamps[2], equalTo(win3End))
 
                 // Verify fill-forward candle (index 1)
                 val fillForwardCandle = candles[1].value
@@ -493,7 +503,7 @@ class TradeToCandleTest : Serializable {
             .addElements(
                 TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1, originalClosePrice), t1)
             )
-            // **FIX:** Advance watermark past win1End and win2End
+            // Advance watermark past win1End and win2End
             .advanceWatermarkTo(win2End.plus(Duration.millis(1)))
             .addElements(
                 TimestampedValue.of(createTrade("BTC/USD", 50200.0, 0.5, t3), t3)
@@ -502,7 +512,7 @@ class TradeToCandleTest : Serializable {
             .advanceWatermarkToInfinity()
 
         // Act
-        val transform = tradeToCandleFactory.create(windowDuration, 3) // Allow fill-forward
+        val transform = tradeToCandleFactory.create(windowDuration)
         val result: PCollection<KV<String, Candle>> = pipeline
             .apply(tradeStream)
             .apply("TradeToCandle", transform)
@@ -539,7 +549,6 @@ class TradeToCandleTest : Serializable {
         pipeline.run().waitUntilFinish()
     }
 
-
     // Helper to create trade objects with specific close price
     private fun createTrade(
         currencyPair: String,
@@ -555,17 +564,7 @@ class TradeToCandleTest : Serializable {
             .setExchange("TEST")
             .setTradeId("test-${timestamp.millis}-${System.nanoTime()}")
             .setTimestamp(Timestamps.fromMillis(timestamp.millis))
-            // Set other fields if needed for Candle generation (e.g., open/high/low based on `price`)
-            // For simplicity here, assuming CandleCombineFn mainly uses price and timestamp
+            // Set other fields if needed for Candle generation
             .build()
-    }
-     // Overload without close price, for compatibility with existing tests
-     private fun createTrade(
-        currencyPair: String,
-        price: Double,
-        volume: Double,
-        timestamp: Instant
-    ): Trade {
-        return createTrade(currencyPair, price, volume, timestamp, price)
     }
 }
