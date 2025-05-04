@@ -6,7 +6,7 @@ import com.google.inject.Module
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
-import com.verlumen.tradestream.instruments.CurrencyPair
+import com.google.protobuf.util.Timestamps
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
@@ -16,19 +16,15 @@ import org.apache.beam.sdk.transforms.Values
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
 import org.apache.beam.sdk.values.TimestampedValue
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.closeTo 
+import org.hamcrest.Matchers.equalTo
 import org.joda.time.Duration
 import org.joda.time.Instant
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.Serializable
-import com.google.protobuf.util.Timestamps
-import com.google.inject.AbstractModule
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.closeTo 
-import org.hamcrest.Matchers.containsInAnyOrder
-import org.hamcrest.Matchers.equalTo
-
 
 class TradeToCandleTest : Serializable {
     companion object {
@@ -44,13 +40,8 @@ class TradeToCandleTest : Serializable {
     @Inject
     lateinit var tradeToCandleFactory: TradeToCandle.Factory
 
-    // Bind the CandleCombineFn needed by the simplified TradeToCandle
-    // Assuming CandleCombineFn has a default constructor or is otherwise injectable
     @Bind
     private val candleCombineFn = CandleCombineFn()
-
-    private val btcUsd = CurrencyPair.fromSymbol("BTC/USD")
-    private val ethUsd = CurrencyPair.fromSymbol("ETH/USD")
 
     @Before
     fun setUp() {
@@ -58,7 +49,6 @@ class TradeToCandleTest : Serializable {
         val testModule = BoundFieldModule.of(this)
         val modules: List<Module> = listOf(
             testModule,
-            // FactoryModuleBuilder for TradeToCandle
             FactoryModuleBuilder()
                 .implement(TradeToCandle::class.java, TradeToCandle::class.java)
                 .build(TradeToCandle.Factory::class.java)
@@ -88,7 +78,7 @@ class TradeToCandleTest : Serializable {
 
         val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
             .addElements(tradeWin1, tradeWin1Late)
-            .advanceWatermarkTo(win1End.plus(Duration.millis(1))) // Advance watermark just past the end of the window
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
         val expectedBtcCandle = Candle.newBuilder()
@@ -98,8 +88,7 @@ class TradeToCandleTest : Serializable {
             .setLow(50000.0)
             .setClose(50100.0)
             .setVolume(1.5)
-             // CombineFn uses the *first* trade's timestamp
-            .setTimestamp(Timestamps.fromMillis(t1.millis))
+            .setTimestamp(Timestamps.fromMillis(win1End.millis)) // Timestamp at interval end
             .build()
 
         // Act
@@ -116,8 +105,7 @@ class TradeToCandleTest : Serializable {
     }
 
     /**
-     * Verifies that no candle is output for a currency pair with no trades at all.
-     * (This test remains valid as Combine.perKey won't output for keys with no data).
+     * Verifies that we only produce candles for currency pairs that have actual trades.
      */
     @Test
     fun testNoOutputForPairWithNoHistory() {
@@ -135,16 +123,6 @@ class TradeToCandleTest : Serializable {
             .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
             .advanceWatermarkToInfinity()
 
-        val expectedBtcCandle = Candle.newBuilder()
-            .setCurrencyPair("BTC/USD")
-            .setOpen(50000.0)
-            .setHigh(50000.0)
-            .setLow(50000.0)
-            .setClose(50000.0)
-            .setVolume(1.0)
-            .setTimestamp(Timestamps.fromMillis(t1.millis))
-            .build()
-
         // Act
         val transform = tradeToCandleFactory.create(windowDuration)
         val result: PCollection<KV<String, Candle>> = pipeline
@@ -156,16 +134,363 @@ class TradeToCandleTest : Serializable {
             override fun apply(output: Iterable<KV<String, Candle>>): Void? {
                 val candles = output.toList()
                 assertThat("Should produce exactly one candle", candles.size, equalTo(1))
-                assertThat("Should only contain BTC/USD", candles[0].key, equalTo("BTC/USD"))
-                // Compare actual candle content with expected
-                val actualCandle = candles[0].value
-                assertThat("Currency pair should match", actualCandle.currencyPair, equalTo(expectedBtcCandle.currencyPair))
-                assertThat("Open price should match", actualCandle.open, closeTo(expectedBtcCandle.open, TOLERANCE))
-                assertThat("High price should match", actualCandle.high, closeTo(expectedBtcCandle.high, TOLERANCE))
-                assertThat("Low price should match", actualCandle.low, closeTo(expectedBtcCandle.low, TOLERANCE))
-                assertThat("Close price should match", actualCandle.close, closeTo(expectedBtcCandle.close, TOLERANCE))
-                assertThat("Volume should match", actualCandle.volume, closeTo(expectedBtcCandle.volume, TOLERANCE))
-                 assertThat("Timestamp seconds should match", actualCandle.timestamp.seconds, equalTo(expectedBtcCandle.timestamp.seconds))
+                return null
+            }
+        })
+
+        pipeline.run().waitUntilFinish()
+    }
+
+    /**
+     * Verifies that candles are correctly keyed by currency pair.
+     */
+    @Test
+    fun testCandleKeying() {
+        // Arrange
+        val windowDuration = Duration.standardMinutes(1)
+        val baseTime = Instant.parse("2023-01-01T10:00:00.000Z")
+        val t1 = baseTime.plus(Duration.standardSeconds(30))
+        val win1End = baseTime.plus(windowDuration)
+
+        val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
+            .addElements(
+                TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1)
+            )
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
+            .advanceWatermarkToInfinity()
+
+        // Act
+        val transform = tradeToCandleFactory.create(windowDuration)
+        val result: PCollection<KV<String, Candle>> = pipeline
+            .apply(tradeStream)
+            .apply("TradeToCandle", transform)
+
+        // Assert - Verify the candle is keyed by currency pair
+        PAssert.that(result).satisfies(object : SerializableFunction<Iterable<KV<String, Candle>>, Void?> {
+            override fun apply(output: Iterable<KV<String, Candle>>): Void? {
+                val candles = output.toList()
+                assertThat("Candle should be keyed by currency pair", candles[0].key, equalTo("BTC/USD"))
+                return null
+            }
+        })
+
+        pipeline.run().waitUntilFinish()
+    }
+
+    /**
+     * Verifies that multiple currency pairs are processed independently.
+     */
+    @Test
+    fun testMultipleCurrencyPairs() {
+        // Arrange
+        val windowDuration = Duration.standardMinutes(1)
+        val baseTime = Instant.parse("2023-01-01T10:00:00.000Z")
+        val t1 = baseTime.plus(Duration.standardSeconds(15))
+        val t2 = baseTime.plus(Duration.standardSeconds(30))
+        val win1End = baseTime.plus(windowDuration)
+
+        val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
+            .addElements(
+                TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1),
+                TimestampedValue.of(createTrade("ETH/USD", 3000.0, 2.0, t2), t2)
+            )
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
+            .advanceWatermarkToInfinity()
+
+        // Act
+        val transform = tradeToCandleFactory.create(windowDuration)
+        val result: PCollection<KV<String, Candle>> = pipeline
+            .apply(tradeStream)
+            .apply("TradeToCandle", transform)
+
+        // Assert - Count of candles should be 2 (one for each currency pair)
+        PAssert.that(result).satisfies(object : SerializableFunction<Iterable<KV<String, Candle>>, Void?> {
+            override fun apply(output: Iterable<KV<String, Candle>>): Void? {
+                val candles = output.toList()
+                assertThat("Should produce one candle per currency pair", candles.size, equalTo(2))
+                return null
+            }
+        })
+
+        pipeline.run().waitUntilFinish()
+    }
+
+    /**
+     * Verifies candle values for a single trade.
+     */
+    @Test
+    fun testSingleTradeCandle() {
+        // Arrange
+        val windowDuration = Duration.standardMinutes(1)
+        val baseTime = Instant.parse("2023-01-01T10:00:00.000Z")
+        val t1 = baseTime.plus(Duration.standardSeconds(30))
+        val win1End = baseTime.plus(windowDuration)
+        
+        val price = 50000.0
+        val volume = 1.0
+
+        val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
+            .addElements(
+                TimestampedValue.of(createTrade("BTC/USD", price, volume, t1), t1)
+            )
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
+            .advanceWatermarkToInfinity()
+
+        // Act
+        val transform = tradeToCandleFactory.create(windowDuration)
+        val result: PCollection<KV<String, Candle>> = pipeline
+            .apply(tradeStream)
+            .apply("TradeToCandle", transform)
+
+        // Assert - Verify OHLCV values for a single trade candle
+        PAssert.that(result).satisfies(object : SerializableFunction<Iterable<KV<String, Candle>>, Void?> {
+            override fun apply(output: Iterable<KV<String, Candle>>): Void? {
+                val candle = output.first().value
+                
+                // For a single trade, OHLC should all be the same price
+                assertThat("Open price should match trade price", candle.open, closeTo(price, TOLERANCE))
+                assertThat("High price should match trade price", candle.high, closeTo(price, TOLERANCE))
+                assertThat("Low price should match trade price", candle.low, closeTo(price, TOLERANCE))
+                assertThat("Close price should match trade price", candle.close, closeTo(price, TOLERANCE))
+                assertThat("Volume should match trade volume", candle.volume, closeTo(volume, TOLERANCE))
+                
+                return null
+            }
+        })
+
+        pipeline.run().waitUntilFinish()
+    }
+
+    /**
+     * Verifies candle values for multiple trades within the same interval.
+     */
+    @Test
+    fun testMultipleTradesCandle() {
+        // Arrange
+        val windowDuration = Duration.standardMinutes(1)
+        val baseTime = Instant.parse("2023-01-01T10:00:00.000Z")
+        val t1 = baseTime.plus(Duration.standardSeconds(15))
+        val t2 = baseTime.plus(Duration.standardSeconds(30))
+        val t3 = baseTime.plus(Duration.standardSeconds(45))
+        val win1End = baseTime.plus(windowDuration)
+
+        val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
+            .addElements(
+                TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1),
+                TimestampedValue.of(createTrade("BTC/USD", 50500.0, 0.5, t2), t2),
+                TimestampedValue.of(createTrade("BTC/USD", 49800.0, 0.8, t3), t3)
+            )
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
+            .advanceWatermarkToInfinity()
+
+        // Act
+        val transform = tradeToCandleFactory.create(windowDuration)
+        val result: PCollection<KV<String, Candle>> = pipeline
+            .apply(tradeStream)
+            .apply("TradeToCandle", transform)
+
+        // Assert - Verify OHLCV values are correctly aggregated
+        PAssert.that(result).satisfies(object : SerializableFunction<Iterable<KV<String, Candle>>, Void?> {
+            override fun apply(output: Iterable<KV<String, Candle>>): Void? {
+                val candle = output.first().value
+                
+                assertThat("Open should be first trade price", candle.open, closeTo(50000.0, TOLERANCE))
+                assertThat("High should be highest trade price", candle.high, closeTo(50500.0, TOLERANCE))
+                assertThat("Low should be lowest trade price", candle.low, closeTo(49800.0, TOLERANCE))
+                assertThat("Close should be last trade price", candle.close, closeTo(49800.0, TOLERANCE))
+                assertThat("Volume should be sum of all trade volumes", candle.volume, closeTo(2.3, TOLERANCE))
+                
+                return null
+            }
+        })
+
+        pipeline.run().waitUntilFinish()
+    }
+
+    /**
+     * Verifies that candle timestamps are set to interval end times.
+     */
+    @Test
+    fun testCandleTimestamp() {
+        // Arrange
+        val windowDuration = Duration.standardMinutes(1)
+        val baseTime = Instant.parse("2023-01-01T10:00:00.000Z")
+        val t1 = baseTime.plus(Duration.standardSeconds(30))
+        val win1End = baseTime.plus(windowDuration)
+        
+        val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
+            .addElements(
+                TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1)
+            )
+            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
+            .advanceWatermarkToInfinity()
+
+        // Act
+        val transform = tradeToCandleFactory.create(windowDuration)
+        val result: PCollection<KV<String, Candle>> = pipeline
+            .apply(tradeStream)
+            .apply("TradeToCandle", transform)
+
+        // Assert - Verify candle timestamp is set to interval end
+        PAssert.that(result).satisfies(object : SerializableFunction<Iterable<KV<String, Candle>>, Void?> {
+            override fun apply(output: Iterable<KV<String, Candle>>): Void? {
+                val candle = output.first().value
+                val candleTimestamp = Instant(candle.timestamp.seconds * 1000)
+                
+                assertThat("Candle timestamp should be at interval end", 
+                           candleTimestamp, equalTo(win1End))
+                
+                return null
+            }
+        })
+
+        pipeline.run().waitUntilFinish()
+    }
+
+    /**
+     * Verifies that candles are generated for consecutive intervals.
+     */
+    @Test
+    fun testConsecutiveIntervals() {
+        // Arrange
+        val windowDuration = Duration.standardMinutes(1)
+        val baseTime = Instant.parse("2023-01-01T10:00:00.000Z")
+        val win1End = baseTime.plus(windowDuration) // 10:01:00
+        val win2End = win1End.plus(windowDuration) // 10:02:00
+        
+        val t1 = baseTime.plus(Duration.standardSeconds(30)) // 10:00:30 - first window
+        val t2 = win1End.plus(Duration.standardSeconds(30)) // 10:01:30 - second window
+        
+        val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
+            .addElements(
+                TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1)
+            )
+            .advanceWatermarkTo(t2) // Advance to second window
+            .addElements(
+                TimestampedValue.of(createTrade("BTC/USD", 50200.0, 0.5, t2), t2)
+            )
+            .advanceWatermarkTo(win2End.plus(Duration.millis(1)))
+            .advanceWatermarkToInfinity()
+
+        // Act
+        val transform = tradeToCandleFactory.create(windowDuration)
+        val result: PCollection<KV<String, Candle>> = pipeline
+            .apply(tradeStream)
+            .apply("TradeToCandle", transform)
+
+        // Assert - Verify we get candles for both intervals
+        PAssert.that(result).satisfies(object : SerializableFunction<Iterable<KV<String, Candle>>, Void?> {
+            override fun apply(output: Iterable<KV<String, Candle>>): Void? {
+                val candles = output.toList()
+                assertThat("Should produce exactly two candles (one per interval)", 
+                           candles.size, equalTo(2))
+                return null
+            }
+        })
+
+        pipeline.run().waitUntilFinish()
+    }
+
+    /**
+     * Verifies fill-forward behavior for empty intervals.
+     */
+    @Test
+    fun testFillForwardEmptyInterval() {
+        // Arrange
+        val windowDuration = Duration.standardMinutes(1)
+        val baseTime = Instant.parse("2023-01-01T10:00:00.000Z")
+        val win1End = baseTime.plus(windowDuration) // 10:01:00
+        val win2End = win1End.plus(windowDuration) // 10:02:00
+        val win3End = win2End.plus(windowDuration) // 10:03:00
+        
+        val t1 = baseTime.plus(Duration.standardSeconds(30)) // 10:00:30 - first window
+        val t3 = win2End.plus(Duration.standardSeconds(30)) // 10:02:30 - third window
+        
+        val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
+            .addElements(
+                TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1)
+            )
+            .advanceWatermarkTo(win2End) // Advance watermark past second window
+            .addElements(
+                TimestampedValue.of(createTrade("BTC/USD", 50200.0, 0.5, t3), t3)
+            )
+            .advanceWatermarkTo(win3End.plus(Duration.millis(1)))
+            .advanceWatermarkToInfinity()
+
+        // Act
+        val transform = tradeToCandleFactory.create(windowDuration)
+        val result: PCollection<KV<String, Candle>> = pipeline
+            .apply(tradeStream)
+            .apply("TradeToCandle", transform)
+
+        // Assert - Verify we get exactly three candles
+        PAssert.that(result).satisfies(object : SerializableFunction<Iterable<KV<String, Candle>>, Void?> {
+            override fun apply(output: Iterable<KV<String, Candle>>): Void? {
+                val candles = output.toList()
+                assertThat("Should produce exactly three candles including fill-forward", 
+                           candles.size, equalTo(3))
+                return null
+            }
+        })
+
+        pipeline.run().waitUntilFinish()
+    }
+
+    /**
+     * Verifies that fill-forward candles have expected OHLCV values.
+     */
+    @Test
+    fun testFillForwardCandleValues() {
+        // Arrange
+        val windowDuration = Duration.standardMinutes(1)
+        val baseTime = Instant.parse("2023-01-01T10:00:00.000Z")
+        val win1End = baseTime.plus(windowDuration) // 10:01:00
+        val win2End = win1End.plus(windowDuration) // 10:02:00
+        val win3End = win2End.plus(windowDuration) // 10:03:00
+        
+        val t1 = baseTime.plus(Duration.standardSeconds(30)) // 10:00:30 - first window
+        val t3 = win2End.plus(Duration.standardSeconds(30)) // 10:02:30 - third window
+        
+        val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
+            .addElements(
+                TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1)
+            )
+            .advanceWatermarkTo(win2End) // Advance watermark past second window
+            .addElements(
+                TimestampedValue.of(createTrade("BTC/USD", 50200.0, 0.5, t3), t3)
+            )
+            .advanceWatermarkTo(win3End.plus(Duration.millis(1)))
+            .advanceWatermarkToInfinity()
+
+        // Act
+        val transform = tradeToCandleFactory.create(windowDuration)
+        val result: PCollection<KV<String, Candle>> = pipeline
+            .apply(tradeStream)
+            .apply("TradeToCandle", transform)
+
+        // Assert - Verify fill-forward candle has expected values
+        PAssert.that(result).satisfies(object : SerializableFunction<Iterable<KV<String, Candle>>, Void?> {
+            override fun apply(output: Iterable<KV<String, Candle>>): Void? {
+                val candles = output.toList()
+                    .sortedBy { Instant(it.value.timestamp.seconds * 1000).millis }
+                
+                // Second candle should be fill-forward with zero volume
+                val fillForwardCandle = candles[1].value
+                
+                assertThat("Fill-forward candle should have zero volume", 
+                           fillForwardCandle.volume, closeTo(0.0, TOLERANCE))
+                
+                // All OHLC values should be equal to the previous close
+                val previousClose = candles[0].value.close
+                assertThat("Fill-forward open should equal previous close", 
+                           fillForwardCandle.open, closeTo(previousClose, TOLERANCE))
+                assertThat("Fill-forward high should equal previous close", 
+                           fillForwardCandle.high, closeTo(previousClose, TOLERANCE))
+                assertThat("Fill-forward low should equal previous close", 
+                           fillForwardCandle.low, closeTo(previousClose, TOLERANCE))
+                assertThat("Fill-forward close should equal previous close", 
+                           fillForwardCandle.close, closeTo(previousClose, TOLERANCE))
+                
                 return null
             }
         })
