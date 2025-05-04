@@ -254,6 +254,25 @@ java_library(
     ],
 )
 
+kt_jvm_library(
+    name = "tiingo_crypto_fetcher_fn",
+    srcs = ["TiingoCryptoFetcherFn.kt"],
+    visibility = ["//visibility:public"], # Allow visibility for tests and other modules
+    deps = [
+        ":tiingo_response_parser", # From PR 1
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/http:http_client",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:flogger",
+        "//third_party:guice", # Keep for @Inject on HttpClient for now
+        "//third_party:joda_time", # Added for Duration parameter
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+         # Add assistedinject later when wiring it up
+    ],
+)
+
 # Tiingo Response Parser
 kt_jvm_library(
     name = "tiingo_response_parser",
