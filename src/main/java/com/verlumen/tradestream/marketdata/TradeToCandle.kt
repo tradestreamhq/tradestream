@@ -192,16 +192,18 @@ constructor(
                 return
             }
 
-            // For timer context, we need to get key from state since we can't get element
+            // Get currency pair directly from the candle
+            val currencyPair = candle.currencyPair
+            
             // Set the candle timestamp to the interval end time
             val finalCandle =
                 candle.toBuilder().setTimestamp(Timestamps.fromMillis(intervalEnd.millis)).build()
 
             logger.atInfo().log(
-                "Outputting candle (timer) for key $key at interval end $intervalEnd:" +
+                "Outputting candle (timer) for currency pair $currencyPair at interval end $intervalEnd:" +
                     " ${candleToString(finalCandle)}"
             )
-            context.outputWithTimestamp(KV.of(key, finalCandle), intervalEnd)
+            context.outputWithTimestamp(KV.of(currencyPair, finalCandle), intervalEnd)
             lastCandleState.write(finalCandle) // Update last *outputted* candle state
         }
 
