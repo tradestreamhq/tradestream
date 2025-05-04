@@ -186,6 +186,21 @@ java_test(
 )
 
 kt_jvm_test(
+    name = "TiingoResponseParserTest",
+    srcs = ["TiingoResponseParserTest.kt"],
+    test_class = "com.verlumen.tradestream.marketdata.TiingoResponseParserTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_response_parser",
+        "//protos:marketdata_java_proto",
+        "//third_party:gson",
+        "//third_party:junit",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+        "//third_party:truth",
+    ],
+)
+
+kt_jvm_test(
     name = "TradeToCandleTest",
     srcs = ["TradeToCandleTest.kt"],
     test_class = "com.verlumen.tradestream.marketdata.TradeToCandleTest",
