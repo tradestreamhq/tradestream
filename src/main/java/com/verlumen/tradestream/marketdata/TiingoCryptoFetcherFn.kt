@@ -7,6 +7,8 @@ import com.verlumen.tradestream.http.HttpClient
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.DoFn.ProcessContext
 import org.apache.beam.sdk.transforms.DoFn.ProcessElement
+import org.apache.beam.sdk.transforms.DoFn.StartBundle
+import org.apache.beam.sdk.transforms.DoFn.Setup
 import org.apache.beam.sdk.values.KV
 import org.joda.time.Duration
 import java.io.IOException
@@ -25,7 +27,30 @@ class TiingoCryptoFetcherFn @Inject constructor(
     private val apiKey: String
 ) : DoFn<KV<String, Void>, KV<String, Candle>>(), Serializable { // Ensure DoFn implements Serializable
 
-    // Eliminated field and @Transient annotation completely
+    @Transient
+    private var httpClient: HttpClient? = null
+    
+    @Setup
+    fun setup() {
+        try {
+            httpClient = httpClientProvider.get()
+            logger.atInfo().log("HttpClient initialized in Setup")
+        } catch (e: Exception) {
+            logger.atSevere().withCause(e).log("Failed to initialize HttpClient in Setup")
+        }
+    }
+    
+    @StartBundle
+    fun startBundle() {
+        try {
+            if (httpClient == null) {
+                httpClient = httpClientProvider.get()
+                logger.atInfo().log("HttpClient initialized in StartBundle")
+            }
+        } catch (e: Exception) {
+            logger.atSevere().withCause(e).log("Failed to initialize HttpClient in StartBundle")
+        }
+    }
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
@@ -50,8 +75,16 @@ class TiingoCryptoFetcherFn @Inject constructor(
 
     @ProcessElement
     fun processElement(context: ProcessContext) {
-        // Get a fresh client for each element - avoiding any field storage
-        val httpClient = httpClientProvider.get()
+        // Last resort: try to get a client if still null
+        if (httpClient == null) {
+            try {
+                httpClient = httpClientProvider.get()
+                logger.atInfo().log("HttpClient initialized in ProcessElement")
+            } catch (e: Exception) {
+                logger.atSevere().withCause(e).log("Failed to initialize HttpClient in ProcessElement")
+                // Continue with null client and let it fail with clear error message
+            }
+        }
         
         val currencyPair = context.element().key
         val ticker = currencyPair.replace("/", "").lowercase()
@@ -72,7 +105,11 @@ class TiingoCryptoFetcherFn @Inject constructor(
         logger.atFine().log("Requesting URL: %s", url)
 
         try {
-            val response = httpClient.get(url, emptyMap())
+            if (httpClient == null) {
+                throw IllegalStateException("HttpClient is null, cannot fetch data")
+            }
+            
+            val response = httpClient!!.get(url, emptyMap())
             val fetchedCandles = TiingoResponseParser.parseCandles(response, currencyPair)
 
             if (fetchedCandles.isNotEmpty()) {
