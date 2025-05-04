@@ -55,7 +55,7 @@ class TiingoCryptoFetcherFnTest {
           {"date": "2023-10-27T00:00:00+00:00", "open": 34650, "high": 35000, "low": 34500, "close": 34950, "volume": 1800}
         ]}]
     """.trimIndent()
-    
+
     @Before
     fun setUp() {
         // Use our improved provider implementation
