@@ -254,6 +254,18 @@ java_library(
     ],
 )
 
+# Tiingo Response Parser
+kt_jvm_library(
+    name = "tiingo_response_parser",
+    srcs = ["TiingoResponseParser.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:gson",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+    ],
+)
+
 # Checkpoint mark for the unbounded source
 kt_jvm_library(
     name = "trade_checkpoint_mark",
