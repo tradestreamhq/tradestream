@@ -22,7 +22,7 @@ import java.io.Serializable
  * This version does *not* yet include state management or fill-forward logic.
  */
 class TiingoCryptoFetcherFn @Inject constructor(
-    @Transient private val httpClientProvider: Provider<HttpClient>, // Inject Provider
+    private val httpClientProvider: Provider<HttpClient>, // Inject Provider
     private val granularity: Duration,
     private val apiKey: String
 ) : DoFn<KV<String, Void>, KV<String, Candle>>(), Serializable { // Ensure DoFn implements Serializable
