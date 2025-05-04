@@ -20,6 +20,7 @@ import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 import java.io.IOException
+import java.io.Serializable
 
 /**
  * Tests for the TiingoCryptoFetcherFn DoFn.
@@ -36,6 +37,9 @@ class TiingoCryptoFetcherFnTest {
     @Mock
     private lateinit var mockHttpClient: HttpClient
 
+    // Use a non-mock Provider for the test
+    private lateinit var mockHttpClientProvider: Provider<HttpClient>
+
     private lateinit var fetcherFnDaily: TiingoCryptoFetcherFn
     private val testApiKey = "TEST_API_KEY_123"
 
@@ -45,10 +49,16 @@ class TiingoCryptoFetcherFnTest {
           {"date": "2023-10-27T00:00:00+00:00", "open": 34650, "high": 35000, "low": 34500, "close": 34950, "volume": 1800}
         ]}]
     """.trimIndent()
-
+    
     @Before
     fun setUp() {
-        fetcherFnDaily = TiingoCryptoFetcherFn(Provider { mockHttpClient }, Duration.standardDays(1), testApiKey)
+        // Wrap the mock in a simple Provider implementation
+        mockHttpClientProvider = object : Provider<HttpClient>, Serializable {
+             // Add @Transient annotation to suppress potential warnings
+            @Transient private val client = mockHttpClient 
+            override fun get(): HttpClient = client
+        }
+        fetcherFnDaily = TiingoCryptoFetcherFn(mockHttpClientProvider, Duration.standardDays(1), testApiKey)
     }
 
     @Test
@@ -60,7 +70,7 @@ class TiingoCryptoFetcherFnTest {
 
         val input: PCollection<KV<String, Void>> = pipeline
             .apply(Create.of<KV<String, Void>>(KV.of(currencyPair, null as Void?)))
-
+            
         val output: PCollection<KV<String, Candle>> = input
             .apply(ParDo.of<KV<String, Void>, KV<String, Candle>>(fetcherFnDaily))
 
@@ -96,7 +106,7 @@ class TiingoCryptoFetcherFnTest {
 
     @Test
     fun invalidApiKeySkipsFetch() {
-        val invalidFn = TiingoCryptoFetcherFn(Provider { mockHttpClient }, Duration.standardDays(1), "")
+        val invalidFn = TiingoCryptoFetcherFn(mockHttpClientProvider, Duration.standardDays(1), "")
         val currencyPair = "BTC/USD"
 
         val input: PCollection<KV<String, Void>> = pipeline
