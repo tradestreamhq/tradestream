@@ -41,7 +41,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
         private const val DEFAULT_START_DATE = "2019-01-02"
         private const val TIINGO_API_URL = "https://api.tiingo.com/tiingo/crypto/prices"
 
-        private const val LAST_FETCHED_TIMESTAMP_STATE_ID = "lastFetchedTimestamp"
+        const val LAST_FETCHED_TIMESTAMP_STATE_ID = "lastFetchedTimestamp"
 
         fun durationToResampleFreq(duration: Duration): String {
             return when {
