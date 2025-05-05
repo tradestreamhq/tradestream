@@ -2,87 +2,69 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.truth.Truth.assertThat
 import com.verlumen.tradestream.http.HttpClient
-import com.google.inject.Provider
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
 import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.values.KV
-import org.apache.beam.sdk.values.PCollection
 import org.joda.time.Duration
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.junit.MockitoJUnit
-import org.mockito.junit.MockitoRule
 import java.io.IOException
-import java.io.Serializable
 
-/**
- * Tests for the TiingoCryptoFetcherFn DoFn.
- */
 @RunWith(JUnit4::class)
 class TiingoCryptoFetcherFnTest {
 
     @get:Rule
     val pipeline: TestPipeline = TestPipeline.create()
 
-    @get:Rule
-    val mockitoRule: MockitoRule = MockitoJUnit.rule()
-
-    @Mock
     private lateinit var mockHttpClient: HttpClient
-
-    // Create a more robust serializable provider implementation
-    private class TestHttpClientProvider(private val client: HttpClient) : Provider<HttpClient>, Serializable {
-        override fun get(): HttpClient = client
-        
-        // Add readResolve method to handle serialization/deserialization
-        private fun readResolve(): Any = this
-    }
-
-    private lateinit var mockHttpClientProvider: Provider<HttpClient>
     private lateinit var fetcherFnDaily: TiingoCryptoFetcherFn
     private val testApiKey = "TEST_API_KEY_123"
 
+    // A small JSON snippet with two daily candles
     private val sampleResponseDaily = """
-        [{"ticker": "btcusd", "priceData": [
-          {"date": "2023-10-26T00:00:00+00:00", "open": 34500, "high": 34800, "low": 34200, "close": 34650, "volume": 1500},
-          {"date": "2023-10-27T00:00:00+00:00", "open": 34650, "high": 35000, "low": 34500, "close": 34950, "volume": 1800}
-        ]}]
+      [{"ticker":"btcusd","priceData":[
+        {"date":"2023-10-26T00:00:00+00:00","open":34500,"high":34800,"low":34200,"close":34650,"volume":1500},
+        {"date":"2023-10-27T00:00:00+00:00","open":34650,"high":35000,"low":34500,"close":34950,"volume":1800}
+      ]}]
     """.trimIndent()
 
     @Before
     fun setUp() {
-        // Use our improved provider implementation
-        mockHttpClientProvider = TestHttpClientProvider(mockHttpClient)
-        fetcherFnDaily = TiingoCryptoFetcherFn(mockHttpClientProvider, Duration.standardDays(1), testApiKey)
-        
-        // Initialize the DoFn manually for tests
-        fetcherFnDaily.setup()
+        // Create a serializable Mockito mock
+        mockHttpClient = Mockito.mock(
+            HttpClient::class.java,
+            Mockito.withSettings().serializable()
+        )
+
+        fetcherFnDaily = TiingoCryptoFetcherFn(
+            mockHttpClient,
+            Duration.standardDays(1),
+            testApiKey
+        )
     }
 
     @Test
     fun dailyFetchOutputsExpectedCandles() {
-        val currencyPair = "BTC/USD"
+        val pair = "BTC/USD"
 
         Mockito.`when`(mockHttpClient.get(Mockito.anyString(), Mockito.anyMap()))
             .thenReturn(sampleResponseDaily)
 
-        val input: PCollection<KV<String, Void>> = pipeline
-            .apply(Create.of<KV<String, Void>>(KV.of(currencyPair, null as Void?)))
-            
-        val output: PCollection<KV<String, Candle>> = input
-            .apply(ParDo.of<KV<String, Void>, KV<String, Candle>>(fetcherFnDaily))
+        val input = pipeline
+            .apply(Create.of(KV.of(pair, null as Void?)))
 
-        PAssert.that(output).satisfies { candles: Iterable<KV<String, Candle>> ->
-            val results = candles.toList()
+        val output = input.apply(ParDo.of(fetcherFnDaily))
+
+        PAssert.that(output).satisfies { elements ->
+            val results = elements.toList()
             assertThat(results).hasSize(2)
-            assertThat(results[0].key).isEqualTo(currencyPair)
+            assertThat(results[0].key).isEqualTo(pair)
             assertThat(results[0].value.close).isEqualTo(34650.0)
             assertThat(results[1].value.close).isEqualTo(34950.0)
             null
@@ -93,16 +75,14 @@ class TiingoCryptoFetcherFnTest {
 
     @Test
     fun ioExceptionYieldsNoOutput() {
-        val currencyPair = "BTC/USD"
-
+        val pair = "BTC/USD"
         Mockito.`when`(mockHttpClient.get(Mockito.anyString(), Mockito.anyMap()))
             .thenThrow(IOException("network error"))
 
-        val input: PCollection<KV<String, Void>> = pipeline
-            .apply(Create.of<KV<String, Void>>(KV.of(currencyPair, null as Void?)))
+        val input = pipeline
+            .apply(Create.of(KV.of(pair, null as Void?)))
 
-        val output: PCollection<KV<String, Candle>> = input
-            .apply(ParDo.of<KV<String, Void>, KV<String, Candle>>(fetcherFnDaily))
+        val output = input.apply(ParDo.of(fetcherFnDaily))
 
         PAssert.that(output).empty()
 
@@ -111,23 +91,16 @@ class TiingoCryptoFetcherFnTest {
 
     @Test
     fun invalidApiKeySkipsFetch() {
-        val invalidFn = TiingoCryptoFetcherFn(mockHttpClientProvider, Duration.standardDays(1), "")
-        
-        // Initialize the DoFn manually for tests
-        invalidFn.setup()
-        
-        val currencyPair = "BTC/USD"
+        val invalidFn = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), "")
+        val pair = "BTC/USD"
 
-        val input: PCollection<KV<String, Void>> = pipeline
-            .apply(Create.of<KV<String, Void>>(KV.of(currencyPair, null as Void?)))
-
-        val output: PCollection<KV<String, Candle>> = input
-            .apply(ParDo.of<KV<String, Void>, KV<String, Candle>>(invalidFn))
+        val input  = pipeline.apply(Create.of(KV.of(pair, null as Void?)))
+        val output = input.apply(ParDo.of(invalidFn))
 
         PAssert.that(output).empty()
-
         pipeline.run().waitUntilFinish()
 
-        Mockito.verify(mockHttpClient, Mockito.never()).get(Mockito.anyString(), Mockito.anyMap())
+        Mockito.verify(mockHttpClient, Mockito.never())
+            .get(Mockito.anyString(), Mockito.anyMap())
     }
 }
