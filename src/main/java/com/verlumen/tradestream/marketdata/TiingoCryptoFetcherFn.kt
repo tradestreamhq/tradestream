@@ -48,10 +48,10 @@ class TiingoCryptoFetcherFn @Inject constructor(
                 duration.standardDays >= 1   -> "${duration.standardDays}day"
                 duration.standardHours >= 1  -> "${duration.standardHours}hour"
                 duration.standardMinutes > 0 -> "${duration.standardMinutes}min"
-                else                         -> "1min"
+                else                         -> "1min" // Default or error case
             }
         }
-        
+
         fun isDailyGranularity(duration: Duration): Boolean {
             return duration.isLongerThan(Duration.standardHours(23))
         }
@@ -60,11 +60,12 @@ class TiingoCryptoFetcherFn @Inject constructor(
     // Use a simple serializable class for state
     data class StateTimestamp(val epochMillis: Long) : Serializable {
         companion object {
-            fun fromProtobufTimestamp(timestamp: Timestamp): StateTimestamp {
-                val millis = Timestamps.toMillis(timestamp)
+            // Rename parameter to avoid potential conflicts
+            fun fromProtobufTimestamp(protoTimestamp: Timestamp): StateTimestamp {
+                val millis = Timestamps.toMillis(protoTimestamp) // Line 64
                 return StateTimestamp(millis)
             }
-            
+
             fun toInstant(stateTimestamp: StateTimestamp): Instant {
                 return Instant.ofEpochMilli(stateTimestamp.epochMillis)
             }
@@ -127,7 +128,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
 
                 for (candle in candles) {
                     context.output(KV.of(currencyPair, candle))
-                    
+
                     // Update latest timestamp tracking
                     // First, convert candle.timestamp to epochMillis
                     val candleMillis = candle.timestamp.getSeconds() * 1000 + candle.timestamp.getNanos() / 1_000_000
@@ -161,9 +162,9 @@ class TiingoCryptoFetcherFn @Inject constructor(
                 val startInstant = if (isDailyGranularity(granularity)) {
                     LocalDate.parse(startDate, TIINGO_DATE_FORMATTER_DAILY).atStartOfDay().toInstant(ZoneOffset.UTC)
                 } else {
-                    try { 
-                        LocalDateTime.parse(startDate, TIINGO_DATE_FORMATTER_INTRADAY).toInstant(ZoneOffset.UTC) 
-                    } catch (e: Exception) { 
+                    try {
+                        LocalDateTime.parse(startDate, TIINGO_DATE_FORMATTER_INTRADAY).toInstant(ZoneOffset.UTC)
+                    } catch (e: Exception) {
                         // Fallback if startDate was DEFAULT_START_DATE but granularity was intraday
                         LocalDate.parse(DEFAULT_START_DATE, TIINGO_DATE_FORMATTER_DAILY).atStartOfDay().toInstant(ZoneOffset.UTC)
                     }
