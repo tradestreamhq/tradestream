@@ -62,7 +62,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
         companion object {
             fun fromProtobufTimestamp(timestamp: Timestamp): StateTimestamp {
                 // Use Kotlin property access syntax instead of Java-style getters
-                val millis = timestamp.seconds * 1000 + timestamp.nanos / 1_000_000
+                val millis = timestamp.getSeconds() * 1000 + timestamp.getNanos() / 1_000_000
                 return StateTimestamp(millis)
             }
             
