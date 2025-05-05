@@ -31,6 +31,9 @@ register_toolchains(
     "@rules_java//toolchains:all",
 )
 
+# Register the Kotlin toolchain for compilation
+register_toolchains("//:kotlin_toolchain")
+
 # Configure Maven dependencies
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
