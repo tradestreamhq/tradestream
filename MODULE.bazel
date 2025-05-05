@@ -1,6 +1,6 @@
 module(
     name = "tradestream",
-    version = "v1.19.3-develop",
+    version = "v1.19.5-develop",
     compatibility_level = 1,
 )
 
@@ -30,6 +30,9 @@ use_repo(java, "java_tools")
 register_toolchains(
     "@rules_java//toolchains:all",
 )
+
+# Register the Kotlin toolchain for compilation
+register_toolchains("//:kotlin_toolchain")
 
 # Configure Maven dependencies
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
