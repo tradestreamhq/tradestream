@@ -61,8 +61,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
     data class StateTimestamp(val epochMillis: Long) : Serializable {
         companion object {
             fun fromProtobufTimestamp(timestamp: Timestamp): StateTimestamp {
-                // Use Kotlin property access syntax instead of Java-style getters
-                val millis = timestamp.getSeconds() * 1000 + timestamp.getNanos() / 1_000_000
+                val millis = Timestamps.toMillis(timestamp)
                 return StateTimestamp(millis)
             }
             
