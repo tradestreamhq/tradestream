@@ -62,7 +62,7 @@ class TiingoCryptoFetcherFnTest {
         val input = pipeline
             .apply(Create.of(KV.of(pair, null as Void?)))
 
-        val fetcherTransformDaily: PTransform<in PCollection<KV<String, Void>>, PCollection<KV<String, Candle>>> = ParDo.of(fetcherFnDaily)
+        val fetcherTransformDaily: PTransform<in PCollection<KV<String, Void?>>, PCollection<KV<String, Candle>>> = ParDo.of(fetcherFnDaily)
         val output: PCollection<KV<String, Candle>> = input.apply("RunFetcherDaily", fetcherTransformDaily)
 
         PAssert.that(output).satisfies { elements: Iterable<KV<String, Candle>> ->
@@ -86,7 +86,7 @@ class TiingoCryptoFetcherFnTest {
         val input = pipeline
             .apply(Create.of(KV.of(pair, null as Void?)))
 
-        val fetcherTransformIOException: PTransform<in PCollection<KV<String, Void>>, PCollection<KV<String, Candle>>> = ParDo.of(fetcherFnDaily)
+        val fetcherTransformIOException: PTransform<in PCollection<KV<String, Void?>>, PCollection<KV<String, Candle>>> = ParDo.of(fetcherFnDaily)
         val output: PCollection<KV<String, Candle>> = input.apply("RunFetcherIOException", fetcherTransformIOException)
 
         PAssert.that(output).empty()
@@ -100,7 +100,7 @@ class TiingoCryptoFetcherFnTest {
         val pair = "BTC/USD"
 
         val input = pipeline.apply(Create.of(KV.of(pair, null as Void?)))
-        val invalidFetcherTransform: PTransform<in PCollection<KV<String, Void>>, PCollection<KV<String, Candle>>> = ParDo.of(invalidFn)
+        val invalidFetcherTransform: PTransform<in PCollection<KV<String, Void?>>, PCollection<KV<String, Candle>>> = ParDo.of(invalidFn)
         val output: PCollection<KV<String, Candle>> = input.apply("RunFetcherInvalidKey", invalidFetcherTransform)
 
         PAssert.that(output).empty()
