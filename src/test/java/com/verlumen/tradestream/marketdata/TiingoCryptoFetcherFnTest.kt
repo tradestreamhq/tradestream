@@ -3,16 +3,12 @@ package com.verlumen.tradestream.marketdata
 import com.google.common.truth.Truth.assertThat
 import com.verlumen.tradestream.http.HttpClient
 import org.apache.beam.sdk.coders.KvCoder
-import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.coders.StringUtf8Coder
 import org.apache.beam.sdk.coders.VoidCoder
-import org.apache.beam.sdk.state.ValueState
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.testing.TestStream
 import org.apache.beam.sdk.transforms.Create
-import org.apache.beam.sdk.transforms.DoFn
-import org.apache.beam.sdk.transforms.DoFn.ProcessContext
 import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.values.KV
 import org.joda.time.Duration
@@ -31,60 +27,48 @@ import org.mockito.kotlin.whenever
 import java.io.IOException
 import java.io.Serializable
 
-// Create a serializable mock HttpClient
-class SerializableHttpClient : HttpClient, Serializable {
+/**
+ * A serializable HttpClient implementation for testing
+ */
+class SerializableHttpClient : Serializable, HttpClient {
     private val serialVersionUID = 1L
-
-    // This will hold our response mapping
-    private val responses = HashMap<String, String>()
-    private val exceptions = HashMap<String, Exception>()
-
+    
+    // Maps for storing configured responses and exceptions
+    private val responseMap = HashMap<String, String>()
+    private val exceptionMap = HashMap<String, Exception>()
+    
+    // Configure a response for a URL containing the given pattern
     fun setResponse(urlPattern: String, response: String) {
-        responses[urlPattern] = response
+        responseMap[urlPattern] = response
     }
-
+    
+    // Configure an exception to be thrown for a URL containing the given pattern
     fun setException(urlPattern: String, exception: Exception) {
-        exceptions[urlPattern] = exception
+        exceptionMap[urlPattern] = exception
     }
-
+    
     override fun get(url: String, headers: Map<String, String>): String {
         // Check if we should throw an exception
-        for ((pattern, exception) in exceptions) {
+        for ((pattern, exception) in exceptionMap) {
             if (url.contains(pattern)) {
                 throw exception
             }
         }
-
-        // Return matching response
-        for ((pattern, response) in responses) {
+        
+        // Look for a matching response
+        for ((pattern, response) in responseMap) {
             if (url.contains(pattern)) {
                 return response
             }
         }
-
+        
         // Default empty response
         return "[]"
     }
-
+    
+    // Implement post method (it is required by the interface)
     override fun post(url: String, body: String, headers: Map<String, String>): String {
-        throw UnsupportedOperationException("POST not implemented in mock")
-    }
-}
-
-// Create a serializable mock ValueState for testing
-class MockValueState<T : Serializable> : ValueState<T>, Serializable {
-    private var value: T? = null
-
-    override fun read(): T? {
-        return value
-    }
-
-    override fun write(value: T?) {
-        this.value = value
-    }
-
-    override fun clear() {
-        this.value = null
+        throw UnsupportedOperationException("POST not implemented in test mock")
     }
 }
 
@@ -97,15 +81,15 @@ class TiingoCryptoFetcherFnTest {
     @get:Rule
     val mockitoRule: MockitoRule = MockitoJUnit.rule()
 
-    // Use our serializable mock instead of Mockito mock
+    // Use our serializable HttpClient
     private lateinit var httpClient: SerializableHttpClient
-
+    
     // Test instances
-    lateinit var fetcherFnDaily: TiingoCryptoFetcherFn
-    lateinit var fetcherFnMinute: TiingoCryptoFetcherFn
-
+    private lateinit var fetcherFnDaily: TiingoCryptoFetcherFn
+    private lateinit var fetcherFnMinute: TiingoCryptoFetcherFn
+    
     private val testApiKey = "TEST_API_KEY_123"
-
+    
     // Sample responses
     private val sampleResponseDailyPage1 = """
        [{"ticker": "btcusd", "priceData": [
@@ -133,42 +117,22 @@ class TiingoCryptoFetcherFnTest {
     """.trimIndent()
     
     private val emptyResponse = "[]"
-
+    
     @Before
     fun setUp() {
-        // Use our serializable HttpClient mock
+        // Create serializable HTTP client
         httpClient = SerializableHttpClient()
         
-        fetcherFnDaily = createSerializableFetcherFn(Duration.standardDays(1))
-        fetcherFnMinute = createSerializableFetcherFn(Duration.standardMinutes(1))
+        // Create fetcher functions
+        fetcherFnDaily = TiingoCryptoFetcherFn(httpClient, Duration.standardDays(1), testApiKey)
+        fetcherFnMinute = TiingoCryptoFetcherFn(httpClient, Duration.standardMinutes(1), testApiKey)
     }
     
-    // Helper method to create a fetcherFn with proper serializable processing
-    private fun createSerializableFetcherFn(duration: Duration): TiingoCryptoFetcherFn {
-        return object : TiingoCryptoFetcherFn(httpClient, duration, testApiKey) {
-            // Override processElement to handle state
-            override fun processElement(
-                context: ProcessContext,
-                @DoFn.StateId(LAST_FETCHED_TIMESTAMP_STATE_ID) lastTimestampState: ValueState<StateTimestamp>
-            ) {
-                // If we're in a test context, use a MockValueState
-                val stateToUse = if (lastTimestampState is MockValueState) {
-                    lastTimestampState
-                } else {
-                    MockValueState<StateTimestamp>()
-                }
-                
-                // Call the original implementation with our mock state
-                super.processElement(context, stateToUse)
-            }
-        }
-    }
-
     @Test
     fun `initial fetch uses default start date`() {
         val currencyPair = "BTC/USD"
         
-        // Set up HTTP client response
+        // Configure HTTP client response for default start date
         httpClient.setResponse("startDate=2019-01-02", sampleResponseDailyPage1)
         
         // Setup pipeline
@@ -187,12 +151,12 @@ class TiingoCryptoFetcherFnTest {
         
         pipeline.run()
     }
-
+    
     @Test
     fun `initial fetch with empty response produces no output`() {
         val currencyPair = "BTC/USD"
         
-        // Set up HTTP client empty response
+        // Configure HTTP client to return empty response
         httpClient.setResponse("startDate=2019-01-02", emptyResponse)
         
         // Setup pipeline
@@ -204,50 +168,24 @@ class TiingoCryptoFetcherFnTest {
         
         pipeline.run()
     }
-
+    
     @Test
     fun `stateful incremental fetching with TestStream`() {
         val currencyPair = "BTC/USD"
         
-        // Create a serializable HttpClient with specific responses
+        // Create a HTTP client with two different responses for the two fetch calls
         val testHttpClient = SerializableHttpClient()
         testHttpClient.setResponse("startDate=2019-01-02", sampleResponseDailyPage1)
         testHttpClient.setResponse("startDate=2023-10-28", sampleResponseDailyPage2)
         
-        // Create stateful fetcherFn
-        val fetcherFn = object : TiingoCryptoFetcherFn(testHttpClient, Duration.standardDays(1), testApiKey) {
-            // Mock state storage between calls
-            private val stateStore = HashMap<String, StateTimestamp>()
-            
-            override fun processElement(
-                context: ProcessContext,
-                @DoFn.StateId(LAST_FETCHED_TIMESTAMP_STATE_ID) lastTimestampState: ValueState<StateTimestamp>
-            ) {
-                // Create a proper serializable state implementation
-                val mockState = object : ValueState<StateTimestamp>, Serializable {
-                    override fun read(): StateTimestamp? = stateStore[context.element().key]
-                    
-                    override fun write(value: StateTimestamp?) {
-                        if (value != null) {
-                            stateStore[context.element().key] = value
-                        }
-                    }
-                    
-                    override fun clear() {
-                        stateStore.remove(context.element().key)
-                    }
-                }
-                
-                // Call original implementation with our mock state
-                super.processElement(context, mockState)
-            }
-        }
+        // Create the fetcherFn with our test HTTP client
+        val fetcherFn = TiingoCryptoFetcherFn(testHttpClient, Duration.standardDays(1), testApiKey)
         
         // Create the TestStream with events and timing
         val testStream = TestStream.create(KvCoder.of(StringUtf8Coder.of(), VoidCoder.of()))
             .addElements(KV.of(currencyPair, null as Void?))  // First fetch
             .advanceProcessingTime(Duration.standardHours(1)) // Advance time
-            .addElements(KV.of(currencyPair, null as Void?))  // Second fetch
+            .addElements(KV.of(currencyPair, null as Void?))  // Second fetch 
             .advanceWatermarkToInfinity()
         
         // Create and run the pipeline
@@ -273,20 +211,13 @@ class TiingoCryptoFetcherFnTest {
         
         pipeline.run()
     }
-
+    
     @Test
     fun `skip fetch if api key is invalid`() {
         val currencyPair = "BTC/USD"
         
         // Create fetcherFn with invalid API key
-        val fetcherFnInvalidKey = object : TiingoCryptoFetcherFn(httpClient, Duration.standardDays(1), "") {
-            override fun processElement(
-                context: ProcessContext,
-                @DoFn.StateId(LAST_FETCHED_TIMESTAMP_STATE_ID) lastTimestampState: ValueState<StateTimestamp>
-            ) {
-                super.processElement(context, MockValueState())
-            }
-        }
+        val fetcherFnInvalidKey = TiingoCryptoFetcherFn(httpClient, Duration.standardDays(1), "")
         
         // Setup pipeline
         val input = pipeline.apply(Create.of(KV.of(currencyPair, null as Void?)))
@@ -297,12 +228,12 @@ class TiingoCryptoFetcherFnTest {
         
         pipeline.run()
     }
-
+    
     @Test
     fun `handle http error gracefully`() {
         val currencyPair = "BTC/USD"
         
-        // Set up HTTP client to throw exception
+        // Configure HTTP client to throw exception
         httpClient.setException("", IOException("Network Error"))
         
         // Setup pipeline
