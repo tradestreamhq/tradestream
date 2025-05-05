@@ -7,6 +7,7 @@ import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
 import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.values.KV
+import org.apache.beam.sdk.values.PCollection
 import org.joda.time.Duration
 import org.junit.Before
 import org.junit.Rule
@@ -15,6 +16,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito
 import java.io.IOException
+import java.io.Serializable
 
 @RunWith(JUnit4::class)
 class TiingoCryptoFetcherFnTest {
@@ -59,7 +61,7 @@ class TiingoCryptoFetcherFnTest {
         val input = pipeline
             .apply(Create.of(KV.of(pair, null as Void?)))
 
-        val output = input.apply(ParDo.of(fetcherFnDaily))
+        val output: PCollection<KV<String, Candle>> = input.apply(ParDo.of(fetcherFnDaily))
 
         PAssert.that(output).satisfies { elements ->
             val results = elements.toList()
@@ -82,7 +84,7 @@ class TiingoCryptoFetcherFnTest {
         val input = pipeline
             .apply(Create.of(KV.of(pair, null as Void?)))
 
-        val output = input.apply(ParDo.of(fetcherFnDaily))
+        val output: PCollection<KV<String, Candle>> = input.apply(ParDo.of(fetcherFnDaily))
 
         PAssert.that(output).empty()
 
@@ -95,7 +97,7 @@ class TiingoCryptoFetcherFnTest {
         val pair = "BTC/USD"
 
         val input  = pipeline.apply(Create.of(KV.of(pair, null as Void?)))
-        val output = input.apply(ParDo.of(invalidFn))
+        val output: PCollection<KV<String, Candle>> = input.apply(ParDo.of(invalidFn))
 
         PAssert.that(output).empty()
         pipeline.run().waitUntilFinish()
