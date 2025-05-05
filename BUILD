@@ -1,12 +1,4 @@
-
 load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
-
-define_kt_toolchain(
-    name             = "kotlin_toolchain",
-    api_version      = "1.9",     # Kotlin language API version
-    language_version = "1.9",     # Compiler language version
-    jvm_target       = "1.8",     # Target JVM bytecode level
-)
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
