@@ -62,7 +62,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
     // --- State Declaration ---
     @StateId(LAST_FETCHED_TIMESTAMP_STATE_ID)
     private val lastTimestampSpec: StateSpec<ValueState<Timestamp>> =
-        StateSpecs.value(SerializableCoder.forClass(Timestamp::class.java)) // Use SerializableCoder for Timestamp state
+        StateSpecs.value(org.apache.beam.sdk.extensions.protobuf.ProtoCoder.of(Timestamp::class.java))
 
     @ProcessElement
     fun processElement(
@@ -82,8 +82,8 @@ class TiingoCryptoFetcherFn @Inject constructor(
 
         // --- Determine Start Date based on State ---
         val lastTimestamp = lastTimestampState.read()
-        val startDate = if (lastTimestamp != null && lastTimestamp.getSeconds() > 0) {
-             val lastInstant = Instant.ofEpochSecond(lastTimestamp.getSeconds(), lastTimestamp.getNanos().toLong())
+        val startDate = if (lastTimestamp != null && lastTimestamp.seconds > 0) {
+             val lastInstant = Instant.ofEpochSecond(lastTimestamp.seconds, lastTimestamp.nanos.toLong())
             logger.atFine().log("Found previous state for %s: %s", currencyPair, lastInstant)
 
             if (isDailyGranularity(granularity)) {
@@ -105,7 +105,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
         logger.atFine().log("Requesting URL: %s", url)
 
         var latestCandleInBatchTimestamp: Timestamp? = null // Track latest timestamp in *this* batch
-        val fetchedCandles: List<Candle> // Declare fetchedCandles here
+        var fetchedCandles: List<Candle> = emptyList() // Initialize with an empty list
 
         try {
             val response = httpClient.get(url, emptyMap())
@@ -119,7 +119,8 @@ class TiingoCryptoFetcherFn @Inject constructor(
                 fetchedCandles.forEach { candle ->
                     context.output(KV.of(currencyPair, candle))
                     // Track the latest timestamp encountered in this batch
-                    if (latestCandleInBatchTimestamp == null || Timestamps.compare(candle.timestamp, latestCandleInBatchTimestamp!!) > 0) {
+                    if (latestCandleInBatchTimestamp == null || 
+                        Timestamps.compare(candle.timestamp, latestCandleInBatchTimestamp) > 0) {
                         latestCandleInBatchTimestamp = candle.timestamp
                     }
                 }
