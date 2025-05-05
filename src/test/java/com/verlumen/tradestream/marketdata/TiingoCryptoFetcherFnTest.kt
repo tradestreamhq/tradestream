@@ -5,6 +5,7 @@ import com.verlumen.tradestream.http.HttpClient
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
+import org.apache.beam.sdk.transforms.PTransform
 import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
@@ -61,7 +62,8 @@ class TiingoCryptoFetcherFnTest {
         val input = pipeline
             .apply(Create.of(KV.of(pair, null as Void?)))
 
-        val output = input.apply<PCollection<KV<String, Candle>>>("RunFetcherDaily", ParDo.of(fetcherFnDaily))
+        val fetcherTransformDaily: PTransform<in PCollection<KV<String, Void>>, PCollection<KV<String, Candle>>> = ParDo.of(fetcherFnDaily)
+        val output = input.apply("RunFetcherDaily", fetcherTransformDaily)
 
         PAssert.that(output).satisfies { elements ->
             val results = elements.toList()
@@ -84,7 +86,8 @@ class TiingoCryptoFetcherFnTest {
         val input = pipeline
             .apply(Create.of(KV.of(pair, null as Void?)))
 
-        val output = input.apply<PCollection<KV<String, Candle>>>("RunFetcherIOException", ParDo.of(fetcherFnDaily))
+        val fetcherTransformIOException: PTransform<in PCollection<KV<String, Void>>, PCollection<KV<String, Candle>>> = ParDo.of(fetcherFnDaily)
+        val output = input.apply("RunFetcherIOException", fetcherTransformIOException)
 
         PAssert.that(output).empty()
 
@@ -97,7 +100,8 @@ class TiingoCryptoFetcherFnTest {
         val pair = "BTC/USD"
 
         val input  = pipeline.apply(Create.of(KV.of(pair, null as Void?)))
-        val output = input.apply<PCollection<KV<String, Candle>>>("RunFetcherInvalidKey", ParDo.of(invalidFn))
+        val invalidFetcherTransform: PTransform<in PCollection<KV<String, Void>>, PCollection<KV<String, Candle>>> = ParDo.of(invalidFn)
+        val output = input.apply("RunFetcherInvalidKey", invalidFetcherTransform)
 
         PAssert.that(output).empty()
         pipeline.run().waitUntilFinish()
