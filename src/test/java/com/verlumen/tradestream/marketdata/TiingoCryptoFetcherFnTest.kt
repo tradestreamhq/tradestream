@@ -61,7 +61,7 @@ class TiingoCryptoFetcherFnTest {
         val input = pipeline
             .apply(Create.of(KV.of(pair, null as Void?)))
 
-        val output: PCollection<KV<String, Candle>> = input.apply(ParDo.of(fetcherFnDaily))
+        val output = input.apply<PCollection<KV<String, Candle>>>("RunFetcherDaily", ParDo.of(fetcherFnDaily))
 
         PAssert.that(output).satisfies { elements ->
             val results = elements.toList()
@@ -84,7 +84,7 @@ class TiingoCryptoFetcherFnTest {
         val input = pipeline
             .apply(Create.of(KV.of(pair, null as Void?)))
 
-        val output: PCollection<KV<String, Candle>> = input.apply(ParDo.of(fetcherFnDaily))
+        val output = input.apply<PCollection<KV<String, Candle>>>("RunFetcherIOException", ParDo.of(fetcherFnDaily))
 
         PAssert.that(output).empty()
 
@@ -97,7 +97,7 @@ class TiingoCryptoFetcherFnTest {
         val pair = "BTC/USD"
 
         val input  = pipeline.apply(Create.of(KV.of(pair, null as Void?)))
-        val output: PCollection<KV<String, Candle>> = input.apply(ParDo.of(invalidFn))
+        val output = input.apply<PCollection<KV<String, Candle>>>("RunFetcherInvalidKey", ParDo.of(invalidFn))
 
         PAssert.that(output).empty()
         pipeline.run().waitUntilFinish()
