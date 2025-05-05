@@ -84,20 +84,20 @@ class CandleLookbackDoFn(
         }
         
         // Check if we're about to evict elements
-        val willEvict = queue.size == queue.remainingCapacity() + queue.size && queue.size > 0
+        val willEvict = queue!!.size == queue.remainingCapacity() + queue.size && queue.size > 0
         if (willEvict) {
             logger.atFine().log("Queue is full, oldest candle will be evicted for key=%s", key)
         }
         
         // Add the new candle
-        queue.add(newCandle)
+        queue!!.add(newCandle)
         
         // Save updated queue
         queueState.write(queue)
-        logger.atFine().log("Updated queue for key=%s, new size=%d", key, queue.size)
+        logger.atFine().log("Updated queue for key=%s, new size=%d", key, queue!!.size)
         
         // Process lookbacks immediately
-        processLookbacks(context, key, queue)
+        processLookbacks(context, key, queue!!)
     }
     
     /**
