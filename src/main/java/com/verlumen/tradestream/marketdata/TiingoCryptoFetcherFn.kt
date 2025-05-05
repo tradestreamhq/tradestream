@@ -59,10 +59,10 @@ class TiingoCryptoFetcherFn @Inject constructor(
 
     // Use a simple serializable class for state
     data class StateTimestamp(val epochMillis: Long) : Serializable {
-        companion object {
-            // Rename parameter to avoid potential conflicts
-            fun fromProtobufTimestamp(protoTimestamp: Timestamp): StateTimestamp {
-                val millis = Timestamps.toMillis(protoTimestamp) // Line 64
+companion object {
+            // Explicitly specify the Timestamp type to avoid ambiguity
+            fun fromProtobufTimestamp(protoTimestamp: com.google.protobuf.Timestamp): StateTimestamp {
+                val millis = Timestamps.toMillis(protoTimestamp)
                 return StateTimestamp(millis)
             }
 
