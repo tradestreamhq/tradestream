@@ -45,7 +45,6 @@ class TiingoCryptoFetcherFn @Inject constructor(
         // State ID for storing the timestamp of the last fetched candle
         private const val LAST_FETCHED_TIMESTAMP_STATE_ID = "lastFetchedTimestamp"
 
-
         fun durationToResampleFreq(duration: Duration): String { /* ... same as PR 2 ... */
              return when {
                 duration.standardDays >= 1   -> "${duration.standardDays}day"
@@ -60,14 +59,29 @@ class TiingoCryptoFetcherFn @Inject constructor(
     }
 
     // --- State Declaration ---
+    // Use a custom TimestampData class that will be serializable
+    class TimestampData(val epochSeconds: Long, val nanos: Int) : Serializable {
+        companion object {
+            fun fromProtobuf(timestamp: Timestamp?): TimestampData? {
+                return if (timestamp == null) null
+                else TimestampData(timestamp.getSeconds(), timestamp.getNanos())
+            }
+            
+            fun toProtobuf(data: TimestampData?): Timestamp? {
+                return if (data == null) null
+                else Timestamps.fromMillis(data.epochSeconds * 1000 + data.nanos / 1_000_000)
+            }
+        }
+    }
+    
     @StateId(LAST_FETCHED_TIMESTAMP_STATE_ID)
-    private val lastTimestampSpec: StateSpec<ValueState<Timestamp>> =
-        StateSpecs.value(org.apache.beam.sdk.extensions.protobuf.ProtoCoder.of(Timestamp::class.java))
+    private val lastTimestampSpec: StateSpec<ValueState<TimestampData>> =
+        StateSpecs.value(SerializableCoder.of(TimestampData::class.java))
 
     @ProcessElement
     fun processElement(
         context: ProcessContext,
-        @StateId(LAST_FETCHED_TIMESTAMP_STATE_ID) lastTimestampState: ValueState<Timestamp> // Inject state
+        @StateId(LAST_FETCHED_TIMESTAMP_STATE_ID) lastTimestampState: ValueState<TimestampData> // Inject state
     ) {
         val currencyPair = context.element().key
         val ticker = currencyPair.replace("/", "").lowercase()
@@ -81,9 +95,9 @@ class TiingoCryptoFetcherFn @Inject constructor(
         logger.atInfo().log("Processing fetch for: %s (ticker: %s, freq: %s)", currencyPair, ticker, resampleFreq)
 
         // --- Determine Start Date based on State ---
-        val lastTimestamp = lastTimestampState.read()
-        val startDate = if (lastTimestamp != null && lastTimestamp.seconds > 0) {
-             val lastInstant = Instant.ofEpochSecond(lastTimestamp.seconds, lastTimestamp.nanos.toLong())
+        val lastTimestampData = lastTimestampState.read()
+        val startDate = if (lastTimestampData != null && lastTimestampData.epochSeconds > 0) {
+             val lastInstant = Instant.ofEpochSecond(lastTimestampData.epochSeconds, lastTimestampData.nanos.toLong())
             logger.atFine().log("Found previous state for %s: %s", currencyPair, lastInstant)
 
             if (isDailyGranularity(granularity)) {
@@ -117,10 +131,15 @@ class TiingoCryptoFetcherFn @Inject constructor(
                 logger.atInfo().log("Parsed %d candles for %s", fetchedCandles.size, currencyPair)
 
                 fetchedCandles.forEach { candle ->
+                    // We need to ensure candle.timestamp is a Protobuf Timestamp
+                    // If it's not already, we may need to convert it
+                    
+                    // Assuming candle.timestamp is already a Protobuf Timestamp
                     context.output(KV.of(currencyPair, candle))
+                    
                     // Track the latest timestamp encountered in this batch
                     if (latestCandleInBatchTimestamp == null || 
-                        Timestamps.compare(candle.timestamp, latestCandleInBatchTimestamp) > 0) {
+                        (candle.timestamp != null && Timestamps.compare(candle.timestamp, latestCandleInBatchTimestamp) > 0)) {
                         latestCandleInBatchTimestamp = candle.timestamp
                     }
                 }
@@ -139,10 +158,10 @@ class TiingoCryptoFetcherFn @Inject constructor(
         // --- State Update Logic ---
         if (latestCandleInBatchTimestamp != null) {
             // If we fetched new candles, update state to the latest timestamp from the batch
-            lastTimestampState.write(latestCandleInBatchTimestamp)
+            lastTimestampState.write(TimestampData.fromProtobuf(latestCandleInBatchTimestamp))
             logger.atInfo().log("Updated last timestamp state for %s to: %s",
                  currencyPair, Timestamps.toString(latestCandleInBatchTimestamp))
-        } else if (lastTimestamp == null && fetchedCandles.isEmpty()) {
+        } else if (lastTimestampData == null && fetchedCandles.isEmpty()) {
             // If this was the *initial* fetch (lastTimestamp was null) AND no data was returned,
             // set the state to the start date we *tried* to fetch from. This prevents
             // repeatedly querying the full history from DEFAULT_START_DATE.
@@ -156,7 +175,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
                      }
                 }
                 val initialTimestamp = Timestamps.fromMillis(startInstant.toEpochMilli()) // Convert java.time.Instant to proto Timestamp
-                lastTimestampState.write(initialTimestamp)
+                lastTimestampState.write(TimestampData.fromProtobuf(initialTimestamp))
                  logger.atInfo().log("Initial fetch for %s yielded no data. Setting state to start date: %s",
                       currencyPair, Timestamps.toString(initialTimestamp))
             } catch (e: Exception) {
