@@ -254,6 +254,23 @@ java_library(
     ],
 )
 
+kt_jvm_library(
+    name = "tiingo_crypto_fetcher_fn",
+    srcs = ["TiingoCryptoFetcherFn.kt"],
+    deps = [
+        ":tiingo_response_parser",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/http:http_client",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+    ],
+)
+
 # Tiingo Response Parser
 kt_jvm_library(
     name = "tiingo_response_parser",
