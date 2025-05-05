@@ -31,6 +31,14 @@ register_toolchains(
     "@rules_java//toolchains:all",
 )
 
+# Pull in the Kotlin stdlib, compiler, KSP, etc.
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+kotlin_repositories()  # sets up @com_github_jetbrains_kotlin, @com_github_google_ksp, etc.
+
+# Register the Kotlin toolchain for compilation
+load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+kt_register_toolchains()
+
 # Configure Maven dependencies
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
