@@ -5,7 +5,7 @@ import com.google.inject.Inject
 import com.google.protobuf.Timestamp // Import protobuf timestamp
 import com.google.protobuf.util.Timestamps // Import Timestamps utility
 import com.verlumen.tradestream.http.HttpClient
-import org.apache.beam.sdk.extensions.protobuf.ProtoCoder // Import ProtoCoder
+import org.apache.beam.sdk.coders.SerializableCoder // Import SerializableCoder
 import org.apache.beam.sdk.state.StateSpec // Import StateSpec
 import org.apache.beam.sdk.state.StateSpecs // Import StateSpecs
 import org.apache.beam.sdk.state.ValueState // Import ValueState
@@ -36,14 +36,15 @@ class TiingoCryptoFetcherFn @Inject constructor(
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
-        private val TIINGO_DATE_FORMATTER_DAILY = DateTimeFormatter.ISO_LOCAL_DATE // yyyy-MM-dd
-        private val TIINGO_DATE_FORMATTER_INTRADAY = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss") // yyyy-MM-ddTHH:mm:ss
+        private val TIINGO_DATE_FORMATTER_DAILY = DateTimeFormatter.ISO_LOCAL_DATE // YYYY-MM-dd
+        private val TIINGO_DATE_FORMATTER_INTRADAY = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss") // YYYY-MM-ddTHH:mm:ss
 
         private const val DEFAULT_START_DATE = "2019-01-02"
         private const val TIINGO_API_URL = "https://api.tiingo.com/tiingo/crypto/prices"
 
         // State ID for storing the timestamp of the last fetched candle
         private const val LAST_FETCHED_TIMESTAMP_STATE_ID = "lastFetchedTimestamp"
+
 
         fun durationToResampleFreq(duration: Duration): String { /* ... same as PR 2 ... */
              return when {
@@ -61,7 +62,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
     // --- State Declaration ---
     @StateId(LAST_FETCHED_TIMESTAMP_STATE_ID)
     private val lastTimestampSpec: StateSpec<ValueState<Timestamp>> =
-        StateSpecs.value(ProtoCoder.of(Timestamp::class.java)) // Use ProtoCoder for Timestamp state
+        StateSpecs.value(SerializableCoder.forClass(Timestamp::class.java)) // Use SerializableCoder for Timestamp state
 
     @ProcessElement
     fun processElement(
@@ -81,8 +82,8 @@ class TiingoCryptoFetcherFn @Inject constructor(
 
         // --- Determine Start Date based on State ---
         val lastTimestamp = lastTimestampState.read()
-        val startDate = if (lastTimestamp != null && lastTimestamp.seconds > 0) {
-             val lastInstant = Instant.ofEpochSecond(lastTimestamp.seconds, lastTimestamp.nanos.toLong())
+        val startDate = if (lastTimestamp != null && lastTimestamp.getSeconds() > 0) {
+             val lastInstant = Instant.ofEpochSecond(lastTimestamp.getSeconds(), lastTimestamp.getNanos().toLong())
             logger.atFine().log("Found previous state for %s: %s", currencyPair, lastInstant)
 
             if (isDailyGranularity(granularity)) {
@@ -104,12 +105,13 @@ class TiingoCryptoFetcherFn @Inject constructor(
         logger.atFine().log("Requesting URL: %s", url)
 
         var latestCandleInBatchTimestamp: Timestamp? = null // Track latest timestamp in *this* batch
+        val fetchedCandles: List<Candle> // Declare fetchedCandles here
 
         try {
             val response = httpClient.get(url, emptyMap())
             logger.atFine().log("Received response for %s (length: %d)", currencyPair, response.length)
 
-            val fetchedCandles = TiingoResponseParser.parseCandles(response, currencyPair)
+            fetchedCandles = TiingoResponseParser.parseCandles(response, currencyPair) // Assign here
 
             if (fetchedCandles.isNotEmpty()) {
                 logger.atInfo().log("Parsed %d candles for %s", fetchedCandles.size, currencyPair)
@@ -129,7 +131,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
             logger.atSevere().withCause(e).log("I/O error fetching/parsing Tiingo data for %s: %s", currencyPair, e.message)
             return // Stop processing this element on error
         } catch (e: Exception) {
-             logger.atSevere().withCause(e).log("Unexpected error fetching Tiingo data for %s: %s", currencyPair, e.message)
+            logger.atSevere().withCause(e).log("Unexpected error fetching Tiingo data for %s: %s", currencyPair, e.message)
              return // Stop processing this element on error
         }
 
@@ -152,7 +154,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
                          LocalDate.parse(DEFAULT_START_DATE, TIINGO_DATE_FORMATTER_DAILY).atStartOfDay().toInstant(ZoneOffset.UTC)
                      }
                 }
-                val initialTimestamp = Timestamps.fromMillis(startInstant.toEpochMilli())
+                val initialTimestamp = Timestamps.fromMillis(startInstant.toEpochMilli()) // Convert java.time.Instant to proto Timestamp
                 lastTimestampState.write(initialTimestamp)
                  logger.atInfo().log("Initial fetch for %s yielded no data. Setting state to start date: %s",
                       currencyPair, Timestamps.toString(initialTimestamp))
