@@ -61,7 +61,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
     data class StateTimestamp(val epochMillis: Long) : Serializable {
         companion object {
             fun fromProtobufTimestamp(timestamp: Timestamp): StateTimestamp {
-                val millis = timestamp.seconds * 1000 + timestamp.nanos / 1_000_000
+                val millis = timestamp.getSeconds() * 1000 + timestamp.getNanos() / 1_000_000
                 return StateTimestamp(millis)
             }
             
@@ -130,7 +130,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
                     
                     // Update latest timestamp tracking
                     // First, convert candle.timestamp to epochMillis
-                    val candleMillis = candle.timestamp.seconds * 1000 + candle.timestamp.nanos / 1_000_000
+                    val candleMillis = candle.timestamp.getSeconds() * 1000 + candle.timestamp.getNanos() / 1_000_000
                     if (candleMillis > latestEpochMillis) {
                         latestEpochMillis = candleMillis
                     }
