@@ -31,7 +31,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
     private val httpClient: HttpClient,
     private val granularity: Duration,
     private val apiKey: String
-) : DoFn<KV<String, Void?>, KV<String, Candle>>(), Serializable {
+) : DoFn<KV<String, Void?>, KV<String, Candle>>() {
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
@@ -41,6 +41,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
         private const val DEFAULT_START_DATE = "2019-01-02"
         private const val TIINGO_API_URL = "https://api.tiingo.com/tiingo/crypto/prices"
 
+        // Made public for testing
         const val LAST_FETCHED_TIMESTAMP_STATE_ID = "lastFetchedTimestamp"
 
         fun durationToResampleFreq(duration: Duration): String {
@@ -59,8 +60,8 @@ class TiingoCryptoFetcherFn @Inject constructor(
 
     // Use a simple serializable class for state
     data class StateTimestamp(val epochMillis: Long) : Serializable {
-companion object {
-            // Explicitly specify the Timestamp type to avoid ambiguity
+        companion object {
+            // Fixed the parameter type to avoid ambiguity
             fun fromProtobufTimestamp(protoTimestamp: com.google.protobuf.Timestamp): StateTimestamp {
                 val millis = Timestamps.toMillis(protoTimestamp)
                 return StateTimestamp(millis)
@@ -72,8 +73,9 @@ companion object {
         }
     }
 
+    // Made internal for testing
     @StateId(LAST_FETCHED_TIMESTAMP_STATE_ID)
-    private val lastTimestampSpec: StateSpec<ValueState<StateTimestamp>> =
+    internal val lastTimestampSpec: StateSpec<ValueState<StateTimestamp>> =
         StateSpecs.value(SerializableCoder.of(StateTimestamp::class.java))
 
     @ProcessElement
