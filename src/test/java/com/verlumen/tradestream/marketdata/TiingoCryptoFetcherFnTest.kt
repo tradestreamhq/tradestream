@@ -91,7 +91,7 @@ class TiingoCryptoFetcherFnTest {
         val outputs = tester.processBundle(listOf(input))
 
         assertThat(outputs).hasSize(2) // Verify output
-        val finalState: Timestamp? = tester.getState(fetcherFnDaily.lastTimestampSpec) // Get state using spec
+        val finalState: Timestamp? = tester.getStateSideInput(TiingoCryptoFetcherFn.LAST_FETCHED_TIMESTAMP_STATE_ID) // Get state using spec
         assertThat(finalState).isNotNull()
         // State should be timestamp of the last candle in the batch
         assertThat(Timestamps.toMillis(finalState!!)).isEqualTo(1698364800000L) // 2023-10-27T00:00:00Z
@@ -126,7 +126,7 @@ class TiingoCryptoFetcherFnTest {
         val outputs = tester.processBundle(listOf(input))
 
         assertThat(outputs).isEmpty()
-        val finalState: Timestamp? = tester.getState(fetcherFnDaily.lastTimestampSpec)
+        val finalState: Timestamp? = tester.getStateSideInput(TiingoCryptoFetcherFn.LAST_FETCHED_TIMESTAMP_STATE_ID)
         assertThat(finalState).isNotNull()
         // State should be the start of the DEFAULT_START_DATE
         val expectedStateDate = LocalDate.parse("2019-01-02")
@@ -145,7 +145,7 @@ class TiingoCryptoFetcherFnTest {
         val initialTimestampMillis = 1698364800000L // 2023-10-27T00:00:00Z
         val initialTimestampProto = Timestamps.fromMillis(initialTimestampMillis)
         val tester = DoFnTester.of(fetcherFnDaily)
-        tester.setState(fetcherFnDaily.lastTimestampSpec, initialTimestampProto) // Set initial state
+        tester.setStateSideInput(TiingoCryptoFetcherFn.LAST_FETCHED_TIMESTAMP_STATE_ID, initialTimestampProto) // Set initial state
 
         // Mock HTTP client for the *next* day's fetch
         val expectedStartDate = "2023-10-28" // Day after state
@@ -158,7 +158,7 @@ class TiingoCryptoFetcherFnTest {
         // Assert
         assertThat(outputs).hasSize(1)
         assertThat(outputs[0].value.close).isEqualTo(35100.0)
-        val finalState: Timestamp? = tester.getState(fetcherFnDaily.lastTimestampSpec)
+        val finalState: Timestamp? = tester.getStateSideInput(TiingoCryptoFetcherFn.LAST_FETCHED_TIMESTAMP_STATE_ID)
         assertThat(finalState).isNotNull()
         // State should be updated to the new latest candle
         assertThat(Timestamps.toMillis(finalState!!)).isEqualTo(1698451200000L) // 2023-10-28T00:00:00Z
@@ -200,7 +200,7 @@ class TiingoCryptoFetcherFnTest {
         val initialTimestampMillis = 1698364800000L // 2023-10-27T00:00:00Z
         val initialTimestampProto = Timestamps.fromMillis(initialTimestampMillis)
         val tester = DoFnTester.of(fetcherFnDaily)
-        tester.setState(fetcherFnDaily.lastTimestampSpec, initialTimestampProto)
+        tester.setStateSideInput(TiingoCryptoFetcherFn.LAST_FETCHED_TIMESTAMP_STATE_ID, initialTimestampProto)
 
         // Mock HTTP client to return empty
         val expectedStartDate = "2023-10-28"
@@ -212,7 +212,7 @@ class TiingoCryptoFetcherFnTest {
 
         // Assert
         assertThat(outputs).isEmpty()
-        val finalState: Timestamp? = tester.getState(fetcherFnDaily.lastTimestampSpec)
+        val finalState: Timestamp? = tester.getStateSideInput(TiingoCryptoFetcherFn.LAST_FETCHED_TIMESTAMP_STATE_ID)
         // State should NOT have been updated
         assertThat(finalState).isEqualTo(initialTimestampProto)
     }
@@ -248,7 +248,7 @@ class TiingoCryptoFetcherFnTest {
         assertThat(outputs).isNotNull()
         assertThat(outputs).isEmpty()
         // Verify state didn't change (it shouldn't exist yet)
-        val finalState: Timestamp? = tester.getState(fetcherFnDaily.lastTimestampSpec)
+        val finalState: Timestamp? = tester.getStateSideInput(TiingoCryptoFetcherFn.LAST_FETCHED_TIMESTAMP_STATE_ID)
         assertThat(finalState).isNull()
     }
 
