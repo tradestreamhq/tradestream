@@ -20,7 +20,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
     private val httpClient: HttpClient,
     private val granularity: Duration,
     private val apiKey: String
-) : DoFn<KV<String, Void>, KV<String, Candle>>(), Serializable {
+) : DoFn<KV<String, Void?>, KV<String, Candle>>(), Serializable {
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
@@ -28,7 +28,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
         private const val DEFAULT_START_DATE = "2019-01-02"
         private const val TIINGO_API_URL = "https://api.tiingo.com/tiingo/crypto/prices"
 
-        /** Convert a Joda Duration into Tiingo’s `resampleFreq` string. */
+        /** Convert a Joda Duration into Tiingo's `resampleFreq` string. */
         fun durationToResampleFreq(duration: Duration): String {
             return when {
                 duration.standardDays >= 1   -> "${duration.standardDays}day"
