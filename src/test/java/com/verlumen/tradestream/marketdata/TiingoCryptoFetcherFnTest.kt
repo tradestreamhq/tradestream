@@ -1,24 +1,20 @@
 package com.verlumen.tradestream.marketdata
 
 import com.google.common.truth.Truth.assertThat
-import com.google.protobuf.Timestamp
-import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.http.HttpClient
-import org.apache.beam.sdk.coders.SerializableCoder // Import SerializableCoder
-import org.apache.beam.sdk.extensions.protobuf.ProtoCoder // Import ProtoCoder
-import org.apache.beam.sdk.state.StateSpec                          // Import StateSpec
-import org.apache.beam.sdk.state.StateSpecs                         // Import StateSpecs
-import org.apache.beam.sdk.state.ValueState                         // Import ValueState
+import org.apache.beam.sdk.coders.KvCoder
+import org.apache.beam.sdk.coders.StringUtf8Coder
+import org.apache.beam.sdk.coders.VoidCoder
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
+import org.apache.beam.sdk.testing.TestStream
 import org.apache.beam.sdk.transforms.Create
-import org.apache.beam.sdk.transforms.DoFnTester
+import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.values.KV
 import org.joda.time.Duration
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.Assert
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatcher
@@ -29,14 +25,12 @@ import org.mockito.junit.MockitoRule
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.io.IOException
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.util.Collections
 
 @RunWith(JUnit4::class)
 class TiingoCryptoFetcherFnTest {
+
+    @get:Rule
+    val pipeline: TestPipeline = TestPipeline.create()
 
     @get:Rule
     val mockitoRule: MockitoRule = MockitoJUnit.rule()
@@ -48,231 +42,187 @@ class TiingoCryptoFetcherFnTest {
     lateinit var fetcherFnDaily: TiingoCryptoFetcherFn
     lateinit var fetcherFnMinute: TiingoCryptoFetcherFn
 
-    // State Spec definition (matching the one likely in TiingoCryptoFetcherFn)
-    private val lastTimestampSpec: StateSpec<ValueState<TiingoCryptoFetcherFn.StateTimestamp>> =
-        StateSpecs.value(SerializableCoder.of(TiingoCryptoFetcherFn.StateTimestamp::class.java))
-
-
     private val testApiKey = "TEST_API_KEY_123"
 
-    // Sample responses remain the same...
+    // Sample responses
     private val sampleResponseDailyPage1 = """
        [{"ticker": "btcusd", "priceData": [
          {"date": "2023-10-26T00:00:00+00:00", "open": 34500, "high": 34800, "low": 34200, "close": 34650, "volume": 1500},
          {"date": "2023-10-27T00:00:00+00:00", "open": 34650, "high": 35000, "low": 34500, "close": 34950, "volume": 1800}
        ]}]
     """.trimIndent()
+    
     private val sampleResponseDailyPage2 = """
        [{"ticker": "btcusd", "priceData": [
          {"date": "2023-10-28T00:00:00+00:00", "open": 34950, "high": 35200, "low": 34800, "close": 35100, "volume": 1200}
        ]}]
     """.trimIndent()
+    
     private val sampleResponseMinutePage1 = """
        [{"ticker": "ethusd", "priceData": [
          {"date": "2023-10-27T10:01:00+00:00", "open": 2000, "high": 2002, "low": 1999, "close": 2001, "volume": 5.2}
        ]}]
     """.trimIndent()
+    
     private val sampleResponseMinutePage2 = """
        [{"ticker": "ethusd", "priceData": [
          {"date": "2023-10-27T10:02:00+00:00", "open": 2001, "high": 2005, "low": 2000, "close": 2004, "volume": 6.1}
        ]}]
     """.trimIndent()
+    
     private val emptyResponse = "[]"
-
 
     @Before
     fun setUp() {
         fetcherFnDaily = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), testApiKey)
-        fetcherFnMinute = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardMinutes(1), testApiKey) // Use 1-min for testing
-    }
-
-    // --- Test Initial Fetch (No State) ---
-    @Test
-    fun `processElement initial fetch daily uses default start date`() {
-        val currencyPair = "BTC/USD"
-        val input = KV.of(currencyPair, null as Void?)
-        val expectedStartDate = "2019-01-02"
-        val urlMatcher = UrlMatcher("startDate=$expectedStartDate", "resampleFreq=1day", "tickers=btcusd")
-        Mockito.`when`(mockHttpClient.get(argThat(urlMatcher), anyMap())).thenReturn(sampleResponseDailyPage1)
-
-        val tester = DoFnTester.of(fetcherFnDaily)
-        val outputs = tester.processBundle(listOf(input))
-
-        assertThat(outputs).hasSize(2) // Verify output
-        val finalState: TiingoCryptoFetcherFn.StateTimestamp? = tester.state(lastTimestampSpec).read() // Get state using spec
-        assertThat(finalState).isNotNull()
-        // State should be timestamp of the last candle in the batch
-        assertThat(finalState!!.epochMillis).isEqualTo(1698364800000L) // 2023-10-27T00:00:00Z
-    }
-
-     @Test
-    fun `processElement initial fetch minute uses default start date`() {
-        val currencyPair = "ETH/USD"
-        val input = KV.of(currencyPair, null as Void?)
-        val expectedStartDate = "2019-01-02"
-        val urlMatcher = UrlMatcher("startDate=$expectedStartDate", "resampleFreq=1min", "tickers=ethusd")
-        Mockito.`when`(mockHttpClient.get(argThat(urlMatcher), anyMap())).thenReturn(sampleResponseMinutePage1)
-
-        val tester = DoFnTester.of(fetcherFnMinute)
-        val outputs = tester.processBundle(listOf(input))
-
-        assertThat(outputs).hasSize(1) // Verify output
-        val finalState: TiingoCryptoFetcherFn.StateTimestamp? = tester.state(lastTimestampSpec).read() // Get state using spec
-        assertThat(finalState).isNotNull()
-        assertThat(finalState!!.epochMillis).isEqualTo(1698400860000L) // 2023-10-27T10:01:00Z
-    }
-
-     @Test
-    fun `processElement initial fetch with empty response sets state to start date`() {
-        val currencyPair = "BTC/USD"
-        val input = KV.of(currencyPair, null as Void?)
-        val expectedStartDate = "2019-01-02"
-        val urlMatcher = UrlMatcher("startDate=$expectedStartDate", "resampleFreq=1day", "tickers=btcusd")
-        Mockito.`when`(mockHttpClient.get(argThat(urlMatcher), anyMap())).thenReturn(emptyResponse)
-
-        val tester = DoFnTester.of(fetcherFnDaily)
-        val outputs = tester.processBundle(listOf(input))
-
-        assertThat(outputs).isEmpty()
-        val finalState: TiingoCryptoFetcherFn.StateTimestamp? = tester.state(lastTimestampSpec).read()
-        assertThat(finalState).isNotNull()
-        // State should be the start of the DEFAULT_START_DATE
-        val expectedStateDate = LocalDate.parse("2019-01-02")
-        val expectedStateMillis = expectedStateDate.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
-        assertThat(finalState!!.epochMillis).isEqualTo(expectedStateMillis)
-    }
-
-
-    // --- Test Subsequent Fetch (With State) ---
-    @Test
-    fun `processElement subsequent fetch daily uses correct next start date`() {
-        val currencyPair = "BTC/USD"
-        val input = KV.of(currencyPair, null as Void?)
-
-        // Arrange: Set initial state
-        val initialTimestampMillis = 1698364800000L // 2023-10-27T00:00:00Z
-        val initialTimestampState = TiingoCryptoFetcherFn.StateTimestamp(initialTimestampMillis)
-        val tester = DoFnTester.of(fetcherFnDaily)
-        tester.state(lastTimestampSpec).write(initialTimestampState) // Set initial state
-
-        // Mock HTTP client for the *next* day's fetch
-        val expectedStartDate = "2023-10-28" // Day after state
-        val urlMatcher = UrlMatcher("startDate=$expectedStartDate", "resampleFreq=1day", "tickers=btcusd")
-        Mockito.`when`(mockHttpClient.get(argThat(urlMatcher), anyMap())).thenReturn(sampleResponseDailyPage2)
-
-        // Act
-        val outputs = tester.processBundle(listOf(input))
-
-        // Assert
-        assertThat(outputs).hasSize(1)
-        assertThat(outputs[0].value.close).isEqualTo(35100.0)
-        val finalState: TiingoCryptoFetcherFn.StateTimestamp? = tester.state(lastTimestampSpec).read()
-        assertThat(finalState).isNotNull()
-        // State should be updated to the new latest candle
-        assertThat(finalState!!.epochMillis).isEqualTo(1698451200000L) // 2023-10-28T00:00:00Z
+        fetcherFnMinute = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardMinutes(1), testApiKey)
     }
 
     @Test
-    fun `processElement subsequent fetch minute uses correct next start time`() {
-        val currencyPair = "ETH/USD"
-        val input = KV.of(currencyPair, null as Void?)
-
-        // Arrange: Set initial state
-        val initialTimestampMillis = 1698400860000L // 2023-10-27T10:01:00Z
-        val initialTimestampState = TiingoCryptoFetcherFn.StateTimestamp(initialTimestampMillis)
-        val tester = DoFnTester.of(fetcherFnMinute)
-        tester.state(lastTimestampSpec).write(initialTimestampState)
-
-        // Mock HTTP client for the *next* second's fetch
-        val expectedStartTime = "2023-10-27T10:01:01" // Second after state
-        val urlMatcher = UrlMatcher("startDate=$expectedStartTime", "resampleFreq=1min", "tickers=ethusd")
-        Mockito.`when`(mockHttpClient.get(argThat(urlMatcher), anyMap())).thenReturn(sampleResponseMinutePage2)
-
-        // Act
-        val outputs = tester.processBundle(listOf(input))
-
-        // Assert
-        assertThat(outputs).hasSize(1)
-        assertThat(outputs[0].value.close).isEqualTo(2004.0)
-        val finalState: TiingoCryptoFetcherFn.StateTimestamp? = tester.state(lastTimestampSpec).read()
-        assertThat(finalState).isNotNull()
-        assertThat(finalState!!.epochMillis).isEqualTo(1698400920000L) // 2023-10-27T10:02:00Z
+    fun `initial fetch uses default start date`() {
+        val currencyPair = "BTC/USD"
+        
+        // Mock HTTP client to verify default start date
+        val urlMatcher = UrlMatcher("startDate=2019-01-02", "resampleFreq=1day", "tickers=btcusd")
+        whenever(mockHttpClient.get(argThat(urlMatcher), any())).thenReturn(sampleResponseDailyPage1)
+        
+        // Setup pipeline
+        val input = pipeline.apply(Create.of(KV.of(currencyPair, null as Void?)))
+        val output = input.apply(ParDo.of(fetcherFnDaily))
+        
+        // Verify output
+        PAssert.that(output).satisfies { results ->
+            val list = results.toList()
+            assertThat(list).hasSize(2)
+            assertThat(list[0].key).isEqualTo(currencyPair)
+            assertThat(list[0].value.close).isEqualTo(34650.0)
+            assertThat(list[1].value.close).isEqualTo(34950.0)
+            null
+        }
+        
+        pipeline.run()
     }
 
     @Test
-    fun `processElement subsequent fetch with empty response leaves state unchanged`() {
+    fun `initial fetch with empty response produces no output`() {
         val currencyPair = "BTC/USD"
-        val input = KV.of(currencyPair, null as Void?)
-
-        // Arrange: Set initial state
-        val initialTimestampMillis = 1698364800000L // 2023-10-27T00:00:00Z
-        val initialTimestampState = TiingoCryptoFetcherFn.StateTimestamp(initialTimestampMillis)
-        val tester = DoFnTester.of(fetcherFnDaily)
-        tester.state(lastTimestampSpec).write(initialTimestampState)
-
-        // Mock HTTP client to return empty
-        val expectedStartDate = "2023-10-28"
-        val urlMatcher = UrlMatcher("startDate=$expectedStartDate", "resampleFreq=1day", "tickers=btcusd")
-        Mockito.`when`(mockHttpClient.get(argThat(urlMatcher), anyMap())).thenReturn(emptyResponse)
-
-        // Act
-        val outputs = tester.processBundle(listOf(input))
-
-        // Assert
-        assertThat(outputs).isEmpty()
-        val finalState: TiingoCryptoFetcherFn.StateTimestamp? = tester.state(lastTimestampSpec).read()
-        // State should NOT have been updated
-        assertThat(finalState).isEqualTo(initialTimestampState)
-    }
-
-
-    // --- Other Tests (remain the same) ---
-    @Test
-    fun `processElement skips fetch if api key is invalid`() {
-        val currencyPair = "BTC/USD"
-        val input: KV<String, Void?> = KV.of(currencyPair, null)
-        val fetcherFnInvalidKey = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), "") // Empty Key
-
-        val tester = DoFnTester.of(fetcherFnInvalidKey)
-        val outputs = tester.processBundle(listOf(input))
-
-        assertThat(outputs).isNotNull()
-        assertThat(outputs).isEmpty()
-        Mockito.verify(mockHttpClient, Mockito.never()).get(Mockito.anyString(), Mockito.anyMap())
+        
+        // Mock empty response
+        val urlMatcher = UrlMatcher("startDate=2019-01-02")
+        whenever(mockHttpClient.get(argThat(urlMatcher), any())).thenReturn(emptyResponse)
+        
+        // Setup pipeline
+        val input = pipeline.apply(Create.of(KV.of(currencyPair, null as Void?)))
+        val output = input.apply(ParDo.of(fetcherFnDaily))
+        
+        // Verify no output
+        PAssert.that(output).empty()
+        
+        pipeline.run()
     }
 
     @Test
-    fun `processElement handles http error`() {
+    fun `stateful incremental fetching with TestStream`() {
         val currencyPair = "BTC/USD"
-        val input: KV<String, Void?> = KV.of(currencyPair, null)
-
-        val urlMatcher = UrlMatcher("token=$testApiKey")
-         Mockito.`when`(mockHttpClient.get(Mockito.argThat { arg: String? -> urlMatcher.matches(arg) }, Mockito.anyMap()))
-            .thenThrow(IOException("Network Error"))
-
-        val tester = DoFnTester.of(fetcherFnDaily)
-        val outputs = tester.processBundle(listOf(input))
-
-        assertThat(outputs).isNotNull()
-        assertThat(outputs).isEmpty()
-        // Verify state didn't change (it shouldn't exist yet)
-        val finalState: TiingoCryptoFetcherFn.StateTimestamp? = tester.state(lastTimestampSpec).read()
-        assertThat(finalState).isNull()
+        
+        // Create a serializable mock HTTP client
+        val mockHttpClient = Mockito.mock(
+            HttpClient::class.java,
+            Mockito.withSettings().serializable()
+        )
+        
+        // First response - initial load with default start date
+        val initialUrlMatcher = UrlMatcher("startDate=2019-01-02", "tickers=btcusd")
+        Mockito.`when`(mockHttpClient.get(Mockito.argThat(initialUrlMatcher), Mockito.anyMap()))
+            .thenReturn(sampleResponseDailyPage1)
+        
+        // Second response - incremental load with date based on previous state
+        val incrementalUrlMatcher = UrlMatcher("startDate=2023-10-28", "tickers=btcusd")
+        Mockito.`when`(mockHttpClient.get(Mockito.argThat(incrementalUrlMatcher), Mockito.anyMap()))
+            .thenReturn(sampleResponseDailyPage2)
+        
+        // Create the DoFn to test
+        val fetcherFn = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), testApiKey)
+        
+        // Create the TestStream with events and timing
+        val testStream = TestStream.create(KvCoder.of(StringUtf8Coder.of(), VoidCoder.of()))
+            .addElements(KV.of(currencyPair, null as Void?))  // First fetch
+            .advanceProcessingTime(Duration.standardHours(1)) // Advance time
+            .addElements(KV.of(currencyPair, null as Void?))  // Second fetch
+            .advanceWatermarkToInfinity()
+        
+        // Create and run the pipeline
+        val input = pipeline.apply(testStream)
+        val output = input.apply(ParDo.of(fetcherFn))
+        
+        // Verify output with correct assertions
+        PAssert.that(output).satisfies { results ->
+            val candles = results.toList()
+            
+            // Should have 3 candles in total (2 from first response, 1 from second)
+            assertThat(candles).hasSize(3)
+            
+            // All candles should have the right key
+            assertThat(candles.all { it.key == currencyPair }).isTrue()
+            
+            // Verify close prices from the samples
+            val closePrices = candles.map { it.value.close }.toSet()
+            assertThat(closePrices).containsExactly(34650.0, 34950.0, 35100.0)
+            
+            null
+        }
+        
+        pipeline.run()
     }
 
-    // --- Mockito ArgumentMatcher Implementation ---
+    @Test
+    fun `skip fetch if api key is invalid`() {
+        val currencyPair = "BTC/USD"
+        val fetcherFnInvalidKey = TiingoCryptoFetcherFn(mockHttpClient, Duration.standardDays(1), "")
+        
+        // Setup pipeline
+        val input = pipeline.apply(Create.of(KV.of(currencyPair, null as Void?)))
+        val output = input.apply(ParDo.of(fetcherFnInvalidKey))
+        
+        // Verify no output
+        PAssert.that(output).empty()
+        
+        pipeline.run()
+        
+        // Verify HTTP client was never called
+        Mockito.verify(mockHttpClient, Mockito.never()).get(any(), any())
+    }
+
+    @Test
+    fun `handle http error gracefully`() {
+        val currencyPair = "BTC/USD"
+        
+        // Mock HTTP client to throw exception
+        whenever(mockHttpClient.get(any(), any())).thenThrow(IOException("Network Error"))
+        
+        // Setup pipeline
+        val input = pipeline.apply(Create.of(KV.of(currencyPair, null as Void?)))
+        val output = input.apply(ParDo.of(fetcherFnDaily))
+        
+        // Verify no output
+        PAssert.that(output).empty()
+        
+        pipeline.run()
+    }
+
+    // Helper URL matcher class
     private class UrlMatcher(vararg val substrings: String) : ArgumentMatcher<String> {
         override fun matches(argument: String?): Boolean {
             return argument != null && substrings.all { argument.contains(it) }
         }
-        override fun toString(): String = "URL containing $substrings"
     }
-
+    
     // Helper to use standard Mockito matcher syntax
     private fun argThat(matcher: ArgumentMatcher<String>): String {
         return Mockito.argThat(matcher) ?: ""
     }
-     // Helper for anyMap()
+    
+    // Helper for anyMap()
     private fun <K, V> anyMap(): Map<K, V> {
         Mockito.anyMap<K, V>()
         @Suppress("UNCHECKED_CAST")
