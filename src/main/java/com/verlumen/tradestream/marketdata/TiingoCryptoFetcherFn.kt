@@ -48,10 +48,11 @@ class TiingoCryptoFetcherFn @Inject constructor(
 
         fun durationToResampleFreq(duration: Duration): String {
             return when {
-                duration.standardDays >= 1   -> "${duration.standardDays}day"
-                duration.standardHours >= 1  -> "${duration.standardHours}hour"
-                duration.standardMinutes > 0 -> "${duration.standardMinutes}min"
-                else                         -> "1min" // Default or error case
+                duration.isLongerThan(Duration.standardDays(23)) -> "1day"
+                duration.isLongerThan(Duration.standardHours(3)) -> "1hour"
+                duration.isLongerThan(Duration.standardMinutes(29)) -> "30min"
+                duration.isLongerThan(Duration.standardMinutes(4)) -> "5min"
+                else -> "1min"
             }
         }
 
@@ -79,17 +80,15 @@ class TiingoCryptoFetcherFn @Inject constructor(
     }
 
     // Use a simple serializable class for state
-    data class StateTimestamp(val epochMillis: Long) : Serializable {
+    class StateTimestamp(val timestamp: Long) : Serializable {
         companion object {
-            // Fixed the parameter type to avoid ambiguity
-            fun fromProtobufTimestamp(protoTimestamp: com.google.protobuf.Timestamp): StateTimestamp {
-                val millis = Timestamps.toMillis(protoTimestamp)
-                return StateTimestamp(millis)
-            }
+            private const val serialVersionUID = 1L
+        }
 
-            fun toInstant(stateTimestamp: StateTimestamp): Instant {
-                return Instant.ofEpochMilli(stateTimestamp.epochMillis)
-            }
+        constructor() : this(0L)
+
+        override fun toString(): String {
+            return "StateTimestamp[$timestamp]"
         }
     }
 
@@ -122,22 +121,24 @@ class TiingoCryptoFetcherFn @Inject constructor(
         logger.atInfo().log("Processing fetch for: %s (ticker: %s, freq: %s)", currencyPair, ticker, resampleFreq)
 
         // Determine start date based on state
-        val lastStoredTimestamp = lastTimestampState.read()
-        val startDate = if (lastStoredTimestamp != null) {
-            val lastInstant = StateTimestamp.toInstant(lastStoredTimestamp)
-            logger.atFine().log("Found previous state for %s: %s", currencyPair, lastInstant)
-
-            if (isDailyGranularity(granularity)) {
-                // For daily, start from the day *after*
-                val nextDay = LocalDate.ofInstant(lastInstant, ZoneOffset.UTC).plusDays(1)
-                nextDay.format(TIINGO_DATE_FORMATTER_DAILY)
+        val startDate = if (lastTimestampState.read() != null) {
+            val stateTimestamp = lastTimestampState.read()
+            // Only use state if it's valid
+            if (stateTimestamp != null && stateTimestamp.timestamp > 0) {
+                val instant = Instant.ofEpochMilli(stateTimestamp.timestamp)
+                if (isDailyGranularity(granularity)) {
+                    // For daily, use the next day
+                    val localDate = LocalDate.ofInstant(instant, ZoneOffset.UTC).plusDays(1)
+                    localDate.format(TIINGO_DATE_FORMATTER_DAILY)
+                } else {
+                    // For intraday, use the same timestamp plus one interval
+                    val localDateTime = LocalDateTime.ofInstant(instant, ZoneOffset.UTC)
+                    localDateTime.format(TIINGO_DATE_FORMATTER_INTRADAY)
+                }
             } else {
-                // For intraday, start from the exact timestamp + 1 second
-                val nextTime = LocalDateTime.ofInstant(lastInstant, ZoneOffset.UTC).plusSeconds(1)
-                nextTime.format(TIINGO_DATE_FORMATTER_INTRADAY)
+                DEFAULT_START_DATE
             }
         } else {
-            logger.atInfo().log("No previous state for %s. Using default start date: %s", currencyPair, DEFAULT_START_DATE)
             DEFAULT_START_DATE
         }
 
@@ -201,39 +202,35 @@ class TiingoCryptoFetcherFn @Inject constructor(
             }
 
         } catch (e: IOException) {
-            logger.atSevere().withCause(e).log("I/O error fetching/parsing Tiingo data for %s: %s", currencyPair, e.message)
+            logger.atWarning().withCause(e).log("Error fetching data from Tiingo for %s", currencyPair)
             return
         } catch (e: Exception) {
-            logger.atSevere().withCause(e).log("Unexpected error fetching Tiingo data for %s: %s", currencyPair, e.message)
+            logger.atSevere().withCause(e).log("Unexpected error processing %s", currencyPair)
             return
         }
 
-        // State update logic
+        // Update timestamp state if we processed any candles
         if (latestEpochMillis > 0) {
-            // If we fetched new candles, update state to the latest timestamp
-            val newState = StateTimestamp(latestEpochMillis)
-            lastTimestampState.write(newState)
-            logger.atInfo().log("Updated last timestamp state for %s to: %s",
-                currencyPair, Instant.ofEpochMilli(latestEpochMillis))
-        } else if (lastStoredTimestamp == null) {
-            // If this was the initial fetch (no previous state) AND no data was returned,
-            // set the state to the start date we tried to fetch from.
+            // Only update state if we've got a newer timestamp
+            val existingState = lastTimestampState.read()
+            if (existingState == null || existingState.timestamp < latestEpochMillis) {
+                lastTimestampState.write(StateTimestamp(latestEpochMillis))
+                logger.atInfo().log("Updated last timestamp state for %s to: %d", currencyPair, latestEpochMillis)
+            }
+        } else if (lastTimestampState.read() == null) {
+            // If no state exists yet and no candles found, initialize with a default
             try {
-                val startInstant = if (isDailyGranularity(granularity)) {
-                    LocalDate.parse(startDate, TIINGO_DATE_FORMATTER_DAILY).atStartOfDay().toInstant(ZoneOffset.UTC)
+                if (isDailyGranularity(granularity)) {
+                    val localDate = LocalDate.parse(startDate, TIINGO_DATE_FORMATTER_DAILY)
+                    val instant = localDate.atStartOfDay().toInstant(ZoneOffset.UTC)
+                    lastTimestampState.write(StateTimestamp(instant.toEpochMilli()))
+                    logger.atInfo().log("Initialized state for %s with start date: %s", currencyPair, startDate)
                 } else {
-                    try {
-                        LocalDateTime.parse(startDate, TIINGO_DATE_FORMATTER_INTRADAY).toInstant(ZoneOffset.UTC)
-                    } catch (e: Exception) {
-                        // Fallback if startDate was DEFAULT_START_DATE but granularity was intraday
-                        LocalDate.parse(DEFAULT_START_DATE, TIINGO_DATE_FORMATTER_DAILY).atStartOfDay().toInstant(ZoneOffset.UTC)
-                    }
+                    val localDateTime = LocalDateTime.parse(startDate, TIINGO_DATE_FORMATTER_INTRADAY)
+                    val instant = localDateTime.toInstant(ZoneOffset.UTC)
+                    lastTimestampState.write(StateTimestamp(instant.toEpochMilli()))
+                    logger.atInfo().log("Initialized state for %s with start date: %s", currencyPair, startDate)
                 }
-                val initialMillis = startInstant.toEpochMilli()
-                val initialState = StateTimestamp(initialMillis)
-                lastTimestampState.write(initialState)
-                logger.atInfo().log("Initial fetch for %s yielded no data. Setting state to start date: %s",
-                    currencyPair, startInstant)
             } catch (e: Exception) {
                 logger.atWarning().withCause(e).log("Could not parse start date '%s' to set initial state for %s", startDate, currencyPair)
             }
