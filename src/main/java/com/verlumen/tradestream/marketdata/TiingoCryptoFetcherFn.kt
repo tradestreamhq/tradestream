@@ -283,7 +283,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
                     logger.atFine().log("Filling gap for %s at expected time %s (before %s)",
                         currencyPair, expectedTime, currentFetchedInstant)
                     // Use previousCandle (which could be the last known or a previously generated synthetic one) as reference
-                    val syntheticCandle = createSyntheticCandle(previousCandle, currencyPair, expectedTime)
+                    val syntheticCandle = createSyntheticCandle(previousCandle!!, currencyPair, expectedTime)
                     result.add(syntheticCandle)
                     previousCandle = syntheticCandle // Update prevCandle to the newly created synthetic one
                     expectedTime = expectedTime.plus(amount, temporalUnit) // Move to next expected time
