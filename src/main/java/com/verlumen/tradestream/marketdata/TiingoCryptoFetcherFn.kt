@@ -32,9 +32,10 @@ class TiingoCryptoFetcherFn @Inject constructor(
     private val apiKey: String
 ) : DoFn<KV<String, Void?>, KV<String, Candle>>() {
 
-    private val logger = FluentLogger.forEnclosingClass()
-
     companion object {
+        // Move logger to companion object to make it static
+        private val logger = FluentLogger.forEnclosingClass()
+        
         // Date/time formatters to use with Tiingo API
         private val TIINGO_DATE_FORMATTER_DAILY = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         private val TIINGO_DATE_FORMATTER_INTRADAY = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
@@ -105,7 +106,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
     fun processElement(
         context: ProcessContext,
         @StateId(LAST_FETCHED_TIMESTAMP_STATE_ID) lastTimestampState: ValueState<StateTimestamp>,
-        @StateId(LAST_CANDLE_STATE_ID) lastCandleState: ValueState<Candle> // Added new state parameter
+        @StateId(LAST_CANDLE_STATE_ID) lastCandleState: ValueState<Candle>
     ) {
         val currencyPair = context.element().key
         val ticker = currencyPair.replace("/", "").lowercase()
