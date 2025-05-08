@@ -77,24 +77,31 @@ class TiingoCryptoFetcherFnTest {
   }
 
   @Test
-  fun `fetcher passes correct URL parameters`() {
-    val stub = StubHttpClient(mutableListOf(emptyResponse))
+  fun `Workspaceer passes correct URL parameters`() {
+    val stub = StubHttpClient(mutableListOf(sampleResponseDailyPage1)) // Return sample data
     val fn = TiingoCryptoFetcherFn(
         stub,
         Duration.standardDays(1),
         testApiKey
     )
 
-    pipeline
+    val result = pipeline
       .apply(Create.of(KV.of("BTC/USD", null as Void?)))
       .apply(ParDo.of(fn))
+
+    PAssert.that(result).satisfies { iter -> // Assert on the output
+      assertThat(iter.toList()).hasSize(2) // Expect 2 candles from the sample response
+      null
+    }
     pipeline.run()
 
+    // Still check URL params
     val urls = stub.getUsedUrls()
     assertThat(urls).hasSize(1)
     assertThat(urls[0]).contains("tickers=btcusd")
     assertThat(urls[0]).contains("resampleFreq=1day")
     assertThat(urls[0]).contains("token=$testApiKey")
+    assertThat(urls[0]).contains("startDate=2019-01-02") // Initial fetch start date
   }
 
   @Test
@@ -122,7 +129,7 @@ class TiingoCryptoFetcherFnTest {
   }
 
   @Test
-  fun `fetcher handles empty response`() {
+  fun `Workspaceer handles empty response`() {
     val stub = StubHttpClient(mutableListOf(emptyResponse))
     val fn = TiingoCryptoFetcherFn(
         stub,
@@ -186,14 +193,18 @@ class TiingoCryptoFetcherFnTest {
 
     PAssert.that(result).satisfies { iter ->
       val list = iter.map { it.value }.toList()
-      assertThat(list).hasSize(2)
+      assertThat(list).hasSize(2) // Expecting only the 2 fetched candles, no fill on initial fetch
+      assertThat(Timestamps.toMillis(list[0].timestamp))
+          .isEqualTo(Instant.parse("2023-10-27T10:01:00Z").toEpochMilli())
+      assertThat(Timestamps.toMillis(list[1].timestamp))
+          .isEqualTo(Instant.parse("2023-10-27T10:03:00Z").toEpochMilli())
       null
     }
     pipeline.run()
   }
 
   @Test
-  fun `fetcher handles incremental processing`() {
+  fun `Workspaceer handles incremental processing`() {
     val stub = StubHttpClient(
       mutableListOf(sampleResponseDailyPage1, sampleResponseDailyPage2)
     )
@@ -206,11 +217,11 @@ class TiingoCryptoFetcherFnTest {
     val stream = TestStream.create(
         KvCoder.of(StringUtf8Coder.of(), VoidCoder.of())
     )
-    .addElements(
+    .addElements( // First trigger
       TimestampedValue.of(KV.of("BTC/USD", null as Void?), JodaInstant(0L))
     )
-    .advanceProcessingTime(Duration.standardHours(1))
-    .addElements(
+    .advanceProcessingTime(Duration.standardHours(1)) // Advance time between triggers
+    .addElements( // Second trigger
       TimestampedValue.of(KV.of("BTC/USD", null as Void?), JodaInstant(3_600_000L))
     )
     .advanceWatermarkToInfinity()
@@ -221,9 +232,24 @@ class TiingoCryptoFetcherFnTest {
 
     PAssert.that(result).satisfies { iter ->
       val list = iter.map { it.value }.toList()
+      // First fetch gets 2 candles (Oct 26, Oct 27). No fill forward.
+      // Second fetch gets 1 candle (Oct 28). No fill forward needed.
       assertThat(list).hasSize(3)
+      // Verify timestamps
+      val timestamps = list.map { Timestamps.toMillis(it.timestamp) }
+      assertThat(timestamps).containsExactly(
+          Instant.parse("2023-10-26T00:00:00Z").toEpochMilli(),
+          Instant.parse("2023-10-27T00:00:00Z").toEpochMilli(),
+          Instant.parse("2023-10-28T00:00:00Z").toEpochMilli()
+      ).inOrder()
       null
     }
     pipeline.run()
+
+    // Also check URLs used
+    val urls = stub.getUsedUrls()
+    assertThat(urls).hasSize(2)
+    assertThat(urls[0]).contains("startDate=2019-01-02") // Initial fetch
+    assertThat(urls[1]).contains("startDate=2023-10-28") // Incremental fetch (day after last fetched: Oct 27)
   }
 }
