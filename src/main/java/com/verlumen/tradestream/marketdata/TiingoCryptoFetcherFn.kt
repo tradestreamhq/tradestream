@@ -1,15 +1,18 @@
 package com.verlumen.tradestream.marketdata
 
 import com.verlumen.tradestream.http.HttpClient
+import com.google.inject.Inject
 import com.google.common.flogger.FluentLogger
 import com.google.protobuf.util.Timestamps
-import com.google.protobuf.Timestamp
 import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.state.StateSpec
 import org.apache.beam.sdk.state.StateSpecs
 import org.apache.beam.sdk.state.ValueState
 import org.apache.beam.sdk.transforms.DoFn
+import org.apache.beam.sdk.transforms.DoFn.ProcessContext
+import org.apache.beam.sdk.transforms.DoFn.StateId
+import org.apache.beam.sdk.transforms.DoFn.ProcessElement
 import org.apache.beam.sdk.values.KV
 import org.joda.time.Duration
 import java.io.IOException
@@ -20,8 +23,11 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import javax.inject.Inject
 
+/**
+ * A stateful DoFn to fetch cryptocurrency candle data from the Tiingo API for a specific currency pair.
+ * Fetches incrementally and fills forward missing candles.
+ */
 class TiingoCryptoFetcherFn @Inject constructor(
     private val httpClient: HttpClient,
     private val granularity: Duration,
@@ -31,14 +37,11 @@ class TiingoCryptoFetcherFn @Inject constructor(
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
 
-        private val TIINGO_DATE_FORMATTER_DAILY =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        private val TIINGO_DATE_FORMATTER_INTRADAY =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+        private val TIINGO_DATE_FORMATTER_DAILY = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        private val TIINGO_DATE_FORMATTER_INTRADAY = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
 
         private const val DEFAULT_START_DATE = "2019-01-02"
-        private const val TIINGO_API_URL =
-            "https://api.tiingo.com/tiingo/crypto/prices"
+        private const val TIINGO_API_URL = "https://api.tiingo.com/tiingo/crypto/prices"
 
         fun durationToResampleFreq(duration: Duration): String {
             return when {
@@ -49,8 +52,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
             }
         }
 
-        fun isDailyGranularity(duration: Duration): Boolean =
-            duration.standardDays >= 1
+        fun isDailyGranularity(duration: Duration): Boolean = duration.standardDays >= 1
 
         fun durationToTemporalUnit(duration: Duration): ChronoUnit =
             when {
@@ -70,8 +72,6 @@ class TiingoCryptoFetcherFn @Inject constructor(
     class StateTimestamp(val timestamp: Long) : Serializable {
         companion object {
             private const val serialVersionUID = 1L
-            fun fromProtobufTimestamp(proto: Timestamp) =
-                StateTimestamp(Timestamps.toMillis(proto))
         }
         constructor() : this(0L)
         override fun toString() = "StateTimestamp[$timestamp]"
@@ -87,7 +87,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
 
     @ProcessElement
     fun processElement(
-        context: DoFn<KV<String, Void?>, KV<String, Candle>>.ProcessContext,
+        context: ProcessContext,
         @StateId("lastFetchedTimestamp") lastTimestampState: ValueState<StateTimestamp>,
         @StateId("lastCandle") lastCandleState: ValueState<Candle>
     ) {
@@ -95,20 +95,16 @@ class TiingoCryptoFetcherFn @Inject constructor(
         val ticker = currencyPair.replace("/", "").lowercase()
 
         if (apiKey.isBlank()) {
-            logger.atWarning().log(
-              "Skipping Tiingo fetch for %s: Empty API key",
-              currencyPair
-            )
+            logger.atWarning().log("Skipping Tiingo fetch for %s: Empty API key", currencyPair)
             return
         }
 
         val resampleFreq = durationToResampleFreq(granularity)
         logger.atInfo().log(
-          "Processing fetch for: %s (ticker: %s, freq: %s)",
-          currencyPair, ticker, resampleFreq
+            "Processing fetch for: %s (ticker: %s, freq: %s)",
+            currencyPair, ticker, resampleFreq
         )
 
-        // Determine start date
         val lastState = lastTimestampState.read()
         val startDate = if (lastState != null && lastState.timestamp > 0) {
             val inst = Instant.ofEpochMilli(lastState.timestamp)
@@ -131,7 +127,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
         logger.atFine().log("Requesting URL: %s", url)
 
         var latestEpochMillis = 0L
-        var currentLast = lastCandleState.read()
+        var currentLast: Candle? = lastCandleState.read()
 
         try {
             val resp = httpClient.get(url, emptyMap())
