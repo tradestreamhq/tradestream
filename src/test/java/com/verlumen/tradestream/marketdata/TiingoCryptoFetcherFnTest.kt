@@ -22,6 +22,9 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.IOException
 import java.io.Serializable
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 @RunWith(JUnit4::class)
 class TiingoCryptoFetcherFnTest {
@@ -82,7 +85,6 @@ class TiingoCryptoFetcherFnTest {
         testApiKey
     )
 
-    // run through a single Create to invoke processElement once
     pipeline
       .apply(Create.of(KV.of("BTC/USD", null as Void?)))
       .apply(ParDo.of(fn))
@@ -111,6 +113,7 @@ class TiingoCryptoFetcherFnTest {
     PAssert.that(result).satisfies { iter ->
       val list = iter.map { it.value }.toList()
       assertThat(list).hasSize(2)
+      // Add explicit checks
       assertThat(list[0].open).isEqualTo(34500.0)
       assertThat(list[1].close).isEqualTo(34900.0)
       null
@@ -150,12 +153,11 @@ class TiingoCryptoFetcherFnTest {
 
     PAssert.that(result).satisfies { iter ->
       val list = iter.map { it.value }.toList()
-      // Only exactly the two fetched days, no synthetic in between
       assertThat(list).hasSize(2)
       assertThat(Timestamps.toMillis(list[0].timestamp))
-        .isEqualTo(Instant.parse("2023-10-26T00:00:00Z").toEpochMilli())
+        .isEqualTo(java.time.Instant.parse("2023-10-26T00:00:00Z").toEpochMilli())
       assertThat(Timestamps.toMillis(list[1].timestamp))
-        .isEqualTo(Instant.parse("2023-10-28T00:00:00Z").toEpochMilli())
+        .isEqualTo(java.time.Instant.parse("2023-10-28T00:00:00Z").toEpochMilli())
       null
     }
     pipeline.run()
@@ -184,7 +186,6 @@ class TiingoCryptoFetcherFnTest {
 
     PAssert.that(result).satisfies { iter ->
       val list = iter.map { it.value }.toList()
-      // Only the two actual fetched, no synthetic at 10:02
       assertThat(list).hasSize(2)
       null
     }
@@ -220,7 +221,6 @@ class TiingoCryptoFetcherFnTest {
 
     PAssert.that(result).satisfies { iter ->
       val list = iter.map { it.value }.toList()
-      // 2 from page1 + 1 from page2 = 3 total
       assertThat(list).hasSize(3)
       null
     }
