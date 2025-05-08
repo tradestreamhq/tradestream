@@ -1,5 +1,3 @@
-// src/main/java/com/verlumen/tradestream/marketdata/TiingoCryptoFetcherFn.kt
-
 package com.verlumen.tradestream.marketdata
 
 import com.verlumen.tradestream.http.HttpClient
