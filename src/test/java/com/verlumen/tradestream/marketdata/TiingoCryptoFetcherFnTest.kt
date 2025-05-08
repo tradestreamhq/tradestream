@@ -12,6 +12,7 @@ import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.testing.TestStream
 import org.apache.beam.sdk.transforms.Create
 import org.apache.beam.sdk.transforms.ParDo
+import org.apache.beam.sdk.transforms.SerializableFunction
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.TimestampedValue
 import org.joda.time.Duration
@@ -65,20 +66,62 @@ class TiingoCryptoFetcherFnTest {
     ]}]
   """.trimIndent()
 
-  private class StubHttpClient(
-    private val responses: MutableList<String>
-  ) : HttpClient, Serializable {
-    private val usedUrls = mutableListOf<String>()
+  // Use a thread-safe, serializable stub
+  private class StubHttpClient(initialResponses: List<String>) : HttpClient, Serializable {
+    private val responseQueue = java.util.concurrent.ConcurrentLinkedQueue(initialResponses)
+    private val usedUrls = java.util.concurrent.CopyOnWriteArrayList<String>()
+
     override fun get(url: String, headers: Map<String, String>): String {
       usedUrls.add(url)
-      return if (responses.isNotEmpty()) responses.removeAt(0) else "[]"
+      return responseQueue.poll() ?: "[]"
     }
-    fun getUsedUrls(): List<String> = usedUrls
+
+    fun getUsedUrls(): List<String> = usedUrls.toList()
+
+    @Throws(java.io.IOException::class)
+    private fun writeObject(out: java.io.ObjectOutputStream) {
+        out.defaultWriteObject()
+        out.writeObject(ArrayList(responseQueue))
+        out.writeObject(ArrayList(usedUrls))
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    @Throws(java.io.IOException::class, ClassNotFoundException::class)
+    private fun readObject(ois: java.io.ObjectInputStream) {
+        ois.defaultReadObject()
+        val restoredResponses = ois.readObject() as ArrayList<String>
+        val restoredUrls = ois.readObject() as ArrayList<String>
+        // Manually restore transient fields using reflection or direct assignment if possible
+        // This part is tricky and depends on how the fields are declared.
+        // For ConcurrentLinkedQueue and CopyOnWriteArrayList, re-initialize them.
+         val queueField = this::class.java.getDeclaredField("responseQueue")
+         queueField.isAccessible = true
+         queueField.set(this, java.util.concurrent.ConcurrentLinkedQueue(restoredResponses))
+
+         val urlsField = this::class.java.getDeclaredField("usedUrls")
+         urlsField.isAccessible = true
+         urlsField.set(this, java.util.concurrent.CopyOnWriteArrayList(restoredUrls))
+
+    }
+
+     companion object {
+         private const val serialVersionUID: Long = 2L // Incremented version
+     }
+  }
+
+  // Helper to create expected Candle for assertions
+  private fun createExpectedCandle(pair: String, tsStr: String, o: Double, h: Double, l: Double, c: Double, v: Double): Candle {
+      val ts = Timestamps.fromMillis(Instant.parse(tsStr.replace("+00:00", "Z")).toEpochMilli())
+      return Candle.newBuilder()
+          .setTimestamp(ts).setCurrencyPair(pair)
+          .setOpen(o).setHigh(h).setLow(l).setClose(c).setVolume(v)
+          .build()
   }
 
   @Test
   fun `Workspaceer passes correct URL parameters`() {
-    val stub = StubHttpClient(mutableListOf(sampleResponseDailyPage1)) // Return sample data
+    val responses = mutableListOf(sampleResponseDailyPage1)
+    val stub = StubHttpClient(responses.toList())
     val fn = TiingoCryptoFetcherFn(
         stub,
         Duration.standardDays(1),
@@ -87,26 +130,29 @@ class TiingoCryptoFetcherFnTest {
 
     val result = pipeline
       .apply(Create.of(KV.of("BTC/USD", null as Void?)))
-      .apply(ParDo.of(fn))
+      .apply("Fetch", ParDo.of(fn))
 
-    PAssert.that(result).satisfies { iter -> // Assert on the output
-      assertThat(iter.toList()).hasSize(2) // Expect 2 candles from the sample response
-      null
-    }
+    // Assert on the output PCollection directly
+    PAssert.that(result).containsInAnyOrder(
+        KV.of("BTC/USD", createExpectedCandle("BTC/USD", "2023-10-26T00:00:00+00:00", 34500.0, 34800.0, 34200.0, 34650.0, 1500.0)),
+        KV.of("BTC/USD", createExpectedCandle("BTC/USD", "2023-10-27T00:00:00+00:00", 34700.0, 35000.0, 34600.0, 34900.0, 1600.0))
+    )
+
     pipeline.run()
 
-    // Still check URL params
+    // Assert URL parameters after pipeline runs
     val urls = stub.getUsedUrls()
     assertThat(urls).hasSize(1)
     assertThat(urls[0]).contains("tickers=btcusd")
     assertThat(urls[0]).contains("resampleFreq=1day")
     assertThat(urls[0]).contains("token=$testApiKey")
-    assertThat(urls[0]).contains("startDate=2019-01-02") // Initial fetch start date
+    assertThat(urls[0]).contains("startDate=2019-01-02")
   }
 
   @Test
   fun `initial fetch outputs expected daily candles`() {
-    val stub = StubHttpClient(mutableListOf(sampleResponseDailyPage1))
+    val responses = mutableListOf(sampleResponseDailyPage1)
+    val stub = StubHttpClient(responses.toList())
     val fn = TiingoCryptoFetcherFn(
         stub,
         Duration.standardDays(1),
@@ -117,20 +163,18 @@ class TiingoCryptoFetcherFnTest {
       .apply(Create.of(KV.of("BTC/USD", null as Void?)))
       .apply(ParDo.of(fn))
 
-    PAssert.that(result).satisfies { iter ->
-      val list = iter.map { it.value }.toList()
-      assertThat(list).hasSize(2)
-      // Add explicit checks
-      assertThat(list[0].open).isEqualTo(34500.0)
-      assertThat(list[1].close).isEqualTo(34900.0)
-      null
-    }
+    // Assert on the output PCollection directly
+     PAssert.that(result).containsInAnyOrder(
+        KV.of("BTC/USD", createExpectedCandle("BTC/USD", "2023-10-26T00:00:00+00:00", 34500.0, 34800.0, 34200.0, 34650.0, 1500.0)),
+        KV.of("BTC/USD", createExpectedCandle("BTC/USD", "2023-10-27T00:00:00+00:00", 34700.0, 35000.0, 34600.0, 34900.0, 1600.0))
+    )
     pipeline.run()
   }
 
   @Test
   fun `Workspaceer handles empty response`() {
-    val stub = StubHttpClient(mutableListOf(emptyResponse))
+    val responses = mutableListOf(emptyResponse)
+    val stub = StubHttpClient(responses.toList())
     val fn = TiingoCryptoFetcherFn(
         stub,
         Duration.standardDays(1),
@@ -147,7 +191,8 @@ class TiingoCryptoFetcherFnTest {
 
   @Test
   fun `fillForward skips gaps on first fetch (daily)`() {
-    val stub = StubHttpClient(mutableListOf(sampleResponseDailyWithGap))
+    val responses = mutableListOf(sampleResponseDailyWithGap)
+    val stub = StubHttpClient(responses.toList())
     val fn = TiingoCryptoFetcherFn(
         stub,
         Duration.standardDays(1),
@@ -158,21 +203,18 @@ class TiingoCryptoFetcherFnTest {
       .apply(Create.of(KV.of("BTC/USD", null as Void?)))
       .apply(ParDo.of(fn))
 
-    PAssert.that(result).satisfies { iter ->
-      val list = iter.map { it.value }.toList()
-      assertThat(list).hasSize(2)
-      assertThat(Timestamps.toMillis(list[0].timestamp))
-        .isEqualTo(java.time.Instant.parse("2023-10-26T00:00:00Z").toEpochMilli())
-      assertThat(Timestamps.toMillis(list[1].timestamp))
-        .isEqualTo(java.time.Instant.parse("2023-10-28T00:00:00Z").toEpochMilli())
-      null
-    }
+    // Expecting only the two real candles, no fill-forward on initial fetch
+     PAssert.that(result).containsInAnyOrder(
+        KV.of("BTC/USD", createExpectedCandle("BTC/USD", "2023-10-26T00:00:00+00:00", 34500.0, 34800.0, 34200.0, 34650.0, 1500.0)),
+        KV.of("BTC/USD", createExpectedCandle("BTC/USD", "2023-10-28T00:00:00+00:00", 34950.0, 35200.0, 34800.0, 35100.0, 1200.0))
+    )
     pipeline.run()
   }
 
   @Test
   fun `fillForward skips gaps on first fetch (minute) with TestStream`() {
-    val stub = StubHttpClient(mutableListOf(sampleResponseMinuteWithGap))
+    val responses = mutableListOf(sampleResponseMinuteWithGap)
+    val stub = StubHttpClient(responses.toList())
     val fn = TiingoCryptoFetcherFn(
         stub,
         Duration.standardMinutes(1),
@@ -191,24 +233,19 @@ class TiingoCryptoFetcherFnTest {
       .apply(stream)
       .apply(ParDo.of(fn))
 
-    PAssert.that(result).satisfies { iter ->
-      val list = iter.map { it.value }.toList()
-      assertThat(list).hasSize(2) // Expecting only the 2 fetched candles, no fill on initial fetch
-      assertThat(Timestamps.toMillis(list[0].timestamp))
-          .isEqualTo(Instant.parse("2023-10-27T10:01:00Z").toEpochMilli())
-      assertThat(Timestamps.toMillis(list[1].timestamp))
-          .isEqualTo(Instant.parse("2023-10-27T10:03:00Z").toEpochMilli())
-      null
-    }
+    // Expecting only the two real candles, no fill-forward on initial fetch
+    PAssert.that(result).containsInAnyOrder(
+        KV.of("ETH/USD", createExpectedCandle("ETH/USD", "2023-10-27T10:01:00+00:00", 2000.0, 2002.0, 1999.0, 2001.0, 5.2)),
+        KV.of("ETH/USD", createExpectedCandle("ETH/USD", "2023-10-27T10:03:00+00:00", 2003.0, 2005.0, 2000.0, 2004.0, 6.1))
+    )
     pipeline.run()
   }
 
   @Test
   fun `Workspaceer handles incremental processing`() {
-    val stub = StubHttpClient(
-      mutableListOf(sampleResponseDailyPage1, sampleResponseDailyPage2)
-    )
-    val fn = TiingoCryptoFetcherFn(
+     val responses = mutableListOf(sampleResponseDailyPage1, sampleResponseDailyPage2)
+     val stub = StubHttpClient(responses.toList())
+     val fn = TiingoCryptoFetcherFn(
         stub,
         Duration.standardDays(1),
         testApiKey
@@ -230,20 +267,13 @@ class TiingoCryptoFetcherFnTest {
       .apply(stream)
       .apply(ParDo.of(fn))
 
-    PAssert.that(result).satisfies { iter ->
-      val list = iter.map { it.value }.toList()
-      // First fetch gets 2 candles (Oct 26, Oct 27). No fill forward.
-      // Second fetch gets 1 candle (Oct 28). No fill forward needed.
-      assertThat(list).hasSize(3)
-      // Verify timestamps
-      val timestamps = list.map { Timestamps.toMillis(it.timestamp) }
-      assertThat(timestamps).containsExactly(
-          Instant.parse("2023-10-26T00:00:00Z").toEpochMilli(),
-          Instant.parse("2023-10-27T00:00:00Z").toEpochMilli(),
-          Instant.parse("2023-10-28T00:00:00Z").toEpochMilli()
-      ).inOrder()
-      null
-    }
+    // Assert all 3 candles are emitted across both triggers
+     PAssert.that(result).containsInAnyOrder(
+        KV.of("BTC/USD", createExpectedCandle("BTC/USD", "2023-10-26T00:00:00+00:00", 34500.0, 34800.0, 34200.0, 34650.0, 1500.0)),
+        KV.of("BTC/USD", createExpectedCandle("BTC/USD", "2023-10-27T00:00:00+00:00", 34700.0, 35000.0, 34600.0, 34900.0, 1600.0)),
+        KV.of("BTC/USD", createExpectedCandle("BTC/USD", "2023-10-28T00:00:00+00:00", 34950.0, 35200.0, 34800.0, 35100.0, 1200.0))
+    )
+
     pipeline.run()
 
     // Also check URLs used
