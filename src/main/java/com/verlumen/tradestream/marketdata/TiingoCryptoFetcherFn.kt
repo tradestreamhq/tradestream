@@ -1,10 +1,11 @@
+// src/main/java/com/verlumen/tradestream/marketdata/TiingoCryptoFetcherFn.kt
+
 package com.verlumen.tradestream.marketdata
 
-import com.google.common.flogger.FluentLogger
-import com.google.inject.Inject
-import com.google.protobuf.Timestamp
-import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.http.HttpClient
+import com.google.common.flogger.FluentLogger
+import com.google.protobuf.util.Timestamps
+import com.google.protobuf.Timestamp
 import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
 import org.apache.beam.sdk.state.StateSpec
@@ -21,11 +22,8 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import javax.inject.Inject
 
-/**
- * A stateful DoFn to fetch cryptocurrency candle data from the Tiingo API for a specific currency pair.
- * Fetches incrementally and fills forward missing candles.
- */
 class TiingoCryptoFetcherFn @Inject constructor(
     private val httpClient: HttpClient,
     private val granularity: Duration,
@@ -33,289 +31,273 @@ class TiingoCryptoFetcherFn @Inject constructor(
 ) : DoFn<KV<String, Void?>, KV<String, Candle>>() {
 
     companion object {
-        // Move logger to companion object to make it static
         private val logger = FluentLogger.forEnclosingClass()
-        
-        // Date/time formatters to use with Tiingo API
-        private val TIINGO_DATE_FORMATTER_DAILY = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        private val TIINGO_DATE_FORMATTER_INTRADAY = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
-        private const val DEFAULT_START_DATE = "2019-01-02"
-        private const val TIINGO_API_URL = "https://api.tiingo.com/tiingo/crypto/prices"
 
-        // State IDs
-        private const val LAST_FETCHED_TIMESTAMP_STATE_ID = "lastFetchedTimestamp"
-        // State ID for storing the last candle (used for filling forward)
-        private const val LAST_CANDLE_STATE_ID = "lastCandle"
+        private val TIINGO_DATE_FORMATTER_DAILY =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        private val TIINGO_DATE_FORMATTER_INTRADAY =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+
+        private const val DEFAULT_START_DATE = "2019-01-02"
+        private const val TIINGO_API_URL =
+            "https://api.tiingo.com/tiingo/crypto/prices"
 
         fun durationToResampleFreq(duration: Duration): String {
             return when {
-                duration.isLongerThan(Duration.standardDays(23)) -> "1day"
-                duration.isLongerThan(Duration.standardHours(3)) -> "1hour"
-                duration.isLongerThan(Duration.standardMinutes(29)) -> "30min"
-                duration.isLongerThan(Duration.standardMinutes(4)) -> "5min"
-                else -> "1min"
+                duration.standardDays >= 1   -> "${duration.standardDays}day"
+                duration.standardHours >= 1  -> "${duration.standardHours}hour"
+                duration.standardMinutes > 0 -> "${duration.standardMinutes}min"
+                else                         -> "1min"
             }
         }
 
-        fun isDailyGranularity(duration: Duration): Boolean {
-            return duration.isLongerThan(Duration.standardHours(23))
-        }
-        
-        /** Convert a Joda Duration to a java.time.temporal.TemporalUnit. */
-        fun durationToTemporalUnit(duration: Duration): ChronoUnit {
-            return when {
-                duration.standardDays >= 1 -> ChronoUnit.DAYS
+        fun isDailyGranularity(duration: Duration): Boolean =
+            duration.standardDays >= 1
+
+        fun durationToTemporalUnit(duration: Duration): ChronoUnit =
+            when {
+                duration.standardDays >= 1  -> ChronoUnit.DAYS
                 duration.standardHours >= 1 -> ChronoUnit.HOURS
-                else -> ChronoUnit.MINUTES
+                else                        -> ChronoUnit.MINUTES
             }
-        }
 
-        /** Get the amount for the temporal unit based on the Joda Duration. */
-        fun durationToAmount(duration: Duration): Long {
-            return when {
-                duration.standardDays >= 1 -> duration.standardDays
+        fun durationToAmount(duration: Duration): Long =
+            when {
+                duration.standardDays >= 1  -> duration.standardDays
                 duration.standardHours >= 1 -> duration.standardHours
-                else -> duration.standardMinutes
+                else                        -> duration.standardMinutes
             }
-        }
     }
 
-    // Use a simple serializable class for state
     class StateTimestamp(val timestamp: Long) : Serializable {
         companion object {
             private const val serialVersionUID = 1L
+            fun fromProtobufTimestamp(proto: Timestamp) =
+                StateTimestamp(Timestamps.toMillis(proto))
         }
-
         constructor() : this(0L)
-
-        override fun toString(): String {
-            return "StateTimestamp[$timestamp]"
-        }
+        override fun toString() = "StateTimestamp[$timestamp]"
     }
 
-    @StateId(LAST_FETCHED_TIMESTAMP_STATE_ID)
+    @StateId("lastFetchedTimestamp")
     internal val lastTimestampSpec: StateSpec<ValueState<StateTimestamp>> =
         StateSpecs.value(SerializableCoder.of(StateTimestamp::class.java))
-        
-    // New state for last emitted candle
-    @StateId(LAST_CANDLE_STATE_ID)
+
+    @StateId("lastCandle")
     internal val lastCandleSpec: StateSpec<ValueState<Candle>> =
         StateSpecs.value(ProtoCoder.of(Candle::class.java))
 
     @ProcessElement
     fun processElement(
-        context: ProcessContext,
-        @StateId(LAST_FETCHED_TIMESTAMP_STATE_ID) lastTimestampState: ValueState<StateTimestamp>,
-        @StateId(LAST_CANDLE_STATE_ID) lastCandleState: ValueState<Candle>
+        context: DoFn<KV<String, Void?>, KV<String, Candle>>.ProcessContext,
+        @StateId("lastFetchedTimestamp") lastTimestampState: ValueState<StateTimestamp>,
+        @StateId("lastCandle") lastCandleState: ValueState<Candle>
     ) {
         val currencyPair = context.element().key
         val ticker = currencyPair.replace("/", "").lowercase()
 
-        // Skip processing if API key is missing or empty
         if (apiKey.isBlank()) {
-            logger.atWarning().log("Skipping Tiingo fetch for %s: Empty API key", currencyPair)
+            logger.atWarning().log(
+              "Skipping Tiingo fetch for %s: Empty API key",
+              currencyPair
+            )
             return
         }
 
         val resampleFreq = durationToResampleFreq(granularity)
+        logger.atInfo().log(
+          "Processing fetch for: %s (ticker: %s, freq: %s)",
+          currencyPair, ticker, resampleFreq
+        )
 
-        logger.atInfo().log("Processing fetch for: %s (ticker: %s, freq: %s)", currencyPair, ticker, resampleFreq)
-
-        // Determine start date based on state
-        val startDate = if (lastTimestampState.read() != null) {
-            val stateTimestamp = lastTimestampState.read()
-            // Only use state if it's valid
-            if (stateTimestamp != null && stateTimestamp.timestamp > 0) {
-                val instant = Instant.ofEpochMilli(stateTimestamp.timestamp)
-                if (isDailyGranularity(granularity)) {
-                    // For daily, use the next day
-                    val localDate = LocalDate.ofInstant(instant, ZoneOffset.UTC).plusDays(1)
-                    localDate.format(TIINGO_DATE_FORMATTER_DAILY)
-                } else {
-                    // For intraday, use the same timestamp plus one interval
-                    val localDateTime = LocalDateTime.ofInstant(instant, ZoneOffset.UTC)
-                    localDateTime.format(TIINGO_DATE_FORMATTER_INTRADAY)
-                }
+        // Determine start date
+        val lastState = lastTimestampState.read()
+        val startDate = if (lastState != null && lastState.timestamp > 0) {
+            val inst = Instant.ofEpochMilli(lastState.timestamp)
+            if (isDailyGranularity(granularity)) {
+                LocalDate.ofInstant(inst, ZoneOffset.UTC)
+                    .plusDays(1)
+                    .format(TIINGO_DATE_FORMATTER_DAILY)
             } else {
-                DEFAULT_START_DATE
+                LocalDateTime.ofInstant(inst, ZoneOffset.UTC)
+                    .format(TIINGO_DATE_FORMATTER_INTRADAY)
             }
         } else {
             DEFAULT_START_DATE
         }
 
-        // Construct the URL
-        val url = "$TIINGO_API_URL?tickers=$ticker&startDate=$startDate&resampleFreq=$resampleFreq&token=$apiKey"
+        val url = "$TIINGO_API_URL?tickers=$ticker" +
+                  "&startDate=$startDate" +
+                  "&resampleFreq=$resampleFreq" +
+                  "&token=$apiKey"
         logger.atFine().log("Requesting URL: %s", url)
 
-        var latestEpochMillis: Long = 0 // Track latest timestamp in this batch
-        var currentLastEmittedCandle: Candle? = lastCandleState.read() // Get last emitted candle
+        var latestEpochMillis = 0L
+        var currentLast = lastCandleState.read()
 
         try {
-            val response = httpClient.get(url, emptyMap())
-            logger.atFine().log("Received response for %s (length: %d)", currencyPair, response.length)
+            val resp = httpClient.get(url, emptyMap())
+            val fetched = TiingoResponseParser.parseCandles(resp, currencyPair)
 
-            val fetchedCandles = TiingoResponseParser.parseCandles(response, currencyPair)
-
-            if (fetchedCandles.isNotEmpty()) {
-                logger.atInfo().log("Parsed %d candles for %s", fetchedCandles.size, currencyPair)
-
-                // Process with Fill-Forward
-                val candlesToOutput = fillMissingCandles(fetchedCandles, currentLastEmittedCandle, currencyPair)
-                
-                candlesToOutput.forEach { candle ->
-                    context.output(KV.of(currencyPair, candle))
-                    currentLastEmittedCandle = candle // Update last emitted candle locally
-                    
-                    // Update latest timestamp tracking (only for real candles)
-                    if (fetchedCandles.any { it.timestamp == candle.timestamp && it.volume > 0.0 }) {
-                        val candleMillis = candle.timestamp.seconds * 1000 + candle.timestamp.nanos / 1_000_000
-                        if (candleMillis > latestEpochMillis) {
-                            latestEpochMillis = candleMillis
-                        }
-                    }
-                }
-
-            } else {
-                logger.atInfo().log("No new candle data from Tiingo for %s starting %s", currencyPair, startDate)
-                
-                // Fill forward if no new data but time has passed
-                if (currentLastEmittedCandle != null) {
-                    val now = Instant.now()
-                    val lastCandleInstant = Instant.ofEpochSecond(
-                        currentLastEmittedCandle!!.timestamp.seconds,
-                        currentLastEmittedCandle!!.timestamp.nanos.toLong()
-                    )
-                    val temporalUnit = durationToTemporalUnit(granularity)
-                    val amount = durationToAmount(granularity)
-                    var nextExpectedTime = lastCandleInstant.plus(amount, temporalUnit)
-
-                    val filledCandles = mutableListOf<Candle>()
-                    while (nextExpectedTime.isBefore(now)) {
-                        logger.atFine().log("API returned no data, filling forward for %s at %s", currencyPair, nextExpectedTime)
-                        val syntheticCandle = createSyntheticCandle(currentLastEmittedCandle!!, currencyPair, nextExpectedTime)
-                        filledCandles.add(syntheticCandle)
-                        currentLastEmittedCandle = syntheticCandle // Update last emitted locally
-                        nextExpectedTime = nextExpectedTime.plus(amount, temporalUnit)
-                    }
-                    // Output any generated synthetic candles
-                    filledCandles.forEach { context.output(KV.of(currencyPair, it)) }
-                }
-            }
-
-        } catch (e: IOException) {
-            logger.atWarning().withCause(e).log("Error fetching data from Tiingo for %s", currencyPair)
-            return
-        } catch (e: Exception) {
-            logger.atSevere().withCause(e).log("Unexpected error processing %s", currencyPair)
-            return
-        }
-
-        // Update timestamp state if we processed any candles
-        if (latestEpochMillis > 0) {
-            // Only update state if we've got a newer timestamp
-            val existingState = lastTimestampState.read()
-            if (existingState == null || existingState.timestamp < latestEpochMillis) {
-                lastTimestampState.write(StateTimestamp(latestEpochMillis))
-                logger.atInfo().log("Updated last timestamp state for %s to: %d", currencyPair, latestEpochMillis)
-            }
-        } else if (lastTimestampState.read() == null) {
-            // If no state exists yet and no candles found, initialize with a default
-            try {
-                if (isDailyGranularity(granularity)) {
-                    val localDate = LocalDate.parse(startDate, TIINGO_DATE_FORMATTER_DAILY)
-                    val instant = localDate.atStartOfDay().toInstant(ZoneOffset.UTC)
-                    lastTimestampState.write(StateTimestamp(instant.toEpochMilli()))
-                    logger.atInfo().log("Initialized state for %s with start date: %s", currencyPair, startDate)
-                } else {
-                    val localDateTime = LocalDateTime.parse(startDate, TIINGO_DATE_FORMATTER_INTRADAY)
-                    val instant = localDateTime.toInstant(ZoneOffset.UTC)
-                    lastTimestampState.write(StateTimestamp(instant.toEpochMilli()))
-                    logger.atInfo().log("Initialized state for %s with start date: %s", currencyPair, startDate)
-                }
-            } catch (e: Exception) {
-                logger.atWarning().withCause(e).log("Could not parse start date '%s' to set initial state for %s", startDate, currencyPair)
-            }
-        }
-        
-        // Update the last emitted candle state
-        if (currentLastEmittedCandle != null) {
-            lastCandleState.write(currentLastEmittedCandle)
-            logger.atFine().log("Updated last emitted candle state for %s to candle at: %s",
-                currencyPair, Timestamps.toString(currentLastEmittedCandle!!.timestamp))
-        }
-    }
-    
-    /**
-     * Fill missing candles between fetched candles, starting from the last known candle.
-     */
-    private fun fillMissingCandles(
-        fetchedCandles: List<Candle>,
-        lastKnownCandle: Candle?, // Last candle *emitted* (could be synthetic)
-        currencyPair: String
-    ): List<Candle> {
-        if (fetchedCandles.isEmpty()) return emptyList()
-
-        val result = mutableListOf<Candle>()
-        val temporalUnit = durationToTemporalUnit(granularity)
-        val amount = durationToAmount(granularity)
-
-        var previousCandle = lastKnownCandle // Start reference point
-
-        for (currentFetchedCandle in fetchedCandles) {
-            val currentFetchedInstant = Instant.ofEpochSecond(
-                currentFetchedCandle.timestamp.seconds,
-                currentFetchedCandle.timestamp.nanos.toLong()
-            )
-
-            if (previousCandle != null) {
-                val prevInstant = Instant.ofEpochSecond(
-                    previousCandle.timestamp.seconds,
-                    previousCandle.timestamp.nanos.toLong()
+            if (fetched.isNotEmpty()) {
+                logger.atInfo().log(
+                  "Parsed %d candles for %s",
+                  fetched.size, currencyPair
                 )
 
-                // Calculate the next expected time based on the previous candle
-                var expectedTime = prevInstant.plus(amount, temporalUnit)
+                val toEmit = fillMissingCandles(fetched, currentLast)
+                for (c in toEmit) {
+                    context.output(KV.of(currencyPair, c))
+                    currentLast = c
 
-                // While the next expected time is before the current *fetched* candle's time, fill the gap
-                while (expectedTime.isBefore(currentFetchedInstant)) {
-                    logger.atFine().log("Filling gap for %s at expected time %s (before %s)",
-                        currencyPair, expectedTime, currentFetchedInstant)
-                    // Use previousCandle (which could be the last known or a previously generated synthetic one) as reference
-                    val syntheticCandle = createSyntheticCandle(previousCandle!!, currencyPair, expectedTime)
-                    result.add(syntheticCandle)
-                    previousCandle = syntheticCandle // Update prevCandle to the newly created synthetic one
-                    expectedTime = expectedTime.plus(amount, temporalUnit) // Move to next expected time
+                    // Only update if it's a real candle
+                    if (fetched.any { it.timestamp == c.timestamp && it.volume > 0.0 }) {
+                        val m = c.timestamp.seconds * 1000 +
+                                c.timestamp.nanos / 1_000_000
+                        if (m > latestEpochMillis) latestEpochMillis = m
+                    }
+                }
+            } else {
+                logger.atInfo().log(
+                  "No new candle data from Tiingo for %s starting %s",
+                  currencyPair, startDate
+                )
+                // Fill forward if we have previous candle
+                if (currentLast != null) {
+                    val now = Instant.now()
+                    val unit = durationToTemporalUnit(granularity)
+                    val amt = durationToAmount(granularity)
+                    var next = Instant.ofEpochSecond(
+                        currentLast.timestamp.seconds,
+                        currentLast.timestamp.nanos.toLong()
+                    ).plus(amt, unit)
+
+                    val fills = mutableListOf<Candle>()
+                    while (next.isBefore(now)) {
+                        logger.atFine().log(
+                          "API returned no data, filling forward for %s at %s",
+                          currencyPair, next
+                        )
+                        val synth = createSyntheticCandle(
+                            currentLast, currencyPair, next
+                        )
+                        fills.add(synth)
+                        currentLast = synth
+                        next = next.plus(amt, unit)
+                    }
+                    fills.forEach { context.output(KV.of(currencyPair, it)) }
                 }
             }
-
-            // Add the actual fetched candle from Tiingo
-            result.add(currentFetchedCandle)
-            previousCandle = currentFetchedCandle // Update prevCandle to this fetched candle
+        } catch (io: IOException) {
+            logger.atWarning().withCause(io)
+                  .log("Error fetching data from Tiingo for %s", currencyPair)
+            return
+        } catch (ex: Exception) {
+            logger.atSevere().withCause(ex)
+                  .log("Unexpected error processing %s", currencyPair)
+            return
         }
 
-        return result
-    }
-    
-    /**
-     * Create a synthetic candle based on a reference candle.
-     */
-    private fun createSyntheticCandle(
-        referenceCandle: Candle, // The last candle (real or synthetic) before the gap
-        currencyPair: String,
-        timestamp: Instant // java.time.Instant
-    ): Candle {
-        val protoTimestamp = Timestamps.fromMillis(timestamp.toEpochMilli())
-        // Use the close price from reference candle for all price fields
-        val price = referenceCandle.close
+        // Update timestamp state
+        if (latestEpochMillis > 0) {
+            val existing = lastTimestampState.read()
+            if (existing == null || existing.timestamp < latestEpochMillis) {
+                lastTimestampState.write(StateTimestamp(latestEpochMillis))
+                logger.atInfo().log(
+                  "Updated last timestamp state for %s to: %d",
+                  currencyPair, latestEpochMillis
+                )
+            }
+        } else if (lastTimestampState.read() == null) {
+            try {
+                val initMillis = if (isDailyGranularity(granularity)) {
+                    LocalDate.parse(startDate, TIINGO_DATE_FORMATTER_DAILY)
+                        .atStartOfDay()
+                        .toInstant(ZoneOffset.UTC)
+                        .toEpochMilli()
+                } else {
+                    LocalDateTime.parse(startDate, TIINGO_DATE_FORMATTER_INTRADAY)
+                        .toInstant(ZoneOffset.UTC)
+                        .toEpochMilli()
+                }
+                lastTimestampState.write(StateTimestamp(initMillis))
+                logger.atInfo().log(
+                  "Initialized state for %s with start date: %s",
+                  currencyPair, startDate
+                )
+            } catch (e: Exception) {
+                logger.atWarning().withCause(e).log(
+                  "Could not parse start date '%s' to set initial state for %s",
+                  startDate, currencyPair
+                )
+            }
+        }
 
+        // Update lastCandle state
+        if (currentLast != null) {
+            lastCandleState.write(currentLast)
+            logger.atFine().log(
+              "Updated last emitted candle state for %s to candle at: %s",
+              currencyPair,
+              Timestamps.toString(currentLast.timestamp)
+            )
+        }
+    }
+
+    private fun fillMissingCandles(
+        fetched: List<Candle>,
+        lastKnown: Candle?
+    ): List<Candle> {
+        // If there's no prior candle, just emit exactly what we fetched
+        if (lastKnown == null) return fetched
+        if (fetched.isEmpty()) return emptyList()
+
+        val unit = durationToTemporalUnit(granularity)
+        val amount = durationToAmount(granularity)
+        val out = mutableListOf<Candle>()
+        var prev = lastKnown
+
+        for (c in fetched) {
+            val currTime = Instant.ofEpochSecond(
+                c.timestamp.seconds,
+                c.timestamp.nanos.toLong()
+            )
+            var nextExpected = Instant.ofEpochSecond(
+                prev.timestamp.seconds,
+                prev.timestamp.nanos.toLong()
+            ).plus(amount, unit)
+
+            while (nextExpected.isBefore(currTime)) {
+                logger.atFine().log(
+                  "Filling gap for %s at %s (before %s)",
+                  c.currencyPair, nextExpected, currTime
+                )
+                val synth = createSyntheticCandle(prev, c.currencyPair, nextExpected)
+                out.add(synth)
+                prev = synth
+                nextExpected = nextExpected.plus(amount, unit)
+            }
+            out.add(c)
+            prev = c
+        }
+        return out
+    }
+
+    private fun createSyntheticCandle(
+        reference: Candle,
+        currencyPair: String,
+        timestamp: Instant
+    ): Candle {
+        val tsProto = Timestamps.fromMillis(timestamp.toEpochMilli())
+        val price = reference.close
         return Candle.newBuilder()
-            .setTimestamp(protoTimestamp)
+            .setTimestamp(tsProto)
             .setCurrencyPair(currencyPair)
             .setOpen(price)
             .setHigh(price)
             .setLow(price)
             .setClose(price)
-            .setVolume(0.0) // Zero volume indicates synthetic candle
+            .setVolume(0.0)
             .build()
     }
 }
