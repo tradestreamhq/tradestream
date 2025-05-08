@@ -25,8 +25,8 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 /**
-* A stateful DoFn to fetch cryptocurrency candle data from the Tiingo API for a specific currency pair.
-* Fetches incrementally and fills forward missing candles.
+ * A stateful DoFn to fetch cryptocurrency candle data from the Tiingo API for a specific currency pair.
+ * Fetches incrementally and fills forward missing candles.
  */
 class TiingoCryptoFetcherFn @Inject constructor(
     private val httpClient: HttpClient,
@@ -133,7 +133,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
                   "&token=$apiKey"
         logger.atFine().log("Requesting URL: %s", url)
 
-        var latestEpochMillis = 0L
+        var latestFetchedEpochMillis = 0L // Track latest timestamp from *fetched* data
         var currentLast: Candle? = lastCandleState.read()
 
         try {
@@ -149,12 +149,12 @@ class TiingoCryptoFetcherFn @Inject constructor(
                 val toEmit = fillMissingCandles(fetched, currentLast)
                 toEmit.forEach { candle ->
                     context.output(KV.of(currencyPair, candle))
-                    currentLast = candle
+                    currentLast = candle // Update currentLast after each emission
 
-                    // Only consider real candles for the timestamp state
+                    // Only update latestFetchedEpochMillis if it's a real candle
                     if (fetched.any { it.timestamp == candle.timestamp && it.volume > 0.0 }) {
                         val m = candle.timestamp.seconds * 1000 + candle.timestamp.nanos / 1_000_000
-                        if (m > latestEpochMillis) latestEpochMillis = m
+                        if (m > latestFetchedEpochMillis) latestFetchedEpochMillis = m
                     }
                 }
             } else {
@@ -179,7 +179,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
                         )
                         val synth = createSyntheticCandle(lastCandle, currencyPair, nextExpected)
                         context.output(KV.of(currencyPair, synth))
-                        currentLast = synth
+                        currentLast = synth // Update currentLast after emitting synthetic candle
                         nextExpected = nextExpected.plus(amt, unit)
                     }
                 }
@@ -194,18 +194,24 @@ class TiingoCryptoFetcherFn @Inject constructor(
             return
         }
 
-        // Update timestamp state
-        if (latestEpochMillis > 0) {
+        // Determine the timestamp of the very last emitted candle (real or synthetic)
+        val finalEmittedTimestampMillis = currentLast?.let { candle ->
+            candle.timestamp.seconds * 1000 + candle.timestamp.nanos / 1_000_000
+        } ?: lastTimestampState.read()?.timestamp ?: 0L // Use previous state if nothing emitted
+
+        // Update timestamp state based on the last *emitted* candle's timestamp
+        if (finalEmittedTimestampMillis > 0) {
             val existing = lastTimestampState.read()
-            if (existing == null || existing.timestamp < latestEpochMillis) {
-                lastTimestampState.write(StateTimestamp(latestEpochMillis))
+            // Update state if it's newer than the existing state OR if state was previously null
+            if (existing == null || existing.timestamp < finalEmittedTimestampMillis) {
+                lastTimestampState.write(StateTimestamp(finalEmittedTimestampMillis))
                 logger.atInfo().log(
-                    "Updated last timestamp state for %s to: %d",
-                    currencyPair, latestEpochMillis
+                    "Updated last timestamp state for %s to: %d (based on last emitted)",
+                    currencyPair, finalEmittedTimestampMillis
                 )
             }
         } else if (lastTimestampState.read() == null) {
-            // Initialize if never set
+            // Initialize if never set and nothing was fetched/filled
             try {
                 val initMillis = if (isDailyGranularity(granularity)) {
                     LocalDate.parse(startDate, TIINGO_DATE_FORMATTER_DAILY)
@@ -227,6 +233,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
                          startDate, currencyPair)
             }
         }
+
 
         // Persist last emitted candle
         currentLast?.let { lastCandleState.write(it) }
@@ -265,11 +272,11 @@ class TiingoCryptoFetcherFn @Inject constructor(
                 )
                 val synth = createSyntheticCandle(prev, curr.currencyPair, nextExpected)
                 out.add(synth)
-                prev = synth
+                prev = synth // Update prev to the synthetic candle
                 nextExpected = nextExpected.plus(amt, unit)
             }
             out.add(curr)
-            prev = curr
+            prev = curr // Update prev to the current fetched candle
         }
         return out
     }
@@ -283,7 +290,7 @@ class TiingoCryptoFetcherFn @Inject constructor(
         timestamp: Instant
     ): Candle {
         val tsProto = Timestamps.fromMillis(timestamp.toEpochMilli())
-        val price = reference.close
+        val price = reference.close // Use the close price of the *reference* candle
         return Candle.newBuilder()
             .setTimestamp(tsProto)
             .setCurrencyPair(currencyPair)
