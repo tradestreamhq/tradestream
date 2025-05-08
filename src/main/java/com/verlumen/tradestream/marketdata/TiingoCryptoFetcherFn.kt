@@ -240,39 +240,29 @@ class TiingoCryptoFetcherFn @Inject constructor(
 
     private fun fillMissingCandles(
         fetched: List<Candle>,
-        lastKnown: Candle?
+        lastKnownCandle: Candle?
     ): List<Candle> {
-        // If there's no prior candle, just emit exactly what we fetched
-        if (lastKnown == null) return fetched
+        if (lastKnownCandle == null) return fetched
         if (fetched.isEmpty()) return emptyList()
 
         val unit = durationToTemporalUnit(granularity)
-        val amount = durationToAmount(granularity)
+        val amt = durationToAmount(granularity)
         val out = mutableListOf<Candle>()
-        var prev = lastKnown
+        var prev = lastKnownCandle
 
-        for (c in fetched) {
-            val currTime = Instant.ofEpochSecond(
-                c.timestamp.seconds,
-                c.timestamp.nanos.toLong()
-            )
-            var nextExpected = Instant.ofEpochSecond(
-                prev.timestamp.seconds,
-                prev.timestamp.nanos.toLong()
-            ).plus(amount, unit)
+        for (curr in fetched) {
+            val currTime = Instant.ofEpochSecond(curr.timestamp.seconds, curr.timestamp.nanos.toLong())
+            var nextExpected = Instant.ofEpochSecond(prev!!.timestamp.seconds, prev.timestamp.nanos.toLong()).plus(amt, unit)
 
             while (nextExpected.isBefore(currTime)) {
-                logger.atFine().log(
-                  "Filling gap for %s at %s (before %s)",
-                  c.currencyPair, nextExpected, currTime
-                )
-                val synth = createSyntheticCandle(prev, c.currencyPair, nextExpected)
+                logger.atFine().log("Filling gap for %s at %s (before %s)", curr.currencyPair, nextExpected, currTime)
+                val synth = createSyntheticCandle(prev, curr.currencyPair, nextExpected)
                 out.add(synth)
                 prev = synth
-                nextExpected = nextExpected.plus(amount, unit)
+                nextExpected = nextExpected.plus(amt, unit)
             }
-            out.add(c)
-            prev = c
+            out.add(curr)
+            prev = curr
         }
         return out
     }
