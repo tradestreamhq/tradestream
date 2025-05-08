@@ -25,8 +25,8 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 /**
- * A stateful DoFn to fetch cryptocurrency candle data from the Tiingo API for a specific currency pair.
- * Fetches incrementally and fills forward missing candles.
+* A stateful DoFn to fetch cryptocurrency candle data from the Tiingo API for a specific currency pair.
+* Fetches incrementally and fills forward missing candles.
  */
 class TiingoCryptoFetcherFn @Inject constructor(
     private val httpClient: HttpClient,
@@ -114,18 +114,18 @@ class TiingoCryptoFetcherFn @Inject constructor(
         // Determine the start date based on saved state
         val lastState = lastTimestampState.read()
         val startDate = if (lastState != null && lastState.timestamp > 0) {
-            val inst = Instant.ofEpochMilli(lastState.timestamp)
+            val lastInst = Instant.ofEpochMilli(lastState.timestamp)
             if (isDailyGranularity(granularity)) {
-                LocalDate.ofInstant(inst, ZoneOffset.UTC)
-                    .plusDays(1)
-                    .format(TIINGO_DATE_FORMATTER_DAILY)
+                // Fetch data starting the day AFTER the last fetched day's timestamp
+                LocalDate.ofInstant(lastInst, ZoneOffset.UTC).plusDays(1).format(TIINGO_DATE_FORMATTER_DAILY)
             } else {
-                LocalDateTime.ofInstant(inst, ZoneOffset.UTC)
-                    .format(TIINGO_DATE_FORMATTER_INTRADAY)
+                // Fetch data starting 1 second AFTER the last fetched timestamp
+                LocalDateTime.ofInstant(lastInst.plusSeconds(1), ZoneOffset.UTC).format(TIINGO_DATE_FORMATTER_INTRADAY)
             }
         } else {
             DEFAULT_START_DATE
         }
+
 
         val url = "$TIINGO_API_URL?tickers=$ticker" +
                   "&startDate=$startDate" +
