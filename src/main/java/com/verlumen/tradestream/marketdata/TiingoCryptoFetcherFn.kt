@@ -37,9 +37,9 @@ class TiingoCryptoFetcherFn @Inject constructor(
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
 
-        private val TIINGO_DATE_FORMATTER_DAILY =
+        internal val TIINGO_DATE_FORMATTER_DAILY =
             DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        private val TIINGO_DATE_FORMATTER_INTRADAY =
+        internal val TIINGO_DATE_FORMATTER_INTRADAY =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
 
         private const val DEFAULT_START_DATE = "2019-01-02"
