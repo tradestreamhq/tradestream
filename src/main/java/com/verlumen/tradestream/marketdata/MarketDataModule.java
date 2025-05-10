@@ -45,14 +45,14 @@ public abstract class MarketDataModule extends AbstractModule {
   @Singleton
   CandleSource provideCandleSource(
       Provider<TradeBackedCandleSource> tradeBackedCandleSource,
-      TiingoCandleSource.Factory tiingoCandleSourceFactory,
+      TiingoCryptoCandleSource.Factory tiingoCryptoCandleSourceFactory,
       RunMode runMode) {
     
       switch (runMode) {
           case DRY: 
               return tradeBackedCandleSource.get();
           case WET:
-              return tiingoCandleSourceFactory.create(candleDuration(), tiingoApiKey());
+              return tiingoCryptoCandleSourceFactory.create(candleDuration(), tiingoApiKey());
           default: 
               throw new UnsupportedOperationException("Unsupported RunMode: " + runMode);
       }
