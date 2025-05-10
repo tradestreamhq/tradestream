@@ -15,7 +15,6 @@ import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.CandleLookbackDoFn;
 import com.verlumen.tradestream.marketdata.FillForwardCandles;
-import com.verlumen.tradestream.marketdata.MultiTimeframeCandleTransform;
 import com.verlumen.tradestream.marketdata.Trade;
 import com.verlumen.tradestream.marketdata.TradeSource;
 import com.verlumen.tradestream.marketdata.TradeToCandle;
