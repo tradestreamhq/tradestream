@@ -43,7 +43,7 @@ constructor(
     private val TIINGO_DATE_FORMATTER_DAILY = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     private val TIINGO_DATE_FORMATTER_INTRADAY = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
 
-    private const val DEFAULT_START_DATE = "2019-01-02"
+    // No longer using a fixed DEFAULT_START_DATE constant
     private const val TIINGO_API_URL = "https://api.tiingo.com/tiingo/crypto/prices"
 
     fun durationToResampleFreq(duration: Duration): String {
@@ -150,7 +150,15 @@ constructor(
                 .format(TIINGO_DATE_FORMATTER_INTRADAY)
           }
         } else {
-          DEFAULT_START_DATE
+          // Dynamic default: one year ago from now
+          val oneYearAgo = Instant.now().minus(365, ChronoUnit.DAYS)
+          if (isDailyGranularity(granularity)) {
+            LocalDate.ofInstant(oneYearAgo, ZoneOffset.UTC)
+                .format(TIINGO_DATE_FORMATTER_DAILY)
+          } else {
+            LocalDateTime.ofInstant(oneYearAgo, ZoneOffset.UTC)
+                .format(TIINGO_DATE_FORMATTER_INTRADAY)
+          }
         }
 
     val url =
