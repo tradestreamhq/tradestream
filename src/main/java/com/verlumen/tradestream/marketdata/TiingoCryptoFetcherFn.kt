@@ -2,6 +2,7 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
+import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.http.HttpClient
 import java.io.IOException
@@ -33,9 +34,13 @@ class TiingoCryptoFetcherFn
 @Inject
 constructor(
     private val httpClient: HttpClient,
-    private val granularity: Duration,
-    private val apiKey: String
-) : DoFn<KV<String, Void?>, KV<String, Candle>>() {
+    @Assisted private val granularity: Duration,
+    @Assisted private val apiKey: String
+    ) : DoFn<KV<String, Void?>, KV<String, Candle>>() {
+    
+    interface Factory {
+        fun create(granularity: Duration, apiKey: String): TiingoCryptoFetcherFn
+    }
 
   companion object {
     private val logger = FluentLogger.forEnclosingClass()
