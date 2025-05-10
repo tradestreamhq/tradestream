@@ -3,7 +3,6 @@ package com.verlumen.tradestream.marketdata
 import com.google.inject.Inject
 import com.verlumen.tradestream.instruments.CurrencyPair
 import org.apache.beam.sdk.Pipeline
-import org.apache.beam.sdk.transforms.Create
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.FlatMapElements
 import org.apache.beam.sdk.transforms.GroupByKey
@@ -31,7 +30,7 @@ import java.util.function.Supplier
  */
 class TiingoCryptoCandleTransform @Inject constructor(
     private val currencyPairSupplier: Supplier<@JvmSuppressWildcards List<CurrencyPair>>,
-    private val fetcherFn: DoFn<KV<String, Void?>, KV<String, Candle>>
+    private val fetcherFn: TiingoCryptoFetcherFn
 ) : PTransform<PCollection<Instant>, PCollection<KV<String, Candle>>>(), Serializable {
 
     companion object {
@@ -43,7 +42,7 @@ class TiingoCryptoCandleTransform @Inject constructor(
         val currencyPairs = currencyPairSupplier.get()
         
         return impulse
-            // Step 2: Cross with currency pairs 
+            // Step 2: Cross with currency pairs from the side input
             .apply("GetCurrencyPairs", FlatMapElements
                 .into(TypeDescriptor.of(CurrencyPair::class.java))
                 .via(SerializableCurrencyPairFunction(currencyPairs))
@@ -64,7 +63,7 @@ class TiingoCryptoCandleTransform @Inject constructor(
                     listOf(KV.of(kv.key, null))
                 })
             )
-            // Step 6: Use the fetcher DoFn to fetch candles for each currency pair
+            // Step 6: Use the stateful DoFn to fetch candles for each currency pair
             .apply("FetchTiingoCandles", ParDo.of(fetcherFn))
     }
 
