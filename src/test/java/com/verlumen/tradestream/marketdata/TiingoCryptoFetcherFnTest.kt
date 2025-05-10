@@ -332,8 +332,8 @@ class TiingoCryptoFetcherFnTest {
       assertThat(hasDay2).isTrue()
       assertThat(hasDay3).isTrue()
       
-      // Satisfies expects Unit, not null
-      Unit
+      // For Beam's SerializableFunction, we need to return null as Void?
+      null as Void?
     }
     
     pipeline.run()
@@ -420,8 +420,8 @@ class TiingoCryptoFetcherFnTest {
       // Oct 26, 2023 and now - this proves fill-forward is limited
       assertThat(outputList.size).isLessThan(daysBetween.toInt())
       
-      // Return Unit instead of null
-      Unit
+      // Return null as Void? for Beam's SerializableFunction
+      null as Void?
     }
     
     pipeline.run()
