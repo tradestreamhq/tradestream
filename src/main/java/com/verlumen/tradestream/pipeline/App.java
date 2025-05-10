@@ -134,7 +134,7 @@ public final class App {
             
     // 2. Parse lookback sizes from options and add lookback processing
     List<Integer> lookbackSizes = parseLookbackSizes(options.getCandleLookbackSizes());
-    PCollection<KV<String, KV<Integer, ImmutableList<Candle>>>> lookbacks = windowedCandles.apply(
+    PCollection<KV<String, KV<Integer, ImmutableList<Candle>>>> lookbacks = candles.apply(
         "Generate Candle Lookbacks",
         ParDo.of(new CandleLookbackDoFn(lookbackSizes)));
         
