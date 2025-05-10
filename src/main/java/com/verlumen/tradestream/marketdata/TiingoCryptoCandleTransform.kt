@@ -15,6 +15,7 @@ import org.apache.beam.sdk.values.PCollection
 import org.apache.beam.sdk.values.TypeDescriptor
 import org.apache.beam.sdk.values.TypeDescriptors
 import org.joda.time.Duration
+import org.joda.time.Instant
 import java.util.function.Supplier
 
 /**
@@ -31,9 +32,9 @@ class TiingoCryptoCandleTransform @Inject constructor( // @Inject will be useful
     // In PR6: private val fetcherFnFactory: TiingoCryptoFetcherFn.Factory,
     // In PR6: @Assisted("granularity") private val granularity: Duration,
     // In PR6: @Assisted("apiKey") private val apiKey: String
-) : PTransform<PCollection<Long>, PCollection<KV<String, Candle>>>() {
+) : PTransform<PCollection<Instant>, PCollection<KV<String, Candle>>>() {
 
-    override fun expand(impulse: PCollection<Long>): PCollection<KV<String, Candle>> {
+    override fun expand(impulse: PCollection<Instant>): PCollection<KV<String, Candle>> {
         // In PR6, fetcherFn would be created here using the factory, granularity, and apiKey
         // val configuredFetcherFn = fetcherFnFactory.create(this.granularity, this.apiKey)
 
@@ -41,17 +42,25 @@ class TiingoCryptoCandleTransform @Inject constructor( // @Inject will be useful
             // Step 2: Get all currency pairs for each impulse
             .apply("GetCurrencyPairs", FlatMapElements
                 .into(TypeDescriptor.of(CurrencyPair::class.java))
-                .via(SerializableFunction<Long, List<CurrencyPair>> { _ -> currencyPairSupplier.get() })
+                .via(SerializableFunction<Instant, List<CurrencyPair>> { _ -> currencyPairSupplier.get() })
             )
             // Step 3: Key by currency pair symbol (e.g., "BTC/USD")
             .apply("KeyByCurrencyPair", MapElements
                 .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.voids()))
                 .via(SerializableFunction<CurrencyPair, KV<String, Void?>> { pair -> KV.of(pair.symbol(), null) })
             )
-             // Step 4: Group by key ensures one fetcher instance operates per key if it were stateful across bundles
-             // For now, it mainly helps in potential deduplication from supplier.
+            // Step 4: Group by key ensures one fetcher instance operates per key if it were stateful across bundles
+            // For now, it mainly helps in potential deduplication from supplier.
             .apply("GroupFetchRequests", GroupByKey.create())
-            // Step 5: Use the stateful DoFn to fetch candles for each currency pair
+            // Step 5: Flatten the grouped data back to individual KVs to match fetcherFn input type
+            .apply("UnwrapGroupedPairs", FlatMapElements
+                .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.voids()))
+                .via(SerializableFunction<KV<String, Iterable<Void?>>, Iterable<KV<String, Void?>>> { kv ->
+                    val key = kv.key
+                    listOf(KV.of(key, null))
+                })
+            )
+            // Step 6: Use the stateful DoFn to fetch candles for each currency pair
             .apply("FetchTiingoCandles", ParDo.of(fetcherFn)) // Use the passed fetcherFn
     }
 
@@ -69,7 +78,7 @@ class TiingoCryptoCandleTransform @Inject constructor( // @Inject will be useful
             .apply("PeriodicImpulseTrigger", PeriodicImpulse.create()
                 .withInterval(defaultImpulseInterval)
                 .applyWindowing()) // applyWindowing might be needed depending on Beam version/runner
-            .apply("RunTiingoTransform",this)
+            .apply("RunTiingoTransform", this)
     }
 
     // Factory interface will be added in PR 6 for AssistedInject
