@@ -6,6 +6,8 @@ import com.verlumen.tradestream.instruments.CurrencyPair
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
+import org.apache.beam.sdk.transforms.DoFn
+import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.transforms.SerializableFunction
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
@@ -22,7 +24,6 @@ import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.io.IOException
@@ -43,18 +44,19 @@ class TiingoCryptoCandleTransformTest : Serializable {
     @Transient
     val mockitoRule: MockitoRule = MockitoJUnit.rule()
 
-    @Transient
     @Mock
+    @Transient
     lateinit var mockHttpClient: HttpClient
 
-    @Transient
     @Mock
+    @Transient
     lateinit var mockCurrencyPairSupplier: Supplier<@JvmSuppressWildcards List<CurrencyPair>>
 
-    @Transient // Mark as transient to prevent serialization
+    // The DoFn will be created manually with mocked dependencies for this test PR
+    @Transient
     lateinit var testFetcherFn: TiingoCryptoFetcherFn
     
-    @Transient // Mark as transient to prevent serialization
+    @Transient
     lateinit var transform: TiingoCryptoCandleTransform
 
     private val testApiKey = "TEST_KEY_FOR_TRANSFORM"
@@ -76,35 +78,32 @@ class TiingoCryptoCandleTransformTest : Serializable {
 
     @Before
     fun setUp() {
-        // Use a test-friendly implementation of the supplier
-        val testCurrencyPairs = listOf(btcPair, ethPair)
-        whenever(mockCurrencyPairSupplier.get()).thenReturn(testCurrencyPairs)
-        
-        // For tests, create a serializable test version of the fetcher function
-        testFetcherFn = SerializableTestFetcherFn(testGranularity, testApiKey)
-        
-        // Create the transform with our serializable components
+        // Manually create the TiingoCryptoFetcherFn with its dependencies mocked or faked
+        testFetcherFn = TiingoCryptoFetcherFn(mockHttpClient, testGranularity, testApiKey)
+
+        // Manually create the transform with the mocked supplier and the test FetcherFn
         transform = TiingoCryptoCandleTransform(mockCurrencyPairSupplier, testFetcherFn)
+
+        whenever(mockCurrencyPairSupplier.get()).thenReturn(listOf(btcPair, ethPair))
     }
 
     @Test
     fun `transform fetches and outputs candles for supplied pairs`() {
-        // Setup HTTP responses directly in the test fetcher
-        (testFetcherFn as SerializableTestFetcherFn).setupTestResponses(
-            mapOf(
-                "BTC/USD" to createTestCandle("BTC/USD", 34965.0),
-                "ETH/USD" to createTestCandle("ETH/USD", 2002.0)
-            )
-        )
+        // Arrange: Mock HttpClient responses
+        val btcTicker = "btcusd"
+        val ethTicker = "ethusd"
+        val urlMatcherBtc = UrlMatcher("tickers=$btcTicker", "token=$testApiKey")
+        val urlMatcherEth = UrlMatcher("tickers=$ethTicker", "token=$testApiKey")
 
-        // Create test input
+        whenever(mockHttpClient.get(argThat(urlMatcherBtc), Mockito.anyMap())).thenReturn(sampleBtcResponse)
+        whenever(mockHttpClient.get(argThat(urlMatcherEth), Mockito.anyMap())).thenReturn(sampleEthResponse)
+
+        // Act: Apply the transform to a dummy impulse input - using Instant instead of Long
         val now = Instant.now()
         val impulse: PCollection<Instant> = pipeline.apply("CreateImpulse", Create.of(now))
-        
-        // Apply the transform
         val output: PCollection<KV<String, Candle>> = impulse.apply("RunTiingoTransform", transform)
 
-        // Assert the output
+        // Assert
         PAssert.that(output).satisfies(SerializableFunction<Iterable<KV<String, Candle>>, Void?> { kvs ->
             val kvList = kvs.toList()
             assertThat(kvList).hasSize(2)
@@ -121,26 +120,29 @@ class TiingoCryptoCandleTransformTest : Serializable {
         })
 
         pipeline.run().waitUntilFinish()
+
+        // Verify supplier was called
+        verify(mockCurrencyPairSupplier).get()
+        // Verify HTTP client was called for both tickers
+        verify(mockHttpClient).get(argThat(urlMatcherBtc), Mockito.anyMap())
+        verify(mockHttpClient).get(argThat(urlMatcherEth), Mockito.anyMap())
     }
 
     @Test
     fun `transform handles http client error for one pair`() {
-        // Setup success for BTC and failure for ETH
-        (testFetcherFn as SerializableTestFetcherFn).setupTestResponses(
-            mapOf(
-                "BTC/USD" to createTestCandle("BTC/USD", 34965.0)
-                // ETH/USD intentionally omitted to simulate failure
-            )
-        )
+        val btcTicker = "btcusd"
+        val ethTicker = "ethusd"
+        val urlMatcherBtc = UrlMatcher("tickers=$btcTicker")
+        val urlMatcherEth = UrlMatcher("tickers=$ethTicker")
 
-        // Create test input
+        whenever(mockHttpClient.get(argThat(urlMatcherBtc), Mockito.anyMap())).thenReturn(sampleBtcResponse)
+        whenever(mockHttpClient.get(argThat(urlMatcherEth), Mockito.anyMap())).thenThrow(IOException("Network Error for ETH"))
+
+        // Using Instant instead of Long
         val now = Instant.now()
         val impulse: PCollection<Instant> = pipeline.apply("CreateImpulse", Create.of(now))
-        
-        // Apply the transform
         val output: PCollection<KV<String, Candle>> = impulse.apply("RunTiingoTransform", transform)
 
-        // Assert the output
         PAssert.that(output).satisfies(SerializableFunction<Iterable<KV<String, Candle>>, Void?> { kvs ->
             val kvList = kvs.toList()
             assertThat(kvList).hasSize(1) // Only BTC candle expected
@@ -148,61 +150,37 @@ class TiingoCryptoCandleTransformTest : Serializable {
             assertThat(kvList[0].value.close).isEqualTo(34965.0)
             null
         })
-        
         pipeline.run().waitUntilFinish()
     }
 
     @Test
     fun `expand with pipeline sets up periodic impulse`() {
-        // Setup a simple response for testing the full pipeline flow
-        (testFetcherFn as SerializableTestFetcherFn).setupTestResponses(emptyMap())
-        
-        // Use the convenience method
-        val output: PCollection<KV<String, Candle>> = transform.expand(pipeline)
+        // This test is more conceptual as testing PeriodicImpulse end-to-end is complex in unit tests.
+        // We'll verify the structure by checking if the transform can be applied.
+        // Mock the actual fetching part to avoid external calls.
+        whenever(mockHttpClient.get(Mockito.anyString(), Mockito.anyMap())).thenReturn("[]") // Return empty to avoid parsing errors
 
-        // Expect empty because we provided no test data
-        PAssert.that(output).empty()
-        
+        val output: PCollection<KV<String, Candle>> = transform.expand(pipeline) // Use the convenience method
+
+        PAssert.that(output).empty() // Expect empty because we mocked an empty response
         pipeline.run().waitUntilFinish()
+        // If it runs without pipeline construction errors, it's a good sign.
     }
 
-    // Helper method to create a test candle
-    private fun createTestCandle(symbol: String, closePrice: Double): Candle {
-        return Candle.newBuilder()
-            .setSymbol(symbol)
-            .setOpen(closePrice - 10.0)
-            .setHigh(closePrice + 5.0)
-            .setLow(closePrice - 15.0)
-            .setClose(closePrice)
-            .setVolume(10.0)
-            .build()
+    // Standard Mockito ArgumentMatcher Implementation
+    private class UrlMatcher(vararg val substrings: String) : ArgumentMatcher<String>, Serializable {
+        companion object {
+            private const val serialVersionUID = 1L
+        }
+        
+        override fun matches(argument: String?): Boolean {
+            return argument != null && substrings.all { argument.contains(it) }
+        }
+        
+        override fun toString(): String = "URL containing $substrings"
     }
-}
 
-/**
- * A serializable test version of TiingoCryptoFetcherFn that doesn't depend on mocks.
- * This simulates the behavior without requiring serialization of mocks.
- */
-class SerializableTestFetcherFn(
-    private val granularity: Duration,
-    private val apiKey: String
-) : TiingoCryptoFetcherFn(null, granularity, apiKey), Serializable {
-    companion object {
-        private const val serialVersionUID = 1L
-    }
-    
-    // Test data storage
-    @Transient
-    private var testResponses: Map<String, Candle> = emptyMap()
-    
-    fun setupTestResponses(responses: Map<String, Candle>) {
-        this.testResponses = responses
-    }
-    
-    // Override process method to return test data instead of making real HTTP calls
-    override fun processElement(input: KV<String, Void?>): Iterable<KV<String, Candle>> {
-        val symbol = input.key
-        val candle = testResponses[symbol] ?: return emptyList()
-        return listOf(KV.of(symbol, candle))
+    private fun argThat(matcher: ArgumentMatcher<String>): String {
+        return Mockito.argThat(matcher) ?: ""
     }
 }
