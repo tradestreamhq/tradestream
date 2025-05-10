@@ -270,6 +270,7 @@ kt_jvm_library(
     srcs = ["TiingoCryptoCandleSource.kt"],
     deps = [
         ":candle_source",
+        ":tiingo_crypto_candle_transform",
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
         "//third_party:guice",
