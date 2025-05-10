@@ -26,7 +26,8 @@ import org.joda.time.Duration
 
 /**
  * A stateful DoFn to fetch cryptocurrency candle data from the Tiingo API for a specific currency
- * pair. Fetches incrementally and fills forward missing candles.
+ * pair.
+ * Fetches incrementally and fills forward missing candles.
  */
 class TiingoCryptoFetcherFn
 @Inject
@@ -50,7 +51,7 @@ constructor(
         duration.standardDays >= 1 -> "${duration.standardDays}day"
         duration.standardHours >= 1 -> "${duration.standardHours}hour"
         duration.standardMinutes > 0 -> "${duration.standardMinutes}min"
-        else -> "1min"
+        else -> "1min" // Default to 1min if duration is less than a minute or invalid
       }
     }
 
@@ -73,7 +74,7 @@ constructor(
 
   /** Simple serializable wrapper for the last fetch timestamp */
   class StateTimestamp(val timestamp: Long) : Serializable {
-    constructor() : this(0L)
+    constructor() : this(0L) // Default constructor for Beam
 
     override fun toString() = "StateTimestamp[$timestamp]"
 
@@ -181,10 +182,11 @@ constructor(
     } catch (ioe: IOException) {
       logger.atWarning().withCause(ioe).log(
           "Error fetching data from Tiingo for %s", currencyPair)
-      return
+      return // Do not proceed if HTTP request fails
     } catch (ex: Exception) {
+      // Log other exceptions but try to proceed with state update if possible
       logger.atSevere().withCause(ex).log("Unexpected error processing %s", currencyPair)
-      return
+      return // Do not proceed with state update on unexpected error during processing
     }
 
     // Determine the timestamp of the very last emitted candle (real or synthetic)
