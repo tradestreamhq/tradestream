@@ -1,6 +1,11 @@
 package com.verlumen.tradestream.marketdata
 
 import com.google.common.truth.Truth.assertThat
+import com.google.inject.Bind
+import com.google.inject.Guice
+import com.google.inject.Inject
+import com.google.inject.assistedinject.FactoryModuleBuilder
+import com.google.inject.util.BoundFieldModule
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.http.HttpClient
 import org.apache.beam.sdk.coders.KvCoder
@@ -15,6 +20,7 @@ import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.TimestampedValue
 import org.joda.time.Duration
 import org.joda.time.Instant as JodaInstant
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,7 +41,21 @@ class TiingoCryptoFetcherFnTest : Serializable {
   @Transient
   val pipeline: TestPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(false)
 
+  // Default test dependencies
   private val testApiKey = "TEST_API_KEY_123"
+  private val defaultGranularity = Duration.standardDays(1)
+  
+  // Default instance for most tests
+  @Inject
+  lateinit var fetcherFactory: TiingoCryptoFetcherFn.Factory
+  
+  // Default HTTP client with sample response
+  @Bind
+  val defaultHttpClient = SimpleHttpClient(sampleResponseDailyPage1)
+  
+  // Default fetcher instance created in setUp
+  private lateinit var defaultFetcher: TiingoCryptoFetcherFn
+  
   private val emptyResponse = "[]"
 
   // Sample for daily candles
@@ -81,10 +101,12 @@ class TiingoCryptoFetcherFnTest : Serializable {
   
   // Reusable HTTP client classes
   class SimpleHttpClient(private val response: String) : HttpClient, Serializable {
+      private val serialVersionUID = 1L
       override fun get(url: String, headers: Map<String, String>): String = response
   }
   
   class UrlCapturingHttpClient(private val response: String, private val urls: MutableList<String>) : HttpClient, Serializable {
+      private val serialVersionUID = 1L
       override fun get(url: String, headers: Map<String, String>): String {
           urls.add(url)
           return response
@@ -92,6 +114,7 @@ class TiingoCryptoFetcherFnTest : Serializable {
   }
   
   class SequentialHttpClient(private val responses: List<String>) : HttpClient, Serializable {
+      private val serialVersionUID = 1L
       private val index = AtomicInteger(0)
       val capturedUrls = CopyOnWriteArrayList<String>()
       
@@ -102,19 +125,25 @@ class TiingoCryptoFetcherFnTest : Serializable {
       }
   }
 
+  @Before
+  fun setUp() {
+    // Create injector with only FactoryModuleBuilder and BoundFieldModule
+    val injector = Guice.createInjector(
+        BoundFieldModule.of(this),
+        FactoryModuleBuilder()
+            .build(TiingoCryptoFetcherFn.Factory::class.java)
+    )
+    
+    // Create the default fetcher once
+    defaultFetcher = fetcherFactory.create(defaultGranularity, testApiKey)
+  }
+
   @Test
   fun `fetcher passes correct URL parameters and processes response`() {
-    // Instead of checking the URL directly, verify the DoFn processes a response correctly
-    // This indirectly verifies that the URL is being constructed properly
-    val fn = TiingoCryptoFetcherFn(
-        SimpleHttpClient(sampleResponseDailyPage1),
-        Duration.standardDays(1),
-        testApiKey
-    )
-
+    // Use the default fetcher created in setUp
     val result = pipeline
       .apply(Create.of(KV.of("BTC/USD", null as Void?)))
-      .apply("Fetch", ParDo.of(fn))
+      .apply("Fetch", ParDo.of(defaultFetcher))
 
     // If URLs weren't constructed correctly, we wouldn't get the expected output
     PAssert.that(result).containsInAnyOrder(
@@ -127,18 +156,10 @@ class TiingoCryptoFetcherFnTest : Serializable {
 
   @Test
   fun `initial fetch outputs expected daily candles`() {
-    // Simple serializable HTTP client
-    val stub = SimpleHttpClient(sampleResponseDailyPage1)
-    
-    val fn = TiingoCryptoFetcherFn(
-        stub,
-        Duration.standardDays(1),
-        testApiKey
-    )
-
+    // Use the default fetcher
     val result = pipeline
       .apply(Create.of(KV.of("BTC/USD", null as Void?)))
-      .apply(ParDo.of(fn))
+      .apply(ParDo.of(defaultFetcher))
 
     // Assert on the output PCollection directly
     PAssert.that(result).containsInAnyOrder(
@@ -150,18 +171,22 @@ class TiingoCryptoFetcherFnTest : Serializable {
 
   @Test
   fun `fetcher handles empty response`() {
-    // Simple serializable HTTP client
-    val stub = SimpleHttpClient(emptyResponse)
-    
-    val fn = TiingoCryptoFetcherFn(
-        stub,
-        Duration.standardDays(1),
-        testApiKey
+    // Create test-specific injector with BoundFieldModule for empty response
+    val emptyResponseClient = SimpleHttpClient(emptyResponse)
+    val emptyResponseInjector = Guice.createInjector(
+        BoundFieldModule.of(object {
+            @Bind val httpClient: HttpClient = emptyResponseClient
+        }),
+        FactoryModuleBuilder()
+            .build(TiingoCryptoFetcherFn.Factory::class.java)
     )
+    
+    val emptyResponseFactory = emptyResponseInjector.getInstance(TiingoCryptoFetcherFn.Factory::class.java)
+    val emptyResponseFetcher = emptyResponseFactory.create(defaultGranularity, testApiKey)
 
     val result = pipeline
       .apply(Create.of(KV.of("BTC/USD", null as Void?)))
-      .apply(ParDo.of(fn))
+      .apply(ParDo.of(emptyResponseFetcher))
 
     PAssert.that(result).empty()
     pipeline.run()
@@ -169,18 +194,22 @@ class TiingoCryptoFetcherFnTest : Serializable {
 
   @Test
   fun `fillForward skips gaps on first fetch (daily)`() {
-    // Simple serializable HTTP client
-    val stub = SimpleHttpClient(sampleResponseDailyWithGap)
-    
-    val fn = TiingoCryptoFetcherFn(
-        stub,
-        Duration.standardDays(1),
-        testApiKey
+    // Create test-specific injector with BoundFieldModule for gap response
+    val gapClient = SimpleHttpClient(sampleResponseDailyWithGap)
+    val gapInjector = Guice.createInjector(
+        BoundFieldModule.of(object {
+            @Bind val httpClient: HttpClient = gapClient
+        }),
+        FactoryModuleBuilder()
+            .build(TiingoCryptoFetcherFn.Factory::class.java)
     )
+    
+    val gapFactory = gapInjector.getInstance(TiingoCryptoFetcherFn.Factory::class.java)
+    val gapFetcher = gapFactory.create(defaultGranularity, testApiKey)
 
     val result = pipeline
       .apply(Create.of(KV.of("BTC/USD", null as Void?)))
-      .apply(ParDo.of(fn))
+      .apply(ParDo.of(gapFetcher))
 
     // Expecting only the two real candles, no fill-forward on initial fetch
     PAssert.that(result).containsInAnyOrder(
@@ -192,14 +221,18 @@ class TiingoCryptoFetcherFnTest : Serializable {
 
   @Test
   fun `fillForward skips gaps on first fetch (minute) with TestStream`() {
-    // Simple serializable HTTP client
-    val stub = SimpleHttpClient(sampleResponseMinuteWithGap)
-    
-    val fn = TiingoCryptoFetcherFn(
-        stub,
-        Duration.standardMinutes(1),
-        testApiKey
+    // Create test-specific injector with BoundFieldModule for minute gap response
+    val minuteClient = SimpleHttpClient(sampleResponseMinuteWithGap)
+    val minuteInjector = Guice.createInjector(
+        BoundFieldModule.of(object {
+            @Bind val httpClient: HttpClient = minuteClient
+        }),
+        FactoryModuleBuilder()
+            .build(TiingoCryptoFetcherFn.Factory::class.java)
     )
+    
+    val minuteFactory = minuteInjector.getInstance(TiingoCryptoFetcherFn.Factory::class.java)
+    val minuteFetcher = minuteFactory.create(Duration.standardMinutes(1), testApiKey)
 
     val stream = TestStream.create(
         KvCoder.of(StringUtf8Coder.of(), VoidCoder.of())
@@ -211,7 +244,7 @@ class TiingoCryptoFetcherFnTest : Serializable {
 
     val result = pipeline
       .apply(stream)
-      .apply(ParDo.of(fn))
+      .apply(ParDo.of(minuteFetcher))
 
     // Expecting only the two real candles, no fill-forward on initial fetch
     PAssert.that(result).containsInAnyOrder(
@@ -223,8 +256,6 @@ class TiingoCryptoFetcherFnTest : Serializable {
 
   @Test
   fun `fetcher handles incremental processing`() {
-    // Let's use a completely different approach - directly testing day 3 with a combined response
-    
     // Create a response with all three days in one go
     val combinedResponse = """
       [{"ticker":"btcusd","priceData":[
@@ -234,22 +265,22 @@ class TiingoCryptoFetcherFnTest : Serializable {
       ]}]
     """.trimIndent()
     
-    // Simple HTTP client that always returns the combined response
-    val client = object : HttpClient, Serializable {
-      override fun get(url: String, headers: Map<String, String>): String {
-        return combinedResponse
-      }
-    }
-    
-    val fn = TiingoCryptoFetcherFn(
-        client,
-        Duration.standardDays(1),
-        testApiKey
+    // Create test-specific injector with BoundFieldModule for combined response
+    val combinedClient = SimpleHttpClient(combinedResponse)
+    val combinedInjector = Guice.createInjector(
+        BoundFieldModule.of(object {
+            @Bind val httpClient: HttpClient = combinedClient
+        }),
+        FactoryModuleBuilder()
+            .build(TiingoCryptoFetcherFn.Factory::class.java)
     )
+    
+    val combinedFactory = combinedInjector.getInstance(TiingoCryptoFetcherFn.Factory::class.java)
+    val combinedFetcher = combinedFactory.create(defaultGranularity, testApiKey)
 
     // Just use a simple Create transform with one element
     val input = pipeline.apply(Create.of(KV.of("BTC/USD", null as Void?)))
-    val result = input.apply("FetchCombined", ParDo.of(fn))
+    val result = input.apply("FetchCombined", ParDo.of(combinedFetcher))
 
     // Verify we get all three dates
     PAssert.that(result).satisfies { results ->
@@ -271,7 +302,7 @@ class TiingoCryptoFetcherFnTest : Serializable {
   
   @Test
   fun `fetcher respects max fill forward limit`() {
-    // For this test, we'll do a simpler approach without trying to capture outputs directly
+    // For this test, we'll use a sequential client
     val initialResponse = """
       [{"ticker":"btcusd","priceData":[
         {"date":"2023-10-26T00:00:00+00:00","open":34500,"high":34800,"low":34200,"close":34650,"volume":1500}
@@ -280,14 +311,20 @@ class TiingoCryptoFetcherFnTest : Serializable {
     
     val emptyFollowUpResponse = "[]"
     
-    // Create a sequential client to return an initial response then empty
-    val client = SequentialHttpClient(listOf(initialResponse, emptyFollowUpResponse))
+    // Create a sequential client to return an initial response then empty responses
+    val sequentialClient = SequentialHttpClient(listOf(initialResponse, emptyFollowUpResponse))
     
-    val fn = TiingoCryptoFetcherFn(
-        client,
-        Duration.standardDays(1),
-        testApiKey
+    // Create test-specific injector with BoundFieldModule for sequential client
+    val sequentialInjector = Guice.createInjector(
+        BoundFieldModule.of(object {
+            @Bind val httpClient: HttpClient = sequentialClient
+        }),
+        FactoryModuleBuilder()
+            .build(TiingoCryptoFetcherFn.Factory::class.java)
     )
+    
+    val sequentialFactory = sequentialInjector.getInstance(TiingoCryptoFetcherFn.Factory::class.java)
+    val sequentialFetcher = sequentialFactory.create(defaultGranularity, testApiKey)
     
     // Create a TestStream with two triggers spaced far apart 
     val stream = TestStream.create(
@@ -304,7 +341,7 @@ class TiingoCryptoFetcherFnTest : Serializable {
     
     val result = pipeline
         .apply(stream)
-        .apply("FetchWithFillLimit", ParDo.of(fn))
+        .apply("FetchWithFillLimit", ParDo.of(sequentialFetcher))
     
     // We can't easily count the exact output elements, but we can verify that the
     // output collection is not empty and contains valid candles
