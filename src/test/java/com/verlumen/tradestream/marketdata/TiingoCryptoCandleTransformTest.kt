@@ -10,6 +10,7 @@ import org.apache.beam.sdk.transforms.SerializableFunction
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
 import org.joda.time.Duration
+import org.joda.time.Instant
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -90,8 +91,9 @@ class TiingoCryptoCandleTransformTest : Serializable {
         whenever(mockHttpClient.get(argThat(urlMatcherBtc), Mockito.anyMap())).thenReturn(sampleBtcResponse)
         whenever(mockHttpClient.get(argThat(urlMatcherEth), Mockito.anyMap())).thenReturn(sampleEthResponse)
 
-        // Act: Apply the transform to a dummy impulse input
-        val impulse: PCollection<Long> = pipeline.apply("CreateImpulse", Create.of(0L))
+        // Act: Apply the transform to a dummy impulse input - using Instant instead of Long
+        val now = Instant.now()
+        val impulse: PCollection<Instant> = pipeline.apply("CreateImpulse", Create.of(now))
         val output: PCollection<KV<String, Candle>> = impulse.apply("RunTiingoTransform", transform)
 
         // Assert
@@ -129,7 +131,9 @@ class TiingoCryptoCandleTransformTest : Serializable {
         whenever(mockHttpClient.get(argThat(urlMatcherBtc), Mockito.anyMap())).thenReturn(sampleBtcResponse)
         whenever(mockHttpClient.get(argThat(urlMatcherEth), Mockito.anyMap())).thenThrow(IOException("Network Error for ETH"))
 
-        val impulse: PCollection<Long> = pipeline.apply("CreateImpulse", Create.of(0L))
+        // Using Instant instead of Long
+        val now = Instant.now()
+        val impulse: PCollection<Instant> = pipeline.apply("CreateImpulse", Create.of(now))
         val output: PCollection<KV<String, Candle>> = impulse.apply("RunTiingoTransform", transform)
 
         PAssert.that(output).satisfies(SerializableFunction<Iterable<KV<String, Candle>>, Void?> { kvs ->
@@ -142,7 +146,7 @@ class TiingoCryptoCandleTransformTest : Serializable {
         pipeline.run().waitUntilFinish()
     }
 
-     @Test
+    @Test
     fun `expand with pipeline sets up periodic impulse`() {
         // This test is more conceptual as testing PeriodicImpulse end-to-end is complex in unit tests.
         // We'll verify the structure by checking if the transform can be applied.
@@ -155,7 +159,6 @@ class TiingoCryptoCandleTransformTest : Serializable {
         pipeline.run().waitUntilFinish()
         // If it runs without pipeline construction errors, it's a good sign.
     }
-
 
     // Standard Mockito ArgumentMatcher Implementation
     private class UrlMatcher(vararg val substrings: String) : ArgumentMatcher<String> {
