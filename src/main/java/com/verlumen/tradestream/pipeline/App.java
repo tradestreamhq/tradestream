@@ -14,10 +14,7 @@ import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.CandleLookbackDoFn;
-import com.verlumen.tradestream.marketdata.FillForwardCandles;
-import com.verlumen.tradestream.marketdata.Trade;
-import com.verlumen.tradestream.marketdata.TradeSource;
-import com.verlumen.tradestream.marketdata.TradeToCandle;
+import com.verlumen.tradestream.marketdata.CandleSource;
 import com.verlumen.tradestream.strategies.StrategyEnginePipeline;
 import java.util.List;
 import java.util.Arrays;
@@ -111,66 +108,37 @@ public final class App {
     void setTiingoApiKey(String value);
   }
 
+  private final CandleSource candleSource;
   private final Supplier<List<CurrencyPair>> currencyPairs;
-  private final FillForwardCandles fillForwardCandles;
   private final StrategyEnginePipeline strategyEnginePipeline;
   private final TimingConfig timingConfig;
-  private final TradeSource tradeSource;
-  private final TradeToCandle tradeToCandle;
 
   @Inject
   App(
+      CandleSource candleSource,
       Supplier<List<CurrencyPair>> currencyPairs,
-      FillForwardCandles fillForwardCandles,
       StrategyEnginePipeline strategyEnginePipeline,
-      TimingConfig timingConfig,
-      TradeSource tradeSource,
-      TradeToCandle tradeToCandle) {
+      TimingConfig timingConfig) {
+    this.candleSource = candleSource;
     this.currencyPairs = currencyPairs;
-    this.fillForwardCandles = fillForwardCandles;
     this.strategyEnginePipeline = strategyEnginePipeline;
     this.timingConfig = timingConfig;
-    this.tradeSource = tradeSource;
-    this.tradeToCandle = tradeToCandle;
   }
 
   /** Build the Beam pipeline, integrating all components. */
   private Pipeline buildPipeline(Pipeline pipeline, Options options) {
     logger.atInfo().log("Starting to build the pipeline.");
 
-    // 1. Read trades.
-    PCollection<Trade> trades = pipeline.apply("ReadTrades", tradeSource);
-
-    // 2. Assign event timestamps from the Trade's own timestamp.
-    PCollection<Trade> tradesWithTimestamps =
-        trades.apply(
-            "AssignTimestamps",
-            WithTimestamps.<Trade>of(
-                    trade -> {
-                      long millis = Timestamps.toMillis(trade.getTimestamp());
-                      Instant timestamp = new Instant(millis);
-                      return timestamp;
-                    }));
-
-    // 3. Create candles from trades.
-    PCollection<KV<String, Candle>> candles = tradesWithTimestamps
-      .apply("Create Candle", tradeToCandle);
-      
-    // 4. Apply window for candle processing - use a single large window for stateful processing
-    Duration windowDuration = Duration.standardMinutes(options.getCandleDurationMinutes() * 10);
-    PCollection<KV<String, Candle>> windowedCandles = candles.apply(
-        "Apply Processing Window",
-        Window.<KV<String, Candle>>into(FixedWindows.of(windowDuration))
-            .triggering(DefaultTrigger.of())
-            .discardingFiredPanes());
+    // 1. Read candles.
+    PCollection<KV<String, Candle>> candles = pipeline.apply("LoadCandles", candleSource);
             
-    // 5. Parse lookback sizes from options and add lookback processing
+    // 2. Parse lookback sizes from options and add lookback processing
     List<Integer> lookbackSizes = parseLookbackSizes(options.getCandleLookbackSizes());
-    PCollection<KV<String, KV<Integer, ImmutableList<Candle>>>> lookbacks = windowedCandles.apply(
+    PCollection<KV<String, KV<Integer, ImmutableList<Candle>>>> lookbacks = candles.apply(
         "Generate Candle Lookbacks",
         ParDo.of(new CandleLookbackDoFn(lookbackSizes)));
         
-    // 7. Log lookback results for debugging
+    // 3. Log lookback results for debugging
     lookbacks.apply("Log Lookbacks", ParDo.of(new LogLookbacksDoFn()));
 
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
