@@ -43,6 +43,23 @@ public abstract class MarketDataModule extends AbstractModule {
 
   @Provides
   @Singleton
+  CandleSource provideCandleSource(
+      Provider<TradeBackedCandleSource> tradeBackedCandleSource,
+      TiingoCandleSource.Factory tiingoCandleSourceFactory,
+      RunMode runMode) {
+    
+      switch (runMode) {
+          case DRY: 
+              return tradeBackedCandleSource.get();
+          case WET:
+              return tiingoCandleSourceFactory.create(candleDuration(), tiingoApiKey());
+          default: 
+              throw new UnsupportedOperationException("Unsupported RunMode: " + runMode);
+      }
+  }
+
+  @Provides
+  @Singleton
   ExchangeStreamingClient provideExchangeStreamingClient(
       ExchangeStreamingClient.Factory factory) {
     return factory.create(exchangeName());
@@ -62,7 +79,6 @@ public abstract class MarketDataModule extends AbstractModule {
           .setPrice(50000.0)
           .setVolume(0.1)
           .build()));
-      case WET: return exchangeClientTradeSource.get();
       default: throw new UnsupportedOperationException("Unsupported RunMode: " + runMode());
     }
   }
