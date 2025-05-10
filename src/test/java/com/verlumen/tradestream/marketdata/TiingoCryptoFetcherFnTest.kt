@@ -104,14 +104,20 @@ class TiingoCryptoFetcherFnTest : Serializable {
 
   @Test
   fun `fetcher passes correct URL parameters`() {
-    // Create a concurrent list to collect URLs
-    val collectedUrls = CopyOnWriteArrayList<String>()
-    
-    // Create a stub that explicitly adds to our collection
-    val stub = UrlCapturingHttpClient(sampleResponseDailyPage1, collectedUrls)
+    // For this test, we need to ensure the URL is captured
+    // Use an atomic reference that will survive the DoFn serialization
+    val httpClientWithCapturedUrl = object : HttpClient, Serializable {
+      // Explicitly store the url in a thread-safe way
+      val url = java.util.concurrent.atomic.AtomicReference<String>()
+      
+      override fun get(url: String, headers: Map<String, String>): String {
+        this.url.set(url)
+        return sampleResponseDailyPage1
+      }
+    }
     
     val fn = TiingoCryptoFetcherFn(
-        stub,
+        httpClientWithCapturedUrl,
         Duration.standardDays(1),
         testApiKey
     )
@@ -122,15 +128,15 @@ class TiingoCryptoFetcherFnTest : Serializable {
 
     pipeline.run().waitUntilFinish()
 
-    // Assert URL parameters after pipeline runs
-    assertThat(collectedUrls).isNotEmpty()
-    val url = collectedUrls[0]
-    assertThat(url).contains("tickers=btcusd")
-    assertThat(url).contains("resampleFreq=1day")
-    assertThat(url).contains("token=$testApiKey")
+    // After pipeline completes, verify the URL
+    val capturedUrl = httpClientWithCapturedUrl.url.get()
+    assertThat(capturedUrl).isNotNull()
+    assertThat(capturedUrl).contains("tickers=btcusd")
+    assertThat(capturedUrl).contains("resampleFreq=1day")
+    assertThat(capturedUrl).contains("token=$testApiKey")
     
     // Check that startDate is present and formatted correctly (YYYY-MM-DD)
-    assertThat(url).containsMatch("startDate=\\d{4}-\\d{2}-\\d{2}")
+    assertThat(capturedUrl).containsMatch("startDate=\\d{4}-\\d{2}-\\d{2}")
   }
 
   @Test
@@ -231,12 +237,29 @@ class TiingoCryptoFetcherFnTest : Serializable {
 
   @Test
   fun `fetcher handles incremental processing`() {
-    // For this test, we'll use a sequential client
-    val responses = listOf(sampleResponseDailyPage1, sampleResponseDailyPage2)
-    val client = SequentialHttpClient(responses)
+    // For this test, we need a stable client that returns predictable responses
+    val httpClient = object : HttpClient, Serializable {
+      // Use a transient array to hold the responses (will be reset after deserialization)
+      @Transient private var responses = arrayOf(sampleResponseDailyPage1, sampleResponseDailyPage2)
+      @Transient private var indexCounter = 0
+      
+      // We need a thread-safe way to track URLs
+      val capturedUrls = CopyOnWriteArrayList<String>()
+      
+      override fun get(url: String, headers: Map<String, String>): String {
+        capturedUrls.add(url)
+        // Always return first response on first call, second response on second call
+        return if (indexCounter == 0) {
+          indexCounter++
+          sampleResponseDailyPage1
+        } else {
+          sampleResponseDailyPage2
+        }
+      }
+    }
     
     val fn = TiingoCryptoFetcherFn(
-        client,
+        httpClient,
         Duration.standardDays(1),
         testApiKey
     )
@@ -272,12 +295,12 @@ class TiingoCryptoFetcherFnTest : Serializable {
     
     pipeline.run().waitUntilFinish()
     
-    // After the pipeline completes, verify the URLs
-    assertThat(client.capturedUrls).hasSize(2)
+    // Verify URLs were captured (at least 2)
+    assertThat(httpClient.capturedUrls).hasSize(2)
     
     // The second URL should request data starting after Oct 27 (the last day in the first response)
     val expectedStartDateFormatted = "2023-10-28"
-    assertThat(client.capturedUrls[1]).contains("startDate=$expectedStartDateFormatted")
+    assertThat(httpClient.capturedUrls[1]).contains("startDate=$expectedStartDateFormatted")
   }
   
   @Test
