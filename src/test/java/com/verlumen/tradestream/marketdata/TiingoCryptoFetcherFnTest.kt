@@ -216,10 +216,10 @@ class TiingoCryptoFetcherFnTest {
     val stream = TestStream.create(
         KvCoder.of(StringUtf8Coder.of(), VoidCoder.of())
     )
-    .addElements( // First trigger
-      TimestampedValue.of(KV.of("ETH/USD", null as Void?), JodaInstant(0L))
-    )
-    .advanceWatermarkToInfinity()
+        .addElements( // First trigger
+            TimestampedValue.of(KV.of("ETH/USD", null as Void?), JodaInstant(0L))
+        )
+        .advanceWatermarkToInfinity()
 
     val result = pipeline
       .apply(stream)
@@ -237,7 +237,7 @@ class TiingoCryptoFetcherFnTest {
   fun `Workspaceer handles incremental processing`() {
      val responses = mutableListOf(sampleResponseDailyPage1, sampleResponseDailyPage2)
      val stub = StubHttpClient(responses.toList())
-     val fn = TiingoCryptoFetcherFn(
+    val fn = TiingoCryptoFetcherFn(
         stub,
         Duration.standardDays(1),
         testApiKey
@@ -246,14 +246,14 @@ class TiingoCryptoFetcherFnTest {
     val stream = TestStream.create(
         KvCoder.of(StringUtf8Coder.of(), VoidCoder.of())
     )
-    .addElements( // First trigger
-      TimestampedValue.of(KV.of("BTC/USD", null as Void?), JodaInstant(0L))
-    )
-    .advanceProcessingTime(Duration.standardHours(1)) // Advance time between triggers
-    .addElements( // Second trigger
-      TimestampedValue.of(KV.of("BTC/USD", null as Void?), JodaInstant(3_600_000L))
-    )
-    .advanceWatermarkToInfinity()
+        .addElements( // First trigger
+            TimestampedValue.of(KV.of("BTC/USD", null as Void?), JodaInstant(0L))
+        )
+        .advanceProcessingTime(Duration.standardHours(1)) // Advance time between triggers
+        .addElements( // Second trigger
+            TimestampedValue.of(KV.of("BTC/USD", null as Void?), JodaInstant(3_600_000L))
+        )
+        .advanceWatermarkToInfinity()
 
     val result = pipeline
       .apply(stream)
