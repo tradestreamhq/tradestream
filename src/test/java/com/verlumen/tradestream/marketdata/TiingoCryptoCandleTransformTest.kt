@@ -1,9 +1,10 @@
 package com.verlumen.tradestream.marketdata
 
-import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.google.inject.Inject
+import com.google.inject.Qualifier
 import com.google.inject.assistedinject.FactoryModuleBuilder
+import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.coders.CoderRegistry
@@ -12,7 +13,6 @@ import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
 import org.apache.beam.sdk.transforms.DoFn
-import org.apache.beam.sdk.transforms.SerializableFunction
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
 import org.joda.time.Duration
@@ -28,6 +28,7 @@ import org.mockito.MockitoAnnotations
 import java.io.Serializable
 import java.util.function.Supplier
 import com.verlumen.tradestream.instruments.CurrencyPair
+import jakarta.inject.Named
 
 /**
  * Abstract DoFn representing the fetcher. The SUT uses a factory to create instances of this.
@@ -111,9 +112,13 @@ class TiingoCryptoCandleTransformTest {
     @get:Rule
     val pipeline: TestPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(false)
 
+    // Use @Bind annotation to instruct BoundFieldModule to bind this mock
+    @Bind
     @Mock
-    private lateinit var mockCurrencyPairSupplier: Supplier<@JvmSuppressWildcards List<CurrencyPair>>
+    private lateinit var mockCurrencyPairSupplier: Supplier<List<CurrencyPair>>
 
+    // Use @Bind annotation to instruct BoundFieldModule to bind this mock
+    @Bind
     @Mock
     private lateinit var mockTiingoFetcherFnFactory: TiingoCryptoFetcherFn.Factory
 
@@ -143,36 +148,21 @@ class TiingoCryptoCandleTransformTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
 
-        // Create a custom module that explicitly binds our mocks
-        val testModule = object : AbstractModule() {
-            override fun configure() {
-                // Explicitly bind the mocked dependencies
-                bind(object : com.google.inject.TypeLiteral<Supplier<List<CurrencyPair>>>() {})
-                    .toInstance(mockCurrencyPairSupplier)
-                
-                bind(TiingoCryptoFetcherFn.Factory::class.java)
-                    .toInstance(mockTiingoFetcherFnFactory)
-                
-                // Install the factory module for TiingoCryptoCandleTransform
-                install(
-                    FactoryModuleBuilder()
-                        .implement(TiingoCryptoCandleTransform::class.java, TiingoCryptoCandleTransform::class.java)
-                        .build(TiingoCryptoCandleTransform.Factory::class.java)
-                )
-            }
-        }
-
-        // Create the injector with our custom module
-        Guice.createInjector(
-            BoundFieldModule.of(this), // For general field binding
-            testModule // Our custom module with explicit bindings
-        ).injectMembers(this) // Injects transformFactory
-
         // Common mock setups
         `when`(mockCurrencyPairSupplier.get()).thenReturn(currencyPairsList)
 
-        // Create the instance under test using its Guice-provided factory.
-        // The fetcherFnFactory used by `underTest` will be the mocked one.
+        // Create injector with BoundFieldModule and the factory module
+        val injector = Guice.createInjector(
+            BoundFieldModule.of(this),
+            com.google.inject.assistedinject.FactoryModuleBuilder()
+                .implement(TiingoCryptoCandleTransform::class.java, TiingoCryptoCandleTransform::class.java)
+                .build(TiingoCryptoCandleTransform.Factory::class.java)
+        )
+        
+        // Inject fields
+        injector.injectMembers(this)
+
+        // Create the instance under test using its Guice-provided factory
         underTest = transformFactory.create(granularity, apiKey)
 
         // Register coders if necessary, especially for Kotlin data classes
