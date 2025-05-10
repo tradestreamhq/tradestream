@@ -2,6 +2,7 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.inject.Guice
 import com.google.inject.Inject
+import com.google.inject.Module
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import org.apache.beam.sdk.Pipeline
@@ -27,6 +28,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import java.io.Serializable
 import java.util.function.Supplier
+import com.verlumen.tradestream.instruments.CurrencyPair
 
 /**
  * Abstract DoFn representing the fetcher. The SUT uses a factory to create instances of this.
@@ -62,7 +64,7 @@ class StatelessTestTiingoCryptoFetcherFnImpl(
         val inputKv = context.element() as KV<String, Void?>
         val symbol = inputKv.key
         candlesToEmitPerSymbol[symbol]?.forEach { candle ->
-            if (candle.pairSymbol == symbol) { // Ensure candle matches the symbol
+            if (candle.currencyPair == symbol) { // Ensure candle matches the symbol
                 context.output(KV.of(symbol, candle))
             }
         }
@@ -92,7 +94,7 @@ class StatefulTestTiingoCryptoFetcherFnImpl(
         synchronized(emittedSymbols) { // Synchronize access if multiple threads could process elements for the same DoFn instance
             if (!emittedSymbols.contains(symbol)) {
                 candlesToEmitPerSymbol[symbol]?.forEach { candle ->
-                    if (candle.pairSymbol == symbol) {
+                    if (candle.currencyPair == symbol) {
                         context.output(KV.of(symbol, candle))
                     }
                 }
@@ -130,10 +132,10 @@ class TiingoCryptoCandleTransformTest {
     private val currencyPairsList = listOf(btcUsd, ethUsd)
 
     private val now = Instant.now()
-    private val candleBtc1 = Candle(10000.0, 10100.0, 9900.0, 10050.0, 100.0, now.millis, btcUsd.symbol())
-    private val candleEth1 = Candle(300.0, 305.0, 295.0, 302.0, 500.0, now.millis, ethUsd.symbol())
+    private val candleBtc1 = Candle.newBuilder().setOpen(10000.0).setHigh(10100.0).setLow(9900.0).setClose(10050.0).setVolume(100.0).setTimestamp(com.google.protobuf.util.Timestamps.fromMillis(now.millis)).setCurrencyPair(btcUsd.symbol()).build()
+    private val candleEth1 = Candle.newBuilder().setOpen(300.0).setHigh(305.0).setLow(295.0).setClose(302.0).setVolume(500.0).setTimestamp(com.google.protobuf.util.Timestamps.fromMillis(now.millis)).setCurrencyPair(ethUsd.symbol()).build()
 
-    private val candlesToEmitMap = mapOf(
+    private val candlesToEmitMap: Map<String, List<Candle>> = mapOf(
         btcUsd.symbol() to listOf(candleBtc1),
         ethUsd.symbol() to listOf(candleEth1)
     )
@@ -178,7 +180,7 @@ class TiingoCryptoCandleTransformTest {
         val statelessTestFetcher = StatelessTestTiingoCryptoFetcherFnImpl(granularity, apiKey, candlesToEmitMap)
         `when`(mockTiingoFetcherFnFactory.create(granularity, apiKey)).thenReturn(statelessTestFetcher)
 
-        val expectedOutput = listOf(
+        val expectedOutput: List<KV<String, Candle>> = listOf(
             KV.of(btcUsd.symbol(), candleBtc1),
             KV.of(ethUsd.symbol(), candleEth1)
         )
@@ -199,7 +201,7 @@ class TiingoCryptoCandleTransformTest {
         val statefulTestFetcher = StatefulTestTiingoCryptoFetcherFnImpl(granularity, apiKey, candlesToEmitMap)
         `when`(mockTiingoFetcherFnFactory.create(granularity, apiKey)).thenReturn(statefulTestFetcher)
 
-        val expectedOutput = listOf(
+        val expectedOutput: List<KV<String, Candle>> = listOf(
             KV.of(btcUsd.symbol(), candleBtc1),
             KV.of(ethUsd.symbol(), candleEth1)
         )
