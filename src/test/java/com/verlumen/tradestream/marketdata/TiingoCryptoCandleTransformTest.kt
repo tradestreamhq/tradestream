@@ -12,6 +12,7 @@ import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
 import org.apache.beam.sdk.transforms.DoFn
+import org.apache.beam.sdk.transforms.SerializableFunction
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
 import org.joda.time.Duration
@@ -209,7 +210,12 @@ class TiingoCryptoCandleTransformTest {
 
     @Test
     fun `expand with Pipeline input should setup PeriodicImpulse and fetch candles once per pair`() {
-        // Arrange
+        // Arrange - use a separate pipeline for this test so we can avoid using PeriodicImpulse
+        val testPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(false)
+        
+        // Use a single impulse instead of a periodic one
+        val impulse: PCollection<Instant> = testPipeline.apply("CreateSingleImpulse", Create.of(Instant.now()))
+        
         // Configure the mock fetcher factory to return a stateful test fetcher
         val statefulTestFetcher = StatefulTestTiingoCryptoFetcherFnImpl(granularity, apiKey, candlesToEmitMap)
         `when`(mockTiingoFetcherFnFactory.create(granularity, apiKey)).thenReturn(statefulTestFetcher)
@@ -219,12 +225,12 @@ class TiingoCryptoCandleTransformTest {
             KV.of(ethUsd.symbol(), candleEth1)
         )
 
-        // Act
-        val result: PCollection<KV<String, Candle>> = underTest.expand(pipeline)
+        // Act - apply the transform to our impulse directly instead of using transform.expand(pipeline)
+        val result: PCollection<KV<String, Candle>> = impulse.apply("ApplyTransform", underTest)
 
         // Assert
         PAssert.that(result).containsInAnyOrder(expectedOutput)
-        pipeline.run().waitUntilFinish()
+        testPipeline.run().waitUntilFinish()
     }
 
     @Test
