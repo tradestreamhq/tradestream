@@ -13,7 +13,7 @@ import java.io.Serializable
  * A CandleSource implementation that uses periodic impulses to trigger
  * Tiingo API calls, fetching cryptocurrency candle data at regular intervals.
  */
-class TiingoCandleSource @Inject constructor(
+class TiingoCryptoCandleSource @Inject constructor(
     private val transformFactory: TiingoCryptoCandleTransform.Factory,
     @Assisted private val candleInterval: Duration,
     @Assisted private val apiKey: String
@@ -43,6 +43,6 @@ class TiingoCandleSource @Inject constructor(
      * Factory interface for assisted injection
      */
     interface Factory {
-        fun create(candleInterval: Duration, apiKey: String): TiingoCandleSource
+        fun create(candleInterval: Duration, apiKey: String): TiingoCryptoCandleSource
     }
 }
