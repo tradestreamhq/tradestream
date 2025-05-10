@@ -30,6 +30,14 @@ kt_jvm_library(
     ],
 )
 
+java_library(
+    name = "candle_source",
+    srcs = ["CandleSource.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",    ],
+)
+
 # Coinbase specific streaming client
 java_library(
     name = "coinbase_streaming_client",
