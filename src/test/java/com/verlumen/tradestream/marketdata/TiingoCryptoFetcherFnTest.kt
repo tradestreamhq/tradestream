@@ -99,9 +99,8 @@ class TiingoCryptoFetcherFnTest {
         usedUrls = java.util.concurrent.CopyOnWriteArrayList(restoredUrls)
     }
 
-     companion object {
+    companion object {
          private const val serialVersionUID: Long = 2L // Incremented version
-         private val TIINGO_DATE_FORMATTER_DAILY = DateTimeFormatter.ofPattern("yyyy-MM-dd")
      }
   }
 
@@ -217,7 +216,7 @@ class TiingoCryptoFetcherFnTest {
     val stream = TestStream.create(
         KvCoder.of(StringUtf8Coder.of(), VoidCoder.of())
     )
-    .addElements(
+    .addElements( // First trigger
       TimestampedValue.of(KV.of("ETH/USD", null as Void?), JodaInstant(0L))
     )
     .advanceWatermarkToInfinity()
@@ -275,7 +274,7 @@ class TiingoCryptoFetcherFnTest {
     assertThat(urls[0]).contains("startDate=2019-01-02") // Initial fetch
     // Check the *second* URL uses the correct start date
     val lastFetchedDay1 = LocalDate.ofInstant(Instant.parse("2023-10-27T00:00:00Z"), ZoneOffset.UTC)
-    val expectedStartDate2 = lastFetchedDay1.plusDays(1).format(TIINGO_DATE_FORMATTER_DAILY)
+    val expectedStartDate2 = lastFetchedDay1.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
     assertThat(urls[1]).contains("startDate=$expectedStartDate2") // Incremental fetch (day after last fetched: Oct 27)
   }
 }
