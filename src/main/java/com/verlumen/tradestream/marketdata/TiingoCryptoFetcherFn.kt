@@ -247,17 +247,33 @@ constructor(
     } else if (lastTimestampState.read() == null) {
       // Initialize if never set and nothing was fetched/filled
       try {
-        val initMillis =
-            if (isDailyGranularity(granularity)) {
-              LocalDate.parse(startDate, TIINGO_DATE_FORMATTER_DAILY)
-                  .atStartOfDay()
-                  .toInstant(ZoneOffset.UTC)
-                  .toEpochMilli()
-            } else {
-              LocalDateTime.parse(startDate, TIINGO_DATE_FORMATTER_INTRADAY)
-                  .toInstant(ZoneOffset.UTC)
-                  .toEpochMilli()
-            }
+        val initMillis = if (isDailyGranularity(granularity)) {
+          try {
+            // Try to parse with daily format first
+            LocalDate.parse(startDate, TIINGO_DATE_FORMATTER_DAILY)
+                .atStartOfDay()
+                .toInstant(ZoneOffset.UTC)
+                .toEpochMilli()
+          } catch (e: Exception) {
+            // If daily format fails, the startDate might be in intraday format
+            LocalDateTime.parse(startDate, TIINGO_DATE_FORMATTER_INTRADAY)
+                .toInstant(ZoneOffset.UTC)
+                .toEpochMilli()
+          }
+        } else {
+          try {
+            // Try to parse with intraday format first
+            LocalDateTime.parse(startDate, TIINGO_DATE_FORMATTER_INTRADAY)
+                .toInstant(ZoneOffset.UTC)
+                .toEpochMilli()
+          } catch (e: Exception) {
+            // If intraday format fails, the startDate might be in daily format
+            LocalDate.parse(startDate, TIINGO_DATE_FORMATTER_DAILY)
+                .atStartOfDay()
+                .toInstant(ZoneOffset.UTC)
+                .toEpochMilli()
+          }
+        }
         lastTimestampState.write(StateTimestamp(initMillis))
         logger.atInfo().log(
             "Initialized state for %s with start date: %s", currencyPair, startDate)
