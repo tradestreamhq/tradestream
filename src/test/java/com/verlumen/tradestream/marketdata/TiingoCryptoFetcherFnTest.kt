@@ -24,6 +24,7 @@ import java.io.Serializable
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 @RunWith(JUnit4::class)
 class TiingoCryptoFetcherFnTest {
@@ -100,6 +101,7 @@ class TiingoCryptoFetcherFnTest {
 
      companion object {
          private const val serialVersionUID: Long = 2L // Incremented version
+         private val TIINGO_DATE_FORMATTER_DAILY = DateTimeFormatter.ofPattern("yyyy-MM-dd")
      }
   }
 
@@ -273,7 +275,7 @@ class TiingoCryptoFetcherFnTest {
     assertThat(urls[0]).contains("startDate=2019-01-02") // Initial fetch
     // Check the *second* URL uses the correct start date
     val lastFetchedDay1 = LocalDate.ofInstant(Instant.parse("2023-10-27T00:00:00Z"), ZoneOffset.UTC)
-    val expectedStartDate2 = lastFetchedDay1.plusDays(1).format(TiingoCryptoFetcherFn.TIINGO_DATE_FORMATTER_DAILY)
+    val expectedStartDate2 = lastFetchedDay1.plusDays(1).format(TIINGO_DATE_FORMATTER_DAILY)
     assertThat(urls[1]).contains("startDate=$expectedStartDate2") // Incremental fetch (day after last fetched: Oct 27)
   }
 }
