@@ -1,8 +1,8 @@
 package com.verlumen.tradestream.marketdata
 
+import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.google.inject.Inject
-import com.google.inject.Module
 import com.google.inject.assistedinject.FactoryModuleBuilder
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import org.apache.beam.sdk.Pipeline
@@ -143,14 +143,30 @@ class TiingoCryptoCandleTransformTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
 
+        // Create a custom module that explicitly binds our mocks
+        val testModule = object : AbstractModule() {
+            override fun configure() {
+                // Explicitly bind the mocked dependencies
+                bind(object : com.google.inject.TypeLiteral<Supplier<List<CurrencyPair>>>() {})
+                    .toInstance(mockCurrencyPairSupplier)
+                
+                bind(TiingoCryptoFetcherFn.Factory::class.java)
+                    .toInstance(mockTiingoFetcherFnFactory)
+                
+                // Install the factory module for TiingoCryptoCandleTransform
+                install(
+                    FactoryModuleBuilder()
+                        .implement(TiingoCryptoCandleTransform::class.java, TiingoCryptoCandleTransform::class.java)
+                        .build(TiingoCryptoCandleTransform.Factory::class.java)
+                )
+            }
+        }
+
+        // Create the injector with our custom module
         Guice.createInjector(
-            BoundFieldModule.of(this), // Binds @Mock fields
-            FactoryModuleBuilder()
-                .implement(TiingoCryptoCandleTransform::class.java, TiingoCryptoCandleTransform::class.java)
-                .build(TiingoCryptoCandleTransform.Factory::class.java)
-            // TiingoCryptoFetcherFn.Factory is mocked, so BoundFieldModule handles its binding.
-        )
-        .injectMembers(this) // Injects transformFactory
+            BoundFieldModule.of(this), // For general field binding
+            testModule // Our custom module with explicit bindings
+        ).injectMembers(this) // Injects transformFactory
 
         // Common mock setups
         `when`(mockCurrencyPairSupplier.get()).thenReturn(currencyPairsList)
