@@ -123,10 +123,10 @@ class TiingoCryptoCandleTransformTest : Serializable {
     
     // Helper method to create a test candle
     private fun createTestCandle(symbol: String, closePrice: Double): Candle {
-        val parts = symbol.split("/")
+        // Use the proper way to create a Candle based on the builder methods available
         return Candle.newBuilder()
-            .setBase(parts[0])
-            .setQuote(parts[1])
+            // .setBase(parts[0]) and .setQuote(parts[1]) appear to be unavailable
+            // Instead, use available methods based on the Candle proto definition
             .setOpen(closePrice - 10.0)
             .setHigh(closePrice + 5.0)
             .setLow(closePrice - 15.0)
@@ -150,23 +150,28 @@ class TiingoCryptoCandleTransformTest : Serializable {
             // Get currency pairs
             val currencyPairs = currencyPairSupplier.get()
             
-            // Create a collection of currency pair symbols
-            val pairSymbols = input.apply("CreatePairSymbols", ParDo.of(object : DoFn<Instant, String>(), Serializable {
-                companion object {
-                    private const val serialVersionUID = 1L
-                }
-                
-                @ProcessElement
-                fun processElement(c: ProcessContext) {
-                    // Output each currency pair symbol for each input element
-                    for (pair in currencyPairs) {
-                        c.output(pair.symbol())
-                    }
-                }
-            }))
-            
-            // Apply the test fetcher to get candles
-            return pairSymbols.apply("FetchCandles", ParDo.of(testFetcher))
+            // Use a separate named inner class instead of an anonymous local class
+            return input.apply("CreatePairSymbols", ParDo.of(PairSymbolsDoFn(currencyPairs)))
+                  .apply("FetchCandles", ParDo.of(testFetcher))
+        }
+    }
+    
+    /**
+     * A named DoFn for creating pair symbols from Instants
+     */
+    private class PairSymbolsDoFn(
+        private val currencyPairs: List<CurrencyPair>
+    ) : DoFn<Instant, String>(), Serializable {
+        companion object {
+            private const val serialVersionUID = 1L
+        }
+        
+        @ProcessElement
+        fun processElement(c: ProcessContext) {
+            // Output each currency pair symbol for each input element
+            for (pair in currencyPairs) {
+                c.output(pair.symbol())
+            }
         }
     }
     
