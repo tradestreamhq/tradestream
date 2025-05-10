@@ -35,7 +35,8 @@ java_library(
     srcs = ["CandleSource.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",    ],
+        "//third_party:beam_sdks_java_core",
+    ],
 )
 
 # Coinbase specific streaming client
@@ -212,6 +213,7 @@ java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
     deps = [
+        ":candle_source",
         ":dry_run_trade_source",
         ":exchange_client_trade_source",
         ":exchange_client_unbounded_source",
@@ -221,6 +223,7 @@ java_library(
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
         ":sliding_candle_aggregator",
+        ":trade_backed_candle_source",
         ":trade_source",
         ":trade_to_candle",
         "//protos:marketdata_java_proto",
@@ -301,6 +304,18 @@ kt_jvm_library(
         "//protos:marketdata_java_proto",
         "//third_party:gson",
         "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+    ],
+)
+
+java_library(
+    name = "trade_backed_candle_source",
+    srcs = ["TradeBackedCandleSource.java"],
+    deps = [
+        ":candle_source",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:joda_time",
         "//third_party:protobuf_java_util",
     ],
 )
