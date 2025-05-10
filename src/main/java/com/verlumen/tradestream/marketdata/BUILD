@@ -273,6 +273,7 @@ kt_jvm_library(
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
         "//third_party:guice",
+        "//third_party:guice_assistedinject",
     ],
 )
 
