@@ -313,8 +313,11 @@ java_library(
     srcs = ["TradeBackedCandleSource.java"],
     deps = [
         ":candle_source",
+        ":trade_source",
+        ":trade_to_candle",
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
+        "//third_party:guice",
         "//third_party:joda_time",
         "//third_party:protobuf_java_util",
     ],
