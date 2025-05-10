@@ -275,6 +275,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party:beam_sdks_java_core",
         "//third_party:guice",
+        "//third_party:guice_assistedinject",
         "//third_party:joda_time",
     ],
 )
