@@ -35,7 +35,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v1.20.5-develop
+    tag: v1.20.6-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
