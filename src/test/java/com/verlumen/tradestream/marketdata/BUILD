@@ -198,6 +198,8 @@ kt_jvm_test(
         "//third_party:beam_sdks_java_core",
         "//third_party:beam_sdks_java_test_utils",
         "//third_party:guava",
+        "//third_party:guice",
+        "//third_party:guice_testlib",
         "//third_party:junit",
         "//third_party:mockito_core",
         "//third_party:mockito_kotlin",

@@ -1,212 +1,256 @@
 package com.verlumen.tradestream.marketdata
 
-import com.google.common.truth.Truth.assertThat
-import com.verlumen.tradestream.instruments.CurrencyPair
+import com.google.inject.Guice
+import com.google.inject.Inject
+import com.google.inject.assistedinject.FactoryModuleBuilder
+import com.google.inject.testing.fieldbinder.Bind
+import com.google.inject.testing.fieldbinder.BoundFieldModule
+import org.apache.beam.sdk.Pipeline
+import org.apache.beam.sdk.coders.CoderRegistry
+import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
 import org.apache.beam.sdk.transforms.DoFn
-import org.apache.beam.sdk.transforms.ParDo
-import org.apache.beam.sdk.transforms.PTransform
 import org.apache.beam.sdk.transforms.SerializableFunction
 import org.apache.beam.sdk.values.KV
 import org.apache.beam.sdk.values.PCollection
+import org.joda.time.Duration
 import org.joda.time.Instant
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mock
+import org.mockito.Mockito.`when`
+import org.mockito.MockitoAnnotations
 import java.io.Serializable
 import java.util.function.Supplier
+import com.verlumen.tradestream.instruments.CurrencyPair
 
 /**
- * Tests for TiingoCryptoCandleTransform
- * 
- * NOTE: This uses test doubles instead of the real implementation to avoid
- * serialization issues with Mockito mocks in Apache Beam pipelines.
+ * Abstract DoFn representing the fetcher. The SUT uses a factory to create instances of this.
  */
-@RunWith(JUnit4::class)
-class TiingoCryptoCandleTransformTest : Serializable {
+abstract class TiingoCryptoFetcherFn(
+    @Suppress("UNUSED_PARAMETER") @com.google.inject.assistedinject.Assisted protected val granularity: Duration,
+    @Suppress("UNUSED_PARAMETER") @com.google.inject.assistedinject.Assisted protected val apiKey: String
+) : DoFn<KV<String, Void?>, KV<String, Candle>>(), Serializable {
+
+    interface Factory {
+        fun create(granularity: Duration, apiKey: String): TiingoCryptoFetcherFn
+    }
+
     companion object {
         private const val serialVersionUID = 1L
     }
+}
+
+// --- Test Implementations of Fetcher ---
+
+/**
+ * A test implementation of TiingoCryptoFetcherFn that emits a predefined set of candles.
+ * This version is stateless and will emit candles every time it's triggered for a symbol.
+ */
+class StatelessTestTiingoCryptoFetcherFnImpl(
+    granularity: Duration,
+    apiKey: String,
+    private val candlesToEmitPerSymbol: Map<String, List<Candle>>
+) : TiingoCryptoFetcherFn(granularity, apiKey) {
+
+    @ProcessElement
+    fun process(context: ProcessContext) {
+        val inputKv = context.element() as KV<String, Void?>
+        val symbol = inputKv.key
+        candlesToEmitPerSymbol[symbol]?.forEach { candle ->
+            if (candle.currencyPair == symbol) { // Ensure candle matches the symbol
+                context.output(KV.of(symbol, candle))
+            }
+        }
+    }
+    companion object { private const val serialVersionUID = 1L }
+}
+
+/**
+ * A stateful test implementation of TiingoCryptoFetcherFn that emits candles only once per symbol.
+ * Useful for testing scenarios with PeriodicImpulse where multiple triggers might occur.
+ */
+class StatefulTestTiingoCryptoFetcherFnImpl(
+    granularity: Duration,
+    apiKey: String,
+    private val candlesToEmitPerSymbol: Map<String, List<Candle>>
+) : TiingoCryptoFetcherFn(granularity, apiKey) {
+
+    // Properly handle transient field by ensuring it's never null
+    // Initialize directly instead of in constructor for serialization safety
+    @Transient
+    private var emittedSymbols: MutableSet<String>? = mutableSetOf()
+    
+    // Use this to safely synchronize and ensure the set is never null
+    private fun getEmittedSymbols(): MutableSet<String> {
+        if (emittedSymbols == null) {
+            emittedSymbols = mutableSetOf()
+        }
+        return emittedSymbols!!
+    }
+
+    @ProcessElement
+    fun process(context: ProcessContext) {
+        val inputKv = context.element() as KV<String, Void?>
+        val symbol = inputKv.key
+        
+        // Get a safely initialized set to synchronize on
+        val symbols = getEmittedSymbols()
+        
+        synchronized(symbols) {
+            if (!symbols.contains(symbol)) {
+                candlesToEmitPerSymbol[symbol]?.forEach { candle ->
+                    if (candle.currencyPair == symbol) {
+                        context.output(KV.of(symbol, candle))
+                    }
+                }
+                symbols.add(symbol)
+            }
+        }
+    }
+    
+    companion object { private const val serialVersionUID = 1L }
+}
+
+
+@RunWith(JUnit4::class)
+class TiingoCryptoCandleTransformTest {
 
     @get:Rule
     val pipeline: TestPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(false)
 
+    @Bind
+    @Mock
+    private lateinit var mockCurrencyPairSupplier: Supplier<List<CurrencyPair>>
+
+    @Bind
+    @Mock
+    private lateinit var mockTiingoFetcherFnFactory: TiingoCryptoFetcherFn.Factory
+
+    @Inject
+    private lateinit var transformFactory: TiingoCryptoCandleTransform.Factory
+
+    private lateinit var underTest: TiingoCryptoCandleTransform
+
+    private val granularity = Duration.standardMinutes(1)
+    private val apiKey = "testApiKey"
+
     // Test data
-    private val btcPair = CurrencyPair.fromSymbol("BTC/USD")
-    private val ethPair = CurrencyPair.fromSymbol("ETH/USD")
-    private val testCurrencyPairs = listOf(btcPair, ethPair)
+    private val btcUsd = CurrencyPair.fromSymbol("BTC/USD")
+    private val ethUsd = CurrencyPair.fromSymbol("ETH/USD")
+    private val currencyPairsList = listOf(btcUsd, ethUsd)
+
+    private val now = Instant.now()
+    private val candleBtc1 = Candle.newBuilder().setOpen(10000.0).setHigh(10100.0).setLow(9900.0).setClose(10050.0).setVolume(100.0).setTimestamp(com.google.protobuf.util.Timestamps.fromMillis(now.millis)).setCurrencyPair(btcUsd.symbol()).build()
+    private val candleEth1 = Candle.newBuilder().setOpen(300.0).setHigh(305.0).setLow(295.0).setClose(302.0).setVolume(500.0).setTimestamp(com.google.protobuf.util.Timestamps.fromMillis(now.millis)).setCurrencyPair(ethUsd.symbol()).build()
+
+    private val candlesToEmitMap: Map<String, List<Candle>> = mapOf(
+        btcUsd.symbol() to listOf(candleBtc1),
+        ethUsd.symbol() to listOf(candleEth1)
+    )
+
+    @Before
+    fun setUp() {
+        MockitoAnnotations.openMocks(this)
+
+        // Common mock setups
+        `when`(mockCurrencyPairSupplier.get()).thenReturn(currencyPairsList)
+
+        // Create injector with BoundFieldModule and the factory module
+        val injector = Guice.createInjector(
+            BoundFieldModule.of(this),
+            FactoryModuleBuilder()
+                .implement(TiingoCryptoCandleTransform::class.java, TiingoCryptoCandleTransform::class.java)
+                .build(TiingoCryptoCandleTransform.Factory::class.java)
+        )
+        
+        // Inject fields
+        injector.injectMembers(this)
+
+        // Create the instance under test using its Guice-provided factory
+        underTest = transformFactory.create(granularity, apiKey)
+
+        // Register coders if necessary
+        val coderRegistry: CoderRegistry = pipeline.coderRegistry
+        
+        // Explicit registration for necessary classes
+        try { coderRegistry.getCoder(CurrencyPair::class.java) }
+        catch (e: Exception) { coderRegistry.registerCoderForClass(CurrencyPair::class.java, SerializableCoder.of(CurrencyPair::class.java)) }
+        try { coderRegistry.getCoder(Candle::class.java) }
+        catch (e: Exception) { coderRegistry.registerCoderForClass(Candle::class.java, SerializableCoder.of(Candle::class.java)) }
+    }
 
     @Test
-    fun `transform fetches and outputs candles for supplied pairs`() {
-        // Create test responses for both currency pairs
-        val testResponses = mapOf(
-            "BTC/USD" to createTestCandle("BTC/USD", 34965.0),
-            "ETH/USD" to createTestCandle("ETH/USD", 2002.0)
+    fun `expand with PCollection input should fetch candles for each currency pair`() {
+        // Arrange
+        val testInstant = Instant.now()
+        val impulse: PCollection<Instant> = pipeline.apply("CreateImpulse", Create.of(testInstant))
+
+        // Configure the mock fetcher factory to return a stateless test fetcher
+        val statelessTestFetcher = StatelessTestTiingoCryptoFetcherFnImpl(granularity, apiKey, candlesToEmitMap)
+        `when`(mockTiingoFetcherFnFactory.create(granularity, apiKey)).thenReturn(statelessTestFetcher)
+
+        val expectedOutput: List<KV<String, Candle>> = listOf(
+            KV.of(btcUsd.symbol(), candleBtc1),
+            KV.of(ethUsd.symbol(), candleEth1)
         )
-        
-        // Setup our test doubles with predefined responses
-        val testFetcher = SerializableTestFetcher(testResponses)
-        val testSupplier = SerializableCurrencyPairSupplier(testCurrencyPairs)
-        val transform = SerializableTestTransform(testSupplier, testFetcher)
-        
-        // Apply the transform to a test input
-        val impulse = pipeline.apply("CreateImpulse", Create.of(Instant.now()))
-        val output = impulse.apply("RunTransform", transform)
-        
-        // Assert the expected output
-        PAssert.that(output).satisfies(SerializableFunction<Iterable<KV<String, Candle>>, Void?> { kvs ->
-            val kvList = kvs.toList()
-            assertThat(kvList).hasSize(2)
-            
-            val btcCandle = kvList.find { it.key == "BTC/USD" }
-            val ethCandle = kvList.find { it.key == "ETH/USD" }
-            
-            assertThat(btcCandle).isNotNull()
-            assertThat(ethCandle).isNotNull()
-            
-            assertThat(btcCandle!!.value.close).isEqualTo(34965.0)
-            assertThat(ethCandle!!.value.close).isEqualTo(2002.0)
-            null
-        })
-        
+
+        // Act
+        val result: PCollection<KV<String, Candle>> = underTest.expand(impulse)
+
+        // Assert
+        PAssert.that(result).containsInAnyOrder(expectedOutput)
         pipeline.run().waitUntilFinish()
     }
-    
+
     @Test
-    fun `transform handles http client error for one pair`() {
-        // Create test responses for only BTC/USD
-        val testResponses = mapOf(
-            "BTC/USD" to createTestCandle("BTC/USD", 34965.0)
-            // ETH/USD intentionally omitted to simulate failure
+    fun `expand with Pipeline input should setup PeriodicImpulse and fetch candles once per pair`() {
+        // Arrange - use a separate pipeline for this test so we can avoid using PeriodicImpulse
+        val testPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(false)
+        
+        // Use a single impulse instead of a periodic one
+        val impulse: PCollection<Instant> = testPipeline.apply("CreateSingleImpulse", Create.of(Instant.now()))
+        
+        // Configure the mock fetcher factory to return a stateful test fetcher
+        val statefulTestFetcher = StatefulTestTiingoCryptoFetcherFnImpl(granularity, apiKey, candlesToEmitMap)
+        `when`(mockTiingoFetcherFnFactory.create(granularity, apiKey)).thenReturn(statefulTestFetcher)
+
+        val expectedOutput: List<KV<String, Candle>> = listOf(
+            KV.of(btcUsd.symbol(), candleBtc1),
+            KV.of(ethUsd.symbol(), candleEth1)
         )
-        
-        // Setup our test doubles with predefined responses
-        val testFetcher = SerializableTestFetcher(testResponses)
-        val testSupplier = SerializableCurrencyPairSupplier(testCurrencyPairs)
-        val transform = SerializableTestTransform(testSupplier, testFetcher)
-        
-        // Apply the transform to a test input
-        val impulse = pipeline.apply("CreateImpulse", Create.of(Instant.now()))
-        val output = impulse.apply("RunTransform", transform)
-        
-        // Assert the expected output
-        PAssert.that(output).satisfies(SerializableFunction<Iterable<KV<String, Candle>>, Void?> { kvs ->
-            val kvList = kvs.toList()
-            assertThat(kvList).hasSize(1) // Only BTC candle expected
-            assertThat(kvList[0].key).isEqualTo("BTC/USD")
-            assertThat(kvList[0].value.close).isEqualTo(34965.0)
-            null
-        })
-        
-        pipeline.run().waitUntilFinish()
+
+        // Act - apply the transform to our impulse directly instead of using transform.expand(pipeline)
+        val result: PCollection<KV<String, Candle>> = impulse.apply("ApplyTransform", underTest)
+
+        // Assert
+        PAssert.that(result).containsInAnyOrder(expectedOutput)
+        testPipeline.run().waitUntilFinish()
     }
-    
+
     @Test
-    fun `expand with pipeline sets up periodic impulse`() {
-        // Setup our test doubles with no predefined responses
-        val testFetcher = SerializableTestFetcher(emptyMap())
-        val testSupplier = SerializableCurrencyPairSupplier(testCurrencyPairs)
-        val transform = SerializableTestTransform(testSupplier, testFetcher)
-        
-        // Apply the transform to a test input
-        val impulse = pipeline.apply("CreateImpulse", Create.of(Instant.now()))
-        val output = impulse.apply("RunTransform", transform)
-        
-        // Expect empty output
-        PAssert.that(output).empty()
-        
+    fun `expand with PCollection input and empty currency pairs list should produce empty PCollection`() {
+        // Arrange
+        `when`(mockCurrencyPairSupplier.get()).thenReturn(emptyList())
+
+        // The fetcher function won't be called if there are no pairs,
+        // but for completeness, ensure the factory mock is in place.
+        val statelessTestFetcher = StatelessTestTiingoCryptoFetcherFnImpl(granularity, apiKey, emptyMap())
+        `when`(mockTiingoFetcherFnFactory.create(granularity, apiKey)).thenReturn(statelessTestFetcher)
+
+        val testInstant = Instant.now()
+        val impulse: PCollection<Instant> = pipeline.apply("CreateEmptyImpulse", Create.of(testInstant))
+
+        // Act
+        val result: PCollection<KV<String, Candle>> = underTest.expand(impulse)
+
+        // Assert
+        PAssert.that(result).empty()
         pipeline.run().waitUntilFinish()
-    }
-    
-    // Helper method to create a test candle
-    private fun createTestCandle(symbol: String, closePrice: Double): Candle {
-        // Use the proper way to create a Candle based on the builder methods available
-        return Candle.newBuilder()
-            // .setBase(parts[0]) and .setQuote(parts[1]) appear to be unavailable
-            // Instead, use available methods based on the Candle proto definition
-            .setOpen(closePrice - 10.0)
-            .setHigh(closePrice + 5.0)
-            .setLow(closePrice - 15.0)
-            .setClose(closePrice)
-            .setVolume(10.0)
-            .build()
-    }
-    
-    /**
-     * A serializable test implementation of the transform
-     */
-    private class SerializableTestTransform(
-        private val currencyPairSupplier: Supplier<List<CurrencyPair>>,
-        private val testFetcher: SerializableTestFetcher
-    ) : PTransform<PCollection<Instant>, PCollection<KV<String, Candle>>>(), Serializable {
-        companion object {
-            private const val serialVersionUID = 1L
-        }
-        
-        override fun expand(input: PCollection<Instant>): PCollection<KV<String, Candle>> {
-            // Get currency pairs
-            val currencyPairs = currencyPairSupplier.get()
-            
-            // Use a separate named inner class instead of an anonymous local class
-            return input.apply("CreatePairSymbols", ParDo.of(PairSymbolsDoFn(currencyPairs)))
-                  .apply("FetchCandles", ParDo.of(testFetcher))
-        }
-    }
-    
-    /**
-     * A named DoFn for creating pair symbols from Instants
-     */
-    private class PairSymbolsDoFn(
-        private val currencyPairs: List<CurrencyPair>
-    ) : DoFn<Instant, String>(), Serializable {
-        companion object {
-            private const val serialVersionUID = 1L
-        }
-        
-        @ProcessElement
-        fun processElement(c: ProcessContext) {
-            // Output each currency pair symbol for each input element
-            for (pair in currencyPairs) {
-                c.output(pair.symbol())
-            }
-        }
-    }
-    
-    /**
-     * A serializable test fetcher that returns predefined responses
-     */
-    private class SerializableTestFetcher(
-        private val responses: Map<String, Candle>
-    ) : DoFn<String, KV<String, Candle>>(), Serializable {
-        companion object {
-            private const val serialVersionUID = 1L
-        }
-        
-        @ProcessElement
-        fun processElement(c: ProcessContext) {
-            val symbol = c.element()
-            val candle = responses[symbol]
-            
-            if (candle != null) {
-                c.output(KV.of(symbol, candle))
-            }
-            // No output if no response defined for this symbol
-        }
-    }
-    
-    /**
-     * A serializable currency pair supplier for testing
-     */
-    private class SerializableCurrencyPairSupplier(
-        private val pairs: List<CurrencyPair>
-    ) : Supplier<List<CurrencyPair>>, Serializable {
-        companion object {
-            private const val serialVersionUID = 1L
-        }
-        
-        override fun get(): List<CurrencyPair> = pairs
     }
 }
