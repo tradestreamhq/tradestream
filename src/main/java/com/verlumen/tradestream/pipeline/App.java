@@ -267,7 +267,8 @@ public final class App {
       options.getMaxForwardIntervals(),
       runMode,
       options.getSignalTopic(),
-      options.getCoinMarketCapTopCurrencyCount());
+      options.getCoinMarketCapTopCurrencyCount(),
+      options.getTiingoApiKey());
     logger.atInfo().log("Created Guice module.");
 
     // Initialize the application via Guice.
