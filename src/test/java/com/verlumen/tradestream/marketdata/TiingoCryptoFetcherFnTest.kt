@@ -1,11 +1,11 @@
 package com.verlumen.tradestream.marketdata
 
 import com.google.common.truth.Truth.assertThat
-import com.google.inject.Bind
 import com.google.inject.Guice
 import com.google.inject.Inject
 import com.google.inject.assistedinject.FactoryModuleBuilder
-import com.google.inject.util.BoundFieldModule
+import com.google.inject.testing.fieldbinder.Bind
+import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.http.HttpClient
 import org.apache.beam.sdk.coders.KvCoder
