@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.marketdata
 
 import com.google.inject.Inject
+import com.google.inject.assistedinject.Assisted
 import com.verlumen.tradestream.instruments.CurrencyPair
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.transforms.DoFn
@@ -24,13 +25,13 @@ import java.util.function.Supplier
  * A PTransform that periodically fetches cryptocurrency candle data from Tiingo
  * for a list of currency pairs.
  *
- * NOTE: For this PR, the TiingoCryptoFetcherFn is passed directly.
- * In a subsequent PR, this will be replaced by AssistedInject for the transform
- * and its underlying fetcher function to manage granularity and API key configuration.
+ * Uses AssistedInject to support configurable granularity and API key.
  */
 class TiingoCryptoCandleTransform @Inject constructor(
     private val currencyPairSupplier: Supplier<@JvmSuppressWildcards List<CurrencyPair>>,
-    private val fetcherFn: TiingoCryptoFetcherFn
+    private val fetcherFnFactory: TiingoCryptoFetcherFn.Factory,
+    @Assisted private val granularity: Duration,
+    @Assisted private val apiKey: String
 ) : PTransform<PCollection<Instant>, PCollection<KV<String, Candle>>>(), Serializable {
 
     companion object {
@@ -40,6 +41,9 @@ class TiingoCryptoCandleTransform @Inject constructor(
     override fun expand(impulse: PCollection<Instant>): PCollection<KV<String, Candle>> {
         // Get the list of currency pairs once outside the pipeline
         val currencyPairs = currencyPairSupplier.get()
+        
+        // Create fetcher function with assisted parameters
+        val fetcherFn = fetcherFnFactory.create(granularity, apiKey)
         
         return impulse
             // Step 2: Cross with currency pairs from the side input
@@ -69,14 +73,12 @@ class TiingoCryptoCandleTransform @Inject constructor(
 
     /**
      * Convenience method to apply this transform directly to a pipeline root,
-     * setting up a default PeriodicImpulse.
+     * setting up a PeriodicImpulse with the same granularity.
      */
     fun expand(pipeline: Pipeline): PCollection<KV<String, Candle>> {
-        val defaultImpulseInterval = Duration.standardMinutes(1)
-
         return pipeline
             .apply("PeriodicImpulseTrigger", PeriodicImpulse.create()
-                .withInterval(defaultImpulseInterval)
+                .withInterval(granularity)
                 .applyWindowing())
             .apply("RunTiingoTransform", this)
     }
@@ -95,5 +97,12 @@ class TiingoCryptoCandleTransform @Inject constructor(
         override fun apply(input: Instant): Iterable<CurrencyPair> {
             return currencyPairs
         }
+    }
+    
+    /**
+     * Factory interface for assisted injection
+     */
+    interface Factory {
+        fun create(granularity: Duration, apiKey: String): TiingoCryptoCandleTransform
     }
 }
