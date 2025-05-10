@@ -108,6 +108,7 @@ public final class App {
     void setTiingoApiKey(String value);
   }
 
+  private final CandleSource candleSource;
   private final Supplier<List<CurrencyPair>> currencyPairs;
   private final StrategyEnginePipeline strategyEnginePipeline;
   private final TimingConfig timingConfig;
@@ -118,6 +119,7 @@ public final class App {
       Supplier<List<CurrencyPair>> currencyPairs,
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig) {
+    this.candleSource = candleSource;
     this.currencyPairs = currencyPairs;
     this.strategyEnginePipeline = strategyEnginePipeline;
     this.timingConfig = timingConfig;
@@ -128,7 +130,7 @@ public final class App {
     logger.atInfo().log("Starting to build the pipeline.");
 
     // 1. Read candles.
-    PCollection<KV<String, Candle>> candles = pipeline.apply("LoadCandles", canldeSource);
+    PCollection<KV<String, Candle>> candles = pipeline.apply("LoadCandles", candleSource);
             
     // 2. Parse lookback sizes from options and add lookback processing
     List<Integer> lookbackSizes = parseLookbackSizes(options.getCandleLookbackSizes());
