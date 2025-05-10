@@ -160,7 +160,22 @@ class TiingoCryptoFetcherFnTest {
     assertThat(urls[0]).contains("tickers=btcusd")
     assertThat(urls[0]).contains("resampleFreq=1day")
     assertThat(urls[0]).contains("token=$testApiKey")
-    assertThat(urls[0]).contains("startDate=2019-01-02")
+    
+    // Check that startDate is present and formatted correctly (YYYY-MM-DD)
+    // Should be approximately 1 year ago
+    assertThat(urls[0]).containsMatch("startDate=\\d{4}-\\d{2}-\\d{2}")
+    
+    // Extract the date to verify it's roughly a year ago
+    val datePattern = "startDate=(\\d{4}-\\d{2}-\\d{2})".toRegex()
+    val matchResult = datePattern.find(urls[0])
+    if (matchResult != null) {
+      val startDate = LocalDate.parse(matchResult.groupValues[1])
+      val now = LocalDate.now()
+      val daysBetween = ChronoUnit.DAYS.between(startDate, now)
+      // Allow some flexibility: between 360-370 days ago
+      assertThat(daysBetween).isAtLeast(360)
+      assertThat(daysBetween).isAtMost(370)
+    }
   }
 
   @Test
@@ -323,7 +338,9 @@ class TiingoCryptoFetcherFnTest {
     // Also check URLs used
     val urls = stub.getUsedUrls()
     assertThat(urls).hasSize(2)
-    assertThat(urls[0]).contains("startDate=2019-01-02") // Initial fetch
+    
+    // First URL should contain a dynamic start date about a year ago
+    assertThat(urls[0]).containsMatch("startDate=\\d{4}-\\d{2}-\\d{2}") // Dynamic initial fetch date
     
     // The second URL should request data starting after Oct 27 (the last day in the first response)
     val expectedStartDateFormatted = "2023-10-28"
