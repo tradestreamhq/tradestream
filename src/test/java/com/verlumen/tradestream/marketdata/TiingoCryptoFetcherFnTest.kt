@@ -26,6 +26,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicReference
@@ -72,8 +73,9 @@ class TiingoCryptoFetcherFnTest {
 
   // Use a thread-safe, serializable stub with better URL tracking
   private class StubHttpClient : HttpClient, Serializable {
-    @Transient private val responseQueue: ConcurrentLinkedQueue<String>
-    @Transient private val usedUrls: CopyOnWriteArrayList<String>
+    // Use var instead of val to allow reassignment in readObject method
+    @Transient private var responseQueue: ConcurrentLinkedQueue<String>
+    @Transient private var usedUrls: CopyOnWriteArrayList<String>
 
     constructor(initialResponses: List<String>) {
       responseQueue = ConcurrentLinkedQueue(initialResponses)
@@ -171,10 +173,10 @@ class TiingoCryptoFetcherFnTest {
     if (matchResult != null) {
       val startDate = LocalDate.parse(matchResult.groupValues[1])
       val now = LocalDate.now()
-      val daysBetween = ChronoUnit.DAYS.between(startDate, now)
+      val daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, now)
       // Allow some flexibility: between 360-370 days ago
-      assertThat(daysBetween).isAtLeast(360)
-      assertThat(daysBetween).isAtMost(370)
+      assertThat(daysBetween.toInt()).isAtLeast(360)
+      assertThat(daysBetween.toInt()).isAtMost(370)
     }
   }
 
@@ -330,7 +332,8 @@ class TiingoCryptoFetcherFnTest {
       assertThat(hasDay2).isTrue()
       assertThat(hasDay3).isTrue()
       
-      return null
+      // Satisfies expects Unit, not null
+      Unit
     }
     
     pipeline.run()
@@ -417,7 +420,8 @@ class TiingoCryptoFetcherFnTest {
       // Oct 26, 2023 and now - this proves fill-forward is limited
       assertThat(outputList.size).isLessThan(daysBetween.toInt())
       
-      return null
+      // Return Unit instead of null
+      Unit
     }
     
     pipeline.run()
