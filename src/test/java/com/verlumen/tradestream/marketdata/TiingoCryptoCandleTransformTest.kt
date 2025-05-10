@@ -8,7 +8,6 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.coders.CoderRegistry
 import org.apache.beam.sdk.coders.SerializableCoder
-import org.apache.beam.sdk.extensions.kotlin.coders.registerKotlinCoders
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
@@ -127,8 +126,8 @@ class TiingoCryptoCandleTransformTest {
     private val apiKey = "testApiKey"
 
     // Test data
-    private val btcUsd = CurrencyPair("BTC", "USD")
-    private val ethUsd = CurrencyPair("ETH", "USD")
+    private val btcUsd = CurrencyPair.fromSymbol("BTC/USD")
+    private val ethUsd = CurrencyPair.fromSymbol("ETH/USD")
     private val currencyPairsList = listOf(btcUsd, ethUsd)
 
     private val now = Instant.now()
@@ -162,8 +161,8 @@ class TiingoCryptoCandleTransformTest {
 
         // Register coders if necessary, especially for Kotlin data classes
         val coderRegistry: CoderRegistry = pipeline.coderRegistry
-        coderRegistry.registerKotlinCoders()
-        // Explicit registration as a fallback if registerKotlinCoders isn't sufficient or for clarity
+        
+        // Explicit registration for necessary classes
         try { coderRegistry.getCoder(CurrencyPair::class.java) }
         catch (e: Exception) { coderRegistry.registerCoderForClass(CurrencyPair::class.java, SerializableCoder.of(CurrencyPair::class.java)) }
         try { coderRegistry.getCoder(Candle::class.java) }
