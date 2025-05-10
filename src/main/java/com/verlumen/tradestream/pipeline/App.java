@@ -129,22 +129,14 @@ public final class App {
 
     // 1. Read candles.
     PCollection<KV<String, Candle>> candles = pipeline.apply("LoadCandles", canldeSource);
-      
-    // 2. Apply window for candle processing - use a single large window for stateful processing
-    Duration windowDuration = Duration.standardMinutes(options.getCandleDurationMinutes() * 10);
-    PCollection<KV<String, Candle>> windowedCandles = candles.apply(
-        "Apply Processing Window",
-        Window.<KV<String, Candle>>into(FixedWindows.of(windowDuration))
-            .triggering(DefaultTrigger.of())
-            .discardingFiredPanes());
             
-    // 3. Parse lookback sizes from options and add lookback processing
+    // 2. Parse lookback sizes from options and add lookback processing
     List<Integer> lookbackSizes = parseLookbackSizes(options.getCandleLookbackSizes());
     PCollection<KV<String, KV<Integer, ImmutableList<Candle>>>> lookbacks = windowedCandles.apply(
         "Generate Candle Lookbacks",
         ParDo.of(new CandleLookbackDoFn(lookbackSizes)));
         
-    // 4. Log lookback results for debugging
+    // 3. Log lookback results for debugging
     lookbacks.apply("Log Lookbacks", ParDo.of(new LogLookbacksDoFn()));
 
     logger.atInfo().log("Pipeline building complete. Returning pipeline.");
