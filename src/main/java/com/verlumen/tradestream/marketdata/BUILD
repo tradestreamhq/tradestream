@@ -255,6 +255,20 @@ java_library(
 )
 
 kt_jvm_library(
+    name = "tiingo_crypto_candle_transform",
+    srcs = ["TiingoCryptoCandleTransform.kt"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":tiingo_crypto_fetcher_fn",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guice",
+        "//third_party:joda_time",
+    ],
+)
+
+kt_jvm_library(
     name = "tiingo_crypto_fetcher_fn",
     srcs = ["TiingoCryptoFetcherFn.kt"],
     deps = [
