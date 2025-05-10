@@ -116,7 +116,6 @@ public final class App {
   App(
       CandleSource candleSource,
       Supplier<List<CurrencyPair>> currencyPairs,
-      FillForwardCandles fillForwardCandles,
       StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig) {
     this.currencyPairs = currencyPairs;
