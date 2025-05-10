@@ -223,20 +223,19 @@ class TiingoCryptoFetcherFnTest : Serializable {
 
   @Test
   fun `fetcher handles incremental processing`() {
-    // Use a simpler approach for testing incremental processing
-    // The test focus: verify that we get results from a TestStream with multiple elements
-    
-    // We need two fixed responses for two different calls
+    // Based on the error, it looks like we need to make sure we get distinct responses
+    // Create a client that handles the sequential responses without using transient state
     val client = object : HttpClient, Serializable {
-      // Track which call we're on
-      private val callCount = java.util.concurrent.atomic.AtomicInteger(0)
+      // Store whether this is first or second call - using AtomicBoolean to survive serialization
+      private val isFirstCall = java.util.concurrent.atomic.AtomicBoolean(true)
       
       override fun get(url: String, headers: Map<String, String>): String {
-        return if (callCount.getAndIncrement() == 0) {
-          // First call - page 1
+        // Toggle the flag and return appropriate response
+        return if (isFirstCall.getAndSet(false)) {
+          // First call - return the first page only
           sampleResponseDailyPage1
         } else {
-          // Second call - page 2
+          // Second call - only return the second page
           sampleResponseDailyPage2
         }
       }
@@ -248,39 +247,47 @@ class TiingoCryptoFetcherFnTest : Serializable {
         testApiKey
     )
 
-    // Create a stream that triggers two separate state updates
+    // Create a TestStream with two elements, separated by a time gap
     val stream = TestStream.create(
         KvCoder.of(StringUtf8Coder.of(), VoidCoder.of())
     )
         .addElements(
             TimestampedValue.of(KV.of("BTC/USD", null as Void?), JodaInstant(0L))
         )
+        // Make sure to advance both processing time AND watermark
         .advanceProcessingTime(Duration.standardHours(12))
         .advanceWatermarkTo(JodaInstant(Duration.standardHours(12).millis))
+        // Add a second element after the time advances
         .addElements(
             TimestampedValue.of(KV.of("BTC/USD", null as Void?), 
                 JodaInstant(Duration.standardHours(12).millis))
         )
         .advanceWatermarkToInfinity()
 
-    // Run the test
+    // Apply to pipeline and get results
     val result = pipeline
         .apply(stream)
         .apply("FetchCandles", ParDo.of(fn))
 
-    // Use a simpler verification approach - just verify we got 3 candles
+    // Now verify exact dates - since we've seen duplicate Oct 26/27 but missing Oct 28
     PAssert.that(result).satisfies { results ->
         val candles = results.toList()
         
-        // 1. First verify we got 3 candles
-        assertThat(candles).hasSize(3)
-        
-        // 2. Verify we have each of the expected dates
+        // Check for unique dates
         val dates = candles.map { 
-            java.time.Instant.ofEpochSecond(it.value.timestamp.seconds).toString().substring(0, 10) 
-        }.toSet()
+            Instant.ofEpochSecond(it.value.timestamp.seconds).toString().substring(0, 10) 
+        }
         
-        assertThat(dates).containsExactly("2023-10-26", "2023-10-27", "2023-10-28")
+        // Count occurrences of each date
+        val dateCounts = dates.groupingBy { it }.eachCount()
+        
+        // Make sure we have all three dates
+        assertThat(dateCounts.keys).containsExactly("2023-10-26", "2023-10-27", "2023-10-28")
+        
+        // Make sure each date appears exactly once
+        assertThat(dateCounts["2023-10-26"]).isEqualTo(1)
+        assertThat(dateCounts["2023-10-27"]).isEqualTo(1)
+        assertThat(dateCounts["2023-10-28"]).isEqualTo(1)
         
         null as Void?
     }
