@@ -90,6 +90,31 @@ constructor(
   @StateId("lastCandle")
   internal val lastCandleSpec: StateSpec<ValueState<Candle>> =
       StateSpecs.value(ProtoCoder.of(Candle::class.java))
+      
+  /**
+   * Calculate the last complete period based on the granularity.
+   * This ensures we don't fill forward beyond reasonable data availability.
+   */
+  private fun computeLastCompletePeriod(granularity: Duration): Instant {
+    val now = Instant.now()
+    
+    return when {
+      isDailyGranularity(granularity) -> {
+        // For daily data, use yesterday (the last complete day)
+        now.truncatedTo(ChronoUnit.DAYS).minus(1, ChronoUnit.DAYS)
+      }
+      granularity.standardHours >= 1 -> {
+        // For hourly data, use the previous hour
+        val hoursToSubtract = 1 + (granularity.standardHours - 1)
+        now.truncatedTo(ChronoUnit.HOURS).minus(hoursToSubtract, ChronoUnit.HOURS)
+      }
+      else -> {
+        // For minute-level data, go back a safe margin (5 periods)
+        val minutesToSubtract = granularity.standardMinutes * 5
+        now.truncatedTo(ChronoUnit.MINUTES).minus(minutesToSubtract, ChronoUnit.MINUTES)
+      }
+    }
+  }
 
   @ProcessElement
   fun processElement(
@@ -159,9 +184,11 @@ constructor(
       } else {
         logger.atInfo().log(
             "No new candle data from Tiingo for %s starting %s", currencyPair, startDate)
-        // If no fetched candles but we have a last candle, fill forward
+        // If no fetched candles but we have a last candle, fill forward ONLY to last complete period
         currentLast?.let { lastCandle ->
-          val now = Instant.now()
+          // Calculate the maximum time to fill forward to
+          val maxFillTime = computeLastCompletePeriod(granularity)
+          
           val unit = durationToTemporalUnit(granularity)
           val amt = durationToAmount(granularity)
           var nextExpected =
@@ -169,9 +196,11 @@ constructor(
                       lastCandle.timestamp.seconds, lastCandle.timestamp.nanos.toLong())
                   .plus(amt, unit)
 
-          while (nextExpected.isBefore(now)) {
+          // Only fill up to maxFillTime, not current time
+          while (nextExpected.isBefore(maxFillTime) || nextExpected.equals(maxFillTime)) {
             logger.atFine().log(
-                "API returned no data, filling forward for %s at %s", currencyPair, nextExpected)
+                "API returned no data, filling forward for %s at %s (limited to %s)", 
+                currencyPair, nextExpected, maxFillTime)
             val synth = createSyntheticCandle(lastCandle, currencyPair, nextExpected)
             context.output(KV.of(currencyPair, synth))
             currentLast = synth // Update currentLast after emitting synthetic candle
