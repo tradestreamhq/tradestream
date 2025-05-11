@@ -42,6 +42,10 @@ pipeline:
     env.java.opts.jobmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
     env.java.opts.taskmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
     taskmanager.numberOfTaskSlots: "1"
+    execution.checkpointing.interval: 60000
+    execution.checkpointing.mode: EXACTLY_ONCE
+    execution.checkpointing.timeout: 600000
+    execution.checkpointing.externalized-checkpoint-retention: RETAIN_ON_CANCELLATION
   serviceAccount: flink
   jobManager:
     memory: 2048m
