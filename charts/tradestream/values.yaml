@@ -50,11 +50,11 @@ pipeline:
     state.backend.incremental: "true"
   serviceAccount: flink
   jobManager:
-    memory: 2048m
-    cpu: 1
+    memory: 8192m
+    cpu: 4
   taskManager:
-    memory: 2048m
-    cpu: 1
+    memory: 8192m
+    cpu: 4
   job:
     entryClass: com.verlumen.tradestream.pipeline.App
     jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
