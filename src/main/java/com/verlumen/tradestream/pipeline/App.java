@@ -193,19 +193,39 @@ public final class App {
   }
 
   private static String getCmcApiKey(Options options) {
-    if (isNullOrEmpty(options.getCoinMarketCapApiKey())) {
-      return System.getenv().getOrDefault(CMC_API_KEY_ENV_VAR, "INVALID_API_KEY");
+    // First try to get from options
+    String apiKey = options.getCoinMarketCapApiKey();
+    
+    // If not in options, try environment variable
+    if (isNullOrEmpty(apiKey)) {
+      apiKey = System.getenv(CMC_API_KEY_ENV_VAR);
     }
-
-    return options.getCoinMarketCapApiKey();
+    
+    // Throw exception if still empty or null
+    if (isNullOrEmpty(apiKey)) {
+      throw new IllegalArgumentException("CoinMarketCap API key must be provided either through options or " + 
+                                        CMC_API_KEY_ENV_VAR + " environment variable");
+    }
+    
+    return apiKey;
   }
 
   private static String getTiingoApiKey(Options options) {
-    if (isNullOrEmpty(options.getTiingoApiKey())) {
-      return System.getenv().getOrDefault(TIINGO_API_KEY_ENV_VAR, "INVALID_API_KEY");
+    // First try to get from options
+    String apiKey = options.getTiingoApiKey();
+    
+    // If not in options, try environment variable
+    if (isNullOrEmpty(apiKey)) {
+      apiKey = System.getenv(TIINGO_API_KEY_ENV_VAR);
     }
-
-    return options.getTiingoApiKey();
+    
+    // Throw exception if still empty or null
+    if (isNullOrEmpty(apiKey)) {
+      throw new IllegalArgumentException("Tiingo API key must be provided either through options or " + 
+                                        TIINGO_API_KEY_ENV_VAR + " environment variable");
+    }
+    
+    return apiKey;
   }
 
   public static void main(String[] args) throws Exception {
@@ -239,7 +259,7 @@ public final class App {
             runMode,
             options.getSignalTopic(),
             options.getCoinMarketCapTopCurrencyCount(),
-            options.getTiingoApiKey());
+            getTiingoApiKey(options));
     logger.atInfo().log("Created Guice module.");
 
     // Initialize the application via Guice.
