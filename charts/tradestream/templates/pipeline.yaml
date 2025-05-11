@@ -46,11 +46,15 @@ spec:
             # Add this environment variable
             - name: TMPDIR
               value: /opt/flink/writable-tmp
-            # Keep your existing env vars
             - name: COINMARKETCAP_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: coinmarketcap
+                  key: apiKey
+            - name: TIINGO_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tiingo
                   key: apiKey
           volumeMounts:
             - name: flink-writable-volume
