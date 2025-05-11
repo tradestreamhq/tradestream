@@ -53,21 +53,10 @@ class TiingoCryptoCandleTransform @Inject constructor(
             )
             // Step 3: Key by currency pair symbol (e.g., "BTC/USD")
             .apply("KeyByCurrencyPair", MapElements
-                .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.voids()))
-                .via(SerializableFunction<CurrencyPair, KV<String, Void?>> { pair -> 
-                    KV.of(pair.symbol(), null) 
-                })
+                .into(TypeDescriptors.strings())
+                .via(CurrencyPair::symbol)
             )
-            // Step 4: Group by key ensures one fetcher instance operates per key if it were stateful across bundles
-            .apply("GroupFetchRequests", GroupByKey.create())
-            // Step 5: Flatten the grouped data back to individual KVs
-            .apply("UnwrapGroupedPairs", FlatMapElements
-                .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.voids()))
-                .via(SerializableFunction<KV<String, Iterable<Void?>>, Iterable<KV<String, Void?>>> { kv ->
-                    listOf(KV.of(kv.key, null))
-                })
-            )
-            // Step 6: Use the stateful DoFn to fetch candles for each currency pair
+            // Step 4: Use the stateful DoFn to fetch candles for each currency pair
             .apply("FetchTiingoCandles", ParDo.of(fetcherFn))
     }
 
