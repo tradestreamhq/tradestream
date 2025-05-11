@@ -55,7 +55,7 @@ public abstract class MarketDataModule extends AbstractModule {
           case DRY: 
               return tradeBackedCandleSource.get();
           case WET:
-              return tiingoCryptoCandleSourceFactory.create(candleDuration(), tiingoApiKey());
+              return tiingoCryptoCandleSourceFactory.create(granularity(), tiingoApiKey());
           default: 
               throw new UnsupportedOperationException("Unsupported RunMode: " + runMode);
       }
