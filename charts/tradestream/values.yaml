@@ -35,7 +35,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v1.23.10-develop
+    tag: v1.23.11-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -58,5 +58,5 @@ pipeline:
   job:
     entryClass: com.verlumen.tradestream.pipeline.App
     jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
-    parallelism: 5
+    parallelism: 1
     upgradeMode: stateless

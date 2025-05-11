@@ -6,7 +6,6 @@ import com.verlumen.tradestream.instruments.CurrencyPair
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.FlatMapElements
-import org.apache.beam.sdk.transforms.GroupByKey
 import org.apache.beam.sdk.transforms.MapElements
 import org.apache.beam.sdk.transforms.PTransform
 import org.apache.beam.sdk.transforms.ParDo
