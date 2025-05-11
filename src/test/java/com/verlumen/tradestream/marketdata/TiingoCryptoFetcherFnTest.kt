@@ -170,7 +170,7 @@ class TiingoCryptoFetcherFnTest : Serializable {
   fun `initial fetch outputs expected daily candles`() {
     // Use the default fetcher
     val result = pipeline
-      .apply(Create.of(KV.of("BTC/USD", null as Void?)))
+      .apply(Create.of("BTC/USD"))
       .apply("InitialFetch", ParDo.of(defaultFetcher))
 
     // Assert on the output PCollection directly
@@ -359,11 +359,11 @@ class TiingoCryptoFetcherFnTest : Serializable {
         KvCoder.of(StringUtf8Coder.of(), VoidCoder.of())
     )
         .addElements(
-            TimestampedValue.of(KV.of("BTC/USD", null as Void?), JodaInstant(0L))
+            TimestampedValue.of("BTC/USD", JodaInstant(0L))
         )
         .advanceProcessingTime(Duration.standardDays(7)) // Advance a week
         .addElements(
-            TimestampedValue.of(KV.of("BTC/USD", null as Void?), JodaInstant(7 * 24 * 3_600_000L)) // A week later
+            TimestampedValue.of("BTC/USD", JodaInstant(7 * 24 * 3_600_000L)) // A week later
         )
         .advanceWatermarkToInfinity()
     
