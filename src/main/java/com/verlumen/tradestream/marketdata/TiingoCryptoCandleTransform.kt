@@ -51,12 +51,7 @@ class TiingoCryptoCandleTransform @Inject constructor(
                 .into(TypeDescriptor.of(CurrencyPair::class.java))
                 .via(SerializableCurrencyPairFunction(currencyPairs))
             )
-            // Step 3: Key by currency pair symbol (e.g., "BTC/USD")
-            .apply("KeyByCurrencyPair", MapElements
-                .into(TypeDescriptors.strings())
-                .via(CurrencyPair::symbol)
-            )
-            // Step 4: Use the stateful DoFn to fetch candles for each currency pair
+            // Step 3: Use the stateful DoFn to fetch candles for each currency pair
             .apply("FetchTiingoCandles", ParDo.of(fetcherFn))
     }
 
