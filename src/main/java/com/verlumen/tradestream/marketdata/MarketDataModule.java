@@ -35,11 +35,11 @@ public abstract class MarketDataModule extends AbstractModule {
         .build(FillForwardCandles.Factory.class));
 
     install(new FactoryModuleBuilder()
-        .implement(TiingoCryptoCandleTransform::class.java, TiingoCryptoCandleTransform::class.java)
-        .build(TiingoCryptoCandleTransform.Factory::class.java));
+        .implement(TiingoCryptoCandleTransform.class, TiingoCryptoCandleTransform.class)
+        .build(TiingoCryptoCandleTransform.Factory.class));
 
     install(new FactoryModuleBuilder()
-        .build(TiingoCryptoFetcherFn.Factory::class.java));
+        .build(TiingoCryptoFetcherFn.Factory.class));
 
     install(new FactoryModuleBuilder()
         .implement(TradeToCandle.class, TradeToCandle.class)
