@@ -36,7 +36,7 @@ constructor(
     private val httpClient: HttpClient,
     @Assisted private val granularity: Duration,
     @Assisted private val apiKey: String
-    ) : DoFn<KV<String, Void?>, KV<String, Candle>>() {
+    ) : DoFn<String, KV<String, Candle>>() {
     
     interface Factory {
         fun create(granularity: Duration, apiKey: String): TiingoCryptoFetcherFn
@@ -127,7 +127,7 @@ constructor(
       @StateId("lastFetchedTimestamp") lastTimestampState: ValueState<StateTimestamp>,
       @StateId("lastCandle") lastCandleState: ValueState<Candle>
   ) {
-    val currencyPair = context.element().key
+    val currencyPair = context.element()
     val ticker = currencyPair.replace("/", "").lowercase()
 
     if (apiKey.isBlank()) {
