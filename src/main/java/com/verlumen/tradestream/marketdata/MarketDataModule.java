@@ -11,6 +11,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.verlumen.tradestream.execution.RunMode;
+import org.joda.time.Duration;
 
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
