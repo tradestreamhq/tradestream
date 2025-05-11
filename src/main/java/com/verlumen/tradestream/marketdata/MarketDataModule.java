@@ -30,15 +30,17 @@ public abstract class MarketDataModule extends AbstractModule {
     bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
 
-    // Install FactoryModuleBuilder for FillForwardCandlesFn (NEW)
-    install(new FactoryModuleBuilder()
-        .build(FillForwardCandlesFn.Factory.class));
-
-    // Install FactoryModuleBuilder for FillForwardCandles PTransform (NEW)
     install(new FactoryModuleBuilder()
         .implement(FillForwardCandles.class, FillForwardCandles.class)
         .build(FillForwardCandles.Factory.class));
-    // Install FactoryModuleBuilder for TradeToCandle
+
+    install(new FactoryModuleBuilder()
+        .implement(TiingoCryptoCandleTransform::class.java, TiingoCryptoCandleTransform::class.java)
+        .build(TiingoCryptoCandleTransform.Factory::class.java));
+
+    install(new FactoryModuleBuilder()
+        .build(TiingoCryptoFetcherFn.Factory::class.java));
+
     install(new FactoryModuleBuilder()
         .implement(TradeToCandle.class, TradeToCandle.class)
         .build(TradeToCandle.Factory.class));
