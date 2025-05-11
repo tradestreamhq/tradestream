@@ -223,6 +223,9 @@ java_library(
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
         ":sliding_candle_aggregator",
+        ":tiingo_crypto_candle_source",
+        ":tiingo_crypto_candle_transform",
+        ":tiingo_crypto_fetcher_fn",
         ":trade_backed_candle_source",
         ":trade_source",
         ":trade_to_candle",
@@ -232,6 +235,7 @@ java_library(
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
         "//third_party:protobuf_java_util",
     ],
 )
