@@ -58,5 +58,5 @@ pipeline:
   job:
     entryClass: com.verlumen.tradestream.pipeline.App
     jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
-    parallelism: 1
+    parallelism: 10
     upgradeMode: stateless
