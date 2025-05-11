@@ -46,8 +46,8 @@ pipeline:
     execution.checkpointing.mode: "EXACTLY_ONCE"
     execution.checkpointing.timeout: "1800000"
     execution.checkpointing.externalized-checkpoint-retention: "RETAIN_ON_CANCELLATION"
-    state.backend: rocksdb
-    state.backend.incremental: true
+    state.backend: "rocksdb"
+    state.backend.incremental: "true"
   serviceAccount: flink
   jobManager:
     memory: 2048m
