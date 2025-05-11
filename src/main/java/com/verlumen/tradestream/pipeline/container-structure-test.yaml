@@ -9,6 +9,8 @@ commandTests:
       - '/src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar'
       - '--maxForwardIntervals=1'
       - '--runMode=dry'
+      - '--coinMarketCapApiKey=fakeKey'
+      - '--tiingoApiKey=fakeKey'
     expectedError:
       - 'DRY/RUN'
       - 'Starting TradeToCandle transform \(Combine\.perKey version\) with window duration: PT60S'
