@@ -14,13 +14,14 @@ import com.verlumen.tradestream.execution.RunMode;
 
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
-  public static MarketDataModule create(String exchangeName, RunMode runMode) {
-    return new AutoValue_MarketDataModule(exchangeName, runMode);
+  public static MarketDataModule create(String apiKey, String exchangeName, Duration granularity, RunMode runMode) {
+    return new AutoValue_MarketDataModule(apiKey, exchangeName, granularity, runMode);
   }
 
+  abstract String apiKey();
   abstract String exchangeName();
+  abstract Duration granularity();
   abstract RunMode runMode();
-
   @Override
   protected void configure() {
     bind(CandleSource.class).to(TradeBackedCandleSource.class);
