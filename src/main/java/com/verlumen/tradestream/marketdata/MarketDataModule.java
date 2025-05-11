@@ -49,10 +49,9 @@ public abstract class MarketDataModule extends AbstractModule {
   @Singleton
   CandleSource provideCandleSource(
       Provider<TradeBackedCandleSource> tradeBackedCandleSource,
-      TiingoCryptoCandleSource.Factory tiingoCryptoCandleSourceFactory,
-      RunMode runMode) {
+      TiingoCryptoCandleSource.Factory tiingoCryptoCandleSourceFactory) {
     
-      switch (runMode) {
+      switch (runMode()) {
           case DRY: 
               return tradeBackedCandleSource.get();
           case WET:
