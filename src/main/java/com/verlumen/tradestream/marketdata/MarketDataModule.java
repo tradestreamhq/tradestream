@@ -26,7 +26,6 @@ public abstract class MarketDataModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(CandleSource.class).to(TradeBackedCandleSource.class);
     bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
 
