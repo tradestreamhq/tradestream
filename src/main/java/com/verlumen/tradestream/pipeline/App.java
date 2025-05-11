@@ -153,7 +153,7 @@ public final class App {
         .map(String::trim)
         .filter(s -> !s.isEmpty())
         .map(Integer::parseInt)
-        .filter(i -> i > 20_160) // TWO WEEKS
+        .filter(i -> i > 20_160 && i < 131_400) // TWO WEEKS - THREE MONTHS
         .distinct()
         .toList();
   }
