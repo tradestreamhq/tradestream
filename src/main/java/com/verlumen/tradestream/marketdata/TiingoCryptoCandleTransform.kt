@@ -68,8 +68,7 @@ class TiingoCryptoCandleTransform @Inject constructor(
     fun expand(pipeline: Pipeline): PCollection<KV<String, Candle>> {
         return pipeline
             .apply("PeriodicImpulseTrigger", PeriodicImpulse.create()
-                .withInterval(granularity)
-                .applyWindowing())
+                .withInterval(granularity))
             .apply("RunTiingoTransform", this)
     }
     
