@@ -1,34 +1,28 @@
 influxdb:
   enabled: true
-  # Base organization and bucket settings
+  
+  # Authentication configuration
   adminUser:
+    # Organization and bucket settings
     organization: "tradestream-org"
     bucket: "tradestream-data"
     retention_policy: "30d"
-    # OPTION 1: Auto-generate credentials (good for dev/testing)
-    user:
-      name: "admin"
-      # password will be auto-generated if not specified
-    token:
-      enabled: true
-      auto: true
-      # OPTION 2: Use existing secrets (good for production)
-      # Uncomment these and comment out the above user/token settings
-      # user:
-      #   name: "admin"
-      #   existingSecret: "influxdb-admin-secret"
-      #   existingSecretKey: "admin-password"
-      # token:
-      #   enabled: true
-      #   existingSecret: "influxdb-admin-secret"
-      #   existingSecretKey: "admin-token"
-  # Additional buckets beyond the default one
-  initialBuckets:
-    - name: "tradestream-metrics"
-      retention_policy: "7d"
+    
+    # User credentials - these should be strings, not objects
+    username: "admin"       # Use username, not user
+    password: "your-secure-password"  # Direct string, not nested
+    
+    # Or use existing secret (comment out username/password if using this)
+    # existingSecret: "influxdb-admin-secret"
+    
+    # Token configuration - should be a string or boolean
+    token: true  # Set to true to auto-generate, or provide a specific token string
+    
+  # Storage configuration
   persistence:
     enabled: true
     size: 8Gi
+    
   service:
     type: ClusterIP
 kafka:
