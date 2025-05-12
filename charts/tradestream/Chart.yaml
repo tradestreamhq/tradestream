@@ -10,3 +10,8 @@ dependencies:
   - name: kafka
     version: 30.1.8
     repository: https://charts.bitnami.com/bitnami
+  - name: influxdb2
+    version: 2.1.2
+    repository: "https://helm.influxdata.com/"
+    alias: influxdb
+    condition: influxdb.enabled
