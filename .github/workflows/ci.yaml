@@ -37,6 +37,12 @@ jobs:
           kubectl create secret generic tiingo \
             --from-literal=apiKey=FAKE_API_KEY \
             --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
+          # Create admin secret for InfluxDB
+          kubectl create secret generic ${{ github.event.repository.name }}-influxdb-admin-secret \
+            --from-literal=admin-username="admin" \
+            --from-literal=admin-password="$(openssl rand -base64 12)" \
+            --from-literal=admin-token="$(openssl rand -hex 32)" \
+            --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
 
       - uses: bazel-contrib/setup-bazel@0.9.1
         with:
