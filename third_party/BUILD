@@ -323,6 +323,14 @@ py_library(
 )
 
 py_library(
+    name = "influxdb_client",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("influxdb-client"),
+    ],
+)
+
+py_library(
     name = "requests",
     visibility = ["//visibility:public"],
     deps = [
