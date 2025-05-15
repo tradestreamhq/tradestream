@@ -315,6 +315,14 @@ java_library(
 )
 
 py_library(
+    name = "absl_py",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("absl-py"),
+    ],
+)
+
+py_library(
     name = "requests",
     visibility = ["//visibility:public"],
     deps = [
