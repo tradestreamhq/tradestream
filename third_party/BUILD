@@ -1,4 +1,4 @@
-load("@pip//:requirements.bzl", "requirement")
+load("@pypi//:requirements.bzl", "requirement")
 load("@rules_python//python:py_library.bzl", "py_library")
 
 java_library(
