@@ -1,6 +1,6 @@
 module(
     name = "tradestream",
-    version = "v1.24.0-develop",
+    version = "v1.24.1-develop",
     compatibility_level = 1,
 )
 
@@ -45,7 +45,6 @@ pip.parse(
     # We need to use the same version here as in the `python.toolchain` call.
     python_version = "3.9.13",
     requirements_lock = "//:requirements_lock.txt",
-    requirements_windows = "//:requirements_windows.txt",
 )
 use_repo(pip, "pypi")
 
