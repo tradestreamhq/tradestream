@@ -5,7 +5,7 @@ py_library(
     name = "cmc_client_lib",
     srcs = ["cmc_client.py"],
     deps = [
-        "@candle_ingestor_deps//absl_py",
+        "//third_party:absl_py",
         "//third_party:requests",
     ],
 )
@@ -14,7 +14,7 @@ py_library(
     name = "influx_client_lib",
     srcs = ["influx_client.py"],
     deps = [
-        "@candle_ingestor_deps//absl_py",
+        "//third_party:absl_py",
         "//third_party:influxdb_client",
     ],
 )
