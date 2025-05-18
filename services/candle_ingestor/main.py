@@ -76,6 +76,7 @@ def main(argv):
     logging.info(f"Target Tiingo tickers: {tiingo_tickers}")
 
     # Placeholder for future logic
+    logging.info('Script setup complete. Further implementation in subsequent PRs.')
     # - Backfill historical data from Tiingo REST (PR4)
     # - Start polling Tiingo REST for recent candles (PR5)
 
