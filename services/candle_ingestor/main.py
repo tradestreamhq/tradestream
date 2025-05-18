@@ -3,6 +3,9 @@ from absl import flags
 from absl import logging
 import os
 
+from services.candle_ingestor.cmc_client import get_top_n_crypto_symbols
+from services.candle_ingestor.influx_client import InfluxDBManager
+
 FLAGS = flags.FLAGS
 
 # CoinMarketCap Flags
@@ -48,12 +51,38 @@ def main(argv):
     logging.info(f'  Candle Granularity: {FLAGS.candle_granularity_minutes} min(s)')
     logging.info(f'  Backfill Start Date: {FLAGS.backfill_start_date}')
 
+    # 1. Connect to InfluxDB
+    influx_manager = InfluxDBManager(
+        url=FLAGS.influxdb_url,
+        token=FLAGS.influxdb_token,
+        org=FLAGS.influxdb_org,
+        bucket=FLAGS.influxdb_bucket
+    )
+
+    if not influx_manager.get_client():
+        logging.error("Failed to connect to InfluxDB. Exiting.")
+        return 1 # Indicate error
+
+    # 2. Fetch top N cryptos from CMC
+    logging.info(f"Fetching top {FLAGS.top_n_cryptos} crypto symbols from CoinMarketCap...")
+    # Assuming USD pairs for Tiingo, adjust if necessary
+    tiingo_tickers = get_top_n_crypto_symbols(FLAGS.cmc_api_key, FLAGS.top_n_cryptos)
+
+    if not tiingo_tickers:
+        logging.error("No symbols fetched from CoinMarketCap. Exiting.")
+        influx_manager.close()
+        return 1
+
+    logging.info(f"Target Tiingo tickers: {tiingo_tickers}")
+
     # Placeholder for future logic
     logging.info('Script setup complete. Further implementation in subsequent PRs.')
-    # 1. Connect to InfluxDB (PR3)
-    # 2. Fetch top N cryptos from CMC (PR3)
-    # 3. Backfill historical data from Tiingo REST (PR4)
-    # 4. Start polling Tiingo REST for recent candles (PR5)
+    # - Backfill historical data from Tiingo REST (PR4)
+    # - Start polling Tiingo REST for recent candles (PR5)
+
+    logging.info("Initialization complete. Awaiting further implementation for data processing.")
+    influx_manager.close()
+    return 0
 
 if __name__ == '__main__':
     app.run(main)
