@@ -37,7 +37,6 @@ py_library(
     ],
 )
 
-# Main application binary
 py_binary(
     name = "main_app",
     srcs = ["main.py"],
@@ -87,13 +86,22 @@ py_test(
 )
 
 py_test(
-    name = "main_test", # New test target for main.py
+    name = "main_test",
     srcs = ["main_test.py"],
+    # Add dummy arguments for required flags:
+    args = [
+        "--cmc_api_key=dummy_cmc_key_for_test",
+        "--tiingo_api_key=dummy_tiingo_key_for_test",
+        "--influxdb_token=dummy_influx_token_for_test",
+        "--influxdb_org=dummy_influx_org_for_test",
+        # You can also override other flags if needed for testing defaults
+        # e.g., "--influxdb_url=http://mock-influx:8086",
+    ],
     deps = [
-        ":main_app", # Depends on the main application code
+        ":main_app",
         ":ingestion_helpers_lib",
-        ":influx_client_lib", # For spec in mock
-        ":tiingo_client_lib", # For patching
-        "//third_party:absl_py", # For absltest and flagsaver
+        ":influx_client_lib", 
+        ":tiingo_client_lib",
+        "//third_party:absl_py",
     ],
 )
