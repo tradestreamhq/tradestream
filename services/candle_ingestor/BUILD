@@ -23,7 +23,6 @@ py_library(
     name = "tiingo_client_lib",
     srcs = ["tiingo_client.py"],
     deps = [
-        ":ingestion_helpers_lib",
         "//third_party:absl_py",
         "//third_party:requests",
     ],
@@ -38,8 +37,9 @@ py_library(
     ],
 )
 
+# Main application binary
 py_binary(
-    name = "main",
+    name = "main_app",
     srcs = ["main.py"],
     main = "main.py",
     deps = [
@@ -57,7 +57,6 @@ py_test(
     srcs = ["ingestion_helpers_test.py"],
     deps = [
         ":ingestion_helpers_lib",
-        "//third_party:absl_py",
     ],
 )
 
@@ -84,6 +83,17 @@ py_test(
     srcs = ["influx_client_test.py"],
     deps = [
         ":influx_client_lib",
-        "//third_party:influxdb_client",
+    ],
+)
+
+py_test(
+    name = "main_test", # New test target for main.py
+    srcs = ["main_test.py"],
+    deps = [
+        ":main_app", # Depends on the main application code
+        ":ingestion_helpers_lib",
+        ":influx_client_lib", # For spec in mock
+        ":tiingo_client_lib", # For patching
+        "//third_party:absl_py", # For absltest and flagsaver
     ],
 )
