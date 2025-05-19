@@ -11,28 +11,24 @@ from services.candle_ingestor.influx_client import InfluxDBManager
 from services.candle_ingestor.tiingo_client import (
     get_historical_candles_tiingo,
 )
-from services.candle_ingestor.common_utils import (
+# Updated import:
+from services.candle_ingestor.ingestion_helpers import (
     get_tiingo_resample_freq,
     parse_backfill_start_date,
 )
 
 
 FLAGS = flags.FLAGS
-
-# CoinMarketCap Flags
+# ... (All flag definitions remain the same as in the previous step for PR4) ...
 flags.DEFINE_string(
     "cmc_api_key", os.getenv("CMC_API_KEY"), "CoinMarketCap API Key."
 )
 flags.DEFINE_integer(
     "top_n_cryptos", 20, "Number of top cryptocurrencies to fetch from CMC."
 )
-
-# Tiingo Flags
 flags.DEFINE_string(
     "tiingo_api_key", os.getenv("TIINGO_API_KEY"), "Tiingo API Key."
 )
-
-# InfluxDB Flags
 default_influx_url = os.getenv(
     "INFLUXDB_URL",
     "http://my-tradestream-influxdb.tradestream-namespace.svc.cluster.local:8086",
@@ -49,8 +45,6 @@ flags.DEFINE_string(
     os.getenv("INFLUXDB_BUCKET", "tradestream-data"),
     "InfluxDB Bucket for candles.",
 )
-
-# Candle Processing Flags
 flags.DEFINE_integer(
     "candle_granularity_minutes", 1, "Granularity of candles in minutes."
 )
@@ -63,8 +57,6 @@ flags.DEFINE_integer(
     "tiingo_api_call_delay_seconds", 2, "Delay in seconds between Tiingo API calls for different tickers/chunks during backfill."
 )
 
-
-# Mark required flags
 flags.mark_flag_as_required("cmc_api_key")
 flags.mark_flag_as_required("tiingo_api_key")
 flags.mark_flag_as_required("influxdb_token")
@@ -79,13 +71,13 @@ def run_backfill(
     candle_granularity_minutes: int,
     api_call_delay_seconds: int,
 ):
-    """Runs the historical data backfill process for the given tickers."""
+    # ... (Content of run_backfill remains the same as in the previous step for PR4,
+    #      it already uses the imported get_tiingo_resample_freq and parse_backfill_start_date) ...
     logging.info("Starting historical candle backfill...")
     start_date_dt = parse_backfill_start_date(backfill_start_date_str)
-    # End date for historical is up to the start of the current UTC day
     end_date_dt = datetime.now(timezone.utc).replace(
         hour=0, minute=0, second=0, microsecond=0
-    ) - timedelta(microseconds=1) # End of previous day
+    ) - timedelta(microseconds=1)
 
     if start_date_dt >= end_date_dt:
         logging.info(
@@ -97,25 +89,17 @@ def run_backfill(
     resample_freq = get_tiingo_resample_freq(candle_granularity_minutes)
 
     for ticker in tiingo_tickers:
-        # TODO (PR6): Query InfluxDB for the last known candle for this ticker and adjust start_date_dt
-        # For now, using the global start date for each ticker.
-        # current_ticker_start_dt = get_last_processed_timestamp_for_ticker_from_db(...) or start_date_dt
         current_ticker_start_dt = start_date_dt
-
         logging.info(
             f"Backfilling {ticker} from {current_ticker_start_dt.strftime('%Y-%m-%d')} to {end_date_dt.strftime('%Y-%m-%d')}"
         )
-
-        # Fetching historical data in chunks (e.g., 90 days at a time)
         chunk_start_dt = current_ticker_start_dt
         while chunk_start_dt < end_date_dt:
             chunk_start_str = chunk_start_dt.strftime("%Y-%m-%d")
-            # Fetch up to 90 days or until end_date_dt, whichever is sooner
             chunk_end_dt = min(
                 chunk_start_dt + timedelta(days=89), end_date_dt
             )
             chunk_end_str = chunk_end_dt.strftime("%Y-%m-%d")
-
             logging.info(
                 f"  Fetching chunk for {ticker}: {chunk_start_str} to {chunk_end_str}"
             )
@@ -127,25 +111,22 @@ def run_backfill(
                 resample_freq,
             )
             if historical_candles:
-                # Sort by timestamp just in case Tiingo doesn't guarantee it for chunks
                 historical_candles.sort(key=lambda c: c["timestamp_ms"])
                 influx_manager.write_candles_batch(historical_candles)
-                # TODO (PR6): Update last processed timestamp for this ticker in InfluxDB state
             else:
                 logging.info(
                     f"  No data in chunk for {ticker}: {chunk_start_str} to {chunk_end_str}"
                 )
-
             chunk_start_dt = chunk_end_dt + timedelta(days=1)
-            if chunk_start_dt < end_date_dt: # Avoid sleeping if it's the last chunk
+            if chunk_start_dt < end_date_dt:
                 logging.info(f"Waiting {api_call_delay_seconds}s before next API call for {ticker}...")
                 time.sleep(api_call_delay_seconds)
-
         logging.info(f"Finished backfill for {ticker}.")
     logging.info("Historical candle backfill completed.")
 
 
 def main(argv):
+    # ... (Initial logging of flags and InfluxDBManager setup remains the same as PR4) ...
     del argv  # Unused.
     logging.set_verbosity(logging.INFO)
     logging.info("Starting candle ingestor script (Python)...")
@@ -170,8 +151,6 @@ def main(argv):
     logging.info(f"  Backfill Start Date: {FLAGS.backfill_start_date}")
     logging.info(f"  Tiingo API Call Delay: {FLAGS.tiingo_api_call_delay_seconds}s")
 
-
-    # 1. Connect to InfluxDB
     influx_manager = InfluxDBManager(
         url=FLAGS.influxdb_url,
         token=FLAGS.influxdb_token,
@@ -181,12 +160,8 @@ def main(argv):
 
     if not influx_manager.get_client():
         logging.error("Failed to connect to InfluxDB. Exiting.")
-        return 1  # Indicate error
+        return 1
 
-    # 2. Fetch top N cryptos from CMC
-    logging.info(
-        f"Fetching top {FLAGS.top_n_cryptos} crypto symbols from CoinMarketCap..."
-    )
     tiingo_tickers = get_top_n_crypto_symbols(
         FLAGS.cmc_api_key, FLAGS.top_n_cryptos
     )
@@ -198,7 +173,6 @@ def main(argv):
 
     logging.info(f"Target Tiingo tickers: {tiingo_tickers}")
 
-    # 3. Backfill historical data
     try:
         run_backfill(
             influx_manager,
@@ -210,14 +184,10 @@ def main(argv):
         )
     except Exception as e:
         logging.exception(f"Critical error during backfill process: {e}")
-        # Depending on severity, you might want to exit or attempt to continue to polling.
-        # For now, we'll log and proceed to indicate completion, but in prod this might be an exit.
 
-    # Placeholder for PR5: Start polling Tiingo REST for recent candles
     logging.info(
         "Historical backfill phase complete. Polling for recent candles (PR5) is next."
     )
-
     logging.info("Main process finished. Closing InfluxDB connection.")
     influx_manager.close()
     return 0
