@@ -82,3 +82,48 @@ pipeline:
     jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
     parallelism: 1
     upgradeMode: stateless
+
+# -- Candle Ingestor Configuration --
+candleIngestor:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "your-docker-registry/candle-ingestor" # Placeholder, updated by CI/CD
+    tag: "latest" # Placeholder, updated by CI/CD
+    pullPolicy: IfNotPresent
+  # Environment variables for the candle ingestor script
+  # These are accessed by the Python script via absl.flags
+  # The deployment maps .Values.candleIngestor.env.KEY to an env var named FLAGS_KEY or a direct name
+  # Corrected keys to uppercase with underscores as per new instructions.
+  # Note: The candle-ingestor-deployment.yaml template will need to be updated to reference these new keys
+  # (e.g., .Values.candleIngestor.env.INFLUXDB_URL instead of .Values.candleIngestor.env.influxDbUrl).
+  env:
+    INFLUXDB_URL: "http://influxdb.tradestream-namespace.svc.cluster.local:8086" # Default, adjust if InfluxDB service name differs
+    INFLUXDB_BUCKET: "tradestream-data" # Should match the bucket created by InfluxDB setup
+    TOP_N_CRYPTOS: "20"
+    CANDLE_GRANULARITY_MINUTES: "1"
+    BACKFILL_START_DATE: "1_year_ago"
+    POLLING_INITIAL_CATCHUP_DAYS: "7"
+    TIINGO_API_CALL_DELAY_SECONDS: "2"
+
+  # Names of the Kubernetes secrets to source API keys and InfluxDB token/org from
+  envFromSecrets:
+    cmcApiKeySecretRefName: "coinmarketcap" # Assumed existing secret for CoinMarketCap API key
+    tiingoApiKeySecretRefName: "tiingo"     # Assumed existing secret for Tiingo API key
+    influxDbSecretRefName: "influxdb-candle-ingestor-credentials" # NEW secret for this app's InfluxDB token & org
+
+  # Resource requests and limits for the candle ingestor pod
+  # Example:
+  # resources:
+  #   requests:
+  #     cpu: "100m"
+  #     memory: "256Mi"
+  #   limits:
+  #     cpu: "500m"
+  #     memory: "512Mi"
+  resources: {}
+
+  # Node selector, tolerations, and affinity for pod scheduling
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}

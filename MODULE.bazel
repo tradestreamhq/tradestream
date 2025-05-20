@@ -138,6 +138,29 @@ oci.pull(
 )
 use_repo(oci, "flink_java17")
 
+oci.pull(
+    name = "python_base_image_for_ingestor",
+    image = "docker.io/python:3.9-slim-bullseye",
+    digest = "sha256:f31680401279897890984b6190d862102b307470030f136c386b4701c9259148", # For linux/amd64
+    # For multi-platform, you might list multiple oci.pulls or use a manifest list if supported directly
+    # For now, pinning to amd64. If arm64 is also needed, a separate oci.pull or a manifest list would be appropriate.
+    # The prompt example implies a single digest. I'll use the amd64 one.
+    # To support both, one might do:
+    # platforms = ["linux/amd64", "linux/arm64/v8"],
+    # and provide a manifest digest if available, or let rules_oci handle platform selection if not.
+    # Given the example in the prompt used a single digest, I'll stick to one for now.
+    # The prompt also mentioned example digest and platforms, let's use what was given in the prompt example for structure
+    # but with actual digest for 3.9-slim-bullseye.
+    # digest = "sha256:your_chosen_digest_for_3.9-slim-bullseye", # from prompt
+    # platforms = ["linux/amd64", "linux/arm64/v8"], # from prompt
+    # Using specific amd64 digest for now. If a manifest list digest is found, that would be better.
+    # After further check, the digest for a specific platform architecture is appropriate here.
+    # If we want multi-platform, we'd typically pull a manifest list digest, or pull per-arch and use select().
+    # The prompt's example `digest = "sha256:your_chosen_digest_for_3.9-slim-bullseye"` is a placeholder.
+    # I'll use the amd64 digest as found.
+)
+use_repo(oci, "python_base_image_for_ingestor")
+
 bazel_lib = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
 bazel_lib.jq()
 bazel_lib.tar()

@@ -1,7 +1,18 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+import time
+from email.utils import parsedate_to_datetime
 
 from absl import logging
 import requests
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+    before_sleep_log,
+)
+
+TENACITY_LOGGER = logging.get_absl_logger()
 
 
 def get_top_n_crypto_symbols(
@@ -76,6 +87,7 @@ def get_historical_candles_tiingo(
 ) -> list[dict]:
     """
     Fetches historical candles from Tiingo for a single ticker.
+    Includes retry logic for network issues and specific handling for HTTP 429.
     Returns a list of dictionaries, each representing a candle.
     """
     base_url = "https://api.tiingo.com/tiingo/crypto/prices"
@@ -88,6 +100,8 @@ def get_historical_candles_tiingo(
         "format": "json",
     }
     candles_data = []
+    # The main try-except for tenacity to catch RequestException is outside this direct block,
+    # handled by the decorator. Inside, we specifically handle HTTPError for 429.
     try:
         logging.info(
             f"Fetching Tiingo historical for {ticker} from {start_date_str} to {end_date_str} ({resample_freq})"
@@ -98,7 +112,7 @@ def get_historical_candles_tiingo(
             headers={"Content-Type": "application/json"},
             timeout=60,  # Increased timeout for potentially large historical data
         )
-        response.raise_for_status()
+        response.raise_for_status() # This will raise HTTPError for 4xx/5xx
         data = response.json()
 
         if not data:
@@ -145,17 +159,64 @@ def get_historical_candles_tiingo(
             )
 
     except requests.exceptions.HTTPError as http_err:
-        logging.error(
-            f"HTTP error calling Tiingo API for {ticker} ({start_date_str} to {end_date_str}): {http_err.response.status_code} - {http_err.response.text}"
-        )
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Request error calling Tiingo API for {ticker}: {e}")
-    except ValueError as e:  # Includes JSONDecodeError
+        if http_err.response.status_code == 429:
+            logging.warning(
+                f"Rate limit (429) hit for Tiingo API for {ticker}. "
+                f"Response: {http_err.response.text}"
+            )
+            retry_after_header = http_err.response.headers.get("Retry-After")
+            sleep_duration_seconds = 60  # Default sleep if header is missing/unparseable
+
+            if retry_after_header:
+                try:
+                    # Try parsing as integer (seconds)
+                    sleep_duration_seconds = int(retry_after_header)
+                    logging.info(f"Retry-After header (seconds): {sleep_duration_seconds}s.")
+                except ValueError:
+                    # Try parsing as HTTP date
+                    try:
+                        retry_after_dt = parsedate_to_datetime(retry_after_header)
+                        if retry_after_dt:
+                            now_utc = datetime.now(timezone.utc)
+                            if retry_after_dt > now_utc:
+                                sleep_duration_seconds = (
+                                    retry_after_dt - now_utc
+                                ).total_seconds()
+                                logging.info(f"Retry-After header (date): {retry_after_header}, sleeping for {sleep_duration_seconds:.2f}s.")
+                            else:
+                                # Date is in the past, use default or minimal sleep
+                                sleep_duration_seconds = 1 
+                                logging.info("Retry-After header date is in the past. Using minimal sleep.")
+                        else:
+                             logging.warning(f"Could not parse Retry-After header date: '{retry_after_header}'. Using default sleep.")
+                    except Exception as date_parse_e:
+                        logging.warning(
+                            f"Error parsing Retry-After header date '{retry_after_header}': {date_parse_e}. Using default sleep."
+                        )
+            
+            logging.info(f"Sleeping for {sleep_duration_seconds} seconds due to 429 error before Tiingo retry.")
+            time.sleep(sleep_duration_seconds)
+        # Re-raise the original HTTPError (whether 429 or other) to be handled by tenacity if attempts remain
+        # or to propagate if it's the final attempt or not a retryable error for tenacity.
+        raise http_err 
+    # General RequestException (like timeouts, connection errors) will be caught by Tenacity decorator.
+    # ValueError (JSONDecodeError) is not typically retryable for network issues.
+    except ValueError as e: 
         logging.error(
             f"Error parsing Tiingo API response for {ticker}: {e}"
         )
-    except Exception as e:
+        # Not re-raising, as it's likely a persistent issue with the response format or data.
+    except Exception as e: # Catch any other unexpected errors
         logging.error(
             f"An unexpected error occurred fetching historical data for {ticker}: {e}"
         )
+        raise # Re-raise to allow tenacity to potentially retry if it matches RequestException or if configured broadly
     return candles_data
+
+# Apply the decorator to the original function name
+get_historical_candles_tiingo = retry(
+    wait=wait_exponential(multiplier=1, min=4, max=60),
+    stop=stop_after_attempt(5),
+    retry=retry_if_exception_type(requests.exceptions.RequestException), # Catches HTTPError too
+    before_sleep=before_sleep_log(TENACITY_LOGGER, logging.INFO),
+)(get_historical_candles_tiingo)

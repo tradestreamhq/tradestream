@@ -1,6 +1,7 @@
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball", "oci_push")
 
 py_library(
     name = "ingestion_helpers_lib",
@@ -10,12 +11,36 @@ py_library(
     ],
 )
 
+# --- OCI Image Rules ---
+
+oci_tarball(
+    name = "main_app_layer",
+    srcs = [":main_app"],  # Depends on the py_binary target
+    package_dir = "/app",
+)
+
+oci_image(
+    name = "candle_ingestor_image",
+    base = "@python_base_image_for_ingestor//image",
+    entrypoint = ["/app/main_app"], # Assumes main_app is the launcher script
+    tars = [":main_app_layer"],
+    # Environment variables and cmd will be set by Kubernetes, not here.
+)
+
+oci_push(
+    name = "push_candle_ingestor_image",
+    image = ":candle_ingestor_image",
+    repository = "your-docker-registry/candle-ingestor",  # Placeholder
+    remote_tags = ["latest"],  # Placeholder
+)
+
 py_library(
     name = "cmc_client_lib",
     srcs = ["cmc_client.py"],
     deps = [
         "//third_party:absl_py",
         "//third_party:requests",
+        "@pypi_tenacity//:pkg",
     ],
 )
 
@@ -25,6 +50,7 @@ py_library(
     deps = [
         "//third_party:absl_py",
         "//third_party:requests",
+        "@pypi_tenacity//:pkg",
     ],
 )
 
@@ -34,6 +60,7 @@ py_library(
     deps = [
         "//third_party:absl_py",
         "//third_party:influxdb_client",
+        "@pypi_tenacity//:pkg",
     ],
 )
 

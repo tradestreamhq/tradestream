@@ -10,6 +10,8 @@ jobs:
     env:
       PIPELINE_REPO: tradestreamhq/tradestream-data-pipeline
       PIPELINE_SECTION_KEY: pipeline
+      CANDLE_INGESTOR_REPO: tradestreamhq/candle-ingestor # Or your desired Docker Hub repository
+      CANDLE_INGESTOR_SECTION_KEY: candleIngestor
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,6 +69,13 @@ jobs:
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
 
+      - name: Push the Candle Ingestor image
+        run: |
+          bazel run //services/candle_ingestor:push_candle_ingestor_image \
+            -- \
+            --repository ${{ env.CANDLE_INGESTOR_REPO }} \
+            --tag ${{ steps.version.outputs.version_tag }}
+
       - name: Install yq
         run: |
           sudo wget -O /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64
@@ -78,6 +87,16 @@ jobs:
             . as $item ireduce ({}; . * $item ) |
             .["${{ env.PIPELINE_SECTION_KEY }}"].image.repository = "${{ env.PIPELINE_REPO }}" |
             .["${{ env.PIPELINE_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}"
+          ' charts/tradestream/values.yaml > charts/tradestream/values.yaml.tmp
+          mv charts/tradestream/values.yaml.tmp charts/tradestream/values.yaml
+
+      - name: Update values.yaml with new candle ingestor image
+        run: |
+          yq eval-all '
+            . as $item ireduce ({}; . * $item ) |
+            .["${{ env.CANDLE_INGESTOR_SECTION_KEY }}"].image.repository = "${{ env.CANDLE_INGESTOR_REPO }}" |
+            .["${{ env.CANDLE_INGESTOR_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
+            .["${{ env.CANDLE_INGESTOR_SECTION_KEY }}"].enabled = true
           ' charts/tradestream/values.yaml > charts/tradestream/values.yaml.tmp
           mv charts/tradestream/values.yaml.tmp charts/tradestream/values.yaml
 
