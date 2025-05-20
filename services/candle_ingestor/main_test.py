@@ -132,12 +132,12 @@ class RunPollingLoopTest(absltest.TestCase):
                 raise KeyboardInterrupt("Stop loop for test")
         self.mock_main_time_sleep.side_effect = sleep_side_effect
 
-        with self.assertRaises(KeyboardInterrupt):
-            candle_ingestor_main.run_polling_loop(
-                self.mock_influx_manager, self.tiingo_tickers, FLAGS.tiingo_api_key,
-                FLAGS.candle_granularity_minutes, 0, FLAGS.polling_initial_catchup_days,
-                self.last_processed_timestamps
-            )
+        # Function should complete normally (KeyboardInterrupt is caught internally)
+        candle_ingestor_main.run_polling_loop(
+            self.mock_influx_manager, self.tiingo_tickers, FLAGS.tiingo_api_key,
+            FLAGS.candle_granularity_minutes, 0, FLAGS.polling_initial_catchup_days,
+            self.last_processed_timestamps
+        )
 
         self.mock_get_historical_candles.assert_not_called()
         self.mock_influx_manager.write_candles_batch.assert_not_called()
@@ -158,13 +158,12 @@ class RunPollingLoopTest(absltest.TestCase):
                 raise KeyboardInterrupt("Stop loop for test")
         self.mock_main_time_sleep.side_effect = sleep_side_effect
 
-        # This call must raise KeyboardInterrupt to properly end the loop
-        with self.assertRaises(KeyboardInterrupt):
-            candle_ingestor_main.run_polling_loop(
-                self.mock_influx_manager, self.tiingo_tickers, FLAGS.tiingo_api_key,
-                FLAGS.candle_granularity_minutes, 0, FLAGS.polling_initial_catchup_days,
-                self.last_processed_timestamps
-            )
+        # Function should complete normally (KeyboardInterrupt is caught internally)
+        candle_ingestor_main.run_polling_loop(
+            self.mock_influx_manager, self.tiingo_tickers, FLAGS.tiingo_api_key,
+            FLAGS.candle_granularity_minutes, 0, FLAGS.polling_initial_catchup_days,
+            self.last_processed_timestamps
+        )
     
         # Validate initialization logic
         self.assertIn(self.test_ticker, self.last_processed_timestamps)
