@@ -1,7 +1,7 @@
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball", "oci_push")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_push")
 
 py_library(
     name = "ingestion_helpers_lib",
@@ -13,17 +13,12 @@ py_library(
 
 # --- OCI Image Rules ---
 
-oci_tarball(
-    name = "main_app_layer",
-    srcs = [":main_app"],  # Depends on the py_binary target
-    package_dir = "/app",
-)
-
 oci_image(
     name = "candle_ingestor_image",
     base = "@python_base_image_for_ingestor//image",
     entrypoint = ["/app/main_app"], # Assumes main_app is the launcher script
-    tars = [":main_app_layer"],
+    files = [":main_app"],  # Use files attribute with py_binary
+    package_dir = "/app",   # Specify where py_binary output goes in the image
     # Environment variables and cmd will be set by Kubernetes, not here.
 )
 
