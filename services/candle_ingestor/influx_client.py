@@ -1,7 +1,7 @@
 from absl import logging
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
-from influxdb_client.client.exceptions import InfluxDBError # For more specific error handling
+from influxdb_client.client.exceptions import InfluxDBError
 
 
 class InfluxDBManager:
