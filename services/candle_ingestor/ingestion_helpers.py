@@ -28,21 +28,34 @@ def parse_backfill_start_date(date_str: str) -> datetime:
     """
     now = datetime.now(timezone.utc)
     date_str_lower = date_str.lower()
+    
+    logging.debug(f"Parsing backfill_start_date: {date_str_lower}")
 
-    if re.match(r"^\d+_days_ago$", date_str_lower):
+    # Match X_day_ago or X_days_ago (singular or plural)
+    if re.match(r"^\d+_days?_ago$", date_str_lower):
         days = int(date_str_lower.split("_")[0])
+        logging.debug(f"Matched X_day(s)_ago pattern, days={days}")
         return now - timedelta(days=days)
-    elif re.match(r"^\d+_weeks_ago$", date_str_lower):
+    
+    # Match X_week_ago or X_weeks_ago
+    elif re.match(r"^\d+_weeks?_ago$", date_str_lower):
         weeks = int(date_str_lower.split("_")[0])
+        logging.debug(f"Matched X_week(s)_ago pattern, weeks={weeks}")
         return now - timedelta(weeks=weeks)
-    elif re.match(r"^\d+_months_ago$", date_str_lower):
+    
+    # Match X_month_ago or X_months_ago
+    elif re.match(r"^\d+_months?_ago$", date_str_lower):
         months = int(date_str_lower.split("_")[0])
+        logging.debug(f"Matched X_month(s)_ago pattern, months={months}")
         # Approximate months as 30 days for timedelta.
         # For more precision, consider `from dateutil.relativedelta import relativedelta`
         # and `return now - relativedelta(months=months)`
         return now - timedelta(days=months * 30)
-    elif re.match(r"^\d+_years_ago$", date_str_lower):
+    
+    # Match X_year_ago or X_years_ago
+    elif re.match(r"^\d+_years?_ago$", date_str_lower):
         years = int(date_str_lower.split("_")[0])
+        logging.debug(f"Matched X_year(s)_ago pattern, years={years}")
         # For more precision, consider `from dateutil.relativedelta import relativedelta`
         # and `return now - relativedelta(years=years)`
         return now - timedelta(days=years * 365)
@@ -50,6 +63,7 @@ def parse_backfill_start_date(date_str: str) -> datetime:
     try:
         # Attempt to parse as YYYY-MM-DD
         dt = datetime.strptime(date_str, "%Y-%m-%d")
+        logging.debug(f"Parsed as YYYY-MM-DD: {dt.isoformat()}")
         return dt.replace(tzinfo=timezone.utc)  # Make it timezone-aware UTC
     except ValueError:
         logging.error(
