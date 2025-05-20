@@ -6,10 +6,9 @@ from absl import flags
 from absl.testing import absltest
 from absl.testing import flagsaver
 
-# Module whose functions we are testing or whose functions call the ones we mock
 from services.candle_ingestor import main as candle_ingestor_main
 from services.candle_ingestor import influx_client as influx_client_module
-from services.candle_ingestor import ingestion_helpers # Used by main.py
+from services.candle_ingestor import ingestion_helpers
 
 FLAGS = flags.FLAGS
 
