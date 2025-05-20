@@ -142,40 +142,39 @@ class RunPollingLoopTest(absltest.TestCase):
         self.assertEqual(self.last_processed_timestamps[self.test_ticker], int(last_processed_dt.timestamp() * 1000))
         self.mock_main_time_sleep.assert_called_once() # Inter-ticker delay (0s) + main loop sleep (interrupted)
 
-
     def test_poll_initializes_last_timestamp_if_missing(self):
         current_cycle_time_utc = datetime(2023, 1, 1, 10, 2, 0, tzinfo=timezone.utc)
-        self.mock_main_datetime_module.now.return_value = current_cycle_time_utc # For now_utc_for_init and current_cycle_time_utc
+        self.mock_main_datetime_module.now.return_value = current_cycle_time_utc
 
         FLAGS.candle_granularity_minutes = 1
         FLAGS.polling_initial_catchup_days = 1
-        
+    
         self.last_processed_timestamps.clear() 
         self.mock_get_historical_candles.return_value = []
-        self.mock_main_time_sleep.side_effect = KeyboardInterrupt("Stop loop")
 
+        # Properly mock sleep to interrupt the infinite loop after first iteration
+        def sleep_side_effect(duration_seconds):
+            if duration_seconds > 0:
+                raise KeyboardInterrupt("Stop loop for test")
+        self.mock_main_time_sleep.side_effect = sleep_side_effect
+
+        # This call must raise KeyboardInterrupt to properly end the loop
         with self.assertRaises(KeyboardInterrupt):
             candle_ingestor_main.run_polling_loop(
                 self.mock_influx_manager, self.tiingo_tickers, FLAGS.tiingo_api_key,
                 FLAGS.candle_granularity_minutes, 0, FLAGS.polling_initial_catchup_days,
                 self.last_processed_timestamps
             )
-        
+    
+        # Validate initialization logic
         self.assertIn(self.test_ticker, self.last_processed_timestamps)
-        # now_utc_for_init will be 10:02:00. catchup_days=1.
-        # default_catchup_start_dt = 2023-01-01T10:02:00 - 1 day = 2022-12-31T10:02:00
-        # default_catchup_start_minute = (2 // 1) * 1 = 2
-        # default_catchup_start_dt_aligned = 2022-12-31T10:02:00
-        expected_init_dt_aligned = current_cycle_time_utc - timedelta(days=FLAGS.polling_initial_catchup_days)
-        expected_init_minute_floored = (expected_init_dt_aligned.minute // FLAGS.candle_granularity_minutes) * FLAGS.candle_granularity_minutes
-        expected_init_dt_aligned = expected_init_dt_aligned.replace(minute=expected_init_minute_floored, second=0, microsecond=0)
-        expected_init_ts_ms = int(expected_init_dt_aligned.timestamp() * 1000)
-        
+        expected_init_dt = datetime(2022, 12, 31, 10, 2, 0, tzinfo=timezone.utc)
+        expected_init_ts_ms = int(expected_init_dt.timestamp() * 1000)
         self.assertEqual(self.last_processed_timestamps[self.test_ticker], expected_init_ts_ms)
-        
-        self.mock_get_historical_candles.assert_called_once() # Called for the catch-up period
+
+        self.mock_get_historical_candles.assert_called_once()
         self.mock_influx_manager.write_candles_batch.assert_not_called()
-        self.mock_main_time_sleep.assert_called() # Inter-ticker (0s) + main loop sleep (interrupted)
+
 
 if __name__ == "__main__":
     absltest.main()
