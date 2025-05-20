@@ -1,6 +1,7 @@
 from absl import logging
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
+from influxdb_client.client.exceptions import InfluxDBError # For more specific error handling
 
 
 class InfluxDBManager:
@@ -96,7 +97,7 @@ class InfluxDBManager:
             except KeyError as ke:
                 logging.warning(f"Skipping candle due to missing key {ke}: {candle_dict}")
             except (TypeError, ValueError) as ve:
-                 logging.warning(f"Skipping candle due to value error {ve}: {candle_dict}")
+                logging.warning(f"Skipping candle due to value error {ve}: {candle_dict}")
 
 
         if not points:
@@ -113,9 +114,81 @@ class InfluxDBManager:
                     f"Successfully wrote {len(points)} candle points to InfluxDB for {candles_data[0].get('currency_pair', 'N/A')}."
                 )
                 return len(points)
+            except InfluxDBError as e: # More specific error handling
+                logging.error(f"InfluxDBError writing batch: {e}")
             except Exception as e:
-                logging.error(f"Error writing batch to InfluxDB: {e}")
+                logging.error(f"Generic error writing batch to InfluxDB: {e}")
         return 0
+
+    def get_last_processed_timestamp(self, symbol: str, ingestion_type: str) -> int | None:
+        """
+        Queries InfluxDB for the last processed timestamp for a given symbol and ingestion type.
+        Returns timestamp in milliseconds, or None.
+        """
+        if not self.client:
+            logging.error("InfluxDB client not initialized. Cannot query state.")
+            return None
+
+        query_api = self.get_query_api()
+        if not query_api:
+            return None
+
+        # Flux query to get the most recent last_processed_timestamp_ms
+        # The state measurement is assumed to be in the same bucket as candle data.
+        # If it's in a different bucket, adjust self.bucket in the query.
+        flux_query = f'''
+        from(bucket: "{self.bucket}")
+          |> range(start: 0)
+          |> filter(fn: (r) => r._measurement == "ingestor_processing_state")
+          |> filter(fn: (r) => r.symbol == "{symbol}")
+          |> filter(fn: (r) => r.ingestion_type == "{ingestion_type}")
+          |> filter(fn: (r) => r._field == "last_processed_timestamp_ms")
+          |> sort(columns: ["_time"], desc: true)
+          |> limit(n: 1)
+          |> yield(name: "last")
+        '''
+        logging.debug(f"Executing Flux query for state: {flux_query}")
+        try:
+            tables = query_api.query(query=flux_query, org=self.org)
+            for table in tables:
+                for record in table.records:
+                    timestamp_ms = record.get_value()
+                    logging.info(f"Retrieved last processed timestamp for {symbol} ({ingestion_type}): {timestamp_ms}")
+                    return int(timestamp_ms) # Ensure it's an int
+            logging.info(f"No prior processing state found for {symbol} ({ingestion_type}).")
+        except InfluxDBError as e:
+            logging.error(f"InfluxDBError querying processing state for {symbol} ({ingestion_type}): {e}")
+        except Exception as e:
+            logging.error(f"Generic error querying processing state for {symbol} ({ingestion_type}): {e}")
+        return None
+
+    def update_last_processed_timestamp(self, symbol: str, ingestion_type: str, timestamp_ms: int):
+        """
+        Writes/updates the last processed timestamp for a symbol and ingestion type in InfluxDB.
+        """
+        if not self.client:
+            logging.error("InfluxDB client not initialized. Cannot update state.")
+            return
+
+        write_api = self.get_write_api()
+        if not write_api:
+            return
+
+        point = (
+            Point("ingestor_processing_state")
+            .tag("symbol", symbol)
+            .tag("ingestion_type", ingestion_type)
+            .field("last_processed_timestamp_ms", int(timestamp_ms)) # Ensure integer
+            # InfluxDB automatically adds a timestamp for the write itself
+        )
+        try:
+            write_api.write(bucket=self.bucket, org=self.org, record=point)
+            logging.info(f"Successfully updated processing state for {symbol} ({ingestion_type}) to {timestamp_ms}")
+        except InfluxDBError as e:
+            logging.error(f"InfluxDBError updating processing state for {symbol} ({ingestion_type}): {e}")
+        except Exception as e:
+            logging.error(f"Generic error updating processing state for {symbol} ({ingestion_type}): {e}")
+
 
     def close(self):
         if self.client:
