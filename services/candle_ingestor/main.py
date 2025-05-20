@@ -209,10 +209,10 @@ def run_polling_loop(
                 logging.info(f"Found last polling state for {ticker_symbol}: {datetime.fromtimestamp(polling_state_ts_ms / 1000.0, timezone.utc).isoformat()}")
             else:
                 # If no polling state, check if backfill state exists (already in last_processed_timestamps from main)
-                backfill_state_ts_ms = last_processed_timestamps.get(ticker_symbol) # From main's pre-population
+                backfill_state_ts_ms = influx_manager.get_last_processed_timestamp(ticker_symbol, "backfill")
                 if backfill_state_ts_ms:
                     # No specific polling state, but backfill state exists. We can use this.
-                    # The value is already in last_processed_timestamps, so no need to set it again.
+                    last_processed_timestamps[ticker_symbol] = backfill_state_ts_ms
                     logging.info(f"No polling state for {ticker_symbol}, using last backfill state: {datetime.fromtimestamp(backfill_state_ts_ms / 1000.0, timezone.utc).isoformat()}")
                 else:
                     # Fallback to default catchup if no state found at all
@@ -269,8 +269,8 @@ def run_polling_loop(
                     # Tiingo's /prices endpoint end date for intraday seems to be exclusive for the day part if time not specified.
                     # For polling, we want up to the most recently *fully closed* candle period.
                     query_end_dt_utc = target_latest_closed_candle_start_dt_utc # Inclusive start of the last *closed* candle period.
-                                                                               # Tiingo API usually needs end date to be "up to"
-                                                                               # For safety, let's query up to current time to catch late data, then filter.
+                                                                              # Tiingo API usually needs end date to be "up to"
+                                                                              # For safety, let's query up to current time to catch late data, then filter.
                     effective_query_end_dt_utc = current_cycle_time_utc
 
 
@@ -399,13 +399,13 @@ def main(argv):
                     logging.info(f"  No prior backfill state found in DB for {ticker_symbol}.")
 
             run_backfill(
-                influx_manager,
-                tiingo_tickers,
-                FLAGS.tiingo_api_key,
-                FLAGS.backfill_start_date,
-                FLAGS.candle_granularity_minutes,
-                FLAGS.tiingo_api_call_delay_seconds,
-                last_processed_candle_timestamps, # Pass the pre-populated map
+                influx_manager=influx_manager,
+                tiingo_tickers=tiingo_tickers,
+                tiingo_api_key=FLAGS.tiingo_api_key,
+                backfill_start_date_str=FLAGS.backfill_start_date,
+                candle_granularity_minutes=FLAGS.candle_granularity_minutes,
+                api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
+                last_backfilled_timestamps=last_processed_candle_timestamps, # Pass the pre-populated map
             )
         else:
             logging.info("Skipping historical backfill as per 'backfill_start_date' flag.")
@@ -419,13 +419,13 @@ def main(argv):
         # (either from DB before run_backfill or updated by run_backfill itself).
         # run_polling_loop will use this as a fallback if no specific "polling" state is found.
         run_polling_loop(
-            influx_manager,
-            tiingo_tickers,
-            FLAGS.tiingo_api_key,
-            FLAGS.candle_granularity_minutes,
-            FLAGS.tiingo_api_call_delay_seconds,
-            FLAGS.polling_initial_catchup_days,
-            last_processed_candle_timestamps, # Pass the potentially populated/updated map
+            influx_manager=influx_manager,
+            tiingo_tickers=tiingo_tickers,
+            tiingo_api_key=FLAGS.tiingo_api_key,
+            candle_granularity_minutes=FLAGS.candle_granularity_minutes,
+            api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
+            initial_catchup_days=FLAGS.polling_initial_catchup_days,
+            last_processed_timestamps=last_processed_candle_timestamps, # Pass the potentially populated/updated map
         )
 
     except Exception as e:
