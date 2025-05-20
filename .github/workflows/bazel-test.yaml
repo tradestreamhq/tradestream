@@ -16,7 +16,7 @@ jobs:
         # Avoid downloading Bazel every time.
         bazelisk-cache: true
         bazelrc: |
-          build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
+          test --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
 
     - run: |
         bazel test //...
