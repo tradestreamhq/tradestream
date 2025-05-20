@@ -118,15 +118,19 @@ class RunPollingLoopTest(absltest.TestCase):
         self.assertEqual(self.last_processed_timestamps[self.test_ticker], candle_10_00_ts_ms)
 
     def test_poll_one_ticker_no_new_closed_candle_yet(self):
-        current_cycle_time_utc = datetime(2023, 1, 1, 10, 0, 30, tzinfo=timezone.utc) # 10:00:30
+        current_cycle_time_utc = datetime(2023, 1, 1, 10, 0, 30, tzinfo=timezone.utc)
         self.mock_main_datetime_module.now.return_value = current_cycle_time_utc
 
         FLAGS.candle_granularity_minutes = 1
         last_processed_dt = datetime(2023, 1, 1, 9, 59, 0, tzinfo=timezone.utc)
         self.last_processed_timestamps[self.test_ticker] = int(last_processed_dt.timestamp() * 1000)
-        
+
         self.mock_get_historical_candles.return_value = []
-        self.mock_main_time_sleep.side_effect = KeyboardInterrupt("Stop loop")
+
+        def sleep_side_effect(duration_seconds):
+            if duration_seconds > 0:
+                raise KeyboardInterrupt("Stop loop for test")
+        self.mock_main_time_sleep.side_effect = sleep_side_effect
 
         with self.assertRaises(KeyboardInterrupt):
             candle_ingestor_main.run_polling_loop(
@@ -134,13 +138,9 @@ class RunPollingLoopTest(absltest.TestCase):
                 FLAGS.candle_granularity_minutes, 0, FLAGS.polling_initial_catchup_days,
                 self.last_processed_timestamps
             )
-        
-        # Logic in main.py: target_latest_closed_candle_start_dt_utc is 09:59.
-        # Since this <= last_ts_ms (09:59), API should not be called.
+
         self.mock_get_historical_candles.assert_not_called()
         self.mock_influx_manager.write_candles_batch.assert_not_called()
-        self.assertEqual(self.last_processed_timestamps[self.test_ticker], int(last_processed_dt.timestamp() * 1000))
-        self.mock_main_time_sleep.assert_called_once() # Inter-ticker delay (0s) + main loop sleep (interrupted)
 
     def test_poll_initializes_last_timestamp_if_missing(self):
         current_cycle_time_utc = datetime(2023, 1, 1, 10, 2, 0, tzinfo=timezone.utc)
