@@ -181,7 +181,6 @@ def run_polling_loop(
     api_call_delay_seconds: int,
     initial_catchup_days: int,
     last_processed_timestamps: dict[str, int],
-    test_max_cycles: int | None = None, # New parameter for testing
 ):
     logging.info("Starting real-time candle polling loop...")
     resample_freq = get_tiingo_resample_freq(candle_granularity_minutes)
@@ -190,47 +189,39 @@ def run_polling_loop(
     # Initialize last_processed_timestamps for tickers not set by backfill
     now_utc_for_init = datetime.now(timezone.utc)
     default_catchup_start_dt = now_utc_for_init - timedelta(days=initial_catchup_days)
-    # Align to the start of its candle period
-    default_catchup_start_minute = (default_catchup_start_dt.minute // candle_granularity_minutes) * candle_granularity_minutes
-    default_catchup_start_dt_aligned = default_catchup_start_dt.replace(minute=default_catchup_start_minute, second=0, microsecond=0)
+    default_catchup_start_minute = (
+        (default_catchup_start_dt.minute // candle_granularity_minutes) 
+        * candle_granularity_minutes
+    )
+    default_catchup_start_dt_aligned = default_catchup_start_dt.replace(
+        minute=default_catchup_start_minute, second=0, microsecond=0
+    )
     default_catchup_start_ms = int(default_catchup_start_dt_aligned.timestamp() * 1000)
-
 
     for ticker in tiingo_tickers:
         if ticker not in last_processed_timestamps or last_processed_timestamps.get(ticker, 0) == 0:
-            # TODO (PR6): Query InfluxDB for the true last point for this ticker.
-            # For now, if no backfill data, or if backfill resulted in 0, start from catchup.
             logging.info(
                 f"No valid backfill timestamp for {ticker}, "
                 f"setting polling start from approx {initial_catchup_days} days ago: {default_catchup_start_dt_aligned.isoformat()}"
             )
             last_processed_timestamps[ticker] = default_catchup_start_ms
-    
-    cycles_run = 0
+
     try:
         while True:
-            if test_max_cycles is not None and cycles_run >= test_max_cycles:
-                logging.info(f"Reached test_max_cycles ({test_max_cycles}). Exiting polling loop.")
-                break
-            cycles_run += 1
-
             loop_start_time = time.monotonic()
             current_cycle_time_utc = datetime.now(timezone.utc)
-            logging.info(
-                f"Starting polling cycle #{cycles_run} at {current_cycle_time_utc.isoformat()}"
-            )
+            logging.info(f"Starting polling cycle at {current_cycle_time_utc.isoformat()}")
 
             for ticker in tiingo_tickers:
                 try:
                     last_ts_ms = last_processed_timestamps.get(ticker)
-                    if last_ts_ms is None: # Should have been initialized above
+                    if last_ts_ms is None:
                         logging.error(f"CRITICAL: Missing last_ts_ms for {ticker}. Re-initializing with default catchup.")
                         last_ts_ms = default_catchup_start_ms
                         last_processed_timestamps[ticker] = last_ts_ms
                     
                     last_known_candle_start_dt_utc = datetime.fromtimestamp(last_ts_ms / 1000.0, timezone.utc)
 
-                    # Determine the start of the most recently *fully closed* candle period
                     current_minute_floored = (current_cycle_time_utc.minute // candle_granularity_minutes) * candle_granularity_minutes
                     latest_closed_period_end_dt_utc = current_cycle_time_utc.replace(
                         minute=current_minute_floored, second=0, microsecond=0
@@ -244,33 +235,28 @@ def run_polling_loop(
                         )
                         continue
 
-                    # Query from the start of the *next expected* candle period
                     query_start_dt_utc = last_known_candle_start_dt_utc + granularity_delta
-                    # Query up to the end of the `target_latest_closed_candle_start_dt_utc` period.
                     query_end_dt_utc = target_latest_closed_candle_start_dt_utc + granularity_delta - timedelta(seconds=1)
 
                     if query_start_dt_utc > current_cycle_time_utc:
                         logging.debug(f"Query start time {query_start_dt_utc.isoformat()} is in the future for {ticker}. Skipping.")
                         continue
                     
-                    query_end_dt_utc = min(query_end_dt_utc, current_cycle_time_utc) # Don't query beyond current time
+                    query_end_dt_utc = min(query_end_dt_utc, current_cycle_time_utc)
 
-                    if query_start_dt_utc > query_end_dt_utc :
+                    if query_start_dt_utc > query_end_dt_utc:
                         logging.debug(f"Calculated query start {query_start_dt_utc.isoformat()} is after query end {query_end_dt_utc.isoformat()} for {ticker}. Skipping API call.")
                         continue
 
-                    # Tiingo uses YYYY-MM-DD for daily, YYYY-MM-DDTHH:MM:SS for intraday startDate/endDate for /prices
-                    if candle_granularity_minutes >= 1440: # Daily
+                    if candle_granularity_minutes >= 1440:
                         query_start_str = query_start_dt_utc.strftime("%Y-%m-%d")
                         query_end_str = query_end_dt_utc.strftime("%Y-%m-%d")
-                    else: # Intraday
+                    else:
                         query_start_str = query_start_dt_utc.strftime("%Y-%m-%dT%H:%M:%S")
                         query_end_str = query_end_dt_utc.strftime("%Y-%m-%dT%H:%M:%S")
-                    
-                    logging.info(
-                        f"Polling for {ticker} from {query_start_str} to {query_end_str}"
-                    )
-                    
+
+                    logging.info(f"Polling for {ticker} from {query_start_str} to {query_end_str}")
+
                     polled_candles = get_historical_candles_tiingo(
                         tiingo_api_key,
                         ticker,
@@ -290,20 +276,14 @@ def run_polling_loop(
                         new_candles_to_write.sort(key=lambda c: c["timestamp_ms"])
 
                         if new_candles_to_write:
-                            logging.info(
-                                f"Fetched {len(new_candles_to_write)} new candle(s) for {ticker} via polling."
-                            )
+                            logging.info(f"Fetched {len(new_candles_to_write)} new candle(s) for {ticker} via polling.")
                             influx_manager.write_candles_batch(new_candles_to_write)
                             last_processed_timestamps[ticker] = new_candles_to_write[-1]["timestamp_ms"]
                         else:
-                            logging.info(
-                                f"No new, fully closed candles found for {ticker} in polled range after filtering."
-                            )
+                            logging.info(f"No new, fully closed candles found for {ticker} in polled range after filtering.")
                     else:
-                        logging.info(
-                            f"Polling returned no data for {ticker} for period starting {query_start_str}"
-                        )
-                    
+                        logging.info(f"Polling returned no data for {ticker} for period starting {query_start_str}")
+
                     if len(tiingo_tickers) > 1:
                         time.sleep(api_call_delay_seconds)
 
@@ -313,20 +293,18 @@ def run_polling_loop(
             loop_duration = time.monotonic() - loop_start_time
             sleep_time = (candle_granularity_minutes * 60) - loop_duration
             if sleep_time > 0:
-                logging.info(
-                    f"Polling cycle #{cycles_run} finished in {loop_duration:.2f}s. Sleeping for {sleep_time:.2f}s."
-                )
+                logging.info(f"Polling cycle finished in {loop_duration:.2f}s. Sleeping for {sleep_time:.2f}s.")
                 time.sleep(sleep_time)
             else:
                 logging.warning(
-                    f"Polling cycle #{cycles_run} duration ({loop_duration:.2f}s) "
-                    f"exceeded granularity ({candle_granularity_minutes*60}s). "
-                    f"Running next cycle immediately."
+                    f"Polling cycle duration ({loop_duration:.2f}s) exceeded granularity ({candle_granularity_minutes*60}s). "
+                    "Running next cycle immediately."
                 )
     except KeyboardInterrupt:
         logging.info("Polling loop interrupted by user.")
     finally:
         logging.info("Polling loop finished.")
+
 
 
 def main(argv):
