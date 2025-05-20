@@ -99,7 +99,6 @@ class InfluxDBManager:
             except (TypeError, ValueError) as ve:
                 logging.warning(f"Skipping candle due to value error {ve}: {candle_dict}")
 
-
         if not points:
             logging.info("No valid points to write after filtering.")
             return 0
@@ -188,7 +187,6 @@ class InfluxDBManager:
             logging.error(f"InfluxDBError updating processing state for {symbol} ({ingestion_type}): {e}")
         except Exception as e:
             logging.error(f"Generic error updating processing state for {symbol} ({ingestion_type}): {e}")
-
 
     def close(self):
         if self.client:
