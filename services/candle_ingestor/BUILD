@@ -16,6 +16,7 @@ py_library(
     deps = [
         "//third_party:absl_py",
         "//third_party:requests",
+        "//third_party:tenacity",  # Added
     ],
 )
 
@@ -25,6 +26,7 @@ py_library(
     deps = [
         "//third_party:absl_py",
         "//third_party:requests",
+        "//third_party:tenacity",  # Added
     ],
 )
 
@@ -34,6 +36,7 @@ py_library(
     deps = [
         "//third_party:absl_py",
         "//third_party:influxdb_client",
+        "//third_party:tenacity",  # Added
     ],
 )
 
@@ -100,7 +103,7 @@ py_test(
     deps = [
         ":main_app",
         ":ingestion_helpers_lib",
-        ":influx_client_lib", 
+        ":influx_client_lib",
         ":tiingo_client_lib",
         "//third_party:absl_py",
     ],
