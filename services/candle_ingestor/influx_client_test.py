@@ -234,7 +234,13 @@ class TestInfluxDBManager(unittest.TestCase):
         manager = influx_client.InfluxDBManager(
             self.test_url, self.test_token, self.test_org, self.test_bucket
         )
-        self.mock_query_api_instance.query.side_effect = InfluxDBError(response="Simulated DB Error")
+        
+        # Create a mock response object for InfluxDBError
+        mock_response = mock.MagicMock()
+        mock_response.data = "Simulated DB Error"
+        mock_response.status = 500
+        
+        self.mock_query_api_instance.query.side_effect = InfluxDBError(response=mock_response)
 
         # Act
         timestamp = manager.get_last_processed_timestamp("adausd", "backfill")
@@ -277,7 +283,13 @@ class TestInfluxDBManager(unittest.TestCase):
         manager = influx_client.InfluxDBManager(
             self.test_url, self.test_token, self.test_org, self.test_bucket
         )
-        self.mock_write_api_instance.write.side_effect = InfluxDBError(response="Simulated DB Write Error")
+        
+        # Create a mock response object for InfluxDBError
+        mock_response = mock.MagicMock()
+        mock_response.data = "Simulated DB Write Error"
+        mock_response.status = 500
+        
+        self.mock_write_api_instance.write.side_effect = InfluxDBError(response=mock_response)
 
         # Act
         # This should not raise an exception out of the method due to try-except
