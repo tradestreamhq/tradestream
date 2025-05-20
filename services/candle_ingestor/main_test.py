@@ -44,11 +44,24 @@ class BaseIngestorTest(absltest.TestCase):
         self.mock_main_datetime_module = self.patch_main_datetime.start()
         self.addCleanup(self.patch_main_datetime.stop)
 
+        # Patch the datetime in ingestion_helpers too, to ensure consistent mocking
+        self.patch_helpers_datetime = mock.patch("services.candle_ingestor.ingestion_helpers.datetime")
+        self.mock_helpers_datetime_module = self.patch_helpers_datetime.start()
+        self.addCleanup(self.patch_helpers_datetime.stop)
+
+        # Configure datetime mocks
         self.mock_main_datetime_module.now = mock.MagicMock()
+        self.mock_helpers_datetime_module.now = self.mock_main_datetime_module.now
+        
+        # Configure non-mocked parts
         self.mock_main_datetime_module.fromtimestamp = datetime.fromtimestamp
         self.mock_main_datetime_module.strptime = datetime.strptime
         self.mock_main_datetime_module.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
-
+        
+        self.mock_helpers_datetime_module.fromtimestamp = datetime.fromtimestamp
+        self.mock_helpers_datetime_module.strptime = datetime.strptime
+        self.mock_helpers_datetime_module.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
+        
 
         self.saved_flags = flagsaver.save_flag_values()
         FLAGS.cmc_api_key = "dummy_cmc_for_test"
@@ -70,7 +83,9 @@ class BaseIngestorTest(absltest.TestCase):
         super().tearDown()
 
     def _set_current_time(self, dt_str):
-        self.mock_main_datetime_module.now.return_value = datetime.fromisoformat(dt_str).replace(tzinfo=timezone.utc)
+        mock_dt = datetime.fromisoformat(dt_str).replace(tzinfo=timezone.utc)
+        self.mock_main_datetime_module.now.return_value = mock_dt
+        self.mock_helpers_datetime_module.now.return_value = mock_dt
 
     def _create_dummy_candle(self, timestamp_ms, pair="btcusd", close_price=100.0):
         return {
