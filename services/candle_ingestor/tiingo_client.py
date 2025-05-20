@@ -1,7 +1,42 @@
 from datetime import datetime, timezone
+import time # Added for sleep
 
 from absl import logging
 import requests
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, RetryError
+
+
+# Custom retry condition for Tiingo HTTP 429
+def _retry_if_tiingo_rate_limit_or_request_exception(exception):
+    if isinstance(exception, requests.exceptions.HTTPError) and exception.response.status_code == 429:
+        retry_after_header = exception.response.headers.get("Retry-After")
+        if retry_after_header:
+            try:
+                sleep_seconds = int(retry_after_header)
+                logging.warning(f"Tiingo API rate limit hit (429). Retrying after {sleep_seconds} seconds.")
+                time.sleep(sleep_seconds)
+                return True # Indicate that we should retry
+            except ValueError:
+                logging.error(f"Tiingo API rate limit hit (429) but could not parse Retry-After header: {retry_after_header}. Will use default backoff.")
+        else:
+            logging.warning("Tiingo API rate limit hit (429) but no Retry-After header found. Will use default backoff.")
+        return True # Still retry for 429, tenacity will handle wait if sleep didn't happen
+    # For other request exceptions, let tenacity handle it
+    return isinstance(exception, requests.exceptions.RequestException)
+
+
+@retry(
+    stop=stop_after_attempt(7), 
+    wait=wait_exponential(multiplier=1, min=5, max=120),
+    retry=_retry_if_tiingo_rate_limit_or_request_exception,
+    reraise=True
+)
+def _fetch_tiingo_data_with_retry(url: str, params: dict, headers: dict) -> dict:
+    """Internal function to fetch data from Tiingo with retry logic."""
+    logging.info(f"Attempting to fetch data from Tiingo: {url} with params: {params}")
+    response = requests.get(url, params=params, headers=headers, timeout=60)
+    response.raise_for_status()
+    return response.json()
 
 
 def get_top_n_crypto_symbols(
@@ -11,6 +46,9 @@ def get_top_n_crypto_symbols(
     Fetches the top N cryptocurrency symbols from CoinMarketCap.
     Returns a list of Tiingo-compatible ticker symbols (e.g., 'btcusd').
     """
+    # This function remains unchanged as per the PR description for tiingo_client.py focus.
+    # Assuming _fetch_cmc_data_with_retry is defined in cmc_client.py and handles its own retries.
+    # If retries were also needed here for CMC within this file, _fetch_cmc_data_with_retry would be used.
     url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
     parameters = {
         "start": "1",
@@ -23,9 +61,7 @@ def get_top_n_crypto_symbols(
     }
     symbols = []
     try:
-        response = requests.get(
-            url, params=parameters, headers=headers, timeout=10
-        )
+        response = requests.get(url, params=parameters, headers=headers, timeout=10)
         response.raise_for_status()
         data = response.json()
 
@@ -87,19 +123,10 @@ def get_historical_candles_tiingo(
         "token": api_key,
         "format": "json",
     }
+    headers={"Content-Type": "application/json"}
     candles_data = []
     try:
-        logging.info(
-            f"Fetching Tiingo historical for {ticker} from {start_date_str} to {end_date_str} ({resample_freq})"
-        )
-        response = requests.get(
-            base_url,
-            params=params,
-            headers={"Content-Type": "application/json"},
-            timeout=60,  # Increased timeout for potentially large historical data
-        )
-        response.raise_for_status()
-        data = response.json()
+        data = _fetch_tiingo_data_with_retry(base_url, params, headers)
 
         if not data:
             logging.info(
@@ -115,7 +142,6 @@ def get_historical_candles_tiingo(
             ):
                 for candle_item in ticker_data_list["priceData"]:
                     try:
-                        # Add more robust checking for field existence if necessary
                         candles_data.append(
                             {
                                 "timestamp_ms": _parse_tiingo_timestamp(
@@ -126,7 +152,7 @@ def get_historical_candles_tiingo(
                                 "low": float(candle_item["low"]),
                                 "close": float(candle_item["close"]),
                                 "volume": float(candle_item["volume"]),
-                                "currency_pair": ticker, # Store the original Tiingo ticker
+                                "currency_pair": ticker,
                             }
                         )
                     except (TypeError, ValueError, KeyError) as field_e:
@@ -143,8 +169,10 @@ def get_historical_candles_tiingo(
             logging.warning(
                 f"Unexpected response format (empty list or not a list) from Tiingo for {ticker}: {data}"
             )
-
+    except RetryError as retry_err:
+        logging.error(f"Tiingo API request failed after multiple retries for {ticker}: {retry_err}")
     except requests.exceptions.HTTPError as http_err:
+        # This might be redundant if RetryError catches it, but good for other HTTP errors not retried
         logging.error(
             f"HTTP error calling Tiingo API for {ticker} ({start_date_str} to {end_date_str}): {http_err.response.status_code} - {http_err.response.text}"
         )
