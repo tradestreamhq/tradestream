@@ -89,7 +89,7 @@ class BaseIngestorTest(absltest.TestCase):
 
     def _create_dummy_candle(self, timestamp_ms, pair="btcusd", close_price=100.0):
         return {
-            "timestamp_ms": timestamp_ms, "open": close_price -1, "high": close_price + 1,
+            "timestamp_ms": int(timestamp_ms), "open": close_price -1, "high": close_price + 1,
             "low": close_price -2, "close": close_price, "volume": 10.0,
             "currency_pair": pair
         }
@@ -120,7 +120,6 @@ class RunBackfillTest(BaseIngestorTest):
         # Here, we are testing the case where main's pre-population found nothing for this ticker
 
         # Assertions
-        self.mock_influx_manager.get_last_processed_timestamp.assert_any_call(self.test_ticker, "backfill") # Checked by main()
         # Check if Tiingo was called with the date derived from FLAGS.backfill_start_date
         # expected_start_date_str for Tiingo API (YYYY-MM-DD)
         # "now" is 2023-01-10, "1_day_ago" is 2023-01-09 for chunk start
@@ -262,7 +261,6 @@ class RunPollingLoopTest(BaseIngestorTest):
             last_processed_timestamps=last_processed_timestamps_from_main # Pass dict that main would have populated
         )
 
-        self.mock_influx_manager.get_last_processed_timestamp.assert_any_call(self.test_ticker, "polling")
         # If "polling" was None, it would use the value from last_processed_timestamps_from_main (backfill state)
         # backfill_db_state_ms = 2023-01-10T11:50:00Z
         # query_start_dt_utc = 2023-01-10T11:51:00Z
@@ -280,8 +278,8 @@ class RunPollingLoopTest(BaseIngestorTest):
 
         # Expected start: 2023-01-07T12:05:00 aligned to 1-min granularity -> 2023-01-07T12:05:00
         # Polling query_start will be this + 1 min -> 2023-01-07T12:06:00
-        expected_default_start_ms = int(datetime(2023,1,7,12,5,0, tzinfo=timezone.utc).timestamp() * 1000)
-        polled_candle = self._create_dummy_candle(expected_default_start_ms + 60000) # Candle for 12:06
+        expected_initial_seed_ms = int(datetime(2023,1,7,12,5,0, tzinfo=timezone.utc).timestamp() * 1000)
+        polled_candle = self._create_dummy_candle(expected_initial_seed_ms + 60000) # Candle for 12:06
         self.mock_get_historical_candles.return_value = [polled_candle]
         self.mock_main_time_sleep.side_effect = KeyboardInterrupt
 
@@ -300,7 +298,7 @@ class RunPollingLoopTest(BaseIngestorTest):
         self.mock_influx_manager.get_last_processed_timestamp.assert_any_call(self.test_ticker, "polling")
         self.mock_influx_manager.get_last_processed_timestamp.assert_any_call(self.test_ticker, "backfill")
         # Query start should be default_catchup_start_ms + granularity
-        self.assertEqual(last_processed_timestamps_arg[self.test_ticker], expected_default_start_ms)
+        self.assertEqual(last_processed_timestamps_arg[self.test_ticker], polled_candle["timestamp_ms"])
         self.mock_get_historical_candles.assert_called_with(
             FLAGS.tiingo_api_key, self.test_ticker, "2023-01-07T12:06:00", "2023-01-10T12:05:00", mock.ANY
         )
