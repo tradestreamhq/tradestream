@@ -3,6 +3,29 @@ load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 
 package(default_visibility = ["//visibility:public"])
 
+kt_jvm_library(
+    name = "backtest_request_factory",
+    srcs = ["BacktestRequestFactory.kt"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+    ],
+)
+
+kt_jvm_library(
+    name = "backtest_request_factory_impl",
+    srcs = ["BacktestRequestFactoryImpl.kt"],
+    deps = [
+        ":backtest_request_factory",
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//third_party:flogger",
+        "//third_party:guice",
+    ],
+)
+
 java_library(
     name = "backtest_runner",
     srcs = ["BacktestRunner.java"],
@@ -31,6 +54,8 @@ java_library(
     name = "backtesting_module",
     srcs = ["BacktestingModule.java"],
     deps = [
+        ":backtest_request_factory",
+        ":backtest_request_factory_impl",
         ":backtest_runner",
         ":backtest_runner_impl",
         ":fitness_calculator",
@@ -76,6 +101,7 @@ java_library(
     name = "fitness_calculator_impl",
     srcs = ["FitnessCalculatorImpl.java"],
     deps = [
+        ":backtest_request_factory",
         ":backtest_runner",
         ":fitness_calculator",
         ":genotype_converter",

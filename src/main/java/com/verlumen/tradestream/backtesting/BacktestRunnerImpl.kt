@@ -47,7 +47,7 @@ internal class BacktestRunnerImpl @Inject constructor(
         
         // Trade statistics
         val numberOfTrades = tradingRecord.positions.size
-        val winRate = calculateWinRate(series, tradingRecord)
+        val winRate = calculateWinRate(tradingRecord)
         val averageTradeDuration = calculateAverageTradeDuration(tradingRecord)
 
         // Risk-adjusted returns
@@ -144,7 +144,7 @@ internal class BacktestRunnerImpl @Inject constructor(
         return maxDrawdown
     }
 
-    private fun calculateWinRate(series: BarSeries, record: TradingRecord): Double {
+    private fun calculateWinRate(record: TradingRecord): Double {
         if (record.positions.isEmpty()) {
             return 0.0
         }

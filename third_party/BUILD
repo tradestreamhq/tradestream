@@ -1,3 +1,6 @@
+load("@pypi//:requirements.bzl", "requirement")
+load("@rules_python//python:py_library.bzl", "py_library")
+
 java_library(
     name = "argparse4j",
     visibility = ["//visibility:public"],
@@ -237,6 +240,15 @@ java_library(
 )
 
 java_library(
+    name = "mockito_kotlin",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_mockito_kotlin_mockito_kotlin",
+    ],
+    testonly = True,
+)
+
+java_library(
     name = "mug",
     visibility = ["//visibility:public"],
     exports = [
@@ -299,5 +311,29 @@ java_library(
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:org_knowm_xchange_xchange_stream_core",
+    ],
+)
+
+py_library(
+    name = "absl_py",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("absl-py"),
+    ],
+)
+
+py_library(
+    name = "influxdb_client",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("influxdb-client"),
+    ],
+)
+
+py_library(
+    name = "requests",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("requests"),
     ],
 )

@@ -1,3 +1,25 @@
+influxdb:
+  enabled: true
+  # Authentication configuration
+  adminUser:
+    # Organization and bucket settings
+    organization: "tradestream-org"
+    bucket: "tradestream-data"
+    retention_policy: "30d"
+    # User credentials - these should be strings, not objects
+    # username: "admin"       # Use username, not user
+    # password: "your-secure-password"  # Direct string, not nested
+
+    # Or use existing secret (comment out username/password if using this)
+    existingSecret: "influxdb-admin-secret"
+    # Token configuration - should be a string or boolean
+    token: true # Set to true to auto-generate, or provide a specific token string
+  # Storage configuration
+  persistence:
+    enabled: true
+    size: 8Gi
+  service:
+    type: ClusterIP
 kafka:
   replicaCount: 3
   persistence:
@@ -35,20 +57,26 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v1.14.1-develop
+    tag: v1.29.1-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
     env.java.opts.jobmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
     env.java.opts.taskmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
     taskmanager.numberOfTaskSlots: "1"
+    execution.checkpointing.interval: "300000"
+    execution.checkpointing.mode: "EXACTLY_ONCE"
+    execution.checkpointing.timeout: "1800000"
+    execution.checkpointing.externalized-checkpoint-retention: "RETAIN_ON_CANCELLATION"
+    state.backend: "rocksdb"
+    state.backend.incremental: "true"
   serviceAccount: flink
   jobManager:
-    memory: 2048m
-    cpu: 1
+    memory: 4096m
+    cpu: 2
   taskManager:
-    memory: 2048m
-    cpu: 1
+    memory: 4096m
+    cpu: 2
   job:
     entryClass: com.verlumen.tradestream.pipeline.App
     jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar

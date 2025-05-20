@@ -17,6 +17,28 @@ java_library(
     ],
 )
 
+kt_jvm_library(
+    name = "candle_lookback_do_fn",
+    srcs = ["CandleLookbackDoFn.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf", # For ProtoCoder
+        "//third_party:flogger",
+        "//third_party:guava", # For ImmutableList
+        "//third_party:joda_time", # For Instant
+    ],
+)
+
+java_library(
+    name = "candle_source",
+    srcs = ["CandleSource.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+    ],
+)
+
 # Coinbase specific streaming client
 java_library(
     name = "coinbase_streaming_client",
@@ -191,6 +213,7 @@ java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
     deps = [
+        ":candle_source",
         ":dry_run_trade_source",
         ":exchange_client_trade_source",
         ":exchange_client_unbounded_source",
@@ -200,6 +223,10 @@ java_library(
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
         ":sliding_candle_aggregator",
+        ":tiingo_crypto_candle_source",
+        ":tiingo_crypto_candle_transform",
+        ":tiingo_crypto_fetcher_fn",
+        ":trade_backed_candle_source",
         ":trade_source",
         ":trade_to_candle",
         "//protos:marketdata_java_proto",
@@ -208,6 +235,7 @@ java_library(
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
         "//third_party:protobuf_java_util",
     ],
 )
@@ -238,6 +266,79 @@ java_library(
         "//third_party:flogger",
         "//third_party:joda_time",
         "//third_party:protobuf_java",
+    ],
+)
+
+kt_jvm_library(
+    name = "tiingo_crypto_candle_source",
+    srcs = ["TiingoCryptoCandleSource.kt"],
+    deps = [
+        ":candle_source",
+        ":tiingo_crypto_candle_transform",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+    ],
+)
+
+kt_jvm_library(
+    name = "tiingo_crypto_candle_transform",
+    srcs = ["TiingoCryptoCandleTransform.kt"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":tiingo_crypto_fetcher_fn",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
+    ],
+)
+
+kt_jvm_library(
+    name = "tiingo_crypto_fetcher_fn",
+    srcs = ["TiingoCryptoFetcherFn.kt"],
+    deps = [
+        ":tiingo_response_parser",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/http:http_client",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party:flogger",
+        "//third_party:guice",
+        "//third_party:guice_assistedinject",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+    ],
+)
+
+# Tiingo Response Parser
+kt_jvm_library(
+    name = "tiingo_response_parser",
+    srcs = ["TiingoResponseParser.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party:gson",
+        "//third_party:protobuf_java",
+        "//third_party:protobuf_java_util",
+    ],
+)
+
+java_library(
+    name = "trade_backed_candle_source",
+    srcs = ["TradeBackedCandleSource.java"],
+    deps = [
+        ":candle_source",
+        ":trade_source",
+        ":trade_to_candle",
+        "//protos:marketdata_java_proto",
+        "//third_party:beam_sdks_java_core",
+        "//third_party:guice",
+        "//third_party:joda_time",
+        "//third_party:protobuf_java_util",
     ],
 )
 

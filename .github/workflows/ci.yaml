@@ -34,17 +34,26 @@ jobs:
           kubectl create secret generic coinmarketcap \
             --from-literal=apiKey=FAKE_API_KEY \
             --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret generic tiingo \
+            --from-literal=apiKey=FAKE_API_KEY \
+            --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
+          # Create admin secret for InfluxDB
+          kubectl create secret generic influxdb-admin-secret \
+            --from-literal=admin-username="admin" \
+            --from-literal=admin-password="$(openssl rand -base64 12)" \
+            --from-literal=admin-token="$(openssl rand -hex 32)" \
+            --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
 
-      - uses: bazel-contrib/setup-bazel@0.9.1
+      - uses: bazel-contrib/setup-bazel@0.14.0
         with:
+          # Avoid downloading Bazel every time.
           bazelisk-cache: true
           bazelrc: |
-            build --bes_results_url=https://app.buildbuddy.io/invocation/
-            build --bes_backend=grpcs://remote.buildbuddy.io
-            build --remote_cache=grpcs://remote.buildbuddy.io
-            build --noremote_upload_local_results # Uploads logs & artifacts without writing to cache
-            build --remote_timeout=10m
             build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
+          # Store build cache per workflow.
+          disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows.
+          repository-cache: true
 
       - name: Build and Load Images
         run: |

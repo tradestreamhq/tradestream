@@ -28,7 +28,8 @@ abstract class PipelineModule extends AbstractModule {
     int maxForwardIntervals,
     RunMode runMode,
     String signalTopic,
-    int topCurrencyCount) {
+    int topCurrencyCount,
+    String tiingoApiKey) {
     return new AutoValue_PipelineModule(
       bootstrapServers,
       Duration.standardMinutes(candleDurationMinutes),
@@ -37,7 +38,8 @@ abstract class PipelineModule extends AbstractModule {
       maxForwardIntervals,
       runMode,
       signalTopic,
-      topCurrencyCount);
+      topCurrencyCount,
+      tiingoApiKey);
   }
 
   abstract String bootstrapServers();
@@ -48,6 +50,7 @@ abstract class PipelineModule extends AbstractModule {
   abstract RunMode runMode();
   abstract String signalTopic();
   abstract int topCurrencyCount();
+  abstract String tiingoApiKey();
 
   @Override
   protected void configure() {
@@ -55,7 +58,7 @@ abstract class PipelineModule extends AbstractModule {
       install(HttpModule.create());
       install(InstrumentsModule.create(runMode(), coinMarketCapApiKey(), topCurrencyCount()));
       install(KafkaModule.create(bootstrapServers()));
-      install(MarketDataModule.create(exchangeName(), runMode()));
+      install(MarketDataModule.create(exchangeName(), candleDuration(), runMode(), tiingoApiKey()));
       install(SignalsModule.create(signalTopic()));
       install(StrategiesModule.create());
       install(Ta4jModule.create());
