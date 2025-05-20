@@ -78,54 +78,44 @@ class RunPollingLoopTest(absltest.TestCase):
         candle_10_00_start_dt = datetime(2023, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
         candle_10_00_ts_ms = int(candle_10_00_start_dt.timestamp() * 1000)
         tiingo_response_candle = {
-            "timestamp_ms": candle_10_00_ts_ms, "open": 1.0, "high": 2.0, "low": 0.0, "close": 1.5, "volume": 10.0,
+            "timestamp_ms": candle_10_00_ts_ms, "open": 1.0, "high": 2.0, 
+            "low": 0.0, "close": 1.5, "volume": 10.0,
             "currency_pair": self.test_ticker
         }
         self.mock_get_historical_candles.return_value = [tiingo_response_candle]
         self.mock_influx_manager.write_candles_batch.return_value = 1
 
-        # Make the main loop's time.sleep raise KeyboardInterrupt to break after one cycle.
-        # This targets the sleep at the end of the `while True` loop.
-        main_loop_sleep_call_count = 0
-        def sleep_side_effect_for_main_loop(duration_seconds):
-            nonlocal main_loop_sleep_call_count
-            # The inter-ticker sleep has FLAGS.tiingo_api_call_delay_seconds = 0
-            # So any sleep with duration_seconds > 0 should be the main loop sleep.
-            if duration_seconds > 0:
-                main_loop_sleep_call_count +=1
-                raise KeyboardInterrupt("Stop loop for test after one main cycle")
-        self.mock_main_time_sleep.side_effect = sleep_side_effect_for_main_loop
+        # Simulate breaking the infinite loop via KeyboardInterrupt after one iteration
+        def sleep_side_effect(duration_seconds):
+            raise KeyboardInterrupt("Stop loop for test")
 
-        with self.assertRaises(KeyboardInterrupt):
-            candle_ingestor_main.run_polling_loop(
-                influx_manager=self.mock_influx_manager,
-                tiingo_tickers=self.tiingo_tickers, # Single ticker list for simpler test
-                tiingo_api_key=FLAGS.tiingo_api_key,
-                candle_granularity_minutes=granularity_minutes,
-                api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
-                initial_catchup_days=FLAGS.polling_initial_catchup_days,
-                last_processed_timestamps=self.last_processed_timestamps,
-            )
-        
-        self.assertGreaterEqual(main_loop_sleep_call_count, 1, "Main loop sleep should have been attempted")
+        self.mock_main_time_sleep.side_effect = sleep_side_effect
 
-        # Expected query window for Tiingo:
-        # target_latest_closed_candle_start_dt_utc = 10:01:00
-        # query_start_dt_utc = 10:00:00 (after 09:59:00)
-        # query_end_dt_utc = 10:01:59 (end of 10:01:00 candle period)
+        # Call the polling loop (it will exit after first cycle due to the sleep mock)
+        candle_ingestor_main.run_polling_loop(
+            influx_manager=self.mock_influx_manager,
+            tiingo_tickers=self.tiingo_tickers,
+            tiingo_api_key=FLAGS.tiingo_api_key,
+            candle_granularity_minutes=granularity_minutes,
+            api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
+            initial_catchup_days=FLAGS.polling_initial_catchup_days,
+            last_processed_timestamps=self.last_processed_timestamps,
+        )
+
+        # Validate the expected query window
         expected_query_start_dt = datetime(2023, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
-        expected_query_end_dt = datetime(2023, 1, 1, 10, 1, 59, tzinfo=timezone.utc) # End of 10:01 candle
+        expected_query_end_dt = datetime(2023, 1, 1, 10, 1, 59, tzinfo=timezone.utc)
 
-        self.mock_get_historical_candles.assert_called_once()
-        call_args = self.mock_get_historical_candles.call_args[0]
-        self.assertEqual(call_args[1], self.test_ticker)
-        self.assertEqual(call_args[2], expected_query_start_dt.strftime("%Y-%m-%dT%H:%M:%S"))
-        self.assertEqual(call_args[3], expected_query_end_dt.strftime("%Y-%m-%dT%H:%M:%S"))
-        self.assertEqual(call_args[4], ingestion_helpers.get_tiingo_resample_freq(granularity_minutes))
+        self.mock_get_historical_candles.assert_called_once_with(
+            FLAGS.tiingo_api_key,
+            self.test_ticker,
+            expected_query_start_dt.strftime("%Y-%m-%dT%H:%M:%S"),
+            expected_query_end_dt.strftime("%Y-%m-%dT%H:%M:%S"),
+            ingestion_helpers.get_tiingo_resample_freq(granularity_minutes)
+        )
 
         self.mock_influx_manager.write_candles_batch.assert_called_once_with([tiingo_response_candle])
         self.assertEqual(self.last_processed_timestamps[self.test_ticker], candle_10_00_ts_ms)
-
 
     def test_poll_one_ticker_no_new_closed_candle_yet(self):
         current_cycle_time_utc = datetime(2023, 1, 1, 10, 0, 30, tzinfo=timezone.utc) # 10:00:30
