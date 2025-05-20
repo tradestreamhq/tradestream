@@ -94,8 +94,14 @@ class RunPollingLoopTest(absltest.TestCase):
             last_processed_timestamps=self.last_processed_timestamps,
         )
         
+        # Calculate expected values based on the polling logic
+        # Current time: 2023-01-01T10:02:30
+        # Current period start minute: (2 // 1) * 1 = 2 -> 2023-01-01T10:02:00
+        # Target candle start: 2023-01-01T10:02:00 - 1 minute = 2023-01-01T10:01:00
+        # Query start: last processed (09:59) + 1 minute = 2023-01-01T10:00:00
+        # Query end: target candle start (10:01) + 1 minute - 1 second = 2023-01-01T10:01:59
         expected_query_start_dt = last_processed_start_dt + timedelta(minutes=granularity_minutes)
-        expected_query_end_dt = datetime(2023,1,1,10,0,0, tzinfo=timezone.utc) + timedelta(minutes=granularity_minutes) - timedelta(seconds=1)
+        expected_query_end_dt = datetime(2023,1,1,10,1,59, tzinfo=timezone.utc)
 
         self.mock_get_historical_candles.assert_called_once()
         call_args = self.mock_get_historical_candles.call_args[0]
@@ -106,7 +112,8 @@ class RunPollingLoopTest(absltest.TestCase):
 
         self.mock_influx_manager.write_candles_batch.assert_called_once_with([tiingo_response_candle])
         self.assertEqual(self.last_processed_timestamps[self.test_ticker], candle_10_00_ts_ms)
-        self.mock_main_time_sleep.assert_called()
+        # Should be called twice: once for API delay (0s), once for main loop sleep
+        self.assertEqual(self.mock_main_time_sleep.call_count, 2)
 
     def test_poll_one_ticker_no_new_closed_candle_yet(self):
         current_time_utc = datetime(2023, 1, 1, 10, 0, 30, tzinfo=timezone.utc)
@@ -136,7 +143,8 @@ class RunPollingLoopTest(absltest.TestCase):
         self.mock_get_historical_candles.assert_not_called()
         self.mock_influx_manager.write_candles_batch.assert_not_called()
         self.assertEqual(self.last_processed_timestamps[self.test_ticker], int(last_processed_dt.timestamp() * 1000))
-        self.mock_main_time_sleep.assert_called_once()
+        # Should be called once for the main loop sleep
+        self.assertEqual(self.mock_main_time_sleep.call_count, 1)
 
     def test_poll_initializes_last_timestamp_if_missing(self):
         current_time_utc = datetime(2023, 1, 1, 10, 2, 0, tzinfo=timezone.utc)
@@ -171,7 +179,8 @@ class RunPollingLoopTest(absltest.TestCase):
         
         self.mock_get_historical_candles.assert_called_once()
         self.mock_influx_manager.write_candles_batch.assert_not_called()
-        self.mock_main_time_sleep.assert_called_once()
+        # Should be called twice: once for API delay (0s), once for main loop sleep
+        self.assertEqual(self.mock_main_time_sleep.call_count, 2)
 
 
 if __name__ == "__main__":
