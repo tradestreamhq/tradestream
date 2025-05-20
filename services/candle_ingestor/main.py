@@ -17,19 +17,26 @@ from services.candle_ingestor.ingestion_helpers import (
 )
 
 FLAGS = flags.FLAGS
-# ... (Flag definitions remain the same) ...
+
+# CoinMarketCap Flags
 flags.DEFINE_string(
     "cmc_api_key", os.getenv("CMC_API_KEY"), "CoinMarketCap API Key."
 )
 flags.DEFINE_integer(
     "top_n_cryptos", 20, "Number of top cryptocurrencies to fetch from CMC."
 )
+
+# Tiingo Flags
 flags.DEFINE_string(
     "tiingo_api_key", os.getenv("TIINGO_API_KEY"), "Tiingo API Key."
 )
+
+# InfluxDB Flags
 default_influx_url = os.getenv(
     "INFLUXDB_URL",
-    "http://my-tradestream-influxdb.tradestream-namespace.svc.cluster.local:8086",
+    # Adjust this if your Helm release name for InfluxDB is different,
+    # or if not running in k8s and need a direct localhost.
+    "http://influxdb.tradestream-namespace.svc.cluster.local:8086",
 )
 flags.DEFINE_string("influxdb_url", default_influx_url, "InfluxDB URL.")
 flags.DEFINE_string(
@@ -43,29 +50,34 @@ flags.DEFINE_string(
     os.getenv("INFLUXDB_BUCKET", "tradestream-data"),
     "InfluxDB Bucket for candles.",
 )
+
+# Candle Processing Flags
 flags.DEFINE_integer(
     "candle_granularity_minutes", 1, "Granularity of candles in minutes."
 )
 flags.DEFINE_string(
     "backfill_start_date",
     "1_year_ago",
-    'Start date for historical backfill (YYYY-MM-DD, "X_days_ago", "X_months_ago", "X_years_ago").',
+    'Start date for historical backfill (YYYY-MM-DD, "X_days_ago", "X_months_ago", "X_years_ago", or "skip").',
 )
 flags.DEFINE_integer(
-    "tiingo_api_call_delay_seconds", 2, "Delay in seconds between Tiingo API calls for different tickers/chunks during backfill."
+    "tiingo_api_call_delay_seconds",
+    2,
+    "Delay in seconds between Tiingo API calls for different tickers/chunks during backfill and polling.",
 )
 flags.DEFINE_integer(
-    "polling_initial_catchup_days", 7, "How many days back to check for initial polling state if none is found."
+    "polling_initial_catchup_days",
+    7,
+    "How many days back to check for initial polling state if none is found from backfill.",
 )
 
-
+# Mark required flags
 flags.mark_flag_as_required("cmc_api_key")
 flags.mark_flag_as_required("tiingo_api_key")
 flags.mark_flag_as_required("influxdb_token")
 flags.mark_flag_as_required("influxdb_org")
 
 
-# --- Backfill Function (from PR4, assumed complete for this PR) ---
 def run_backfill(
     influx_manager: InfluxDBManager,
     tiingo_tickers: list[str],
@@ -73,54 +85,94 @@ def run_backfill(
     backfill_start_date_str: str,
     candle_granularity_minutes: int,
     api_call_delay_seconds: int,
-    # This will be used by polling loop to initialize last_polled_candle_timestamps
-    last_backfilled_timestamps: dict[str, int] 
+    last_backfilled_timestamps: dict[str, int],
 ):
     logging.info("Starting historical candle backfill...")
     start_date_dt = parse_backfill_start_date(backfill_start_date_str)
+    # End date for historical is up to the start of the current UTC day (exclusive)
     end_date_dt = datetime.now(timezone.utc).replace(
         hour=0, minute=0, second=0, microsecond=0
-    ) - timedelta(microseconds=1)
+    )
 
     if start_date_dt >= end_date_dt:
-        logging.info(f"Backfill start date is not before end date. Skipping backfill.")
+        logging.info(
+            f"Backfill start date ({start_date_dt.strftime('%Y-%m-%d')}) is not before "
+            f"effective end date ({end_date_dt.strftime('%Y-%m-%d')}). Skipping backfill."
+        )
         return
 
     resample_freq = get_tiingo_resample_freq(candle_granularity_minutes)
-    for ticker in tiingo_tickers:
-        current_ticker_start_dt = start_date_dt
-        logging.info(f"Backfilling {ticker} from {current_ticker_start_dt.strftime('%Y-%m-%d')} to {end_date_dt.strftime('%Y-%m-%d')}")
-        chunk_start_dt = current_ticker_start_dt
-        max_timestamp_for_ticker_in_backfill = 0
 
+    for ticker in tiingo_tickers:
+        # TODO (PR6): Query InfluxDB for the last known candle for this ticker
+        # and adjust current_ticker_start_dt if it's more recent than start_date_dt.
+        current_ticker_start_dt = start_date_dt
+        max_timestamp_for_ticker_in_backfill = (
+            last_backfilled_timestamps.get(ticker, 0)
+        ) # Use existing if available
+
+        # Adjust start if already partially backfilled and that point is after calculated start_date_dt
+        if max_timestamp_for_ticker_in_backfill > 0:
+            dt_from_ts = datetime.fromtimestamp(max_timestamp_for_ticker_in_backfill / 1000.0, timezone.utc)
+            # Start from the next candle interval
+            potential_next_start = dt_from_ts.replace(second=0, microsecond=0) + timedelta(minutes=candle_granularity_minutes)
+            current_ticker_start_dt = max(current_ticker_start_dt, potential_next_start)
+        
+        if current_ticker_start_dt >= end_date_dt:
+            logging.info(f"Ticker {ticker} already backfilled up to or beyond target end date. Last backfilled ts: {max_timestamp_for_ticker_in_backfill}. Skipping.")
+            continue
+
+        logging.info(
+            f"Backfilling {ticker} from {current_ticker_start_dt.strftime('%Y-%m-%d %H:%M:%S')} to {end_date_dt.strftime('%Y-%m-%d %H:%M:%S')}"
+        )
+        chunk_start_dt = current_ticker_start_dt
+        
         while chunk_start_dt < end_date_dt:
             chunk_start_str = chunk_start_dt.strftime("%Y-%m-%d")
-            chunk_end_dt = min(chunk_start_dt + timedelta(days=89), end_date_dt)
+            # Fetch up to 90 days or until end_date_dt, whichever is sooner
+            chunk_end_dt = min(
+                chunk_start_dt + timedelta(days=89), end_date_dt - timedelta(microseconds=1) # Ensure end is inclusive for daily, and not overlapping for intraday
+            )
             chunk_end_str = chunk_end_dt.strftime("%Y-%m-%d")
-            logging.info(f"  Fetching chunk for {ticker}: {chunk_start_str} to {chunk_end_str}")
+
+            logging.info(
+                f"  Fetching chunk for {ticker}: {chunk_start_str} to {chunk_end_str}"
+            )
             historical_candles = get_historical_candles_tiingo(
-                tiingo_api_key, ticker, chunk_start_str, chunk_end_str, resample_freq
+                tiingo_api_key,
+                ticker,
+                chunk_start_str, # Tiingo /prices takes date strings for historical
+                chunk_end_str,
+                resample_freq,
             )
             if historical_candles:
                 historical_candles.sort(key=lambda c: c["timestamp_ms"])
                 influx_manager.write_candles_batch(historical_candles)
                 if historical_candles: # update max_timestamp
-                    max_timestamp_for_ticker_in_backfill = max(max_timestamp_for_ticker_in_backfill, historical_candles[-1]["timestamp_ms"])
+                    max_timestamp_for_ticker_in_backfill = max(
+                        max_timestamp_for_ticker_in_backfill,
+                        historical_candles[-1]["timestamp_ms"],
+                    )
             else:
-                logging.info(f"  No data in chunk for {ticker}: {chunk_start_str} to {chunk_end_str}")
-            
-            chunk_start_dt = chunk_end_dt + timedelta(days=1)
-            if chunk_start_dt < end_date_dt:
-                logging.info(f"Waiting {api_call_delay_seconds}s before next API call for {ticker}...")
+                logging.info(
+                    f"  No data in chunk for {ticker}: {chunk_start_str} to {chunk_end_str}"
+                )
+
+            chunk_start_dt = chunk_end_dt + timedelta(days=1) # Next chunk starts the following day
+            if chunk_start_dt < end_date_dt and len(tiingo_tickers) > 1: # Avoid sleep if only one ticker or last chunk
+                logging.info(
+                    f"Waiting {api_call_delay_seconds}s before next API call/chunk for {ticker}..."
+                )
                 time.sleep(api_call_delay_seconds)
         
         if max_timestamp_for_ticker_in_backfill > 0:
             last_backfilled_timestamps[ticker] = max_timestamp_for_ticker_in_backfill
-        logging.info(f"Finished backfill for {ticker}. Last backfilled ts: {last_backfilled_timestamps.get(ticker)}")
+        logging.info(
+            f"Finished backfill for {ticker}. Last backfilled ts: {last_backfilled_timestamps.get(ticker)}"
+        )
     logging.info("Historical candle backfill completed.")
 
 
-# --- Polling Loop (New for PR5) ---
 def run_polling_loop(
     influx_manager: InfluxDBManager,
     tiingo_tickers: list[str],
@@ -128,133 +180,149 @@ def run_polling_loop(
     candle_granularity_minutes: int,
     api_call_delay_seconds: int,
     initial_catchup_days: int,
-    # Pass the map that was populated by backfill
-    last_processed_timestamps: dict[str, int] 
+    last_processed_timestamps: dict[str, int],
+    test_max_cycles: int | None = None, # New parameter for testing
 ):
     logging.info("Starting real-time candle polling loop...")
     resample_freq = get_tiingo_resample_freq(candle_granularity_minutes)
     granularity_delta = timedelta(minutes=candle_granularity_minutes)
 
-    # Initialize last_processed_timestamps if not already set by backfill
-    # For symbols not in backfill map, or if backfill was skipped.
-    # Query InfluxDB for the actual latest candle for robustness (PR6 task)
-    # For PR5, if not in map, we start from `initial_catchup_days` ago.
-    now_utc_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
-    default_catchup_start_ms = now_utc_ms - timedelta(days=initial_catchup_days).total_seconds() * 1000
+    # Initialize last_processed_timestamps for tickers not set by backfill
+    now_utc_for_init = datetime.now(timezone.utc)
+    default_catchup_start_dt = now_utc_for_init - timedelta(days=initial_catchup_days)
+    # Align to the start of its candle period
+    default_catchup_start_minute = (default_catchup_start_dt.minute // candle_granularity_minutes) * candle_granularity_minutes
+    default_catchup_start_dt_aligned = default_catchup_start_dt.replace(minute=default_catchup_start_minute, second=0, microsecond=0)
+    default_catchup_start_ms = int(default_catchup_start_dt_aligned.timestamp() * 1000)
+
 
     for ticker in tiingo_tickers:
-        if ticker not in last_processed_timestamps:
-            # Basic catch-up start point if no backfill data for this ticker
-            # This should ideally query InfluxDB for the true last point (PR6)
-            logging.info(f"No backfill timestamp for {ticker}, setting polling start from approx {initial_catchup_days} days ago.")
+        if ticker not in last_processed_timestamps or last_processed_timestamps.get(ticker, 0) == 0:
+            # TODO (PR6): Query InfluxDB for the true last point for this ticker.
+            # For now, if no backfill data, or if backfill resulted in 0, start from catchup.
+            logging.info(
+                f"No valid backfill timestamp for {ticker}, "
+                f"setting polling start from approx {initial_catchup_days} days ago: {default_catchup_start_dt_aligned.isoformat()}"
+            )
             last_processed_timestamps[ticker] = default_catchup_start_ms
-
-
+    
+    cycles_run = 0
     try:
         while True:
+            if test_max_cycles is not None and cycles_run >= test_max_cycles:
+                logging.info(f"Reached test_max_cycles ({test_max_cycles}). Exiting polling loop.")
+                break
+            cycles_run += 1
+
             loop_start_time = time.monotonic()
-            now_utc = datetime.now(timezone.utc)
-            logging.info(f"Starting polling cycle at {now_utc.isoformat()}")
+            current_cycle_time_utc = datetime.now(timezone.utc)
+            logging.info(
+                f"Starting polling cycle #{cycles_run} at {current_cycle_time_utc.isoformat()}"
+            )
 
             for ticker in tiingo_tickers:
                 try:
                     last_ts_ms = last_processed_timestamps.get(ticker)
-                    if last_ts_ms is None:
-                        logging.warning(f"Missing last timestamp for {ticker}, skipping this cycle for it.")
+                    if last_ts_ms is None: # Should have been initialized above
+                        logging.error(f"CRITICAL: Missing last_ts_ms for {ticker}. Re-initializing with default catchup.")
+                        last_ts_ms = default_catchup_start_ms
+                        last_processed_timestamps[ticker] = last_ts_ms
+                    
+                    last_known_candle_start_dt_utc = datetime.fromtimestamp(last_ts_ms / 1000.0, timezone.utc)
+
+                    # Determine the start of the most recently *fully closed* candle period
+                    current_minute_floored = (current_cycle_time_utc.minute // candle_granularity_minutes) * candle_granularity_minutes
+                    latest_closed_period_end_dt_utc = current_cycle_time_utc.replace(
+                        minute=current_minute_floored, second=0, microsecond=0
+                    )
+                    target_latest_closed_candle_start_dt_utc = latest_closed_period_end_dt_utc - granularity_delta
+
+                    if target_latest_closed_candle_start_dt_utc.timestamp() * 1000 <= last_ts_ms:
+                        logging.debug(
+                            f"Candle for {ticker} starting at {target_latest_closed_candle_start_dt_utc.isoformat()} "
+                            f"(or earlier) already processed (last was {last_known_candle_start_dt_utc.isoformat()}). Skipping."
+                        )
                         continue
 
-                    last_dt_utc = datetime.fromtimestamp(last_ts_ms / 1000.0, timezone.utc)
-                    
-                    # Determine the start of the *next* candle period we need
-                    next_candle_start_dt_utc = last_dt_utc.replace(second=0, microsecond=0)
-                    # Align to granularity boundary
-                    offset_minutes = next_candle_start_dt_utc.minute % candle_granularity_minutes
-                    if offset_minutes > 0: # If not already on a boundary from previous poll
-                        next_candle_start_dt_utc -= timedelta(minutes=offset_minutes)
-                    
-                    # If last_ts_ms was the start of the last candle, the next one starts after granularity
-                    # This logic needs to be careful to not miss the candle whose start_time is last_ts_ms
-                    # if last_ts_ms itself was a candle start.
-                    # Let's assume last_ts_ms is the timestamp *of the last candle*.
-                    # The next candle we want is the one starting *after* that.
-                    
-                    # Simplified: poll for the window that *should have just closed*
-                    # Current time, truncated to the current candle's granularity
-                    current_period_start_minute = (now_utc.minute // candle_granularity_minutes) * candle_granularity_minutes
-                    current_period_start_dt_utc = now_utc.replace(minute=current_period_start_minute, second=0, microsecond=0)
-                    
-                    # The most recently *closed* candle started one granularity period before current_period_start_dt_utc
-                    target_candle_start_dt_utc = current_period_start_dt_utc - granularity_delta
+                    # Query from the start of the *next expected* candle period
+                    query_start_dt_utc = last_known_candle_start_dt_utc + granularity_delta
+                    # Query up to the end of the `target_latest_closed_candle_start_dt_utc` period.
+                    query_end_dt_utc = target_latest_closed_candle_start_dt_utc + granularity_delta - timedelta(seconds=1)
 
-                    if target_candle_start_dt_utc.timestamp() * 1000 <= last_ts_ms:
-                        logging.debug(f"Already processed candle for {ticker} at or after {target_candle_start_dt_utc.isoformat()}, skipping.")
-                        continue # Already have this or newer
-
-                    # Fetch data from the start of the last known candle up to the most recent potential closed candle.
-                    # Tiingo's startDate is inclusive.
-                    query_start_date_str = (datetime.fromtimestamp(last_ts_ms / 1000.0, timezone.utc) + granularity_delta).strftime("%Y-%m-%d")
-                    # endDate for Tiingo historical API is inclusive.
-                    # We want candles up to the one that just closed.
-                    query_end_date_str = target_candle_start_dt_utc.strftime("%Y-%m-%d")
+                    if query_start_dt_utc > current_cycle_time_utc:
+                        logging.debug(f"Query start time {query_start_dt_utc.isoformat()} is in the future for {ticker}. Skipping.")
+                        continue
                     
-                    # For intraday, Tiingo expects YYYY-MM-DDTHH:MM:SS for startDate/endDate if time is relevant
-                    # For simplicity, if daily, just use date. If intraday, use more precise times.
-                    if candle_granularity_minutes < 1440: # intraday
-                        query_start_datetime_str = (datetime.fromtimestamp(last_ts_ms / 1000.0, timezone.utc) + granularity_delta).strftime("%Y-%m-%dT%H:%M:%S")
-                        query_end_datetime_str = target_candle_start_dt_utc.strftime("%Y-%m-%dT%H:%M:%S")
-                        
-                        # Fetch slightly more to ensure the target candle is included if Tiingo aligns to strict boundaries
-                        query_end_for_api = (target_candle_start_dt_utc + granularity_delta - timedelta(seconds=1)).strftime("%Y-%m-%dT%H:%M:%S")
+                    query_end_dt_utc = min(query_end_dt_utc, current_cycle_time_utc) # Don't query beyond current time
 
-                        logging.info(f"Polling for {ticker} from {query_start_datetime_str} up to target start {target_candle_start_dt_utc.isoformat()}")
-                        polled_candles = get_historical_candles_tiingo(
-                            tiingo_api_key,
-                            ticker,
-                            query_start_datetime_str, # Start from after the last known
-                            query_end_for_api,      # End at the end of the target candle period
-                            resample_freq,
-                        )
-                    else: # daily
-                        polled_candles = get_historical_candles_tiingo(
-                            tiingo_api_key,
-                            ticker,
-                            query_start_date_str,
-                            query_end_date_str,
-                            resample_freq,
-                        )
+                    if query_start_dt_utc > query_end_dt_utc :
+                        logging.debug(f"Calculated query start {query_start_dt_utc.isoformat()} is after query end {query_end_dt_utc.isoformat()} for {ticker}. Skipping API call.")
+                        continue
+
+                    # Tiingo uses YYYY-MM-DD for daily, YYYY-MM-DDTHH:MM:SS for intraday startDate/endDate for /prices
+                    if candle_granularity_minutes >= 1440: # Daily
+                        query_start_str = query_start_dt_utc.strftime("%Y-%m-%d")
+                        query_end_str = query_end_dt_utc.strftime("%Y-%m-%d")
+                    else: # Intraday
+                        query_start_str = query_start_dt_utc.strftime("%Y-%m-%dT%H:%M:%S")
+                        query_end_str = query_end_dt_utc.strftime("%Y-%m-%dT%H:%M:%S")
+                    
+                    logging.info(
+                        f"Polling for {ticker} from {query_start_str} to {query_end_str}"
+                    )
+                    
+                    polled_candles = get_historical_candles_tiingo(
+                        tiingo_api_key,
+                        ticker,
+                        query_start_str,
+                        query_end_str,
+                        resample_freq,
+                    )
 
                     if polled_candles:
-                        # Filter to ensure we only process new candles and exactly the target one if available
-                        new_candles_to_write = [
-                            c for c in polled_candles if c["timestamp_ms"] > last_ts_ms and 
-                            # Ensure we only take candles that have fully closed relative to 'now_utc'
-                            (c["timestamp_ms"] + granularity_delta.total_seconds() * 1000) <= (now_utc.timestamp() * 1000)
-                        ]
+                        new_candles_to_write = []
+                        for c in polled_candles:
+                            candle_ts_ms = c["timestamp_ms"]
+                            candle_end_ts_ms = candle_ts_ms + granularity_delta.total_seconds() * 1000
+                            if candle_ts_ms > last_ts_ms and candle_end_ts_ms <= current_cycle_time_utc.timestamp() * 1000:
+                                new_candles_to_write.append(c)
+                        
                         new_candles_to_write.sort(key=lambda c: c["timestamp_ms"])
 
                         if new_candles_to_write:
-                            logging.info(f"Fetched {len(new_candles_to_write)} new candle(s) for {ticker} via polling.")
+                            logging.info(
+                                f"Fetched {len(new_candles_to_write)} new candle(s) for {ticker} via polling."
+                            )
                             influx_manager.write_candles_batch(new_candles_to_write)
                             last_processed_timestamps[ticker] = new_candles_to_write[-1]["timestamp_ms"]
                         else:
-                            logging.info(f"No new, closed candles found for {ticker} in polled range.")
+                            logging.info(
+                                f"No new, fully closed candles found for {ticker} in polled range after filtering."
+                            )
                     else:
-                        logging.info(f"Polling returned no data for {ticker} for target period around {target_candle_start_dt_utc.isoformat()}")
+                        logging.info(
+                            f"Polling returned no data for {ticker} for period starting {query_start_str}"
+                        )
                     
-                    time.sleep(api_call_delay_seconds) # Delay between tickers
+                    if len(tiingo_tickers) > 1:
+                        time.sleep(api_call_delay_seconds)
 
                 except Exception as e:
                     logging.exception(f"Error polling for ticker {ticker}: {e}")
-                    # Continue to next ticker
 
             loop_duration = time.monotonic() - loop_start_time
             sleep_time = (candle_granularity_minutes * 60) - loop_duration
             if sleep_time > 0:
-                logging.info(f"Polling cycle finished in {loop_duration:.2f}s. Sleeping for {sleep_time:.2f}s.")
+                logging.info(
+                    f"Polling cycle #{cycles_run} finished in {loop_duration:.2f}s. Sleeping for {sleep_time:.2f}s."
+                )
                 time.sleep(sleep_time)
             else:
-                logging.warning(f"Polling cycle duration ({loop_duration:.2f}s) exceeded granularity ({candle_granularity_minutes*60}s). Running next cycle immediately.")
-
+                logging.warning(
+                    f"Polling cycle #{cycles_run} duration ({loop_duration:.2f}s) "
+                    f"exceeded granularity ({candle_granularity_minutes*60}s). "
+                    f"Running next cycle immediately."
+                )
     except KeyboardInterrupt:
         logging.info("Polling loop interrupted by user.")
     finally:
@@ -265,8 +333,8 @@ def main(argv):
     del argv
     logging.set_verbosity(logging.INFO)
     logging.info("Starting candle ingestor script (Python)...")
-    # ... (Log flag values - same as before) ...
     logging.info("Configuration:")
+    # ... (logging of flags as before) ...
     logging.info(f"  CoinMarketCap API Key: {'****' if FLAGS.cmc_api_key else 'Not Set/Loaded from Env'}")
     logging.info(f"  Top N Cryptos: {FLAGS.top_n_cryptos}")
     logging.info(f"  Tiingo API Key: {'****' if FLAGS.tiingo_api_key else 'Not Set/Loaded from Env'}")
@@ -278,7 +346,6 @@ def main(argv):
     logging.info(f"  Backfill Start Date: {FLAGS.backfill_start_date}")
     logging.info(f"  Tiingo API Call Delay: {FLAGS.tiingo_api_call_delay_seconds}s")
     logging.info(f"  Polling Initial Catchup Days: {FLAGS.polling_initial_catchup_days}")
-
 
     influx_manager = InfluxDBManager(
         url=FLAGS.influxdb_url,
@@ -299,12 +366,9 @@ def main(argv):
         logging.error("No symbols fetched from CoinMarketCap. Exiting.")
         influx_manager.close()
         return 1
-
     logging.info(f"Target Tiingo tickers: {tiingo_tickers}")
 
-    # This map will store the timestamp of the last candle successfully processed, per ticker
-    # It will be populated by backfill and then used/updated by the polling loop.
-    last_processed_candle_timestamps = {} 
+    last_processed_candle_timestamps = {}
 
     try:
         if FLAGS.backfill_start_date.lower() != "skip":
@@ -315,18 +379,13 @@ def main(argv):
                 FLAGS.backfill_start_date,
                 FLAGS.candle_granularity_minutes,
                 FLAGS.tiingo_api_call_delay_seconds,
-                last_processed_candle_timestamps # Pass the map to be populated
+                last_processed_candle_timestamps,
             )
         else:
             logging.info("Skipping historical backfill as per 'backfill_start_date' flag.")
             # Initialize timestamps for polling if backfill is skipped
-            now_utc_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
-            default_poll_start_ms = now_utc_ms - timedelta(days=FLAGS.polling_initial_catchup_days).total_seconds() * 1000
-            for ticker in tiingo_tickers:
-                last_processed_candle_timestamps[ticker] = default_poll_start_ms
+            # This init is now handled at the start of run_polling_loop if needed
 
-
-        # Start polling for "real-time" (recent closed) candles
         run_polling_loop(
             influx_manager,
             tiingo_tickers,
@@ -334,7 +393,8 @@ def main(argv):
             FLAGS.candle_granularity_minutes,
             FLAGS.tiingo_api_call_delay_seconds,
             FLAGS.polling_initial_catchup_days,
-            last_processed_candle_timestamps # Use the populated/initialized map
+            last_processed_candle_timestamps, # Pass the potentially populated map
+            # test_max_cycles=None # In production, this runs indefinitely
         )
 
     except Exception as e:
@@ -342,7 +402,7 @@ def main(argv):
     finally:
         logging.info("Main process finished. Closing InfluxDB connection.")
         influx_manager.close()
-    
+
     return 0
 
 
