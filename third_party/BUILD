@@ -337,3 +337,11 @@ py_library(
         requirement("requests"),
     ],
 )
+
+py_library(
+    name = "tenacity",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("tenacity"),
+    ],
+)
