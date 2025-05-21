@@ -119,19 +119,8 @@ py_image_layer(
 )
 
 oci_image(
-    name = "candle_ingestor_image_amd64",
+    name = "image",
     base = "@python_3_13_slim",
-    architecture = "amd64",
-    os = "linux",
-    entrypoint = ["/app/main_app/main_app"], # Adjusted based on typical py_image_layer structure
-    tars = [":main_app_py_layers"],
-)
-
-oci_image(
-    name = "candle_ingestor_image_arm64",
-    base = "@python_3_13_slim",
-    architecture = "arm64",
-    os = "linux",
     entrypoint = ["/app/main_app/main_app"], # Adjusted based on typical py_image_layer structure
     tars = [":main_app_py_layers"],
 )
@@ -139,8 +128,7 @@ oci_image(
 oci_image_index(
     name = "candle_ingestor_image_for_deployment",
     images = [
-        ":candle_ingestor_image_amd64",
-        ":candle_ingestor_image_arm64",
+        ":image",
     ],
     tags = ["tradestreamhq/candle-ingestor:latest"],
 )
