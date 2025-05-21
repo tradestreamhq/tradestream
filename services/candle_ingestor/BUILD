@@ -2,7 +2,7 @@ load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_index", "oci_push")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 
 py_library(
     name = "ingestion_helpers_lib",
@@ -136,7 +136,7 @@ oci_image(
     tars = [":main_app_py_layers"],
 )
 
-oci_index(
+oci_image_index(
     name = "candle_ingestor_image_for_deployment",
     images = {
         "linux/amd64": ":candle_ingestor_image_amd64",
