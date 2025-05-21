@@ -296,7 +296,7 @@ class TestInfluxDBManager(unittest.TestCase):
         manager.update_last_processed_timestamp("ethusd", "polling", 1678886400000)
 
         # Assert
-        self.mock_write_api_instance.write.assert_called_once() # Still called
+        self.assertEqual(self.mock_write_api_instance.write.call_count, 5) # Still called 5 times due to retry
 
 
 if __name__ == "__main__":

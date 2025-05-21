@@ -2,7 +2,15 @@ from absl import logging
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 from influxdb_client.client.exceptions import InfluxDBError
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, RetryError
 
+# Define common retry parameters for InfluxDB operations
+influx_retry_params = dict(
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=1, min=2, max=30),
+    retry=retry_if_exception_type((InfluxDBError, ConnectionError, TimeoutError)), # Added ConnectionError, TimeoutError
+    reraise=True
+)
 
 class InfluxDBManager:
     def __init__(self, url, token, org, bucket):
@@ -11,8 +19,13 @@ class InfluxDBManager:
         self.org = org
         self.bucket = bucket
         self.client = None
-        self._connect()
+        try:
+            self._connect()
+        except Exception as e: # Catch exceptions reraised by _connect after retries
+            logging.warning(f"InfluxDBManager __init__ failed to connect after retries: {e}")
+            # self.client is already None, which is correct.
 
+    @retry(**influx_retry_params)
     def _connect(self):
         try:
             self.client = InfluxDBClient(
@@ -26,15 +39,18 @@ class InfluxDBManager:
                     "Successfully connected to InfluxDB and pinged server."
                 )
             else:
+                # This path might be less common as ping() itself might raise on failure
                 logging.error(
                     f"Failed to ping InfluxDB at {self.url}. Check connection and configuration."
                 )
-                self.client = None  # Prevent use of a non-functional client
+                self.client = None
+                raise InfluxDBError(message="Ping failed") # Raise to trigger retry
         except Exception as e:
             logging.error(
                 f"Error connecting to InfluxDB at {self.url}: {e}"
             )
             self.client = None
+            raise # Reraise to allow tenacity to retry
 
     def get_client(self):
         return self.client
@@ -61,12 +77,10 @@ class InfluxDBManager:
     def get_org(self):
         return self.org
 
-    def write_candles_batch(self, candles_data: list[dict]) -> int:
-        """Writes a batch of candle data (list of dicts) to InfluxDB."""
+    @retry(**influx_retry_params)
+    def _write_candles_batch_retryable(self, candles_data: list[dict]) -> int:
         if not self.client:
-            logging.error(
-                "InfluxDB client not initialized. Cannot write candles."
-            )
+            logging.error("InfluxDB client not initialized in _write_candles_batch_retryable.")
             return 0
         if not candles_data:
             return 0
@@ -74,8 +88,7 @@ class InfluxDBManager:
         points = []
         for candle_dict in candles_data:
             try:
-                # Ensure all fields are present and correctly typed before creating Point
-                currency_pair_tag = str(candle_dict["currency_pair"]) # Tag values must be strings
+                currency_pair_tag = str(candle_dict["currency_pair"])
                 timestamp_ms = int(candle_dict["timestamp_ms"])
                 open_val = float(candle_dict["open"])
                 high_val = float(candle_dict["high"])
@@ -84,7 +97,7 @@ class InfluxDBManager:
                 volume_val = float(candle_dict["volume"])
 
                 point = (
-                    Point("candles")  # Measurement name
+                    Point("candles")
                     .tag("currency_pair", currency_pair_tag)
                     .field("open", open_val)
                     .field("high", high_val)
@@ -105,36 +118,40 @@ class InfluxDBManager:
 
         write_api = self.get_write_api()
         if write_api:
-            try:
-                write_api.write(
-                    bucket=self.bucket, org=self.org, record=points
-                )
-                logging.info(
-                    f"Successfully wrote {len(points)} candle points to InfluxDB for {candles_data[0].get('currency_pair', 'N/A')}."
-                )
-                return len(points)
-            except InfluxDBError as e: # More specific error handling
-                logging.error(f"InfluxDBError writing batch: {e}")
-            except Exception as e:
-                logging.error(f"Generic error writing batch to InfluxDB: {e}")
+            write_api.write(
+                bucket=self.bucket, org=self.org, record=points
+            )
+            logging.info(
+                f"Successfully wrote {len(points)} candle points to InfluxDB for {candles_data[0].get('currency_pair', 'N/A')}."
+            )
+            return len(points)
         return 0
 
-    def get_last_processed_timestamp(self, symbol: str, ingestion_type: str) -> int | None:
-        """
-        Queries InfluxDB for the last processed timestamp for a given symbol and ingestion type.
-        Returns timestamp in milliseconds, or None.
-        """
+
+    def write_candles_batch(self, candles_data: list[dict]) -> int:
         if not self.client:
-            logging.error("InfluxDB client not initialized. Cannot query state.")
+            logging.error("InfluxDB client not initialized. Cannot write candles.")
+            return 0
+        try:
+            return self._write_candles_batch_retryable(candles_data)
+        except (InfluxDBError, ConnectionError, TimeoutError) as e:
+            logging.error(f"InfluxDBError writing batch after all retries: {e}")
+            return 0
+        except Exception as e:
+            logging.error(f"Generic error writing batch to InfluxDB after all retries: {e}")
+            return 0
+
+    @retry(**influx_retry_params)
+    def _get_last_processed_timestamp_retryable(self, symbol: str, ingestion_type: str) -> int | None:
+        if not self.client:
+            logging.error("InfluxDB client not initialized in _get_last_processed_timestamp_retryable.")
             return None
 
         query_api = self.get_query_api()
         if not query_api:
+            logging.error("Failed to get query_api in _get_last_processed_timestamp_retryable.")
             return None
 
-        # Flux query to get the most recent last_processed_timestamp_ms
-        # The state measurement is assumed to be in the same bucket as candle data.
-        # If it's in a different bucket, adjust self.bucket in the query.
         flux_query = f'''
         from(bucket: "{self.bucket}")
           |> range(start: 0)
@@ -147,48 +164,63 @@ class InfluxDBManager:
           |> yield(name: "last")
         '''
         logging.debug(f"Executing Flux query for state: {flux_query}")
-        try:
-            tables = query_api.query(query=flux_query, org=self.org)
-            for table in tables:
-                for record in table.records:
-                    timestamp_ms = record.get_value()
-                    logging.info(f"Retrieved last processed timestamp for {symbol} ({ingestion_type}): {timestamp_ms}")
-                    return int(timestamp_ms) # Ensure it's an int
-            logging.info(f"No prior processing state found for {symbol} ({ingestion_type}).")
-        except InfluxDBError as e:
-            logging.error(f"InfluxDBError querying processing state for {symbol} ({ingestion_type}): {e}")
-        except Exception as e:
-            logging.error(f"Generic error querying processing state for {symbol} ({ingestion_type}): {e}")
+        tables = query_api.query(query=flux_query, org=self.org)
+        for table in tables:
+            for record in table.records:
+                timestamp_ms = record.get_value()
+                logging.info(f"Retrieved last processed timestamp for {symbol} ({ingestion_type}): {timestamp_ms}")
+                return int(timestamp_ms)
+        logging.info(f"No prior processing state found for {symbol} ({ingestion_type}).")
         return None
 
-    def update_last_processed_timestamp(self, symbol: str, ingestion_type: str, timestamp_ms: int):
-        """
-        Writes/updates the last processed timestamp for a symbol and ingestion type in InfluxDB.
-        """
+    def get_last_processed_timestamp(self, symbol: str, ingestion_type: str) -> int | None:
         if not self.client:
-            logging.error("InfluxDB client not initialized. Cannot update state.")
-            return
+            logging.error("InfluxDB client not initialized. Cannot query state.")
+            return None
+        try:
+            return self._get_last_processed_timestamp_retryable(symbol, ingestion_type)
+        except (InfluxDBError, ConnectionError, TimeoutError) as e:
+            logging.error(f"Query for {symbol} ({ingestion_type}) failed after all retries: {e}")
+            return None
+        except Exception as e:
+            logging.error(f"Generic error querying {symbol} ({ingestion_type}) after all retries: {e}")
+            return None
 
+    @retry(**influx_retry_params)
+    def _update_last_processed_timestamp_retryable(self, symbol: str, ingestion_type: str, timestamp_ms: int):
+        if not self.client:
+            logging.error("InfluxDB client not initialized in _update_last_processed_timestamp_retryable.")
+            return
         write_api = self.get_write_api()
         if not write_api:
+            logging.error("Failed to get write_api in _update_last_processed_timestamp_retryable.")
             return
 
         point = (
             Point("ingestor_processing_state")
             .tag("symbol", symbol)
             .tag("ingestion_type", ingestion_type)
-            .field("last_processed_timestamp_ms", int(timestamp_ms)) # Ensure integer
-            # InfluxDB automatically adds a timestamp for the write itself
+            .field("last_processed_timestamp_ms", int(timestamp_ms))
         )
+        write_api.write(bucket=self.bucket, org=self.org, record=point)
+        logging.info(f"Successfully updated processing state for {symbol} ({ingestion_type}) to {timestamp_ms}")
+
+    def update_last_processed_timestamp(self, symbol: str, ingestion_type: str, timestamp_ms: int):
+        if not self.client:
+            logging.error("InfluxDB client not initialized. Cannot update state.")
+            return
         try:
-            write_api.write(bucket=self.bucket, org=self.org, record=point)
-            logging.info(f"Successfully updated processing state for {symbol} ({ingestion_type}) to {timestamp_ms}")
-        except InfluxDBError as e:
-            logging.error(f"InfluxDBError updating processing state for {symbol} ({ingestion_type}): {e}")
+            self._update_last_processed_timestamp_retryable(symbol, ingestion_type, timestamp_ms)
+        except (InfluxDBError, ConnectionError, TimeoutError) as e:
+            logging.error(f"Update for {symbol} ({ingestion_type}) failed after all retries: {e}")
         except Exception as e:
-            logging.error(f"Generic error updating processing state for {symbol} ({ingestion_type}): {e}")
+            logging.error(f"Generic error updating {symbol} ({ingestion_type}) after all retries: {e}")
 
     def close(self):
         if self.client:
-            self.client.close()
-            logging.info("InfluxDB client closed.")
+            try:
+                self.client.close()
+                logging.info("InfluxDB client closed.")
+                self.client = None # Explicitly set to None after closing
+            except Exception as e:
+                logging.error(f"Error closing InfluxDB client: {e}")
