@@ -138,10 +138,10 @@ oci_image(
 
 oci_image_index(
     name = "candle_ingestor_image_for_deployment",
-    images = {
-        "linux/amd64": ":candle_ingestor_image_amd64",
-        "linux/arm64": ":candle_ingestor_image_arm64",
-    },
+    images = [
+        ":candle_ingestor_image_amd64",
+        ":candle_ingestor_image_arm64",
+    ],
     tags = ["tradestreamhq/candle-ingestor:latest"],
 )
 
