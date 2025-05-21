@@ -1,6 +1,8 @@
+load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 
 py_library(
     name = "ingestion_helpers_lib",
@@ -16,7 +18,7 @@ py_library(
     deps = [
         "//third_party:absl_py",
         "//third_party:requests",
-        "//third_party:tenacity",  # Added
+        "//third_party:tenacity",
     ],
 )
 
@@ -26,7 +28,7 @@ py_library(
     deps = [
         "//third_party:absl_py",
         "//third_party:requests",
-        "//third_party:tenacity",  # Added
+        "//third_party:tenacity",
     ],
 )
 
@@ -36,7 +38,7 @@ py_library(
     deps = [
         "//third_party:absl_py",
         "//third_party:influxdb_client",
-        "//third_party:tenacity",  # Added
+        "//third_party:tenacity",
     ],
 )
 
@@ -107,4 +109,32 @@ py_test(
         ":tiingo_client_lib",
         "//third_party:absl_py",
     ],
+)
+
+# --- OCI Image Rules ---
+py_image_layer(
+    name = "main_app_py_layers",
+    binary = ":main_app",
+    # package_dir = "/app", # Default is often /app/<binary_name_target>
+)
+
+oci_image(
+    name = "image",
+    base = "@python_3_13_slim",
+    entrypoint = ["/app/main_app/main_app"], # Adjusted based on typical py_image_layer structure
+    tars = [":main_app_py_layers"],
+)
+
+oci_image_index(
+    name = "candle_ingestor_image_for_deployment",
+    images = [
+        ":image",
+    ],
+    tags = ["tradestreamhq/candle-ingestor:latest"],
+)
+
+oci_push(
+    name = "push_candle_ingestor_image",
+    image = ":candle_ingestor_image_for_deployment",
+    repository = "tradestreamhq/candle-ingestor",
 )
