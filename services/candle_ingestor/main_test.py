@@ -16,6 +16,7 @@ FLAGS = flags.FLAGS
 class BaseIngestorTest(absltest.TestCase):
     def setUp(self):
         super().setUp()
+        candle_ingestor_main.shutdown_requested = False # Reset global flag
         self.mock_influx_manager = mock.MagicMock(
             spec=influx_client_module.InfluxDBManager
         )
