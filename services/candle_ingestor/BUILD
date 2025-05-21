@@ -120,7 +120,7 @@ py_image_layer(
 
 oci_image(
     name = "candle_ingestor_image_amd64",
-    base = "@python_3_13_slim//:image",
+    base = "@python_3_13_slim//:image.tar",
     architecture = "amd64",
     os = "linux",
     entrypoint = ["/app/main_app/main_app"], # Adjusted based on typical py_image_layer structure
@@ -129,7 +129,7 @@ oci_image(
 
 oci_image(
     name = "candle_ingestor_image_arm64",
-    base = "@python_3_13_slim//:image",
+    base = "@python_3_13_slim//:image.tar",
     architecture = "arm64",
     os = "linux",
     entrypoint = ["/app/main_app/main_app"], # Adjusted based on typical py_image_layer structure
