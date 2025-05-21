@@ -140,14 +140,14 @@ oci.pull(
 use_repo(oci, "flink_java17")
 
 oci.pull(
-    name = "python_3_13_slim_bullseye_for_ingestor",
+    name = "python_3_13_slim",
     image = "docker.io/library/python:3.13-slim",
     platforms = ["linux/amd64", "linux/arm64/v8"],
     digest = "sha256:914bf5c12ea40a97a78b2bff97fbdb766cc36ec903bfb4358faf2b74d73b555b",
 )
 use_repo(
     oci,
-    "python_3_13_slim_bullseye_for_ingestor",
+    "python_3_13_slim",
 )
 
 bazel_lib = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
