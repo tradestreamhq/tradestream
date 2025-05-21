@@ -142,7 +142,7 @@ oci_image_index(
         "linux/amd64": ":candle_ingestor_image_amd64",
         "linux/arm64": ":candle_ingestor_image_arm64",
     },
-    repo_tags = ["tradestreamhq/candle-ingestor:latest"],
+    tags = ["tradestreamhq/candle-ingestor:latest"],
 )
 
 oci_push(
