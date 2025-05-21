@@ -18,7 +18,7 @@ py_library(
     deps = [
         "//third_party:absl_py",
         "//third_party:requests",
-        "//third_party:tenacity",  # Added
+        "//third_party:tenacity",
     ],
 )
 
@@ -28,7 +28,7 @@ py_library(
     deps = [
         "//third_party:absl_py",
         "//third_party:requests",
-        "//third_party:tenacity",  # Added
+        "//third_party:tenacity",
     ],
 )
 
@@ -38,7 +38,7 @@ py_library(
     deps = [
         "//third_party:absl_py",
         "//third_party:influxdb_client",
-        "//third_party:tenacity",  # Added
+        "//third_party:tenacity",
     ],
 )
 
@@ -120,7 +120,7 @@ py_image_layer(
 
 oci_image(
     name = "candle_ingestor_image_amd64",
-    base = "@python_3_13_slim_bullseye_for_ingestor//image",
+    base = "@python_3_13_slim//:image",
     architecture = "amd64",
     os = "linux",
     entrypoint = ["/app/main_app/main_app"], # Adjusted based on typical py_image_layer structure
@@ -129,7 +129,7 @@ oci_image(
 
 oci_image(
     name = "candle_ingestor_image_arm64",
-    base = "@python_3_13_slim_bullseye_for_ingestor//image",
+    base = "@python_3_13_slim//:image",
     architecture = "arm64",
     os = "linux",
     entrypoint = ["/app/main_app/main_app"], # Adjusted based on typical py_image_layer structure
