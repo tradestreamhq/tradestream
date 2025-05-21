@@ -143,11 +143,11 @@ oci.pull(
     name = "python_3_13_slim_bullseye_for_ingestor",
     image = "docker.io/python:3.13-slim-bullseye",
     platforms = ["linux/amd64", "linux/arm64"],
-    # digest = "sha256:...", # Add specific digest if known and required
+    digest = "sha256:8f0a834ff729f16935579789f3566f80a7891809619866a2c9c9f560111f6e7a",
 )
 use_repo(
-    oci, # Corrected: use_repo(oci, ...) not use_repo(oci_pull, ...)
-    python_3_13_slim_bullseye_for_ingestor = "python_3_13_slim_bullseye_for_ingestor",
+    oci,
+    "python_3_13_slim_bullseye_for_ingestor",
 )
 
 bazel_lib = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
