@@ -16,6 +16,11 @@ bazel_dep(name = "rules_kotlin", version = "2.1.3")
 bazel_dep(name = "rules_oci", version = "2.2.3")
 bazel_dep(name = "rules_python", version = "1.4.1")
 
+# Configure a hermetic CC toolchain
+cc_configure = use_extension("@rules_cc//cc:extensions.bzl", "cc_configure")
+cc_configure.configure()
+use_repo(cc_configure, "local_config_cc")
+
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     # We can specify the exact version.
