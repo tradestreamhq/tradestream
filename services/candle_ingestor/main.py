@@ -300,9 +300,11 @@ def run_polling_loop(
             else:
                 backfill_state_ts_ms = None
                 if influx_manager:
-                    backfill_state_ts_ms = influx_manager.get_last_processed_timestamp(ticker_symbol, "backfill")
-                
-                if backfill_state_ts_ms: # Use backfill state if it exists
+                    backfill_state_ts_ms = influx_manager.get_last_processed_timestamp(
+                        ticker_symbol, "backfill"
+                    )
+
+                if backfill_state_ts_ms:  # Use backfill state if it exists
                     last_processed_timestamps[ticker_symbol] = backfill_state_ts_ms
                     logging.info(f"No polling state for {ticker_symbol}, using last backfill state: {datetime.fromtimestamp(backfill_state_ts_ms / 1000.0, timezone.utc).isoformat()}")
                 else: # Default catchup if no state found at all
