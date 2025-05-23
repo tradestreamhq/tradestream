@@ -296,7 +296,9 @@ def run_polling_loop(
 
             if polling_state_ts_ms:
                 last_processed_timestamps[ticker_symbol] = polling_state_ts_ms
-                logging.info(f"Found last polling state for {ticker_symbol}: {datetime.fromtimestamp(polling_state_ts_ms / 1000.0, timezone.utc).isoformat()}")
+                logging.info(
+                    f"Found last polling state for {ticker_symbol}: {datetime.fromtimestamp(polling_state_ts_ms / 1000.0, timezone.utc).isoformat()}"
+                )
             else:
                 backfill_state_ts_ms = None
                 if influx_manager:
