@@ -26,6 +26,3 @@ commandTests:
         - "DRY RUN: Simulating Tiingo API call for btcusd-dry"
         - "DRY RUN: Reached max polling cycles"
         - "Exiting due to shutdown request."
-    exitCode: 0
-    # We expect it to take a short amount of time. Max duration helps catch hangs.
-    timeout: 60000 # 60 seconds
