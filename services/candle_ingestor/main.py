@@ -564,8 +564,9 @@ def main(argv):
                     run_mode=FLAGS.run_mode,
                 )
         else:
-            logging.info("Skipping historical backfill as per 'backfill_start_date' flag.")
-
+            logging.info(
+                "Skipping historical backfill as per 'backfill_start_date' flag."
+            )
 
         if not shutdown_requested: 
             run_polling_loop(
