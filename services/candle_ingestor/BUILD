@@ -44,7 +44,7 @@ py_library(
 )
 
 py_binary(
-    name = "main_app",
+    name = "app",
     srcs = ["main.py"],
     main = "main.py",
     deps = [
@@ -104,7 +104,7 @@ py_test(
         # e.g., "--influxdb_url=http://mock-influx:8086",
     ],
     deps = [
-        ":main_app",
+        ":app",
         ":ingestion_helpers_lib",
         ":influx_client_lib",
         ":tiingo_client_lib",
@@ -114,16 +114,16 @@ py_test(
 
 # --- OCI Image Rules ---
 py_image_layer(
-    name = "main_app_py_layers",
-    binary = ":main_app",
+    name = "layers",
+    binary = ":app",
     # package_dir = "/app", # Default is often /app/<binary_name_target>
 )
 
 oci_image(
     name = "image",
     base = "@python_3_13_slim",
-    entrypoint = ["/app/main_app/main_app"], # Adjusted based on typical py_image_layer structure
-    tars = [":main_app_py_layers"],
+    entrypoint = ["/services/candle_ingestor/app"],
+    tars = [":layers"],
 )
 
 oci_image_index(
