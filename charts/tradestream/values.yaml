@@ -87,61 +87,25 @@ candleIngestor:
   enabled: false
   replicaCount: 1
   image:
-    repository: "tradestreamhq//candle-ingestor"
+    repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
-    # tag: "" # Defaults to .Chart.AppVersion, will be overridden by CI/CD
-  serviceAccount:
-    create: true
-    # name: "" # Defaults to <helm-release-name>-candle-ingestor, uncomment to override
-    annotations: {}
+    # tag: "" # Defaults to .Chart.AppVersion
+
   config:
     topNCryptos: 100
     candleGranularityMinutes: 1
-    influxDbUrl: "http://{{ include "tradestream.fullname" . }}-influxdb:8086" # Assumes InfluxDB is deployed by the same chart
-    influxDbBucket: "tradestream-data" # Should match the bucket created by the InfluxDB sub-chart
-    dataSources: "coinmarketcap,tiingo" # Comma-separated list of data sources
-    # Add other script-specific flags here
-    # exampleFlag: "exampleValue"
+    influxDbUrl: "http://{{ include \"tradestream.fullname\" . }}-influxdb:8086"
+    influxDbBucket: "tradestream-data"
+    dataSources: "coinmarketcap,tiingo"
+
   secrets:
-    # Secrets for API keys
     cmcApiKey:
-      name: "coinmarketcap" # Name of the existing K8s secret for CoinMarketCap
-      key: "apiKey"        # Key within the secret that holds the API key
+      name: "coinmarketcap"
+      key: "apiKey"
     tiingoApiKey:
-      name: "tiingo"       # Name of the existing K8s secret for Tiingo
-      key: "apiKey"        # Key within the secret that holds the API key
-    # New secret for InfluxDB application token specific to the candle ingestor
+      name: "tiingo"
+      key: "apiKey"
     influxDb:
-      name: "influxdb-candle-ingestor-credentials" # Name of the new K8s secret to be created
-      tokenKey: "INFLUXDB_TOKEN" # Key for the InfluxDB token
-      orgKey: "INFLUXDB_ORG"     # Key for the InfluxDB organization
-  # Resource requests and limits
-  resources: {}
-  #   requests:
-  #     cpu: 100m
-  #     memory: 128Mi
-  #   limits:
-  #     cpu: 500m
-  #     memory: 512Mi
-
-  # Liveness probe configuration
-  livenessProbe:
-    exec:
-      command:
-      - /bin/true # Placeholder: Replace with actual health check command if available
-    initialDelaySeconds: 30 # How long to wait after the container starts before performing the first probe
-    periodSeconds: 15       # How often to perform the probe
-    timeoutSeconds: 5       # When the probe times out
-    failureThreshold: 3     # Number of times Kubernetes will try when a Pod fails a Liveness Probe
-    successThreshold: 1     # Minimum consecutive successes for the probe to be considered successful after having failed
-
-  # Readiness probe configuration
-  readinessProbe:
-    exec:
-      command:
-      - /bin/true # Placeholder: Replace with actual health check command if available
-    initialDelaySeconds: 30 # How long to wait after the container starts before performing the first probe
-    periodSeconds: 15       # How often to perform the probe
-    timeoutSeconds: 5       # When the probe times out
-    failureThreshold: 3     # Number of times Kubernetes will try when a Pod fails a Readiness Probe
-    successThreshold: 1     # Minimum consecutive successes for the probe to be considered successful after having failed
+      name: "influxdb-candle-ingestor-credentials"
+      tokenKey: "INFLUXDB_TOKEN"
+      orgKey: "INFLUXDB_ORG"
