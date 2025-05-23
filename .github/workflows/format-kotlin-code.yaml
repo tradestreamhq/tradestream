@@ -11,14 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
       - name: Install ktlint
         run: |
           curl -sSLO https://github.com/pinterest/ktlint/releases/download/1.2.1/ktlint
           chmod a+x ktlint
           sudo mv ktlint /usr/local/bin/
-      - name: Format files using ktlint
+      - name: Auto-fix what ktlint can fix
         run: ktlint -F "**/*.kt" "**/*.kts"
-      - name: Check for changes
+        continue-on-error: true
+      - name: Check for auto-fixed changes
         id: verify-changed-files
         run: |
           if [ -n "$(git status --porcelain)" ]; then
@@ -26,8 +29,15 @@ jobs:
           else
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
-      - name: Annotate diff changes using reviewdog
+      - name: Suggest auto-fixed changes
         if: steps.verify-changed-files.outputs.changed == 'true'
         uses: reviewdog/action-suggester@v1
         with:
-          tool_name: ktlint
+          tool_name: ktlint-format
+      - name: Report remaining ktlint violations
+        uses: ScaCap/action-ktlint@master
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
+          level: warning
+          fail_on_error: false
