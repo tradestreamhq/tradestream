@@ -537,7 +537,9 @@ def main(argv):
     try:
         if FLAGS.backfill_start_date.lower() != "skip":
             if FLAGS.run_mode == "wet" and influx_manager_global:
-                logging.info("Attempting to pre-populate backfill states from InfluxDB...")
+                logging.info(
+                    "Attempting to pre-populate backfill states from InfluxDB..."
+                )
                 for ticker_symbol in tiingo_tickers:
                     if shutdown_requested:
                         break
