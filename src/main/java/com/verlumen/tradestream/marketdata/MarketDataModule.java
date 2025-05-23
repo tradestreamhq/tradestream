@@ -15,7 +15,8 @@ import org.joda.time.Duration;
 
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
-  public static MarketDataModule create(String exchangeName, Duration granularity, RunMode runMode, String tiingoApiKey) {
+  public static MarketDataModule create(
+      String exchangeName, Duration granularity, RunMode runMode, String tiingoApiKey) {
     return new AutoValue_MarketDataModule(exchangeName, granularity, runMode, tiingoApiKey);
   }
 
