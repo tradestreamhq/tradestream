@@ -12,12 +12,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Format files using google-java-format
-        uses: axel-op/googlejavaformat-action@v3
-        id: action_gjf
+        uses: axel-op/googlejavaformat-action@v4
         with:
+          args: "--replace"
           skip-commit: true
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
       - name: Annotate diff changes using reviewdog
-        if: steps.action_gjf.outputs.formatted-files-count > 0
+        if: steps.verify-changed-files.outputs.changed == 'true'
         uses: reviewdog/action-suggester@v1
         with:
           tool_name: google-java-format
