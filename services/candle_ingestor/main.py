@@ -356,6 +356,9 @@ def run_polling_loop(
                         last_ts_ms = int((datetime.now(timezone.utc) - timedelta(days=initial_catchup_days)).timestamp() * 1000)
                         last_processed_timestamps[ticker] = last_ts_ms
 
+                    last_known_candle_start_dt_utc = datetime.fromtimestamp(
+                        last_ts_ms / 1000.0, timezone.utc
+                    )
 
                     last_known_candle_start_dt_utc = datetime.fromtimestamp(last_ts_ms / 1000.0, timezone.utc)
 
