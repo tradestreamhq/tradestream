@@ -1,4 +1,5 @@
 load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
+load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
@@ -126,7 +127,7 @@ oci_image(
 )
 
 oci_image_index(
-    name = "candle_ingestor_image_for_deployment",
+    name = "images",
     images = [
         ":image",
     ],
@@ -135,6 +136,14 @@ oci_image_index(
 
 oci_push(
     name = "push_candle_ingestor_image",
-    image = ":candle_ingestor_image_for_deployment",
+    image = ":images",
     repository = "tradestreamhq/candle-ingestor",
 )
+
+container_structure_test(
+    name = "container_test_dry_run",
+    configs = ["container-structure-test-dry-run.yaml"],
+    image = ":image",
+    tags = ["requires-docker"],
+)
+
