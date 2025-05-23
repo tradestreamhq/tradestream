@@ -87,7 +87,7 @@ candleIngestor:
   enabled: false
   replicaCount: 1
   image:
-    repository: "your-docker-repo/candle-ingestor" # TODO: Replace with actual image repo
+    repository: "tradestreamhq//candle-ingestor"
     pullPolicy: IfNotPresent
     # tag: "" # Defaults to .Chart.AppVersion, will be overridden by CI/CD
   serviceAccount:
