@@ -1,0 +1,26 @@
+name: 'black-formatter'
+on:
+  pull_request:
+    paths: ['**/*.py']
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install black
+        run: pip install black
+      - name: Run black formatter
+        run: black --check --diff .
+        continue-on-error: true
+      - name: Apply black formatting
+        run: black .
+      - uses: parkerbxyz/suggest-changes@v1
+        with:
+          comment: 'Please commit the suggested changes from black formatter.'
+          event: 'REQUEST_CHANGES'
