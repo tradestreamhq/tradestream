@@ -2,7 +2,7 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.collect.EvictingQueue
 import com.google.common.collect.ImmutableList
-import com.google.common.flogger.FluentLogger
+import com.google.common.flogger.FluentLogger 
 import org.apache.beam.sdk.coders.Coder
 import org.apache.beam.sdk.coders.SerializableCoder
 import org.apache.beam.sdk.coders.StringUtf8Coder
