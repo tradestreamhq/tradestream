@@ -527,8 +527,8 @@ def main(argv):
 
     if not tiingo_tickers:
         logging.error("No symbols fetched. Exiting.")
-        if influx_manager_global: 
-            influx_manager_global.close() 
+        if influx_manager_global:
+            influx_manager_global.close()
         return 1
     logging.info(f"Target Tiingo tickers: {tiingo_tickers}")
 
