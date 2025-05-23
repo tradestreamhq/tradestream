@@ -1,0 +1,31 @@
+schemaVersion: "2.0.0"
+commandTests:
+  - name: "Candle Ingestor Dry Run Test"
+    command: "/app/main_app/main_app"
+    args: [
+        "--run_mode=dry",
+        "--cmc_api_key=dummykey", 
+        "--tiingo_api_key=dummykey",
+        "--influxdb_token=dummytoken",
+        "--influxdb_org=dummyorg",
+        "--top_n_cryptos=1", # Limit for faster test
+        "--backfill_start_date=1_day_ago", # Short backfill
+        "--candle_granularity_minutes=60", # Use a larger granularity to reduce iterations
+        "--polling_initial_catchup_days=1" # Short catchup
+        ]
+    # Expected to exit cleanly after a few dry run iterations.
+    # Check for specific log messages indicating dry run operation and completion.
+    expectedOutput:
+        - "Starting candle ingestor script .* in dry mode"
+        - "DRY RUN: Backfill will use dummy data and limited iterations."
+        - "DRY RUN: Using dummy crypto symbols."
+        - "Target Tiingo tickers: \\['btcusd-dry'\\]" # Example with top_n_cryptos=1
+        - "DRY RUN: Simulating Tiingo API call for btcusd-dry"
+        - "DRY RUN: Backfill simulation complete."
+        - "DRY RUN: Polling will use dummy data and limited iterations."
+        - "DRY RUN: Simulating Tiingo API call for btcusd-dry"
+        - "DRY RUN: Reached max polling cycles"
+        - "Exiting due to shutdown request."
+    exitCode: 0
+    # We expect it to take a short amount of time. Max duration helps catch hangs.
+    timeout: 60000 # 60 seconds
