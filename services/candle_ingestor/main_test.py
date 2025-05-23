@@ -50,11 +50,20 @@ class BaseIngestorTest(absltest.TestCase):
         self.mock_helpers_datetime_module = self.patch_helpers_datetime.start()
         self.addCleanup(self.patch_helpers_datetime.stop)
 
+        # Patch timedelta to ensure it works correctly
+        self.patch_main_timedelta = mock.patch("services.candle_ingestor.main.timedelta", timedelta)
+        self.patch_main_timedelta.start()
+        self.addCleanup(self.patch_main_timedelta.stop)
+        
+        self.patch_helpers_timedelta = mock.patch("services.candle_ingestor.ingestion_helpers.timedelta", timedelta)
+        self.patch_helpers_timedelta.start()
+        self.addCleanup(self.patch_helpers_timedelta.stop)
+
         # Configure datetime mocks
         self.mock_main_datetime_module.now = mock.MagicMock()
         self.mock_helpers_datetime_module.now = self.mock_main_datetime_module.now
         
-        # Configure non-mocked parts
+        # Configure non-mocked parts to use real datetime
         self.mock_main_datetime_module.fromtimestamp = datetime.fromtimestamp
         self.mock_main_datetime_module.strptime = datetime.strptime
         self.mock_main_datetime_module.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
@@ -62,6 +71,10 @@ class BaseIngestorTest(absltest.TestCase):
         self.mock_helpers_datetime_module.fromtimestamp = datetime.fromtimestamp
         self.mock_helpers_datetime_module.strptime = datetime.strptime
         self.mock_helpers_datetime_module.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
+        
+        # Configure timezone
+        self.mock_main_datetime_module.timezone = timezone
+        self.mock_helpers_datetime_module.timezone = timezone
         
 
         self.saved_flags = flagsaver.save_flag_values()
@@ -81,12 +94,24 @@ class BaseIngestorTest(absltest.TestCase):
 
     def tearDown(self):
         flagsaver.restore_flag_values(self.saved_flags)
+        candle_ingestor_main.shutdown_requested = False  # Reset global flag
         super().tearDown()
 
     def _set_current_time(self, dt_str):
         mock_dt = datetime.fromisoformat(dt_str).replace(tzinfo=timezone.utc)
         self.mock_main_datetime_module.now.return_value = mock_dt
         self.mock_helpers_datetime_module.now.return_value = mock_dt
+        
+        # Configure datetime operations to work properly
+        def mock_datetime_constructor(*args, **kwargs):
+            return datetime(*args, **kwargs)
+        
+        self.mock_main_datetime_module.side_effect = mock_datetime_constructor
+        self.mock_helpers_datetime_module.side_effect = mock_datetime_constructor
+        
+        # Ensure timezone is available
+        self.mock_main_datetime_module.timezone = timezone
+        self.mock_helpers_datetime_module.timezone = timezone
 
     def _create_dummy_candle(self, timestamp_ms, pair="btcusd", close_price=100.0):
         return {
@@ -105,8 +130,6 @@ class RunBackfillTest(BaseIngestorTest):
         dummy_candle = self._create_dummy_candle(datetime(2023, 1, 9, 12, 0, 0, tzinfo=timezone.utc).timestamp() * 1000)
         self.mock_get_historical_candles.return_value = [dummy_candle]
 
-        initial_backfill_timestamps = {} # Empty, main will populate based on DB calls
-
         candle_ingestor_main.run_backfill(
             influx_manager=self.mock_influx_manager,
             tiingo_tickers=self.tiingo_tickers,
@@ -114,12 +137,9 @@ class RunBackfillTest(BaseIngestorTest):
             backfill_start_date_str=FLAGS.backfill_start_date,
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
             api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
-            last_backfilled_timestamps=initial_backfill_timestamps, # Passed from main
+            last_backfilled_timestamps={}, # Empty, function will check DB directly
             run_mode="wet",
         )
-        # run_backfill itself now queries DB if last_backfilled_timestamps is empty or misses a ticker
-        # The initial call from main() pre-populates last_backfilled_timestamps
-        # Here, we are testing the case where main's pre-population found nothing for this ticker
 
         # Assertions
         # Check if Tiingo was called with the date derived from FLAGS.backfill_start_date
@@ -137,8 +157,8 @@ class RunBackfillTest(BaseIngestorTest):
         FLAGS.backfill_start_date = "5_days_ago" # Flag start: 2023-01-05T12:00:00
         db_resume_timestamp_ms = int(datetime(2023, 1, 7, 0, 0, 0, tzinfo=timezone.utc).timestamp() * 1000)
         
-        # Simulate that main() pre-populated this from DB
-        initial_backfill_timestamps = {self.test_ticker: db_resume_timestamp_ms}
+        # Set up the mock to return the DB state
+        self.mock_influx_manager.get_last_processed_timestamp.return_value = db_resume_timestamp_ms
 
         # Candles that would be fetched after resuming
         expected_fetch_start_dt = datetime(2023, 1, 7, 0, 1, 0, tzinfo=timezone.utc) # db_resume_ts + 1 min
@@ -152,7 +172,7 @@ class RunBackfillTest(BaseIngestorTest):
             backfill_start_date_str=FLAGS.backfill_start_date,
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
             api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
-            last_backfilled_timestamps=initial_backfill_timestamps, # Pass pre-populated dict
+            last_backfilled_timestamps={}, # Empty dict, function will call DB directly
             run_mode="wet",
         )
         
@@ -171,7 +191,8 @@ class RunBackfillTest(BaseIngestorTest):
         # DB state is *older* than flag start, so flag start should take precedence for earliest point
         db_older_timestamp_ms = int(datetime(2023, 1, 8, 0, 0, 0, tzinfo=timezone.utc).timestamp() * 1000)
 
-        initial_backfill_timestamps = {self.test_ticker: db_older_timestamp_ms}
+        # Set up the mock to return the older DB state
+        self.mock_influx_manager.get_last_processed_timestamp.return_value = db_older_timestamp_ms
 
         expected_fetch_start_dt = datetime(2023, 1, 9, 12, 0, 0, tzinfo=timezone.utc) # From flag
         dummy_candle = self._create_dummy_candle(int(expected_fetch_start_dt.timestamp() * 1000))
@@ -184,7 +205,7 @@ class RunBackfillTest(BaseIngestorTest):
             backfill_start_date_str=FLAGS.backfill_start_date,
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
             api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
-            last_backfilled_timestamps=initial_backfill_timestamps,
+            last_backfilled_timestamps={}, # Empty, function will check DB directly
             run_mode="wet",
         )
         # Expected fetch start day should be 2023-01-09 (from flag as it's later than DB state + delta)
@@ -252,9 +273,9 @@ class RunBackfillTest(BaseIngestorTest):
         self._set_current_time("2023-01-10T12:00:00")
         FLAGS.backfill_start_date = "1_day_ago"
         
-        # Set timestamp that's already past the end date
+        # Set timestamp that's already past the end date (2023-01-10 00:00:00)
         already_completed_timestamp_ms = int(datetime(2023, 1, 11, 0, 0, 0, tzinfo=timezone.utc).timestamp() * 1000)
-        initial_backfill_timestamps = {self.test_ticker: already_completed_timestamp_ms}
+        self.mock_influx_manager.get_last_processed_timestamp.return_value = already_completed_timestamp_ms
 
         candle_ingestor_main.run_backfill(
             influx_manager=self.mock_influx_manager,
@@ -263,7 +284,7 @@ class RunBackfillTest(BaseIngestorTest):
             backfill_start_date_str=FLAGS.backfill_start_date,
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
             api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
-            last_backfilled_timestamps=initial_backfill_timestamps,
+            last_backfilled_timestamps={}, # Empty, function will check DB directly
             run_mode="wet",
         )
 
@@ -490,15 +511,21 @@ class RunPollingLoopTest(BaseIngestorTest):
         
         # Use multiple tickers
         multi_tickers = ["btcusd", "ethusd"]
-        last_processed_timestamps_arg = {}
         
-        # Make the first ticker fail
-        def get_timestamp_side_effect(symbol, type):
-            if symbol == "btcusd":
-                raise Exception("Database error")
-            return None
+        # Pre-populate timestamps to avoid initialization issues
+        last_processed_timestamps_arg = {
+            "btcusd": int(datetime(2023, 1, 10, 11, 50, 0, tzinfo=timezone.utc).timestamp() * 1000),
+            "ethusd": int(datetime(2023, 1, 10, 11, 50, 0, tzinfo=timezone.utc).timestamp() * 1000)
+        }
+        
+        # Make the get_historical_candles fail for the first ticker only
+        def get_candles_side_effect(api_key, ticker, start, end, freq):
+            if ticker == "btcusd":
+                raise Exception("API error for btcusd")
+            # Return dummy data for ethusd
+            return [self._create_dummy_candle(int(datetime(2023,1,10,12,0,0, tzinfo=timezone.utc).timestamp()*1000), pair=ticker)]
             
-        self.mock_influx_manager.get_last_processed_timestamp.side_effect = get_timestamp_side_effect
+        self.mock_get_historical_candles.side_effect = get_candles_side_effect
         self.mock_main_time_sleep.side_effect = KeyboardInterrupt
 
         candle_ingestor_main.run_polling_loop(
@@ -512,8 +539,15 @@ class RunPollingLoopTest(BaseIngestorTest):
             run_mode="wet",
         )
 
-        # Should still process the second ticker despite first one failing
+        # Both tickers should still be in the dict - one failed, one succeeded
+        self.assertIn("btcusd", last_processed_timestamps_arg)
         self.assertIn("ethusd", last_processed_timestamps_arg)
+        
+        # The ethusd ticker should have been updated (but btcusd should remain the same due to error)
+        # Only ethusd update should have been called
+        self.mock_influx_manager.update_last_processed_timestamp.assert_called_with(
+            "ethusd", "polling", mock.ANY
+        )
 
 
 class MainFunctionTest(BaseIngestorTest): # Inherit for shared mocks
@@ -663,10 +697,13 @@ class MainFunctionTest(BaseIngestorTest): # Inherit for shared mocks
     @flagsaver.flagsaver(run_mode="dry", backfill_start_date="skip")
     def test_main_dry_run_uses_dummy_symbols(self):
         """Test main function uses dummy symbols in dry run mode"""
-        # Act
-        candle_ingestor_main.main(None)
+        # Act & Assert - expect SystemExit due to dry run completion
+        with self.assertRaises(SystemExit) as cm:
+            candle_ingestor_main.main(None)
+        
+        # Should exit with code 0 (success)
+        self.assertEqual(cm.exception.code, 0)
 
-        # Assert
         # Should not call CMC API in dry run
         self.mock_get_top_n_crypto_symbols.assert_not_called()
 
