@@ -92,7 +92,7 @@ candleIngestor:
     # tag: "" # Defaults to .Chart.AppVersion
 
   config:
-    topNCryptos: 100
+    topNCryptos: 10
     candleGranularityMinutes: 1
     influxDbUrl: "http://{{ include \"tradestream.fullname\" . }}-influxdb:8086"
     influxDbBucket: "tradestream-data"
