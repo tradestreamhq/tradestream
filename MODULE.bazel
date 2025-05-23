@@ -117,7 +117,6 @@ maven.install(
 use_repo(maven, "tradestream_maven")
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
-oci.toolchains()
 
 use_repo(oci, "oci_crane_toolchains", "oci_regctl_toolchains")
 
