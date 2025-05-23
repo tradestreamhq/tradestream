@@ -15,8 +15,18 @@ jobs:
           python-version: '3.x'
       - name: Install black
         run: pip install black
-      - name: Run black formatter
-        run: black .
-      - uses: parkerbxyz/suggest-changes@v1
-        with:
-          comment: 'Please commit the suggested changes from black formatter.'
+      - name: Check Python formatting with black
+        run: |
+          if ! black --check --diff .; then
+            echo "❌ Code formatting issues found!"
+            echo ""
+            echo "To fix these issues, run:"
+            echo "  black ."
+            echo ""
+            echo "Or install black as a pre-commit hook:"
+            echo "  pip install pre-commit"
+            echo "  pre-commit install"
+            exit 1
+          else
+            echo "✅ All Python files are properly formatted!"
+          fi
