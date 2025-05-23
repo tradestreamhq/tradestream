@@ -40,7 +40,6 @@ class CandleLookbackDoFn(
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
-        
         fun getCandleQueueCoder(): Coder<EvictingQueue<Candle>> {
             @Suppress("UNCHECKED_CAST")
             return SerializableCoder.of(EvictingQueue::class.java) as Coder<EvictingQueue<Candle>>
