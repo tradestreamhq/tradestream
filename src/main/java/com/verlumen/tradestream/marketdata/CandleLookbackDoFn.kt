@@ -39,7 +39,6 @@ class CandleLookbackDoFn(
     }
 
     companion object {
-        // Static logger for all instances
         private val logger = FluentLogger.forEnclosingClass()
         
         fun getCandleQueueCoder(): Coder<EvictingQueue<Candle>> {
