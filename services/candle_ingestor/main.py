@@ -134,7 +134,6 @@ def run_backfill(
 
     resample_freq = get_tiingo_resample_freq(candle_granularity_minutes)
     granularity_delta = timedelta(minutes=candle_granularity_minutes)
-    
     dry_run_tickers_processed = 0
     max_dry_run_tickers = 1
     max_dry_run_chunks_per_ticker = 1
