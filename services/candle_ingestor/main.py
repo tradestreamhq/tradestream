@@ -106,7 +106,7 @@ def handle_shutdown_signal(signum, frame):
 
 
 def run_backfill(
-    influx_manager: InfluxDBManager | None, # Can be None in dry run
+    influx_manager: InfluxDBManager | None,  # Can be None in dry run
     tiingo_tickers: list[str],
     tiingo_api_key: str,
     backfill_start_date_str: str,
