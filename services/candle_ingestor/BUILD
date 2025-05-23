@@ -141,8 +141,8 @@ oci_push(
 )
 
 container_structure_test(
-    name = "container_test_dry_run",
-    configs = ["container-structure-test-dry-run.yaml"],
+    name = "container_test",
+    configs = ["container-structure-test.yaml"],
     image = ":image",
     tags = ["requires-docker"],
 )
