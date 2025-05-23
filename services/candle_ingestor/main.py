@@ -539,8 +539,11 @@ def main(argv):
             if FLAGS.run_mode == "wet" and influx_manager_global:
                 logging.info("Attempting to pre-populate backfill states from InfluxDB...")
                 for ticker_symbol in tiingo_tickers:
-                    if shutdown_requested: break 
-                    db_state_ts_ms = influx_manager_global.get_last_processed_timestamp(ticker_symbol, "backfill")
+                    if shutdown_requested:
+                        break
+                    db_state_ts_ms = influx_manager_global.get_last_processed_timestamp(
+                        ticker_symbol, "backfill"
+                    )
                     if db_state_ts_ms:
                         last_processed_candle_timestamps[ticker_symbol] = db_state_ts_ms
                         logging.info(f"  Pre-populated backfill state for {ticker_symbol}: {datetime.fromtimestamp(db_state_ts_ms / 1000.0, timezone.utc).isoformat()}")
