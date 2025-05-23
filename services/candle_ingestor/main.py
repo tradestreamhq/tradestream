@@ -290,8 +290,10 @@ def run_polling_loop(
         if ticker_symbol not in last_processed_timestamps or last_processed_timestamps.get(ticker_symbol, 0) == 0:
             polling_state_ts_ms = None
             if influx_manager:
-                polling_state_ts_ms = influx_manager.get_last_processed_timestamp(ticker_symbol, "polling")
-            
+                polling_state_ts_ms = influx_manager.get_last_processed_timestamp(
+                    ticker_symbol, "polling"
+                )
+
             if polling_state_ts_ms:
                 last_processed_timestamps[ticker_symbol] = polling_state_ts_ms
                 logging.info(f"Found last polling state for {ticker_symbol}: {datetime.fromtimestamp(polling_state_ts_ms / 1000.0, timezone.utc).isoformat()}")
