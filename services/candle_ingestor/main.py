@@ -148,7 +148,6 @@ def run_backfill(
             logging.info(f"DRY RUN: Reached max tickers for backfill ({max_dry_run_tickers}).")
             shutdown_requested = True # Signal to exit main loop
             break
-            
         current_run_max_ts_for_ticker = 0
         db_last_backfill_ts_ms = None
         if influx_manager:
