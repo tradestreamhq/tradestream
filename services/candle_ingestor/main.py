@@ -283,7 +283,7 @@ def run_polling_loop(
 
     logging.info("Initializing polling timestamps...")
     for ticker_symbol in tiingo_tickers:
-        if shutdown_requested: 
+        if shutdown_requested:
             logging.info("Shutdown requested during polling timestamp initialization.")
             return
 
