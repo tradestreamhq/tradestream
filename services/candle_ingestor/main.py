@@ -287,7 +287,10 @@ def run_polling_loop(
             logging.info("Shutdown requested during polling timestamp initialization.")
             return
 
-        if ticker_symbol not in last_processed_timestamps or last_processed_timestamps.get(ticker_symbol, 0) == 0:
+        if (
+            ticker_symbol not in last_processed_timestamps
+            or last_processed_timestamps.get(ticker_symbol, 0) == 0
+        ):
             polling_state_ts_ms = None
             if influx_manager:
                 polling_state_ts_ms = influx_manager.get_last_processed_timestamp(
