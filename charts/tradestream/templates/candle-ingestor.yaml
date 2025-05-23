@@ -30,7 +30,7 @@ spec:
             - name: CANDLE_GRANULARITY_MINUTES
               value: "{{ .Values.candleIngestor.config.candleGranularityMinutes }}"
             - name: INFLUXDB_URL
-              value: "{{ .Values.candleIngestor.config.influxDbUrl }}"
+              value: "http://{{ include "tradestream.fullname" . }}-influxdb:8086"
             - name: INFLUXDB_BUCKET
               value: "{{ .Values.candleIngestor.config.influxDbBucket }}"
             - name: DATA_SOURCES
@@ -45,12 +45,12 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.candleIngestor.secrets.tiingoApiKey.name }}
                   key: {{ .Values.candleIngestor.secrets.tiingoApiKey.key }}
-            - name: {{ .Values.candleIngestor.secrets.influxDb.tokenKey }}
+            - name: INFLUXDB_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.candleIngestor.secrets.influxDb.name }}
                   key: {{ .Values.candleIngestor.secrets.influxDb.tokenKey }}
-            - name: {{ .Values.candleIngestor.secrets.influxDb.orgKey }}
+            - name: INFLUXDB_ORG
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.candleIngestor.secrets.influxDb.name }}
