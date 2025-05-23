@@ -117,11 +117,6 @@ maven.install(
 use_repo(maven, "tradestream_maven")
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
-
-use_repo(oci, "oci_crane_toolchains", "oci_regctl_toolchains")
-
-register_toolchains("@oci_crane_toolchains//:all", "@oci_regctl_toolchains//:all")
-
 oci.pull(
     name = "openjdk_java",
     digest = "sha256:b76af3b248acbcd94ffae671900e9fa8e2f869688598e5733a5fb6e983e51928",
