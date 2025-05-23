@@ -84,7 +84,7 @@ pipeline:
     upgradeMode: stateless
 
 candleIngestor:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: "tradestreamhq/candle-ingestor"
