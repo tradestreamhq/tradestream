@@ -40,7 +40,7 @@ class InfluxDBManager:
                     f"Failed to ping InfluxDB at {self.url}. Check connection and configuration."
                 )
                 self.client = None
-                raise InfluxDBError(message="Ping failed") # Raise to trigger retry
+                raise InfluxDBError(message="Ping failed")  # Raise to trigger retry
 
             logging.info(
                 "Successfully connected to InfluxDB and pinged server."
