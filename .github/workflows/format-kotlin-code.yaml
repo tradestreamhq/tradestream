@@ -1,0 +1,33 @@
+name: 'ktlint-formatter'
+on:
+  pull_request:
+    paths: ['**/*.kt', '**/*.kts']
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  format:
+    name: runner / ktlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ktlint
+        run: |
+          curl -sSLO https://github.com/pinterest/ktlint/releases/download/1.2.1/ktlint
+          chmod a+x ktlint
+          sudo mv ktlint /usr/local/bin/
+      - name: Format files using ktlint
+        run: ktlint -F "**/*.kt" "**/*.kts"
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Annotate diff changes using reviewdog
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: ktlint
