@@ -71,8 +71,9 @@ class CandleProcessor:
                 generated_requests.append(backtest_request)
                 logging.debug(f"Generated BacktestRequest for {currency_pair}, window: {window_minutes} mins ({window_size_candles} candles)")
             else:
-                logging.debug(f"Not enough candles for {currency_pair} for window {window_minutes} mins ({window_size_candles} candles). Have {len(current_deque)}.")
-
+                logging.debug(
+                    f"Not enough candles for {currency_pair} for window {window_minutes} mins ({window_size_candles} candles). Have {len(current_deque)}."
+                )
 
         if generated_requests:
             logging.info(f"Generated {len(generated_requests)} BacktestRequests for {currency_pair} from new candle.")
