@@ -68,7 +68,6 @@ jobs:
           bazel run //src/main/java/com/verlumen/tradestream/pipeline:push_image \
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
-            
       - name: Push the Candle Ingestor image
         run: |
           bazel run //services/candle_ingestor:push_candle_ingestor_image \
