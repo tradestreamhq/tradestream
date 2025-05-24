@@ -57,7 +57,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v1.32.1-develop
+    tag: v1.33.0-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -82,14 +82,13 @@ pipeline:
     jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
     parallelism: 1
     upgradeMode: stateless
-
 candleIngestor:
   enabled: true
   replicaCount: 1
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
-    tag: "v1.31.1-develop" # Defaults to .Chart.AppVersion if empty, ensure it's updated by release
+    tag: "v1.33.0-develop" # Defaults to .Chart.AppVersion if empty, ensure it's updated by release
   config:
     topNCryptos: 10
     candleGranularityMinutes: 1
