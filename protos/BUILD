@@ -1,3 +1,5 @@
+load("@rules_python//python:proto.bzl", "py_proto_library")
+
 proto_library(
     name = "backtesting_proto",
     srcs = ["backtesting.proto"],
@@ -10,6 +12,12 @@ proto_library(
 
 java_proto_library(
     name = "backtesting_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":backtesting_proto"],
+)
+
+py_proto_library(
+    name = "backtesting_py_proto",
     visibility = ["//visibility:public"],
     deps = [":backtesting_proto"],
 )
@@ -28,6 +36,12 @@ java_proto_library(
     deps = [":marketdata_proto"],
 )
 
+py_proto_library(
+    name = "marketdata_py_proto",
+    visibility = ["//visibility:public"],
+    deps = [":marketdata_proto"],
+)
+
 proto_library(
     name = "strategies_proto",
     srcs = ["strategies.proto"],
@@ -38,6 +52,12 @@ proto_library(
 
 java_proto_library(
     name = "strategies_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":strategies_proto"],
+)
+
+py_proto_library(
+    name = "strategies_py_proto",
     visibility = ["//visibility:public"],
     deps = [":strategies_proto"],
 )
