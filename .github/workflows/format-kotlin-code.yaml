@@ -1,4 +1,4 @@
-name: 'ktlint-formatter'
+name: "ktlint-formatter"
 on:
   pull_request:
     paths: ['**/*.kt', '**/*.kts']
