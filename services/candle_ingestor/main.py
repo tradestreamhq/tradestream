@@ -433,9 +433,7 @@ def run_polling_loop(
                                 latest_polled_ts_ms = new_candles_to_write[-1][
                                     "timestamp_ms"
                                 ]
-                                last_processed_timestamps[
-                                    ticker
-                                ] = latest_polled_ts_ms
+                                last_processed_timestamps[ticker] = latest_polled_ts_ms
                                 influx_manager.update_last_processed_timestamp(
                                     ticker, "polling", latest_polled_ts_ms
                                 )
