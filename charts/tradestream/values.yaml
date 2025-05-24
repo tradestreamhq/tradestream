@@ -17,7 +17,8 @@ influxdb:
   # Storage configuration
   persistence:
     enabled: true
-    storageClass: "cinder-csi"
+    accessModes:
+      - ReadWriteOnce
   service:
     type: ClusterIP
 kafka:
