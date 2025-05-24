@@ -7,7 +7,7 @@ from shared.cryptoclient import cmc_client
 
 
 class TestCMCClient(unittest.TestCase):
-    @mock.patch("services.candle_ingestor.cmc_client.requests.get")
+    @mock.patch("shared.cryptoclient.cmc_client.requests.get")
     def test_get_top_n_crypto_symbols_success(self, mock_get):
         # Arrange
         mock_response = mock.MagicMock()
@@ -35,7 +35,7 @@ class TestCMCClient(unittest.TestCase):
         )
         self.assertEqual(symbols, ["btcusd", "ethusd"])
 
-    @mock.patch("services.candle_ingestor.cmc_client.requests.get")
+    @mock.patch("shared.cryptoclient.cmc_client.requests.get")
     def test_get_top_n_crypto_symbols_api_error(self, mock_get):
         # Arrange
         mock_response = mock.MagicMock()
@@ -53,7 +53,7 @@ class TestCMCClient(unittest.TestCase):
         # Assert
         self.assertEqual(symbols, [])
 
-    @mock.patch("services.candle_ingestor.cmc_client.requests.get")
+    @mock.patch("shared.cryptoclient.cmc_client.requests.get")
     def test_get_top_n_crypto_symbols_json_decode_error(self, mock_get):
         # Arrange
         mock_response = mock.MagicMock()
@@ -69,7 +69,7 @@ class TestCMCClient(unittest.TestCase):
         # Assert
         self.assertEqual(symbols, [])
 
-    @mock.patch("services.candle_ingestor.cmc_client.requests.get")
+    @mock.patch("shared.cryptoclient.cmc_client.requests.get")
     def test_get_top_n_crypto_symbols_missing_data_field(self, mock_get):
         # Arrange
         mock_response = mock.MagicMock()
@@ -85,7 +85,7 @@ class TestCMCClient(unittest.TestCase):
         # Assert
         self.assertEqual(symbols, [])
 
-    @mock.patch("services.candle_ingestor.cmc_client.requests.get")
+    @mock.patch("shared.cryptoclient.cmc_client.requests.get")
     def test_get_top_n_crypto_symbols_empty_data_list(self, mock_get):
         # Arrange
         mock_response = mock.MagicMock()
@@ -101,7 +101,7 @@ class TestCMCClient(unittest.TestCase):
         # Assert
         self.assertEqual(symbols, [])
 
-    @mock.patch("services.candle_ingestor.cmc_client.requests.get")
+    @mock.patch("shared.cryptoclient.cmc_client.requests.get")
     def test_get_top_n_crypto_symbols_less_than_n_results(self, mock_get):
         # Arrange
         mock_response = mock.MagicMock()
