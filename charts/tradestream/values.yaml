@@ -6,14 +6,13 @@ influxdb:
     organization: "tradestream-org"
     bucket: "tradestream-data"
     retention_policy: "30d"
-    # User credentials - these should be strings, not objects
-    # username: "admin"       # Use username, not user
-    # password: "your-secure-password"  # Direct string, not nested
-
-    # Or use existing secret (comment out username/password if using this)
+    # User credentials
+    user: "admin"  # Changed from 'username' to 'user'
+    # Use existing secret (this will ignore password and token values)
     existingSecret: "influxdb-admin-secret"
-    # Token configuration - should be a string or boolean
-    token: true # Set to true to auto-generate, or provide a specific token string
+    # Remove these when using existingSecret:
+    # password: ""
+    # token: ""
   # Storage configuration
   persistence:
     enabled: true
