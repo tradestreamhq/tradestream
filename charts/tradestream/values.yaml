@@ -56,7 +56,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v1.32.28-develop
+    tag: v1.32.29-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -87,7 +87,7 @@ candleIngestor:
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
-    tag: "v1.32.28-develop"
+    tag: "v1.32.29-develop"
   config:
     topNCryptos: 10
     candleGranularityMinutes: 1
