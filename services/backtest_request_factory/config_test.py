@@ -74,7 +74,7 @@ class ConfigTest(unittest.TestCase):
         os.environ["POLLING_INTERVAL_SECONDS"] = "30"
         os.environ["TOP_N_CRYPTOS"] = "10"
         os.environ["CMC_API_KEY"] = "test-cmc-key"
-        os.environ["DEFAULT_STRATEGY_TYPE"] = "MACD"
+        os.environ["DEFAULT_STRATEGY_TYPE"] = "EMA_MACD"
         os.environ["CANDLE_GRANULARITY_MINUTES"] = "5"
 
         # Reload config to pick up new env vars
@@ -91,7 +91,7 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(config.POLLING_INTERVAL_SECONDS, 30)
         self.assertEqual(config.TOP_N_CRYPTOS, 10)
         self.assertEqual(config.CMC_API_KEY, "test-cmc-key")
-        self.assertEqual(config.DEFAULT_STRATEGY_TYPE, StrategyType.MACD)
+        self.assertEqual(config.DEFAULT_STRATEGY_TYPE, StrategyType.EMA_MACD)
         self.assertEqual(config.CANDLE_GRANULARITY_MINUTES, 5)
 
     def test_fibonacci_windows_values(self):
