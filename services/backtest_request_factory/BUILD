@@ -29,7 +29,6 @@ py_library(
         "//protos:backtesting_py_proto",
         "//protos:marketdata_py_proto",
         "//protos:strategies_py_proto",
-        "@pypi//absl_py",
         "//third_party:absl_py",
         "//third_party:protobuf",
         "@pypi//absl_py",
