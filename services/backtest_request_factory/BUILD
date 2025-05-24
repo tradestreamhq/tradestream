@@ -81,7 +81,6 @@ py_test(
         ":config_lib",
         "//protos:strategies_py_proto",
     ],
-    python_version = "PY3",
 )
 
 py_test(
@@ -94,7 +93,6 @@ py_test(
         "//third_party/python:influxdb_client",
         "//third_party/python:protobuf",
     ],
-    python_version = "PY3",
 )
 
 py_test(
@@ -108,7 +106,6 @@ py_test(
         "//protos:strategies_py_proto",
         "//third_party/python:protobuf",
     ],
-    python_version = "PY3",
 )
 
 py_test(
@@ -120,7 +117,6 @@ py_test(
         "//protos:backtesting_py_proto",
         "//third_party/python:kafka_python",
     ],
-    python_version = "PY3",
 )
 
 py_test(
@@ -136,7 +132,6 @@ py_test(
         "//shared/cryptoclient:cmc_client_lib",
         "//third_party/python:absl_py",
     ],
-    python_version = "PY3",
 )
 
 # Integration Tests
@@ -153,7 +148,6 @@ py_test(
         "//third_party/python:influxdb_client",
         "//third_party/python:kafka_python",
     ],
-    python_version = "PY3",
     size = "medium",
 )
 
