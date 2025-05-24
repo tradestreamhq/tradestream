@@ -14,16 +14,6 @@ py_library(
 )
 
 py_library(
-    name = "cmc_client_lib",
-    srcs = ["cmc_client.py"],
-    deps = [
-        "//third_party:absl_py",
-        "//third_party:requests",
-        "//third_party:tenacity",
-    ],
-)
-
-py_library(
     name = "tiingo_client_lib",
     srcs = ["tiingo_client.py"],
     deps = [
@@ -62,15 +52,6 @@ py_test(
     srcs = ["ingestion_helpers_test.py"],
     deps = [
         ":ingestion_helpers_lib",
-    ],
-)
-
-py_test(
-    name = "cmc_client_test",
-    srcs = ["cmc_client_test.py"],
-    deps = [
-        ":cmc_client_lib",
-        "//third_party:requests",
     ],
 )
 
