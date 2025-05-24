@@ -15,10 +15,10 @@ py_library(
     srcs = ["influx_poller.py"],
     deps = [
         "//protos:marketdata_py_proto",
-        "//third_party:absl_py",
-        "//third_party:influxdb_client",
-        "//third_party:protobuf",
-        "//third_party:tenacity",
+        "//third_party/python:absl_py",
+        "//third_party/python:influxdb_client",
+        "//third_party/python:protobuf",
+        "//third_party/python:tenacity",
     ],
 )
 
@@ -29,9 +29,8 @@ py_library(
         "//protos:backtesting_py_proto",
         "//protos:marketdata_py_proto",
         "//protos:strategies_py_proto",
-        "//third_party:absl_py",
-        "//third_party:protobuf",
-        "@pypi//absl_py",
+        "//third_party/python:absl_py",
+        "//third_party/python:protobuf",
     ],
 )
 
@@ -40,9 +39,9 @@ py_library(
     srcs = ["kafka_publisher.py"],
     deps = [
         "//protos:backtesting_py_proto",
-        "@pypi//absl_py",
-        "@pypi//kafka_python",
-        "@pypi//tenacity",
+        "//third_party/python:absl_py",
+        "//third_party/python:kafka_python",
+        "//third_party/python:tenacity",
     ],
 )
 
@@ -56,7 +55,7 @@ py_binary(
         ":influx_poller_lib",
         ":kafka_publisher_lib",
         "//shared/cryptoclient:cmc_client_lib",
-        "@pypi//absl_py",
-        "@pypi//google-api-python-client",  # For google.protobuf.any_pb2
+        "//third_party/python:absl_py",
+        "//third_party/protobuf",
     ],
 )
