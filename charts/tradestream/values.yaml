@@ -101,6 +101,5 @@ candleIngestor:
       name: "tiingo"
       key: "apiKey"
     influxDb:
-      name: "influxdb-candle-ingestor-credentials"
-      tokenKey: "INFLUXDB_TOKEN"
-      orgKey: "INFLUXDB_ORG"
+      name: "influxdb-admin-secret"
+      tokenKey: "admin-token"
