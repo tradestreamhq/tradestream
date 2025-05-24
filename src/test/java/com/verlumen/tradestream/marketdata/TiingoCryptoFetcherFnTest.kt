@@ -99,14 +99,23 @@ class TiingoCryptoFetcherFnTest : Serializable {
         // Ensure Z at the end for UTC parsing
         val instant = Instant.parse(tsStr.replace("+00:00", "Z"))
         val ts = Timestamps.fromMillis(instant.toEpochMilli())
-        return Candle.newBuilder()
-            .setTimestamp(ts).setCurrencyPair(pair)
-            .setOpen(o).setHigh(h).setLow(l).setClose(c).setVolume(v)
+        return Candle
+            .newBuilder()
+            .setTimestamp(ts)
+            .setCurrencyPair(pair)
+            .setOpen(o)
+            .setHigh(h)
+            .setLow(l)
+            .setClose(c)
+            .setVolume(v)
             .build()
     }
 
     // Reusable HTTP client classes
-    class SimpleHttpClient(private val response: String) : HttpClient, Serializable {
+    class SimpleHttpClient(
+        private val response: String,
+    ) : HttpClient,
+        Serializable {
         private val serialVersionUID = 1L
 
         override fun get(
@@ -115,7 +124,11 @@ class TiingoCryptoFetcherFnTest : Serializable {
         ): String = response
     }
 
-    class UrlCapturingHttpClient(private val response: String, private val urls: MutableList<String>) : HttpClient, Serializable {
+    class UrlCapturingHttpClient(
+        private val response: String,
+        private val urls: MutableList<String>,
+    ) : HttpClient,
+        Serializable {
         private val serialVersionUID = 1L
 
         override fun get(
@@ -127,7 +140,10 @@ class TiingoCryptoFetcherFnTest : Serializable {
         }
     }
 
-    class SequentialHttpClient(private val responses: List<String>) : HttpClient, Serializable {
+    class SequentialHttpClient(
+        private val responses: List<String>,
+    ) : HttpClient,
+        Serializable {
         private val serialVersionUID = 1L
         private val index = AtomicInteger(0)
         val capturedUrls = CopyOnWriteArrayList<String>()
@@ -286,13 +302,12 @@ class TiingoCryptoFetcherFnTest : Serializable {
         val minuteFetcher = minuteFactory.create(Duration.standardMinutes(1), testApiKey)
 
         val stream =
-            TestStream.create(
-                KvCoder.of(StringUtf8Coder.of(), VoidCoder.of()),
-            )
-                .addElements( // First trigger
+            TestStream
+                .create(
+                    KvCoder.of(StringUtf8Coder.of(), VoidCoder.of()),
+                ).addElements( // First trigger
                     TimestampedValue.of(KV.of("ETH/USD", null as Void?), JodaInstant(0L)),
-                )
-                .advanceWatermarkToInfinity()
+                ).advanceWatermarkToInfinity()
 
         val result =
             pipeline
@@ -348,9 +363,10 @@ class TiingoCryptoFetcherFnTest : Serializable {
 
             // Get all the dates from the candles
             val dates =
-                candles.map { kv ->
-                    Instant.ofEpochSecond(kv.value.timestamp.seconds).toString().substring(0, 10)
-                }.toSet()
+                candles
+                    .map { kv ->
+                        Instant.ofEpochSecond(kv.value.timestamp.seconds).toString().substring(0, 10)
+                    }.toSet()
 
             // Verify we have all three dates
             assertThat(dates).containsExactly("2023-10-26", "2023-10-27", "2023-10-28")
@@ -397,17 +413,15 @@ class TiingoCryptoFetcherFnTest : Serializable {
 
         // Create a TestStream with two triggers spaced far apart
         val stream =
-            TestStream.create(
-                KvCoder.of(StringUtf8Coder.of(), VoidCoder.of()),
-            )
-                .addElements(
+            TestStream
+                .create(
+                    KvCoder.of(StringUtf8Coder.of(), VoidCoder.of()),
+                ).addElements(
                     TimestampedValue.of(KV.of("BTC/USD", null as Void?), JodaInstant(0L)),
-                )
-                .advanceProcessingTime(Duration.standardDays(7)) // Advance a week
+                ).advanceProcessingTime(Duration.standardDays(7)) // Advance a week
                 .addElements(
                     TimestampedValue.of(KV.of("BTC/USD", null as Void?), JodaInstant(7 * 24 * 3_600_000L)), // A week later
-                )
-                .advanceWatermarkToInfinity()
+                ).advanceWatermarkToInfinity()
 
         val result =
             pipeline
@@ -434,8 +448,10 @@ class TiingoCryptoFetcherFnTest : Serializable {
             val hasCurrentDay =
                 candles.any { kv ->
                     val candleDate =
-                        Instant.ofEpochSecond(kv.value.timestamp.seconds)
-                            .atZone(ZoneOffset.UTC).toLocalDate()
+                        Instant
+                            .ofEpochSecond(kv.value.timestamp.seconds)
+                            .atZone(ZoneOffset.UTC)
+                            .toLocalDate()
                     candleDate.isEqual(now)
                 }
 

@@ -24,7 +24,8 @@ class ExchangeClientUnboundedReader(
     private val currencyPairSupply: Supplier<List<CurrencyPair>>,
     private val source: ExchangeClientUnboundedSource,
     private var currentCheckpointMark: TradeCheckpointMark,
-) : UnboundedSource.UnboundedReader<Trade>(), Serializable {
+) : UnboundedSource.UnboundedReader<Trade>(),
+    Serializable {
     private val incomingMessagesQueue = LinkedBlockingQueue<Trade>(10000)
     private var clientStreamingActive = false
     private var currentTrade: Trade? = null
@@ -49,14 +50,13 @@ class ExchangeClientUnboundedReader(
             fun create(
                 source: ExchangeClientUnboundedSource,
                 mark: TradeCheckpointMark,
-            ): ExchangeClientUnboundedReader {
-                return ExchangeClientUnboundedReader(
+            ): ExchangeClientUnboundedReader =
+                ExchangeClientUnboundedReader(
                     exchangeClient,
                     currencyPairSupply,
                     source,
                     mark,
                 )
-            }
 
             private fun writeObject(out: java.io.ObjectOutputStream) {
                 out.defaultWriteObject()
@@ -300,9 +300,7 @@ class ExchangeClientUnboundedReader(
      * Gets the source that created this reader.
      * @return the unbounded source
      */
-    override fun getCurrentSource(): UnboundedSource<Trade, *> {
-        return source
-    }
+    override fun getCurrentSource(): UnboundedSource<Trade, *> = source
 
     /**
      * Closes the reader and stops streaming.

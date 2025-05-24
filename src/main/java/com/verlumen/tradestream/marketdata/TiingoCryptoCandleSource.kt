@@ -19,7 +19,8 @@ class TiingoCryptoCandleSource
         private val transformFactory: TiingoCryptoCandleTransform.Factory,
         @Assisted private val candleInterval: Duration,
         @Assisted private val apiKey: String,
-    ) : CandleSource(), Serializable {
+    ) : CandleSource(),
+        Serializable {
         companion object {
             private const val serialVersionUID = 1L
         }
@@ -29,7 +30,8 @@ class TiingoCryptoCandleSource
             val impulses =
                 input.apply(
                     "PeriodicImpulseTrigger",
-                    PeriodicImpulse.create()
+                    PeriodicImpulse
+                        .create()
                         .withInterval(candleInterval)
                         .applyWindowing(),
                 )

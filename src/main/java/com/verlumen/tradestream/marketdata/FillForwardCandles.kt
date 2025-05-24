@@ -18,7 +18,8 @@ class FillForwardCandles
         @Assisted private val intervalDuration: Duration,
         @Assisted private val maxForwardIntervals: Int = Int.MAX_VALUE,
         private val fillForwardFnFactory: FillForwardCandlesFn.Factory,
-    ) : PTransform<PCollection<KV<String, Candle>>, PCollection<KV<String, Candle>>>(), Serializable {
+    ) : PTransform<PCollection<KV<String, Candle>>, PCollection<KV<String, Candle>>>(),
+        Serializable {
         companion object {
             private const val serialVersionUID = 1L
         }

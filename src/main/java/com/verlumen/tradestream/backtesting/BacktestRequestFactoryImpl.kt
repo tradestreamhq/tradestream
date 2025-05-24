@@ -32,7 +32,8 @@ class BacktestRequestFactoryImpl
 
             // Build the BacktestRequest using the protobuf builder
             val request =
-                BacktestRequest.newBuilder()
+                BacktestRequest
+                    .newBuilder()
                     .addAllCandles(candles) // AddAll handles the List<Candle>
                     .setStrategy(strategy) // Set the strategy
                     .build()

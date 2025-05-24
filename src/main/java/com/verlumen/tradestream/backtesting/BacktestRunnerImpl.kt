@@ -64,7 +64,8 @@ internal class BacktestRunnerImpl
 
             val score = calculateScore(sharpeRatio, maxDrawdown, winRate, annualizedReturn, profitFactor)
 
-            return BacktestResult.newBuilder()
+            return BacktestResult
+                .newBuilder()
                 .setCumulativeReturn(cumulativeReturn)
                 .setAnnualizedReturn(annualizedReturn)
                 .setSharpeRatio(sharpeRatio)
@@ -118,7 +119,8 @@ internal class BacktestRunnerImpl
                 (1 until series.barCount).map { i ->
                     val previousClose = series.getBar(i - 1).closePrice
                     val currentClose = series.getBar(i).closePrice
-                    currentClose.minus(previousClose)
+                    currentClose
+                        .minus(previousClose)
                         .dividedBy(previousClose)
                         .doubleValue()
                 }
@@ -209,8 +211,7 @@ internal class BacktestRunnerImpl
                         val previousPrice = series.getBar(i - 1).closePrice.doubleValue()
                         val currentPrice = series.getBar(i).closePrice.doubleValue()
                         (currentPrice - previousPrice) / previousPrice
-                    }
-                    .filter { it < 0 }
+                    }.filter { it < 0 }
 
             if (negativeReturns.isEmpty()) {
                 return 0.0

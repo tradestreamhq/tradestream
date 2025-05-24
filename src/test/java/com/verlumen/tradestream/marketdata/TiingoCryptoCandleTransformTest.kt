@@ -33,7 +33,8 @@ import java.util.function.Supplier
 abstract class TiingoCryptoFetcherFn(
     @Suppress("UNUSED_PARAMETER") @com.google.inject.assistedinject.Assisted protected val granularity: Duration,
     @Suppress("UNUSED_PARAMETER") @com.google.inject.assistedinject.Assisted protected val apiKey: String,
-) : DoFn<KV<String, Void?>, KV<String, Candle>>(), Serializable {
+) : DoFn<KV<String, Void?>, KV<String, Candle>>(),
+    Serializable {
     interface Factory {
         fun create(
             granularity: Duration,
@@ -148,25 +149,39 @@ class TiingoCryptoCandleTransformTest {
 
     private val now = Instant.now()
     private val candleBtc1 =
-        Candle.newBuilder().setOpen(
-            10000.0,
-        ).setHigh(
-            10100.0,
-        ).setLow(
-            9900.0,
-        ).setClose(
-            10050.0,
-        ).setVolume(100.0).setTimestamp(com.google.protobuf.util.Timestamps.fromMillis(now.millis)).setCurrencyPair(btcUsd.symbol()).build()
+        Candle
+            .newBuilder()
+            .setOpen(
+                10000.0,
+            ).setHigh(
+                10100.0,
+            ).setLow(
+                9900.0,
+            ).setClose(
+                10050.0,
+            ).setVolume(100.0)
+            .setTimestamp(
+                com.google.protobuf.util.Timestamps
+                    .fromMillis(now.millis),
+            ).setCurrencyPair(btcUsd.symbol())
+            .build()
     private val candleEth1 =
-        Candle.newBuilder().setOpen(
-            300.0,
-        ).setHigh(
-            305.0,
-        ).setLow(
-            295.0,
-        ).setClose(
-            302.0,
-        ).setVolume(500.0).setTimestamp(com.google.protobuf.util.Timestamps.fromMillis(now.millis)).setCurrencyPair(ethUsd.symbol()).build()
+        Candle
+            .newBuilder()
+            .setOpen(
+                300.0,
+            ).setHigh(
+                305.0,
+            ).setLow(
+                295.0,
+            ).setClose(
+                302.0,
+            ).setVolume(500.0)
+            .setTimestamp(
+                com.google.protobuf.util.Timestamps
+                    .fromMillis(now.millis),
+            ).setCurrencyPair(ethUsd.symbol())
+            .build()
 
     private val candlesToEmitMap: Map<String, List<Candle>> =
         mapOf(

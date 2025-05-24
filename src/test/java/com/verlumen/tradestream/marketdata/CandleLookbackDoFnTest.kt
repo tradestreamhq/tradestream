@@ -39,8 +39,9 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
     private fun createCandle(
         timestampMillis: Long,
         closePrice: Double,
-    ): Candle {
-        return Candle.newBuilder()
+    ): Candle =
+        Candle
+            .newBuilder()
             .setCurrencyPair(TEST_KEY)
             .setTimestamp(Timestamps.fromMillis(timestampMillis))
             .setOpen(closePrice - 1)
@@ -49,7 +50,6 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
             .setClose(closePrice)
             .setVolume(10.0)
             .build()
-    }
 
     // --- Coders ---
     private val candleCoder: Coder<Candle> = ProtoCoder.of(Candle::class.java)
@@ -67,9 +67,7 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
                 listCoder.encode(ArrayList(value), outStream)
             }
 
-            override fun decode(inStream: InputStream): ImmutableList<Candle> {
-                return ImmutableList.copyOf(listCoder.decode(inStream))
-            }
+            override fun decode(inStream: InputStream): ImmutableList<Candle> = ImmutableList.copyOf(listCoder.decode(inStream))
 
             override fun verifyDeterministic() {
                 listCoder.verifyDeterministic()
@@ -117,9 +115,10 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
                 // Use a large window to include all elements
                 .apply(
                     "ApplyWindow",
-                    Window.into<KV<String, Candle>>(
-                        FixedWindows.of(Duration.standardMinutes(10)),
-                    ) // Use a window large enough to include all events
+                    Window
+                        .into<KV<String, Candle>>(
+                            FixedWindows.of(Duration.standardMinutes(10)),
+                        ) // Use a window large enough to include all events
                         .triggering(AfterWatermark.pastEndOfWindow())
                         .withAllowedLateness(Duration.ZERO)
                         .discardingFiredPanes(),
@@ -130,11 +129,11 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
                     ParDo.of(
                         CandleLookbackDoFn(lookbackSizesToTest),
                     ),
-                )
-                .setCoder(outputCoder) // Set output coder
+                ).setCoder(outputCoder) // Set output coder
 
         // Assert results emitted for the *last* window trigger
-        PAssert.that(output)
+        PAssert
+            .that(output)
             .satisfies(
                 SerializableFunction<Iterable<KV<String, KV<Int, ImmutableList<Candle>>>>, Void?> { results ->
                     val resultsByKey = results.groupBy { it.key }
@@ -146,7 +145,13 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
                     val finalStateOutputs =
                         testKeyResults.filter {
                             !it.value.value.isEmpty() &&
-                                Instant(Timestamps.toMillis(it.value.value.last().timestamp)) == finalCandleTimestamp
+                                Instant(
+                                    Timestamps.toMillis(
+                                        it.value.value
+                                            .last()
+                                            .timestamp,
+                                    ),
+                                ) == finalCandleTimestamp
                         }
 
                     val emittedLookbackSizes = finalStateOutputs.map { it.value.key }.toSet()
@@ -205,9 +210,10 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
                 .apply(finalTestStream)
                 .apply(
                     "ApplyWindow",
-                    Window.into<KV<String, Candle>>(
-                        FixedWindows.of(Duration.standardMinutes(10)),
-                    ) // Use a large window
+                    Window
+                        .into<KV<String, Candle>>(
+                            FixedWindows.of(Duration.standardMinutes(10)),
+                        ) // Use a large window
                         .triggering(AfterWatermark.pastEndOfWindow())
                         .withAllowedLateness(Duration.ZERO)
                         .discardingFiredPanes(),
@@ -218,10 +224,10 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
                     ParDo.of(
                         CandleLookbackDoFn(lookbackSizesToTest),
                     ),
-                )
-                .setCoder(outputCoder)
+                ).setCoder(outputCoder)
 
-        PAssert.that(output)
+        PAssert
+            .that(output)
             .satisfies(
                 SerializableFunction<Iterable<KV<String, KV<Int, ImmutableList<Candle>>>>, Void?> { results ->
                     val resultsByKey = results.groupBy { it.key }
@@ -231,7 +237,13 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
                     val finalStateOutputs =
                         testKeyResults.filter {
                             !it.value.value.isEmpty() &&
-                                Instant(Timestamps.toMillis(it.value.value.last().timestamp)) == finalCandleTimestamp
+                                Instant(
+                                    Timestamps.toMillis(
+                                        it.value.value
+                                            .last()
+                                            .timestamp,
+                                    ),
+                                ) == finalCandleTimestamp
                         }
 
                     val emittedLookbackSizes = finalStateOutputs.map { it.value.key }.toSet()
@@ -247,10 +259,20 @@ class CandleLookbackDoFnTest : Serializable { // Make test class serializable
 
                     // Queue size is automatically determined by largest lookback (8)
                     // with a buffer, so we expect elements 7-14
-                    assertThat(Timestamps.toMillis(lookback8Output.value.value.first().timestamp))
-                        .isEqualTo(baseTimeMillis + 7 * intervalMillis) // Candle at index 7
-                    assertThat(Timestamps.toMillis(lookback8Output.value.value.last().timestamp))
-                        .isEqualTo(finalCandleTimestamp.millis) // Candle at index 14
+                    assertThat(
+                        Timestamps.toMillis(
+                            lookback8Output.value.value
+                                .first()
+                                .timestamp,
+                        ),
+                    ).isEqualTo(baseTimeMillis + 7 * intervalMillis) // Candle at index 7
+                    assertThat(
+                        Timestamps.toMillis(
+                            lookback8Output.value.value
+                                .last()
+                                .timestamp,
+                        ),
+                    ).isEqualTo(finalCandleTimestamp.millis) // Candle at index 14
 
                     null
                 },
