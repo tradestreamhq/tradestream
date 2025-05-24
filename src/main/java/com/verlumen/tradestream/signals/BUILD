@@ -34,11 +34,11 @@ java_library(
     name = "signals_module",
     srcs = ["SignalsModule.java"],
     deps = [
+        ":trade_signal_publisher",
+        ":trade_signal_publisher_impl",
         "//third_party:auto_value",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
-        ":trade_signal_publisher",
-        ":trade_signal_publisher_impl",
     ],
 )
 
@@ -54,12 +54,12 @@ java_library(
     name = "trade_signal_publisher_impl",
     srcs = ["TradeSignalPublisherImpl.java"],
     deps = [
+        ":trade_signal_publisher",
         "//protos:trade_signals_java_proto",
         "//third_party:flogger",
         "//third_party:guice",
         "//third_party:guice_assistedinject",
         "//third_party:kafka_clients",
         "//third_party:protobuf_java_util",
-        ":trade_signal_publisher",
     ],
 )

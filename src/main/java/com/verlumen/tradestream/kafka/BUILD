@@ -28,7 +28,7 @@ java_library(
         ":kafka_properties",
         "//third_party:guice",
         "//third_party:kafka_clients",
-    ],    
+    ],
 )
 
 java_library(
