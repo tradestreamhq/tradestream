@@ -151,7 +151,7 @@ POLLING_DATA_FETCHERS = {
 
 TICKER_PROVIDERS = {
     RunMode.DRY: lambda cmc_key, top_n: ["btcusd-dry", "ethusd-dry"],
-    RunMode.WET: lambda cmc_key, top_n: get_top_n_crypto_symbols(cmc_key, top_n)
+    RunMode.WET: lambda cmc_key, top_n: get_top_n_crypto_symbols(cmc_key, top_n),
 }
 
 INFLUX_SETUP_STRATEGIES = {
