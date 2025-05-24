@@ -370,7 +370,12 @@ def run_polling_loop(
                         default_catchup_start_dt.minute // candle_granularity_minutes
                     ) * candle_granularity_minutes
                     default_catchup_start_dt_aligned = default_catchup_start_dt.replace(
-                        minute=default_catchup_start_minute, second=0, microsecond=0
+                        minute=default_catchup_start_minute,
+                        second=0,
+                        microsecond=0,
+                    )
+                    default_catchup_start_ms = int(
+                        default_catchup_start_dt_aligned.timestamp() * 1000
                     )
                     default_catchup_start_ms = int(
                         default_catchup_start_dt_aligned.timestamp() * 1000
