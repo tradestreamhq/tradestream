@@ -277,10 +277,8 @@ def run_polling_loop(
                     f"Found last polling state for {ticker_symbol}: {datetime.fromtimestamp(polling_state_ts_ms / 1000.0, timezone.utc).isoformat()}"
                 )
             else:
-                backfill_state_ts_ms = (
-                    influx_manager.get_last_processed_timestamp(
-                        ticker_symbol, "backfill"
-                    )
+                backfill_state_ts_ms = influx_manager.get_last_processed_timestamp(
+                    ticker_symbol, "backfill"
                 )
                 if backfill_state_ts_ms:
                     last_processed_timestamps[ticker_symbol] = backfill_state_ts_ms
