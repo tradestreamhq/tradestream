@@ -1,7 +1,7 @@
 name: "ktlint-formatter"
 on:
   pull_request:
-    paths: ['**/*.kt', '**/*.kts']
+    paths: ["**/*.kt", "**/*.kts"]
 permissions:
   contents: read
   pull-requests: write
