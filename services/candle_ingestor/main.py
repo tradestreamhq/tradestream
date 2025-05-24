@@ -305,9 +305,7 @@ def run_polling_loop(
                     default_catchup_start_ms = int(
                         default_catchup_start_dt_aligned.timestamp() * 1000
                     )
-                    last_processed_timestamps[
-                        ticker_symbol
-                    ] = default_catchup_start_ms
+                    last_processed_timestamps[ticker_symbol] = default_catchup_start_ms
                     logging.info(
                         f"No backfill or polling state for {ticker_symbol}. "
                         f"Setting polling start from approx {initial_catchup_days} days ago: {default_catchup_start_dt_aligned.isoformat()}"
