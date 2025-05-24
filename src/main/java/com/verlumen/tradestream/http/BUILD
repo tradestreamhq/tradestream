@@ -13,8 +13,8 @@ java_library(
     deps = [
         ":http_client",
         ":http_url_connection_factory",
-        "//third_party:flogger",
-        "//third_party:guice",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
     ],
 )
 
@@ -26,7 +26,7 @@ java_library(
         ":http_client_impl",
         ":http_url_connection_factory",
         ":http_url_connection_factory_impl",
-        "//third_party:guice",
+        "//third_party/java:guice",
     ],
 )
 
@@ -40,6 +40,6 @@ java_library(
     srcs = ["HttpURLConnectionFactoryImpl.java"],
     deps = [
         ":http_url_connection_factory",
-        "//third_party:guice",
+        "//third_party/java:guice",
     ],
 )

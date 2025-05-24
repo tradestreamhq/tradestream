@@ -10,11 +10,11 @@ java_library(
         "//protos:trade_signals_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
         "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_factory",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:ta4j_core",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:ta4j_core",
     ],
 )
 
@@ -24,9 +24,9 @@ java_library(
     deps = [
         ":trade_signal_publisher",
         "//protos:trade_signals_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:flogger",
-        "//third_party:guice",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
     ],
 )
 
@@ -36,9 +36,9 @@ java_library(
     deps = [
         ":trade_signal_publisher",
         ":trade_signal_publisher_impl",
-        "//third_party:auto_value",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
+        "//third_party/java:auto_value",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
     ],
 )
 
@@ -56,10 +56,10 @@ java_library(
     deps = [
         ":trade_signal_publisher",
         "//protos:trade_signals_java_proto",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:kafka_clients",
-        "//third_party:protobuf_java_util",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:kafka_clients",
+        "//third_party/java:protobuf_java_util",
     ],
 )

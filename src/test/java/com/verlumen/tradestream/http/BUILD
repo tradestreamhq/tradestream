@@ -6,10 +6,10 @@ java_test(
     deps = [
         "//src/main/java/com/verlumen/tradestream/http:http_client_impl",
         "//src/main/java/com/verlumen/tradestream/http:http_url_connection_factory",
-        "//third_party:guice",
-        "//third_party:guice_testlib",
-        "//third_party:junit",
-        "//third_party:mockito_core",
-        "//third_party:truth",
+        "//third_party/java:guice",
+        "//third_party/java:guice_testlib",
+        "//third_party/java:junit",
+        "//third_party/java:mockito_core",
+        "//third_party/java:truth",
     ],
 )

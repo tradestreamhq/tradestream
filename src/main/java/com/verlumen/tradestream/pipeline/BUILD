@@ -14,7 +14,7 @@ java_binary(
     ],
     main_class = "com.verlumen.tradestream.pipeline.App",
     runtime_deps = [
-        "//third_party:beam_runners_direct_java",
+        "//third_party/java:beam_runners_direct_java",
     ],
     deps = [
         ":pipeline_module",
@@ -25,14 +25,14 @@ java_binary(
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_lookback_do_fn",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_source",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine_pipeline",
-        "//third_party:beam_runners_flink_java",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:joda_time",
-        "//third_party:protobuf_java",
-        "//third_party:protobuf_java_util",
+        "//third_party/java:beam_runners_flink_java",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:joda_time",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -101,10 +101,10 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/signals:signals_module",
         "//src/main/java/com/verlumen/tradestream/strategies:strategies_module",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
-        "//third_party:auto_value",
-        "//third_party:guice",
-        "//third_party:joda_time",
-        "//third_party:protobuf_java_util",
+        "//third_party/java:auto_value",
+        "//third_party/java:guice",
+        "//third_party/java:joda_time",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -119,6 +119,6 @@ java_library(
     name = "timing_config",
     srcs = ["TimingConfig.java"],
     deps = [
-        "//third_party:joda_time",
+        "//third_party/java:joda_time",
     ],
 )

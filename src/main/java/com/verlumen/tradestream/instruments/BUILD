@@ -18,7 +18,7 @@ java_library(
     srcs = ["CurrencyPair.java"],
     deps = [
         ":currency",
-        "//third_party:guava",
+        "//third_party/java:guava",
     ],
 )
 
@@ -29,10 +29,10 @@ kt_jvm_library(
         ":coin_market_cap_config",
         ":currency_pair",
         "//src/main/java/com/verlumen/tradestream/http:http_client",
-        "//third_party:gson",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:mug",
+        "//third_party/java:gson",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:mug",
     ],
 )
 
@@ -44,8 +44,8 @@ java_library(
         ":currency_pair",
         ":currency_pair_supplier",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
-        "//third_party:auto_value",
-        "//third_party:guava",
-        "//third_party:guice",
+        "//third_party/java:auto_value",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
     ],
 )

@@ -1,5 +1,4 @@
-load("@pypi//:requirements.bzl", "requirement")
-load("@rules_python//python:py_library.bzl", "py_library")
+load("@rules_java//java:java_library.bzl", "java_library")
 
 java_library(
     name = "argparse4j",
@@ -311,37 +310,5 @@ java_library(
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:org_knowm_xchange_xchange_stream_core",
-    ],
-)
-
-py_library(
-    name = "absl_py",
-    visibility = ["//visibility:public"],
-    deps = [
-        requirement("absl-py"),
-    ],
-)
-
-py_library(
-    name = "influxdb_client",
-    visibility = ["//visibility:public"],
-    deps = [
-        requirement("influxdb-client"),
-    ],
-)
-
-py_library(
-    name = "requests",
-    visibility = ["//visibility:public"],
-    deps = [
-        requirement("requests"),
-    ],
-)
-
-py_library(
-    name = "tenacity",
-    visibility = ["//visibility:public"],
-    deps = [
-        requirement("tenacity"),
     ],
 )
