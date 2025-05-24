@@ -542,7 +542,6 @@ class RunPollingLoopTest(BaseIngestorTest):
         # Both tickers should still be in the dict - one failed, one succeeded
         self.assertIn("btcusd", last_processed_timestamps_arg)
         self.assertIn("ethusd", last_processed_timestamps_arg)
-        
         # The ethusd ticker should have been updated (but btcusd should remain the same due to error)
         # Only ethusd update should have been called
         self.mock_influx_manager.update_last_processed_timestamp.assert_called_with(
