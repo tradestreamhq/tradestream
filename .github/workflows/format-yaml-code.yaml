@@ -1,9 +1,9 @@
 name: 'yaml-formatter'
 on:
   pull_request:
-    paths: 
-      - '**/*.yml'
-      - '**/*.yaml'
+    paths:
+      - "**/*.yml"
+      - "**/*.yaml"
 permissions:
   contents: read
   pull-requests: write
