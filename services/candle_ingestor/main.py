@@ -27,6 +27,7 @@ class RunMode(Enum):
     WET = "wet"
     DRY = "dry"
 
+
 class ProcessType(Enum):
     BACKFILL = "backfill"
     POLLING = "polling"
