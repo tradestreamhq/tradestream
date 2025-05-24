@@ -7,7 +7,7 @@ influxdb:
     bucket: "tradestream-data"
     retention_policy: "30d"
     # User credentials
-    user: "admin"  # Changed from 'username' to 'user'
+    user: "admin" # Changed from 'username' to 'user'
     # Use existing secret (this will ignore password and token values)
     existingSecret: "influxdb-admin-secret"
     # Remove these when using existingSecret:
@@ -54,7 +54,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v1.32.33-develop
+    tag: v1.32.34-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -85,7 +85,7 @@ candleIngestor:
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
-    tag: "v1.32.33-develop"
+    tag: "v1.32.34-develop"
   config:
     topNCryptos: 10
     candleGranularityMinutes: 1
