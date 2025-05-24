@@ -196,8 +196,13 @@ def _create_influx_manager(config: ConfigFlags) -> Tuple[Optional[InfluxDBManage
         org=config.influxdb_org,
         bucket=config.influxdb_bucket,
     )
-    
-    return (manager, None) if manager.get_client() else (None, "Failed to connect to InfluxDB. Exiting.")
+
+    return (
+        (manager, None)
+        if manager.get_client()
+        else (None, "Failed to connect to InfluxDB. Exiting.")
+    )
+
 
 def _validate_configuration(config: ConfigFlags) -> ValidationResult:
     validators = MODE_VALIDATORS[config.run_mode]
