@@ -2,7 +2,6 @@ package com.verlumen.tradestream.kafka;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Suppliers;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import java.io.Serializable;
@@ -29,7 +28,7 @@ public abstract class KafkaModule extends AbstractModule {
   }
 
   // Static inner class that implements Guava's Supplier and Serializable
-  private static class SerializableKafkaProducerSupplier 
+  private static class SerializableKafkaProducerSupplier
       implements com.google.common.base.Supplier<KafkaProducer<String, byte[]>>, Serializable {
 
     private static final long serialVersionUID = 1L;

@@ -11,16 +11,14 @@ import io.jenetics.NumericChromosome;
 
 final class IchimokuCloudParamConfig implements ParamConfig {
   // Individual chromosome specs
-  private static final ChromosomeSpec<?> TENKAN_SEN_PERIOD_SPEC = 
-      ChromosomeSpec.ofInteger(5, 60);
+  private static final ChromosomeSpec<?> TENKAN_SEN_PERIOD_SPEC = ChromosomeSpec.ofInteger(5, 60);
 
-  private static final ChromosomeSpec<?> KIJUN_SEN_PERIOD_SPEC = 
-      ChromosomeSpec.ofInteger(10, 120);
+  private static final ChromosomeSpec<?> KIJUN_SEN_PERIOD_SPEC = ChromosomeSpec.ofInteger(10, 120);
 
-  private static final ChromosomeSpec<?> SENKOU_SPAN_B_PERIOD_SPEC = 
+  private static final ChromosomeSpec<?> SENKOU_SPAN_B_PERIOD_SPEC =
       ChromosomeSpec.ofInteger(20, 240);
 
-  private static final ChromosomeSpec<?> CHIKOU_SPAN_PERIOD_SPEC = 
+  private static final ChromosomeSpec<?> CHIKOU_SPAN_PERIOD_SPEC =
       ChromosomeSpec.ofInteger(10, 120);
 
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
@@ -28,8 +26,7 @@ final class IchimokuCloudParamConfig implements ParamConfig {
           TENKAN_SEN_PERIOD_SPEC,
           KIJUN_SEN_PERIOD_SPEC,
           SENKOU_SPAN_B_PERIOD_SPEC,
-          CHIKOU_SPAN_PERIOD_SPEC
-          );
+          CHIKOU_SPAN_PERIOD_SPEC);
 
   static IchimokuCloudParamConfig create() {
     return new IchimokuCloudParamConfig();
@@ -45,7 +42,8 @@ final class IchimokuCloudParamConfig implements ParamConfig {
   @Override
   public Any createParameters(ImmutableList<? extends NumericChromosome<?, ?>> chromosomes) {
     if (chromosomes.size() != SPECS.size()) {
-        throw new IllegalArgumentException("Expected " + SPECS.size() + " chromosomes, but got " + chromosomes.size());
+      throw new IllegalArgumentException(
+          "Expected " + SPECS.size() + " chromosomes, but got " + chromosomes.size());
     }
 
     // Directly get the first value from each chromosome
@@ -53,7 +51,7 @@ final class IchimokuCloudParamConfig implements ParamConfig {
     IntegerChromosome kijunSenChromosome = (IntegerChromosome) chromosomes.get(1);
     IntegerChromosome senkouSpanBChromosome = (IntegerChromosome) chromosomes.get(2);
     IntegerChromosome chikouSpanChromosome = (IntegerChromosome) chromosomes.get(3);
-    
+
     // Use the get(0) method to access the first gene
     int tenkanSenPeriod = tenkanSenChromosome.get(0).allele();
     int kijunSenPeriod = kijunSenChromosome.get(0).allele();

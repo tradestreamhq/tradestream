@@ -8,13 +8,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.mu.util.stream.BiStream;
 import com.verlumen.tradestream.strategies.StrategyType;
-import java.io.Serializable;
 
 /**
- * Implementation of {@link ParamConfigManager} that manages parameter configurations for various strategies.
- * 
- * <p>This class uses an immutable map to associate each {@link StrategyType} with its corresponding 
- * {@link ParamConfig}. It is designed to be instantiated via dependency injection (using Guice), 
+ * Implementation of {@link ParamConfigManager} that manages parameter configurations for various
+ * strategies.
+ *
+ * <p>This class uses an immutable map to associate each {@link StrategyType} with its corresponding
+ * {@link ParamConfig}. It is designed to be instantiated via dependency injection (using Guice),
  * ensuring that the configuration list is properly provided at construction time.
  */
 final class ParamConfigManagerImpl implements ParamConfigManager {
@@ -23,7 +23,7 @@ final class ParamConfigManagerImpl implements ParamConfigManager {
   @Inject
   ParamConfigManagerImpl(ImmutableList<ParamConfig> configs) {
     // Create an immutable map from strategy type to its corresponding configuration.
-    this.configMap = 
+    this.configMap =
         BiStream.from(configs, ParamConfig::getStrategyType, identity())
             .collect(ImmutableMap::toImmutableMap);
   }
@@ -39,7 +39,8 @@ final class ParamConfigManagerImpl implements ParamConfigManager {
   public ParamConfig getParamConfig(StrategyType strategyType) {
     // Ensure the map contains a configuration for the requested strategy type.
     // Provide a descriptive error message if the configuration is missing.
-    checkArgument(configMap.containsKey(strategyType),
+    checkArgument(
+        configMap.containsKey(strategyType),
         "No parameter configuration found for strategy type: " + strategyType);
     return configMap.get(strategyType);
   }

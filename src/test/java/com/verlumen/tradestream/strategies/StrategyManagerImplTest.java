@@ -30,8 +30,7 @@ public class StrategyManagerImplTest {
 
   @Bind private ImmutableList<StrategyFactory<?>> strategyFactories;
 
-  @Inject
-  private StrategyManagerImpl strategyManager;
+  @Inject private StrategyManagerImpl strategyManager;
 
   private Strategy mockStrategy;
   private BarSeries barSeries;
@@ -70,8 +69,7 @@ public class StrategyManagerImplTest {
     when(mockSmaRsiFactory.createStrategy(barSeries, packedParams)).thenReturn(mockStrategy);
 
     // Act
-    Strategy result =
-        strategyManager.createStrategy(barSeries, StrategyType.SMA_RSI, packedParams);
+    Strategy result = strategyManager.createStrategy(barSeries, StrategyType.SMA_RSI, packedParams);
 
     // Assert
     assertThat(result).isSameInstanceAs(mockStrategy);
@@ -117,7 +115,7 @@ public class StrategyManagerImplTest {
             IllegalArgumentException.class,
             () ->
                 strategyManager.createStrategy(
-                        barSeries, StrategyType.ADX_STOCHASTIC, packedParams));
+                    barSeries, StrategyType.ADX_STOCHASTIC, packedParams));
 
     assertThat(thrown).hasMessageThat().contains("Unsupported strategy type: ADX_STOCHASTIC");
   }
@@ -135,7 +133,8 @@ public class StrategyManagerImplTest {
             .build();
     Any packedParams = Any.pack(params);
 
-    InvalidProtocolBufferException expectedException = new InvalidProtocolBufferException("Test exception");
+    InvalidProtocolBufferException expectedException =
+        new InvalidProtocolBufferException("Test exception");
     when(mockSmaRsiFactory.createStrategy(barSeries, packedParams)).thenThrow(expectedException);
 
     // Act & Assert
@@ -151,7 +150,8 @@ public class StrategyManagerImplTest {
   public void getStrategyTypes_returnsExpectedStrategyTypes()
       throws InvalidProtocolBufferException {
     // Arrange
-    ImmutableList<StrategyType> expected = ImmutableList.of(StrategyType.EMA_MACD, StrategyType.SMA_RSI);
+    ImmutableList<StrategyType> expected =
+        ImmutableList.of(StrategyType.EMA_MACD, StrategyType.SMA_RSI);
 
     // Act
     ImmutableList<StrategyType> actual = strategyManager.getStrategyTypes();

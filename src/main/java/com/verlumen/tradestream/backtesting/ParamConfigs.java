@@ -7,14 +7,14 @@ import com.verlumen.tradestream.backtesting.patternrecognition.PatternRecognitio
 import com.verlumen.tradestream.backtesting.trendfollowing.TrendFollowingParams;
 
 final class ParamConfigs {
-    static final ImmutableList<ParamConfig> ALL_CONFIGS = 
-        ImmutableList.<ParamConfig>builder()
-            .addAll(MomentumOscillatorParams.allConfigs)
-            .addAll(MovingAverageParams.allConfigs)
-            .addAll(PatternRecognitionParams.allConfigs)
-            .addAll(TrendFollowingParams.allConfigs)
-            .build();
+  static final ImmutableList<ParamConfig> ALL_CONFIGS =
+      ImmutableList.<ParamConfig>builder()
+          .addAll(MomentumOscillatorParams.allConfigs)
+          .addAll(MovingAverageParams.allConfigs)
+          .addAll(PatternRecognitionParams.allConfigs)
+          .addAll(TrendFollowingParams.allConfigs)
+          .build();
 
-    // Prevent instantiation
-    private ParamConfigs() {}
+  // Prevent instantiation
+  private ParamConfigs() {}
 }

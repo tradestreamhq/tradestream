@@ -78,21 +78,22 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
   }
 
   @Test
-  public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma() throws InvalidProtocolBufferException {
+  public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma()
+      throws InvalidProtocolBufferException {
     series = new BaseBarSeries();
-    
+
     // Initial period with stable prices (15 bars)
     for (int i = 0; i < 15; i++) {
-        series.addBar(createBar(startTime.plusMinutes(i), 100.0));
+      series.addBar(createBar(startTime.plusMinutes(i), 100.0));
     }
-    
+
     // Create decline then rise for crossover (5 bars)
     series.addBar(createBar(startTime.plusMinutes(15), 98.0));
     series.addBar(createBar(startTime.plusMinutes(16), 98.0));
-    series.addBar(createBar(startTime.plusMinutes(17), 99.0));  // Bar i-2
+    series.addBar(createBar(startTime.plusMinutes(17), 99.0)); // Bar i-2
     series.addBar(createBar(startTime.plusMinutes(18), 102.0)); // Bar i-1 - Crossover
     series.addBar(createBar(startTime.plusMinutes(19), 103.0)); // Bar i
-    
+
     // Reinitialize
     closePrice = new ClosePriceIndicator(series);
     momentumIndicator = new MomentumIndicator(closePrice, MOMENTUM_PERIOD);
@@ -100,33 +101,35 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
     strategy = factory.createStrategy(series, params);
 
     int lastIndex = series.getBarCount() - 1;
-    
+
     // Log debug info
     System.out.println("Series size: " + series.getBarCount());
-    System.out.println("Testing bars: " + (lastIndex-2) + ", " + (lastIndex-1) + ", " + lastIndex);
-    
+    System.out.println(
+        "Testing bars: " + (lastIndex - 2) + ", " + (lastIndex - 1) + ", " + lastIndex);
+
     // Test with actual indices
-    assertThat(strategy.getEntryRule().isSatisfied(lastIndex-2)).isFalse();
-    assertThat(strategy.getEntryRule().isSatisfied(lastIndex-1)).isTrue();
+    assertThat(strategy.getEntryRule().isSatisfied(lastIndex - 2)).isFalse();
+    assertThat(strategy.getEntryRule().isSatisfied(lastIndex - 1)).isTrue();
     assertThat(strategy.getEntryRule().isSatisfied(lastIndex)).isFalse();
   }
 
   @Test
-  public void exitRule_shouldTrigger_whenMomentumCrossesBelowSma() throws InvalidProtocolBufferException {
+  public void exitRule_shouldTrigger_whenMomentumCrossesBelowSma()
+      throws InvalidProtocolBufferException {
     series = new BaseBarSeries();
-    
+
     // Initial period with stable prices (15 bars)
     for (int i = 0; i < 15; i++) {
-        series.addBar(createBar(startTime.plusMinutes(i), 100.0));
+      series.addBar(createBar(startTime.plusMinutes(i), 100.0));
     }
-    
+
     // Create rise then sharp decline for crossover (5 bars)
     series.addBar(createBar(startTime.plusMinutes(15), 110.0));
     series.addBar(createBar(startTime.plusMinutes(16), 110.0));
-    series.addBar(createBar(startTime.plusMinutes(17), 105.0));  // Bar i-2
-    series.addBar(createBar(startTime.plusMinutes(18), 95.0));   // Bar i-1 - Crossover
-    series.addBar(createBar(startTime.plusMinutes(19), 92.0));   // Bar i
-    
+    series.addBar(createBar(startTime.plusMinutes(17), 105.0)); // Bar i-2
+    series.addBar(createBar(startTime.plusMinutes(18), 95.0)); // Bar i-1 - Crossover
+    series.addBar(createBar(startTime.plusMinutes(19), 92.0)); // Bar i
+
     // Reinitialize
     closePrice = new ClosePriceIndicator(series);
     momentumIndicator = new MomentumIndicator(closePrice, MOMENTUM_PERIOD);
@@ -134,14 +137,15 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
     strategy = factory.createStrategy(series, params);
 
     int lastIndex = series.getBarCount() - 1;
-    
+
     // Log debug info
     System.out.println("Series size: " + series.getBarCount());
-    System.out.println("Testing bars: " + (lastIndex-2) + ", " + (lastIndex-1) + ", " + lastIndex);
-    
+    System.out.println(
+        "Testing bars: " + (lastIndex - 2) + ", " + (lastIndex - 1) + ", " + lastIndex);
+
     // Test with actual indices
-    assertThat(strategy.getExitRule().isSatisfied(lastIndex-2)).isFalse();
-    assertThat(strategy.getExitRule().isSatisfied(lastIndex-1)).isTrue();  
+    assertThat(strategy.getExitRule().isSatisfied(lastIndex - 2)).isFalse();
+    assertThat(strategy.getExitRule().isSatisfied(lastIndex - 1)).isTrue();
     assertThat(strategy.getExitRule().isSatisfied(lastIndex)).isFalse();
   }
 

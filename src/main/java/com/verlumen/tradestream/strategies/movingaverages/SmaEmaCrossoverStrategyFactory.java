@@ -33,22 +33,19 @@ final class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCros
 
     Rule entryRule = new CrossedUpIndicatorRule(smaIndicator, emaIndicator);
     Rule exitRule = new CrossedDownIndicatorRule(smaIndicator, emaIndicator);
-    String strategyName = String.format(
-      "%s (SMA-%d EMA-%d)", getStrategyType().name(), params.getSmaPeriod(), params.getEmaPeriod());
-    return new BaseStrategy(
-        strategyName,
-        entryRule,
-        exitRule,
-        params.getEmaPeriod()
-      );
+    String strategyName =
+        String.format(
+            "%s (SMA-%d EMA-%d)",
+            getStrategyType().name(), params.getSmaPeriod(), params.getEmaPeriod());
+    return new BaseStrategy(strategyName, entryRule, exitRule, params.getEmaPeriod());
   }
 
   @Override
   public SmaEmaCrossoverParameters getDefaultParameters() {
-      return SmaEmaCrossoverParameters.newBuilder()
-          .setSmaPeriod(20) // Default SMA period, typically used as a short-term trend
-          .setEmaPeriod(50) // Default EMA period, commonly used for medium-term trend
-          .build();
+    return SmaEmaCrossoverParameters.newBuilder()
+        .setSmaPeriod(20) // Default SMA period, typically used as a short-term trend
+        .setEmaPeriod(50) // Default EMA period, commonly used for medium-term trend
+        .build();
   }
 
   @Override
