@@ -1,0 +1,31 @@
+name: 'google-java-format'
+on:
+  pull_request:
+    paths: ['**/*.java']
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  format:
+    name: runner / google-java-format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Format files using google-java-format
+        uses: axel-op/googlejavaformat-action@v4
+        with:
+          args: "--replace"
+          skip-commit: true
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Annotate diff changes using reviewdog
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: google-java-format

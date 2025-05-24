@@ -12,6 +12,8 @@ build --incompatible_enable_cc_toolchain_resolution
 build --verbose_failures
 build --sandbox_debug
 
+test --experimental_split_coverage_postprocessing 
+test --experimental_fetch_all_coverage_outputs
 test --experimental_ui_max_stdouterr_bytes=2097152
 test --test_output=all
 test --verbose_failures
@@ -21,7 +23,6 @@ build --bes_results_url=https://app.buildbuddy.io/invocation/
 build --bes_backend=grpcs://remote.buildbuddy.io
 build --experimental_remote_cache_compression_threshold=100
 build --remote_cache=grpcs://remote.buildbuddy.io
-build --remote_executor=grpcs://remote.buildbuddy.io
 build --remote_timeout=10m
 build --experimental_remote_cache_compression
 build --nolegacy_important_outputs
