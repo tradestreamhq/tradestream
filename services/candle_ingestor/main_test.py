@@ -700,7 +700,6 @@ class MainFunctionTest(BaseIngestorTest): # Inherit for shared mocks
         # Act & Assert - expect SystemExit due to dry run completion
         with self.assertRaises(SystemExit) as cm:
             candle_ingestor_main.main(None)
-        
         # Should exit with code 0 (success)
         self.assertEqual(cm.exception.code, 0)
 
