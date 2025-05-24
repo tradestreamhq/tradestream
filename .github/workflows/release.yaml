@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PIPELINE_REPO: tradestreamhq/tradestream-data-pipeline
-      PIPELINE_SECTION_KEY: pipeline
       CANDLE_INGESTOR_REPO: tradestreamhq/candle-ingestor
+      PIPELINE_SECTION_KEY: pipeline
       CANDLE_INGESTOR_SECTION_KEY: candleIngestor
     steps:
       - name: Checkout
