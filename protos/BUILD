@@ -1,3 +1,6 @@
+load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
+load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+
 proto_library(
     name = "backtesting_proto",
     srcs = ["backtesting.proto"],
