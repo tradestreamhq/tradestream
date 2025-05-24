@@ -34,7 +34,7 @@ message StrategyDiscoveryRequest {
 
 // Represents a discovered strategy, including its full definition and achieved score
 message DiscoveredStrategy {
-  Strategy strategy = 1; // The actual strategy (type and parameters)
+  strategies.Strategy strategy = 1; // The actual strategy (type and parameters)
   double score = 2;      // The score achieved by this strategy instance
 }
 
