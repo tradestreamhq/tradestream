@@ -1,7 +1,7 @@
 name: 'black-formatter'
 on:
   pull_request:
-    paths: ['**/*.py']
+    paths: ["**/*.py"]
 permissions:
   contents: read
   pull-requests: write
