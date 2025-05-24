@@ -86,21 +86,23 @@ class TradeToCandleTest : Serializable {
             createTrade("BTC/USD", 50100.0, 0.5, t2), t2
         )
 
-        val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
-            .addElements(tradeWin1, tradeWin1Late)
-            .advanceWatermarkTo(win1End.plus(Duration.millis(1))) // Advance watermark just past the end of the window
-            .advanceWatermarkToInfinity()
+        val tradeStream =
+            TestStream.create(ProtoCoder.of(Trade::class.java))
+                .addElements(tradeWin1, tradeWin1Late)
+                .advanceWatermarkTo(win1End.plus(Duration.millis(1))) // Advance watermark just past the end of the window
+                .advanceWatermarkToInfinity()
 
-        val expectedBtcCandle = Candle.newBuilder()
-            .setCurrencyPair("BTC/USD")
-            .setOpen(50000.0)
-            .setHigh(50100.0)
-            .setLow(50000.0)
-            .setClose(50100.0)
-            .setVolume(1.5)
-             // CombineFn uses the *first* trade's timestamp
-            .setTimestamp(Timestamps.fromMillis(t1.millis))
-            .build()
+        val expectedBtcCandle =
+            Candle.newBuilder()
+                .setCurrencyPair("BTC/USD")
+                .setOpen(50000.0)
+                .setHigh(50100.0)
+                .setLow(50000.0)
+                .setClose(50100.0)
+                .setVolume(1.5)
+                // CombineFn uses the *first* trade's timestamp
+                .setTimestamp(Timestamps.fromMillis(t1.millis))
+                .build()
 
         // Act
         val transform = tradeToCandleFactory.create(windowDuration)
