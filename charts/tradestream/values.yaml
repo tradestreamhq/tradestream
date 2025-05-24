@@ -17,10 +17,7 @@ influxdb:
   # Storage configuration
   persistence:
     enabled: true
-    accessModes:
-      - ReadWriteOnce
-  service:
-    type: ClusterIP
+    size: 20Gi
 kafka:
   replicaCount: 3
   persistence:
