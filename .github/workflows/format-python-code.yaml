@@ -1,4 +1,4 @@
-name: 'black-formatter'
+name: "black-formatter"
 on:
   pull_request:
     paths: ["**/*.py"]
