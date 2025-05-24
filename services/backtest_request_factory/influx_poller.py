@@ -40,7 +40,9 @@ class InfluxPoller:
             self.client = None
             raise
 
-    def fetch_new_candles(self, currency_pair: str, last_timestamp_ms: int = 0) -> tuple[list[Candle], int]:
+    def fetch_new_candles(
+        self, currency_pair: str, last_timestamp_ms: int = 0
+    ) -> tuple[list[Candle], int]:
         if not self.client:
             logging.error("InfluxDB client not initialized. Cannot fetch candles.")
             return [], last_timestamp_ms
