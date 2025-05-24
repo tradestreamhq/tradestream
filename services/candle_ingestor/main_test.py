@@ -646,8 +646,8 @@ class MainFunctionTest(BaseIngestorTest): # Inherit for shared mocks
 
         mock_run_polling_loop.assert_called_once()
         args_polling, kwargs_polling = mock_run_polling_loop.call_args
-        self.assertIsNone(kwargs_polling['influx_manager'])
-        self.assertEqual(kwargs_polling['run_mode'], 'dry')
+        self.assertIsNone(kwargs_polling["influx_manager"])
+        self.assertEqual(kwargs_polling["run_mode"], "dry")
 
     @mock.patch("services.candle_ingestor.main.InfluxDBManager")
     def test_main_exits_early_if_influxdb_connection_fails(self, MockInfluxDBManager):
