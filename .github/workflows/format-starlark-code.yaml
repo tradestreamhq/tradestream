@@ -11,6 +11,7 @@ on:
       - '**/BUILD.bazel'
       - '**/WORKSPACE'
       - '**/WORKSPACE.bazel'
+      - '**/MODULE.bazel'
       - '**/*.bzl'
       - '**/*.BUILD'
 permissions:
