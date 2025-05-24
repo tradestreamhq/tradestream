@@ -410,8 +410,7 @@ def run_polling_loop(
                         for c in polled_candles:
                             candle_ts_ms = c["timestamp_ms"]
                             candle_end_ts_ms = (
-                                candle_ts_ms
-                                + granularity_delta.total_seconds() * 1000
+                                candle_ts_ms + granularity_delta.total_seconds() * 1000
                             )
                             if (
                                 candle_ts_ms > last_ts_ms
