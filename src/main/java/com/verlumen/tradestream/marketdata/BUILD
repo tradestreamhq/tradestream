@@ -10,10 +10,10 @@ java_library(
     srcs = ["CandleCombineFn.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
-        "//third_party:flogger",
-        "//third_party:protobuf_java",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_extensions_protobuf",
+        "//third_party/java:flogger",
+        "//third_party/java:protobuf_java",
     ],
 )
 
@@ -22,11 +22,11 @@ kt_jvm_library(
     srcs = ["CandleLookbackDoFn.kt"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",  # For ProtoCoder
-        "//third_party:flogger",
-        "//third_party:guava",  # For ImmutableList
-        "//third_party:joda_time",  # For Instant
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_extensions_protobuf",  # For ProtoCoder
+        "//third_party/java:flogger",
+        "//third_party/java:guava",  # For ImmutableList
+        "//third_party/java:joda_time",  # For Instant
     ],
 )
 
@@ -35,7 +35,7 @@ java_library(
     srcs = ["CandleSource.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_core",
     ],
 )
 
@@ -47,11 +47,11 @@ java_library(
         ":exchange_streaming_client",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party:flogger",
-        "//third_party:gson",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:protobuf_java_util",
+        "//third_party/java:flogger",
+        "//third_party/java:gson",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -61,11 +61,11 @@ java_library(
     srcs = ["DefaultTradeGenerator.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
-        "//third_party:joda_time",
-        "//third_party:protobuf_java",
-        "//third_party:protobuf_java_util",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_extensions_protobuf",
+        "//third_party/java:joda_time",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -76,9 +76,9 @@ java_library(
     deps = [
         ":trade_source",
         "//protos:marketdata_java_proto",
-        "//third_party:auto_value",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:guava",
+        "//third_party/java:auto_value",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guava",
     ],
 )
 
@@ -90,8 +90,8 @@ java_library(
         ":exchange_client_unbounded_source",
         ":trade_source",
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:guice",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guice",
     ],
 )
 
@@ -105,12 +105,12 @@ kt_jvm_library(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:protobuf_java_util",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -121,8 +121,8 @@ kt_jvm_library(
     deps = [
         ":trade_checkpoint_mark",
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_extensions_protobuf",
     ],
 )
 
@@ -135,9 +135,9 @@ kt_jvm_library(
         ":exchange_client_unbounded_source",
         ":trade_checkpoint_mark",
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
-        "//third_party:guice",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_extensions_protobuf",
+        "//third_party/java:guice",
     ],
 )
 
@@ -148,7 +148,7 @@ java_library(
     deps = [
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party:guava",
+        "//third_party/java:guava",
     ],
 )
 
@@ -159,8 +159,8 @@ java_library(
     deps = [
         ":coinbase_streaming_client",
         ":exchange_streaming_client",
-        "//third_party:guava",
-        "//third_party:guice",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
     ],
 )
 
@@ -170,13 +170,13 @@ kt_jvm_library(
     srcs = ["FillForwardCandlesFn.kt"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:joda_time",
-        "//third_party:protobuf_java_util",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_extensions_protobuf",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:joda_time",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -187,10 +187,10 @@ kt_jvm_library(
     deps = [
         ":fill_forward_candles_fn",
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:joda_time",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:joda_time",
     ],
 )
 
@@ -200,10 +200,10 @@ java_library(
     srcs = ["LastCandlesFn.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
-        "//third_party:flogger",
-        "//third_party:guava",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_extensions_protobuf",
+        "//third_party/java:flogger",
+        "//third_party/java:guava",
     ],
 )
 
@@ -230,12 +230,12 @@ java_library(
         ":trade_to_candle",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
-        "//third_party:auto_value",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:joda_time",
-        "//third_party:protobuf_java_util",
+        "//third_party/java:auto_value",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:joda_time",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -247,9 +247,9 @@ java_library(
         ":last_candles_fn",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/time:time_frame",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:flogger",
-        "//third_party:guava",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:guava",
     ],
 )
 
@@ -260,11 +260,11 @@ java_library(
     deps = [
         ":candle_combine_fn",
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
-        "//third_party:flogger",
-        "//third_party:joda_time",
-        "//third_party:protobuf_java",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_extensions_protobuf",
+        "//third_party/java:flogger",
+        "//third_party/java:joda_time",
+        "//third_party/java:protobuf_java",
     ],
 )
 
@@ -275,9 +275,9 @@ kt_jvm_library(
         ":candle_source",
         ":tiingo_crypto_candle_transform",
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
     ],
 )
 
@@ -289,10 +289,10 @@ kt_jvm_library(
         ":tiingo_crypto_fetcher_fn",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:joda_time",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:joda_time",
     ],
 )
 
@@ -303,14 +303,14 @@ kt_jvm_library(
         ":tiingo_response_parser",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/http:http_client",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:joda_time",
-        "//third_party:protobuf_java",
-        "//third_party:protobuf_java_util",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_extensions_protobuf",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:joda_time",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -320,9 +320,9 @@ kt_jvm_library(
     srcs = ["TiingoResponseParser.kt"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party:gson",
-        "//third_party:protobuf_java",
-        "//third_party:protobuf_java_util",
+        "//third_party/java:gson",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -334,10 +334,10 @@ java_library(
         ":trade_source",
         ":trade_to_candle",
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:guice",
-        "//third_party:joda_time",
-        "//third_party:protobuf_java_util",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guice",
+        "//third_party/java:joda_time",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -346,8 +346,8 @@ kt_jvm_library(
     name = "trade_checkpoint_mark",
     srcs = ["TradeCheckpointMark.kt"],
     deps = [
-        "//third_party:beam_sdks_java_core",
-        "//third_party:joda_time",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:joda_time",
     ],
 )
 
@@ -357,7 +357,7 @@ java_library(
     srcs = ["TradeSource.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_core",
     ],
 )
 
@@ -368,11 +368,11 @@ kt_jvm_library(
     deps = [
         ":candle_combine_fn",
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:joda_time",
-        "//third_party:protobuf_java",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:joda_time",
+        "//third_party/java:protobuf_java",
     ],
 )

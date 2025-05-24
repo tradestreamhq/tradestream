@@ -8,9 +8,9 @@ py_library(
         "//services/candle_ingestor:__pkg__",
     ],
     deps = [
-        "//third_party:absl_py",
-        "//third_party:requests",
-        "//third_party:tenacity",
+        "//third_party/python:absl_py",
+        "//third_party/python:requests",
+        "//third_party/python:tenacity",
     ],
 )
 
@@ -19,6 +19,6 @@ py_test(
     srcs = ["cmc_client_test.py"],
     deps = [
         ":cmc_client_lib",
-        "//third_party:requests",
+        "//third_party/python:requests",
     ],
 )

@@ -21,8 +21,8 @@ kt_jvm_library(
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
-        "//third_party:flogger",
-        "//third_party:guice",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
     ],
 )
 
@@ -31,7 +31,7 @@ java_library(
     srcs = ["BacktestRunner.java"],
     deps = [
         "//protos:backtesting_java_proto",
-        "//third_party:protobuf_java",
+        "//third_party/java:protobuf_java",
     ],
 )
 
@@ -44,9 +44,9 @@ kt_jvm_library(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
         "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_factory",
-        "//third_party:guice",
-        "//third_party:protobuf_java",
-        "//third_party:ta4j_core",
+        "//third_party/java:guice",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:ta4j_core",
     ],
 )
 
@@ -70,8 +70,8 @@ java_library(
         ":param_config_manager",
         ":param_config_manager_impl",
         ":param_configs",
-        "//third_party:guava",
-        "//third_party:guice",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
     ],
 )
 
@@ -83,8 +83,8 @@ java_library(
         "IntegerChromosomeSpec.java",
     ],
     deps = [
-        "//third_party:guava",
-        "//third_party:jenetics",
+        "//third_party/java:guava",
+        "//third_party/java:jenetics",
     ],
 )
 
@@ -93,7 +93,7 @@ java_library(
     srcs = ["FitnessCalculator.java"],
     deps = [
         "//protos:backtesting_java_proto",
-        "//third_party:jenetics",
+        "//third_party/java:jenetics",
     ],
 )
 
@@ -107,9 +107,9 @@ java_library(
         ":genotype_converter",
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
-        "//third_party:guice",
-        "//third_party:jenetics",
-        "//third_party:protobuf_java",
+        "//third_party/java:guice",
+        "//third_party/java:jenetics",
+        "//third_party/java:protobuf_java",
     ],
 )
 
@@ -123,7 +123,7 @@ java_library(
     srcs = ["GAEngineFactory.java"],
     deps = [
         "//protos:backtesting_java_proto",
-        "//third_party:jenetics",
+        "//third_party/java:jenetics",
     ],
 )
 
@@ -138,9 +138,9 @@ java_library(
         ":param_config",
         ":param_config_manager",
         "//protos:backtesting_java_proto",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:jenetics",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:jenetics",
     ],
 )
 
@@ -161,10 +161,10 @@ java_library(
         ":genetic_algorithm_orchestrator",
         ":genotype_converter",
         "//protos:backtesting_java_proto",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:jenetics",
-        "//third_party:protobuf_java",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:jenetics",
+        "//third_party/java:protobuf_java",
     ],
 )
 
@@ -173,8 +173,8 @@ java_library(
     srcs = ["GenotypeConverter.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//third_party:jenetics",
-        "//third_party:protobuf_java",
+        "//third_party/java:jenetics",
+        "//third_party/java:protobuf_java",
     ],
 )
 
@@ -186,10 +186,10 @@ java_library(
         ":param_config",
         ":param_config_manager",
         "//protos:strategies_java_proto",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:jenetics",
-        "//third_party:protobuf_java",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:jenetics",
+        "//third_party/java:protobuf_java",
     ],
 )
 
@@ -199,9 +199,9 @@ java_library(
     deps = [
         ":chromosome_spec",
         "//protos:strategies_java_proto",
-        "//third_party:guava",
-        "//third_party:jenetics",
-        "//third_party:protobuf_java",
+        "//third_party/java:guava",
+        "//third_party/java:jenetics",
+        "//third_party/java:protobuf_java",
     ],
 )
 
@@ -221,9 +221,9 @@ java_library(
         ":param_config",
         ":param_config_manager",
         "//protos:strategies_java_proto",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:mug",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:mug",
     ],
 )
 
@@ -238,7 +238,7 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/backtesting/movingaverages:moving_average_params",
         "//src/main/java/com/verlumen/tradestream/backtesting/patternrecognition:pattern_recognition_params",
         "//src/main/java/com/verlumen/tradestream/backtesting/trendfollowing:trend_following_params",
-        "//third_party:guava",
+        "//third_party/java:guava",
     ],
 )
 
@@ -248,8 +248,8 @@ java_library(
     deps = [
         ":backtest_runner",
         "//protos:backtesting_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:guice",
-        "//third_party:protobuf_java",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guice",
+        "//third_party/java:protobuf_java",
     ],
 )

@@ -7,10 +7,10 @@ java_library(
     srcs = ["BarSeriesBuilder.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party:guava",
-        "//third_party:protobuf_java",
-        "//third_party:protobuf_java_util",
-        "//third_party:ta4j_core",
+        "//third_party/java:guava",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
+        "//third_party/java:ta4j_core",
     ],
 )
 
@@ -19,8 +19,8 @@ java_library(
     srcs = ["BarSeriesFactory.java"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party:guava",
-        "//third_party:ta4j_core",
+        "//third_party/java:guava",
+        "//third_party/java:ta4j_core",
     ],
 )
 
@@ -30,6 +30,6 @@ java_library(
     deps = [
         ":bar_series_builder",
         ":bar_series_factory",
-        "//third_party:guice",
+        "//third_party/java:guice",
     ],
 )

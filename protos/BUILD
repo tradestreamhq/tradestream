@@ -18,6 +18,7 @@ java_proto_library(
 
 py_proto_library(
     name = "backtesting_py_proto",
+    visibility = ["//visibility:public"],
     deps = [":backtesting_proto"],
 )
 
