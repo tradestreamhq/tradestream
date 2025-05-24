@@ -37,6 +37,7 @@ class ValidationResult(NamedTuple):
     is_valid: bool
     error_message: Optional[str] = None
 
+
 # Configuration structures
 @dataclass
 class DryRunLimits:
