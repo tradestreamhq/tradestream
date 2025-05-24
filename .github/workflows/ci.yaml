@@ -43,6 +43,10 @@ jobs:
             --from-literal=admin-password="$(openssl rand -base64 12)" \
             --from-literal=admin-token="$(openssl rand -hex 32)" \
             --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret generic influxdb-candle-ingestor-credentials \
+            --from-literal=INFLUXDB_TOKEN="$(openssl rand -hex 32)" \
+            --from-literal=INFLUXDB_ORG="tradestream-org" \
+            --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
 
       - uses: bazel-contrib/setup-bazel@0.14.0
         with:
@@ -64,11 +68,21 @@ jobs:
             -- \
             --repository localhost:5000/tradestream-data-pipeline \
             --tag "latest"
+            
+          # Build and push candle ingestor image
+          bazel run //services/candle_ingestor:push_candle_ingestor_image \
+            -- \
+            --repository localhost:5000/candle-ingestor \
+            --tag "latest"
 
           # Load images into minikube
           docker pull localhost:5000/tradestream-data-pipeline:latest
           docker tag localhost:5000/tradestream-data-pipeline:latest tradestream-data-pipeline:latest
           minikube image load tradestream-data-pipeline:latest
+          
+          docker pull localhost:5000/candle-ingestor:latest
+          docker tag localhost:5000/candle-ingestor:latest candle-ingestor:latest
+          minikube image load candle-ingestor:latest
 
       - name: Install Cert Manager
         run: |
@@ -87,6 +101,8 @@ jobs:
             --namespace tradestream-namespace \
             --set pipeline.image.repository=tradestream-data-pipeline \
             --set pipeline.image.tag=latest \
+            --set candleIngestor.image.repository=candle-ingestor \
+            --set candleIngestor.image.tag=latest \
             --set pipeline.runMode=dry
 
       - name: Monitor Deployment
