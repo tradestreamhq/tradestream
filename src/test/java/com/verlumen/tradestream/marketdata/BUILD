@@ -189,6 +189,10 @@ kt_jvm_test(
     name = "TiingoCryptoCandleTransformTest",
     srcs = ["TiingoCryptoCandleTransformTest.kt"],
     test_class = "com.verlumen.tradestream.marketdata.TiingoCryptoCandleTransformTest",
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
     deps = [
         "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_crypto_candle_transform",
         "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_crypto_fetcher_fn",
