@@ -2,34 +2,15 @@ syntax = "proto3";
 
 package discovery;
 
-// Standard Google Protobuf imports
 import "google/protobuf/any.proto";
 
-// Imports for types defined in other .proto files within your project.
-// Please adjust the paths if your .proto files are organized differently
-// or if the package names for Candle and StrategyType are different.
-
-// Assuming 'Candle' is defined in a 'marketdata.proto' file,
-// and that file declares 'package marketdata;'.
 import "marketdata.proto"; // Contains marketdata.Candle
-
-// Assuming 'StrategyType' is defined in a 'strategies.proto' file,
-// and that file declares 'package strategies;'.
-import "strategies.proto"; // Contains strategies.StrategyType
+import "strategies.proto"; // Contains strategies.Strategy
 
 
 // =======================================
 //   Strategy Discovery Service Messages
 // =======================================
-
-// Strategy Definition
-// Note: If 'Strategy' is a common type used in multiple services/protos,
-// it might be better placed in a shared proto file (e.g., common_types.proto or strategies.proto)
-// and imported here. If so, remove this definition and add the appropriate import.
-message Strategy {
-  google.protobuf.Any strategy_parameters = 1; // Specific parameters for this strategy instance
-  strategies.StrategyType strategy_type = 2;   // The type of the strategy (e.g., MOVING_AVERAGE_CROSSOVER)
-}
 
 // Configuration for Genetic Algorithm based optimization
 message GAConfig {
@@ -57,8 +38,8 @@ message DiscoveredStrategy {
   double score = 2;      // The score achieved by this strategy instance
 }
 
-// Response from the strategy discovery service: a list of top N discovered strategies
-message StrategyDiscoveryResponse {
+// Result from the strategy discovery service: a list of top N discovered strategies
+message StrategyDiscoveryResult {
   repeated DiscoveredStrategy top_strategies = 1; // List of discovered strategies, typically ordered by score
 }
 
@@ -67,4 +48,3 @@ message StrategyDiscoveryResponse {
 service StrategyDiscoveryService {
   rpc DiscoverStrategies(StrategyDiscoveryRequest) returns (StrategyDiscoveryResponse);
 }
-*/
