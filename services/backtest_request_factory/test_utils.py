@@ -15,15 +15,15 @@ def create_test_candle(
     high_price: float = 51000.0,
     low_price: float = 49000.0,
     close_price: float = 50500.0,
-    volume: float = 1000.0
+    volume: float = 1000.0,
 ) -> Candle:
     """Create a test candle with given parameters."""
     if timestamp_ms is None:
         timestamp_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
-    
+
     ts_seconds = timestamp_ms // 1000
     ts_nanos = (timestamp_ms % 1000) * 1_000_000
-    
+
     return Candle(
         timestamp=Timestamp(seconds=ts_seconds, nanos=ts_nanos),
         currency_pair=currency_pair,
@@ -31,7 +31,7 @@ def create_test_candle(
         high=high_price,
         low=low_price,
         close=close_price,
-        volume=volume
+        volume=volume,
     )
 
 
@@ -39,12 +39,12 @@ def create_test_candles(
     count: int,
     currency_pair: str = "BTC/USD",
     start_timestamp_ms: int = None,
-    interval_ms: int = 60000  # 1 minute
+    interval_ms: int = 60000,  # 1 minute
 ) -> list[Candle]:
     """Create a list of test candles with sequential timestamps."""
     if start_timestamp_ms is None:
         start_timestamp_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
-    
+
     candles = []
     for i in range(count):
         timestamp_ms = start_timestamp_ms + (i * interval_ms)
@@ -56,57 +56,49 @@ def create_test_candles(
             high_price=price_base + 100,
             low_price=price_base - 100,
             close_price=price_base + 50,
-            volume=1000.0 + i
+            volume=1000.0 + i,
         )
         candles.append(candle)
-    
+
     return candles
 
 
 def create_test_strategy(
-    strategy_type: StrategyType = StrategyType.SMA_RSI,
-    parameters: any_pb2.Any = None
+    strategy_type: StrategyType = StrategyType.SMA_RSI, parameters: any_pb2.Any = None
 ) -> Strategy:
     """Create a test strategy with given parameters."""
     if parameters is None:
         parameters = any_pb2.Any()
-    
-    return Strategy(
-        type=strategy_type,
-        parameters=parameters
-    )
+
+    return Strategy(type=strategy_type, parameters=parameters)
 
 
 def create_test_backtest_request(
-    candles: list[Candle] = None,
-    strategy: Strategy = None
+    candles: list[Candle] = None, strategy: Strategy = None
 ) -> BacktestRequest:
     """Create a test backtest request."""
     if candles is None:
         candles = [create_test_candle()]
     if strategy is None:
         strategy = create_test_strategy()
-    
-    return BacktestRequest(
-        candles=candles,
-        strategy=strategy
-    )
+
+    return BacktestRequest(candles=candles, strategy=strategy)
 
 
 class MockInfluxRecord:
     """Mock InfluxDB record for testing."""
-    
+
     def __init__(self, timestamp: datetime, values: dict):
         self._time = timestamp
         self.values = values
-    
+
     def get_time(self):
         return self._time
 
 
 class MockInfluxTable:
     """Mock InfluxDB table for testing."""
-    
+
     def __init__(self, records: list[MockInfluxRecord]):
         self.records = records
 
@@ -115,17 +107,17 @@ def create_mock_influx_response(candles_data: list[dict]) -> list[MockInfluxTabl
     """Create mock InfluxDB response from candle data."""
     records = []
     for data in candles_data:
-        timestamp = datetime.fromtimestamp(data['timestamp_ms'] / 1000, tz=timezone.utc)
+        timestamp = datetime.fromtimestamp(data["timestamp_ms"] / 1000, tz=timezone.utc)
         values = {
-            'currency_pair': data.get('currency_pair', 'BTC/USD'),
-            'open': data.get('open', 50000.0),
-            'high': data.get('high', 51000.0),
-            'low': data.get('low', 49000.0),
-            'close': data.get('close', 50500.0),
-            'volume': data.get('volume', 1000.0)
+            "currency_pair": data.get("currency_pair", "BTC/USD"),
+            "open": data.get("open", 50000.0),
+            "high": data.get("high", 51000.0),
+            "low": data.get("low", 49000.0),
+            "close": data.get("close", 50500.0),
+            "volume": data.get("volume", 1000.0),
         }
         records.append(MockInfluxRecord(timestamp, values))
-    
+
     return [MockInfluxTable(records)] if records else []
 
 
