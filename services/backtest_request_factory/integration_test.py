@@ -162,7 +162,6 @@ class IntegrationTest(unittest.TestCase):
         self.candle_processor.initialize_deques([currency_pair])
         
         base_timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
-        
         # First poll - return initial candles
         first_batch_data = []
         for i in range(5):
