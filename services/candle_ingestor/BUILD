@@ -131,7 +131,6 @@ oci_image_index(
     images = [
         ":image",
     ],
-    tags = ["tradestreamhq/candle-ingestor:latest"],
 )
 
 oci_push(
