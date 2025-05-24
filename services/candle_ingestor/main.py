@@ -140,9 +140,9 @@ def run_backfill(
             dt_from_db_ts = datetime.fromtimestamp(
                 db_last_backfill_ts_ms / 1000.0, timezone.utc
             )
-            potential_next_start_from_db = dt_from_db_ts.replace(
-                second=0, microsecond=0
-            ) + granularity_delta
+            potential_next_start_from_db = (
+                dt_from_db_ts.replace(second=0, microsecond=0) + granularity_delta
+            )
             current_ticker_start_dt = max(
                 earliest_backfill_flag_dt, potential_next_start_from_db
             )
