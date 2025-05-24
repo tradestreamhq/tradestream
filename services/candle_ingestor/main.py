@@ -1,6 +1,6 @@
 import os
-import signal  # Added
-import sys  # Added
+import signal
+import sys
 import time
 from datetime import datetime, timedelta, timezone
 
@@ -86,7 +86,7 @@ def handle_shutdown_signal(signum, frame):
             logging.info(
                 "Attempting to close InfluxDB connection from signal handler..."
             )
-            influx_manager_global.close()  # This might be called again in finally, which is fine
+            influx_manager_global.close()
             logging.info("InfluxDB connection closed via signal handler.")
         except Exception as e:
             logging.error(f"Error closing InfluxDB connection from signal handler: {e}")
@@ -101,7 +101,7 @@ def run_backfill(
     api_call_delay_seconds: int,
     last_backfilled_timestamps: dict[str, int],
 ):
-    global shutdown_requested  # Added
+    global shutdown_requested
     logging.info("Starting historical candle backfill...")
     earliest_backfill_flag_dt = parse_backfill_start_date(backfill_start_date_str)
     end_date_dt = datetime.now(timezone.utc).replace(
@@ -159,7 +159,7 @@ def run_backfill(
         chunk_start_dt = current_ticker_start_dt
 
         while chunk_start_dt < end_date_dt:
-            if shutdown_requested:  # Check before each chunk
+            if shutdown_requested:
                 logging.info(
                     f"Shutdown requested during backfill for ticker {ticker}. Aborting current ticker."
                 )
@@ -209,14 +209,15 @@ def run_backfill(
                 logging.info(
                     f"Waiting {api_call_delay_seconds}s before next API call/chunk for {ticker}..."
                 )
-                for _ in range(api_call_delay_seconds):  # Interruptible sleep
+                # Interruptible sleep
+                for _ in range(api_call_delay_seconds):
                     if shutdown_requested:
                         break
                     time.sleep(1)
                 if shutdown_requested:
                     break
 
-        if shutdown_requested:  # Check after inner while loop
+        if shutdown_requested:
             logging.info(f"Shutdown requested after processing chunks for {ticker}.")
             break
 
@@ -240,14 +241,14 @@ def run_polling_loop(
     initial_catchup_days: int,
     last_processed_timestamps: dict[str, int],
 ):
-    global shutdown_requested  # Added
+    global shutdown_requested
     logging.info("Starting real-time candle polling loop...")
     resample_freq = get_tiingo_resample_freq(candle_granularity_minutes)
     granularity_delta = timedelta(minutes=candle_granularity_minutes)
 
     logging.info("Initializing polling timestamps from InfluxDB or defaults...")
     for ticker_symbol in tiingo_tickers:
-        if shutdown_requested:  # Added check
+        if shutdown_requested:
             logging.info("Shutdown requested during polling timestamp initialization.")
             return
 
@@ -297,7 +298,7 @@ def run_polling_loop(
             )
 
     try:
-        while not shutdown_requested:  # Modified loop condition
+        while not shutdown_requested:
             loop_start_time = time.monotonic()
             current_cycle_time_utc = datetime.now(timezone.utc)
             logging.info(
@@ -305,7 +306,7 @@ def run_polling_loop(
             )
 
             for ticker in tiingo_tickers:
-                if shutdown_requested:  # Added check
+                if shutdown_requested:
                     logging.info(
                         f"Shutdown requested during polling for ticker {ticker}."
                     )
@@ -427,14 +428,14 @@ def run_polling_loop(
                             f"Polling returned no data for {ticker} for period starting {query_start_str}"
                         )
 
-                    if shutdown_requested:  # Added check
+                    if shutdown_requested:
                         logging.info(
                             f"Shutdown requested after processing ticker {ticker}."
                         )
                         break
 
                     if len(tiingo_tickers) > 1:
-                        # Make sleep interruptible
+                        # Interruptible sleep
                         for _ in range(api_call_delay_seconds):
                             if shutdown_requested:
                                 break
@@ -445,9 +446,9 @@ def run_polling_loop(
                 except Exception as e:
                     logging.exception(f"Error polling for ticker {ticker}: {e}")
 
-            if shutdown_requested:  # Check after inner loop
+            if shutdown_requested:
                 logging.info("Shutdown requested. Exiting polling loop.")
-                break  # Exit while True loop
+                break
 
             loop_duration = time.monotonic() - loop_start_time
             sleep_time = (candle_granularity_minutes * 60) - loop_duration
@@ -455,15 +456,13 @@ def run_polling_loop(
                 logging.info(
                     f"Polling cycle finished in {loop_duration:.2f}s. Sleeping for {sleep_time:.2f}s."
                 )
-                # Interruptible sleep
-                for _ in range(
-                    int(sleep_time)
-                ):  # Iterate for integer number of seconds
+                # Interruptible sleep - iterate for integer number of seconds
+                for _ in range(int(sleep_time)):
                     if shutdown_requested:
                         break
                     time.sleep(1)
                 if shutdown_requested:
-                    break  # Exit while True loop
+                    break
             else:
                 logging.warning(
                     f"Polling cycle duration ({loop_duration:.2f}s) exceeded granularity ({candle_granularity_minutes*60}s). "
@@ -471,13 +470,13 @@ def run_polling_loop(
                 )
     except KeyboardInterrupt:
         logging.info("Polling loop interrupted by user (KeyboardInterrupt).")
-        shutdown_requested = True  # Ensure flag is set for finally block
+        shutdown_requested = True
     finally:
         logging.info("Polling loop finished.")
 
 
 def main(argv):
-    global shutdown_requested, influx_manager_global  # Added
+    global shutdown_requested, influx_manager_global
     del argv
     logging.set_verbosity(logging.INFO)
     logging.info("Starting candle ingestor script (Python)...")
@@ -507,7 +506,7 @@ def main(argv):
         f"  Polling Initial Catchup Days: {FLAGS.polling_initial_catchup_days}"
     )
 
-    influx_manager_global = InfluxDBManager(  # Assign to global
+    influx_manager_global = InfluxDBManager(
         url=FLAGS.influxdb_url,
         token=FLAGS.influxdb_token,
         org=FLAGS.influxdb_org,
@@ -518,9 +517,9 @@ def main(argv):
         logging.error("Failed to connect to InfluxDB. Exiting.")
         return 1
 
-    if shutdown_requested:  # Check after InfluxDB connection attempt
+    if shutdown_requested:
         logging.info("Shutdown requested before starting main processing.")
-        if influx_manager_global:  # Ensure it was initialized before trying to close
+        if influx_manager_global:
             influx_manager_global.close()
         sys.exit(0)
 
@@ -528,7 +527,7 @@ def main(argv):
 
     if not tiingo_tickers:
         logging.error("No symbols fetched from CoinMarketCap. Exiting.")
-        influx_manager_global.close()  # Use global
+        influx_manager_global.close()
         return 1
     logging.info(f"Target Tiingo tickers: {tiingo_tickers}")
 
@@ -539,7 +538,7 @@ def main(argv):
             logging.info("Attempting to pre-populate backfill states from InfluxDB...")
             for ticker_symbol in tiingo_tickers:
                 if shutdown_requested:
-                    break  # Added
+                    break
                 db_state_ts_ms = influx_manager_global.get_last_processed_timestamp(
                     ticker_symbol, "backfill"
                 )
@@ -553,9 +552,9 @@ def main(argv):
                         f"  No prior backfill state found in DB for {ticker_symbol}."
                     )
 
-            if not shutdown_requested:  # Added check
+            if not shutdown_requested:
                 run_backfill(
-                    influx_manager=influx_manager_global,  # Use global
+                    influx_manager=influx_manager_global,
                     tiingo_tickers=tiingo_tickers,
                     tiingo_api_key=FLAGS.tiingo_api_key,
                     backfill_start_date_str=FLAGS.backfill_start_date,
@@ -568,9 +567,9 @@ def main(argv):
                 "Skipping historical backfill as per 'backfill_start_date' flag."
             )
 
-        if not shutdown_requested:  # Added check
+        if not shutdown_requested:
             run_polling_loop(
-                influx_manager=influx_manager_global,  # Use global
+                influx_manager=influx_manager_global,
                 tiingo_tickers=tiingo_tickers,
                 tiingo_api_key=FLAGS.tiingo_api_key,
                 candle_granularity_minutes=FLAGS.candle_granularity_minutes,
@@ -583,9 +582,7 @@ def main(argv):
         logging.exception(f"Critical error in main execution: {e}")
     finally:
         logging.info("Main process finished. Ensuring InfluxDB connection is closed.")
-        if (
-            influx_manager_global and influx_manager_global.get_client()
-        ):  # Check if client exists and is not None
+        if influx_manager_global and influx_manager_global.get_client():
             influx_manager_global.close()
 
     if shutdown_requested:
