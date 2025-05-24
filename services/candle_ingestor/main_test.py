@@ -656,7 +656,6 @@ class MainFunctionTest(BaseIngestorTest): # Inherit for shared mocks
         mock_influx_manager = mock.MagicMock()
         mock_influx_manager.get_client.return_value = None  # Failed connection
         MockInfluxDBManager.return_value = mock_influx_manager
-        
         self.mock_get_top_n_crypto_symbols.return_value = self.tiingo_tickers
 
         # Act
