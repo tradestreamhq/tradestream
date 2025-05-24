@@ -16,11 +16,11 @@ commandTests:
     # Expected to exit cleanly after a few dry run iterations.
     # Check for specific log messages indicating dry run operation and completion.
     expectedError:
-        - "Starting candle ingestor script .* in dry mode"
-        - "DRY RUN: Backfill will use dummy data and limited iterations."
-        - "DRY RUN: Using dummy crypto symbols."
-        - "Target Tiingo tickers: \\['btcusd-dry', 'ethusd-dry'\\]"
-        - "DRY RUN: Simulating Tiingo API call for btcusd-dry"
-        - "DRY RUN: Reached max tickers for backfill \\(1\\)."
-        - "DRY RUN: Backfill simulation complete."
-        - "Exiting due to shutdown request."
+      - "Starting candle ingestor script .* in dry mode"
+      - "DRY RUN: Backfill will use dummy data and limited iterations."
+      - "DRY RUN: Using dummy crypto symbols."
+      - "Target Tiingo tickers: \\['btcusd-dry', 'ethusd-dry'\\]"
+      - "DRY RUN: Simulating Tiingo API call for btcusd-dry"
+      - "DRY RUN: Reached max tickers for backfill \\(1\\)."
+      - "DRY RUN: Backfill simulation complete."
+      - "Exiting due to shutdown request."
