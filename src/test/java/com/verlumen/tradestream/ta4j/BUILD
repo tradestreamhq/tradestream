@@ -4,10 +4,10 @@ java_test(
     deps = [
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_builder",
-        "//third_party:guava",
-        "//third_party:junit",
-        "//third_party:protobuf_java",
-        "//third_party:protobuf_java_util",
-        "//third_party:ta4j_core",
+        "//third_party/java:guava",
+        "//third_party/java:junit",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
+        "//third_party/java:ta4j_core",
     ],
 )

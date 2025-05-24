@@ -14,11 +14,11 @@ java_library(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
         "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_factory",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:ta4j_core",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:ta4j_core",
     ],
 )
 
@@ -31,9 +31,9 @@ java_library(
         ":strategy_processing_request",
         ":strategy_state",
         "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:guava",
-        "//third_party:guice",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
     ],
 )
 
@@ -45,9 +45,9 @@ java_library(
         ":strategy_processing_request",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:guava",
-        "//third_party:guice",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
     ],
 )
 
@@ -61,8 +61,8 @@ java_library(
         ":strategy_manager_impl",
         ":strategy_state",
         ":strategy_state_factory_impl",
-        "//third_party:guava",
-        "//third_party:guice",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
     ],
 )
 
@@ -84,10 +84,10 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/signals:generate_trade_signals",
         "//src/main/java/com/verlumen/tradestream/signals:publish_trade_signals",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
     ],
 )
 
@@ -98,7 +98,7 @@ java_library(
         ":strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/momentumoscillators:oscillators_lib",
         "//src/main/java/com/verlumen/tradestream/strategies/movingaverages:movingaverages_lib",
-        "//third_party:guava",
+        "//third_party/java:guava",
     ],
 )
 
@@ -107,8 +107,8 @@ java_library(
     srcs = ["StrategyFactory.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//third_party:protobuf_java",
-        "//third_party:ta4j_core",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:ta4j_core",
     ],
 )
 
@@ -118,9 +118,9 @@ java_library(
     deps = [
         ":strategy_factory",
         "//protos:strategies_java_proto",
-        "//third_party:guava",
-        "//third_party:protobuf_java",
-        "//third_party:ta4j_core",
+        "//third_party/java:guava",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:ta4j_core",
     ],
 )
 
@@ -131,11 +131,11 @@ java_library(
         ":strategy_factory",
         ":strategy_manager",
         "//protos:strategies_java_proto",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:mug",
-        "//third_party:protobuf_java",
-        "//third_party:ta4j_core",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:mug",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:ta4j_core",
     ],
 )
 
@@ -153,8 +153,8 @@ java_library(
     srcs = ["StrategyRecord.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//third_party:guava",
-        "//third_party:protobuf_java",
+        "//third_party/java:guava",
+        "//third_party/java:protobuf_java",
     ],
 )
 
@@ -163,8 +163,8 @@ java_library(
     srcs = ["StrategyState.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//third_party:protobuf_java",
-        "//third_party:ta4j_core",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:ta4j_core",
     ],
 )
 
@@ -176,9 +176,9 @@ java_library(
         ":strategy_record",
         ":strategy_state",
         "//protos:strategies_java_proto",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:protobuf_java",
-        "//third_party:ta4j_core",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:ta4j_core",
     ],
 )

@@ -9,7 +9,7 @@ py_library(
     name = "ingestion_helpers_lib",
     srcs = ["ingestion_helpers.py"],
     deps = [
-        "//third_party:absl_py",
+        "//third_party/python:absl_py",
     ],
 )
 
@@ -17,9 +17,9 @@ py_library(
     name = "tiingo_client_lib",
     srcs = ["tiingo_client.py"],
     deps = [
-        "//third_party:absl_py",
-        "//third_party:requests",
-        "//third_party:tenacity",
+        "//third_party/python:absl_py",
+        "//third_party/python:requests",
+        "//third_party/python:tenacity",
     ],
 )
 
@@ -27,9 +27,9 @@ py_library(
     name = "influx_client_lib",
     srcs = ["influx_client.py"],
     deps = [
-        "//third_party:absl_py",
-        "//third_party:influxdb_client",
-        "//third_party:tenacity",
+        "//third_party/python:absl_py",
+        "//third_party/python:influxdb_client",
+        "//third_party/python:tenacity",
     ],
 )
 
@@ -42,7 +42,7 @@ py_binary(
         ":ingestion_helpers_lib",
         ":tiingo_client_lib",
         "//shared/cryptoclient:cmc_client_lib",
-        "//third_party:absl_py",
+        "//third_party/python:absl_py",
     ],
 )
 
@@ -60,7 +60,7 @@ py_test(
     srcs = ["tiingo_client_test.py"],
     deps = [
         ":tiingo_client_lib",
-        "//third_party:requests",
+        "//third_party/python:requests",
     ],
 )
 
@@ -89,7 +89,7 @@ py_test(
         ":influx_client_lib",
         ":ingestion_helpers_lib",
         ":tiingo_client_lib",
-        "//third_party:absl_py",
+        "//third_party/python:absl_py",
     ],
 )
 
