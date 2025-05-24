@@ -71,11 +71,6 @@ flags.DEFINE_enum(
     "Run mode for the ingestor: 'wet' for live data, 'dry' for simulated data.",
 )
 
-flags.mark_flag_as_required("cmc_api_key")
-flags.mark_flag_as_required("tiingo_api_key")
-flags.mark_flag_as_required("influxdb_token")
-flags.mark_flag_as_required("influxdb_org")
-
 
 # Global variables for shutdown handling
 shutdown_requested = False
@@ -608,6 +603,33 @@ def main(argv):
     global shutdown_requested, influx_manager_global
     del argv
     logging.set_verbosity(logging.INFO)
+
+    if FLAGS.run_mode == "wet":
+        if not FLAGS.cmc_api_key:
+            logging.error(
+                "CMC_API_KEY is required for 'wet' mode. "
+                "Set environment variable or use --cmc_api_key."
+            )
+            sys.exit(1)
+        if not FLAGS.tiingo_api_key:
+            logging.error(
+                "TIINGO_API_KEY is required for 'wet' mode. "
+                "Set environment variable or use --tiingo_api_key."
+            )
+            sys.exit(1)
+        if not FLAGS.influxdb_token:
+            logging.error(
+                "INFLUXDB_TOKEN is required for 'wet' mode. "
+                "Set environment variable or use --influxdb_token."
+            )
+            sys.exit(1)
+        if not FLAGS.influxdb_org:
+            logging.error(
+                "INFLUXDB_ORG is required for 'wet' mode. "
+                "Set environment variable or use --influxdb_org."
+            )
+            sys.exit(1)
+
     logging.info(
         f"Starting candle ingestor script (Python) in {FLAGS.run_mode} mode..."
     )
