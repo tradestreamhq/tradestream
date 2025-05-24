@@ -1,4 +1,4 @@
-name: 'google-java-format'
+name: "google-java-format"
 on:
   pull_request:
     paths: ['**/*.java']
