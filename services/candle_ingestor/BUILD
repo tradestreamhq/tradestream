@@ -38,7 +38,7 @@ py_binary(
     srcs = ["main.py"],
     main = "main.py",
     deps = [
-        ":cmc_client_lib",
+        "//shared/cryptoclient:cmc_client_lib",
         ":influx_client_lib",
         ":ingestion_helpers_lib",
         ":tiingo_client_lib",
