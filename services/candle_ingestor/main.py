@@ -350,10 +350,8 @@ def run_polling_loop(
                     current_minute_floored = (
                         current_cycle_time_utc.minute // candle_granularity_minutes
                     ) * candle_granularity_minutes
-                    latest_closed_period_end_dt_utc = (
-                        current_cycle_time_utc.replace(
-                            minute=current_minute_floored, second=0, microsecond=0
-                        )
+                    latest_closed_period_end_dt_utc = current_cycle_time_utc.replace(
+                        minute=current_minute_floored, second=0, microsecond=0
                     )
                     target_latest_closed_candle_start_dt_utc = (
                         latest_closed_period_end_dt_utc - granularity_delta
