@@ -1,5 +1,5 @@
 load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
-load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements") 
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
