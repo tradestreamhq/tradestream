@@ -48,9 +48,10 @@ public abstract class MarketDataModule extends AbstractModule {
     install(new FactoryModuleBuilder()
         .build(TiingoCryptoFetcherFn.Factory.class));
 
-    install(new FactoryModuleBuilder()
-        .implement(TradeToCandle.class, TradeToCandle.class)
-        .build(TradeToCandle.Factory.class));
+    install(
+        new FactoryModuleBuilder()
+            .implement(TradeToCandle.class, TradeToCandle.class)
+            .build(TradeToCandle.Factory.class));
   }
 
   @Provides
