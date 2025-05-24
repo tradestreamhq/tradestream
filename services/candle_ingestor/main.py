@@ -382,9 +382,7 @@ def run_polling_loop(
 
                     if candle_granularity_minutes >= 1440:
                         query_start_str = query_start_dt_utc.strftime("%Y-%m-%d")
-                        query_end_str = effective_query_end_dt_utc.strftime(
-                            "%Y-%m-%d"
-                        )
+                        query_end_str = effective_query_end_dt_utc.strftime("%Y-%m-%d")
                     else:
                         query_start_str = query_start_dt_utc.strftime(
                             "%Y-%m-%dT%H:%M:%S"
