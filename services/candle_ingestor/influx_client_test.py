@@ -3,8 +3,12 @@ from unittest import mock
 
 # Your module to test
 from services.candle_ingestor import influx_client
-from influxdb_client import InfluxDBClient, Point, WritePrecision # Added Point, WritePrecision
-from influxdb_client.client.exceptions import InfluxDBError # Added InfluxDBError
+from influxdb_client import (
+    InfluxDBClient,
+    Point,
+    WritePrecision,
+)  # Added Point, WritePrecision
+from influxdb_client.client.exceptions import InfluxDBError  # Added InfluxDBError
 
 
 # Mock the InfluxDBClient itself and its methods
@@ -25,10 +29,11 @@ class TestInfluxDBManager(unittest.TestCase):
         self.mock_client_instance.write_api.return_value = self.mock_write_api_instance
         self.mock_client_instance.query_api.return_value = self.mock_query_api_instance
 
-
     def test_connect_success(self, MockInfluxDBClient):
         # Arrange
-        MockInfluxDBClient.return_value = self.mock_client_instance # Ensure our mock is used
+        MockInfluxDBClient.return_value = (
+            self.mock_client_instance
+        )  # Ensure our mock is used
         self.mock_client_instance.ping.return_value = True
 
         # Act
@@ -102,7 +107,9 @@ class TestInfluxDBManager(unittest.TestCase):
 
     def test_get_write_api_client_not_initialized(self, MockInfluxDBClient):
         # Arrange
-        MockInfluxDBClient.return_value.ping.return_value = False  # Ensure client is None
+        MockInfluxDBClient.return_value.ping.return_value = (
+            False  # Ensure client is None
+        )
         manager = influx_client.InfluxDBManager(
             self.test_url, self.test_token, self.test_org, self.test_bucket
         )
@@ -132,7 +139,9 @@ class TestInfluxDBManager(unittest.TestCase):
 
     def test_get_query_api_client_not_initialized(self, MockInfluxDBClient):
         # Arrange
-        MockInfluxDBClient.return_value.ping.return_value = False  # Ensure client is None
+        MockInfluxDBClient.return_value.ping.return_value = (
+            False  # Ensure client is None
+        )
         manager = influx_client.InfluxDBManager(
             self.test_url, self.test_token, self.test_org, self.test_bucket
         )
@@ -160,7 +169,7 @@ class TestInfluxDBManager(unittest.TestCase):
 
     def test_close_client_not_initialized(self, MockInfluxDBClient):
         # Arrange
-        MockInfluxDBClient.return_value.ping.return_value = False # Client is None
+        MockInfluxDBClient.return_value.ping.return_value = False  # Client is None
         manager = influx_client.InfluxDBManager(
             self.test_url, self.test_token, self.test_org, self.test_bucket
         )
@@ -169,7 +178,7 @@ class TestInfluxDBManager(unittest.TestCase):
         manager.close()  # Should not throw error
 
         # Assert
-        self.mock_client_instance.close.assert_not_called() # close on the *instance*
+        self.mock_client_instance.close.assert_not_called()  # close on the *instance*
 
     # --- New tests for state management ---
 
@@ -183,7 +192,7 @@ class TestInfluxDBManager(unittest.TestCase):
 
         mock_table = mock.MagicMock()
         mock_record = mock.MagicMock()
-        mock_record.get_value.return_value = 1678886400000 # Example timestamp
+        mock_record.get_value.return_value = 1678886400000  # Example timestamp
         mock_table.records = [mock_record]
         self.mock_query_api_instance.query.return_value = [mock_table]
 
@@ -195,7 +204,7 @@ class TestInfluxDBManager(unittest.TestCase):
 
         # Assert
         self.assertEqual(timestamp, 1678886400000)
-        expected_query = f'''
+        expected_query = f"""
         from(bucket: "{self.test_bucket}")
           |> range(start: 0)
           |> filter(fn: (r) => r._measurement == "ingestor_processing_state")
@@ -205,12 +214,13 @@ class TestInfluxDBManager(unittest.TestCase):
           |> sort(columns: ["_time"], desc: true)
           |> limit(n: 1)
           |> yield(name: "last")
-        '''
-        self.mock_query_api_instance.query.assert_called_once_with(query=mock.ANY, org=self.test_org)
+        """
+        self.mock_query_api_instance.query.assert_called_once_with(
+            query=mock.ANY, org=self.test_org
+        )
         # More precise query matching if needed, by capturing the query argument
         args, kwargs = self.mock_query_api_instance.query.call_args
-        self.assertEqual(kwargs['query'].strip(), expected_query.strip())
-
+        self.assertEqual(kwargs["query"].strip(), expected_query.strip())
 
     def test_get_last_processed_timestamp_no_data(self, MockInfluxDBClient):
         # Arrange
@@ -219,7 +229,7 @@ class TestInfluxDBManager(unittest.TestCase):
         manager = influx_client.InfluxDBManager(
             self.test_url, self.test_token, self.test_org, self.test_bucket
         )
-        self.mock_query_api_instance.query.return_value = [] # No tables/records
+        self.mock_query_api_instance.query.return_value = []  # No tables/records
 
         # Act
         timestamp = manager.get_last_processed_timestamp("ethusd", "polling")
@@ -234,21 +244,25 @@ class TestInfluxDBManager(unittest.TestCase):
         manager = influx_client.InfluxDBManager(
             self.test_url, self.test_token, self.test_org, self.test_bucket
         )
-        
+
         # Create a mock response object for InfluxDBError
         mock_response = mock.MagicMock()
         mock_response.data = "Simulated DB Error"
         mock_response.status = 500
-        
-        self.mock_query_api_instance.query.side_effect = InfluxDBError(response=mock_response)
+
+        self.mock_query_api_instance.query.side_effect = InfluxDBError(
+            response=mock_response
+        )
 
         # Act
         timestamp = manager.get_last_processed_timestamp("adausd", "backfill")
 
         # Assert
-        self.assertIsNone(timestamp) # Should handle error and return None
+        self.assertIsNone(timestamp)  # Should handle error and return None
 
-    def test_update_last_processed_timestamp_writes_correct_point(self, MockInfluxDBClient):
+    def test_update_last_processed_timestamp_writes_correct_point(
+        self, MockInfluxDBClient
+    ):
         # Arrange
         MockInfluxDBClient.return_value = self.mock_client_instance
         self.mock_client_instance.ping.return_value = True
@@ -266,15 +280,17 @@ class TestInfluxDBManager(unittest.TestCase):
         # Assert
         self.mock_write_api_instance.write.assert_called_once()
         args, kwargs = self.mock_write_api_instance.write.call_args
-        written_record = kwargs['record']
+        written_record = kwargs["record"]
 
         # Assuming it's a single Point object for simplicity in this test
         self.assertIsInstance(written_record, Point)
         self.assertEqual(written_record._name, "ingestor_processing_state")
         self.assertIn(("symbol", symbol), written_record._tags.items())
         self.assertIn(("ingestion_type", ingestion_type), written_record._tags.items())
-        self.assertIn(("last_processed_timestamp_ms", timestamp_ms), written_record._fields.items())
-
+        self.assertIn(
+            ("last_processed_timestamp_ms", timestamp_ms),
+            written_record._fields.items(),
+        )
 
     def test_update_last_processed_timestamp_influxdb_error(self, MockInfluxDBClient):
         # Arrange
@@ -283,20 +299,24 @@ class TestInfluxDBManager(unittest.TestCase):
         manager = influx_client.InfluxDBManager(
             self.test_url, self.test_token, self.test_org, self.test_bucket
         )
-        
+
         # Create a mock response object for InfluxDBError
         mock_response = mock.MagicMock()
         mock_response.data = "Simulated DB Write Error"
         mock_response.status = 500
-        
-        self.mock_write_api_instance.write.side_effect = InfluxDBError(response=mock_response)
+
+        self.mock_write_api_instance.write.side_effect = InfluxDBError(
+            response=mock_response
+        )
 
         # Act
         # This should not raise an exception out of the method due to try-except
         manager.update_last_processed_timestamp("ethusd", "polling", 1678886400000)
 
         # Assert
-        self.assertEqual(self.mock_write_api_instance.write.call_count, 5) # Still called 5 times due to retry
+        self.assertEqual(
+            self.mock_write_api_instance.write.call_count, 5
+        )  # Still called 5 times due to retry
 
 
 if __name__ == "__main__":

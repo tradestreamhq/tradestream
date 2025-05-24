@@ -7,31 +7,15 @@ from services.candle_ingestor import ingestion_helpers
 
 class TestIngestionHelpers(unittest.TestCase):
     def test_get_tiingo_resample_freq(self):
-        self.assertEqual(
-            ingestion_helpers.get_tiingo_resample_freq(1), "1min"
-        )
-        self.assertEqual(
-            ingestion_helpers.get_tiingo_resample_freq(5), "5min"
-        )
-        self.assertEqual(
-            ingestion_helpers.get_tiingo_resample_freq(60), "1hour"
-        )
-        self.assertEqual(
-            ingestion_helpers.get_tiingo_resample_freq(120), "2hour"
-        )
-        self.assertEqual(
-            ingestion_helpers.get_tiingo_resample_freq(1440), "1day"
-        )
-        self.assertEqual(
-            ingestion_helpers.get_tiingo_resample_freq(2880), "2day"
-        )
+        self.assertEqual(ingestion_helpers.get_tiingo_resample_freq(1), "1min")
+        self.assertEqual(ingestion_helpers.get_tiingo_resample_freq(5), "5min")
+        self.assertEqual(ingestion_helpers.get_tiingo_resample_freq(60), "1hour")
+        self.assertEqual(ingestion_helpers.get_tiingo_resample_freq(120), "2hour")
+        self.assertEqual(ingestion_helpers.get_tiingo_resample_freq(1440), "1day")
+        self.assertEqual(ingestion_helpers.get_tiingo_resample_freq(2880), "2day")
         # Test default/invalid cases
-        self.assertEqual(
-            ingestion_helpers.get_tiingo_resample_freq(0), "1min"
-        )
-        self.assertEqual(
-            ingestion_helpers.get_tiingo_resample_freq(-5), "1min"
-        )
+        self.assertEqual(ingestion_helpers.get_tiingo_resample_freq(0), "1min")
+        self.assertEqual(ingestion_helpers.get_tiingo_resample_freq(-5), "1min")
 
     def test_parse_backfill_start_date_specific_date(self):
         expected_dt = datetime(2023, 1, 15, tzinfo=timezone.utc)
@@ -62,7 +46,9 @@ class TestIngestionHelpers(unittest.TestCase):
         self.assertAlmostEqual(
             parsed_dt.timestamp(),
             expected_dt_approx.timestamp(),
-            delta=timedelta(days=5).total_seconds(), # Allow some leeway for month length variation
+            delta=timedelta(
+                days=5
+            ).total_seconds(),  # Allow some leeway for month length variation
         )
 
     def test_parse_backfill_start_date_years_ago_approx(self):
@@ -83,7 +69,9 @@ class TestIngestionHelpers(unittest.TestCase):
         self.assertAlmostEqual(
             parsed_dt.timestamp(),
             expected_dt_approx.timestamp(),
-            delta=timedelta(days=1).total_seconds(), # Allow for minor discrepancies if 'now' is very close to a day boundary
+            delta=timedelta(
+                days=1
+            ).total_seconds(),  # Allow for minor discrepancies if 'now' is very close to a day boundary
         )
 
     def test_parse_backfill_start_date_default_string_1_year_ago(self):

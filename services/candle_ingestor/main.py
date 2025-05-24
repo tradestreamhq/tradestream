@@ -21,9 +21,7 @@ from services.candle_ingestor.ingestion_helpers import (
 FLAGS = flags.FLAGS
 
 # CoinMarketCap Flags
-flags.DEFINE_string(
-    "cmc_api_key", os.getenv("CMC_API_KEY"), "CoinMarketCap API Key."
-)
+flags.DEFINE_string("cmc_api_key", os.getenv("CMC_API_KEY"), "CoinMarketCap API Key.")
 flags.DEFINE_integer(
     "top_n_cryptos", 20, "Number of top cryptocurrencies to fetch from CMC."
 )
@@ -37,12 +35,8 @@ default_influx_url = os.getenv(
     "http://influxdb.tradestream-namespace.svc.cluster.local:8086",
 )
 flags.DEFINE_string("influxdb_url", default_influx_url, "InfluxDB URL.")
-flags.DEFINE_string(
-    "influxdb_token", os.getenv("INFLUXDB_TOKEN"), "InfluxDB Token."
-)
-flags.DEFINE_string(
-    "influxdb_org", os.getenv("INFLUXDB_ORG"), "InfluxDB Organization."
-)
+flags.DEFINE_string("influxdb_token", os.getenv("INFLUXDB_TOKEN"), "InfluxDB Token.")
+flags.DEFINE_string("influxdb_org", os.getenv("INFLUXDB_ORG"), "InfluxDB Organization.")
 flags.DEFINE_string(
     "influxdb_bucket",
     os.getenv("INFLUXDB_BUCKET", "tradestream-data"),
@@ -533,9 +527,7 @@ def main(argv):
             influx_manager_global.close()
         sys.exit(0)
 
-    tiingo_tickers = get_top_n_crypto_symbols(
-        FLAGS.cmc_api_key, FLAGS.top_n_cryptos
-    )
+    tiingo_tickers = get_top_n_crypto_symbols(FLAGS.cmc_api_key, FLAGS.top_n_cryptos)
 
     if not tiingo_tickers:
         logging.error("No symbols fetched from CoinMarketCap. Exiting.")
@@ -549,7 +541,7 @@ def main(argv):
         if FLAGS.backfill_start_date.lower() != "skip":
             logging.info("Attempting to pre-populate backfill states from InfluxDB...")
             for ticker_symbol in tiingo_tickers:
-                if shutdown_requested:  # Added
+                if shutdown_requested:
                     break
                 db_state_ts_ms = influx_manager_global.get_last_processed_timestamp(
                     ticker_symbol, "backfill"
