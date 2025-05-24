@@ -522,8 +522,16 @@ class RunPollingLoopTest(BaseIngestorTest):
             if ticker == "btcusd":
                 raise Exception("API error for btcusd")
             # Return dummy data for ethusd
-            return [self._create_dummy_candle(int(datetime(2023,1,10,12,0,0, tzinfo=timezone.utc).timestamp()*1000), pair=ticker)]
-            
+            return [
+                self._create_dummy_candle(
+                    int(
+                        datetime(2023, 1, 10, 12, 0, 0, tzinfo=timezone.utc).timestamp()
+                        * 1000
+                    ),
+                    pair=ticker,
+                )
+            ]
+
         self.mock_get_historical_candles.side_effect = get_candles_side_effect
         self.mock_main_time_sleep.side_effect = KeyboardInterrupt
 
