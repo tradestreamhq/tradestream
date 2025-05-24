@@ -76,5 +76,7 @@ class CandleProcessor:
                 )
 
         if generated_requests:
-            logging.info(f"Generated {len(generated_requests)} BacktestRequests for {currency_pair} from new candle.")
+            logging.info(
+                f"Generated {len(generated_requests)} BacktestRequests for {currency_pair} from new candle."
+            )
         return generated_requests
