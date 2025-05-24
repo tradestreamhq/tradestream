@@ -25,7 +25,8 @@ class TradeToCandle
         // CandleCombineFn needs to be injectable or accessible
         // Assuming SlidingCandleAggregator.CandleCombineFn is accessible/injectable
         private val candleCombineFn: CandleCombineFn,
-    ) : PTransform<PCollection<Trade>, PCollection<KV<String, Candle>>>(), Serializable {
+    ) : PTransform<PCollection<Trade>, PCollection<KV<String, Candle>>>(),
+        Serializable {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
             private const val serialVersionUID = 3L // Use version 3 for this implementation
@@ -41,15 +42,17 @@ class TradeToCandle
 
             // Key trades by currency pair
             val keyedTrades: PCollection<KV<String, Trade>> =
-                input.apply(
-                    "KeyByCurrencyPair",
-                    MapElements.into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptor.of(Trade::class.java)))
-                        .via(
-                            SerializableFunction<Trade, KV<String, Trade>> { trade ->
-                                KV.of(trade.currencyPair, trade)
-                            },
-                        ),
-                ).setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Trade::class.java))) // Ensure coder is set
+                input
+                    .apply(
+                        "KeyByCurrencyPair",
+                        MapElements
+                            .into(TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptor.of(Trade::class.java)))
+                            .via(
+                                SerializableFunction<Trade, KV<String, Trade>> { trade ->
+                                    KV.of(trade.currencyPair, trade)
+                                },
+                            ),
+                    ).setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Trade::class.java))) // Ensure coder is set
 
             // Apply windowing
             val windowedTrades: PCollection<KV<String, Trade>> =
@@ -60,10 +63,11 @@ class TradeToCandle
 
             // Aggregate trades into Candles per key using Combine.perKey
             val candles: PCollection<KV<String, Candle>> =
-                windowedTrades.apply(
-                    "AggregateToCandle",
-                    Combine.perKey(candleCombineFn), // Use the injected CandleCombineFn
-                ).setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java))) // Ensure coder is set
+                windowedTrades
+                    .apply(
+                        "AggregateToCandle",
+                        Combine.perKey(candleCombineFn), // Use the injected CandleCombineFn
+                    ).setCoder(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java))) // Ensure coder is set
 
             return candles.setName("AggregatedCandles")
         }

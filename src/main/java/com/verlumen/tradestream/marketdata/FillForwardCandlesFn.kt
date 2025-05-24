@@ -29,7 +29,8 @@ class FillForwardCandlesFn
     constructor(
         @Assisted private val intervalDuration: Duration, // The expected duration between candles
         @Assisted private val maxForwardIntervals: Int = Int.MAX_VALUE, // Max intervals to fill
-    ) : DoFn<KV<String, Candle>, KV<String, Candle>>(), Serializable {
+    ) : DoFn<KV<String, Candle>, KV<String, Candle>>(),
+        Serializable {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
             private const val serialVersionUID = 2L // Increment version due to logic change
@@ -58,7 +59,10 @@ class FillForwardCandlesFn
         // State: Count of consecutive fill-forward candles generated
         @StateId("fillForwardCount")
         private val fillForwardCountSpec: StateSpec<ValueState<Int>> =
-            StateSpecs.value(org.apache.beam.sdk.coders.VarIntCoder.of())
+            StateSpecs.value(
+                org.apache.beam.sdk.coders.VarIntCoder
+                    .of(),
+            )
 
         // Timer: Used to schedule potential fill-forward generation
         @TimerId(FILL_FORWARD_TIMER)
@@ -225,8 +229,9 @@ class FillForwardCandlesFn
             key: String,
             lastActualCandle: Candle,
             timestamp: Instant,
-        ): Candle {
-            return Candle.newBuilder()
+        ): Candle =
+            Candle
+                .newBuilder()
                 .setCurrencyPair(key)
                 .setTimestamp(Timestamps.fromMillis(timestamp.millis))
                 .setOpen(lastActualCandle.close) // Use last actual close price
@@ -235,7 +240,6 @@ class FillForwardCandlesFn
                 .setClose(lastActualCandle.close)
                 .setVolume(0.0) // Zero volume for fill-forward
                 .build()
-        }
 
         // Factory interface for Guice AssistedInject
         interface Factory {

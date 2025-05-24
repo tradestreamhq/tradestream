@@ -12,7 +12,8 @@ internal class CurrencyPairSupplier
     constructor(
         private val coinMarketCapConfig: CoinMarketCapConfig,
         private val httpClient: HttpClient,
-    ) : Serializable, Supplier<@JvmSuppressWildcards List<CurrencyPair>> {
+    ) : Serializable,
+        Supplier<@JvmSuppressWildcards List<CurrencyPair>> {
         override fun get(): List<CurrencyPair> {
             val url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
 
@@ -51,8 +52,7 @@ internal class CurrencyPairSupplier
                         } else {
                             null
                         }
-                    }
-                    .distinct()
+                    }.distinct()
                     .map { CurrencyPair.fromSymbol(it) }
             } catch (e: IOException) {
                 throw RuntimeException("Failed to fetch currency data", e)

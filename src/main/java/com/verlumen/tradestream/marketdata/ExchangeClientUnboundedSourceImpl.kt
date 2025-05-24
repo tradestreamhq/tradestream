@@ -58,9 +58,7 @@ class ExchangeClientUnboundedSourceImpl
          * Returns the Coder for the CheckpointMark object.
          * Required by UnboundedSource.
          */
-        override fun getCheckpointMarkCoder(): Coder<TradeCheckpointMark> {
-            return SerializableCoder.of(TradeCheckpointMark::class.java)
-        }
+        override fun getCheckpointMarkCoder(): Coder<TradeCheckpointMark> = SerializableCoder.of(TradeCheckpointMark::class.java)
 
         // Add custom serialization methods
         private fun writeObject(out: ObjectOutputStream) {

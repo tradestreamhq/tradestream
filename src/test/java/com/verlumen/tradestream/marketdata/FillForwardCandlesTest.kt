@@ -70,13 +70,13 @@ class FillForwardCandlesTest {
             )
 
         val candleStream =
-            TestStream.create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
+            TestStream
+                .create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
                 .addElements(
                     TimestampedValue.of(originalCandles[0], baseTime),
                     TimestampedValue.of(originalCandles[1], baseTime),
                     TimestampedValue.of(originalCandles[2], baseTime.plus(intervalDuration.multipliedBy(5))),
-                )
-                .advanceWatermarkToInfinity()
+                ).advanceWatermarkToInfinity()
 
         val result =
             pipeline
@@ -86,18 +86,19 @@ class FillForwardCandlesTest {
         for (originalCandle in originalCandles) {
             val timestamp = Instant(Timestamps.toMillis(originalCandle.value.timestamp))
 
-            PAssert.that(
-                result.apply(
-                    "Filter${originalCandle.key}At$timestamp",
-                    Filter.by(
-                        SerializableFunction { kv: KV<String, Candle> ->
-                            kv.key == originalCandle.key &&
-                                Timestamps.toMillis(kv.value.timestamp) == timestamp.millis &&
-                                kv.value.volume > 0.0
-                        },
+            PAssert
+                .that(
+                    result.apply(
+                        "Filter${originalCandle.key}At$timestamp",
+                        Filter.by(
+                            SerializableFunction { kv: KV<String, Candle> ->
+                                kv.key == originalCandle.key &&
+                                    Timestamps.toMillis(kv.value.timestamp) == timestamp.millis &&
+                                    kv.value.volume > 0.0
+                            },
+                        ),
                     ),
-                ),
-            ).containsInAnyOrder(listOf(originalCandle))
+                ).containsInAnyOrder(listOf(originalCandle))
         }
 
         pipeline.run().waitUntilFinish(Duration.standardMinutes(2))
@@ -115,7 +116,8 @@ class FillForwardCandlesTest {
         val originalCandle = KV.of("BTC/USD", createCandle("BTC/USD", 50000.0, 1.0, baseTime))
 
         val candleStream =
-            TestStream.create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
+            TestStream
+                .create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
                 .addElements(TimestampedValue.of(originalCandle, baseTime))
                 .advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(5)))
                 .advanceWatermarkToInfinity()
@@ -186,7 +188,8 @@ class FillForwardCandlesTest {
         val originalCandle = KV.of("BTC/USD", createCandle("BTC/USD", 50000.0, 1.0, baseTime))
 
         val candleStream =
-            TestStream.create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
+            TestStream
+                .create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
                 .addElements(TimestampedValue.of(originalCandle, baseTime))
                 .advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(10)))
                 .advanceWatermarkToInfinity()
@@ -202,12 +205,12 @@ class FillForwardCandlesTest {
                 // *** FIX: Use GlobalWindows() directly ***
                 .apply(
                     "WindowBeforeCount",
-                    Window.into<KV<String, Candle>>(GlobalWindows())
+                    Window
+                        .into<KV<String, Candle>>(GlobalWindows())
                         .triggering(AfterWatermark.pastEndOfWindow())
                         .withAllowedLateness(Duration.ZERO)
                         .discardingFiredPanes(),
-                )
-                .apply("Count", Count.globally<KV<String, Candle>>())
+                ).apply("Count", Count.globally<KV<String, Candle>>())
 
         PAssert.thatSingleton(btcCandleCount).isEqualTo(maxForwardIntervals.toLong() + 1L)
 
@@ -226,7 +229,8 @@ class FillForwardCandlesTest {
         val originalCandle = KV.of("BTC/USD", createCandle("BTC/USD", 50000.0, 1.0, baseTime))
 
         val candleStream =
-            TestStream.create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
+            TestStream
+                .create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
                 .addElements(TimestampedValue.of(originalCandle, baseTime))
                 .advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(5)))
                 .advanceWatermarkToInfinity()
@@ -246,8 +250,7 @@ class FillForwardCandlesTest {
                             Timestamps.toMillis(kv.value.timestamp)
                         },
                     ),
-                )
-                .setCoder(VarLongCoder.of())
+                ).setCoder(VarLongCoder.of())
 
         PAssert.that(timestamps).satisfies(
             SerializableFunction<Iterable<Long>, Void?> { ts ->
@@ -292,12 +295,12 @@ class FillForwardCandlesTest {
         val ethCandle = KV.of("ETH/USD", createCandle("ETH/USD", 2000.0, 2.0, baseTime))
 
         val candleStream =
-            TestStream.create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
+            TestStream
+                .create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
                 .addElements(
                     TimestampedValue.of(btcCandle, baseTime),
                     TimestampedValue.of(ethCandle, baseTime),
-                )
-                .advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(5)))
+                ).advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(5)))
                 .advanceWatermarkToInfinity()
 
         val result =
@@ -316,12 +319,12 @@ class FillForwardCandlesTest {
                 // *** FIX: Use GlobalWindows() directly ***
                 .apply(
                     "WindowBeforeCount",
-                    Window.into<String>(GlobalWindows())
+                    Window
+                        .into<String>(GlobalWindows())
                         .triggering(AfterWatermark.pastEndOfWindow())
                         .withAllowedLateness(Duration.ZERO)
                         .discardingFiredPanes(),
-                )
-                .apply("CountPerPair", Count.perElement())
+                ).apply("CountPerPair", Count.perElement())
 
         PAssert.that(candlesPerPair).satisfies(
             SerializableFunction<Iterable<KV<String, Long>>, Void?> { counts ->
@@ -352,8 +355,9 @@ class FillForwardCandlesTest {
         price: Double,
         volume: Double,
         timestamp: Instant,
-    ): Candle {
-        return Candle.newBuilder()
+    ): Candle =
+        Candle
+            .newBuilder()
             .setCurrencyPair(pair)
             .setTimestamp(Timestamps.fromMillis(timestamp.millis))
             .setOpen(price)
@@ -362,5 +366,4 @@ class FillForwardCandlesTest {
             .setClose(price)
             .setVolume(volume)
             .build()
-    }
 }

@@ -92,7 +92,8 @@ object TiingoResponseParser {
 
         val timestamp = parseTimestamp(dateString) ?: return null
 
-        return Candle.newBuilder()
+        return Candle
+            .newBuilder()
             .setTimestamp(timestamp)
             .setCurrencyPair(currencyPair)
             .setOpen(open)
@@ -103,8 +104,8 @@ object TiingoResponseParser {
             .build()
     }
 
-    private fun parseTimestamp(dateString: String): Timestamp? {
-        return try {
+    private fun parseTimestamp(dateString: String): Timestamp? =
+        try {
             // Parse using java.time for better timezone handling
             val odt = OffsetDateTime.parse(dateString, TIINGO_DATE_FORMATTER)
             val instant = odt.toInstant() // Convert to java.time.Instant
@@ -113,5 +114,4 @@ object TiingoResponseParser {
             println("Error parsing Tiingo timestamp: $dateString - ${e.message}")
             null
         }
-    }
 }

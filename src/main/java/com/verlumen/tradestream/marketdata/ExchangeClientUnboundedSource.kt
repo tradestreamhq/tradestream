@@ -15,7 +15,8 @@ import javax.annotation.Nullable
  * and provide data to Apache Beam pipelines as an unbounded source.
  */
 abstract class ExchangeClientUnboundedSource :
-    UnboundedSource<Trade, TradeCheckpointMark>(), Serializable {
+    UnboundedSource<Trade, TradeCheckpointMark>(),
+    Serializable {
     companion object {
         private const val serialVersionUID = 7L
     }
@@ -51,5 +52,7 @@ abstract class ExchangeClientUnboundedSource :
     /**
      * Gets the expected output coder for Trade objects.
      */
-    override fun getOutputCoder() = org.apache.beam.sdk.extensions.protobuf.ProtoCoder.of(Trade::class.java)
+    override fun getOutputCoder() =
+        org.apache.beam.sdk.extensions.protobuf.ProtoCoder
+            .of(Trade::class.java)
 }

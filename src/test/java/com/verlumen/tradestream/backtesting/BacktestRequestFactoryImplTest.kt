@@ -27,7 +27,8 @@ class BacktestRequestFactoryImplTest {
         val nowMillis = Instant.now().toEpochMilli()
         sampleCandles =
             listOf(
-                Candle.newBuilder()
+                Candle
+                    .newBuilder()
                     .setTimestamp(Timestamp.newBuilder().setSeconds(nowMillis / 1000).setNanos((nowMillis % 1000).toInt() * 1_000_000))
                     .setCurrencyPair("BTC/USD")
                     .setOpen(50000.0)
@@ -36,13 +37,15 @@ class BacktestRequestFactoryImplTest {
                     .setClose(50500.0)
                     .setVolume(10.0)
                     .build(),
-                Candle.newBuilder()
+                Candle
+                    .newBuilder()
                     .setTimestamp(
-                        Timestamp.newBuilder().setSeconds(
-                            (nowMillis + 60000) / 1000,
-                        ).setNanos(((nowMillis + 60000) % 1000).toInt() * 1_000_000),
-                    )
-                    .setCurrencyPair("BTC/USD")
+                        Timestamp
+                            .newBuilder()
+                            .setSeconds(
+                                (nowMillis + 60000) / 1000,
+                            ).setNanos(((nowMillis + 60000) % 1000).toInt() * 1_000_000),
+                    ).setCurrencyPair("BTC/USD")
                     .setOpen(50500.0)
                     .setHigh(51500.0)
                     .setLow(50000.0)
@@ -53,7 +56,8 @@ class BacktestRequestFactoryImplTest {
 
         // Create a sample strategy
         sampleStrategy =
-            Strategy.newBuilder()
+            Strategy
+                .newBuilder()
                 .setType(StrategyType.SMA_RSI)
                 .setParameters(Any.newBuilder().build()) // Using default/empty parameters for simplicity
                 .build()

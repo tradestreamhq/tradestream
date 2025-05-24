@@ -11,7 +11,8 @@ import java.io.Serializable
 data class TradeCheckpointMark(
     // Default to EPOCH, ensuring non-null
     val lastProcessedTimestamp: Instant = Instant.EPOCH,
-) : UnboundedSource.CheckpointMark, Serializable {
+) : UnboundedSource.CheckpointMark,
+    Serializable {
     companion object {
         private const val serialVersionUID = 1L
 

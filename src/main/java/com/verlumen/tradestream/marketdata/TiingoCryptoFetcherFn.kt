@@ -53,14 +53,13 @@ class TiingoCryptoFetcherFn
             // No longer using a fixed DEFAULT_START_DATE constant
             private const val TIINGO_API_URL = "https://api.tiingo.com/tiingo/crypto/prices"
 
-            fun durationToResampleFreq(duration: Duration): String {
-                return when {
+            fun durationToResampleFreq(duration: Duration): String =
+                when {
                     duration.standardDays >= 1 -> "${duration.standardDays}day"
                     duration.standardHours >= 1 -> "${duration.standardHours}hour"
                     duration.standardMinutes > 0 -> "${duration.standardMinutes}min"
                     else -> "1min" // Default to 1min if duration is less than a minute or invalid
                 }
-            }
 
             fun isDailyGranularity(duration: Duration): Boolean = duration.standardDays >= 1
 
@@ -80,7 +79,9 @@ class TiingoCryptoFetcherFn
         }
 
         /** Simple serializable wrapper for the last fetch timestamp */
-        class StateTimestamp(val timestamp: Long) : Serializable {
+        class StateTimestamp(
+            val timestamp: Long,
+        ) : Serializable {
             constructor() : this(0L) // Default constructor for Beam
 
             override fun toString() = "StateTimestamp[$timestamp]"
@@ -152,22 +153,26 @@ class TiingoCryptoFetcherFn
                     val lastInst = Instant.ofEpochMilli(lastState.timestamp)
                     if (isDailyGranularity(granularity)) {
                         // Fetch data starting the day AFTER the last fetched day's timestamp
-                        LocalDate.ofInstant(lastInst, ZoneOffset.UTC)
+                        LocalDate
+                            .ofInstant(lastInst, ZoneOffset.UTC)
                             .plusDays(1)
                             .format(TIINGO_DATE_FORMATTER_DAILY)
                     } else {
                         // Fetch data starting 1 second AFTER the last fetched timestamp
-                        LocalDateTime.ofInstant(lastInst.plusSeconds(1), ZoneOffset.UTC)
+                        LocalDateTime
+                            .ofInstant(lastInst.plusSeconds(1), ZoneOffset.UTC)
                             .format(TIINGO_DATE_FORMATTER_INTRADAY)
                     }
                 } else {
                     // Dynamic default: one year ago from now
                     val oneYearAgo = Instant.now().minus(365, ChronoUnit.DAYS)
                     if (isDailyGranularity(granularity)) {
-                        LocalDate.ofInstant(oneYearAgo, ZoneOffset.UTC)
+                        LocalDate
+                            .ofInstant(oneYearAgo, ZoneOffset.UTC)
                             .format(TIINGO_DATE_FORMATTER_DAILY)
                     } else {
-                        LocalDateTime.ofInstant(oneYearAgo, ZoneOffset.UTC)
+                        LocalDateTime
+                            .ofInstant(oneYearAgo, ZoneOffset.UTC)
                             .format(TIINGO_DATE_FORMATTER_INTRADAY)
                     }
                 }
@@ -214,11 +219,11 @@ class TiingoCryptoFetcherFn
                         val unit = durationToTemporalUnit(granularity)
                         val amt = durationToAmount(granularity)
                         var nextExpected =
-                            Instant.ofEpochSecond(
-                                lastCandle.timestamp.seconds,
-                                lastCandle.timestamp.nanos.toLong(),
-                            )
-                                .plus(amt, unit)
+                            Instant
+                                .ofEpochSecond(
+                                    lastCandle.timestamp.seconds,
+                                    lastCandle.timestamp.nanos.toLong(),
+                                ).plus(amt, unit)
 
                         // Only fill up to maxFillTime, not current time
                         while (nextExpected.isBefore(maxFillTime) || nextExpected.equals(maxFillTime)) {
@@ -273,25 +278,29 @@ class TiingoCryptoFetcherFn
                         if (isDailyGranularity(granularity)) {
                             try {
                                 // Try to parse with daily format first
-                                LocalDate.parse(startDate, TIINGO_DATE_FORMATTER_DAILY)
+                                LocalDate
+                                    .parse(startDate, TIINGO_DATE_FORMATTER_DAILY)
                                     .atStartOfDay()
                                     .toInstant(ZoneOffset.UTC)
                                     .toEpochMilli()
                             } catch (e: Exception) {
                                 // If daily format fails, the startDate might be in intraday format
-                                LocalDateTime.parse(startDate, TIINGO_DATE_FORMATTER_INTRADAY)
+                                LocalDateTime
+                                    .parse(startDate, TIINGO_DATE_FORMATTER_INTRADAY)
                                     .toInstant(ZoneOffset.UTC)
                                     .toEpochMilli()
                             }
                         } else {
                             try {
                                 // Try to parse with intraday format first
-                                LocalDateTime.parse(startDate, TIINGO_DATE_FORMATTER_INTRADAY)
+                                LocalDateTime
+                                    .parse(startDate, TIINGO_DATE_FORMATTER_INTRADAY)
                                     .toInstant(ZoneOffset.UTC)
                                     .toEpochMilli()
                             } catch (e: Exception) {
                                 // If intraday format fails, the startDate might be in daily format
-                                LocalDate.parse(startDate, TIINGO_DATE_FORMATTER_DAILY)
+                                LocalDate
+                                    .parse(startDate, TIINGO_DATE_FORMATTER_DAILY)
                                     .atStartOfDay()
                                     .toInstant(ZoneOffset.UTC)
                                     .toEpochMilli()
@@ -336,7 +345,8 @@ class TiingoCryptoFetcherFn
                 val currTime =
                     Instant.ofEpochSecond(curr.timestamp.seconds, curr.timestamp.nanos.toLong())
                 var nextExpected =
-                    Instant.ofEpochSecond(prev.timestamp.seconds, prev.timestamp.nanos.toLong())
+                    Instant
+                        .ofEpochSecond(prev.timestamp.seconds, prev.timestamp.nanos.toLong())
                         .plus(amt, unit)
 
                 while (nextExpected.isBefore(currTime)) {
@@ -365,7 +375,8 @@ class TiingoCryptoFetcherFn
         ): Candle {
             val tsProto = Timestamps.fromMillis(timestamp.toEpochMilli())
             val price = reference.close // Use the close price of the *reference* candle
-            return Candle.newBuilder()
+            return Candle
+                .newBuilder()
                 .setTimestamp(tsProto)
                 .setCurrencyPair(currencyPair)
                 .setOpen(price)

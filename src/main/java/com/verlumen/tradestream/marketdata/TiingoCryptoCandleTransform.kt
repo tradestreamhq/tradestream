@@ -32,7 +32,8 @@ class TiingoCryptoCandleTransform
         private val fetcherFnFactory: TiingoCryptoFetcherFn.Factory,
         @Assisted private val granularity: Duration,
         @Assisted private val apiKey: String,
-    ) : PTransform<PCollection<Instant>, PCollection<KV<String, Candle>>>(), Serializable {
+    ) : PTransform<PCollection<Instant>, PCollection<KV<String, Candle>>>(),
+        Serializable {
         companion object {
             private const val serialVersionUID = 1L
         }
@@ -71,15 +72,14 @@ class TiingoCryptoCandleTransform
          * Convenience method to apply this transform directly to a pipeline root,
          * setting up a PeriodicImpulse with the same granularity.
          */
-        fun expand(pipeline: Pipeline): PCollection<KV<String, Candle>> {
-            return pipeline
+        fun expand(pipeline: Pipeline): PCollection<KV<String, Candle>> =
+            pipeline
                 .apply(
                     "PeriodicImpulseTrigger",
-                    PeriodicImpulse.create()
+                    PeriodicImpulse
+                        .create()
                         .withInterval(granularity),
-                )
-                .apply("RunTiingoTransform", this)
-        }
+                ).apply("RunTiingoTransform", this)
 
         /**
          * Serializable function to transform impulses into currency pairs
@@ -87,14 +87,13 @@ class TiingoCryptoCandleTransform
          */
         private class SerializableCurrencyPairFunction(
             private val currencyPairs: List<CurrencyPair>,
-        ) : SerializableFunction<Instant, Iterable<CurrencyPair>>, Serializable {
+        ) : SerializableFunction<Instant, Iterable<CurrencyPair>>,
+            Serializable {
             companion object {
                 private const val serialVersionUID = 1L
             }
 
-            override fun apply(input: Instant): Iterable<CurrencyPair> {
-                return currencyPairs
-            }
+            override fun apply(input: Instant): Iterable<CurrencyPair> = currencyPairs
         }
 
         /**

@@ -90,13 +90,15 @@ class TradeToCandleTest : Serializable {
             )
 
         val tradeStream =
-            TestStream.create(ProtoCoder.of(Trade::class.java))
+            TestStream
+                .create(ProtoCoder.of(Trade::class.java))
                 .addElements(tradeWin1, tradeWin1Late)
                 .advanceWatermarkTo(win1End.plus(Duration.millis(1))) // Advance watermark just past the end of the window
                 .advanceWatermarkToInfinity()
 
         val expectedBtcCandle =
-            Candle.newBuilder()
+            Candle
+                .newBuilder()
                 .setCurrencyPair("BTC/USD")
                 .setOpen(50000.0)
                 .setHigh(50100.0)
@@ -135,15 +137,16 @@ class TradeToCandleTest : Serializable {
 
         // Only BTC trades, no ETH trades
         val tradeStream =
-            TestStream.create(ProtoCoder.of(Trade::class.java))
+            TestStream
+                .create(ProtoCoder.of(Trade::class.java))
                 .addElements(
                     TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1),
-                )
-                .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
+                ).advanceWatermarkTo(win1End.plus(Duration.millis(1)))
                 .advanceWatermarkToInfinity()
 
         val expectedBtcCandle =
-            Candle.newBuilder()
+            Candle
+                .newBuilder()
                 .setCurrencyPair("BTC/USD")
                 .setOpen(50000.0)
                 .setHigh(50000.0)
@@ -194,8 +197,9 @@ class TradeToCandleTest : Serializable {
         price: Double,
         volume: Double,
         timestamp: Instant,
-    ): Trade {
-        return Trade.newBuilder()
+    ): Trade =
+        Trade
+            .newBuilder()
             .setCurrencyPair(currencyPair)
             .setPrice(price)
             .setVolume(volume)
@@ -203,5 +207,4 @@ class TradeToCandleTest : Serializable {
             .setTradeId("test-${timestamp.millis}-${System.nanoTime()}")
             .setTimestamp(Timestamps.fromMillis(timestamp.millis))
             .build()
-    }
 }
