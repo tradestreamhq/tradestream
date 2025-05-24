@@ -225,9 +225,7 @@ def run_backfill(
                     break
 
         if shutdown_requested:  # Check after inner while loop
-            logging.info(
-                f"Shutdown requested after processing chunks for {ticker}."
-            )
+            logging.info(f"Shutdown requested after processing chunks for {ticker}.")
             break
 
         if current_run_max_ts_for_ticker > 0:
