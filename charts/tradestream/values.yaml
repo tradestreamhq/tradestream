@@ -57,7 +57,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v1.32.14-develop
+    tag: v1.32.16-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -85,4 +85,4 @@ pipeline:
 candleIngestor:
   image:
     repository: tradestreamhq/candle-ingestor
-    tag: v1.32.14-develop
+    tag: v1.32.16-develop
