@@ -55,6 +55,12 @@ java_proto_library(
     deps = [":strategies_proto"],
 )
 
+py_proto_library(
+    name = "strategies_py_proto",
+    visibility = ["//visibility:public"],
+    deps = [":strategies_proto"],
+)
+
 proto_library(
     name = "trade_signals_proto",
     srcs = ["trade_signals.proto"],
