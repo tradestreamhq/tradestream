@@ -51,6 +51,7 @@ kafkaUi:
     type: ClusterIP
     port: 8080
 pipeline:
+  enabled: true
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline

@@ -1,3 +1,4 @@
+{{- if .Values.pipeline.enabled }}
 apiVersion: flink.apache.org/v1beta1
 kind: FlinkDeployment
 metadata:
@@ -61,3 +62,4 @@ spec:
               mountPath: /opt/flink/writable-tmp
               # This mount MUST be writable
               readOnly: false
+{{- end }}
