@@ -223,7 +223,8 @@ def run_backfill(
 
         if current_run_max_ts_for_ticker > 0:
             last_backfilled_timestamps[ticker] = max(
-                last_backfilled_timestamps.get(ticker, 0), current_run_max_ts_for_ticker
+                last_backfilled_timestamps.get(ticker, 0),
+                current_run_max_ts_for_ticker,
             )
 
         logging.info(
@@ -282,7 +283,9 @@ def run_polling_loop(
                         default_catchup_start_dt.minute // candle_granularity_minutes
                     ) * candle_granularity_minutes
                     default_catchup_start_dt_aligned = default_catchup_start_dt.replace(
-                        minute=default_catchup_start_minute, second=0, microsecond=0
+                        minute=default_catchup_start_minute,
+                        second=0,
+                        microsecond=0,
                     )
                     default_catchup_start_ms = int(
                         default_catchup_start_dt_aligned.timestamp() * 1000
