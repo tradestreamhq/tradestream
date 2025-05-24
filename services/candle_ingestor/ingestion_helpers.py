@@ -28,7 +28,7 @@ def parse_backfill_start_date(date_str: str) -> datetime:
     """
     now = datetime.now(timezone.utc)
     date_str_lower = date_str.lower()
-    
+
     logging.debug(f"Parsing backfill_start_date: {date_str_lower}")
 
     # Match X_day_ago or X_days_ago (singular or plural)
@@ -36,13 +36,13 @@ def parse_backfill_start_date(date_str: str) -> datetime:
         days = int(date_str_lower.split("_")[0])
         logging.debug(f"Matched X_day(s)_ago pattern, days={days}")
         return now - timedelta(days=days)
-    
+
     # Match X_week_ago or X_weeks_ago
     elif re.match(r"^\d+_weeks?_ago$", date_str_lower):
         weeks = int(date_str_lower.split("_")[0])
         logging.debug(f"Matched X_week(s)_ago pattern, weeks={weeks}")
         return now - timedelta(weeks=weeks)
-    
+
     # Match X_month_ago or X_months_ago
     elif re.match(r"^\d+_months?_ago$", date_str_lower):
         months = int(date_str_lower.split("_")[0])
@@ -51,7 +51,7 @@ def parse_backfill_start_date(date_str: str) -> datetime:
         # For more precision, consider `from dateutil.relativedelta import relativedelta`
         # and `return now - relativedelta(months=months)`
         return now - timedelta(days=months * 30)
-    
+
     # Match X_year_ago or X_years_ago
     elif re.match(r"^\d+_years?_ago$", date_str_lower):
         years = int(date_str_lower.split("_")[0])

@@ -8,10 +8,13 @@ package(default_visibility = ["//visibility:public"])
 
 java_binary(
     name = "app",
-    main_class = "com.verlumen.tradestream.pipeline.App",
     srcs = ["App.java"],
     jvm_flags = [
         "-Dio.jenetics.util.defaultRandomGenerator=Random",
+    ],
+    main_class = "com.verlumen.tradestream.pipeline.App",
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
     ],
     deps = [
         ":pipeline_module",
@@ -19,8 +22,8 @@ java_binary(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//src/main/java/com/verlumen/tradestream/marketdata:candle_source",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_lookback_do_fn",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_source",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine_pipeline",
         "//third_party:beam_runners_flink_java",
         "//third_party:beam_sdks_java_core",
@@ -30,9 +33,6 @@ java_binary(
         "//third_party:joda_time",
         "//third_party:protobuf_java",
         "//third_party:protobuf_java_util",
-    ],
-    runtime_deps = [
-        "//third_party:beam_runners_direct_java",
     ],
 )
 

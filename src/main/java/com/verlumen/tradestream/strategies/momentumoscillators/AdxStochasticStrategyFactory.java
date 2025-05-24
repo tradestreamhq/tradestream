@@ -2,7 +2,6 @@ package com.verlumen.tradestream.strategies.momentumoscillators;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.AdxStochasticParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import com.verlumen.tradestream.strategies.StrategyType;
@@ -10,13 +9,12 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.adx.ADXIndicator;
 import org.ta4j.core.indicators.StochasticOscillatorKIndicator;
+import org.ta4j.core.indicators.adx.ADXIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
-final class AdxStochasticStrategyFactory
-    implements StrategyFactory<AdxStochasticParameters> {
+final class AdxStochasticStrategyFactory implements StrategyFactory<AdxStochasticParameters> {
   static AdxStochasticStrategyFactory create() {
     return new AdxStochasticStrategyFactory();
   }
@@ -32,7 +30,8 @@ final class AdxStochasticStrategyFactory
         "Overbought threshold must be greater than oversold threshold");
 
     ADXIndicator adxIndicator = new ADXIndicator(series, params.getAdxPeriod());
-    StochasticOscillatorKIndicator stochasticK = new StochasticOscillatorKIndicator(series, params.getStochasticKPeriod());
+    StochasticOscillatorKIndicator stochasticK =
+        new StochasticOscillatorKIndicator(series, params.getStochasticKPeriod());
 
     // Entry rule: ADX above a threshold (e.g., 20) indicating a strong trend
     // and Stochastic Oscillator K below oversold threshold
@@ -49,9 +48,7 @@ final class AdxStochasticStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (ADX-%d, StochasticK-%d)",
-            getStrategyType().name(),
-            params.getAdxPeriod(),
-            params.getStochasticKPeriod()),
+            getStrategyType().name(), params.getAdxPeriod(), params.getStochasticKPeriod()),
         entryRule,
         exitRule,
         params.getAdxPeriod()); // Unstable period is ADX period
@@ -59,12 +56,12 @@ final class AdxStochasticStrategyFactory
 
   @Override
   public AdxStochasticParameters getDefaultParameters() {
-      return AdxStochasticParameters.newBuilder()
-          .setAdxPeriod(14)               // Commonly used ADX period
-          .setStochasticKPeriod(14)       // Typical Stochastic K period
-          .setOverboughtThreshold(80)     // Default overbought threshold
-          .setOversoldThreshold(20)       // Default oversold threshold
-          .build();
+    return AdxStochasticParameters.newBuilder()
+        .setAdxPeriod(14) // Commonly used ADX period
+        .setStochasticKPeriod(14) // Typical Stochastic K period
+        .setOverboughtThreshold(80) // Default overbought threshold
+        .setOversoldThreshold(20) // Default oversold threshold
+        .build();
   }
 
   @Override

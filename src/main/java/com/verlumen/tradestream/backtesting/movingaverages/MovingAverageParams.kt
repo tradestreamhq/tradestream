@@ -4,7 +4,8 @@ import com.verlumen.tradestream.backtesting.ParamConfig
 
 object MovingAverageParams {
     @JvmField
-    val allConfigs: List<ParamConfig> = listOf(
-        EmaMacdParamConfig.create()
-    )
+    val allConfigs: List<ParamConfig> =
+        listOf(
+            EmaMacdParamConfig.create(),
+        )
 }

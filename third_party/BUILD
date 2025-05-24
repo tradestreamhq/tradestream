@@ -122,11 +122,11 @@ java_library(
 
 java_library(
     name = "beam_sdks_java_test_utils",
+    testonly = True,
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:org_apache_beam_beam_sdks_java_test_utils",
     ],
-    testonly = True,
 )
 
 java_library(
@@ -181,20 +181,20 @@ java_library(
 
 java_library(
     name = "guice_testlib",
+    testonly = True,
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:com_google_inject_extensions_guice_testlib",
     ],
-    testonly = True,
 )
 
 java_library(
     name = "hamcrest",
+    testonly = True,
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:org_hamcrest_hamcrest",
     ],
-    testonly = True,
 )
 
 java_library(
@@ -215,11 +215,11 @@ java_library(
 
 java_library(
     name = "junit",
+    testonly = True,
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:junit_junit",
     ],
-    testonly = True,
 )
 
 java_library(
@@ -232,20 +232,20 @@ java_library(
 
 java_library(
     name = "mockito_core",
+    testonly = True,
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:org_mockito_mockito_core",
     ],
-    testonly = True,
 )
 
 java_library(
     name = "mockito_kotlin",
+    testonly = True,
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:org_mockito_kotlin_mockito_kotlin",
     ],
-    testonly = True,
 )
 
 java_library(
@@ -282,20 +282,20 @@ java_library(
 
 java_library(
     name = "test_parameter_injector",
+    testonly = True,
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:com_google_testparameterinjector_test_parameter_injector",
     ],
-    testonly = True,
 )
 
 java_library(
     name = "truth",
+    testonly = True,
     visibility = ["//visibility:public"],
     exports = [
         "@tradestream_maven//:com_google_truth_truth",
     ],
-    testonly = True,
 )
 
 java_library(

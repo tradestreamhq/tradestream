@@ -3,9 +3,9 @@ package com.verlumen.tradestream.instruments;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.junit.Test;
 
 @RunWith(JUnit4.class)
 public class CurrencyPairTest {
@@ -129,7 +129,7 @@ public class CurrencyPairTest {
     String symbol = "/USD";
 
     // Act & Assert
-    assertThrows(IllegalArgumentException .class, () -> CurrencyPair.fromSymbol(symbol));
+    assertThrows(IllegalArgumentException.class, () -> CurrencyPair.fromSymbol(symbol));
   }
 
   @Test
@@ -138,7 +138,7 @@ public class CurrencyPairTest {
     String symbol = "EUR/";
 
     // Act & Assert
-    assertThrows(IllegalArgumentException .class, () -> CurrencyPair.fromSymbol(symbol));
+    assertThrows(IllegalArgumentException.class, () -> CurrencyPair.fromSymbol(symbol));
   }
 
   @Test

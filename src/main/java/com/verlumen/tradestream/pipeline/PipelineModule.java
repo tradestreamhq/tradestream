@@ -1,7 +1,5 @@
 package com.verlumen.tradestream.pipeline;
 
-import static com.google.protobuf.util.Timestamps.fromMillis;
-
 import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -21,54 +19,62 @@ import org.joda.time.Duration;
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
   static PipelineModule create(
-    String bootstrapServers,
-    int candleDurationMinutes,
-    String coinMarketCapApiKey,
-    String exchangeName,
-    int maxForwardIntervals,
-    RunMode runMode,
-    String signalTopic,
-    int topCurrencyCount,
-    String tiingoApiKey) {
+      String bootstrapServers,
+      int candleDurationMinutes,
+      String coinMarketCapApiKey,
+      String exchangeName,
+      int maxForwardIntervals,
+      RunMode runMode,
+      String signalTopic,
+      int topCurrencyCount,
+      String tiingoApiKey) {
     return new AutoValue_PipelineModule(
-      bootstrapServers,
-      Duration.standardMinutes(candleDurationMinutes),
-      coinMarketCapApiKey,
-      exchangeName,
-      maxForwardIntervals,
-      runMode,
-      signalTopic,
-      topCurrencyCount,
-      tiingoApiKey);
+        bootstrapServers,
+        Duration.standardMinutes(candleDurationMinutes),
+        coinMarketCapApiKey,
+        exchangeName,
+        maxForwardIntervals,
+        runMode,
+        signalTopic,
+        topCurrencyCount,
+        tiingoApiKey);
   }
 
   abstract String bootstrapServers();
+
   abstract Duration candleDuration();
+
   abstract String coinMarketCapApiKey();
+
   abstract String exchangeName();
+
   abstract int maxForwardIntervals();
+
   abstract RunMode runMode();
+
   abstract String signalTopic();
+
   abstract int topCurrencyCount();
+
   abstract String tiingoApiKey();
 
   @Override
   protected void configure() {
-      install(BacktestingModule.create());
-      install(HttpModule.create());
-      install(InstrumentsModule.create(runMode(), coinMarketCapApiKey(), topCurrencyCount()));
-      install(KafkaModule.create(bootstrapServers()));
-      install(MarketDataModule.create(exchangeName(), candleDuration(), runMode(), tiingoApiKey()));
-      install(SignalsModule.create(signalTopic()));
-      install(StrategiesModule.create());
-      install(Ta4jModule.create());
+    install(BacktestingModule.create());
+    install(HttpModule.create());
+    install(InstrumentsModule.create(runMode(), coinMarketCapApiKey(), topCurrencyCount()));
+    install(KafkaModule.create(bootstrapServers()));
+    install(MarketDataModule.create(exchangeName(), candleDuration(), runMode(), tiingoApiKey()));
+    install(SignalsModule.create(signalTopic()));
+    install(StrategiesModule.create());
+    install(Ta4jModule.create());
   }
 
   @Provides
   FillForwardCandles provideFillForwardCandles(FillForwardCandles.Factory factory) {
     return factory.create(candleDuration(), maxForwardIntervals());
   }
-  
+
   @Provides
   TimingConfig provideTimingConfig() {
     return TimingConfig.create();
@@ -76,6 +82,6 @@ abstract class PipelineModule extends AbstractModule {
 
   @Provides
   TradeToCandle provideTradeToCandle(TradeToCandle.Factory factory) {
-      return factory.create(candleDuration());
+    return factory.create(candleDuration());
   }
 }

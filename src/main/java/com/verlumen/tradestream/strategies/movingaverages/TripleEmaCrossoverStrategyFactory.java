@@ -59,11 +59,11 @@ public class TripleEmaCrossoverStrategyFactory
 
   @Override
   public TripleEmaCrossoverParameters getDefaultParameters() {
-      return TripleEmaCrossoverParameters.newBuilder()
-          .setShortEmaPeriod(10)   // Default short EMA period for quick responsiveness
-          .setMediumEmaPeriod(20)  // Default medium EMA period for smoother trends
-          .setLongEmaPeriod(50)    // Default long EMA period for overall trend
-          .build();
+    return TripleEmaCrossoverParameters.newBuilder()
+        .setShortEmaPeriod(10) // Default short EMA period for quick responsiveness
+        .setMediumEmaPeriod(20) // Default medium EMA period for smoother trends
+        .setLongEmaPeriod(50) // Default long EMA period for overall trend
+        .build();
   }
 
   @Override

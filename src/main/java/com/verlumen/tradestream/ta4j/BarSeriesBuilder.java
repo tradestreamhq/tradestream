@@ -3,17 +3,16 @@ package com.verlumen.tradestream.ta4j;
 import static org.ta4j.core.num.DecimalNum.valueOf;
 
 import com.google.common.collect.ImmutableList;
-import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.marketdata.Candle;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.time.ZoneId;
 
 final class BarSeriesBuilder {
   private static Duration ONE_MINUTE = Duration.ofMinutes(1);
@@ -22,10 +21,7 @@ final class BarSeriesBuilder {
   public static BarSeries createBarSeries(ImmutableList<Candle> candles) {
     BaseBarSeries series = new BaseBarSeries();
 
-    candles
-      .stream()
-      .map(BarSeriesBuilder::createBar)
-      .forEach(series::addBar);
+    candles.stream().map(BarSeriesBuilder::createBar).forEach(series::addBar);
 
     return series;
   }

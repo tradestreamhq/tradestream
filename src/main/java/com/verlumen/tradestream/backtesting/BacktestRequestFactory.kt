@@ -2,7 +2,6 @@ package com.verlumen.tradestream.backtesting
 
 import com.verlumen.tradestream.marketdata.Candle
 import com.verlumen.tradestream.strategies.Strategy
-import com.verlumen.tradestream.backtesting.BacktestRequest
 
 /**
  * Interface for creating BacktestRequest objects.
@@ -15,5 +14,8 @@ interface BacktestRequestFactory {
      * @param strategy The trading strategy to be backtested.
      * @return A configured BacktestRequest object.
      */
-    fun create(candles: List<Candle>, strategy: Strategy): BacktestRequest
+    fun create(
+        candles: List<Candle>,
+        strategy: Strategy,
+    ): BacktestRequest
 }

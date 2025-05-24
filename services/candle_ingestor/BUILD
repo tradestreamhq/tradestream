@@ -1,8 +1,9 @@
 load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
+load("@container_structure_test//:defs.bzl", "container_structure_test")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 
 py_library(
     name = "ingestion_helpers_lib",
@@ -43,14 +44,14 @@ py_library(
 )
 
 py_binary(
-    name = "main_app",
+    name = "app",
     srcs = ["main.py"],
     main = "main.py",
     deps = [
         ":cmc_client_lib",
         ":influx_client_lib",
-        ":tiingo_client_lib",
         ":ingestion_helpers_lib",
+        ":tiingo_client_lib",
         "//third_party:absl_py",
     ],
 )
@@ -103,9 +104,9 @@ py_test(
         # e.g., "--influxdb_url=http://mock-influx:8086",
     ],
     deps = [
-        ":main_app",
-        ":ingestion_helpers_lib",
+        ":app",
         ":influx_client_lib",
+        ":ingestion_helpers_lib",
         ":tiingo_client_lib",
         "//third_party:absl_py",
     ],
@@ -113,28 +114,34 @@ py_test(
 
 # --- OCI Image Rules ---
 py_image_layer(
-    name = "main_app_py_layers",
-    binary = ":main_app",
+    name = "layers",
+    binary = ":app",
     # package_dir = "/app", # Default is often /app/<binary_name_target>
 )
 
 oci_image(
     name = "image",
     base = "@python_3_13_slim",
-    entrypoint = ["/app/main_app/main_app"], # Adjusted based on typical py_image_layer structure
-    tars = [":main_app_py_layers"],
+    entrypoint = ["/services/candle_ingestor/app"],
+    tars = [":layers"],
 )
 
 oci_image_index(
-    name = "candle_ingestor_image_for_deployment",
+    name = "images",
     images = [
         ":image",
     ],
-    tags = ["tradestreamhq/candle-ingestor:latest"],
 )
 
 oci_push(
     name = "push_candle_ingestor_image",
-    image = ":candle_ingestor_image_for_deployment",
+    image = ":images",
     repository = "tradestreamhq/candle-ingestor",
+)
+
+container_structure_test(
+    name = "container_test",
+    configs = ["container-structure-test.yaml"],
+    image = ":image",
+    tags = ["requires-docker"],
 )

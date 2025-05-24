@@ -1,9 +1,6 @@
 package com.verlumen.tradestream.signals;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.anyInt;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
@@ -54,16 +51,16 @@ public class GenerateTradeSignalsTest {
   // Static serializable implementation of StrategyState for testing
   private static class TestStrategyState implements StrategyState, Serializable {
     private static final long serialVersionUID = 1L;
-    
+
     // Transient because Strategy isn't serializable by default
     private transient Strategy mockStrategy;
     private final StrategyType strategyType;
-    
+
     public TestStrategyState(Strategy mockStrategy, StrategyType strategyType) {
       this.mockStrategy = mockStrategy;
       this.strategyType = strategyType;
     }
-    
+
     @Override
     public Strategy getCurrentStrategy(BarSeries series) {
       return mockStrategy;
@@ -73,7 +70,7 @@ public class GenerateTradeSignalsTest {
     public StrategyType getCurrentStrategyType() {
       return strategyType;
     }
-    
+
     @Override
     public com.verlumen.tradestream.strategies.Strategy toStrategyMessage() {
       return com.verlumen.tradestream.strategies.Strategy.newBuilder()
@@ -95,7 +92,7 @@ public class GenerateTradeSignalsTest {
     public Iterable<StrategyType> getStrategyTypes() {
       return ImmutableList.of(strategyType);
     }
-    
+
     // Handle serialization recovery
     private Object readResolve() {
       // In a real test, you'd need a way to restore the mockStrategy here
@@ -114,15 +111,16 @@ public class GenerateTradeSignalsTest {
   public void testGenerateBuySignal() throws Exception {
     // 1. Create a real Candle:
     ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-    Candle candle = Candle.newBuilder()
-        .setTimestamp(Timestamp.newBuilder().setSeconds(now.toEpochSecond()))
-        .setOpen(100.0)
-        .setHigh(105.0)
-        .setLow(95.0)
-        .setClose(102.0)
-        .setVolume(10.0)
-        .setCurrencyPair("BTC/USD")
-        .build();
+    Candle candle =
+        Candle.newBuilder()
+            .setTimestamp(Timestamp.newBuilder().setSeconds(now.toEpochSecond()))
+            .setOpen(100.0)
+            .setHigh(105.0)
+            .setLow(95.0)
+            .setClose(102.0)
+            .setVolume(10.0)
+            .setCurrencyPair("BTC/USD")
+            .build();
 
     // 2. Create a real BarSeries using BarSeriesBuilder
     ImmutableList<Candle> candles = ImmutableList.of(candle);
