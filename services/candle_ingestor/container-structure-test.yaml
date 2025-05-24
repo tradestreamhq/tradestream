@@ -4,7 +4,7 @@ commandTests:
     command: "/services/candle_ingestor/app"
     args: [
         "--run_mode=dry",
-        "--cmc_api_key=dummykey", 
+        "--cmc_api_key=dummykey",
         "--tiingo_api_key=dummykey",
         "--influxdb_token=dummytoken",
         "--influxdb_org=dummyorg",
