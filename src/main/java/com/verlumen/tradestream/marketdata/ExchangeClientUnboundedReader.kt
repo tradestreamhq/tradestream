@@ -169,11 +169,16 @@ class ExchangeClientUnboundedReader(
      */
     @Throws(IOException::class)
     override fun advance(): Boolean {
-        logger.atFine().log("advance() called. Queue size: %d, Streaming active: %b", 
-            incomingMessagesQueue.size, clientStreamingActive)
-        
-        checkState(clientStreamingActive || incomingMessagesQueue.isNotEmpty(),
-            "Cannot advance: Exchange client streaming not active and queue empty.")
+        logger.atFine().log(
+            "advance() called. Queue size: %d, Streaming active: %b",
+            incomingMessagesQueue.size,
+            clientStreamingActive,
+        )
+
+        checkState(
+            clientStreamingActive || incomingMessagesQueue.isNotEmpty(),
+            "Cannot advance: Exchange client streaming not active and queue empty.",
+        )
 
         currentTrade = incomingMessagesQueue.poll()
         
