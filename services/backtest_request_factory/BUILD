@@ -57,6 +57,6 @@ py_binary(
         ":kafka_publisher_lib",
         "//shared/cryptoclient:cmc_client_lib",
         "@pypi//absl_py",
-        "@pypi//google-api-python-client", # For google.protobuf.any_pb2
+        "@pypi//google-api-python-client",  # For google.protobuf.any_pb2
     ],
 )
