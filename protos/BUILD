@@ -1,4 +1,4 @@
-load("@rules_python//python:proto.bzl", "py_proto_library")
+load("@com_google_protobuf//:protobuf.bzl", "py_proto_library")
 
 proto_library(
     name = "backtesting_proto",
