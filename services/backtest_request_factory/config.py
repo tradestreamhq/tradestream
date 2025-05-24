@@ -2,7 +2,9 @@ import os
 from protos.strategies_pb2 import StrategyType
 
 # InfluxDB Configuration
-INFLUXDB_URL = os.getenv("INFLUXDB_URL", "http://influxdb.tradestream-namespace.svc.cluster.local:8086")
+INFLUXDB_URL = os.getenv(
+    "INFLUXDB_URL", "http://influxdb.tradestream-namespace.svc.cluster.local:8086"
+)
 INFLUXDB_TOKEN = os.getenv("INFLUXDB_TOKEN")
 INFLUXDB_ORG = os.getenv("INFLUXDB_ORG")
 INFLUXDB_BUCKET_CANDLES = os.getenv("INFLUXDB_BUCKET_CANDLES", "tradestream-data") # Assuming candles are in the same bucket as candle_ingestor writes
