@@ -2,11 +2,9 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
-import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
-import java.time.Instant // Use java.time for parsing
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -27,7 +25,10 @@ object TiingoResponseParser {
      * @return A list of Candle objects parsed from the response. Returns an empty list
      * if the response is invalid or contains no candle data.
      */
-    fun parseCandles(jsonResponse: String, currencyPair: String): List<Candle> {
+    fun parseCandles(
+        jsonResponse: String,
+        currencyPair: String,
+    ): List<Candle> {
         return try {
             val jsonElement = JsonParser.parseString(jsonResponse)
             // Tiingo returns an array, sometimes empty, sometimes containing one object per ticker.
@@ -42,11 +43,11 @@ object TiingoResponseParser {
                     emptyList()
                 }
             } else {
-                 if (jsonElement.isJsonArray && jsonElement.asJsonArray.isEmpty) {
-                      println("Info: Received empty array from Tiingo for $currencyPair")
-                 } else {
-                     println("Warning: Unexpected Tiingo response format (not a non-empty array) for $currencyPair: $jsonResponse")
-                 }
+                if (jsonElement.isJsonArray && jsonElement.asJsonArray.isEmpty) {
+                    println("Info: Received empty array from Tiingo for $currencyPair")
+                } else {
+                    println("Warning: Unexpected Tiingo response format (not a non-empty array) for $currencyPair: $jsonResponse")
+                }
                 emptyList()
             }
         } catch (e: Exception) {
@@ -55,7 +56,10 @@ object TiingoResponseParser {
         }
     }
 
-    private fun parsePriceDataArray(priceDataArray: JsonArray, currencyPair: String): List<Candle> {
+    private fun parsePriceDataArray(
+        priceDataArray: JsonArray,
+        currencyPair: String,
+    ): List<Candle> {
         val candles = mutableListOf<Candle>()
         for (element in priceDataArray) {
             try {
@@ -70,7 +74,10 @@ object TiingoResponseParser {
         return candles
     }
 
-    private fun parseCandleElement(element: JsonElement, currencyPair: String): Candle? {
+    private fun parseCandleElement(
+        element: JsonElement,
+        currencyPair: String,
+    ): Candle? {
         if (!element.isJsonObject) return null
         val candleJson = element.asJsonObject
 

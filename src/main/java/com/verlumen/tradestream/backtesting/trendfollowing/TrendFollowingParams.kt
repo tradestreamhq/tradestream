@@ -4,7 +4,8 @@ import com.verlumen.tradestream.backtesting.ParamConfig
 
 object TrendFollowingParams {
     @JvmField
-    val allConfigs: List<ParamConfig> = listOf(
-        IchimokuCloudParamConfig.create()
-    )
+    val allConfigs: List<ParamConfig> =
+        listOf(
+            IchimokuCloudParamConfig.create(),
+        )
 }
