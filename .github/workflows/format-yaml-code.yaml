@@ -1,0 +1,35 @@
+name: 'yaml-formatter-yamlfmt'
+on:
+  pull_request:
+    paths: 
+      - '**/*.yml'
+      - '**/*.yaml'
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  format:
+    name: runner / yamlfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yamlfmt
+        run: |
+          curl -fsSL https://github.com/google/yamlfmt/releases/latest/download/yamlfmt_linux_amd64.tar.gz | tar -xzf -
+          sudo mv yamlfmt /usr/local/bin/
+          yamlfmt --version
+      - name: Format YAML files using yamlfmt
+        run: yamlfmt -formatter indentless_arrays=true,retain_line_breaks=true **/*.{yml,yaml}
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Annotate diff changes using reviewdog
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: yamlfmt
