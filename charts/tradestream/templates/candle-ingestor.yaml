@@ -1,0 +1,58 @@
+{{- if .Values.candleIngestor.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-candle-ingestor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: candle-ingestor
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.candleIngestor.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "tradestream.name" . }}
+      component: candle-ingestor
+  template:
+    metadata:
+      labels:
+        app: {{ include "tradestream.name" . }}
+        component: candle-ingestor
+    spec:
+      containers:
+        - name: candle-ingestor
+          image: "{{ .Values.candleIngestor.image.repository }}:{{ .Values.candleIngestor.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.candleIngestor.image.pullPolicy }}
+          env:
+            - name: TOP_N_CRYPTOS
+              value: "{{ .Values.candleIngestor.config.topNCryptos }}"
+            - name: CANDLE_GRANULARITY_MINUTES
+              value: "{{ .Values.candleIngestor.config.candleGranularityMinutes }}"
+            - name: INFLUXDB_URL
+              value: "http://{{ include "tradestream.fullname" . }}-influxdb:8086"
+            - name: INFLUXDB_BUCKET
+              value: "{{ .Values.candleIngestor.config.influxDbBucket }}"
+            - name: DATA_SOURCES
+              value: "{{ .Values.candleIngestor.config.dataSources }}"
+            - name: COINMARKETCAP_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.candleIngestor.secrets.cmcApiKey.name }}
+                  key: {{ .Values.candleIngestor.secrets.cmcApiKey.key }}
+            - name: TIINGO_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.candleIngestor.secrets.tiingoApiKey.name }}
+                  key: {{ .Values.candleIngestor.secrets.tiingoApiKey.key }}
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.candleIngestor.secrets.influxDb.name }}
+                  key: {{ .Values.candleIngestor.secrets.influxDb.tokenKey }}
+            - name: INFLUXDB_ORG
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.candleIngestor.secrets.influxDb.name }}
+                  key: {{ .Values.candleIngestor.secrets.influxDb.orgKey }}
+{{- end }}

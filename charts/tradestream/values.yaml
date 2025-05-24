@@ -82,3 +82,27 @@ pipeline:
     jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
     parallelism: 1
     upgradeMode: stateless
+
+candleIngestor:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: "tradestreamhq/candle-ingestor"
+    pullPolicy: IfNotPresent
+    tag: "v1.31.1-develop" # Defaults to .Chart.AppVersion if empty, ensure it's updated by release
+  config:
+    topNCryptos: 10
+    candleGranularityMinutes: 1
+    influxDbBucket: "tradestream-data"
+    dataSources: "coinmarketcap,tiingo"
+  secrets:
+    cmcApiKey:
+      name: "coinmarketcap"
+      key: "apiKey"
+    tiingoApiKey:
+      name: "tiingo"
+      key: "apiKey"
+    influxDb:
+      name: "influxdb-candle-ingestor-credentials"
+      tokenKey: "INFLUXDB_TOKEN"
+      orgKey: "INFLUXDB_ORG"
