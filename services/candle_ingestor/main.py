@@ -259,9 +259,7 @@ def run_polling_loop(
     logging.info("Initializing polling timestamps from InfluxDB or defaults...")
     for ticker_symbol in tiingo_tickers:
         if shutdown_requested:  # Added check
-            logging.info(
-                "Shutdown requested during polling timestamp initialization."
-            )
+            logging.info("Shutdown requested during polling timestamp initialization.")
             return
 
         if (
