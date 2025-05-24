@@ -104,10 +104,11 @@ class TradeToCandleTest : Serializable {
 
         // Act
         val transform = tradeToCandleFactory.create(windowDuration)
-        val result: PCollection<Candle> = pipeline
-            .apply(tradeStream)
-            .apply("TradeToCandle", transform)
-            .apply("ExtractValues", Values.create())
+        val result: PCollection<Candle> =
+            pipeline
+                .apply(tradeStream)
+                .apply("TradeToCandle", transform)
+                .apply("ExtractValues", Values.create())
 
         // Assert
         PAssert.that(result).containsInAnyOrder(expectedBtcCandle)
