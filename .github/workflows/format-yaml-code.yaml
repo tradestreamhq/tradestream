@@ -20,7 +20,9 @@ jobs:
       - name: Install Prettier globally
         run: npm install -g prettier
       - name: Format YAML files with Prettier
-        run: prettier --write **/*.{yml,yaml}
+        run: |
+          # Find and format all YAML files
+          find . -name "*.yaml" -o -name "*.yml" | xargs -r prettier --write
       - name: Check for changes
         id: verify-changed-files
         run: |
