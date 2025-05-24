@@ -51,8 +51,5 @@ spec:
                   name: {{ .Values.candleIngestor.secrets.influxDb.name }}
                   key: {{ .Values.candleIngestor.secrets.influxDb.tokenKey }}
             - name: INFLUXDB_ORG
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.candleIngestor.secrets.influxDb.name }}
-                  key: {{ .Values.candleIngestor.secrets.influxDb.orgKey }}
+              value: "{{ .Values.influxdb.adminUser.organization }}"
 {{- end }}
