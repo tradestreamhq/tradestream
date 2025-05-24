@@ -35,7 +35,7 @@ spec:
               value: "{{ .Values.candleIngestor.config.influxDbBucket }}"
             - name: DATA_SOURCES
               value: "{{ .Values.candleIngestor.config.dataSources }}"
-            - name: COINMARKETCAP_API_KEY
+            - name: CMC_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.candleIngestor.secrets.cmcApiKey.name }}
