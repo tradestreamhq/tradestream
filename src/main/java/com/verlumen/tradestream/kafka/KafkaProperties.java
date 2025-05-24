@@ -5,31 +5,32 @@ import java.util.Properties;
 import java.util.function.Supplier;
 
 public record KafkaProperties(
-  int batchSize,
-  String bootstrapServers,
-  int bufferMemory,
-  String keySerializer,
-  String valueSerializer,
-  String securityProtocol,
-  String saslMechanism,
-  String saslJaasConfig,
-  String acks,
-  int lingerMs,
-  int retries) implements Serializable, Supplier<Properties> {
+    int batchSize,
+    String bootstrapServers,
+    int bufferMemory,
+    String keySerializer,
+    String valueSerializer,
+    String securityProtocol,
+    String saslMechanism,
+    String saslJaasConfig,
+    String acks,
+    int lingerMs,
+    int retries)
+    implements Serializable, Supplier<Properties> {
 
   public static KafkaProperties create(String bootstrapServers) {
     return new KafkaProperties(
-      KafkaDefaults.BATCH_SIZE,
-      bootstrapServers,
-      KafkaDefaults.BUFFER_MEMORY,
-      KafkaDefaults.KEY_SERIALIZER,
-      KafkaDefaults.VALUE_SERIALIZER,
-      KafkaDefaults.SECURITY_PROTOCOL,
-      "",
-      "",
-      KafkaDefaults.ACKS,
-      KafkaDefaults.LINGER_MS,
-      KafkaDefaults.RETRIES);
+        KafkaDefaults.BATCH_SIZE,
+        bootstrapServers,
+        KafkaDefaults.BUFFER_MEMORY,
+        KafkaDefaults.KEY_SERIALIZER,
+        KafkaDefaults.VALUE_SERIALIZER,
+        KafkaDefaults.SECURITY_PROTOCOL,
+        "",
+        "",
+        KafkaDefaults.ACKS,
+        KafkaDefaults.LINGER_MS,
+        KafkaDefaults.RETRIES);
   }
 
   @Override
