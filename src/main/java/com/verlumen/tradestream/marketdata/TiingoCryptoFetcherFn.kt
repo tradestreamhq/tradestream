@@ -157,7 +157,8 @@ class TiingoCryptoFetcherFn
                             .format(TIINGO_DATE_FORMATTER_DAILY)
                     } else {
                         // Fetch data starting 1 second AFTER the last fetched timestamp
-                        LocalDateTime.ofInstant(lastInst.plusSeconds(1), ZoneOffset.UTC)
+                        LocalDateTime
+                            .ofInstant(lastInst.plusSeconds(1), ZoneOffset.UTC)
                             .format(TIINGO_DATE_FORMATTER_INTRADAY)
                     }
                 } else {
