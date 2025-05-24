@@ -2,8 +2,6 @@ package com.verlumen.tradestream.backtesting
 
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
-import com.verlumen.tradestream.backtesting.BacktestRequest
-import com.verlumen.tradestream.strategies.Strategy
 import com.verlumen.tradestream.marketdata.Candle
 
 /**
