@@ -5,6 +5,7 @@ py_library(
     name = "cmc_client_lib",
     srcs = ["cmc_client.py"],
     visibility = [
+        "//services/backtest_request_factory:__pkg__",
         "//services/candle_ingestor:__pkg__",
     ],
     deps = [
