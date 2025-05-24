@@ -157,7 +157,7 @@ class InfluxPollerTest(unittest.TestCase):
         """Test handling of InfluxDB query error."""
         mock_query_api = Mock()
         self.mock_client.query_api.return_value = mock_query_api
-        mock_query_api.query.side_effect = InfluxDBError("Query failed")
+        mock_query_api.query.side_effect = InfluxDBError(message="Query failed")
 
         candles, latest_ts = self.poller.fetch_new_candles("BTC/USD", 0)
 
