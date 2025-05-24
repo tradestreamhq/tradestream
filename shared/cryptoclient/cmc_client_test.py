@@ -1,10 +1,9 @@
 import unittest
 from unittest import mock
 
-import requests  # Keep for mocking requests.exceptions
+import requests
 
-# Your module to test
-from services.candle_ingestor import cmc_client
+from shared.cryptoclient import cmc_client
 
 
 class TestCMCClient(unittest.TestCase):
