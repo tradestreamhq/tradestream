@@ -131,22 +131,24 @@ class TradeToCandleTest : Serializable {
         val t1 = baseTime.plus(Duration.standardSeconds(30))
 
         // Only BTC trades, no ETH trades
-        val tradeStream = TestStream.create(ProtoCoder.of(Trade::class.java))
-            .addElements(
-                TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1)
-            )
-            .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
-            .advanceWatermarkToInfinity()
+        val tradeStream =
+            TestStream.create(ProtoCoder.of(Trade::class.java))
+                .addElements(
+                    TimestampedValue.of(createTrade("BTC/USD", 50000.0, 1.0, t1), t1),
+                )
+                .advanceWatermarkTo(win1End.plus(Duration.millis(1)))
+                .advanceWatermarkToInfinity()
 
-        val expectedBtcCandle = Candle.newBuilder()
-            .setCurrencyPair("BTC/USD")
-            .setOpen(50000.0)
-            .setHigh(50000.0)
-            .setLow(50000.0)
-            .setClose(50000.0)
-            .setVolume(1.0)
-            .setTimestamp(Timestamps.fromMillis(t1.millis))
-            .build()
+        val expectedBtcCandle =
+            Candle.newBuilder()
+                .setCurrencyPair("BTC/USD")
+                .setOpen(50000.0)
+                .setHigh(50000.0)
+                .setLow(50000.0)
+                .setClose(50000.0)
+                .setVolume(1.0)
+                .setTimestamp(Timestamps.fromMillis(t1.millis))
+                .build()
 
         // Act
         val transform = tradeToCandleFactory.create(windowDuration)
