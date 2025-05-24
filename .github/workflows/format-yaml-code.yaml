@@ -1,0 +1,38 @@
+name: "yaml-formatter"
+on:
+  pull_request:
+    paths:
+      - "**/*.yml"
+      - "**/*.yaml"
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  format:
+    name: runner / prettier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Install Prettier globally
+        run: npm install -g prettier
+      - name: Format YAML files with Prettier
+        run: |
+          # Find and format all YAML files
+          find . -name "*.yaml" -o -name "*.yml" | xargs -r prettier --write
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Annotate diff changes using reviewdog
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: prettier
