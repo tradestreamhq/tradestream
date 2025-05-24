@@ -309,7 +309,6 @@ class IntegrationTest(unittest.TestCase):
             # Publish requests
             for request in backtest_requests:
                 self.kafka_publisher.publish_request(request, currency_pair)
-                
                 # Verify request structure
                 self.assertEqual(request.strategy.type, StrategyType.SMA_RSI)
                 self.assertGreater(len(request.candles), 0)
