@@ -1,9 +1,9 @@
 load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 
 py_library(
     name = "ingestion_helpers_lib",
@@ -50,8 +50,8 @@ py_binary(
     deps = [
         ":cmc_client_lib",
         ":influx_client_lib",
-        ":tiingo_client_lib",
         ":ingestion_helpers_lib",
+        ":tiingo_client_lib",
         "//third_party:absl_py",
     ],
 )
@@ -105,8 +105,8 @@ py_test(
     ],
     deps = [
         ":app",
-        ":ingestion_helpers_lib",
         ":influx_client_lib",
+        ":ingestion_helpers_lib",
         ":tiingo_client_lib",
         "//third_party:absl_py",
     ],
@@ -131,7 +131,6 @@ oci_image_index(
     images = [
         ":image",
     ],
-    tags = ["tradestreamhq/candle-ingestor:latest"],
 )
 
 oci_push(
@@ -146,4 +145,3 @@ container_structure_test(
     image = ":image",
     tags = ["requires-docker"],
 )
-

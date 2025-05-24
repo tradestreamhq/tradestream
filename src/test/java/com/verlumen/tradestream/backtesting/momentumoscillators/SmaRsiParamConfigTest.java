@@ -52,12 +52,13 @@ public class SmaRsiParamConfigTest {
   @Test
   public void createParameters_convertsChromosomesCorrectly() throws Exception {
     // Create chromosomes matching our specs (single gene each, random allele in given range)
-    ImmutableList<? extends NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
-        IntegerChromosome.of(5, 50, 1),   // movingAveragePeriod
-        IntegerChromosome.of(2, 30, 1),   // rsiPeriod
-        DoubleChromosome.of(60.0, 85.0),  // overboughtThreshold
-        DoubleChromosome.of(15.0, 40.0)   // oversoldThreshold
-    );
+    ImmutableList<? extends NumericChromosome<?, ?>> chromosomes =
+        ImmutableList.of(
+            IntegerChromosome.of(5, 50, 1), // movingAveragePeriod
+            IntegerChromosome.of(2, 30, 1), // rsiPeriod
+            DoubleChromosome.of(60.0, 85.0), // overboughtThreshold
+            DoubleChromosome.of(15.0, 40.0) // oversoldThreshold
+            );
 
     // Act
     SmaRsiParameters params = config.createParameters(chromosomes).unpack(SmaRsiParameters.class);

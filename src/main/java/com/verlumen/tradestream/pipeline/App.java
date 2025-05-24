@@ -84,7 +84,9 @@ public final class App {
     void setRunMode(String value);
 
     @Description(
-        "CoinMarketCap API Key (default: value of " + CMC_API_KEY_ENV_VAR + " environment variable)")
+        "CoinMarketCap API Key (default: value of "
+            + CMC_API_KEY_ENV_VAR
+            + " environment variable)")
     @Default.String("")
     String getCoinMarketCapApiKey();
 
@@ -137,8 +139,7 @@ public final class App {
     // 2. Parse lookback sizes from options and add lookback processing
     List<Integer> lookbackSizes = parseLookbackSizes(options.getCandleLookbackSizes());
     PCollection<KV<String, KV<Integer, ImmutableList<Candle>>>> lookbacks =
-        candles.apply(
-            "Generate Candle Lookbacks", ParDo.of(new CandleLookbackDoFn(lookbackSizes)));
+        candles.apply("Generate Candle Lookbacks", ParDo.of(new CandleLookbackDoFn(lookbackSizes)));
 
     // 3. Log lookback results for debugging
     lookbacks.apply("Log Lookbacks", ParDo.of(new LogLookbacksDoFn()));
@@ -195,36 +196,40 @@ public final class App {
   private static String getCmcApiKey(Options options) {
     // First try to get from options
     String apiKey = options.getCoinMarketCapApiKey();
-    
+
     // If not in options, try environment variable
     if (isNullOrEmpty(apiKey)) {
       apiKey = System.getenv(CMC_API_KEY_ENV_VAR);
     }
-    
+
     // Throw exception if still empty or null
     if (isNullOrEmpty(apiKey)) {
-      throw new IllegalArgumentException("CoinMarketCap API key must be provided either through options or " + 
-                                        CMC_API_KEY_ENV_VAR + " environment variable");
+      throw new IllegalArgumentException(
+          "CoinMarketCap API key must be provided either through options or "
+              + CMC_API_KEY_ENV_VAR
+              + " environment variable");
     }
-    
+
     return apiKey;
   }
 
   private static String getTiingoApiKey(Options options) {
     // First try to get from options
     String apiKey = options.getTiingoApiKey();
-    
+
     // If not in options, try environment variable
     if (isNullOrEmpty(apiKey)) {
       apiKey = System.getenv(TIINGO_API_KEY_ENV_VAR);
     }
-    
+
     // Throw exception if still empty or null
     if (isNullOrEmpty(apiKey)) {
-      throw new IllegalArgumentException("Tiingo API key must be provided either through options or " + 
-                                        TIINGO_API_KEY_ENV_VAR + " environment variable");
+      throw new IllegalArgumentException(
+          "Tiingo API key must be provided either through options or "
+              + TIINGO_API_KEY_ENV_VAR
+              + " environment variable");
     }
-    
+
     return apiKey;
   }
 
@@ -233,19 +238,17 @@ public final class App {
 
     // Parse custom options.
     Options options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
-    logger.atInfo()
-        .log(
-            "Parsed options: BootstrapServers=%s, RunMode=%s",
-            options.getBootstrapServers(), options.getRunMode());
+    logger.atInfo().log(
+        "Parsed options: BootstrapServers=%s, RunMode=%s",
+        options.getBootstrapServers(), options.getRunMode());
 
     // Convert to FlinkPipelineOptions and set required properties.
     FlinkPipelineOptions flinkOptions = options.as(FlinkPipelineOptions.class);
     flinkOptions.setAttachedMode(false);
     flinkOptions.setStreaming(true);
-    logger.atInfo()
-        .log(
-            "Configured FlinkPipelineOptions: AttachedMode=%s, Streaming=%s",
-            flinkOptions.getAttachedMode(), flinkOptions.isStreaming());
+    logger.atInfo().log(
+        "Configured FlinkPipelineOptions: AttachedMode=%s, Streaming=%s",
+        flinkOptions.getAttachedMode(), flinkOptions.isStreaming());
 
     // Create Guice module.
     RunMode runMode = RunMode.fromString(options.getRunMode());

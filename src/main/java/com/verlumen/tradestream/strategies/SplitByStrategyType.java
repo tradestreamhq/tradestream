@@ -13,18 +13,19 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 
 /**
- * A PTransform that splits the input KV<String, ImmutableList<Candle>> into one record
- * per strategy type.
+ * A PTransform that splits the input KV<String, ImmutableList<Candle>> into one record per strategy
+ * type.
  */
-final class SplitByStrategyType 
-    extends PTransform<PCollection<KV<String, ImmutableList<Candle>>>,
-                       PCollection<KV<String, StrategyProcessingRequest>>> {
+final class SplitByStrategyType
+    extends PTransform<
+        PCollection<KV<String, ImmutableList<Candle>>>,
+        PCollection<KV<String, StrategyProcessingRequest>>> {
 
   private final SplitByStrategyTypeFn splitByStrategyTypeFn;
 
   @Inject
   SplitByStrategyType(SplitByStrategyTypeFn splitByStrategyTypeFn) {
-      this.splitByStrategyTypeFn = splitByStrategyTypeFn;
+    this.splitByStrategyTypeFn = splitByStrategyTypeFn;
   }
 
   @Override
@@ -32,21 +33,20 @@ final class SplitByStrategyType
       PCollection<KV<String, ImmutableList<Candle>>> input) {
     return input
         .apply("SplitPerStrategyType", ParDo.of(splitByStrategyTypeFn))
-        .setCoder(KvCoder.of(
-            StringUtf8Coder.of(),
-            SerializableCoder.of(StrategyProcessingRequest.class)
-        ));
+        .setCoder(
+            KvCoder.of(
+                StringUtf8Coder.of(), SerializableCoder.of(StrategyProcessingRequest.class)));
   }
 
-  private static class SplitByStrategyTypeFn 
+  private static class SplitByStrategyTypeFn
       extends DoFn<KV<String, ImmutableList<Candle>>, KV<String, StrategyProcessingRequest>> {
     @Inject
     SplitByStrategyTypeFn() {}
 
     @ProcessElement
     public void processElement(
-            @Element KV<String, ImmutableList<Candle>> element,
-            OutputReceiver<KV<String, StrategyProcessingRequest>> out) {
+        @Element KV<String, ImmutableList<Candle>> element,
+        OutputReceiver<KV<String, StrategyProcessingRequest>> out) {
       String key = element.getKey();
       ImmutableList<Candle> candles = element.getValue();
 

@@ -3,9 +3,7 @@ package com.verlumen.tradestream.backtesting;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.io.Serializable;
 
-/**
- * Interface for running backtests on trading strategies.
- */
+/** Interface for running backtests on trading strategies. */
 interface BacktestRunner extends Serializable {
   /**
    * Runs a backtest for the given strategy over the provided bar series.

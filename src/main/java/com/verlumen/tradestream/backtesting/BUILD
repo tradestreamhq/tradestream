@@ -1,5 +1,5 @@
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -54,22 +54,22 @@ java_library(
     name = "backtesting_module",
     srcs = ["BacktestingModule.java"],
     deps = [
+        "ga_engine_factory",
+        "ga_engine_factory_impl",
         ":backtest_request_factory",
         ":backtest_request_factory_impl",
         ":backtest_runner",
         ":backtest_runner_impl",
         ":fitness_calculator",
         ":fitness_calculator_impl",
-        "ga_engine_factory",
-        "ga_engine_factory_impl",
         ":genetic_algorithm_orchestrator",
         ":genetic_algorithm_orchestrator_impl",
         ":genotype_converter",
         ":genotype_converter_impl",
         ":param_config",
-        ":param_configs",
         ":param_config_manager",
         ":param_config_manager_impl",
+        ":param_configs",
         "//third_party:guava",
         "//third_party:guice",
     ],

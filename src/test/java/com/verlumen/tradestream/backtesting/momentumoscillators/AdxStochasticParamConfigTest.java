@@ -9,7 +9,6 @@ import com.verlumen.tradestream.backtesting.ChromosomeSpec;
 import com.verlumen.tradestream.strategies.AdxStochasticParameters;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.IntegerChromosome;
-import io.jenetics.IntegerGene;
 import io.jenetics.NumericChromosome;
 import java.util.List;
 import org.junit.Before;
@@ -38,11 +37,11 @@ public class AdxStochasticParamConfigTest {
     List<NumericChromosome<?, ?>> chromosomes =
         List.of(
             IntegerChromosome.of(10, 30, 15), // ADX Period
-            IntegerChromosome.of(5, 20, 10),  // Stochastic K Period
-            IntegerChromosome.of(3, 15, 5),   // Stochastic D Period
+            IntegerChromosome.of(5, 20, 10), // Stochastic K Period
+            IntegerChromosome.of(3, 15, 5), // Stochastic D Period
             IntegerChromosome.of(60, 90, 70), // Overbought Threshold
-            IntegerChromosome.of(10, 40, 20)  // Oversold Threshold
-        );
+            IntegerChromosome.of(10, 40, 20) // Oversold Threshold
+            );
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(AdxStochasticParameters.class)).isTrue();
@@ -56,7 +55,7 @@ public class AdxStochasticParamConfigTest {
 
     IllegalArgumentException thrown =
         assertThrows(
-            IllegalArgumentException.class, 
+            IllegalArgumentException.class,
             () -> config.createParameters(ImmutableList.copyOf(chromosomes)));
     assertThat(thrown).hasMessageThat().contains("Expected 5 chromosomes but got 1");
   }

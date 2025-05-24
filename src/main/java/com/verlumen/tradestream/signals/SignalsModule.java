@@ -7,21 +7,22 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 @AutoValue
 public abstract class SignalsModule extends AbstractModule {
-    public static SignalsModule create(String signalTopic) {
-        return new AutoValue_SignalsModule(signalTopic);
-    }
+  public static SignalsModule create(String signalTopic) {
+    return new AutoValue_SignalsModule(signalTopic);
+  }
 
-    abstract String signalTopic();
+  abstract String signalTopic();
 
-    @Override
-    protected void configure() {
-        install(new FactoryModuleBuilder()
+  @Override
+  protected void configure() {
+    install(
+        new FactoryModuleBuilder()
             .implement(TradeSignalPublisher.class, TradeSignalPublisherImpl.class)
             .build(TradeSignalPublisher.Factory.class));
-    }
+  }
 
-    @Provides
-    TradeSignalPublisher provideTradeSignalPublisher(TradeSignalPublisher.Factory factory) {
-      return factory.create(signalTopic());
-    }
+  @Provides
+  TradeSignalPublisher provideTradeSignalPublisher(TradeSignalPublisher.Factory factory) {
+    return factory.create(signalTopic());
+  }
 }

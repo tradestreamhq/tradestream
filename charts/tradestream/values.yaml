@@ -17,7 +17,7 @@ influxdb:
   # Storage configuration
   persistence:
     enabled: true
-    size: 8Gi
+    size: 8
   service:
     type: ClusterIP
 kafka:
@@ -57,7 +57,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v1.32.1-develop
+    tag: v1.32.16-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -82,3 +82,7 @@ pipeline:
     jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
     parallelism: 1
     upgradeMode: stateless
+candleIngestor:
+  image:
+    repository: tradestreamhq/candle-ingestor
+    tag: v1.32.16-develop

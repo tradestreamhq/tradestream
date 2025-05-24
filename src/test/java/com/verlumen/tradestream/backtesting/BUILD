@@ -21,9 +21,9 @@ kt_jvm_test(
         "//third_party:junit",
         "//third_party:truth",
         # Other direct dependencies (if any are added to the test)
-        "//third_party:flogger", # Included because the Impl uses it, might be needed for test setup/verification later
-        "//third_party:protobuf_java_util", # For Timestamps
-        "//third_party:guava", # For ImmutableList if used directly in test
+        "//third_party:flogger",  # Included because the Impl uses it, might be needed for test setup/verification later
+        "//third_party:protobuf_java_util",  # For Timestamps
+        "//third_party:guava",  # For ImmutableList if used directly in test
     ],
 )
 
@@ -104,11 +104,11 @@ java_test(
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_constants",
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
         "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator_impl",
-        "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter",
-        "//src/main/java/com/verlumen/tradestream/backtesting:ga_constants",        
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
@@ -116,8 +116,8 @@ java_test(
         "//third_party:junit",
         "//third_party:mockito_core",
         "//third_party:protobuf_java",
-        "//third_party:truth",
         "//third_party:ta4j_core",
+        "//third_party:truth",
     ],
 )
 
@@ -135,10 +135,10 @@ java_test(
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
+        "//third_party:jenetics",
         "//third_party:junit",
         "//third_party:mockito_core",
         "//third_party:protobuf_java",
-        "//third_party:jenetics",
         "//third_party:truth",
     ],
 )
@@ -162,6 +162,10 @@ java_test(
     name = "RunBacktestTest",
     size = "small",
     srcs = ["RunBacktestTest.java"],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
     deps = [
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
@@ -178,9 +182,5 @@ java_test(
         "//third_party:protobuf_java",
         "//third_party:ta4j_core",
         "//third_party:truth",
-    ],
-    runtime_deps = [
-        "//third_party:beam_runners_direct_java",
-        "//third_party:hamcrest",
     ],
 )

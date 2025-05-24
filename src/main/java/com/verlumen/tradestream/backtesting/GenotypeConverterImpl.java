@@ -5,13 +5,8 @@ import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Chromosome;
-import io.jenetics.DoubleChromosome;
-import io.jenetics.Gene;
 import io.jenetics.Genotype;
-import io.jenetics.IntegerChromosome;
-import io.jenetics.LongChromosome;
 import io.jenetics.NumericChromosome;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -53,8 +48,8 @@ final class GenotypeConverterImpl implements GenotypeConverter {
       if (chromosome instanceof NumericChromosome) {
         chromosomes.add((NumericChromosome<?, ?>) chromosome);
       } else {
-        throw new IllegalArgumentException("Unsupported chromosome type: " + 
-            chromosome.getClass().getName());
+        throw new IllegalArgumentException(
+            "Unsupported chromosome type: " + chromosome.getClass().getName());
       }
     }
 

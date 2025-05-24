@@ -1,9 +1,7 @@
 package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
@@ -14,10 +12,8 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.marketdata.Candle;
-import com.verlumen.tradestream.strategies.Strategy;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.DoubleChromosome;
-import io.jenetics.DoubleGene;
 import io.jenetics.Genotype;
 import org.junit.Before;
 import org.junit.Rule;
@@ -69,10 +65,8 @@ public class FitnessCalculatorImplTest {
     double expectedScore = 0.85;
     BacktestResult mockBacktestResult =
         BacktestResult.newBuilder().setStrategyScore(expectedScore).build();
-    when(mockBacktestRunner.runBacktest(any(BacktestRequest.class)))
-        .thenReturn(mockBacktestResult);
-    when(mockGenotypeConverter.convertToParameters(
-            any(Genotype.class), any(StrategyType.class)))
+    when(mockBacktestRunner.runBacktest(any(BacktestRequest.class))).thenReturn(mockBacktestResult);
+    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
         .thenReturn(Any.getDefaultInstance()); // Return a dummy Any
 
     // Act: Create the fitness function and apply it to a test genotype
@@ -84,14 +78,12 @@ public class FitnessCalculatorImplTest {
   }
 
   @Test
-  public void
-      createFitnessFunction_backtestRunnerThrowsException_returnsNegativeInfinity()
-          throws Exception {
+  public void createFitnessFunction_backtestRunnerThrowsException_returnsNegativeInfinity()
+      throws Exception {
     // Arrange: Configure the mock to throw an exception
     when(mockBacktestRunner.runBacktest(any(BacktestRequest.class)))
         .thenThrow(new InvalidProtocolBufferException("Simulated error"));
-    when(mockGenotypeConverter.convertToParameters(
-            any(Genotype.class), any(StrategyType.class)))
+    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
         .thenReturn(Any.getDefaultInstance());
 
     // Act: Create the fitness function and apply it
@@ -106,8 +98,7 @@ public class FitnessCalculatorImplTest {
   public void createFitnessFunction_genotypeConverterThrowsException_returnsNegativeInfinity()
       throws Exception {
     // Arrange: Configure the mock to throw an exception
-    when(mockGenotypeConverter.convertToParameters(
-            any(Genotype.class), any(StrategyType.class)))
+    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
         .thenThrow(new RuntimeException("Simulated conversion error"));
 
     // Act: Create the fitness function and apply it
@@ -128,8 +119,7 @@ public class FitnessCalculatorImplTest {
             .clearCandles() // Explicitly clear candles
             .build();
 
-    when(mockGenotypeConverter.convertToParameters(
-            any(Genotype.class), any(StrategyType.class)))
+    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
         .thenReturn(Any.getDefaultInstance());
 
     // Use a default return (e.g., throwing exception) for the backtestRunner.

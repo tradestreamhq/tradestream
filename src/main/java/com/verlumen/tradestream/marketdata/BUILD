@@ -1,7 +1,7 @@
 """Build rules for marketdata components."""
 
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
 load("@rules_java//java:defs.bzl", "java_library", "java_test")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -23,10 +23,10 @@ kt_jvm_library(
     deps = [
         "//protos:marketdata_java_proto",
         "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf", # For ProtoCoder
+        "//third_party:beam_sdks_java_extensions_protobuf",  # For ProtoCoder
         "//third_party:flogger",
-        "//third_party:guava", # For ImmutableList
-        "//third_party:joda_time", # For Instant
+        "//third_party:guava",  # For ImmutableList
+        "//third_party:joda_time",  # For Instant
     ],
 )
 
@@ -193,7 +193,6 @@ kt_jvm_library(
         "//third_party:joda_time",
     ],
 )
-
 
 # DoFn for buffering the last N candles
 java_library(
