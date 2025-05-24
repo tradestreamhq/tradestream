@@ -112,7 +112,6 @@ class BaseIngestorTest(absltest.TestCase):
 
 
 class RunBackfillTest(BaseIngestorTest):
-
     def test_backfill_new_ticker_no_db_state(self):
         self._set_current_time("2023-01-10T12:00:00")  # "now" for parsing "1_day_ago"
         FLAGS.backfill_start_date = "1_day_ago"  # Effective start: 2023-01-09T12:00:00
