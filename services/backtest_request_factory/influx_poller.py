@@ -2,8 +2,15 @@ from absl import logging
 from datetime import datetime, timezone
 from influxdb_client import InfluxDBClient, Point, Dialect
 from influxdb_client.client.exceptions import InfluxDBError
-from influxdb_client.client.write_api import SYNCHRONOUS # Not used for reads, but good to have for consistency
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from influxdb_client.client.write_api import (
+    SYNCHRONOUS,
+)  # Not used for reads, but good to have for consistency
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+)
 
 from protos.marketdata_pb2 import Candle
 from google.protobuf.timestamp_pb2 import Timestamp
@@ -15,6 +22,7 @@ influx_retry_params = dict(
     retry=retry_if_exception_type((InfluxDBError, ConnectionError, TimeoutError)),
     reraise=True,
 )
+
 
 class InfluxPoller:
     def __init__(self, url, token, org, bucket):
@@ -29,7 +37,9 @@ class InfluxPoller:
     def _connect_with_retry(self):
         try:
             self.client = InfluxDBClient(url=self.url, token=self.token, org=self.org)
-            logging.info(f"Attempting to connect to InfluxDB at {self.url} for org '{self.org}'")
+            logging.info(
+                f"Attempting to connect to InfluxDB at {self.url} for org '{self.org}'"
+            )
             if not self.client.ping():
                 logging.error(f"Failed to ping InfluxDB at {self.url}.")
                 self.client = None
@@ -53,7 +63,9 @@ class InfluxPoller:
 
         # Convert last_timestamp_ms to nanoseconds for Flux query, and add 1ns to avoid re-fetching the last exact record.
         # If last_timestamp_ms is 0, query from the beginning of time (InfluxDB default for range start:0).
-        start_range_ns = (last_timestamp_ms * 1_000_000) + 1 if last_timestamp_ms > 0 else 0
+        start_range_ns = (
+            (last_timestamp_ms * 1_000_000) + 1 if last_timestamp_ms > 0 else 0
+        )
 
         # Measurements and fields are based on how candle_ingestor writes them.
         # services/candle_ingestor/influx_client.py uses measurement "candles"
@@ -67,16 +79,21 @@ class InfluxPoller:
           |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
           |> sort(columns: ["_time"], desc: false)
         """
-        logging.debug(f"Executing Flux query for {currency_pair} after {last_timestamp_ms}ms: {flux_query}")
+        logging.debug(
+            f"Executing Flux query for {currency_pair} after {last_timestamp_ms}ms: {flux_query}"
+        )
 
         try:
             tables = query_api.query(query=flux_query, org=self.org)
             for table in tables:
                 for record in table.records:
                     try:
-                        time_obj = record.get_time() # This is an Arrow/Python datetime
+                        time_obj = record.get_time()  # This is an Arrow/Python datetime
                         # Convert to UTC if naive, or ensure it's UTC
-                        if time_obj.tzinfo is None or time_obj.tzinfo.utcoffset(time_obj) is None:
+                        if (
+                            time_obj.tzinfo is None
+                            or time_obj.tzinfo.utcoffset(time_obj) is None
+                        ):
                             time_obj = time_obj.replace(tzinfo=timezone.utc)
                         else:
                             time_obj = time_obj.astimezone(timezone.utc)
@@ -88,19 +105,25 @@ class InfluxPoller:
 
                         candle = Candle(
                             timestamp=Timestamp(seconds=ts_seconds, nanos=ts_nanos),
-                            currency_pair=record.values.get("currency_pair", currency_pair), # Pivot should make this part of values
+                            currency_pair=record.values.get(
+                                "currency_pair", currency_pair
+                            ),  # Pivot should make this part of values
                             open=float(record.values.get("open", 0.0)),
                             high=float(record.values.get("high", 0.0)),
                             low=float(record.values.get("low", 0.0)),
                             close=float(record.values.get("close", 0.0)),
-                            volume=float(record.values.get("volume", 0.0))
+                            volume=float(record.values.get("volume", 0.0)),
                         )
                         new_candles.append(candle)
                         if current_candle_ts_ms > latest_fetched_ts_ms:
                             latest_fetched_ts_ms = current_candle_ts_ms
                     except Exception as e:
-                        logging.warning(f"Error processing InfluxDB record for {currency_pair}: {record.values}. Error: {e}")
-            logging.info(f"Fetched {len(new_candles)} new candles for {currency_pair}. Latest ts: {latest_fetched_ts_ms}ms.")
+                        logging.warning(
+                            f"Error processing InfluxDB record for {currency_pair}: {record.values}. Error: {e}"
+                        )
+            logging.info(
+                f"Fetched {len(new_candles)} new candles for {currency_pair}. Latest ts: {latest_fetched_ts_ms}ms."
+            )
 
         except InfluxDBError as e:
             logging.error(f"InfluxDB query failed for {currency_pair}: {e}")

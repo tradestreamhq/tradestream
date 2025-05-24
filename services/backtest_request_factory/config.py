@@ -7,11 +7,15 @@ INFLUXDB_URL = os.getenv(
 )
 INFLUXDB_TOKEN = os.getenv("INFLUXDB_TOKEN")
 INFLUXDB_ORG = os.getenv("INFLUXDB_ORG")
-INFLUXDB_BUCKET_CANDLES = os.getenv("INFLUXDB_BUCKET_CANDLES", "tradestream-data") # Assuming candles are in the same bucket as candle_ingestor writes
+INFLUXDB_BUCKET_CANDLES = os.getenv(
+    "INFLUXDB_BUCKET_CANDLES", "tradestream-data"
+)  # Assuming candles are in the same bucket as candle_ingestor writes
 
 # Kafka Configuration
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-KAFKA_BACKTEST_REQUEST_TOPIC = os.getenv("KAFKA_BACKTEST_REQUEST_TOPIC", "backtest-requests")
+KAFKA_BACKTEST_REQUEST_TOPIC = os.getenv(
+    "KAFKA_BACKTEST_REQUEST_TOPIC", "backtest-requests"
+)
 
 # Fibonacci Window Sizes (in minutes)
 # Inspired by App.java: "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811, 514229"
@@ -21,32 +25,34 @@ FIBONACCI_WINDOWS_MINUTES = [
     2584,  # ~1.8 days
     4181,  # ~2.9 days
     6765,  # ~4.7 days
-    10946, # ~7.6 days
-    17711, # ~12.3 days
-    28657, # ~19.9 days
-    46368, # ~32.2 days
-    75025, # ~52.1 days
-    121393 # ~84.3 days
+    10946,  # ~7.6 days
+    17711,  # ~12.3 days
+    28657,  # ~19.9 days
+    46368,  # ~32.2 days
+    75025,  # ~52.1 days
+    121393,  # ~84.3 days
 ]
 
 # Deque Configuration
 # Max length to accommodate the largest Fibonacci window (121393 candles if 1-minute granularity)
 # Add some buffer, or ensure it's at least the max window size.
 # If candle granularity is 1 minute, this is fine. If granularity changes, this needs adjustment.
-DEQUE_MAXLEN = 130000 # Slightly more than max fib window
+DEQUE_MAXLEN = 130000  # Slightly more than max fib window
 
 # Polling Configuration
 POLLING_INTERVAL_SECONDS = int(os.getenv("POLLING_INTERVAL_SECONDS", "60"))
 
 # CMC Configuration
 TOP_N_CRYPTOS = int(os.getenv("TOP_N_CRYPTOS", "20"))
-CMC_API_KEY = os.getenv("CMC_API_KEY") # Essential for fetching top N cryptos
+CMC_API_KEY = os.getenv("CMC_API_KEY")  # Essential for fetching top N cryptos
 
 # BacktestRequest Defaults
-DEFAULT_STRATEGY_TYPE = StrategyType.Value(os.getenv("DEFAULT_STRATEGY_TYPE", "SMA_RSI"))
+DEFAULT_STRATEGY_TYPE = StrategyType.Value(
+    os.getenv("DEFAULT_STRATEGY_TYPE", "SMA_RSI")
+)
 # For default strategy parameters, we can use an empty Any message or define specific defaults.
 # Using empty Any for now.
-DEFAULT_STRATEGY_PARAMETERS_ANY = None # Will be `google.protobuf.any_pb2.Any()`
+DEFAULT_STRATEGY_PARAMETERS_ANY = None  # Will be `google.protobuf.any_pb2.Any()`
 
 # Candle Granularity (used to interpret Fibonacci windows if they are in number of candles)
 # Assume 1-minute candles from InfluxDB as per candle_ingestor's default.
