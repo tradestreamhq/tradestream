@@ -41,6 +41,7 @@ py_binary(
         ":influx_client_lib",
         ":ingestion_helpers_lib",
         ":tiingo_client_lib",
+        "//shared/cryptoclient:cmc_client_lib",
         "//third_party:absl_py",
     ],
 )
