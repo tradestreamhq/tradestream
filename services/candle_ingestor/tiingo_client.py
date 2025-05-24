@@ -1,35 +1,50 @@
 from datetime import datetime, timezone
-import time # Added for sleep
+import time  # Added for sleep
 
 from absl import logging
 import requests
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, RetryError
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+    RetryError,
+)
 
 
 # Custom retry condition for Tiingo HTTP 429
 def _retry_if_tiingo_rate_limit_or_request_exception(exception):
-    if isinstance(exception, requests.exceptions.HTTPError) and exception.response.status_code == 429:
+    if (
+        isinstance(exception, requests.exceptions.HTTPError)
+        and exception.response.status_code == 429
+    ):
         retry_after_header = exception.response.headers.get("Retry-After")
         if retry_after_header:
             try:
                 sleep_seconds = int(retry_after_header)
-                logging.warning(f"Tiingo API rate limit hit (429). Retrying after {sleep_seconds} seconds.")
+                logging.warning(
+                    f"Tiingo API rate limit hit (429). Retrying after {sleep_seconds} seconds."
+                )
                 time.sleep(sleep_seconds)
-                return True # Indicate that we should retry
+                return True  # Indicate that we should retry
             except ValueError:
-                logging.error(f"Tiingo API rate limit hit (429) but could not parse Retry-After header: {retry_after_header}. Will use default backoff.")
+                logging.error(
+                    f"Tiingo API rate limit hit (429) but could not parse Retry-After header: {retry_after_header}. Will use default backoff."
+                )
         else:
-            logging.warning("Tiingo API rate limit hit (429) but no Retry-After header found. Will use default backoff.")
-        return True # Still retry for 429, tenacity will handle wait if sleep didn't happen
+            logging.warning(
+                "Tiingo API rate limit hit (429) but no Retry-After header found. Will use default backoff."
+            )
+        return True  # Still retry for 429, tenacity will handle wait if sleep didn't happen
     # For other request exceptions, let tenacity handle it
     return isinstance(exception, requests.exceptions.RequestException)
 
 
 @retry(
-    stop=stop_after_attempt(7), 
+    stop=stop_after_attempt(7),
     wait=wait_exponential(multiplier=1, min=5, max=120),
     retry=_retry_if_tiingo_rate_limit_or_request_exception,
-    reraise=True
+    reraise=True,
 )
 def _fetch_tiingo_data_with_retry(url: str, params: dict, headers: dict) -> dict:
     """Internal function to fetch data from Tiingo with retry logic."""
@@ -76,9 +91,7 @@ def get_top_n_crypto_symbols(
                 symbols.append(tiingo_ticker)
             if len(symbols) >= top_n:
                 break
-        logging.info(
-            f"Fetched top {len(symbols)} symbols from CMC: {symbols}"
-        )
+        logging.info(f"Fetched top {len(symbols)} symbols from CMC: {symbols}")
     except requests.exceptions.RequestException as e:
         logging.error(f"Error calling CoinMarketCap API: {e}")
     except ValueError as e:  # Includes JSONDecodeError
@@ -97,9 +110,7 @@ def _parse_tiingo_timestamp(date_str: str) -> int:
         return int(dt_obj.timestamp() * 1000)
     except ValueError:
         # Fallback for just date, assume start of day UTC
-        dt_obj = datetime.strptime(date_str, "%Y-%m-%d").replace(
-            tzinfo=timezone.utc
-        )
+        dt_obj = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
         return int(dt_obj.timestamp() * 1000)
 
 
@@ -123,7 +134,7 @@ def get_historical_candles_tiingo(
         "token": api_key,
         "format": "json",
     }
-    headers={"Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json"}
     candles_data = []
     try:
         data = _fetch_tiingo_data_with_retry(base_url, params, headers)
@@ -156,7 +167,9 @@ def get_historical_candles_tiingo(
                             }
                         )
                     except (TypeError, ValueError, KeyError) as field_e:
-                        logging.warning(f"Skipping malformed candle item for {ticker} due to {field_e}: {candle_item}")
+                        logging.warning(
+                            f"Skipping malformed candle item for {ticker} due to {field_e}: {candle_item}"
+                        )
 
                 logging.info(
                     f"Fetched {len(candles_data)} historical candles for {ticker} from Tiingo."
@@ -170,7 +183,9 @@ def get_historical_candles_tiingo(
                 f"Unexpected response format (empty list or not a list) from Tiingo for {ticker}: {data}"
             )
     except RetryError as retry_err:
-        logging.error(f"Tiingo API request failed after multiple retries for {ticker}: {retry_err}")
+        logging.error(
+            f"Tiingo API request failed after multiple retries for {ticker}: {retry_err}"
+        )
     except requests.exceptions.HTTPError as http_err:
         # This might be redundant if RetryError catches it, but good for other HTTP errors not retried
         logging.error(
@@ -179,9 +194,7 @@ def get_historical_candles_tiingo(
     except requests.exceptions.RequestException as e:
         logging.error(f"Request error calling Tiingo API for {ticker}: {e}")
     except ValueError as e:  # Includes JSONDecodeError
-        logging.error(
-            f"Error parsing Tiingo API response for {ticker}: {e}"
-        )
+        logging.error(f"Error parsing Tiingo API response for {ticker}: {e}")
     except Exception as e:
         logging.error(
             f"An unexpected error occurred fetching historical data for {ticker}: {e}"

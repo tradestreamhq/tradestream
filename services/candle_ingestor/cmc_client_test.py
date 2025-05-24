@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 
-import requests # Keep for mocking requests.exceptions
+import requests  # Keep for mocking requests.exceptions
 
 # Your module to test
 from services.candle_ingestor import cmc_client
@@ -107,7 +107,9 @@ class TestCMCClient(unittest.TestCase):
         # Arrange
         mock_response = mock.MagicMock()
         mock_response.status_code = 200
-        mock_response.json.return_value = {"data": [{"symbol": "BTC", "name": "Bitcoin"}]}
+        mock_response.json.return_value = {
+            "data": [{"symbol": "BTC", "name": "Bitcoin"}]
+        }
         mock_get.return_value = mock_response
         api_key = "test_cmc_key"
         top_n = 3  # Request 3, but only 1 available
