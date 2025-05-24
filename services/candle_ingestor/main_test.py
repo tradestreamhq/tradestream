@@ -435,7 +435,6 @@ class RunPollingLoopTest(BaseIngestorTest):
     def test_polling_with_shutdown_requested_during_initialization(self):
         """Test polling behavior when shutdown is requested during initialization"""
         self._set_current_time("2023-01-10T12:05:00")
-        
         # Set shutdown_requested before calling polling
         candle_ingestor_main.shutdown_requested = True
         
