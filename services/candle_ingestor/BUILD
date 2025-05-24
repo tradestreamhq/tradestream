@@ -121,7 +121,7 @@ py_image_layer(
 oci_image(
     name = "image",
     base = "@python_3_13_slim",
-    entrypoint = ["/app/app/app"], # Adjusted based on typical py_image_layer structure
+    entrypoint = ["/services/candle_ingestor/app"],
     tars = [":layers"],
 )
 
