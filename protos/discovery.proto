@@ -42,9 +42,3 @@ message DiscoveredStrategy {
 message StrategyDiscoveryResult {
   repeated DiscoveredStrategy top_strategies = 1; // List of discovered strategies, typically ordered by score
 }
-
-// Optional: Define the service itself if you're using gRPC
-/*
-service StrategyDiscoveryService {
-  rpc DiscoverStrategies(StrategyDiscoveryRequest) returns (StrategyDiscoveryResponse);
-}
