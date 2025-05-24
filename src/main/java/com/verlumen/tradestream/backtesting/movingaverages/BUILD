@@ -1,4 +1,4 @@
-load("@rules_java//java:defs.bzl", "java_library", "java_binary")
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])

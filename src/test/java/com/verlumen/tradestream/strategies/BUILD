@@ -3,6 +3,10 @@ load("@rules_java//java:defs.bzl", "java_test")
 java_test(
     name = "OptimizeStrategiesTest",
     srcs = ["OptimizeStrategiesTest.java"],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
     deps = [
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
@@ -23,10 +27,6 @@ java_test(
         "//third_party:ta4j_core",
         "//third_party:truth",
     ],
-    runtime_deps = [
-        "//third_party:beam_runners_direct_java",
-        "//third_party:hamcrest",
-    ],
 )
 
 java_test(
@@ -41,9 +41,9 @@ java_test(
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
-        "//third_party:protobuf_java",
         "//third_party:junit",
         "//third_party:mockito_core",
+        "//third_party:protobuf_java",
         "//third_party:ta4j_core",
         "//third_party:truth",
     ],
@@ -55,8 +55,8 @@ java_test(
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_constants",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factories",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
         "//third_party:guava",
         "//third_party:junit",
         "//third_party:test_parameter_injector",
@@ -76,9 +76,9 @@ java_test(
         "//third_party:guava",
         "//third_party:guice",
         "//third_party:guice_testlib",
-        "//third_party:protobuf_java",
         "//third_party:junit",
         "//third_party:mockito_core",
+        "//third_party:protobuf_java",
         "//third_party:ta4j_core",
         "//third_party:truth",
     ],

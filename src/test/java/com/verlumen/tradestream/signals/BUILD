@@ -1,9 +1,12 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
-
 java_test(
     name = "GenerateTradeSignalsTest",
     srcs = ["GenerateTradeSignalsTest.java"],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
     deps = [
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
@@ -23,18 +26,18 @@ java_test(
         "//third_party:ta4j_core",
         "//third_party:truth",
     ],
-    runtime_deps = [
-        "//third_party:beam_runners_direct_java",
-        "//third_party:hamcrest",
-    ],
 )
 
 java_test(
     name = "PublishTradeSignalsTest",
     srcs = ["PublishTradeSignalsTest.java"],
+    runtime_deps = [
+        "//third_party:beam_runners_direct_java",
+        "//third_party:hamcrest",
+    ],
     deps = [
-        "//protos:trade_signals_java_proto",
         "//protos:strategies_java_proto",
+        "//protos:trade_signals_java_proto",
         "//src/main/java/com/verlumen/tradestream/signals:publish_trade_signals",
         "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
         "//third_party:beam_sdks_java_core",
@@ -45,18 +48,14 @@ java_test(
         "//third_party:mockito_core",
         "//third_party:truth",
     ],
-    runtime_deps = [
-        "//third_party:beam_runners_direct_java",
-        "//third_party:hamcrest",
-    ],
 )
 
 java_test(
     name = "TradeSignalPublisherImplTest",
     srcs = ["TradeSignalPublisherImplTest.java"],
     deps = [
-        "//protos:trade_signals_java_proto",
         "//protos:strategies_java_proto",
+        "//protos:trade_signals_java_proto",
         "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher",
         "//src/main/java/com/verlumen/tradestream/signals:trade_signal_publisher_impl",
         "//third_party:guice",

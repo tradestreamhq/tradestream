@@ -1,5 +1,5 @@
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -86,8 +86,8 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
         "//third_party:beam_sdks_java_core",
         "//third_party:flogger",
-        "//third_party:guice",
         "//third_party:guava",
+        "//third_party:guice",
     ],
 )
 
@@ -96,8 +96,8 @@ java_library(
     srcs = ["StrategyFactories.java"],
     deps = [
         ":strategy_factory",
-        "//src/main/java/com/verlumen/tradestream/strategies/movingaverages:movingaverages_lib",
         "//src/main/java/com/verlumen/tradestream/strategies/momentumoscillators:oscillators_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/movingaverages:movingaverages_lib",
         "//third_party:guava",
     ],
 )

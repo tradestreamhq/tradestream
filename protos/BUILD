@@ -2,9 +2,9 @@ proto_library(
     name = "backtesting_proto",
     srcs = ["backtesting.proto"],
     deps = [
-        "@com_google_protobuf//:any_proto",
         ":marketdata_proto",
         ":strategies_proto",
+        "@com_google_protobuf//:any_proto",
     ],
 )
 
