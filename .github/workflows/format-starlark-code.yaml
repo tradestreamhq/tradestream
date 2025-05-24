@@ -1,4 +1,4 @@
-name: 'buildifier-formatter'
+name: "buildifier-formatter"
 on:
   pull_request:
     paths: 
