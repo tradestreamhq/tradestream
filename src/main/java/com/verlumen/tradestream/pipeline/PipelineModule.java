@@ -21,15 +21,15 @@ import org.joda.time.Duration;
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
   static PipelineModule create(
-    String bootstrapServers,
-    int candleDurationMinutes,
-    String coinMarketCapApiKey,
-    String exchangeName,
-    int maxForwardIntervals,
-    RunMode runMode,
-    String signalTopic,
-    int topCurrencyCount,
-    String tiingoApiKey) {
+      String bootstrapServers,
+      int candleDurationMinutes,
+      String coinMarketCapApiKey,
+      String exchangeName,
+      int maxForwardIntervals,
+      RunMode runMode,
+      String signalTopic,
+      int topCurrencyCount,
+      String tiingoApiKey) {
     return new AutoValue_PipelineModule(
       bootstrapServers,
       Duration.standardMinutes(candleDurationMinutes),
