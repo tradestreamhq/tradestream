@@ -11,8 +11,8 @@ commandTests:
         "--top_n_cryptos=1", # Limit for faster test
         "--backfill_start_date=1_day_ago", # Short backfill
         "--candle_granularity_minutes=60", # Use a larger granularity to reduce iterations
-        "--polling_initial_catchup_days=1" # Short catchup
-        ]
+        "--polling_initial_catchup_days=1", # Short catchup
+      ]
     # Expected to exit cleanly after a few dry run iterations.
     # Check for specific log messages indicating dry run operation and completion.
     expectedError:
