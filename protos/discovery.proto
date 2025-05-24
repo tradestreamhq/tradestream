@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package discovery;
+
+// Standard Google Protobuf imports
+import "google/protobuf/any.proto";
+
+// Imports for types defined in other .proto files within your project.
+// Please adjust the paths if your .proto files are organized differently
+// or if the package names for Candle and StrategyType are different.
+
+// Assuming 'Candle' is defined in a 'marketdata.proto' file,
+// and that file declares 'package marketdata;'.
+import "marketdata.proto"; // Contains marketdata.Candle
+
+// Assuming 'StrategyType' is defined in a 'strategies.proto' file,
+// and that file declares 'package strategies;'.
+import "strategies.proto"; // Contains strategies.StrategyType
+
+
+// =======================================
+//   Strategy Discovery Service Messages
+// =======================================
+
+// Strategy Definition
+// Note: If 'Strategy' is a common type used in multiple services/protos,
+// it might be better placed in a shared proto file (e.g., common_types.proto or strategies.proto)
+// and imported here. If so, remove this definition and add the appropriate import.
+message Strategy {
+  google.protobuf.Any strategy_parameters = 1; // Specific parameters for this strategy instance
+  strategies.StrategyType strategy_type = 2;   // The type of the strategy (e.g., MOVING_AVERAGE_CROSSOVER)
+}
+
+// Configuration for Genetic Algorithm based optimization
+message GAConfig {
+  int32 max_generations = 1;
+  int32 population_size = 2;
+}
+
+// Request for discovering top N strategies
+message StrategyDiscoveryRequest {
+  repeated marketdata.Candle candles = 1;      // Market data for the discovery process
+  strategies.StrategyType strategy_type = 2;   // Specifies the primary type of strategy to discover
+  int32 top_n = 3;                             // Number of top strategies to return
+
+  // Configuration for the optimization algorithm.
+  // This allows for future expansion to other optimization methods.
+  oneof optimization_config {
+    GAConfig ga_config = 4; // Configuration if using Genetic Algorithm
+    // Example: OtherOptimizerConfig another_optimizer_config = 5;
+  }
+}
+
+// Represents a discovered strategy, including its full definition and achieved score
+message DiscoveredStrategy {
+  Strategy strategy = 1; // The actual strategy (type and parameters)
+  double score = 2;      // The score achieved by this strategy instance
+}
+
+// Response from the strategy discovery service: a list of top N discovered strategies
+message StrategyDiscoveryResponse {
+  repeated DiscoveredStrategy top_strategies = 1; // List of discovered strategies, typically ordered by score
+}
+
+// Optional: Define the service itself if you're using gRPC
+/*
+service StrategyDiscoveryService {
+  rpc DiscoverStrategies(StrategyDiscoveryRequest) returns (StrategyDiscoveryResponse);
+}
+*/
