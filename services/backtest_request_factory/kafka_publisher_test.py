@@ -110,8 +110,8 @@ class KafkaPublisherTest(unittest.TestCase):
         # Should not raise exception, but handle gracefully
         self.publisher.publish_request(test_request, "BTC/USD")
 
-        # Verify send was still attempted
-        self.mock_producer.send.assert_called_once()
+        # Verify send was attempted multiple times due to retry
+        self.assertEqual(self.mock_producer.send.call_count, 5)
 
     def test_publish_request_no_producer(self):
         """Test publishing when producer is None."""
@@ -124,7 +124,7 @@ class KafkaPublisherTest(unittest.TestCase):
 
             self.publisher.publish_request(test_request, "BTC/USD")
 
-            mock_connect.assert_called_once()
+            self.assertEqual(mock_connect.call_count, 5)
 
     def test_publish_message_retryable_reconnect(self):
         """Test reconnection during message publishing."""
