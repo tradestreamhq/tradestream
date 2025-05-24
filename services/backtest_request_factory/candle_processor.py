@@ -6,6 +6,7 @@ from protos.strategies_pb2 import Strategy, StrategyType
 from google.protobuf import any_pb2
 
 
+
 class CandleProcessor:
     def __init__(
         self,
