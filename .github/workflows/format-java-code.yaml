@@ -1,7 +1,7 @@
 name: "google-java-format"
 on:
   pull_request:
-    paths: ['**/*.java']
+    paths: ["**/*.java"]
 permissions:
   contents: read
   pull-requests: write
