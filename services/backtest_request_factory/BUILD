@@ -56,7 +56,7 @@ py_binary(
         ":kafka_publisher_lib",
         "//shared/cryptoclient:cmc_client_lib",
         "//third_party/python:absl_py",
-        "//third_party/protobuf",
+        "//third_party/python:protobuf",
     ],
 )
 
