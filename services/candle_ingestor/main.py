@@ -189,7 +189,10 @@ def _attempt_influx_cleanup(influx_manager):
     except Exception as e:
         logging.error(f"Error closing InfluxDB connection from signal handler: {e}")
 
-def _create_influx_manager(config: ConfigFlags) -> Tuple[Optional[InfluxDBManager], str]:
+
+def _create_influx_manager(
+    config: ConfigFlags,
+) -> Tuple[Optional[InfluxDBManager], str]:
     manager = InfluxDBManager(
         url=config.influxdb_url,
         token=config.influxdb_token,
