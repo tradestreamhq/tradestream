@@ -28,6 +28,12 @@ java_proto_library(
     deps = [":marketdata_proto"],
 )
 
+py_proto_library(
+    name = "marketdata_py_proto",
+    visibility = ["//visibility:public"],
+    deps = [":marketdata_proto"],
+)
+
 proto_library(
     name = "strategies_proto",
     srcs = ["strategies.proto"],
