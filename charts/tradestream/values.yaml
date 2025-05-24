@@ -5,7 +5,7 @@ influxdb:
     # Organization and bucket settings
     organization: "tradestream-org"
     bucket: "tradestream-data"
-    retention_policy: "30d"
+    retention_policy: "365d"
     # User credentials
     user: "admin"
     # Use existing secret (this will ignore password and token values)
