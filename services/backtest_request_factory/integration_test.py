@@ -307,7 +307,6 @@ class IntegrationTest(unittest.TestCase):
         for i, candle in enumerate(test_candles):
             backtest_requests = self.candle_processor.add_candle(candle)
             requests_per_candle.append(len(backtest_requests))
-            
             # Publish requests
             for request in backtest_requests:
                 self.kafka_publisher.publish_request(request, currency_pair)
