@@ -12,5 +12,5 @@ commandTests:
       - '--coinMarketCapApiKey=fakeKey'
       - '--tiingoApiKey=fakeKey'
     expectedError:
-      - 'DRY/RUN'
+      - "DRY/RUN"
       - 'Starting TradeToCandle transform \(Combine\.perKey version\) with window duration: PT60S'
