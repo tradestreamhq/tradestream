@@ -31,7 +31,7 @@ class TestTiingoClient(unittest.TestCase):
                         "volume": 1000.0,
                     },
                     {
-                        "date": "2023-01-02T00:00:00Z", # Test with Z suffix
+                        "date": "2023-01-02T00:00:00Z",  # Test with Z suffix
                         "open": 105.0,
                         "high": 115.0,
                         "low": 95.0,
@@ -83,7 +83,6 @@ class TestTiingoClient(unittest.TestCase):
         )
         self.assertEqual(candles[0]["currency_pair"], "btcusd")
 
-
     @mock.patch("services.candle_ingestor.tiingo_client.requests.get")
     def test_get_historical_candles_empty_response(self, mock_get):
         # Arrange
@@ -106,10 +105,8 @@ class TestTiingoClient(unittest.TestCase):
         mock_response = mock.MagicMock()
         mock_response.status_code = 500
         mock_response.text = "Internal Server Error"
-        mock_response.raise_for_status.side_effect = (
-            requests.exceptions.HTTPError(
-                "Server Error", response=mock_response
-            )
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            "Server Error", response=mock_response
         )
         mock_get.return_value = mock_response
 
@@ -123,7 +120,7 @@ class TestTiingoClient(unittest.TestCase):
 
     @mock.patch("services.candle_ingestor.tiingo_client.requests.get")
     def test_get_historical_candles_malformed_candle_item(self, mock_get):
-         # Arrange
+        # Arrange
         mock_api_key = "test_tiingo_key"
         mock_ticker = "btcusd"
         mock_start_date = "2023-01-01"
@@ -134,14 +131,14 @@ class TestTiingoClient(unittest.TestCase):
             {
                 "ticker": "btcusd",
                 "priceData": [
-                    { # Malformed - missing 'open'
+                    {  # Malformed - missing 'open'
                         "date": "2023-01-01T00:00:00.000Z",
                         "high": 110.0,
                         "low": 90.0,
                         "close": 105.0,
                         "volume": 1000.0,
                     },
-                     { # Good candle
+                    {  # Good candle
                         "date": "2023-01-02T00:00:00.000Z",
                         "open": 105.0,
                         "high": 115.0,
@@ -159,10 +156,14 @@ class TestTiingoClient(unittest.TestCase):
 
         # Act
         candles = tiingo_client.get_historical_candles_tiingo(
-            mock_api_key, mock_ticker, mock_start_date, mock_end_date, mock_resample_freq
+            mock_api_key,
+            mock_ticker,
+            mock_start_date,
+            mock_end_date,
+            mock_resample_freq,
         )
         # Assert
-        self.assertEqual(len(candles), 1) # Only the good candle should be parsed
+        self.assertEqual(len(candles), 1)  # Only the good candle should be parsed
         self.assertEqual(candles[0]["open"], 105.0)
 
 
