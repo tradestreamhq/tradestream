@@ -641,8 +641,8 @@ class MainFunctionTest(BaseIngestorTest): # Inherit for shared mocks
         # Should call backfill and polling with None for InfluxDB manager
         mock_run_backfill.assert_called_once()
         args_backfill, kwargs_backfill = mock_run_backfill.call_args
-        self.assertIsNone(kwargs_backfill['influx_manager'])
-        self.assertEqual(kwargs_backfill['run_mode'], 'dry')
+        self.assertIsNone(kwargs_backfill["influx_manager"])
+        self.assertEqual(kwargs_backfill["run_mode"], "dry")
 
         mock_run_polling_loop.assert_called_once()
         args_polling, kwargs_polling = mock_run_polling_loop.call_args
