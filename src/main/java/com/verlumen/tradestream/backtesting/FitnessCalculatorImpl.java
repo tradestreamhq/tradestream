@@ -3,7 +3,6 @@ package com.verlumen.tradestream.backtesting;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.strategies.Strategy;
-import io.jenetics.Gene;
 import io.jenetics.Genotype;
 import java.util.function.Function;
 
@@ -18,9 +17,9 @@ final class FitnessCalculatorImpl implements FitnessCalculator {
 
   @Inject
   FitnessCalculatorImpl(
-    BacktestRequestFactory backtestRequestFactory,
-    BacktestRunner backtestRunner,
-    GenotypeConverter genotypeConverter) {
+      BacktestRequestFactory backtestRequestFactory,
+      BacktestRunner backtestRunner,
+      GenotypeConverter genotypeConverter) {
     this.backtestRequestFactory = backtestRequestFactory;
     this.backtestRunner = backtestRunner;
     this.genotypeConverter = genotypeConverter;
@@ -34,11 +33,11 @@ final class FitnessCalculatorImpl implements FitnessCalculator {
 
         BacktestRequest backtestRequest =
             backtestRequestFactory.create(
-              request.getCandlesList(),
-              Strategy.newBuilder()
-                .setType(request.getStrategyType())
-                .setParameters(params)
-                .build());
+                request.getCandlesList(),
+                Strategy.newBuilder()
+                    .setType(request.getStrategyType())
+                    .setParameters(params)
+                    .build());
 
         BacktestResult result = backtestRunner.runBacktest(backtestRequest);
         return result.getStrategyScore();

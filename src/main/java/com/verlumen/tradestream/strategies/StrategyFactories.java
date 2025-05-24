@@ -5,20 +5,18 @@ import com.verlumen.tradestream.strategies.momentumoscillators.MomentumOscillato
 import com.verlumen.tradestream.strategies.movingaverages.MovingAverageStrategies;
 
 /**
- * Provides a centralized collection of all available strategy factories across all categories.
- * This class aggregates factories from child packages (moving averages, momentumoscillators, etc.)
- * and is immutable and thread-safe.
+ * Provides a centralized collection of all available strategy factories across all categories. This
+ * class aggregates factories from child packages (moving averages, momentumoscillators, etc.) and
+ * is immutable and thread-safe.
  */
 final class StrategyFactories {
-    /**
-     * An immutable list of all strategy factories across all categories.
-     */
-    static final ImmutableList<StrategyFactory<?>> ALL_FACTORIES = 
-        ImmutableList.<StrategyFactory<?>>builder()
-            .addAll(MovingAverageStrategies.ALL_FACTORIES)
-            .addAll(MomentumOscillatorStrategies.ALL_FACTORIES)
-            .build();
+  /** An immutable list of all strategy factories across all categories. */
+  static final ImmutableList<StrategyFactory<?>> ALL_FACTORIES =
+      ImmutableList.<StrategyFactory<?>>builder()
+          .addAll(MovingAverageStrategies.ALL_FACTORIES)
+          .addAll(MomentumOscillatorStrategies.ALL_FACTORIES)
+          .build();
 
-    // Prevent instantiation
-    private StrategyFactories() {}
+  // Prevent instantiation
+  private StrategyFactories() {}
 }

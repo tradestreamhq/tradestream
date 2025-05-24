@@ -8,7 +8,6 @@ public class StrategiesModule extends AbstractModule {
   public static StrategiesModule create() {
     return new StrategiesModule();
   }
-  
 
   @Override
   protected void configure() {

@@ -6,24 +6,27 @@ import static org.junit.Assume.assumeTrue;
 
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.StrategyConstants;
+import com.verlumen.tradestream.strategies.StrategyType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public class ParamConfigsTest {
-    @Test
-    public void testParamConfigNotNullForStrategyType(@TestParameter StrategyType strategyType) {
-        // Arrange: Skip this test if the strategy type is unspecified.
-        assumeTrue("Skipping test for unsupported strategy type", StrategyConstants.supportedStrategyTypes.contains(strategyType));
+  @Test
+  public void testParamConfigNotNullForStrategyType(@TestParameter StrategyType strategyType) {
+    // Arrange: Skip this test if the strategy type is unspecified.
+    assumeTrue(
+        "Skipping test for unsupported strategy type",
+        StrategyConstants.supportedStrategyTypes.contains(strategyType));
 
-        // Act: Find the ParamConfig corresponding to the provided strategy type.
-        ParamConfig configOptional = ParamConfigs.ALL_CONFIGS.stream()
-                .filter(pc -> strategyType.equals(pc.getStrategyType()))
-                .collect(onlyElement());
+    // Act: Find the ParamConfig corresponding to the provided strategy type.
+    ParamConfig configOptional =
+        ParamConfigs.ALL_CONFIGS.stream()
+            .filter(pc -> strategyType.equals(pc.getStrategyType()))
+            .collect(onlyElement());
 
-        // Assert: Verify that the configuration is not null.
-        assertThat(configOptional).isNotNull();
-    }
+    // Assert: Verify that the configuration is not null.
+    assertThat(configOptional).isNotNull();
+  }
 }
