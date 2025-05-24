@@ -333,8 +333,8 @@ def _should_continue_processing(ctx: ProcessingContext, counters: Dict[str, int]
 
 def _wait_between_api_calls(ctx: ProcessingContext, ticker_count: int):
     should_wait_conditions = {
-        'multiple_tickers': ticker_count > 1,
-        'wet_mode': ctx.run_mode == RunMode.WET
+        "multiple_tickers": ticker_count > 1,
+        "wet_mode": ctx.run_mode == RunMode.WET,
     }
     
     if not all(should_wait_conditions.values()):
