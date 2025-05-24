@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.marketdata;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
@@ -16,7 +15,6 @@ import com.verlumen.tradestream.instruments.CurrencyPair;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -32,43 +30,36 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-/**
- * Unit tests for {@link ExchangeClientUnboundedSourceImpl}.
- */
+/** Unit tests for {@link ExchangeClientUnboundedSourceImpl}. */
 @RunWith(JUnit4.class)
 public class ExchangeClientUnboundedSourceImplTest {
-  
+
   // Mockito rule to initialize mocks
-  @Rule
-  public MockitoRule mockitoRule = MockitoJUnit.rule();
-  
+  @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
   @Bind
-  private final Supplier<List<CurrencyPair>> TEST_PAIRS = Suppliers.ofInstance(
-    ImmutableList.of(CurrencyPair.fromSymbol("BTC/USD")));
-  
+  private final Supplier<List<CurrencyPair>> TEST_PAIRS =
+      Suppliers.ofInstance(ImmutableList.of(CurrencyPair.fromSymbol("BTC/USD")));
+
   // Our fake client instance
   @Bind(to = ExchangeStreamingClient.class)
   private FakeExchangeStreamingClient fakeClient = new FakeExchangeStreamingClient();
-  
+
   // Instance under test
-  @Inject
-  private ExchangeClientUnboundedSourceImpl source;
+  @Inject private ExchangeClientUnboundedSourceImpl source;
   private PipelineOptions pipelineOptions;
 
   @Before
-  public void setUp() {  
+  public void setUp() {
     // Create an injector with BoundFieldModule and FactoryModule
-    Injector injector = Guice.createInjector(
-        BoundFieldModule.of(this)
-    );
+    Injector injector = Guice.createInjector(BoundFieldModule.of(this));
 
     // Inject members into the test class
     injector.injectMembers(this);
-    
+
     // Create default pipeline options
     pipelineOptions = PipelineOptionsFactory.create();
   }
@@ -98,15 +89,15 @@ public class ExchangeClientUnboundedSourceImplTest {
     // Act
     UnboundedSource.UnboundedReader<Trade> reader =
         source.createReader(pipelineOptions, nullCheckpointMark);
-    
+
     // Queue a trade before starting the reader
     Instant now = Instant.now();
     Trade trade = fakeClient.createTrade("test1", now);
     fakeClient.queueTrade(trade);
-    
+
     // Start the reader to activate the fake client
     boolean hasData = reader.start();
-    
+
     // Assert
     assertThat(hasData).isTrue();
     assertThat(reader.getCurrent().getTradeId()).isEqualTo("test1");
@@ -124,17 +115,17 @@ public class ExchangeClientUnboundedSourceImplTest {
     // Queue trades before creating reader
     Trade beforeTrade = fakeClient.createTrade("before", specificTimestamp.minus(1000));
     Trade afterTrade = fakeClient.createTrade("after", specificTimestamp.plus(1000));
-    
+
     fakeClient.queueTrade(beforeTrade);
     fakeClient.queueTrade(afterTrade);
-    
+
     // Act
     UnboundedSource.UnboundedReader<Trade> reader =
         source.createReader(pipelineOptions, specificMark);
-    
+
     // Start the reader - should return true since we have at least one valid trade
     boolean hasData = reader.start();
-    
+
     // Assert
     assertThat(hasData).isTrue();
     // Should have advanced to the "after" trade and skipped the "before" trade
@@ -167,12 +158,10 @@ public class ExchangeClientUnboundedSourceImplTest {
 
     // Assert
     assertThat(actualCoder).isInstanceOf(ProtoCoder.class); // Keep this check
-    assertThat(actualCoder).isEqualTo(expectedCoder);      // Compare with expected coder instance
+    assertThat(actualCoder).isEqualTo(expectedCoder); // Compare with expected coder instance
   }
 
-  /**
-   * A fake implementation of ExchangeStreamingClient for testing.
-   */
+  /** A fake implementation of ExchangeStreamingClient for testing. */
   static class FakeExchangeStreamingClient implements ExchangeStreamingClient {
     private Consumer<Trade> tradeCallback;
     private final LinkedBlockingQueue<Trade> queuedTrades = new LinkedBlockingQueue<>();
@@ -180,11 +169,12 @@ public class ExchangeClientUnboundedSourceImplTest {
     private ImmutableList<CurrencyPair> subscribedPairs;
 
     @Override
-    public void startStreaming(ImmutableList<CurrencyPair> currencyPairs, Consumer<Trade> callback) {
+    public void startStreaming(
+        ImmutableList<CurrencyPair> currencyPairs, Consumer<Trade> callback) {
       this.subscribedPairs = currencyPairs;
       this.tradeCallback = callback;
       this.isStreaming = true;
-      
+
       // Process any queued trades
       List<Trade> tradesToProcess = new ArrayList<>();
       queuedTrades.drainTo(tradesToProcess);
@@ -197,12 +187,12 @@ public class ExchangeClientUnboundedSourceImplTest {
     public void stopStreaming() {
       this.isStreaming = false;
     }
-    
+
     @Override
     public ImmutableList<CurrencyPair> supportedCurrencyPairs() {
       return subscribedPairs != null ? subscribedPairs : ImmutableList.of();
     }
-    
+
     @Override
     public String getExchangeName() {
       return "FakeExchange";
@@ -218,7 +208,7 @@ public class ExchangeClientUnboundedSourceImplTest {
 
     public Trade createTrade(String id, Instant timestamp) {
       Timestamp protoTimestamp = Timestamps.fromMillis(timestamp.getMillis());
-      
+
       return Trade.newBuilder()
           .setTradeId(id)
           .setPrice(1000.0)

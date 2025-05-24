@@ -7,9 +7,6 @@ import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.backtesting.GeneticAlgorithmOrchestrator;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.ta4j.BarSeriesFactory;
-import org.apache.beam.sdk.coders.KvCoder;
-import org.apache.beam.sdk.coders.SerializableCoder;
-import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.state.StateSpec;
 import org.apache.beam.sdk.state.StateSpecs;
 import org.apache.beam.sdk.state.ValueState;
@@ -18,10 +15,8 @@ import org.apache.beam.sdk.transforms.DoFn.StateId;
 import org.apache.beam.sdk.values.KV;
 import org.ta4j.core.BarSeries;
 
-/**
- * DoFn that processes each strategy type in isolation while maintaining shared state.
- */
-final class OptimizeEachStrategyDoFn 
+/** DoFn that processes each strategy type in isolation while maintaining shared state. */
+final class OptimizeEachStrategyDoFn
     extends DoFn<KV<String, StrategyProcessingRequest>, KV<String, StrategyState>> {
 
   private final BarSeriesFactory barSeriesFactory;
@@ -43,8 +38,7 @@ final class OptimizeEachStrategyDoFn
 
   @ProcessElement
   public void processElement(
-      ProcessContext context,
-      @StateId("strategyState") ValueState<StrategyState> sharedState) {
+      ProcessContext context, @StateId("strategyState") ValueState<StrategyState> sharedState) {
     KV<String, StrategyProcessingRequest> element = context.element();
     String key = element.getKey();
     StrategyProcessingRequest request = element.getValue();
@@ -64,14 +58,17 @@ final class OptimizeEachStrategyDoFn
 
     BarSeries barSeries = barSeriesFactory.createBarSeries(candles);
 
-    GAOptimizationRequest optimizationRequest = GAOptimizationRequest.newBuilder()
-        .setStrategyType(strategyType)
-        .addAllCandles(candles)
-        .build();
+    GAOptimizationRequest optimizationRequest =
+        GAOptimizationRequest.newBuilder()
+            .setStrategyType(strategyType)
+            .addAllCandles(candles)
+            .build();
 
     try {
-      BestStrategyResponse response = geneticAlgorithmOrchestrator.runOptimization(optimizationRequest);
-      state.updateRecord(strategyType, response.getBestStrategyParameters(), response.getBestScore());
+      BestStrategyResponse response =
+          geneticAlgorithmOrchestrator.runOptimization(optimizationRequest);
+      state.updateRecord(
+          strategyType, response.getBestStrategyParameters(), response.getBestScore());
     } catch (Exception e) {
       // Handle or log the exception for this strategy type.
     }

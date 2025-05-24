@@ -6,8 +6,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 import com.verlumen.tradestream.execution.RunMode;
 import java.time.Duration;
 import java.util.List;
@@ -16,14 +14,17 @@ import java.util.function.Supplier;
 
 @AutoValue
 public abstract class InstrumentsModule extends AbstractModule {
-  public static InstrumentsModule create(RunMode runMode, String coinMarketCapApiKey, int topCryptocurrencyCount) {
+  public static InstrumentsModule create(
+      RunMode runMode, String coinMarketCapApiKey, int topCryptocurrencyCount) {
     return new AutoValue_InstrumentsModule(runMode, coinMarketCapApiKey, topCryptocurrencyCount);
   }
 
   private static final Duration INSTRUMENT_REFRESH_INTERVAL = Duration.ofDays(1);
 
   abstract RunMode runMode();
+
   abstract String coinMarketCapApiKey();
+
   abstract int topCryptocurrencyCount();
 
   @Provides
@@ -39,8 +40,6 @@ public abstract class InstrumentsModule extends AbstractModule {
     }
 
     return Suppliers.memoizeWithExpiration(
-      supplier,
-      INSTRUMENT_REFRESH_INTERVAL.toMillis(),
-      TimeUnit.MILLISECONDS);
+        supplier, INSTRUMENT_REFRESH_INTERVAL.toMillis(), TimeUnit.MILLISECONDS);
   }
 }

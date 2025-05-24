@@ -1,10 +1,6 @@
 package com.verlumen.tradestream.strategies;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
@@ -24,7 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.beam.sdk.coders.KvCoder;
 import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
-import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
@@ -51,7 +46,8 @@ public class OptimizeStrategiesTest {
 
   // Use a Fake instead of a Mock for GeneticAlgorithmOrchestrator.
   @Bind(to = GeneticAlgorithmOrchestrator.class)
-  private FakeGeneticAlgorithmOrchestrator mockOrchestrator = new FakeGeneticAlgorithmOrchestrator();
+  private FakeGeneticAlgorithmOrchestrator mockOrchestrator =
+      new FakeGeneticAlgorithmOrchestrator();
 
   // Use a Fake instead of a Mock for StrategyState.Factory.
   @Bind private StrategyState.Factory mockStateFactory = new FakeStrategyStateFactory();
@@ -62,9 +58,7 @@ public class OptimizeStrategiesTest {
   public void setUp() {
     // Reset the static state in the fake orchestrator.
     FakeGeneticAlgorithmOrchestrator.reset();
-    Guice.createInjector(
-      BoundFieldModule.of(this),
-      Ta4jModule.create()).injectMembers(this);
+    Guice.createInjector(BoundFieldModule.of(this), Ta4jModule.create()).injectMembers(this);
   }
 
   private <K, V> KvCoder<K, V> getKvCoder(
@@ -99,16 +93,19 @@ public class OptimizeStrategiesTest {
   public void expand_nonEmptyCandleList_callsOrchestratorAndOutputsState() throws Exception {
     // Arrange
     String testKey = "testKey";
-    Candle candle1 = Candle.newBuilder()
-        .setOpen(10)
-        .setClose(12)
-        .setTimestamp(Timestamp.newBuilder().setSeconds(1L).build()) // assign an increasing timestamp
-        .build();
-    Candle candle2 = Candle.newBuilder()
-        .setOpen(12)
-        .setClose(11)
-        .setTimestamp(Timestamp.newBuilder().setSeconds(2L).build()) // assign a later timestamp
-        .build();
+    Candle candle1 =
+        Candle.newBuilder()
+            .setOpen(10)
+            .setClose(12)
+            .setTimestamp(
+                Timestamp.newBuilder().setSeconds(1L).build()) // assign an increasing timestamp
+            .build();
+    Candle candle2 =
+        Candle.newBuilder()
+            .setOpen(12)
+            .setClose(11)
+            .setTimestamp(Timestamp.newBuilder().setSeconds(2L).build()) // assign a later timestamp
+            .build();
 
     ImmutableList<Candle> candles = ImmutableList.of(candle1, candle2);
 
@@ -143,8 +140,7 @@ public class OptimizeStrategiesTest {
     assertThat(mockOrchestrator.wasRunOptimizationCalled()).isTrue();
     GAOptimizationRequest actualRequest = mockOrchestrator.getLastRequest();
     assertThat(actualRequest.getCandlesList()).containsExactlyElementsIn(candles).inOrder();
-    assertThat(actualRequest.getStrategyType())
-        .isEqualTo(StrategyType.ADX_STOCHASTIC);
+    assertThat(actualRequest.getStrategyType()).isEqualTo(StrategyType.ADX_STOCHASTIC);
   }
 
   @Test

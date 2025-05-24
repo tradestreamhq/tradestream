@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.marketdata;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
@@ -12,9 +11,10 @@ final class ExchangeStreamingClientFactory implements ExchangeStreamingClient.Fa
 
   @Inject
   ExchangeStreamingClientFactory(Provider<CoinbaseStreamingClient> coinbaseStreamingClient) {
-    this.clientMap = ImmutableMap.<String, Provider<? extends ExchangeStreamingClient>>builder()
-      .put("coinbase", coinbaseStreamingClient)
-      .buildOrThrow();
+    this.clientMap =
+        ImmutableMap.<String, Provider<? extends ExchangeStreamingClient>>builder()
+            .put("coinbase", coinbaseStreamingClient)
+            .buildOrThrow();
   }
 
   @Override

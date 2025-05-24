@@ -1,8 +1,8 @@
 package com.verlumen.tradestream.backtesting;
 
 /**
- * Constants used throughout the genetic algorithm optimization process.
- * Extracted to a separate class to avoid duplication and facilitate changes.
+ * Constants used throughout the genetic algorithm optimization process. Extracted to a separate
+ * class to avoid duplication and facilitate changes.
  */
 final class GAConstants {
   static final double CROSSOVER_PROBABILITY = 0.35;

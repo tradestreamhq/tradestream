@@ -24,7 +24,9 @@ final class EmaMacdStrategyFactory implements StrategyFactory<EmaMacdParameters>
   private EmaMacdStrategyFactory() {}
 
   @Override
-  public StrategyType getStrategyType() { return StrategyType.EMA_MACD; }
+  public StrategyType getStrategyType() {
+    return StrategyType.EMA_MACD;
+  }
 
   @Override
   public Strategy createStrategy(BarSeries series, EmaMacdParameters params)
@@ -37,7 +39,8 @@ final class EmaMacdStrategyFactory implements StrategyFactory<EmaMacdParameters>
         "Long EMA period must be greater than short EMA period");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    MACDIndicator macdIndicator = new MACDIndicator(closePrice, params.getShortEmaPeriod(), params.getLongEmaPeriod());
+    MACDIndicator macdIndicator =
+        new MACDIndicator(closePrice, params.getShortEmaPeriod(), params.getLongEmaPeriod());
     EMAIndicator signalIndicator = new EMAIndicator(macdIndicator, params.getSignalPeriod());
 
     // Entry rule
@@ -46,12 +49,13 @@ final class EmaMacdStrategyFactory implements StrategyFactory<EmaMacdParameters>
     // Exit rule - MACD crosses below Signal
     Rule exitRule = new CrossedDownIndicatorRule(macdIndicator, signalIndicator);
 
-    String strategyName = String.format(
-        "%s (Short EMA: %d, Long EMA: %d, Signal: %d)",
-        getStrategyType().name(),
-        params.getShortEmaPeriod(),
-        params.getLongEmaPeriod(),
-        params.getSignalPeriod());
+    String strategyName =
+        String.format(
+            "%s (Short EMA: %d, Long EMA: %d, Signal: %d)",
+            getStrategyType().name(),
+            params.getShortEmaPeriod(),
+            params.getLongEmaPeriod(),
+            params.getSignalPeriod());
     return new BaseStrategy(strategyName, entryRule, exitRule, params.getLongEmaPeriod());
   }
 
