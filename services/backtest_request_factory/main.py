@@ -64,7 +64,7 @@ flags.DEFINE_integer(
 )
 flags.DEFINE_enum(
     "default_strategy_type",
-    config.DEFAULT_STRATEGY_TYPE.name,
+    config.StrategyType.Name(config.DEFAULT_STRATEGY_TYPE),
     [name for name, value in config.StrategyType.items()],
     "Default StrategyType for BacktestRequest.",
 )
