@@ -1,4 +1,4 @@
-name: 'yaml-formatter'
+name: "yaml-formatter"
 on:
   pull_request:
     paths:
