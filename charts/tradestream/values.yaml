@@ -17,7 +17,7 @@ influxdb:
   # Storage configuration
   persistence:
     enabled: true
-    size: 8Gi
+    size: 8
   service:
     type: ClusterIP
 kafka:
