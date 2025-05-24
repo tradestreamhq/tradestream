@@ -10,33 +10,13 @@ influxdb:
     user: "admin"
     # Use existing secret (this will ignore password and token values)
     existingSecret: "influxdb-admin-secret"
+    # Remove these when using existingSecret:
+    # password: ""
+    # token: ""
   # Storage configuration
   persistence:
     enabled: true
     size: 20Gi
-  # Add resource limits and requests for stability
-  resources:
-    requests:
-      cpu: "500m"
-      memory: "1Gi"
-    limits:
-      cpu: "2"
-      memory: "4Gi"
-  # Fix service port configuration
-  service:
-    type: ClusterIP
-    port: 8086
-    targetPort: 8086
-  # Add readiness probe
-  readinessProbe:
-    httpGet:
-      path: /ping
-      port: 8086
-    initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
-    successThreshold: 1
-    failureThreshold: 3
 kafka:
   replicaCount: 3
   persistence:
