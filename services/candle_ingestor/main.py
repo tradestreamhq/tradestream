@@ -32,6 +32,7 @@ class ProcessType(Enum):
     BACKFILL = "backfill"
     POLLING = "polling"
 
+
 class ValidationResult(NamedTuple):
     is_valid: bool
     error_message: Optional[str] = None
