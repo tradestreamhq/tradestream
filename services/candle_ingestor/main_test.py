@@ -226,7 +226,6 @@ class RunBackfillTest(BaseIngestorTest):
 
 
 class RunPollingLoopTest(BaseIngestorTest):
-
     def test_polling_initializes_from_polling_db_state(self):
         self._set_current_time("2023-01-10T12:05:00")
         polling_db_state_ms = int(
