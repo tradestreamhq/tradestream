@@ -516,7 +516,6 @@ class RunPollingLoopTest(BaseIngestorTest):
             "btcusd": int(datetime(2023, 1, 10, 11, 50, 0, tzinfo=timezone.utc).timestamp() * 1000),
             "ethusd": int(datetime(2023, 1, 10, 11, 50, 0, tzinfo=timezone.utc).timestamp() * 1000)
         }
-        
         # Make the get_historical_candles fail for the first ticker only
         def get_candles_side_effect(api_key, ticker, start, end, freq):
             if ticker == "btcusd":
