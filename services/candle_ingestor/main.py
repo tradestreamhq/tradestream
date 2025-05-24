@@ -21,6 +21,7 @@ from services.candle_ingestor.ingestion_helpers import (
     parse_backfill_start_date,
 )
 
+
 # Enums for better type safety and eliminating string comparisons
 class RunMode(Enum):
     WET = "wet"
