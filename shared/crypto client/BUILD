@@ -4,6 +4,9 @@ load("@rules_python//python:py_test.bzl", "py_test")
 py_library(
     name = "cmc_client_lib",
     srcs = ["cmc_client.py"],
+    visiblity = [
+        "//services/candle_ingestor:__pkg__",
+    ],
     deps = [
         "//third_party:absl_py",
         "//third_party:requests",
