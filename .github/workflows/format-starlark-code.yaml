@@ -1,19 +1,19 @@
 name: "buildifier-formatter"
 on:
   pull_request:
-    paths: 
-      - 'BUILD'
-      - 'BUILD.bazel'
-      - 'WORKSPACE'
-      - 'WORKSPACE.bazel'
-      - 'MODULE.bazel'
-      - '**/BUILD'
-      - '**/BUILD.bazel'
-      - '**/WORKSPACE'
-      - '**/WORKSPACE.bazel'
-      - '**/MODULE.bazel'
-      - '**/*.bzl'
-      - '**/*.BUILD'
+    paths:
+      - "BUILD"
+      - "BUILD.bazel"
+      - "WORKSPACE"
+      - "WORKSPACE.bazel"
+      - "MODULE.bazel"
+      - "**/BUILD"
+      - "**/BUILD.bazel"
+      - "**/WORKSPACE"
+      - "**/WORKSPACE.bazel"
+      - "**/MODULE.bazel"
+      - "**/*.bzl"
+      - "**/*.BUILD"
 permissions:
   contents: read
   pull-requests: write
