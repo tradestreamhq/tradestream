@@ -63,7 +63,14 @@ flags.DEFINE_integer(
     "How many days back to check for initial polling state if none is found from backfill.",
 )
 
-# Mark required flags
+# Run Mode Flag
+flags.DEFINE_enum(
+    "run_mode",
+    "wet",
+    ["wet", "dry"],
+    "Run mode for the ingestor: 'wet' for live data, 'dry' for simulated data.",
+)
+
 flags.mark_flag_as_required("cmc_api_key")
 flags.mark_flag_as_required("tiingo_api_key")
 flags.mark_flag_as_required("influxdb_token")
@@ -93,16 +100,20 @@ def handle_shutdown_signal(signum, frame):
 
 
 def run_backfill(
-    influx_manager: InfluxDBManager,
+    influx_manager: InfluxDBManager | None,
     tiingo_tickers: list[str],
     tiingo_api_key: str,
     backfill_start_date_str: str,
     candle_granularity_minutes: int,
     api_call_delay_seconds: int,
     last_backfilled_timestamps: dict[str, int],
+    run_mode: str,
 ):
     global shutdown_requested
     logging.info("Starting historical candle backfill...")
+    if run_mode == "dry":
+        logging.info("DRY RUN: Backfill will use dummy data and limited iterations.")
+
     earliest_backfill_flag_dt = parse_backfill_start_date(backfill_start_date_str)
     end_date_dt = datetime.now(timezone.utc).replace(
         hour=0, minute=0, second=0, microsecond=0
@@ -117,6 +128,9 @@ def run_backfill(
 
     resample_freq = get_tiingo_resample_freq(candle_granularity_minutes)
     granularity_delta = timedelta(minutes=candle_granularity_minutes)
+    dry_run_tickers_processed = 0
+    max_dry_run_tickers = 1
+    max_dry_run_chunks_per_ticker = 1
 
     for ticker in tiingo_tickers:
         if shutdown_requested:
@@ -124,9 +138,21 @@ def run_backfill(
                 "Shutdown requested during backfill. Aborting backfill for remaining tickers."
             )
             break
-        current_run_max_ts_for_ticker = 0
 
-        db_last_backfill_ts_ms = last_backfilled_timestamps.get(ticker)
+        if run_mode == "dry" and dry_run_tickers_processed >= max_dry_run_tickers:
+            logging.info(
+                f"DRY RUN: Reached max tickers for backfill ({max_dry_run_tickers})."
+            )
+            shutdown_requested = True
+            break
+        current_run_max_ts_for_ticker = 0
+        db_last_backfill_ts_ms = None
+        if influx_manager:
+            db_last_backfill_ts_ms = influx_manager.get_last_processed_timestamp(
+                ticker, "backfill"
+            )
+        else:
+            db_last_backfill_ts_ms = last_backfilled_timestamps.get(ticker)
 
         if db_last_backfill_ts_ms and db_last_backfill_ts_ms > 0:
             dt_from_db_ts = datetime.fromtimestamp(
@@ -157,6 +183,7 @@ def run_backfill(
             f"Backfilling {ticker} from {current_ticker_start_dt.strftime('%Y-%m-%d %H:%M:%S')} to {end_date_dt.strftime('%Y-%m-%d %H:%M:%S')}"
         )
         chunk_start_dt = current_ticker_start_dt
+        dry_run_chunks_processed = 0
 
         while chunk_start_dt < end_date_dt:
             if shutdown_requested:
@@ -164,6 +191,16 @@ def run_backfill(
                     f"Shutdown requested during backfill for ticker {ticker}. Aborting current ticker."
                 )
                 break
+
+            if (
+                run_mode == "dry"
+                and dry_run_chunks_processed >= max_dry_run_chunks_per_ticker
+            ):
+                logging.info(
+                    f"DRY RUN: Reached max chunks for ticker {ticker} ({max_dry_run_chunks_per_ticker})."
+                )
+                break
+
             chunk_start_str = chunk_start_dt.strftime("%Y-%m-%d")
             chunk_end_dt = min(
                 chunk_start_dt + timedelta(days=89),
@@ -171,29 +208,60 @@ def run_backfill(
             )
             chunk_end_str = chunk_end_dt.strftime("%Y-%m-%d")
 
-            logging.info(
-                f"  Fetching chunk for {ticker}: {chunk_start_str} to {chunk_end_str}"
-            )
-            historical_candles = get_historical_candles_tiingo(
-                tiingo_api_key,
-                ticker,
-                chunk_start_str,
-                chunk_end_str,
-                resample_freq,
-            )
+            historical_candles = []
+            if run_mode == "dry":
+                logging.info(
+                    f"DRY RUN: Simulating Tiingo API call for {ticker}: {chunk_start_str} to {chunk_end_str}"
+                )
+                dummy_ts_ms = int(
+                    chunk_start_dt.replace(
+                        hour=0, minute=0, second=0, microsecond=0
+                    ).timestamp()
+                    * 1000
+                )
+                historical_candles = [
+                    {
+                        "timestamp_ms": dummy_ts_ms,
+                        "open": 1.0,
+                        "high": 1.1,
+                        "low": 0.9,
+                        "close": 1.05,
+                        "volume": 100.0,
+                        "currency_pair": ticker,
+                    }
+                ]
+            else:
+                logging.info(
+                    f"  Fetching chunk for {ticker}: {chunk_start_str} to {chunk_end_str}"
+                )
+                historical_candles = get_historical_candles_tiingo(
+                    tiingo_api_key,
+                    ticker,
+                    chunk_start_str,
+                    chunk_end_str,
+                    resample_freq,
+                )
+
             if historical_candles:
                 historical_candles.sort(key=lambda c: c["timestamp_ms"])
-                written_count = influx_manager.write_candles_batch(historical_candles)
-                if written_count > 0:
+                written_count = 0
+                if influx_manager:
+                    written_count = influx_manager.write_candles_batch(
+                        historical_candles
+                    )
+
+                if written_count > 0 or run_mode == "dry":
                     latest_ts_in_batch = historical_candles[-1]["timestamp_ms"]
                     current_run_max_ts_for_ticker = max(
                         current_run_max_ts_for_ticker, latest_ts_in_batch
                     )
-                    influx_manager.update_last_processed_timestamp(
-                        ticker, "backfill", latest_ts_in_batch
-                    )
+                    if influx_manager:
+                        influx_manager.update_last_processed_timestamp(
+                            ticker, "backfill", latest_ts_in_batch
+                        )
+                    last_backfilled_timestamps[ticker] = latest_ts_in_batch
                     logging.info(
-                        f"  Successfully wrote {written_count} candles. Updated InfluxDB backfill state for {ticker} to {latest_ts_in_batch}"
+                        f"  Successfully processed {len(historical_candles)} candles. Updated backfill state for {ticker} to {latest_ts_in_batch}"
                     )
                 else:
                     logging.warning(
@@ -204,12 +272,16 @@ def run_backfill(
                     f"  No data in chunk for {ticker}: {chunk_start_str} to {chunk_end_str}"
                 )
 
+            dry_run_chunks_processed += 1
             chunk_start_dt = chunk_end_dt + timedelta(days=1)
-            if chunk_start_dt < end_date_dt and len(tiingo_tickers) > 1:
+            if (
+                chunk_start_dt < end_date_dt
+                and len(tiingo_tickers) > 1
+                and run_mode == "wet"
+            ):
                 logging.info(
                     f"Waiting {api_call_delay_seconds}s before next API call/chunk for {ticker}..."
                 )
-                # Interruptible sleep
                 for _ in range(api_call_delay_seconds):
                     if shutdown_requested:
                         break
@@ -217,37 +289,46 @@ def run_backfill(
                 if shutdown_requested:
                     break
 
+        dry_run_tickers_processed += 1
         if shutdown_requested:
             logging.info(f"Shutdown requested after processing chunks for {ticker}.")
             break
 
         if current_run_max_ts_for_ticker > 0:
             last_backfilled_timestamps[ticker] = max(
-                last_backfilled_timestamps.get(ticker, 0),
-                current_run_max_ts_for_ticker,
+                last_backfilled_timestamps.get(ticker, 0), current_run_max_ts_for_ticker
             )
 
         logging.info(
             f"Finished backfill for {ticker}. Check InfluxDB for authoritative state."
         )
-    logging.info("Historical candle backfill completed.")
+
+    if run_mode == "dry":
+        logging.info("DRY RUN: Backfill simulation complete.")
+        shutdown_requested = True
+    else:
+        logging.info("Historical candle backfill completed.")
 
 
 def run_polling_loop(
-    influx_manager: InfluxDBManager,
+    influx_manager: InfluxDBManager | None,
     tiingo_tickers: list[str],
     tiingo_api_key: str,
     candle_granularity_minutes: int,
     api_call_delay_seconds: int,
     initial_catchup_days: int,
     last_processed_timestamps: dict[str, int],
+    run_mode: str,
 ):
     global shutdown_requested
     logging.info("Starting real-time candle polling loop...")
+    if run_mode == "dry":
+        logging.info("DRY RUN: Polling will use dummy data and limited iterations.")
+
     resample_freq = get_tiingo_resample_freq(candle_granularity_minutes)
     granularity_delta = timedelta(minutes=candle_granularity_minutes)
 
-    logging.info("Initializing polling timestamps from InfluxDB or defaults...")
+    logging.info("Initializing polling timestamps...")
     for ticker_symbol in tiingo_tickers:
         if shutdown_requested:
             logging.info("Shutdown requested during polling timestamp initialization.")
@@ -257,18 +338,24 @@ def run_polling_loop(
             ticker_symbol not in last_processed_timestamps
             or last_processed_timestamps.get(ticker_symbol, 0) == 0
         ):
-            polling_state_ts_ms = influx_manager.get_last_processed_timestamp(
-                ticker_symbol, "polling"
-            )
+            polling_state_ts_ms = None
+            if influx_manager:
+                polling_state_ts_ms = influx_manager.get_last_processed_timestamp(
+                    ticker_symbol, "polling"
+                )
+
             if polling_state_ts_ms:
                 last_processed_timestamps[ticker_symbol] = polling_state_ts_ms
                 logging.info(
                     f"Found last polling state for {ticker_symbol}: {datetime.fromtimestamp(polling_state_ts_ms / 1000.0, timezone.utc).isoformat()}"
                 )
             else:
-                backfill_state_ts_ms = influx_manager.get_last_processed_timestamp(
-                    ticker_symbol, "backfill"
-                )
+                backfill_state_ts_ms = None
+                if influx_manager:
+                    backfill_state_ts_ms = influx_manager.get_last_processed_timestamp(
+                        ticker_symbol, "backfill"
+                    )
+
                 if backfill_state_ts_ms:
                     last_processed_timestamps[ticker_symbol] = backfill_state_ts_ms
                     logging.info(
@@ -290,6 +377,9 @@ def run_polling_loop(
                     default_catchup_start_ms = int(
                         default_catchup_start_dt_aligned.timestamp() * 1000
                     )
+                    default_catchup_start_ms = int(
+                        default_catchup_start_dt_aligned.timestamp() * 1000
+                    )
                     last_processed_timestamps[ticker_symbol] = default_catchup_start_ms
                     logging.info(
                         f"No backfill or polling state for {ticker_symbol}. "
@@ -300,6 +390,9 @@ def run_polling_loop(
                 f"Using pre-existing/backfill timestamp for {ticker_symbol} for polling start: {datetime.fromtimestamp(last_processed_timestamps[ticker_symbol] / 1000.0, timezone.utc).isoformat()}"
             )
 
+    dry_run_polling_cycles = 0
+    max_dry_run_polling_cycles = 2
+
     try:
         while not shutdown_requested:
             loop_start_time = time.monotonic()
@@ -307,6 +400,16 @@ def run_polling_loop(
             logging.info(
                 f"Starting polling cycle at {current_cycle_time_utc.isoformat()}"
             )
+
+            if (
+                run_mode == "dry"
+                and dry_run_polling_cycles >= max_dry_run_polling_cycles
+            ):
+                logging.info(
+                    f"DRY RUN: Reached max polling cycles ({max_dry_run_polling_cycles})."
+                )
+                shutdown_requested = True
+                break
 
             for ticker in tiingo_tickers:
                 if shutdown_requested:
@@ -320,11 +423,14 @@ def run_polling_loop(
                         logging.error(
                             f"CRITICAL: Missing last_ts_ms for {ticker} at start of polling iteration. This should not happen."
                         )
-                        last_ts_ms = (
-                            datetime.now(timezone.utc)
-                            - timedelta(days=initial_catchup_days)
-                        ).timestamp() * 1000
-                        last_processed_timestamps[ticker] = int(last_ts_ms)
+                        last_ts_ms = int(
+                            (
+                                datetime.now(timezone.utc)
+                                - timedelta(days=initial_catchup_days)
+                            ).timestamp()
+                            * 1000
+                        )
+                        last_processed_timestamps[ticker] = last_ts_ms
 
                     last_known_candle_start_dt_utc = datetime.fromtimestamp(
                         last_ts_ms / 1000.0, timezone.utc
@@ -361,28 +467,45 @@ def run_polling_loop(
                         )
                         continue
 
-                    if candle_granularity_minutes >= 1440:
-                        query_start_str = query_start_dt_utc.strftime("%Y-%m-%d")
-                        query_end_str = effective_query_end_dt_utc.strftime("%Y-%m-%d")
+                    query_start_str = (
+                        query_start_dt_utc.strftime("%Y-%m-%dT%H:%M:%S")
+                        if candle_granularity_minutes < 1440
+                        else query_start_dt_utc.strftime("%Y-%m-%d")
+                    )
+                    query_end_str = (
+                        effective_query_end_dt_utc.strftime("%Y-%m-%dT%H:%M:%S")
+                        if candle_granularity_minutes < 1440
+                        else effective_query_end_dt_utc.strftime("%Y-%m-%d")
+                    )
+
+                    polled_candles = []
+                    if run_mode == "dry":
+                        logging.info(
+                            f"DRY RUN: Simulating Tiingo API call for {ticker} from {query_start_str} to {query_end_str}"
+                        )
+                        dummy_ts_ms = int(query_start_dt_utc.timestamp() * 1000)
+                        polled_candles = [
+                            {
+                                "timestamp_ms": dummy_ts_ms,
+                                "open": 2.0,
+                                "high": 2.1,
+                                "low": 1.9,
+                                "close": 2.05,
+                                "volume": 50.0,
+                                "currency_pair": ticker,
+                            }
+                        ]
                     else:
-                        query_start_str = query_start_dt_utc.strftime(
-                            "%Y-%m-%dT%H:%M:%S"
+                        logging.info(
+                            f"Polling for {ticker} from {query_start_str} to {query_end_str}"
                         )
-                        query_end_str = effective_query_end_dt_utc.strftime(
-                            "%Y-%m-%dT%H:%M:%S"
+                        polled_candles = get_historical_candles_tiingo(
+                            tiingo_api_key,
+                            ticker,
+                            query_start_str,
+                            query_end_str,
+                            resample_freq,
                         )
-
-                    logging.info(
-                        f"Polling for {ticker} from {query_start_str} to {query_end_str}"
-                    )
-
-                    polled_candles = get_historical_candles_tiingo(
-                        tiingo_api_key,
-                        ticker,
-                        query_start_str,
-                        query_end_str,
-                        resample_freq,
-                    )
 
                     if polled_candles:
                         new_candles_to_write = []
@@ -404,19 +527,23 @@ def run_polling_loop(
                             logging.info(
                                 f"Fetched {len(new_candles_to_write)} new, closed candle(s) for {ticker} via polling."
                             )
-                            written_count = influx_manager.write_candles_batch(
-                                new_candles_to_write
-                            )
-                            if written_count > 0:
+                            written_count = 0
+                            if influx_manager:
+                                written_count = influx_manager.write_candles_batch(
+                                    new_candles_to_write
+                                )
+
+                            if written_count > 0 or run_mode == "dry":
                                 latest_polled_ts_ms = new_candles_to_write[-1][
                                     "timestamp_ms"
                                 ]
                                 last_processed_timestamps[ticker] = latest_polled_ts_ms
-                                influx_manager.update_last_processed_timestamp(
-                                    ticker, "polling", latest_polled_ts_ms
-                                )
+                                if influx_manager:
+                                    influx_manager.update_last_processed_timestamp(
+                                        ticker, "polling", latest_polled_ts_ms
+                                    )
                                 logging.info(
-                                    f"  Successfully wrote {written_count} candles. Updated InfluxDB polling state for {ticker} to {latest_polled_ts_ms}"
+                                    f"  Successfully processed {written_count if written_count > 0 else len(new_candles_to_write)} candles. Updated polling state for {ticker} to {latest_polled_ts_ms}"
                                 )
                             else:
                                 logging.warning(
@@ -437,8 +564,7 @@ def run_polling_loop(
                         )
                         break
 
-                    if len(tiingo_tickers) > 1:
-                        # Interruptible sleep
+                    if len(tiingo_tickers) > 1 and run_mode == "wet":
                         for _ in range(api_call_delay_seconds):
                             if shutdown_requested:
                                 break
@@ -453,13 +579,13 @@ def run_polling_loop(
                 logging.info("Shutdown requested. Exiting polling loop.")
                 break
 
+            dry_run_polling_cycles += 1
             loop_duration = time.monotonic() - loop_start_time
             sleep_time = (candle_granularity_minutes * 60) - loop_duration
             if sleep_time > 0:
                 logging.info(
                     f"Polling cycle finished in {loop_duration:.2f}s. Sleeping for {sleep_time:.2f}s."
                 )
-                # Interruptible sleep - iterate for integer number of seconds
                 for _ in range(int(sleep_time)):
                     if shutdown_requested:
                         break
@@ -482,13 +608,15 @@ def main(argv):
     global shutdown_requested, influx_manager_global
     del argv
     logging.set_verbosity(logging.INFO)
-    logging.info("Starting candle ingestor script (Python)...")
+    logging.info(
+        f"Starting candle ingestor script (Python) in {FLAGS.run_mode} mode..."
+    )
 
-    # Register signal handlers
     signal.signal(signal.SIGINT, handle_shutdown_signal)
     signal.signal(signal.SIGTERM, handle_shutdown_signal)
 
     logging.info("Configuration:")
+    logging.info(f"  Run Mode: {FLAGS.run_mode}")
     logging.info(
         f"  CoinMarketCap API Key: {'****' if FLAGS.cmc_api_key else 'Not Set/Loaded from Env'}"
     )
@@ -509,16 +637,19 @@ def main(argv):
         f"  Polling Initial Catchup Days: {FLAGS.polling_initial_catchup_days}"
     )
 
-    influx_manager_global = InfluxDBManager(
-        url=FLAGS.influxdb_url,
-        token=FLAGS.influxdb_token,
-        org=FLAGS.influxdb_org,
-        bucket=FLAGS.influxdb_bucket,
-    )
-
-    if not influx_manager_global.get_client():
-        logging.error("Failed to connect to InfluxDB. Exiting.")
-        return 1
+    if FLAGS.run_mode == "wet":
+        influx_manager_global = InfluxDBManager(
+            url=FLAGS.influxdb_url,
+            token=FLAGS.influxdb_token,
+            org=FLAGS.influxdb_org,
+            bucket=FLAGS.influxdb_bucket,
+        )
+        if not influx_manager_global.get_client():
+            logging.error("Failed to connect to InfluxDB. Exiting.")
+            return 1
+    else:
+        logging.info("DRY RUN: Skipping InfluxDB connection.")
+        influx_manager_global = None
 
     if shutdown_requested:
         logging.info("Shutdown requested before starting main processing.")
@@ -526,11 +657,19 @@ def main(argv):
             influx_manager_global.close()
         sys.exit(0)
 
-    tiingo_tickers = get_top_n_crypto_symbols(FLAGS.cmc_api_key, FLAGS.top_n_cryptos)
+    tiingo_tickers = []
+    if FLAGS.run_mode == "dry":
+        logging.info("DRY RUN: Using dummy crypto symbols.")
+        tiingo_tickers = ["btcusd-dry", "ethusd-dry"]
+    else:
+        tiingo_tickers = get_top_n_crypto_symbols(
+            FLAGS.cmc_api_key, FLAGS.top_n_cryptos
+        )
 
     if not tiingo_tickers:
-        logging.error("No symbols fetched from CoinMarketCap. Exiting.")
-        influx_manager_global.close()
+        logging.error("No symbols fetched. Exiting.")
+        if influx_manager_global:
+            influx_manager_global.close()
         return 1
     logging.info(f"Target Tiingo tickers: {tiingo_tickers}")
 
@@ -538,22 +677,25 @@ def main(argv):
 
     try:
         if FLAGS.backfill_start_date.lower() != "skip":
-            logging.info("Attempting to pre-populate backfill states from InfluxDB...")
-            for ticker_symbol in tiingo_tickers:
-                if shutdown_requested:
-                    break
-                db_state_ts_ms = influx_manager_global.get_last_processed_timestamp(
-                    ticker_symbol, "backfill"
+            if FLAGS.run_mode == "wet" and influx_manager_global:
+                logging.info(
+                    "Attempting to pre-populate backfill states from InfluxDB..."
                 )
-                if db_state_ts_ms:
-                    last_processed_candle_timestamps[ticker_symbol] = db_state_ts_ms
-                    logging.info(
-                        f"  Pre-populated backfill state for {ticker_symbol}: {datetime.fromtimestamp(db_state_ts_ms / 1000.0, timezone.utc).isoformat()}"
+                for ticker_symbol in tiingo_tickers:
+                    if shutdown_requested:
+                        break
+                    db_state_ts_ms = influx_manager_global.get_last_processed_timestamp(
+                        ticker_symbol, "backfill"
                     )
-                else:
-                    logging.info(
-                        f"  No prior backfill state found in DB for {ticker_symbol}."
-                    )
+                    if db_state_ts_ms:
+                        last_processed_candle_timestamps[ticker_symbol] = db_state_ts_ms
+                        logging.info(
+                            f"  Pre-populated backfill state for {ticker_symbol}: {datetime.fromtimestamp(db_state_ts_ms / 1000.0, timezone.utc).isoformat()}"
+                        )
+                    else:
+                        logging.info(
+                            f"  No prior backfill state found in DB for {ticker_symbol}."
+                        )
 
             if not shutdown_requested:
                 run_backfill(
@@ -564,6 +706,7 @@ def main(argv):
                     candle_granularity_minutes=FLAGS.candle_granularity_minutes,
                     api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
                     last_backfilled_timestamps=last_processed_candle_timestamps,
+                    run_mode=FLAGS.run_mode,
                 )
         else:
             logging.info(
@@ -579,12 +722,15 @@ def main(argv):
                 api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
                 initial_catchup_days=FLAGS.polling_initial_catchup_days,
                 last_processed_timestamps=last_processed_candle_timestamps,
+                run_mode=FLAGS.run_mode,
             )
 
     except Exception as e:
         logging.exception(f"Critical error in main execution: {e}")
     finally:
-        logging.info("Main process finished. Ensuring InfluxDB connection is closed.")
+        logging.info(
+            "Main process finished. Ensuring InfluxDB connection is closed if it was opened."
+        )
         if influx_manager_global and influx_manager_global.get_client():
             influx_manager_global.close()
 
