@@ -95,9 +95,7 @@ def handle_shutdown_signal(signum, frame):
             influx_manager_global.close()  # This might be called again in finally, which is fine
             logging.info("InfluxDB connection closed via signal handler.")
         except Exception as e:
-            logging.error(
-                f"Error closing InfluxDB connection from signal handler: {e}"
-            )
+            logging.error(f"Error closing InfluxDB connection from signal handler: {e}")
 
 
 def run_backfill(
