@@ -32,6 +32,7 @@ py_library(
         "@pypi//absl_py",
         "//third_party:absl_py",
         "//third_party:protobuf",
+        "@pypi//absl_py",
     ],
 )
 
