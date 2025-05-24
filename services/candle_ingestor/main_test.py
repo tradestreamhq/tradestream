@@ -656,7 +656,6 @@ class RunPollingLoopTest(BaseIngestorTest):
 
 
 class MainFunctionTest(BaseIngestorTest):  # Inherit for shared mocks
-
     @flagsaver.flagsaver(
         backfill_start_date="skip"
     )  # Ensure backfill is skipped for this test
