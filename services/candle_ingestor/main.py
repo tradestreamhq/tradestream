@@ -8,7 +8,6 @@ from absl import app
 from absl import flags
 from absl import logging
 
-from services.candle_ingestor.cmc_client import get_top_n_crypto_symbols
 from services.candle_ingestor.influx_client import InfluxDBManager
 from services.candle_ingestor.tiingo_client import (
     get_historical_candles_tiingo,
@@ -17,6 +16,7 @@ from services.candle_ingestor.ingestion_helpers import (
     get_tiingo_resample_freq,
     parse_backfill_start_date,
 )
+from shared.cryptoclient.cmc_client import get_top_n_crypto_symbols
 
 FLAGS = flags.FLAGS
 
