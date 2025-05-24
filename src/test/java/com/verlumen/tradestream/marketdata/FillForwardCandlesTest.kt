@@ -181,23 +181,29 @@ class FillForwardCandlesTest {
 
         val originalCandle = KV.of("BTC/USD", createCandle("BTC/USD", 50000.0, 1.0, baseTime))
 
-        val candleStream = TestStream.create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
-            .addElements(TimestampedValue.of(originalCandle, baseTime))
-            .advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(10)))
-            .advanceWatermarkToInfinity()
+        val candleStream =
+            TestStream.create(KvCoder.of(StringUtf8Coder.of(), ProtoCoder.of(Candle::class.java)))
+                .addElements(TimestampedValue.of(originalCandle, baseTime))
+                .advanceWatermarkTo(baseTime.plus(intervalDuration.multipliedBy(10)))
+                .advanceWatermarkToInfinity()
 
-        val result = pipeline
-            .apply(candleStream)
-            .apply(fillForwardCandlesFactory.create(intervalDuration, maxForwardIntervals))
+        val result =
+            pipeline
+                .apply(candleStream)
+                .apply(fillForwardCandlesFactory.create(intervalDuration, maxForwardIntervals))
 
-        val btcCandleCount: PCollection<Long> = result
-             .apply("FilterBTC", Filter.by(SerializableFunction { kv: KV<String, Candle> -> kv.key == "BTC/USD" }))
-             // *** FIX: Use GlobalWindows() directly ***
-             .apply("WindowBeforeCount", Window.into<KV<String, Candle>>(GlobalWindows())
-                 .triggering(AfterWatermark.pastEndOfWindow())
-                 .withAllowedLateness(Duration.ZERO)
-                 .discardingFiredPanes())
-             .apply("Count", Count.globally<KV<String, Candle>>())
+        val btcCandleCount: PCollection<Long> =
+            result
+                .apply("FilterBTC", Filter.by(SerializableFunction { kv: KV<String, Candle> -> kv.key == "BTC/USD" }))
+                // *** FIX: Use GlobalWindows() directly ***
+                .apply(
+                    "WindowBeforeCount",
+                    Window.into<KV<String, Candle>>(GlobalWindows())
+                        .triggering(AfterWatermark.pastEndOfWindow())
+                        .withAllowedLateness(Duration.ZERO)
+                        .discardingFiredPanes(),
+                )
+                .apply("Count", Count.globally<KV<String, Candle>>())
 
         PAssert.thatSingleton(btcCandleCount).isEqualTo(maxForwardIntervals.toLong() + 1L)
 
