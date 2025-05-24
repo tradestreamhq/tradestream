@@ -43,9 +43,7 @@ class InfluxDBManager:
             logging.info(
                 f"Attempting to connect to InfluxDB at {self.url} for org '{self.org}'"
             )
-            if self.client.ping():
-                logging.info("Successfully connected to InfluxDB and pinged server.")
-            else:
+            if not self.client.ping():
                 # This path might be less common as ping() itself might raise on failure
                 logging.error(
                     f"Failed to ping InfluxDB at {self.url}. Check connection and configuration."
