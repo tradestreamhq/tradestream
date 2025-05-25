@@ -1,0 +1,9 @@
+schemaVersion: "2.0.0"
+commandTests:
+  - name: "Top Crypto Updater Dry Run Test (help message)"
+    command: "/services/top_crypto_updater/app"
+    args: ["--help"]
+    expectedOutput:
+      - "USAGE: app \[flags\]"
+      - "CoinMarketCap API Key"
+      - "Redis host"
