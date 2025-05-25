@@ -15,3 +15,7 @@ dependencies:
     repository: "https://helm.influxdata.com/"
     alias: influxdb
     condition: influxdb.enabled
+  - name: redis
+    version: "21.1.6"
+    repository: "oci://registry-1.docker.io/bitnamicharts"
+    condition: redis.enabled
