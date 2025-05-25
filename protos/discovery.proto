@@ -5,8 +5,8 @@ package discovery;
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 
-import "marketdata.proto"; // Still needed if marketdata.Candle is used internally by the service
-import "strategies.proto"; // Contains strategies.Strategy, strategies.StrategyType
+import "protos/marketdata.proto";
+import "protos/strategies.proto";
 
 // =======================================
 //   Strategy Discovery Service Messages
