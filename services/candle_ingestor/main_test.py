@@ -319,10 +319,18 @@ class MainFunctionTest(BaseIngestorTest):
         )
 
         # Verify InfluxDB writes
-        self.mock_influx_manager.write_candles_batch.assert_any_call(backfill_candles_response)
-        self.mock_influx_manager.write_candles_batch.assert_any_call(catch_up_candles_response)
-        self.mock_influx_manager.update_last_processed_timestamp.assert_any_call(self.test_ticker, "backfill", backfill_candle_ts)
-        self.mock_influx_manager.update_last_processed_timestamp.assert_any_call(self.test_ticker, "catch_up", catch_up_candle_ts)
+        self.mock_influx_manager.write_candles_batch.assert_any_call(
+            backfill_candles_response
+        )
+        self.mock_influx_manager.write_candles_batch.assert_any_call(
+            catch_up_candles_response
+        )
+        self.mock_influx_manager.update_last_processed_timestamp.assert_any_call(
+            self.test_ticker, "backfill", backfill_candle_ts
+        )
+        self.mock_influx_manager.update_last_processed_timestamp.assert_any_call(
+            self.test_ticker, "catch_up", catch_up_candle_ts
+        )
 
 
 if __name__ == "__main__":
