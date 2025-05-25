@@ -161,7 +161,6 @@ class TestRedisCryptoClient(unittest.TestCase):
         self.assertEqual(pairs, [])
         # get is called inside _get_value_retryable, which has 3 attempts
         self.assertEqual(mock_redis_instance.get.call_count, 3)
-        
         log_messages = [record.message for record in log_watcher.records]
         self.assertTrue(
             any(
