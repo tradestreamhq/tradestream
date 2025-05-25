@@ -26,7 +26,6 @@ proto_library(
     name = "discovery_proto",
     srcs = ["discovery.proto"],
     deps = [
-        ":marketdata_proto",
         ":strategies_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
