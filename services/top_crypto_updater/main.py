@@ -2,7 +2,7 @@ import os
 import sys
 import signal
 import json
-import redis # Import redis for exception handling
+import redis  # Import redis for exception handling
 
 from absl import app
 from absl import flags
