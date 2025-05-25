@@ -63,14 +63,10 @@ def create_test_candles(
 
 
 def create_test_ga_config(
-    max_generations: int = 30, 
-    population_size: int = 50
+    max_generations: int = 30, population_size: int = 50
 ) -> GAConfig:
     """Create a test GA configuration."""
-    return GAConfig(
-        max_generations=max_generations,
-        population_size=population_size
-    )
+    return GAConfig(max_generations=max_generations, population_size=population_size)
 
 
 def create_test_strategy_discovery_request(
@@ -83,7 +79,9 @@ def create_test_strategy_discovery_request(
 ) -> StrategyDiscoveryRequest:
     """Create a test strategy discovery request."""
     if start_timestamp_ms is None:
-        start_timestamp_ms = int(datetime.now(timezone.utc).timestamp() * 1000) - 300000  # 5 mins ago
+        start_timestamp_ms = (
+            int(datetime.now(timezone.utc).timestamp() * 1000) - 300000
+        )  # 5 mins ago
     if end_timestamp_ms is None:
         end_timestamp_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
     if ga_config is None:
@@ -91,7 +89,7 @@ def create_test_strategy_discovery_request(
 
     start_time = Timestamp()
     start_time.FromMilliseconds(start_timestamp_ms)
-    
+
     end_time = Timestamp()
     end_time.FromMilliseconds(end_timestamp_ms)
 
@@ -101,7 +99,7 @@ def create_test_strategy_discovery_request(
         end_time=end_time,
         strategy_type=strategy_type,
         top_n=top_n,
-        ga_config=ga_config
+        ga_config=ga_config,
     )
 
 
@@ -158,7 +156,9 @@ def get_candle_timestamp_ms(candle: Candle) -> int:
     return candle.timestamp.seconds * 1000 + candle.timestamp.nanos // 1_000_000
 
 
-def assert_strategy_discovery_requests_equal(req1: StrategyDiscoveryRequest, req2: StrategyDiscoveryRequest) -> None:
+def assert_strategy_discovery_requests_equal(
+    req1: StrategyDiscoveryRequest, req2: StrategyDiscoveryRequest
+) -> None:
     """Assert that two strategy discovery requests are equal."""
     assert req1.symbol == req2.symbol
     assert req1.start_time.seconds == req2.start_time.seconds
@@ -171,7 +171,9 @@ def assert_strategy_discovery_requests_equal(req1: StrategyDiscoveryRequest, req
     assert req1.ga_config.population_size == req2.ga_config.population_size
 
 
-def get_strategy_discovery_request_time_range_ms(req: StrategyDiscoveryRequest) -> tuple[int, int]:
+def get_strategy_discovery_request_time_range_ms(
+    req: StrategyDiscoveryRequest,
+) -> tuple[int, int]:
     """Get start and end timestamps in milliseconds from a strategy discovery request."""
     start_ms = req.start_time.seconds * 1000 + req.start_time.nanos // 1_000_000
     end_ms = req.end_time.seconds * 1000 + req.end_time.nanos // 1_000_000

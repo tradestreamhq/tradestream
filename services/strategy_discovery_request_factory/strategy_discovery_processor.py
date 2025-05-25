@@ -71,8 +71,7 @@ class StrategyDiscoveryProcessor:
 
         # Convert candle timestamp to datetime for time calculations
         candle_timestamp = datetime.fromtimestamp(
-            candle.timestamp.seconds + candle.timestamp.nanos / 1e9,
-            tz=timezone.utc
+            candle.timestamp.seconds + candle.timestamp.nanos / 1e9, tz=timezone.utc
         )
 
         for window_minutes in self.fibonacci_windows_minutes:
@@ -88,7 +87,7 @@ class StrategyDiscoveryProcessor:
                 # Calculate time range for this window
                 end_time = Timestamp()
                 end_time.FromDatetime(candle_timestamp)
-                
+
                 start_time_dt = candle_timestamp - timedelta(minutes=window_minutes)
                 start_time = Timestamp()
                 start_time.FromDatetime(start_time_dt)
@@ -96,7 +95,7 @@ class StrategyDiscoveryProcessor:
                 # Create GAConfig with default parameters
                 ga_config = GAConfig(
                     max_generations=self.default_max_generations,
-                    population_size=self.default_population_size
+                    population_size=self.default_population_size,
                 )
 
                 # Generate one request for each strategy type
@@ -104,14 +103,14 @@ class StrategyDiscoveryProcessor:
                     # Skip UNKNOWN strategy type
                     if strategy_type == StrategyType.UNKNOWN:
                         continue
-                    
+
                     strategy_discovery_request = StrategyDiscoveryRequest(
                         symbol=currency_pair,
                         start_time=start_time,
                         end_time=end_time,
                         strategy_type=strategy_type,
                         top_n=self.default_top_n,
-                        ga_config=ga_config
+                        ga_config=ga_config,
                     )
                     generated_requests.append(strategy_discovery_request)
                     logging.debug(
