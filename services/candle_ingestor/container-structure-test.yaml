@@ -1,26 +1,28 @@
 schemaVersion: "2.0.0"
 commandTests:
-  - name: "Candle Ingestor Dry Run Test"
+  - name: "Candle Ingestor Dry Run Test (Single Execution)"
     command: "/services/candle_ingestor/app"
     args: [
         "--run_mode=dry",
         "--cmc_api_key=dummykey",
         "--tiingo_api_key=dummykey",
-        "--influxdb_token=dummytoken",
-        "--influxdb_org=dummyorg",
+        "--influxdb_token=dummytoken", # Required by flag definition even if not used in dry
+        "--influxdb_org=dummyorg",     # Required by flag definition
         "--top_n_cryptos=1", # Limit for faster test
         "--backfill_start_date=1_day_ago", # Short backfill
-        "--candle_granularity_minutes=60", # Use a larger granularity to reduce iterations
-        "--polling_initial_catchup_days=1", # Short catchup
+        "--candle_granularity_minutes=60",
+        "--catch_up_initial_days=1" # Short catchup if no state
       ]
-    # Expected to exit cleanly after a few dry run iterations.
-    # Check for specific log messages indicating dry run operation and completion.
-    expectedError:
+    # Expected to exit cleanly after a single run in dry mode.
+    # Check for specific log messages indicating dry run operation for backfill and catch-up.
+    expectedError: # Using expectedError to match against INFO logs from absl logging
       - "Starting candle ingestor script .* in dry mode"
       - "DRY RUN: Backfill will use dummy data and limited iterations."
-      - "DRY RUN: Using dummy crypto symbols."
-      - "Target Tiingo tickers: \\['btcusd-dry', 'ethusd-dry'\\]"
-      - "DRY RUN: Simulating Tiingo API call for btcusd-dry"
-      - "DRY RUN: Reached max tickers for backfill \\(1\\)."
+      - "DRY RUN: Simulating Tiingo API call for btcusd-dry" # From backfill part
+      - "DRY RUN: Reached max tickers for backfill"
       - "DRY RUN: Backfill simulation complete."
-      - "Exiting due to shutdown request."
+      - "DRY RUN: Catch-up will use dummy data and limited iterations."
+      - "DRY RUN: Simulating Tiingo API call for btcusd-dry (catch-up)" # From catch-up part
+      - "DRY RUN: Reached max tickers for catch-up"
+      - "Catch-up candle processing completed."
+      - "Candle ingestor script completed successfully."
