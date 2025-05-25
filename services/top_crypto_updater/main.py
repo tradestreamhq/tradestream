@@ -117,7 +117,7 @@ def main(argv):
         raise # Re-raise to ensure the script terminates
     except Exception as e:
         logging.exception(f"An error occurred during the update process: {e}")
-        sys.exit(1) # This is the second potential exit point if other errors occur
+        sys.exit(1)  # This is the second potential exit point if other errors occur
     finally:
         if redis_manager_global:
             redis_manager_global.close()
