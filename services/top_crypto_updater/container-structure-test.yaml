@@ -3,8 +3,7 @@ commandTests:
   - name: "Top Crypto Updater Dry Run Test (help message)"
     command: "/services/top_crypto_updater/app"
     args: ["--help", "--cmc_api_key=dummy_key_for_help_test"]
-    expectedError:
-      exitCode: 1
+    exitCode: 1
     expectedOutput:
       - "CoinMarketCap API Key."
       - "Redis host."
