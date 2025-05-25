@@ -11,7 +11,7 @@ commandTests:
         "--top_n_cryptos=1", # Limit for faster test
         "--backfill_start_date=1_day_ago", # Short backfill
         "--candle_granularity_minutes=60",
-        "--catch_up_initial_days=1" # Short catchup if no state
+        "--catch_up_initial_days=1", # Short catchup if no state
       ]
     # Expected to exit cleanly after a single run in dry mode.
     # Check for specific log messages indicating dry run operation for backfill and catch-up.
