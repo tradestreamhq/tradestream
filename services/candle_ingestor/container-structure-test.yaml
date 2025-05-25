@@ -20,7 +20,7 @@ commandTests:
       - "DRY RUN: Backfill will use dummy data and limited iterations."
       - "DRY RUN: Simulating Tiingo API call for btcusd-dry.*backfill"
       - "DRY RUN: Reached max tickers for backfill"
-      - "DRY RUN: Backfill simulation complete."  
+      - "DRY RUN: Backfill simulation complete."
       - "DRY RUN: Catch-up will use dummy data and limited iterations."
       - "DRY RUN: Simulating Tiingo API call for btcusd-dry.*catch-up"
       - "DRY RUN: Reached max tickers for catch-up"
