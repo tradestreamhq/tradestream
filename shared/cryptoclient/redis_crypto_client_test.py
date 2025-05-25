@@ -184,7 +184,6 @@ class TestRedisCryptoClient(unittest.TestCase):
         successful_instance.ping.return_value = True
         expected_pairs = ["btcusd", "ethusd"]
         successful_instance.get.return_value = json.dumps(expected_pairs)
-        
         # Set up the side_effect with the instances
         MockRedis.side_effect = failing_instances + [successful_instance]
 
