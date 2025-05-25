@@ -32,9 +32,7 @@ class RedisManager:
     @retry(**redis_retry_params)
     def _connect(self):
         try:
-            logging.info(
-                f"Attempting to connect to Redis at {self.host}:{self.port}"
-            )
+            logging.info(f"Attempting to connect to Redis at {self.host}:{self.port}")
             self.client = redis.Redis(
                 host=self.host, port=self.port, password=self.password,
                 socket_connect_timeout=5, # seconds
