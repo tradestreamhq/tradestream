@@ -86,17 +86,18 @@ class TopCryptoUpdaterMainTest(absltest.TestCase):
             redis.exceptions.ConnectionError("Mock connection failed")
         )
 
-        top_crypto_updater_main.main(None)
+        # Make the mock sys.exit actually raise SystemExit to simulate real behavior
+        def side_effect(code):
+            raise SystemExit(code)
+        mock_sys_exit.side_effect = side_effect
 
-        # Assert that sys.exit(1) was called
+        with self.assertRaises(SystemExit) as cm:
+            top_crypto_updater_main.main(None)
+
+        self.assertEqual(cm.exception.code, 1)
         mock_sys_exit.assert_called_once_with(1)
-        # Ensure close was not called on a potentially non-existent or failed manager instance
-        # Depending on how RedisManager handles __init__ failure, self.mock_redis_instance might not even be relevant here
-        # If __init__ fails and raises, redis_manager_global might not be assigned a complete object
-        # or the one in finally block could be the initial None.
-        # So, we check that the constructor was called, but close on any resulting instance was not.
         self.mock_redis_manager_constructor.assert_called_once()
-        # If constructor fails, self.mock_redis_instance (if it were to be assigned) wouldn't have close called.
+        # Ensure close was not called since the manager was never successfully created
         self.mock_redis_instance.close.assert_not_called()
 
     def test_main_cmc_fetch_fails_logs_warning_but_completes(self):
