@@ -128,7 +128,6 @@ jobs:
           # Check CronJob status and configuration
           echo "CronJob details:"
           kubectl describe cronjob my-tradestream-top-crypto-updater -n tradestream-namespace
-          
           # Verify CronJob is not suspended
           if kubectl get cronjob my-tradestream-top-crypto-updater -n tradestream-namespace -o jsonpath='{.spec.suspend}' | grep -q true; then
             echo "ERROR: CronJob is suspended"
