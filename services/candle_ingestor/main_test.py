@@ -46,9 +46,8 @@ class BaseIngestorTest(absltest.TestCase):
         self.mock_redis_crypto_client_constructor.return_value = (
             self.mock_redis_client_instance
         )
-        self.mock_redis_client_instance.get_client.return_value = (
-            True  # Simulate connected
-        )
+        self.mock_redis_client_instance.get_client = mock.MagicMock(return_value=True)
+
         self.addCleanup(self.patch_redis_crypto_client.stop)
 
         self.patch_get_historical_candles = mock.patch(
