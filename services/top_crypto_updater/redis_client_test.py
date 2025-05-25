@@ -170,5 +170,5 @@ class TestRedisManager(unittest.TestCase):
         # No specific assertion here other than no error was raised.
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
