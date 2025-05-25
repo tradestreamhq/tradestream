@@ -2,6 +2,7 @@ import os
 import sys
 import signal
 import json
+import redis # Import redis for exception handling
 
 from absl import app
 from absl import flags
@@ -80,12 +81,15 @@ def main(argv):
     logging.info(f"  Redis Port: {FLAGS.redis_port}")
     logging.info(f"  Redis Key: {FLAGS.redis_key}")
 
-    redis_manager_global = RedisManager(
-        host=FLAGS.redis_host, port=FLAGS.redis_port, password=FLAGS.redis_password
-    )
-
-    if not redis_manager_global.get_client():
-        logging.error("Failed to connect to Redis. Exiting.")
+    try:
+        redis_manager_global = RedisManager(
+            host=FLAGS.redis_host, port=FLAGS.redis_port, password=FLAGS.redis_password
+        )
+        if not redis_manager_global.get_client():
+            logging.error("Failed to connect to Redis (client check). Exiting.")
+            sys.exit(1)
+    except redis.exceptions.RedisError as e:
+        logging.error(f"Failed to initialize RedisManager: {e}. Exiting.")
         sys.exit(1)
 
     try:
