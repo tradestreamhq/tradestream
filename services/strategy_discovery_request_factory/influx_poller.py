@@ -53,6 +53,10 @@ class InfluxPoller:
     def fetch_new_candles(
         self, currency_pair: str, last_timestamp_ms: int = 0
     ) -> tuple[list[Candle], int]:
+        """
+        Fetch new candles from InfluxDB for strategy discovery request generation.
+        The candles are used to determine timing for strategy discovery time windows.
+        """
         if not self.client:
             logging.error("InfluxDB client not initialized. Cannot fetch candles.")
             return [], last_timestamp_ms
