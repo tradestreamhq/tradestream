@@ -10,8 +10,10 @@ jobs:
     env:
       PIPELINE_REPO: tradestreamhq/tradestream-data-pipeline
       CANDLE_INGESTOR_REPO: tradestreamhq/candle-ingestor
+      TOP_CRYPTO_UPDATER_REPO: tradestreamhq/top-crypto-updater
       PIPELINE_SECTION_KEY: pipeline
       CANDLE_INGESTOR_SECTION_KEY: candleIngestor
+      TOP_CRYPTO_UPDATER_SECTION_KEY: topCryptoUpdaterCronjob
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,6 +75,11 @@ jobs:
           bazel run //services/candle_ingestor:push_candle_ingestor_image \
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
+      - name: Push the Top Crypto Updater image
+        run: |
+          bazel run //services/top_crypto_updater:push_top_crypto_updater_image \
+            -- \
+            --tag ${{ steps.version.outputs.version_tag }}
 
       - name: Install yq
         run: |
@@ -86,7 +93,9 @@ jobs:
             .["${{ env.PIPELINE_SECTION_KEY }}"].image.repository = "${{ env.PIPELINE_REPO }}" |
             .["${{ env.PIPELINE_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
             .["${{ env.CANDLE_INGESTOR_SECTION_KEY }}"].image.repository = "${{ env.CANDLE_INGESTOR_REPO }}" |
-            .["${{ env.CANDLE_INGESTOR_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}"
+            .["${{ env.CANDLE_INGESTOR_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
+            .["${{ env.TOP_CRYPTO_UPDATER_SECTION_KEY }}"].image.repository = "${{ env.TOP_CRYPTO_UPDATER_REPO }}" |
+            .["${{ env.TOP_CRYPTO_UPDATER_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}"
           ' charts/tradestream/values.yaml > charts/tradestream/values.yaml.tmp
           mv charts/tradestream/values.yaml.tmp charts/tradestream/values.yaml
 

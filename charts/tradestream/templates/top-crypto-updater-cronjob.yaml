@@ -1,0 +1,54 @@
+{{- if .Values.topCryptoUpdaterCronjob.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "tradestream.fullname" . }}-top-crypto-updater
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: top-crypto-updater
+    release: {{ .Release.Name }}
+spec:
+  schedule: "{{ .Values.topCryptoUpdaterCronjob.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: top-crypto-updater
+              image: "{{ .Values.topCryptoUpdaterCronjob.image.repository }}:{{ .Values.topCryptoUpdaterCronjob.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.topCryptoUpdaterCronjob.image.pullPolicy }}
+              env:
+                - name: CMC_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.topCryptoUpdaterCronjob.secrets.cmcApiKey.name }}
+                      key: {{ .Values.topCryptoUpdaterCronjob.secrets.cmcApiKey.key }}
+                - name: REDIS_HOST
+                  value: {{ .Values.topCryptoUpdaterCronjob.redis.host | quote }}
+                - name: REDIS_PORT
+                  value: {{ .Values.topCryptoUpdaterCronjob.redis.port | quote }}
+                - name: TOP_N_CRYPTOS
+                  value: {{ .Values.topCryptoUpdaterCronjob.config.topNCryptos | quote }}
+                - name: REDIS_KEY
+                  value: {{ .Values.topCryptoUpdaterCronjob.config.redisKey | quote }}
+                # Add REDIS_PASSWORD if auth is enabled for Redis
+                {{- if .Values.redis.auth.enabled }}
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "tradestream.fullname" . }}-redis
+                      key: redis-password
+                {{- end }}
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "200m"
+                  memory: "256Mi"
+  concurrencyPolicy: "{{ .Values.topCryptoUpdaterCronjob.concurrencyPolicy }}"
+  failedJobsHistoryLimit: {{ .Values.topCryptoUpdaterCronjob.failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .Values.topCryptoUpdaterCronjob.successfulJobsHistoryLimit }}
+{{- end }}
