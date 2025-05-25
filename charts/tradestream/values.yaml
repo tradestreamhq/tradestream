@@ -55,7 +55,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v1.32.47-develop
+    tag: v1.33.0-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -86,7 +86,7 @@ candleIngestor:
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
-    tag: "v1.32.47-develop"
+    tag: "v1.33.0-develop"
   config:
     topNCryptos: 10
     candleGranularityMinutes: 1
@@ -102,7 +102,6 @@ candleIngestor:
     influxDb:
       name: "influxdb-admin-secret"
       tokenKey: "admin-token"
-
 # Redis configuration
 redis:
   enabled: true # Set to true to deploy Redis
@@ -112,7 +111,6 @@ redis:
   # persistence:
   #   enabled: true
   #   size: 8Gi
-
 # Top Crypto Updater CronJob configuration
 topCryptoUpdaterCronjob:
   enabled: true
@@ -120,7 +118,7 @@ topCryptoUpdaterCronjob:
   image:
     repository: "tradestreamhq/top-crypto-updater"
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v1.33.0-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
