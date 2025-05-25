@@ -55,7 +55,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v1.32.46-develop
+    tag: v1.32.47-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -91,7 +91,7 @@ candleIngestor:
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
-    tag: "v1.32.46-develop"
+    tag: "v1.32.47-develop"
   config:
     topNCryptos: 10
     candleGranularityMinutes: 1
@@ -107,5 +107,40 @@ candleIngestor:
       name: "tiingo"
       key: "apiKey"
     influxDb:
-      name: "influxdb-admin-secret" # Assuming this secret holds the token
-      tokenKey: "admin-token" # Key within the secret that holds the InfluxDB token
+      name: "influxdb-admin-secret"
+      tokenKey: "admin-token"
+
+# Redis configuration
+redis:
+  enabled: true # Set to true to deploy Redis
+  architecture: standalone # Use standalone for simplicity, can be changed to replication or sentinel
+  auth:
+    enabled: false # Disable password for simplicity, enable in production
+  # persistence:
+  #   enabled: true
+  #   size: 8Gi
+
+# Top Crypto Updater CronJob configuration
+topCryptoUpdaterCronjob:
+  enabled: true
+  schedule: "*/15 * * * *" # Run every 15 minutes
+  image:
+    repository: "tradestreamhq/top-crypto-updater"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  config:
+    topNCryptos: 20 # Number of top cryptos to fetch
+    redisKey: "top_cryptocurrencies"
+  # Secrets for CMC API key and Redis connection details will be mounted if needed
+  # For now, assuming Redis is accessible via service name within the same namespace
+  # and CMC API key is passed as an environment variable from a secret
+  secrets:
+    cmcApiKey:
+      name: "coinmarketcap" # Assuming this secret exists and has the apiKey
+      key: "apiKey"
+  redis:
+    host: '{{ include "tradestream.fullname" . }}-redis-master' # Dynamically set Redis host
+    port: 6379

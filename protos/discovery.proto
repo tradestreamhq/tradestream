@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package discovery;
+
+import "google/protobuf/timestamp.proto";
+
+import "protos/strategies.proto";
+
+// Configuration for Genetic Algorithm based optimization
+message GAConfig {
+  int32 max_generations = 1;
+  int32 population_size = 2;
+}
+
+// Request for discovering top N strategies
+message StrategyDiscoveryRequest {
+  string symbol = 1;                            // Trading symbol (e.g., "BTCUSDT", "AAPL")
+  google.protobuf.Timestamp start_time = 2;     // Inclusive start time for market data
+  google.protobuf.Timestamp end_time = 3;       // Exclusive end time for market data
+  strategies.StrategyType strategy_type = 4;    // Specifies the primary type of strategy to discover
+  int32 top_n = 5;                              // Number of top strategies to return
+
+  // Configuration for the optimization algorithm.
+  oneof optimization_config {
+    GAConfig ga_config = 6; // Configuration if using Genetic Algorithm
+    // Example: OtherOptimizerConfig another_optimizer_config = 7;
+  }
+}
+
+// Represents a discovered strategy, including its full definition, achieved score,
+// and the context of its discovery.
+message DiscoveredStrategy {
+  strategies.Strategy strategy = 1;          // The actual strategy (type and parameters)
+  double score = 2;                           // The score achieved by this strategy instance
+  string symbol = 3;                          // Symbol used for this discovery/evaluation
+  google.protobuf.Timestamp start_time = 4;   // Inclusive start time of data used
+  google.protobuf.Timestamp end_time = 5;     // Exclusive end time of data used
+}
+
+// Result from the strategy discovery service: a list of top N discovered strategies
+message StrategyDiscoveryResult {
+  repeated DiscoveredStrategy top_strategies = 1; // List of discovered strategies
+}
