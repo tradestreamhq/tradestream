@@ -23,8 +23,8 @@ py_library(
 )
 
 py_library(
-    name = "candle_processor_lib",
-    srcs = ["candle_processor.py"],
+    name = "strategy_discovery_processor_lib",
+    srcs = ["strategy_discovery_processor.py"],
     deps = [
         "//protos:backtesting_py_proto",
         "//protos:marketdata_py_proto",
@@ -50,7 +50,7 @@ py_binary(
     srcs = ["main.py"],
     main = "main.py",
     deps = [
-        ":candle_processor_lib",
+        ":strategy_discovery_processor_lib",
         ":config_lib",
         ":influx_poller_lib",
         ":kafka_publisher_lib",
@@ -96,10 +96,10 @@ py_test(
 )
 
 py_test(
-    name = "candle_processor_test",
-    srcs = ["candle_processor_test.py"],
+    name = "strategy_discovery_processor_test",
+    srcs = ["strategy_discovery_processor_test.py"],
     deps = [
-        ":candle_processor_lib",
+        ":strategy_discovery_processor_lib",
         ":test_utils_lib",
         "//protos:backtesting_py_proto",
         "//protos:marketdata_py_proto",
@@ -124,7 +124,7 @@ py_test(
     srcs = ["main_test.py"],
     deps = [
         ":app",
-        ":candle_processor_lib",
+        ":strategy_discovery_processor_lib",
         ":config_lib",
         ":influx_poller_lib",
         ":kafka_publisher_lib",
@@ -139,7 +139,7 @@ py_test(
     name = "integration_test",
     srcs = ["integration_test.py"],
     deps = [
-        ":candle_processor_lib",
+        ":strategy_discovery_processor_lib",
         ":influx_poller_lib",
         ":kafka_publisher_lib",
         ":test_utils_lib",
@@ -149,17 +149,4 @@ py_test(
         "//third_party/python:kafka_python",
     ],
     size = "medium",
-)
-
-# Test Suite Target
-test_suite(
-    name = "all_tests",
-    tests = [
-        ":config_test",
-        ":influx_poller_test", 
-        ":candle_processor_test",
-        ":kafka_publisher_test",
-        ":main_test",
-        ":integration_test",
-    ],
 )
