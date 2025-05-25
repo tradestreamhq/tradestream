@@ -71,7 +71,6 @@ class TestRedisCryptoClient(unittest.TestCase):
 
         self.assertIsNone(client.client)
         self.assertEqual(MockRedis.call_count, 3)  # Called 3 times due to retries
-        
         # Check the actual log messages that are produced
         log_messages = [record.message for record in log_watcher.records]
         self.assertTrue(
