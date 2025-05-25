@@ -79,8 +79,12 @@ def main(argv):
         sys.exit(1)
 
     try:
-        logging.info(f"Fetching top {FLAGS.top_n_cryptos} cryptocurrency symbols from CoinMarketCap...")
-        top_symbols_tiingo_format = get_top_n_crypto_symbols(FLAGS.cmc_api_key, FLAGS.top_n_cryptos)
+        logging.info(
+            f"Fetching top {FLAGS.top_n_cryptos} cryptocurrency symbols from CoinMarketCap..."
+        )
+        top_symbols_tiingo_format = get_top_n_crypto_symbols(
+            FLAGS.cmc_api_key, FLAGS.top_n_cryptos
+        )
 
         if not top_symbols_tiingo_format:
             logging.warning(
