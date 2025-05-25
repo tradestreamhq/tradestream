@@ -458,8 +458,7 @@ def main(argv):
                     else: # Also check backfill state if skipping backfill run but state might exist
                         ts_backfill = influx_manager.get_last_processed_timestamp(ticker, "backfill")
                         if ts_backfill:
-                             last_processed_candle_timestamps[ticker] = ts_backfill
-
+                            last_processed_candle_timestamps[ticker] = ts_backfill
 
         # Always run catch-up after backfill (or if backfill was skipped)
         run_catch_up(
