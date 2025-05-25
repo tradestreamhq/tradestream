@@ -50,7 +50,6 @@ class TestRedisCryptoClient(unittest.TestCase):
         self.assertEqual(
             mock_redis_instance.ping.call_count, 3
         )  # Ping called for each connect attempt
-        
         # Check the actual log messages that are produced
         log_messages = [record.message for record in log_watcher.records]
         self.assertTrue(
