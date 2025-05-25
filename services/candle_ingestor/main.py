@@ -57,7 +57,7 @@ flags.DEFINE_integer(
     "Delay in seconds between Tiingo API calls for different tickers/chunks during processing.",
 )
 flags.DEFINE_integer(
-    "catch_up_initial_days",  # Renamed from polling_initial_catchup_days
+    "catch_up_initial_days",
     7,
     "How many days back to check for initial catch-up if no prior state (backfill or catch-up) is found.",
 )
@@ -78,7 +78,7 @@ def run_backfill(
     backfill_start_date_str: str,
     candle_granularity_minutes: int,
     api_call_delay_seconds: int,
-    last_processed_timestamps: dict[str, int],  # Combined state
+    last_processed_timestamps: dict[str, int],
     run_mode: str,
 ):
     logging.info("Starting historical candle backfill...")
@@ -86,7 +86,6 @@ def run_backfill(
         logging.info("DRY RUN: Backfill will use dummy data and limited iterations.")
 
     earliest_backfill_flag_dt = parse_backfill_start_date(backfill_start_date_str)
-    # Backfill up to the beginning of the current day (UTC)
     end_date_dt = datetime.now(timezone.utc).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
@@ -109,21 +108,20 @@ def run_backfill(
             logging.info(
                 f"DRY RUN: Reached max tickers for backfill ({max_dry_run_tickers})."
             )
-            break  # For dry run, stop after processing max_dry_run_tickers
+            break
         current_run_max_ts_for_ticker = 0
         db_last_processed_ts_ms = None
         if influx_manager:
             db_last_processed_ts_ms = influx_manager.get_last_processed_timestamp(
-                ticker, "backfill"  # Still check specific backfill state
+                ticker, "backfill"
             )
-        else:  # Dry run or no influx
+        else:
             db_last_processed_ts_ms = last_processed_timestamps.get(ticker)
 
         if db_last_processed_ts_ms and db_last_processed_ts_ms > 0:
             dt_from_db_ts = datetime.fromtimestamp(
                 db_last_processed_ts_ms / 1000.0, timezone.utc
             )
-            # Start backfill from the beginning of the next granularity period
             potential_next_start_from_db = (
                 dt_from_db_ts.replace(second=0, microsecond=0) + granularity_delta
             )
@@ -164,18 +162,17 @@ def run_backfill(
                 break
 
             chunk_start_str = chunk_start_dt.strftime("%Y-%m-%d")
-            # Ensure chunk_end_dt doesn't go beyond the overall end_date_dt
             chunk_end_dt = min(
-                chunk_start_dt + timedelta(days=89),  # Tiingo's recommended max chunk
+                chunk_start_dt + timedelta(days=89),
                 end_date_dt
-                - timedelta(microseconds=1),  # Ensure it's strictly before end_date_dt
+                - timedelta(microseconds=1),
             )
             chunk_end_str = chunk_end_dt.strftime("%Y-%m-%d")
 
             historical_candles = []
             if run_mode == "dry":
                 logging.info(
-                    f"DRY RUN: Simulating Tiingo API call for {ticker}: {chunk_start_str} to {chunk_end_str}"
+                    f"DRY RUN: Simulating Tiingo API call for {ticker} (backfill): {chunk_start_str} to {chunk_end_str}"
                 )
                 dummy_ts_ms = int(
                     chunk_start_dt.replace(
@@ -225,9 +222,9 @@ def run_backfill(
                         )
                     last_processed_timestamps[
                         ticker
-                    ] = latest_ts_in_batch  # Update shared state
+                    ] = latest_ts_in_batch
                     logging.info(
-                        f"  Successfully processed {len(historical_candles)} candles. Updated backfill state for {ticker} to {latest_ts_in_batch}"
+                        f"   Successfully processed {len(historical_candles)} candles. Updated backfill state for {ticker} to {latest_ts_in_batch}"
                     )
                 else:
                     logging.warning(
@@ -241,7 +238,7 @@ def run_backfill(
             dry_run_chunks_processed += 1
             chunk_start_dt = chunk_end_dt + timedelta(
                 days=1
-            )  # Move to the next day for the next chunk's start
+            )
             if (
                 chunk_start_dt < end_date_dt
                 and len(tiingo_tickers) > 1
@@ -254,7 +251,6 @@ def run_backfill(
 
         dry_run_tickers_processed += 1
         if current_run_max_ts_for_ticker > 0:
-            # Ensure the overall last processed timestamp is updated
             last_processed_timestamps[ticker] = max(
                 last_processed_timestamps.get(ticker, 0), current_run_max_ts_for_ticker
             )
@@ -275,7 +271,7 @@ def run_catch_up(
     candle_granularity_minutes: int,
     api_call_delay_seconds: int,
     initial_catch_up_days: int,
-    last_processed_timestamps: dict[str, int],  # Shared state
+    last_processed_timestamps: dict[str, int],
     run_mode: str,
 ):
     logging.info("Starting catch-up candle processing...")
@@ -296,18 +292,15 @@ def run_catch_up(
 
         last_known_ts_ms = last_processed_timestamps.get(ticker)
 
-        # If no state from backfill (or previous catch-up), try DB for "catch_up" state
         if not last_known_ts_ms and influx_manager:
             last_known_ts_ms = influx_manager.get_last_processed_timestamp(
                 ticker, "catch_up"
             )
 
-        # If still no state, use initial_catch_up_days
         if not last_known_ts_ms:
             catch_up_start_dt_utc = datetime.now(timezone.utc) - timedelta(
                 days=initial_catch_up_days
             )
-            # Align to the start of the granularity period
             aligned_minute = (
                 catch_up_start_dt_utc.minute // candle_granularity_minutes
             ) * candle_granularity_minutes
@@ -318,7 +311,6 @@ def run_catch_up(
                 f"No prior state for {ticker}. Starting catch-up from approx {initial_catch_up_days} days ago: {start_dt_utc.isoformat()}"
             )
         else:
-            # Start from the next period after the last known timestamp
             start_dt_utc = (
                 datetime.fromtimestamp(last_known_ts_ms / 1000.0, timezone.utc)
                 + granularity_delta
@@ -337,11 +329,10 @@ def run_catch_up(
                 dry_run_tickers_processed += 1
             continue
 
-        # Format for Tiingo API (handles daily vs intraday)
-        if candle_granularity_minutes >= 1440:  # Daily or more
+        if candle_granularity_minutes >= 1440:
             start_date_str = start_dt_utc.strftime("%Y-%m-%d")
             end_date_str = end_dt_utc.strftime("%Y-%m-%d")
-        else:  # Intraday
+        else:
             start_date_str = start_dt_utc.strftime("%Y-%m-%dT%H:%M:%S")
             end_date_str = end_dt_utc.strftime("%Y-%m-%dT%H:%M:%S")
 
@@ -350,18 +341,9 @@ def run_catch_up(
             logging.info(
                 f"DRY RUN: Simulating Tiingo API call for {ticker} (catch-up): {start_date_str} to {end_date_str}"
             )
-            dummy_ts_ms = int(start_dt_utc.timestamp() * 1000)
-            fetched_candles = [
-                {
-                    "timestamp_ms": dummy_ts_ms,
-                    "open": 3.0,
-                    "high": 3.1,
-                    "low": 2.9,
-                    "close": 3.05,
-                    "volume": 70.0,
-                    "currency_pair": ticker,
-                }
-            ]
+            fetched_candles = get_historical_candles_tiingo(
+                tiingo_api_key, ticker, start_date_str, end_date_str, resample_freq
+            )
         else:
             logging.info(
                 f"Catching up {ticker} from {start_date_str} to {end_date_str}"
@@ -372,7 +354,6 @@ def run_catch_up(
 
         if fetched_candles:
             fetched_candles.sort(key=lambda c: c["timestamp_ms"])
-            # Filter out candles that might be before or exactly at our start_dt_utc timestamp due to API behavior
             valid_candles_to_write = [
                 c
                 for c in fetched_candles
@@ -389,7 +370,7 @@ def run_catch_up(
                 if written_count > 0 or run_mode == "dry":
                     latest_ts_in_batch = valid_candles_to_write[-1]["timestamp_ms"]
                     last_processed_timestamps[ticker] = (
-                        latest_ts_in_batch  # Update shared state
+                        latest_ts_in_batch
                     )
                     if influx_manager:
                         influx_manager.update_last_processed_timestamp(
@@ -449,7 +430,6 @@ def main(argv):
         f"Starting candle ingestor script (Python) in {FLAGS.run_mode} mode..."
     )
     logging.info("Configuration:")
-    # Log important flags
     for flag_name in FLAGS:
         logging.info(f"  {flag_name}: {FLAGS[flag_name].value}")
 
@@ -463,14 +443,14 @@ def main(argv):
         )
         if not influx_manager.get_client():
             logging.error("Failed to connect to InfluxDB. Exiting.")
-            sys.exit(1)  # Critical error, exit
+            sys.exit(1)
     else:
         logging.info("DRY RUN: Skipping InfluxDB connection.")
 
     tiingo_tickers = []
     if FLAGS.run_mode == "dry":
         logging.info("DRY RUN: Using dummy crypto symbols.")
-        tiingo_tickers = ["btcusd-dry", "ethusd-dry"]  # Limit for dry run
+        tiingo_tickers = ["btcusd-dry", "ethusd-dry"]
     else:
         tiingo_tickers = get_top_n_crypto_symbols(
             FLAGS.cmc_api_key, FLAGS.top_n_cryptos
@@ -483,8 +463,6 @@ def main(argv):
         sys.exit(1)
     logging.info(f"Target Tiingo tickers: {tiingo_tickers}")
 
-    # This dictionary will hold the latest processed timestamp for each ticker,
-    # shared between backfill and catch-up.
     last_processed_candle_timestamps = {}
 
     try:
@@ -503,21 +481,18 @@ def main(argv):
             logging.info(
                 "Skipping historical backfill as per 'backfill_start_date' flag."
             )
-            # If skipping backfill, we still need to initialize last_processed_candle_timestamps
-            # for the catch-up phase, either from "catch_up" state or default.
             if FLAGS.run_mode == "wet" and influx_manager:
                 for ticker in tiingo_tickers:
                     ts = influx_manager.get_last_processed_timestamp(ticker, "catch_up")
                     if ts:
                         last_processed_candle_timestamps[ticker] = ts
-                    else:  # Also check backfill state if skipping backfill run but state might exist
+                    else:
                         ts_backfill = influx_manager.get_last_processed_timestamp(
                             ticker, "backfill"
                         )
                         if ts_backfill:
                             last_processed_candle_timestamps[ticker] = ts_backfill
 
-        # Always run catch-up after backfill (or if backfill was skipped)
         run_catch_up(
             influx_manager=influx_manager,
             tiingo_tickers=tiingo_tickers,
@@ -531,9 +506,9 @@ def main(argv):
 
     except Exception as e:
         logging.exception(f"Critical error in main execution: {e}")
-        if influx_manager:  # Ensure client is closed on error too
+        if influx_manager:
             influx_manager.close()
-        sys.exit(1)  # Indicate failure
+        sys.exit(1)
     finally:
         logging.info(
             "Main processing finished. Ensuring InfluxDB connection is closed if opened."
