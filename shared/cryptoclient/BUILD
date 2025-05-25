@@ -6,6 +6,7 @@ py_library(
     srcs = ["cmc_client.py"],
     visibility = [
         "//services/candle_ingestor:__pkg__",
+        "//services/top_crypto_updater:__pkg__",
     ],
     deps = [
         "//third_party/python:absl_py",
