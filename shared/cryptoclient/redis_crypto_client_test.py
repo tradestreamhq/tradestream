@@ -179,7 +179,6 @@ class TestRedisCryptoClient(unittest.TestCase):
         failing_instances = [mock.MagicMock() for _ in range(3)]
         for instance in failing_instances:
             instance.ping.side_effect = redis.exceptions.ConnectionError("Initial fail")
-        
         successful_instance = mock.MagicMock()
         successful_instance.ping.return_value = True
         expected_pairs = ["btcusd", "ethusd"]
