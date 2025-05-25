@@ -120,7 +120,6 @@ jobs:
       - name: Monitor Deployment
         run: |
           kubectl wait --for=condition=Ready -n tradestream-namespace pod --all --timeout=300s
-          
           # Verify CronJob was created successfully (CronJobs don't have Ready/Established conditions)
           echo "Checking if CronJob exists..."
           kubectl get cronjob my-tradestream-top-crypto-updater -n tradestream-namespace
