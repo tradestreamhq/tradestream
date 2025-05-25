@@ -223,9 +223,9 @@ def run_backfill(
                         influx_manager.update_last_processed_timestamp(
                             ticker, "backfill", latest_ts_in_batch
                         )
-                    last_processed_timestamps[ticker] = (
-                        latest_ts_in_batch  # Update shared state
-                    )
+                    last_processed_timestamps[
+                        ticker
+                    ] = latest_ts_in_batch  # Update shared state
                     logging.info(
                         f"  Successfully processed {len(historical_candles)} candles. Updated backfill state for {ticker} to {latest_ts_in_batch}"
                     )
