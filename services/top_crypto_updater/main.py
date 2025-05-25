@@ -26,9 +26,15 @@ default_redis_host = os.getenv("REDIS_HOST", "localhost")
 flags.DEFINE_string("redis_host", default_redis_host, "Redis host.")
 default_redis_port = int(os.getenv("REDIS_PORT", "6379"))
 flags.DEFINE_integer("redis_port", default_redis_port, "Redis port.")
-flags.DEFINE_string("redis_password", os.getenv("REDIS_PASSWORD"), "Redis password (if any).")
+flags.DEFINE_string(
+    "redis_password", os.getenv("REDIS_PASSWORD"), "Redis password (if any)."
+)
 default_redis_key = os.getenv("REDIS_KEY", "top_cryptocurrencies")
-flags.DEFINE_string("redis_key", default_redis_key, "Redis key to store the list of top cryptocurrencies.")
+flags.DEFINE_string(
+    "redis_key",
+    default_redis_key,
+    "Redis key to store the list of top cryptocurrencies.",
+)
 
 
 # Global variable for shutdown handling
@@ -60,11 +66,15 @@ def main(argv):
     signal.signal(signal.SIGTERM, handle_shutdown_signal)
 
     if not FLAGS.cmc_api_key:
-        logging.error("CMC_API_KEY is required. Set environment variable or use --cmc_api_key.")
+        logging.error(
+            "CMC_API_KEY is required. Set environment variable or use --cmc_api_key."
+        )
         sys.exit(1)
 
     logging.info("Configuration:")
-    logging.info(f"  CoinMarketCap API Key: {'****' if FLAGS.cmc_api_key else 'Not Set'}")
+    logging.info(
+        f"  CoinMarketCap API Key: {'****' if FLAGS.cmc_api_key else 'Not Set'}"
+    )
     logging.info(f"  Top N Cryptos: {FLAGS.top_n_cryptos}")
     logging.info(f"  Redis Host: {FLAGS.redis_host}")
     logging.info(f"  Redis Port: {FLAGS.redis_port}")

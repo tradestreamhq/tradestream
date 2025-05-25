@@ -34,21 +34,23 @@ class RedisManager:
         try:
             logging.info(f"Attempting to connect to Redis at {self.host}:{self.port}")
             self.client = redis.Redis(
-                host=self.host, port=self.port, password=self.password,
-                socket_connect_timeout=5, # seconds
-                socket_timeout=5, # seconds
-                decode_responses=True # Decode responses to strings
+                host=self.host,
+                port=self.port,
+                password=self.password,
+                socket_connect_timeout=5,  # seconds
+                socket_timeout=5,  # seconds
+                decode_responses=True,  # Decode responses to strings
             )
             if not self.client.ping():
                 logging.error(
                     f"Failed to ping Redis at {self.host}:{self.port}. Check connection and configuration."
                 )
-                self.client = None # Ensure client is None if ping fails
+                self.client = None  # Ensure client is None if ping fails
                 raise redis.exceptions.ConnectionError("Ping failed")
             logging.info("Successfully connected to Redis and pinged server.")
         except Exception as e:
             logging.error(f"Error connecting to Redis at {self.host}:{self.port}: {e}")
-            self.client = None # Ensure client is None on any exception
+            self.client = None  # Ensure client is None on any exception
             raise
 
     def get_client(self) -> redis.Redis | None:
