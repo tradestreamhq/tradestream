@@ -91,6 +91,7 @@ def main(argv):
     except redis.exceptions.RedisError as e:
         logging.error(f"Failed to initialize RedisManager: {e}. Exiting.")
         sys.exit(1)
+    # If Redis initialization failed and exited, the rest of the `try` block for symbol fetching won't run.
 
     try:
         logging.info(
@@ -112,9 +113,11 @@ def main(argv):
             else:
                 logging.error(f"Failed to update Redis key '{FLAGS.redis_key}'.")
 
+    except SystemExit: # Explicitly catch SystemExit from a previous sys.exit()
+        raise # Re-raise to ensure the script terminates
     except Exception as e:
         logging.exception(f"An error occurred during the update process: {e}")
-        sys.exit(1)
+        sys.exit(1) # This is the second potential exit point if other errors occur
     finally:
         if redis_manager_global:
             redis_manager_global.close()
