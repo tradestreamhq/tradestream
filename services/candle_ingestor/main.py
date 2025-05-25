@@ -442,9 +442,9 @@ def run_catch_up(
 
                 if written_count > 0 or run_mode == "dry":
                     latest_ts_in_batch = valid_candles_to_write[-1]["timestamp_ms"]
-                    last_processed_timestamps[ticker] = (
-                        latest_ts_in_batch  # Update in-memory state
-                    )
+                    last_processed_timestamps[
+                        ticker
+                    ] = latest_ts_in_batch  # Update in-memory state
                     if influx_manager:
                         influx_manager.update_last_processed_timestamp(
                             ticker, "catch_up", latest_ts_in_batch
