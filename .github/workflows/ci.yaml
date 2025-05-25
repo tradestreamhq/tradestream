@@ -75,13 +75,24 @@ jobs:
             --repository localhost:5000/candle-ingestor \
             --tag "latest"
 
+          # Build and push top-crypto-updater image
+          bazel run //services/top_crypto_updater:push_top_crypto_updater_image \
+            -- \
+            --repository localhost:5000/top-crypto-updater \
+            --tag "latest"
+
           # Load images into minikube
           docker pull localhost:5000/tradestream-data-pipeline:latest
           docker tag localhost:5000/tradestream-data-pipeline:latest tradestream-data-pipeline:latest
           minikube image load tradestream-data-pipeline:latest
+          
           docker pull localhost:5000/candle-ingestor:latest
           docker tag localhost:5000/candle-ingestor:latest candle-ingestor:latest
           minikube image load candle-ingestor:latest
+          
+          docker pull localhost:5000/top-crypto-updater:latest
+          docker tag localhost:5000/top-crypto-updater:latest top-crypto-updater:latest
+          minikube image load top-crypto-updater:latest
 
       - name: Install Cert Manager
         run: |
@@ -95,23 +106,30 @@ jobs:
           set -eo pipefail
           helm dependency update charts/tradestream
 
-          # Fixed pipeline image repository to use correct image
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
             --set pipeline.image.repository=tradestream-data-pipeline \
             --set pipeline.image.tag=latest \
             --set candleIngestor.image.repository=candle-ingestor \
             --set candleIngestor.image.tag=latest \
-            --set pipeline.runMode=dry
+            --set topCryptoUpdaterCronjob.image.repository=top-crypto-updater \
+            --set topCryptoUpdaterCronjob.image.tag=latest \
+            --set pipeline.runMode=dry \
+            --set redis.enabled=true \
+            --set topCryptoUpdaterCronjob.enabled=true
 
       - name: Monitor Deployment
         run: |
           kubectl wait --for=condition=Ready -n tradestream-namespace pod --all --timeout=300s
+          # Wait for cronjob to be created, but not necessarily to complete
+          kubectl wait --for=condition=Established -n tradestream-namespace cronjob/my-tradestream-top-crypto-updater --timeout=60s
+
 
       - name: Diagnostics
         if: always()
         run: |
           echo "=== FINAL DIAGNOSTIC SNAPSHOT ==="
           kubectl get all -n tradestream-namespace -o wide
+          kubectl get cronjobs -n tradestream-namespace -o yaml
           kubectl get events -n tradestream-namespace --sort-by=.metadata.creationTimestamp
           helm status my-tradestream -n tradestream-namespace
