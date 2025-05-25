@@ -120,9 +120,22 @@ jobs:
       - name: Monitor Deployment
         run: |
           kubectl wait --for=condition=Ready -n tradestream-namespace pod --all --timeout=300s
-          # Wait for cronjob to be created, but not necessarily to complete
-          kubectl wait --for=condition=Established -n tradestream-namespace cronjob/my-tradestream-top-crypto-updater --timeout=60s
-
+          
+          # Verify CronJob was created successfully (CronJobs don't have Ready/Established conditions)
+          echo "Checking if CronJob exists..."
+          kubectl get cronjob my-tradestream-top-crypto-updater -n tradestream-namespace
+          
+          # Check CronJob status and configuration
+          echo "CronJob details:"
+          kubectl describe cronjob my-tradestream-top-crypto-updater -n tradestream-namespace
+          
+          # Verify CronJob is not suspended
+          if kubectl get cronjob my-tradestream-top-crypto-updater -n tradestream-namespace -o jsonpath='{.spec.suspend}' | grep -q true; then
+            echo "ERROR: CronJob is suspended"
+            exit 1
+          else
+            echo "CronJob is active and ready to run on schedule"
+          fi
 
       - name: Diagnostics
         if: always()
