@@ -28,6 +28,7 @@ proto_library(
     deps = [
         ":marketdata_proto",
         ":strategies_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 
