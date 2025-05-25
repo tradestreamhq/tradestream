@@ -89,6 +89,7 @@ class TopCryptoUpdaterMainTest(absltest.TestCase):
         # Make the mock sys.exit actually raise SystemExit to simulate real behavior
         def side_effect(code):
             raise SystemExit(code)
+
         mock_sys_exit.side_effect = side_effect
 
         with self.assertRaises(SystemExit) as cm:
