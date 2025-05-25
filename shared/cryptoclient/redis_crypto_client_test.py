@@ -50,11 +50,14 @@ class TestRedisCryptoClient(unittest.TestCase):
         self.assertEqual(
             mock_redis_instance.ping.call_count, 3
         )  # Ping called for each connect attempt
+        
+        # Check the actual log messages that are produced
+        log_messages = [record.message for record in log_watcher.records]
         self.assertTrue(
             any(
-                "Failed to connect to Redis at localhost:6379 after multiple retries"
+                "RedisCryptoClient: Failed to connect to Redis at localhost:6379 after multiple retries"
                 in message
-                for message in log_watcher.output
+                for message in log_messages
             )
         )
 
@@ -68,11 +71,14 @@ class TestRedisCryptoClient(unittest.TestCase):
 
         self.assertIsNone(client.client)
         self.assertEqual(MockRedis.call_count, 3)  # Called 3 times due to retries
+        
+        # Check the actual log messages that are produced
+        log_messages = [record.message for record in log_watcher.records]
         self.assertTrue(
             any(
-                "Failed to connect to Redis at remotehost:1234 after multiple retries"
+                "RedisCryptoClient: Failed to connect to Redis at remotehost:1234 after multiple retries"
                 in message
-                for message in log_watcher.output
+                for message in log_messages
             )
         )
 
@@ -112,10 +118,11 @@ class TestRedisCryptoClient(unittest.TestCase):
             pairs = client.get_top_crypto_pairs_from_redis("invalid_json_key")
 
         self.assertEqual(pairs, [])
+        log_messages = [record.message for record in log_watcher.records]
         self.assertTrue(
             any(
                 "Failed to parse JSON from Redis key 'invalid_json_key'" in message
-                for message in log_watcher.output
+                for message in log_messages
             )
         )
 
@@ -130,11 +137,12 @@ class TestRedisCryptoClient(unittest.TestCase):
             pairs = client.get_top_crypto_pairs_from_redis("not_a_list_key")
 
         self.assertEqual(pairs, [])
+        log_messages = [record.message for record in log_watcher.records]
         self.assertTrue(
             any(
                 "Value for key 'not_a_list_key' in Redis is not a JSON list of strings"
                 in message
-                for message in log_watcher.output
+                for message in log_messages
             )
         )
 
@@ -153,11 +161,13 @@ class TestRedisCryptoClient(unittest.TestCase):
         self.assertEqual(pairs, [])
         # get is called inside _get_value_retryable, which has 3 attempts
         self.assertEqual(mock_redis_instance.get.call_count, 3)
+        
+        log_messages = [record.message for record in log_watcher.records]
         self.assertTrue(
             any(
                 "Failed to get value for key 'fail_key' from Redis after multiple retries"
                 in message
-                for message in log_watcher.output
+                for message in log_messages
             )
         )
 
@@ -165,15 +175,18 @@ class TestRedisCryptoClient(unittest.TestCase):
     def test_get_top_crypto_pairs_client_initially_none_then_reconnects_for_get(
         self, MockRedis
     ):
-        # Simulate initial connection failure during __init__
-        MockRedis.side_effect = [
-            redis.exceptions.ConnectionError("Initial fail")
-        ] * 3 + [mock.MagicMock()]
-        # The 4th call (first call from within get_top_crypto_pairs_from_redis -> _connect) should succeed
-        mock_successful_redis_instance = MockRedis.side_effect[3]
-        mock_successful_redis_instance.ping.return_value = True
+        # Create separate mock instances for each call
+        failing_instances = [mock.MagicMock() for _ in range(3)]
+        for instance in failing_instances:
+            instance.ping.side_effect = redis.exceptions.ConnectionError("Initial fail")
+        
+        successful_instance = mock.MagicMock()
+        successful_instance.ping.return_value = True
         expected_pairs = ["btcusd", "ethusd"]
-        mock_successful_redis_instance.get.return_value = json.dumps(expected_pairs)
+        successful_instance.get.return_value = json.dumps(expected_pairs)
+        
+        # Set up the side_effect with the instances
+        MockRedis.side_effect = failing_instances + [successful_instance]
 
         client = RedisCryptoClient(host="localhost", port=6379)  # __init__ fails
         self.assertIsNone(client.client)
@@ -184,7 +197,7 @@ class TestRedisCryptoClient(unittest.TestCase):
         self.assertEqual(
             MockRedis.call_count, 4
         )  # 3 for __init__ retries + 1 for get_top_crypto's _connect
-        mock_successful_redis_instance.get.assert_called_once_with("test_key")
+        successful_instance.get.assert_called_once_with("test_key")
 
     @mock.patch("redis.Redis")
     def test_close_client(self, MockRedis):
@@ -203,13 +216,7 @@ class TestRedisCryptoClient(unittest.TestCase):
         client = RedisCryptoClient(host="localhost", port=6379)
         self.assertIsNone(client.client)
         client.close()  # Should not raise an error
-        # Assert that close was not called on any mock instance if it was never successfully created
-        # This depends on how MockRedis is configured. If it returns a mock even on failure,
-        # then mock_redis_instance.close might be checked. If it raises, then no instance.
-        # For this setup, MockRedis will be called 3 times but client.client remains None.
-        # So, no mock_redis_instance.close() would be called through client.client.
-        # We can check no *specific* instance's close was called.
-        pass
+        # Since client.client is None, close() should not attempt to call close on any redis instance
 
 
 if __name__ == "__main__":
