@@ -13,7 +13,6 @@ from shared.cryptoclient.redis_crypto_client import RedisCryptoClient, RetryErro
 
 
 class TestRedisCryptoClient(unittest.TestCase):
-
     @mock.patch("redis.Redis")
     def test_init_connection_success(self, MockRedis):
         mock_redis_instance = MockRedis.return_value
