@@ -12,7 +12,11 @@ redis_retry_params = dict(
     stop=stop_after_attempt(5),
     wait=wait_exponential(multiplier=1, min=2, max=30),
     retry=retry_if_exception_type(
-        (redis.exceptions.ConnectionError, redis.exceptions.TimeoutError, redis.exceptions.RedisError) # Added RedisError
+        (
+            redis.exceptions.ConnectionError,
+            redis.exceptions.TimeoutError,
+            redis.exceptions.RedisError,
+        )  # Added RedisError
     ),
     reraise=True,
 )
