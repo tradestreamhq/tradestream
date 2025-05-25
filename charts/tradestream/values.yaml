@@ -135,5 +135,5 @@ topCryptoUpdaterCronjob:
       name: "coinmarketcap" # Assuming this secret exists and has the apiKey
       key: "apiKey"
   redis:
-    host: "{{ include \"tradestream.fullname\" . }}-redis-master" # Dynamically set Redis host
+    host: '{{ include "tradestream.fullname" . }}-redis-master' # Dynamically set Redis host
     port: 6379
