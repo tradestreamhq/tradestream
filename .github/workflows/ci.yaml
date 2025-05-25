@@ -89,7 +89,6 @@ jobs:
           docker pull localhost:5000/candle-ingestor:latest
           docker tag localhost:5000/candle-ingestor:latest candle-ingestor:latest
           minikube image load candle-ingestor:latest
-          
           docker pull localhost:5000/top-crypto-updater:latest
           docker tag localhost:5000/top-crypto-updater:latest top-crypto-updater:latest
           minikube image load top-crypto-updater:latest
