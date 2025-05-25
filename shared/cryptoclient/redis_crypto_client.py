@@ -22,7 +22,7 @@ redis_retry_params = dict(
             redis.exceptions.RedisError,
         )
     ),
-    reraise=True,
+    # Remove reraise=True to allow RetryError to be raised after exhausting retries
 )
 
 
@@ -34,7 +34,7 @@ class RedisCryptoClient:
         self.client = None
         try:
             self._connect()
-        except RetryError as e:  # Catch RetryError specifically if all retries fail
+        except RetryError as e:  # This will now be reached when retries are exhausted
             logging.error(
                 f"RedisCryptoClient: Failed to connect to Redis at {self.host}:{self.port} after multiple retries: {e}"
             )
