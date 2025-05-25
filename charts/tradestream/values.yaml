@@ -113,12 +113,12 @@ redis:
   #   enabled: true
   #   size: 8Gi
 
-# Top N Updater CronJob configuration
-topNUpdaterCronjob:
+# Top Crypto Updater CronJob configuration
+topCryptoUpdaterCronjob:
   enabled: true
   schedule: "*/15 * * * *" # Run every 15 minutes
   image:
-    repository: "tradestreamhq/top-n-updater"
+    repository: "tradestreamhq/top-crypto-updater"
     pullPolicy: IfNotPresent
     tag: "latest"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
