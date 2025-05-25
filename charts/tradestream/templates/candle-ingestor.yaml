@@ -1,4 +1,3 @@
-charts/tradestream/templates/candle-ingestor.yaml
 {{- if .Values.candleIngestor.enabled }}
 apiVersion: batch/v1
 kind: CronJob
