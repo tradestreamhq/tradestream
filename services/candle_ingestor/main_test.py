@@ -311,7 +311,7 @@ class MainFunctionTest(BaseIngestorTest):
         # Mock get_historical_candles for the catch-up part of the dry run
         # In dry mode, the actual function doesn't call get_historical_candles_tiingo,
         # so this mock won't be called. Let's check the logs to see what's happening.
-        
+
         with mock.patch.object(sys, "exit") as mock_exit:
             candle_ingestor_main.main(None)
             mock_exit.assert_called_once_with(0)  # Expect successful exit
