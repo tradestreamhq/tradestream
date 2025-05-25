@@ -43,6 +43,7 @@ class BaseIngestorTest(absltest.TestCase):
         self.mock_redis_client_instance = mock.MagicMock(
             spec=redis_crypto_client.RedisCryptoClient
         )
+        self.mock_redis_client_instance.client = mock.MagicMock()
         self.mock_redis_crypto_client_constructor.return_value = (
             self.mock_redis_client_instance
         )
