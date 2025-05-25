@@ -113,8 +113,8 @@ def main(argv):
             else:
                 logging.error(f"Failed to update Redis key '{FLAGS.redis_key}'.")
 
-    except SystemExit: # Explicitly catch SystemExit from a previous sys.exit()
-        raise # Re-raise to ensure the script terminates
+    except SystemExit:  # Explicitly catch SystemExit from a previous sys.exit()
+        raise  # Re-raise to ensure the script terminates
     except Exception as e:
         logging.exception(f"An error occurred during the update process: {e}")
         sys.exit(1)  # This is the second potential exit point if other errors occur
