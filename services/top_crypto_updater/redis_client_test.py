@@ -82,9 +82,8 @@ class TestRedisManager(unittest.TestCase):
         except redis.exceptions.ConnectionError:
             # Expected due to __init__ failing
             pass
-        
-        self.assertIsNone(manager.client, "Client should be None after failed __init__")
 
+        self.assertIsNone(manager.client, "Client should be None after failed __init__")
 
         # Act
         client = manager.get_client()
@@ -94,7 +93,6 @@ class TestRedisManager(unittest.TestCase):
         # Called 5 times during __init__ (all failing), then 1 time during get_client (succeeding)
         self.assertEqual(mock_redis_client_constructor.call_count, 6)
         mock_successful_connection.ping.assert_called_once()
-
 
     @mock.patch("redis.Redis")
     def test_get_client_not_initialized_reconnect_fails(
@@ -108,22 +106,25 @@ class TestRedisManager(unittest.TestCase):
 
         manager = None
         with self.assertRaises(redis.exceptions.ConnectionError):
-             manager = RedisManager(host="localhost", port=6379) # Initial connection fails and __init__ re-raises
+            manager = RedisManager(
+                host="localhost", port=6379
+            )  # Initial connection fails and __init__ re-raises
 
-        self.assertIsNone(manager.client, "Client should be None after failed __init__ due to persistent errors")
+        self.assertIsNone(
+            manager.client,
+            "Client should be None after failed __init__ due to persistent errors",
+        )
 
         # Act
         # get_client will attempt to reconnect, which will also fail after retries.
         # It will catch the exception from its _connect call and return None.
         client = manager.get_client()
 
-
         # Assert
         self.assertIsNone(client)
         # __init__ calls _connect which retries 5 times (5 constructor calls).
         # get_client calls _connect which retries 5 times (5 more constructor calls).
         self.assertEqual(mock_redis_client_constructor.call_count, 10)
-
 
     @mock.patch("redis.Redis")
     def test_set_value_success(self, mock_redis_client_constructor):
@@ -148,9 +149,11 @@ class TestRedisManager(unittest.TestCase):
         mock_redis_client_constructor.side_effect = redis.exceptions.ConnectionError(
             "Connection Error"
         )
-        
+
         manager = None
-        with self.assertRaises(redis.exceptions.ConnectionError): # Expect __init__ to fail
+        with self.assertRaises(
+            redis.exceptions.ConnectionError
+        ):  # Expect __init__ to fail
             manager = RedisManager(host="localhost", port=6379)
 
         self.assertIsNone(manager.client)
@@ -160,7 +163,6 @@ class TestRedisManager(unittest.TestCase):
 
         # Assert
         self.assertFalse(result)
-
 
     @mock.patch("redis.Redis")
     def test_set_value_redis_error_raises_and_retries(
@@ -178,8 +180,10 @@ class TestRedisManager(unittest.TestCase):
         with self.assertRaises(redis.exceptions.RedisError):
             manager.set_value("test_key", "test_value")
         # Verify .set was called 5 times due to retry
-        self.assertEqual(mock_client_instance.set.call_count, redis_retry_params["stop"].max_attempt_number)
-
+        self.assertEqual(
+            mock_client_instance.set.call_count,
+            redis_retry_params["stop"].max_attempt_number,
+        )
 
     @mock.patch("redis.Redis")
     def test_close_closes_client(self, mock_redis_client_constructor):
@@ -200,11 +204,15 @@ class TestRedisManager(unittest.TestCase):
     @mock.patch("redis.Redis")
     def test_close_no_client_does_nothing(self, mock_redis_client_constructor):
         # Arrange
-        mock_redis_client_constructor.side_effect = redis.exceptions.ConnectionError("No connect")
-        
+        mock_redis_client_constructor.side_effect = redis.exceptions.ConnectionError(
+            "No connect"
+        )
+
         manager = None
-        with self.assertRaises(redis.exceptions.ConnectionError): # Expect __init__ to fail
-             manager = RedisManager(host="localhost", port=6379)
+        with self.assertRaises(
+            redis.exceptions.ConnectionError
+        ):  # Expect __init__ to fail
+            manager = RedisManager(host="localhost", port=6379)
         self.assertIsNone(manager.client)
 
         # Act

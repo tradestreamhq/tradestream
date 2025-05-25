@@ -34,7 +34,7 @@ class RedisManager:
             logging.error(f"RedisManager __init__ failed to connect after retries: {e}")
             # Ensure client is None if constructor fails to establish connection
             self.client = None
-            raise # Re-raise the exception after logging
+            raise  # Re-raise the exception after logging
 
     @retry(**redis_retry_params)
     def _connect(self):
