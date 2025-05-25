@@ -477,7 +477,7 @@ def main(argv):
         logging.exception(f"Critical error in main execution: {e}")
         if influx_manager: # Ensure client is closed on error too
             influx_manager.close()
-        sys.exit(1) # Indicate failure
+        sys.exit(1)  # Indicate failure
     finally:
         logging.info(
             "Main processing finished. Ensuring InfluxDB connection is closed if opened."
