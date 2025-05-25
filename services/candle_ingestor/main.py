@@ -476,7 +476,7 @@ def main(argv):
 
     except Exception as e:
         logging.exception(f"Critical error in main execution: {e}")
-        if influx_manager: # Ensure client is closed on error too
+        if influx_manager:  # Ensure client is closed on error too
             influx_manager.close()
         sys.exit(1)  # Indicate failure
     finally:
