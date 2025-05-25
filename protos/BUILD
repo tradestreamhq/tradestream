@@ -1,4 +1,5 @@
-load("@rules_python//python:proto.bzl", "py_proto_library")
+load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
+load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 
 proto_library(
     name = "backtesting_proto",
@@ -20,6 +21,21 @@ py_proto_library(
     name = "backtesting_py_proto",
     visibility = ["//visibility:public"],
     deps = [":backtesting_proto"],
+)
+
+proto_library(
+    name = "discovery_proto",
+    srcs = ["discovery.proto"],
+    deps = [
+        ":strategies_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+py_proto_library(
+    name = "discovery_py_proto",
+    visibility = ["//visibility:public"],
+    deps = [":discovery_proto"],
 )
 
 proto_library(

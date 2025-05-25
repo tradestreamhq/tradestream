@@ -34,6 +34,14 @@ py_library(
 )
 
 py_library(
+    name = "redis",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("redis"),
+    ],
+)
+
+py_library(
     name = "requests",
     visibility = ["//visibility:public"],
     deps = [

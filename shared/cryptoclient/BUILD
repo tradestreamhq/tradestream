@@ -7,6 +7,7 @@ py_library(
     visibility = [
         "//services/candle_ingestor:__pkg__",
         "//services/strategy_discovery_request_factory:__pkg__",
+        "//services/top_crypto_updater:__pkg__",
     ],
     deps = [
         "//third_party/python:absl_py",
