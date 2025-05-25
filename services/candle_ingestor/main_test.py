@@ -9,6 +9,7 @@ from absl.testing import flagsaver
 
 from services.candle_ingestor import main as candle_ingestor_main
 from services.candle_ingestor import influx_client as influx_client_module
+from shared.cryptoclient import redis_crypto_client # For mocking Redis client
 
 FLAGS = flags.FLAGS
 
@@ -22,11 +23,11 @@ class BaseIngestorTest(absltest.TestCase):
         )
         self.mock_influx_manager.get_client.return_value = (
             self.mock_influx_manager
-        )  # Simulate connected client
+        ) 
         self.mock_influx_manager.get_last_processed_timestamp.return_value = None
         self.mock_influx_manager.update_last_processed_timestamp.return_value = None
         self.mock_influx_manager.write_candles_batch.return_value = (
-            1  # Assume 1 batch written
+            1 
         )
 
         self.patch_influx_db_manager = mock.patch(
@@ -36,11 +37,16 @@ class BaseIngestorTest(absltest.TestCase):
         self.mock_influx_db_manager_class = self.patch_influx_db_manager.start()
         self.addCleanup(self.patch_influx_db_manager.stop)
 
-        self.patch_get_top_n_crypto_symbols = mock.patch(
-            "services.candle_ingestor.main.get_top_n_crypto_symbols"
+        # Mock RedisCryptoClient
+        self.patch_redis_crypto_client = mock.patch(
+            "services.candle_ingestor.main.RedisCryptoClient"
         )
-        self.mock_get_top_n_crypto_symbols = self.patch_get_top_n_crypto_symbols.start()
-        self.addCleanup(self.patch_get_top_n_crypto_symbols.stop)
+        self.mock_redis_crypto_client_constructor = self.patch_redis_crypto_client.start()
+        self.mock_redis_client_instance = mock.MagicMock(spec=redis_crypto_client.RedisCryptoClient)
+        self.mock_redis_crypto_client_constructor.return_value = self.mock_redis_client_instance
+        self.mock_redis_client_instance.get_client.return_value = True # Simulate connected
+        self.addCleanup(self.patch_redis_crypto_client.stop)
+
 
         self.patch_get_historical_candles = mock.patch(
             "services.candle_ingestor.main.get_historical_candles_tiingo"
@@ -48,33 +54,29 @@ class BaseIngestorTest(absltest.TestCase):
         self.mock_get_historical_candles = self.patch_get_historical_candles.start()
         self.addCleanup(self.patch_get_historical_candles.stop)
 
-        # Mock time.sleep to prevent actual sleeping during tests
         self.patch_time_sleep = mock.patch("services.candle_ingestor.main.time.sleep")
         self.mock_time_sleep = self.patch_time_sleep.start()
         self.addCleanup(self.patch_time_sleep.stop)
 
-        # Mock datetime.now for controllable time
         self.patch_main_datetime_now = mock.patch(
             "services.candle_ingestor.main.datetime"
         )
         self.mock_main_datetime_module = self.patch_main_datetime_now.start()
         self.addCleanup(self.patch_main_datetime_now.stop)
 
-        # Also mock datetime in ingestion_helpers if it's used there directly for 'now'
         self.patch_helpers_datetime_now = mock.patch(
             "services.candle_ingestor.ingestion_helpers.datetime"
         )
         self.mock_helpers_datetime_module = self.patch_helpers_datetime_now.start()
         self.addCleanup(self.patch_helpers_datetime_now.stop)
 
-        # Configure the datetime mock to behave like the real datetime for non-now calls
         self.mock_main_datetime_module.fromtimestamp = datetime.fromtimestamp
         self.mock_main_datetime_module.strptime = datetime.strptime
         self.mock_main_datetime_module.side_effect = lambda *args, **kwargs: datetime(
             *args, **kwargs
         )
         self.mock_main_datetime_module.timezone = (
-            timezone  # Allow access to timezone.utc
+            timezone 
         )
 
         self.mock_helpers_datetime_module.fromtimestamp = datetime.fromtimestamp
@@ -85,21 +87,24 @@ class BaseIngestorTest(absltest.TestCase):
         self.mock_helpers_datetime_module.timezone = timezone
 
         self.saved_flags = flagsaver.save_flag_values()
-        FLAGS.cmc_api_key = "dummy_cmc_for_test"
         FLAGS.tiingo_api_key = "dummy_tiingo_for_test"
         FLAGS.influxdb_token = "dummy_influx_token_for_test"
         FLAGS.influxdb_org = "dummy_influx_org_for_test"
+        FLAGS.redis_host = "dummy_redis_host_for_test" # Added
+        FLAGS.redis_key_crypto_symbols = "test_crypto_symbols" # Added
         FLAGS.candle_granularity_minutes = 1
-        FLAGS.catch_up_initial_days = 1  # Default for tests if not overridden
-        FLAGS.tiingo_api_call_delay_seconds = 0  # No delay in tests
-        FLAGS.backfill_start_date = "1_day_ago"  # Default for tests
+        FLAGS.catch_up_initial_days = 1 
+        FLAGS.tiingo_api_call_delay_seconds = 0 
+        FLAGS.backfill_start_date = "1_day_ago" 
 
         self.test_ticker = "btcusd"
         self.tiingo_tickers = [
             self.test_ticker,
             "ethusd",
-        ]  # Include multiple for some tests
-        self.mock_get_top_n_crypto_symbols.return_value = self.tiingo_tickers
+        ] 
+        # Mock Redis to return these tickers
+        self.mock_redis_client_instance.get_top_crypto_pairs_from_redis.return_value = self.tiingo_tickers
+
 
         self.last_processed_timestamps_shared_state = {}
 
@@ -130,11 +135,10 @@ class RunBackfillTest(BaseIngestorTest):
         """Test backfill starts from flag date when no DB state exists."""
         self._set_current_time(
             "2023-01-10T12:00:00"
-        )  # Set current time for end_date_dt calculation
-        FLAGS.backfill_start_date = "1_day_ago"  # Expected start: 2023-01-09T00:00:00Z (aligned by parse_backfill_start_date)
+        ) 
+        FLAGS.backfill_start_date = "1_day_ago" 
         self.mock_influx_manager.get_last_processed_timestamp.return_value = None
 
-        # Backfill runs up to the start of the current day
         expected_candle_ts_for_fetch_start = (
             datetime(2023, 1, 9, 0, 0, 0, tzinfo=timezone.utc).timestamp() * 1000
         )
@@ -145,7 +149,7 @@ class RunBackfillTest(BaseIngestorTest):
             influx_manager=self.mock_influx_manager,
             tiingo_tickers=[
                 self.test_ticker
-            ],  # Test with a single ticker for simplicity here
+            ], 
             tiingo_api_key=FLAGS.tiingo_api_key,
             backfill_start_date_str=FLAGS.backfill_start_date,
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
@@ -154,11 +158,6 @@ class RunBackfillTest(BaseIngestorTest):
             run_mode="wet",
             dry_run_processing_limit=None,
         )
-        # Start date for Tiingo is YYYY-MM-DD
-        # End date is one day before current time's date (exclusive)
-        # Current time is 2023-01-10, so backfill ends before 2023-01-10
-        # For 1_day_ago from 2023-01-10, parse_backfill_start_date gives 2023-01-09T12:00:00Z
-        # Backfill window: 2023-01-09 to 2023-01-09 (since end_date_dt is 2023-01-10T00:00:00Z)
         self.mock_get_historical_candles.assert_called_with(
             FLAGS.tiingo_api_key, self.test_ticker, "2023-01-09", "2023-01-09", mock.ANY
         )
@@ -173,18 +172,15 @@ class RunBackfillTest(BaseIngestorTest):
     def test_backfill_resumes_from_db_state(self):
         self._set_current_time("2023-01-10T12:00:00")
         FLAGS.backfill_start_date = (
-            "5_days_ago"  # Earliest possible: 2023-01-05T12:00:00Z
+            "5_days_ago" 
         )
         db_resume_timestamp_ms = int(
             datetime(2023, 1, 7, 0, 0, 0, tzinfo=timezone.utc).timestamp() * 1000
-        )  # DB state: 2023-01-07T00:00:00Z
+        ) 
         self.mock_influx_manager.get_last_processed_timestamp.return_value = (
             db_resume_timestamp_ms
         )
 
-        # Expected fetch start for Tiingo: day after last processed + granularity alignment
-        # last processed dt = 2023-01-07T00:00:00Z. Next period starts 2023-01-07T00:01:00Z
-        # Tiingo API uses date strings. Effective start: 2023-01-07
         expected_candle_ts_for_fetch = (
             datetime(2023, 1, 7, 0, 1, 0, tzinfo=timezone.utc).timestamp() * 1000
         )
@@ -202,7 +198,6 @@ class RunBackfillTest(BaseIngestorTest):
             run_mode="wet",
             dry_run_processing_limit=None,
         )
-        # Backfill window: From 2023-01-07 up to (but not including) 2023-01-10
         self.mock_get_historical_candles.assert_called_with(
             FLAGS.tiingo_api_key, self.test_ticker, "2023-01-07", "2023-01-09", mock.ANY
         )
@@ -220,10 +215,8 @@ class RunCatchUpTest(BaseIngestorTest):
         self.last_processed_timestamps_shared_state[
             self.test_ticker
         ] = backfill_state_ms
-        # No "catch_up" state in DB, so it will use the backfill state from memory
         self.mock_influx_manager.get_last_processed_timestamp.return_value = None
 
-        # Expected fetch for catch-up: from 2023-01-10T11:59:00Z up to 2023-01-10T12:05:00Z
         expected_catch_up_candle_ts = int(
             datetime(2023, 1, 10, 12, 0, 0, tzinfo=timezone.utc).timestamp() * 1000
         )
@@ -245,8 +238,8 @@ class RunCatchUpTest(BaseIngestorTest):
         self.mock_get_historical_candles.assert_called_with(
             FLAGS.tiingo_api_key,
             self.test_ticker,
-            "2023-01-10T11:59:00",  # Start of next period after backfill
-            "2023-01-10T12:05:00",  # Current time
+            "2023-01-10T11:59:00", 
+            "2023-01-10T12:05:00", 
             mock.ANY,
         )
         self.mock_influx_manager.update_last_processed_timestamp.assert_called_with(
@@ -259,7 +252,6 @@ class RunCatchUpTest(BaseIngestorTest):
 
     def test_catch_up_from_db_catch_up_state(self):
         self._set_current_time("2023-01-10T12:05:00")
-        # No in-memory state for this ticker initially
         catch_up_db_state_ms = int(
             datetime(2023, 1, 10, 12, 0, 0, tzinfo=timezone.utc).timestamp() * 1000
         )
@@ -280,7 +272,7 @@ class RunCatchUpTest(BaseIngestorTest):
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
             api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
             initial_catch_up_days=FLAGS.catch_up_initial_days,
-            last_processed_timestamps=self.last_processed_timestamps_shared_state,  # Initially empty for this ticker
+            last_processed_timestamps=self.last_processed_timestamps_shared_state, 
             run_mode="wet",
             dry_run_processing_limit=None,
         )
@@ -290,8 +282,8 @@ class RunCatchUpTest(BaseIngestorTest):
         self.mock_get_historical_candles.assert_called_with(
             FLAGS.tiingo_api_key,
             self.test_ticker,
-            "2023-01-10T12:01:00",  # Start of next period after DB catch_up state
-            "2023-01-10T12:05:00",  # Current time
+            "2023-01-10T12:01:00", 
+            "2023-01-10T12:05:00", 
             mock.ANY,
         )
 
@@ -301,42 +293,31 @@ class MainFunctionTest(BaseIngestorTest):
     def test_main_dry_run_skip_backfill_runs_catch_up(self):
         self._set_current_time(
             "2023-01-02T00:00:00"
-        )  # For deterministic catch-up start in dry run
-        # Dry run uses fixed dummy tickers
-        dummy_tickers = ["btcusd-dry", "ethusd-dry"]
-        # Note: In dry mode, main() sets up its own dummy tickers, but we need to set this for the mock
-        # However, looking at the actual main.py code, it seems like the dry run doesn't actually call
-        # get_top_n_crypto_symbols, but instead uses its own fixed list. We need to understand this better.
-
-        # Mock get_historical_candles for the catch-up part of the dry run
-        # In dry mode, the actual function doesn't call get_historical_candles_tiingo,
-        # so this mock won't be called. Let's check the logs to see what's happening.
+        ) 
+        # In dry mode, get_top_crypto_pairs_from_redis will be called on the dummy client
+        # which returns ["btcusd-dry", "ethusd-dry"]
 
         with mock.patch.object(sys, "exit") as mock_exit:
             candle_ingestor_main.main(None)
-            mock_exit.assert_called_once_with(0)  # Expect successful exit
+            mock_exit.assert_called_once_with(0) 
 
-        # In dry mode, get_historical_candles_tiingo should not be called because
-        # the dry run logic creates dummy data instead of making API calls
-        # So we expect 0 calls, not len(dummy_tickers) calls
+        # In dry mode, get_historical_candles_tiingo should not be called
         self.assertEqual(self.mock_get_historical_candles.call_count, 0)
+        # Verify that the dummy redis client's method was called
+        self.mock_redis_client_instance.get_top_crypto_pairs_from_redis.assert_called_once_with(FLAGS.redis_key_crypto_symbols)
+
 
     @flagsaver.flagsaver(run_mode="wet")
     def test_main_wet_run_executes_backfill_and_catch_up(self):
-        self._set_current_time("2023-01-03T00:00:00")  # Day 3 for backfill and catchup
-        FLAGS.backfill_start_date = "2_days_ago"  # Backfill 2023-01-01
-        FLAGS.catch_up_initial_days = 1  # Catch up from 2023-01-02 if no state
+        self._set_current_time("2023-01-03T00:00:00") 
+        FLAGS.backfill_start_date = "2_days_ago" 
+        FLAGS.catch_up_initial_days = 1 
 
-        # Mock CMC
-        self.mock_get_top_n_crypto_symbols.return_value = [self.test_ticker]
+        # Mock Redis
+        self.mock_redis_client_instance.get_top_crypto_pairs_from_redis.return_value = [self.test_ticker]
 
-        # Mock InfluxDB state reads
-        # For backfill, assume no prior state
-        # For catch_up, also assume no prior "catch_up" state, will use backfill's result
         self.mock_influx_manager.get_last_processed_timestamp.return_value = None
 
-        # Mock Tiingo API responses
-        # First call for backfill (e.g., 2023-01-01)
         backfill_candle_ts = int(
             datetime(2023, 1, 1, 10, 0, 0, tzinfo=timezone.utc).timestamp() * 1000
         )
@@ -344,7 +325,6 @@ class MainFunctionTest(BaseIngestorTest):
             self._create_dummy_candle(backfill_candle_ts, pair=self.test_ticker)
         ]
 
-        # Second call for catch-up (e.g., from 2023-01-01T10:01:00 up to 2023-01-03T00:00:00)
         catch_up_candle_ts = int(
             datetime(2023, 1, 2, 10, 0, 0, tzinfo=timezone.utc).timestamp() * 1000
         )
@@ -355,8 +335,8 @@ class MainFunctionTest(BaseIngestorTest):
         ]
 
         self.mock_get_historical_candles.side_effect = [
-            backfill_candles_response,  # For run_backfill
-            catch_up_candles_response,  # For run_catch_up
+            backfill_candles_response, 
+            catch_up_candles_response, 
         ]
 
         with mock.patch.object(sys, "exit") as mock_exit:
@@ -364,11 +344,9 @@ class MainFunctionTest(BaseIngestorTest):
             mock_exit.assert_called_once_with(0)
 
         self.assertEqual(self.mock_get_historical_candles.call_count, 2)
-        # Check backfill call
         self.mock_get_historical_candles.assert_any_call(
             FLAGS.tiingo_api_key, self.test_ticker, "2023-01-01", "2023-01-02", mock.ANY
         )
-        # Check catch-up call (starts after backfill_candle_ts)
         self.mock_get_historical_candles.assert_any_call(
             FLAGS.tiingo_api_key,
             self.test_ticker,
@@ -377,7 +355,6 @@ class MainFunctionTest(BaseIngestorTest):
             mock.ANY,
         )
 
-        # Verify InfluxDB writes
         self.mock_influx_manager.write_candles_batch.assert_any_call(
             backfill_candles_response
         )
@@ -390,6 +367,7 @@ class MainFunctionTest(BaseIngestorTest):
         self.mock_influx_manager.update_last_processed_timestamp.assert_any_call(
             self.test_ticker, "catch_up", catch_up_candle_ts
         )
+        self.mock_redis_client_instance.close.assert_called_once() # Verify Redis client is closed
 
 
 if __name__ == "__main__":
