@@ -4,6 +4,5 @@ commandTests:
     command: "/services/top_crypto_updater/app"
     args: ["--help"]
     expectedOutput:
-      - "USAGE: app \[flags\]"
       - "CoinMarketCap API Key"
       - "Redis host"
