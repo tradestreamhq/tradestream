@@ -83,7 +83,9 @@ def main(argv):
         top_symbols_tiingo_format = get_top_n_crypto_symbols(FLAGS.cmc_api_key, FLAGS.top_n_cryptos)
 
         if not top_symbols_tiingo_format:
-            logging.warning("No symbols fetched from CoinMarketCap. Nothing to update in Redis.")
+            logging.warning(
+                "No symbols fetched from CoinMarketCap. Nothing to update in Redis."
+            )
         else:
             logging.info(f"Successfully fetched symbols: {top_symbols_tiingo_format}")
             symbols_json = json.dumps(top_symbols_tiingo_format)
