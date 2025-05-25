@@ -8,10 +8,6 @@ import "google/protobuf/timestamp.proto";
 import "protos/marketdata.proto";
 import "protos/strategies.proto";
 
-// =======================================
-//   Strategy Discovery Service Messages
-// =======================================
-
 // Configuration for Genetic Algorithm based optimization
 message GAConfig {
   int32 max_generations = 1;
