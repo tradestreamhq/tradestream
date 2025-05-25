@@ -1,3 +1,4 @@
+charts/tradestream/values.yaml
 influxdb:
   enabled: true
   # Authentication configuration
@@ -82,7 +83,12 @@ pipeline:
     upgradeMode: stateless
 candleIngestor:
   enabled: true
-  replicaCount: 1
+  schedule: "@hourly" # Example: run every hour. Adjust as needed.
+  runMode: "wet" # Default run mode for the job
+  job:
+    backoffLimit: 2
+    ttlSecondsAfterFinished: 3600 # Cleans up finished jobs after 1 hour
+    restartPolicy: "OnFailure"
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
@@ -91,7 +97,9 @@ candleIngestor:
     topNCryptos: 10
     candleGranularityMinutes: 1
     influxDbBucket: "tradestream-data"
-    dataSources: "coinmarketcap,tiingo"
+    dataSources: "tiingo" # Adjusted as CMC is primarily for symbol discovery here
+    backfillStartDate: "1_year_ago" # Configurable backfill start
+    catchUpInitialDays: 7 # Configurable initial catch-up
   secrets:
     cmcApiKey:
       name: "coinmarketcap"
@@ -100,5 +108,5 @@ candleIngestor:
       name: "tiingo"
       key: "apiKey"
     influxDb:
-      name: "influxdb-admin-secret"
-      tokenKey: "admin-token"
+      name: "influxdb-admin-secret" # Assuming this secret holds the token
+      tokenKey: "admin-token" # Key within the secret that holds the InfluxDB token
