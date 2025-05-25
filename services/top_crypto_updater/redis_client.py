@@ -55,7 +55,7 @@ class RedisManager:
         if not self.client:
             logging.warning("Redis client not initialized. Attempting to reconnect...")
             try:
-                self._connect() # Try to reconnect if the client is None
+                self._connect()  # Try to reconnect if the client is None
             except Exception as e:
                 logging.error(f"Failed to reconnect to Redis: {e}")
                 return None
