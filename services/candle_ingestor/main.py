@@ -479,7 +479,9 @@ def main(argv):
             influx_manager.close()
         sys.exit(1) # Indicate failure
     finally:
-        logging.info("Main processing finished. Ensuring InfluxDB connection is closed if opened.")
+        logging.info(
+            "Main processing finished. Ensuring InfluxDB connection is closed if opened."
+        )
         if influx_manager and influx_manager.get_client():
             influx_manager.close()
 
