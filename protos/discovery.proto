@@ -5,7 +5,6 @@ package discovery;
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 
-import "protos/marketdata.proto";
 import "protos/strategies.proto";
 
 // Configuration for Genetic Algorithm based optimization
