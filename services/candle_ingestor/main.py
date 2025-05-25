@@ -455,8 +455,10 @@ def main(argv):
                     ts = influx_manager.get_last_processed_timestamp(ticker, "catch_up")
                     if ts:
                         last_processed_candle_timestamps[ticker] = ts
-                    else: # Also check backfill state if skipping backfill run but state might exist
-                        ts_backfill = influx_manager.get_last_processed_timestamp(ticker, "backfill")
+                    else:  # Also check backfill state if skipping backfill run but state might exist
+                        ts_backfill = influx_manager.get_last_processed_timestamp(
+                            ticker, "backfill"
+                        )
                         if ts_backfill:
                             last_processed_candle_timestamps[ticker] = ts_backfill
 
