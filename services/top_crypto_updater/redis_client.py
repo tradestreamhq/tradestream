@@ -73,7 +73,7 @@ class RedisManager:
             return True
         except Exception as e:
             logging.error(f"Error setting value for key '{key}' in Redis: {e}")
-            raise # Reraise to allow tenacity to retry
+            raise  # Reraise to allow tenacity to retry
 
     def close(self):
         if self.client:
