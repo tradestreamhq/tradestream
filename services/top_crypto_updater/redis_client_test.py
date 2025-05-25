@@ -6,7 +6,6 @@ from services.top_crypto_updater.redis_client import RedisManager, redis_retry_p
 
 
 class TestRedisManager(unittest.TestCase):
-
     @mock.patch("redis.Redis")
     def test_connect_success(self, mock_redis_client_constructor):
         # Arrange
