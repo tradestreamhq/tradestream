@@ -1,6 +1,6 @@
 from absl import logging
 import kafka  # Using kafka-python
-from protos.backtesting_pb2 import BacktestRequest
+from protos.discovery_pb2 import StrategyDiscoveryRequest
 from tenacity import (
     retry,
     stop_after_attempt,
@@ -62,13 +62,13 @@ class KafkaPublisher:
         try:
             record_metadata = future.get(timeout=10)  # Block for 'timeout' seconds.
             logging.info(
-                f"Successfully published BacktestRequest to Kafka topic '{self.topic_name}', partition {record_metadata.partition}, offset {record_metadata.offset}"
+                f"Successfully published StrategyDiscoveryRequest to Kafka topic '{self.topic_name}', partition {record_metadata.partition}, offset {record_metadata.offset}"
             )
         except kafka.errors.KafkaError as e:
-            logging.error(f"Error publishing BacktestRequest to Kafka: {e}")
+            logging.error(f"Error publishing StrategyDiscoveryRequest to Kafka: {e}")
             raise  # Reraise to allow tenacity to handle it
 
-    def publish_request(self, request: BacktestRequest, key: str = None):
+    def publish_request(self, request: StrategyDiscoveryRequest, key: str = None):
         if not self.producer:
             logging.warning(
                 "Kafka producer not available. Attempting to send message might fail or retry."
@@ -82,7 +82,7 @@ class KafkaPublisher:
         except Exception as e:
             # This will catch the reraised exception from _publish_message_retryable if all retries fail
             logging.error(
-                f"Failed to publish BacktestRequest to Kafka after all retries: {e}"
+                f"Failed to publish StrategyDiscoveryRequest to Kafka after all retries: {e}"
             )
 
     def close(self):
