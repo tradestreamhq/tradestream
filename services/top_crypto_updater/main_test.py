@@ -15,7 +15,6 @@ FLAGS = flags.FLAGS
 
 
 class TopCryptoUpdaterMainTest(absltest.TestCase):
-
     def setUp(self):
         super().setUp()
         top_crypto_updater_main.redis_manager_global = None  # Ensure it's reset
