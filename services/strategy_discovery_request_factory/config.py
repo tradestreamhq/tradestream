@@ -13,8 +13,8 @@ INFLUXDB_BUCKET_CANDLES = os.getenv(
 
 # Kafka Configuration
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-KAFKA_BACKTEST_REQUEST_TOPIC = os.getenv(
-    "KAFKA_BACKTEST_REQUEST_TOPIC", "backtest-requests"
+KAFKA_STRATEGY_DISCOVERY_REQUEST_TOPIC = os.getenv(
+    "KAFKA_STRATEGY_DISCOVERY_REQUEST_TOPIC", "strategy-discovery-requests"
 )
 
 # Fibonacci Window Sizes (in minutes)
@@ -39,20 +39,16 @@ FIBONACCI_WINDOWS_MINUTES = [
 # If candle granularity is 1 minute, this is fine. If granularity changes, this needs adjustment.
 DEQUE_MAXLEN = 130000  # Slightly more than max fib window
 
-# Polling Configuration
-POLLING_INTERVAL_SECONDS = int(os.getenv("POLLING_INTERVAL_SECONDS", "60"))
-
 # CMC Configuration
 TOP_N_CRYPTOS = int(os.getenv("TOP_N_CRYPTOS", "20"))
 CMC_API_KEY = os.getenv("CMC_API_KEY")  # Essential for fetching top N cryptos
 
-# BacktestRequest Defaults
-DEFAULT_STRATEGY_TYPE = StrategyType.Value(
-    os.getenv("DEFAULT_STRATEGY_TYPE", "SMA_RSI")
-)
-# For default strategy parameters, we can use an empty Any message or define specific defaults.
-# Using empty Any for now.
-DEFAULT_STRATEGY_PARAMETERS_ANY = None  # Will be `google.protobuf.any_pb2.Any()`
+# Strategy Discovery Request Defaults
+DEFAULT_TOP_N = int(os.getenv("DEFAULT_TOP_N", "5"))
+
+# GA Configuration Defaults
+DEFAULT_MAX_GENERATIONS = int(os.getenv("DEFAULT_MAX_GENERATIONS", "30"))
+DEFAULT_POPULATION_SIZE = int(os.getenv("DEFAULT_POPULATION_SIZE", "50"))
 
 # Candle Granularity (used to interpret Fibonacci windows if they are in number of candles)
 # Assume 1-minute candles from InfluxDB as per candle_ingestor's default.
