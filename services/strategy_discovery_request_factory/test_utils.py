@@ -1,11 +1,10 @@
-"""Test utilities for backtest_request_factory tests."""
+"""Test utilities for strategy_discovery_request_factory tests."""
 
 from datetime import datetime, timezone
 from protos.marketdata_pb2 import Candle
-from protos.backtesting_pb2 import BacktestRequest
-from protos.strategies_pb2 import Strategy, StrategyType
+from protos.discovery_pb2 import StrategyDiscoveryRequest, GAConfig
+from protos.strategies_pb2 import StrategyType
 from google.protobuf.timestamp_pb2 import Timestamp
-from google.protobuf import any_pb2
 
 
 def create_test_candle(
@@ -63,26 +62,47 @@ def create_test_candles(
     return candles
 
 
-def create_test_strategy(
-    strategy_type: StrategyType = StrategyType.SMA_RSI, parameters: any_pb2.Any = None
-) -> Strategy:
-    """Create a test strategy with given parameters."""
-    if parameters is None:
-        parameters = any_pb2.Any()
+def create_test_ga_config(
+    max_generations: int = 30, 
+    population_size: int = 50
+) -> GAConfig:
+    """Create a test GA configuration."""
+    return GAConfig(
+        max_generations=max_generations,
+        population_size=population_size
+    )
 
-    return Strategy(type=strategy_type, parameters=parameters)
 
+def create_test_strategy_discovery_request(
+    symbol: str = "BTC/USD",
+    start_timestamp_ms: int = None,
+    end_timestamp_ms: int = None,
+    strategy_type: StrategyType = StrategyType.SMA_RSI,
+    top_n: int = 5,
+    ga_config: GAConfig = None,
+) -> StrategyDiscoveryRequest:
+    """Create a test strategy discovery request."""
+    if start_timestamp_ms is None:
+        start_timestamp_ms = int(datetime.now(timezone.utc).timestamp() * 1000) - 300000  # 5 mins ago
+    if end_timestamp_ms is None:
+        end_timestamp_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+    if ga_config is None:
+        ga_config = create_test_ga_config()
 
-def create_test_backtest_request(
-    candles: list[Candle] = None, strategy: Strategy = None
-) -> BacktestRequest:
-    """Create a test backtest request."""
-    if candles is None:
-        candles = [create_test_candle()]
-    if strategy is None:
-        strategy = create_test_strategy()
+    start_time = Timestamp()
+    start_time.FromMilliseconds(start_timestamp_ms)
+    
+    end_time = Timestamp()
+    end_time.FromMilliseconds(end_timestamp_ms)
 
-    return BacktestRequest(candles=candles, strategy=strategy)
+    return StrategyDiscoveryRequest(
+        symbol=symbol,
+        start_time=start_time,
+        end_time=end_time,
+        strategy_type=strategy_type,
+        top_n=top_n,
+        ga_config=ga_config
+    )
 
 
 class MockInfluxRecord:
@@ -136,3 +156,23 @@ def assert_candles_equal(candle1: Candle, candle2: Candle) -> None:
 def get_candle_timestamp_ms(candle: Candle) -> int:
     """Get timestamp in milliseconds from a candle."""
     return candle.timestamp.seconds * 1000 + candle.timestamp.nanos // 1_000_000
+
+
+def assert_strategy_discovery_requests_equal(req1: StrategyDiscoveryRequest, req2: StrategyDiscoveryRequest) -> None:
+    """Assert that two strategy discovery requests are equal."""
+    assert req1.symbol == req2.symbol
+    assert req1.start_time.seconds == req2.start_time.seconds
+    assert req1.start_time.nanos == req2.start_time.nanos
+    assert req1.end_time.seconds == req2.end_time.seconds
+    assert req1.end_time.nanos == req2.end_time.nanos
+    assert req1.strategy_type == req2.strategy_type
+    assert req1.top_n == req2.top_n
+    assert req1.ga_config.max_generations == req2.ga_config.max_generations
+    assert req1.ga_config.population_size == req2.ga_config.population_size
+
+
+def get_strategy_discovery_request_time_range_ms(req: StrategyDiscoveryRequest) -> tuple[int, int]:
+    """Get start and end timestamps in milliseconds from a strategy discovery request."""
+    start_ms = req.start_time.seconds * 1000 + req.start_time.nanos // 1_000_000
+    end_ms = req.end_time.seconds * 1000 + req.end_time.nanos // 1_000_000
+    return start_ms, end_ms
