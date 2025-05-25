@@ -1,9 +1,9 @@
-services/candle_ingestor/main.py
+services / candle_ingestor / main.py
 import os
 import sys
 import time
 from datetime import datetime, timedelta, timezone
-import json # Added for potential parsing if Redis stored raw JSON string for list
+import json  # Added for potential parsing if Redis stored raw JSON string for list
 
 from absl import app
 from absl import flags
@@ -17,8 +17,10 @@ from services.candle_ingestor.ingestion_helpers import (
     get_tiingo_resample_freq,
     parse_backfill_start_date,
 )
-from shared.cryptoclient.redis_crypto_client import RedisCryptoClient # Import Redis Client
-import redis # Import for redis exceptions
+from shared.cryptoclient.redis_crypto_client import (
+    RedisCryptoClient,
+)  # Import Redis Client
+import redis  # Import for redis exceptions
 
 FLAGS = flags.FLAGS
 
@@ -40,14 +42,18 @@ flags.DEFINE_string(
 )
 
 # Redis Flags
-default_redis_host = os.getenv("REDIS_HOST", "localhost") # Default will be overridden by Helm in k8s
+default_redis_host = os.getenv(
+    "REDIS_HOST", "localhost"
+)  # Default will be overridden by Helm in k8s
 flags.DEFINE_string("redis_host", default_redis_host, "Redis host.")
 default_redis_port = int(os.getenv("REDIS_PORT", "6379"))
 flags.DEFINE_integer("redis_port", default_redis_port, "Redis port.")
 flags.DEFINE_string(
     "redis_password", os.getenv("REDIS_PASSWORD"), "Redis password (if any)."
 )
-default_redis_key_crypto_symbols = os.getenv("REDIS_KEY_CRYPTO_SYMBOLS", "top_cryptocurrencies")
+default_redis_key_crypto_symbols = os.getenv(
+    "REDIS_KEY_CRYPTO_SYMBOLS", "top_cryptocurrencies"
+)
 flags.DEFINE_string(
     "redis_key_crypto_symbols",
     default_redis_key_crypto_symbols,
@@ -83,7 +89,8 @@ flags.DEFINE_enum(
     "Run mode for the ingestor: 'wet' for live data, 'dry' for simulated data.",
 )
 
-DRY_RUN_PROCESSING_LIMIT_DEFAULT = 2 # Default limit for symbols in dry run
+DRY_RUN_PROCESSING_LIMIT_DEFAULT = 2  # Default limit for symbols in dry run
+
 
 def run_backfill(
     influx_manager: InfluxDBManager | None,
@@ -118,7 +125,7 @@ def run_backfill(
     effective_max_dry_run_tickers = (
         dry_run_processing_limit
         if run_mode == "dry" and dry_run_processing_limit is not None
-        else len(tiingo_tickers) # Process all tickers if not dry or no limit
+        else len(tiingo_tickers)  # Process all tickers if not dry or no limit
     )
     max_dry_run_chunks_per_ticker = 1
 
@@ -189,9 +196,7 @@ def run_backfill(
                 chunk_end_dt_candidate, end_date_dt - timedelta(microseconds=1)
             )
 
-            if (
-                chunk_end_dt < chunk_start_dt
-            ): 
+            if chunk_end_dt < chunk_start_dt:
                 chunk_end_dt = end_date_dt - timedelta(microseconds=1)
 
             chunk_end_str = chunk_end_dt.strftime("%Y-%m-%d")
@@ -201,15 +206,15 @@ def run_backfill(
                 logging.info(
                     f"DRY RUN: Simulating Tiingo API call for {ticker} (backfill): {chunk_start_str} to {chunk_end_str}"
                 )
-                if candle_granularity_minutes >= 1440: 
+                if candle_granularity_minutes >= 1440:
                     aligned_chunk_start_dt = chunk_start_dt.replace(
                         hour=0, minute=0, second=0, microsecond=0
                     )
-                elif candle_granularity_minutes >= 60: 
+                elif candle_granularity_minutes >= 60:
                     aligned_chunk_start_dt = chunk_start_dt.replace(
                         minute=0, second=0, microsecond=0
                     )
-                else: 
+                else:
                     aligned_minute = (
                         chunk_start_dt.minute // candle_granularity_minutes
                     ) * candle_granularity_minutes
@@ -258,9 +263,7 @@ def run_backfill(
                         influx_manager.update_last_processed_timestamp(
                             ticker, "backfill", latest_ts_in_batch
                         )
-                    last_processed_timestamps[
-                        ticker
-                    ] = latest_ts_in_batch 
+                    last_processed_timestamps[ticker] = latest_ts_in_batch
                     logging.info(
                         f"   Successfully processed {len(historical_candles)} candles. Updated backfill state for {ticker} to {latest_ts_in_batch}"
                     )
@@ -274,25 +277,21 @@ def run_backfill(
                 )
 
             dry_run_chunks_processed += 1
-            chunk_start_dt = chunk_end_dt + timedelta(
-                days=1
-            ) 
+            chunk_start_dt = chunk_end_dt + timedelta(days=1)
             if (
                 chunk_start_dt < end_date_dt
-                and ticker_index < len(tiingo_tickers) -1 # Only delay if not the last ticker overall
+                and ticker_index
+                < len(tiingo_tickers) - 1  # Only delay if not the last ticker overall
                 and run_mode == "wet"
             ):
                 logging.info(
                     f"Waiting {api_call_delay_seconds}s before next API call/chunk for {ticker}..."
                 )
                 time.sleep(api_call_delay_seconds)
-        
-        dry_run_tickers_processed +=1
 
+        dry_run_tickers_processed += 1
 
-        if (
-            current_run_max_ts_for_ticker > 0
-        ): 
+        if current_run_max_ts_for_ticker > 0:
             last_processed_timestamps[ticker] = max(
                 last_processed_timestamps.get(ticker, 0), current_run_max_ts_for_ticker
             )
@@ -326,7 +325,7 @@ def run_catch_up(
     effective_max_dry_run_tickers = (
         dry_run_processing_limit
         if run_mode == "dry" and dry_run_processing_limit is not None
-        else len(tiingo_tickers) # Process all tickers if not dry or no limit
+        else len(tiingo_tickers)  # Process all tickers if not dry or no limit
     )
     dry_run_tickers_processed = 0
 
@@ -342,7 +341,7 @@ def run_catch_up(
 
         last_known_ts_ms = last_processed_timestamps.get(ticker)
 
-        if not last_known_ts_ms and influx_manager: 
+        if not last_known_ts_ms and influx_manager:
             last_known_ts_ms = influx_manager.get_last_processed_timestamp(
                 ticker, "catch_up"
             )
@@ -356,15 +355,15 @@ def run_catch_up(
             catch_up_start_dt_utc = datetime.now(timezone.utc) - timedelta(
                 days=initial_catch_up_days
             )
-            if candle_granularity_minutes >= 1440: 
+            if candle_granularity_minutes >= 1440:
                 start_dt_utc = catch_up_start_dt_utc.replace(
                     hour=0, minute=0, second=0, microsecond=0
                 )
-            elif candle_granularity_minutes >= 60: 
+            elif candle_granularity_minutes >= 60:
                 start_dt_utc = catch_up_start_dt_utc.replace(
                     minute=0, second=0, microsecond=0
                 )
-            else: 
+            else:
                 aligned_minute = (
                     catch_up_start_dt_utc.minute // candle_granularity_minutes
                 ) * candle_granularity_minutes
@@ -377,7 +376,7 @@ def run_catch_up(
         else:
             start_dt_utc = (
                 datetime.fromtimestamp(last_known_ts_ms / 1000.0, timezone.utc)
-                + granularity_delta 
+                + granularity_delta
             )
             logging.info(
                 f"Resuming catch-up for {ticker} from {start_dt_utc.isoformat()}"
@@ -393,10 +392,10 @@ def run_catch_up(
                 dry_run_tickers_processed += 1
             continue
 
-        if candle_granularity_minutes >= 1440: 
+        if candle_granularity_minutes >= 1440:
             start_date_str = start_dt_utc.strftime("%Y-%m-%d")
             end_date_str = end_dt_utc.strftime("%Y-%m-%d")
-        else: 
+        else:
             start_date_str = start_dt_utc.strftime("%Y-%m-%dT%H:%M:%S")
             end_date_str = end_dt_utc.strftime("%Y-%m-%dT%H:%M:%S")
 
@@ -431,10 +430,7 @@ def run_catch_up(
             valid_candles_to_write = [
                 c
                 for c in fetched_candles
-                if c["timestamp_ms"]
-                >= int(
-                    start_dt_utc.timestamp() * 1000
-                ) 
+                if c["timestamp_ms"] >= int(start_dt_utc.timestamp() * 1000)
             ]
 
             if valid_candles_to_write:
@@ -446,9 +442,7 @@ def run_catch_up(
 
                 if written_count > 0 or run_mode == "dry":
                     latest_ts_in_batch = valid_candles_to_write[-1]["timestamp_ms"]
-                    last_processed_timestamps[
-                        ticker
-                    ] = latest_ts_in_batch 
+                    last_processed_timestamps[ticker] = latest_ts_in_batch
                     if influx_manager:
                         influx_manager.update_last_processed_timestamp(
                             ticker, "catch_up", latest_ts_in_batch
@@ -468,13 +462,10 @@ def run_catch_up(
             logging.info(
                 f"Catch-up returned no data for {ticker} for period starting {start_date_str}"
             )
-        
+
         dry_run_tickers_processed += 1
 
-        if (
-            ticker_index < len(tiingo_tickers) -1 
-            and run_mode == "wet"
-        ):
+        if ticker_index < len(tiingo_tickers) - 1 and run_mode == "wet":
             logging.info(
                 f"Waiting {api_call_delay_seconds}s before next API call for catch-up..."
             )
@@ -486,8 +477,8 @@ def run_catch_up(
 def main(argv):
     del argv
     logging.set_verbosity(logging.INFO)
-    
-    redis_manager = None # Initialize to None
+
+    redis_manager = None  # Initialize to None
 
     if FLAGS.run_mode == "wet":
         if not FLAGS.tiingo_api_key:
@@ -500,9 +491,8 @@ def main(argv):
             logging.error("INFLUXDB_ORG is required. Set via env var or flag.")
             sys.exit(1)
         if not FLAGS.redis_host:
-             logging.error("REDIS_HOST is required. Set via env var or flag.")
-             sys.exit(1)
-
+            logging.error("REDIS_HOST is required. Set via env var or flag.")
+            sys.exit(1)
 
     logging.info(
         f"Starting candle ingestor script (Python) in {FLAGS.run_mode} mode..."
@@ -519,63 +509,79 @@ def main(argv):
             org=FLAGS.influxdb_org,
             bucket=FLAGS.influxdb_bucket,
         )
-        if not influx_manager.get_client(): 
+        if not influx_manager.get_client():
             logging.error("Failed to connect to InfluxDB after retries. Exiting.")
             sys.exit(1)
-        
+
         try:
             redis_manager = RedisCryptoClient(
                 host=FLAGS.redis_host,
                 port=FLAGS.redis_port,
-                password=FLAGS.redis_password
+                password=FLAGS.redis_password,
             )
-            if not redis_manager.get_client(): # Check if connection was successful
+            if not redis_manager.get_client():  # Check if connection was successful
                 logging.error("Failed to connect to Redis. Exiting.")
-                if influx_manager: influx_manager.close()
+                if influx_manager:
+                    influx_manager.close()
                 sys.exit(1)
         except redis.exceptions.RedisError as e:
             logging.error(f"Failed to initialize Redis client: {e}. Exiting.")
-            if influx_manager: influx_manager.close()
+            if influx_manager:
+                influx_manager.close()
             sys.exit(1)
 
-    else: # Dry run
+    else:  # Dry run
         logging.info("DRY RUN: Skipping InfluxDB and Redis connections.")
+
         # For dry run, we can simulate a Redis client that returns dummy data
         class DryRunRedisClient:
             def get_top_crypto_pairs_from_redis(self, key):
                 logging.info(f"DRY RUN: Simulating fetch from Redis for key '{key}'")
                 return ["btcusd-dry", "ethusd-dry"]
+
             def close(self):
                 logging.info("DRY RUN: Simulating Redis client close.")
-        redis_manager = DryRunRedisClient()
 
+        redis_manager = DryRunRedisClient()
 
     tiingo_tickers = []
     if redis_manager:
         try:
-            logging.info(f"Fetching top crypto symbols from Redis key '{FLAGS.redis_key_crypto_symbols}'...")
-            tiingo_tickers = redis_manager.get_top_crypto_pairs_from_redis(FLAGS.redis_key_crypto_symbols)
+            logging.info(
+                f"Fetching top crypto symbols from Redis key '{FLAGS.redis_key_crypto_symbols}'..."
+            )
+            tiingo_tickers = redis_manager.get_top_crypto_pairs_from_redis(
+                FLAGS.redis_key_crypto_symbols
+            )
             if not tiingo_tickers:
-                 logging.warning("No symbols fetched from Redis. Will not process any candles.")
+                logging.warning(
+                    "No symbols fetched from Redis. Will not process any candles."
+                )
             else:
                 logging.info(f"Fetched symbols from Redis: {tiingo_tickers}")
         except Exception as e:
             logging.error(f"Failed to fetch symbols from Redis: {e}. Exiting.")
-            if influx_manager: influx_manager.close()
-            if redis_manager and FLAGS.run_mode == "wet": redis_manager.close() # only close real client
+            if influx_manager:
+                influx_manager.close()
+            if redis_manager and FLAGS.run_mode == "wet":
+                redis_manager.close()  # only close real client
             sys.exit(1)
 
-
-    if not tiingo_tickers and FLAGS.run_mode == "wet": # Still exit if wet run and no symbols
+    if (
+        not tiingo_tickers and FLAGS.run_mode == "wet"
+    ):  # Still exit if wet run and no symbols
         logging.error("No symbols available to process. Exiting.")
-        if influx_manager: influx_manager.close()
-        if redis_manager and FLAGS.run_mode == "wet": redis_manager.close()
+        if influx_manager:
+            influx_manager.close()
+        if redis_manager and FLAGS.run_mode == "wet":
+            redis_manager.close()
         sys.exit(1)
-    
-    if not tiingo_tickers and FLAGS.run_mode == "dry":
-        logging.warning("DRY RUN: No symbols returned from dummy Redis, using fixed list for dry run.")
-        tiingo_tickers = ["btcusd-dry", "ethusd-dry"]
 
+    if not tiingo_tickers and FLAGS.run_mode == "dry":
+        logging.warning(
+            "DRY RUN: No symbols returned from dummy Redis, using fixed list for dry run."
+        )
+        tiingo_tickers = ["btcusd-dry", "ethusd-dry"]
 
     last_processed_candle_timestamps = {}
 
@@ -591,7 +597,9 @@ def main(argv):
                 last_processed_timestamps=last_processed_candle_timestamps,
                 run_mode=FLAGS.run_mode,
                 dry_run_processing_limit=(
-                    DRY_RUN_PROCESSING_LIMIT_DEFAULT if FLAGS.run_mode == "dry" else None
+                    DRY_RUN_PROCESSING_LIMIT_DEFAULT
+                    if FLAGS.run_mode == "dry"
+                    else None
                 ),
             )
         else:
@@ -619,7 +627,7 @@ def main(argv):
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
             api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
             initial_catch_up_days=FLAGS.catch_up_initial_days,
-            last_processed_timestamps=last_processed_candle_timestamps, 
+            last_processed_timestamps=last_processed_candle_timestamps,
             run_mode=FLAGS.run_mode,
             dry_run_processing_limit=(
                 DRY_RUN_PROCESSING_LIMIT_DEFAULT if FLAGS.run_mode == "dry" else None
@@ -628,21 +636,24 @@ def main(argv):
 
     except Exception as e:
         logging.exception(f"Critical error in main execution: {e}")
-        sys.exit(1) 
+        sys.exit(1)
     finally:
         logging.info(
             "Main processing finished. Ensuring connections are closed if opened."
         )
-        if influx_manager and influx_manager.get_client(): 
+        if influx_manager and influx_manager.get_client():
             influx_manager.close()
-        if redis_manager and hasattr(redis_manager, 'client') and redis_manager.client: # Check if it's the real client
+        if (
+            redis_manager and hasattr(redis_manager, "client") and redis_manager.client
+        ):  # Check if it's the real client
             redis_manager.close()
-        elif FLAGS.run_mode == "dry" and redis_manager: # For dry run, call its dummy close
+        elif (
+            FLAGS.run_mode == "dry" and redis_manager
+        ):  # For dry run, call its dummy close
             redis_manager.close()
-
 
     logging.info("Candle ingestor script completed successfully.")
-    sys.exit(0) 
+    sys.exit(0)
 
 
 if __name__ == "__main__":
