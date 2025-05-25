@@ -124,7 +124,6 @@ jobs:
           # Verify CronJob was created successfully (CronJobs don't have Ready/Established conditions)
           echo "Checking if CronJob exists..."
           kubectl get cronjob my-tradestream-top-crypto-updater -n tradestream-namespace
-          
           # Check CronJob status and configuration
           echo "CronJob details:"
           kubectl describe cronjob my-tradestream-top-crypto-updater -n tradestream-namespace
