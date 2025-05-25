@@ -26,7 +26,7 @@ py_library(
     name = "strategy_discovery_processor_lib",
     srcs = ["strategy_discovery_processor.py"],
     deps = [
-        "//protos:backtesting_py_proto",
+        "//protos:discovery_py_proto",
         "//protos:marketdata_py_proto",
         "//protos:strategies_py_proto",
         "//third_party/python:absl_py",
@@ -38,7 +38,7 @@ py_library(
     name = "kafka_publisher_lib",
     srcs = ["kafka_publisher.py"],
     deps = [
-        "//protos:backtesting_py_proto",
+        "//protos:discovery_py_proto",
         "//third_party/python:absl_py",
         "//third_party/python:kafka_python",
         "//third_party/python:tenacity",
@@ -50,10 +50,10 @@ py_binary(
     srcs = ["main.py"],
     main = "main.py",
     deps = [
-        ":strategy_discovery_processor_lib",
         ":config_lib",
         ":influx_poller_lib",
         ":kafka_publisher_lib",
+        ":strategy_discovery_processor_lib",
         "//shared/cryptoclient:cmc_client_lib",
         "//third_party/python:absl_py",
         "//third_party/python:protobuf",
@@ -65,7 +65,7 @@ py_library(
     name = "test_utils_lib",
     srcs = ["test_utils.py"],
     deps = [
-        "//protos:backtesting_py_proto",
+        "//protos:discovery_py_proto",
         "//protos:marketdata_py_proto",
         "//protos:strategies_py_proto",
         "//third_party/python:protobuf",
@@ -101,7 +101,7 @@ py_test(
     deps = [
         ":strategy_discovery_processor_lib",
         ":test_utils_lib",
-        "//protos:backtesting_py_proto",
+        "//protos:discovery_py_proto",
         "//protos:marketdata_py_proto",
         "//protos:strategies_py_proto",
         "//third_party/python:protobuf",
@@ -114,7 +114,7 @@ py_test(
     deps = [
         ":kafka_publisher_lib",
         ":test_utils_lib",
-        "//protos:backtesting_py_proto",
+        "//protos:discovery_py_proto",
         "//third_party/python:kafka_python",
     ],
 )
@@ -124,10 +124,10 @@ py_test(
     srcs = ["main_test.py"],
     deps = [
         ":app",
-        ":strategy_discovery_processor_lib",
         ":config_lib",
         ":influx_poller_lib",
         ":kafka_publisher_lib",
+        ":strategy_discovery_processor_lib",
         ":test_utils_lib",
         "//shared/cryptoclient:cmc_client_lib",
         "//third_party/python:absl_py",
@@ -139,11 +139,11 @@ py_test(
     name = "integration_test",
     srcs = ["integration_test.py"],
     deps = [
-        ":strategy_discovery_processor_lib",
         ":influx_poller_lib",
         ":kafka_publisher_lib",
+        ":strategy_discovery_processor_lib",
         ":test_utils_lib",
-        "//protos:backtesting_py_proto",
+        "//protos:discovery_py_proto",
         "//protos:marketdata_py_proto",
         "//third_party/python:influxdb_client",
         "//third_party/python:kafka_python",
