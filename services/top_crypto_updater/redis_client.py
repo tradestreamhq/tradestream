@@ -12,7 +12,7 @@ redis_retry_params = dict(
     stop=stop_after_attempt(5),
     wait=wait_exponential(multiplier=1, min=2, max=30),
     retry=retry_if_exception_type(
-        (redis.exceptions.ConnectionError, redis.exceptions.TimeoutError)
+        (redis.exceptions.ConnectionError, redis.exceptions.TimeoutError, redis.exceptions.RedisError) # Added RedisError
     ),
     reraise=True,
 )
@@ -28,6 +28,9 @@ class RedisManager:
             self._connect()
         except Exception as e:
             logging.error(f"RedisManager __init__ failed to connect after retries: {e}")
+            # Ensure client is None if constructor fails to establish connection
+            self.client = None
+            raise # Re-raise the exception after logging
 
     @retry(**redis_retry_params)
     def _connect(self):
@@ -45,21 +48,22 @@ class RedisManager:
                 logging.error(
                     f"Failed to ping Redis at {self.host}:{self.port}. Check connection and configuration."
                 )
-                self.client = None  # Ensure client is None if ping fails
+                self.client = None  # Ensure client is None if ping fails before raising
                 raise redis.exceptions.ConnectionError("Ping failed")
             logging.info("Successfully connected to Redis and pinged server.")
         except Exception as e:
             logging.error(f"Error connecting to Redis at {self.host}:{self.port}: {e}")
-            self.client = None  # Ensure client is None on any exception
+            self.client = None  # Ensure client is None on any exception during connect
             raise
 
     def get_client(self) -> redis.Redis | None:
         if not self.client:
             logging.warning("Redis client not initialized. Attempting to reconnect...")
             try:
-                self._connect()  # Try to reconnect if the client is None
+                self._connect()
             except Exception as e:
                 logging.error(f"Failed to reconnect to Redis: {e}")
+                # self.client will be None due to _connect's behavior on failure
                 return None
         return self.client
 
@@ -75,7 +79,7 @@ class RedisManager:
             return True
         except Exception as e:
             logging.error(f"Error setting value for key '{key}' in Redis: {e}")
-            raise  # Reraise to allow tenacity to retry
+            raise
 
     def close(self):
         if self.client:
