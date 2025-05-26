@@ -4,7 +4,7 @@ import os
 import unittest
 from unittest.mock import patch
 from protos.strategies_pb2 import StrategyType
-from services.backtest_request_factory import config
+from services.strategy_discovery_request_factory import config
 
 
 class ConfigTest(unittest.TestCase):
@@ -20,12 +20,13 @@ class ConfigTest(unittest.TestCase):
             "INFLUXDB_ORG",
             "INFLUXDB_BUCKET_CANDLES",
             "KAFKA_BOOTSTRAP_SERVERS",
-            "KAFKA_BACKTEST_REQUEST_TOPIC",
-            "POLLING_INTERVAL_SECONDS",
+            "KAFKA_STRATEGY_DISCOVERY_REQUEST_TOPIC",
             "TOP_N_CRYPTOS",
             "CMC_API_KEY",
-            "DEFAULT_STRATEGY_TYPE",
             "CANDLE_GRANULARITY_MINUTES",
+            "DEFAULT_TOP_N",
+            "DEFAULT_MAX_GENERATIONS",
+            "DEFAULT_POPULATION_SIZE",
         ]
         for var in env_vars:
             self.original_env[var] = os.environ.get(var)
@@ -40,6 +41,10 @@ class ConfigTest(unittest.TestCase):
                 os.environ[var] = value
             elif var in os.environ:
                 del os.environ[var]
+        # Important: Reload the config module to reset its state for other tests
+        import importlib
+        importlib.reload(config)
+
 
     def test_default_values(self):
         """Test that default configuration values are correct."""
@@ -56,11 +61,14 @@ class ConfigTest(unittest.TestCase):
         self.assertIsNone(config.INFLUXDB_ORG)
         self.assertEqual(config.INFLUXDB_BUCKET_CANDLES, "tradestream-data")
         self.assertEqual(config.KAFKA_BOOTSTRAP_SERVERS, "localhost:9092")
-        self.assertEqual(config.KAFKA_BACKTEST_REQUEST_TOPIC, "backtest-requests")
-        self.assertEqual(config.POLLING_INTERVAL_SECONDS, 60)
+        self.assertEqual(config.KAFKA_STRATEGY_DISCOVERY_REQUEST_TOPIC, "strategy-discovery-requests")
         self.assertEqual(config.TOP_N_CRYPTOS, 20)
         self.assertIsNone(config.CMC_API_KEY)
         self.assertEqual(config.CANDLE_GRANULARITY_MINUTES, 1)
+        self.assertEqual(config.DEFAULT_TOP_N, 5)
+        self.assertEqual(config.DEFAULT_MAX_GENERATIONS, 30)
+        self.assertEqual(config.DEFAULT_POPULATION_SIZE, 50)
+
 
     def test_environment_variable_override(self):
         """Test that environment variables override defaults."""
@@ -70,12 +78,14 @@ class ConfigTest(unittest.TestCase):
         os.environ["INFLUXDB_ORG"] = "test-org"
         os.environ["INFLUXDB_BUCKET_CANDLES"] = "test-bucket"
         os.environ["KAFKA_BOOTSTRAP_SERVERS"] = "test-kafka:9092"
-        os.environ["KAFKA_BACKTEST_REQUEST_TOPIC"] = "test-topic"
-        os.environ["POLLING_INTERVAL_SECONDS"] = "30"
+        os.environ["KAFKA_STRATEGY_DISCOVERY_REQUEST_TOPIC"] = "test-topic"
         os.environ["TOP_N_CRYPTOS"] = "10"
         os.environ["CMC_API_KEY"] = "test-cmc-key"
-        os.environ["DEFAULT_STRATEGY_TYPE"] = "EMA_MACD"
         os.environ["CANDLE_GRANULARITY_MINUTES"] = "5"
+        os.environ["DEFAULT_TOP_N"] = "3"
+        os.environ["DEFAULT_MAX_GENERATIONS"] = "20"
+        os.environ["DEFAULT_POPULATION_SIZE"] = "40"
+
 
         # Reload config to pick up new env vars
         import importlib
@@ -87,12 +97,14 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(config.INFLUXDB_ORG, "test-org")
         self.assertEqual(config.INFLUXDB_BUCKET_CANDLES, "test-bucket")
         self.assertEqual(config.KAFKA_BOOTSTRAP_SERVERS, "test-kafka:9092")
-        self.assertEqual(config.KAFKA_BACKTEST_REQUEST_TOPIC, "test-topic")
-        self.assertEqual(config.POLLING_INTERVAL_SECONDS, 30)
+        self.assertEqual(config.KAFKA_STRATEGY_DISCOVERY_REQUEST_TOPIC, "test-topic")
         self.assertEqual(config.TOP_N_CRYPTOS, 10)
         self.assertEqual(config.CMC_API_KEY, "test-cmc-key")
-        self.assertEqual(config.DEFAULT_STRATEGY_TYPE, StrategyType.EMA_MACD)
         self.assertEqual(config.CANDLE_GRANULARITY_MINUTES, 5)
+        self.assertEqual(config.DEFAULT_TOP_N, 3)
+        self.assertEqual(config.DEFAULT_MAX_GENERATIONS, 20)
+        self.assertEqual(config.DEFAULT_POPULATION_SIZE, 40)
+
 
     def test_fibonacci_windows_values(self):
         """Test that Fibonacci window values are correct."""
@@ -131,39 +143,8 @@ class ConfigTest(unittest.TestCase):
         # Should have some buffer
         self.assertGreater(config.DEQUE_MAXLEN, max_window * 1.05)
 
-    def test_strategy_type_enum_conversion(self):
-        """Test strategy type enum value conversion."""
-        # Test default
-        import importlib
-
-        importlib.reload(config)
-
-        # Should be a valid StrategyType value
-        self.assertIsInstance(config.DEFAULT_STRATEGY_TYPE, int)
-        self.assertIn(config.DEFAULT_STRATEGY_TYPE, StrategyType.values())
-
-    def test_invalid_strategy_type_handling(self):
-        """Test handling of invalid strategy type."""
-        os.environ["DEFAULT_STRATEGY_TYPE"] = "INVALID_STRATEGY"
-
-        # Should raise ValueError when trying to convert invalid strategy type
-        with self.assertRaises(ValueError):
-            import importlib
-
-            importlib.reload(config)
-
     def test_numeric_conversion_errors(self):
         """Test handling of invalid numeric values."""
-        # Test invalid polling interval
-        os.environ["POLLING_INTERVAL_SECONDS"] = "invalid"
-        with self.assertRaises(ValueError):
-            import importlib
-
-            importlib.reload(config)
-
-        # Clean up for next test
-        del os.environ["POLLING_INTERVAL_SECONDS"]
-
         # Test invalid top N cryptos
         os.environ["TOP_N_CRYPTOS"] = "invalid"
         with self.assertRaises(ValueError):
@@ -180,6 +161,25 @@ class ConfigTest(unittest.TestCase):
             import importlib
 
             importlib.reload(config)
+        del os.environ["CANDLE_GRANULARITY_MINUTES"]
+
+        os.environ["DEFAULT_TOP_N"] = "invalid_top_n"
+        with self.assertRaises(ValueError):
+            import importlib
+            importlib.reload(config)
+        del os.environ["DEFAULT_TOP_N"]
+
+        os.environ["DEFAULT_MAX_GENERATIONS"] = "invalid_gens"
+        with self.assertRaises(ValueError):
+            import importlib
+            importlib.reload(config)
+        del os.environ["DEFAULT_MAX_GENERATIONS"]
+
+        os.environ["DEFAULT_POPULATION_SIZE"] = "invalid_pop"
+        with self.assertRaises(ValueError):
+            import importlib
+            importlib.reload(config)
+        del os.environ["DEFAULT_POPULATION_SIZE"]
 
 
 if __name__ == "__main__":
