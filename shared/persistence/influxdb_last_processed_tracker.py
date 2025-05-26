@@ -144,7 +144,9 @@ class InfluxDBLastProcessedTracker:
                  logging.error("InfluxDBLastProcessedTracker: Reconnect failed. Cannot update last processed timestamp.")
                  return # Or raise an exception
 
-        write_api = self.client.write_api(write_options=WritePrecision.MS) # Using MS precision
+        write_api = self.client.write_api(
+            write_options=WritePrecision.MS
+        )  # Using MS precision
         if not write_api:
             logging.error(
                 "InfluxDBLastProcessedTracker: Failed to get write_api in _update_last_processed_timestamp_retryable."
