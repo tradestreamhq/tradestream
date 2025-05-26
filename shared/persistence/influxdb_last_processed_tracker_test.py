@@ -62,17 +62,33 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
     def test_initialization_ping_failure(self):
         """Test initialization when ping fails"""
         self.mock_client_instance.ping.return_value = False
+        # This will cause _connect_with_retry to raise InfluxDBError, which RetryError will wrap.
+        # __init__ should catch RetryError.
 
-        with self.assertRaises(InfluxDBError):
-            InfluxDBLastProcessedTracker(self.url, self.token, self.org, self.bucket)
+        with patch("shared.persistence.influxdb_last_processed_tracker.logging") as mock_logging:
+            tracker = InfluxDBLastProcessedTracker(self.url, self.token, self.org, self.bucket)
+            self.assertIsNone(tracker.client)
+            mock_logging.error.assert_any_call(
+                f"InfluxDBLastProcessedTracker: __init__ failed to connect to InfluxDB at {self.url} after all retries."
+            )
+
 
     @patch("shared.persistence.influxdb_last_processed_tracker.logging")
     def test_initialization_connection_error(self, mock_logging):
-        """Test initialization when connection fails"""
-        self.mock_client_class.side_effect = ConnectionError("Connection failed")
+        """Test initialization when connection fails and all retries are exhausted."""
+        self.mock_client_class.side_effect = ConnectionError("Connection failed on all attempts")
 
-        with self.assertRaises(ConnectionError):
-            InfluxDBLastProcessedTracker(self.url, self.token, self.org, self.bucket)
+        tracker = InfluxDBLastProcessedTracker(self.url, self.token, self.org, self.bucket)
+
+        # Verify that the specific error log from __init__'s RetryError catch block was called
+        mock_logging.error.assert_any_call(
+            f"InfluxDBLastProcessedTracker: __init__ failed to connect to InfluxDB at {self.url} after all retries."
+        )
+        # Verify that client is None
+        self.assertIsNone(tracker.client)
+        # Verify that InfluxDBClient constructor was called 5 times due to retry attempts
+        self.assertEqual(self.mock_client_class.call_count, 5)
+
 
     def test_get_last_processed_timestamp_success(self):
         """Test successful retrieval of last processed timestamp"""
@@ -119,27 +135,49 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
 
         self.assertIsNone(result)
 
-    def test_get_last_processed_timestamp_client_not_initialized(self):
-        """Test retrieval when client is not initialized"""
-        tracker = InfluxDBLastProcessedTracker(
-            self.url, self.token, self.org, self.bucket
-        )
-        tracker.client = None
+    @patch("shared.persistence.influxdb_last_processed_tracker.logging")
+    def test_get_last_processed_timestamp_client_not_initialized_attempts_reconnect(self, mock_logging):
+        """Test get when client is initially None, attempts reconnect, and succeeds."""
+        # Simulate __init__ failing to connect
+        self.mock_client_class.side_effect = RetryError("Initial connection failed")
+        
+        tracker = InfluxDBLastProcessedTracker(self.url, self.token, self.org, self.bucket)
+        self.assertIsNone(tracker.client) # Client should be None after failed __init__
 
-        result = tracker.get_last_processed_timestamp("test_service", "test_key")
+        # Reset side effect for InfluxDBClient constructor for the reconnect attempt
+        # The first call to _connect_with_retry (from get_last_processed_timestamp_retryable) should succeed.
+        mock_reconnected_client_instance = Mock()
+        mock_reconnected_client_instance.ping.return_value = True
+        mock_query_api = Mock()
+        mock_reconnected_client_instance.query_api.return_value = mock_query_api
+        mock_query_api.query.return_value = [] # Simulate no data found after reconnect for simplicity
 
-        self.assertIsNone(result)
+        # Patch _connect_with_retry directly on the instance to control its behavior for this test
+        with patch.object(tracker, '_connect_with_retry') as mock_instance_connect_with_retry:
+            def side_effect_for_reconnect():
+                # Simulate successful connection by setting the client on the tracker instance
+                tracker.client = mock_reconnected_client_instance
+            mock_instance_connect_with_retry.side_effect = side_effect_for_reconnect
+
+            result = tracker.get_last_processed_timestamp("test_service", "test_key")
+            
+            mock_instance_connect_with_retry.assert_called_once() # Ensure reconnect was attempted
+            self.assertIsNone(result) # Expecting None as query returns empty
+            mock_query_api.query.assert_called_once()
+
 
     def test_get_last_processed_timestamp_query_api_failure(self):
         """Test retrieval when query_api returns None"""
         tracker = InfluxDBLastProcessedTracker(
             self.url, self.token, self.org, self.bucket
         )
+        # This scenario is less likely if client.ping() succeeded, but good to test
         self.mock_client_instance.query_api.return_value = None
 
         result = tracker.get_last_processed_timestamp("test_service", "test_key")
 
         self.assertIsNone(result)
+
 
     @patch("shared.persistence.influxdb_last_processed_tracker.logging")
     def test_get_last_processed_timestamp_retry_error(self, mock_logging):
@@ -155,8 +193,11 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
             side_effect=RetryError("All retries failed"),
         ):
             result = tracker.get_last_processed_timestamp("test_service", "test_key")
-
             self.assertIsNone(result)
+            mock_logging.error.assert_any_call(
+                f"InfluxDBLastProcessedTracker: Query for test_service / test_key failed after all retries: All retries failed"
+            )
+
 
     def test_update_last_processed_timestamp_success(self):
         """Test successful update of last processed timestamp"""
@@ -181,19 +222,29 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
         self.assertEqual(call_args[1]["bucket"], self.bucket)
         self.assertEqual(call_args[1]["org"], self.org)
 
-    def test_update_last_processed_timestamp_client_not_initialized(self):
-        """Test update when client is not initialized"""
-        tracker = InfluxDBLastProcessedTracker(
-            self.url, self.token, self.org, self.bucket
-        )
-        tracker.client = None
 
-        # Should not raise exception, just log error
-        tracker.update_last_processed_timestamp(
-            "test_service", "test_key", 1234567890123
-        )
+    @patch("shared.persistence.influxdb_last_processed_tracker.logging")
+    def test_update_last_processed_timestamp_client_not_initialized(self, mock_logging):
+        """Test update when client is not initialized, attempts reconnect"""
+        # Simulate __init__ failing to connect
+        self.mock_client_class.side_effect = RetryError("Initial connection failed")
+        tracker = InfluxDBLastProcessedTracker(self.url, self.token, self.org, self.bucket)
+        self.assertIsNone(tracker.client)
 
-    def test_update_last_processed_timestamp_write_api_failure(self):
+        # Patch _connect_with_retry on the instance to simulate failed reconnect
+        with patch.object(tracker, '_connect_with_retry', side_effect=RetryError("Reconnect failed")):
+            # Should not raise exception out of the public method, just log error
+            tracker.update_last_processed_timestamp(
+                "test_service", "test_key", 1234567890123
+            )
+            # Verify error log from public method due to RetryError from _update_last_processed_timestamp_retryable
+            mock_logging.error.assert_any_call(
+                 f"InfluxDBLastProcessedTracker: Update for test_service / test_key failed after all retries: Reconnect failed"
+            )
+
+
+    @patch("shared.persistence.influxdb_last_processed_tracker.logging")
+    def test_update_last_processed_timestamp_write_api_failure(self, mock_logging):
         """Test update when write_api returns None"""
         tracker = InfluxDBLastProcessedTracker(
             self.url, self.token, self.org, self.bucket
@@ -203,6 +254,9 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
         # Should not raise exception, just log error
         tracker.update_last_processed_timestamp(
             "test_service", "test_key", 1234567890123
+        )
+        mock_logging.error.assert_any_call(
+            "InfluxDBLastProcessedTracker: Failed to get write_api in _update_last_processed_timestamp_retryable."
         )
 
     @patch("shared.persistence.influxdb_last_processed_tracker.logging")
@@ -216,12 +270,16 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
         with patch.object(
             tracker,
             "_update_last_processed_timestamp_retryable",
-            side_effect=RetryError("All retries failed"),
+            side_effect=RetryError("All retries failed for update"),
         ):
             # Should not raise exception, just log error
             tracker.update_last_processed_timestamp(
                 "test_service", "test_key", 1234567890123
             )
+            mock_logging.error.assert_any_call(
+                 f"InfluxDBLastProcessedTracker: Update for test_service / test_key failed after all retries: All retries failed for update"
+            )
+
 
     def test_close_success(self):
         """Test successful client closure"""
@@ -249,103 +307,125 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
 
     def test_close_when_client_is_none(self):
         """Test close when client is already None"""
+        # Simulate __init__ failing
+        self.mock_client_class.side_effect = RetryError("Initial connection failed")
         tracker = InfluxDBLastProcessedTracker(
             self.url, self.token, self.org, self.bucket
         )
-        tracker.client = None
+        self.assertIsNone(tracker.client)
 
         # Should not raise exception
         tracker.close()
+        # mock_client_instance.close should not have been called as tracker.client was None
+        self.mock_client_instance.close.assert_not_called()
+
 
     @patch("shared.persistence.influxdb_last_processed_tracker.retry")
-    def test_retry_decorator_parameters(self, mock_retry):
-        """Test that retry decorators are configured correctly"""
-        # This test verifies the retry configuration is applied
-        # The actual retry behavior is tested implicitly in other tests
+    def test_retry_decorator_parameters(self, mock_retry_decorator_module_patch):
+        """Test that retry decorators are configured correctly (decorator application)."""
+        # This test verifies that the @retry decorator from tenacity (as imported in the module)
+        # is applied to the private methods. The mock will register the calls made to it
+        # during the decoration process (when the class and its methods are defined).
 
-        # Just create an instance to trigger the decorators
-        tracker = InfluxDBLastProcessedTracker(
-            self.url, self.token, self.org, self.bucket
-        )
+        # Re-import or reload the module under test if necessary,
+        # or ensure the patch is active *before* the module is first imported by the test runner.
+        # For this structure, the patch applied at the class/method level should work if
+        # the methods are called. The decorator itself is `tenacity.retry`.
+        # The test currently patches `shared.persistence.influxdb_last_processed_tracker.retry`.
+        # This means it patches the `retry` object that was imported into that module.
 
-        # Verify retry was called (decorators are applied at import time)
-        self.assertTrue(mock_retry.called)
+        # To check if the decorator *was applied*, we'd typically need to inspect the
+        # method's attributes or verify the decorator itself was called during class definition.
+        # The `mock_retry_decorator_module_patch.called` checks if the `retry` object (which is now a mock)
+        # was called as a function. This happens when the decorator is applied.
 
-    def test_reconnect_on_get_failure(self):
-        """Test that get operation attempts reconnect when client is None"""
-        tracker = InfluxDBLastProcessedTracker(
-            self.url, self.token, self.org, self.bucket
-        )
+        # Re-instantiate to ensure class definition (and decoration) happens after patch
+        InfluxDBLastProcessedTracker(self.url, self.token, self.org, self.bucket)
+        self.assertTrue(mock_retry_decorator_module_patch.called)
+        # Check that it was called for each decorated method (3 times)
+        self.assertEqual(mock_retry_decorator_module_patch.call_count, 3)
 
-        # Simulate client becoming None
-        tracker.client = None
 
-        # Setup mock for reconnection
-        new_mock_client = Mock()
-        new_mock_client.ping.return_value = True
-        new_mock_client.query_api.return_value = Mock()
-        new_mock_client.query_api.return_value.query.return_value = []
+    @patch("shared.persistence.influxdb_last_processed_tracker.logging")
+    def test_reconnect_on_get_failure(self, mock_logging): # Renamed from test_get_last_processed_timestamp_client_not_initialized_attempts_reconnect
+        """Test that get operation attempts reconnect when client is None and reconnect succeeds."""
+        # Simulate __init__ failing to connect initially
+        self.mock_client_class.side_effect = RetryError("Initial connection failed")
+        tracker = InfluxDBLastProcessedTracker(self.url, self.token, self.org, self.bucket)
+        self.assertIsNone(tracker.client, "Client should be None after failed initialization")
 
-        with patch.object(tracker, "_connect_with_retry") as mock_connect:
+        # Setup mock for a successful reconnection attempt
+        mock_reconnected_client_instance = Mock(spec=InfluxDBClient) # Use spec for attribute checking
+        mock_reconnected_client_instance.ping.return_value = True
+        mock_query_api = Mock()
+        mock_reconnected_client_instance.query_api.return_value = mock_query_api
+        # Simulate no data found after successful reconnect for simplicity
+        mock_query_api.query.return_value = []
 
-            def mock_reconnect():
-                tracker.client = new_mock_client
+        # Patch _connect_with_retry on the *instance* of the tracker
+        with patch.object(tracker, '_connect_with_retry') as mock_instance_connect_retry:
+            # Define side effect for the patched _connect_with_retry
+            def successful_reconnect_side_effect():
+                tracker.client = mock_reconnected_client_instance # Simulate client being set on successful reconnect
+            mock_instance_connect_retry.side_effect = successful_reconnect_side_effect
 
-            mock_connect.side_effect = mock_reconnect
-
+            # Act
             result = tracker.get_last_processed_timestamp("test_service", "test_key")
 
-            # Verify reconnection was attempted
-            mock_connect.assert_called_once()
-            self.assertIsNone(result)  # No results in mock
+            # Assert
+            mock_instance_connect_retry.assert_called_once() # Verify _connect_with_retry was called
+            self.assertIsNotNone(tracker.client, "Client should be reconnected")
+            self.assertEqual(tracker.client, mock_reconnected_client_instance)
+            mock_query_api.query.assert_called_once() # Verify query was made after reconnect
+            self.assertIsNone(result) # As query returns no data
 
-    def test_reconnect_on_update_failure(self):
-        """Test that update operation attempts reconnect when client is None"""
-        tracker = InfluxDBLastProcessedTracker(
-            self.url, self.token, self.org, self.bucket
-        )
 
-        # Simulate client becoming None
-        tracker.client = None
+    @patch("shared.persistence.influxdb_last_processed_tracker.logging")
+    def test_reconnect_on_update_failure(self, mock_logging):
+        """Test that update operation attempts reconnect when client is None and reconnect succeeds."""
+        self.mock_client_class.side_effect = RetryError("Initial connection failed")
+        tracker = InfluxDBLastProcessedTracker(self.url, self.token, self.org, self.bucket)
+        self.assertIsNone(tracker.client, "Client should be None after failed initialization")
 
-        # Setup mock for reconnection
-        new_mock_client = Mock()
-        new_mock_client.ping.return_value = True
-        new_mock_client.write_api.return_value = Mock()
+        mock_reconnected_client_instance = Mock(spec=InfluxDBClient)
+        mock_reconnected_client_instance.ping.return_value = True
+        mock_write_api = Mock()
+        mock_reconnected_client_instance.write_api.return_value = mock_write_api
 
-        with patch.object(tracker, "_connect_with_retry") as mock_connect:
+        with patch.object(tracker, '_connect_with_retry') as mock_instance_connect_retry:
+            def successful_reconnect_side_effect():
+                tracker.client = mock_reconnected_client_instance
+            mock_instance_connect_retry.side_effect = successful_reconnect_side_effect
+            
+            tracker.update_last_processed_timestamp("test_service", "test_key", 12345)
 
-            def mock_reconnect():
-                tracker.client = new_mock_client
+            mock_instance_connect_retry.assert_called_once()
+            self.assertIsNotNone(tracker.client)
+            self.assertEqual(tracker.client, mock_reconnected_client_instance)
+            mock_write_api.write.assert_called_once()
 
-            mock_connect.side_effect = mock_reconnect
-
-            tracker.update_last_processed_timestamp(
-                "test_service", "test_key", 1234567890123
-            )
-
-            # Verify reconnection was attempted
-            mock_connect.assert_called_once()
 
     def test_influxdb_error_handling(self):
-        """Test handling of InfluxDB specific errors"""
+        """Test handling of InfluxDB specific errors during query"""
         tracker = InfluxDBLastProcessedTracker(
             self.url, self.token, self.org, self.bucket
         )
-
+        
+        # Ensure client is valid initially
+        self.assertIsNotNone(tracker.client)
         mock_query_api = Mock()
         self.mock_client_instance.query_api.return_value = mock_query_api
-        mock_query_api.query.side_effect = InfluxDBError("Database error")
+        
+        # Simulate InfluxDBError during the query operation, after initial connection
+        mock_query_api.query.side_effect = InfluxDBError("Database query error")
 
-        with patch.object(
-            tracker,
-            "_get_last_processed_timestamp_retryable",
-            side_effect=InfluxDBError("Database error"),
-        ):
-            # The retry mechanism should handle this, but if all retries fail,
-            # it should return None gracefully
-            result = tracker.get_last_processed_timestamp("test_service", "test_key")
-            self.assertIsNone(result)
+        # The public method get_last_processed_timestamp should catch RetryError,
+        # which wraps InfluxDBError after tenacity retries _get_last_processed_timestamp_retryable.
+        result = tracker.get_last_processed_timestamp("test_service", "test_key")
+        self.assertIsNone(result)
+        # Verify query_api.query was called multiple times due to retries
+        self.assertEqual(mock_query_api.query.call_count, 5)
+
 
     def test_measurement_name_constant(self):
         """Test that the measurement name is correctly defined"""
@@ -366,12 +446,13 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
         with patch(
             "shared.persistence.influxdb_last_processed_tracker.Point"
         ) as mock_point_class:
-            mock_point = Mock()
-            mock_point_class.return_value = mock_point
+            # Create a mock Point instance that will be returned by Point()
+            mock_point_instance = MagicMock()
+            mock_point_class.return_value = mock_point_instance
+            # Ensure chained calls also return the mock_point_instance
+            mock_point_instance.tag.return_value = mock_point_instance
+            mock_point_instance.field.return_value = mock_point_instance
 
-            # Chain method calls
-            mock_point.tag.return_value = mock_point
-            mock_point.field.return_value = mock_point
 
             tracker.update_last_processed_timestamp(
                 "test_service", "test_key", 1234567890123
@@ -381,9 +462,9 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
             mock_point_class.assert_called_once_with("processing_state")
 
             # Verify tags and fields were set
-            mock_point.tag.assert_any_call("service_identifier", "test_service")
-            mock_point.tag.assert_any_call("key", "test_key")
-            mock_point.field.assert_called_once_with(
+            mock_point_instance.tag.assert_any_call("service_identifier", "test_service")
+            mock_point_instance.tag.assert_any_call("key", "test_key")
+            mock_point_instance.field.assert_called_once_with(
                 "last_processed_timestamp_ms", 1234567890123
             )
 
