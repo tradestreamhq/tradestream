@@ -525,7 +525,7 @@ def main(argv):
                 port=FLAGS.redis_port,
                 password=FLAGS.redis_password,
             )
-            if not redis_manager.get_client():  # Check if connection was successful
+            if not redis_manager.client:  # Check if connection was successful
                 logging.error("Failed to connect to Redis. Exiting.")
                 if influx_manager:
                     influx_manager.close()
