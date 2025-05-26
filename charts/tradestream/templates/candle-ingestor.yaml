@@ -54,11 +54,11 @@ spec:
                       key: {{ .Values.candleIngestor.secrets.influxDb.tokenKey }}
                 - name: INFLUXDB_ORG
                   value: "{{ .Values.influxdb.adminUser.organization }}"
-                - name: REDIS_HOST # <-- ADDED
+                - name: REDIS_HOST
                   value: {{ tpl .Values.candleIngestor.redis.host . | quote }}
-                - name: REDIS_PORT # <-- ADDED
+                - name: REDIS_PORT
                   value: {{ .Values.candleIngestor.redis.port | quote }}
-                {{- if .Values.redis.auth.enabled }} # <-- ADDED BLOCK for password
+                {{- if .Values.redis.auth.enabled }}
                 - name: REDIS_PASSWORD
                   valueFrom:
                     secretKeyRef:
