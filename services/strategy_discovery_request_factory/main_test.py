@@ -16,14 +16,18 @@ class MainTest(unittest.TestCase):
 
     def setUp(self):
         """Set up test environment."""
-        # Reset FLAGS for each test
+        # Reset FLAGS and parse with test arguments
         FLAGS.unparse_flags()
-
-        # Set required flags
-        FLAGS.cmc_api_key = "test-cmc-key"
-        FLAGS.influxdb_token = "test-token"
-        FLAGS.influxdb_org = "test-org"
-        FLAGS.lookback_minutes = 5 # Short interval for testing
+        
+        # Parse flags with test arguments before accessing them
+        test_argv = [
+            "test_binary",
+            "--cmc_api_key=test-cmc-key", 
+            "--influxdb_token=test-token",
+            "--influxdb_org=test-org",
+            "--lookback_minutes=5"
+        ]
+        FLAGS(test_argv)
 
         # Mock all external dependencies
         self.mock_get_top_n_crypto = patch(
@@ -42,7 +46,6 @@ class MainTest(unittest.TestCase):
             "services.strategy_discovery_request_factory.main.LastProcessedTracker"
         ).start()
 
-
         # Set up mock return values
         self.mock_get_top_n_crypto.return_value = ["btcusd", "ethusd"]
 
@@ -52,27 +55,24 @@ class MainTest(unittest.TestCase):
         self.mock_kafka_instance = Mock()
         self.mock_tracker_instance = Mock()
 
-
         self.mock_influx_poller_cls.return_value = self.mock_influx_instance
         self.mock_strategy_discovery_processor_cls.return_value = self.mock_processor_instance
         self.mock_kafka_publisher_cls.return_value = self.mock_kafka_instance
         self.mock_last_processed_tracker_cls.return_value = self.mock_tracker_instance
-
 
         # Mock fetch_new_candles to return no candles by default
         self.mock_influx_instance.fetch_new_candles.return_value = ([], 0)
         self.mock_processor_instance.add_candle.return_value = []
         self.mock_tracker_instance.get_last_timestamp.return_value = 0
 
-
     def tearDown(self):
         """Clean up test environment."""
         patch.stopall()
-
+        FLAGS.unparse_flags()
 
     def test_flag_definitions(self):
         """Test that all required flags are defined."""
-        # Test flag existence and default values
+        # Test flag existence
         self.assertTrue(hasattr(FLAGS, "cmc_api_key"))
         self.assertTrue(hasattr(FLAGS, "top_n_cryptos"))
         self.assertTrue(hasattr(FLAGS, "influxdb_url"))
@@ -81,32 +81,49 @@ class MainTest(unittest.TestCase):
         self.assertTrue(hasattr(FLAGS, "kafka_bootstrap_servers"))
         self.assertTrue(hasattr(FLAGS, "lookback_minutes"))
 
-
     @patch("services.strategy_discovery_request_factory.main.sys.exit")
     def test_main_missing_cmc_api_key(self, mock_exit):
         """Test main function fails without CMC API key."""
-        FLAGS.cmc_api_key = None
-
+        # Reset flags and parse without cmc_api_key
+        FLAGS.unparse_flags()
+        test_argv = [
+            "test_binary",
+            "--influxdb_token=test-token",
+            "--influxdb_org=test-org",
+        ]
+        FLAGS(test_argv)
+        
         main.main([])
-
         mock_exit.assert_called_with(1)
 
     @patch("services.strategy_discovery_request_factory.main.sys.exit")
     def test_main_missing_influxdb_token(self, mock_exit):
         """Test main function fails without InfluxDB token."""
-        FLAGS.influxdb_token = None
-
+        # Reset flags and parse without influxdb_token
+        FLAGS.unparse_flags()
+        test_argv = [
+            "test_binary",
+            "--cmc_api_key=test-key",
+            "--influxdb_org=test-org",
+        ]
+        FLAGS(test_argv)
+        
         main.main([])
-
         mock_exit.assert_called_with(1)
 
     @patch("services.strategy_discovery_request_factory.main.sys.exit")
     def test_main_missing_influxdb_org(self, mock_exit):
         """Test main function fails without InfluxDB org."""
-        FLAGS.influxdb_org = None
-
+        # Reset flags and parse without influxdb_org
+        FLAGS.unparse_flags()
+        test_argv = [
+            "test_binary",
+            "--cmc_api_key=test-key",
+            "--influxdb_token=test-token",
+        ]
+        FLAGS(test_argv)
+        
         main.main([])
-
         mock_exit.assert_called_with(1)
 
     @patch("services.strategy_discovery_request_factory.main.sys.exit")
@@ -115,12 +132,9 @@ class MainTest(unittest.TestCase):
         self.mock_get_top_n_crypto.return_value = []
 
         main.main([])
-
         mock_exit.assert_called_with(1)
 
-
-    @patch("services.strategy_discovery_request_factory.main.sys.exit")
-    def test_main_initialization_success(self, mock_exit):
+    def test_main_initialization_success(self):
         """Test successful main function initialization."""
         main.main([])
 
@@ -131,14 +145,12 @@ class MainTest(unittest.TestCase):
         self.mock_strategy_discovery_processor_cls.assert_called_once()
         self.mock_kafka_publisher_cls.assert_called_once()
 
-
         # Verify currency pairs conversion
         expected_pairs = ["BTC/USD", "ETH/USD"]
         processor_init_args = self.mock_processor_instance.initialize_deques.call_args
         self.assertEqual(processor_init_args[0][0], expected_pairs)
 
-    @patch("services.strategy_discovery_request_factory.main.sys.exit")
-    def test_main_processing_loop(self, mock_exit):
+    def test_main_processing_loop(self):
         """Test main processing loop functionality."""
         test_candles = create_test_candles(2, "BTC/USD")
         test_requests = [Mock(), Mock()]
@@ -158,15 +170,12 @@ class MainTest(unittest.TestCase):
         # Called twice for ETH/USD (one for each candle, assuming fetch_new_candles returns 2 for ETH as well)
         self.assertEqual(self.mock_processor_instance.add_candle.call_count, 4)
 
-
         # Verify request publishing
         # 2 candles * 2 requests per candle * 2 pairs
         self.assertEqual(self.mock_kafka_instance.publish_request.call_count, 8)
         self.mock_tracker_instance.set_last_timestamp.assert_called()
 
-
-    @patch("services.strategy_discovery_request_factory.main.sys.exit")
-    def test_main_no_new_candles(self, mock_exit):
+    def test_main_no_new_candles(self):
         """Test processing when no new candles are available."""
         # Mock returns no candles
         self.mock_influx_instance.fetch_new_candles.return_value = ([], 0)
@@ -180,25 +189,27 @@ class MainTest(unittest.TestCase):
         self.mock_kafka_instance.publish_request.assert_not_called()
         self.mock_tracker_instance.set_last_timestamp.assert_not_called() # No new timestamp to set
 
-
-    @patch("services.strategy_discovery_request_factory.main.signal.signal")
-    @patch("services.strategy_discovery_request_factory.main.sys.exit")
-    def test_signal_registration(self, mock_exit, mock_signal):
+    @patch("signal.signal")
+    def test_signal_registration(self, mock_signal):
         """Test that signal handlers are registered."""
         main.main([])
 
         # Verify signal handlers were registered
-        signal_calls = mock_signal.call_args_list
-        registered_signals = [call[0][0] for call in signal_calls]
+        mock_signal.assert_any_call(signal.SIGINT, main.handle_shutdown_signal)
+        mock_signal.assert_any_call(signal.SIGTERM, main.handle_shutdown_signal)
 
-        self.assertIn(signal.SIGINT, registered_signals)
-        self.assertIn(signal.SIGTERM, registered_signals)
-
-
-    @patch("services.strategy_discovery_request_factory.main.sys.exit")
-    def test_fibonacci_windows_flag_parsing(self, mock_exit):
+    def test_fibonacci_windows_flag_parsing(self):
         """Test parsing of Fibonacci windows from flags."""
-        FLAGS.fibonacci_windows_minutes = ["5", "8", "13"]
+        # Reset flags and set fibonacci_windows_minutes
+        FLAGS.unparse_flags()
+        test_argv = [
+            "test_binary",
+            "--cmc_api_key=test-key",
+            "--influxdb_token=test-token",
+            "--influxdb_org=test-org",
+            "--fibonacci_windows_minutes=5,8,13"
+        ]
+        FLAGS(test_argv)
 
         main.main([])
 
@@ -207,9 +218,7 @@ class MainTest(unittest.TestCase):
         fibonacci_windows = processor_call_args[1]["fibonacci_windows_minutes"]
         self.assertEqual(fibonacci_windows, [5, 8, 13])
 
-
-    @patch("services.strategy_discovery_request_factory.main.sys.exit")
-    def test_timestamp_tracking(self, mock_exit):
+    def test_timestamp_tracking(self):
         """Test that timestamps are properly tracked per currency pair."""
         # Set up two currency pairs
         self.mock_get_top_n_crypto.return_value = ["btcusd", "ethusd"]
@@ -226,7 +235,6 @@ class MainTest(unittest.TestCase):
         self.assertEqual(self.mock_influx_instance.fetch_new_candles.call_count, 2)
         self.mock_tracker_instance.set_last_timestamp.assert_any_call("BTC/USD", 1000)
         self.mock_tracker_instance.set_last_timestamp.assert_any_call("ETH/USD", 1500)
-
 
     @patch("services.strategy_discovery_request_factory.main.sys.exit")
     def test_exception_handling(self, mock_exit):
