@@ -111,10 +111,9 @@ class IntegrationTest(unittest.TestCase):
         # Verify the last few candles generated requests for all windows
         # When 13th candle is added, should generate requests for windows 5, 8, 13
         # When 15th candle is added, should also generate for all windows
-        # Number of strategy types (excluding UNKNOWN)
-        num_strategy_types = len(StrategyType.values()) -1 # Assuming UNKNOWN is 0 and to be skipped
+        # Number of strategy types (excluding UNSPECIFIED)
+        num_strategy_types = len([st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED])
         self.assertGreaterEqual(total_published_requests, 3 * num_strategy_types )
-
 
     def test_multiple_currency_pairs_processing(self):
         """Test processing multiple currency pairs simultaneously."""
@@ -319,9 +318,8 @@ class IntegrationTest(unittest.TestCase):
         """Test that correct number of requests are generated for Fibonacci windows."""
         currency_pair = "BTC/USD"
         self.strategy_discovery_processor.initialize_deques([currency_pair])
-        # Get the number of strategy types, excluding UNKNOWN if it's an enum value
-        num_strategy_types = len([st for st in StrategyType.values() if st != StrategyType.UNKNOWN and st != StrategyType.UNRECOGNIZED])
-
+        # Get the number of strategy types, excluding UNSPECIFIED if it's an enum value
+        num_strategy_types = len([st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED])
 
         # Create exactly enough candles for all windows (13 candles for largest window)
         test_candles = create_test_candles(13, currency_pair)
@@ -336,9 +334,8 @@ class IntegrationTest(unittest.TestCase):
                 self.kafka_publisher.publish_request(request, currency_pair)
                 # Verify request structure
                 self.assertIn(request.strategy_type, StrategyType.values())
-                self.assertNotEqual(request.strategy_type, StrategyType.UNKNOWN)
+                self.assertNotEqual(request.strategy_type, StrategyType.UNSPECIFIED)
                 self.assertGreater(request.end_time.seconds, request.start_time.seconds)
-
 
         # Verify request generation pattern
         # Should start generating requests when we have enough candles
@@ -350,7 +347,6 @@ class IntegrationTest(unittest.TestCase):
         self.assertEqual(
             requests_per_candle_add_count[12], 3 * num_strategy_types
         )  # 13th candle: 3 windows * types
-
 
     def test_component_cleanup(self):
         """Test proper cleanup of all components."""
