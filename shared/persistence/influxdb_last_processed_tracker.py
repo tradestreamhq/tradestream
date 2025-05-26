@@ -57,7 +57,7 @@ class InfluxDBLastProcessedTracker:
             logging.error(
                 f"InfluxDBLastProcessedTracker: Error connecting to InfluxDB at {self.url}: {e}"
             )
-            self.client = None # Ensure client is None on any exception
+            self.client = None  # Ensure client is None on any exception
             raise
 
     @retry(**influx_retry_params)
