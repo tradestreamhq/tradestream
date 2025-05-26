@@ -101,7 +101,7 @@ class StrategyDiscoveryProcessor:
                 # Generate one request for each strategy type
                 for strategy_type in StrategyType.values():
                     # Skip UNKNOWN strategy type
-                    if strategy_type == StrategyType.UNKNOWN:
+                    if strategy_type == StrategyType.UNSPECIFIED:
                         continue
 
                     strategy_discovery_request = StrategyDiscoveryRequest(
