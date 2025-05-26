@@ -133,8 +133,7 @@ class StrategyDiscoveryProcessorTest(unittest.TestCase):
         """Test that adding candles generates strategy discovery requests."""
         currency_pair = "BTC/USD"
         self.processor.initialize_deques([currency_pair])
-        num_strategy_types = len([st for st in StrategyType.values() if st != StrategyType.UNKNOWN and st != StrategyType.UNRECOGNIZED])
-
+        num_strategy_types = len([st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED])
 
         # Add enough candles for smallest window (5)
         candles = create_test_candles(5, currency_pair)
@@ -147,23 +146,20 @@ class StrategyDiscoveryProcessorTest(unittest.TestCase):
         # Should generate requests for the 5-minute window for each strategy type when 5th candle is added
         self.assertEqual(len(requests_list), 1 * num_strategy_types)
 
-
         # Verify request structure
         for request in requests_list:
             self.assertEqual(request.symbol, currency_pair)
-            self.assertNotEqual(request.strategy_type, StrategyType.UNKNOWN)
+            self.assertNotEqual(request.strategy_type, StrategyType.UNSPECIFIED)
             self.assertGreater(request.end_time.seconds, request.start_time.seconds)
             self.assertEqual(request.top_n, self.default_top_n)
             self.assertEqual(request.ga_config.max_generations, self.default_max_generations)
             self.assertEqual(request.ga_config.population_size, self.default_population_size)
 
-
     def test_add_candle_multiple_windows(self):
         """Test generating requests for multiple Fibonacci windows."""
         currency_pair = "BTC/USD"
         self.processor.initialize_deques([currency_pair])
-        num_strategy_types = len([st for st in StrategyType.values() if st != StrategyType.UNKNOWN and st != StrategyType.UNRECOGNIZED])
-
+        num_strategy_types = len([st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED])
 
         # Add enough candles for multiple windows (21 candles)
         candles = create_test_candles(21, currency_pair)
@@ -176,7 +172,6 @@ class StrategyDiscoveryProcessorTest(unittest.TestCase):
         # When 21st candle is added, should generate requests for all windows (5, 8, 13, 21)
         # The add_candle for the 21st candle itself will trigger these.
         final_add_requests = self.processor.add_candle(candles[-1])
-
 
         self.assertEqual(
             len(final_add_requests), 4 * num_strategy_types
@@ -198,8 +193,7 @@ class StrategyDiscoveryProcessorTest(unittest.TestCase):
         self.assertEqual(len(request_window_durations_minutes), len(expected_durations))
         for i in range(len(expected_durations)):
              # Allow for slight discrepancies due to integer division if granularity > 1
-            self.assertAlmostEqual(request_window_durations_minutes[i], expected_durations[i].toDouble(), delta=self.candle_granularity_minutes.toDouble())
-
+            self.assertAlmostEqual(request_window_durations_minutes[i], expected_durations[i], delta=self.candle_granularity_minutes)
 
     def test_add_candle_out_of_order_warning(self):
         """Test warning for out-of-order candles."""
@@ -263,8 +257,7 @@ class StrategyDiscoveryProcessorTest(unittest.TestCase):
             default_population_size=self.default_population_size,
             candle_granularity_minutes=5,  # 5-minute candles
         )
-        num_strategy_types = len([st for st in StrategyType.values() if st != StrategyType.UNKNOWN and st != StrategyType.UNRECOGNIZED])
-
+        num_strategy_types = len([st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED])
 
         currency_pair = "BTC/USD"
         processor_5min.initialize_deques([currency_pair])
@@ -276,7 +269,6 @@ class StrategyDiscoveryProcessorTest(unittest.TestCase):
         for candle in candles:
             req = processor_5min.add_candle(candle)
             requests.extend(req)
-
 
         # The last add_candle (3rd candle) should trigger requests for both windows
         final_add_requests = processor_5min.add_candle(candles[-1])
@@ -290,7 +282,6 @@ class StrategyDiscoveryProcessorTest(unittest.TestCase):
         # The fibonacci_windows_minutes are [10, 15]
         # These should be the durations reflected in the start_time and end_time of the requests.
         self.assertEqual(request_window_durations_minutes, [10, 15])
-
 
     def test_invalid_window_size_skip(self):
         """Test that invalid window sizes are skipped."""
@@ -319,7 +310,6 @@ class StrategyDiscoveryProcessorTest(unittest.TestCase):
 
             # Should not generate any requests
             self.assertEqual(len(requests), 0)
-
 
     @patch("services.strategy_discovery_request_factory.strategy_discovery_processor.logging")
     def test_logging_behavior(self, mock_logging):
