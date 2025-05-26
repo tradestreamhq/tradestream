@@ -54,9 +54,10 @@ py_binary(
         ":influx_poller_lib",
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
-        "//shared/cryptoclient:cmc_client_lib",
+        "//shared/persistence:last_processed_tracker_lib",
         "//third_party/python:absl_py",
         "//third_party/python:protobuf",
+        "//third_party/python:redis",
     ],
 )
 
@@ -123,10 +124,12 @@ py_test(
     name = "main_test",
     srcs = ["main_test.py"],
     args = [
-        "--cmc_api_key=dummy_cmc_key_for_test",
         "--influxdb_token=dummy_token_for_test",
         "--influxdb_org=dummy_org_for_test",
         "--lookback_minutes=5",
+        "--redis_host=localhost",
+        "--redis_port=6379",
+        "--crypto_symbols_key=test:symbols",
     ],
     deps = [
         ":app",
@@ -135,8 +138,9 @@ py_test(
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
         ":test_utils_lib",
-        "//shared/cryptoclient:cmc_client_lib",
+        "//shared/persistence:last_processed_tracker_lib",
         "//third_party/python:absl_py",
+        "//third_party/python:redis",
     ],
 )
 
@@ -150,8 +154,10 @@ py_test(
         ":strategy_discovery_processor_lib",
         ":test_utils_lib",
         "//protos:discovery_py_proto",
-        "//protos:marketdata_py_proto",
+        "//protos:marketdata_pb2",
+        "//shared/persistence:last_processed_tracker_lib",
         "//third_party/python:influxdb_client",
         "//third_party/python:kafka_python",
+        "//third_party/python:redis",
     ],
 )

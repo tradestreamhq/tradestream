@@ -1,270 +1,242 @@
-import os
-import sys
-import time
-from absl import app
-from absl import flags
-from absl import logging
+"""
+Strategy Discovery Request Factory - Cron Job Version
 
-from services.strategy_discovery_request_factory import config
-from services.strategy_discovery_request_factory.influx_poller import InfluxPoller
-from services.strategy_discovery_request_factory.strategy_discovery_processor import (
-    StrategyDiscoveryProcessor,
+This service runs as a cron job to:
+1. Fetch crypto symbols from Redis
+2. Poll InfluxDB for new candle data  
+3. Process candles through strategy discovery processor
+4. Publish strategy discovery requests to Kafka
+
+Designed to run once per execution via cron.
+"""
+
+import sys
+from absl import app, flags, logging
+import redis
+from services.strategy_discovery_request_factory.config import (
+    FIBONACCI_WINDOWS_MINUTES,
+    DEQUE_MAXLEN,
+    DEFAULT_TOP_N,
+    DEFAULT_MAX_GENERATIONS,
+    DEFAULT_POPULATION_SIZE,
+    CANDLE_GRANULARITY_MINUTES,
 )
+from services.strategy_discovery_request_factory.influx_poller import InfluxPoller
+from services.strategy_discovery_request_factory.strategy_discovery_processor import StrategyDiscoveryProcessor
 from services.strategy_discovery_request_factory.kafka_publisher import KafkaPublisher
-from shared.cryptoclient.cmc_client import get_top_n_crypto_symbols
+from shared.persistence.last_processed_tracker import LastProcessedTracker
+
+# Redis flags
+flags.DEFINE_string("redis_host", "localhost", "Redis host")
+flags.DEFINE_integer("redis_port", 6379, "Redis port")
+flags.DEFINE_integer("redis_db", 0, "Redis database number")
+flags.DEFINE_string("redis_password", None, "Redis password (if required)")
+flags.DEFINE_string("crypto_symbols_key", "crypto:symbols", "Redis key containing crypto symbols set")
+
+# InfluxDB flags
+flags.DEFINE_string("influxdb_url", "http://localhost:8086", "InfluxDB URL")
+flags.DEFINE_string("influxdb_token", None, "InfluxDB authentication token")
+flags.DEFINE_string("influxdb_org", None, "InfluxDB organization")
+flags.DEFINE_string("influxdb_bucket", "marketdata", "InfluxDB bucket name")
+
+# Kafka flags
+flags.DEFINE_string("kafka_bootstrap_servers", "localhost:9092", "Kafka bootstrap servers")
+flags.DEFINE_string("kafka_topic", "strategy-discovery-requests", "Kafka topic for publishing requests")
+
+# Processing flags
+flags.DEFINE_integer("lookback_minutes", 60, "Lookback window in minutes for fetching candles")
+flags.DEFINE_list("fibonacci_windows_minutes", FIBONACCI_WINDOWS_MINUTES, "Fibonacci windows in minutes")
+flags.DEFINE_integer("deque_maxlen", DEQUE_MAXLEN, "Maximum length of candle deques")
+flags.DEFINE_integer("default_top_n", DEFAULT_TOP_N, "Default number of top strategies to discover")
+flags.DEFINE_integer("default_max_generations", DEFAULT_MAX_GENERATIONS, "Default GA max generations")
+flags.DEFINE_integer("default_population_size", DEFAULT_POPULATION_SIZE, "Default GA population size")
+flags.DEFINE_integer("candle_granularity_minutes", CANDLE_GRANULARITY_MINUTES, "Candle granularity in minutes")
+
+# Persistence flags
+flags.DEFINE_string("tracker_file_path", "/tmp/strategy_discovery_last_processed.json", "Path to last processed timestamp tracker file")
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string(
-    "cmc_api_key",
-    config.CMC_API_KEY,
-    "CoinMarketCap API Key. Can also be set via CMC_API_KEY env var.",
-)
-flags.DEFINE_integer(
-    "top_n_cryptos", config.TOP_N_CRYPTOS, "Number of top cryptocurrencies to fetch."
-)
-flags.DEFINE_string("influxdb_url", config.INFLUXDB_URL, "InfluxDB URL.")
-flags.DEFINE_string(
-    "influxdb_token",
-    config.INFLUXDB_TOKEN,
-    "InfluxDB Token. Must be set via flag or INFLUXDB_TOKEN env var.",
-)
-flags.DEFINE_string(
-    "influxdb_org",
-    config.INFLUXDB_ORG,
-    "InfluxDB Organization. Must be set via flag or INFLUXDB_ORG env var.",
-)
-flags.DEFINE_string(
-    "influxdb_bucket_candles",
-    config.INFLUXDB_BUCKET_CANDLES,
-    "InfluxDB Bucket for candles.",
-)
-flags.DEFINE_string(
-    "kafka_bootstrap_servers",
-    config.KAFKA_BOOTSTRAP_SERVERS,
-    "Kafka bootstrap servers.",
-)
-flags.DEFINE_string(
-    "kafka_strategy_discovery_request_topic",
-    config.KAFKA_STRATEGY_DISCOVERY_REQUEST_TOPIC,
-    "Kafka topic for strategy discovery requests.",
-)
-flags.DEFINE_list(
-    "fibonacci_windows_minutes",
-    [str(w) for w in config.FIBONACCI_WINDOWS_MINUTES],
-    "Comma-separated list of Fibonacci window sizes in minutes.",
-)
-flags.DEFINE_integer(
-    "deque_maxlen", config.DEQUE_MAXLEN, "Maximum length for candle deques."
-)
-flags.DEFINE_integer(
-    "default_top_n",
-    config.DEFAULT_TOP_N,
-    "Default number of top strategies to return.",
-)
-flags.DEFINE_integer(
-    "default_max_generations",
-    config.DEFAULT_MAX_GENERATIONS,
-    "Default maximum generations for GA optimization.",
-)
-flags.DEFINE_integer(
-    "default_population_size",
-    config.DEFAULT_POPULATION_SIZE,
-    "Default population size for GA optimization.",
-)
-flags.DEFINE_integer(
-    "candle_granularity_minutes",
-    config.CANDLE_GRANULARITY_MINUTES,
-    "Granularity of candles in InfluxDB in minutes.",
-)
-flags.DEFINE_integer(
-    "lookback_minutes",
-    5,
-    "How many minutes to look back for new candles (should be >= cron frequency).",
-)
+
+def get_crypto_symbols_from_redis(redis_client: redis.Redis, symbols_key: str) -> list[str]:
+    """
+    Fetch crypto symbols from Redis.
+    
+    Args:
+        redis_client: Redis client instance
+        symbols_key: Redis key containing the symbols set
+        
+    Returns:
+        List of crypto symbols in format like ['btcusd', 'ethusd']
+        
+    Raises:
+        Exception: If Redis fetch fails or no symbols found
+    """
+    try:
+        # Assume symbols are stored as a Redis set
+        symbols = redis_client.smembers(symbols_key)
+        if not symbols:
+            raise ValueError(f"No crypto symbols found in Redis key: {symbols_key}")
+            
+        # Convert bytes to strings and return
+        symbol_strings = [symbol.decode('utf-8') for symbol in symbols]
+        logging.info(f"Fetched {len(symbol_strings)} crypto symbols from Redis: {symbol_strings}")
+        return symbol_strings
+        
+    except redis.RedisError as e:
+        raise Exception(f"Failed to fetch crypto symbols from Redis: {e}")
 
 
-class LastProcessedTracker:
-    """Simple file-based tracker for last processed timestamps per currency pair."""
-
-    def __init__(self, filepath: str = "/tmp/last_processed_timestamps.txt"):
-        self.filepath = filepath
-
-    def get_last_timestamp(self, currency_pair: str) -> int:
-        """Get last processed timestamp for a currency pair (returns 0 if not found)."""
-        try:
-            if not os.path.exists(self.filepath):
-                return 0
-
-            with open(self.filepath, "r") as f:
-                for line in f:
-                    line = line.strip()
-                    if line and "=" in line:
-                        pair, timestamp_str = line.split("=", 1)
-                        if pair == currency_pair:
-                            return int(timestamp_str)
-            return 0
-        except Exception as e:
-            logging.warning(
-                f"Error reading last processed timestamp for {currency_pair}: {e}"
-            )
-            return 0
-
-    def set_last_timestamp(self, currency_pair: str, timestamp_ms: int):
-        """Set last processed timestamp for a currency pair."""
-        try:
-            # Read existing data
-            existing_data = {}
-            if os.path.exists(self.filepath):
-                with open(self.filepath, "r") as f:
-                    for line in f:
-                        line = line.strip()
-                        if line and "=" in line:
-                            pair, timestamp_str = line.split("=", 1)
-                            existing_data[pair] = timestamp_str
-
-            # Update with new timestamp
-            existing_data[currency_pair] = str(timestamp_ms)
-
-            # Write back to file
-            with open(self.filepath, "w") as f:
-                for pair, timestamp_str in existing_data.items():
-                    f.write(f"{pair}={timestamp_str}\n")
-
-        except Exception as e:
-            logging.error(
-                f"Error saving last processed timestamp for {currency_pair}: {e}"
-            )
+def convert_symbol_to_currency_pair(symbol: str) -> str:
+    """
+    Convert symbol format from Redis to currency pair format.
+    
+    Args:
+        symbol: Symbol like 'btcusd'
+        
+    Returns:
+        Currency pair like 'BTC/USD'
+    """
+    if len(symbol) < 6:
+        raise ValueError(f"Invalid symbol format: {symbol}")
+        
+    # Assume format is like 'btcusd' -> 'BTC/USD'
+    base = symbol[:-3].upper()  # Everything except last 3 chars
+    quote = symbol[-3:].upper()  # Last 3 chars
+    return f"{base}/{quote}"
 
 
 def main(argv):
-    del argv  # Unused.
-    logging.set_verbosity(logging.INFO)
-    logging.info("Starting StrategyDiscoveryRequestFactory cron job...")
+    """Main cron job execution function."""
+    if len(argv) > 1:
+        raise app.UsageError("Too many command-line arguments.")
 
-    # Validate required configurations
-    if not FLAGS.cmc_api_key:
-        logging.error("CMC_API_KEY is required. Set via flag or environment variable.")
-        sys.exit(1)
+    # Validate required flags
     if not FLAGS.influxdb_token:
-        logging.error(
-            "INFLUXDB_TOKEN is required. Set via flag or environment variable."
-        )
+        logging.error("InfluxDB token is required. Set --influxdb_token")
         sys.exit(1)
+        
     if not FLAGS.influxdb_org:
-        logging.error("INFLUXDB_ORG is required. Set via flag or environment variable.")
+        logging.error("InfluxDB organization is required. Set --influxdb_org")
         sys.exit(1)
 
-    influx_poller = None
-    kafka_publisher = None
+    logging.set_verbosity(logging.INFO)
+    logging.info("Starting Strategy Discovery Request Factory Cron Job")
 
     try:
-        # Initialize timestamp tracker
-        timestamp_tracker = LastProcessedTracker()
-
-        # Initialize components
-        logging.info("Fetching top N crypto symbols...")
-        currency_pairs_str = get_top_n_crypto_symbols(
-            FLAGS.cmc_api_key, FLAGS.top_n_cryptos
+        # Initialize Redis client
+        redis_client = redis.Redis(
+            host=FLAGS.redis_host,
+            port=FLAGS.redis_port,
+            db=FLAGS.redis_db,
+            password=FLAGS.redis_password,
+            decode_responses=False  # We handle decoding manually
         )
-        if not currency_pairs_str:
-            logging.error("Failed to fetch any currency pairs from CMC. Exiting.")
+        
+        # Test Redis connection
+        redis_client.ping()
+        logging.info(f"Connected to Redis at {FLAGS.redis_host}:{FLAGS.redis_port}")
+
+        # Fetch crypto symbols from Redis
+        crypto_symbols = get_crypto_symbols_from_redis(redis_client, FLAGS.crypto_symbols_key)
+        if not crypto_symbols:
+            logging.error("No crypto symbols retrieved from Redis")
             sys.exit(1)
 
-        # Convert symbols like "btcusd" to "BTC/USD"
-        currency_pairs = [
-            f"{s[:-3].upper()}/{s[-3:].upper()}" for s in currency_pairs_str
-        ]
+        # Convert symbols to currency pairs
+        currency_pairs = [convert_symbol_to_currency_pair(symbol) for symbol in crypto_symbols]
         logging.info(f"Processing currency pairs: {currency_pairs}")
 
+        # Initialize components
+        last_processed_tracker = LastProcessedTracker(FLAGS.tracker_file_path)
+        
         influx_poller = InfluxPoller(
             url=FLAGS.influxdb_url,
             token=FLAGS.influxdb_token,
             org=FLAGS.influxdb_org,
-            bucket=FLAGS.influxdb_bucket_candles,
+            bucket=FLAGS.influxdb_bucket
         )
 
-        fib_windows_minutes_int = [int(w) for w in FLAGS.fibonacci_windows_minutes]
-
         strategy_discovery_processor = StrategyDiscoveryProcessor(
-            fibonacci_windows_minutes=fib_windows_minutes_int,
+            fibonacci_windows_minutes=[int(x) for x in FLAGS.fibonacci_windows_minutes],
             deque_maxlen=FLAGS.deque_maxlen,
             default_top_n=FLAGS.default_top_n,
             default_max_generations=FLAGS.default_max_generations,
             default_population_size=FLAGS.default_population_size,
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
         )
-        strategy_discovery_processor.initialize_deques(currency_pairs)
 
         kafka_publisher = KafkaPublisher(
             bootstrap_servers=FLAGS.kafka_bootstrap_servers,
-            topic_name=FLAGS.kafka_strategy_discovery_request_topic,
+            topic=FLAGS.kafka_topic
         )
+
+        # Initialize deques for all currency pairs
+        strategy_discovery_processor.initialize_deques(currency_pairs)
 
         # Process each currency pair
         total_requests_published = 0
-        current_time_ms = int(time.time() * 1000)
+        
+        for currency_pair in currency_pairs:
+            logging.info(f"Processing currency pair: {currency_pair}")
+            
+            try:
+                # Get last processed timestamp for this pair
+                last_timestamp = last_processed_tracker.get_last_timestamp(currency_pair)
+                
+                # Calculate lookback timestamp if this is the first run
+                if last_timestamp == 0:
+                    # Use lookback_minutes for initial fetch
+                    import time
+                    current_time_ms = int(time.time() * 1000)
+                    last_timestamp = current_time_ms - (FLAGS.lookback_minutes * 60 * 1000)
+                    logging.info(f"First run for {currency_pair}, using lookback timestamp: {last_timestamp}")
 
-        for pair in currency_pairs:
-            logging.info(f"Processing {pair}...")
-
-            # Get last processed timestamp for this pair
-            last_timestamp_ms = timestamp_tracker.get_last_timestamp(pair)
-
-            # If no previous timestamp, look back by lookback_minutes
-            if last_timestamp_ms == 0:
-                last_timestamp_ms = current_time_ms - (
-                    FLAGS.lookback_minutes * 60 * 1000
+                # Fetch new candles
+                candles, latest_timestamp = influx_poller.fetch_new_candles(
+                    currency_pair, last_timestamp
                 )
-                logging.info(
-                    f"No previous timestamp for {pair}, looking back {FLAGS.lookback_minutes} minutes"
-                )
+                
+                if not candles:
+                    logging.info(f"No new candles for {currency_pair}")
+                    continue
+                
+                logging.info(f"Fetched {len(candles)} new candles for {currency_pair}")
 
-            # Fetch new candles since last processed timestamp
-            new_candles, latest_ts_ms = influx_poller.fetch_new_candles(
-                pair, last_timestamp_ms
-            )
-
-            if new_candles:
-                logging.info(f"Processing {len(new_candles)} new candles for {pair}")
-
-                # Process each candle to generate strategy discovery requests
-                for candle in new_candles:
-                    strategy_discovery_requests = (
-                        strategy_discovery_processor.add_candle(candle)
-                    )
-
+                # Process each candle
+                pair_requests_published = 0
+                for candle in candles:
+                    # Generate strategy discovery requests
+                    discovery_requests = strategy_discovery_processor.add_candle(candle)
+                    
                     # Publish each request
-                    for request in strategy_discovery_requests:
-                        kafka_publisher.publish_request(request, key=pair)
+                    for request in discovery_requests:
+                        kafka_publisher.publish_request(request, currency_pair)
+                        pair_requests_published += 1
                         total_requests_published += 1
 
                 # Update last processed timestamp
-                timestamp_tracker.set_last_timestamp(pair, latest_ts_ms)
-                logging.info(
-                    f"Updated last processed timestamp for {pair} to {latest_ts_ms}"
-                )
+                if latest_timestamp > last_timestamp:
+                    last_processed_tracker.set_last_timestamp(currency_pair, latest_timestamp)
+                    logging.info(f"Updated last timestamp for {currency_pair}: {latest_timestamp}")
 
-            else:
-                logging.info(f"No new candles found for {pair}")
+                logging.info(f"Published {pair_requests_published} requests for {currency_pair}")
 
-        logging.info(
-            f"Cron job completed successfully. Published {total_requests_published} strategy discovery requests."
-        )
+            except Exception as e:
+                logging.error(f"Error processing {currency_pair}: {e}")
+                # Continue with other pairs rather than failing completely
+                continue
+
+        logging.info(f"Cron job completed. Total requests published: {total_requests_published}")
+
+        # Clean up
+        influx_poller.close()
+        kafka_publisher.close()
+        redis_client.close()
 
     except Exception as e:
-        logging.exception(
-            f"Critical error in StrategyDiscoveryRequestFactory cron job: {e}"
-        )
+        logging.error(f"Cron job failed: {e}")
         sys.exit(1)
-
-    finally:
-        # Clean up resources
-        if influx_poller:
-            influx_poller.close()
-        if kafka_publisher:
-            kafka_publisher.close()
-        logging.info("Cleanup complete.")
 
 
 if __name__ == "__main__":
