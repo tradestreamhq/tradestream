@@ -21,6 +21,5 @@ py_test(
         "//third_party/python:absl_py",
         "//third_party/python:influxdb_client",
         "//third_party/python:tenacity",
-        "//third_party/python:pytest",
     ],
 )
