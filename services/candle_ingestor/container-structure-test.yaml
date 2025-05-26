@@ -6,7 +6,7 @@ commandTests:
         "--run_mode=dry",
         "--tiingo_api_key=dummykey",
         "--influxdb_token=dummytoken",
-        "--influxdb_org=dummyorg", 
+        "--influxdb_org=dummyorg",
         "--backfill_start_date=1_day_ago",
         "--candle_granularity_minutes=60",
         "--catch_up_initial_days=1",
