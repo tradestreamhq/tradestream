@@ -397,7 +397,6 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
         with patch.object(
             tracker, "_connect_with_retry"
         ) as mock_instance_connect_retry:
-
             # Define side effect for the patched _connect_with_retry
             def successful_reconnect_side_effect():
                 tracker.client = mock_reconnected_client_instance  # Simulate client being set on successful reconnect
