@@ -17,7 +17,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: top-crypto-updater
-              image: "{{ .Values.topCryptoUpdaterCronjob.image.repository }}:{{ .Values.topCryptoUpdaterCronjob.image.tag | default .Chart.AppVersion }}"
+              image: "{{ .Values.topCryptoUpdaterCronjob.image.repository }}:{{ .Values.topCryptoUpdaterCronjob.image.tag }}"
               imagePullPolicy: {{ .Values.topCryptoUpdaterCronjob.image.pullPolicy }}
               env:
                 - name: CMC_API_KEY
