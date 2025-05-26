@@ -1,6 +1,6 @@
 {{- if .Values.candleIngestor.enabled }}
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: CronJob
 metadata:
   name: {{ include "tradestream.fullname" . }}-candle-ingestor
   namespace: {{ .Release.Namespace }}
@@ -9,47 +9,70 @@ metadata:
     component: candle-ingestor
     release: {{ .Release.Name }}
 spec:
-  replicas: {{ .Values.candleIngestor.replicaCount }}
-  selector:
-    matchLabels:
-      app: {{ include "tradestream.name" . }}
-      component: candle-ingestor
-  template:
-    metadata:
-      labels:
-        app: {{ include "tradestream.name" . }}
-        component: candle-ingestor
+  schedule: "{{ .Values.candleIngestor.schedule }}"
+  jobTemplate:
     spec:
-      containers:
-        - name: candle-ingestor
-          image: "{{ .Values.candleIngestor.image.repository }}:{{ .Values.candleIngestor.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.candleIngestor.image.pullPolicy }}
-          env:
-            - name: TOP_N_CRYPTOS
-              value: "{{ .Values.candleIngestor.config.topNCryptos }}"
-            - name: CANDLE_GRANULARITY_MINUTES
-              value: "{{ .Values.candleIngestor.config.candleGranularityMinutes }}"
-            - name: INFLUXDB_URL
-              value: "http://{{ include "tradestream.fullname" . }}-influxdb:80"
-            - name: INFLUXDB_BUCKET
-              value: "{{ .Values.candleIngestor.config.influxDbBucket }}"
-            - name: DATA_SOURCES
-              value: "{{ .Values.candleIngestor.config.dataSources }}"
-            - name: CMC_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.candleIngestor.secrets.cmcApiKey.name }}
-                  key: {{ .Values.candleIngestor.secrets.cmcApiKey.key }}
-            - name: TIINGO_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.candleIngestor.secrets.tiingoApiKey.name }}
-                  key: {{ .Values.candleIngestor.secrets.tiingoApiKey.key }}
-            - name: INFLUXDB_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.candleIngestor.secrets.influxDb.name }}
-                  key: {{ .Values.candleIngestor.secrets.influxDb.tokenKey }}
-            - name: INFLUXDB_ORG
-              value: "{{ .Values.influxdb.adminUser.organization }}"
+      backoffLimit: {{ .Values.candleIngestor.job.backoffLimit | default 2 }}
+      ttlSecondsAfterFinished: {{ .Values.candleIngestor.job.ttlSecondsAfterFinished | default 3600 }}
+      template:
+        metadata:
+          labels: # These labels apply to the Pods created by the Job
+            app: {{ include "tradestream.name" . }}
+            component: candle-ingestor
+            release: {{ .Release.Name }}
+        spec:
+          restartPolicy: {{ .Values.candleIngestor.job.restartPolicy | default "OnFailure" }}
+          containers:
+            - name: candle-ingestor
+              image: "{{ .Values.candleIngestor.image.repository }}:{{ .Values.candleIngestor.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.candleIngestor.image.pullPolicy }}
+              env:
+                - name: TOP_N_CRYPTOS
+                  value: "{{ .Values.candleIngestor.config.topNCryptos }}"
+                - name: CANDLE_GRANULARITY_MINUTES
+                  value: "{{ .Values.candleIngestor.config.candleGranularityMinutes }}"
+                - name: INFLUXDB_URL
+                  value: "http://{{ include "tradestream.fullname" . }}-influxdb:80"
+                - name: INFLUXDB_BUCKET
+                  value: "{{ .Values.candleIngestor.config.influxDbBucket }}"
+                - name: DATA_SOURCES # This flag might need review in main.py if only Tiingo is used now
+                  value: "{{ .Values.candleIngestor.config.dataSources }}"
+                - name: CMC_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.candleIngestor.secrets.cmcApiKey.name }}
+                      key: {{ .Values.candleIngestor.secrets.cmcApiKey.key }}
+                - name: TIINGO_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.candleIngestor.secrets.tiingoApiKey.name }}
+                      key: {{ .Values.candleIngestor.secrets.tiingoApiKey.key }}
+                - name: INFLUXDB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.candleIngestor.secrets.influxDb.name }}
+                      key: {{ .Values.candleIngestor.secrets.influxDb.tokenKey }}
+                - name: INFLUXDB_ORG
+                  value: "{{ .Values.influxdb.adminUser.organization }}"
+                - name: REDIS_HOST
+                  value: {{ tpl .Values.candleIngestor.redis.host . | quote }}
+                - name: REDIS_PORT
+                  value: {{ .Values.candleIngestor.redis.port | quote }}
+                {{- if .Values.redis.auth.enabled }}
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ printf "%s-redis" (include "tradestream.fullname" .) }}
+                      key: redis-password
+                {{- else }}
+                - name: REDIS_PASSWORD
+                  value: ""
+                {{- end }}
+              args: # Add command-line arguments for flags if not solely relying on ENV
+                - "--run_mode={{ .Values.candleIngestor.runMode | default "wet" }}"
+                - "--backfill_start_date={{ .Values.candleIngestor.config.backfillStartDate | default "1_year_ago" }}"
+                - "--catch_up_initial_days={{ .Values.candleIngestor.config.catchUpInitialDays | default 7 }}"
+                # Add other flags as needed, e.g.:
+                # - "--top_n_cryptos={{ .Values.candleIngestor.config.topNCryptos }}"
+                # - "--candle_granularity_minutes={{ .Values.candleIngestor.config.candleGranularityMinutes }}"
 {{- end }}

@@ -55,7 +55,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v1.32.47-develop
+    tag: v1.34.6-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -82,16 +82,23 @@ pipeline:
     upgradeMode: stateless
 candleIngestor:
   enabled: true
-  replicaCount: 1
+  schedule: "*/1 * * * *" # Example: run every minute. Adjust as needed.
+  runMode: "wet" # Default run mode for the job
+  job:
+    backoffLimit: 2
+    ttlSecondsAfterFinished: 3600 # Cleans up finished jobs after 1 hour
+    restartPolicy: "OnFailure"
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
-    tag: "v1.32.47-develop"
+    tag: "v1.34.6-develop"
   config:
     topNCryptos: 10
     candleGranularityMinutes: 1
     influxDbBucket: "tradestream-data"
-    dataSources: "coinmarketcap,tiingo"
+    dataSources: "tiingo" # Adjusted as CMC is primarily for symbol discovery here
+    backfillStartDate: "1_year_ago" # Configurable backfill start
+    catchUpInitialDays: 7 # Configurable initial catch-up
   secrets:
     cmcApiKey:
       name: "coinmarketcap"
@@ -102,17 +109,18 @@ candleIngestor:
     influxDb:
       name: "influxdb-admin-secret"
       tokenKey: "admin-token"
-
+  redis:
+    host: '{{ include "tradestream.fullname" . }}-redis-master'
+    port: 6379
 # Redis configuration
 redis:
   enabled: true # Set to true to deploy Redis
   architecture: standalone # Use standalone for simplicity, can be changed to replication or sentinel
   auth:
     enabled: false # Disable password for simplicity, enable in production
-  # persistence:
-  #   enabled: true
-  #   size: 8Gi
-
+    # persistence:
+    #   enabled: true
+    #   size: 8Gi
 # Top Crypto Updater CronJob configuration
 topCryptoUpdaterCronjob:
   enabled: true
@@ -120,7 +128,7 @@ topCryptoUpdaterCronjob:
   image:
     repository: "tradestreamhq/top-crypto-updater"
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v1.34.6-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
