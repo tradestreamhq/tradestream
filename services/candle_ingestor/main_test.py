@@ -288,7 +288,6 @@ class MainFunctionTest(BaseIngestorTest):
     @flagsaver.flagsaver(backfill_start_date="skip", run_mode="dry")
     def test_main_dry_run_skip_backfill_runs_catch_up(self):
         self._set_current_time("2023-01-02T00:00:00")
-        
         with mock.patch.object(sys, "exit") as mock_exit:
             candle_ingestor_main.main(None)
             mock_exit.assert_called_once_with(0)
