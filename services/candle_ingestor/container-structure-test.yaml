@@ -11,8 +11,8 @@ commandTests:
         "--candle_granularity_minutes=60",
         "--catch_up_initial_days=1",
         # Add this line to limit to 1 ticker and trigger the "max tickers" messages:
-        "--dry_run_limit=1",  # This will need to be implemented in main.py
-    ]
+        "--dry_run_limit=1", # This will need to be implemented in main.py
+      ]
     # Expected to exit cleanly after a single run in dry mode.
     # Check for specific log messages indicating dry run operation for backfill and catch-up.
     expectedError:
