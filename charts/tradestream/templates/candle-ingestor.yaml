@@ -54,6 +54,20 @@ spec:
                       key: {{ .Values.candleIngestor.secrets.influxDb.tokenKey }}
                 - name: INFLUXDB_ORG
                   value: "{{ .Values.influxdb.adminUser.organization }}"
+                - name: REDIS_HOST
+                  value: {{ tpl .Values.candleIngestor.redis.host . | quote }}
+                - name: REDIS_PORT
+                  value: {{ .Values.candleIngestor.redis.port | quote }}
+                {{- if .Values.redis.auth.enabled }}
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ printf "%s-redis" (include "tradestream.fullname" .) }}
+                      key: redis-password
+                {{- else }}
+                - name: REDIS_PASSWORD
+                  value: ""
+                {{- end }}
               args: # Add command-line arguments for flags if not solely relying on ENV
                 - "--run_mode={{ .Values.candleIngestor.runMode | default "wet" }}"
                 - "--backfill_start_date={{ .Values.candleIngestor.config.backfillStartDate | default "1_year_ago" }}"
