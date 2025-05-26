@@ -82,7 +82,7 @@ pipeline:
     upgradeMode: stateless
 candleIngestor:
   enabled: true
-  schedule: "@hourly" # Example: run every hour. Adjust as needed.
+  schedule: "*/1 * * * *" # Example: run every minute. Adjust as needed.
   runMode: "wet" # Default run mode for the job
   job:
     backoffLimit: 2
