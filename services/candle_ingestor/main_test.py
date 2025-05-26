@@ -208,9 +208,9 @@ class RunCatchUpTest(BaseIngestorTest):
         backfill_state_ms = int(
             datetime(2023, 1, 10, 11, 58, 0, tzinfo=timezone.utc).timestamp() * 1000
         )
-        self.last_processed_timestamps_shared_state[
-            self.test_ticker
-        ] = backfill_state_ms
+        self.last_processed_timestamps_shared_state[self.test_ticker] = (
+            backfill_state_ms
+        )
         self.mock_influx_manager.get_last_processed_timestamp.return_value = None
 
         expected_catch_up_candle_ts = int(

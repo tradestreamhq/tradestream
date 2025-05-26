@@ -605,9 +605,11 @@ def main(argv):
                 dry_run_processing_limit=(
                     FLAGS.dry_run_limit
                     if FLAGS.dry_run_limit is not None
-                    else DRY_RUN_PROCESSING_LIMIT_DEFAULT
-                    if FLAGS.run_mode == "dry"
-                    else None
+                    else (
+                        DRY_RUN_PROCESSING_LIMIT_DEFAULT
+                        if FLAGS.run_mode == "dry"
+                        else None
+                    )
                 ),
             )
         else:
@@ -640,9 +642,11 @@ def main(argv):
             dry_run_processing_limit=(
                 FLAGS.dry_run_limit
                 if FLAGS.dry_run_limit is not None
-                else DRY_RUN_PROCESSING_LIMIT_DEFAULT
-                if FLAGS.run_mode == "dry"
-                else None
+                else (
+                    DRY_RUN_PROCESSING_LIMIT_DEFAULT
+                    if FLAGS.run_mode == "dry"
+                    else None
+                )
             ),
         )
 

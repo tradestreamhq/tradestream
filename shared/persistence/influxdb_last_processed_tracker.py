@@ -46,8 +46,10 @@ class InfluxDBLastProcessedTracker:
                 logging.error(
                     f"InfluxDBLastProcessedTracker: Failed to ping InfluxDB at {self.url}."
                 )
-                self.client = None # Ensure client is None if ping fails
-                raise InfluxDBError(message="Ping failed for InfluxDBLastProcessedTracker")
+                self.client = None  # Ensure client is None if ping fails
+                raise InfluxDBError(
+                    message="Ping failed for InfluxDBLastProcessedTracker"
+                )
             logging.info(
                 "InfluxDBLastProcessedTracker: Successfully connected to InfluxDB."
             )
@@ -68,10 +70,11 @@ class InfluxDBLastProcessedTracker:
             )
             # Attempt to reconnect if client is None before failing
             self._connect_with_retry()
-            if not self.client: # If still None after retry
-                 logging.error("InfluxDBLastProcessedTracker: Reconnect failed. Cannot get last processed timestamp.")
-                 return None
-
+            if not self.client:  # If still None after retry
+                logging.error(
+                    "InfluxDBLastProcessedTracker: Reconnect failed. Cannot get last processed timestamp."
+                )
+                return None
 
         query_api = self.client.query_api()
         if not query_api:
@@ -118,12 +121,12 @@ class InfluxDBLastProcessedTracker:
             return None
         try:
             return self._get_last_processed_timestamp_retryable(service_identifier, key)
-        except RetryError as e: # Catch RetryError specifically if all retries fail
+        except RetryError as e:  # Catch RetryError specifically if all retries fail
             logging.error(
                 f"InfluxDBLastProcessedTracker: Query for {service_identifier} / {key} failed after all retries: {e}"
             )
             return None
-        except Exception as e: # Catch other unexpected errors
+        except Exception as e:  # Catch other unexpected errors
             logging.error(
                 f"InfluxDBLastProcessedTracker: Generic error querying {service_identifier} / {key} after retries: {e}"
             )
