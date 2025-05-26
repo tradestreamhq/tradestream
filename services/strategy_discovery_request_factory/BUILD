@@ -122,6 +122,12 @@ py_test(
 py_test(
     name = "main_test",
     srcs = ["main_test.py"],
+    args = [
+        "--cmc_api_key=dummy_cmc_key_for_test",
+        "--influxdb_token=dummy_token_for_test",
+        "--influxdb_org=dummy_org_for_test",
+        "--lookback_minutes=5",
+    ],
     deps = [
         ":app",
         ":config_lib",
