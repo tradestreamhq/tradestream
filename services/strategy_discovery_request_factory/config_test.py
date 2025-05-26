@@ -43,8 +43,8 @@ class ConfigTest(unittest.TestCase):
                 del os.environ[var]
         # Important: Reload the config module to reset its state for other tests
         import importlib
-        importlib.reload(config)
 
+        importlib.reload(config)
 
     def test_default_values(self):
         """Test that default configuration values are correct."""
@@ -61,14 +61,15 @@ class ConfigTest(unittest.TestCase):
         self.assertIsNone(config.INFLUXDB_ORG)
         self.assertEqual(config.INFLUXDB_BUCKET_CANDLES, "tradestream-data")
         self.assertEqual(config.KAFKA_BOOTSTRAP_SERVERS, "localhost:9092")
-        self.assertEqual(config.KAFKA_STRATEGY_DISCOVERY_REQUEST_TOPIC, "strategy-discovery-requests")
+        self.assertEqual(
+            config.KAFKA_STRATEGY_DISCOVERY_REQUEST_TOPIC, "strategy-discovery-requests"
+        )
         self.assertEqual(config.TOP_N_CRYPTOS, 20)
         self.assertIsNone(config.CMC_API_KEY)
         self.assertEqual(config.CANDLE_GRANULARITY_MINUTES, 1)
         self.assertEqual(config.DEFAULT_TOP_N, 5)
         self.assertEqual(config.DEFAULT_MAX_GENERATIONS, 30)
         self.assertEqual(config.DEFAULT_POPULATION_SIZE, 50)
-
 
     def test_environment_variable_override(self):
         """Test that environment variables override defaults."""
@@ -85,7 +86,6 @@ class ConfigTest(unittest.TestCase):
         os.environ["DEFAULT_TOP_N"] = "3"
         os.environ["DEFAULT_MAX_GENERATIONS"] = "20"
         os.environ["DEFAULT_POPULATION_SIZE"] = "40"
-
 
         # Reload config to pick up new env vars
         import importlib
@@ -104,7 +104,6 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(config.DEFAULT_TOP_N, 3)
         self.assertEqual(config.DEFAULT_MAX_GENERATIONS, 20)
         self.assertEqual(config.DEFAULT_POPULATION_SIZE, 40)
-
 
     def test_fibonacci_windows_values(self):
         """Test that Fibonacci window values are correct."""
@@ -166,18 +165,21 @@ class ConfigTest(unittest.TestCase):
         os.environ["DEFAULT_TOP_N"] = "invalid_top_n"
         with self.assertRaises(ValueError):
             import importlib
+
             importlib.reload(config)
         del os.environ["DEFAULT_TOP_N"]
 
         os.environ["DEFAULT_MAX_GENERATIONS"] = "invalid_gens"
         with self.assertRaises(ValueError):
             import importlib
+
             importlib.reload(config)
         del os.environ["DEFAULT_MAX_GENERATIONS"]
 
         os.environ["DEFAULT_POPULATION_SIZE"] = "invalid_pop"
         with self.assertRaises(ValueError):
             import importlib
+
             importlib.reload(config)
         del os.environ["DEFAULT_POPULATION_SIZE"]
 

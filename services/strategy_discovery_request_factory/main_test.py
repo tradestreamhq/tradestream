@@ -10,6 +10,7 @@ from services.strategy_discovery_request_factory.test_utils import create_test_c
 
 FLAGS = flags.FLAGS
 
+
 class MainCronTest(unittest.TestCase):
     """Test main cron job functionality."""
 
@@ -17,13 +18,13 @@ class MainCronTest(unittest.TestCase):
         """Set up test environment."""
         # Reset FLAGS and parse with test arguments
         FLAGS.unparse_flags()
-        
+
         # Parse flags with test arguments before accessing them
         test_argv = [
             "test_binary",
             "--influxdb_token=test-token",
             "--influxdb_org=test-org",
-            "--lookback_minutes=5"
+            "--lookback_minutes=5",
         ]
         FLAGS(test_argv)
 
@@ -53,13 +54,15 @@ class MainCronTest(unittest.TestCase):
 
         self.mock_redis_cls.return_value = self.mock_redis_instance
         self.mock_influx_poller_cls.return_value = self.mock_influx_instance
-        self.mock_strategy_discovery_processor_cls.return_value = self.mock_processor_instance
+        self.mock_strategy_discovery_processor_cls.return_value = (
+            self.mock_processor_instance
+        )
         self.mock_kafka_publisher_cls.return_value = self.mock_kafka_instance
         self.mock_last_processed_tracker_cls.return_value = self.mock_tracker_instance
 
         # Set up default mock behaviors
         self.mock_redis_instance.ping.return_value = True
-        self.mock_redis_instance.smembers.return_value = {b'btcusd', b'ethusd'}
+        self.mock_redis_instance.smembers.return_value = {b"btcusd", b"ethusd"}
         self.mock_influx_instance.fetch_new_candles.return_value = ([], 0)
         self.mock_processor_instance.add_candle.return_value = []
         self.mock_tracker_instance.get_last_timestamp.return_value = 0
@@ -77,17 +80,17 @@ class MainCronTest(unittest.TestCase):
         self.assertTrue(hasattr(FLAGS, "redis_db"))
         self.assertTrue(hasattr(FLAGS, "redis_password"))
         self.assertTrue(hasattr(FLAGS, "crypto_symbols_key"))
-        
+
         # InfluxDB flags
         self.assertTrue(hasattr(FLAGS, "influxdb_url"))
         self.assertTrue(hasattr(FLAGS, "influxdb_token"))
         self.assertTrue(hasattr(FLAGS, "influxdb_org"))
         self.assertTrue(hasattr(FLAGS, "influxdb_bucket"))
-        
+
         # Kafka flags
         self.assertTrue(hasattr(FLAGS, "kafka_bootstrap_servers"))
         self.assertTrue(hasattr(FLAGS, "kafka_topic"))
-        
+
         # Processing flags
         self.assertTrue(hasattr(FLAGS, "lookback_minutes"))
         self.assertTrue(hasattr(FLAGS, "fibonacci_windows_minutes"))
@@ -102,7 +105,7 @@ class MainCronTest(unittest.TestCase):
             "--influxdb_org=test-org",
         ]
         FLAGS(test_argv)
-        
+
         main.main([])
         mock_exit.assert_called_with(1)
 
@@ -116,7 +119,7 @@ class MainCronTest(unittest.TestCase):
             "--influxdb_token=test-token",
         ]
         FLAGS(test_argv)
-        
+
         main.main([])
         mock_exit.assert_called_with(1)
 
@@ -164,8 +167,12 @@ class MainCronTest(unittest.TestCase):
     def test_symbol_conversion(self):
         """Test symbol to currency pair conversion."""
         # Test with mock data
-        self.mock_redis_instance.smembers.return_value = {b'btcusd', b'ethusd', b'adausd'}
-        
+        self.mock_redis_instance.smembers.return_value = {
+            b"btcusd",
+            b"ethusd",
+            b"adausd",
+        }
+
         main.main([])
 
         # Verify processor was initialized with converted pairs
@@ -179,21 +186,26 @@ class MainCronTest(unittest.TestCase):
         test_requests = [Mock(), Mock()]
 
         # Set up mocks to return data
-        self.mock_influx_instance.fetch_new_candles.return_value = (test_candles, 1640995260000)
+        self.mock_influx_instance.fetch_new_candles.return_value = (
+            test_candles,
+            1640995260000,
+        )
         self.mock_processor_instance.add_candle.return_value = test_requests
         self.mock_tracker_instance.get_last_timestamp.return_value = 0  # First run
 
         main.main([])
 
         # Verify processing occurred for each pair
-        self.assertEqual(self.mock_influx_instance.fetch_new_candles.call_count, 2)  # BTC and ETH
+        self.assertEqual(
+            self.mock_influx_instance.fetch_new_candles.call_count, 2
+        )  # BTC and ETH
 
         # Verify candle processing - 2 candles per pair, 2 pairs = 4 total
         self.assertEqual(self.mock_processor_instance.add_candle.call_count, 4)
 
         # Verify request publishing - 2 requests per candle, 2 candles per pair, 2 pairs = 8 total
         self.assertEqual(self.mock_kafka_instance.publish_request.call_count, 8)
-        
+
         # Verify timestamp tracking
         self.mock_tracker_instance.set_last_timestamp.assert_called()
 
@@ -201,7 +213,9 @@ class MainCronTest(unittest.TestCase):
         """Test processing when no new candles are available."""
         # Mock returns no candles
         self.mock_influx_instance.fetch_new_candles.return_value = ([], 0)
-        self.mock_tracker_instance.get_last_timestamp.return_value = 1000  # Previous run
+        self.mock_tracker_instance.get_last_timestamp.return_value = (
+            1000  # Previous run
+        )
 
         main.main([])
 
@@ -215,18 +229,23 @@ class MainCronTest(unittest.TestCase):
     def test_first_run_lookback_behavior(self):
         """Test behavior on first run using lookback minutes."""
         test_candles = create_test_candles(1, "BTC/USD")
-        
+
         # First run - no previous timestamp
         self.mock_tracker_instance.get_last_timestamp.return_value = 0
         self.mock_influx_instance.fetch_new_candles.return_value = (test_candles, 1000)
 
-        with patch("services.strategy_discovery_request_factory.main.time.time", return_value=1000):
+        with patch(
+            "services.strategy_discovery_request_factory.main.time.time",
+            return_value=1000,
+        ):
             main.main([])
 
         # Verify fetch_new_candles was called with calculated lookback timestamp
         # lookback_minutes=5 means 5*60*1000 = 300000 ms before current time
-        expected_lookback = (1000 * 1000) - (5 * 60 * 1000)  # current_time_ms - lookback
-        
+        expected_lookback = (1000 * 1000) - (
+            5 * 60 * 1000
+        )  # current_time_ms - lookback
+
         fetch_calls = self.mock_influx_instance.fetch_new_candles.call_args_list
         # Check that lookback was used for both BTC/USD and ETH/USD
         for call in fetch_calls:
@@ -235,6 +254,7 @@ class MainCronTest(unittest.TestCase):
 
     def test_error_handling_single_pair(self):
         """Test that error in one pair doesn't stop processing of others."""
+
         # Make BTC/USD fail, but ETH/USD succeed
         def side_effect(pair, timestamp):
             if pair == "BTC/USD":
@@ -257,7 +277,7 @@ class MainCronTest(unittest.TestCase):
             "test_binary",
             "--influxdb_token=test-token",
             "--influxdb_org=test-org",
-            "--fibonacci_windows_minutes=5,8,13"
+            "--fibonacci_windows_minutes=5,8,13",
         ]
         FLAGS(test_argv)
 
@@ -298,11 +318,14 @@ class MainCronTest(unittest.TestCase):
 
     def test_timestamp_tracking_per_pair(self):
         """Test that timestamps are tracked per currency pair."""
-        self.mock_tracker_instance.get_last_timestamp.side_effect = [0, 500]  # BTC first run, ETH has previous
+        self.mock_tracker_instance.get_last_timestamp.side_effect = [
+            0,
+            500,
+        ]  # BTC first run, ETH has previous
 
         self.mock_influx_instance.fetch_new_candles.side_effect = [
             (create_test_candles(1, "BTC/USD", start_timestamp_ms=1000), 1000),
-            (create_test_candles(1, "ETH/USD", start_timestamp_ms=1500), 1500)
+            (create_test_candles(1, "ETH/USD", start_timestamp_ms=1500), 1500),
         ]
 
         main.main([])
@@ -316,7 +339,9 @@ class MainCronTest(unittest.TestCase):
     def test_component_initialization_failure(self, mock_exit):
         """Test that component initialization failures are handled."""
         # Make InfluxPoller initialization fail
-        self.mock_influx_poller_cls.side_effect = Exception("InfluxDB connection failed")
+        self.mock_influx_poller_cls.side_effect = Exception(
+            "InfluxDB connection failed"
+        )
 
         main.main([])
 
@@ -335,4 +360,3 @@ class MainCronTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-    

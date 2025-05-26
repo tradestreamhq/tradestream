@@ -6,7 +6,9 @@ from datetime import datetime, timezone
 from protos.strategies_pb2 import StrategyType
 from google.protobuf import any_pb2
 from services.strategy_discovery_request_factory.influx_poller import InfluxPoller
-from services.strategy_discovery_request_factory.strategy_discovery_processor import StrategyDiscoveryProcessor
+from services.strategy_discovery_request_factory.strategy_discovery_processor import (
+    StrategyDiscoveryProcessor,
+)
 from services.strategy_discovery_request_factory.kafka_publisher import KafkaPublisher
 from services.strategy_discovery_request_factory.test_utils import (
     create_test_candles,
@@ -29,9 +31,7 @@ class IntegrationCronTest(unittest.TestCase):
         self.mock_kafka_producer = patch(
             "services.strategy_discovery_request_factory.kafka_publisher.kafka.KafkaProducer"
         ).start()
-        self.mock_redis_client = patch(
-            "redis.Redis"
-        ).start()
+        self.mock_redis_client = patch("redis.Redis").start()
         self.mock_tracker = patch(
             "shared.persistence.last_processed_tracker.LastProcessedTracker"
         ).start()
@@ -81,7 +81,7 @@ class IntegrationCronTest(unittest.TestCase):
         currency_pair = "BTC/USD"
 
         # Mock Redis symbols
-        self.mock_redis_instance.smembers.return_value = {b'btcusd'}
+        self.mock_redis_instance.smembers.return_value = {b"btcusd"}
 
         # Initialize processor deque
         self.strategy_discovery_processor.initialize_deques([currency_pair])
@@ -135,26 +135,39 @@ class IntegrationCronTest(unittest.TestCase):
         self.mock_producer_instance.send.assert_called()
 
         # Verify timestamp tracking
-        self.mock_tracker_instance.set_last_timestamp.assert_called_with(currency_pair, latest_ts)
+        self.mock_tracker_instance.set_last_timestamp.assert_called_with(
+            currency_pair, latest_ts
+        )
 
         # Number of strategy types (excluding UNSPECIFIED)
-        num_strategy_types = len([st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED])
+        num_strategy_types = len(
+            [st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED]
+        )
         self.assertGreaterEqual(total_published_requests, 3 * num_strategy_types)
 
     def test_redis_symbol_integration(self):
         """Test Redis integration for fetching crypto symbols."""
         # Mock Redis with multiple symbols
-        self.mock_redis_instance.smembers.return_value = {b'btcusd', b'ethusd', b'adausd'}
+        self.mock_redis_instance.smembers.return_value = {
+            b"btcusd",
+            b"ethusd",
+            b"adausd",
+        }
 
         # Simulate symbol conversion (this would happen in main.py)
-        symbols = [symbol.decode('utf-8') for symbol in self.mock_redis_instance.smembers('crypto:symbols')]
-        currency_pairs = [f"{symbol[:-3].upper()}/{symbol[-3:].upper()}" for symbol in symbols]
+        symbols = [
+            symbol.decode("utf-8")
+            for symbol in self.mock_redis_instance.smembers("crypto:symbols")
+        ]
+        currency_pairs = [
+            f"{symbol[:-3].upper()}/{symbol[-3:].upper()}" for symbol in symbols
+        ]
 
         expected_pairs = ["BTC/USD", "ETH/USD", "ADA/USD"]
         self.assertEqual(currency_pairs, expected_pairs)
 
         # Verify Redis interaction
-        self.mock_redis_instance.smembers.assert_called_with('crypto:symbols')
+        self.mock_redis_instance.smembers.assert_called_with("crypto:symbols")
 
     def test_first_run_lookback_behavior(self):
         """Test cron job behavior on first run with lookback."""
@@ -166,6 +179,7 @@ class IntegrationCronTest(unittest.TestCase):
 
         # Calculate lookback timestamp (simulate main.py logic)
         import time
+
         current_time_ms = int(time.time() * 1000)
         lookback_minutes = 60
         lookback_timestamp = current_time_ms - (lookback_minutes * 60 * 1000)
@@ -192,7 +206,9 @@ class IntegrationCronTest(unittest.TestCase):
         mock_query_api.query.return_value = mock_tables
 
         # Execute with lookback timestamp
-        candles, latest_ts = self.influx_poller.fetch_new_candles(currency_pair, lookback_timestamp)
+        candles, latest_ts = self.influx_poller.fetch_new_candles(
+            currency_pair, lookback_timestamp
+        )
 
         # Verify candles were fetched
         self.assertEqual(len(candles), 10)
@@ -228,7 +244,7 @@ class IntegrationCronTest(unittest.TestCase):
         # First execution
         self.mock_tracker_instance.get_last_timestamp.return_value = 0
         candles1, latest_ts1 = self.influx_poller.fetch_new_candles(currency_pair, 0)
-        
+
         for candle in candles1:
             self.strategy_discovery_processor.add_candle(candle)
 
@@ -255,7 +271,9 @@ class IntegrationCronTest(unittest.TestCase):
 
         # Second execution with updated timestamp
         self.mock_tracker_instance.get_last_timestamp.return_value = latest_ts1
-        candles2, latest_ts2 = self.influx_poller.fetch_new_candles(currency_pair, latest_ts1)
+        candles2, latest_ts2 = self.influx_poller.fetch_new_candles(
+            currency_pair, latest_ts1
+        )
 
         for candle in candles2:
             self.strategy_discovery_processor.add_candle(candle)
@@ -274,7 +292,11 @@ class IntegrationCronTest(unittest.TestCase):
         currency_pairs = ["BTC/USD", "ETH/USD", "ADA/USD"]
 
         # Mock Redis with multiple symbols
-        self.mock_redis_instance.smembers.return_value = {b'btcusd', b'ethusd', b'adausd'}
+        self.mock_redis_instance.smembers.return_value = {
+            b"btcusd",
+            b"ethusd",
+            b"adausd",
+        }
 
         # Initialize processor for all pairs
         self.strategy_discovery_processor.initialize_deques(currency_pairs)
@@ -311,7 +333,9 @@ class IntegrationCronTest(unittest.TestCase):
 
             pair_requests = 0
             for candle in candles:
-                discovery_requests = self.strategy_discovery_processor.add_candle(candle)
+                discovery_requests = self.strategy_discovery_processor.add_candle(
+                    candle
+                )
                 for request in discovery_requests:
                     self.kafka_publisher.publish_request(request, pair)
                     pair_requests += 1
@@ -372,7 +396,7 @@ class IntegrationCronTest(unittest.TestCase):
 
         # Verify partial success
         self.assertEqual(successful_pairs, 1)  # ETH/USD succeeded
-        self.assertEqual(failed_pairs, 1)      # BTC/USD failed
+        self.assertEqual(failed_pairs, 1)  # BTC/USD failed
 
     def test_component_cleanup_cron_execution(self):
         """Test proper cleanup after cron job execution."""
@@ -400,7 +424,9 @@ class IntegrationCronTest(unittest.TestCase):
         self.mock_tracker_instance.get_last_timestamp.return_value = 1640995200000
 
         # Execute
-        candles, latest_ts = self.influx_poller.fetch_new_candles(currency_pair, 1640995200000)
+        candles, latest_ts = self.influx_poller.fetch_new_candles(
+            currency_pair, 1640995200000
+        )
 
         # Verify no processing occurred
         self.assertEqual(len(candles), 0)
@@ -409,4 +435,3 @@ class IntegrationCronTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-    

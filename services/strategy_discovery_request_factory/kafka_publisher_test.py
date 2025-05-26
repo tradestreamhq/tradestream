@@ -4,7 +4,9 @@ import unittest
 from unittest.mock import Mock, patch, MagicMock
 import kafka.errors
 from services.strategy_discovery_request_factory.kafka_publisher import KafkaPublisher
-from services.strategy_discovery_request_factory.test_utils import create_test_strategy_discovery_request
+from services.strategy_discovery_request_factory.test_utils import (
+    create_test_strategy_discovery_request,
+)
 
 
 class KafkaPublisherTest(unittest.TestCase):
