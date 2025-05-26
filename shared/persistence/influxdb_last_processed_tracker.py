@@ -32,16 +32,30 @@ class InfluxDBLastProcessedTracker:
         self.token = token
         self.org = org
         self.bucket = bucket
-        self.client: Optional[InfluxDBClient] = None
-        self._connect_with_retry()
+        self.client: Optional[InfluxDBClient] = None  # Initialize client to None
+        try:
+            self._connect_with_retry()
+        except RetryError:
+            logging.error(
+                f"InfluxDBLastProcessedTracker: __init__ failed to connect to InfluxDB at {self.url} after all retries."
+            )
+            # self.client remains None as initialized
+        except Exception as e: # Catch any other unexpected error during initial connection attempt
+            logging.error(
+                f"InfluxDBLastProcessedTracker: Unexpected error during __init__ connection attempt for {self.url}: {e}"
+            )
+            self.client = None # Ensure client is None
 
     @retry(**influx_retry_params)
     def _connect_with_retry(self):
+        # Ensure client is None before attempting to create a new one in this retryable method
+        # This is important if _connect_with_retry is called outside of __init__ (e.g. for reconnect)
+        self.client = None
         try:
-            self.client = InfluxDBClient(url=self.url, token=self.token, org=self.org)
             logging.info(
                 f"InfluxDBLastProcessedTracker: Attempting to connect to InfluxDB at {self.url} for org '{self.org}'"
             )
+            self.client = InfluxDBClient(url=self.url, token=self.token, org=self.org)
             if not self.client.ping():
                 logging.error(
                     f"InfluxDBLastProcessedTracker: Failed to ping InfluxDB at {self.url}."
@@ -65,19 +79,18 @@ class InfluxDBLastProcessedTracker:
         self, service_identifier: str, key: str
     ) -> Optional[int]:
         if not self.client:
-            logging.error(
-                "InfluxDBLastProcessedTracker: Client not initialized in _get_last_processed_timestamp_retryable."
+            logging.warning(
+                "InfluxDBLastProcessedTracker: Client not initialized in _get_last_processed_timestamp_retryable. Attempting to reconnect..."
             )
-            # Attempt to reconnect if client is None before failing
-            self._connect_with_retry()
-            if not self.client:  # If still None after retry
+            self._connect_with_retry() # This might raise RetryError if all attempts fail
+            if not self.client:  # If still None after successful retry (should not happen if _connect_with_retry is correct) or if retry failed and was caught by public
                 logging.error(
-                    "InfluxDBLastProcessedTracker: Reconnect failed. Cannot get last processed timestamp."
+                    "InfluxDBLastProcessedTracker: Reconnect failed or client still None. Cannot get last processed timestamp."
                 )
                 return None
 
         query_api = self.client.query_api()
-        if not query_api:
+        if not query_api: # Should not happen if client is valid
             logging.error(
                 "InfluxDBLastProcessedTracker: Failed to get query_api in _get_last_processed_timestamp_retryable."
             )
@@ -114,21 +127,17 @@ class InfluxDBLastProcessedTracker:
     def get_last_processed_timestamp(
         self, service_identifier: str, key: str
     ) -> Optional[int]:
-        if not self.client:
-            logging.error(
-                "InfluxDBLastProcessedTracker: Client not initialized. Cannot query state."
-            )
-            return None
         try:
             return self._get_last_processed_timestamp_retryable(service_identifier, key)
         except RetryError as e:  # Catch RetryError specifically if all retries fail
             logging.error(
                 f"InfluxDBLastProcessedTracker: Query for {service_identifier} / {key} failed after all retries: {e}"
             )
+            # self.client might be None here if _connect_with_retry failed within _get_last_processed_timestamp_retryable
             return None
         except Exception as e:  # Catch other unexpected errors
             logging.error(
-                f"InfluxDBLastProcessedTracker: Generic error querying {service_identifier} / {key} after retries: {e}"
+                f"InfluxDBLastProcessedTracker: Generic error querying {service_identifier} / {key}: {e}"
             )
             return None
 
@@ -137,20 +146,24 @@ class InfluxDBLastProcessedTracker:
         self, service_identifier: str, key: str, timestamp_ms: int
     ):
         if not self.client:
-            logging.error(
-                "InfluxDBLastProcessedTracker: Client not initialized in _update_last_processed_timestamp_retryable."
+            logging.warning(
+                "InfluxDBLastProcessedTracker: Client not initialized in _update_last_processed_timestamp_retryable. Attempting to reconnect..."
             )
             self._connect_with_retry()
             if not self.client:
                 logging.error(
                     "InfluxDBLastProcessedTracker: Reconnect failed. Cannot update last processed timestamp."
                 )
-                return  # Or raise an exception
+                # If retries are exhausted in _connect_with_retry, RetryError will be raised,
+                # so this explicit return might not be reached if _connect_with_retry reraises.
+                # However, if _connect_with_retry failed silently (which it shouldn't with reraise=True),
+                # this return is a safeguard.
+                return
 
         write_api = self.client.write_api(
             write_options=WritePrecision.MS
         )  # Using MS precision
-        if not write_api:
+        if not write_api: # Should not happen if client is valid
             logging.error(
                 "InfluxDBLastProcessedTracker: Failed to get write_api in _update_last_processed_timestamp_retryable."
             )
@@ -172,11 +185,6 @@ class InfluxDBLastProcessedTracker:
     def update_last_processed_timestamp(
         self, service_identifier: str, key: str, timestamp_ms: int
     ):
-        if not self.client:
-            logging.error(
-                "InfluxDBLastProcessedTracker: Client not initialized. Cannot update state."
-            )
-            return
         try:
             self._update_last_processed_timestamp_retryable(
                 service_identifier, key, timestamp_ms
@@ -187,7 +195,7 @@ class InfluxDBLastProcessedTracker:
             )
         except Exception as e:
             logging.error(
-                f"InfluxDBLastProcessedTracker: Generic error updating {service_identifier} / {key} after all retries: {e}"
+                f"InfluxDBLastProcessedTracker: Generic error updating {service_identifier} / {key}: {e}"
             )
 
     def close(self):
