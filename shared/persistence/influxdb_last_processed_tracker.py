@@ -141,8 +141,10 @@ class InfluxDBLastProcessedTracker:
             )
             self._connect_with_retry()
             if not self.client:
-                 logging.error("InfluxDBLastProcessedTracker: Reconnect failed. Cannot update last processed timestamp.")
-                 return # Or raise an exception
+                logging.error(
+                    "InfluxDBLastProcessedTracker: Reconnect failed. Cannot update last processed timestamp."
+                )
+                return  # Or raise an exception
 
         write_api = self.client.write_api(
             write_options=WritePrecision.MS
