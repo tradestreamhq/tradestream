@@ -12,12 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check files using the black formatter
-        uses: rickstaa/action-black@v1
+        uses: psf/black@stable
         id: action_black
         with:
-          black_args: "."
+          options: "--check --verbose"
+          src: "."
       - name: Annotate diff changes using reviewdog
         if: steps.action_black.outputs.is_formatted == 'true'
         uses: reviewdog/action-suggester@v1
         with:
           tool_name: blackfmt
+ 
