@@ -32,7 +32,7 @@ spec:
                 - name: CANDLE_GRANULARITY_MINUTES
                   value: "{{ .Values.candleIngestor.config.candleGranularityMinutes }}"
                 - name: INFLUXDB_URL
-                  value: "http://{{ include "tradestream.fullname" . }}-influxdb:8086" # Corrected port
+                  value: "http://{{ include "tradestream.fullname" . }}-influxdb:80"
                 - name: INFLUXDB_BUCKET
                   value: "{{ .Values.candleIngestor.config.influxDbBucket }}"
                 - name: DATA_SOURCES # This flag might need review in main.py if only Tiingo is used now
