@@ -1,3 +1,4 @@
+charts/tradestream/values.yaml
 influxdb:
   enabled: true
   # Authentication configuration
@@ -109,6 +110,9 @@ candleIngestor:
     influxDb:
       name: "influxdb-admin-secret"
       tokenKey: "admin-token"
+  redis: # <--- ADDED THIS SECTION FOR candleIngestor
+    host: '{{ include "tradestream.fullname" . }}-redis-master'
+    port: 6379
 # Redis configuration
 redis:
   enabled: true # Set to true to deploy Redis
