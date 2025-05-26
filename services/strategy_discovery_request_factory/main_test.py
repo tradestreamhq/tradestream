@@ -6,9 +6,10 @@ import signal
 import sys
 from absl import flags
 from absl.testing import flagsaver
-from services.backtest_request_factory import main
-from services.backtest_request_factory.test_utils import create_test_candles
+from services.strategy_discovery_request_factory import main
+from services.strategy_discovery_request_factory.test_utils import create_test_candles
 
+FLAGS = flags.FLAGS
 
 class MainTest(unittest.TestCase):
     """Test main application functionality."""
@@ -16,27 +17,31 @@ class MainTest(unittest.TestCase):
     def setUp(self):
         """Set up test environment."""
         # Reset FLAGS for each test
-        flags.FLAGS.unparse_flags()
+        FLAGS.unparse_flags()
 
         # Set required flags
-        flags.FLAGS.cmc_api_key = "test-cmc-key"
-        flags.FLAGS.influxdb_token = "test-token"
-        flags.FLAGS.influxdb_org = "test-org"
-        flags.FLAGS.polling_interval_seconds = 1  # Short interval for testing
+        FLAGS.cmc_api_key = "test-cmc-key"
+        FLAGS.influxdb_token = "test-token"
+        FLAGS.influxdb_org = "test-org"
+        FLAGS.lookback_minutes = 5 # Short interval for testing
 
         # Mock all external dependencies
         self.mock_get_top_n_crypto = patch(
-            "services.backtest_request_factory.main.get_top_n_crypto_symbols"
+            "services.strategy_discovery_request_factory.main.get_top_n_crypto_symbols"
         ).start()
-        self.mock_influx_poller = patch(
-            "services.backtest_request_factory.main.InfluxPoller"
+        self.mock_influx_poller_cls = patch(
+            "services.strategy_discovery_request_factory.main.InfluxPoller"
         ).start()
-        self.mock_candle_processor = patch(
-            "services.backtest_request_factory.main.CandleProcessor"
+        self.mock_strategy_discovery_processor_cls = patch(
+            "services.strategy_discovery_request_factory.main.StrategyDiscoveryProcessor"
         ).start()
-        self.mock_kafka_publisher = patch(
-            "services.backtest_request_factory.main.KafkaPublisher"
+        self.mock_kafka_publisher_cls = patch(
+            "services.strategy_discovery_request_factory.main.KafkaPublisher"
         ).start()
+        self.mock_last_processed_tracker_cls = patch(
+            "services.strategy_discovery_request_factory.main.LastProcessedTracker"
+        ).start()
+
 
         # Set up mock return values
         self.mock_get_top_n_crypto.return_value = ["btcusd", "ethusd"]
@@ -45,62 +50,66 @@ class MainTest(unittest.TestCase):
         self.mock_influx_instance = Mock()
         self.mock_processor_instance = Mock()
         self.mock_kafka_instance = Mock()
+        self.mock_tracker_instance = Mock()
 
-        self.mock_influx_poller.return_value = self.mock_influx_instance
-        self.mock_candle_processor.return_value = self.mock_processor_instance
-        self.mock_kafka_publisher.return_value = self.mock_kafka_instance
+
+        self.mock_influx_poller_cls.return_value = self.mock_influx_instance
+        self.mock_strategy_discovery_processor_cls.return_value = self.mock_processor_instance
+        self.mock_kafka_publisher_cls.return_value = self.mock_kafka_instance
+        self.mock_last_processed_tracker_cls.return_value = self.mock_tracker_instance
+
 
         # Mock fetch_new_candles to return no candles by default
         self.mock_influx_instance.fetch_new_candles.return_value = ([], 0)
         self.mock_processor_instance.add_candle.return_value = []
+        self.mock_tracker_instance.get_last_timestamp.return_value = 0
+
 
     def tearDown(self):
         """Clean up test environment."""
         patch.stopall()
-        # Reset global variables
-        main.shutdown_requested = False
-        main.influx_poller_global = None
-        main.kafka_publisher_global = None
+
 
     def test_flag_definitions(self):
         """Test that all required flags are defined."""
         # Test flag existence and default values
-        self.assertTrue(hasattr(flags.FLAGS, "cmc_api_key"))
-        self.assertTrue(hasattr(flags.FLAGS, "top_n_cryptos"))
-        self.assertTrue(hasattr(flags.FLAGS, "influxdb_url"))
-        self.assertTrue(hasattr(flags.FLAGS, "influxdb_token"))
-        self.assertTrue(hasattr(flags.FLAGS, "influxdb_org"))
-        self.assertTrue(hasattr(flags.FLAGS, "kafka_bootstrap_servers"))
-        self.assertTrue(hasattr(flags.FLAGS, "polling_interval_seconds"))
+        self.assertTrue(hasattr(FLAGS, "cmc_api_key"))
+        self.assertTrue(hasattr(FLAGS, "top_n_cryptos"))
+        self.assertTrue(hasattr(FLAGS, "influxdb_url"))
+        self.assertTrue(hasattr(FLAGS, "influxdb_token"))
+        self.assertTrue(hasattr(FLAGS, "influxdb_org"))
+        self.assertTrue(hasattr(FLAGS, "kafka_bootstrap_servers"))
+        self.assertTrue(hasattr(FLAGS, "lookback_minutes"))
 
-    @patch("services.backtest_request_factory.main.sys.exit")
+
+    @patch("services.strategy_discovery_request_factory.main.sys.exit")
     def test_main_missing_cmc_api_key(self, mock_exit):
         """Test main function fails without CMC API key."""
-        flags.FLAGS.cmc_api_key = None
+        FLAGS.cmc_api_key = None
 
         main.main([])
 
         mock_exit.assert_called_with(1)
 
-    @patch("services.backtest_request_factory.main.sys.exit")
+    @patch("services.strategy_discovery_request_factory.main.sys.exit")
     def test_main_missing_influxdb_token(self, mock_exit):
         """Test main function fails without InfluxDB token."""
-        flags.FLAGS.influxdb_token = None
+        FLAGS.influxdb_token = None
 
         main.main([])
 
         mock_exit.assert_called_with(1)
 
-    @patch("services.backtest_request_factory.main.sys.exit")
+    @patch("services.strategy_discovery_request_factory.main.sys.exit")
     def test_main_missing_influxdb_org(self, mock_exit):
         """Test main function fails without InfluxDB org."""
-        flags.FLAGS.influxdb_org = None
+        FLAGS.influxdb_org = None
 
         main.main([])
 
         mock_exit.assert_called_with(1)
 
-    @patch("services.backtest_request_factory.main.sys.exit")
+    @patch("services.strategy_discovery_request_factory.main.sys.exit")
     def test_main_cmc_fetch_failure(self, mock_exit):
         """Test main function fails when CMC returns no symbols."""
         self.mock_get_top_n_crypto.return_value = []
@@ -109,136 +118,73 @@ class MainTest(unittest.TestCase):
 
         mock_exit.assert_called_with(1)
 
-    @patch("services.backtest_request_factory.main.time.sleep")
-    @patch("services.backtest_request_factory.main.sys.exit")
-    def test_main_initialization_success(self, mock_exit, mock_sleep):
+
+    @patch("services.strategy_discovery_request_factory.main.sys.exit")
+    def test_main_initialization_success(self, mock_exit):
         """Test successful main function initialization."""
-
-        # Make the loop exit immediately
-        def side_effect(*args):
-            main.shutdown_requested = True
-
-        mock_sleep.side_effect = side_effect
-
         main.main([])
 
         # Verify components were initialized
-        self.mock_influx_poller.assert_called_once()
-        self.mock_candle_processor.assert_called_once()
-        self.mock_kafka_publisher.assert_called_once()
+        self.mock_last_processed_tracker_cls.assert_called_once()
+        self.mock_get_top_n_crypto.assert_called_once()
+        self.mock_influx_poller_cls.assert_called_once()
+        self.mock_strategy_discovery_processor_cls.assert_called_once()
+        self.mock_kafka_publisher_cls.assert_called_once()
+
 
         # Verify currency pairs conversion
         expected_pairs = ["BTC/USD", "ETH/USD"]
-        processor_call_args = self.mock_candle_processor.call_args
         processor_init_args = self.mock_processor_instance.initialize_deques.call_args
         self.assertEqual(processor_init_args[0][0], expected_pairs)
 
-    @patch("services.backtest_request_factory.main.time.sleep")
-    @patch("services.backtest_request_factory.main.sys.exit")
-    def test_main_polling_loop(self, mock_exit, mock_sleep):
-        """Test main polling loop functionality."""
+    @patch("services.strategy_discovery_request_factory.main.sys.exit")
+    def test_main_processing_loop(self, mock_exit):
+        """Test main processing loop functionality."""
         test_candles = create_test_candles(2, "BTC/USD")
         test_requests = [Mock(), Mock()]
 
-        # Set up mocks to return data on first poll, then exit
-        poll_count = [0]
-
-        def fetch_candles_side_effect(pair, last_ts):
-            poll_count[0] += 1
-            if poll_count[0] == 1:
-                return test_candles, 1640995260000
-            else:
-                main.shutdown_requested = True
-                return [], last_ts
-
-        self.mock_influx_instance.fetch_new_candles.side_effect = (
-            fetch_candles_side_effect
-        )
+        # Set up mocks to return data
+        self.mock_influx_instance.fetch_new_candles.return_value = (test_candles, 1640995260000)
         self.mock_processor_instance.add_candle.return_value = test_requests
+        self.mock_tracker_instance.get_last_timestamp.return_value = 0 # Simulate first run
 
         main.main([])
 
-        # Verify polling occurred
-        self.mock_influx_instance.fetch_new_candles.assert_called()
+        # Verify processing occurred for each pair
+        self.assertEqual(self.mock_influx_instance.fetch_new_candles.call_count, 2) # For BTC and ETH
 
         # Verify candle processing
-        self.assertEqual(
-            self.mock_processor_instance.add_candle.call_count, 2
-        )  # 2 candles
+        # Called twice for BTC/USD (one for each candle)
+        # Called twice for ETH/USD (one for each candle, assuming fetch_new_candles returns 2 for ETH as well)
+        self.assertEqual(self.mock_processor_instance.add_candle.call_count, 4)
+
 
         # Verify request publishing
-        self.assertEqual(
-            self.mock_kafka_instance.publish_request.call_count, 4
-        )  # 2 candles * 2 requests
+        # 2 candles * 2 requests per candle * 2 pairs
+        self.assertEqual(self.mock_kafka_instance.publish_request.call_count, 8)
+        self.mock_tracker_instance.set_last_timestamp.assert_called()
 
-    @patch("services.backtest_request_factory.main.time.sleep")
-    @patch("services.backtest_request_factory.main.sys.exit")
-    def test_main_no_new_candles(self, mock_exit, mock_sleep):
-        """Test polling when no new candles are available."""
 
-        # Make the loop exit after one iteration
-        def sleep_side_effect(*args):
-            main.shutdown_requested = True
-
-        mock_sleep.side_effect = sleep_side_effect
-
+    @patch("services.strategy_discovery_request_factory.main.sys.exit")
+    def test_main_no_new_candles(self, mock_exit):
+        """Test processing when no new candles are available."""
         # Mock returns no candles
         self.mock_influx_instance.fetch_new_candles.return_value = ([], 0)
+        self.mock_tracker_instance.get_last_timestamp.return_value = 1000 # Simulate already processed
 
         main.main([])
 
-        # Verify polling occurred but no processing
-        self.mock_influx_instance.fetch_new_candles.assert_called()
+        # Verify processing occurred but no candle processing or publishing
+        self.assertEqual(self.mock_influx_instance.fetch_new_candles.call_count, 2)
         self.mock_processor_instance.add_candle.assert_not_called()
         self.mock_kafka_instance.publish_request.assert_not_called()
+        self.mock_tracker_instance.set_last_timestamp.assert_not_called() # No new timestamp to set
 
-    def test_handle_shutdown_signal_sigint(self):
-        """Test SIGINT signal handling."""
-        mock_influx = Mock()
-        mock_kafka = Mock()
-        main.influx_poller_global = mock_influx
-        main.kafka_publisher_global = mock_kafka
 
-        main.handle_shutdown_signal(signal.SIGINT, None)
-
-        self.assertTrue(main.shutdown_requested)
-        mock_influx.close.assert_called_once()
-        mock_kafka.close.assert_called_once()
-
-    def test_handle_shutdown_signal_sigterm(self):
-        """Test SIGTERM signal handling."""
-        mock_influx = Mock()
-        mock_kafka = Mock()
-        main.influx_poller_global = mock_influx
-        main.kafka_publisher_global = mock_kafka
-
-        main.handle_shutdown_signal(signal.SIGTERM, None)
-
-        self.assertTrue(main.shutdown_requested)
-        mock_influx.close.assert_called_once()
-        mock_kafka.close.assert_called_once()
-
-    def test_handle_shutdown_signal_no_globals(self):
-        """Test signal handling when global objects are None."""
-        main.influx_poller_global = None
-        main.kafka_publisher_global = None
-
-        # Should not raise exception
-        main.handle_shutdown_signal(signal.SIGINT, None)
-
-        self.assertTrue(main.shutdown_requested)
-
-    @patch("services.backtest_request_factory.main.signal.signal")
-    @patch("services.backtest_request_factory.main.time.sleep")
-    @patch("services.backtest_request_factory.main.sys.exit")
-    def test_signal_registration(self, mock_exit, mock_sleep, mock_signal):
+    @patch("services.strategy_discovery_request_factory.main.signal.signal")
+    @patch("services.strategy_discovery_request_factory.main.sys.exit")
+    def test_signal_registration(self, mock_exit, mock_signal):
         """Test that signal handlers are registered."""
-
-        def sleep_side_effect(*args):
-            main.shutdown_requested = True
-
-        mock_sleep.side_effect = sleep_side_effect
-
         main.main([])
 
         # Verify signal handlers were registered
@@ -248,126 +194,59 @@ class MainTest(unittest.TestCase):
         self.assertIn(signal.SIGINT, registered_signals)
         self.assertIn(signal.SIGTERM, registered_signals)
 
-    @patch("services.backtest_request_factory.main.time.sleep")
-    @patch("services.backtest_request_factory.main.sys.exit")
-    def test_fibonacci_windows_flag_parsing(self, mock_exit, mock_sleep):
+
+    @patch("services.strategy_discovery_request_factory.main.sys.exit")
+    def test_fibonacci_windows_flag_parsing(self, mock_exit):
         """Test parsing of Fibonacci windows from flags."""
-        flags.FLAGS.fibonacci_windows_minutes = ["5", "8", "13"]
-
-        def sleep_side_effect(*args):
-            main.shutdown_requested = True
-
-        mock_sleep.side_effect = sleep_side_effect
+        FLAGS.fibonacci_windows_minutes = ["5", "8", "13"]
 
         main.main([])
 
-        # Verify CandleProcessor was initialized with correct windows
-        processor_call_args = self.mock_candle_processor.call_args
+        # Verify StrategyDiscoveryProcessor was initialized with correct windows
+        processor_call_args = self.mock_strategy_discovery_processor_cls.call_args
         fibonacci_windows = processor_call_args[1]["fibonacci_windows_minutes"]
         self.assertEqual(fibonacci_windows, [5, 8, 13])
 
-    @patch("services.backtest_request_factory.main.time.sleep")
-    @patch("services.backtest_request_factory.main.sys.exit")
-    def test_timestamp_tracking(self, mock_exit, mock_sleep):
+
+    @patch("services.strategy_discovery_request_factory.main.sys.exit")
+    def test_timestamp_tracking(self, mock_exit):
         """Test that timestamps are properly tracked per currency pair."""
         # Set up two currency pairs
         self.mock_get_top_n_crypto.return_value = ["btcusd", "ethusd"]
+        self.mock_tracker_instance.get_last_timestamp.side_effect = [0, 500] # BTC first run, ETH has previous
 
-        poll_count = [0]
-
-        def fetch_candles_side_effect(pair, last_ts):
-            poll_count[0] += 1
-            if poll_count[0] <= 2:  # First poll for each pair
-                return create_test_candles(1, pair), 1640995260000
-            else:
-                main.shutdown_requested = True
-                return [], last_ts
-
-        self.mock_influx_instance.fetch_new_candles.side_effect = (
-            fetch_candles_side_effect
-        )
+        self.mock_influx_instance.fetch_new_candles.side_effect = [
+            (create_test_candles(1, "BTC/USD", start_timestamp_ms=1000), 1000),
+            (create_test_candles(1, "ETH/USD", start_timestamp_ms=1500), 1500)
+        ]
 
         main.main([])
 
-        # Verify both pairs were polled
-        fetch_calls = self.mock_influx_instance.fetch_new_candles.call_args_list
-        polled_pairs = [call[0][0] for call in fetch_calls]
+        # Verify both pairs were polled and timestamps tracked
+        self.assertEqual(self.mock_influx_instance.fetch_new_candles.call_count, 2)
+        self.mock_tracker_instance.set_last_timestamp.assert_any_call("BTC/USD", 1000)
+        self.mock_tracker_instance.set_last_timestamp.assert_any_call("ETH/USD", 1500)
 
-        self.assertIn("BTC/USD", polled_pairs)
-        self.assertIn("ETH/USD", polled_pairs)
 
-    @patch("services.backtest_request_factory.main.time.monotonic")
-    @patch("services.backtest_request_factory.main.time.sleep")
-    @patch("services.backtest_request_factory.main.sys.exit")
-    def test_polling_interval_timing(self, mock_exit, mock_sleep, mock_monotonic):
-        """Test that polling respects the configured interval."""
-        flags.FLAGS.polling_interval_seconds = 10
-
-        # Mock monotonic time to simulate fast loop execution
-        mock_monotonic.side_effect = [0, 2]  # Loop takes 2 seconds
-
-        def sleep_side_effect(duration):
-            if duration > 0:
-                main.shutdown_requested = True
-
-        mock_sleep.side_effect = sleep_side_effect
-
-        main.main([])
-
-        # Should sleep for remaining time (10 - 2 = 8 seconds)
-        mock_sleep.assert_called()
-        # The exact sleep duration depends on loop timing, but it should be positive
-
-    @patch("services.backtest_request_factory.main.time.sleep")
-    @patch("services.backtest_request_factory.main.sys.exit")
-    def test_exception_handling(self, mock_exit, mock_sleep):
+    @patch("services.strategy_discovery_request_factory.main.sys.exit")
+    def test_exception_handling(self, mock_exit):
         """Test that exceptions are properly handled."""
         # Make InfluxPoller initialization fail
-        self.mock_influx_poller.side_effect = Exception("Connection failed")
+        self.mock_influx_poller_cls.side_effect = Exception("Connection failed")
 
         main.main([])
 
         # Should exit with error code
         mock_exit.assert_called_with(1)
 
-    @patch("services.backtest_request_factory.main.time.sleep")
-    @patch("services.backtest_request_factory.main.sys.exit")
-    def test_graceful_shutdown_in_loop(self, mock_exit, mock_sleep):
-        """Test graceful shutdown during main loop."""
-
-        def fetch_candles_side_effect(pair, last_ts):
-            # Set shutdown flag during polling
-            main.shutdown_requested = True
-            return [], last_ts
-
-        self.mock_influx_instance.fetch_new_candles.side_effect = (
-            fetch_candles_side_effect
-        )
-
-        main.main([])
-
-        # Should exit cleanly
-        mock_exit.assert_called_with(0)
-
-        # Should close resources
-        self.mock_influx_instance.close.assert_called_once()
-        self.mock_kafka_instance.close.assert_called_once()
-
-    @patch("services.backtest_request_factory.main.logging")
+    @patch("services.strategy_discovery_request_factory.main.logging")
     def test_logging_behavior(self, mock_logging):
         """Test that appropriate logging occurs."""
-        with patch("services.backtest_request_factory.main.time.sleep") as mock_sleep:
+        main.main([])
 
-            def sleep_side_effect(*args):
-                main.shutdown_requested = True
-
-            mock_sleep.side_effect = sleep_side_effect
-
-            main.main([])
-
-            # Verify logging calls
-            mock_logging.set_verbosity.assert_called_once()
-            mock_logging.info.assert_called()
+        # Verify logging calls
+        mock_logging.set_verbosity.assert_called_once()
+        mock_logging.info.assert_called()
 
 
 if __name__ == "__main__":
