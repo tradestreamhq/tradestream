@@ -54,7 +54,7 @@ py_binary(
         ":influx_poller_lib",
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
-        "//shared/persistence:last_processed_tracker_lib",
+        "//shared/persistence:redis_last_processed_tracker_lib", # Updated dependency
         "//third_party/python:absl_py",
         "//third_party/python:protobuf",
         "//third_party/python:redis",
@@ -127,9 +127,10 @@ py_test(
         "--influxdb_token=dummy_token_for_test",
         "--influxdb_org=dummy_org_for_test",
         "--lookback_minutes=5",
-        "--redis_host=localhost",
+        "--redis_host=mockredis", # Ensure main_test can mock this if needed
         "--redis_port=6379",
         "--crypto_symbols_key=test:symbols",
+        "--redis_tracker_service_name=test_strategy_discovery_main"
     ],
     deps = [
         ":app",
@@ -138,7 +139,7 @@ py_test(
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
         ":test_utils_lib",
-        "//shared/persistence:last_processed_tracker_lib",
+        "//shared/persistence:redis_last_processed_tracker_lib", # Updated dependency
         "//third_party/python:absl_py",
         "//third_party/python:redis",
     ],
@@ -155,7 +156,7 @@ py_test(
         ":test_utils_lib",
         "//protos:discovery_py_proto",
         "//protos:marketdata_py_proto",
-        "//shared/persistence:last_processed_tracker_lib",
+        "//shared/persistence:redis_last_processed_tracker_lib", # Updated dependency
         "//third_party/python:influxdb_client",
         "//third_party/python:kafka_python",
         "//third_party/python:redis",
