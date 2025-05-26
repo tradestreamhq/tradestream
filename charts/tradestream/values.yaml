@@ -1,4 +1,3 @@
-charts/tradestream/values.yaml
 influxdb:
   enabled: true
   # Authentication configuration
