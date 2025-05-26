@@ -3,8 +3,8 @@
 import unittest
 from unittest.mock import Mock, patch, MagicMock
 import kafka.errors
-from services.backtest_request_factory.kafka_publisher import KafkaPublisher
-from services.backtest_request_factory.test_utils import create_test_backtest_request
+from services.strategy_discovery_request_factory.kafka_publisher import KafkaPublisher
+from services.strategy_discovery_request_factory.test_utils import create_test_strategy_discovery_request
 
 
 class KafkaPublisherTest(unittest.TestCase):
@@ -17,7 +17,7 @@ class KafkaPublisherTest(unittest.TestCase):
 
         # Mock KafkaProducer to avoid actual connections
         self.mock_producer_class = patch(
-            "services.backtest_request_factory.kafka_publisher.kafka.KafkaProducer"
+            "services.strategy_discovery_request_factory.kafka_publisher.kafka.KafkaProducer"
         ).start()
         self.mock_producer = Mock()
         self.mock_producer_class.return_value = self.mock_producer
@@ -74,7 +74,7 @@ class KafkaPublisherTest(unittest.TestCase):
 
     def test_publish_request_success(self):
         """Test successful request publishing."""
-        test_request = create_test_backtest_request()
+        test_request = create_test_strategy_discovery_request()
         test_key = "BTC/USD"
 
         self.publisher.publish_request(test_request, test_key)
@@ -94,7 +94,7 @@ class KafkaPublisherTest(unittest.TestCase):
 
     def test_publish_request_no_key(self):
         """Test publishing request without key."""
-        test_request = create_test_backtest_request()
+        test_request = create_test_strategy_discovery_request()
 
         self.publisher.publish_request(test_request)
 
@@ -104,7 +104,7 @@ class KafkaPublisherTest(unittest.TestCase):
 
     def test_publish_request_kafka_error(self):
         """Test handling of Kafka error during publishing."""
-        test_request = create_test_backtest_request()
+        test_request = create_test_strategy_discovery_request()
         self.mock_future.get.side_effect = kafka.errors.KafkaTimeoutError("Timeout")
 
         # Should not raise exception, but handle gracefully
@@ -116,7 +116,7 @@ class KafkaPublisherTest(unittest.TestCase):
     def test_publish_request_no_producer(self):
         """Test publishing when producer is None."""
         self.publisher.producer = None
-        test_request = create_test_backtest_request()
+        test_request = create_test_strategy_discovery_request()
 
         # Should attempt to reconnect
         with patch.object(self.publisher, "_connect_with_retry") as mock_connect:
@@ -129,7 +129,7 @@ class KafkaPublisherTest(unittest.TestCase):
     def test_publish_message_retryable_reconnect(self):
         """Test reconnection during message publishing."""
         self.publisher.producer = None
-        test_request = create_test_backtest_request()
+        test_request = create_test_strategy_discovery_request()
 
         # Mock successful reconnection
         with patch.object(self.publisher, "_connect_with_retry") as mock_connect:
@@ -208,8 +208,8 @@ class KafkaPublisherTest(unittest.TestCase):
         self.assertIsNotNone(publisher.producer)
 
     def test_serialization_handling(self):
-        """Test proper serialization of backtest requests."""
-        test_request = create_test_backtest_request()
+        """Test proper serialization of discovery requests."""
+        test_request = create_test_strategy_discovery_request()
         expected_bytes = test_request.SerializeToString()
 
         self.publisher.publish_request(test_request, "BTC/USD")
@@ -222,7 +222,7 @@ class KafkaPublisherTest(unittest.TestCase):
 
     def test_key_encoding(self):
         """Test proper encoding of string keys to bytes."""
-        test_request = create_test_backtest_request()
+        test_request = create_test_strategy_discovery_request()
         test_key = "BTC/USD"
 
         self.publisher.publish_request(test_request, test_key)
@@ -233,10 +233,10 @@ class KafkaPublisherTest(unittest.TestCase):
         self.assertEqual(actual_key, test_key.encode("utf-8"))
         self.assertIsInstance(actual_key, bytes)
 
-    @patch("services.backtest_request_factory.kafka_publisher.logging")
+    @patch("services.strategy_discovery_request_factory.kafka_publisher.logging")
     def test_logging_behavior(self, mock_logging):
         """Test that appropriate logging occurs."""
-        test_request = create_test_backtest_request()
+        test_request = create_test_strategy_discovery_request()
 
         # Test successful publish logging
         self.publisher.publish_request(test_request, "BTC/USD")
@@ -249,7 +249,7 @@ class KafkaPublisherTest(unittest.TestCase):
 
     def test_timeout_configuration(self):
         """Test that timeouts are properly configured."""
-        test_request = create_test_backtest_request()
+        test_request = create_test_strategy_discovery_request()
 
         self.publisher.publish_request(test_request, "BTC/USD")
 
