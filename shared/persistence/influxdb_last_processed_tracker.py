@@ -40,11 +40,13 @@ class InfluxDBLastProcessedTracker:
                 f"InfluxDBLastProcessedTracker: __init__ failed to connect to InfluxDB at {self.url} after all retries."
             )
             # self.client remains None as initialized
-        except Exception as e: # Catch any other unexpected error during initial connection attempt
+        except (
+            Exception
+        ) as e:  # Catch any other unexpected error during initial connection attempt
             logging.error(
                 f"InfluxDBLastProcessedTracker: Unexpected error during __init__ connection attempt for {self.url}: {e}"
             )
-            self.client = None # Ensure client is None
+            self.client = None  # Ensure client is None
 
     @retry(**influx_retry_params)
     def _connect_with_retry(self):
@@ -82,15 +84,17 @@ class InfluxDBLastProcessedTracker:
             logging.warning(
                 "InfluxDBLastProcessedTracker: Client not initialized in _get_last_processed_timestamp_retryable. Attempting to reconnect..."
             )
-            self._connect_with_retry() # This might raise RetryError if all attempts fail
-            if not self.client:  # If still None after successful retry (should not happen if _connect_with_retry is correct) or if retry failed and was caught by public
+            self._connect_with_retry()  # This might raise RetryError if all attempts fail
+            if (
+                not self.client
+            ):  # If still None after successful retry (should not happen if _connect_with_retry is correct) or if retry failed and was caught by public
                 logging.error(
                     "InfluxDBLastProcessedTracker: Reconnect failed or client still None. Cannot get last processed timestamp."
                 )
                 return None
 
         query_api = self.client.query_api()
-        if not query_api: # Should not happen if client is valid
+        if not query_api:  # Should not happen if client is valid
             logging.error(
                 "InfluxDBLastProcessedTracker: Failed to get query_api in _get_last_processed_timestamp_retryable."
             )
@@ -163,7 +167,7 @@ class InfluxDBLastProcessedTracker:
         write_api = self.client.write_api(
             write_options=WritePrecision.MS
         )  # Using MS precision
-        if not write_api: # Should not happen if client is valid
+        if not write_api:  # Should not happen if client is valid
             logging.error(
                 "InfluxDBLastProcessedTracker: Failed to get write_api in _update_last_processed_timestamp_retryable."
             )

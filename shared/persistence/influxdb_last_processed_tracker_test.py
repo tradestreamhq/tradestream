@@ -164,7 +164,9 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
         )  # Simulate no data found after reconnect for simplicity
 
         # Patch _connect_with_retry directly on the instance to control its behavior for this test
-        with patch.object(tracker, "_connect_with_retry") as mock_instance_connect_with_retry:
+        with patch.object(
+            tracker, "_connect_with_retry"
+        ) as mock_instance_connect_with_retry:
 
             def side_effect_for_reconnect():
                 # Simulate successful connection by setting the client on the tracker instance
@@ -208,10 +210,14 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
             # Check for the actual error message format
             found_error = False
             for call_args in mock_logging.error.call_args_list:
-                if "Query for test_service / test_key failed after all retries" in str(call_args):
+                if "Query for test_service / test_key failed after all retries" in str(
+                    call_args
+                ):
                     found_error = True
                     break
-            self.assertTrue(found_error, "Expected error message not found in log calls")
+            self.assertTrue(
+                found_error, "Expected error message not found in log calls"
+            )
 
     def test_update_last_processed_timestamp_success(self):
         """Test successful update of last processed timestamp"""
@@ -257,10 +263,15 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
             # Check for error message about update failing
             found_error = False
             for call_args in mock_logging.error.call_args_list:
-                if "Update for test_service / test_key failed after all retries" in str(call_args):
+                if (
+                    "Update for test_service / test_key failed after all retries"
+                    in str(call_args)
+                ):
                     found_error = True
                     break
-            self.assertTrue(found_error, "Expected error message not found in log calls")
+            self.assertTrue(
+                found_error, "Expected error message not found in log calls"
+            )
 
     @patch("shared.persistence.influxdb_last_processed_tracker.logging")
     def test_update_last_processed_timestamp_write_api_failure(self, mock_logging):
@@ -298,10 +309,15 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
             # Check for error message about update failing
             found_error = False
             for call_args in mock_logging.error.call_args_list:
-                if "Update for test_service / test_key failed after all retries" in str(call_args):
+                if (
+                    "Update for test_service / test_key failed after all retries"
+                    in str(call_args)
+                ):
                     found_error = True
                     break
-            self.assertTrue(found_error, "Expected error message not found in log calls")
+            self.assertTrue(
+                found_error, "Expected error message not found in log calls"
+            )
 
     def test_close_success(self):
         """Test successful client closure"""
@@ -346,12 +362,16 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
         tracker = InfluxDBLastProcessedTracker(
             self.url, self.token, self.org, self.bucket
         )
-        
+
         # Check if the methods have retry attributes indicating they are decorated
         # The tenacity.retry decorator adds specific attributes to decorated functions
         self.assertTrue(hasattr(tracker._connect_with_retry, "__wrapped__"))
-        self.assertTrue(hasattr(tracker._get_last_processed_timestamp_retryable, "__wrapped__"))
-        self.assertTrue(hasattr(tracker._update_last_processed_timestamp_retryable, "__wrapped__"))
+        self.assertTrue(
+            hasattr(tracker._get_last_processed_timestamp_retryable, "__wrapped__")
+        )
+        self.assertTrue(
+            hasattr(tracker._update_last_processed_timestamp_retryable, "__wrapped__")
+        )
 
     @patch("shared.persistence.influxdb_last_processed_tracker.logging")
     def test_reconnect_on_get_failure(self, mock_logging):
@@ -361,7 +381,9 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
         tracker = InfluxDBLastProcessedTracker(
             self.url, self.token, self.org, self.bucket
         )
-        self.assertIsNone(tracker.client, "Client should be None after failed initialization")
+        self.assertIsNone(
+            tracker.client, "Client should be None after failed initialization"
+        )
 
         # Setup mock for a successful reconnection attempt
         mock_reconnected_client_instance = Mock(spec=InfluxDBClient)
@@ -372,13 +394,13 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
         mock_query_api.query.return_value = []
 
         # Patch _connect_with_retry on the *instance* of the tracker
-        with patch.object(tracker, "_connect_with_retry") as mock_instance_connect_retry:
+        with patch.object(
+            tracker, "_connect_with_retry"
+        ) as mock_instance_connect_retry:
 
             # Define side effect for the patched _connect_with_retry
             def successful_reconnect_side_effect():
-                tracker.client = (
-                    mock_reconnected_client_instance  # Simulate client being set on successful reconnect
-                )
+                tracker.client = mock_reconnected_client_instance  # Simulate client being set on successful reconnect
 
             mock_instance_connect_retry.side_effect = successful_reconnect_side_effect
 
@@ -399,14 +421,18 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
         tracker = InfluxDBLastProcessedTracker(
             self.url, self.token, self.org, self.bucket
         )
-        self.assertIsNone(tracker.client, "Client should be None after failed initialization")
+        self.assertIsNone(
+            tracker.client, "Client should be None after failed initialization"
+        )
 
         mock_reconnected_client_instance = Mock(spec=InfluxDBClient)
         mock_reconnected_client_instance.ping.return_value = True
         mock_write_api = Mock()
         mock_reconnected_client_instance.write_api.return_value = mock_write_api
 
-        with patch.object(tracker, "_connect_with_retry") as mock_instance_connect_retry:
+        with patch.object(
+            tracker, "_connect_with_retry"
+        ) as mock_instance_connect_retry:
 
             def successful_reconnect_side_effect():
                 tracker.client = mock_reconnected_client_instance
@@ -481,7 +507,9 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
             mock_point_class.assert_called_once_with("processing_state")
 
             # Verify tags and fields were set
-            mock_point_instance.tag.assert_any_call("service_identifier", "test_service")
+            mock_point_instance.tag.assert_any_call(
+                "service_identifier", "test_service"
+            )
             mock_point_instance.tag.assert_any_call("key", "test_key")
             mock_point_instance.field.assert_called_once_with(
                 "last_processed_timestamp_ms", 1234567890123
