@@ -154,7 +154,7 @@ py_test(
         ":strategy_discovery_processor_lib",
         ":test_utils_lib",
         "//protos:discovery_py_proto",
-        "//protos:marketdata_pb2",
+        "//protos:marketdata_py_proto",
         "//shared/persistence:last_processed_tracker_lib",
         "//third_party/python:influxdb_client",
         "//third_party/python:kafka_python",
