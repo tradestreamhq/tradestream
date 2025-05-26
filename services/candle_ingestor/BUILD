@@ -41,8 +41,9 @@ py_binary(
         ":influx_client_lib",
         ":ingestion_helpers_lib",
         ":tiingo_client_lib",
-        "//shared/cryptoclient:cmc_client_lib",
+        "//shared/cryptoclient:redis_crypto_client_lib",
         "//third_party/python:absl_py",
+        "//third_party/python:redis",
     ],
 )
 
@@ -77,19 +78,20 @@ py_test(
     srcs = ["main_test.py"],
     # Add dummy arguments for required flags:
     args = [
-        "--cmc_api_key=dummy_cmc_key_for_test",
         "--tiingo_api_key=dummy_tiingo_key_for_test",
         "--influxdb_token=dummy_influx_token_for_test",
         "--influxdb_org=dummy_influx_org_for_test",
-        # You can also override other flags if needed for testing defaults
-        # e.g., "--influxdb_url=http://mock-influx:8086",
+        "--redis_host=mock_redis_host_for_test",
+        "--redis_key_crypto_symbols=test_crypto_symbols_key",
     ],
     deps = [
         ":app",
         ":influx_client_lib",
         ":ingestion_helpers_lib",
         ":tiingo_client_lib",
+        "//shared/cryptoclient:redis_crypto_client_lib",
         "//third_party/python:absl_py",
+        "//third_party/python:redis",
     ],
 )
 
@@ -97,7 +99,6 @@ py_test(
 py_image_layer(
     name = "layers",
     binary = ":app",
-    # package_dir = "/app", # Default is often /app/<binary_name_target>
 )
 
 oci_image(
