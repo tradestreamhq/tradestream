@@ -109,7 +109,7 @@ candleIngestor:
     influxDb:
       name: "influxdb-admin-secret"
       tokenKey: "admin-token"
-  redis: # <--- ADDED THIS SECTION FOR candleIngestor
+  redis:
     host: '{{ include "tradestream.fullname" . }}-redis-master'
     port: 6379
 # Redis configuration
