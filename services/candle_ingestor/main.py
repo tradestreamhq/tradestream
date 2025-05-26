@@ -603,8 +603,10 @@ def main(argv):
                 last_processed_timestamps=last_processed_candle_timestamps,
                 run_mode=FLAGS.run_mode,
                 dry_run_processing_limit=(
-                    FLAGS.dry_run_limit if FLAGS.dry_run_limit is not None 
-                    else DRY_RUN_PROCESSING_LIMIT_DEFAULT if FLAGS.run_mode == "dry" 
+                    FLAGS.dry_run_limit
+                    if FLAGS.dry_run_limit is not None
+                    else DRY_RUN_PROCESSING_LIMIT_DEFAULT
+                    if FLAGS.run_mode == "dry"
                     else None
                 ),
             )
