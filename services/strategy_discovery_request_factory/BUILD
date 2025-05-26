@@ -148,5 +148,4 @@ py_test(
         "//third_party/python:influxdb_client",
         "//third_party/python:kafka_python",
     ],
-    size = "medium",
 )
