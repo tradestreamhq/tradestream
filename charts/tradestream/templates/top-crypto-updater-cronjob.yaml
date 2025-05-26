@@ -26,7 +26,7 @@ spec:
                       name: {{ .Values.topCryptoUpdaterCronjob.secrets.cmcApiKey.name }}
                       key: {{ .Values.topCryptoUpdaterCronjob.secrets.cmcApiKey.key }}
                 - name: REDIS_HOST
-                  value: {{ .Values.topCryptoUpdaterCronjob.redis.host | quote }}
+                  value: {{ tpl .Values.topCryptoUpdaterCronjob.redis.host . | quote }}
                 - name: REDIS_PORT
                   value: {{ .Values.topCryptoUpdaterCronjob.redis.port | quote }}
                 - name: TOP_N_CRYPTOS
