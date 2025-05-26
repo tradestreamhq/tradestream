@@ -4,8 +4,8 @@ import unittest
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timezone
 from influxdb_client.client.exceptions import InfluxDBError
-from services.backtest_request_factory.influx_poller import InfluxPoller
-from services.backtest_request_factory.test_utils import (
+from services.strategy_discovery_request_factory.influx_poller import InfluxPoller
+from services.strategy_discovery_request_factory.test_utils import (
     create_mock_influx_response,
     assert_candles_equal,
     get_candle_timestamp_ms,
@@ -24,7 +24,7 @@ class InfluxPollerTest(unittest.TestCase):
 
         # Mock InfluxDBClient to avoid actual connections
         self.mock_client_class = patch(
-            "services.backtest_request_factory.influx_poller.InfluxDBClient"
+            "services.strategy_discovery_request_factory.influx_poller.InfluxDBClient"
         ).start()
         self.mock_client = Mock()
         self.mock_client_class.return_value = self.mock_client
@@ -232,7 +232,7 @@ class InfluxPollerTest(unittest.TestCase):
         # Should not raise exception
         self.poller.close()
 
-    @patch("services.backtest_request_factory.influx_poller.logging")
+    @patch("services.strategy_discovery_request_factory.influx_poller.logging")
     def test_logging_behavior(self, mock_logging):
         """Test that appropriate logging occurs."""
         mock_query_api = Mock()
