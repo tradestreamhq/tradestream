@@ -274,9 +274,13 @@ def main(argv):
                     logging.info(
                         f"Updated last timestamp for {currency_pair} to: {latest_candle_timestamp_ms}"
                     )
-                elif last_processed_ts_ms is None: # First run, no candles found, still mark the attempt
-                     timestamp_tracker.update_last_processed_timestamp(
-                        FLAGS.influxdb_tracker_service_name, currency_pair, latest_candle_timestamp_ms
+                elif (
+                    last_processed_ts_ms is None
+                ):  # First run, no candles found, still mark the attempt
+                    timestamp_tracker.update_last_processed_timestamp(
+                        FLAGS.influxdb_tracker_service_name,
+                        currency_pair,
+                        latest_candle_timestamp_ms,
                     )
                     logging.info(
                         f"Marked first run attempt for {currency_pair} at: {latest_candle_timestamp_ms}"
