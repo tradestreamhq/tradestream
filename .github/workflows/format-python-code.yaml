@@ -25,7 +25,6 @@ jobs:
           else
             echo "files_changed=false" >> $GITHUB_OUTPUT
           fi
-      
       - name: Annotate diff changes using reviewdog
         if: steps.check_formatted.outputs.files_changed == 'true'
         uses: reviewdog/action-suggester@v1
