@@ -217,8 +217,8 @@ class RunBackfillTest(BaseIngestorTest):
         )
         self.mock_state_tracker.update_last_processed_timestamp.assert_called_with(
             candle_ingestor_main.SERVICE_IDENTIFIER,
-            f"{self.test_ticker}-backfill", 
-            dummy_candle_resumed["timestamp_ms"]
+            f"{self.test_ticker}-backfill",
+            dummy_candle_resumed["timestamp_ms"],
         )
 
 
