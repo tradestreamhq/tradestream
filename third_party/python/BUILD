@@ -18,6 +18,22 @@ py_library(
 )
 
 py_library(
+    name = "kafka_python",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("kafka-python"),
+    ],
+)
+
+py_library(
+    name = "protobuf",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("protobuf"),
+    ],
+)
+
+py_library(
     name = "redis",
     visibility = ["//visibility:public"],
     deps = [
