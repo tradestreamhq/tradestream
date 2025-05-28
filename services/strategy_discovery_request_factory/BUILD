@@ -126,7 +126,7 @@ py_test(
         "--influxdb_token=dummy_token_for_test",
         "--influxdb_org=dummy_org_for_test",
         "--lookback_minutes=5",
-        "--redis_host=mockredis", # Ensure main_test can mock this if needed
+        "--redis_host=mockredis",  # Ensure main_test can mock this if needed
         "--redis_port=6379",
         "--crypto_symbols_key=test:symbols",
         "--redis_tracker_service_name=test_strategy_discovery_main"
