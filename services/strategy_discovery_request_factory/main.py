@@ -278,7 +278,7 @@ def main(argv):
                      timestamp_tracker.update_last_processed_timestamp(
                         FLAGS.influxdb_tracker_service_name, currency_pair, latest_candle_timestamp_ms
                     )
-                     logging.info(
+                    logging.info(
                         f"Marked first run attempt for {currency_pair} at: {latest_candle_timestamp_ms}"
                     )
 
