@@ -17,7 +17,6 @@ jobs:
           options: "--verbose"
           src: "."
           version: "25.1.0"
-      
       - name: Check if files were formatted
         id: check_formatted
         run: |
