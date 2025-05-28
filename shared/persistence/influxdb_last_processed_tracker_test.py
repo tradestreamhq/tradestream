@@ -71,15 +71,17 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
                 self.url, self.token, self.org, self.bucket
             )
             self.assertIsNone(tracker.client)
-            
+
             # Use a more flexible assertion approach
             error_calls = [str(call) for call in mock_logging.error.call_args_list]
             expected_message = f"InfluxDBLastProcessedTracker: __init__ failed to connect to InfluxDB at {self.url} after all retries."
-            
-            found_expected_message = any(expected_message in call for call in error_calls)
+
+            found_expected_message = any(
+                expected_message in call for call in error_calls
+            )
             self.assertTrue(
                 found_expected_message,
-                f"Expected error message not found. Expected: '{expected_message}'. Actual calls: {error_calls}"
+                f"Expected error message not found. Expected: '{expected_message}'. Actual calls: {error_calls}",
             )
 
     @patch("shared.persistence.influxdb_last_processed_tracker.logging")
@@ -95,13 +97,13 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
 
         # Verify that error logging occurred (at least one error call should be made)
         self.assertTrue(mock_logging.error.called, "Expected error logging to occur")
-        
+
         # Verify that client is None (this is the main behavioral assertion)
         self.assertIsNone(tracker.client)
-        
+
         # Verify that multiple connection attempts were made due to retries
         self.assertEqual(self.mock_client_class.call_count, 5)
-        
+
         # Optional: Check that the final error message contains key information
         error_calls = [str(call) for call in mock_logging.error.call_args_list]
         has_init_failure_message = any(
