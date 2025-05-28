@@ -151,7 +151,6 @@ def run_backfill(
             break
         current_run_max_ts_for_ticker = 0
         db_last_processed_ts_ms = None
-        
         # Use state tracker instead of influx_manager for state management
         if state_tracker:
             db_last_processed_ts_ms = state_tracker.get_last_processed_timestamp(
