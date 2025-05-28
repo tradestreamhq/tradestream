@@ -129,7 +129,7 @@ py_test(
         "--redis_host=mockredis",  # Ensure main_test can mock this if needed
         "--redis_port=6379",
         "--crypto_symbols_key=test:symbols",
-        "--redis_tracker_service_name=test_strategy_discovery_main"
+        "--redis_tracker_service_name=test_strategy_discovery_main",
     ],
     deps = [
         ":app",
