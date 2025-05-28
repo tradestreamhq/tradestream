@@ -520,7 +520,6 @@ def main(argv):
 
     influx_manager = None
     state_tracker = None
-    
     if FLAGS.run_mode == "wet":
         influx_manager = InfluxDBManager(
             url=FLAGS.influxdb_url,
