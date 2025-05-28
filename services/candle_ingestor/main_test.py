@@ -298,8 +298,7 @@ class RunCatchUpTest(BaseIngestorTest):
             dry_run_processing_limit=None,
         )
         self.mock_state_tracker.get_last_processed_timestamp.assert_any_call(
-            candle_ingestor_main.SERVICE_IDENTIFIER,
-            f"{self.test_ticker}-catch_up"
+            candle_ingestor_main.SERVICE_IDENTIFIER, f"{self.test_ticker}-catch_up"
         )
         self.mock_get_historical_candles.assert_called_with(
             FLAGS.tiingo_api_key,
