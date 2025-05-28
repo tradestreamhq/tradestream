@@ -138,7 +138,7 @@ py_test(
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
         ":test_utils_lib",
-        "//shared/persistence:redis_last_processed_tracker_lib", # Updated dependency
+        "//shared/persistence:redis_last_processed_tracker_lib",  # Updated dependency
         "//third_party/python:absl_py",
         "//third_party/python:redis",
     ],
