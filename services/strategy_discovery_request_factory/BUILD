@@ -54,7 +54,7 @@ py_binary(
         ":influx_poller_lib",
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
-        "//shared/persistence:redis_last_processed_tracker_lib",  # Updated dependency
+        "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:absl_py",
         "//third_party/python:protobuf",
         "//third_party/python:redis",
