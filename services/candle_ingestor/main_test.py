@@ -175,9 +175,9 @@ class RunBackfillTest(BaseIngestorTest):
             FLAGS.tiingo_api_key, self.test_ticker, "2023-01-09", "2023-01-09", mock.ANY
         )
         self.mock_state_tracker.update_last_processed_timestamp.assert_called_with(
-            candle_ingestor_main.SERVICE_IDENTIFIER, 
-            f"{self.test_ticker}-backfill", 
-            dummy_candle["timestamp_ms"]
+            candle_ingestor_main.SERVICE_IDENTIFIER,
+            f"{self.test_ticker}-backfill",
+            dummy_candle["timestamp_ms"],
         )
         self.assertEqual(
             self.last_processed_timestamps_shared_state[self.test_ticker],
