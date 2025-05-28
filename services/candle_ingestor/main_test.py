@@ -10,6 +10,9 @@ from absl.testing import flagsaver
 from services.candle_ingestor import main as candle_ingestor_main
 from services.candle_ingestor import influx_client as influx_client_module
 from shared.cryptoclient import redis_crypto_client  # For mocking Redis client
+from shared.persistence import (
+    influxdb_last_processed_tracker,
+)  # For mocking state tracker
 
 FLAGS = flags.FLAGS
 
@@ -22,8 +25,6 @@ class BaseIngestorTest(absltest.TestCase):
             spec=influx_client_module.InfluxDBManager
         )
         self.mock_influx_manager.get_client.return_value = self.mock_influx_manager
-        self.mock_influx_manager.get_last_processed_timestamp.return_value = None
-        self.mock_influx_manager.update_last_processed_timestamp.return_value = None
         self.mock_influx_manager.write_candles_batch.return_value = 1
 
         self.patch_influx_db_manager = mock.patch(
@@ -32,6 +33,21 @@ class BaseIngestorTest(absltest.TestCase):
         )
         self.mock_influx_db_manager_class = self.patch_influx_db_manager.start()
         self.addCleanup(self.patch_influx_db_manager.stop)
+
+        # Mock InfluxDBLastProcessedTracker
+        self.mock_state_tracker = mock.MagicMock(
+            spec=influxdb_last_processed_tracker.InfluxDBLastProcessedTracker
+        )
+        self.mock_state_tracker.client = mock.MagicMock()  # Ensure client is not None
+        self.mock_state_tracker.get_last_processed_timestamp.return_value = None
+        self.mock_state_tracker.update_last_processed_timestamp.return_value = None
+
+        self.patch_state_tracker = mock.patch(
+            "services.candle_ingestor.main.InfluxDBLastProcessedTracker",
+            return_value=self.mock_state_tracker,
+        )
+        self.mock_state_tracker_class = self.patch_state_tracker.start()
+        self.addCleanup(self.patch_state_tracker.stop)
 
         # Mock RedisCryptoClient
         self.patch_redis_crypto_client = mock.patch(
@@ -137,7 +153,7 @@ class RunBackfillTest(BaseIngestorTest):
         """Test backfill starts from flag date when no DB state exists."""
         self._set_current_time("2023-01-10T12:00:00")
         FLAGS.backfill_start_date = "1_day_ago"
-        self.mock_influx_manager.get_last_processed_timestamp.return_value = None
+        self.mock_state_tracker.get_last_processed_timestamp.return_value = None
 
         expected_candle_ts_for_fetch_start = (
             datetime(2023, 1, 9, 0, 0, 0, tzinfo=timezone.utc).timestamp() * 1000
@@ -147,6 +163,7 @@ class RunBackfillTest(BaseIngestorTest):
 
         candle_ingestor_main.run_backfill(
             influx_manager=self.mock_influx_manager,
+            state_tracker=self.mock_state_tracker,
             tiingo_tickers=[self.test_ticker],
             tiingo_api_key=FLAGS.tiingo_api_key,
             backfill_start_date_str=FLAGS.backfill_start_date,
@@ -159,8 +176,10 @@ class RunBackfillTest(BaseIngestorTest):
         self.mock_get_historical_candles.assert_called_with(
             FLAGS.tiingo_api_key, self.test_ticker, "2023-01-09", "2023-01-09", mock.ANY
         )
-        self.mock_influx_manager.update_last_processed_timestamp.assert_called_with(
-            self.test_ticker, "backfill", dummy_candle["timestamp_ms"]
+        self.mock_state_tracker.update_last_processed_timestamp.assert_called_with(
+            candle_ingestor_main.SERVICE_IDENTIFIER,
+            f"{self.test_ticker}-backfill",
+            dummy_candle["timestamp_ms"],
         )
         self.assertEqual(
             self.last_processed_timestamps_shared_state[self.test_ticker],
@@ -173,7 +192,7 @@ class RunBackfillTest(BaseIngestorTest):
         db_resume_timestamp_ms = int(
             datetime(2023, 1, 7, 0, 0, 0, tzinfo=timezone.utc).timestamp() * 1000
         )
-        self.mock_influx_manager.get_last_processed_timestamp.return_value = (
+        self.mock_state_tracker.get_last_processed_timestamp.return_value = (
             db_resume_timestamp_ms
         )
 
@@ -185,6 +204,7 @@ class RunBackfillTest(BaseIngestorTest):
 
         candle_ingestor_main.run_backfill(
             influx_manager=self.mock_influx_manager,
+            state_tracker=self.mock_state_tracker,
             tiingo_tickers=[self.test_ticker],
             tiingo_api_key=FLAGS.tiingo_api_key,
             backfill_start_date_str=FLAGS.backfill_start_date,
@@ -197,8 +217,10 @@ class RunBackfillTest(BaseIngestorTest):
         self.mock_get_historical_candles.assert_called_with(
             FLAGS.tiingo_api_key, self.test_ticker, "2023-01-07", "2023-01-09", mock.ANY
         )
-        self.mock_influx_manager.update_last_processed_timestamp.assert_called_with(
-            self.test_ticker, "backfill", dummy_candle_resumed["timestamp_ms"]
+        self.mock_state_tracker.update_last_processed_timestamp.assert_called_with(
+            candle_ingestor_main.SERVICE_IDENTIFIER,
+            f"{self.test_ticker}-backfill",
+            dummy_candle_resumed["timestamp_ms"],
         )
 
 
@@ -211,7 +233,7 @@ class RunCatchUpTest(BaseIngestorTest):
         self.last_processed_timestamps_shared_state[self.test_ticker] = (
             backfill_state_ms
         )
-        self.mock_influx_manager.get_last_processed_timestamp.return_value = None
+        self.mock_state_tracker.get_last_processed_timestamp.return_value = None
 
         expected_catch_up_candle_ts = int(
             datetime(2023, 1, 10, 12, 0, 0, tzinfo=timezone.utc).timestamp() * 1000
@@ -221,6 +243,7 @@ class RunCatchUpTest(BaseIngestorTest):
 
         candle_ingestor_main.run_catch_up(
             influx_manager=self.mock_influx_manager,
+            state_tracker=self.mock_state_tracker,
             tiingo_tickers=[self.test_ticker],
             tiingo_api_key=FLAGS.tiingo_api_key,
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
@@ -238,8 +261,10 @@ class RunCatchUpTest(BaseIngestorTest):
             "2023-01-10T12:05:00",
             mock.ANY,
         )
-        self.mock_influx_manager.update_last_processed_timestamp.assert_called_with(
-            self.test_ticker, "catch_up", polled_candle["timestamp_ms"]
+        self.mock_state_tracker.update_last_processed_timestamp.assert_called_with(
+            candle_ingestor_main.SERVICE_IDENTIFIER,
+            f"{self.test_ticker}-catch_up",
+            polled_candle["timestamp_ms"],
         )
         self.assertEqual(
             self.last_processed_timestamps_shared_state[self.test_ticker],
@@ -251,8 +276,9 @@ class RunCatchUpTest(BaseIngestorTest):
         catch_up_db_state_ms = int(
             datetime(2023, 1, 10, 12, 0, 0, tzinfo=timezone.utc).timestamp() * 1000
         )
-        self.mock_influx_manager.get_last_processed_timestamp.side_effect = (
-            lambda ticker, type: (catch_up_db_state_ms if type == "catch_up" else None)
+        # Mock the state tracker to return catch_up state on first call, None on second
+        self.mock_state_tracker.get_last_processed_timestamp.side_effect = (
+            lambda service, key: (catch_up_db_state_ms if "catch_up" in key else None)
         )
 
         expected_catch_up_candle_ts = int(
@@ -263,6 +289,7 @@ class RunCatchUpTest(BaseIngestorTest):
 
         candle_ingestor_main.run_catch_up(
             influx_manager=self.mock_influx_manager,
+            state_tracker=self.mock_state_tracker,
             tiingo_tickers=[self.test_ticker],
             tiingo_api_key=FLAGS.tiingo_api_key,
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
@@ -272,8 +299,8 @@ class RunCatchUpTest(BaseIngestorTest):
             run_mode="wet",
             dry_run_processing_limit=None,
         )
-        self.mock_influx_manager.get_last_processed_timestamp.assert_any_call(
-            self.test_ticker, "catch_up"
+        self.mock_state_tracker.get_last_processed_timestamp.assert_any_call(
+            candle_ingestor_main.SERVICE_IDENTIFIER, f"{self.test_ticker}-catch_up"
         )
         self.mock_get_historical_candles.assert_called_with(
             FLAGS.tiingo_api_key,
@@ -294,10 +321,6 @@ class MainFunctionTest(BaseIngestorTest):
 
         # In dry mode, get_historical_candles_tiingo should not be called
         self.assertEqual(self.mock_get_historical_candles.call_count, 0)
-        # Remove this assertion since dry mode uses DryRunRedisClient, not the mocked client:
-        # self.mock_redis_client_instance.get_top_crypto_pairs_from_redis.assert_called_once_with(
-        #     FLAGS.redis_key_crypto_symbols
-        # )
 
     @flagsaver.flagsaver(run_mode="wet")
     def test_main_wet_run_executes_backfill_and_catch_up(self):
@@ -310,7 +333,7 @@ class MainFunctionTest(BaseIngestorTest):
             self.test_ticker
         ]
 
-        self.mock_influx_manager.get_last_processed_timestamp.return_value = None
+        self.mock_state_tracker.get_last_processed_timestamp.return_value = None
 
         backfill_candle_ts = int(
             datetime(2023, 1, 1, 10, 0, 0, tzinfo=timezone.utc).timestamp() * 1000
@@ -355,13 +378,18 @@ class MainFunctionTest(BaseIngestorTest):
         self.mock_influx_manager.write_candles_batch.assert_any_call(
             catch_up_candles_response
         )
-        self.mock_influx_manager.update_last_processed_timestamp.assert_any_call(
-            self.test_ticker, "backfill", backfill_candle_ts
+        self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
+            candle_ingestor_main.SERVICE_IDENTIFIER,
+            f"{self.test_ticker}-backfill",
+            backfill_candle_ts,
         )
-        self.mock_influx_manager.update_last_processed_timestamp.assert_any_call(
-            self.test_ticker, "catch_up", catch_up_candle_ts
+        self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
+            candle_ingestor_main.SERVICE_IDENTIFIER,
+            f"{self.test_ticker}-catch_up",
+            catch_up_candle_ts,
         )
         self.mock_redis_client_instance.close.assert_called_once()  # Verify Redis client is closed
+        self.mock_state_tracker.close.assert_called_once()  # Verify state tracker is closed
 
 
 if __name__ == "__main__":
