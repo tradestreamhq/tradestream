@@ -155,7 +155,7 @@ py_test(
         ":test_utils_lib",
         "//protos:discovery_py_proto",
         "//protos:marketdata_py_proto",
-        "//shared/persistence:redis_last_processed_tracker_lib", # Updated dependency
+        "//shared/persistence:redis_last_processed_tracker_lib",  # Updated dependency
         "//third_party/python:influxdb_client",
         "//third_party/python:kafka_python",
         "//third_party/python:redis",
