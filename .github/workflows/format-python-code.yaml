@@ -15,7 +15,7 @@ jobs:
         uses: psf/black@stable
         id: action_black
         with:
-          options: "--check --verbose"
+          options: "--verbose"
           src: "."
           version: "25.1.0"
       - name: Annotate diff changes using reviewdog
