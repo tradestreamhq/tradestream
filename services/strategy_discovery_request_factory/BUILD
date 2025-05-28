@@ -71,7 +71,6 @@ py_library(
         "//protos:strategies_py_proto",
         "//third_party/python:protobuf",
     ],
-    testonly = 1,
 )
 
 # Unit Tests
