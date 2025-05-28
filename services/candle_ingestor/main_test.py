@@ -384,8 +384,8 @@ class MainFunctionTest(BaseIngestorTest):
         )
         self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
             candle_ingestor_main.SERVICE_IDENTIFIER,
-            f"{self.test_ticker}-catch_up", 
-            catch_up_candle_ts
+            f"{self.test_ticker}-catch_up",
+            catch_up_candle_ts,
         )
         self.mock_redis_client_instance.close.assert_called_once()  # Verify Redis client is closed
         self.mock_state_tracker.close.assert_called_once()  # Verify state tracker is closed
