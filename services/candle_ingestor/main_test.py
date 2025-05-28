@@ -379,8 +379,8 @@ class MainFunctionTest(BaseIngestorTest):
         )
         self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
             candle_ingestor_main.SERVICE_IDENTIFIER,
-            f"{self.test_ticker}-backfill", 
-            backfill_candle_ts
+            f"{self.test_ticker}-backfill",
+            backfill_candle_ts,
         )
         self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
             candle_ingestor_main.SERVICE_IDENTIFIER,
