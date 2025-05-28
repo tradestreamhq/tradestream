@@ -151,4 +151,3 @@ class InfluxPoller:
             self.client.close()
             logging.info("InfluxDB client closed.")
             self.client = None
-            

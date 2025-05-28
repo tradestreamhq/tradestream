@@ -16,9 +16,7 @@ from typing import List, Dict, Optional
 influx_retry_params = dict(
     stop=stop_after_attempt(5),
     wait=wait_exponential(multiplier=1, min=2, max=30),
-    retry=retry_if_exception_type(
-        (InfluxDBError, ConnectionError, TimeoutError)
-    ),
+    retry=retry_if_exception_type((InfluxDBError, ConnectionError, TimeoutError)),
     reraise=True,
 )
 
@@ -36,7 +34,6 @@ class InfluxDBManager:
             logging.warning(
                 f"InfluxDBManager __init__ failed to connect after retries: {e}"
             )
-
 
     @retry(**influx_retry_params)
     def _connect(self):
@@ -101,7 +98,7 @@ class InfluxDBManager:
                 volume_val = float(candle_dict["volume"])
 
                 point = (
-                    Point("candles") # Measurement name for candles
+                    Point("candles")  # Measurement name for candles
                     .tag("currency_pair", currency_pair_tag)
                     .field("open", open_val)
                     .field("high", high_val)
@@ -139,10 +136,10 @@ class InfluxDBManager:
             return 0
         try:
             return self._write_candles_batch_retryable(candles_data)
-        except RetryError as e: # Catch RetryError specifically
+        except RetryError as e:  # Catch RetryError specifically
             logging.error(f"InfluxDBError writing batch after all retries: {e}")
             return 0
-        except Exception as e: # Catch other unexpected errors
+        except Exception as e:  # Catch other unexpected errors
             logging.error(
                 f"Generic error writing batch to InfluxDB after all retries: {e}"
             )
@@ -157,4 +154,3 @@ class InfluxDBManager:
                 logging.error(f"Error closing InfluxDB client: {e}")
             finally:
                 self.client = None
-                
