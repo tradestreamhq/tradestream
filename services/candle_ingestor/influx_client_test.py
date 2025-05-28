@@ -272,7 +272,7 @@ class TestInfluxDBManager(unittest.TestCase):
                 "low": 190.0,
                 "close": 205.0,
                 "volume": 2000.0,
-            }
+            },
         ]
 
         # Act
