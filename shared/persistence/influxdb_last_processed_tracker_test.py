@@ -104,8 +104,12 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
         
         # Optional: Check that the final error message contains key information
         error_calls = [str(call) for call in mock_logging.error.call_args_list]
-        has_init_failure_message = any("__init__ failed to connect" in call for call in error_calls)
-        self.assertTrue(has_init_failure_message, "Expected __init__ failure message in logs")
+        has_init_failure_message = any(
+            "__init__ failed to connect" in call for call in error_calls
+        )
+        self.assertTrue(
+            has_init_failure_message, "Expected __init__ failure message in logs"
+        )
 
     def test_get_last_processed_timestamp_success(self):
         """Test successful retrieval of last processed timestamp"""
