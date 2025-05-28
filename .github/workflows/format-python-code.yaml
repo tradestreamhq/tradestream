@@ -15,7 +15,6 @@ jobs:
         uses: psf/black@stable
         id: action_black
         with:
-          options: "--check --verbose"
           src: "."
       - name: Annotate diff changes using reviewdog
         if: steps.action_black.outputs.is_formatted == 'true'
