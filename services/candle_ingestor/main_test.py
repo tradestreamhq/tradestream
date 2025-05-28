@@ -261,8 +261,8 @@ class RunCatchUpTest(BaseIngestorTest):
         )
         self.mock_state_tracker.update_last_processed_timestamp.assert_called_with(
             candle_ingestor_main.SERVICE_IDENTIFIER,
-            f"{self.test_ticker}-catch_up", 
-            polled_candle["timestamp_ms"]
+            f"{self.test_ticker}-catch_up",
+            polled_candle["timestamp_ms"],
         )
         self.assertEqual(
             self.last_processed_timestamps_shared_state[self.test_ticker],
