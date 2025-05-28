@@ -304,5 +304,6 @@ def main(argv):
             timestamp_tracker.close()
         logging.info("Strategy Discovery Request Factory Cron Job finished.")
 
+
 if __name__ == "__main__":
     app.run(main)
