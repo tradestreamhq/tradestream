@@ -236,7 +236,7 @@ class TestInfluxDBManager(unittest.TestCase):
                 "open": 100.0,
                 "high": 110.0,
                 "low": 90.0,
-                "close": 105.0,  
+                "close": 105.0,
                 "volume": 1000.0,
             }
         ]
