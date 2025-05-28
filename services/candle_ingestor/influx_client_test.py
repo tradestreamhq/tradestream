@@ -8,7 +8,7 @@ from influxdb_client import (
     Point,
     WritePrecision,
 )  # Added Point, WritePrecision
-from influxdb_client.client.exceptions import InfluxDBError  # Added InfluxDBError
+from influxdb_client.client.exceptions import InfluxDBError
 
 
 # Mock the InfluxDBClient itself and its methods
