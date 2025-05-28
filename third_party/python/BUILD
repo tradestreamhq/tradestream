@@ -30,7 +30,7 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         requirement("protobuf"),
-    ],
+    ], 
 )
 
 py_library(
