@@ -10,7 +10,9 @@ from absl.testing import flagsaver
 from services.candle_ingestor import main as candle_ingestor_main
 from services.candle_ingestor import influx_client as influx_client_module
 from shared.cryptoclient import redis_crypto_client  # For mocking Redis client
-from shared.persistence import influxdb_last_processed_tracker  # For mocking state tracker
+from shared.persistence import (
+    influxdb_last_processed_tracker,
+)  # For mocking state tracker
 
 FLAGS = flags.FLAGS
 
