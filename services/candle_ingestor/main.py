@@ -19,6 +19,9 @@ from services.candle_ingestor.ingestion_helpers import (
 from shared.cryptoclient.redis_crypto_client import (
     RedisCryptoClient,
 )  # Import Redis Client
+from shared.persistence.influxdb_last_processed_tracker import (
+    InfluxDBLastProcessedTracker,
+)  # Import new state tracker
 import redis  # Import for redis exceptions
 
 FLAGS = flags.FLAGS
@@ -96,10 +99,12 @@ flags.DEFINE_integer(
 )
 
 DRY_RUN_PROCESSING_LIMIT_DEFAULT = 2  # Default limit for symbols in dry run
+SERVICE_IDENTIFIER = "candle_ingestor"  # Service identifier for state tracking
 
 
 def run_backfill(
     influx_manager: InfluxDBManager | None,
+    state_tracker: InfluxDBLastProcessedTracker | None,
     tiingo_tickers: list[str],
     tiingo_api_key: str,
     backfill_start_date_str: str,
@@ -146,9 +151,11 @@ def run_backfill(
             break
         current_run_max_ts_for_ticker = 0
         db_last_processed_ts_ms = None
-        if influx_manager:
-            db_last_processed_ts_ms = influx_manager.get_last_processed_timestamp(
-                ticker, "backfill"
+        
+        # Use state tracker instead of influx_manager for state management
+        if state_tracker:
+            db_last_processed_ts_ms = state_tracker.get_last_processed_timestamp(
+                SERVICE_IDENTIFIER, f"{ticker}-backfill"
             )
         else:
             db_last_processed_ts_ms = last_processed_timestamps.get(ticker)
@@ -265,9 +272,10 @@ def run_backfill(
                     current_run_max_ts_for_ticker = max(
                         current_run_max_ts_for_ticker, latest_ts_in_batch
                     )
-                    if influx_manager:
-                        influx_manager.update_last_processed_timestamp(
-                            ticker, "backfill", latest_ts_in_batch
+                    # Update state using state tracker
+                    if state_tracker:
+                        state_tracker.update_last_processed_timestamp(
+                            SERVICE_IDENTIFIER, f"{ticker}-backfill", latest_ts_in_batch
                         )
                     last_processed_timestamps[ticker] = latest_ts_in_batch
                     logging.info(
@@ -313,6 +321,7 @@ def run_backfill(
 
 def run_catch_up(
     influx_manager: InfluxDBManager | None,
+    state_tracker: InfluxDBLastProcessedTracker | None,
     tiingo_tickers: list[str],
     tiingo_api_key: str,
     candle_granularity_minutes: int,
@@ -347,14 +356,16 @@ def run_catch_up(
 
         last_known_ts_ms = last_processed_timestamps.get(ticker)
 
-        if not last_known_ts_ms and influx_manager:
-            last_known_ts_ms = influx_manager.get_last_processed_timestamp(
-                ticker, "catch_up"
+        # Use state tracker to get catch-up state
+        if not last_known_ts_ms and state_tracker:
+            last_known_ts_ms = state_tracker.get_last_processed_timestamp(
+                SERVICE_IDENTIFIER, f"{ticker}-catch_up"
             )
 
-        if not last_known_ts_ms and influx_manager:
-            last_known_ts_ms = influx_manager.get_last_processed_timestamp(
-                ticker, "backfill"
+        # Fallback to backfill state if no catch-up state
+        if not last_known_ts_ms and state_tracker:
+            last_known_ts_ms = state_tracker.get_last_processed_timestamp(
+                SERVICE_IDENTIFIER, f"{ticker}-backfill"
             )
 
         if not last_known_ts_ms:
@@ -449,9 +460,10 @@ def run_catch_up(
                 if written_count > 0 or run_mode == "dry":
                     latest_ts_in_batch = valid_candles_to_write[-1]["timestamp_ms"]
                     last_processed_timestamps[ticker] = latest_ts_in_batch
-                    if influx_manager:
-                        influx_manager.update_last_processed_timestamp(
-                            ticker, "catch_up", latest_ts_in_batch
+                    # Update state using state tracker
+                    if state_tracker:
+                        state_tracker.update_last_processed_timestamp(
+                            SERVICE_IDENTIFIER, f"{ticker}-catch_up", latest_ts_in_batch
                         )
                     logging.info(
                         f"  Successfully processed {len(valid_candles_to_write)} candles for {ticker} (catch-up). Updated state to {latest_ts_in_batch}"
@@ -508,6 +520,8 @@ def main(argv):
         logging.info(f"  {flag_name}: {FLAGS[flag_name].value}")
 
     influx_manager = None
+    state_tracker = None
+    
     if FLAGS.run_mode == "wet":
         influx_manager = InfluxDBManager(
             url=FLAGS.influxdb_url,
@@ -517,6 +531,19 @@ def main(argv):
         )
         if not influx_manager.get_client():
             logging.error("Failed to connect to InfluxDB after retries. Exiting.")
+            sys.exit(1)
+
+        # Initialize the state tracker
+        state_tracker = InfluxDBLastProcessedTracker(
+            url=FLAGS.influxdb_url,
+            token=FLAGS.influxdb_token,
+            org=FLAGS.influxdb_org,
+            bucket=FLAGS.influxdb_bucket,
+        )
+        if not state_tracker.client:
+            logging.error("Failed to initialize state tracker. Exiting.")
+            if influx_manager:
+                influx_manager.close()
             sys.exit(1)
 
         try:
@@ -529,11 +556,15 @@ def main(argv):
                 logging.error("Failed to connect to Redis. Exiting.")
                 if influx_manager:
                     influx_manager.close()
+                if state_tracker:
+                    state_tracker.close()
                 sys.exit(1)
         except redis.exceptions.RedisError as e:
             logging.error(f"Failed to initialize Redis client: {e}. Exiting.")
             if influx_manager:
                 influx_manager.close()
+            if state_tracker:
+                state_tracker.close()
             sys.exit(1)
 
     else:  # Dry run
@@ -569,6 +600,8 @@ def main(argv):
             logging.error(f"Failed to fetch symbols from Redis: {e}. Exiting.")
             if influx_manager:
                 influx_manager.close()
+            if state_tracker:
+                state_tracker.close()
             if redis_manager and FLAGS.run_mode == "wet":
                 redis_manager.close()  # only close real client
             sys.exit(1)
@@ -579,6 +612,8 @@ def main(argv):
         logging.error("No symbols available to process. Exiting.")
         if influx_manager:
             influx_manager.close()
+        if state_tracker:
+            state_tracker.close()
         if redis_manager and FLAGS.run_mode == "wet":
             redis_manager.close()
         sys.exit(1)
@@ -595,6 +630,7 @@ def main(argv):
         if FLAGS.backfill_start_date.lower() != "skip":
             run_backfill(
                 influx_manager=influx_manager,
+                state_tracker=state_tracker,
                 tiingo_tickers=tiingo_tickers,
                 tiingo_api_key=FLAGS.tiingo_api_key,
                 backfill_start_date_str=FLAGS.backfill_start_date,
@@ -616,22 +652,24 @@ def main(argv):
             logging.info(
                 "Skipping historical backfill as per 'backfill_start_date' flag."
             )
-            if FLAGS.run_mode == "wet" and influx_manager:
+            if FLAGS.run_mode == "wet" and state_tracker:
                 for ticker in tiingo_tickers:
-                    ts_catch_up = influx_manager.get_last_processed_timestamp(
-                        ticker, "catch_up"
+                    # Use state tracker to get existing state
+                    ts_catch_up = state_tracker.get_last_processed_timestamp(
+                        SERVICE_IDENTIFIER, f"{ticker}-catch_up"
                     )
                     if ts_catch_up:
                         last_processed_candle_timestamps[ticker] = ts_catch_up
                     else:
-                        ts_backfill = influx_manager.get_last_processed_timestamp(
-                            ticker, "backfill"
+                        ts_backfill = state_tracker.get_last_processed_timestamp(
+                            SERVICE_IDENTIFIER, f"{ticker}-backfill"
                         )
                         if ts_backfill:
                             last_processed_candle_timestamps[ticker] = ts_backfill
 
         run_catch_up(
             influx_manager=influx_manager,
+            state_tracker=state_tracker,
             tiingo_tickers=tiingo_tickers,
             tiingo_api_key=FLAGS.tiingo_api_key,
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
@@ -659,6 +697,8 @@ def main(argv):
         )
         if influx_manager and influx_manager.get_client():
             influx_manager.close()
+        if state_tracker:
+            state_tracker.close()
         if (
             redis_manager and hasattr(redis_manager, "client") and redis_manager.client
         ):  # Check if it's the real client
