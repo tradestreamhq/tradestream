@@ -17,7 +17,6 @@ jobs:
           options: "--verbose"
           src: "."
           version: "25.1.0"
-      
       - name: Check if files were formatted
         id: check_formatted
         run: |
@@ -26,7 +25,6 @@ jobs:
           else
             echo "files_changed=false" >> $GITHUB_OUTPUT
           fi
-      
       - name: Annotate diff changes using reviewdog
         if: steps.check_formatted.outputs.files_changed == 'true'
         uses: reviewdog/action-suggester@v1
