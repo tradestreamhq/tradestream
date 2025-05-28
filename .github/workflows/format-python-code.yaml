@@ -17,7 +17,7 @@ jobs:
         with:
           options: "--check --verbose"
           src: "."
-          version: "21.5b1"
+          version: "25.1.0"
       - name: Annotate diff changes using reviewdog
         if: steps.action_black.outputs.is_formatted == 'true'
         uses: reviewdog/action-suggester@v1
