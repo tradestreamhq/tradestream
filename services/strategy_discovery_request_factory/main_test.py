@@ -1,361 +1,355 @@
-"""Unit tests for main module (cron job version)."""
+"""Unit tests for main module (stateless orchestration version)."""
 
 import unittest
 from unittest.mock import Mock, patch, MagicMock
 import sys
+from datetime import datetime, timezone
 from absl import flags
 from absl.testing import flagsaver
 from services.strategy_discovery_request_factory import main
-from services.strategy_discovery_request_factory.test_utils import create_test_candles
 
 FLAGS = flags.FLAGS
 
 
-class MainCronTest(unittest.TestCase):
-    """Test main cron job functionality."""
+class StatelessMainTest(unittest.TestCase):
+    """Test stateless main orchestration functionality."""
 
     def setUp(self):
         """Set up test environment."""
-        # Reset FLAGS and parse with test arguments
-        FLAGS.unparse_flags()
-
-        # Parse flags with test arguments before accessing them
-        test_argv = [
-            "test_binary",
-            "--influxdb_token=test-token",
-            "--influxdb_org=test-org",
-            "--lookback_minutes=5",
-        ]
-        FLAGS(test_argv)
+        # Save original flags
+        self.saved_flags = flagsaver.save_flag_values()
+        
+        # Set required flags for tests
+        FLAGS.influxdb_token = "test-token"
+        FLAGS.influxdb_org = "test-org"
+        FLAGS.currency_pairs = ["BTC/USD", "ETH/USD"]
+        FLAGS.tracker_service_name = "test_strategy_discovery"
+        FLAGS.global_status_tracker_service_name = "test_global_candle_status"
+        FLAGS.min_processing_advance_minutes = 1
 
         # Mock all external dependencies
-        self.mock_redis_cls = patch(
-            "services.strategy_discovery_request_factory.main.redis.Redis"
-        ).start()
-        self.mock_influx_poller_cls = patch(
-            "services.strategy_discovery_request_factory.main.InfluxPoller"
-        ).start()
-        self.mock_strategy_discovery_processor_cls = patch(
-            "services.strategy_discovery_request_factory.main.StrategyDiscoveryProcessor"
-        ).start()
         self.mock_kafka_publisher_cls = patch(
             "services.strategy_discovery_request_factory.main.KafkaPublisher"
         ).start()
-        self.mock_last_processed_tracker_cls = patch(
-            "services.strategy_discovery_request_factory.main.LastProcessedTracker"
+        self.mock_strategy_processor_cls = patch(
+            "services.strategy_discovery_request_factory.main.StrategyDiscoveryProcessor"
+        ).start()
+        self.mock_tracker_cls = patch(
+            "services.strategy_discovery_request_factory.main.InfluxDBLastProcessedTracker"
         ).start()
 
         # Mock instances
-        self.mock_redis_instance = Mock()
-        self.mock_influx_instance = Mock()
-        self.mock_processor_instance = Mock()
         self.mock_kafka_instance = Mock()
-        self.mock_tracker_instance = Mock()
-
-        self.mock_redis_cls.return_value = self.mock_redis_instance
-        self.mock_influx_poller_cls.return_value = self.mock_influx_instance
-        self.mock_strategy_discovery_processor_cls.return_value = (
-            self.mock_processor_instance
-        )
+        self.mock_kafka_instance.producer = True  # Simulate successful connection
         self.mock_kafka_publisher_cls.return_value = self.mock_kafka_instance
-        self.mock_last_processed_tracker_cls.return_value = self.mock_tracker_instance
 
-        # Set up default mock behaviors
-        self.mock_redis_instance.ping.return_value = True
-        self.mock_redis_instance.smembers.return_value = {b"btcusd", b"ethusd"}
-        self.mock_influx_instance.fetch_new_candles.return_value = ([], 0)
-        self.mock_processor_instance.add_candle.return_value = []
-        self.mock_tracker_instance.get_last_timestamp.return_value = 0
+        self.mock_processor_instance = Mock()
+        self.mock_strategy_processor_cls.return_value = self.mock_processor_instance
+
+        self.mock_tracker_instance = Mock()
+        self.mock_tracker_instance.client = True  # Simulate successful connection
+        self.mock_tracker_cls.return_value = self.mock_tracker_instance
 
     def tearDown(self):
         """Clean up test environment."""
         patch.stopall()
-        FLAGS.unparse_flags()
+        flagsaver.restore_flag_values(self.saved_flags)
 
-    def test_flag_definitions(self):
-        """Test that all required flags are defined."""
-        # Redis flags
-        self.assertTrue(hasattr(FLAGS, "redis_host"))
-        self.assertTrue(hasattr(FLAGS, "redis_port"))
-        self.assertTrue(hasattr(FLAGS, "redis_db"))
-        self.assertTrue(hasattr(FLAGS, "redis_password"))
-        self.assertTrue(hasattr(FLAGS, "crypto_symbols_key"))
-
-        # InfluxDB flags
-        self.assertTrue(hasattr(FLAGS, "influxdb_url"))
-        self.assertTrue(hasattr(FLAGS, "influxdb_token"))
-        self.assertTrue(hasattr(FLAGS, "influxdb_org"))
-        self.assertTrue(hasattr(FLAGS, "influxdb_bucket"))
-
-        # Kafka flags
-        self.assertTrue(hasattr(FLAGS, "kafka_bootstrap_servers"))
-        self.assertTrue(hasattr(FLAGS, "kafka_topic"))
-
-        # Processing flags
-        self.assertTrue(hasattr(FLAGS, "lookback_minutes"))
-        self.assertTrue(hasattr(FLAGS, "fibonacci_windows_minutes"))
-
-    @patch("services.strategy_discovery_request_factory.main.sys.exit")
-    def test_main_missing_influxdb_token(self, mock_exit):
-        """Test main function fails without InfluxDB token."""
-        # Reset flags and parse without influxdb_token
-        FLAGS.unparse_flags()
-        test_argv = [
-            "test_binary",
-            "--influxdb_org=test-org",
-        ]
-        FLAGS(test_argv)
-
-        main.main([])
-        mock_exit.assert_called_with(1)
-
-    @patch("services.strategy_discovery_request_factory.main.sys.exit")
-    def test_main_missing_influxdb_org(self, mock_exit):
-        """Test main function fails without InfluxDB org."""
-        # Reset flags and parse without influxdb_org
-        FLAGS.unparse_flags()
-        test_argv = [
-            "test_binary",
-            "--influxdb_token=test-token",
-        ]
-        FLAGS(test_argv)
-
-        main.main([])
-        mock_exit.assert_called_with(1)
-
-    @patch("services.strategy_discovery_request_factory.main.sys.exit")
-    def test_main_redis_connection_failure(self, mock_exit):
-        """Test main function fails when Redis connection fails."""
-        self.mock_redis_instance.ping.side_effect = Exception("Redis connection failed")
-
-        main.main([])
-        mock_exit.assert_called_with(1)
-
-    @patch("services.strategy_discovery_request_factory.main.sys.exit")
-    def test_main_no_crypto_symbols_in_redis(self, mock_exit):
-        """Test main function fails when no symbols in Redis."""
-        self.mock_redis_instance.smembers.return_value = set()  # Empty set
-
-        main.main([])
-        mock_exit.assert_called_with(1)
-
-    def test_main_initialization_success(self):
-        """Test successful main function initialization and execution."""
-        main.main([])
-
-        # Verify Redis connection
-        self.mock_redis_cls.assert_called_once()
-        self.mock_redis_instance.ping.assert_called_once()
-        self.mock_redis_instance.smembers.assert_called_once()
+    def test_service_initialization_success(self):
+        """Test successful service initialization."""
+        service = main.StrategyDiscoveryService()
+        
+        service._connect_kafka()
+        service._initialize_tracker()
+        service._initialize_processor()
 
         # Verify components were initialized
-        self.mock_last_processed_tracker_cls.assert_called_once()
-        self.mock_influx_poller_cls.assert_called_once()
-        self.mock_strategy_discovery_processor_cls.assert_called_once()
         self.mock_kafka_publisher_cls.assert_called_once()
+        self.mock_tracker_cls.assert_called_once()
+        self.mock_strategy_processor_cls.assert_called_once()
 
-        # Verify currency pairs conversion and initialization
-        expected_pairs = ["BTC/USD", "ETH/USD"]
-        processor_init_args = self.mock_processor_instance.initialize_deques.call_args
-        self.assertEqual(processor_init_args[0][0], expected_pairs)
+    def test_validation_missing_influxdb_token(self):
+        """Test validation fails without InfluxDB token."""
+        FLAGS.influxdb_token = None
+        service = main.StrategyDiscoveryService()
+        
+        with self.assertRaises(ValueError) as cm:
+            service._validate_configuration()
+        self.assertIn("InfluxDB token is required", str(cm.exception))
 
-        # Verify cleanup
-        self.mock_influx_instance.close.assert_called_once()
-        self.mock_kafka_instance.close.assert_called_once()
-        self.mock_redis_instance.close.assert_called_once()
+    def test_validation_missing_influxdb_org(self):
+        """Test validation fails without InfluxDB org."""
+        FLAGS.influxdb_org = None
+        service = main.StrategyDiscoveryService()
+        
+        with self.assertRaises(ValueError) as cm:
+            service._validate_configuration()
+        self.assertIn("InfluxDB organization is required", str(cm.exception))
 
-    def test_symbol_conversion(self):
-        """Test symbol to currency pair conversion."""
-        # Test with mock data
-        self.mock_redis_instance.smembers.return_value = {
-            b"btcusd",
-            b"ethusd",
-            b"adausd",
-        }
+    def test_validation_invalid_currency_pair_format(self):
+        """Test validation fails with invalid currency pair format."""
+        FLAGS.currency_pairs = ["BTCUSD", "ETH/USD"]  # Missing slash
+        service = main.StrategyDiscoveryService()
+        
+        with self.assertRaises(ValueError) as cm:
+            service._validate_configuration()
+        self.assertIn("Invalid currency pair format", str(cm.exception))
 
-        main.main([])
+    def test_validation_negative_min_advance(self):
+        """Test validation fails with negative min processing advance."""
+        FLAGS.min_processing_advance_minutes = -1
+        service = main.StrategyDiscoveryService()
+        
+        with self.assertRaises(ValueError) as cm:
+            service._validate_configuration()
+        self.assertIn("Minimum processing advance minutes must be non-negative", str(cm.exception))
 
-        # Verify processor was initialized with converted pairs
-        processor_init_args = self.mock_processor_instance.initialize_deques.call_args
-        expected_pairs = ["BTC/USD", "ETH/USD", "ADA/USD"]
-        self.assertEqual(processor_init_args[0][0], expected_pairs)
+    def test_tracker_key_generation(self):
+        """Test tracker key generation methods."""
+        service = main.StrategyDiscoveryService()
+        
+        # Test SDRF processed tracker key
+        sdrf_key = service._get_sdrf_processed_tracker_key("BTC/USD")
+        expected_sdrf = f"{FLAGS.tracker_service_name}_BTC_USD_sdrf_processed_end_ts"
+        self.assertEqual(sdrf_key, expected_sdrf)
+        
+        # Test ingested data tracker item ID
+        ingested_id = service._get_ingested_data_tracker_item_id("ETH/USD")
+        expected_ingested = "ETH_USD_latest_ingested_ts"
+        self.assertEqual(ingested_id, expected_ingested)
 
-    def test_main_processing_with_candles(self):
-        """Test main processing when candles are available."""
-        test_candles = create_test_candles(2, "BTC/USD")
-        test_requests = [Mock(), Mock()]
-
-        # Set up mocks to return data
-        self.mock_influx_instance.fetch_new_candles.return_value = (
-            test_candles,
-            1640995260000,
-        )
-        self.mock_processor_instance.add_candle.return_value = test_requests
-        self.mock_tracker_instance.get_last_timestamp.return_value = 0  # First run
-
-        main.main([])
-
-        # Verify processing occurred for each pair
-        self.assertEqual(
-            self.mock_influx_instance.fetch_new_candles.call_count, 2
-        )  # BTC and ETH
-
-        # Verify candle processing - 2 candles per pair, 2 pairs = 4 total
-        self.assertEqual(self.mock_processor_instance.add_candle.call_count, 4)
-
-        # Verify request publishing - 2 requests per candle, 2 candles per pair, 2 pairs = 8 total
-        self.assertEqual(self.mock_kafka_instance.publish_request.call_count, 8)
-
-        # Verify timestamp tracking
-        self.mock_tracker_instance.set_last_timestamp.assert_called()
-
-    def test_main_no_new_candles(self):
-        """Test processing when no new candles are available."""
-        # Mock returns no candles
-        self.mock_influx_instance.fetch_new_candles.return_value = ([], 0)
-        self.mock_tracker_instance.get_last_timestamp.return_value = (
-            1000  # Previous run
-        )
-
-        main.main([])
-
-        # Verify processing occurred but no candle processing or publishing
-        self.assertEqual(self.mock_influx_instance.fetch_new_candles.call_count, 2)
-        self.mock_processor_instance.add_candle.assert_not_called()
+    def test_run_no_latest_data_timestamp(self):
+        """Test run when no latest data timestamp is available."""
+        # Mock tracker to return None for latest data timestamp
+        self.mock_tracker_instance.get_last_processed_timestamp.return_value = None
+        
+        service = main.StrategyDiscoveryService()
+        service.kafka_publisher = self.mock_kafka_instance
+        service.timestamp_tracker = self.mock_tracker_instance
+        service.strategy_processor = self.mock_processor_instance
+        service.fibonacci_windows_config = [60, 120]
+        
+        service.run()
+        
+        # Should skip processing and log warning
+        self.mock_processor_instance.generate_requests_for_timepoint.assert_not_called()
         self.mock_kafka_instance.publish_request.assert_not_called()
-        # Should not update timestamp if no new candles
-        self.mock_tracker_instance.set_last_timestamp.assert_not_called()
 
-    def test_first_run_lookback_behavior(self):
-        """Test behavior on first run using lookback minutes."""
-        test_candles = create_test_candles(1, "BTC/USD")
+    def test_run_insufficient_advance(self):
+        """Test run when data hasn't advanced sufficiently."""
+        current_time_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+        
+        # Mock tracker returns - latest data only 30 seconds newer than last processed
+        def mock_get_timestamp(service_name, item_id):
+            if "latest_ingested_ts" in item_id:
+                return current_time_ms  # Latest data timestamp
+            else:
+                return current_time_ms - 30000  # Last processed (30 seconds ago)
+        
+        self.mock_tracker_instance.get_last_processed_timestamp.side_effect = mock_get_timestamp
+        
+        service = main.StrategyDiscoveryService()
+        service.kafka_publisher = self.mock_kafka_instance
+        service.timestamp_tracker = self.mock_tracker_instance
+        service.strategy_processor = self.mock_processor_instance
+        service.fibonacci_windows_config = [60, 120]
+        
+        service.run()
+        
+        # Should skip processing due to insufficient advance (less than 1 minute)
+        self.mock_processor_instance.generate_requests_for_timepoint.assert_not_called()
+        self.mock_kafka_instance.publish_request.assert_not_called()
 
-        # First run - no previous timestamp
-        self.mock_tracker_instance.get_last_timestamp.return_value = 0
-        self.mock_influx_instance.fetch_new_candles.return_value = (test_candles, 1000)
+    def test_run_sufficient_advance_generates_requests(self):
+        """Test run when data has advanced sufficiently."""
+        current_time_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+        
+        # Mock tracker returns - latest data 2 minutes newer than last processed
+        def mock_get_timestamp(service_name, item_id):
+            if "latest_ingested_ts" in item_id:
+                return current_time_ms  # Latest data timestamp
+            else:
+                return current_time_ms - 120000  # Last processed (2 minutes ago)
+        
+        self.mock_tracker_instance.get_last_processed_timestamp.side_effect = mock_get_timestamp
+        
+        # Mock processor generates 2 requests
+        mock_requests = [Mock(), Mock()]
+        self.mock_processor_instance.generate_requests_for_timepoint.return_value = mock_requests
+        
+        service = main.StrategyDiscoveryService()
+        service.kafka_publisher = self.mock_kafka_instance
+        service.timestamp_tracker = self.mock_tracker_instance
+        service.strategy_processor = self.mock_processor_instance
+        service.fibonacci_windows_config = [60, 120]
+        
+        service.run()
+        
+        # Should generate and publish requests
+        self.assertEqual(self.mock_processor_instance.generate_requests_for_timepoint.call_count, 2)  # BTC and ETH
+        self.assertEqual(self.mock_kafka_instance.publish_request.call_count, 4)  # 2 requests per pair
+        
+        # Should update tracker timestamps
+        self.mock_tracker_instance.update_last_processed_timestamp.assert_called()
 
-        with patch(
-            "services.strategy_discovery_request_factory.main.time.time",
-            return_value=1000,
-        ):
-            main.main([])
+    def test_run_no_requests_generated(self):
+        """Test run when processor generates no requests."""
+        current_time_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+        
+        # Mock sufficient advance
+        def mock_get_timestamp(service_name, item_id):
+            if "latest_ingested_ts" in item_id:
+                return current_time_ms
+            else:
+                return current_time_ms - 120000
+        
+        self.mock_tracker_instance.get_last_processed_timestamp.side_effect = mock_get_timestamp
+        
+        # Mock processor generates no requests
+        self.mock_processor_instance.generate_requests_for_timepoint.return_value = []
+        
+        service = main.StrategyDiscoveryService()
+        service.kafka_publisher = self.mock_kafka_instance
+        service.timestamp_tracker = self.mock_tracker_instance
+        service.strategy_processor = self.mock_processor_instance
+        service.fibonacci_windows_config = [60, 120]
+        
+        service.run()
+        
+        # Should not publish anything or update tracker
+        self.mock_kafka_instance.publish_request.assert_not_called()
+        self.mock_tracker_instance.update_last_processed_timestamp.assert_not_called()
 
-        # Verify fetch_new_candles was called with calculated lookback timestamp
-        # lookback_minutes=5 means 5*60*1000 = 300000 ms before current time
-        expected_lookback = (1000 * 1000) - (
-            5 * 60 * 1000
-        )  # current_time_ms - lookback
+    def test_run_first_time_processing(self):
+        """Test run when processing pair for first time (no prior SDRF state)."""
+        current_time_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+        
+        # Mock tracker returns - has latest data, no prior SDRF processing
+        def mock_get_timestamp(service_name, item_id):
+            if "latest_ingested_ts" in item_id:
+                return current_time_ms  # Latest data timestamp
+            else:
+                return None  # No prior SDRF processing
+        
+        self.mock_tracker_instance.get_last_processed_timestamp.side_effect = mock_get_timestamp
+        
+        # Mock processor generates requests
+        mock_requests = [Mock()]
+        self.mock_processor_instance.generate_requests_for_timepoint.return_value = mock_requests
+        
+        service = main.StrategyDiscoveryService()
+        service.kafka_publisher = self.mock_kafka_instance
+        service.timestamp_tracker = self.mock_tracker_instance
+        service.strategy_processor = self.mock_processor_instance
+        service.fibonacci_windows_config = [60]
+        
+        service.run()
+        
+        # Should process since it's first time (None gets converted to 0)
+        self.mock_processor_instance.generate_requests_for_timepoint.assert_called()
+        self.mock_kafka_instance.publish_request.assert_called()
 
-        fetch_calls = self.mock_influx_instance.fetch_new_candles.call_args_list
-        # Check that lookback was used for both BTC/USD and ETH/USD
-        for call in fetch_calls:
-            currency_pair, timestamp = call[0]
-            self.assertEqual(timestamp, expected_lookback)
-
-    def test_error_handling_single_pair(self):
+    def test_run_error_handling_continues_processing(self):
         """Test that error in one pair doesn't stop processing of others."""
+        current_time_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+        
+        # Mock tracker behavior - first pair fails, second succeeds
+        call_count = 0
+        def mock_get_timestamp_with_error(service_name, item_id):
+            nonlocal call_count
+            call_count += 1
+            if call_count <= 2:  # First pair's calls
+                if call_count == 1:
+                    raise Exception("Tracker error for first pair")
+                return current_time_ms
+            else:  # Second pair's calls
+                if "latest_ingested_ts" in item_id:
+                    return current_time_ms
+                else:
+                    return current_time_ms - 120000
+        
+        self.mock_tracker_instance.get_last_processed_timestamp.side_effect = mock_get_timestamp_with_error
+        self.mock_processor_instance.generate_requests_for_timepoint.return_value = [Mock()]
+        
+        service = main.StrategyDiscoveryService()
+        service.kafka_publisher = self.mock_kafka_instance
+        service.timestamp_tracker = self.mock_tracker_instance
+        service.strategy_processor = self.mock_processor_instance
+        service.fibonacci_windows_config = [60]
+        
+        # Should not raise exception despite first pair failing
+        service.run()
+        
+        # Should still process second pair
+        self.mock_processor_instance.generate_requests_for_timepoint.assert_called()
 
-        # Make BTC/USD fail, but ETH/USD succeed
-        def side_effect(pair, timestamp):
-            if pair == "BTC/USD":
-                raise Exception("Processing failed for BTC/USD")
-            return (create_test_candles(1, pair), 1000)
+    def test_run_all_pairs_fail_raises_exception(self):
+        """Test that if all pairs fail, an exception is raised."""
+        # Mock tracker to always raise exception
+        self.mock_tracker_instance.get_last_processed_timestamp.side_effect = Exception("All pairs fail")
+        
+        service = main.StrategyDiscoveryService()
+        service.kafka_publisher = self.mock_kafka_instance
+        service.timestamp_tracker = self.mock_tracker_instance
+        service.strategy_processor = self.mock_processor_instance
+        service.fibonacci_windows_config = [60]
+        
+        with self.assertRaises(Exception) as cm:
+            service.run()
+        self.assertIn("All currency pairs failed to process", str(cm.exception))
 
-        self.mock_influx_instance.fetch_new_candles.side_effect = side_effect
-
-        # Should not raise exception and should continue processing
-        main.main([])
-
-        # Should have attempted both pairs
-        self.assertEqual(self.mock_influx_instance.fetch_new_candles.call_count, 2)
-
-    def test_fibonacci_windows_flag_parsing(self):
-        """Test parsing of Fibonacci windows from flags."""
-        # Reset flags and set fibonacci_windows_minutes
-        FLAGS.unparse_flags()
-        test_argv = [
-            "test_binary",
-            "--influxdb_token=test-token",
-            "--influxdb_org=test-org",
-            "--fibonacci_windows_minutes=5,8,13",
-        ]
-        FLAGS(test_argv)
-
-        main.main([])
-
-        # Verify StrategyDiscoveryProcessor was initialized with correct windows
-        processor_call_args = self.mock_strategy_discovery_processor_cls.call_args
-        fibonacci_windows = processor_call_args[1]["fibonacci_windows_minutes"]
-        self.assertEqual(fibonacci_windows, [5, 8, 13])
-
-    def test_redis_configuration_flags(self):
-        """Test Redis configuration from flags."""
-        # Reset flags with Redis config
-        FLAGS.unparse_flags()
-        test_argv = [
-            "test_binary",
-            "--redis_host=redis.example.com",
-            "--redis_port=6380",
-            "--redis_db=1",
-            "--redis_password=secret",
-            "--crypto_symbols_key=test:symbols",
-            "--influxdb_token=test-token",
-            "--influxdb_org=test-org",
-        ]
-        FLAGS(test_argv)
-
-        main.main([])
-
-        # Verify Redis was initialized with correct config
-        redis_call_args = self.mock_redis_cls.call_args
-        self.assertEqual(redis_call_args[1]["host"], "redis.example.com")
-        self.assertEqual(redis_call_args[1]["port"], 6380)
-        self.assertEqual(redis_call_args[1]["db"], 1)
-        self.assertEqual(redis_call_args[1]["password"], "secret")
-
-        # Verify correct Redis key was used
-        self.mock_redis_instance.smembers.assert_called_with("test:symbols")
-
-    def test_timestamp_tracking_per_pair(self):
-        """Test that timestamps are tracked per currency pair."""
-        self.mock_tracker_instance.get_last_timestamp.side_effect = [
-            0,
-            500,
-        ]  # BTC first run, ETH has previous
-
-        self.mock_influx_instance.fetch_new_candles.side_effect = [
-            (create_test_candles(1, "BTC/USD", start_timestamp_ms=1000), 1000),
-            (create_test_candles(1, "ETH/USD", start_timestamp_ms=1500), 1500),
-        ]
-
-        main.main([])
-
-        # Verify both pairs were processed and timestamps tracked
-        self.assertEqual(self.mock_influx_instance.fetch_new_candles.call_count, 2)
-        self.mock_tracker_instance.set_last_timestamp.assert_any_call("BTC/USD", 1000)
-        self.mock_tracker_instance.set_last_timestamp.assert_any_call("ETH/USD", 1500)
+    def test_close_cleans_up_resources(self):
+        """Test that close method cleans up all resources."""
+        service = main.StrategyDiscoveryService()
+        service.kafka_publisher = self.mock_kafka_instance
+        service.timestamp_tracker = self.mock_tracker_instance
+        
+        service.close()
+        
+        self.mock_kafka_instance.close.assert_called_once()
+        self.mock_tracker_instance.close.assert_called_once()
 
     @patch("services.strategy_discovery_request_factory.main.sys.exit")
-    def test_component_initialization_failure(self, mock_exit):
-        """Test that component initialization failures are handled."""
-        # Make InfluxPoller initialization fail
-        self.mock_influx_poller_cls.side_effect = Exception(
-            "InfluxDB connection failed"
-        )
+    def test_main_entry_point_success(self, mock_exit):
+        """Test main entry point with successful execution."""
+        with patch.object(main.StrategyDiscoveryService, 'run') as mock_run:
+            main.main([])
+            mock_run.assert_called_once()
+            mock_exit.assert_not_called()
 
-        main.main([])
+    @patch("services.strategy_discovery_request_factory.main.sys.exit")
+    def test_main_entry_point_failure(self, mock_exit):
+        """Test main entry point with execution failure."""
+        with patch.object(main.StrategyDiscoveryService, 'run') as mock_run:
+            mock_run.side_effect = Exception("Service failed")
+            
+            main.main([])
+            
+            mock_run.assert_called_once()
+            mock_exit.assert_called_once_with(1)
 
-        # Should exit with error code
-        mock_exit.assert_called_with(1)
+    def test_main_entry_point_too_many_args(self):
+        """Test main entry point with too many arguments."""
+        with self.assertRaises(Exception):  # app.UsageError
+            main.main(["arg1", "arg2"])
 
     @patch("services.strategy_discovery_request_factory.main.logging")
     def test_logging_behavior(self, mock_logging):
         """Test that appropriate logging occurs."""
-        main.main([])
-
+        service = main.StrategyDiscoveryService()
+        service.kafka_publisher = self.mock_kafka_instance
+        service.timestamp_tracker = self.mock_tracker_instance
+        service.strategy_processor = self.mock_processor_instance
+        service.fibonacci_windows_config = [60]
+        
+        # Mock no data available
+        self.mock_tracker_instance.get_last_processed_timestamp.return_value = None
+        
+        service.run()
+        
         # Verify logging calls
-        mock_logging.set_verbosity.assert_called_once()
         mock_logging.info.assert_called()
+        mock_logging.warning.assert_called()
 
 
 if __name__ == "__main__":
