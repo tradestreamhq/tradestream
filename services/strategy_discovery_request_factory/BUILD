@@ -72,6 +72,7 @@ py_test(
         "//protos:discovery_py_proto",
         "//third_party/python:kafka_python",
         "//third_party/python:protobuf",
+        "//protos:strategies_py_proto",  # Added this dependency
     ],
 )
 
@@ -88,10 +89,11 @@ py_test(
     deps = [
         ":app",
         ":config_lib",
-        ":kafka_publisher_lib",
+        ":kafka_publisher_lib", 
         ":strategy_discovery_processor_lib",
         "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:absl_py",
+        "//third_party/python:absl_py_testing",  # Added absl testing
     ],
 )
 
@@ -106,5 +108,6 @@ py_test(
         "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:kafka_python",
         "//third_party/python:protobuf",
+        "//protos:strategies_py_proto",  # Added this dependency
     ],
 )
