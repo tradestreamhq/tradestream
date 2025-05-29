@@ -70,6 +70,7 @@ py_test(
     deps = [
         ":kafka_publisher_lib",
         "//protos:discovery_py_proto",
+        "//protos:strategies_py_proto",
         "//third_party/python:kafka_python",
         "//third_party/python:protobuf",
     ],
