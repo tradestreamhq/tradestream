@@ -5,9 +5,7 @@ package(default_visibility = ["//visibility:public"])
 py_library(
     name = "config_lib",
     srcs = ["config.py"],
-    deps = [
-        "//protos:strategies_py_proto",
-    ],
+    deps = [],
 )
 
 py_library(
@@ -29,6 +27,7 @@ py_library(
         "//protos:discovery_py_proto",
         "//protos:marketdata_py_proto",
         "//protos:strategies_py_proto",
+        "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:absl_py",
         "//third_party/python:protobuf",
     ],
@@ -57,19 +56,6 @@ py_binary(
         "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:absl_py",
         "//third_party/python:protobuf",
-        "//third_party/python:redis",
-    ],
-)
-
-# Test dependencies
-py_library(
-    name = "test_utils_lib",
-    srcs = ["test_utils.py"],
-    deps = [
-        "//protos:discovery_py_proto",
-        "//protos:marketdata_py_proto",
-        "//protos:strategies_py_proto",
-        "//third_party/python:protobuf",
     ],
 )
 
@@ -79,7 +65,6 @@ py_test(
     srcs = ["config_test.py"],
     deps = [
         ":config_lib",
-        "//protos:strategies_py_proto",
     ],
 )
 
@@ -88,7 +73,6 @@ py_test(
     srcs = ["influx_poller_test.py"],
     deps = [
         ":influx_poller_lib",
-        ":test_utils_lib",
         "//protos:marketdata_py_proto",
         "//third_party/python:influxdb_client",
         "//third_party/python:protobuf",
@@ -100,10 +84,10 @@ py_test(
     srcs = ["strategy_discovery_processor_test.py"],
     deps = [
         ":strategy_discovery_processor_lib",
-        ":test_utils_lib",
         "//protos:discovery_py_proto",
         "//protos:marketdata_py_proto",
         "//protos:strategies_py_proto",
+        "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:protobuf",
     ],
 )
@@ -113,9 +97,9 @@ py_test(
     srcs = ["kafka_publisher_test.py"],
     deps = [
         ":kafka_publisher_lib",
-        ":test_utils_lib",
         "//protos:discovery_py_proto",
         "//third_party/python:kafka_python",
+        "//third_party/python:protobuf",
     ],
 )
 
@@ -126,21 +110,17 @@ py_test(
         "--influxdb_token=dummy_token_for_test",
         "--influxdb_org=dummy_org_for_test",
         "--lookback_minutes=5",
-        "--redis_host=mockredis",  # Ensure main_test can mock this if needed
-        "--redis_port=6379",
-        "--crypto_symbols_key=test:symbols",
-        "--redis_tracker_service_name=test_strategy_discovery_main",
+        "--currency_pairs=BTC/USD,ETH/USD",
+        "--tracker_service_name=test_strategy_discovery",
     ],
     deps = [
         ":app",
         ":config_lib",
         ":influx_poller_lib",
-        ":kafka_publisher_lib",
+        ":kafka_publisher_lib", 
         ":strategy_discovery_processor_lib",
-        ":test_utils_lib",
         "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:absl_py",
-        "//third_party/python:redis",
     ],
 )
 
@@ -152,12 +132,11 @@ py_test(
         ":influx_poller_lib",
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
-        ":test_utils_lib",
         "//protos:discovery_py_proto",
         "//protos:marketdata_py_proto",
         "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:influxdb_client",
         "//third_party/python:kafka_python",
-        "//third_party/python:redis",
+        "//third_party/python:protobuf",
     ],
 )
