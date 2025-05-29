@@ -104,6 +104,7 @@ py_test(
         ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
         "//protos:discovery_py_proto",
+        "//protos:strategies_py_proto",
         "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:kafka_python",
         "//third_party/python:protobuf",
