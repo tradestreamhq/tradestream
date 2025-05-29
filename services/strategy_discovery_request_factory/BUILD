@@ -107,6 +107,5 @@ py_test(
         "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:kafka_python",
         "//third_party/python:protobuf",
-        "//protos:strategies_py_proto",
     ],
 )
