@@ -89,7 +89,7 @@ py_test(
     deps = [
         ":app",
         ":config_lib",
-        ":kafka_publisher_lib", 
+        ":kafka_publisher_lib",
         ":strategy_discovery_processor_lib",
         "//shared/persistence:influxdb_last_processed_tracker_lib",
         "//third_party/python:absl_py",
