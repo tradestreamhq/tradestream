@@ -5,13 +5,13 @@ from unittest.mock import Mock, patch, MagicMock
 import sys
 from datetime import datetime, timezone
 from absl import flags
-from absl.testing import flagsaver
+from absl.testing import flagsaver, absltest  # Changed from unittest to absltest
 from services.strategy_discovery_request_factory import main
 
 FLAGS = flags.FLAGS
 
 
-class StatelessMainTest(unittest.TestCase):
+class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
     """Test stateless main orchestration functionality."""
 
     def setUp(self):
@@ -378,4 +378,4 @@ class StatelessMainTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    absltest.main()
