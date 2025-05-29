@@ -15,20 +15,10 @@ FIBONACCI_WINDOWS_MINUTES = [
     121393,  # ~84.3 days
 ]
 
-# Maximum length of candle deques to prevent memory issues
-# Should be larger than the largest Fibonacci window
-DEQUE_MAXLEN = max(FIBONACCI_WINDOWS_MINUTES) + 1000
-
 # Default parameters for strategy discovery
 DEFAULT_TOP_N = 5                    # Number of top strategies to discover per window/type
 DEFAULT_MAX_GENERATIONS = 30         # GA maximum generations  
 DEFAULT_POPULATION_SIZE = 50         # GA population size
-
-# Candle granularity in minutes (assuming 1-minute candles from InfluxDB)
-CANDLE_GRANULARITY_MINUTES = 1
-
-# Default lookback window for first run (1 week in minutes)
-DEFAULT_LOOKBACK_MINUTES = 60 * 24 * 7
 
 # Service configuration defaults
 DEFAULT_SERVICE_IDENTIFIER = "strategy_discovery_processor"
@@ -36,8 +26,6 @@ DEFAULT_SERVICE_IDENTIFIER = "strategy_discovery_processor"
 # Validation constants
 MIN_FIBONACCI_WINDOW_MINUTES = 5        # Minimum meaningful window size
 MAX_FIBONACCI_WINDOW_MINUTES = 525600   # 1 year in minutes
-MIN_DEQUE_MAXLEN = 100                  # Minimum reasonable deque size
-MAX_DEQUE_MAXLEN = 1000000              # Maximum reasonable deque size
 
 def validate_fibonacci_windows(windows: list) -> bool:
     """Validate Fibonacci windows configuration."""
@@ -52,14 +40,6 @@ def validate_fibonacci_windows(windows: list) -> bool:
     
     # Check if sorted
     return windows == sorted(windows)
-
-def validate_deque_maxlen(maxlen: int) -> bool:
-    """Validate deque maximum length."""
-    return (
-        isinstance(maxlen, int) 
-        and MIN_DEQUE_MAXLEN <= maxlen <= MAX_DEQUE_MAXLEN
-        and maxlen >= max(FIBONACCI_WINDOWS_MINUTES)
-    )
 
 def validate_ga_parameters(max_generations: int, population_size: int) -> bool:
     """Validate genetic algorithm parameters."""
