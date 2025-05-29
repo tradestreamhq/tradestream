@@ -1,15 +1,14 @@
 """Unit tests for influx_poller module."""
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from datetime import datetime, timezone
+
 from influxdb_client.client.exceptions import InfluxDBError
+from protos.marketdata_pb2 import Candle
+from google.protobuf.timestamp_pb2 import Timestamp
+
 from services.strategy_discovery_request_factory.influx_poller import InfluxPoller
-from services.strategy_discovery_request_factory.test_utils import (
-    create_mock_influx_response,
-    assert_candles_equal,
-    get_candle_timestamp_ms,
-)
 
 
 class InfluxPollerTest(unittest.TestCase):
@@ -40,6 +39,40 @@ class InfluxPollerTest(unittest.TestCase):
     def tearDown(self):
         """Clean up test environment."""
         patch.stopall()
+
+    def _create_mock_influx_record(self, timestamp: datetime, values: dict):
+        """Create a mock InfluxDB record."""
+        mock_record = Mock()
+        mock_record.get_time.return_value = timestamp
+        mock_record.values = values
+        return mock_record
+
+    def _create_mock_influx_table(self, records: list):
+        """Create a mock InfluxDB table."""
+        mock_table = Mock()
+        mock_table.records = records
+        return mock_table
+
+    def _create_mock_influx_response(self, candle_data: list) -> list:
+        """Create mock InfluxDB response from candle data."""
+        records = []
+        for data in candle_data:
+            timestamp = datetime.fromtimestamp(data["timestamp_ms"] / 1000, tz=timezone.utc)
+            values = {
+                "currency_pair": data.get("currency_pair", "BTC/USD"),
+                "open": data.get("open", 50000.0),
+                "high": data.get("high", 51000.0),
+                "low": data.get("low", 49000.0),
+                "close": data.get("close", 50500.0),
+                "volume": data.get("volume", 1000.0),
+            }
+            records.append(self._create_mock_influx_record(timestamp, values))
+
+        return [self._create_mock_influx_table(records)] if records else []
+
+    def _get_candle_timestamp_ms(self, candle: Candle) -> int:
+        """Get timestamp in milliseconds from a candle."""
+        return candle.timestamp.seconds * 1000 + candle.timestamp.nanos // 1_000_000
 
     def test_initialization_success(self):
         """Test successful InfluxPoller initialization."""
@@ -102,7 +135,7 @@ class InfluxPollerTest(unittest.TestCase):
             },
         ]
 
-        mock_tables = create_mock_influx_response(test_data)
+        mock_tables = self._create_mock_influx_response(test_data)
         mock_query_api.query.return_value = mock_tables
 
         # Execute test
@@ -120,7 +153,7 @@ class InfluxPollerTest(unittest.TestCase):
         self.assertEqual(first_candle.low, 49000.0)
         self.assertEqual(first_candle.close, 50500.0)
         self.assertEqual(first_candle.volume, 1000.0)
-        self.assertEqual(get_candle_timestamp_ms(first_candle), 1640995200000)
+        self.assertEqual(self._get_candle_timestamp_ms(first_candle), 1640995200000)
 
         # Verify query was called with correct parameters
         mock_query_api.query.assert_called_once()
@@ -139,7 +172,7 @@ class InfluxPollerTest(unittest.TestCase):
 
         # Verify query includes timestamp filter
         query_args = mock_query_api.query.call_args
-        expected_start_ns = (last_timestamp_ms * 1_000_000) + 1
+        expected_start_ns = (last_timestamp_ms * 1_000_000) + 1_000_000
         self.assertIn(f"time(v: {expected_start_ns}ns)", query_args[1]["query"])
 
     def test_fetch_new_candles_empty_result(self):
@@ -183,8 +216,7 @@ class InfluxPollerTest(unittest.TestCase):
         mock_record.get_time.side_effect = Exception("Time parsing error")
         mock_record.values = {"currency_pair": "BTC/USD"}
 
-        mock_table = Mock()
-        mock_table.records = [mock_record]
+        mock_table = self._create_mock_influx_table([mock_record])
         mock_query_api.query.return_value = [mock_table]
 
         candles, latest_ts = self.poller.fetch_new_candles("BTC/USD", 0)
@@ -199,20 +231,17 @@ class InfluxPollerTest(unittest.TestCase):
         self.mock_client.query_api.return_value = mock_query_api
 
         # Create mock record with naive datetime
-        mock_record = Mock()
         naive_datetime = datetime.fromtimestamp(1640995200)  # Naive datetime
-        mock_record.get_time.return_value = naive_datetime
-        mock_record.values = {
+        mock_record = self._create_mock_influx_record(naive_datetime, {
             "currency_pair": "BTC/USD",
             "open": 50000.0,
             "high": 51000.0,
             "low": 49000.0,
             "close": 50500.0,
             "volume": 1000.0,
-        }
+        })
 
-        mock_table = Mock()
-        mock_table.records = [mock_record]
+        mock_table = self._create_mock_influx_table([mock_record])
         mock_query_api.query.return_value = [mock_table]
 
         candles, latest_ts = self.poller.fetch_new_candles("BTC/USD", 0)
@@ -261,6 +290,27 @@ class InfluxPollerTest(unittest.TestCase):
         self.assertIn('currency_pair == "ETH/USD"', flux_query)
         self.assertIn('pivot(rowKey:["_time"], columnKey: ["_field"]', flux_query)
         self.assertIn('sort(columns: ["_time"], desc: false)', flux_query)
+
+    def test_multiple_currency_pairs_different_queries(self):
+        """Test that different currency pairs generate different queries."""
+        mock_query_api = Mock()
+        self.mock_client.query_api.return_value = mock_query_api
+        mock_query_api.query.return_value = []
+
+        # Fetch for different pairs
+        self.poller.fetch_new_candles("BTC/USD", 0)
+        self.poller.fetch_new_candles("ETH/USD", 0)
+
+        # Should have been called twice with different queries
+        self.assertEqual(mock_query_api.query.call_count, 2)
+        
+        call_args_list = mock_query_api.query.call_args_list
+        btc_query = call_args_list[0][1]["query"]
+        eth_query = call_args_list[1][1]["query"]
+        
+        self.assertIn('currency_pair == "BTC/USD"', btc_query)
+        self.assertIn('currency_pair == "ETH/USD"', eth_query)
+        self.assertNotEqual(btc_query, eth_query)
 
 
 if __name__ == "__main__":
