@@ -291,13 +291,20 @@ class KafkaPublisherTest(unittest.TestCase):
 
     def test_different_strategy_types(self):
         """Test publishing requests with different strategy types."""
-        strategy_types = [
-            StrategyType.SMA_RSI,
-            StrategyType.BOLLINGER_MACD,
-            StrategyType.MOMENTUM_BREAKOUT,
+        # Get available strategy types dynamically instead of hardcoding
+        available_strategy_types = [
+            st for st in StrategyType.values() 
+            if st != StrategyType.UNSPECIFIED
         ]
+        
+        # Take first 3 available types for testing, or all if less than 3
+        strategy_types_to_test = available_strategy_types[:3]
+        
+        # Skip test if no strategy types available
+        if not strategy_types_to_test:
+            self.skipTest("No strategy types available for testing")
 
-        for strategy_type in strategy_types:
+        for strategy_type in strategy_types_to_test:
             with self.subTest(strategy_type=strategy_type):
                 request = self._create_test_strategy_discovery_request(
                     strategy_type=strategy_type
@@ -305,7 +312,7 @@ class KafkaPublisherTest(unittest.TestCase):
                 self.publisher.publish_request(request, "BTC/USD")
 
         # Should have published all requests
-        self.assertEqual(self.mock_producer.send.call_count, len(strategy_types))
+        self.assertEqual(self.mock_producer.send.call_count, len(strategy_types_to_test))
 
     def test_different_symbols(self):
         """Test publishing requests for different currency pairs."""
