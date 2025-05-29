@@ -1,12 +1,14 @@
 """Unit tests for kafka_publisher module."""
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import kafka.errors
+
+from protos.discovery_pb2 import StrategyDiscoveryRequest, GAConfig
+from protos.strategies_pb2 import StrategyType
+from google.protobuf.timestamp_pb2 import Timestamp
+
 from services.strategy_discovery_request_factory.kafka_publisher import KafkaPublisher
-from services.strategy_discovery_request_factory.test_utils import (
-    create_test_strategy_discovery_request,
-)
 
 
 class KafkaPublisherTest(unittest.TestCase):
@@ -39,6 +41,30 @@ class KafkaPublisherTest(unittest.TestCase):
     def tearDown(self):
         """Clean up test environment."""
         patch.stopall()
+
+    def _create_test_strategy_discovery_request(
+        self,
+        symbol: str = "BTC/USD",
+        strategy_type: StrategyType = StrategyType.SMA_RSI,
+        top_n: int = 5,
+    ) -> StrategyDiscoveryRequest:
+        """Create a test strategy discovery request."""
+        start_time = Timestamp()
+        start_time.FromMilliseconds(1640995200000)  # 2022-01-01 00:00:00 UTC
+        
+        end_time = Timestamp()
+        end_time.FromMilliseconds(1640995260000)   # 2022-01-01 00:01:00 UTC
+        
+        ga_config = GAConfig(max_generations=30, population_size=50)
+
+        return StrategyDiscoveryRequest(
+            symbol=symbol,
+            start_time=start_time,
+            end_time=end_time,
+            strategy_type=strategy_type,
+            top_n=top_n,
+            ga_config=ga_config,
+        )
 
     def test_initialization_success(self):
         """Test successful KafkaPublisher initialization."""
@@ -76,7 +102,7 @@ class KafkaPublisherTest(unittest.TestCase):
 
     def test_publish_request_success(self):
         """Test successful request publishing."""
-        test_request = create_test_strategy_discovery_request()
+        test_request = self._create_test_strategy_discovery_request()
         test_key = "BTC/USD"
 
         self.publisher.publish_request(test_request, test_key)
@@ -96,7 +122,7 @@ class KafkaPublisherTest(unittest.TestCase):
 
     def test_publish_request_no_key(self):
         """Test publishing request without key."""
-        test_request = create_test_strategy_discovery_request()
+        test_request = self._create_test_strategy_discovery_request()
 
         self.publisher.publish_request(test_request)
 
@@ -106,7 +132,7 @@ class KafkaPublisherTest(unittest.TestCase):
 
     def test_publish_request_kafka_error(self):
         """Test handling of Kafka error during publishing."""
-        test_request = create_test_strategy_discovery_request()
+        test_request = self._create_test_strategy_discovery_request()
         self.mock_future.get.side_effect = kafka.errors.KafkaTimeoutError("Timeout")
 
         # Should not raise exception, but handle gracefully
@@ -118,7 +144,7 @@ class KafkaPublisherTest(unittest.TestCase):
     def test_publish_request_no_producer(self):
         """Test publishing when producer is None."""
         self.publisher.producer = None
-        test_request = create_test_strategy_discovery_request()
+        test_request = self._create_test_strategy_discovery_request()
 
         # Should attempt to reconnect
         with patch.object(self.publisher, "_connect_with_retry") as mock_connect:
@@ -131,7 +157,7 @@ class KafkaPublisherTest(unittest.TestCase):
     def test_publish_message_retryable_reconnect(self):
         """Test reconnection during message publishing."""
         self.publisher.producer = None
-        test_request = create_test_strategy_discovery_request()
+        test_request = self._create_test_strategy_discovery_request()
 
         # Mock successful reconnection
         with patch.object(self.publisher, "_connect_with_retry") as mock_connect:
@@ -211,7 +237,7 @@ class KafkaPublisherTest(unittest.TestCase):
 
     def test_serialization_handling(self):
         """Test proper serialization of discovery requests."""
-        test_request = create_test_strategy_discovery_request()
+        test_request = self._create_test_strategy_discovery_request()
         expected_bytes = test_request.SerializeToString()
 
         self.publisher.publish_request(test_request, "BTC/USD")
@@ -224,7 +250,7 @@ class KafkaPublisherTest(unittest.TestCase):
 
     def test_key_encoding(self):
         """Test proper encoding of string keys to bytes."""
-        test_request = create_test_strategy_discovery_request()
+        test_request = self._create_test_strategy_discovery_request()
         test_key = "BTC/USD"
 
         self.publisher.publish_request(test_request, test_key)
@@ -238,7 +264,7 @@ class KafkaPublisherTest(unittest.TestCase):
     @patch("services.strategy_discovery_request_factory.kafka_publisher.logging")
     def test_logging_behavior(self, mock_logging):
         """Test that appropriate logging occurs."""
-        test_request = create_test_strategy_discovery_request()
+        test_request = self._create_test_strategy_discovery_request()
 
         # Test successful publish logging
         self.publisher.publish_request(test_request, "BTC/USD")
@@ -251,7 +277,7 @@ class KafkaPublisherTest(unittest.TestCase):
 
     def test_timeout_configuration(self):
         """Test that timeouts are properly configured."""
-        test_request = create_test_strategy_discovery_request()
+        test_request = self._create_test_strategy_discovery_request()
 
         self.publisher.publish_request(test_request, "BTC/USD")
 
@@ -262,6 +288,30 @@ class KafkaPublisherTest(unittest.TestCase):
         self.publisher.close()
         self.mock_producer.flush.assert_called_with(timeout=10)
         self.mock_producer.close.assert_called_with(timeout=10)
+
+    def test_different_strategy_types(self):
+        """Test publishing requests with different strategy types."""
+        strategy_types = [StrategyType.SMA_RSI, StrategyType.BOLLINGER_MACD, StrategyType.MOMENTUM_BREAKOUT]
+        
+        for strategy_type in strategy_types:
+            with self.subTest(strategy_type=strategy_type):
+                request = self._create_test_strategy_discovery_request(strategy_type=strategy_type)
+                self.publisher.publish_request(request, "BTC/USD")
+
+        # Should have published all requests
+        self.assertEqual(self.mock_producer.send.call_count, len(strategy_types))
+
+    def test_different_symbols(self):
+        """Test publishing requests for different currency pairs."""
+        symbols = ["BTC/USD", "ETH/USD", "ADA/USD"]
+        
+        for symbol in symbols:
+            with self.subTest(symbol=symbol):
+                request = self._create_test_strategy_discovery_request(symbol=symbol)
+                self.publisher.publish_request(request, symbol)
+
+        # Should have published all requests
+        self.assertEqual(self.mock_producer.send.call_count, len(symbols))
 
 
 if __name__ == "__main__":
