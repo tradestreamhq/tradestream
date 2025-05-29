@@ -1,436 +1,365 @@
-"""Integration tests for strategy_discovery_request_factory service (cron job version)."""
+"""Integration tests for strategy_discovery_request_factory with InfluxDB tracker."""
 
 import unittest
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timezone
+
+from protos.marketdata_pb2 import Candle
+from protos.discovery_pb2 import StrategyDiscoveryRequest
 from protos.strategies_pb2 import StrategyType
-from google.protobuf import any_pb2
+from google.protobuf.timestamp_pb2 import Timestamp
+
 from services.strategy_discovery_request_factory.influx_poller import InfluxPoller
 from services.strategy_discovery_request_factory.strategy_discovery_processor import (
     StrategyDiscoveryProcessor,
 )
 from services.strategy_discovery_request_factory.kafka_publisher import KafkaPublisher
-from services.strategy_discovery_request_factory.test_utils import (
-    create_test_candles,
-    create_mock_influx_response,
-    get_candle_timestamp_ms,
-)
-from shared.persistence.last_processed_tracker import LastProcessedTracker
-import redis
+from shared.persistence.influxdb_last_processed_tracker import InfluxDBLastProcessedTracker
 
 
-class IntegrationCronTest(unittest.TestCase):
-    """Integration tests for cron job component interactions."""
+class IntegrationTest(unittest.TestCase):
+    """Integration tests for component interactions with InfluxDB tracker."""
 
     def setUp(self):
-        """Set up test environment."""
-        # Mock external services
+        """Set up test environment with mocked external services."""
+        # Mock InfluxDB client
         self.mock_influx_client = patch(
             "services.strategy_discovery_request_factory.influx_poller.InfluxDBClient"
         ).start()
+        
+        # Mock Kafka producer
         self.mock_kafka_producer = patch(
             "services.strategy_discovery_request_factory.kafka_publisher.kafka.KafkaProducer"
         ).start()
-        self.mock_redis_client = patch("redis.Redis").start()
-        self.mock_tracker = patch(
-            "shared.persistence.last_processed_tracker.LastProcessedTracker"
+        
+        # Mock InfluxDB tracker
+        self.mock_tracker_class = patch(
+            "shared.persistence.influxdb_last_processed_tracker.InfluxDBLastProcessedTracker"
         ).start()
 
-        # Set up mock client instances
+        # Set up mock instances
         self.mock_influx_instance = Mock()
         self.mock_influx_instance.ping.return_value = True
         self.mock_influx_client.return_value = self.mock_influx_instance
 
         self.mock_producer_instance = Mock()
-        self.mock_kafka_producer.return_value = self.mock_producer_instance
-
-        self.mock_redis_instance = Mock()
-        self.mock_redis_instance.ping.return_value = True
-        self.mock_redis_client.return_value = self.mock_redis_instance
-
-        self.mock_tracker_instance = Mock()
-        self.mock_tracker.return_value = self.mock_tracker_instance
-
-        # Mock successful Kafka publishing
         mock_future = Mock()
         mock_metadata = Mock()
         mock_metadata.partition = 0
         mock_metadata.offset = 123
         mock_future.get.return_value = mock_metadata
         self.mock_producer_instance.send.return_value = mock_future
+        self.mock_kafka_producer.return_value = self.mock_producer_instance
 
-        # Initialize components
-        self.influx_poller = InfluxPoller("http://test:8086", "token", "org", "bucket")
-        self.strategy_discovery_processor = StrategyDiscoveryProcessor(
-            fibonacci_windows_minutes=[5, 8, 13],
-            deque_maxlen=100,
-            default_top_n=3,
-            default_max_generations=10,
-            default_population_size=20,
-            candle_granularity_minutes=1,
-        )
-        self.kafka_publisher = KafkaPublisher("test:9092", "test-topic")
-        self.last_processed_tracker = LastProcessedTracker("/tmp/test_tracker.json")
+        self.mock_tracker_instance = Mock(spec=InfluxDBLastProcessedTracker)
+        self.mock_tracker_instance.client = Mock()  # Ensure client exists
+        self.mock_tracker_class.return_value = self.mock_tracker_instance
 
     def tearDown(self):
         """Clean up test environment."""
         patch.stopall()
 
-    def test_end_to_end_cron_execution_single_pair(self):
-        """Test complete end-to-end cron job execution for a single currency pair."""
-        currency_pair = "BTC/USD"
+    def _create_test_candle(
+        self, 
+        currency_pair: str, 
+        timestamp_ms: int,
+        open_price: float = 50000.0
+    ) -> Candle:
+        """Create a test candle."""
+        ts_seconds = timestamp_ms // 1000
+        ts_nanos = (timestamp_ms % 1000) * 1_000_000
 
-        # Mock Redis symbols
-        self.mock_redis_instance.smembers.return_value = {b"btcusd"}
+        return Candle(
+            timestamp=Timestamp(seconds=ts_seconds, nanos=ts_nanos),
+            currency_pair=currency_pair,
+            open=open_price,
+            high=open_price + 100,
+            low=open_price - 100,
+            close=open_price + 50,
+            volume=1000.0,
+        )
 
-        # Initialize processor deque
-        self.strategy_discovery_processor.initialize_deques([currency_pair])
-
-        # Mock last processed timestamp (first run)
-        self.mock_tracker_instance.get_last_timestamp.return_value = 0
-
-        # Create test candle data for InfluxDB response
-        test_data = []
-        base_timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
-
-        for i in range(15):  # Enough for all Fibonacci windows
-            test_data.append(
-                {
-                    "timestamp_ms": base_timestamp + (i * 60000),  # 1 minute intervals
-                    "currency_pair": currency_pair,
-                    "open": 50000.0 + i,
-                    "high": 50100.0 + i,
-                    "low": 49900.0 + i,
-                    "close": 50050.0 + i,
-                    "volume": 1000.0 + i,
-                }
+    def _create_mock_influx_table(self, candle_data: list) -> list:
+        """Create mock InfluxDB table response."""
+        records = []
+        for data in candle_data:
+            mock_record = Mock()
+            mock_record.get_time.return_value = datetime.fromtimestamp(
+                data["timestamp_ms"] / 1000, tz=timezone.utc
             )
+            mock_record.values = {
+                "currency_pair": data["currency_pair"],
+                "open": data.get("open", 50000.0),
+                "high": data.get("high", 50100.0),
+                "low": data.get("low", 49900.0),
+                "close": data.get("close", 50050.0),
+                "volume": data.get("volume", 1000.0),
+            }
+            records.append(mock_record)
+
+        mock_table = Mock()
+        mock_table.records = records
+        return [mock_table] if records else []
+
+    def test_end_to_end_processing_with_tracker(self):
+        """Test complete processing pipeline with InfluxDB tracker integration."""
+        currency_pair = "BTC/USD"
+        
+        # Set up components
+        influx_poller = InfluxPoller("http://test:8086", "token", "org", "bucket")
+        
+        strategy_processor = StrategyDiscoveryProcessor(
+            fibonacci_windows_minutes=[5, 8, 13],
+            deque_maxlen=100,
+            tracker=self.mock_tracker_instance,
+            service_identifier="test_service",
+        )
+        
+        kafka_publisher = KafkaPublisher("test:9092", "test-topic")
+
+        # Mock initial tracker state (first run)
+        self.mock_tracker_instance.get_last_processed_timestamp.return_value = None
+
+        # Create test candle data
+        base_timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
+        test_data = []
+        for i in range(15):  # Enough for all windows
+            test_data.append({
+                "timestamp_ms": base_timestamp + (i * 60000),
+                "currency_pair": currency_pair,
+                "open": 50000.0 + i,
+            })
 
         # Mock InfluxDB query response
         mock_query_api = Mock()
         self.mock_influx_instance.query_api.return_value = mock_query_api
-        mock_tables = create_mock_influx_response(test_data)
+        mock_tables = self._create_mock_influx_table(test_data)
         mock_query_api.query.return_value = mock_tables
 
-        # Execute the cron job pipeline
-        candles, latest_ts = self.influx_poller.fetch_new_candles(currency_pair, 0)
-
-        # Process each candle and publish requests
-        total_published_requests = 0
+        # Execute pipeline
+        strategy_processor.initialize_pair(currency_pair)
+        
+        # Fetch candles
+        candles, latest_ts = influx_poller.fetch_new_candles(currency_pair, 0)
+        
+        # Process candles and publish requests
+        total_published = 0
         for candle in candles:
-            discovery_requests = self.strategy_discovery_processor.add_candle(candle)
+            discovery_requests = strategy_processor.add_candle(candle)
             for request in discovery_requests:
-                self.kafka_publisher.publish_request(request, currency_pair)
-                total_published_requests += 1
-
-        # Update timestamp tracking
-        if latest_ts > 0:
-            self.last_processed_tracker.set_last_timestamp(currency_pair, latest_ts)
+                kafka_publisher.publish_request(request, currency_pair)
+                total_published += 1
 
         # Verify results
         self.assertEqual(len(candles), 15)
-        self.assertGreater(total_published_requests, 0)
-
-        # Verify Kafka publishing was called
-        self.mock_producer_instance.send.assert_called()
-
-        # Verify timestamp tracking
-        self.mock_tracker_instance.set_last_timestamp.assert_called_with(
-            currency_pair, latest_ts
+        self.assertGreater(total_published, 0)
+        
+        # Verify tracker was called for initialization
+        self.mock_tracker_instance.get_last_processed_timestamp.assert_called_with(
+            "test_service", currency_pair
         )
+        
+        # Verify tracker was updated for each candle
+        self.assertGreater(self.mock_tracker_instance.update_last_processed_timestamp.call_count, 0)
+        
+        # Verify Kafka publishing
+        self.assertGreater(self.mock_producer_instance.send.call_count, 0)
 
-        # Number of strategy types (excluding UNSPECIFIED)
-        num_strategy_types = len(
-            [st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED]
-        )
-        self.assertGreaterEqual(total_published_requests, 3 * num_strategy_types)
-
-    def test_redis_symbol_integration(self):
-        """Test Redis integration for fetching crypto symbols."""
-        # Mock Redis with multiple symbols
-        self.mock_redis_instance.smembers.return_value = {
-            b"btcusd",
-            b"ethusd",
-            b"adausd",
-        }
-
-        # Simulate symbol conversion (this would happen in main.py)
-        symbols = [
-            symbol.decode("utf-8")
-            for symbol in self.mock_redis_instance.smembers("crypto:symbols")
-        ]
-        currency_pairs = [
-            f"{symbol[:-3].upper()}/{symbol[-3:].upper()}" for symbol in symbols
-        ]
-
-        expected_pairs = ["BTC/USD", "ETH/USD", "ADA/USD"]
-        self.assertEqual(currency_pairs, expected_pairs)
-
-        # Verify Redis interaction
-        self.mock_redis_instance.smembers.assert_called_with("crypto:symbols")
-
-    def test_first_run_lookback_behavior(self):
-        """Test cron job behavior on first run with lookback."""
+    def test_resume_from_tracker_state(self):
+        """Test resuming processing from tracker state."""
         currency_pair = "BTC/USD"
-        self.strategy_discovery_processor.initialize_deques([currency_pair])
-
-        # Mock first run (no previous timestamp)
-        self.mock_tracker_instance.get_last_timestamp.return_value = 0
-
-        # Calculate lookback timestamp (simulate main.py logic)
-        import time
-
-        current_time_ms = int(time.time() * 1000)
-        lookback_minutes = 60
-        lookback_timestamp = current_time_ms - (lookback_minutes * 60 * 1000)
-
-        # Create test data
-        test_data = []
-        for i in range(10):
-            test_data.append(
-                {
-                    "timestamp_ms": lookback_timestamp + (i * 60000),
-                    "currency_pair": currency_pair,
-                    "open": 50000.0 + i,
-                    "high": 50100.0 + i,
-                    "low": 49900.0 + i,
-                    "close": 50050.0 + i,
-                    "volume": 1000.0 + i,
-                }
-            )
-
-        # Mock InfluxDB response
-        mock_query_api = Mock()
-        self.mock_influx_instance.query_api.return_value = mock_query_api
-        mock_tables = create_mock_influx_response(test_data)
-        mock_query_api.query.return_value = mock_tables
-
-        # Execute with lookback timestamp
-        candles, latest_ts = self.influx_poller.fetch_new_candles(
-            currency_pair, lookback_timestamp
+        last_processed_timestamp = 1640995200000  # Previous run timestamp
+        
+        # Set up components
+        influx_poller = InfluxPoller("http://test:8086", "token", "org", "bucket")
+        
+        strategy_processor = StrategyDiscoveryProcessor(
+            fibonacci_windows_minutes=[5],
+            deque_maxlen=50,
+            tracker=self.mock_tracker_instance,
+            service_identifier="test_service",
         )
 
-        # Verify candles were fetched
-        self.assertEqual(len(candles), 10)
-        self.assertGreater(latest_ts, lookback_timestamp)
+        # Mock tracker returns previous timestamp
+        self.mock_tracker_instance.get_last_processed_timestamp.return_value = last_processed_timestamp
 
-    def test_incremental_cron_runs(self):
-        """Test behavior across multiple cron job executions."""
-        currency_pair = "BTC/USD"
-        self.strategy_discovery_processor.initialize_deques([currency_pair])
-
-        base_timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
-
-        # First cron run - return initial candles
-        first_batch_data = []
-        for i in range(5):
-            first_batch_data.append(
-                {
-                    "timestamp_ms": base_timestamp + (i * 60000),
-                    "currency_pair": currency_pair,
-                    "open": 50000.0 + i,
-                    "high": 50100.0 + i,
-                    "low": 49900.0 + i,
-                    "close": 50050.0 + i,
-                    "volume": 1000.0 + i,
-                }
-            )
+        # Create newer test data
+        new_timestamp = last_processed_timestamp + 60000  # 1 minute later
+        test_data = [{
+            "timestamp_ms": new_timestamp,
+            "currency_pair": currency_pair,
+            "open": 51000.0,
+        }]
 
         mock_query_api = Mock()
         self.mock_influx_instance.query_api.return_value = mock_query_api
-        mock_tables = create_mock_influx_response(first_batch_data)
+        mock_tables = self._create_mock_influx_table(test_data)
         mock_query_api.query.return_value = mock_tables
 
-        # First execution
-        self.mock_tracker_instance.get_last_timestamp.return_value = 0
-        candles1, latest_ts1 = self.influx_poller.fetch_new_candles(currency_pair, 0)
-
-        for candle in candles1:
-            self.strategy_discovery_processor.add_candle(candle)
-
-        # Update timestamp (simulate main.py)
-        self.last_processed_tracker.set_last_timestamp(currency_pair, latest_ts1)
-
-        # Second cron run - return newer candles
-        second_batch_data = []
-        for i in range(5, 10):
-            second_batch_data.append(
-                {
-                    "timestamp_ms": base_timestamp + (i * 60000),
-                    "currency_pair": currency_pair,
-                    "open": 50000.0 + i,
-                    "high": 50100.0 + i,
-                    "low": 49900.0 + i,
-                    "close": 50050.0 + i,
-                    "volume": 1000.0 + i,
-                }
-            )
-
-        mock_tables2 = create_mock_influx_response(second_batch_data)
-        mock_query_api.query.return_value = mock_tables2
-
-        # Second execution with updated timestamp
-        self.mock_tracker_instance.get_last_timestamp.return_value = latest_ts1
-        candles2, latest_ts2 = self.influx_poller.fetch_new_candles(
-            currency_pair, latest_ts1
+        # Initialize and process
+        strategy_processor.initialize_pair(currency_pair)
+        
+        # Verify initial state was loaded
+        self.assertEqual(
+            strategy_processor.last_processed_timestamps[currency_pair], 
+            last_processed_timestamp
         )
 
-        for candle in candles2:
-            self.strategy_discovery_processor.add_candle(candle)
+        # Fetch and process newer candles
+        candles, latest_ts = influx_poller.fetch_new_candles(currency_pair, last_processed_timestamp)
+        
+        for candle in candles:
+            strategy_processor.add_candle(candle)
 
-        # Verify progression
-        self.assertEqual(len(candles1), 5)
-        self.assertEqual(len(candles2), 5)
-        self.assertGreater(latest_ts2, latest_ts1)
+        # Verify new timestamp was updated
+        self.mock_tracker_instance.update_last_processed_timestamp.assert_called_with(
+            "test_service", currency_pair, new_timestamp
+        )
 
-        # Verify processor state maintained between runs
-        deque_size = len(self.strategy_discovery_processor.pair_deques[currency_pair])
-        self.assertEqual(deque_size, 10)
-
-    def test_multiple_currency_pairs_cron_execution(self):
-        """Test cron job execution with multiple currency pairs."""
+    def test_multiple_currency_pairs_tracking(self):
+        """Test tracking multiple currency pairs independently."""
         currency_pairs = ["BTC/USD", "ETH/USD", "ADA/USD"]
+        
+        strategy_processor = StrategyDiscoveryProcessor(
+            fibonacci_windows_minutes=[5],
+            deque_maxlen=50,
+            tracker=self.mock_tracker_instance,
+            service_identifier="test_service",
+        )
 
-        # Mock Redis with multiple symbols
-        self.mock_redis_instance.smembers.return_value = {
-            b"btcusd",
-            b"ethusd",
-            b"adausd",
-        }
+        # Mock different initial states for each pair
+        def mock_get_timestamp(service, pair):
+            timestamps = {
+                "BTC/USD": 1640995200000,
+                "ETH/USD": None,  # First run
+                "ADA/USD": 1640995100000,
+            }
+            return timestamps.get(pair)
 
-        # Initialize processor for all pairs
-        self.strategy_discovery_processor.initialize_deques(currency_pairs)
+        self.mock_tracker_instance.get_last_processed_timestamp.side_effect = mock_get_timestamp
 
-        # Create test data for each pair
-        all_processed_pairs = {}
+        # Initialize all pairs
+        strategy_processor.initialize_pairs(currency_pairs)
 
-        for pair in currency_pairs:
-            # Mock InfluxDB response for this pair
-            test_data = []
-            base_timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
+        # Verify each pair was loaded correctly
+        self.assertEqual(strategy_processor.last_processed_timestamps["BTC/USD"], 1640995200000)
+        self.assertEqual(strategy_processor.last_processed_timestamps["ETH/USD"], 0)
+        self.assertEqual(strategy_processor.last_processed_timestamps["ADA/USD"], 1640995100000)
 
-            for i in range(10):
-                test_data.append(
-                    {
-                        "timestamp_ms": base_timestamp + (i * 60000),
-                        "currency_pair": pair,
-                        "open": 50000.0 + i,
-                        "high": 50100.0 + i,
-                        "low": 49900.0 + i,
-                        "close": 50050.0 + i,
-                        "volume": 1000.0 + i,
-                    }
-                )
+        # Verify tracker was called for each pair
+        expected_calls = [
+            unittest.mock.call("test_service", "BTC/USD"),
+            unittest.mock.call("test_service", "ETH/USD"),
+            unittest.mock.call("test_service", "ADA/USD"),
+        ]
+        self.mock_tracker_instance.get_last_processed_timestamp.assert_has_calls(
+            expected_calls, any_order=True
+        )
 
-            mock_query_api = Mock()
-            self.mock_influx_instance.query_api.return_value = mock_query_api
-            mock_tables = create_mock_influx_response(test_data)
-            mock_query_api.query.return_value = mock_tables
+    def test_tracker_update_on_each_candle(self):
+        """Test that tracker is updated for each processed candle."""
+        currency_pair = "BTC/USD"
+        
+        strategy_processor = StrategyDiscoveryProcessor(
+            fibonacci_windows_minutes=[5],
+            deque_maxlen=50,
+            tracker=self.mock_tracker_instance,
+            service_identifier="test_service",
+        )
 
-            # Process this pair (simulate cron job logic)
-            self.mock_tracker_instance.get_last_timestamp.return_value = 0
-            candles, latest_ts = self.influx_poller.fetch_new_candles(pair, 0)
+        strategy_processor.initialize_pair(currency_pair)
 
-            pair_requests = 0
-            for candle in candles:
-                discovery_requests = self.strategy_discovery_processor.add_candle(
-                    candle
-                )
-                for request in discovery_requests:
-                    self.kafka_publisher.publish_request(request, pair)
-                    pair_requests += 1
+        # Process multiple candles
+        base_timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
+        candles = []
+        for i in range(3):
+            timestamp_ms = base_timestamp + (i * 60000)
+            candle = self._create_test_candle(currency_pair, timestamp_ms)
+            candles.append(candle)
+            strategy_processor.add_candle(candle)
 
-            # Update timestamp tracking
-            self.last_processed_tracker.set_last_timestamp(pair, latest_ts)
-            all_processed_pairs[pair] = pair_requests
+        # Verify tracker was updated for each candle
+        self.assertEqual(self.mock_tracker_instance.update_last_processed_timestamp.call_count, 3)
+        
+        # Verify the calls were made with correct timestamps
+        expected_calls = [
+            unittest.mock.call("test_service", currency_pair, base_timestamp),
+            unittest.mock.call("test_service", currency_pair, base_timestamp + 60000),
+            unittest.mock.call("test_service", currency_pair, base_timestamp + 120000),
+        ]
+        self.mock_tracker_instance.update_last_processed_timestamp.assert_has_calls(expected_calls)
 
-        # Verify all pairs were processed
-        for pair in currency_pairs:
-            self.assertIn(pair, all_processed_pairs)
-            # Should have generated some requests for 10 candles
-            self.assertGreaterEqual(all_processed_pairs[pair], 0)
+    def test_processor_without_tracker(self):
+        """Test processor works without tracker (for backwards compatibility)."""
+        strategy_processor = StrategyDiscoveryProcessor(
+            fibonacci_windows_minutes=[5],
+            deque_maxlen=50,
+            tracker=None,  # No tracker
+        )
 
-    def test_error_handling_cron_execution(self):
-        """Test error handling during cron job execution."""
-        currency_pairs = ["BTC/USD", "ETH/USD"]
-        self.strategy_discovery_processor.initialize_deques(currency_pairs)
+        currency_pair = "BTC/USD"
+        strategy_processor.initialize_pair(currency_pair)
 
-        # Test InfluxDB error for one pair
-        def fetch_side_effect(pair, timestamp):
-            if pair == "BTC/USD":
-                raise Exception("InfluxDB connection failed for BTC/USD")
-            # Return successful data for ETH/USD
-            test_data = [
-                {
-                    "timestamp_ms": 1640995200000,
-                    "currency_pair": "ETH/USD",
-                    "open": 4000.0,
-                    "high": 4100.0,
-                    "low": 3900.0,
-                    "close": 4050.0,
-                    "volume": 1000.0,
-                }
-            ]
-            mock_query_api = Mock()
-            self.mock_influx_instance.query_api.return_value = mock_query_api
-            mock_tables = create_mock_influx_response(test_data)
-            mock_query_api.query.return_value = mock_tables
-            return ([create_test_candles(1, "ETH/USD")[0]], 1640995200000)
+        # Should not fail without tracker
+        candle = self._create_test_candle(currency_pair, 1640995200000)
+        requests = strategy_processor.add_candle(candle)
 
-        # Mock InfluxDB behavior
-        self.influx_poller.fetch_new_candles = Mock(side_effect=fetch_side_effect)
+        # Should still process candle
+        self.assertEqual(len(strategy_processor.pair_deques[currency_pair]), 1)
+        self.assertEqual(strategy_processor.last_processed_timestamps[currency_pair], 1640995200000)
 
-        # Process both pairs (simulate main.py error handling)
-        successful_pairs = 0
-        failed_pairs = 0
+    def test_error_handling_with_tracker(self):
+        """Test error handling when tracker operations fail."""
+        currency_pair = "BTC/USD"
+        
+        # Mock tracker to raise exception on update
+        self.mock_tracker_instance.update_last_processed_timestamp.side_effect = Exception("Tracker error")
+        
+        strategy_processor = StrategyDiscoveryProcessor(
+            fibonacci_windows_minutes=[5],
+            deque_maxlen=50,
+            tracker=self.mock_tracker_instance,
+            service_identifier="test_service",
+        )
 
-        for pair in currency_pairs:
-            try:
-                candles, latest_ts = self.influx_poller.fetch_new_candles(pair, 0)
-                for candle in candles:
-                    self.strategy_discovery_processor.add_candle(candle)
-                successful_pairs += 1
-            except Exception:
-                failed_pairs += 1
-                continue  # Continue with other pairs
+        strategy_processor.initialize_pair(currency_pair)
 
-        # Verify partial success
-        self.assertEqual(successful_pairs, 1)  # ETH/USD succeeded
-        self.assertEqual(failed_pairs, 1)  # BTC/USD failed
+        # Processing should continue despite tracker error
+        candle = self._create_test_candle(currency_pair, 1640995200000)
+        
+        # Should not raise exception
+        requests = strategy_processor.add_candle(candle)
+        
+        # Candle should still be processed
+        self.assertEqual(len(strategy_processor.pair_deques[currency_pair]), 1)
 
-    def test_component_cleanup_cron_execution(self):
-        """Test proper cleanup after cron job execution."""
-        # Simulate cron job completion
-        self.influx_poller.close()
-        self.kafka_publisher.close()
+    def test_component_cleanup(self):
+        """Test proper cleanup of all components."""
+        influx_poller = InfluxPoller("http://test:8086", "token", "org", "bucket")
+        
+        strategy_processor = StrategyDiscoveryProcessor(
+            fibonacci_windows_minutes=[5],
+            deque_maxlen=50,
+            tracker=self.mock_tracker_instance,
+        )
+        
+        kafka_publisher = KafkaPublisher("test:9092", "test-topic")
 
-        # Verify cleanup was called on underlying clients
+        # Add some state to processor
+        strategy_processor.initialize_pair("BTC/USD")
+        strategy_processor.add_candle(self._create_test_candle("BTC/USD", 1640995200000))
+
+        # Close all components
+        influx_poller.close()
+        strategy_processor.close()
+        kafka_publisher.close()
+
+        # Verify cleanup
         self.mock_influx_instance.close.assert_called_once()
         self.mock_producer_instance.flush.assert_called_once()
         self.mock_producer_instance.close.assert_called_once()
-
-    def test_no_new_candles_cron_execution(self):
-        """Test cron job execution when no new candles are available."""
-        currency_pair = "BTC/USD"
-        self.strategy_discovery_processor.initialize_deques([currency_pair])
-
-        # Mock no new candles
-        mock_query_api = Mock()
-        self.mock_influx_instance.query_api.return_value = mock_query_api
-        mock_tables = create_mock_influx_response([])  # Empty data
-        mock_query_api.query.return_value = mock_tables
-
-        # Mock previous timestamp exists
-        self.mock_tracker_instance.get_last_timestamp.return_value = 1640995200000
-
-        # Execute
-        candles, latest_ts = self.influx_poller.fetch_new_candles(
-            currency_pair, 1640995200000
-        )
-
-        # Verify no processing occurred
-        self.assertEqual(len(candles), 0)
-        self.assertEqual(latest_ts, 1640995200000)  # Timestamp unchanged
+        self.assertEqual(len(strategy_processor.pair_deques), 0)
+        self.assertEqual(len(strategy_processor.last_processed_timestamps), 0)
 
 
 if __name__ == "__main__":
