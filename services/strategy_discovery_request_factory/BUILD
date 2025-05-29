@@ -72,7 +72,6 @@ py_test(
         "//protos:discovery_py_proto",
         "//third_party/python:kafka_python",
         "//third_party/python:protobuf",
-        "//protos:strategies_py_proto",
     ],
 )
 
