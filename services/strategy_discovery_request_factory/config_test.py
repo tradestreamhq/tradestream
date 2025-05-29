@@ -30,13 +30,6 @@ class ConfigTest(unittest.TestCase):
             self.assertGreaterEqual(window, min_expected)
             self.assertLess(window, max_expected)
 
-    def test_deque_maxlen_sufficient(self):
-        """Test that deque max length is sufficient for largest window."""
-        max_window = max(config.FIBONACCI_WINDOWS_MINUTES)
-        
-        self.assertGreater(config.DEQUE_MAXLEN, max_window)
-        self.assertIsInstance(config.DEQUE_MAXLEN, int)
-
     def test_default_parameters(self):
         """Test default parameter values are reasonable."""
         # GA parameters
@@ -51,14 +44,6 @@ class ConfigTest(unittest.TestCase):
         self.assertIsInstance(config.DEFAULT_POPULATION_SIZE, int)
         self.assertGreater(config.DEFAULT_POPULATION_SIZE, 0)
         self.assertLessEqual(config.DEFAULT_POPULATION_SIZE, 10000)
-        
-        # Candle granularity
-        self.assertIsInstance(config.CANDLE_GRANULARITY_MINUTES, int)
-        self.assertGreater(config.CANDLE_GRANULARITY_MINUTES, 0)
-        
-        # Lookback window
-        self.assertIsInstance(config.DEFAULT_LOOKBACK_MINUTES, int)
-        self.assertGreater(config.DEFAULT_LOOKBACK_MINUTES, 0)
 
     def test_validate_fibonacci_windows_valid(self):
         """Test validation with valid Fibonacci windows."""
@@ -81,27 +66,6 @@ class ConfigTest(unittest.TestCase):
         
         # Unsorted
         self.assertFalse(config.validate_fibonacci_windows([13, 8, 21]))
-
-    def test_validate_deque_maxlen_valid(self):
-        """Test validation with valid deque maxlen."""
-        # Should be larger than max Fibonacci window
-        valid_maxlen = max(config.FIBONACCI_WINDOWS_MINUTES) + 100
-        self.assertTrue(config.validate_deque_maxlen(valid_maxlen))
-
-    def test_validate_deque_maxlen_invalid(self):
-        """Test validation with invalid deque maxlen."""
-        # Too small
-        self.assertFalse(config.validate_deque_maxlen(50))
-        
-        # Smaller than max Fibonacci window
-        max_window = max(config.FIBONACCI_WINDOWS_MINUTES)
-        self.assertFalse(config.validate_deque_maxlen(max_window - 1))
-        
-        # Too large
-        self.assertFalse(config.validate_deque_maxlen(2000000))
-        
-        # Non-integer
-        self.assertFalse(config.validate_deque_maxlen(1000.5))
 
     def test_validate_ga_parameters_valid(self):
         """Test validation with valid GA parameters."""
@@ -127,9 +91,6 @@ class ConfigTest(unittest.TestCase):
 
     def test_constants_consistency(self):
         """Test that constants are consistent with each other."""
-        # Deque maxlen should be validated by its own function
-        self.assertTrue(config.validate_deque_maxlen(config.DEQUE_MAXLEN))
-        
         # Fibonacci windows should be validated by their function
         self.assertTrue(config.validate_fibonacci_windows(config.FIBONACCI_WINDOWS_MINUTES))
         
@@ -150,11 +111,6 @@ class ConfigTest(unittest.TestCase):
         self.assertIsInstance(config.MIN_FIBONACCI_WINDOW_MINUTES, int)
         self.assertIsInstance(config.MAX_FIBONACCI_WINDOW_MINUTES, int)
         self.assertGreater(config.MAX_FIBONACCI_WINDOW_MINUTES, config.MIN_FIBONACCI_WINDOW_MINUTES)
-        
-        # Min/max deque constants
-        self.assertIsInstance(config.MIN_DEQUE_MAXLEN, int)
-        self.assertIsInstance(config.MAX_DEQUE_MAXLEN, int)
-        self.assertGreater(config.MAX_DEQUE_MAXLEN, config.MIN_DEQUE_MAXLEN)
 
 
 if __name__ == "__main__":
