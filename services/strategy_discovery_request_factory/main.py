@@ -1,32 +1,30 @@
 """
-Strategy Discovery Request Factory - Cron Job
+Strategy Discovery Request Factory - Stateless Orchestration Service
 
 This service runs as a cron job to:
-1. Process configured currency pairs
-2. Poll InfluxDB for new candle data using InfluxDBLastProcessedTracker for state
-3. Process candles through strategy discovery processor
-4. Publish strategy discovery requests to Kafka
+1. Read "latest actual data timestamp" for each currency pair from InfluxDBLastProcessedTracker
+   (populated by external services like candle ingestor)
+2. Use the tracker to maintain its own state about which end_time it has processed for idempotency
+3. Generate strategy discovery requests using the stateless processor for specific timepoints
+4. Publish requests to Kafka
 
-Currency pairs are configured via flags, not fetched from Redis.
+The InfluxPoller component has been removed - this service is now purely orchestrational.
 """
 
 import sys
 import time
-from typing import List
+from datetime import datetime, timezone
+from typing import List, Optional
 from absl import app, flags, logging
 
 from services.strategy_discovery_request_factory.config import (
     FIBONACCI_WINDOWS_MINUTES,
-    DEQUE_MAXLEN,
     DEFAULT_TOP_N,
     DEFAULT_MAX_GENERATIONS,
     DEFAULT_POPULATION_SIZE,
-    CANDLE_GRANULARITY_MINUTES,
     validate_fibonacci_windows,
-    validate_deque_maxlen,
     validate_ga_parameters,
 )
-from services.strategy_discovery_request_factory.influx_poller import InfluxPoller
 from services.strategy_discovery_request_factory.strategy_discovery_processor import (
     StrategyDiscoveryProcessor,
 )
@@ -44,12 +42,21 @@ flags.DEFINE_list(
 flags.DEFINE_string("influxdb_url", "http://localhost:8086", "InfluxDB URL")
 flags.DEFINE_string("influxdb_token", None, "InfluxDB token")
 flags.DEFINE_string("influxdb_org", None, "InfluxDB organization")
-flags.DEFINE_string("influxdb_bucket_candles", "tradestream-data", "Candles bucket")
 flags.DEFINE_string("influxdb_bucket_tracker", "tradestream-data", "Tracker bucket")
 flags.DEFINE_string(
     "tracker_service_name", 
     "strategy_discovery", 
-    "Service name for tracker"
+    "Service name for this service's tracker state"
+)
+flags.DEFINE_string(
+    "global_status_tracker_service_name", 
+    "global_candle_status", 
+    "Service name registered in InfluxDBLastProcessedTracker by external services that report the latest ingested candle timestamps."
+)
+flags.DEFINE_integer(
+    "min_processing_advance_minutes", 
+    1, 
+    "Minimum number of minutes the latest actual data point for a pair must be beyond this service's last processed data point for that pair to trigger new request generation. Use 0 to process any newer data point."
 )
 
 # Kafka flags
@@ -57,25 +64,22 @@ flags.DEFINE_string("kafka_bootstrap_servers", "localhost:9092", "Kafka servers"
 flags.DEFINE_string("kafka_topic", "strategy-discovery-requests", "Kafka topic")
 
 # Processing flags
-flags.DEFINE_integer("lookback_minutes", 60 * 24 * 7, "Lookback window for first run")
 flags.DEFINE_list("fibonacci_windows_minutes", [str(x) for x in FIBONACCI_WINDOWS_MINUTES], "Fibonacci windows")
-flags.DEFINE_integer("deque_maxlen", DEQUE_MAXLEN, "Max deque length")
 flags.DEFINE_integer("default_top_n", DEFAULT_TOP_N, "Default top N strategies")
 flags.DEFINE_integer("default_max_generations", DEFAULT_MAX_GENERATIONS, "GA generations")
 flags.DEFINE_integer("default_population_size", DEFAULT_POPULATION_SIZE, "GA population")
-flags.DEFINE_integer("candle_granularity_minutes", CANDLE_GRANULARITY_MINUTES, "Candle granularity")
 
 FLAGS = flags.FLAGS
 
 
 class StrategyDiscoveryService:
-    """Main service orchestrator for strategy discovery request generation."""
+    """Main service orchestrator for stateless strategy discovery request generation."""
     
     def __init__(self):
-        self.influx_poller = None
         self.kafka_publisher = None
         self.strategy_processor = None
         self.timestamp_tracker = None
+        self.fibonacci_windows_config: List[int] = []
         
     def _validate_configuration(self) -> None:
         """Validate all configuration parameters."""
@@ -97,41 +101,11 @@ class StrategyDiscoveryService:
         if not validate_fibonacci_windows(fibonacci_windows):
             raise ValueError(f"Invalid fibonacci windows: {fibonacci_windows}")
         
-        if not validate_deque_maxlen(FLAGS.deque_maxlen):
-            raise ValueError(f"Invalid deque maxlen: {FLAGS.deque_maxlen}")
-        
         if not validate_ga_parameters(FLAGS.default_max_generations, FLAGS.default_population_size):
             raise ValueError(f"Invalid GA parameters: {FLAGS.default_max_generations}, {FLAGS.default_population_size}")
         
-        if FLAGS.lookback_minutes <= 0:
-            raise ValueError("Lookback minutes must be positive")
-        
-        if FLAGS.candle_granularity_minutes <= 0:
-            raise ValueError("Candle granularity must be positive")
-    
-    def _connect_influxdb(self) -> None:
-        """Connect to InfluxDB for candle data and timestamp tracking."""
-        # Timestamp tracker
-        self.timestamp_tracker = InfluxDBLastProcessedTracker(
-            url=FLAGS.influxdb_url,
-            token=FLAGS.influxdb_token,
-            org=FLAGS.influxdb_org,
-            bucket=FLAGS.influxdb_bucket_tracker,
-        )
-        if not self.timestamp_tracker.client:
-            raise ConnectionError("Failed to connect to InfluxDB for timestamp tracking")
-        
-        # Candle data poller
-        self.influx_poller = InfluxPoller(
-            url=FLAGS.influxdb_url,
-            token=FLAGS.influxdb_token,
-            org=FLAGS.influxdb_org,
-            bucket=FLAGS.influxdb_bucket_candles,
-        )
-        if not self.influx_poller.client:
-            raise ConnectionError("Failed to connect to InfluxDB for candle data")
-            
-        logging.info("Connected to InfluxDB for candles and tracking")
+        if FLAGS.min_processing_advance_minutes < 0:
+            raise ValueError("Minimum processing advance minutes must be non-negative")
     
     def _connect_kafka(self) -> None:
         """Connect to Kafka for publishing requests."""
@@ -143,122 +117,134 @@ class StrategyDiscoveryService:
             raise ConnectionError("Failed to connect to Kafka")
         logging.info("Connected to Kafka")
     
+    def _initialize_tracker(self) -> None:
+        """Initialize the InfluxDB timestamp tracker."""
+        self.timestamp_tracker = InfluxDBLastProcessedTracker(
+            url=FLAGS.influxdb_url,
+            token=FLAGS.influxdb_token,
+            org=FLAGS.influxdb_org,
+            bucket=FLAGS.influxdb_bucket_tracker,
+        )
+        if not self.timestamp_tracker.client:
+            raise ConnectionError("Failed to connect to InfluxDB for timestamp tracking")
+        logging.info("Connected to InfluxDB for timestamp tracking")
+    
     def _initialize_processor(self) -> None:
-        """Initialize the strategy discovery processor."""
+        """Initialize the stateless strategy discovery processor."""
         fibonacci_windows = [int(x) for x in FLAGS.fibonacci_windows_minutes]
+        self.fibonacci_windows_config = fibonacci_windows
         
         self.strategy_processor = StrategyDiscoveryProcessor(
-            fibonacci_windows_minutes=fibonacci_windows,
-            deque_maxlen=FLAGS.deque_maxlen,
             default_top_n=FLAGS.default_top_n,
             default_max_generations=FLAGS.default_max_generations,
             default_population_size=FLAGS.default_population_size,
-            candle_granularity_minutes=FLAGS.candle_granularity_minutes,
-            tracker=self.timestamp_tracker,
-            service_identifier=FLAGS.tracker_service_name,
         )
-        logging.info("Initialized strategy discovery processor")
+        logging.info("Initialized stateless strategy discovery processor")
     
-    def _process_currency_pair(self, currency_pair: str) -> int:
-        """Process a single currency pair and return number of requests published."""
-        logging.info(f"Processing {currency_pair}")
-        
-        try:
-            # Determine starting timestamp
-            last_processed_ts = (
-                self.strategy_processor.last_processed_timestamps.get(currency_pair, 0)
-            )
-            
-            if last_processed_ts > 0:
-                # Resume from last processed
-                start_fetch_ts = last_processed_ts
-                logging.info(f"Resuming {currency_pair} from timestamp {start_fetch_ts}")
-            else:
-                # First run - use lookback
-                current_time_ms = int(time.time() * 1000)
-                start_fetch_ts = current_time_ms - (FLAGS.lookback_minutes * 60 * 1000)
-                logging.info(f"First run for {currency_pair}, using lookback from {start_fetch_ts}")
-            
-            # Fetch new candles
-            candles, latest_ts = self.influx_poller.fetch_new_candles(
-                currency_pair, start_fetch_ts
-            )
-            
-            if not candles:
-                logging.info(f"No new candles for {currency_pair}")
-                return 0
-            
-            logging.info(f"Fetched {len(candles)} new candles for {currency_pair}")
-            
-            # Process candles and publish requests
-            total_requests = 0
-            for candle in candles:
-                discovery_requests = self.strategy_processor.add_candle(candle)
-                for request in discovery_requests:
-                    self.kafka_publisher.publish_request(request, currency_pair)
-                    total_requests += 1
-            
-            logging.info(f"Published {total_requests} discovery requests for {currency_pair}")
-            return total_requests
-            
-        except Exception as e:
-            logging.error(f"Error processing {currency_pair}: {e}")
-            return 0
+    def _get_sdrf_processed_tracker_key(self, currency_pair: str) -> str:
+        """Get the tracker key for this service's processed end timestamp for a currency pair."""
+        return f"{FLAGS.tracker_service_name}_{currency_pair.replace('/', '_')}_sdrf_processed_end_ts"
+    
+    def _get_ingested_data_tracker_item_id(self, currency_pair: str) -> str:
+        """Get the tracker item ID for the latest ingested data timestamp for a currency pair."""
+        return f"{currency_pair.replace('/', '_')}_latest_ingested_ts"
     
     def run(self) -> None:
         """Run the main cron job logic."""
         try:
-            # Validate configuration
             self._validate_configuration()
             logging.info(f"Processing {len(FLAGS.currency_pairs)} currency pairs: {FLAGS.currency_pairs}")
             
             # Connect to all services
-            self._connect_influxdb()
             self._connect_kafka()
+            self._initialize_tracker()
             self._initialize_processor()
             
-            # Initialize processor with all pairs
-            self.strategy_processor.initialize_pairs(FLAGS.currency_pairs)
-            
-            # Process each currency pair
-            total_requests_published = 0
-            successful_pairs = 0
-            failed_pairs = 0
-            
+            total_requests_published_all_pairs = 0
+            successful_pairs_count = 0
+            failed_pairs_count = 0
+
             for currency_pair in FLAGS.currency_pairs:
+                pair_requests_published_this_run = 0
                 try:
-                    pair_requests = self._process_currency_pair(currency_pair)
-                    total_requests_published += pair_requests
-                    successful_pairs += 1
+                    logging.info(f"Starting processing for {currency_pair}...")
+
+                    # Get the latest actual data timestamp from global tracker (set by external services)
+                    ingested_ts_item_id = self._get_ingested_data_tracker_item_id(currency_pair)
+                    actual_latest_data_ts_ms = self.timestamp_tracker.get_last_processed_timestamp(
+                        FLAGS.global_status_tracker_service_name, ingested_ts_item_id
+                    )
+
+                    if actual_latest_data_ts_ms is None:
+                        logging.warning(f"No 'latest ingested data timestamp' found in tracker for {currency_pair} under key ({FLAGS.global_status_tracker_service_name}, {ingested_ts_item_id}). Skipping.")
+                        failed_pairs_count += 1
+                        continue
+                    
+                    window_end_time_utc = datetime.fromtimestamp(actual_latest_data_ts_ms / 1000, tz=timezone.utc)
+
+                    # Get this service's last processed end timestamp for the pair
+                    sdrf_tracker_key = self._get_sdrf_processed_tracker_key(currency_pair)
+                    sdrf_last_processed_end_ts_ms = self.timestamp_tracker.get_last_processed_timestamp(
+                        FLAGS.tracker_service_name, sdrf_tracker_key
+                    ) or 0  # Default to 0 if no prior processing
+
+                    # Check if there's sufficient advance to warrant processing
+                    min_advance_required_ms = FLAGS.min_processing_advance_minutes * 60 * 1000
+                    if (actual_latest_data_ts_ms - sdrf_last_processed_end_ts_ms) < min_advance_required_ms:
+                        logging.info(
+                            f"Data for {currency_pair} (ends {window_end_time_utc.isoformat()}) has not advanced sufficiently "
+                            f"beyond last processed point ({datetime.fromtimestamp(sdrf_last_processed_end_ts_ms / 1000, tz=timezone.utc).isoformat() if sdrf_last_processed_end_ts_ms > 0 else 'never'}). Skipping."
+                        )
+                        successful_pairs_count += 1  # Count as success if no work needed due to idempotency
+                        continue
+                    
+                    # Generate strategy discovery requests for this timepoint
+                    logging.info(f"Generating requests for {currency_pair} with window ending at {window_end_time_utc.isoformat()}.")
+                    discovery_requests = self.strategy_processor.generate_requests_for_timepoint(
+                        currency_pair, window_end_time_utc, self.fibonacci_windows_config
+                    )
+
+                    # Publish all generated requests
+                    for request in discovery_requests:
+                        self.kafka_publisher.publish_request(request, currency_pair)
+                        pair_requests_published_this_run += 1
+                    
+                    # Update tracker only if new requests were generated
+                    if discovery_requests:
+                        self.timestamp_tracker.update_last_processed_timestamp(
+                            FLAGS.tracker_service_name, sdrf_tracker_key, actual_latest_data_ts_ms
+                        )
+                        logging.info(
+                            f"Published {pair_requests_published_this_run} requests for {currency_pair} and updated SDRF tracker to {window_end_time_utc.isoformat()}."
+                        )
+                    else:
+                        logging.info(f"No new requests were generated by the processor for {currency_pair} ending at {window_end_time_utc.isoformat()}.")
+                    
+                    successful_pairs_count += 1
+                    total_requests_published_all_pairs += pair_requests_published_this_run
+
                 except Exception as e:
-                    logging.error(f"Failed to process {currency_pair}: {e}")
-                    failed_pairs += 1
-                    continue
+                    logging.exception(f"Error processing currency pair {currency_pair}: {e}")
+                    failed_pairs_count += 1
+                    # Continue to the next pair
             
             logging.info(
-                f"Cron job completed. "
-                f"Total requests: {total_requests_published}, "
-                f"Successful pairs: {successful_pairs}, "
-                f"Failed pairs: {failed_pairs}"
+                f"Cron job completed. Total requests: {total_requests_published_all_pairs}, "
+                f"Successful pairs: {successful_pairs_count}, Failed pairs: {failed_pairs_count}"
             )
-            
-            if failed_pairs > 0 and successful_pairs == 0:
-                raise Exception("All currency pairs failed to process")
-                
+            if failed_pairs_count > 0 and successful_pairs_count == 0:
+                raise Exception("All currency pairs failed to process in StrategyDiscoveryService.")
+
         except Exception as e:
-            logging.exception(f"Cron job failed: {e}")
+            logging.exception(f"StrategyDiscoveryService run failed: {e}")
             raise
     
     def close(self) -> None:
         """Clean up all connections."""
-        if self.influx_poller:
-            self.influx_poller.close()
         if self.kafka_publisher:
             self.kafka_publisher.close()
         if self.timestamp_tracker:
             self.timestamp_tracker.close()
-        if self.strategy_processor:
-            self.strategy_processor.close()
         logging.info("All connections closed")
 
 
@@ -268,7 +254,7 @@ def main(argv):
         raise app.UsageError("Too many command-line arguments")
     
     logging.set_verbosity(logging.INFO)
-    logging.info("Starting Strategy Discovery Request Factory Cron Job")
+    logging.info("Starting Strategy Discovery Request Factory Cron Job (Stateless Orchestration)")
     
     # Log configuration
     logging.info("Configuration:")
@@ -276,7 +262,9 @@ def main(argv):
     logging.info(f"  InfluxDB URL: {FLAGS.influxdb_url}")
     logging.info(f"  Kafka servers: {FLAGS.kafka_bootstrap_servers}")
     logging.info(f"  Kafka topic: {FLAGS.kafka_topic}")
-    logging.info(f"  Lookback minutes: {FLAGS.lookback_minutes}")
+    logging.info(f"  Tracker service name: {FLAGS.tracker_service_name}")
+    logging.info(f"  Global status service name: {FLAGS.global_status_tracker_service_name}")
+    logging.info(f"  Min processing advance (minutes): {FLAGS.min_processing_advance_minutes}")
     logging.info(f"  Fibonacci windows: {FLAGS.fibonacci_windows_minutes}")
     
     service = StrategyDiscoveryService()
