@@ -18,19 +18,19 @@ from google.protobuf.timestamp_pb2 import Timestamp
 class StrategyDiscoveryProcessor:
     """
     Stateless processor that generates strategy discovery requests for specific timepoints.
-    
+
     No longer maintains candle deques or state - purely functional request generation.
     """
-    
+
     def __init__(
         self,
         default_top_n: int,
         default_max_generations: int,
-        default_population_size: int
+        default_population_size: int,
     ):
         """
         Initialize the stateless strategy discovery processor.
-        
+
         Args:
             default_top_n: Default number of top strategies to discover
             default_max_generations: Default GA max generations
@@ -39,7 +39,7 @@ class StrategyDiscoveryProcessor:
         self.default_top_n = default_top_n
         self.default_max_generations = default_max_generations
         self.default_population_size = default_population_size
-        
+
         logging.info(
             f"StatelessProcessor initialized: "
             f"top_n={self.default_top_n}, "
@@ -55,23 +55,25 @@ class StrategyDiscoveryProcessor:
         self,
         currency_pair: str,
         window_end_time_utc: datetime,
-        fibonacci_windows_minutes: List[int]
+        fibonacci_windows_minutes: List[int],
     ) -> List[StrategyDiscoveryRequest]:
         """
         Generate strategy discovery requests for a specific timepoint.
-        
+
         Args:
             currency_pair: The currency pair (e.g., "BTC/USD")
             window_end_time_utc: The end time for analysis windows
             fibonacci_windows_minutes: List of window sizes in minutes
-            
+
         Returns:
             List of generated strategy discovery requests
         """
         generated_requests: List[StrategyDiscoveryRequest] = []
         window_end_time_ms = self._datetime_to_ms(window_end_time_utc)
 
-        for window_minutes in sorted(fibonacci_windows_minutes):  # Ensure sorted if not already
+        for window_minutes in sorted(
+            fibonacci_windows_minutes
+        ):  # Ensure sorted if not already
             end_time_proto = Timestamp()
             end_time_proto.FromMilliseconds(window_end_time_ms)
 
@@ -79,7 +81,9 @@ class StrategyDiscoveryProcessor:
             start_time_proto = Timestamp()
             start_time_proto.FromDatetime(start_datetime_utc)
 
-            strategy_types = [st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED]
+            strategy_types = [
+                st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED
+            ]
             for strategy_type in strategy_types:
                 request = StrategyDiscoveryRequest(
                     symbol=currency_pair,
@@ -90,10 +94,10 @@ class StrategyDiscoveryProcessor:
                     ga_config=GAConfig(
                         max_generations=self.default_max_generations,
                         population_size=self.default_population_size,
-                    )
+                    ),
                 )
                 generated_requests.append(request)
-        
+
         if generated_requests:
             logging.info(
                 f"StatelessProcessor generated {len(generated_requests)} requests for {currency_pair} "

@@ -11,7 +11,9 @@ from services.strategy_discovery_request_factory.strategy_discovery_processor im
     StrategyDiscoveryProcessor,
 )
 from services.strategy_discovery_request_factory.kafka_publisher import KafkaPublisher
-from shared.persistence.influxdb_last_processed_tracker import InfluxDBLastProcessedTracker
+from shared.persistence.influxdb_last_processed_tracker import (
+    InfluxDBLastProcessedTracker,
+)
 
 
 class StatelessIntegrationTest(unittest.TestCase):
@@ -23,7 +25,7 @@ class StatelessIntegrationTest(unittest.TestCase):
         self.mock_kafka_producer = patch(
             "services.strategy_discovery_request_factory.kafka_publisher.kafka.KafkaProducer"
         ).start()
-        
+
         # Mock InfluxDB tracker
         self.mock_tracker_class = patch(
             "shared.persistence.influxdb_last_processed_tracker.InfluxDBLastProcessedTracker"
@@ -55,14 +57,14 @@ class StatelessIntegrationTest(unittest.TestCase):
             default_max_generations=20,
             default_population_size=40,
         )
-        
+
         kafka_publisher = KafkaPublisher("test:9092", "test-topic")
 
         # Generate requests using stateless processor
         currency_pair = "BTC/USD"
         end_time = datetime(2023, 6, 15, 14, 30, 0, tzinfo=timezone.utc)
         fibonacci_windows = [60, 120]  # 1 hour and 2 hour windows
-        
+
         discovery_requests = strategy_processor.generate_requests_for_timepoint(
             currency_pair, end_time, fibonacci_windows
         )
@@ -82,7 +84,9 @@ class StatelessIntegrationTest(unittest.TestCase):
 
         # Verify Kafka publishing
         self.assertEqual(total_published, expected_request_count)
-        self.assertEqual(self.mock_producer_instance.send.call_count, expected_request_count)
+        self.assertEqual(
+            self.mock_producer_instance.send.call_count, expected_request_count
+        )
 
     def test_processor_generates_valid_requests_for_kafka(self):
         """Test that processor generates valid requests that can be published to Kafka."""
@@ -91,14 +95,14 @@ class StatelessIntegrationTest(unittest.TestCase):
             default_max_generations=30,
             default_population_size=50,
         )
-        
+
         kafka_publisher = KafkaPublisher("test:9092", "test-topic")
 
         # Generate requests for multiple currency pairs
         currency_pairs = ["BTC/USD", "ETH/USD", "ADA/USD"]
         end_time = datetime.now(timezone.utc)
         fibonacci_windows = [30, 60, 90]
-        
+
         all_requests = []
         for pair in currency_pairs:
             requests = strategy_processor.generate_requests_for_timepoint(
@@ -131,7 +135,7 @@ class StatelessIntegrationTest(unittest.TestCase):
             default_max_generations=5,
             default_population_size=10,
         )
-        
+
         # Test with maximal configuration
         maximal_processor = StrategyDiscoveryProcessor(
             default_top_n=10,
@@ -140,7 +144,7 @@ class StatelessIntegrationTest(unittest.TestCase):
         )
 
         kafka_publisher = KafkaPublisher("test:9092", "test-topic")
-        
+
         end_time = datetime.now(timezone.utc)
         fibonacci_windows = [60]
         currency_pair = "BTC/USD"
@@ -149,7 +153,7 @@ class StatelessIntegrationTest(unittest.TestCase):
         minimal_requests = minimal_processor.generate_requests_for_timepoint(
             currency_pair, end_time, fibonacci_windows
         )
-        
+
         maximal_requests = maximal_processor.generate_requests_for_timepoint(
             currency_pair, end_time, fibonacci_windows
         )
@@ -173,8 +177,8 @@ class StatelessIntegrationTest(unittest.TestCase):
             kafka_publisher.publish_request(request, currency_pair)
 
         self.assertEqual(
-            self.mock_producer_instance.send.call_count, 
-            len(minimal_requests) + len(maximal_requests)
+            self.mock_producer_instance.send.call_count,
+            len(minimal_requests) + len(maximal_requests),
         )
 
     def test_processor_time_window_accuracy(self):
@@ -196,7 +200,9 @@ class StatelessIntegrationTest(unittest.TestCase):
         # Group requests by window duration
         requests_by_window = {}
         for request in requests:
-            duration_minutes = (request.end_time.seconds - request.start_time.seconds) // 60
+            duration_minutes = (
+                request.end_time.seconds - request.start_time.seconds
+            ) // 60
             if duration_minutes not in requests_by_window:
                 requests_by_window[duration_minutes] = []
             requests_by_window[duration_minutes].append(request)
@@ -205,12 +211,12 @@ class StatelessIntegrationTest(unittest.TestCase):
         for window_minutes in fibonacci_windows:
             self.assertIn(window_minutes, requests_by_window)
             window_requests = requests_by_window[window_minutes]
-            
+
             for request in window_requests:
                 # Verify end time
                 end_time_ms = int(end_time.timestamp() * 1000)
                 self.assertEqual(request.end_time.ToMilliseconds(), end_time_ms)
-                
+
                 # Verify start time
                 expected_start_time = end_time.timestamp() - (window_minutes * 60)
                 expected_start_ms = int(expected_start_time * 1000)
@@ -223,12 +229,12 @@ class StatelessIntegrationTest(unittest.TestCase):
             default_max_generations=15,
             default_population_size=30,
         )
-        
+
         kafka_publisher = KafkaPublisher("test:9092", "test-topic")
 
         end_time = datetime.now(timezone.utc)
         fibonacci_windows = [45]
-        
+
         requests = strategy_processor.generate_requests_for_timepoint(
             "SOL/USD", end_time, fibonacci_windows
         )
@@ -241,13 +247,13 @@ class StatelessIntegrationTest(unittest.TestCase):
         # Verify Kafka send was called with serialized data
         for call in self.mock_producer_instance.send.call_args_list:
             call_kwargs = call[1]
-            
+
             # Verify value is bytes (serialized protobuf)
-            self.assertIsInstance(call_kwargs['value'], bytes)
-            
+            self.assertIsInstance(call_kwargs["value"], bytes)
+
             # Verify key is bytes (encoded string)
-            self.assertIsInstance(call_kwargs['key'], bytes)
-            self.assertEqual(call_kwargs['key'], b"SOL/USD")
+            self.assertIsInstance(call_kwargs["key"], bytes)
+            self.assertEqual(call_kwargs["key"], b"SOL/USD")
 
     def test_error_handling_integration(self):
         """Test error handling across integrated components."""
@@ -259,12 +265,12 @@ class StatelessIntegrationTest(unittest.TestCase):
 
         # Mock Kafka producer to fail on send
         self.mock_producer_instance.send.side_effect = Exception("Kafka send failed")
-        
+
         kafka_publisher = KafkaPublisher("test:9092", "test-topic")
 
         end_time = datetime.now(timezone.utc)
         fibonacci_windows = [30]
-        
+
         requests = strategy_processor.generate_requests_for_timepoint(
             "ADA/USD", end_time, fibonacci_windows
         )
@@ -284,7 +290,7 @@ class StatelessIntegrationTest(unittest.TestCase):
             default_max_generations=10,
             default_population_size=20,
         )
-        
+
         processor2 = StrategyDiscoveryProcessor(
             default_top_n=5,
             default_max_generations=50,
@@ -300,7 +306,7 @@ class StatelessIntegrationTest(unittest.TestCase):
         requests1 = processor1.generate_requests_for_timepoint(
             "BTC/USD", end_time, fibonacci_windows
         )
-        
+
         requests2 = processor2.generate_requests_for_timepoint(
             "ETH/USD", end_time, fibonacci_windows
         )
@@ -332,7 +338,7 @@ class StatelessIntegrationTest(unittest.TestCase):
             default_max_generations=10,
             default_population_size=20,
         )
-        
+
         kafka_publisher = KafkaPublisher("test:9092", "test-topic")
 
         # Use components
@@ -340,7 +346,7 @@ class StatelessIntegrationTest(unittest.TestCase):
         requests = strategy_processor.generate_requests_for_timepoint(
             "BTC/USD", end_time, [60]
         )
-        
+
         for request in requests:
             kafka_publisher.publish_request(request, "BTC/USD")
 

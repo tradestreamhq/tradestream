@@ -51,10 +51,10 @@ class KafkaPublisherTest(unittest.TestCase):
         """Create a test strategy discovery request."""
         start_time = Timestamp()
         start_time.FromMilliseconds(1640995200000)  # 2022-01-01 00:00:00 UTC
-        
+
         end_time = Timestamp()
-        end_time.FromMilliseconds(1640995260000)   # 2022-01-01 00:01:00 UTC
-        
+        end_time.FromMilliseconds(1640995260000)  # 2022-01-01 00:01:00 UTC
+
         ga_config = GAConfig(max_generations=30, population_size=50)
 
         return StrategyDiscoveryRequest(
@@ -291,11 +291,17 @@ class KafkaPublisherTest(unittest.TestCase):
 
     def test_different_strategy_types(self):
         """Test publishing requests with different strategy types."""
-        strategy_types = [StrategyType.SMA_RSI, StrategyType.BOLLINGER_MACD, StrategyType.MOMENTUM_BREAKOUT]
-        
+        strategy_types = [
+            StrategyType.SMA_RSI,
+            StrategyType.BOLLINGER_MACD,
+            StrategyType.MOMENTUM_BREAKOUT,
+        ]
+
         for strategy_type in strategy_types:
             with self.subTest(strategy_type=strategy_type):
-                request = self._create_test_strategy_discovery_request(strategy_type=strategy_type)
+                request = self._create_test_strategy_discovery_request(
+                    strategy_type=strategy_type
+                )
                 self.publisher.publish_request(request, "BTC/USD")
 
         # Should have published all requests
@@ -304,7 +310,7 @@ class KafkaPublisherTest(unittest.TestCase):
     def test_different_symbols(self):
         """Test publishing requests for different currency pairs."""
         symbols = ["BTC/USD", "ETH/USD", "ADA/USD"]
-        
+
         for symbol in symbols:
             with self.subTest(symbol=symbol):
                 request = self._create_test_strategy_discovery_request(symbol=symbol)
