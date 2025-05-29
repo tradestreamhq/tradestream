@@ -202,9 +202,9 @@ class StrategyDiscoveryService:
 
                     if actual_latest_data_ts_ms is None:
                         logging.warning(
-                            f"No 'latest ingested data timestamp' found in tracker for {currency_pair} under key ({FLAGS.global_status_tracker_service_name}, {ingested_ts_item_id}). Skipping."
+                            f"No 'latest ingested data timestamp' found in tracker for {currency_pair} under key ({FLAGS.global_status_tracker_service_name}, {ingested_ts_item_id}). This is normal if upstream data ingestion hasn't started yet. Skipping."
                         )
-                        failed_pairs_count += 1
+                        successful_pairs_count += 1
                         continue
 
                     window_end_time_utc = datetime.fromtimestamp(
