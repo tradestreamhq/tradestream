@@ -145,3 +145,48 @@ topCryptoUpdaterCronjob:
   redis:
     host: '{{ include "tradestream.fullname" . }}-redis-master' # Dynamically set Redis host
     port: 6379
+
+# Strategy Discovery Request Factory CronJob configuration
+strategyDiscoveryRequestFactory:
+  enabled: true
+  schedule: "0 * * * *" # Run at the start of every hour
+  image:
+    repository: "tradestreamhq/strategy-discovery-request-factory"
+    pullPolicy: IfNotPresent
+    tag: "v1.35.3-develop"
+  concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  config:
+    influxDbBucketTracker: "tradestream-data" # Bucket for tracker state
+    kafkaTopic: "strategy-discovery-requests"
+    trackerServiceName: "strategy_discovery_processor" # Name for this service's own state
+    globalStatusTrackerServiceName: "global_candle_status" # Name of the service that reports latest candle data
+    minProcessingAdvanceMinutes: 5 # Min minutes new data must be ahead to trigger
+    currencyPairs:
+      - "BTC/USD"
+      - "ETH/USD"
+      - "ADA/USD"
+      - "SOL/USD"
+      - "DOGE/USD"
+    fibonacciWindowsMinutes: # Fibonacci sequence windows in minutes
+      - "1597" # ~1.1 days
+      - "2584" # ~1.8 days
+      - "4181" # ~2.9 days
+      - "6765" # ~4.7 days
+      - "10946" # ~7.6 days
+      - "17711" # ~12.3 days
+      - "28657" # ~19.9 days
+      - "46368" # ~32.2 days
+      - "75025" # ~52.1 days
+      - "121393" # ~84.3 days
+    defaultTopN: 5
+    defaultMaxGenerations: 30
+    defaultPopulationSize: 50
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
