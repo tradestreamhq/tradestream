@@ -8,7 +8,6 @@ commandTests:
       - "exchanges"
       - "influxdb_token"
       - "run_mode"
-  
   - name: "Candle Ingestor Dry Run Basic Test"
     command: "/services/candle_ingestor/app"
     args:
