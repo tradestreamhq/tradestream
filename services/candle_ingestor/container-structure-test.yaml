@@ -24,4 +24,3 @@ commandTests:
       - "DRY RUN: Simulating CCXT API call for btcusd-dry.*catch-up"
       - "Catch-up candle processing completed."
       - "Candle ingestor script completed successfully."
-      
