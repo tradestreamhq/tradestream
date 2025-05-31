@@ -110,3 +110,40 @@ py_test(
         "//third_party/python:protobuf",
     ],
 )
+
+# --- OCI Image Rules ---
+load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("@container_structure_test//:defs.bzl", "container_structure_test")
+
+py_image_layer(
+    name = "layers",
+    binary = ":app",
+)
+
+oci_image(
+    name = "image",
+    base = "@python_3_13_slim",
+    entrypoint = ["/services/strategy_discovery_request_factory/app"],
+    tars = [":layers"],
+)
+
+oci_image_index(
+    name = "images",
+    images = [
+        ":image",
+    ],
+)
+
+oci_push(
+    name = "push_strategy_discovery_request_factory_image",
+    image = ":images",
+    repository = "tradestreamhq/strategy-discovery-request-factory",
+)
+
+container_structure_test(
+    name = "container_test",
+    configs = ["container-structure-test.yaml"],
+    image = ":image",
+    tags = ["requires-docker"],
+)
