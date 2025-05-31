@@ -107,7 +107,6 @@ candleIngestor:
     backfillStartDate: "1_year_ago" # Configurable backfill start
     catchUpInitialDays: 7 # Configurable initial catch-up
     apiCallDelaySeconds: 2 # Delay between API calls to respect rate limits
-    
     # Storage Configuration
     influxDbBucket: "tradestream-data"
     redisKeyCryptoSymbols: "top_cryptocurrencies"
