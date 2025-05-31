@@ -19,7 +19,9 @@ from services.candle_ingestor.ingestion_helpers import (
     parse_backfill_start_date,
 )
 from shared.cryptoclient.redis_crypto_client import RedisCryptoClient
-from shared.persistence.influxdb_last_processed_tracker import InfluxDBLastProcessedTracker
+from shared.persistence.influxdb_last_processed_tracker import (
+    InfluxDBLastProcessedTracker,
+)
 import redis
 
 FLAGS = flags.FLAGS
