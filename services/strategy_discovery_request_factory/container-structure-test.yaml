@@ -1,0 +1,11 @@
+schemaVersion: "2.0.0"
+commandTests:
+  - name: "Strategy Discovery Request Factory Help Test"
+    command: "/services/strategy_discovery_request_factory/app"
+    args: ["--help"]
+    exitCode: 1 # Help usually exits with non-zero
+    expectedOutput:
+      - "Strategy Discovery Request Factory - Stateless Orchestration Service" # From main.py docstring
+      - "influxdb_url"
+      - "kafka_bootstrap_servers"
+      - "currency_pairs"
