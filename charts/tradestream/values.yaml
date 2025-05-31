@@ -84,7 +84,6 @@ candleIngestor:
   enabled: true
   schedule: "*/1 * * * *" # Run every 1 minute
   runMode: "wet" # Default run mode for the job
-  
   job:
     backoffLimit: 2
     ttlSecondsAfterFinished: 3600 # Cleans up finished jobs after 1 hour
