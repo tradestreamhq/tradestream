@@ -33,12 +33,12 @@ FLAGS = flags.FLAGS
 flags.DEFINE_list(
     "exchanges",
     ["binance", "coinbasepro", "kraken"],
-    "List of exchanges to use for candle data (first exchange is primary, order determines priority)"
+    "List of exchanges to use for candle data (first exchange is primary, order determines priority)",
 )
 flags.DEFINE_integer(
     "min_exchanges_required",
     0,
-    "Minimum number of exchanges required for multi-exchange aggregation (0 = auto-detect from exchange count)"
+    "Minimum number of exchanges required for multi-exchange aggregation (0 = auto-detect from exchange count)",
 )
 
 # InfluxDB Flags (unchanged)
@@ -60,8 +60,12 @@ default_redis_host = os.getenv("REDIS_HOST", "localhost")
 flags.DEFINE_string("redis_host", default_redis_host, "Redis host.")
 default_redis_port = int(os.getenv("REDIS_PORT", "6379"))
 flags.DEFINE_integer("redis_port", default_redis_port, "Redis port.")
-flags.DEFINE_string("redis_password", os.getenv("REDIS_PASSWORD"), "Redis password (if any).")
-default_redis_key_crypto_symbols = os.getenv("REDIS_KEY_CRYPTO_SYMBOLS", "top_cryptocurrencies")
+flags.DEFINE_string(
+    "redis_password", os.getenv("REDIS_PASSWORD"), "Redis password (if any)."
+)
+default_redis_key_crypto_symbols = os.getenv(
+    "REDIS_KEY_CRYPTO_SYMBOLS", "top_cryptocurrencies"
+)
 flags.DEFINE_string(
     "redis_key_crypto_symbols",
     default_redis_key_crypto_symbols,
@@ -69,7 +73,9 @@ flags.DEFINE_string(
 )
 
 # Candle Processing Flags
-flags.DEFINE_integer("candle_granularity_minutes", 1, "Granularity of candles in minutes.")
+flags.DEFINE_integer(
+    "candle_granularity_minutes", 1, "Granularity of candles in minutes."
+)
 flags.DEFINE_string(
     "backfill_start_date",
     "1_year_ago",
@@ -94,7 +100,7 @@ flags.DEFINE_enum(
     "Run mode for the ingestor: 'wet' for live data, 'dry' for simulated data.",
 )
 
-# Dry Run Limit Flag  
+# Dry Run Limit Flag
 flags.DEFINE_integer(
     "dry_run_limit",
     None,
@@ -106,41 +112,44 @@ SERVICE_IDENTIFIER = "candle_ingestor"
 
 
 def validate_symbol_availability(
-    ccxt_client, 
-    symbols: list[str], 
-    strategy: str, 
-    min_exchanges_required: int
+    ccxt_client, symbols: list[str], strategy: str, min_exchanges_required: int
 ) -> list[str]:
     """
     Filter symbols to only those supported by minimum number of exchanges.
-    
+
     Args:
         ccxt_client: CCXT client instance (single or multi-exchange)
         symbols: List of symbols to validate
         strategy: 'single' or 'multi'
         min_exchanges_required: Minimum exchanges required for multi-exchange mode
-        
+
     Returns:
         List of valid symbols that meet exchange availability requirements
     """
-    if strategy == 'single':
+    if strategy == "single":
         # For single exchange, check if symbols are available on that exchange
-        if hasattr(ccxt_client, 'exchange'):
+        if hasattr(ccxt_client, "exchange"):
             # Single exchange client
             return _validate_symbols_single_exchange(ccxt_client, symbols)
         else:
             # This shouldn't happen, but fallback
-            logging.warning("Single exchange strategy but multi-exchange client provided")
+            logging.warning(
+                "Single exchange strategy but multi-exchange client provided"
+            )
             return symbols
-    
+
     else:  # strategy == 'multi'
         # For multi-exchange, check availability across exchanges
-        if hasattr(ccxt_client, 'exchanges'):
+        if hasattr(ccxt_client, "exchanges"):
             # Multi-exchange client
-            return _validate_symbols_multi_exchange(ccxt_client, symbols, min_exchanges_required)
+            return _validate_symbols_multi_exchange(
+                ccxt_client, symbols, min_exchanges_required
+            )
         else:
             # This shouldn't happen, but fallback
-            logging.warning("Multi-exchange strategy but single exchange client provided")
+            logging.warning(
+                "Multi-exchange strategy but single exchange client provided"
+            )
             return symbols
 
 
@@ -148,73 +157,81 @@ def _validate_symbols_single_exchange(ccxt_client, symbols: list[str]) -> list[s
     """Validate symbols for single exchange."""
     valid_symbols = []
     exchange_name = ccxt_client.exchange_name
-    
+
     try:
         # Load exchange markets
         markets = ccxt_client.exchange.load_markets()
         available_symbols = set(markets.keys())
-        
+
         for symbol in symbols:
             ccxt_symbol = ccxt_client._normalize_symbol(symbol)
             if ccxt_symbol in available_symbols:
                 valid_symbols.append(symbol)
-                logging.debug(f"Symbol {symbol} ({ccxt_symbol}) available on {exchange_name}")
+                logging.debug(
+                    f"Symbol {symbol} ({ccxt_symbol}) available on {exchange_name}"
+                )
             else:
-                logging.warning(f"Symbol {symbol} ({ccxt_symbol}) not available on {exchange_name}, skipping")
-        
+                logging.warning(
+                    f"Symbol {symbol} ({ccxt_symbol}) not available on {exchange_name}, skipping"
+                )
+
     except Exception as e:
         logging.error(f"Error loading markets from {exchange_name}: {e}")
-        logging.warning(f"Cannot validate symbols for {exchange_name}, processing all symbols")
+        logging.warning(
+            f"Cannot validate symbols for {exchange_name}, processing all symbols"
+        )
         return symbols  # Fallback to processing all symbols
-    
-    logging.info(f"Symbol validation: {len(valid_symbols)}/{len(symbols)} symbols available on {exchange_name}")
+
+    logging.info(
+        f"Symbol validation: {len(valid_symbols)}/{len(symbols)} symbols available on {exchange_name}"
+    )
     return valid_symbols
 
 
 def _validate_symbols_multi_exchange(
-    ccxt_client, 
-    symbols: list[str], 
-    min_exchanges_required: int
+    ccxt_client, symbols: list[str], min_exchanges_required: int
 ) -> list[str]:
     """Validate symbols for multi-exchange aggregation."""
     valid_symbols = []
     symbol_exchange_counts = {}
-    
+
     # Check availability on each exchange
     for exchange_name, exchange_client in ccxt_client.exchanges.items():
         try:
             markets = exchange_client.exchange.load_markets()
             available_symbols = set(markets.keys())
-            
+
             for symbol in symbols:
                 ccxt_symbol = exchange_client._normalize_symbol(symbol)
-                
+
                 if symbol not in symbol_exchange_counts:
                     symbol_exchange_counts[symbol] = {
-                        'count': 0,
-                        'exchanges': [],
-                        'ccxt_symbol': ccxt_symbol
+                        "count": 0,
+                        "exchanges": [],
+                        "ccxt_symbol": ccxt_symbol,
                     }
-                
+
                 if ccxt_symbol in available_symbols:
-                    symbol_exchange_counts[symbol]['count'] += 1
-                    symbol_exchange_counts[symbol]['exchanges'].append(exchange_name)
-                    
+                    symbol_exchange_counts[symbol]["count"] += 1
+                    symbol_exchange_counts[symbol]["exchanges"].append(exchange_name)
+
         except Exception as e:
             logging.warning(f"Error loading markets from {exchange_name}: {e}")
             continue
-    
+
     # Filter symbols that meet minimum exchange requirement
     for symbol, info in symbol_exchange_counts.items():
-        if info['count'] >= min_exchanges_required:
+        if info["count"] >= min_exchanges_required:
             valid_symbols.append(symbol)
-            logging.info(f"Symbol {symbol} available on {info['count']} exchanges: {info['exchanges']}")
+            logging.info(
+                f"Symbol {symbol} available on {info['count']} exchanges: {info['exchanges']}"
+            )
         else:
             logging.warning(
                 f"Symbol {symbol} only available on {info['count']} exchanges {info['exchanges']}, "
                 f"but minimum {min_exchanges_required} required. Skipping."
             )
-    
+
     if not valid_symbols:
         logging.error(
             f"No symbols meet the minimum exchange requirement of {min_exchanges_required}. "
@@ -225,14 +242,14 @@ def _validate_symbols_multi_exchange(
             f"Symbol validation: {len(valid_symbols)}/{len(symbols)} symbols meet "
             f"minimum {min_exchanges_required} exchange requirement"
         )
-    
+
     return valid_symbols
 
 
 def validate_and_determine_ccxt_strategy():
     """
     Validate exchange configuration and determine strategy.
-    
+
     Returns:
         tuple: (strategy, primary_exchange, exchanges_to_use, effective_min_required)
         - strategy: 'single' or 'multi'
@@ -242,10 +259,10 @@ def validate_and_determine_ccxt_strategy():
     """
     exchanges = FLAGS.exchanges
     min_required = FLAGS.min_exchanges_required
-    
+
     if not exchanges:
         raise ValueError("At least one exchange must be specified in --exchanges")
-    
+
     # Remove duplicates while preserving order
     seen = set()
     unique_exchanges = []
@@ -253,29 +270,33 @@ def validate_and_determine_ccxt_strategy():
         if exchange not in seen:
             seen.add(exchange)
             unique_exchanges.append(exchange)
-    
+
     if len(unique_exchanges) != len(exchanges):
         logging.warning(f"Removed duplicate exchanges. Using: {unique_exchanges}")
-    
+
     primary_exchange = unique_exchanges[0]
-    
+
     # Auto-detect minimum required if not set or invalid
     if min_required <= 0:
         effective_min_required = len(unique_exchanges)
-        logging.info(f"Auto-detected min_exchanges_required: {effective_min_required} (from {len(unique_exchanges)} provided exchanges)")
+        logging.info(
+            f"Auto-detected min_exchanges_required: {effective_min_required} (from {len(unique_exchanges)} provided exchanges)"
+        )
     else:
         effective_min_required = min_required
-    
+
     if len(unique_exchanges) == 1:
         logging.info(f"Single exchange mode: using {primary_exchange}")
-        return 'single', primary_exchange, unique_exchanges, effective_min_required
-    
+        return "single", primary_exchange, unique_exchanges, effective_min_required
+
     elif len(unique_exchanges) >= effective_min_required:
-        logging.info(f"Multi-exchange mode: using {len(unique_exchanges)} exchanges with {primary_exchange} as primary")
+        logging.info(
+            f"Multi-exchange mode: using {len(unique_exchanges)} exchanges with {primary_exchange} as primary"
+        )
         logging.info(f"Exchange priority order: {unique_exchanges}")
         logging.info(f"Minimum exchanges required: {effective_min_required}")
-        return 'multi', primary_exchange, unique_exchanges, effective_min_required
-    
+        return "multi", primary_exchange, unique_exchanges, effective_min_required
+
     else:
         raise ValueError(
             f"Insufficient exchanges for multi-exchange mode. "
@@ -296,23 +317,25 @@ def get_ccxt_timeframe(granularity_minutes: int) -> str:
     elif granularity_minutes > 0:
         return f"{granularity_minutes}m"
     else:
-        logging.warning(f"Invalid candle_granularity_minutes: {granularity_minutes}. Defaulting to '1m'.")
+        logging.warning(
+            f"Invalid candle_granularity_minutes: {granularity_minutes}. Defaulting to '1m'."
+        )
         return "1m"
 
 
 def convert_tiingo_symbol_to_ccxt(tiingo_symbol: str) -> str:
     """Convert Tiingo-style symbol to CCXT format."""
     # Handle common patterns from Tiingo format (e.g., 'btcusd' -> 'BTC/USDT')
-    if '/' in tiingo_symbol:
+    if "/" in tiingo_symbol:
         return tiingo_symbol.upper()
-    
-    if tiingo_symbol.lower().endswith('usd'):
+
+    if tiingo_symbol.lower().endswith("usd"):
         base = tiingo_symbol[:-3].upper()
         return f"{base}/USDT"  # Most exchanges use USDT instead of USD
-    elif tiingo_symbol.lower().endswith('btc'):
-        base = tiingo_symbol[:-3].upper() 
+    elif tiingo_symbol.lower().endswith("btc"):
+        base = tiingo_symbol[:-3].upper()
         return f"{base}/BTC"
-    
+
     return tiingo_symbol.upper()
 
 
@@ -325,49 +348,53 @@ def get_historical_candles_ccxt(
 ) -> list[dict]:
     """
     Fetch historical candles using CCXT client.
-    
+
     Args:
         ccxt_client: CCXT client instance
         ticker: Symbol in Tiingo format (e.g., 'btcusd')
         start_date_str: Start date string
-        end_date_str: End date string  
+        end_date_str: End date string
         timeframe: CCXT timeframe string
-        
+
     Returns:
         List of candle dictionaries compatible with existing InfluxDB writer
     """
     try:
         # Convert Tiingo symbol to CCXT format
         ccxt_symbol = convert_tiingo_symbol_to_ccxt(ticker)
-        
+
         # Parse date strings to timestamps
-        if 'T' in start_date_str:
-            start_dt = datetime.fromisoformat(start_date_str.replace('Z', '+00:00'))
+        if "T" in start_date_str:
+            start_dt = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
         else:
-            start_dt = datetime.strptime(start_date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-            
+            start_dt = datetime.strptime(start_date_str, "%Y-%m-%d").replace(
+                tzinfo=timezone.utc
+            )
+
         start_timestamp_ms = int(start_dt.timestamp() * 1000)
-        
+
         # Calculate limit based on timeframe and date range
-        if 'T' in end_date_str:
-            end_dt = datetime.fromisoformat(end_date_str.replace('Z', '+00:00'))
+        if "T" in end_date_str:
+            end_dt = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
         else:
-            end_dt = datetime.strptime(end_date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-            
+            end_dt = datetime.strptime(end_date_str, "%Y-%m-%d").replace(
+                tzinfo=timezone.utc
+            )
+
         time_diff_hours = (end_dt - start_dt).total_seconds() / 3600
-        
+
         # Estimate reasonable limit based on timeframe
-        if timeframe.endswith('m'):
+        if timeframe.endswith("m"):
             minutes = int(timeframe[:-1])
             limit = min(1000, int(time_diff_hours * 60 / minutes) + 10)
-        elif timeframe.endswith('h'):
+        elif timeframe.endswith("h"):
             hours = int(timeframe[:-1])
             limit = min(1000, int(time_diff_hours / hours) + 10)
         else:  # days
             limit = min(1000, int(time_diff_hours / 24) + 10)
-        
+
         # Fetch candles
-        if hasattr(ccxt_client, 'get_aggregated_candles'):
+        if hasattr(ccxt_client, "get_aggregated_candles"):
             # Multi-exchange client
             candles = ccxt_client.get_aggregated_candles(
                 ccxt_symbol, timeframe, start_timestamp_ms, limit
@@ -377,13 +404,13 @@ def get_historical_candles_ccxt(
             candles = ccxt_client.get_historical_candles(
                 ccxt_symbol, timeframe, start_timestamp_ms, limit
             )
-        
+
         # Convert back to Tiingo-compatible format for existing code
         for candle in candles:
-            candle['currency_pair'] = ticker  # Keep original Tiingo format
-            
+            candle["currency_pair"] = ticker  # Keep original Tiingo format
+
         return candles
-        
+
     except Exception as e:
         logging.error(f"Error fetching candles for {ticker} via CCXT: {e}")
         return []
@@ -436,10 +463,10 @@ def run_backfill(
                 f"DRY RUN: Reached max tickers for backfill ({effective_max_dry_run_tickers})."
             )
             break
-            
+
         current_run_max_ts_for_ticker = 0
         db_last_processed_ts_ms = None
-        
+
         if state_tracker:
             db_last_processed_ts_ms = state_tracker.get_last_processed_timestamp(
                 SERVICE_IDENTIFIER, f"{ticker}-backfill"
@@ -801,12 +828,17 @@ def main(argv):
     logging.info(f"  Exchanges: {FLAGS.exchanges}")
     logging.info(f"  Min exchanges required: {FLAGS.min_exchanges_required}")
     for flag_name in FLAGS:
-        if flag_name not in ['exchanges', 'min_exchanges_required']:  # Already logged above
+        if flag_name not in [
+            "exchanges",
+            "min_exchanges_required",
+        ]:  # Already logged above
             logging.info(f"  {flag_name}: {FLAGS[flag_name].value}")
 
     # Validate CCXT configuration and determine strategy
     try:
-        strategy, primary_exchange, exchanges_to_use, effective_min_required = validate_and_determine_ccxt_strategy()
+        strategy, primary_exchange, exchanges_to_use, effective_min_required = (
+            validate_and_determine_ccxt_strategy()
+        )
     except ValueError as e:
         logging.error(f"CCXT configuration error: {e}")
         sys.exit(1)
@@ -825,9 +857,11 @@ def main(argv):
             else:  # strategy == "multi"
                 ccxt_client = MultiExchangeCandleClient(
                     exchanges=exchanges_to_use,
-                    min_exchanges_required=effective_min_required
+                    min_exchanges_required=effective_min_required,
                 )
-                logging.info(f"Initialized multi-exchange client with {len(exchanges_to_use)} exchanges: {exchanges_to_use}")
+                logging.info(
+                    f"Initialized multi-exchange client with {len(exchanges_to_use)} exchanges: {exchanges_to_use}"
+                )
         except Exception as e:
             logging.error(f"Failed to initialize CCXT client: {e}")
             sys.exit(1)
@@ -936,17 +970,19 @@ def main(argv):
     if FLAGS.run_mode == "wet" and tiingo_tickers and ccxt_client:
         logging.info("Validating symbol availability across exchanges...")
         original_count = len(tiingo_tickers)
-        
+
         tiingo_tickers = validate_symbol_availability(
             ccxt_client=ccxt_client,
             symbols=tiingo_tickers,
             strategy=strategy,
-            min_exchanges_required=effective_min_required
+            min_exchanges_required=effective_min_required,
         )
-        
+
         filtered_count = len(tiingo_tickers)
         if filtered_count == 0:
-            logging.error("No symbols available across the required number of exchanges. Exiting.")
+            logging.error(
+                "No symbols available across the required number of exchanges. Exiting."
+            )
             if influx_manager:
                 influx_manager.close()
             if state_tracker:
@@ -955,7 +991,9 @@ def main(argv):
                 redis_manager.close()
             sys.exit(1)
         elif filtered_count < original_count:
-            logging.info(f"Filtered symbols: {original_count} → {filtered_count} symbols will be processed")
+            logging.info(
+                f"Filtered symbols: {original_count} → {filtered_count} symbols will be processed"
+            )
         else:
             logging.info(f"All {original_count} symbols are available for processing")
 
@@ -1033,9 +1071,7 @@ def main(argv):
             influx_manager.close()
         if state_tracker:
             state_tracker.close()
-        if (
-            redis_manager and hasattr(redis_manager, "client") and redis_manager.client
-        ):
+        if redis_manager and hasattr(redis_manager, "client") and redis_manager.client:
             redis_manager.close()
         elif FLAGS.run_mode == "dry" and redis_manager:
             redis_manager.close()
