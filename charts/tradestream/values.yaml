@@ -120,7 +120,6 @@ candleIngestor:
     influxDb:
       name: "influxdb-admin-secret"
       tokenKey: "admin-token"
-  
   redis:
     host: '{{ include "tradestream.fullname" . }}-redis-master'
     port: 6379
