@@ -123,7 +123,6 @@ class TestMultiExchangeCandleClient(unittest.TestCase):
             elif exchange_name == "coinbasepro":
                 return mock_coinbase
 
-
         mock_ccxt_client.side_effect = mock_client_factory
 
         # Mock candle data from different exchanges

@@ -376,8 +376,12 @@ class MainFunctionTest(BaseIngestorTest):
         self.assertEqual(self.mock_get_historical_candles.call_count, 2)
         # Verify calls include CCXT client as first argument
         call_args_list = self.mock_get_historical_candles.call_args_list
-        self.assertEqual(call_args_list[0][0][1], self.test_ticker)  # Symbol is second arg
-        self.assertEqual(call_args_list[1][0][1], self.test_ticker)  # Symbol is second arg
+        self.assertEqual(
+            call_args_list[0][0][1], self.test_ticker
+        )  # Symbol is second arg
+        self.assertEqual(
+            call_args_list[1][0][1], self.test_ticker
+        )  # Symbol is second arg
 
         self.mock_influx_manager.write_candles_batch.assert_any_call(
             backfill_candles_response

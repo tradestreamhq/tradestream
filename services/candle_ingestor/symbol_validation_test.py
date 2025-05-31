@@ -18,13 +18,13 @@ class TestSymbolValidation(unittest.TestCase):
         # Mock single exchange client
         mock_client = mock.MagicMock()
         mock_client.exchange_name = "binance"
-        
+
         def normalize_symbol(symbol):
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
                 return f"{base}/USDT"
             return symbol.upper()
-        
+
         mock_client._normalize_symbol.side_effect = normalize_symbol
 
         # Mock exchange markets
@@ -51,13 +51,13 @@ class TestSymbolValidation(unittest.TestCase):
         # Mock exchange clients
         mock_binance = mock.MagicMock()
         mock_binance.exchange_name = "binance"
-        
+
         def normalize_symbol_binance(symbol):
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
                 return f"{base}/USDT"
             return symbol.upper()
-        
+
         mock_binance._normalize_symbol.side_effect = normalize_symbol_binance
         mock_binance.exchange.load_markets.return_value = {
             "BTC/USDT": {},
@@ -67,13 +67,13 @@ class TestSymbolValidation(unittest.TestCase):
 
         mock_coinbase = mock.MagicMock()
         mock_coinbase.exchange_name = "coinbasepro"
-        
+
         def normalize_symbol_coinbase(symbol):
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
                 return f"{base}/USD"
             return symbol.upper()
-        
+
         mock_coinbase._normalize_symbol.side_effect = normalize_symbol_coinbase
         mock_coinbase.exchange.load_markets.return_value = {
             "BTC/USD": {},
@@ -104,13 +104,13 @@ class TestSymbolValidation(unittest.TestCase):
         # Mock single exchange that has limited symbols
         mock_binance = mock.MagicMock()
         mock_binance.exchange_name = "binance"
-        
+
         def normalize_symbol(symbol):
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
                 return f"{base}/USDT"
             return symbol.upper()
-        
+
         mock_binance._normalize_symbol.side_effect = normalize_symbol
         mock_binance.exchange.load_markets.return_value = {
             "BTC/USDT": {},
@@ -133,13 +133,13 @@ class TestSymbolValidation(unittest.TestCase):
         """Test main validation function for single exchange strategy."""
         mock_client = mock.MagicMock()
         mock_client.exchange_name = "binance"
-        
+
         def normalize_symbol(symbol):
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
                 return f"{base}/USDT"
             return symbol.upper()
-        
+
         mock_client._normalize_symbol.side_effect = normalize_symbol
         mock_client.exchange.load_markets.return_value = {
             "BTC/USDT": {},
@@ -259,25 +259,25 @@ class TestSymbolValidationIntegration(unittest.TestCase):
 
         mock_binance = mock.MagicMock()
         mock_binance.exchange_name = "binance"
-        
+
         def normalize_symbol_binance(symbol):
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
                 return f"{base}/USDT"
             return symbol.upper()
-        
+
         mock_binance._normalize_symbol.side_effect = normalize_symbol_binance
         mock_binance.exchange.load_markets.return_value = binance_markets
 
         mock_coinbase = mock.MagicMock()
         mock_coinbase.exchange_name = "coinbasepro"
-        
+
         def normalize_symbol_coinbase(symbol):
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
                 return f"{base}/USD"
             return symbol.upper()
-        
+
         mock_coinbase._normalize_symbol.side_effect = normalize_symbol_coinbase
         mock_coinbase.exchange.load_markets.return_value = coinbase_markets
 
