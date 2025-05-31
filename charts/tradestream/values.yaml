@@ -89,7 +89,6 @@ candleIngestor:
     backoffLimit: 2
     ttlSecondsAfterFinished: 3600 # Cleans up finished jobs after 1 hour
     restartPolicy: "OnFailure"
-  
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
