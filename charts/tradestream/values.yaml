@@ -82,7 +82,7 @@ pipeline:
     upgradeMode: stateless
 candleIngestor:
   enabled: true
-  schedule: "*/1 * * * *" # Example: run every minute. Adjust as needed.
+  schedule: "*/1 * * * *" # Run every 1 minute
   runMode: "wet" # Default run mode for the job
   job:
     backoffLimit: 2
@@ -93,25 +93,41 @@ candleIngestor:
     pullPolicy: IfNotPresent
     tag: "v1.36.3-develop"
   config:
-    topNCryptos: 10
+    # CCXT Exchange Configuration
+    exchanges:
+      - "binance" # Primary exchange (first in priority order)
+      - "coinbasepro" # Secondary exchange
+      - "kraken" # Tertiary exchange
+    minExchangesRequired: 0 # 0 = auto-detect (will require all 3 exchanges by default)
+
+    # Candle Processing Configuration
     candleGranularityMinutes: 1
-    influxDbBucket: "tradestream-data"
-    dataSources: "tiingo" # Adjusted as CMC is primarily for symbol discovery here
     backfillStartDate: "1_year_ago" # Configurable backfill start
     catchUpInitialDays: 7 # Configurable initial catch-up
+    apiCallDelaySeconds: 2 # Delay between API calls to respect rate limits
+    # Storage Configuration
+    influxDbBucket: "tradestream-data"
+    redisKeyCryptoSymbols: "top_cryptocurrencies"
+    # Debug/Testing Configuration (optional)
+    # dryRunLimit: 5  # Uncomment to limit symbols processed in dry run mode
   secrets:
-    cmcApiKey:
-      name: "coinmarketcap"
-      key: "apiKey"
-    tiingoApiKey:
-      name: "tiingo"
-      key: "apiKey"
+    # InfluxDB credentials
     influxDb:
       name: "influxdb-admin-secret"
       tokenKey: "admin-token"
   redis:
     host: '{{ include "tradestream.fullname" . }}-redis-master'
     port: 6379
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
+  failedJobsHistoryLimit: 2
+  successfulJobsHistoryLimit: 3
 # Redis configuration
 redis:
   enabled: true # Set to true to deploy Redis

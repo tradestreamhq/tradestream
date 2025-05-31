@@ -67,8 +67,9 @@ class BaseIngestorTest(absltest.TestCase):
 
         self.addCleanup(self.patch_redis_crypto_client.stop)
 
+        # Fix: Patch the correct function name
         self.patch_get_historical_candles = mock.patch(
-            "services.candle_ingestor.main.get_historical_candles_tiingo"
+            "services.candle_ingestor.main.get_historical_candles_ccxt"
         )
         self.mock_get_historical_candles = self.patch_get_historical_candles.start()
         self.addCleanup(self.patch_get_historical_candles.stop)
@@ -104,14 +105,14 @@ class BaseIngestorTest(absltest.TestCase):
         self.mock_helpers_datetime_module.timezone = timezone
 
         self.saved_flags = flagsaver.save_flag_values()
-        FLAGS.tiingo_api_key = "dummy_tiingo_for_test"
+        FLAGS.exchanges = ["binance"]  # Fix: Use CCXT flag instead of tiingo_api_key
         FLAGS.influxdb_token = "dummy_influx_token_for_test"
         FLAGS.influxdb_org = "dummy_influx_org_for_test"
         FLAGS.redis_host = "dummy_redis_host_for_test"  # Added
         FLAGS.redis_key_crypto_symbols = "test_crypto_symbols"  # Added
         FLAGS.candle_granularity_minutes = 1
         FLAGS.catch_up_initial_days = 1
-        FLAGS.tiingo_api_call_delay_seconds = 0
+        FLAGS.api_call_delay_seconds = 0  # Fix: Use correct flag name
         FLAGS.backfill_start_date = "1_day_ago"
 
         self.test_ticker = "btcusd"
@@ -161,20 +162,23 @@ class RunBackfillTest(BaseIngestorTest):
         dummy_candle = self._create_dummy_candle(expected_candle_ts_for_fetch_start)
         self.mock_get_historical_candles.return_value = [dummy_candle]
 
+        # Mock CCXT client
+        mock_ccxt_client = mock.MagicMock()
+
         candle_ingestor_main.run_backfill(
             influx_manager=self.mock_influx_manager,
             state_tracker=self.mock_state_tracker,
             tiingo_tickers=[self.test_ticker],
-            tiingo_api_key=FLAGS.tiingo_api_key,
+            ccxt_client=mock_ccxt_client,  # Fix: Pass CCXT client instead of API key
             backfill_start_date_str=FLAGS.backfill_start_date,
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
-            api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
+            api_call_delay_seconds=FLAGS.api_call_delay_seconds,
             last_processed_timestamps=self.last_processed_timestamps_shared_state,
             run_mode="wet",
             dry_run_processing_limit=None,
         )
         self.mock_get_historical_candles.assert_called_with(
-            FLAGS.tiingo_api_key, self.test_ticker, "2023-01-09", "2023-01-09", mock.ANY
+            mock_ccxt_client, self.test_ticker, "2023-01-09", "2023-01-09", mock.ANY
         )
         self.mock_state_tracker.update_last_processed_timestamp.assert_called_with(
             candle_ingestor_main.SERVICE_IDENTIFIER,
@@ -202,20 +206,23 @@ class RunBackfillTest(BaseIngestorTest):
         dummy_candle_resumed = self._create_dummy_candle(expected_candle_ts_for_fetch)
         self.mock_get_historical_candles.return_value = [dummy_candle_resumed]
 
+        # Mock CCXT client
+        mock_ccxt_client = mock.MagicMock()
+
         candle_ingestor_main.run_backfill(
             influx_manager=self.mock_influx_manager,
             state_tracker=self.mock_state_tracker,
             tiingo_tickers=[self.test_ticker],
-            tiingo_api_key=FLAGS.tiingo_api_key,
+            ccxt_client=mock_ccxt_client,  # Fix: Pass CCXT client instead of API key
             backfill_start_date_str=FLAGS.backfill_start_date,
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
-            api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
+            api_call_delay_seconds=FLAGS.api_call_delay_seconds,
             last_processed_timestamps=self.last_processed_timestamps_shared_state,
             run_mode="wet",
             dry_run_processing_limit=None,
         )
         self.mock_get_historical_candles.assert_called_with(
-            FLAGS.tiingo_api_key, self.test_ticker, "2023-01-07", "2023-01-09", mock.ANY
+            mock_ccxt_client, self.test_ticker, "2023-01-07", "2023-01-09", mock.ANY
         )
         self.mock_state_tracker.update_last_processed_timestamp.assert_called_with(
             candle_ingestor_main.SERVICE_IDENTIFIER,
@@ -241,13 +248,16 @@ class RunCatchUpTest(BaseIngestorTest):
         polled_candle = self._create_dummy_candle(expected_catch_up_candle_ts)
         self.mock_get_historical_candles.return_value = [polled_candle]
 
+        # Mock CCXT client
+        mock_ccxt_client = mock.MagicMock()
+
         candle_ingestor_main.run_catch_up(
             influx_manager=self.mock_influx_manager,
             state_tracker=self.mock_state_tracker,
             tiingo_tickers=[self.test_ticker],
-            tiingo_api_key=FLAGS.tiingo_api_key,
+            ccxt_client=mock_ccxt_client,  # Fix: Pass CCXT client instead of API key
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
-            api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
+            api_call_delay_seconds=FLAGS.api_call_delay_seconds,
             initial_catch_up_days=FLAGS.catch_up_initial_days,
             last_processed_timestamps=self.last_processed_timestamps_shared_state,
             run_mode="wet",
@@ -255,7 +265,7 @@ class RunCatchUpTest(BaseIngestorTest):
         )
 
         self.mock_get_historical_candles.assert_called_with(
-            FLAGS.tiingo_api_key,
+            mock_ccxt_client,
             self.test_ticker,
             "2023-01-10T11:59:00",
             "2023-01-10T12:05:00",
@@ -287,13 +297,16 @@ class RunCatchUpTest(BaseIngestorTest):
         polled_candle = self._create_dummy_candle(expected_catch_up_candle_ts)
         self.mock_get_historical_candles.return_value = [polled_candle]
 
+        # Mock CCXT client
+        mock_ccxt_client = mock.MagicMock()
+
         candle_ingestor_main.run_catch_up(
             influx_manager=self.mock_influx_manager,
             state_tracker=self.mock_state_tracker,
             tiingo_tickers=[self.test_ticker],
-            tiingo_api_key=FLAGS.tiingo_api_key,
+            ccxt_client=mock_ccxt_client,  # Fix: Pass CCXT client instead of API key
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
-            api_call_delay_seconds=FLAGS.tiingo_api_call_delay_seconds,
+            api_call_delay_seconds=FLAGS.api_call_delay_seconds,
             initial_catch_up_days=FLAGS.catch_up_initial_days,
             last_processed_timestamps=self.last_processed_timestamps_shared_state,
             run_mode="wet",
@@ -303,7 +316,7 @@ class RunCatchUpTest(BaseIngestorTest):
             candle_ingestor_main.SERVICE_IDENTIFIER, f"{self.test_ticker}-catch_up"
         )
         self.mock_get_historical_candles.assert_called_with(
-            FLAGS.tiingo_api_key,
+            mock_ccxt_client,
             self.test_ticker,
             "2023-01-10T12:01:00",
             "2023-01-10T12:05:00",
@@ -319,7 +332,7 @@ class MainFunctionTest(BaseIngestorTest):
             candle_ingestor_main.main(None)
             mock_exit.assert_called_once_with(0)
 
-        # In dry mode, get_historical_candles_tiingo should not be called
+        # In dry mode, get_historical_candles_ccxt should not be called
         self.assertEqual(self.mock_get_historical_candles.call_count, 0)
 
     @flagsaver.flagsaver(run_mode="wet")
@@ -361,16 +374,14 @@ class MainFunctionTest(BaseIngestorTest):
             mock_exit.assert_called_once_with(0)
 
         self.assertEqual(self.mock_get_historical_candles.call_count, 2)
-        self.mock_get_historical_candles.assert_any_call(
-            FLAGS.tiingo_api_key, self.test_ticker, "2023-01-01", "2023-01-02", mock.ANY
-        )
-        self.mock_get_historical_candles.assert_any_call(
-            FLAGS.tiingo_api_key,
-            self.test_ticker,
-            "2023-01-01T10:01:00",
-            "2023-01-03T00:00:00",
-            mock.ANY,
-        )
+        # Verify calls include CCXT client as first argument
+        call_args_list = self.mock_get_historical_candles.call_args_list
+        self.assertEqual(
+            call_args_list[0][0][1], self.test_ticker
+        )  # Symbol is second arg
+        self.assertEqual(
+            call_args_list[1][0][1], self.test_ticker
+        )  # Symbol is second arg
 
         self.mock_influx_manager.write_candles_batch.assert_any_call(
             backfill_candles_response

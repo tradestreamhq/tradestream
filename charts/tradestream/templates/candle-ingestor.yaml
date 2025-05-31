@@ -37,16 +37,6 @@ spec:
                   value: "{{ .Values.candleIngestor.config.influxDbBucket }}"
                 - name: DATA_SOURCES # This flag might need review in main.py if only Tiingo is used now
                   value: "{{ .Values.candleIngestor.config.dataSources }}"
-                - name: CMC_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: {{ .Values.candleIngestor.secrets.cmcApiKey.name }}
-                      key: {{ .Values.candleIngestor.secrets.cmcApiKey.key }}
-                - name: TIINGO_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: {{ .Values.candleIngestor.secrets.tiingoApiKey.name }}
-                      key: {{ .Values.candleIngestor.secrets.tiingoApiKey.key }}
                 - name: INFLUXDB_TOKEN
                   valueFrom:
                     secretKeyRef:
