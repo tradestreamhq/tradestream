@@ -1,4 +1,3 @@
-# services/candle_ingestor/BUILD
 load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
@@ -14,7 +13,6 @@ py_library(
     ],
 )
 
-# New CCXT client library
 py_library(
     name = "ccxt_client_lib",
     srcs = ["ccxt_client.py"],
@@ -25,7 +23,6 @@ py_library(
     ],
 )
 
-# Keep tiingo_client_lib for backward compatibility if needed
 py_library(
     name = "tiingo_client_lib",
     srcs = ["tiingo_client.py"],
@@ -51,7 +48,7 @@ py_binary(
     srcs = ["main.py"],
     main = "main.py",
     deps = [
-        ":ccxt_client_lib",  # Updated to use CCXT client
+        ":ccxt_client_lib",
         ":influx_client_lib",
         ":ingestion_helpers_lib",
         "//shared/cryptoclient:redis_crypto_client_lib",
