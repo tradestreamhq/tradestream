@@ -1,0 +1,76 @@
+name: "python-requirements-updater"
+on:
+  pull_request:
+    paths:
+      - "**/requirements.txt"
+      - "**/requirements.in"
+      - "**/requirements-*.txt"
+      - "**/requirements-*.in"
+      - "**/pyproject.toml"
+      - "**/setup.py"
+      - "**/setup.cfg"
+      - "MODULE.bazel"
+      - "WORKSPACE"
+      - "WORKSPACE.bazel"
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  update-requirements:
+    name: runner / requirements-updater
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: bazel-contrib/setup-bazel@0.14.0
+        with:
+          # Avoid downloading Bazel every time.
+          bazelisk-cache: true
+          bazelrc: |
+            build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
+          # Store build cache per workflow.
+          disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows.
+          repository-cache: true
+
+      - name: Update Python requirements
+        run: bazel run //:requirements.update
+        continue-on-error: true
+
+      - name: Check for requirement changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changed files:"
+            git status --porcelain
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No requirements files were updated"
+          fi
+
+      - name: Suggest requirement updates
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: requirements-updater
+          fail_on_error: false
+
+      - name: Show requirements diff summary
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        run: |
+          echo "## Requirements Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "The following files were updated:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          git diff --name-only >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Changed Files Details:" >> $GITHUB_STEP_SUMMARY
+          for file in $(git diff --name-only); do
+            echo "#### $file" >> $GITHUB_STEP_SUMMARY
+            echo '```diff' >> $GITHUB_STEP_SUMMARY
+            git diff "$file" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          done
