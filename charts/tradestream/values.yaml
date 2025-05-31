@@ -114,7 +114,6 @@ candleIngestor:
     
     # Debug/Testing Configuration (optional)
     # dryRunLimit: 5  # Uncomment to limit symbols processed in dry run mode
-  
   secrets:
     # InfluxDB credentials
     influxDb:
