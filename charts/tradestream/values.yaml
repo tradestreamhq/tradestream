@@ -132,7 +132,6 @@ candleIngestor:
     limits:
       cpu: "500m"
       memory: "1Gi"
-  
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 2
   successfulJobsHistoryLimit: 3
