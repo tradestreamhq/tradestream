@@ -14,7 +14,10 @@ from absl import flags
 from absl import logging
 
 from services.candle_ingestor.influx_client import InfluxDBManager
-from services.candle_ingestor.ccxt_client import MultiExchangeCandleClient, CCXTCandleClient
+from services.candle_ingestor.ccxt_client import (
+    MultiExchangeCandleClient,
+    CCXTCandleClient,
+)
 from services.candle_ingestor.ingestion_helpers import (
     parse_backfill_start_date,
 )
