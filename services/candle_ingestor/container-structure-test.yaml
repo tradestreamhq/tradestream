@@ -11,7 +11,8 @@ commandTests:
   
   - name: "Candle Ingestor Dry Run Basic Test"
     command: "/services/candle_ingestor/app"
-    args: [
+    args:
+      [
         "--run_mode=dry",
         "--exchanges=binance",
         "--influxdb_token=dummytoken",
