@@ -124,7 +124,6 @@ candleIngestor:
   redis:
     host: '{{ include "tradestream.fullname" . }}-redis-master'
     port: 6379
-  
   resources:
     requests:
       cpu: "200m"
