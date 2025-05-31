@@ -1,0 +1,64 @@
+{{- if .Values.strategyDiscoveryRequestFactory.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-discovery-request-factory
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: strategy-discovery-request-factory
+    release: {{ .Release.Name }}
+spec:
+  schedule: "{{ .Values.strategyDiscoveryRequestFactory.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: strategy-discovery-request-factory
+              image: "{{ .Values.strategyDiscoveryRequestFactory.image.repository }}:{{ .Values.strategyDiscoveryRequestFactory.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.strategyDiscoveryRequestFactory.image.pullPolicy }}
+              env:
+                - name: INFLUXDB_URL
+                  value: "http://{{ include "tradestream.fullname" . }}-influxdb:8086"
+                - name: INFLUXDB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: "{{ .Values.influxdb.adminUser.existingSecret | default (printf "%s-influxdb-admin-secret" (include "tradestream.fullname" .)) }}"
+                      key: admin-token # Assuming admin-token is the correct key in the secret
+                - name: INFLUXDB_ORG
+                  value: "{{ .Values.influxdb.adminUser.organization }}"
+                - name: INFLUXDB_BUCKET_TRACKER
+                  value: "{{ .Values.strategyDiscoveryRequestFactory.config.influxDbBucketTracker | default .Values.influxdb.adminUser.bucket }}"
+                - name: KAFKA_BOOTSTRAP_SERVERS
+                  value: "{{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+                - name: KAFKA_TOPIC
+                  value: "{{ .Values.strategyDiscoveryRequestFactory.config.kafkaTopic }}"
+                - name: TRACKER_SERVICE_NAME
+                  value: "{{ .Values.strategyDiscoveryRequestFactory.config.trackerServiceName }}"
+                - name: GLOBAL_STATUS_TRACKER_SERVICE_NAME
+                  value: "{{ .Values.strategyDiscoveryRequestFactory.config.globalStatusTrackerServiceName }}"
+                - name: MIN_PROCESSING_ADVANCE_MINUTES
+                  value: "{{ .Values.strategyDiscoveryRequestFactory.config.minProcessingAdvanceMinutes }}"
+                - name: CURRENCY_PAIRS
+                  value: "{{ join "," .Values.strategyDiscoveryRequestFactory.config.currencyPairs }}"
+                - name: FIBONACCI_WINDOWS_MINUTES
+                  value: "{{ join "," .Values.strategyDiscoveryRequestFactory.config.fibonacciWindowsMinutes }}"
+                - name: DEFAULT_TOP_N
+                  value: "{{ .Values.strategyDiscoveryRequestFactory.config.defaultTopN }}"
+                - name: DEFAULT_MAX_GENERATIONS
+                  value: "{{ .Values.strategyDiscoveryRequestFactory.config.defaultMaxGenerations }}"
+                - name: DEFAULT_POPULATION_SIZE
+                  value: "{{ .Values.strategyDiscoveryRequestFactory.config.defaultPopulationSize }}"
+              resources:
+                requests:
+                  cpu: "{{ .Values.strategyDiscoveryRequestFactory.resources.requests.cpu }}"
+                  memory: "{{ .Values.strategyDiscoveryRequestFactory.resources.requests.memory }}"
+                limits:
+                  cpu: "{{ .Values.strategyDiscoveryRequestFactory.resources.limits.cpu }}"
+                  memory: "{{ .Values.strategyDiscoveryRequestFactory.resources.limits.memory }}"
+  concurrencyPolicy: "{{ .Values.strategyDiscoveryRequestFactory.concurrencyPolicy }}"
+  failedJobsHistoryLimit: {{ .Values.strategyDiscoveryRequestFactory.failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .Values.strategyDiscoveryRequestFactory.successfulJobsHistoryLimit }}
+{{- end }}
