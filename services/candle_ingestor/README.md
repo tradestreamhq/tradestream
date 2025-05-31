@@ -1,134 +1,133 @@
-# Updated Usage Examples with Auto-Detection
+# Candle Ingestor
 
-## ✅ **Enhanced Configuration Logic**
+A robust cryptocurrency candle data ingestion service that fetches OHLCV (Open, High, Low, Close, Volume) data from multiple exchanges using CCXT and stores it in InfluxDB.
 
-The `min_exchanges_required` now **auto-detects** from the number of exchanges provided when not explicitly set!
+## Overview
 
-## Command Examples
+The Candle Ingestor supports both single-exchange and multi-exchange modes with intelligent symbol validation and automatic exchange requirement detection. It performs historical backfilling and real-time catch-up to maintain complete candle datasets.
 
-### **Simple Single Exchange** (No minimum needed)
+### Key Features
+
+- **Multi-Exchange Support**: Aggregate data from multiple exchanges (Binance, Coinbase Pro, Kraken, etc.)
+- **Auto-Detection**: Automatically determines minimum exchange requirements based on configuration
+- **Symbol Validation**: Validates symbol availability across exchanges before processing
+- **Resilient Processing**: Built-in retries, error handling, and state tracking
+- **Flexible Timeframes**: Support for 1-minute to daily candles
+- **Dry Run Mode**: Test configuration without writing data
+
+## Quick Start
+
+### Basic Single Exchange
 ```bash
-./candle_ingestor --exchanges=binance
+./candle_ingestor --exchanges=binance --run_mode=wet
 ```
-**Result**: Single exchange mode, no aggregation needed
 
-### **Auto-Detected Multi-Exchange** (Intuitive!)
+### Multi-Exchange with Auto-Detection
 ```bash
-# Auto-detects min_exchanges_required=3 (from 3 exchanges provided)
+# Automatically requires all 3 exchanges
+./candle_ingestor --exchanges=binance,coinbasepro,kraken --run_mode=wet
+```
+
+### Custom Exchange Requirements
+```bash
+# Allow aggregation with 2+ out of 3 exchanges
+./candle_ingestor --exchanges=binance,coinbasepro,kraken --min_exchanges_required=2 --run_mode=wet
+```
+
+## Installation
+
+### Prerequisites
+
+- Python 3.13+
+- InfluxDB 2.x
+- Redis
+- Access to configured exchanges
+
+### Environment Variables
+
+```bash
+export INFLUXDB_TOKEN="your-influxdb-token"
+export INFLUXDB_ORG="your-org"
+export REDIS_HOST="localhost"
+```
+
+### Running with Docker
+
+```bash
+docker run tradestreamhq/candle-ingestor:latest \
+  --exchanges=binance,coinbasepro \
+  --influxdb_token=$INFLUXDB_TOKEN \
+  --influxdb_org=$INFLUXDB_ORG \
+  --redis_host=$REDIS_HOST \
+  --run_mode=wet
+```
+
+## Configuration
+
+### Exchange Configuration
+
+| Strategy | Command | Behavior |
+|----------|---------|-----------|
+| **Single Exchange** | `--exchanges=binance` | Uses only Binance data |
+| **Conservative Multi** | `--exchanges=binance,coinbase,kraken` | Requires all 3 exchanges (auto-detected) |
+| **Flexible Multi** | `--exchanges=binance,coinbase,kraken --min_exchanges_required=2` | Aggregates with 2+ exchanges |
+
+### Key Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--exchanges` | `binance,coinbasepro,kraken` | Comma-separated list of exchanges |
+| `--min_exchanges_required` | `0` (auto) | Minimum exchanges for aggregation (0 = auto-detect) |
+| `--candle_granularity_minutes` | `1` | Candle timeframe in minutes |
+| `--backfill_start_date` | `1_year_ago` | Historical data start point |
+| `--run_mode` | `wet` | `wet` (live) or `dry` (simulation) |
+
+### Auto-Detection Logic
+
+When `--min_exchanges_required=0` (default):
+- **1 exchange provided** → Single exchange mode
+- **N exchanges provided** → Multi-exchange mode requiring all N exchanges
+
+This ensures data quality by default while allowing flexibility when needed.
+
+## Usage Examples
+
+### Development & Testing
+
+```bash
+# Test configuration
+./candle_ingestor --run_mode=dry --exchanges=binance
+
+# Limited backfill for testing
+./candle_ingestor --backfill_start_date=1_day_ago --dry_run_limit=5
+```
+
+### Production Scenarios
+
+#### High Quality (Conservative)
+```bash
+# Requires all 3 exchanges for maximum data quality
 ./candle_ingestor --exchanges=binance,coinbasepro,kraken
 ```
-**Logs**:
-```
-INFO: Auto-detected min_exchanges_required: 3 (from 3 provided exchanges)
-INFO: Multi-exchange mode: using 3 exchanges with binance as primary
-INFO: Minimum exchanges required: 3
-```
 
-### **Explicit Multi-Exchange** (When you want flexibility)
+#### Balanced (Recommended)
 ```bash
-# Allow aggregation with 2+ exchanges even though 3 are provided
+# Allows 2+ exchanges for better coverage
 ./candle_ingestor --exchanges=binance,coinbasepro,kraken --min_exchanges_required=2
 ```
-**Logs**:
-```
-INFO: Multi-exchange mode: using 3 exchanges with binance as primary  
-INFO: Minimum exchanges required: 2
-```
 
-### **High-Redundancy Setup**
+#### Maximum Coverage
 ```bash
-# Provide 5 exchanges, require all 5 (auto-detected)
-./candle_ingestor --exchanges=binance,coinbasepro,kraken,huobi,kucoin
-```
-**Result**: Only aggregates candles when all 5 exchanges have data
-
-### **Permissive Multi-Exchange**
-```bash
-# Provide 5 exchanges but allow aggregation with just 2
+# Process symbols available on any 2+ exchanges
 ./candle_ingestor --exchanges=binance,coinbasepro,kraken,huobi,kucoin --min_exchanges_required=2
 ```
-**Result**: Aggregates when any 2+ exchanges have data
 
-## Configuration Behavior Matrix
+### Deployment
 
-| Command | Exchanges Count | Min Required | Behavior |
-|---------|----------------|--------------|----------|
-| `--exchanges=binance` | 1 | N/A | Single exchange mode |
-| `--exchanges=binance,coinbase` | 2 | 2 (auto) | Multi-exchange, need both |
-| `--exchanges=binance,coinbase,kraken` | 3 | 3 (auto) | Multi-exchange, need all 3 |
-| `--exchanges=binance,coinbase,kraken --min_exchanges_required=2` | 3 | 2 (explicit) | Multi-exchange, need 2+ |
-| `--exchanges=binance,coinbase --min_exchanges_required=3` | 2 | 3 (explicit) | ❌ ERROR: Insufficient exchanges |
-
-## Real-World Scenarios
-
-### **Conservative (High Quality)**
-```bash
-# Use 3 major exchanges, require all 3 for maximum data quality
-./candle_ingestor --exchanges=binance,coinbasepro,kraken
-```
-**Symbol Filtering**: Only processes symbols available on all 3 exchanges
-**Data Quality**: Highest (true 3-exchange consensus)
-**Coverage**: Lower (strict requirements)
-
-### **Balanced (Recommended)**
-```bash
-# Use 3 exchanges but allow 2+ for better coverage
-./candle_ingestor --exchanges=binance,coinbasepro,kraken --min_exchanges_required=2
-```
-**Symbol Filtering**: Processes symbols available on 2+ exchanges
-**Data Quality**: High (multi-exchange aggregation)
-**Coverage**: Higher (more symbols included)
-
-### **Maximum Coverage**
-```bash
-# Use many exchanges, low minimum for maximum symbol coverage
-./candle_ingestor --exchanges=binance,coinbasepro,kraken,huobi,kucoin,okx --min_exchanges_required=2
-```
-**Symbol Filtering**: Processes symbols available on any 2+ exchanges
-**Data Quality**: Good (still aggregated)
-**Coverage**: Maximum (most symbols included)
-
-### **Ultra-High Reliability**
-```bash
-# Use 6 exchanges, require 4+ for extreme reliability
-./candle_ingestor --exchanges=binance,coinbasepro,kraken,huobi,kucoin,okx --min_exchanges_required=4
-```
-**Symbol Filtering**: Only major symbols available on 4+ exchanges
-**Data Quality**: Exceptional (4+ exchange consensus)
-**Coverage**: Limited (only most liquid pairs)
-
-## Timestamp Aggregation in Action
-
-### **Example Log Output**
-```bash
-INFO: Fetched 1440 candles from binance
-INFO: Fetched 1438 candles from coinbasepro
-INFO: Fetched 1441 candles from kraken
-INFO: Grouping candles by timestamp for aggregation...
-INFO: Timestamp 1640995200000: 3 exchanges available ✅
-INFO: Timestamp 1640995260000: 3 exchanges available ✅ 
-INFO: Timestamp 1640995320000: 2 exchanges available ✅
-INFO: Timestamp 1640995380000: 1 exchange available ❌ Skipped
-INFO: Aggregated 1437 candles from multiple exchanges (3 timestamps skipped due to insufficient exchange coverage)
-```
-
-### **Volume-Weighted Aggregation**
-```bash
-INFO: Aggregating timestamp 1640995200000:
-  - Binance: Close=50100, Volume=120.5
-  - Coinbase: Close=50050, Volume=95.2  
-  - Kraken: Close=50075, Volume=67.8
-  → VWAP Close=50082.14, Total Volume=283.5
-```
-
-## Production Deployment
-
-### **Kubernetes CronJob with Auto-Detection**
+#### Kubernetes CronJob
 ```yaml
 apiVersion: batch/v1
 kind: CronJob
-metadata:
-  name: candle-ingestor
 spec:
   schedule: "*/5 * * * *"
   jobTemplate:
@@ -138,10 +137,7 @@ spec:
           containers:
           - name: candle-ingestor
             image: tradestreamhq/candle-ingestor:latest
-            args:
-              # Auto-detects min_exchanges_required=3
-              - "--exchanges=binance,coinbasepro,kraken"
-              - "--candle_granularity_minutes=1"
+            args: ["--exchanges=binance,coinbasepro,kraken"]
             env:
             - name: INFLUXDB_TOKEN
               valueFrom:
@@ -150,50 +146,159 @@ spec:
                   key: token
 ```
 
-### **Docker Compose**
-```yaml
-version: '3.8'
-services:
-  candle-ingestor:
-    image: tradestreamhq/candle-ingestor:latest
-    command: >
-      --exchanges=binance,coinbasepro,kraken,huobi
-      --candle_granularity_minutes=1
-      --run_mode=wet
-    environment:
-      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
-      - INFLUXDB_ORG=${INFLUXDB_ORG}
-      - REDIS_HOST=redis
-    depends_on:
-      - redis
-      - influxdb
+## Data Flow
+
+1. **Symbol Retrieval**: Fetches cryptocurrency symbols from Redis
+2. **Symbol Validation**: Validates symbol availability across configured exchanges
+3. **Historical Backfill**: Processes historical data from `backfill_start_date`
+4. **Real-time Catch-up**: Ingests recent data since last processing
+5. **Data Aggregation**: Combines multi-exchange data using volume-weighted averaging
+6. **Storage**: Writes processed candles to InfluxDB with state tracking
+
+## Multi-Exchange Aggregation
+
+When multiple exchanges are configured, the service:
+
+1. **Fetches data** from all available exchanges
+2. **Groups candles** by timestamp
+3. **Applies volume-weighted averaging** for OHLC prices
+4. **Sums volumes** across exchanges
+5. **Tracks source exchanges** in metadata
+
+### Example Aggregation
+```bash
+# Input from 3 exchanges at timestamp 1640995200000
+Binance:  Close=50100, Volume=120.5
+Coinbase: Close=50050, Volume=95.2  
+Kraken:   Close=50075, Volume=67.8
+
+# Output: VWAP Close=50082.14, Total Volume=283.5
+```
+
+## State Management
+
+The service maintains processing state in InfluxDB to ensure:
+- **Idempotent execution** (safe to re-run)
+- **Resumable processing** after interruptions
+- **Efficient catch-up** with minimal API calls
+
+State is tracked separately for:
+- Backfill operations (`{ticker}-backfill`)
+- Catch-up operations (`{ticker}-catch_up`)
+
+## Monitoring & Observability
+
+### Log Levels
+- **INFO**: Normal operations, progress updates
+- **WARNING**: Recoverable issues, symbol validation failures
+- **ERROR**: Serious issues requiring attention
+
+### Key Metrics to Monitor
+- Successful vs failed symbol processing
+- Exchange availability and response times
+- InfluxDB write success rates
+- Redis connectivity status
+
+### Example Log Output
+```
+INFO: Multi-exchange mode: using 3 exchanges with binance as primary
+INFO: Auto-detected min_exchanges_required: 3
+INFO: Symbol validation: 45/50 symbols meet minimum 3 exchange requirement
+INFO: Successfully processed 1,437 candles for BTC/USD
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### Symbol Validation Failures
+```bash
+ERROR: No symbols meet the minimum exchange requirement of 3
+```
+**Solution**: Lower `--min_exchanges_required` or check exchange connectivity
+
+#### Exchange API Errors
+```bash
+WARNING: Failed to fetch from coinbasepro: Rate limit exceeded
+```
+**Solution**: Increase `--api_call_delay_seconds` or check API status
+
+#### InfluxDB Connection Issues
+```bash
+ERROR: Failed to connect to InfluxDB after retries
+```
+**Solution**: Verify `--influxdb_url`, token, and organization settings
+
+### Debug Mode
+```bash
+# Enable verbose logging
+./candle_ingestor --verbosity=1 --run_mode=dry
 ```
 
 ## Migration from Tiingo
 
-### **Before** (Tiingo)
+### Before (Tiingo API)
 ```bash
-./candle_ingestor --tiingo_api_key=$API_KEY --candle_granularity_minutes=1
+./candle_ingestor --tiingo_api_key=$API_KEY
 ```
 
-### **After** (CCXT Conservative)
+### After (CCXT Multi-Exchange)
 ```bash
-# Single exchange (simplest migration)
-./candle_ingestor --exchanges=binance --candle_granularity_minutes=1
+./candle_ingestor --exchanges=binance,coinbasepro,kraken
 ```
 
-### **After** (CCXT Multi-Exchange)
+The CCXT implementation provides:
+- ✅ **Higher reliability** through multi-exchange redundancy
+- ✅ **Better data quality** via cross-exchange validation
+- ✅ **No API key costs** for most exchanges
+- ✅ **Real-time processing** capabilities
+
+## Technical Details
+
+### Architecture
+- **Language**: Python 3.13
+- **Exchange Connectivity**: CCXT library
+- **Database**: InfluxDB 2.x for time-series storage
+- **Cache**: Redis for symbol management
+- **Containerization**: OCI-compliant images
+
+### Performance Considerations
+- Implements exponential backoff for API retries
+- Batches InfluxDB writes for efficiency
+- Uses connection pooling for database operations
+- Respects exchange rate limits automatically
+
+### Dependencies
+- `ccxt`: Cryptocurrency exchange connectivity
+- `influxdb-client`: InfluxDB Python client
+- `redis`: Redis connectivity
+- `tenacity`: Retry mechanisms
+- `absl-py`: Application framework
+
+## Contributing
+
+1. **Fork** the repository
+2. **Create** a feature branch
+3. **Add tests** for new functionality
+4. **Run tests**: `bazel test //services/candle_ingestor:all`
+5. **Submit** a pull request
+
+### Development Setup
 ```bash
-# Multi-exchange with auto-detection (recommended)
-./candle_ingestor --exchanges=binance,coinbasepro,kraken --candle_granularity_minutes=1
+# Run tests
+bazel test //services/candle_ingestor:all
+
+# Build container
+bazel run //services/candle_ingestor:push_candle_ingestor_image
+
+# Format code
+black services/candle_ingestor/
 ```
 
-## ✅ **Benefits of Auto-Detection**
+## License
 
-1. **🎯 Intuitive**: If you provide 3 exchanges, it assumes you want all 3 used
-2. **🛡️ Safe Defaults**: Maintains data quality by requiring all provided exchanges
-3. **🔧 Flexible**: Override with explicit `--min_exchanges_required` when needed
-4. **📝 Clear Logs**: Shows both auto-detected and explicitly set minimums
-5. **⚡ Simple Migration**: Most users can just list their desired exchanges
+This project is part of the TradeStream platform. See the root LICENSE file for details.
 
-This makes the configuration **much more intuitive** while maintaining all the flexibility and data quality controls! 🚀
+---
+
+**Need Help?** Check the [troubleshooting section](#troubleshooting) or review the logs for specific error messages.
