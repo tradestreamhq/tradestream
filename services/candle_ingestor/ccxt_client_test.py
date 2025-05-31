@@ -106,7 +106,7 @@ class TestMultiExchangeCandleClient(unittest.TestCase):
         mock_coinbase = mock.MagicMock()
         
         def mock_client_factory(exchange_name):
-            if exchange_name == 'binance':
+            if exchange_name == "binance":
                 return mock_binance
             elif exchange_name == "coinbasepro":
                 return mock_coinbase
