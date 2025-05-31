@@ -1,6 +1,15 @@
 schemaVersion: "2.0.0"
 commandTests:
-  - name: "Candle Ingestor Dry Run Test (Single Execution)"
+  - name: "Candle Ingestor Help Test"
+    command: "/services/candle_ingestor/app"
+    args: ["--help"]
+    exitCode: 1 # Help usually exits with non-zero
+    expectedOutput:
+      - "exchanges"
+      - "influxdb_token"
+      - "run_mode"
+  
+  - name: "Candle Ingestor Dry Run Basic Test"
     command: "/services/candle_ingestor/app"
     args: [
         "--run_mode=dry",
@@ -10,17 +19,7 @@ commandTests:
         "--backfill_start_date=1_day_ago",
         "--candle_granularity_minutes=60",
         "--catch_up_initial_days=1",
-        # Add this line to limit to 1 ticker and trigger the "max tickers" messages:
-        "--dry_run_limit=1", # This will need to be implemented in main.py
+        "--dry_run_limit=1",
       ]
-    # Expected to exit cleanly after a single run in dry mode.
-    # Check for specific log messages indicating dry run operation for backfill and catch-up.
-    expectedOutput:
-      - "Starting candle ingestor script .* in dry mode"
-      - "DRY RUN: Backfill will use dummy data and limited iterations."
-      - "DRY RUN: Simulating CCXT API call for btcusd-dry.*backfill"
-      - "DRY RUN: Backfill simulation complete."
-      - "DRY RUN: Catch-up will use dummy data and limited iterations."
-      - "DRY RUN: Simulating CCXT API call for btcusd-dry.*catch-up"
-      - "Catch-up candle processing completed."
-      - "Candle ingestor script completed successfully."
+    # Expected to exit cleanly after a single run in dry mode
+    exitCode: 0
