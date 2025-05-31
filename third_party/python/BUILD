@@ -9,7 +9,6 @@ py_library(
     ],
 )
 
-
 py_library(
     name = "ccxt",
     visibility = ["//visibility:public"],
