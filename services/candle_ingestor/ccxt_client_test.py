@@ -260,5 +260,5 @@ class TestMultiExchangeCandleClient(unittest.TestCase):
         self.assertEqual(result['exchange'], 'averaged')
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
