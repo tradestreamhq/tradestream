@@ -1,4 +1,5 @@
 absl-py==2.2.2
+ccxt==4.4.86
 influxdb-client==1.48.0
 kafka-python==2.2.10
 protobuf==6.31.0

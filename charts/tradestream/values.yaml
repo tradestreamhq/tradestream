@@ -55,7 +55,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v1.36.1-develop
+    tag: v1.36.3-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -93,8 +93,7 @@ candleIngestor:
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
-    tag: "v1.36.1-develop"
-  
+    tag: "v1.36.3-develop"
   config:
     # CCXT Exchange Configuration
     exchanges:
@@ -153,7 +152,7 @@ topCryptoUpdaterCronjob:
   image:
     repository: "tradestreamhq/top-crypto-updater"
     pullPolicy: IfNotPresent
-    tag: "v1.36.1-develop"
+    tag: "v1.36.3-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
@@ -177,7 +176,7 @@ strategyDiscoveryRequestFactory:
   image:
     repository: "tradestreamhq/strategy-discovery-request-factory"
     pullPolicy: IfNotPresent
-    tag: "v1.36.1-develop"
+    tag: "v1.36.3-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
