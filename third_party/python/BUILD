@@ -9,6 +9,15 @@ py_library(
     ],
 )
 
+
+py_library(
+    name = "ccxt",
+    visibility = ["//visibility:public"], 
+    deps = [
+        requirement("ccxt"),
+    ],
+)
+
 py_library(
     name = "influxdb_client",
     visibility = ["//visibility:public"],
