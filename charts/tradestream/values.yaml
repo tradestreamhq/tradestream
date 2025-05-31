@@ -148,7 +148,7 @@ topCryptoUpdaterCronjob:
 # Strategy Discovery Request Factory CronJob configuration
 strategyDiscoveryRequestFactory:
   enabled: true
-  schedule: "0 * * * *" # Run at the start of every hour
+  schedule: "* * * * *" # Run at the start of every hour
   image:
     repository: "tradestreamhq/strategy-discovery-request-factory"
     pullPolicy: IfNotPresent
