@@ -111,7 +111,6 @@ candleIngestor:
     # Storage Configuration
     influxDbBucket: "tradestream-data"
     redisKeyCryptoSymbols: "top_cryptocurrencies"
-    
     # Debug/Testing Configuration (optional)
     # dryRunLimit: 5  # Uncomment to limit symbols processed in dry run mode
   secrets:
