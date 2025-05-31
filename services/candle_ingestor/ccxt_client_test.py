@@ -108,7 +108,7 @@ class TestMultiExchangeCandleClient(unittest.TestCase):
         def mock_client_factory(exchange_name):
             if exchange_name == 'binance':
                 return mock_binance
-            elif exchange_name == 'coinbasepro':
+            elif exchange_name == "coinbasepro":
                 return mock_coinbase
         mock_ccxt_client.side_effect = mock_client_factory
         
