@@ -55,7 +55,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v1.35.3-develop
+    tag: v1.36.0-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -91,7 +91,7 @@ candleIngestor:
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
-    tag: "v1.35.3-develop"
+    tag: "v1.36.0-develop"
   config:
     topNCryptos: 10
     candleGranularityMinutes: 1
@@ -128,7 +128,7 @@ topCryptoUpdaterCronjob:
   image:
     repository: "tradestreamhq/top-crypto-updater"
     pullPolicy: IfNotPresent
-    tag: "v1.35.3-develop"
+    tag: "v1.36.0-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
@@ -145,7 +145,6 @@ topCryptoUpdaterCronjob:
   redis:
     host: '{{ include "tradestream.fullname" . }}-redis-master' # Dynamically set Redis host
     port: 6379
-
 # Strategy Discovery Request Factory CronJob configuration
 strategyDiscoveryRequestFactory:
   enabled: true
@@ -153,7 +152,7 @@ strategyDiscoveryRequestFactory:
   image:
     repository: "tradestreamhq/strategy-discovery-request-factory"
     pullPolicy: IfNotPresent
-    tag: "v1.35.3-develop"
+    tag: "v1.36.0-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
