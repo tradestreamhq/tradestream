@@ -194,6 +194,20 @@ kt_jvm_library(
     ],
 )
 
+kt_jvm_library(
+    name = "influxdb_candle_fetcher",
+    srcs = ["InfluxDbCandleFetcher.kt"], # Ensure .kt extension
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party/java:guava",
+        "//third_party/java:influxdb_client_java", # Make sure this points to the InfluxDB Java Client
+        "//third_party/java:influxdb_client_kotlin", # Add if using Kotlin client
+        "//third_party/java:flogger",
+        "//third_party/java:protobuf_java_util",
+        "//third_party/kotlin:kotlinx_coroutines_core", # If using Kotlin client with coroutines
+    ],
+)
+
 # DoFn for buffering the last N candles
 java_library(
     name = "last_candles_fn",
