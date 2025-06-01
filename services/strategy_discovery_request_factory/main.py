@@ -37,9 +37,7 @@ from shared.cryptoclient.redis_crypto_client import RedisCryptoClient
 
 # InfluxDB flags
 flags.DEFINE_string(
-    "influxdb_url", 
-    os.getenv("INFLUXDB_URL", "http://localhost:8086"), 
-    "InfluxDB URL"
+    "influxdb_url", os.getenv("INFLUXDB_URL", "http://localhost:8086"), "InfluxDB URL"
 )
 flags.DEFINE_string("influxdb_token", os.getenv("INFLUXDB_TOKEN"), "InfluxDB token")
 flags.DEFINE_string("influxdb_org", os.getenv("INFLUXDB_ORG"), "InfluxDB organization")
@@ -62,9 +60,9 @@ flags.DEFINE_integer(
 
 # Kafka flags
 flags.DEFINE_string(
-    "kafka_bootstrap_servers", 
-    os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"), 
-    "Kafka servers"
+    "kafka_bootstrap_servers",
+    os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"),
+    "Kafka servers",
 )
 flags.DEFINE_string("kafka_topic", "strategy-discovery-requests", "Kafka topic")
 
@@ -75,7 +73,7 @@ flags.DEFINE_string("redis_password", os.getenv("REDIS_PASSWORD"), "Redis passwo
 flags.DEFINE_string(
     "redis_key_crypto_symbols",
     os.getenv("REDIS_KEY_CRYPTO_SYMBOLS", "top_cryptocurrencies"),
-    "Redis key for cryptocurrency symbols"
+    "Redis key for cryptocurrency symbols",
 )
 
 # Processing flags
@@ -134,20 +132,22 @@ class StrategyDiscoveryService:
                 port=FLAGS.redis_port,
                 password=FLAGS.redis_password,
             )
-            
-            symbols = redis_client.get_top_crypto_pairs_from_redis(FLAGS.redis_key_crypto_symbols)
+
+            symbols = redis_client.get_top_crypto_pairs_from_redis(
+                FLAGS.redis_key_crypto_symbols
+            )
             logging.info(f"Retrieved {len(symbols)} symbols from Redis: {symbols}")
-            
+
             # Convert symbols (like "btcusd") to currency pairs (like "BTC/USD")
             currency_pairs = []
             for symbol in symbols:
-                if symbol.endswith('usd'):
+                if symbol.endswith("usd"):
                     base = symbol[:-3].upper()
                     currency_pairs.append(f"{base}/USD")
-            
+
             redis_client.close()
             return currency_pairs
-            
+
         except Exception as e:
             logging.error(f"Failed to get currency pairs from Redis: {e}")
             # Fallback to a basic list
@@ -201,12 +201,12 @@ class StrategyDiscoveryService:
         """Run the main cron job logic."""
         try:
             self._validate_configuration()
-            
+
             currency_pairs = self._get_currency_pairs_from_redis()
             if not currency_pairs:
                 logging.warning("No currency pairs found. Exiting.")
                 return
-                
+
             logging.info(
                 f"Processing {len(currency_pairs)} currency pairs: {currency_pairs}"
             )
