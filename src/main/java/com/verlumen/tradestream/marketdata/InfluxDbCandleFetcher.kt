@@ -26,7 +26,11 @@ class InfluxDbCandleFetcher(
         logger.atInfo().log("InfluxDbCandleFetcher initialized for org: %s, bucket: %s", org, bucket)
     }
 
-    override fun fetchCandles(symbol: String, startTime: Timestamp, endTime: Timestamp): ImmutableList<Candle> {
+    override fun fetchCandles(
+        symbol: String,
+        startTime: Timestamp,
+        endTime: Timestamp,
+    ): ImmutableList<Candle> {
         val startIso = Timestamps.toString(startTime)
         val endIso = Timestamps.toString(endTime)
         val fluxSymbol = symbol // Adjust if your InfluxDB tag for currency_pair is different
