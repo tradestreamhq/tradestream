@@ -52,6 +52,12 @@ jobs:
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Print detected diff
+        if: steps.verify_changed_files.outputs.changed == 'true'
+        run: |
+          echo "Detected changes by 'bazel mod tidy':"
+          git --no-pager diff
+
       - name: Suggest tidy changes
         if: steps.verify_changed_files.outputs.changed == 'true'
         uses: reviewdog/action-suggester@v1
