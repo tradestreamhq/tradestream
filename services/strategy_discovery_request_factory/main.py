@@ -66,9 +66,9 @@ flags.DEFINE_integer(
 
 # Kafka flags
 flags.DEFINE_string(
-    "kafka_bootstrap_servers", 
-    os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"), 
-    "Kafka servers"
+    "kafka_bootstrap_servers",
+    os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"),
+    "Kafka servers",
 )
 flags.DEFINE_string("kafka_topic", "strategy-discovery-requests", "Kafka topic")
 
