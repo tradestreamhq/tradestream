@@ -22,16 +22,16 @@ class TestSymbolValidation(unittest.TestCase):
         def normalize_symbol(symbol):
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
-                return f"{base}/USDT"
+                return f"{base}/USD"
             return symbol.upper()
 
         mock_client._normalize_symbol.side_effect = normalize_symbol
 
         # Mock exchange markets
         mock_client.exchange.load_markets.return_value = {
-            "BTC/USDT": {"symbol": "BTC/USDT"},
-            "ETH/USDT": {"symbol": "ETH/USDT"},
-            "ADA/USDT": {"symbol": "ADA/USDT"},
+            "BTC/USD": {"symbol": "BTC/USD"},
+            "ETH/USD": {"symbol": "ETH/USD"},
+            "ADA/USD": {"symbol": "ADA/USD"},
         }
 
         symbols = ["btcusd", "ethusd", "xrpusd"]  # XRP not available
@@ -55,14 +55,14 @@ class TestSymbolValidation(unittest.TestCase):
         def normalize_symbol_binance(symbol):
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
-                return f"{base}/USDT"
+                return f"{base}/USD"
             return symbol.upper()
 
         mock_binance._normalize_symbol.side_effect = normalize_symbol_binance
         mock_binance.exchange.load_markets.return_value = {
-            "BTC/USDT": {},
-            "ETH/USDT": {},
-            "ADA/USDT": {},
+            "BTC/USD": {},
+            "ETH/USD": {},
+            "ADA/USD": {},
         }
 
         mock_coinbase = mock.MagicMock()
@@ -108,13 +108,13 @@ class TestSymbolValidation(unittest.TestCase):
         def normalize_symbol(symbol):
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
-                return f"{base}/USDT"
+                return f"{base}/USD"
             return symbol.upper()
 
         mock_binance._normalize_symbol.side_effect = normalize_symbol
         mock_binance.exchange.load_markets.return_value = {
-            "BTC/USDT": {},
-            "ETH/USDT": {},
+            "BTC/USD": {},
+            "ETH/USD": {},
         }
 
         mock_client.exchanges = {
@@ -137,13 +137,13 @@ class TestSymbolValidation(unittest.TestCase):
         def normalize_symbol(symbol):
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
-                return f"{base}/USDT"
+                return f"{base}/USD"
             return symbol.upper()
 
         mock_client._normalize_symbol.side_effect = normalize_symbol
         mock_client.exchange.load_markets.return_value = {
-            "BTC/USDT": {},
-            "ETH/USDT": {},
+            "BTC/USD": {},
+            "ETH/USD": {},
         }
 
         symbols = ["btcusd", "ethusd", "adausd"]
@@ -164,7 +164,7 @@ class TestSymbolValidation(unittest.TestCase):
         def normalize_symbol(symbol):
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
-                return f"{base}/USDT"
+                return f"{base}/USD"
             return symbol.upper()
 
         # Set up both exchange clients identically for this test
@@ -172,8 +172,8 @@ class TestSymbolValidation(unittest.TestCase):
             exchange_client.exchange_name = name
             exchange_client._normalize_symbol.side_effect = normalize_symbol
             exchange_client.exchange.load_markets.return_value = {
-                "BTC/USDT": {},
-                "ETH/USDT": {},
+                "BTC/USD": {},
+                "ETH/USD": {},
             }
 
         symbols = ["btcusd", "ethusd"]
@@ -207,14 +207,13 @@ class TestSymbolValidation(unittest.TestCase):
                 return symbol.upper()
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
-                return f"{base}/USDT"
+                return f"{base}/USD"
             return symbol.upper()
 
         mock_client._normalize_symbol.side_effect = normalize_symbol
         mock_client.exchange.load_markets.return_value = {
-            "BTC/USDT": {},
-            "ETH/USDT": {},
-            "BTC/USD": {},
+            "BTC/USD": {}, # Matches btcusd and BTC/USD
+            "ETH/USD": {}, # Matches ethusd
         }
 
         symbols = ["btcusd", "BTC/USD", "ethusd", "INVALID"]
@@ -248,7 +247,7 @@ class TestSymbolValidationIntegration(unittest.TestCase):
         ]
 
         # Mock Binance markets (comprehensive)
-        binance_markets = {f"{pair[:-3].upper()}/USDT": {} for pair in common_pairs}
+        binance_markets = {f"{pair[:-3].upper()}/USD": {} for pair in common_pairs}
 
         # Mock Coinbase markets (more limited)
         coinbase_limited = ["btcusd", "ethusd", "adausd", "solusd", "ltcusd", "linkusd"]
@@ -263,7 +262,7 @@ class TestSymbolValidationIntegration(unittest.TestCase):
         def normalize_symbol_binance(symbol):
             if symbol.lower().endswith("usd"):
                 base = symbol[:-3].upper()
-                return f"{base}/USDT"
+                return f"{base}/USD"
             return symbol.upper()
 
         mock_binance._normalize_symbol.side_effect = normalize_symbol_binance
@@ -299,3 +298,4 @@ class TestSymbolValidationIntegration(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+    
