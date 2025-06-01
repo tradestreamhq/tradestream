@@ -197,6 +197,22 @@ java_library(
 )
 
 java_library(
+    name = "influxdb_client_java",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:com_influxdb_client_java",
+    ],
+)
+
+java_library(
+    name = "influxdb_client_kotlin",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:com_influxdb_client_kotlin",
+    ],
+)
+
+java_library(
     name = "jenetics",
     visibility = ["//visibility:public"],
     exports = [
