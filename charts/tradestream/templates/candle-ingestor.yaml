@@ -58,11 +58,10 @@ spec:
                 - name: REDIS_PASSWORD
                   value: ""
                 {{- end }}
-              args: # Add command-line arguments for flags if not solely relying on ENV
+              args:
                 - "--run_mode={{ .Values.candleIngestor.runMode | default "wet" }}"
                 - "--backfill_start_date={{ .Values.candleIngestor.config.backfillStartDate | default "1_year_ago" }}"
                 - "--catch_up_initial_days={{ .Values.candleIngestor.config.catchUpInitialDays | default 7 }}"
-                # Add other flags as needed, e.g.:
-                # - "--top_n_cryptos={{ .Values.candleIngestor.config.topNCryptos }}"
-                # - "--candle_granularity_minutes={{ .Values.candleIngestor.config.candleGranularityMinutes }}"
+                - "--exchanges={{ join "," .Values.candleIngestor.config.exchanges }}"
+                - "--min_exchanges_required={{ .Values.candleIngestor.config.minExchangesRequired }}"
 {{- end }}
