@@ -22,7 +22,10 @@ kt_jvm_library(
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
         "//third_party/java:beam_sdks_java_io_jdbc",
-        "//third_party/java:beam_runners_flink_java", # For FlinkPipelineOptions
+        "//third_party/java:beam_sdks_java_io_kafka",
+        "//third_party/java:flogger",
+        "//third_party/java:guava",
+        "//third_party/java:jenetics",
         "//third_party/java:kafka_clients",
         "//third_party/java:protobuf_java",
         "//third_party/java:protobuf_java_util",
