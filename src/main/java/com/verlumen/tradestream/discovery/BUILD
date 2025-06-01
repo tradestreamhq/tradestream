@@ -30,9 +30,9 @@ java_library(
     srcs = ["GenotypeConverterImpl.java"],
     deps = [
         ":genotype_converter",
-        ":param_config",
-        ":param_config_manager",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
+        "//src/main/java/com/verlumen/tradestream/backtesting:param_config_manager",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
