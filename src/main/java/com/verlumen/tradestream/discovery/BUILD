@@ -31,10 +31,6 @@ kt_jvm_library(
         "//third_party/java:postgresql_jdbc",  # Your DB driver, e.g. org.postgresql:postgresql
         "//third_party/java:guava",
         "//third_party/java:protobuf_java_util",
-        "//third_party/java:guava",
-        "//third_party/java:flogger",
-        "//third_party/java:jenetics",
-        "//third_party/java:postgresql_jdbc", # Your DB driver, e.g. org.postgresql:postgresql
         "//third_party/kotlin:kotlin_stdlib",
     ],
 )
