@@ -3,6 +3,7 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_jvm_library(
     name = "discovery_module",
+    srcs = ["DiscoveryModule.kt"],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
     ],
