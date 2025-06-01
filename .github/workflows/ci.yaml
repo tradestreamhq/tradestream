@@ -59,6 +59,36 @@ jobs:
           # Share repository cache between workflows.
           repository-cache: true
 
+      - name: Login to Github Packages for Kubeconform
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Update Helm Dependencies for Kubeconform
+        run: helm dependency update charts/tradestream
+
+      - name: Template Helm Chart for Kubeconform
+        run: |
+          helm template my-tradestream charts/tradestream \
+            --namespace tradestream-namespace \
+            --set pipeline.image.repository=tradestream-data-pipeline \
+            --set pipeline.image.tag=latest \
+            --set candleIngestor.image.repository=candle-ingestor \
+            --set candleIngestor.image.tag=latest \
+            --set topCryptoUpdaterCronjob.image.repository=top-crypto-updater \
+            --set topCryptoUpdaterCronjob.image.tag=latest \
+            --set strategyDiscoveryRequestFactory.image.repository=strategy-discovery-request-factory \
+            --set strategyDiscoveryRequestFactory.image.tag=latest \
+            --set pipeline.runMode=dry \
+            --set redis.enabled=true \
+            --set topCryptoUpdaterCronjob.enabled=true \
+            --set strategyDiscoveryRequestFactory.enabled=true > tradestream-rendered.yaml
+
+      - name: Run Kubeconform
+        uses: docker://ghcr.io/yannh/kubeconform:latest
+        with:
+          entrypoint: '/kubeconform'
+          args: "-summary -output json tradestream-rendered.yaml"
+      # End of added Kubeconform steps
+
       - name: Build and Load Images
         run: |
           set -eo pipefail
