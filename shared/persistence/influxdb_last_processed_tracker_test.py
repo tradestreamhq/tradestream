@@ -251,8 +251,10 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
             "test_service", "test_key", 1234567890123
         )
 
-        # Verify write_api was called
-        self.mock_client_instance.write_api.assert_called_once()
+        # Verify write_api was called with correct options
+        self.mock_client_instance.write_api.assert_called_once_with(
+            write_options=SYNCHRONOUS
+        )
         mock_write_api.write.assert_called_once()
 
         # Verify the write call parameters

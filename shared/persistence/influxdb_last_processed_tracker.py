@@ -1,6 +1,7 @@
 from absl import logging
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.exceptions import InfluxDBError
+from influxdb_client.client.write_api import SYNCHRONOUS
 from tenacity import (
     retry,
     stop_after_attempt,
@@ -165,7 +166,7 @@ class InfluxDBLastProcessedTracker:
                 return
 
         write_api = self.client.write_api(
-            write_options=WritePrecision.MS
+            write_options=SYNCHRONOUS
         )  # Using MS precision
         if not write_api:  # Should not happen if client is valid
             logging.error(
