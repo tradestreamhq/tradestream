@@ -3,8 +3,6 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 load("//platforms:transition.bzl", "multi_arch")  # If multi-arch is needed
 
-package(default_visibility = ["//visibility:public"])
-
 kt_jvm_library(
     name = "strategy_discovery_pipeline_lib",
     srcs = [
