@@ -85,7 +85,7 @@ jobs:
       - name: Run Kubeconform
         uses: docker://ghcr.io/yannh/kubeconform:latest
         with:
-          entrypoint: '/kubeconform'
+          entrypoint: "/kubeconform"
           args: "-summary -output json tradestream-rendered.yaml"
       # End of added Kubeconform steps
 
