@@ -1,0 +1,63 @@
+name: Tidy Bazel Modules
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths: # Based on paths from format-starlark-code.yaml and relevant to module changes
+      - "BUILD"
+      - "BUILD.bazel"
+      - "WORKSPACE"
+      - "WORKSPACE.bazel"
+      - "MODULE.bazel"
+      - "**/BUILD"
+      - "**/BUILD.bazel"
+      - "**/WORKSPACE"
+      - "**/WORKSPACE.bazel"
+      - "**/MODULE.bazel"
+      - "**/*.bzl"
+      - "**/*.BUILD"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  tidy-bazel-modules:
+    name: runner / bazel-mod-tidy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.14.0 # Consistent with other workflows
+        with:
+          bazelisk-cache: true
+          bazelrc: | # Similar to update-python-requirements.yaml for consistency
+            build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
+          disk-cache: ${{ github.workflow }} # Store build cache per workflow
+          repository-cache: true # Share repository cache between workflows
+
+      - name: Run bazel mod tidy
+        run: bazel mod tidy
+
+      - name: Check for changes
+        id: verify_changed_files # Consistent ID
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Detected changes after 'bazel mod tidy':"
+            git status --porcelain
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes detected after 'bazel mod tidy'."
+          fi
+
+      - name: Suggest tidy changes
+        if: steps.verify_changed_files.outputs.changed == 'true'
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: bazel-mod-tidy # Specific tool name for clarity
+          fail_on_error: false # Do not fail the workflow if suggestion fails
