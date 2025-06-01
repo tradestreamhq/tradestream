@@ -7,7 +7,7 @@ import com.google.common.flogger.FluentLogger
 import com.google.protobuf.util.Timestamps
 import com.influxdb.client.InfluxDBClientFactory
 import com.influxdb.client.InfluxDBClient
-import com.google.common.flogger.FluentLogger
+import com.influxdb.client.InfluxDBClientFactory
 
 /**
  * Fetches candle data from an InfluxDB instance.
