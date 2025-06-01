@@ -165,7 +165,7 @@ class InfluxDBLastProcessedTracker:
                 return
 
         write_api = self.client.write_api(
-            write_options=WritePrecision.MS
+            write_options=SYNCHRONOUS
         )  # Using MS precision
         if not write_api:  # Should not happen if client is valid
             logging.error(
