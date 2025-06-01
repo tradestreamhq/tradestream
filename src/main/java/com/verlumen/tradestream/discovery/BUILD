@@ -58,7 +58,7 @@ oci_image(
     name = "discovery_image",
     base = "@flink_java17//image",  # Reference the image from the oci_pull rule in MODULE.bazel [cite: 1234]
     entrypoint = [
-        "/opt/flink/bin/flink-console.sh", # Standard Flink entrypoint
+        "/opt/flink/bin/flink-console.sh",  # Standard Flink entrypoint
     ],
     # cmd is usually set by FlinkDeployment in Kubernetes to run the specific job.
     # Example: ["run", "-c", "com.verlumen.tradestream.discovery.StrategyDiscoveryPipeline", "/app/strategy_discovery_app_deploy.jar", "--runner=FlinkRunner", ...]
