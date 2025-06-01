@@ -104,7 +104,7 @@ java_library(
         ":fitness_calculator",
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
-        "//src/main/com/verlumen/tradestream/discovery:genotype_converter",
+        "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
