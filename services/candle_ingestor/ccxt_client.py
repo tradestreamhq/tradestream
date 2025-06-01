@@ -80,7 +80,9 @@ class CCXTCandleClient:
             if "does not have market symbol" in error_str:
                 # Cache the negative result and log as debug
                 self.supported_symbols_cache[symbol] = False
-                logging.debug(f"{self.exchange_name}: {symbol} not available (expected)")
+                logging.debug(
+                    f"{self.exchange_name}: {symbol} not available (expected)"
+                )
             else:
                 logging.error(
                     f"CCXT error fetching {symbol} from {self.exchange_name}: {e}"
