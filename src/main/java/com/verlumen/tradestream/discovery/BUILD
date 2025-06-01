@@ -12,7 +12,7 @@ kt_jvm_library(
         "StrategyDiscoveryPipelineOptions.kt",
     ],
     deps = [
-        "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
         "//protos:backtesting_java_proto",
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
