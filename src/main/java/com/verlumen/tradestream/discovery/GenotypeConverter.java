@@ -9,7 +9,7 @@ import java.io.Serializable;
  * Converts genotypes from the genetic algorithm into strategy parameters. Encapsulates the
  * conversion logic to make it reusable and testable.
  */
-interface GenotypeConverter extends Serializable {
+public interface GenotypeConverter extends Serializable {
   /**
    * Converts the genotype from the genetic algorithm into strategy parameters.
    *
