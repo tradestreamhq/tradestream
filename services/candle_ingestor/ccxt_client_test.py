@@ -1,4 +1,3 @@
-services/candle_ingestor/ccxt_client_test.py
 """
 Unit tests for CCXT client.
 """
