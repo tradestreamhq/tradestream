@@ -38,7 +38,7 @@ class InfluxDbCandleFetcher(
               |> filter(fn: (r) => r.currency_pair == "$fluxSymbol")
               |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
               |> sort(columns: ["_time"])
-        """.trimIndent()
+            """.trimIndent()
 
         logger.atInfo().log("Executing Flux query for %s: %s", symbol, fluxQuery)
         val queryApi = influxDBClient.queryApi
