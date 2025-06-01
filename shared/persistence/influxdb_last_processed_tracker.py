@@ -1,7 +1,7 @@
 from absl import logging
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.exceptions import InfluxDBError
-from influxdb_client.client.write_api import SYNCHRONOUS 
+from influxdb_client.client.write_api import SYNCHRONOUS
 from tenacity import (
     retry,
     stop_after_attempt,
