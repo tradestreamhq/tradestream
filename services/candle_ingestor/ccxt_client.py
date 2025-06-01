@@ -200,4 +200,3 @@ class MultiExchangeCandleClient:
             "exchange": "averaged",
             "source_exchanges": [c["exchange"] for c in candles],
         }
-        
