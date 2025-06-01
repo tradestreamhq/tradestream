@@ -48,7 +48,9 @@ class CCXTCandleClient:
         try:
             markets = self.exchange.load_markets()
             self.available_symbols = set(markets.keys())
-            logging.info(f"{self.exchange_name}: Cached {len(self.available_symbols)} supported symbols")
+            logging.info(
+                f"{self.exchange_name}: Cached {len(self.available_symbols)} supported symbols"
+            )
         except Exception as e:
             logging.warning(f"{self.exchange_name}: Could not cache symbols: {e}")
             self.available_symbols = set()
