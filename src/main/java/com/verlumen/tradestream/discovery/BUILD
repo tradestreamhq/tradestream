@@ -43,7 +43,7 @@ kt_jvm_binary(
     main_class = "com.verlumen.tradestream.discovery.StrategyDiscoveryPipeline",  # Ensure correct if main is in object
     runtime_deps = [
         ":strategy_discovery_pipeline_lib",
-        "//third_party/java:beam_runners_direct_java", # For local testing
+        "//third_party/java:beam_runners_direct_java",  # For local testing
         "//third_party/java:beam_runners_flink_java",  # For Flink execution
         # Add other runtime dependencies for Flink cluster execution if needed (e.g., specific connectors)
     ],
