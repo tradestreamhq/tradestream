@@ -203,7 +203,9 @@ class TestMultiExchangeCandleClient(unittest.TestCase):
             }
         ]
 
-        mock_binance_client_instance.get_historical_candles.return_value = binance_candles
+        mock_binance_client_instance.get_historical_candles.return_value = (
+            binance_candles
+        )
 
         # Only one exchange available, but min_exchanges_required=2
         client = MultiExchangeCandleClient(["binance"], min_exchanges_required=2)
