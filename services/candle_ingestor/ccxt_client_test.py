@@ -184,7 +184,9 @@ class TestMultiExchangeCandleClient(unittest.TestCase):
         self.assertAlmostEqual(aggregated["close"], expected_vwap, places=2)
 
     @mock.patch("services.candle_ingestor.ccxt_client.CCXTCandleClient")
-    def test_get_aggregated_candles_insufficient_exchanges(self, mock_ccxt_client_constructor):
+    def test_get_aggregated_candles_insufficient_exchanges(
+        self, mock_ccxt_client_constructor
+    ):
         """Test fallback when insufficient exchanges available"""
         mock_binance_client_instance = mock.MagicMock(spec=CCXTCandleClient)
         mock_binance_client_instance.is_symbol_supported.return_value = True
