@@ -158,7 +158,7 @@ java_library(
         ":ga_engine_factory",
         ":genetic_algorithm_orchestrator",
         "//protos:backtesting_java_proto",
-        "//src/main/com/verlumen/tradestream/discovery:genotype_converter",
+        "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
