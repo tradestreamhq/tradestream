@@ -101,7 +101,7 @@ candleIngestor:
       - "bitstamp" # Good volume, U.S. accessible
       - "cryptocom" # Decent volume, U.S. regulated
       - "gemini" # Decent volume, U.S. regulated
-    minExchangesRequired: 3
+    minExchangesRequired: 2
     # minExchangesRequired: 0 # 0 = auto-detect
     candleGranularityMinutes: 1
     backfillStartDate: "1_year_ago" # Configurable backfill start
