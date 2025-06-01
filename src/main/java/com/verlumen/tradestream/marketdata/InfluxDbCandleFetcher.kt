@@ -3,7 +3,6 @@ package com.verlumen.tradestream.marketdata // Or com.verlumen.tradestream.disco
 import com.google.common.collect.ImmutableList
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
-import com.verlumen.tradestream.marketdata.Candle // Your Candle proto
 import com.influxdb.client.InfluxDBClientFactory
 import com.influxdb.client.InfluxDBClient
 import com.influxdb.client.kotlin.InfluxDBClientKotlinFactory // For suspend functions if preferred, or use Java client
