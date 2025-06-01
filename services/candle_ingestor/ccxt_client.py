@@ -28,6 +28,8 @@ class CCXTCandleClient:
 
     def __init__(self, exchange_name: str = "binance"):
         self.exchange_name = exchange_name
+        self.supported_symbols_cache = {}  # symbol -> bool
+        self.available_symbols = set()  # Set of available CCXT symbols
         config = {
             "rateLimit": 1200,
             "enableRateLimit": True,
@@ -37,8 +39,26 @@ class CCXTCandleClient:
         try:
             self.exchange = getattr(ccxt, exchange_name)(config)
             logging.info(f"Initialized CCXT client for {exchange_name}")
+            self._load_markets_once()
         except AttributeError:
             raise ValueError(f"Exchange '{exchange_name}' not supported by CCXT")
+
+    def _load_markets_once(self):
+        """Load and cache supported symbols once at startup"""
+        try:
+            markets = self.exchange.load_markets()
+            self.available_symbols = set(markets.keys())
+            logging.info(f"{self.exchange_name}: Cached {len(self.available_symbols)} supported symbols")
+        except Exception as e:
+            logging.warning(f"{self.exchange_name}: Could not cache symbols: {e}")
+            self.available_symbols = set()
+
+    def is_symbol_supported(self, symbol: str) -> bool:
+        """Check if symbol is supported without API call"""
+        if symbol not in self.supported_symbols_cache:
+            ccxt_symbol = self._normalize_symbol(symbol)
+            self.supported_symbols_cache[symbol] = ccxt_symbol in self.available_symbols
+        return self.supported_symbols_cache[symbol]
 
     @retry(**exchange_retry_params)
     def get_historical_candles(
@@ -46,14 +66,23 @@ class CCXTCandleClient:
     ) -> List[Dict]:
         """Fetch historical candles from single exchange"""
         try:
+            # Fast path: check cache first
+            if not self.is_symbol_supported(symbol):
+                logging.debug(f"{self.exchange_name}: Symbol {symbol} not supported (cached)")
+                return []
+            
             market_symbol = self._normalize_symbol(symbol)
             ohlcv = self.exchange.fetch_ohlcv(market_symbol, timeframe, since, limit)
             return self._format_candles(ohlcv, symbol)
 
         except ccxt.BaseError as e:
-            logging.error(
-                f"CCXT error fetching {symbol} from {self.exchange_name}: {e}"
-            )
+            error_str = str(e).lower()
+            if "does not have market symbol" in error_str:
+                # Cache the negative result and log as debug
+                self.supported_symbols_cache[symbol] = False
+                logging.debug(f"{self.exchange_name}: {symbol} not available (expected)")
+            else:
+                logging.error(f"CCXT error fetching {symbol} from {self.exchange_name}: {e}")
             raise
 
     def _normalize_symbol(self, symbol: str) -> str:
@@ -121,6 +150,11 @@ class MultiExchangeCandleClient:
 
         # Fetch from all exchanges
         for name, client in self.exchanges.items():
+            # Skip exchanges that don't support this symbol
+            if not client.is_symbol_supported(symbol):
+                logging.debug(f"Skipping {name} for {symbol} (not supported)")
+                continue
+            
             try:
                 candles = client.get_historical_candles(symbol, timeframe, since, limit)
                 if candles:
