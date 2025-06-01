@@ -28,6 +28,20 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
+    name = "influxdb_candle_fetcher",
+    srcs = ["InfluxDbCandleFetcher.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party/java:guava",
+        "//third_party/java:influxdb_client_java",
+        # "//third_party/java:influxdb_client_kotlin", # Add if using Kotlin client
+        "//third_party/java:flogger",
+        "//third_party/java:protobuf_java_util",
+        "//third_party/kotlin:kotlinx_coroutines_core",
+    ],
+)
+
+kt_jvm_library(
     name = "candle_lookback_do_fn",
     srcs = ["CandleLookbackDoFn.kt"],
     deps = [
