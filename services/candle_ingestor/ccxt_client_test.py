@@ -18,7 +18,9 @@ class TestCCXTCandleClient(unittest.TestCase):
     def test_init_success(self, mock_ccxt):
         """Test successful initialization"""
         mock_exchange = mock.MagicMock()
-        mock_exchange.load_markets.return_value = {"BTC/USD": {}}  # Mock for _load_markets_once
+        mock_exchange.load_markets.return_value = {
+            "BTC/USD": {}
+        }  # Mock for _load_markets_once
         mock_ccxt.binance.return_value = mock_exchange
 
         client = CCXTCandleClient("binance")
