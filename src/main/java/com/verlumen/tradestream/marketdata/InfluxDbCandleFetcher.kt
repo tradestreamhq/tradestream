@@ -73,7 +73,7 @@ class InfluxDbCandleFetcher(
                         logger.atWarning().withCause(e).log(
                             "Failed to parse FluxRecord into Candle for symbol %s. Record: %s",
                             symbol,
-                            record.values
+                            record.values,
                         )
                     }
                 }
