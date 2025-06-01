@@ -68,7 +68,9 @@ class CCXTCandleClient:
         try:
             # Fast path: check cache first
             if not self.is_symbol_supported(symbol):
-                logging.debug(f"{self.exchange_name}: Symbol {symbol} not supported (cached)")
+                logging.debug(
+                    f"{self.exchange_name}: Symbol {symbol} not supported (cached)"
+                )
                 return []
             market_symbol = self._normalize_symbol(symbol)
             ohlcv = self.exchange.fetch_ohlcv(market_symbol, timeframe, since, limit)
