@@ -17,6 +17,7 @@ java_library(
     visibility = [
         "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
         "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
         "//protos:strategies_java_proto",
@@ -30,7 +31,6 @@ java_library(
     srcs = ["GenotypeConverterImpl.java"],
     visibility = [
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
-        # "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
     ],
     deps = [
         ":genotype_converter",
