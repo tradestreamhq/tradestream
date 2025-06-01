@@ -22,7 +22,6 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         # Set required flags for tests
         FLAGS.influxdb_token = "test-token"
         FLAGS.influxdb_org = "test-org"
-        FLAGS.currency_pairs = ["BTC/USD", "ETH/USD"]
         FLAGS.tracker_service_name = "test_strategy_discovery"
         FLAGS.global_status_tracker_service_name = "test_global_candle_status"
         FLAGS.min_processing_advance_minutes = 1
@@ -49,6 +48,13 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         self.mock_tracker_instance = Mock()
         self.mock_tracker_instance.client = True  # Simulate successful connection
         self.mock_tracker_cls.return_value = self.mock_tracker_instance
+
+        # Mock the currency pairs retrieval method
+        self.currency_pairs_patcher = patch.object(
+            main.StrategyDiscoveryService, "_get_currency_pairs_from_redis"
+        )
+        self.mock_get_currency_pairs = self.currency_pairs_patcher.start()
+        self.mock_get_currency_pairs.return_value = ["BTC/USD", "ETH/USD"]
 
     def tearDown(self):
         """Clean up test environment."""
@@ -85,15 +91,6 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         with self.assertRaises(ValueError) as cm:
             service._validate_configuration()
         self.assertIn("InfluxDB organization is required", str(cm.exception))
-
-    def test_validation_invalid_currency_pair_format(self):
-        """Test validation fails with invalid currency pair format."""
-        FLAGS.currency_pairs = ["BTCUSD", "ETH/USD"]  # Missing slash
-        service = main.StrategyDiscoveryService()
-
-        with self.assertRaises(ValueError) as cm:
-            service._validate_configuration()
-        self.assertIn("Invalid currency pair format", str(cm.exception))
 
     def test_validation_negative_min_advance(self):
         """Test validation fails with negative min processing advance."""

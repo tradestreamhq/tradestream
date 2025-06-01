@@ -33,13 +33,7 @@ from services.strategy_discovery_request_factory.kafka_publisher import KafkaPub
 from shared.persistence.influxdb_last_processed_tracker import (
     InfluxDBLastProcessedTracker,
 )
-
-# Currency pair configuration
-flags.DEFINE_list(
-    "currency_pairs",
-    ["BTC/USD", "ETH/USD", "ADA/USD", "SOL/USD", "DOGE/USD"],
-    "List of currency pairs to process",
-)
+from shared.cryptoclient.redis_crypto_client import RedisCryptoClient
 
 # InfluxDB flags
 flags.DEFINE_string(
@@ -71,6 +65,16 @@ flags.DEFINE_string(
     "Kafka servers",
 )
 flags.DEFINE_string("kafka_topic", "strategy-discovery-requests", "Kafka topic")
+
+# Redis flags
+flags.DEFINE_string("redis_host", os.getenv("REDIS_HOST", "localhost"), "Redis host")
+flags.DEFINE_integer("redis_port", int(os.getenv("REDIS_PORT", "6379")), "Redis port")
+flags.DEFINE_string("redis_password", os.getenv("REDIS_PASSWORD"), "Redis password")
+flags.DEFINE_string(
+    "redis_key_crypto_symbols",
+    os.getenv("REDIS_KEY_CRYPTO_SYMBOLS", "top_cryptocurrencies"),
+    "Redis key for cryptocurrency symbols",
+)
 
 # Processing flags
 flags.DEFINE_list(
@@ -105,16 +109,6 @@ class StrategyDiscoveryService:
         if not FLAGS.influxdb_org:
             raise ValueError("InfluxDB organization is required (--influxdb_org)")
 
-        # Validate currency pairs
-        if not FLAGS.currency_pairs:
-            raise ValueError("At least one currency pair must be specified")
-
-        for pair in FLAGS.currency_pairs:
-            if "/" not in pair:
-                raise ValueError(
-                    f"Invalid currency pair format: {pair}. Expected format: BASE/QUOTE"
-                )
-
         # Validate processing parameters
         fibonacci_windows = [int(x) for x in FLAGS.fibonacci_windows_minutes]
         if not validate_fibonacci_windows(fibonacci_windows):
@@ -129,6 +123,35 @@ class StrategyDiscoveryService:
 
         if FLAGS.min_processing_advance_minutes < 0:
             raise ValueError("Minimum processing advance minutes must be non-negative")
+
+    def _get_currency_pairs_from_redis(self) -> List[str]:
+        """Get currency pairs from Redis, same as candle ingestor."""
+        try:
+            redis_client = RedisCryptoClient(
+                host=FLAGS.redis_host,
+                port=FLAGS.redis_port,
+                password=FLAGS.redis_password,
+            )
+
+            symbols = redis_client.get_top_crypto_pairs_from_redis(
+                FLAGS.redis_key_crypto_symbols
+            )
+            logging.info(f"Retrieved {len(symbols)} symbols from Redis: {symbols}")
+
+            # Convert symbols (like "btcusd") to currency pairs (like "BTC/USD")
+            currency_pairs = []
+            for symbol in symbols:
+                if symbol.endswith("usd"):
+                    base = symbol[:-3].upper()
+                    currency_pairs.append(f"{base}/USD")
+
+            redis_client.close()
+            return currency_pairs
+
+        except Exception as e:
+            logging.error(f"Failed to get currency pairs from Redis: {e}")
+            # Fallback to a basic list
+            return ["BTC/USD", "ETH/USD", "ADA/USD", "SOL/USD", "DOGE/USD"]
 
     def _connect_kafka(self) -> None:
         """Connect to Kafka for publishing requests."""
@@ -178,8 +201,14 @@ class StrategyDiscoveryService:
         """Run the main cron job logic."""
         try:
             self._validate_configuration()
+
+            currency_pairs = self._get_currency_pairs_from_redis()
+            if not currency_pairs:
+                logging.warning("No currency pairs found. Exiting.")
+                return
+
             logging.info(
-                f"Processing {len(FLAGS.currency_pairs)} currency pairs: {FLAGS.currency_pairs}"
+                f"Processing {len(currency_pairs)} currency pairs: {currency_pairs}"
             )
 
             # Connect to all services
@@ -191,7 +220,7 @@ class StrategyDiscoveryService:
             successful_pairs_count = 0
             failed_pairs_count = 0
 
-            for currency_pair in FLAGS.currency_pairs:
+            for currency_pair in currency_pairs:
                 pair_requests_published_this_run = 0
                 try:
                     logging.info(f"Starting processing for {currency_pair}...")
@@ -323,7 +352,6 @@ def main(argv):
 
     # Log configuration
     logging.info("Configuration:")
-    logging.info(f"  Currency pairs: {FLAGS.currency_pairs}")
     logging.info(f"  InfluxDB URL: {FLAGS.influxdb_url}")
     logging.info(f"  Kafka servers: {FLAGS.kafka_bootstrap_servers}")
     logging.info(f"  Kafka topic: {FLAGS.kafka_topic}")

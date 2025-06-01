@@ -41,8 +41,22 @@ spec:
                   value: "{{ .Values.strategyDiscoveryRequestFactory.config.globalStatusTrackerServiceName }}"
                 - name: MIN_PROCESSING_ADVANCE_MINUTES
                   value: "{{ .Values.strategyDiscoveryRequestFactory.config.minProcessingAdvanceMinutes }}"
-                - name: CURRENCY_PAIRS
-                  value: "{{ join "," .Values.strategyDiscoveryRequestFactory.config.currencyPairs }}"
+                - name: REDIS_HOST
+                  value: {{ tpl .Values.strategyDiscoveryRequestFactory.redis.host . | quote }}
+                - name: REDIS_PORT
+                  value: {{ .Values.strategyDiscoveryRequestFactory.redis.port | quote }}
+                - name: REDIS_KEY_CRYPTO_SYMBOLS
+                  value: {{ .Values.strategyDiscoveryRequestFactory.redis.keyCryptoSymbols | quote }}
+                {{- if .Values.redis.auth.enabled }}
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "tradestream.fullname" . }}-redis
+                      key: redis-password
+                {{- else }}
+                - name: REDIS_PASSWORD
+                  value: ""
+                {{- end }}
                 - name: FIBONACCI_WINDOWS_MINUTES
                   value: "{{ join "," .Values.strategyDiscoveryRequestFactory.config.fibonacciWindowsMinutes }}"
                 - name: DEFAULT_TOP_N

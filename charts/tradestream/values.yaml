@@ -178,12 +178,6 @@ strategyDiscoveryRequestFactory:
     trackerServiceName: "strategy_discovery_processor" # Name for this service's own state
     globalStatusTrackerServiceName: "global_candle_status" # Name of the service that reports latest candle data
     minProcessingAdvanceMinutes: 5 # Min minutes new data must be ahead to trigger
-    currencyPairs:
-      - "BTC/USD"
-      - "ETH/USD"
-      - "ADA/USD"
-      - "SOL/USD"
-      - "DOGE/USD"
     fibonacciWindowsMinutes: # Fibonacci sequence windows in minutes
       - "1597" # ~1.1 days
       - "2584" # ~1.8 days
@@ -198,6 +192,10 @@ strategyDiscoveryRequestFactory:
     defaultTopN: 5
     defaultMaxGenerations: 30
     defaultPopulationSize: 50
+  redis:
+    host: '{{ include "tradestream.fullname" . }}-redis-master'
+    port: 6379
+    keyCryptoSymbols: "top_cryptocurrencies"
   resources:
     requests:
       cpu: "100m"
