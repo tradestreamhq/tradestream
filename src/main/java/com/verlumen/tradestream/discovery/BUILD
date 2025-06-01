@@ -61,7 +61,7 @@ oci_image(
     # Example: ["run", "-c", "com.verlumen.tradestream.discovery.StrategyDiscoveryPipeline", "/app/strategy_discovery_app_deploy.jar", "--runner=FlinkRunner", ...]
     # For this image, we just package the jar. The actual run command will be in the FlinkDeployment.
     tars = [":discovery_layer"],
-    workdir = "/opt/flink", # Standard Flink workdir
+    workdir = "/opt/flink",  # Standard Flink workdir
     # Ensure the JAR is placed where Flink can find it, e.g., /opt/flink/usrlib or /app
     # The tar rule by default places files at the root.
     # Adjust entrypoint/jarURI in FlinkDeployment or path here if needed.
