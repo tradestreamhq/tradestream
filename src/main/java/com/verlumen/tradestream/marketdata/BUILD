@@ -215,7 +215,6 @@ kt_jvm_library(
         # "//third_party/java:influxdb_client_kotlin", # Add if using Kotlin client
         "//third_party/java:flogger",
         "//third_party/java:protobuf_java_util",
-        "//third_party/kotlin:kotlinx_coroutines_core",
     ],
 )
 
