@@ -1,3 +1,4 @@
+services/candle_ingestor/ccxt_client_test.py
 """
 Unit tests for CCXT client.
 """
@@ -18,6 +19,7 @@ class TestCCXTCandleClient(unittest.TestCase):
     def test_init_success(self, mock_ccxt):
         """Test successful initialization"""
         mock_exchange = mock.MagicMock()
+        mock_exchange.load_markets.return_value = {"BTC/USD": {}}  # Mock for _load_markets_once
         mock_ccxt.binance.return_value = mock_exchange
 
         client = CCXTCandleClient("binance")
@@ -25,6 +27,7 @@ class TestCCXTCandleClient(unittest.TestCase):
         self.assertEqual(client.exchange_name, "binance")
         self.assertEqual(client.exchange, mock_exchange)
         mock_ccxt.binance.assert_called_once()
+        mock_exchange.load_markets.assert_called_once() # Ensure markets are loaded
 
     def test_normalize_symbol(self):
         """Test symbol normalization"""
@@ -39,15 +42,16 @@ class TestCCXTCandleClient(unittest.TestCase):
     @mock.patch("services.candle_ingestor.ccxt_client.ccxt")
     def test_get_historical_candles_success(self, mock_ccxt):
         """Test successful candle fetching"""
-        mock_exchange = mock.MagicMock()
-        mock_ccxt.binance.return_value = mock_exchange
+        mock_exchange_instance = mock.MagicMock()
+        mock_exchange_instance.load_markets.return_value = {"BTC/USD": {}} # Simulate BTC/USD is available
+        mock_ccxt.binance.return_value = mock_exchange_instance
 
         # Mock OHLCV data
         mock_ohlcv = [
             [1640995200000, 50000.0, 51000.0, 49000.0, 50500.0, 100.5],  # Valid candle
             [1640995260000, 50500.0, 50800.0, 50200.0, 50600.0, 85.2],  # Valid candle
         ]
-        mock_exchange.fetch_ohlcv.return_value = mock_ohlcv
+        mock_exchange_instance.fetch_ohlcv.return_value = mock_ohlcv
 
         client = CCXTCandleClient("binance")
         candles = client.get_historical_candles("btcusd", "1m", 1640995200000, 100)
@@ -67,8 +71,9 @@ class TestCCXTCandleClient(unittest.TestCase):
     @mock.patch("services.candle_ingestor.ccxt_client.ccxt")
     def test_get_historical_candles_filters_invalid(self, mock_ccxt):
         """Test filtering of invalid candles"""
-        mock_exchange = mock.MagicMock()
-        mock_ccxt.binance.return_value = mock_exchange
+        mock_exchange_instance = mock.MagicMock()
+        mock_exchange_instance.load_markets.return_value = {"BTC/USD": {}}  # Simulate BTC/USD is available
+        mock_ccxt.binance.return_value = mock_exchange_instance
 
         # Mock OHLCV data with invalid candle (high < low)
         mock_ohlcv = [
@@ -83,7 +88,7 @@ class TestCCXTCandleClient(unittest.TestCase):
             ],
             [1640995320000, 0, 0, 0, 0, 0],  # Invalid: all zeros
         ]
-        mock_exchange.fetch_ohlcv.return_value = mock_ohlcv
+        mock_exchange_instance.fetch_ohlcv.return_value = mock_ohlcv
 
         client = CCXTCandleClient("binance")
         candles = client.get_historical_candles("btcusd", "1m", 1640995200000, 100)
@@ -96,10 +101,10 @@ class TestCCXTCandleClient(unittest.TestCase):
 class TestMultiExchangeCandleClient(unittest.TestCase):
 
     @mock.patch("services.candle_ingestor.ccxt_client.CCXTCandleClient")
-    def test_init_success(self, mock_ccxt_client):
+    def test_init_success(self, mock_ccxt_client_constructor):
         """Test successful multi-exchange initialization"""
-        mock_client_instance = mock.MagicMock()
-        mock_ccxt_client.return_value = mock_client_instance
+        mock_client_instance = mock.MagicMock(spec=CCXTCandleClient)
+        mock_ccxt_client_constructor.return_value = mock_client_instance
 
         client = MultiExchangeCandleClient(
             ["binance", "coinbasepro"], min_exchanges_required=2
@@ -109,21 +114,28 @@ class TestMultiExchangeCandleClient(unittest.TestCase):
         self.assertIn("binance", client.exchanges)
         self.assertIn("coinbasepro", client.exchanges)
         self.assertEqual(client.min_exchanges_required, 2)
+        self.assertEqual(mock_ccxt_client_constructor.call_count, 2)
 
     @mock.patch("services.candle_ingestor.ccxt_client.CCXTCandleClient")
-    def test_get_aggregated_candles_success(self, mock_ccxt_client):
+    def test_get_aggregated_candles_success(self, mock_ccxt_client_constructor):
         """Test successful aggregated candle fetching"""
-        # Create mock clients for different exchanges
-        mock_binance = mock.MagicMock()
-        mock_coinbase = mock.MagicMock()
+        # Create mock client instances that will be returned by the constructor
+        mock_binance_client_instance = mock.MagicMock(spec=CCXTCandleClient)
+        mock_coinbase_client_instance = mock.MagicMock(spec=CCXTCandleClient)
 
+        # Mock is_symbol_supported on these instances
+        mock_binance_client_instance.is_symbol_supported.return_value = True
+        mock_coinbase_client_instance.is_symbol_supported.return_value = True
+        
         def mock_client_factory(exchange_name):
             if exchange_name == "binance":
-                return mock_binance
+                return mock_binance_client_instance
             elif exchange_name == "coinbasepro":
-                return mock_coinbase
+                return mock_coinbase_client_instance
+            self.fail(f"Unexpected exchange_name '{exchange_name}' in mock_client_factory")
 
-        mock_ccxt_client.side_effect = mock_client_factory
+
+        mock_ccxt_client_constructor.side_effect = mock_client_factory
 
         # Mock candle data from different exchanges
         binance_candles = [
@@ -152,8 +164,8 @@ class TestMultiExchangeCandleClient(unittest.TestCase):
             }
         ]
 
-        mock_binance.get_historical_candles.return_value = binance_candles
-        mock_coinbase.get_historical_candles.return_value = coinbase_candles
+        mock_binance_client_instance.get_historical_candles.return_value = binance_candles
+        mock_coinbase_client_instance.get_historical_candles.return_value = coinbase_candles
 
         client = MultiExchangeCandleClient(
             ["binance", "coinbasepro"], min_exchanges_required=2
@@ -173,10 +185,11 @@ class TestMultiExchangeCandleClient(unittest.TestCase):
         self.assertAlmostEqual(aggregated["close"], expected_vwap, places=2)
 
     @mock.patch("services.candle_ingestor.ccxt_client.CCXTCandleClient")
-    def test_get_aggregated_candles_insufficient_exchanges(self, mock_ccxt_client):
+    def test_get_aggregated_candles_insufficient_exchanges(self, mock_ccxt_client_constructor):
         """Test fallback when insufficient exchanges available"""
-        mock_binance = mock.MagicMock()
-        mock_ccxt_client.return_value = mock_binance
+        mock_binance_client_instance = mock.MagicMock(spec=CCXTCandleClient)
+        mock_binance_client_instance.is_symbol_supported.return_value = True
+        mock_ccxt_client_constructor.return_value = mock_binance_client_instance
 
         binance_candles = [
             {
@@ -191,10 +204,11 @@ class TestMultiExchangeCandleClient(unittest.TestCase):
             }
         ]
 
-        mock_binance.get_historical_candles.return_value = binance_candles
+        mock_binance_client_instance.get_historical_candles.return_value = binance_candles
 
         # Only one exchange available, but min_exchanges_required=2
         client = MultiExchangeCandleClient(["binance"], min_exchanges_required=2)
+        mock_ccxt_client_constructor.assert_called_once_with("binance")
         candles = client.get_aggregated_candles("btcusd", "1m", 1640995200000, 100)
 
         # Should return candles from the single available exchange
