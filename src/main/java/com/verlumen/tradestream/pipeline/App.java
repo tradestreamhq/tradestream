@@ -11,7 +11,6 @@ import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.CandleLookbackDoFn;
 import com.verlumen.tradestream.marketdata.CandleSource;
-import com.verlumen.tradestream.strategies.StrategyEnginePipeline;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -114,18 +113,15 @@ public final class App {
 
   private final CandleSource candleSource;
   private final Supplier<List<CurrencyPair>> currencyPairs;
-  private final StrategyEnginePipeline strategyEnginePipeline;
   private final TimingConfig timingConfig;
 
   @Inject
   App(
       CandleSource candleSource,
       Supplier<List<CurrencyPair>> currencyPairs,
-      StrategyEnginePipeline strategyEnginePipeline,
       TimingConfig timingConfig) {
     this.candleSource = candleSource;
     this.currencyPairs = currencyPairs;
-    this.strategyEnginePipeline = strategyEnginePipeline;
     this.timingConfig = timingConfig;
   }
 
