@@ -11,6 +11,7 @@ This service runs as a cron job to:
 The InfluxPoller component has been removed - this service is now purely orchestrational.
 """
 
+import os
 import sys
 import time
 from datetime import datetime, timezone
@@ -41,9 +42,9 @@ flags.DEFINE_list(
 )
 
 # InfluxDB flags
-flags.DEFINE_string("influxdb_url", "http://localhost:8086", "InfluxDB URL")
-flags.DEFINE_string("influxdb_token", None, "InfluxDB token")
-flags.DEFINE_string("influxdb_org", None, "InfluxDB organization")
+flags.DEFINE_string("influxdb_url", os.getenv("INFLUXDB_URL", "http://localhost:8086"), "InfluxDB URL")
+flags.DEFINE_string("influxdb_token", os.getenv("INFLUXDB_TOKEN"), "InfluxDB token")
+flags.DEFINE_string("influxdb_org", os.getenv("INFLUXDB_ORG"), "InfluxDB organization")
 flags.DEFINE_string("influxdb_bucket_tracker", "tradestream-data", "Tracker bucket")
 flags.DEFINE_string(
     "tracker_service_name",
