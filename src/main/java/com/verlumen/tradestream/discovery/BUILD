@@ -21,7 +21,6 @@ java_library(
         "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
-    srcs = ["GenotypeConverter.java"],
     deps = [
         "//protos:strategies_java_proto",
         "//third_party/java:jenetics",
