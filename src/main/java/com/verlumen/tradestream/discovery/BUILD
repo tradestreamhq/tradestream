@@ -51,7 +51,7 @@ kt_jvm_binary(
 
 tar(
     name = "discovery_layer",
-    srcs = [":strategy_discovery_app_deploy.jar"], # Assumes the _deploy.jar convention
+    srcs = [":strategy_discovery_app_deploy.jar"],  # Assumes the _deploy.jar convention
 )
 
 oci_image(
