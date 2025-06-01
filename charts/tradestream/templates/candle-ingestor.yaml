@@ -10,6 +10,9 @@ metadata:
     release: {{ .Release.Name }}
 spec:
   schedule: "{{ .Values.candleIngestor.schedule }}"
+  concurrencyPolicy: "{{ .Values.candleIngestor.concurrencyPolicy }}"
+  failedJobsHistoryLimit: {{ .Values.candleIngestor.failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .Values.candleIngestor.successfulJobsHistoryLimit }}
   jobTemplate:
     spec:
       backoffLimit: {{ .Values.candleIngestor.job.backoffLimit | default 2 }}
