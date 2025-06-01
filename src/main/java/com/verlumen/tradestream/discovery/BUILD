@@ -19,6 +19,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter",
         "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
+        "//third_party/java:beam_runners_flink_java",  # For FlinkPipelineOptions
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
         "//third_party/java:beam_sdks_java_io_jdbc",
