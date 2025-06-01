@@ -13,6 +13,7 @@ kt_jvm_library(
 
 java_library(
     name = "genotype_converter",
+    visibility = ["//visibility:public"],
     srcs = ["GenotypeConverter.java"],
     deps = [
         "//protos:strategies_java_proto",
