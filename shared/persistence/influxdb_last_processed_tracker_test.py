@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch, MagicMock, call
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.exceptions import InfluxDBError
 from tenacity import RetryError
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 # Import the class under test
 from shared.persistence.influxdb_last_processed_tracker import (
@@ -251,8 +252,11 @@ class TestInfluxDBLastProcessedTracker(unittest.TestCase):
             "test_service", "test_key", 1234567890123
         )
 
-        # Verify write_api was called
-        self.mock_client_instance.write_api.assert_called_once()
+        # Verify write_api was called with correct options
+        self.mock_client_instance.write_api.assert_called_once_with(
+            write_options=SYNCHRONOUS
+        )
+        mock_write_api.write.assert_called_once()
 
         # Verify the write call parameters
         call_args = mock_write_api.write.call_args
