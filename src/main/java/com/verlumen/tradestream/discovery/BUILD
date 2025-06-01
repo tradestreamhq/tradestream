@@ -29,7 +29,8 @@ java_library(
     name = "genotype_converter_impl",
     srcs = ["GenotypeConverterImpl.java"],
     visibility = [
-        "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
+        # "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
     ],
     deps = [
         ":genotype_converter",
