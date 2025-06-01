@@ -99,6 +99,8 @@ candleIngestor:
       - "kraken" # High volume, U.S. friendly
       - "binanceus" # U.S. specific, good U.S. volume
       - "bitstamp" # Good volume, U.S. accessible
+      - "cryptocom" # Decent volume, U.S. regulated
+      - "gemini" # Decent volume, U.S. regulated
     minExchangesRequired: 2
     # minExchangesRequired: 0 # 0 = auto-detect
     candleGranularityMinutes: 1
