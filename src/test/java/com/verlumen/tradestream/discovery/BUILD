@@ -10,9 +10,9 @@ kt_jvm_test(
         "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline_lib",
         "//protos:discovery_java_proto",
         "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_test_utils", # For PAssert and TestPipeline
+        "//third_party/java:beam_sdks_java_test_utils",
         "//third_party/java:junit",
-        "//third_party/java:truth", # ForassertThat
+        "//third_party/java:truth",
         "//third_party/kotlin:kotlin_stdlib",
     ],
 )
