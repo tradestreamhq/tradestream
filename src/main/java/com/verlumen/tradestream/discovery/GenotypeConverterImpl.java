@@ -3,6 +3,8 @@ package com.verlumen.tradestream.discovery;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
+import com.verlumen.tradestream.discovery.ParamConfig;
+import com.verlumen.tradestream.discovery.ParamConfigManager;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Chromosome;
 import io.jenetics.Genotype;
