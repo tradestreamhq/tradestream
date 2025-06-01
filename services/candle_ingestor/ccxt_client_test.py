@@ -163,8 +163,12 @@ class TestMultiExchangeCandleClient(unittest.TestCase):
             }
         ]
 
-        mock_binance_client_instance.get_historical_candles.return_value = binance_candles
-        mock_coinbase_client_instance.get_historical_candles.return_value = coinbase_candles
+        mock_binance_client_instance.get_historical_candles.return_value = (
+            binance_candles
+        )
+        mock_coinbase_client_instance.get_historical_candles.return_value = (
+            coinbase_candles
+        )
 
         client = MultiExchangeCandleClient(
             ["binance", "coinbasepro"], min_exchanges_required=2
