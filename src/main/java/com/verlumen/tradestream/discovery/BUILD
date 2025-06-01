@@ -88,3 +88,49 @@ oci_push(
     repository = "tradestreamhq/tradestream-strategy-discovery", # New Docker Hub repo
     # remote_tags will be set by release.yaml
 )
+
+kt_jvm_library(
+    name = "discovery_module",
+    srcs = ["DiscoveryModule.kt"],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
+    ],
+    deps = [
+        ":genotype_converter",
+        ":genotype_converter_impl",
+        "//third_party/java:guice",
+    ],
+)
+
+java_library(
+    name = "genotype_converter",
+    srcs = ["GenotypeConverter.java"],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
+    ],
+    deps = [
+        "//protos:strategies_java_proto",
+        "//third_party/java:jenetics",
+        "//third_party/java:protobuf_java",
+    ],
+)
+
+java_library(
+    name = "genotype_converter_impl",
+    srcs = ["GenotypeConverterImpl.java"],
+    visibility = [
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
+    ],
+    deps = [
+        ":genotype_converter",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
+        "//src/main/java/com/verlumen/tradestream/backtesting:param_config_manager",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:jenetics",
+        "//third_party/java:protobuf_java",
+    ],
+)

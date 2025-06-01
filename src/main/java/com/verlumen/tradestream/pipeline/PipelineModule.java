@@ -4,6 +4,7 @@ import com.google.auto.value.AutoValue;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
+import com.verlumen.tradestream.discovery.DiscoveryModule;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.http.HttpModule;
 import com.verlumen.tradestream.instruments.InstrumentsModule;
@@ -61,6 +62,7 @@ abstract class PipelineModule extends AbstractModule {
   @Override
   protected void configure() {
     install(BacktestingModule.create());
+    install(new DiscoveryModule());
     install(HttpModule.create());
     install(InstrumentsModule.create(runMode(), coinMarketCapApiKey(), topCurrencyCount()));
     install(KafkaModule.create(bootstrapServers()));

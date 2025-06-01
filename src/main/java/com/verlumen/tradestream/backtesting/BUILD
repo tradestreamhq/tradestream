@@ -64,8 +64,6 @@ java_library(
         ":fitness_calculator_impl",
         ":genetic_algorithm_orchestrator",
         ":genetic_algorithm_orchestrator_impl",
-        ":genotype_converter",
-        ":genotype_converter_impl",
         ":param_config",
         ":param_config_manager",
         ":param_config_manager_impl",
@@ -104,9 +102,9 @@ java_library(
         ":backtest_request_factory",
         ":backtest_runner",
         ":fitness_calculator",
-        ":genotype_converter",
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
@@ -159,33 +157,8 @@ java_library(
         ":ga_constants",
         ":ga_engine_factory",
         ":genetic_algorithm_orchestrator",
-        ":genotype_converter",
         "//protos:backtesting_java_proto",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:jenetics",
-        "//third_party/java:protobuf_java",
-    ],
-)
-
-java_library(
-    name = "genotype_converter",
-    srcs = ["GenotypeConverter.java"],
-    deps = [
-        "//protos:strategies_java_proto",
-        "//third_party/java:jenetics",
-        "//third_party/java:protobuf_java",
-    ],
-)
-
-java_library(
-    name = "genotype_converter_impl",
-    srcs = ["GenotypeConverterImpl.java"],
-    deps = [
-        ":genotype_converter",
-        ":param_config",
-        ":param_config_manager",
-        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
