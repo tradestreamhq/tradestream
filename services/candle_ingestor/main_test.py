@@ -124,7 +124,6 @@ class BaseIngestorTest(absltest.TestCase):
         self.mock_redis_client_instance.get_top_crypto_pairs_from_redis.return_value = (
             self.tiingo_tickers
         )
-
         self.last_processed_timestamps_shared_state = {}
 
     def tearDown(self):
@@ -180,9 +179,16 @@ class RunBackfillTest(BaseIngestorTest):
         self.mock_get_historical_candles.assert_called_with(
             mock_ccxt_client, self.test_ticker, "2023-01-09", "2023-01-09", mock.ANY
         )
-        self.mock_state_tracker.update_last_processed_timestamp.assert_called_with(
+        # Verify service-specific tracker update
+        self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
             candle_ingestor_main.SERVICE_IDENTIFIER,
             f"{self.test_ticker}-backfill",
+            dummy_candle["timestamp_ms"],
+        )
+        # Verify global status tracker update
+        self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
+            "global_candle_status",
+            f"{self.test_ticker.upper()[:-3]}_USD_latest_ingested_ts",
             dummy_candle["timestamp_ms"],
         )
         self.assertEqual(
@@ -224,9 +230,16 @@ class RunBackfillTest(BaseIngestorTest):
         self.mock_get_historical_candles.assert_called_with(
             mock_ccxt_client, self.test_ticker, "2023-01-07", "2023-01-09", mock.ANY
         )
-        self.mock_state_tracker.update_last_processed_timestamp.assert_called_with(
+        # Verify service-specific tracker update
+        self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
             candle_ingestor_main.SERVICE_IDENTIFIER,
             f"{self.test_ticker}-backfill",
+            dummy_candle_resumed["timestamp_ms"],
+        )
+        # Verify global status tracker update
+        self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
+            "global_candle_status",
+            f"{self.test_ticker.upper()[:-3]}_USD_latest_ingested_ts",
             dummy_candle_resumed["timestamp_ms"],
         )
 
@@ -271,9 +284,16 @@ class RunCatchUpTest(BaseIngestorTest):
             "2023-01-10T12:05:00",
             mock.ANY,
         )
-        self.mock_state_tracker.update_last_processed_timestamp.assert_called_with(
+        # Verify service-specific tracker update
+        self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
             candle_ingestor_main.SERVICE_IDENTIFIER,
             f"{self.test_ticker}-catch_up",
+            polled_candle["timestamp_ms"],
+        )
+        # Verify global status tracker update
+        self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
+            "global_candle_status",
+            f"{self.test_ticker.upper()[:-3]}_USD_latest_ingested_ts",
             polled_candle["timestamp_ms"],
         )
         self.assertEqual(
@@ -389,14 +409,28 @@ class MainFunctionTest(BaseIngestorTest):
         self.mock_influx_manager.write_candles_batch.assert_any_call(
             catch_up_candles_response
         )
+        # Verify service-specific backfill tracker update
         self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
             candle_ingestor_main.SERVICE_IDENTIFIER,
             f"{self.test_ticker}-backfill",
             backfill_candle_ts,
         )
+        # Verify global status tracker update for backfill
+        self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
+            "global_candle_status",
+            f"{self.test_ticker.upper()[:-3]}_USD_latest_ingested_ts",
+            backfill_candle_ts,
+        )
+        # Verify service-specific catch-up tracker update
         self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
             candle_ingestor_main.SERVICE_IDENTIFIER,
             f"{self.test_ticker}-catch_up",
+            catch_up_candle_ts,
+        )
+        # Verify global status tracker update for catch-up
+        self.mock_state_tracker.update_last_processed_timestamp.assert_any_call(
+            "global_candle_status",
+            f"{self.test_ticker.upper()[:-3]}_USD_latest_ingested_ts",
             catch_up_candle_ts,
         )
         self.mock_redis_client_instance.close.assert_called_once()  # Verify Redis client is closed
