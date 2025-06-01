@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch, MagicMock, call
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.exceptions import InfluxDBError
 from tenacity import RetryError
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 # Import the class under test
 from shared.persistence.influxdb_last_processed_tracker import (
