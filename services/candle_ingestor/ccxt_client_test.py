@@ -71,7 +71,9 @@ class TestCCXTCandleClient(unittest.TestCase):
     def test_get_historical_candles_filters_invalid(self, mock_ccxt):
         """Test filtering of invalid candles"""
         mock_exchange_instance = mock.MagicMock()
-        mock_exchange_instance.load_markets.return_value = {"BTC/USD": {}}  # Simulate BTC/USD is available
+        mock_exchange_instance.load_markets.return_value = {
+            "BTC/USD": {}
+        }  # Simulate BTC/USD is available
         mock_ccxt.binance.return_value = mock_exchange_instance
 
         # Mock OHLCV data with invalid candle (high < low)
