@@ -57,13 +57,13 @@ class CCXTCandleClient:
             raise
 
     def _normalize_symbol(self, symbol: str) -> str:
-        """Convert symbol format (e.g., 'btcusd' -> 'BTC/USDT')"""
+        """Convert symbol format (e.g., 'btcusd' -> 'BTC/USD')"""
         if "/" in symbol:
             return symbol.upper()
 
         if symbol.lower().endswith("usd"):
             base = symbol[:-3].upper()
-            return f"{base}/USDT"
+            return f"{base}/USD"
         elif symbol.lower().endswith("btc"):
             base = symbol[:-3].upper()
             return f"{base}/BTC"
@@ -93,7 +93,6 @@ class CCXTCandleClient:
                     "exchange": self.exchange_name,
                 }
             )
-
         return candles
 
 
@@ -126,7 +125,7 @@ class MultiExchangeCandleClient:
                 candles = client.get_historical_candles(symbol, timeframe, since, limit)
                 if candles:
                     exchange_candles[name] = candles
-                    logging.info(f"Fetched {len(candles)} candles from {name}")
+                logging.info(f"Fetched {len(candles)} candles from {name}")
             except Exception as e:
                 logging.warning(f"Failed to fetch from {name}: {e}")
                 continue

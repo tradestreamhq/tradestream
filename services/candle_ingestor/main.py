@@ -203,7 +203,6 @@ def _validate_symbols_single_exchange(ccxt_client, symbols: list[str]) -> list[s
                 logging.warning(
                     f"Symbol {symbol} ({ccxt_symbol}) not available on {exchange_name}, skipping"
                 )
-
     except Exception as e:
         logging.error(f"Error loading markets from {exchange_name}: {e}")
         logging.warning(
@@ -271,7 +270,6 @@ def _validate_symbols_multi_exchange(
             f"Symbol validation: {len(valid_symbols)}/{len(symbols)} symbols meet "
             f"minimum {min_exchanges_required} exchange requirement"
         )
-
     return valid_symbols
 
 
@@ -354,13 +352,13 @@ def get_ccxt_timeframe(granularity_minutes: int) -> str:
 
 def convert_tiingo_symbol_to_ccxt(tiingo_symbol: str) -> str:
     """Convert Tiingo-style symbol to CCXT format."""
-    # Handle common patterns from Tiingo format (e.g., 'btcusd' -> 'BTC/USDT')
+    # Handle common patterns from Tiingo format (e.g., 'btcusd' -> 'BTC/USD')
     if "/" in tiingo_symbol:
         return tiingo_symbol.upper()
 
     if tiingo_symbol.lower().endswith("usd"):
         base = tiingo_symbol[:-3].upper()
-        return f"{base}/USDT"  # Most exchanges use USDT instead of USD
+        return f"{base}/USD"
     elif tiingo_symbol.lower().endswith("btc"):
         base = tiingo_symbol[:-3].upper()
         return f"{base}/BTC"
@@ -399,7 +397,6 @@ def get_historical_candles_ccxt(
             start_dt = datetime.strptime(start_date_str, "%Y-%m-%d").replace(
                 tzinfo=timezone.utc
             )
-
         start_timestamp_ms = int(start_dt.timestamp() * 1000)
 
         # Calculate limit based on timeframe and date range
@@ -409,7 +406,6 @@ def get_historical_candles_ccxt(
             end_dt = datetime.strptime(end_date_str, "%Y-%m-%d").replace(
                 tzinfo=timezone.utc
             )
-
         time_diff_hours = (end_dt - start_dt).total_seconds() / 3600
 
         # Estimate reasonable limit based on timeframe

@@ -31,8 +31,8 @@ class TestCCXTCandleClient(unittest.TestCase):
         client = CCXTCandleClient.__new__(CCXTCandleClient)  # Skip __init__
 
         # Test various formats
-        self.assertEqual(client._normalize_symbol("btcusd"), "BTC/USDT")
-        self.assertEqual(client._normalize_symbol("ethusd"), "ETH/USDT")
+        self.assertEqual(client._normalize_symbol("btcusd"), "BTC/USD")
+        self.assertEqual(client._normalize_symbol("ethusd"), "ETH/USD")
         self.assertEqual(client._normalize_symbol("BTC/USD"), "BTC/USD")
         self.assertEqual(client._normalize_symbol("ethbtc"), "ETH/BTC")
 
@@ -76,11 +76,11 @@ class TestCCXTCandleClient(unittest.TestCase):
             [
                 1640995260000,
                 50500.0,
-                50200.0,
+                50200.0,  # Invalid: high < low
                 50800.0,
                 50600.0,
                 85.2,
-            ],  # Invalid: high < low
+            ],
             [1640995320000, 0, 0, 0, 0, 0],  # Invalid: all zeros
         ]
         mock_exchange.fetch_ohlcv.return_value = mock_ohlcv
