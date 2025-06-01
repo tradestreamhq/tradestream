@@ -44,7 +44,7 @@ use_repo(pip, "pypi")
 
 JAVA_LANGUAGE_LEVEL = "17"
 
-toolchains = use_extension("//java:extensions.bzl", "toolchains")
+toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 
 # Declare remote java tools repos
 use_repo(toolchains, "remote_java_tools")
