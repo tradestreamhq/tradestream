@@ -31,7 +31,8 @@ class InfluxDbCandleFetcher(
         val endIso = Timestamps.toString(endTime)
         val fluxSymbol = symbol // Adjust if your InfluxDB tag for currency_pair is different
 
-        val fluxQuery = """
+        val fluxQuery =
+            """
             from(bucket: "$bucket")
               |> range(start: $startIso, stop: $endIso)
               |> filter(fn: (r) => r._measurement == "candles")
