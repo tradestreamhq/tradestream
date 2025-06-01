@@ -75,23 +75,6 @@ kt_jvm_library(
 )
 
 java_library(
-    name = "strategy_engine_pipeline",
-    srcs = ["StrategyEnginePipeline.java"],
-    deps = [
-        ":optimize_strategies",
-        "//protos:marketdata_java_proto",
-        "//protos:trade_signals_java_proto",
-        "//src/main/java/com/verlumen/tradestream/signals:generate_trade_signals",
-        "//src/main/java/com/verlumen/tradestream/signals:publish_trade_signals",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:flogger",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-    ],
-)
-
-java_library(
     name = "strategy_factories",
     srcs = ["StrategyFactories.java"],
     deps = [
