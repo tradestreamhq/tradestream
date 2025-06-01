@@ -3,6 +3,9 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_jvm_library(
     name = "discovery_module",
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
+    ],
     srcs = ["DiscoveryModule.kt"],
     deps = [
         ":genotype_converter",
@@ -13,12 +16,12 @@ kt_jvm_library(
 
 java_library(
     name = "genotype_converter",
-    srcs = ["GenotypeConverter.java"],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
         "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
+    srcs = ["GenotypeConverter.java"],
     deps = [
         "//protos:strategies_java_proto",
         "//third_party/java:jenetics",
