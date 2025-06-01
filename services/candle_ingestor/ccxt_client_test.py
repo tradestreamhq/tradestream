@@ -125,7 +125,6 @@ class TestMultiExchangeCandleClient(unittest.TestCase):
         # Mock is_symbol_supported on these instances
         mock_binance_client_instance.is_symbol_supported.return_value = True
         mock_coinbase_client_instance.is_symbol_supported.return_value = True
-        
         def mock_client_factory(exchange_name):
             if exchange_name == "binance":
                 return mock_binance_client_instance
