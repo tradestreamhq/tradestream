@@ -26,7 +26,7 @@ class TestCCXTCandleClient(unittest.TestCase):
         self.assertEqual(client.exchange_name, "binance")
         self.assertEqual(client.exchange, mock_exchange)
         mock_ccxt.binance.assert_called_once()
-        mock_exchange.load_markets.assert_called_once() # Ensure markets are loaded
+        mock_exchange.load_markets.assert_called_once()  # Ensure markets are loaded
 
     def test_normalize_symbol(self):
         """Test symbol normalization"""
