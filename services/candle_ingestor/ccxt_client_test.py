@@ -42,7 +42,9 @@ class TestCCXTCandleClient(unittest.TestCase):
     def test_get_historical_candles_success(self, mock_ccxt):
         """Test successful candle fetching"""
         mock_exchange_instance = mock.MagicMock()
-        mock_exchange_instance.load_markets.return_value = {"BTC/USD": {}} # Simulate BTC/USD is available
+        mock_exchange_instance.load_markets.return_value = {
+            "BTC/USD": {}
+        }  # Simulate BTC/USD is available
         mock_ccxt.binance.return_value = mock_exchange_instance
 
         # Mock OHLCV data
