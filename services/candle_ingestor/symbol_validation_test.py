@@ -212,8 +212,8 @@ class TestSymbolValidation(unittest.TestCase):
 
         mock_client._normalize_symbol.side_effect = normalize_symbol
         mock_client.exchange.load_markets.return_value = {
-            "BTC/USD": {}, # Matches btcusd and BTC/USD
-            "ETH/USD": {}, # Matches ethusd
+            "BTC/USD": {},  # Matches btcusd and BTC/USD
+            "ETH/USD": {},  # Matches ethusd
         }
 
         symbols = ["btcusd", "BTC/USD", "ethusd", "INVALID"]
