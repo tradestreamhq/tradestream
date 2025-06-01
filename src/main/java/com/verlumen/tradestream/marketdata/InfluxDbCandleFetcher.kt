@@ -57,15 +57,17 @@ class InfluxDbCandleFetcher(
                         val candleTimestamp = Timestamps.fromMillis(time.toEpochMilli())
 
                         // Assuming Candle is a Protobuf message or a class with a similar builder pattern
-                        val candle = Candle.newBuilder() // Ensure Candle and its newBuilder() are accessible
-                            .setTimestamp(candleTimestamp)
-                            .setCurrencyPair(symbol)
-                            .setOpen((record.getValueByKey("open") as Number).toDouble())
-                            .setHigh((record.getValueByKey("high") as Number).toDouble())
-                            .setLow((record.getValueByKey("low") as Number).toDouble())
-                            .setClose((record.getValueByKey("close") as Number).toDouble())
-                            .setVolume((record.getValueByKey("volume") as Number).toDouble())
-                            .build()
+                        val candle =
+                            Candle
+                                .newBuilder() // Ensure Candle and its newBuilder() are accessible
+                                .setTimestamp(candleTimestamp)
+                                .setCurrencyPair(symbol)
+                                .setOpen((record.getValueByKey("open") as Number).toDouble())
+                                .setHigh((record.getValueByKey("high") as Number).toDouble())
+                                .setLow((record.getValueByKey("low") as Number).toDouble())
+                                .setClose((record.getValueByKey("close") as Number).toDouble())
+                                .setVolume((record.getValueByKey("volume") as Number).toDouble())
+                                .build()
                         candlesBuilder.add(candle)
                     } catch (e: Exception) {
                         logger.atWarning().withCause(e).log(
