@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
+import com.verlumen.tradestream.discovery.GenotypeConverter;
 import io.jenetics.Phenotype;
 import io.jenetics.engine.Engine;
 import io.jenetics.engine.EvolutionResult;

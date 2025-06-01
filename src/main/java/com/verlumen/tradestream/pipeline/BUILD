@@ -90,6 +90,7 @@ java_library(
     deps = [
         ":timing_config",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
+        "//src/main/java/com/verlumen/tradestream/discovery:discovery_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/http:http_module",
         "//src/main/java/com/verlumen/tradestream/instruments:instruments_module",
