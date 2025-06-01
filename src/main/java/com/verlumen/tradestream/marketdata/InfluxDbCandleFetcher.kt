@@ -2,7 +2,8 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.collect.ImmutableList
 import com.google.common.flogger.FluentLogger
-import com.google.protobuf.Timestamp
+import com.google.common.flogger.FluentLogger
+import com.google.common.flogger.FluentLogger
 import com.google.protobuf.util.Timestamps
 import com.influxdb.client.InfluxDBClientFactory
 import com.influxdb.client.InfluxDBClient
