@@ -3,7 +3,7 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_jvm_library(
     name = "discovery_module",
-    srcs = ["DiscoveryModule.kt"]
+    srcs = ["DiscoveryModule.kt"],
     deps = [
         ":genotype_converter",
         ":genotype_converter_impl",
