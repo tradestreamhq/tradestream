@@ -1,3 +1,5 @@
+load("@rules_java//java:defs.bzl", "java_test")
+
 java_test(
     name = "GenotypeConverterImplTest",
     size = "small",
@@ -5,10 +7,10 @@ java_test(
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
-        "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter",
-        "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter_impl",
         "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
         "//src/main/java/com/verlumen/tradestream/backtesting:param_config_manager",
+        "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
+        "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter_impl",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:guice_testlib",
