@@ -18,6 +18,14 @@ java_library(
 )
 
 kt_jvm_library(
+    name = "candle_fetcher",
+    srcs = ["CandleFetcher.java"],
+    deps = [
+        "//protos:marketdata_java_proto",
+    ],
+)
+
+kt_jvm_library(
     name = "candle_lookback_do_fn",
     srcs = ["CandleLookbackDoFn.kt"],
     deps = [
