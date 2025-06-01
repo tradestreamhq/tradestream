@@ -200,7 +200,7 @@ java_library(
     name = "influxdb_client_java",
     visibility = ["//visibility:public"],
     exports = [
-        "@tradestream_maven//:com_influxdb_client_java",
+        "@tradestream_maven//:com_influxdb_influxdb_client_java",
     ],
 )
 
@@ -208,7 +208,7 @@ java_library(
     name = "influxdb_client_kotlin",
     visibility = ["//visibility:public"],
     exports = [
-        "@tradestream_maven//:com_influxdb_client_kotlin",
+        "@tradestream_maven//:com_influxdb_influxdb_client_kotlin",
     ],
 )
 
