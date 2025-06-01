@@ -16,6 +16,7 @@ kt_jvm_library(
 
 java_library(
     name = "genotype_converter",
+    srcs = ["GenotypeConverter.java"],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
         "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
