@@ -14,7 +14,7 @@ class InfluxDbCandleFetcher(
     url: String,
     token: String,
     private val org: String,
-    private val bucket: String
+    private val bucket: String,
 ) : CandleFetcher {
     private val influxDBClient: InfluxDBClient = InfluxDBClientFactory.create(url, token.toCharArray(), org, bucket)
 
