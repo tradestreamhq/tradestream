@@ -133,8 +133,9 @@ class TestMultiExchangeCandleClient(unittest.TestCase):
                 return mock_binance_client_instance
             elif exchange_name == "coinbasepro":
                 return mock_coinbase_client_instance
-            self.fail(f"Unexpected exchange_name '{exchange_name}' in mock_client_factory")
-
+            self.fail(
+                f"Unexpected exchange_name '{exchange_name}' in mock_client_factory"
+            )
 
         mock_ccxt_client_constructor.side_effect = mock_client_factory
 
