@@ -9,6 +9,7 @@ kt_jvm_test(
     deps = [
         "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline_lib",
         "//protos:discovery_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline_lib",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_test_utils",
         "//third_party/java:junit",
