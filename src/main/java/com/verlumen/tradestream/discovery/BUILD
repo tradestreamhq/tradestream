@@ -6,7 +6,6 @@ kt_jvm_library(
     visibility = [
         "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
     ],
-    srcs = ["DiscoveryModule.kt"],
     deps = [
         ":genotype_converter",
         ":genotype_converter_impl",
