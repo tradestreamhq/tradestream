@@ -154,7 +154,6 @@ class MultiExchangeCandleClient:
             if not client.is_symbol_supported(symbol):
                 logging.debug(f"Skipping {name} for {symbol} (not supported)")
                 continue
-            
             try:
                 candles = client.get_historical_candles(symbol, timeframe, since, limit)
                 if candles:
