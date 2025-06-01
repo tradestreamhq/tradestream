@@ -51,7 +51,7 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
 
         # Mock the currency pairs retrieval method
         self.currency_pairs_patcher = patch.object(
-            main.StrategyDiscoveryService, '_get_currency_pairs_from_redis'
+            main.StrategyDiscoveryService, "_get_currency_pairs_from_redis"
         )
         self.mock_get_currency_pairs = self.currency_pairs_patcher.start()
         self.mock_get_currency_pairs.return_value = ["BTC/USD", "ETH/USD"]
