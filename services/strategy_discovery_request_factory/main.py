@@ -42,7 +42,9 @@ flags.DEFINE_list(
 )
 
 # InfluxDB flags
-flags.DEFINE_string("influxdb_url", os.getenv("INFLUXDB_URL", "http://localhost:8086"), "InfluxDB URL")
+flags.DEFINE_string(
+    "influxdb_url", os.getenv("INFLUXDB_URL", "http://localhost:8086"), "InfluxDB URL"
+)
 flags.DEFINE_string("influxdb_token", os.getenv("INFLUXDB_TOKEN"), "InfluxDB token")
 flags.DEFINE_string("influxdb_org", os.getenv("INFLUXDB_ORG"), "InfluxDB organization")
 flags.DEFINE_string("influxdb_bucket_tracker", "tradestream-data", "Tracker bucket")
