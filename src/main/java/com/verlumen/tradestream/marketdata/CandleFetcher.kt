@@ -20,7 +20,11 @@ interface CandleFetcher : AutoCloseable {
      * @param endTime The end of the time range (exclusive or inclusive based on the underlying data source's query behavior).
      * @return An immutable list of [Candle] objects.
      */
-    fun fetchCandles(symbol: String, startTime: Timestamp, endTime: Timestamp): ImmutableList<Candle>
+    fun fetchCandles(
+        symbol: String,
+        startTime: Timestamp,
+        endTime: Timestamp,
+    ): ImmutableList<Candle>
 
     // The close() method is implicitly required by extending AutoCloseable
     // and must be implemented by concrete classes.
