@@ -1,6 +1,7 @@
 """
 Modified main.py to use CCXT instead of Tiingo while maintaining all existing functionality.
 Drop-in replacement for the original Tiingo-based candle ingestor with symbol filtering.
+Added global status tracker updates for strategy discovery factory integration.
 """
 
 import os
@@ -109,6 +110,32 @@ flags.DEFINE_integer(
 
 DRY_RUN_PROCESSING_LIMIT_DEFAULT = 2
 SERVICE_IDENTIFIER = "candle_ingestor"
+
+
+def update_global_status_tracker(
+    state_tracker: InfluxDBLastProcessedTracker,
+    ticker: str,
+    latest_timestamp_ms: int
+) -> None:
+    """Update the global status tracker that strategy factory reads from."""
+    try:
+        # Convert ticker format: btcusd -> BTC_USD_latest_ingested_ts
+        if ticker.lower().endswith('usd'):
+            base = ticker[:-3].upper()
+            currency_pair = f"{base}/USD"
+            global_key = f"{currency_pair.replace('/', '_')}_latest_ingested_ts"
+            
+            # Update under the global_candle_status service name that strategy factory expects
+            state_tracker.update_last_processed_timestamp(
+                "global_candle_status",  # This matches what strategy factory expects
+                global_key,
+                latest_timestamp_ms
+            )
+            logging.debug(f"Updated global status tracker for {currency_pair}: {global_key} = {latest_timestamp_ms}")
+        else:
+            logging.warning(f"Skipping global status update for non-USD ticker: {ticker}")
+    except Exception as e:
+        logging.error(f"Failed to update global status tracker for {ticker}: {e}")
 
 
 def validate_symbol_availability(
@@ -591,6 +618,8 @@ def run_backfill(
                         state_tracker.update_last_processed_timestamp(
                             SERVICE_IDENTIFIER, f"{ticker}-backfill", latest_ts_in_batch
                         )
+                        # Update global status tracker for strategy factory
+                        update_global_status_tracker(state_tracker, ticker, latest_ts_in_batch)
                     last_processed_timestamps[ticker] = latest_ts_in_batch
                     logging.info(
                         f"   Successfully processed {len(historical_candles)} candles. Updated backfill state for {ticker} to {latest_ts_in_batch}"
@@ -777,6 +806,8 @@ def run_catch_up(
                         state_tracker.update_last_processed_timestamp(
                             SERVICE_IDENTIFIER, f"{ticker}-catch_up", latest_ts_in_batch
                         )
+                        # Update global status tracker for strategy factory
+                        update_global_status_tracker(state_tracker, ticker, latest_ts_in_batch)
                     logging.info(
                         f"  Successfully processed {len(valid_candles_to_write)} candles for {ticker} (catch-up). Updated state to {latest_ts_in_batch}"
                     )
