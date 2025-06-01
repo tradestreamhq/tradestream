@@ -29,16 +29,15 @@ kt_jvm_test(
         "//protos:backtesting_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter",
-        # "//src/main/java/com/verlumen/tradestream/backtesting:fitness_calculator", # Ensure this target exists
+        "//src/main/java/com/verlumen/tradestream/backtesting:fitness_calculator",
         "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_test_utils",
+        "//third_party/java:jenetics",
         "//third_party/java:junit",
         "//third_party/java:truth",
         "//third_party/java:mockito_core",
-        "//third_party/kotlin:mockito_kotlin", # For Kotlin idiomatic mocking
-        "//third_party/java:jenetics",
-        "//third_party/kotlin:kotlin_stdlib",
+        "//third_party/java:mockito_kotlin",
     ],
 )
 
@@ -49,13 +48,12 @@ kt_jvm_test(
     deps = [
         "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline_lib",
         "//protos:discovery_java_proto",
-        "//protos:strategies_java_proto", # For StrategyType and SmaRsiParameters
+        "//protos:strategies_java_proto",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_test_utils",
         "//third_party/java:junit",
         "//third_party/java:truth",
-        "//third_party/java:protobuf_java_util", # For Timestamps
-        "//third_party/kotlin:kotlin_stdlib",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -70,7 +68,6 @@ kt_jvm_test(
         "//third_party/java:junit",
         "//third_party/java:truth",
         "//third_party/java:mockito_core",
-        "//third_party/java:protobuf_java_util", // For JsonFormat if used in test
-        "//third_party/kotlin:kotlin_stdlib",
+        "//third_party/java:protobuf_java_util",
     ],
 )
