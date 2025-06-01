@@ -1,4 +1,4 @@
-name: Tidy Bazel Modules
+name: Debug Tidy Bazel Modules
 
 on:
   pull_request:
@@ -6,26 +6,15 @@ on:
       - main
       - develop
     paths:
-      - "BUILD"
-      - "BUILD.bazel"
-      - "WORKSPACE"
-      - "WORKSPACE.bazel"
       - "MODULE.bazel"
-      - "**/BUILD"
-      - "**/BUILD.bazel"
-      - "**/WORKSPACE"
-      - "**/WORKSPACE.bazel"
-      - "**/MODULE.bazel"
-      - "**/*.bzl"
-      - "**/*.BUILD"
 
 permissions:
   contents: read
   pull-requests: write
 
 jobs:
-  tidy-bazel-modules:
-    name: runner / bazel-mod-tidy
+  debug-tidy:
+    name: Debug bazel-mod-tidy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -40,23 +29,95 @@ jobs:
           disk-cache: ${{ github.workflow }}
           repository-cache: true
 
+      - name: Show initial git state
+        run: |
+          echo "=== Initial Git State ==="
+          echo "Git status:"
+          git status --porcelain
+          echo "Git status verbose:"
+          git status
+          echo "Current branch/ref:"
+          git rev-parse --abbrev-ref HEAD || echo "detached HEAD"
+          echo "HEAD commit:"
+          git rev-parse HEAD
+          echo "Working directory files (MODULE.bazel):"
+          ls -la MODULE.bazel
+          echo "=== End Initial State ==="
+
       - name: Run bazel mod tidy
         run: bazel mod tidy
 
-      - name: Check for changes
-        id: verify_changed_files
+      - name: Show git state after tidy
+        id: check_changes
         run: |
+          echo "=== Git State After Bazel Mod Tidy ==="
+          echo "Git status:"
+          git status --porcelain
+          echo "Git status verbose:"
+          git status
+          echo "Git diff:"
+          git diff
+          echo "Git diff --cached:"
+          git diff --cached
+          echo "Git diff HEAD:"
+          git diff HEAD
+          echo "=== Setting output ==="
           if [ -n "$(git status --porcelain)" ]; then
             echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Detected changes after 'bazel mod tidy':"
-            git status --porcelain
+            echo "CHANGES DETECTED: true"
           else
             echo "changed=false" >> $GITHUB_OUTPUT
-            echo "No changes detected after 'bazel mod tidy'."
+            echo "CHANGES DETECTED: false"
           fi
+          echo "=== End State Check ==="
 
-      - name: Suggest tidy changes
-        if: steps.verify_changed_files.outputs.changed == 'true'
+      # Let's try staging the changes explicitly like some formatters might do
+      - name: Stage changes (if any)
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          echo "=== Staging Changes ==="
+          git add -A
+          echo "Git status after staging:"
+          git status --porcelain
+          echo "Git diff --cached after staging:"
+          git diff --cached
+          echo "=== End Staging ==="
+
+      # Try with explicit cleanup: false and all default settings
+      - name: Try reviewdog with cleanup disabled
+        if: steps.check_changes.outputs.changed == 'true'
         uses: reviewdog/action-suggester@v1
         with:
-          tool_name: bazel-mod-tidy
+          tool_name: bazel-mod-tidy-test1
+          cleanup: false
+        env:
+          REVIEWDOG_DEBUG: "1"
+
+      - name: Show git state after first reviewdog
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          echo "=== Git State After First Reviewdog ==="
+          git status --porcelain
+          git diff
+          echo "=== End State ==="
+
+      # Reset and try again without staging, just like your working examples
+      - name: Reset changes and try again
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git reset --hard HEAD
+          bazel mod tidy
+
+      - name: Try reviewdog exactly like working examples
+        if: steps.check_changes.outputs.changed == 'true'
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: bazel-mod-tidy-test2
+
+      - name: Final git state check
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          echo "=== Final Git State ==="
+          git status --porcelain
+          git diff
+          echo "=== End Final ==="
