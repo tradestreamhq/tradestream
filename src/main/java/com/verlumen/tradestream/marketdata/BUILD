@@ -19,7 +19,7 @@ java_library(
 
 kt_jvm_library(
     name = "candle_fetcher",
-    srcs = ["CandleFetcher.java"],
+    srcs = ["CandleFetcher.kt"],
     deps = [
         "//protos:marketdata_java_proto",
         "//third_party/java:guava",
