@@ -1,4 +1,15 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+
+kt_jvm_library(
+    name = "discovery_module",
+    srcs = ["DiscoveryModule.kt"]
+    deps = [
+        ":genotype_converter",
+        ":genotype_converter_impl",
+        "//third_party/java:guice",
+    ],
+)
 
 java_library(
     name = "genotype_converter",
