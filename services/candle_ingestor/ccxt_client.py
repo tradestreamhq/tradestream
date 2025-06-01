@@ -82,7 +82,9 @@ class CCXTCandleClient:
                 self.supported_symbols_cache[symbol] = False
                 logging.debug(f"{self.exchange_name}: {symbol} not available (expected)")
             else:
-                logging.error(f"CCXT error fetching {symbol} from {self.exchange_name}: {e}")
+                logging.error(
+                    f"CCXT error fetching {symbol} from {self.exchange_name}: {e}"
+                )
             raise
 
     def _normalize_symbol(self, symbol: str) -> str:
