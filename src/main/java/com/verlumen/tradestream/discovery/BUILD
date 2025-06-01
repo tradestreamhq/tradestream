@@ -1,3 +1,5 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
 java_library(
     name = "genetic_algorithm_orchestrator",
     srcs = ["GeneticAlgorithmOrchestrator.java"],
