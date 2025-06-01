@@ -40,7 +40,7 @@ kt_jvm_library(
 
 kt_jvm_binary(
     name = "strategy_discovery_app",
-    main_class = "com.verlumen.tradestream.discovery.StrategyDiscoveryPipeline", # Ensure correct if main is in object
+    main_class = "com.verlumen.tradestream.discovery.StrategyDiscoveryPipeline",  # Ensure correct if main is in object
     runtime_deps = [
         ":strategy_discovery_pipeline_lib",
         "//third_party/java:beam_runners_direct_java", # For local testing
