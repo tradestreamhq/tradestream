@@ -30,10 +30,10 @@ abstract class PipelineModule extends AbstractModule {
       int topCurrencyCount,
       String tiingoApiKey,
   String influxDbUrl,
-  String influxDbToken,
-  String influxDbOrg,
-  String influxDbBucket) {
-    return new AutoValue_PipelineModule(
+      String influxDbUrl,
+      String influxDbToken,
+      String influxDbOrg,
+      String influxDbBucket) {
         bootstrapServers,
         Duration.standardMinutes(candleDurationMinutes),
         coinMarketCapApiKey,
