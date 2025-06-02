@@ -17,6 +17,8 @@ java_library(
     ],
 )
 
+# Add these sections to your src/main/java/com/verlumen/tradestream/marketdata/BUILD file:
+
 kt_jvm_library(
     name = "candle_fetcher",
     srcs = ["CandleFetcher.kt"],
@@ -212,7 +214,6 @@ kt_jvm_library(
         "//protos:marketdata_java_proto",
         "//third_party/java:guava",
         "//third_party/java:influxdb_client_java",
-        # "//third_party/java:influxdb_client_kotlin", # Add if using Kotlin client
         "//third_party/java:flogger",
         "//third_party/java:protobuf_java_util",
     ],
