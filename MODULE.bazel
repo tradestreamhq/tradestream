@@ -130,7 +130,6 @@ oci.pull(
     ],
 )
 use_repo(oci, "openjdk_java")
-
 oci.pull(
     name = "flink_java17",
     image = "docker.io/library/flink:1.18-java17",
