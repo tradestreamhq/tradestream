@@ -183,14 +183,24 @@ class InfluxDbCandleFetcherTest {
     }
 
     private fun createMockTablesWithValidData(): List<FluxTable> {
-        val record1 = createMockRecord(
-            time = Instant.parse("2025-01-01T00:00:00Z"),
-            open = 50000.0, high = 51000.0, low = 49500.0, close = 50500.0, volume = 100.5
-        )
-        val record2 = createMockRecord(
-            time = Instant.parse("2025-01-01T00:01:00Z"),
-            open = 50500.0, high = 52000.0, low = 50000.0, close = 51500.0, volume = 200.75
-        )
+        val record1 =
+            createMockRecord(
+                time = Instant.parse("2025-01-01T00:00:00Z"),
+                open = 50000.0,
+                high = 51000.0,
+                low = 49500.0,
+                close = 50500.0,
+                volume = 100.5,
+            )
+        val record2 =
+            createMockRecord(
+                time = Instant.parse("2025-01-01T00:01:00Z"),
+                open = 50500.0,
+                high = 52000.0,
+                low = 50000.0,
+                close = 51500.0,
+                volume = 200.75,
+            )
 
         val mockTable = mock(FluxTable::class.java)
         `when`(mockTable.records).thenReturn(listOf(record1, record2))
