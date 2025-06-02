@@ -79,7 +79,7 @@ abstract class PipelineModule extends AbstractModule {
     install(BacktestingModule.create());
     install(new DiscoveryModule());
     install(HttpModule.create());
-    install(new InfluxDbModule(influxDbUrl, influxDbToken, influxDbOrg, influxDbBucket));
+    install(new InfluxDbModule(influxDbUrl(), influxDbToken(), influxDbOrg(), influxDbBucket()));
     install(MarketDataModule.create(exchangeName(), candleDuration(), runMode(), tiingoApiKey()));
     install(SignalsModule.create(signalTopic()));
     install(StrategiesModule.create());
