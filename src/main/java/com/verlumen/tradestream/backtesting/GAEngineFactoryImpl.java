@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.backtesting;
 
 import com.google.inject.Inject;
+import com.verlumen.tradestream.discovery.ParamConfig;
 import com.verlumen.tradestream.discovery.ParamConfigManager;
 import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
