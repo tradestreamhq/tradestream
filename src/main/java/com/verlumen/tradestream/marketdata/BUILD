@@ -18,6 +18,16 @@ java_library(
 )
 
 kt_jvm_library(
+    name = "candle_fetcher",
+    srcs = ["CandleFetcher.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party/java:guava",
+        "//third_party/java:protobuf_java",
+    ],
+)
+
+kt_jvm_library(
     name = "candle_lookback_do_fn",
     srcs = ["CandleLookbackDoFn.kt"],
     deps = [
@@ -36,22 +46,6 @@ java_library(
     deps = [
         "//protos:marketdata_java_proto",
         "//third_party/java:beam_sdks_java_core",
-    ],
-)
-
-# Coinbase specific streaming client
-java_library(
-    name = "coinbase_streaming_client",
-    srcs = ["CoinbaseStreamingClient.java"],
-    deps = [
-        ":exchange_streaming_client",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party/java:flogger",
-        "//third_party/java:gson",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -95,25 +89,6 @@ java_library(
     ],
 )
 
-# Beam UnboundedReader implementation for exchange clients
-kt_jvm_library(
-    name = "exchange_client_unbounded_reader",
-    srcs = ["ExchangeClientUnboundedReader.kt"],
-    deps = [
-        ":exchange_client_unbounded_source",
-        ":trade_checkpoint_mark",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:flogger",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
-        "//third_party/java:protobuf_java_util",
-    ],
-)
-
 # Abstract base class for exchange client unbounded sources
 kt_jvm_library(
     name = "exchange_client_unbounded_source",
@@ -126,21 +101,6 @@ kt_jvm_library(
     ],
 )
 
-# Concrete implementation of the unbounded source
-kt_jvm_library(
-    name = "exchange_client_unbounded_source_impl",
-    srcs = ["ExchangeClientUnboundedSourceImpl.kt"],
-    deps = [
-        ":exchange_client_unbounded_reader",
-        ":exchange_client_unbounded_source",
-        ":trade_checkpoint_mark",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:guice",
-    ],
-)
-
 # Interface for exchange streaming clients
 java_library(
     name = "exchange_streaming_client",
@@ -149,18 +109,6 @@ java_library(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//third_party/java:guava",
-    ],
-)
-
-# Factory for creating exchange streaming clients
-java_library(
-    name = "exchange_streaming_client_factory",
-    srcs = ["ExchangeStreamingClientFactory.java"],
-    deps = [
-        ":coinbase_streaming_client",
-        ":exchange_streaming_client",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
     ],
 )
 
@@ -196,15 +144,14 @@ kt_jvm_library(
 
 kt_jvm_library(
     name = "influxdb_candle_fetcher",
-    srcs = ["InfluxDbCandleFetcher.kt"], # Ensure .kt extension
+    srcs = ["InfluxDbCandleFetcher.kt"],
     deps = [
+        ":candle_fetcher",
         "//protos:marketdata_java_proto",
-        "//third_party/java:guava",
-        "//third_party/java:influxdb_client_java", # Make sure this points to the InfluxDB Java Client
-        "//third_party/java:influxdb_client_kotlin", # Add if using Kotlin client
         "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:influxdb_client_java",
         "//third_party/java:protobuf_java_util",
-        "//third_party/kotlin:kotlinx_coroutines_core", # If using Kotlin client with coroutines
     ],
 )
 
@@ -226,15 +173,14 @@ java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
     deps = [
+        ":candle_fetcher",
         ":candle_source",
         ":dry_run_trade_source",
         ":exchange_client_trade_source",
-        ":exchange_client_unbounded_source",
-        ":exchange_client_unbounded_source_impl",
         ":exchange_streaming_client",
-        ":exchange_streaming_client_factory",
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
+        ":influxdb_candle_fetcher",
         ":sliding_candle_aggregator",
         ":tiingo_crypto_candle_source",
         ":tiingo_crypto_candle_transform",
@@ -250,20 +196,6 @@ java_library(
         "//third_party/java:guice_assistedinject",
         "//third_party/java:joda_time",
         "//third_party/java:protobuf_java_util",
-    ],
-)
-
-# Transform for creating multi-timeframe views
-java_library(
-    name = "multi_timeframe_candle_transform",
-    srcs = ["MultiTimeframeCandleTransform.java"],
-    deps = [
-        ":last_candles_fn",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/time:time_frame",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:flogger",
-        "//third_party/java:guava",
     ],
 )
 

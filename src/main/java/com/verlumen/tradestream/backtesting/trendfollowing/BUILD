@@ -8,7 +8,7 @@ java_library(
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
-        "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
+        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
         "//third_party/java:guava",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
@@ -20,6 +20,6 @@ kt_jvm_library(
     srcs = ["TrendFollowingParams.kt"],
     deps = [
         ":ichimoku_cloud_param_config",
-        "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
+        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
     ],
 )

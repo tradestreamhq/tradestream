@@ -14,6 +14,7 @@ import org.joda.time.Duration;
 
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
+
   public static MarketDataModule create(
       String exchangeName, Duration granularity, RunMode runMode, String tiingoApiKey) {
     return new AutoValue_MarketDataModule(exchangeName, granularity, runMode, tiingoApiKey);
@@ -29,28 +30,21 @@ public abstract class MarketDataModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
-    bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
-
+    bind(CandleFetcher.class).to(InfluxDbCandleFetcher.class);
     install(new FactoryModuleBuilder().build(FillForwardCandlesFn.Factory.class));
-
     install(
         new FactoryModuleBuilder()
             .implement(FillForwardCandles.class, FillForwardCandles.class)
             .build(FillForwardCandles.Factory.class));
-
     install(
         new FactoryModuleBuilder()
             .implement(TiingoCryptoCandleSource.class, TiingoCryptoCandleSource.class)
             .build(TiingoCryptoCandleSource.Factory.class));
-
     install(
         new FactoryModuleBuilder()
             .implement(TiingoCryptoCandleTransform.class, TiingoCryptoCandleTransform.class)
             .build(TiingoCryptoCandleTransform.Factory.class));
-
     install(new FactoryModuleBuilder().build(TiingoCryptoFetcherFn.Factory.class));
-
     install(
         new FactoryModuleBuilder()
             .implement(TradeToCandle.class, TradeToCandle.class)
@@ -62,7 +56,6 @@ public abstract class MarketDataModule extends AbstractModule {
   CandleSource provideCandleSource(
       Provider<TradeBackedCandleSource> tradeBackedCandleSource,
       TiingoCryptoCandleSource.Factory tiingoCryptoCandleSourceFactory) {
-
     switch (runMode()) {
       case DRY:
         return tradeBackedCandleSource.get();
@@ -75,13 +68,7 @@ public abstract class MarketDataModule extends AbstractModule {
 
   @Provides
   @Singleton
-  ExchangeStreamingClient provideExchangeStreamingClient(ExchangeStreamingClient.Factory factory) {
-    return factory.create(exchangeName());
-  }
-
-  @Provides
-  @Singleton
-  TradeSource provideTradeSource(Provider<ExchangeClientTradeSource> exchangeClientTradeSource) {
+  TradeSource provideTradeSource() {
     switch (runMode()) {
       case DRY:
         return DryRunTradeSource.create(

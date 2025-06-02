@@ -7,6 +7,7 @@ import com.verlumen.tradestream.backtesting.BacktestingModule;
 import com.verlumen.tradestream.discovery.DiscoveryModule;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.http.HttpModule;
+import com.verlumen.tradestream.influxdb.InfluxDbModule;
 import com.verlumen.tradestream.instruments.InstrumentsModule;
 import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.marketdata.FillForwardCandles;
@@ -28,7 +29,11 @@ abstract class PipelineModule extends AbstractModule {
       RunMode runMode,
       String signalTopic,
       int topCurrencyCount,
-      String tiingoApiKey) {
+      String tiingoApiKey,
+      String influxDbUrl,
+      String influxDbToken,
+      String influxDbOrg,
+      String influxDbBucket) {
     return new AutoValue_PipelineModule(
         bootstrapServers,
         Duration.standardMinutes(candleDurationMinutes),
@@ -38,7 +43,11 @@ abstract class PipelineModule extends AbstractModule {
         runMode,
         signalTopic,
         topCurrencyCount,
-        tiingoApiKey);
+        tiingoApiKey,
+        influxDbUrl,
+        influxDbToken,
+        influxDbOrg,
+        influxDbBucket);
   }
 
   abstract String bootstrapServers();
@@ -59,11 +68,20 @@ abstract class PipelineModule extends AbstractModule {
 
   abstract String tiingoApiKey();
 
+  abstract String influxDbUrl();
+
+  abstract String influxDbToken();
+
+  abstract String influxDbOrg();
+
+  abstract String influxDbBucket();
+
   @Override
   protected void configure() {
     install(BacktestingModule.create());
     install(new DiscoveryModule());
     install(HttpModule.create());
+    install(new InfluxDbModule(influxDbUrl(), influxDbToken(), influxDbOrg(), influxDbBucket()));
     install(InstrumentsModule.create(runMode(), coinMarketCapApiKey(), topCurrencyCount()));
     install(KafkaModule.create(bootstrapServers()));
     install(MarketDataModule.create(exchangeName(), candleDuration(), runMode(), tiingoApiKey()));
