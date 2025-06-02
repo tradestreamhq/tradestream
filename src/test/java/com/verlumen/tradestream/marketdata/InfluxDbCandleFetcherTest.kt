@@ -180,7 +180,6 @@ class InfluxDbCandleFetcherTest {
                 clientField.set(this, mockInfluxDBClient)
             }
         }
-    }
 
     private fun createMockTablesWithValidData(): List<FluxTable> {
         val record1 =
