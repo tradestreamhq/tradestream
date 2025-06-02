@@ -29,9 +29,6 @@ public abstract class MarketDataModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
-    bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
-
     install(new FactoryModuleBuilder().build(FillForwardCandlesFn.Factory.class));
 
     install(
@@ -75,13 +72,7 @@ public abstract class MarketDataModule extends AbstractModule {
 
   @Provides
   @Singleton
-  ExchangeStreamingClient provideExchangeStreamingClient(ExchangeStreamingClient.Factory factory) {
-    return factory.create(exchangeName());
-  }
-
-  @Provides
-  @Singleton
-  TradeSource provideTradeSource(Provider<ExchangeClientTradeSource> exchangeClientTradeSource) {
+  TradeSource provideTradeSource() {
     switch (runMode()) {
       case DRY:
         return DryRunTradeSource.create(

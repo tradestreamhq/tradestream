@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.discovery;
 
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.strategies.StrategyType;
@@ -9,7 +9,7 @@ import java.io.Serializable;
  * Converts genotypes from the genetic algorithm into strategy parameters. Encapsulates the
  * conversion logic to make it reusable and testable.
  */
-interface GenotypeConverter extends Serializable {
+public interface GenotypeConverter extends Serializable {
   /**
    * Converts the genotype from the genetic algorithm into strategy parameters.
    *

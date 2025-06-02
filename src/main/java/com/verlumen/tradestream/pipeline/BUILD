@@ -24,7 +24,6 @@ java_binary(
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_lookback_do_fn",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_source",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_engine_pipeline",
         "//third_party/java:beam_runners_flink_java",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:flogger",
@@ -91,6 +90,7 @@ java_library(
     deps = [
         ":timing_config",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
+        "//src/main/java/com/verlumen/tradestream/discovery:discovery_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/http:http_module",
         "//src/main/java/com/verlumen/tradestream/instruments:instruments_module",
