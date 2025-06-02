@@ -82,7 +82,10 @@ class InfluxDbCandleFetcher(
         """.trimIndent()
     }
 
-    private fun parseCandle(record: com.influxdb.query.FluxRecord, symbol: String): Candle? {
+    private fun parseCandle(
+        record: com.influxdb.query.FluxRecord,
+        symbol: String,
+    ): Candle? {
         val time = record.time
         if (time == null) {
             logger.atWarning().log("Skipping record with null time for symbol %s", symbol)
