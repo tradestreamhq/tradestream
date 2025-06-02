@@ -12,7 +12,6 @@ class InfluxDbModule(
     private val influxDbOrg: String,
     private val influxDbBucket: String
 ) : AbstractModule() {
-
     @Provides
     @Singleton
     fun provideInfluxDBClient(): InfluxDBClient =
