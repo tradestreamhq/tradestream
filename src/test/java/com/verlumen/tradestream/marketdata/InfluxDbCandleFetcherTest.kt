@@ -25,8 +25,6 @@ class InfluxDbCandleFetcherTest {
 
     @Mock private lateinit var mockQueryApi: QueryApi
 
-    private val testUrl = "http://test-influxdb:8086"
-    private val testToken = "test-token-123"
     private val testOrg = "test-org"
     private val testBucket = "test-bucket"
 
@@ -167,14 +165,7 @@ class InfluxDbCandleFetcherTest {
     // Helper methods to create test data
 
     private fun createTestFetcher(): InfluxDbCandleFetcher =
-        object : InfluxDbCandleFetcher(testUrl, testToken, testOrg, testBucket) {
-            init {
-                // Use reflection to inject the mock client
-                val clientField = InfluxDbCandleFetcher::class.java.getDeclaredField("influxDBClient")
-                clientField.isAccessible = true
-                clientField.set(this, mockInfluxDBClient)
-            }
-        }
+        InfluxDbCandleFetcher(mockInfluxDBClient, testOrg, testBucket)
 
     private fun createMockTablesWithValidData(): List<FluxTable> {
         val record1 =
