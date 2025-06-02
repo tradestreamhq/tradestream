@@ -31,6 +31,15 @@ spec:
     args:
       - "--bootstrapServers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
       - "--runner=FlinkRunner"
+      - "--runMode={{ .Values.pipeline.runMode }}"
+      - "--exchangeName={{ .Values.pipeline.exchangeName | default "coinbase" }}"
+      - "--candleDurationMinutes={{ .Values.pipeline.candleDurationMinutes | default 1 }}"
+      - "--coinMarketCapApiKey={{ .Values.pipeline.coinMarketCapApiKey | default "" }}" # This will be overridden by env var if set
+      - "--tiingoApiKey={{ .Values.pipeline.tiingoApiKey | default "" }}" # This will be overridden by env var if set
+      - "--influxDbUrl=http://{{ include "tradestream.fullname" . }}-influxdb:80" # Default to port 80, consistent with other services
+      - "--influxDbOrg={{ .Values.influxdb.adminUser.organization }}"
+      - "--influxDbBucket={{ .Values.influxdb.adminUser.bucket }}"
+      # INFLUXDB_TOKEN will be sourced from environment variable in the podTemplate
     parallelism: {{ .Values.pipeline.job.parallelism }}
     upgradeMode: {{ .Values.pipeline.job.upgradeMode }}
   podTemplate:
@@ -57,6 +66,11 @@ spec:
                 secretKeyRef:
                   name: tiingo
                   key: apiKey
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.influxdb.adminUser.existingSecret | default (printf "%s-influxdb-admin-secret" (include "tradestream.fullname" .)) }}
+                  key: admin-token
           volumeMounts:
             - name: flink-writable-volume
               mountPath: /opt/flink/writable-tmp
