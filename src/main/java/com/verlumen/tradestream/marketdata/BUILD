@@ -234,6 +234,7 @@ java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
     deps = [
+        ":candle_fetcher",
         ":candle_source",
         ":dry_run_trade_source",
         ":exchange_client_trade_source",
@@ -243,6 +244,7 @@ java_library(
         ":exchange_streaming_client_factory",
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
+        ":influxdb_candle_fetcher",
         ":sliding_candle_aggregator",
         ":tiingo_crypto_candle_source",
         ":tiingo_crypto_candle_transform",
