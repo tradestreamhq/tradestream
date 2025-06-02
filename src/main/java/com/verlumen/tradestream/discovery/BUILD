@@ -37,9 +37,9 @@ java_library(
     ],
     deps = [
         ":genotype_converter",
+        ":param_config",
+        ":param_config_manager",
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
-        "//src/main/java/com/verlumen/tradestream/discovery:param_config_manager",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
@@ -51,8 +51,8 @@ java_library(
     name = "param_config",
     srcs = ["ParamConfig.java"],
     deps = [
-        ":chromosome_spec",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
         "//third_party/java:guava",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
