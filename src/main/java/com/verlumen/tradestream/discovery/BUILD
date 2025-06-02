@@ -73,8 +73,9 @@ java_library(
     name = "param_config_manager",
     srcs = ["ParamConfigManager.java"],
     visibility = [
-        "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/main/java/com/verlumen/tradestream/backtesting:__subpackages__",
         "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
         ":param_config",
