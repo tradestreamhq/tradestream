@@ -212,6 +212,7 @@ kt_jvm_library(
     deps = [
         ":candle_fetcher",
         "//protos:marketdata_java_proto",
+        "//third_party/java:flogger",
         "//third_party/java:guava",
         "//third_party/java:influxdb_client_java",
         "//third_party/java:flogger",
