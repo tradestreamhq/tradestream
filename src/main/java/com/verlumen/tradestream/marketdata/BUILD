@@ -39,22 +39,6 @@ java_library(
     ],
 )
 
-# Coinbase specific streaming client
-java_library(
-    name = "coinbase_streaming_client",
-    srcs = ["CoinbaseStreamingClient.java"],
-    deps = [
-        ":exchange_streaming_client",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party/java:flogger",
-        "//third_party/java:gson",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:protobuf_java_util",
-    ],
-)
-
 # Generates default/dummy trades
 java_library(
     name = "default_trade_generator",
