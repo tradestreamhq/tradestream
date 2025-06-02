@@ -23,6 +23,7 @@ import java.time.Instant
 class InfluxDbCandleFetcherTest {
 
     @Mock private lateinit var mockInfluxDBClient: InfluxDBClient
+
     @Mock private lateinit var mockQueryApi: QueryApi
 
     private val testUrl = "http://test-influxdb:8086"
