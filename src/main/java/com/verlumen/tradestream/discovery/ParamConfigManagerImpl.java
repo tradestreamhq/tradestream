@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.discovery;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.function.Function.identity;
