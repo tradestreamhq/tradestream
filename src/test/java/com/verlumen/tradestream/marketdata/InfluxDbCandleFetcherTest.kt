@@ -80,7 +80,6 @@ class InfluxDbCandleFetcherTest {
         assertThat(candle.low).isEqualTo(99.0)
         assertThat(candle.close).isEqualTo(102.0)
         assertThat(candle.volume).isEqualTo(10.0)
-        
         testableFetcher.close()
     }
 
