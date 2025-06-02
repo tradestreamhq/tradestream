@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.marketdata
+package com.verlumen.tradestream.influxdb
 
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
