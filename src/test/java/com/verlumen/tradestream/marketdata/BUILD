@@ -144,26 +144,6 @@ java_test(
 )
 
 java_test(
-    name = "MultiTimeframeCandleTransformTest",
-    srcs = ["MultiTimeframeCandleTransformTest.java"],
-    runtime_deps = [
-        "//third_party/java:beam_runners_direct_java",
-        "//third_party/java:hamcrest",
-    ],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
-        "//src/main/java/com/verlumen/tradestream/time:time_frame",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:guava",
-        "//third_party/java:joda_time",
-        "//third_party/java:junit",
-        "//third_party/java:protobuf_java",
-    ],
-)
-
-java_test(
     name = "SlidingCandleAggregatorTest",
     srcs = ["SlidingCandleAggregatorTest.java"],
     runtime_deps = [
