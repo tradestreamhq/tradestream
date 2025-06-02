@@ -113,7 +113,8 @@ class InfluxDbCandleFetcherTest {
         assertThat(candles).isEmpty() // Record with null time should be skipped
         testableFetcher.close()
     }
-    @Test
+
+        // Arrange
     fun fetchCandles_handlesRecordParsingExceptionGracefully() {
         // Arrange
         val symbol = "ADA/USD"
