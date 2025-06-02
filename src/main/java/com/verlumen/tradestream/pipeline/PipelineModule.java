@@ -34,6 +34,7 @@ abstract class PipelineModule extends AbstractModule {
       String influxDbToken,
       String influxDbOrg,
       String influxDbBucket) {
+    return new AutoValue_PipelineModule(
         bootstrapServers,
         Duration.standardMinutes(candleDurationMinutes),
         coinMarketCapApiKey,
@@ -47,6 +48,7 @@ abstract class PipelineModule extends AbstractModule {
         influxDbToken,
         influxDbOrg,
         influxDbBucket);
+  }
 
   abstract String bootstrapServers();
 
