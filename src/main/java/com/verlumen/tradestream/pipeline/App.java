@@ -31,6 +31,10 @@ public final class App {
 
   private static final String CMC_API_KEY_ENV_VAR = "COINMARKETCAP_API_KEY";
   private static final String TIINGO_API_KEY_ENV_VAR = "TIINGO_API_KEY";
+  private static final String INFLUXDB_URL_ENV_VAR = "INFLUXDB_URL";
+  private static final String INFLUXDB_TOKEN_ENV_VAR = "INFLUXDB_TOKEN";
+  private static final String INFLUXDB_ORG_ENV_VAR = "INFLUXDB_ORG";
+  private static final String INFLUXDB_BUCKET_ENV_VAR = "INFLUXDB_BUCKET";
 
   /**
    * A constant string holding the Fibonacci sequence values less than 526,000.
@@ -109,6 +113,40 @@ public final class App {
     String getTiingoApiKey();
 
     void setTiingoApiKey(String value);
+
+    @Description(
+        "InfluxDB URL (default: value of "
+            + INFLUXDB_URL_ENV_VAR
+            + " environment variable or http://influxdb.tradestream-namespace.svc.cluster.local:8086)")
+    @Default.String("")
+    String getInfluxDbUrl();
+
+    void setInfluxDbUrl(String value);
+
+    @Description(
+        "InfluxDB Token (default: value of " + INFLUXDB_TOKEN_ENV_VAR + " environment variable)")
+    @Default.String("")
+    String getInfluxDbToken();
+
+    void setInfluxDbToken(String value);
+
+    @Description(
+        "InfluxDB Organization (default: value of "
+            + INFLUXDB_ORG_ENV_VAR
+            + " environment variable)")
+    @Default.String("")
+    String getInfluxDbOrg();
+
+    void setInfluxDbOrg(String value);
+
+    @Description(
+        "InfluxDB Bucket (default: value of "
+            + INFLUXDB_BUCKET_ENV_VAR
+            + " environment variable or tradestream-data)")
+    @Default.String("")
+    String getInfluxDbBucket();
+
+    void setInfluxDbBucket(String value);
   }
 
   private final CandleSource candleSource;
@@ -229,6 +267,56 @@ public final class App {
     return apiKey;
   }
 
+  private static String getInfluxDbUrl(Options options) {
+    String url = options.getInfluxDbUrl();
+    if (isNullOrEmpty(url)) {
+      url = System.getenv(INFLUXDB_URL_ENV_VAR);
+    }
+    if (isNullOrEmpty(url)) {
+      url = "http://influxdb.tradestream-namespace.svc.cluster.local:8086"; // Default fallback
+    }
+    return url;
+  }
+
+  private static String getInfluxDbToken(Options options) {
+    String token = options.getInfluxDbToken();
+    if (isNullOrEmpty(token)) {
+      token = System.getenv(INFLUXDB_TOKEN_ENV_VAR);
+    }
+    if (isNullOrEmpty(token)) {
+      throw new IllegalArgumentException(
+          "InfluxDB Token must be provided either through options or "
+              + INFLUXDB_TOKEN_ENV_VAR
+              + " environment variable");
+    }
+    return token;
+  }
+
+  private static String getInfluxDbOrg(Options options) {
+    String org = options.getInfluxDbOrg();
+    if (isNullOrEmpty(org)) {
+      org = System.getenv(INFLUXDB_ORG_ENV_VAR);
+    }
+    if (isNullOrEmpty(org)) {
+      throw new IllegalArgumentException(
+          "InfluxDB Organization must be provided either through options or "
+              + INFLUXDB_ORG_ENV_VAR
+              + " environment variable");
+    }
+    return org;
+  }
+
+  private static String getInfluxDbBucket(Options options) {
+    String bucket = options.getInfluxDbBucket();
+    if (isNullOrEmpty(bucket)) {
+      bucket = System.getenv(INFLUXDB_BUCKET_ENV_VAR);
+    }
+    if (isNullOrEmpty(bucket)) {
+      bucket = "tradestream-data"; // Default fallback
+    }
+    return bucket;
+  }
+
   public static void main(String[] args) throws Exception {
     logger.atInfo().log("Application starting with arguments: %s", (Object) args);
 
@@ -258,7 +346,11 @@ public final class App {
             runMode,
             options.getSignalTopic(),
             options.getCoinMarketCapTopCurrencyCount(),
-            getTiingoApiKey(options));
+            getTiingoApiKey(options),
+            getInfluxDbUrl(options),
+            getInfluxDbToken(options),
+            getInfluxDbOrg(options),
+            getInfluxDbBucket(options));
     logger.atInfo().log("Created Guice module.");
 
     // Initialize the application via Guice.
