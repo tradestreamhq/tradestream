@@ -15,8 +15,8 @@ class InfluxDbModule(
 
     @Provides
     @Singleton
-    fun provideInfluxDBClient(): InfluxDBClient {
-        return InfluxDBClientFactory.create(
+    fun provideInfluxDBClient(): InfluxDBClient =
+        InfluxDBClientFactory.create(
             influxDbUrl,
             influxDbToken.toCharArray(),
             influxDbOrg,
