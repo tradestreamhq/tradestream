@@ -171,8 +171,8 @@ class InfluxDbCandleFetcherTest {
 
     // Helper methods to create test data
 
-    private fun createTestFetcher(): InfluxDbCandleFetcher {
-        return object : InfluxDbCandleFetcher(testUrl, testToken, testOrg, testBucket) {
+    private fun createTestFetcher(): InfluxDbCandleFetcher =
+        object : InfluxDbCandleFetcher(testUrl, testToken, testOrg, testBucket) {
             init {
                 // Use reflection to inject the mock client
                 val clientField = InfluxDbCandleFetcher::class.java.getDeclaredField("influxDBClient")
