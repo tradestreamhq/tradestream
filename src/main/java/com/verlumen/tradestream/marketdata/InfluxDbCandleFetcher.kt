@@ -67,14 +67,18 @@ class InfluxDbCandleFetcher(
         return result
     }
 
-    private fun buildFluxQuery(symbol: String, startIso: String, endIso: String): String {
-        return """
-            from(bucket: "$bucket")
-              |> range(start: $startIso, stop: $endIso)
-              |> filter(fn: (r) => r._measurement == "candles")
-              |> filter(fn: (r) => r.currency_pair == "$symbol")
-              |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
-              |> sort(columns: ["_time"])
+    private fun buildFluxQuery(
+        symbol: String,
+        startIso: String,
+        endIso: String,
+    ): String =
+        """
+        from(bucket: "$bucket")
+          |> range(start: $startIso, stop: $endIso)
+          |> filter(fn: (r) => r._measurement == "candles")
+          |> filter(fn: (r) => r.currency_pair == "$symbol")
+          |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+          |> sort(columns: ["_time"])
         """.trimIndent()
     }
 
