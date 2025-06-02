@@ -82,19 +82,6 @@ java_library(
     ],
 )
 
-# Trade source using an exchange client
-java_library(
-    name = "exchange_client_trade_source",
-    srcs = ["ExchangeClientTradeSource.java"],
-    deps = [
-        ":exchange_client_unbounded_source",
-        ":trade_source",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:guice",
-    ],
-)
-
 # Beam UnboundedReader implementation for exchange clients
 kt_jvm_library(
     name = "exchange_client_unbounded_reader",
