@@ -30,7 +30,6 @@ abstract class PipelineModule extends AbstractModule {
       String signalTopic,
       int topCurrencyCount,
       String tiingoApiKey,
-  String influxDbUrl,
       String influxDbUrl,
       String influxDbToken,
       String influxDbOrg,
@@ -44,7 +43,6 @@ abstract class PipelineModule extends AbstractModule {
         signalTopic,
         topCurrencyCount,
         tiingoApiKey,
-      influxDbUrl,
         influxDbUrl,
         influxDbToken,
         influxDbOrg,
@@ -69,7 +67,8 @@ abstract class PipelineModule extends AbstractModule {
   abstract String tiingoApiKey();
 
   abstract String influxDbUrl();
-  
+
+  abstract String influxDbToken();
 
   abstract String influxDbOrg();
 
@@ -80,8 +79,6 @@ abstract class PipelineModule extends AbstractModule {
     install(BacktestingModule.create());
     install(new DiscoveryModule());
     install(HttpModule.create());
-    install(new InfluxDbModule(      influxDbUrl,
-  influxDbToken,
     install(new InfluxDbModule(influxDbUrl, influxDbToken, influxDbOrg, influxDbBucket));
     install(MarketDataModule.create(exchangeName(), candleDuration(), runMode(), tiingoApiKey()));
     install(SignalsModule.create(signalTopic()));
