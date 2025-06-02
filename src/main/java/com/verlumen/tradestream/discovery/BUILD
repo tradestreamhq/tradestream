@@ -46,3 +46,19 @@ java_library(
         "//third_party/java:protobuf_java",
     ],
 )
+
+java_library(
+    name = "param_configs",
+    srcs = [
+        "ParamConfigs.java",
+    ],
+    deps = [
+        ":param_config",
+        "//src/main/java/com/verlumen/tradestream/backtesting/momentumoscillators:momentum_oscillator_params",
+        "//src/main/java/com/verlumen/tradestream/backtesting/movingaverages:moving_average_params",
+        "//src/main/java/com/verlumen/tradestream/backtesting/patternrecognition:pattern_recognition_params",
+        "//src/main/java/com/verlumen/tradestream/backtesting/trendfollowing:trend_following_params",
+        "//third_party/java:guava",
+    ],
+)
+
