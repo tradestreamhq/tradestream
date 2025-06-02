@@ -84,8 +84,8 @@ oci_image(
 oci_push(
     name = "push_discovery_image",
     # image = ":discovery_index", # if multi-arch
-    image = ":discovery_image", # if single-arch
-    repository = "tradestreamhq/tradestream-strategy-discovery", # New Docker Hub repo
+    image = ":discovery_image",  # if single-arch
+    repository = "tradestreamhq/tradestream-strategy-discovery",  # New Docker Hub repo
     # remote_tags will be set by release.yaml
 )
 
