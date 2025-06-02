@@ -15,8 +15,6 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyString
 import org.mockito.MockitoAnnotations
 import java.time.Instant
-import org.mockito.ArgumentMatchers.eq // For eq() matcher
-import org.mockito.Mockito.mock // For mock()
 
 @RunWith(JUnit4::class)
 class InfluxDbCandleFetcherTest {
