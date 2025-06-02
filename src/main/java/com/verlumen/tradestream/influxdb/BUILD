@@ -5,7 +5,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
-  visibility = ["//visibility:public"],
+    visibility = ["//visibility:public"],
     deps = [
         "//third_party/java:auto_value",
         "//third_party/java:guice",
