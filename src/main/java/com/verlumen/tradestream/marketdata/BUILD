@@ -239,20 +239,6 @@ java_library(
     ],
 )
 
-# Transform for creating multi-timeframe views
-java_library(
-    name = "multi_timeframe_candle_transform",
-    srcs = ["MultiTimeframeCandleTransform.java"],
-    deps = [
-        ":last_candles_fn",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/time:time_frame",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:flogger",
-        "//third_party/java:guava",
-    ],
-)
-
 # PTransform for aggregating trades using sliding windows (contains CandleCombineFn)
 java_library(
     name = "sliding_candle_aggregator",
