@@ -11,8 +11,6 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
 import com.google.protobuf.Int32Value;
-import com.verlumen.tradestream.backtesting.ParamConfig;
-import com.verlumen.tradestream.backtesting.ParamConfigManager;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.DoubleGene;
