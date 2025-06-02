@@ -117,7 +117,7 @@ class InfluxDbCandleFetcherTest {
         testableFetcher.close()
     }
 
-        // Arrange
+    // Arrange
     fun fetchCandles_handlesRecordParsingExceptionGracefully() {
         // Arrange
         val symbol = "ADA/USD"
