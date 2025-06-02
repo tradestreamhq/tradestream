@@ -89,7 +89,6 @@ class InfluxDbCandleFetcher(
             logger.atWarning().log("Skipping record with null time for symbol %s", symbol)
             return null
         }
-        
         val candleTimestamp = Timestamps.fromMillis(time.toEpochMilli())
 
         return Candle
