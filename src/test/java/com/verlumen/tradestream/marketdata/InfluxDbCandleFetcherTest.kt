@@ -98,11 +98,13 @@ class InfluxDbCandleFetcherTest {
         `when`(mockTable.records).thenReturn(listOf(mockRecordNullTime))
         `when`(mockQueryApi.query(anyString(), eq(testOrg))).thenReturn(listOf(mockTable))
 
-        val testableFetcher = object : InfluxDbCandleFetcher(testUrl, testToken, testOrg, testBucket) {
-            init {
-                val clientField = InfluxDbCandleFetcher::class.java.getDeclaredField("influxDBClient")
-                clientField.isAccessible = true
-                clientField.set(this, mockInfluxDBClient)
+        val testableFetcher =
+            object : InfluxDbCandleFetcher(testUrl, testToken, testOrg, testBucket) {
+                init {
+                    val clientField = InfluxDbCandleFetcher::class.java.getDeclaredField("influxDBClient")
+                    clientField.isAccessible = true
+                    clientField.set(this, mockInfluxDBClient)
+                }
             }
         }
 
