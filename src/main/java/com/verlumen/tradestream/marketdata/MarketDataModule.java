@@ -28,6 +28,7 @@ public abstract class MarketDataModule extends AbstractModule {
   }
 
   abstract String exchangeName();
+
   abstract Duration granularity();
   abstract RunMode runMode();
   abstract String tiingoApiKey();
