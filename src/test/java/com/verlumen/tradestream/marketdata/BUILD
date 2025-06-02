@@ -93,36 +93,6 @@ java_test(
     ],
 )
 
-java_test(
-    name = "ExchangeClientUnboundedSourceImplTest",
-    srcs = ["ExchangeClientUnboundedSourceImplTest.java"],
-    runtime_deps = [
-        "//third_party/java:beam_runners_direct_java",
-        "//third_party/java:hamcrest",
-    ],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_reader",
-        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source",
-        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_client_unbounded_source_impl",
-        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
-        "//src/main/java/com/verlumen/tradestream/marketdata:trade_checkpoint_mark",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:beam_sdks_java_test_utils",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:guice_testlib",
-        "//third_party/java:joda_time",
-        "//third_party/java:junit",
-        "//third_party/java:mockito_core",
-        "//third_party/java:protobuf_java",
-        "//third_party/java:protobuf_java_util",
-        "//third_party/java:truth",
-    ],
-)
-
 kt_jvm_test(
     name = "InfluxDbCandleFetcherTest",
     srcs = ["InfluxDbCandleFetcherTest.kt"],
@@ -153,26 +123,6 @@ java_test(
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_extensions_protobuf",
         "//third_party/java:beam_sdks_java_test_utils",
-        "//third_party/java:guava",
-        "//third_party/java:joda_time",
-        "//third_party/java:junit",
-        "//third_party/java:protobuf_java",
-    ],
-)
-
-java_test(
-    name = "MultiTimeframeCandleTransformTest",
-    srcs = ["MultiTimeframeCandleTransformTest.java"],
-    runtime_deps = [
-        "//third_party/java:beam_runners_direct_java",
-        "//third_party/java:hamcrest",
-    ],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/marketdata:multi_timeframe_candle_transform",
-        "//src/main/java/com/verlumen/tradestream/time:time_frame",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
         "//third_party/java:guava",
         "//third_party/java:joda_time",
         "//third_party/java:junit",

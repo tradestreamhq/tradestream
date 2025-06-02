@@ -31,7 +31,6 @@ public abstract class MarketDataModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(CandleFetcher.class).to(InfluxDbCandleFetcher.class);
-    bind(ExchangeClientUnboundedSource.class).to(ExchangeClientUnboundedSourceImpl.class);
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
 
     install(new FactoryModuleBuilder().build(FillForwardCandlesFn.Factory.class));
@@ -77,7 +76,7 @@ public abstract class MarketDataModule extends AbstractModule {
 
   @Provides
   @Singleton
-  TradeSource provideTradeSource(Provider<ExchangeClientTradeSource> exchangeClientTradeSource) {
+  TradeSource provideTradeSource() {
     switch (runMode()) {
       case DRY:
         return DryRunTradeSource.create(

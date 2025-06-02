@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.backtesting.patternrecognition
 
-import com.verlumen.tradestream.backtesting.ParamConfig
+import com.verlumen.tradestream.discovery.ParamConfig
 
 object PatternRecognitionParams {
     @JvmField
