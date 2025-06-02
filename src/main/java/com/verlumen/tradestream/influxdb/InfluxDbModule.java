@@ -16,9 +16,6 @@ public abstract class InfluxDbModule extends AbstractModule {
 
   abstract String influxDbUrl();
 
-
-
-
   abstract String influxDbOrg();
 
   @Provides
