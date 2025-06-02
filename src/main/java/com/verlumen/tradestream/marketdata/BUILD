@@ -152,18 +152,6 @@ java_library(
     ],
 )
 
-# Factory for creating exchange streaming clients
-java_library(
-    name = "exchange_streaming_client_factory",
-    srcs = ["ExchangeStreamingClientFactory.java"],
-    deps = [
-        ":coinbase_streaming_client",
-        ":exchange_streaming_client",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-    ],
-)
-
 # Stateful DoFn for filling forward candle gaps
 kt_jvm_library(
     name = "fill_forward_candles_fn",
