@@ -2,21 +2,19 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.collect.ImmutableList
 import com.google.common.flogger.FluentLogger
+import com.google.inject.Inject
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
 import com.influxdb.client.InfluxDBClient
-import com.influxdb.client.InfluxDBClientFactory
 
 /**
  * Fetches candle data from an InfluxDB instance using the Java client.
  */
-class InfluxDbCandleFetcher(
-    url: String,
-    token: String,
+class InfluxDbCandleFetcher @Inject constructor(
+    private val influxDBClient: InfluxDBClient,
     private val org: String,
     private val bucket: String,
 ) : CandleFetcher {
-    private val influxDBClient: InfluxDBClient = InfluxDBClientFactory.create(url, token.toCharArray(), org, bucket)
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
