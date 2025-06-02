@@ -7,8 +7,8 @@ java_test(
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
-        "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
-        "//src/main/java/com/verlumen/tradestream/backtesting:param_config_manager",
+        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
+        "//src/main/java/com/verlumen/tradestream/discovery:param_config_manager",
         "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
         "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter_impl",
         "//third_party/java:guava",
