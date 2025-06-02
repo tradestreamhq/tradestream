@@ -9,8 +9,6 @@ import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.influxdb.client.InfluxDBClient;
-import com.influxdb.client.InfluxDBClientFactory;
 import com.verlumen.tradestream.execution.RunMode;
 import org.joda.time.Duration;
 
@@ -21,30 +19,18 @@ public abstract class MarketDataModule extends AbstractModule {
       String exchangeName, 
       Duration granularity, 
       RunMode runMode, 
-      String tiingoApiKey,
-      String influxDbUrl,
-      String influxDbToken,
-      String influxDbOrg,
-      String influxDbBucket) {
+      String tiingoApiKey) {
     return new AutoValue_MarketDataModule(
         exchangeName, 
         granularity, 
         runMode, 
-        tiingoApiKey,
-        influxDbUrl,
-        influxDbToken,
-        influxDbOrg,
-        influxDbBucket);
+        tiingoApiKey);
   }
 
   abstract String exchangeName();
   abstract Duration granularity();
   abstract RunMode runMode();
   abstract String tiingoApiKey();
-  abstract String influxDbUrl();
-  abstract String influxDbToken();
-  abstract String influxDbOrg();
-  abstract String influxDbBucket();
 
   @Override
   protected void configure() {
@@ -70,16 +56,6 @@ public abstract class MarketDataModule extends AbstractModule {
         new FactoryModuleBuilder()
             .implement(TradeToCandle.class, TradeToCandle.class)
             .build(TradeToCandle.Factory.class));
-  }
-
-  @Provides
-  @Singleton
-  InfluxDBClient provideInfluxDBClient() {
-    return InfluxDBClientFactory.create(
-        influxDbUrl(), 
-        influxDbToken().toCharArray(), 
-        influxDbOrg(), 
-        influxDbBucket());
   }
 
   @Provides
