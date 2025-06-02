@@ -21,7 +21,6 @@ import java.time.Instant
 
 @RunWith(JUnit4::class)
 class InfluxDbCandleFetcherTest {
-
     @Mock private lateinit var mockInfluxDBClient: InfluxDBClient
 
     @Mock private lateinit var mockQueryApi: QueryApi
