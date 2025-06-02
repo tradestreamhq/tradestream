@@ -154,10 +154,10 @@ class InfluxDbCandleFetcherTest {
         verify(mockQueryApi).query(
             org.mockito.ArgumentMatchers.argThat { query: String ->
                 query.contains("from(bucket: \"$testBucket\")") &&
-                query.contains("r.currency_pair == \"$symbol\"") &&
-                query.contains("r._measurement == \"candles\"") &&
-                query.contains("2025-06-01T12:00:00Z") &&
-                query.contains("2025-06-01T13:00:00Z")
+                    query.contains("r.currency_pair == \"$symbol\"") &&
+                    query.contains("r._measurement == \"candles\"") &&
+                    query.contains("2025-06-01T12:00:00Z") &&
+                    query.contains("2025-06-01T13:00:00Z")
             },
             eq(testOrg)
         )
