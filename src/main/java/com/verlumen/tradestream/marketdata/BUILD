@@ -155,7 +155,6 @@ java_library(
     deps = [
         ":candle_source",
         ":dry_run_trade_source",
-        ":exchange_client_trade_source",
         ":exchange_streaming_client",
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
