@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.backtesting;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 
 public final class BacktestingModule extends AbstractModule {
