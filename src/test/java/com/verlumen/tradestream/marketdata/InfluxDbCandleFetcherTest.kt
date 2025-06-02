@@ -136,7 +136,6 @@ class InfluxDbCandleFetcherTest {
 
         // Assert
         assertThat(candles).isEmpty()
-        
         fetcher.close()
     }
 
