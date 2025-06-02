@@ -28,7 +28,6 @@ public abstract class MarketDataModule extends AbstractModule {
 
   abstract String tiingoApiKey();
 
-
   @Override
   protected void configure() {
     bind(CandleFetcher.class).to(InfluxDbCandleFetcher.class);
