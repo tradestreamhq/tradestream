@@ -167,55 +167,6 @@ java_library(
 )
 
 java_library(
-    name = "param_config",
-    srcs = ["ParamConfig.java"],
-    deps = [
-        ":chromosome_spec",
-        "//protos:strategies_java_proto",
-        "//third_party/java:guava",
-        "//third_party/java:jenetics",
-        "//third_party/java:protobuf_java",
-    ],
-)
-
-java_library(
-    name = "param_config_manager",
-    srcs = ["ParamConfigManager.java"],
-    deps = [
-        ":param_config",
-        "//protos:strategies_java_proto",
-    ],
-)
-
-java_library(
-    name = "param_config_manager_impl",
-    srcs = ["ParamConfigManagerImpl.java"],
-    deps = [
-        ":param_config",
-        ":param_config_manager",
-        "//protos:strategies_java_proto",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:mug",
-    ],
-)
-
-java_library(
-    name = "param_configs",
-    srcs = [
-        "ParamConfigs.java",
-    ],
-    deps = [
-        ":param_config",
-        "//src/main/java/com/verlumen/tradestream/backtesting/momentumoscillators:momentum_oscillator_params",
-        "//src/main/java/com/verlumen/tradestream/backtesting/movingaverages:moving_average_params",
-        "//src/main/java/com/verlumen/tradestream/backtesting/patternrecognition:pattern_recognition_params",
-        "//src/main/java/com/verlumen/tradestream/backtesting/trendfollowing:trend_following_params",
-        "//third_party/java:guava",
-    ],
-)
-
-java_library(
     name = "run_backtest",
     srcs = ["RunBacktest.java"],
     deps = [
