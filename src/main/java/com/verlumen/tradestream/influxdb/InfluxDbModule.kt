@@ -20,6 +20,6 @@ class InfluxDbModule(
             influxDbUrl,
             influxDbToken.toCharArray(),
             influxDbOrg,
-            influxDbBucket
+            influxDbBucket,
         )
 }
