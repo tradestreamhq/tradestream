@@ -25,6 +25,7 @@ class InfluxDbCandleFetcherTest {
     // A cleaner approach involves constructor-based Dependency Injection.
 
     @Mock private lateinit var mockInfluxDBClient: InfluxDBClient
+
     @Mock private lateinit var mockQueryApi: QueryApi
 
     private val testUrl = "http://fake-influx:8086"
