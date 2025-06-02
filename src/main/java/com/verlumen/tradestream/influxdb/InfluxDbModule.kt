@@ -10,7 +10,7 @@ class InfluxDbModule(
     private val influxDbUrl: String,
     private val influxDbToken: String,
     private val influxDbOrg: String,
-    private val influxDbBucket: String
+    private val influxDbBucket: String,
 ) : AbstractModule() {
     @Provides
     @Singleton
