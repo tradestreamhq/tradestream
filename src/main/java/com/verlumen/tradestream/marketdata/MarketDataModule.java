@@ -9,23 +9,42 @@ import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.influxdb.client.InfluxDBClient;
+import com.influxdb.client.InfluxDBClientFactory;
 import com.verlumen.tradestream.execution.RunMode;
 import org.joda.time.Duration;
 
 @AutoValue
 public abstract class MarketDataModule extends AbstractModule {
+
   public static MarketDataModule create(
-      String exchangeName, Duration granularity, RunMode runMode, String tiingoApiKey) {
-    return new AutoValue_MarketDataModule(exchangeName, granularity, runMode, tiingoApiKey);
+      String exchangeName, 
+      Duration granularity, 
+      RunMode runMode, 
+      String tiingoApiKey,
+      String influxDbUrl,
+      String influxDbToken,
+      String influxDbOrg,
+      String influxDbBucket) {
+    return new AutoValue_MarketDataModule(
+        exchangeName, 
+        granularity, 
+        runMode, 
+        tiingoApiKey,
+        influxDbUrl,
+        influxDbToken,
+        influxDbOrg,
+        influxDbBucket);
   }
 
   abstract String exchangeName();
-
   abstract Duration granularity();
-
   abstract RunMode runMode();
-
   abstract String tiingoApiKey();
+  abstract String influxDbUrl();
+  abstract String influxDbToken();
+  abstract String influxDbOrg();
+  abstract String influxDbBucket();
 
   @Override
   protected void configure() {
@@ -34,24 +53,19 @@ public abstract class MarketDataModule extends AbstractModule {
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
 
     install(new FactoryModuleBuilder().build(FillForwardCandlesFn.Factory.class));
-
     install(
         new FactoryModuleBuilder()
             .implement(FillForwardCandles.class, FillForwardCandles.class)
             .build(FillForwardCandles.Factory.class));
-
     install(
         new FactoryModuleBuilder()
             .implement(TiingoCryptoCandleSource.class, TiingoCryptoCandleSource.class)
             .build(TiingoCryptoCandleSource.Factory.class));
-
     install(
         new FactoryModuleBuilder()
             .implement(TiingoCryptoCandleTransform.class, TiingoCryptoCandleTransform.class)
             .build(TiingoCryptoCandleTransform.Factory.class));
-
     install(new FactoryModuleBuilder().build(TiingoCryptoFetcherFn.Factory.class));
-
     install(
         new FactoryModuleBuilder()
             .implement(TradeToCandle.class, TradeToCandle.class)
@@ -60,10 +74,19 @@ public abstract class MarketDataModule extends AbstractModule {
 
   @Provides
   @Singleton
+  InfluxDBClient provideInfluxDBClient() {
+    return InfluxDBClientFactory.create(
+        influxDbUrl(), 
+        influxDbToken().toCharArray(), 
+        influxDbOrg(), 
+        influxDbBucket());
+  }
+
+  @Provides
+  @Singleton
   CandleSource provideCandleSource(
       Provider<TradeBackedCandleSource> tradeBackedCandleSource,
       TiingoCryptoCandleSource.Factory tiingoCryptoCandleSourceFactory) {
-
     switch (runMode()) {
       case DRY:
         return tradeBackedCandleSource.get();
