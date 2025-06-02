@@ -10,15 +10,8 @@ import com.influxdb.client.InfluxDBClientFactory;
 @AutoValue
 public abstract class InfluxDbModule extends AbstractModule {
   public static InfluxDbModule create(
-      String influxDbUrl,
-      String influxDbToken,
-      String influxDbOrg,
-      String influxDbBucket) {
-    return new AutoValue_InfluxDbModule(
-        influxDbUrl,
-        influxDbToken,
-        influxDbOrg,
-        influxDbBucket);
+      String influxDbUrl, String influxDbToken, String influxDbOrg, String influxDbBucket) {
+    return new AutoValue_InfluxDbModule(influxDbUrl, influxDbToken, influxDbOrg, influxDbBucket);
   }
 
   abstract String influxDbUrl();
