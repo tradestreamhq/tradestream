@@ -52,6 +52,9 @@ java_library(
 java_library(
     name = "param_config",
     srcs = ["ParamConfig.java"],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
+    ],
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
@@ -64,6 +67,9 @@ java_library(
 java_library(
     name = "param_config_manager",
     srcs = ["ParamConfigManager.java"],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
+    ],
     deps = [
         ":param_config",
         "//protos:strategies_java_proto",
