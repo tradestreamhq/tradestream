@@ -117,7 +117,8 @@ public final class App {
     @Description(
         "InfluxDB URL (default: value of "
             + INFLUXDB_URL_ENV_VAR
-            + " environment variable or http://influxdb.tradestream-namespace.svc.cluster.local:8086)")
+            + " environment variable or"
+            + " http://influxdb.tradestream-namespace.svc.cluster.local:8086)")
     @Default.String("")
     String getInfluxDbUrl();
 
