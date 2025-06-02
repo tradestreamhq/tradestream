@@ -33,7 +33,6 @@ class InfluxDbCandleFetcher(
     ): ImmutableList<Candle> {
         val startIso = Timestamps.toString(startTime)
         val endIso = Timestamps.toString(endTime)
-        
         val fluxQuery = buildFluxQuery(symbol, startIso, endIso)
         
         logger.atInfo().log("Executing Flux query for %s: %s", symbol, fluxQuery)
