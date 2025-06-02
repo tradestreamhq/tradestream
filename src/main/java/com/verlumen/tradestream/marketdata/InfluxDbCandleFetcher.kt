@@ -8,7 +8,7 @@ import com.influxdb.client.InfluxDBClient
 import com.influxdb.client.InfluxDBClientFactory
 
 /**
- * Fetches candle data from an InfluxDB instance.
+ * Fetches candle data from an InfluxDB instance using the Java client.
  */
 class InfluxDbCandleFetcher(
     url: String,
@@ -33,18 +33,9 @@ class InfluxDbCandleFetcher(
     ): ImmutableList<Candle> {
         val startIso = Timestamps.toString(startTime)
         val endIso = Timestamps.toString(endTime)
-        val fluxSymbol = symbol // Adjust if your InfluxDB tag for currency_pair is different
-
-        val fluxQuery =
-            """
-            from(bucket: "$bucket")
-              |> range(start: $startIso, stop: $endIso)
-              |> filter(fn: (r) => r._measurement == "candles")
-              |> filter(fn: (r) => r.currency_pair == "$fluxSymbol")
-              |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
-              |> sort(columns: ["_time"])
-            """.trimIndent()
-
+        
+        val fluxQuery = buildFluxQuery(symbol, startIso, endIso)
+        
         logger.atInfo().log("Executing Flux query for %s: %s", symbol, fluxQuery)
         val queryApi = influxDBClient.queryApi
         val candlesBuilder = ImmutableList.builder<Candle>()
@@ -54,26 +45,10 @@ class InfluxDbCandleFetcher(
             for (table in tables) {
                 for (record in table.records) {
                     try {
-                        val time = record.time
-                        if (time == null) {
-                            logger.atWarning().log("Skipping record with null time for symbol %s", symbol)
-                            continue
+                        val candle = parseCandle(record, symbol)
+                        if (candle != null) {
+                            candlesBuilder.add(candle)
                         }
-                        val candleTimestamp = Timestamps.fromMillis(time.toEpochMilli())
-
-                        // Assuming Candle is a Protobuf message or a class with a similar builder pattern
-                        val candle =
-                            Candle
-                                .newBuilder() // Ensure Candle and its newBuilder() are accessible
-                                .setTimestamp(candleTimestamp)
-                                .setCurrencyPair(symbol)
-                                .setOpen((record.getValueByKey("open") as Number).toDouble())
-                                .setHigh((record.getValueByKey("high") as Number).toDouble())
-                                .setLow((record.getValueByKey("low") as Number).toDouble())
-                                .setClose((record.getValueByKey("close") as Number).toDouble())
-                                .setVolume((record.getValueByKey("volume") as Number).toDouble())
-                                .build()
-                        candlesBuilder.add(candle)
                     } catch (e: Exception) {
                         logger.atWarning().withCause(e).log(
                             "Failed to parse FluxRecord into Candle for symbol %s. Record: %s",
@@ -91,6 +66,37 @@ class InfluxDbCandleFetcher(
         val result = candlesBuilder.build()
         logger.atInfo().log("Fetched %d candles for symbol %s from %s to %s", result.size, symbol, startIso, endIso)
         return result
+    }
+
+    private fun buildFluxQuery(symbol: String, startIso: String, endIso: String): String {
+        return """
+            from(bucket: "$bucket")
+              |> range(start: $startIso, stop: $endIso)
+              |> filter(fn: (r) => r._measurement == "candles")
+              |> filter(fn: (r) => r.currency_pair == "$symbol")
+              |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+              |> sort(columns: ["_time"])
+        """.trimIndent()
+    }
+
+    private fun parseCandle(record: com.influxdb.query.FluxRecord, symbol: String): Candle? {
+        val time = record.time
+        if (time == null) {
+            logger.atWarning().log("Skipping record with null time for symbol %s", symbol)
+            return null
+        }
+        
+        val candleTimestamp = Timestamps.fromMillis(time.toEpochMilli())
+
+        return Candle.newBuilder()
+            .setTimestamp(candleTimestamp)
+            .setCurrencyPair(symbol)
+            .setOpen((record.getValueByKey("open") as Number).toDouble())
+            .setHigh((record.getValueByKey("high") as Number).toDouble())
+            .setLow((record.getValueByKey("low") as Number).toDouble())
+            .setClose((record.getValueByKey("close") as Number).toDouble())
+            .setVolume((record.getValueByKey("volume") as Number).toDouble())
+            .build()
     }
 
     override fun close() {
