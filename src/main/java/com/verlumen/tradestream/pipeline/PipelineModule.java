@@ -6,6 +6,7 @@ import com.google.inject.Provides;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.http.HttpModule;
+import com.verlumen.tradestream.influxdb.InfluxDbModule;
 import com.verlumen.tradestream.instruments.InstrumentsModule;
 import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.marketdata.FillForwardCandles;
@@ -62,6 +63,7 @@ abstract class PipelineModule extends AbstractModule {
   protected void configure() {
     install(BacktestingModule.create());
     install(HttpModule.create());
+    install(new InfluxDbModule());
     install(InstrumentsModule.create(runMode(), coinMarketCapApiKey(), topCurrencyCount()));
     install(KafkaModule.create(bootstrapServers()));
     install(MarketDataModule.create(exchangeName(), candleDuration(), runMode(), tiingoApiKey()));
