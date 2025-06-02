@@ -22,5 +22,4 @@ class InfluxDbModule(
             influxDbOrg,
             influxDbBucket
         )
-    }
 }
