@@ -159,7 +159,7 @@ class InfluxDbCandleFetcherTest {
                     query.contains("2025-06-01T12:00:00Z") &&
                     query.contains("2025-06-01T13:00:00Z")
             },
-            eq(testOrg)
+            eq(testOrg),
         )
         fetcher.close()
     }
