@@ -26,7 +26,8 @@ public abstract class MarketDataModule extends AbstractModule {
 
 
     bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
-  abstract String tiingoApiKey();
+
+
 
   @Override
   protected void configure() {
