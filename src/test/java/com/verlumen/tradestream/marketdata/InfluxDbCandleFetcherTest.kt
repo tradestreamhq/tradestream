@@ -59,11 +59,13 @@ class InfluxDbCandleFetcherTest {
         `when`(mockQueryApi.query(anyString(), eq(testOrg))).thenReturn(listOf(mockTable1))
 
         // Testable fetcher using reflection to inject the mock client
-        val testableFetcher = object : InfluxDbCandleFetcher(testUrl, testToken, testOrg, testBucket) {
-            init {
-                val clientField = InfluxDbCandleFetcher::class.java.getDeclaredField("influxDBClient")
-                clientField.isAccessible = true
-                clientField.set(this, mockInfluxDBClient) // Use the class-level mock
+        val testableFetcher =
+            object : InfluxDbCandleFetcher(testUrl, testToken, testOrg, testBucket) {
+                init {
+                    val clientField = InfluxDbCandleFetcher::class.java.getDeclaredField("influxDBClient")
+                    clientField.isAccessible = true
+                    clientField.set(this, mockInfluxDBClient) // Use the class-level mock
+                }
             }
 
         // Act
