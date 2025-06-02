@@ -92,6 +92,7 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/http:http_module",
+        "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_module",
         "//src/main/java/com/verlumen/tradestream/instruments:instruments_module",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
         "//src/main/java/com/verlumen/tradestream/marketdata:fill_forward_candles",
