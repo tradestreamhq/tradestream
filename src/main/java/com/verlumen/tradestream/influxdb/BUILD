@@ -1,10 +1,10 @@
 """Build rules for InfluxDB components."""
 
-load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
-java_library(
+kt_jvm_library(
     name = "influx_db_module",
-    srcs = ["InfluxDbModule.java"],
+    srcs = ["InfluxDbModule.kt"],
     visibility = ["//visibility:public"],
     deps = [
         "//third_party/java:auto_value",
