@@ -155,11 +155,13 @@ class InfluxDbCandleFetcherTest {
 
         `when`(mockQueryApi.query(anyString(), eq(testOrg))).thenThrow(RuntimeException("Simulated InfluxDB error"))
 
-        val testableFetcher = object : InfluxDbCandleFetcher(testUrl, testToken, testOrg, testBucket) {
-            init {
-                val clientField = InfluxDbCandleFetcher::class.java.getDeclaredField("influxDBClient")
-                clientField.isAccessible = true
-                clientField.set(this, mockInfluxDBClient)
+        val testableFetcher =
+            object : InfluxDbCandleFetcher(testUrl, testToken, testOrg, testBucket) {
+                init {
+                    val clientField = InfluxDbCandleFetcher::class.java.getDeclaredField("influxDBClient")
+                    clientField.isAccessible = true
+                    clientField.set(this, mockInfluxDBClient)
+                }
             }
         // Act
         val candles = testableFetcher.fetchCandles(symbol, startTime, endTime)
