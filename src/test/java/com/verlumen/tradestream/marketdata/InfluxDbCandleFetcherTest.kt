@@ -161,7 +161,6 @@ class InfluxDbCandleFetcherTest {
             },
             eq(testOrg)
         )
-        
         fetcher.close()
     }
 
