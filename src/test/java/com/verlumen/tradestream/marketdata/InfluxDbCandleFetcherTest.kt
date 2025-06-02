@@ -216,7 +216,6 @@ class InfluxDbCandleFetcherTest {
 
         val mockTable = mock(FluxTable::class.java)
         `when`(mockTable.records).thenReturn(listOf(malformedRecord))
-        
         return listOf(mockTable)
     }
 
