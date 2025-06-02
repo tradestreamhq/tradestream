@@ -65,7 +65,6 @@ class InfluxDbCandleFetcherTest {
                 clientField.isAccessible = true
                 clientField.set(this, mockInfluxDBClient) // Use the class-level mock
             }
-        }
 
         // Act
         val candles = testableFetcher.fetchCandles(symbol, startTime, endTime)
