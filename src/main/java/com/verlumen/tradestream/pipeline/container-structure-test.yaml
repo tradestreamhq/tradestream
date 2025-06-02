@@ -11,6 +11,7 @@ commandTests:
       - '--runMode=dry'
       - '--coinMarketCapApiKey=fakeKey'
       - '--tiingoApiKey=fakeKey'
+      - '--influxDbToken=test_token_for_dry_run'
     expectedError:
       - "DRY/RUN"
       - 'Starting TradeToCandle transform \(Combine\.perKey version\) with window duration: PT60S'
