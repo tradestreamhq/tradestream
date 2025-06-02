@@ -106,7 +106,6 @@ class InfluxDbCandleFetcherTest {
                     clientField.set(this, mockInfluxDBClient)
                 }
             }
-        }
 
         // Act
         val candles = testableFetcher.fetchCandles(symbol, startTime, endTime)
