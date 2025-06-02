@@ -10,6 +10,8 @@ kt_jvm_library(
     deps = [
         ":genotype_converter",
         ":genotype_converter_impl",
+        ":param_config_manager",
+        ":param_config_manager_impl",
         "//third_party/java:guice",
     ],
 )

@@ -17,6 +17,5 @@ public final class BacktestingModule extends AbstractModule {
     bind(GAEngineFactory.class).to(GAEngineFactoryImpl.class);
     bind(GeneticAlgorithmOrchestrator.class).to(GeneticAlgorithmOrchestratorImpl.class);
     bind(new TypeLiteral<ImmutableList<ParamConfig>>() {}).toInstance(ParamConfigs.ALL_CONFIGS);
-    bind(ParamConfigManager.class).to(ParamConfigManagerImpl.class);
   }
 }
