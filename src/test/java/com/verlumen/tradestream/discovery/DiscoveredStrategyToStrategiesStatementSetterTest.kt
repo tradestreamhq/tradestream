@@ -15,12 +15,10 @@ import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import java.sql.PreparedStatement
-import java.sql.Types
 import java.time.Instant
 
 @RunWith(JUnit4::class)
 class DiscoveredStrategyToStrategiesStatementSetterTest {
-
     @Mock
     private lateinit var mockPreparedStatement: PreparedStatement
 
@@ -37,32 +35,47 @@ class DiscoveredStrategyToStrategiesStatementSetterTest {
         val startTime = Instant.parse("2023-01-01T00:00:00Z")
         val endTime = Instant.parse("2023-01-01T01:00:00Z")
 
-        val smaRsiParams = SmaRsiParameters.newBuilder()
-            .setRsiPeriod(14)
-            .setMovingAveragePeriod(20)
-            .setOverboughtThreshold(70.0)
-            .setOversoldThreshold(30.0)
-            .build()
+        val smaRsiParams =
+            SmaRsiParameters
+                .newBuilder()
+                .setRsiPeriod(14)
+                .setMovingAveragePeriod(20)
+                .setOverboughtThreshold(70.0)
+                .setOversoldThreshold(30.0)
+                .build()
         val paramsAny = Any.pack(smaRsiParams)
 
-        val strategyProto = Strategy.newBuilder()
-            .setType(StrategyType.SMA_RSI)
-            .setParameters(paramsAny)
-            .build()
+        val strategyProto =
+            Strategy
+                .newBuilder()
+                .setType(StrategyType.SMA_RSI)
+                .setParameters(paramsAny)
+                .build()
 
-        val discoveredStrategy = DiscoveredStrategy.newBuilder()
-            .setSymbol("BTC/USD")
-            .setStrategy(strategyProto)
-            .setScore(0.75)
-            .setStartTime(Timestamp.newBuilder().setSeconds(startTime.epochSecond).setNanos(startTime.nano).build())
-            .setEndTime(Timestamp.newBuilder().setSeconds(endTime.epochSecond).setNanos(endTime.nano).build())
-            .build()
+        val discoveredStrategy =
+            DiscoveredStrategy
+                .newBuilder()
+                .setSymbol("BTC/USD")
+                .setStrategy(strategyProto)
+                .setScore(0.75)
+                .setStartTime(
+                    Timestamp
+                        .newBuilder()
+                        .setSeconds(startTime.epochSecond)
+                        .setNanos(startTime.nano)
+                        .build(),
+                ).setEndTime(
+                    Timestamp
+                        .newBuilder()
+                        .setSeconds(endTime.epochSecond)
+                        .setNanos(endTime.nano)
+                        .build(),
+                ).build()
 
         val expectedParamsJson = JsonFormat.printer().print(paramsAny)
         val expectedHashInput = "BTC/USD:SMA_RSI:${paramsAny.typeUrl}:${paramsAny.value.toStringUtf8()}"
         // Using a simple hashCode for testing, replace with actual SHA256 if needed for verification
         val expectedStrategyHash = expectedHashInput.hashCode().toString()
-
 
         setter.setParameters(discoveredStrategy, mockPreparedStatement)
 
@@ -75,7 +88,7 @@ class DiscoveredStrategyToStrategiesStatementSetterTest {
         verify(mockPreparedStatement).setTimestamp(7, java.sql.Timestamp.from(startTime)) // discovery_start_time
         verify(mockPreparedStatement).setTimestamp(8, java.sql.Timestamp.from(endTime)) // discovery_end_time
     }
-    
+
     @Test
     fun testSetParameters_anySerializationError_defaultsToJsonEmptyObject() {
         val startTime = Instant.parse("2023-01-01T00:00:00Z")
@@ -91,26 +104,38 @@ class DiscoveredStrategyToStrategiesStatementSetterTest {
         // We can verify the logger interaction if we could inject a mock logger.
         // Here, we'll just assert that "{}" is set for parameters.
 
-        val strategyProto = Strategy.newBuilder()
-            .setType(StrategyType.UNSPECIFIED) // or any type
-            .setParameters(Any.newBuilder().setTypeUrl("type.googleapis.com/InvalidType").setValue(com.google.protobuf.ByteString.copyFromUtf8("invalid")).build()) // Malformed Any
-            .build()
+        val strategyProto =
+            Strategy
+                .newBuilder()
+                .setType(StrategyType.UNSPECIFIED) // or any type
+                .setParameters(
+                    Any
+                        .newBuilder()
+                        .setTypeUrl(
+                            "type.googleapis.com/InvalidType",
+                        ).setValue(
+                            com.google.protobuf.ByteString
+                                .copyFromUtf8("invalid"),
+                        ).build(),
+                ) // Malformed Any
+                .build()
 
-        val discoveredStrategy = DiscoveredStrategy.newBuilder()
-            .setSymbol("ERR/SYM")
-            .setStrategy(strategyProto)
-            .setScore(0.1)
-            .setStartTime(Timestamp.newBuilder().setSeconds(startTime.epochSecond).build())
-            .setEndTime(Timestamp.newBuilder().setSeconds(endTime.epochSecond).build())
-            .build()
-        
+        val discoveredStrategy =
+            DiscoveredStrategy
+                .newBuilder()
+                .setSymbol("ERR/SYM")
+                .setStrategy(strategyProto)
+                .setScore(0.1)
+                .setStartTime(Timestamp.newBuilder().setSeconds(startTime.epochSecond).build())
+                .setEndTime(Timestamp.newBuilder().setSeconds(endTime.epochSecond).build())
+                .build()
+
         val expectedHashInput = "ERR/SYM:UNSPECIFIED:type.googleapis.com/InvalidType:invalid"
         val expectedStrategyHash = expectedHashInput.hashCode().toString()
 
-
         // We need to use a setter where we can control JsonFormat.printer() or verify logging.
         // For simplicity, we'll check the outcome assuming the internal catch block works as intended.
-         setter.setParameters(discoveredStrategy, mockPreparedStatement)
+        setter.setParameters(discoveredStrategy, mockPreparedStatement)
 
         verify(mockPreparedStatement).setString(1, "ERR/SYM")
         verify(mockPreparedStatement).setString(2, "UNSPECIFIED")

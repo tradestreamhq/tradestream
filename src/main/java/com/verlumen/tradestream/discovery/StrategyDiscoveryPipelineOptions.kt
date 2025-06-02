@@ -1,12 +1,15 @@
 package com.verlumen.tradestream.discovery
 
+import org.apache.beam.runners.flink.FlinkPipelineOptions // Assuming Flink runner as per existing setup hints
+import org.apache.beam.sdk.options.Default
 import org.apache.beam.sdk.options.Description
 import org.apache.beam.sdk.options.PipelineOptions
-import org.apache.beam.sdk.options.Default
 import org.apache.beam.sdk.options.StreamingOptions
-import org.apache.beam.runners.flink.FlinkPipelineOptions // Assuming Flink runner as per existing setup hints
 
-interface StrategyDiscoveryPipelineOptions : PipelineOptions, FlinkPipelineOptions, StreamingOptions {
+interface StrategyDiscoveryPipelineOptions :
+    PipelineOptions,
+    FlinkPipelineOptions,
+    StreamingOptions {
     @get:Description("Kafka bootstrap servers")
     @get:Default.String("localhost:9092")
     var kafkaBootstrapServers: String

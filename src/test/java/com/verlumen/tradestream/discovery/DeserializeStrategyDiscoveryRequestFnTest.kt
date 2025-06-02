@@ -14,11 +14,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import com.google.common.truth.Truth.assertThat // For direct assertions on collections if needed outside PAssert
 
 @RunWith(JUnit4::class)
 class DeserializeStrategyDiscoveryRequestFnTest {
-
     @get:Rule
     val pipeline: TestPipeline = TestPipeline.create()
 
@@ -28,14 +26,21 @@ class DeserializeStrategyDiscoveryRequestFnTest {
         val startTime = Timestamps.fromMillis(now - 100000)
         val endTime = Timestamps.fromMillis(now)
 
-        val requestProto = StrategyDiscoveryRequest.newBuilder()
-            .setSymbol("BTC/USD")
-            .setStartTime(startTime)
-            .setEndTime(endTime)
-            .setStrategyType(StrategyType.SMA_RSI)
-            .setTopN(10)
-            .setGaConfig(GAConfig.newBuilder().setMaxGenerations(50).setPopulationSize(100).build())
-            .build()
+        val requestProto =
+            StrategyDiscoveryRequest
+                .newBuilder()
+                .setSymbol("BTC/USD")
+                .setStartTime(startTime)
+                .setEndTime(endTime)
+                .setStrategyType(StrategyType.SMA_RSI)
+                .setTopN(10)
+                .setGaConfig(
+                    GAConfig
+                        .newBuilder()
+                        .setMaxGenerations(50)
+                        .setPopulationSize(100)
+                        .build(),
+                ).build()
 
         val serializedRequest = requestProto.toByteArray()
         val input: PCollection<KV<String, ByteArray>> = pipeline.apply(Create.of(KV.of("key1", serializedRequest)))
@@ -60,12 +65,11 @@ class DeserializeStrategyDiscoveryRequestFnTest {
     @Test
     fun testNullValue() {
         val input: PCollection<KV<String, ByteArray?>> = pipeline.apply(Create.of(KV.of<String, ByteArray?>("key3", null)))
-        
+
         // The DoFn expects KV<String, ByteArray>, so we need to handle the nullable ByteArray scenario or filter it before.
         // For this test, assuming the DoFn's internal null check on context.element().value is sufficient.
         @Suppress("UNCHECKED_CAST")
         val castedInput = input as PCollection<KV<String, ByteArray>>
-
 
         val output: PCollection<StrategyDiscoveryRequest> = castedInput.apply(ParDo.of(DeserializeStrategyDiscoveryRequestFn()))
 
