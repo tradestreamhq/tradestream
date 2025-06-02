@@ -58,6 +58,9 @@ class InfluxDbCandleFetcher
             } catch (e: Exception) {
                 logger.atSevere().withCause(e).log("Error fetching candles from InfluxDB for %s", symbol)
                 // Consider re-throwing a custom exception or returning an empty list with error state
+            } catch (e: Exception) {
+                logger.atSevere().withCause(e).log("Error fetching candles from InfluxDB for %s", symbol)
+                // Consider re-throwing a custom exception or returning an empty list with error state
             }
 
             val result = candlesBuilder.build()
