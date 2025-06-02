@@ -23,6 +23,7 @@ public abstract class InfluxDbModule extends AbstractModule {
 
   abstract String influxDbUrl();
   abstract String influxDbToken();
+
   abstract String influxDbOrg();
 
   abstract String influxDbBucket();
