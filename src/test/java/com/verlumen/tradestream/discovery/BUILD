@@ -11,6 +11,8 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/discovery:param_config_manager",
         "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
         "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter_impl",
+        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
+        "//src/main/java/com/verlumen/tradestream/discovery:param_config_manager",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:guice_testlib",
