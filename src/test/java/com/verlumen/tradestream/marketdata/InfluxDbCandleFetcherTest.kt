@@ -115,7 +115,6 @@ class InfluxDbCandleFetcherTest {
 
         // Assert
         assertThat(candles).isEmpty() // Records with parsing errors should be skipped
-        
         fetcher.close()
     }
 
