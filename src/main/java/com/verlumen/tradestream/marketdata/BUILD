@@ -17,8 +17,6 @@ java_library(
     ],
 )
 
-# Add these sections to your src/main/java/com/verlumen/tradestream/marketdata/BUILD file:
-
 kt_jvm_library(
     name = "candle_fetcher",
     srcs = ["CandleFetcher.kt"],
