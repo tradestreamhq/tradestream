@@ -216,7 +216,6 @@ kt_jvm_library(
         "//third_party/java:flogger",
         "//third_party/java:flogger",
         "//third_party/java:influxdb_client_java",
-        "//third_party/java:flogger",
         "//third_party/java:protobuf_java_util",
     ],
 )
