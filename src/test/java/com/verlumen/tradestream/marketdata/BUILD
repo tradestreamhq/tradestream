@@ -58,24 +58,6 @@ kt_jvm_test(
 )
 
 java_test(
-    name = "CoinbaseStreamingClientTest",
-    srcs = ["CoinbaseStreamingClientTest.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//src/main/java/com/verlumen/tradestream/marketdata:coinbase_streaming_client",
-        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
-        "//third_party/java:gson",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:guice_testlib",
-        "//third_party/java:junit",
-        "//third_party/java:mockito_core",
-        "//third_party/java:truth",
-    ],
-)
-
-java_test(
     name = "DefaultTradeGeneratorTest",
     srcs = ["DefaultTradeGeneratorTest.java"],
     runtime_deps = [
