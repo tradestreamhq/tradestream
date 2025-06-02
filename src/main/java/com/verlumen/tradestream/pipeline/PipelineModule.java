@@ -44,11 +44,10 @@ abstract class PipelineModule extends AbstractModule {
         topCurrencyCount,
         tiingoApiKey,
       influxDbUrl,
-  influxDbToken,
-  influxDbOrg,
-  influxDbBucket
-    );
-  }
+        influxDbUrl,
+        influxDbToken,
+        influxDbOrg,
+        influxDbBucket);
 
   abstract String bootstrapServers();
 
