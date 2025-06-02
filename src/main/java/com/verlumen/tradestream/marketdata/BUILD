@@ -126,21 +126,6 @@ kt_jvm_library(
     ],
 )
 
-# Concrete implementation of the unbounded source
-kt_jvm_library(
-    name = "exchange_client_unbounded_source_impl",
-    srcs = ["ExchangeClientUnboundedSourceImpl.kt"],
-    deps = [
-        ":exchange_client_unbounded_reader",
-        ":exchange_client_unbounded_source",
-        ":trade_checkpoint_mark",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:guice",
-    ],
-)
-
 # Interface for exchange streaming clients
 java_library(
     name = "exchange_streaming_client",
