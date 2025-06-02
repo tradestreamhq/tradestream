@@ -80,7 +80,7 @@ public abstract class MarketDataModule extends AbstractModule {
 
   @Provides
   @Singleton
-  TradeSource provideTradeSource(Provider<ExchangeClientTradeSource> exchangeClientTradeSource) {
+  TradeSource provideTradeSource() {
     switch (runMode()) {
       case DRY:
         return DryRunTradeSource.create(
