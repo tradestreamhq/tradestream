@@ -94,7 +94,6 @@ class InfluxDbCandleFetcherTest {
 
         // Assert
         assertThat(candles).isEmpty() // Records with null time should be skipped
-        
         fetcher.close()
     }
 
