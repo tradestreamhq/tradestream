@@ -92,7 +92,8 @@ class InfluxDbCandleFetcher(
         
         val candleTimestamp = Timestamps.fromMillis(time.toEpochMilli())
 
-        return Candle.newBuilder()
+        return Candle
+            .newBuilder()
             .setTimestamp(candleTimestamp)
             .setCurrencyPair(symbol)
             .setOpen((record.getValueByKey("open") as Number).toDouble())
