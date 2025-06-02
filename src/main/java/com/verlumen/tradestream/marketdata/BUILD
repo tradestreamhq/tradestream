@@ -18,6 +18,16 @@ java_library(
 )
 
 kt_jvm_library(
+    name = "candle_fetcher",
+    srcs = ["CandleFetcher.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//third_party/java:guava",
+        "//third_party/java:protobuf_java",
+    ],
+)
+
+kt_jvm_library(
     name = "candle_lookback_do_fn",
     srcs = ["CandleLookbackDoFn.kt"],
     deps = [
@@ -132,6 +142,19 @@ kt_jvm_library(
     ],
 )
 
+kt_jvm_library(
+    name = "influxdb_candle_fetcher",
+    srcs = ["InfluxDbCandleFetcher.kt"],
+    deps = [
+        ":candle_fetcher",
+        "//protos:marketdata_java_proto",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:influxdb_client_java",
+        "//third_party/java:protobuf_java_util",
+    ],
+)
+
 # DoFn for buffering the last N candles
 java_library(
     name = "last_candles_fn",
@@ -150,12 +173,14 @@ java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
     deps = [
+        ":candle_fetcher",
         ":candle_source",
         ":dry_run_trade_source",
         ":exchange_client_trade_source",
         ":exchange_streaming_client",
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
+        ":influxdb_candle_fetcher",
         ":sliding_candle_aggregator",
         ":tiingo_crypto_candle_source",
         ":tiingo_crypto_candle_transform",

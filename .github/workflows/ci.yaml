@@ -126,7 +126,8 @@ jobs:
             --set pipeline.runMode=dry \
             --set redis.enabled=true \
             --set topCryptoUpdaterCronjob.enabled=true \
-            --set strategyDiscoveryRequestFactory.enabled=true
+            --set strategyDiscoveryRequestFactory.enabled=true \
+            --set influxdb.enabled=true
 
       - name: Monitor Deployment
         run: |
