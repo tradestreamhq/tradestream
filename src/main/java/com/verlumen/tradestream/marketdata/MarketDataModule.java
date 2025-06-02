@@ -75,13 +75,7 @@ public abstract class MarketDataModule extends AbstractModule {
 
   @Provides
   @Singleton
-  ExchangeStreamingClient provideExchangeStreamingClient(ExchangeStreamingClient.Factory factory) {
-    return factory.create(exchangeName());
-  }
-
-  @Provides
-  @Singleton
-  TradeSource provideTradeSource(Provider<ExchangeClientTradeSource> exchangeClientTradeSource) {
+  TradeSource provideTradeSource() {
     switch (runMode()) {
       case DRY:
         return DryRunTradeSource.create(
