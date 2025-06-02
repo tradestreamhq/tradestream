@@ -76,19 +76,6 @@ java_library(
     ],
 )
 
-# Trade source using an exchange client
-java_library(
-    name = "exchange_client_trade_source",
-    srcs = ["ExchangeClientTradeSource.java"],
-    deps = [
-        ":exchange_client_unbounded_source",
-        ":trade_source",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:guice",
-    ],
-)
-
 # Abstract base class for exchange client unbounded sources
 kt_jvm_library(
     name = "exchange_client_unbounded_source",
@@ -176,7 +163,6 @@ java_library(
         ":candle_fetcher",
         ":candle_source",
         ":dry_run_trade_source",
-        ":exchange_client_trade_source",
         ":exchange_streaming_client",
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
