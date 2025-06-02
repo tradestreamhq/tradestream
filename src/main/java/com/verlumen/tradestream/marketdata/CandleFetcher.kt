@@ -3,11 +3,6 @@ package com.verlumen.tradestream.marketdata
 import com.google.common.collect.ImmutableList
 import com.google.protobuf.Timestamp
 
-// Assuming Candle class/proto is defined elsewhere in your project or this package.
-// If Candle is in a different package, you might need an import for it here too,
-// though it's only used as a return type in the interface.
-// import com.verlumen.tradestream.proto.Candle // Example if Candle is a proto
-
 /**
  * Interface for fetching candle data.
  */
@@ -28,5 +23,5 @@ interface CandleFetcher : AutoCloseable {
 
     // The close() method is implicitly required by extending AutoCloseable
     // and must be implemented by concrete classes.
-    override fun close() // It's good practice to declare it in the interface if it extends AutoCloseable
+    override fun close()
 }
