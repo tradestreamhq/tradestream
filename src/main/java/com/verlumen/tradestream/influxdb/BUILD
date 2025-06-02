@@ -7,7 +7,6 @@ kt_jvm_library(
     srcs = ["InfluxDbModule.kt"],
     visibility = ["//visibility:public"],
     deps = [
-        "//third_party/java:auto_value",
         "//third_party/java:guice",
         "//third_party/java:influxdb_client_java",
     ],
