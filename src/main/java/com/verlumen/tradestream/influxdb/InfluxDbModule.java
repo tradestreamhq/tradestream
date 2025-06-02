@@ -30,9 +30,6 @@ public abstract class InfluxDbModule extends AbstractModule {
   @Singleton
   InfluxDBClient provideInfluxDBClient() {
     return InfluxDBClientFactory.create(
-        influxDbUrl(), 
-        influxDbToken().toCharArray(), 
-        influxDbOrg(), 
-        influxDbBucket());
+        influxDbUrl(), influxDbToken().toCharArray(), influxDbOrg(), influxDbBucket());
   }
 }
