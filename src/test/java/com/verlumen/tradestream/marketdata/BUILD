@@ -128,8 +128,8 @@ kt_jvm_test(
     srcs = ["InfluxDbCandleFetcherTest.kt"],
     test_class = "com.verlumen.tradestream.marketdata.InfluxDbCandleFetcherTest",
     deps = [
-        ":influxdb_candle_fetcher",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
         "//third_party/java:guava",
         "//third_party/java:influxdb_client_java",
         "//third_party/java:junit",
