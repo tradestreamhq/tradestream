@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.backtesting.momentumoscillators
 
-import com.verlumen.tradestream.backtesting.ParamConfig
+import com.verlumen.tradestream.discovery.ParamConfig
 
 /**
  * Provides a centralized collection of all available oscillator-based param configs.
