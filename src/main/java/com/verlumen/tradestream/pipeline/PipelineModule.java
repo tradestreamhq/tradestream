@@ -8,6 +8,8 @@ import com.verlumen.tradestream.discovery.DiscoveryModule;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.http.HttpModule;
 import com.verlumen.tradestream.influxdb.InfluxDbModule;
+import com.verlumen.tradestream.instruments.InstrumentsModule;
+import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.marketdata.FillForwardCandles;
 import com.verlumen.tradestream.marketdata.MarketDataModule;
 import com.verlumen.tradestream.marketdata.TradeToCandle;
