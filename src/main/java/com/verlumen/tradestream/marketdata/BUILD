@@ -200,8 +200,6 @@ java_library(
         ":candle_source",
         ":dry_run_trade_source",
         ":exchange_client_trade_source",
-        ":exchange_client_unbounded_source",
-        ":exchange_client_unbounded_source_impl",
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
         ":fill_forward_candles",
