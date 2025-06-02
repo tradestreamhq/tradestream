@@ -53,7 +53,6 @@ class InfluxDbCandleFetcherTest {
 
         // Assert
         assertThat(candles).hasSize(2)
-        
         // Verify first candle
         val firstCandle = candles[0]
         assertThat(firstCandle.currencyPair).isEqualTo(symbol)
