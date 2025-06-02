@@ -21,9 +21,6 @@ public abstract class InfluxDbModule extends AbstractModule {
 
   abstract String influxDbOrg();
 
-
-
-
   @Provides
   @Singleton
   InfluxDBClient provideInfluxDBClient() {
