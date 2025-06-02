@@ -211,8 +211,6 @@ kt_jvm_library(
         ":candle_fetcher",
         "//protos:marketdata_java_proto",
         "//third_party/java:flogger",
-        "//third_party/java:flogger",
-        "//third_party/java:flogger",
         "//third_party/java:influxdb_client_java",
         "//third_party/java:protobuf_java_util",
     ],
