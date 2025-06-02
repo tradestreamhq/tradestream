@@ -70,7 +70,6 @@ abstract class PipelineModule extends AbstractModule {
 
   abstract String influxDbUrl();
   
-  abstract String influxDbToken();
 
   abstract String influxDbOrg();
 
