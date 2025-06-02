@@ -194,7 +194,6 @@ class InfluxDbCandleFetcherTest {
 
         val mockTable = mock(FluxTable::class.java)
         `when`(mockTable.records).thenReturn(listOf(record1, record2))
-        
         return listOf(mockTable)
     }
 
