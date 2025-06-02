@@ -24,9 +24,9 @@ public abstract class MarketDataModule extends AbstractModule {
 
   abstract Duration granularity();
 
+  abstract RunMode runMode();
 
-    bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
-
+  abstract String tiingoApiKey();
 
 
   @Override
