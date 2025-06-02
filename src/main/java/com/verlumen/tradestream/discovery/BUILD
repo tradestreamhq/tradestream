@@ -18,6 +18,7 @@ kt_jvm_library(
         ":param_config_manager",
         ":param_config_manager_impl",
         ":param_configs",
+        "//third_party/java:guava",
         "//third_party/java:guice",
     ],
 )
