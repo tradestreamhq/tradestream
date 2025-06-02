@@ -53,7 +53,7 @@ java_library(
     name = "param_config",
     srcs = ["ParamConfig.java"],
     visibility = [
-        "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/main/java/com/verlumen/tradestream/backtesting:__subpackages__",
     ],
     deps = [
         "//protos:strategies_java_proto",
