@@ -80,7 +80,6 @@ class InfluxDbCandleFetcher(
           |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
           |> sort(columns: ["_time"])
         """.trimIndent()
-    }
 
     private fun parseCandle(
         record: com.influxdb.query.FluxRecord,
