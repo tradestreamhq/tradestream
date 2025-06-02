@@ -31,8 +31,6 @@ public abstract class MarketDataModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(CandleFetcher.class).to(InfluxDbCandleFetcher.class);
-    bind(ExchangeStreamingClient.Factory.class).to(ExchangeStreamingClientFactory.class);
-
     install(new FactoryModuleBuilder().build(FillForwardCandlesFn.Factory.class));
     install(
         new FactoryModuleBuilder()
@@ -66,12 +64,6 @@ public abstract class MarketDataModule extends AbstractModule {
       default:
         throw new UnsupportedOperationException("Unsupported RunMode: " + runMode());
     }
-  }
-
-  @Provides
-  @Singleton
-  ExchangeStreamingClient provideExchangeStreamingClient(ExchangeStreamingClient.Factory factory) {
-    return factory.create(exchangeName());
   }
 
   @Provides
