@@ -226,7 +226,7 @@ class InfluxDbCandleFetcherTest {
         high: Double,
         low: Double,
         close: Double,
-        volume: Double
+        volume: Double,
     ): FluxRecord {
         val record = mock(FluxRecord::class.java)
         `when`(record.time).thenReturn(time)
