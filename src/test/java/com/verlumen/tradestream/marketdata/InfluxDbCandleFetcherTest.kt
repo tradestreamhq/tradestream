@@ -143,7 +143,6 @@ class InfluxDbCandleFetcherTest {
         val symbol = "DOGE-USD"
         val startTime = Timestamps.fromMillis(Instant.parse("2025-06-01T12:00:00Z").toEpochMilli())
         val endTime = Timestamps.fromMillis(Instant.parse("2025-06-01T13:00:00Z").toEpochMilli())
-        
         `when`(mockQueryApi.query(anyString(), eq(testOrg))).thenReturn(emptyList())
 
         val fetcher = createTestFetcher()
