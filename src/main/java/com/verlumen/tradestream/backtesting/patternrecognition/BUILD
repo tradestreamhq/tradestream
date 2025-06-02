@@ -6,6 +6,6 @@ kt_jvm_library(
     name = "pattern_recognition_params",
     srcs = ["PatternRecognitionParams.kt"],
     deps = [
-        "//src/main/java/com/verlumen/tradestream/backtesting:param_config",
+        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
     ],
 )

@@ -95,25 +95,6 @@ java_library(
     ],
 )
 
-# Beam UnboundedReader implementation for exchange clients
-kt_jvm_library(
-    name = "exchange_client_unbounded_reader",
-    srcs = ["ExchangeClientUnboundedReader.kt"],
-    deps = [
-        ":exchange_client_unbounded_source",
-        ":trade_checkpoint_mark",
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//src/main/java/com/verlumen/tradestream/marketdata:exchange_streaming_client",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:flogger",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
-        "//third_party/java:protobuf_java_util",
-    ],
-)
-
 # Abstract base class for exchange client unbounded sources
 kt_jvm_library(
     name = "exchange_client_unbounded_source",
@@ -123,21 +104,6 @@ kt_jvm_library(
         "//protos:marketdata_java_proto",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_extensions_protobuf",
-    ],
-)
-
-# Concrete implementation of the unbounded source
-kt_jvm_library(
-    name = "exchange_client_unbounded_source_impl",
-    srcs = ["ExchangeClientUnboundedSourceImpl.kt"],
-    deps = [
-        ":exchange_client_unbounded_reader",
-        ":exchange_client_unbounded_source",
-        ":trade_checkpoint_mark",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:guice",
     ],
 )
 
@@ -214,8 +180,7 @@ java_library(
     deps = [
         ":candle_source",
         ":dry_run_trade_source",
-        ":exchange_client_unbounded_source",
-        ":exchange_client_unbounded_source_impl",
+        ":exchange_client_trade_source",
         ":exchange_streaming_client",
         ":exchange_streaming_client_factory",
         ":fill_forward_candles",
