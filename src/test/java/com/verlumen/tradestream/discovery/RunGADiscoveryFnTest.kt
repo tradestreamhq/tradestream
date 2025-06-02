@@ -8,6 +8,7 @@ import com.verlumen.tradestream.backtesting.GAEngineFactory
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest
 import com.verlumen.tradestream.backtesting.GenotypeConverter
 import com.verlumen.tradestream.discovery.proto.Discovery.DiscoveredStrategy
+import com.verlumen.tradestream.discovery.proto.Discovery.DiscoveredStrategy
 import com.verlumen.tradestream.discovery.proto.Discovery.GAConfig
 import com.verlumen.tradestream.discovery.proto.Discovery.StrategyDiscoveryRequest
 import com.verlumen.tradestream.discovery.proto.Discovery.StrategyDiscoveryResult
