@@ -1,6 +1,10 @@
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
+package(default_visibility = [
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
+    ],)
+
 kt_jvm_library(
     name = "discovery_module",
     srcs = ["DiscoveryModule.kt"],
@@ -36,9 +40,6 @@ java_library(
 java_library(
     name = "genotype_converter_impl",
     srcs = ["GenotypeConverterImpl.java"],
-    visibility = [
-        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
-    ],
     deps = [
         ":genotype_converter",
         ":param_config",
