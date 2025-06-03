@@ -1,16 +1,11 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.backtesting
 
-import com.google.inject.AbstractModule;
+import com.google.inject.AbstractModule
 
-public final class BacktestingModule extends AbstractModule {
-  public static BacktestingModule create() {
-    return new BacktestingModule();
-  }
-
-  @Override
-  protected void configure() {
-    bind(BacktestRequestFactory.class).to(BacktestRequestFactoryImpl.class);
-    bind(BacktestRunner.class).to(BacktestRunnerImpl.class);
-    bind(GAEngineFactory.class).to(GAEngineFactoryImpl.class);
-  }
+class BacktestingModule : AbstractModule() {
+    override fun configure() {
+        bind(BacktestRequestFactory::class.java).to(BacktestRequestFactoryImpl::class.java)
+        bind(BacktestRunner::class.java).to(BacktestRunnerImpl::class.java)
+        bind(GAEngineFactory::class.java).to(GAEngineFactoryImpl::class.java)
+    }
 }
