@@ -14,6 +14,7 @@ java_library(
     ],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/backtesting:__subpackages__",
+        "//src/test/java/com/verlumen/tradestream/backtesting:__subpackages__",
     ],
     deps = [
         "//third_party/java:guava",
