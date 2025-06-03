@@ -2,7 +2,9 @@ package com.verlumen.tradestream.discovery;
 
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
+import com.verlumen.tradestream.backtesting.BacktestRequest;
 import com.verlumen.tradestream.backtesting.BacktestRequestFactory;
+import com.verlumen.tradestream.backtesting.BacktestResult;
 import com.verlumen.tradestream.backtesting.BacktestRunner;
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.strategies.Strategy;
