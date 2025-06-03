@@ -59,6 +59,5 @@ kt_jvm_test(
         "//third_party/java:mockito_core",
         "//third_party/java:mockito_kotlin",
         "//third_party/java:truth",
-        "//third_party/kotlin:kotlin_stdlib",
     ],
 )
