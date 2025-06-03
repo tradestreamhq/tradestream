@@ -6,6 +6,9 @@ package(default_visibility = [
 
 java_library(
     name = "signals_module",
+    visibility = [
+    "//src/test/java/com/verlumen/tradestream/pipeline:__pkg__",
+    ],
     srcs = ["SignalsModule.java"],
     deps = [
         ":trade_signal_publisher",
