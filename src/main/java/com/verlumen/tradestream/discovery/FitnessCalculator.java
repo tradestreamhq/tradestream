@@ -1,11 +1,12 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.discovery;
 
+import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import io.jenetics.Genotype;
 import java.io.Serializable;
 import java.util.function.Function;
 
 /** Defines the contract for calculating fitness scores using backtesting. */
-interface FitnessCalculator extends Serializable {
+public interface FitnessCalculator extends Serializable {
   /**
    * Creates a fitness function for the genetic algorithm.
    *
