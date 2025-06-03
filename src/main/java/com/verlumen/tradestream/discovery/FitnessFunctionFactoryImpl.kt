@@ -9,6 +9,7 @@ import com.verlumen.tradestream.backtesting.BacktestRunner
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest
 import com.verlumen.tradestream.strategies.Strategy
 import io.jenetics.Genotype
+import java.util.Function
 
 /**
  * Implementation of the FitnessFunctionFactory interface which calculates fitness scores for genetic
@@ -21,8 +22,8 @@ internal class FitnessFunctionFactoryImpl
         private val backtestRunner: BacktestRunner,
         private val genotypeConverter: GenotypeConverter, // Assuming GenotypeConverter is a defined class/interface
     ) : FitnessFunctionFactory {
-        override fun create(request: GAOptimizationRequest): (Genotype<*>) -> Double =
-            { genotype ->
+        override fun create(request: GAOptimizationRequest): Function<Genotype<*>, Double> =
+            Function { genotype ->
                 try {
                     val params: Any = genotypeConverter.convertToParameters(genotype, request.strategyType)
 
