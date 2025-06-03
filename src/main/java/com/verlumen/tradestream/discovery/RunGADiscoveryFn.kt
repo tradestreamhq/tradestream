@@ -148,4 +148,3 @@ class RunGADiscoveryFn
             logger.atInfo().log("RunGADiscoveryFn teardown.")
         }
     }
-}
