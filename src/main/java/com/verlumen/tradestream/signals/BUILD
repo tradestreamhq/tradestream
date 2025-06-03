@@ -1,7 +1,7 @@
 load("@rules_java//java:defs.bzl", "java_library")
 
 package(default_visibility = [
-    "//src/main/java/com/verlumen/tradestream:public",
+    "//src/test/java/com/verlumen/tradestream:__pkg__",
 ])
 
 java_library(
