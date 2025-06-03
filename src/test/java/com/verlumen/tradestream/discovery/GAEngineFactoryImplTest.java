@@ -29,7 +29,7 @@ public class GAEngineFactoryImplTest {
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
   @Bind @Mock private ParamConfigManager mockParamConfigManager;
-  @Bind @Mock private FitnessCalculator mockFitnessCalculator;
+  @Bind @Mock private FitnessFunctionFactory mockFitnessFunctionFactory;
   @Bind @Mock private ParamConfig mockParamConfig;
 
   @Inject private GAEngineFactoryImpl engineFactory;
@@ -51,10 +51,10 @@ public class GAEngineFactoryImplTest {
     when(mockParamConfig.initialChromosomes()).thenReturn(ImmutableList.of());
 
     // Mock the fitness calculator to return a dummy function
-    // This is critical - createFitnessFunction should never return null
+    // This is critical - create should never return null
     Function<Genotype<?>, Double> dummyFunction =
         genotype -> 1.0; // Just return a constant value for testing
-    when(mockFitnessCalculator.createFitnessFunction(any(GAOptimizationRequest.class)))
+    when(mockFitnessFunctionFactory.create(any(GAOptimizationRequest.class)))
         .thenReturn(dummyFunction);
 
     // Inject dependencies
