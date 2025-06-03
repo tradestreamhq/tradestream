@@ -2,7 +2,7 @@ package com.verlumen.tradestream.discovery;
 
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
-import com.verlumen.tradestream.discovery.GenotypeConverter;
+import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.strategies.Strategy;
 import io.jenetics.Genotype;
 import java.util.function.Function;
