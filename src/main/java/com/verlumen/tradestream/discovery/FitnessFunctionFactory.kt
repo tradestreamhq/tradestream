@@ -3,7 +3,6 @@ package com.verlumen.tradestream.discovery
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest
 import io.jenetics.Genotype
 import java.io.Serializable
-import java.util.function.Function
 
 /** Defines the contract for calculating fitness scores using backtesting. */
 interface FitnessCalculator : Serializable {
