@@ -66,19 +66,6 @@ java_library(
 )
 
 java_library(
-    name = "chromosome_spec",
-    srcs = [
-        "ChromosomeSpec.java",
-        "DoubleChromosomeSpec.java",
-        "IntegerChromosomeSpec.java",
-    ],
-    deps = [
-        "//third_party/java:guava",
-        "//third_party/java:jenetics",
-    ],
-)
-
-java_library(
     name = "ga_constants",
     srcs = ["GAConstants.java"],
 )
@@ -96,7 +83,6 @@ java_library(
     name = "ga_engine_factory_impl",
     srcs = ["GAEngineFactoryImpl.java"],
     deps = [
-        ":chromosome_spec",
         ":ga_constants",
         ":ga_engine_factory",
         "//protos:backtesting_java_proto",

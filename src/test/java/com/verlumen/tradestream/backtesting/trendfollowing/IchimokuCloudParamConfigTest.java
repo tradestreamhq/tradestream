@@ -4,7 +4,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
-import com.verlumen.tradestream.backtesting.ChromosomeSpec;
+import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.strategies.IchimokuCloudParameters;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.IntegerChromosome;
