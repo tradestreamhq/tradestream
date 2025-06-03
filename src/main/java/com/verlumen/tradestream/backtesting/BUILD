@@ -31,7 +31,6 @@ kt_jvm_library(
     srcs = ["BacktestRunner.kt"],
     deps = [
         "//protos:backtesting_java_proto",
-        "//third_party/java:protobuf_java",
     ],
 )
 
