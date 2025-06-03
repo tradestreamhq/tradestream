@@ -5,7 +5,7 @@ java_test(
     srcs = ["IchimokuCloudParamConfigTest.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
+        "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
         "//src/main/java/com/verlumen/tradestream/backtesting/trendfollowing:ichimoku_cloud_param_config",
         "//third_party/java:guava",
         "//third_party/java:jenetics",

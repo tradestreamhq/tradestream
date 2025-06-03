@@ -5,7 +5,7 @@ import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
-import com.verlumen.tradestream.backtesting.ChromosomeSpec;
+import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.strategies.AdxStochasticParameters;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.IntegerChromosome;

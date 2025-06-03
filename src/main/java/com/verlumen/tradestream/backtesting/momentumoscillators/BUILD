@@ -8,7 +8,7 @@ java_library(
     srcs = ["AdxStochasticParamConfig.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
+        "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
         "//src/main/java/com/verlumen/tradestream/discovery:param_config",
         "//third_party/java:guava",
         "//third_party/java:jenetics",
@@ -31,7 +31,7 @@ java_library(
     srcs = ["SmaRsiParamConfig.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
+        "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
         "//src/main/java/com/verlumen/tradestream/discovery:param_config",
         "//third_party/java:guava",
         "//third_party/java:jenetics",
