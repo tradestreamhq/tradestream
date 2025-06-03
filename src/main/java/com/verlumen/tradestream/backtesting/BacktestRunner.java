@@ -1,15 +1,16 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.backtesting
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import java.io.Serializable;
+import com.google.protobuf.InvalidProtocolBufferException
+import java.io.Serializable
 
 /** Interface for running backtests on trading strategies. */
-public interface BacktestRunner extends Serializable {
-  /**
-   * Runs a backtest for the given strategy over the provided bar series.
-   *
-   * @param request Parameters and configuration for the backtest run
-   * @return Results of the backtest analysis
-   */
-  BacktestResult runBacktest(BacktestRequest request) throws InvalidProtocolBufferException;
+interface BacktestRunner : Serializable {
+    /**
+     * Runs a backtest for the given strategy over the provided bar series.
+     *
+     * @param request Parameters and configuration for the backtest run
+     * @return Results of the backtest analysis
+     * @throws InvalidProtocolBufferException if there's an issue with protocol buffer processing
+     */
+    fun runBacktest(request: BacktestRequest): BacktestResult
 }
