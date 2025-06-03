@@ -32,7 +32,7 @@ class FitnessFunctionFactoryImpl
                     val params: Any = genotypeConverter.convertToParameters(genotype, strategyType)
                     val backtestRequest: BacktestRequest = createBacktestRequest(strategyType, candles, params)
                     val result: BacktestResult = backtestRunner.runBacktest(backtestRequest)
-                    result.strategyScore // Assumes Kotlin synthetic property access
+                    result.strategyScore
                 } catch (e: Exception) {
                     // Penalize any invalid genotype by assigning the lowest possible fitness
                     // Consider logging the exception e here if appropriate
