@@ -22,7 +22,8 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
   private final FitnessFunctionFactory fitnessCalculator;
 
   @Inject
-  GAEngineFactoryImpl(ParamConfigManager paramConfigManager, FitnessFunctionFactory fitnessCalculator) {
+  GAEngineFactoryImpl(
+      ParamConfigManager paramConfigManager, FitnessFunctionFactory fitnessCalculator) {
     this.paramConfigManager = paramConfigManager;
     this.fitnessCalculator = fitnessCalculator;
   }
