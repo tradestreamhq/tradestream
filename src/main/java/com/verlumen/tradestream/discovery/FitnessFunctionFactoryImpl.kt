@@ -9,7 +9,7 @@ import com.verlumen.tradestream.backtesting.BacktestRunner
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest
 import com.verlumen.tradestream.strategies.Strategy
 import io.jenetics.Genotype
-import java.util.Function
+import java.util.function.Function
 
 /**
  * Implementation of the FitnessFunctionFactory interface which calculates fitness scores for genetic
