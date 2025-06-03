@@ -27,6 +27,11 @@ kt_jvm_library(
 
 java_library(
     name = "fitness_calculator",
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
+    ],
     srcs = ["FitnessCalculator.java"],
     deps = [
         "//protos:backtesting_java_proto",
