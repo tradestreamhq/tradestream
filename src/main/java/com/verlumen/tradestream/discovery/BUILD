@@ -120,7 +120,7 @@ kt_jvm_library(
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
-        "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter",
+        "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
         "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:flogger",
