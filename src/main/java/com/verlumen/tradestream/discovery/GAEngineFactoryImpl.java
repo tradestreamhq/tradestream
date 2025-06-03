@@ -19,13 +19,13 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
   private static final Logger logger = Logger.getLogger(GAEngineFactoryImpl.class.getName());
 
   private final ParamConfigManager paramConfigManager;
-  private final FitnessFunctionFactory fitnessCalculator;
+  private final FitnessFunctionFactory fitnessFunctionFactory;
 
   @Inject
   GAEngineFactoryImpl(
-      ParamConfigManager paramConfigManager, FitnessFunctionFactory fitnessCalculator) {
+      ParamConfigManager paramConfigManager, FitnessFunctionFactory fitnessFunctionFactory) {
     this.paramConfigManager = paramConfigManager;
-    this.fitnessCalculator = fitnessCalculator;
+    this.fitnessFunctionFactory = fitnessFunctionFactory;
   }
 
   @Override
