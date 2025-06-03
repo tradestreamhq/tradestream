@@ -45,6 +45,15 @@ kt_jvm_library(
     ],
 )
 
+kt_jvm_library(
+    name = "fitness_calculation_params",
+    srcs = ["FitnessCalculationParams.kt"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
+    ],
+)
+
 java_library(
     name = "fitness_calculator",
     srcs = ["FitnessCalculator.java"],
