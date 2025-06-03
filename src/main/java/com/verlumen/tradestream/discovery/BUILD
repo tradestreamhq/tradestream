@@ -24,6 +24,32 @@ kt_jvm_library(
 )
 
 java_library(
+    name = "ga_engine_factory",
+    srcs = ["GAEngineFactory.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//third_party/java:jenetics",
+    ],
+)
+
+java_library(
+    name = "ga_engine_factory_impl",
+    srcs = ["GAEngineFactoryImpl.java"],
+    deps = [
+        ":ga_constants",
+        ":ga_engine_factory",
+        ":param_config",
+        ":param_config_manager",
+        "//protos:backtesting_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
+        "//src/main/java/com/verlumen/tradestream/backtesting:fitness_calculator",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:jenetics",
+    ],
+)
+
+java_library(
     name = "genotype_converter",
     srcs = ["GenotypeConverter.java"],
     visibility = [
