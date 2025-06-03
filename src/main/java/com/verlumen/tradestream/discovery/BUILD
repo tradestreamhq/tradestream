@@ -127,6 +127,5 @@ kt_jvm_library(
         "//third_party/java:guice",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java_util",
-        "//third_party/kotlin:kotlin_stdlib",
     ],
 )
