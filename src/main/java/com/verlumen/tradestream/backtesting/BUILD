@@ -26,9 +26,9 @@ kt_jvm_library(
     ],
 )
 
-java_library(
+kt_jvm_library(
     name = "backtest_runner",
-    srcs = ["BacktestRunner.java"],
+    srcs = ["BacktestRunner.kt"],
     deps = [
         "//protos:backtesting_java_proto",
         "//third_party/java:protobuf_java",
