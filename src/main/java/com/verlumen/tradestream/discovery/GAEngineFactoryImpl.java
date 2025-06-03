@@ -33,7 +33,10 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
     Genotype<?> gtf = createGenotype(request);
 
     // Build and return the GA engine with the specified settings
-    return Engine.builder(fitnessCalculator.createFitnessFunction(request), gtf)
+    FitnessCalculationParams fitnessCalculationParams = new FitnessCalculationParams(
+      request.getStrategyType(), request.getCandlesList()
+    );
+    return Engine.builder(fitnessCalculator.createFitnessFunction(fitnessCalculationParams), gtf)
         .populationSize(getPopulationSize(request))
         .selector(new TournamentSelector<>(GAConstants.TOURNAMENT_SIZE))
         .alterers(
