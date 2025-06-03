@@ -6,7 +6,6 @@ import com.verlumen.tradestream.backtesting.BacktestRequest;
 import com.verlumen.tradestream.backtesting.BacktestRequestFactory;
 import com.verlumen.tradestream.backtesting.BacktestResult;
 import com.verlumen.tradestream.backtesting.BacktestRunner;
-import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.strategies.Strategy;
 import io.jenetics.Genotype;
 import java.util.function.Function;
@@ -31,16 +30,16 @@ final class FitnessCalculatorImpl implements FitnessCalculator {
   }
 
   @Override
-  public Function<Genotype<?>, Double> createFitnessFunction(GAOptimizationRequest request) {
+  public Function<Genotype<?>, Double> createFitnessFunction(FitnessCalculationParams params) {
     return genotype -> {
       try {
-        Any params = genotypeConverter.convertToParameters(genotype, request.getStrategyType());
+        Any params = genotypeConverter.convertToParameters(genotype, params.getStrategyType());
 
         BacktestRequest backtestRequest =
             backtestRequestFactory.create(
-                request.getCandlesList(),
+                params.getCandles(),
                 Strategy.newBuilder()
-                    .setType(request.getStrategyType())
+                    .setType(params.getStrategyType())
                     .setParameters(params)
                     .build());
 
