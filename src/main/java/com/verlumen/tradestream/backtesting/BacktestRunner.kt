@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.backtesting
 
-import com.google.protobuf.InvalidProtocolBufferException
 import java.io.Serializable
 
 /** Interface for running backtests on trading strategies. */
