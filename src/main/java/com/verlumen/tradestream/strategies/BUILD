@@ -11,8 +11,6 @@ java_library(
         ":strategy_factory",
         ":strategy_manager",
         ":strategy_manager_impl",
-        ":strategy_state",
-        ":strategy_state_factory_impl",
         "//third_party/java:guava",
         "//third_party/java:guice",
     ],
@@ -69,50 +67,6 @@ java_library(
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:mug",
-        "//third_party/java:protobuf_java",
-        "//third_party/java:ta4j_core",
-    ],
-)
-
-kt_jvm_library(
-    name = "strategy_processing_request",
-    srcs = ["StrategyProcessingRequest.kt"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//protos:strategies_java_proto",
-    ],
-)
-
-java_library(
-    name = "strategy_record",
-    srcs = ["StrategyRecord.java"],
-    deps = [
-        "//protos:strategies_java_proto",
-        "//third_party/java:guava",
-        "//third_party/java:protobuf_java",
-    ],
-)
-
-java_library(
-    name = "strategy_state",
-    srcs = ["StrategyState.java"],
-    deps = [
-        "//protos:strategies_java_proto",
-        "//third_party/java:protobuf_java",
-        "//third_party/java:ta4j_core",
-    ],
-)
-
-java_library(
-    name = "strategy_state_factory_impl",
-    srcs = ["StrategyStateFactoryImpl.java"],
-    deps = [
-        ":strategy_manager",
-        ":strategy_record",
-        ":strategy_state",
-        "//protos:strategies_java_proto",
-        "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
         "//third_party/java:protobuf_java",
         "//third_party/java:ta4j_core",
     ],
