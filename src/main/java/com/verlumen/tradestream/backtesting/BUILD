@@ -50,9 +50,9 @@ kt_jvm_library(
     ],
 )
 
-java_library(
+kt_jvm_library(
     name = "backtesting_module",
-    srcs = ["BacktestingModule.java"],
+    srcs = ["BacktestingModule.kt"],
     deps = [
         "ga_engine_factory",
         "ga_engine_factory_impl",
