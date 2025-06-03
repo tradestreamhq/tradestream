@@ -12,6 +12,5 @@ public final class BacktestingModule extends AbstractModule {
     bind(BacktestRequestFactory.class).to(BacktestRequestFactoryImpl.class);
     bind(BacktestRunner.class).to(BacktestRunnerImpl.class);
     bind(FitnessCalculator.class).to(FitnessCalculatorImpl.class);
-    bind(GAEngineFactory.class).to(GAEngineFactoryImpl.class);
   }
 }
