@@ -6,7 +6,7 @@ import com.google.inject.TypeLiteral
 
 class DiscoveryModule : AbstractModule() {
     override fun configure() {
-        bind(FitnessCalculator::class.java).to(FitnessCalculatorImpl::class.java)
+        bind(FitnessFunctionFactory::class.java).to(FitnessFunctionFactoryImpl::class.java)
         bind(GAEngineFactory::class.java).to(GAEngineFactoryImpl::class.java)
         bind(GenotypeConverter::class.java).to(GenotypeConverterImpl::class.java)
         bind(ParamConfigManager::class.java).to(ParamConfigManagerImpl::class.java)

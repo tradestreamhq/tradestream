@@ -12,5 +12,5 @@ interface FitnessFunctionFactory : Serializable {
      * @param request the GA optimization request, containing parameters for fitness calculation
      * @return a function that evaluates the fitness of a genotype, returning a Double
      */
-    fun createFitnessFunction(request: GAOptimizationRequest): (Genotype<*>) -> Double
+    fun create(request: GAOptimizationRequest): (Genotype<*>) -> Double
 }

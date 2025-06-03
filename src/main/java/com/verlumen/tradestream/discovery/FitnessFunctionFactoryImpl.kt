@@ -21,7 +21,7 @@ internal class FitnessFunctionFactoryImpl
         private val backtestRunner: BacktestRunner,
         private val genotypeConverter: GenotypeConverter, // Assuming GenotypeConverter is a defined class/interface
     ) : FitnessFunctionFactory {
-        override fun createFitnessFunction(request: GAOptimizationRequest): (Genotype<*>) -> Double =
+        override fun create(request: GAOptimizationRequest): (Genotype<*>) -> Double =
             { genotype ->
                 try {
                     val params: Any = genotypeConverter.convertToParameters(genotype, request.strategyType)
