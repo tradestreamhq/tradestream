@@ -70,19 +70,6 @@ java_library(
 )
 
 java_library(
-    name = "chromosome_spec",
-    srcs = [
-        "ChromosomeSpec.java",
-        "DoubleChromosomeSpec.java",
-        "IntegerChromosomeSpec.java",
-    ],
-    deps = [
-        "//third_party/java:guava",
-        "//third_party/java:jenetics",
-    ],
-)
-
-java_library(
     name = "fitness_calculator",
     srcs = ["FitnessCalculator.java"],
     deps = [
