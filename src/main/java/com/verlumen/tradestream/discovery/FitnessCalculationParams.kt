@@ -2,6 +2,7 @@ package com.verlumen.tradestream.discovery
 
 import com.verlumen.tradestream.strategies.StrategyType
 import com.verlumen.tradestream.marketdata.Candle
+import com.verlumen.tradestream.strategies.StrategyType
 
 /**
  * Represents the parameters required for a fitness calculation.
