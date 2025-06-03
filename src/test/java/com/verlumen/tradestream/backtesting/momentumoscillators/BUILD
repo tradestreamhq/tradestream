@@ -21,7 +21,6 @@ java_test(
     srcs = ["SmaRsiParamConfigTest.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
         "//src/main/java/com/verlumen/tradestream/backtesting/momentumoscillators:sma_rsi_param_config",
         "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
         "//third_party/java:guava",
