@@ -11,6 +11,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory_impl",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
+        "//src/main/java/com/verlumen/tradestream/discovery:fitness_calculation_params",
         "//src/main/java/com/verlumen/tradestream/discovery:fitness_calculator",
         "//src/main/java/com/verlumen/tradestream/discovery:fitness_calculator_impl",
         "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
