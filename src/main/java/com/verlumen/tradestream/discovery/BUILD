@@ -30,6 +30,8 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
     ],
     deps = [
+        ":fitness_calculator",
+        ":fitness_calculator_impl",
         ":genotype_converter",
         ":genotype_converter_impl",
         ":param_config",
@@ -38,6 +40,36 @@ kt_jvm_library(
         ":param_configs",
         "//third_party/java:guava",
         "//third_party/java:guice",
+    ],
+)
+
+java_library(
+    name = "fitness_calculator",
+    srcs = ["FitnessCalculator.java"],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
+    ],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//third_party/java:jenetics",
+    ],
+)
+
+java_library(
+    name = "fitness_calculator_impl",
+    srcs = ["FitnessCalculatorImpl.java"],
+    deps = [
+        ":fitness_calculator",
+        ":genotype_converter",
+        "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
+        "//third_party/java:guice",
+        "//third_party/java:jenetics",
+        "//third_party/java:protobuf_java",
     ],
 )
 
