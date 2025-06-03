@@ -1,9 +1,7 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.discovery;
 
 import com.google.inject.Inject;
-import com.verlumen.tradestream.discovery.FitnessCalculator;
-import com.verlumen.tradestream.discovery.ParamConfig;
-import com.verlumen.tradestream.discovery.ParamConfigManager;
+import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.Genotype;

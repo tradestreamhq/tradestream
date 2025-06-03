@@ -32,6 +32,8 @@ kt_jvm_library(
     deps = [
         ":fitness_calculator",
         ":fitness_calculator_impl",
+        ":ga_engine_factory",
+        ":ga_engine_factory_impl",
         ":genotype_converter",
         ":genotype_converter_impl",
         ":param_config",
@@ -70,6 +72,37 @@ java_library(
         "//third_party/java:guice",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
+    ],
+)
+
+java_library(
+    name = "ga_constants",
+    srcs = ["GAConstants.java"],
+)
+
+java_library(
+    name = "ga_engine_factory",
+    srcs = ["GAEngineFactory.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//third_party/java:jenetics",
+    ],
+)
+
+java_library(
+    name = "ga_engine_factory_impl",
+    srcs = ["GAEngineFactoryImpl.java"],
+    deps = [
+        ":chromosome_spec",
+        ":fitness_calculator",
+        ":ga_constants",
+        ":ga_engine_factory",
+        ":param_config",
+        ":param_config_manager",
+        "//protos:backtesting_java_proto",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:jenetics",
     ],
 )
 

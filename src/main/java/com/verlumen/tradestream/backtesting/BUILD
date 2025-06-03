@@ -54,44 +54,12 @@ kt_jvm_library(
     name = "backtesting_module",
     srcs = ["BacktestingModule.kt"],
     deps = [
-        "ga_engine_factory",
-        "ga_engine_factory_impl",
         ":backtest_request_factory",
         ":backtest_request_factory_impl",
         ":backtest_runner",
         ":backtest_runner_impl",
         "//third_party/java:guava",
         "//third_party/java:guice",
-    ],
-)
-
-java_library(
-    name = "ga_constants",
-    srcs = ["GAConstants.java"],
-)
-
-java_library(
-    name = "ga_engine_factory",
-    srcs = ["GAEngineFactory.java"],
-    deps = [
-        "//protos:backtesting_java_proto",
-        "//third_party/java:jenetics",
-    ],
-)
-
-java_library(
-    name = "ga_engine_factory_impl",
-    srcs = ["GAEngineFactoryImpl.java"],
-    deps = [
-        ":ga_constants",
-        ":ga_engine_factory",
-        "//protos:backtesting_java_proto",
-        "//src/main/java/com/verlumen/tradestream/discovery:fitness_calculator",
-        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
-        "//src/main/java/com/verlumen/tradestream/discovery:param_config_manager",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:jenetics",
     ],
 )
 
