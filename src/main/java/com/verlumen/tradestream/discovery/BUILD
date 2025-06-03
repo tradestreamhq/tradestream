@@ -32,6 +32,8 @@ kt_jvm_library(
     deps = [
         ":fitness_calculator",
         ":fitness_calculator_impl",
+        ":ga_engine_factory",
+        ":ga_engine_factory_impl",
         ":genotype_converter",
         ":genotype_converter_impl",
         ":param_config",
