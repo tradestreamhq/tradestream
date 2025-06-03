@@ -45,15 +45,6 @@ kt_jvm_library(
     ],
 )
 
-kt_jvm_library(
-    name = "fitness_calculation_params",
-    srcs = ["FitnessCalculationParams.kt"],
-    deps = [
-        "//protos:backtesting_java_proto",
-        "//protos:strategies_java_proto",
-    ],
-)
-
 java_library(
     name = "fitness_calculator",
     srcs = ["FitnessCalculator.java"],
@@ -63,7 +54,8 @@ java_library(
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
-        ":fitness_calculation_params",
+        "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
         "//third_party/java:jenetics",
     ],
 )
@@ -72,7 +64,6 @@ java_library(
     name = "fitness_calculator_impl",
     srcs = ["FitnessCalculatorImpl.java"],
     deps = [
-        ":fitness_calculation_params",
         ":fitness_calculator",
         ":genotype_converter",
         "//protos:backtesting_java_proto",
@@ -104,13 +95,13 @@ java_library(
     srcs = ["GAEngineFactoryImpl.java"],
     deps = [
         ":chromosome_spec",
-        ":fitness_calculation_params",
         ":fitness_calculator",
         ":ga_constants",
         ":ga_engine_factory",
         ":param_config",
         ":param_config_manager",
         "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
