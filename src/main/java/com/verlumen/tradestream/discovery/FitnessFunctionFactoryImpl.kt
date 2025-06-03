@@ -41,5 +41,4 @@ internal class FitnessFunctionFactoryImpl @Inject constructor(
                 // Consider logging the exception e here if appropriate
                 Double.NEGATIVE_INFINITY
             }
-        }
     }
