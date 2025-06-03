@@ -3,7 +3,7 @@ package com.verlumen.tradestream.discovery
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest
 import io.jenetics.Genotype
 import java.io.Serializable
-import java.util.Function
+import java.util.function.Function
 
 /** Defines the contract for creating fitness functions for genetic algorithms. */
 interface FitnessFunctionFactory : Serializable {
