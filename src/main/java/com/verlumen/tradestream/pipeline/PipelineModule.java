@@ -86,7 +86,7 @@ abstract class PipelineModule extends AbstractModule {
     install(KafkaModule.create(bootstrapServers()));
     install(MarketDataModule.create(exchangeName(), candleDuration(), runMode(), tiingoApiKey()));
     install(SignalsModule.create(signalTopic()));
-    install(StrategiesModule.create());
+    install(new StrategiesModule());
     install(Ta4jModule.create());
   }
 
