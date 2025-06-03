@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.discovery;
 
 /**
  * Constants used throughout the genetic algorithm optimization process. Extracted to a separate
