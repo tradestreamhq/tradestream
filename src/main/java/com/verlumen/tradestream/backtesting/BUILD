@@ -50,9 +50,9 @@ kt_jvm_library(
     ],
 )
 
-java_library(
+kt_jvm_library(
     name = "backtesting_module",
-    srcs = ["BacktestingModule.java"],
+    srcs = ["BacktestingModule.kt"],
     deps = [
         ":backtest_request_factory",
         ":backtest_request_factory_impl",
