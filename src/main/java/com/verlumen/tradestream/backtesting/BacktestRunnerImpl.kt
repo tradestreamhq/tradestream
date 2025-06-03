@@ -19,7 +19,7 @@ import kotlin.math.sqrt
 /**
  * Implementation of BacktestRunner that evaluates trading strategies using Ta4j.
  */
-internal class BacktestRunnerImpl
+class BacktestRunnerImpl
     @Inject
     constructor(
         private val barSeriesFactory: BarSeriesFactory,
