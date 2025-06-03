@@ -20,10 +20,15 @@ internal class FitnessFunctionFactoryImpl @Inject constructor(
     private val genotypeConverter: GenotypeConverter // Assuming GenotypeConverter is a defined class/interface
 ) : FitnessFunctionFactory {
 
-    override fun createFitnessFunction(request: GAOptimizationRequest): (Genotype<*>) -> Double {
-        return { genotype ->
-            try {
-                val params: Any = genotypeConverter.convertToParameters(genotype, request.strategyType)
+                    val backtestRequest: BacktestRequest =
+                        backtestRequestFactory.create(
+                            request.candlesList, // Assumes Kotlin synthetic property access
+                            Strategy
+                                .newBuilder()
+                                .setType(request.strategyType) // Assumes Kotlin synthetic property access
+                                .setParameters(params)
+                                .build(),
+                        )
 
                     val result: BacktestResult = backtestRunner.runBacktest(backtestRequest)
                     result.strategyScore // Assumes Kotlin synthetic property access
