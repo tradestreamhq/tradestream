@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.discovery;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -11,7 +11,12 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.discovery.GenotypeConverter;
+import com.verlumen.tradestream.backtesting.BacktestRequest;
+import com.verlumen.tradestream.backtesting.BacktestRequestFactory;
+import com.verlumen.tradestream.backtesting.BacktestRequestFactoryImpl;
+import com.verlumen.tradestream.backtesting.BacktestResult;
+import com.verlumen.tradestream.backtesting.BacktestRunner;
+import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.DoubleChromosome;
