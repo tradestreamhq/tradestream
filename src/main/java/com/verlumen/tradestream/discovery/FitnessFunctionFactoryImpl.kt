@@ -15,7 +15,7 @@ import java.util.function.Function
  * Implementation of the FitnessFunctionFactory interface which calculates fitness scores for genetic
  * algorithm individuals using backtesting.
  */
-internal class FitnessFunctionFactoryImpl
+class FitnessFunctionFactoryImpl
     @Inject
     constructor(
         private val backtestRequestFactory: BacktestRequestFactory,
