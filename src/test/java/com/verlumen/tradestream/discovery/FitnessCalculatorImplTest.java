@@ -84,8 +84,7 @@ public class FitnessFunctionFactoryImplTest {
   }
 
   @Test
-  public void create_backtestRunnerThrowsException_returnsNegativeInfinity()
-      throws Exception {
+  public void create_backtestRunnerThrowsException_returnsNegativeInfinity() throws Exception {
     // Arrange: Configure the mock to throw an exception
     when(mockBacktestRunner.runBacktest(any(BacktestRequest.class)))
         .thenThrow(new RuntimeException("Simulated error"));
