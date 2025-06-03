@@ -25,20 +25,12 @@ internal class FitnessFunctionFactoryImpl @Inject constructor(
             try {
                 val params: Any = genotypeConverter.convertToParameters(genotype, request.strategyType)
 
-                val backtestRequest: BacktestRequest =
-                    backtestRequestFactory.create(
-                        request.candlesList, // Assumes Kotlin synthetic property access
-                        Strategy.newBuilder()
-                            .setType(request.strategyType) // Assumes Kotlin synthetic property access
-                            .setParameters(params)
-                            .build()
-                    )
-
-                val result: BacktestResult = backtestRunner.runBacktest(backtestRequest)
-                result.strategyScore // Assumes Kotlin synthetic property access
-            } catch (e: Exception) {
-                // Penalize any invalid genotype by assigning the lowest possible fitness
-                // Consider logging the exception e here if appropriate
-                Double.NEGATIVE_INFINITY
+                    val result: BacktestResult = backtestRunner.runBacktest(backtestRequest)
+                    result.strategyScore // Assumes Kotlin synthetic property access
+                } catch (e: Exception) {
+                    // Penalize any invalid genotype by assigning the lowest possible fitness
+                    // Consider logging the exception e here if appropriate
+                    Double.NEGATIVE_INFINITY
+                }
             }
     }
