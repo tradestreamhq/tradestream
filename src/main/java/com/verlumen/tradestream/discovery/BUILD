@@ -45,9 +45,9 @@ kt_jvm_library(
     ],
 )
 
-java_library(
+kt_jvm_library(
     name = "fitness_function_factory",
-    srcs = ["FitnessFunctionFactory.java"],
+    srcs = ["FitnessFunctionFactory.kt"],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
         "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
@@ -59,9 +59,9 @@ java_library(
     ],
 )
 
-java_library(
+kt_jvm_library(
     name = "fitness_function_factory_impl",
-    srcs = ["FitnessFunctionFactoryImpl.java"],
+    srcs = ["FitnessFunctionFactoryImpl.kt"],
     deps = [
         ":fitness_function_factory",
         ":genotype_converter",
