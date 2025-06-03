@@ -9,11 +9,10 @@ import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.backtesting.GAEngineFactory
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest
-import com.verlumen.tradestream.backtesting.GenotypeConverter
-import com.verlumen.tradestream.discovery.proto.Discovery.DiscoveredStrategy
-import com.verlumen.tradestream.discovery.proto.Discovery.GAConfig
-import com.verlumen.tradestream.discovery.proto.Discovery.StrategyDiscoveryRequest
-import com.verlumen.tradestream.discovery.proto.Discovery.StrategyDiscoveryResult
+import com.verlumen.tradestream.discovery.DiscoveredStrategy
+import com.verlumen.tradestream.discovery.GAConfig
+import com.verlumen.tradestream.discovery.StrategyDiscoveryRequest
+import com.verlumen.tradestream.discovery.StrategyDiscoveryResult
 import com.verlumen.tradestream.marketdata.Candle
 import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
 import com.verlumen.tradestream.strategies.SmaRsiParameters
