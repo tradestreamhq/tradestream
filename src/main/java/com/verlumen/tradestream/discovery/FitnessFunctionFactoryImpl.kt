@@ -43,4 +43,3 @@ internal class FitnessFunctionFactoryImpl @Inject constructor(
             }
         }
     }
-}
