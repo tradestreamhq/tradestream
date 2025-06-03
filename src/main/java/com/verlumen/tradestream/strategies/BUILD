@@ -4,20 +4,6 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
-    name = "split_by_strategy_type",
-    srcs = ["SplitByStrategyType.java"],
-    deps = [
-        ":strategy_constants",
-        ":strategy_processing_request",
-        "//protos:marketdata_java_proto",
-        "//protos:strategies_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-    ],
-)
-
-java_library(
     name = "strategies_module",
     srcs = ["StrategiesModule.java"],
     deps = [
