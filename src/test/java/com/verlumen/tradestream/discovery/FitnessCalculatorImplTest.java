@@ -48,13 +48,15 @@ public class FitnessCalculatorImplTest {
     // Setup
     backtestRequestFactory = new BacktestRequestFactoryImpl();
     fitnessCalculationParams =
-        new FitnessCalculationParams(StrategyType.SMA_RSI, ImmutableList.of(
-          Candle.newBuilder()
-              .setOpen(100.0)
-              .setClose(105.0)
-              .setHigh(110)
-              .setLow(95)
-              .build()));
+        new FitnessCalculationParams(
+            StrategyType.SMA_RSI,
+            ImmutableList.of(
+                Candle.newBuilder()
+                    .setOpen(100.0)
+                    .setClose(105.0)
+                    .setHigh(110)
+                    .setLow(95)
+                    .build()));
 
     testGenotype = Genotype.of(DoubleChromosome.of(0.0, 1.0));
     Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
