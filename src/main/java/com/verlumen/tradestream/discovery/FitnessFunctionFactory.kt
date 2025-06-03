@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.discovery
 
-import com.verlumen.tradestream.backtesting.GAOptimizationRequest
 import io.jenetics.Genotype
 import java.io.Serializable
 
