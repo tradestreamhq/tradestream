@@ -5,12 +5,12 @@ import java.io.Serializable;
 import java.util.function.Function;
 
 /** Defines the contract for calculating fitness scores using backtesting. */
-public interface FitnessCalculator extends Serializable {
+public interface FitnessFunctionFactory extends Serializable {
   /**
    * Creates a fitness function for the genetic algorithm.
    *
    * @param params the fitness calculation parameters
    * @return a function that evaluates the fitness of a genotype
    */
-  Function<Genotype<?>, Double> createFitnessFunction(FitnessCalculationParams params);
+  FitnessFunction create(FitnessFunctionParams params);
 }
