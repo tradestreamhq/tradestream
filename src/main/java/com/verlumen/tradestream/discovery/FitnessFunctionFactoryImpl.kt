@@ -14,11 +14,17 @@ import io.jenetics.Genotype
  * Implementation of the FitnessFunctionFactory interface which calculates fitness scores for genetic
  * algorithm individuals using backtesting.
  */
-internal class FitnessFunctionFactoryImpl @Inject constructor(
-    private val backtestRequestFactory: BacktestRequestFactory,
-    private val backtestRunner: BacktestRunner,
-    private val genotypeConverter: GenotypeConverter // Assuming GenotypeConverter is a defined class/interface
-) : FitnessFunctionFactory {
+internal class FitnessFunctionFactoryImpl
+    @Inject
+    constructor(
+        private val backtestRequestFactory: BacktestRequestFactory,
+        private val backtestRunner: BacktestRunner,
+        private val genotypeConverter: GenotypeConverter, // Assuming GenotypeConverter is a defined class/interface
+    ) : FitnessFunctionFactory {
+        override fun createFitnessFunction(request: GAOptimizationRequest): (Genotype<*>) -> Double =
+            { genotype ->
+                try {
+                    val params: Any = genotypeConverter.convertToParameters(genotype, request.strategyType)
 
                     val backtestRequest: BacktestRequest =
                         backtestRequestFactory.create(
