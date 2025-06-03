@@ -63,6 +63,7 @@ java_library(
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
+        ":fitness_calculation_params",
         "//third_party/java:jenetics",
     ],
 )
@@ -71,6 +72,7 @@ java_library(
     name = "fitness_calculator_impl",
     srcs = ["FitnessCalculatorImpl.java"],
     deps = [
+        ":fitness_calculation_params",
         ":fitness_calculator",
         ":genotype_converter",
         "//protos:backtesting_java_proto",
