@@ -83,31 +83,6 @@ java_library(
 )
 
 java_library(
-    name = "fitness_calculator",
-    srcs = ["FitnessCalculator.java"],
-    deps = [
-        "//protos:backtesting_java_proto",
-        "//third_party/java:jenetics",
-    ],
-)
-
-java_library(
-    name = "fitness_calculator_impl",
-    srcs = ["FitnessCalculatorImpl.java"],
-    deps = [
-        ":backtest_request_factory",
-        ":backtest_runner",
-        ":fitness_calculator",
-        "//protos:backtesting_java_proto",
-        "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
-        "//third_party/java:guice",
-        "//third_party/java:jenetics",
-        "//third_party/java:protobuf_java",
-    ],
-)
-
-java_library(
     name = "ga_constants",
     srcs = ["GAConstants.java"],
 )
