@@ -23,21 +23,6 @@ java_library(
 )
 
 java_library(
-    name = "optimize_strategies",
-    srcs = ["OptimizeStrategies.java"],
-    deps = [
-        ":optimize_each_strategy_do_fn",
-        ":split_by_strategy_type",
-        ":strategy_processing_request",
-        ":strategy_state",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-    ],
-)
-
-java_library(
     name = "split_by_strategy_type",
     srcs = ["SplitByStrategyType.java"],
     deps = [
