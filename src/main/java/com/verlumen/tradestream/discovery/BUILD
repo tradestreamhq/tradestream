@@ -12,6 +12,8 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
     ],
     deps = [
+        ":fitness_calculator",
+        ":fitness_calculator_impl",
         ":genotype_converter",
         ":genotype_converter_impl",
         ":param_config",
