@@ -54,8 +54,6 @@ java_library(
     name = "backtesting_module",
     srcs = ["BacktestingModule.java"],
     deps = [
-        "ga_engine_factory",
-        "ga_engine_factory_impl",
         ":backtest_request_factory",
         ":backtest_request_factory_impl",
         ":backtest_runner",
