@@ -18,14 +18,6 @@ java_library(
     ],
 )
 
-kt_jvm_library(
-    name = "strategy_constants",
-    srcs = ["StrategyConstants.kt"],
-    deps = [
-        "//protos:strategies_java_proto",
-    ],
-)
-
 java_library(
     name = "strategy_factories",
     srcs = ["StrategyFactories.java"],
