@@ -15,6 +15,9 @@ java_library(
         "DoubleChromosomeSpec.java",
         "IntegerChromosomeSpec.java",
     ],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
+    ],
     deps = [
         "//third_party/java:guava",
         "//third_party/java:jenetics",
