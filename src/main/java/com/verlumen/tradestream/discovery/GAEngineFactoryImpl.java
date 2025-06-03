@@ -19,10 +19,11 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
   private static final Logger logger = Logger.getLogger(GAEngineFactoryImpl.class.getName());
 
   private final ParamConfigManager paramConfigManager;
-  private final FitnessCalculator fitnessCalculator;
+  private final FitnessFunctionFactory fitnessCalculator;
 
   @Inject
-  GAEngineFactoryImpl(ParamConfigManager paramConfigManager, FitnessCalculator fitnessCalculator) {
+  GAEngineFactoryImpl(
+      ParamConfigManager paramConfigManager, FitnessFunctionFactory fitnessCalculator) {
     this.paramConfigManager = paramConfigManager;
     this.fitnessCalculator = fitnessCalculator;
   }
@@ -33,9 +34,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
     Genotype<?> gtf = createGenotype(request);
 
     // Build and return the GA engine with the specified settings
-    FitnessCalculationParams fitnessCalculationParams =
-        new FitnessCalculationParams(request.getStrategyType(), request.getCandlesList());
-    return Engine.builder(fitnessCalculator.createFitnessFunction(fitnessCalculationParams), gtf)
+    return Engine.builder(fitnessCalculator.createFitnessFunction(request.getStrategyType(), request.getCandlesList()), gtf)
         .populationSize(getPopulationSize(request))
         .selector(new TournamentSelector<>(GAConstants.TOURNAMENT_SIZE))
         .alterers(

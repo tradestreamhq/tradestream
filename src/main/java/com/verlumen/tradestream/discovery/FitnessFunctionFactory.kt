@@ -1,9 +1,9 @@
 package com.verlumen.tradestream.discovery
 
-import com.verlumen.tradestream.marketdata.Candle
-import com.verlumen.tradestream.strategies.StrategyType
+import com.verlumen.tradestream.backtesting.GAOptimizationRequest
 import io.jenetics.Genotype
 import java.io.Serializable
+import java.util.function.Function
 
 /** Defines the contract for calculating fitness scores using backtesting. */
 interface FitnessCalculator : Serializable {
@@ -14,5 +14,5 @@ interface FitnessCalculator : Serializable {
      * @param candles the list of candles (market data) to be used for fitness calculation
      * @return a function that evaluates the fitness of a genotype, returning a Double
      */
-    fun createFitnessFunction(strategyType: StrategyType, candles: List<Candle>): (Genotype<*>) -> Double
+    fun create(strategyType: StrategyType, candles: List<Candle>): (Genotype<*>) -> Double
 }
