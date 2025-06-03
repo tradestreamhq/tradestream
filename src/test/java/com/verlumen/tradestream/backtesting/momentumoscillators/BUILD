@@ -5,7 +5,6 @@ java_test(
     srcs = ["AdxStochasticParamConfigTest.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
         "//src/main/java/com/verlumen/tradestream/backtesting/momentumoscillators:adx_stochastic_param_config",
         "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
         "//third_party/java:guava",
