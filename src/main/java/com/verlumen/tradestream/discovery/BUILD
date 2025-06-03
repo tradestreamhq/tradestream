@@ -38,11 +38,11 @@ java_library(
     name = "fitness_calculator_impl",
     srcs = ["FitnessCalculatorImpl.java"],
     deps = [
-        ":backtest_request_factory",
-        ":backtest_runner",
         ":fitness_calculator",
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:backtest_request_factory",
+        "//src/main/java/com/verlumen/tradestream/discovery:backtest_runner",
         "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
