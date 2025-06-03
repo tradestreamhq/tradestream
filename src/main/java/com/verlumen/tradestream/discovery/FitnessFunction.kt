@@ -1,3 +1,5 @@
-package com.verlumen.tradestream.discovery;
+package com.verlumen.tradestream.discovery
 
-interface FitnessFunction extends Function<Genotype<?>, Double> {}
+import io.jenetics.Genotype
+
+typealias FitnessFunction = (Genotype<*>) -> Double
