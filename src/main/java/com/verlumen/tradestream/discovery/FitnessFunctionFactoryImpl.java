@@ -33,7 +33,8 @@ final class FitnessCalculatorImpl implements FitnessCalculator {
   public Function<Genotype<?>, Double> createFitnessFunction(FitnessCalculationParams params) {
     return genotype -> {
       try {
-        Any strategyParameters = genotypeConverter.convertToParameters(genotype, params.getStrategyType());
+        Any strategyParameters =
+            genotypeConverter.convertToParameters(genotype, params.getStrategyType());
 
         BacktestRequest backtestRequest =
             backtestRequestFactory.create(
