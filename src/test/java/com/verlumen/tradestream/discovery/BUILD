@@ -56,7 +56,6 @@ kt_jvm_test(
         "//third_party/java:guice_testlib",
         "//third_party/java:jenetics",
         "//third_party/java:junit",
-        "//third_party/java:truth",
         "//third_party/java:mockito_core",
         "//third_party/java:mockito_kotlin",
         "//third_party/java:truth",
