@@ -62,7 +62,7 @@ class RunGADiscoveryFn
                     discoveryRequest.endTime,
                 )
 
-            if (candles.isEmpty) {
+            if (candles.isEmpty()) {
                 logger.atWarning().log("No candles for request: %s. Skipping GA.", discoveryRequest.symbol)
                 return
             }
@@ -78,20 +78,13 @@ class RunGADiscoveryFn
 
             val engine: Engine<*, Double>
             try {
-                @Suppress("UNCHECKED_CAST")
-                engine = gaEngineFactory.createEngine(gaOptimizationRequest) as Engine<io.jenetics.Gene<*, *>, Double>
-            } catch (e: ClassCastException) {
-                logger
-                    .atSevere()
-                    .withCause(e)
-                    .log("Failed to cast GA Engine for request: %s. Check type compatibility.", discoveryRequest.symbol)
-                return
+                engine = gaEngineFactory.createEngine(gaOptimizationRequest)
             } catch (e: Exception) {
                 logger.atSevere().withCause(e).log("Error creating GA Engine for request: %s.", discoveryRequest.symbol)
                 return
             }
 
-            val bestPhenotypes: List<Phenotype<io.jenetics.Gene<*, *>, Double>>
+            val bestPhenotypes: List<Phenotype<*, Double>>
             try {
                 bestPhenotypes =
                     engine
@@ -110,8 +103,7 @@ class RunGADiscoveryFn
 
             val resultBuilder = StrategyDiscoveryResult.newBuilder()
             for (phenotype in bestPhenotypes) {
-                @Suppress("UNCHECKED_CAST")
-                val bestGenotype = phenotype.genotype() as Genotype<io.jenetics.Gene<*, *>>
+                val bestGenotype = phenotype.genotype() as Genotype<*>
                 val score = phenotype.fitness()
 
                 val strategyParamsAny: Any
