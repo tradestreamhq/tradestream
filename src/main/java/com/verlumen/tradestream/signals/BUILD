@@ -8,7 +8,7 @@ java_library(
     name = "signals_module",
     srcs = ["SignalsModule.java"],
     visibility = [
-        "//src/test/java/com/verlumen/tradestream/pipeline:__pkg__",
+        "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
     ],
     deps = [
         ":trade_signal_publisher",
