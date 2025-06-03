@@ -88,7 +88,7 @@ public class FitnessCalculatorImplTest {
       throws Exception {
     // Arrange: Configure the mock to throw an exception
     when(mockBacktestRunner.runBacktest(any(BacktestRequest.class)))
-        .thenThrow(new InvalidProtocolBufferException("Simulated error"));
+        .thenThrow(new RuntimeException("Simulated error"));
     when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
         .thenReturn(Any.getDefaultInstance());
 
