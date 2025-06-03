@@ -42,6 +42,7 @@ kt_jvm_test(
     name = "RunGADiscoveryFnTest",
     srcs = ["RunGADiscoveryFnTest.kt"],
     deps = [
+        "//protos:backtesting_java_proto",
         "//protos:discovery_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
