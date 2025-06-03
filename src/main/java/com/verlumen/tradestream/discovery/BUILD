@@ -45,32 +45,22 @@ kt_jvm_library(
     ],
 )
 
-kt_jvm_library(
-    name = "fitness_calculation_params",
-    srcs = ["FitnessCalculationParams.kt"],
-    deps = [
-        "//protos:backtesting_java_proto",
-        "//protos:strategies_java_proto",
-    ],
-)
-
 java_library(
-    name = "fitness_calculator",
-    srcs = ["FitnessCalculator.java"],
+    name = "fitness_function_factory",
+    srcs = ["FitnessFunctionFactory.java"],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
         "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
-        ":fitness_calculation_params",
-        "//third_party/java:jenetics",
+        ":fitness_function_params",
     ],
 )
 
 java_library(
-    name = "fitness_calculator_impl",
-    srcs = ["FitnessCalculatorImpl.java"],
+    name = "fitness_function_factory_impl",
+    srcs = ["FitnessFunctionFactoryImpl.java"],
     deps = [
         ":fitness_calculation_params",
         ":fitness_calculator",
@@ -82,6 +72,15 @@ java_library(
         "//third_party/java:guice",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
+    ],
+)
+
+kt_jvm_library(
+    name = "fitness_function_params",
+    srcs = ["FitnessFunctionParams.kt"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
     ],
 )
 
