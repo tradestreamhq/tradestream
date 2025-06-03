@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.discovery;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
@@ -10,9 +10,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import com.verlumen.tradestream.discovery.FitnessCalculator;
-import com.verlumen.tradestream.discovery.ParamConfig;
-import com.verlumen.tradestream.discovery.ParamConfigManager;
+import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Genotype;
 import io.jenetics.engine.Engine;

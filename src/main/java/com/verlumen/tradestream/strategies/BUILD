@@ -3,9 +3,9 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
-java_library(
+kt_jvm_library(
     name = "strategies_module",
-    srcs = ["StrategiesModule.java"],
+    srcs = ["StrategiesModule.kt"],
     deps = [
         ":strategy_factories",
         ":strategy_factory",

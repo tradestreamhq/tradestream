@@ -7,7 +7,6 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.Strategy;
 import com.verlumen.tradestream.strategies.StrategyType;
@@ -152,16 +151,14 @@ public class RunBacktestTest {
 
   private static class FakeBacktestRunner implements BacktestRunner {
     @Override
-    public BacktestResult runBacktest(BacktestRequest request)
-        throws InvalidProtocolBufferException {
+    public BacktestResult runBacktest(BacktestRequest request) {
       return BacktestResult.newBuilder().setStrategyScore(0.5).build();
     }
   }
 
   private static class ExceptionThrowingBacktestRunner implements BacktestRunner {
     @Override
-    public BacktestResult runBacktest(BacktestRequest request)
-        throws InvalidProtocolBufferException {
+    public BacktestResult runBacktest(BacktestRequest request) {
       throw new RuntimeException("Test Exception");
     }
   }
