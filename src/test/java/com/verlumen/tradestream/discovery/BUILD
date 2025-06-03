@@ -48,7 +48,7 @@ kt_jvm_test(
         "//protos:backtesting_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter",
-        "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline_lib",
+        "//src/main/java/com/verlumen/tradestream/discovery:run_ga_discovery_fn",
         "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_test_utils",
