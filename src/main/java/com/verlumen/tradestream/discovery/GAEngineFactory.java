@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.discovery;
 
 import io.jenetics.engine.Engine;
 import java.io.Serializable;
