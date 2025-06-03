@@ -3,6 +3,7 @@ package com.verlumen.tradestream.discovery
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.protobuf.Any
+import com.verlumen.tradestream.backtesting.GAEngineFactory
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest
 import com.verlumen.tradestream.discovery.DiscoveredStrategy
 import com.verlumen.tradestream.discovery.StrategyDiscoveryRequest
@@ -89,7 +90,7 @@ class RunGADiscoveryFn
                     engine
                         .stream()
                         .limit(discoveryRequest.topN.toLong())
-                        .collect(EvolutionResult.toBestPhenotypes())
+                        .collect(EvolutionResult.toBestPhenotypes(discoveryRequest.topN))
             } catch (e: Exception) {
                 logger.atSevere().withCause(e).log("Error during GA evolution for %s", discoveryRequest.symbol)
                 return
@@ -147,3 +148,4 @@ class RunGADiscoveryFn
             logger.atInfo().log("RunGADiscoveryFn teardown.")
         }
     }
+}
