@@ -1,22 +1,15 @@
 load("@rules_java//java:defs.bzl", "java_library")
 
-package(default_visibility = ["//visibility:public"])
-
-java_library(
-    name = "publish_trade_signals",
-    srcs = ["PublishTradeSignals.java"],
-    deps = [
-        ":trade_signal_publisher",
-        "//protos:trade_signals_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:flogger",
-        "//third_party/java:guice",
-    ],
-)
+package(default_visibility = [
+    "//src/test/java/com/verlumen/tradestream/signals:__pkg__",
+])
 
 java_library(
     name = "signals_module",
     srcs = ["SignalsModule.java"],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
+    ],
     deps = [
         ":trade_signal_publisher",
         ":trade_signal_publisher_impl",
