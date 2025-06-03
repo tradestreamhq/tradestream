@@ -45,7 +45,7 @@ kt_jvm_test(
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
         "//protos:marketdata_java_proto",
-        "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter",
         "//src/main/java/com/verlumen/tradestream/discovery:run_ga_discovery_fn",
