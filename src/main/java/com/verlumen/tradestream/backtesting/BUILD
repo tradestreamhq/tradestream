@@ -62,8 +62,6 @@ java_library(
         ":backtest_runner_impl",
         ":fitness_calculator",
         ":fitness_calculator_impl",
-        ":genetic_algorithm_orchestrator",
-        ":genetic_algorithm_orchestrator_impl",
         "//third_party/java:guava",
         "//third_party/java:guice",
     ],
