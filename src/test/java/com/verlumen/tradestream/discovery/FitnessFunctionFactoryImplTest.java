@@ -39,7 +39,7 @@ public class FitnessFunctionFactoryImplTest {
   @Bind @Mock private GenotypeConverter mockGenotypeConverter;
   @Bind private GAOptimizationRequest optimizationRequest;
 
-  @Inject private FitnessFunctionFactoryImpl fitnessCalculator;
+  @Inject private FitnessFunctionFactoryImpl fitnessFunctionFactory;
 
   private Genotype<?> testGenotype;
 
@@ -76,7 +76,7 @@ public class FitnessFunctionFactoryImplTest {
         .thenReturn(Any.getDefaultInstance()); // Return a dummy Any
 
     // Act: Create the fitness function and apply it to a test genotype
-    var fitnessFunction = fitnessCalculator.create(optimizationRequest);
+    var fitnessFunction = fitnessFunctionFactory.create(optimizationRequest);
     double actualScore = fitnessFunction.apply(testGenotype);
 
     // Assert: Check the return value
@@ -92,7 +92,7 @@ public class FitnessFunctionFactoryImplTest {
         .thenReturn(Any.getDefaultInstance());
 
     // Act: Create the fitness function and apply it
-    var fitnessFunction = fitnessCalculator.create(optimizationRequest);
+    var fitnessFunction = fitnessFunctionFactory.create(optimizationRequest);
     double score = fitnessFunction.apply(testGenotype);
 
     // Assert: Expect the lowest possible fitness score
@@ -106,7 +106,7 @@ public class FitnessFunctionFactoryImplTest {
         .thenThrow(new RuntimeException("Simulated conversion error"));
 
     // Act: Create the fitness function and apply it
-    var fitnessFunction = fitnessCalculator.create(optimizationRequest);
+    var fitnessFunction = fitnessFunctionFactory.create(optimizationRequest);
     double score = fitnessFunction.apply(testGenotype);
 
     // Assert: Expect the lowest possible fitness score
@@ -131,7 +131,7 @@ public class FitnessFunctionFactoryImplTest {
         .thenThrow(new IllegalArgumentException("Empty candles list"));
 
     // Act: Create the function and apply it
-    var fitnessFunction = fitnessCalculator.create(emptyRequest);
+    var fitnessFunction = fitnessFunctionFactory.create(emptyRequest);
     double score = fitnessFunction.apply(testGenotype);
 
     // Assert
