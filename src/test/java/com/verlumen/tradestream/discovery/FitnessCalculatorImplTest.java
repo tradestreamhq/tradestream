@@ -101,8 +101,7 @@ public class FitnessFunctionFactoryImplTest {
   }
 
   @Test
-  public void create_genotypeConverterThrowsException_returnsNegativeInfinity()
-      throws Exception {
+  public void create_genotypeConverterThrowsException_returnsNegativeInfinity() throws Exception {
     // Arrange: Configure the mock to throw an exception
     when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
         .thenThrow(new RuntimeException("Simulated conversion error"));
