@@ -113,32 +113,6 @@ java_library(
 )
 
 java_library(
-    name = "ga_engine_factory",
-    srcs = ["GAEngineFactory.java"],
-    deps = [
-        "//protos:backtesting_java_proto",
-        "//third_party/java:jenetics",
-    ],
-)
-
-java_library(
-    name = "ga_engine_factory_impl",
-    srcs = ["GAEngineFactoryImpl.java"],
-    deps = [
-        ":chromosome_spec",
-        ":fitness_calculator",
-        ":ga_constants",
-        ":ga_engine_factory",
-        "//protos:backtesting_java_proto",
-        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
-        "//src/main/java/com/verlumen/tradestream/discovery:param_config_manager",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:jenetics",
-    ],
-)
-
-java_library(
     name = "genetic_algorithm_orchestrator",
     srcs = ["GeneticAlgorithmOrchestrator.java"],
     deps = [
