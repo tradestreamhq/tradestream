@@ -9,7 +9,6 @@ java_library(
     visibility = [
     "//src/test/java/com/verlumen/tradestream/pipeline:__pkg__",
     ],
-    srcs = ["SignalsModule.java"],
     deps = [
         ":trade_signal_publisher",
         ":trade_signal_publisher_impl",
