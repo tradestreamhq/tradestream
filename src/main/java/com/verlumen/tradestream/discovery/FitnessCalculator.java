@@ -10,8 +10,8 @@ public interface FitnessCalculator extends Serializable {
   /**
    * Creates a fitness function for the genetic algorithm.
    *
-   * @param request the GA optimization request
+   * @param params the fitness calculation parameters
    * @return a function that evaluates the fitness of a genotype
    */
-  Function<Genotype<?>, Double> createFitnessFunction(GAOptimizationRequest request);
+  Function<Genotype<?>, Double> createFitnessFunction(FitnessCalculationParams params);
 }
