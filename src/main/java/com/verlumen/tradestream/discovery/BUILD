@@ -78,8 +78,8 @@ java_library(
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
+        ":chromosome_spec",
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:chromosome_spec",
         "//third_party/java:guava",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
