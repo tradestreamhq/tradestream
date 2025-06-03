@@ -63,7 +63,6 @@ java_library(
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
-        "//protos:backtesting_java_proto",
         "//third_party/java:jenetics",
     ],
 )
