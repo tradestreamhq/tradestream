@@ -4,7 +4,7 @@ import io.jenetics.engine.Engine;
 import java.io.Serializable;
 
 /** Defines the contract for creating genetic algorithm engines. */
-interface GAEngineFactory extends Serializable {
+public interface GAEngineFactory extends Serializable {
   /**
    * Creates a genetic algorithm engine configured for the given request.
    *
