@@ -7,7 +7,7 @@ import java.io.Serializable
 import java.util.function.Function
 
 /** Defines the contract for calculating fitness scores using backtesting. */
-interface FitnessCalculator : Serializable {
+interface FitnessFunctionFactory : Serializable {
     /**
      * Creates a fitness function for the genetic algorithm.
      *
@@ -18,5 +18,5 @@ interface FitnessCalculator : Serializable {
     fun create(
         strategyType: StrategyType,
         candles: List<Candle>,
-    ): Function<(Genotype<*>) -> Double>
+    ): Function<Genotype<*>, Double>
 }
