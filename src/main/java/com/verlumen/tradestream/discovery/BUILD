@@ -5,6 +5,22 @@ package(default_visibility = [
     "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
 ])
 
+java_library(
+    name = "chromosome_spec",
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
+    ],
+    srcs = [
+        "ChromosomeSpec.java",
+        "DoubleChromosomeSpec.java",
+        "IntegerChromosomeSpec.java",
+    ],
+    deps = [
+        "//third_party/java:guava",
+        "//third_party/java:jenetics",
+    ],
+)
+
 kt_jvm_library(
     name = "discovery_module",
     srcs = ["DiscoveryModule.kt"],
