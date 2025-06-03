@@ -43,7 +43,6 @@ kt_jvm_test(
     srcs = ["RunGADiscoveryFnTest.kt"],
     deps = [
         "//protos:discovery_java_proto",
-        "//protos:strategies_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
