@@ -3,7 +3,6 @@ package com.verlumen.tradestream.discovery
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.protobuf.Any
-import com.verlumen.tradestream.backtesting.GAEngineFactory
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest
 import com.verlumen.tradestream.discovery.DiscoveredStrategy
 import com.verlumen.tradestream.discovery.StrategyDiscoveryRequest
