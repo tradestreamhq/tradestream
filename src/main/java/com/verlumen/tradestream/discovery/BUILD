@@ -7,9 +7,6 @@ package(default_visibility = [
 
 java_library(
     name = "chromosome_spec",
-    visibility = [
-        "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
-    ],
     srcs = [
         "ChromosomeSpec.java",
         "DoubleChromosomeSpec.java",
