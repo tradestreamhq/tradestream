@@ -1,8 +1,6 @@
 package com.verlumen.tradestream.discovery;
 
-import io.jenetics.Genotype;
 import java.io.Serializable;
-import java.util.function.Function;
 
 /** Defines the contract for calculating fitness scores using backtesting. */
 public interface FitnessFunctionFactory extends Serializable {
