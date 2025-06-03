@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.discovery;
 
 import io.jenetics.Genotype;
 import java.io.Serializable;
