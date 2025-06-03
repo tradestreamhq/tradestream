@@ -112,11 +112,11 @@ java_library(
     name = "ga_engine_factory_impl",
     srcs = ["GAEngineFactoryImpl.java"],
     deps = [
-        ":chromosome_spec",
         ":fitness_calculator",
         ":ga_constants",
         ":ga_engine_factory",
         "//protos:backtesting_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
         "//src/main/java/com/verlumen/tradestream/discovery:param_config",
         "//src/main/java/com/verlumen/tradestream/discovery:param_config_manager",
         "//third_party/java:guava",
