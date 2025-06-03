@@ -11,5 +11,5 @@ import com.verlumen.tradestream.marketdata.Candle
  */
 data class FitnessCalculationParams(
     val strategyType: StrategyType,
-    val candles: List<Candle>
+    val candles: List<Candle>,
 )
