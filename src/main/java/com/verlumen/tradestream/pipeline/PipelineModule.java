@@ -78,7 +78,7 @@ abstract class PipelineModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    install(BacktestingModule.create());
+    install(new BacktestingModule());
     install(new DiscoveryModule());
     install(HttpModule.create());
     install(new InfluxDbModule(influxDbUrl(), influxDbToken(), influxDbOrg(), influxDbBucket()));
