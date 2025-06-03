@@ -45,6 +45,14 @@ kt_jvm_library(
     ],
 )
 
+kt_jvm_library(
+    name = "fitness_function",
+    srcs = ["FitnessFunction.kt"],
+    deps = [
+        "//third_party/java:jenetics",
+    ],
+)
+
 java_library(
     name = "fitness_calculator",
     srcs = ["FitnessCalculator.java"],
