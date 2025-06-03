@@ -9,7 +9,6 @@ interface BacktestRunner : Serializable {
      *
      * @param request Parameters and configuration for the backtest run
      * @return Results of the backtest analysis
-     * @throws InvalidProtocolBufferException if there's an issue with protocol buffer processing
      */
     fun runBacktest(request: BacktestRequest): BacktestResult
 }
