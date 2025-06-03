@@ -56,9 +56,9 @@ java_test(
     deps = [
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:fitness_calculator",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory_impl",
+        "//src/main/java/com/verlumen/tradestream/discovery:fitness_calculator",
         "//src/main/java/com/verlumen/tradestream/discovery:param_config",
         "//src/main/java/com/verlumen/tradestream/discovery:param_config_manager",
         "//third_party/java:guava",
