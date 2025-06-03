@@ -4,7 +4,7 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
-    name = "optimize_each_strategy_do_fn",
+    name = "optimize_each_strategy_do_fn", 
     srcs = ["OptimizeEachStrategyDoFn.java"],
     deps = [
         ":strategy_processing_request",
