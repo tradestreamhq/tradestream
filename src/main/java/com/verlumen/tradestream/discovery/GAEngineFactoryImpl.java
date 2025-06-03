@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.discovery;
 
 import com.google.inject.Inject;
 import com.verlumen.tradestream.discovery.ParamConfig;
