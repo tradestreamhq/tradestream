@@ -111,3 +111,22 @@ java_library(
         "//third_party/java:guava",
     ],
 )
+
+kt_jvm_library(
+    name = "run_ga_discovery_fn",
+    srcs = ["RunGADiscoveryFn.kt"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:ga_engine_factory",
+        "//src/main/java/com/verlumen/tradestream/backtesting:genotype_converter",
+        "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:jenetics",
+        "//third_party/java:protobuf_java_util",
+        "//third_party/kotlin:kotlin_stdlib",
+    ],
+)
