@@ -14,5 +14,8 @@ interface FitnessCalculator : Serializable {
      * @param candles the list of candles (market data) to be used for fitness calculation
      * @return a function that evaluates the fitness of a genotype, returning a Double
      */
-    fun create(strategyType: StrategyType, candles: List<Candle>): (Genotype<*>) -> Double
+    fun create(
+        strategyType: StrategyType,
+        candles: List<Candle>,
+    ): (Genotype<*>) -> Double
 }
