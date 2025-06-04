@@ -7,7 +7,6 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.Any
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
-import com.verlumen.tradestream.backtesting.GAOptimizationRequest
 import com.verlumen.tradestream.discovery.DiscoveredStrategy
 import com.verlumen.tradestream.discovery.GAConfig
 import com.verlumen.tradestream.discovery.StrategyDiscoveryRequest
