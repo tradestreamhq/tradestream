@@ -13,7 +13,7 @@ import io.jenetics.TournamentSelector
 import io.jenetics.engine.Engine
 import java.util.logging.Logger
 
-internal class GAEngineFactoryImpl @Inject constructor(
+class GAEngineFactoryImpl @Inject constructor(
     private val paramConfigManager: ParamConfigManager,
     private val fitnessFunctionFactory: FitnessFunctionFactory
 ) : GAEngineFactory {
