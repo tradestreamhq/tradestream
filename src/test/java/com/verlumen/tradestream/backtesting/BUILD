@@ -35,7 +35,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/discovery:fitness_function_factory",
         "//src/main/java/com/verlumen/tradestream/discovery:ga_engine_factory",
         "//src/main/java/com/verlumen/tradestream/discovery:ga_engine_factory_impl",
-        "//src/main/java/com/verlumen/tradestream/discovery:ga_engine_params", # Added
+        "//src/main/java/com/verlumen/tradestream/discovery:ga_engine_params",  # Added
         "//src/main/java/com/verlumen/tradestream/discovery:param_config",
         "//src/main/java/com/verlumen/tradestream/discovery:param_config_manager",
         "//third_party/java:guava",
