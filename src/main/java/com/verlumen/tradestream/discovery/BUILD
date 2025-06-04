@@ -62,7 +62,7 @@ kt_jvm_library(
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
-        "//protos:backtesting_java_proto", # GAOptimizationRequest is still used by some callers, even if GAEngineFactory is decoupled
+        "//protos:backtesting_java_proto",  # GAOptimizationRequest is still used by some callers, even if GAEngineFactory is decoupled
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//third_party/java:jenetics",
