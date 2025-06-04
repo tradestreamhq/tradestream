@@ -1,8 +1,7 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.discovery;
 
 import com.google.inject.Inject;
-import com.verlumen.tradestream.discovery.ParamConfig;
-import com.verlumen.tradestream.discovery.ParamConfigManager;
+import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.Genotype;
@@ -20,12 +19,13 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
   private static final Logger logger = Logger.getLogger(GAEngineFactoryImpl.class.getName());
 
   private final ParamConfigManager paramConfigManager;
-  private final FitnessCalculator fitnessCalculator;
+  private final FitnessFunctionFactory fitnessFunctionFactory;
 
   @Inject
-  GAEngineFactoryImpl(ParamConfigManager paramConfigManager, FitnessCalculator fitnessCalculator) {
+  GAEngineFactoryImpl(
+      ParamConfigManager paramConfigManager, FitnessFunctionFactory fitnessFunctionFactory) {
     this.paramConfigManager = paramConfigManager;
-    this.fitnessCalculator = fitnessCalculator;
+    this.fitnessFunctionFactory = fitnessFunctionFactory;
   }
 
   @Override
@@ -34,7 +34,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
     Genotype<?> gtf = createGenotype(request);
 
     // Build and return the GA engine with the specified settings
-    return Engine.builder(fitnessCalculator.createFitnessFunction(request), gtf)
+    return Engine.builder(fitnessFunctionFactory.create(request), gtf)
         .populationSize(getPopulationSize(request))
         .selector(new TournamentSelector<>(GAConstants.TOURNAMENT_SIZE))
         .alterers(

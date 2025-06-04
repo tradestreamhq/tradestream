@@ -2,7 +2,7 @@ package com.verlumen.tradestream.backtesting.trendfollowing;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
-import com.verlumen.tradestream.backtesting.ChromosomeSpec;
+import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.discovery.ParamConfig;
 import com.verlumen.tradestream.strategies.IchimokuCloudParameters;
 import com.verlumen.tradestream.strategies.StrategyType;

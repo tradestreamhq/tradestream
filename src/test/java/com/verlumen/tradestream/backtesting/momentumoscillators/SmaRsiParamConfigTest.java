@@ -3,7 +3,7 @@ package com.verlumen.tradestream.backtesting.momentumoscillators;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
-import com.verlumen.tradestream.backtesting.ChromosomeSpec;
+import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.IntegerChromosome;

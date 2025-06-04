@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting;
+package com.verlumen.tradestream.discovery;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -11,7 +11,12 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.discovery.GenotypeConverter;
+import com.verlumen.tradestream.backtesting.BacktestRequest;
+import com.verlumen.tradestream.backtesting.BacktestRequestFactory;
+import com.verlumen.tradestream.backtesting.BacktestRequestFactoryImpl;
+import com.verlumen.tradestream.backtesting.BacktestResult;
+import com.verlumen.tradestream.backtesting.BacktestRunner;
+import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.DoubleChromosome;
@@ -26,7 +31,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
-public class FitnessCalculatorImplTest {
+public class FitnessFunctionFactoryImplTest {
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
   @Bind private BacktestRequestFactory backtestRequestFactory;
@@ -34,7 +39,7 @@ public class FitnessCalculatorImplTest {
   @Bind @Mock private GenotypeConverter mockGenotypeConverter;
   @Bind private GAOptimizationRequest optimizationRequest;
 
-  @Inject private FitnessCalculatorImpl fitnessCalculator;
+  @Inject private FitnessFunctionFactoryImpl fitnessFunctionFactory;
 
   private Genotype<?> testGenotype;
 
@@ -61,7 +66,7 @@ public class FitnessCalculatorImplTest {
   }
 
   @Test
-  public void createFitnessFunction_validGenotype_returnsStrategyScore() throws Exception {
+  public void create_validGenotype_returnsStrategyScore() throws Exception {
     // Arrange: Setup mock behavior
     double expectedScore = 0.85;
     BacktestResult mockBacktestResult =
@@ -71,7 +76,7 @@ public class FitnessCalculatorImplTest {
         .thenReturn(Any.getDefaultInstance()); // Return a dummy Any
 
     // Act: Create the fitness function and apply it to a test genotype
-    var fitnessFunction = fitnessCalculator.createFitnessFunction(optimizationRequest);
+    var fitnessFunction = fitnessFunctionFactory.create(optimizationRequest);
     double actualScore = fitnessFunction.apply(testGenotype);
 
     // Assert: Check the return value
@@ -79,16 +84,15 @@ public class FitnessCalculatorImplTest {
   }
 
   @Test
-  public void createFitnessFunction_backtestRunnerThrowsException_returnsNegativeInfinity()
-      throws Exception {
+  public void create_backtestRunnerThrowsException_returnsNegativeInfinity() throws Exception {
     // Arrange: Configure the mock to throw an exception
     when(mockBacktestRunner.runBacktest(any(BacktestRequest.class)))
-        .thenThrow(new InvalidProtocolBufferException("Simulated error"));
+        .thenThrow(new RuntimeException("Simulated error"));
     when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
         .thenReturn(Any.getDefaultInstance());
 
     // Act: Create the fitness function and apply it
-    var fitnessFunction = fitnessCalculator.createFitnessFunction(optimizationRequest);
+    var fitnessFunction = fitnessFunctionFactory.create(optimizationRequest);
     double score = fitnessFunction.apply(testGenotype);
 
     // Assert: Expect the lowest possible fitness score
@@ -96,14 +100,13 @@ public class FitnessCalculatorImplTest {
   }
 
   @Test
-  public void createFitnessFunction_genotypeConverterThrowsException_returnsNegativeInfinity()
-      throws Exception {
+  public void create_genotypeConverterThrowsException_returnsNegativeInfinity() throws Exception {
     // Arrange: Configure the mock to throw an exception
     when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
         .thenThrow(new RuntimeException("Simulated conversion error"));
 
     // Act: Create the fitness function and apply it
-    var fitnessFunction = fitnessCalculator.createFitnessFunction(optimizationRequest);
+    var fitnessFunction = fitnessFunctionFactory.create(optimizationRequest);
     double score = fitnessFunction.apply(testGenotype);
 
     // Assert: Expect the lowest possible fitness score
@@ -112,7 +115,7 @@ public class FitnessCalculatorImplTest {
 
   // Edge Case: Empty Candle List (this should also be covered in BacktestRunner tests)
   @Test
-  public void createFitnessFunction_emptyCandles_returnsNegativeInfinity() throws Exception {
+  public void create_emptyCandles_returnsNegativeInfinity() throws Exception {
     // Arrange: Create a request with an empty candle list
     GAOptimizationRequest emptyRequest =
         GAOptimizationRequest.newBuilder()
@@ -128,7 +131,7 @@ public class FitnessCalculatorImplTest {
         .thenThrow(new IllegalArgumentException("Empty candles list"));
 
     // Act: Create the function and apply it
-    var fitnessFunction = fitnessCalculator.createFitnessFunction(emptyRequest);
+    var fitnessFunction = fitnessFunctionFactory.create(emptyRequest);
     double score = fitnessFunction.apply(testGenotype);
 
     // Assert
