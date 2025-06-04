@@ -104,7 +104,8 @@ public class GAEngineFactoryImplTest {
   @Test
   public void createEngine_withNoGaConfigPopulationSize_usesDefaultSize() {
     // Arrange
-    StrategyDiscoveryRequest noPopSizeRequest = testRequest.toBuilder().setGaConfig(GAConfig.newBuilder().clearPopulationSize()).build();
+    StrategyDiscoveryRequest noPopSizeRequest =
+        testRequest.toBuilder().setGaConfig(GAConfig.newBuilder().clearPopulationSize()).build();
 
     // Act
     Engine<?, Double> engine = engineFactory.createEngine(noPopSizeRequest);
