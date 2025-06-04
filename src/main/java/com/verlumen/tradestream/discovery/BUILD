@@ -89,9 +89,9 @@ java_library(
     srcs = ["GAConstants.java"],
 )
 
-java_library(
+kt_jvm_library(
     name = "ga_engine_factory",
-    srcs = ["GAEngineFactory.java"],
+    srcs = ["GAEngineFactory.kt"],
     deps = [
         "//protos:backtesting_java_proto",
         "//third_party/java:jenetics",
