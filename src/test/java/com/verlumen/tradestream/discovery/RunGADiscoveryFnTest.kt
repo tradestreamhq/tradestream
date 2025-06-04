@@ -42,6 +42,7 @@ import java.util.stream.Collector
 
 @RunWith(JUnit4::class)
 class RunGADiscoveryFnTest {
+
     @get:Rule
     val pipeline: TestPipeline = TestPipeline.create()
 
@@ -119,11 +120,16 @@ class RunGADiscoveryFnTest {
 
         whenever(mockEngine.stream()).thenReturn(mockEvolutionStream)
         whenever(mockEvolutionStream.limit(anyLong())).thenReturn(mockEvolutionStream)
-        whenever(mockEvolutionStream.collect(any())).thenReturn(mockEvolutionResult)
+        whenever(
+            mockEvolutionStream.collect(
+                any<Collector<EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>>()
+            )
+        ).thenReturn(mockEvolutionResult)
         whenever(mockEvolutionResult.population()).thenReturn(ISeq.of(phenotype))
 
-        whenever(mockGenotypeConverter.convertToParameters(any(), eq(StrategyType.SMA_RSI)))
-            .thenReturn(paramsAny)
+        whenever(
+            mockGenotypeConverter.convertToParameters(any(), eq(StrategyType.SMA_RSI))
+        ).thenReturn(paramsAny)
 
         val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(Create.of(request))
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
@@ -135,7 +141,9 @@ class RunGADiscoveryFnTest {
             .setStartTime(request.startTime)
             .setEndTime(request.endTime)
             .build()
-        val expectedResult = StrategyDiscoveryResult.newBuilder().addTopStrategies(expectedStrategy).build()
+        val expectedResult = StrategyDiscoveryResult.newBuilder()
+            .addTopStrategies(expectedStrategy)
+            .build()
 
         PAssert.that(output).containsInAnyOrder(expectedResult)
         pipeline.run().waitUntilFinish()
@@ -167,7 +175,11 @@ class RunGADiscoveryFnTest {
 
         whenever(mockEngine.stream()).thenReturn(mockEvolutionStreamEmpty)
         whenever(mockEvolutionStreamEmpty.limit(anyLong())).thenReturn(mockEvolutionStreamEmpty)
-        whenever(mockEvolutionStreamEmpty.collect(any())).thenReturn(mockEvolutionResultEmpty)
+        whenever(
+            mockEvolutionStreamEmpty.collect(
+                any<Collector<EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>>()
+            )
+        ).thenReturn(mockEvolutionResultEmpty)
         whenever(mockEvolutionResultEmpty.population()).thenReturn(ISeq.empty())
 
         val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(Create.of(request))
