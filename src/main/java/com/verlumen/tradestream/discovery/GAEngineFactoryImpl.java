@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.discovery;
 
 import com.google.inject.Inject;
-import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.Genotype;
@@ -29,7 +28,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
   }
 
   @Override
-  public Engine<?, Double> createEngine(GAOptimizationRequest request) {
+  public Engine<?, Double> createEngine(StrategyDiscoveryRequest request) {
     // Create the initial genotype from the parameter specifications
     Genotype<?> gtf = createGenotype(request);
 
@@ -50,7 +49,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
    * @param request the GA optimization request
    * @return a genotype with chromosomes configured according to parameter specifications
    */
-  private Genotype<?> createGenotype(GAOptimizationRequest request) {
+  private Genotype<?> createGenotype(StrategyDiscoveryRequest request) {
     try {
       ParamConfig config = paramConfigManager.getParamConfig(request.getStrategyType());
 
@@ -112,9 +111,9 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
     }
   }
 
-  private int getPopulationSize(GAOptimizationRequest request) {
-    return request.getPopulationSize() > 0
-        ? request.getPopulationSize()
+  private int getPopulationSize(StrategyDiscoveryRequest request) {
+    return request.hasGaConfig() && request.getGaConfig().getPopulationSize() > 0
+        ? request.getGaConfig().getPopulationSize()
         : GAConstants.DEFAULT_POPULATION_SIZE;
   }
 }

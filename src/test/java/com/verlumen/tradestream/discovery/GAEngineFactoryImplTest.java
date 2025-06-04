@@ -10,7 +10,6 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Genotype;
 import io.jenetics.engine.Engine;
@@ -35,15 +34,15 @@ public class GAEngineFactoryImplTest {
 
   @Inject private GAEngineFactoryImpl engineFactory;
 
-  private GAOptimizationRequest testRequest;
+  private StrategyDiscoveryRequest testRequest;
 
   @Before
   public void setUp() {
     // Setup a basic test request
     testRequest =
-        GAOptimizationRequest.newBuilder()
+        StrategyDiscoveryRequest.newBuilder()
             .setStrategyType(StrategyType.SMA_RSI)
-            .setPopulationSize(20)
+            .setGaConfig(GAConfig.newBuilder().setPopulationSize(20))
             .build();
 
     // Configure mocks
@@ -77,8 +76,8 @@ public class GAEngineFactoryImplTest {
   public void createEngine_withCustomPopulationSize_usesRequestedSize() {
     // Arrange
     int customSize = 42;
-    GAOptimizationRequest customRequest =
-        testRequest.toBuilder().setPopulationSize(customSize).build();
+    StrategyDiscoveryRequest customRequest =
+        testRequest.toBuilder().setGaConfig(GAConfig.newBuilder().setPopulationSize(customSize)).build();
 
     // Act
     Engine<?, Double> engine = engineFactory.createEngine(customRequest);
@@ -92,10 +91,36 @@ public class GAEngineFactoryImplTest {
   @Test
   public void createEngine_withZeroPopulationSize_usesDefaultSize() {
     // Arrange
-    GAOptimizationRequest zeroSizeRequest = testRequest.toBuilder().setPopulationSize(0).build();
+    StrategyDiscoveryRequest zeroSizeRequest = testRequest.toBuilder().setGaConfig(GAConfig.newBuilder().setPopulationSize(0)).build();
 
     // Act
     Engine<?, Double> engine = engineFactory.createEngine(zeroSizeRequest);
+
+    // Assert
+    assertNotNull("Engine should not be null", engine);
+    // Ideally verify the default population size was used
+  }
+
+  @Test
+  public void createEngine_withNoGaConfigPopulationSize_usesDefaultSize() {
+    // Arrange
+    StrategyDiscoveryRequest noPopSizeRequest = testRequest.toBuilder().setGaConfig(GAConfig.newBuilder().clearPopulationSize()).build();
+
+    // Act
+    Engine<?, Double> engine = engineFactory.createEngine(noPopSizeRequest);
+
+    // Assert
+    assertNotNull("Engine should not be null", engine);
+    // Ideally verify the default population size was used
+  }
+
+   @Test
+  public void createEngine_withNoGaConfig_usesDefaultPopulationSize() {
+    // Arrange
+    StrategyDiscoveryRequest noGaConfigRequest = testRequest.toBuilder().clearGaConfig().build();
+
+    // Act
+    Engine<?, Double> engine = engineFactory.createEngine(noGaConfigRequest);
 
     // Assert
     assertNotNull("Engine should not be null", engine);

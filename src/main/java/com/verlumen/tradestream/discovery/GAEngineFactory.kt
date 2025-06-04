@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.discovery
 
-import com.verlumen.tradestream.backtesting.GAOptimizationRequest
 import io.jenetics.engine.Engine
 import java.io.Serializable
 
@@ -12,5 +11,5 @@ interface GAEngineFactory : Serializable {
      * @param request the GA optimization request
      * @return a configured GA engine
      */
-    fun createEngine(request: GAOptimizationRequest): Engine<*, Double>
+    fun createEngine(request: StrategyDiscoveryRequest): Engine<*, Double>
 }
