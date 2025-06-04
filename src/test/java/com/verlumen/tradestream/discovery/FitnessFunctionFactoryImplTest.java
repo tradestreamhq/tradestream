@@ -32,13 +32,9 @@ import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
 public class FitnessFunctionFactoryImplTest {
-  private static final ImmutableList<Candle> CANDLES = ImmutableList.of(
-                    Candle.newBuilder()
-                        .setOpen(100.0)
-                        .setClose(105.0)
-                        .setHigh(110)
-                        .setLow(95)
-                        .build());
+  private static final ImmutableList<Candle> CANDLES =
+      ImmutableList.of(
+          Candle.newBuilder().setOpen(100.0).setClose(105.0).setHigh(110).setLow(95).build());
   private static final StrategyType STRATEGY_TYPE = StrategyType.SMA_RSI;
 
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
