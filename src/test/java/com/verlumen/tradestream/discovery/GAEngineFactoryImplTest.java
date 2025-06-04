@@ -14,6 +14,7 @@ import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Genotype;
 import io.jenetics.engine.Engine;
+import java.util.List;
 import java.util.function.Function;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,7 +55,7 @@ public class GAEngineFactoryImplTest {
     // This is critical - create should never return null
     Function<Genotype<?>, Double> dummyFunction =
         genotype -> 1.0; // Just return a constant value for testing
-    when(mockFitnessFunctionFactory.create(any(GAOptimizationRequest.class)))
+    when(mockFitnessFunctionFactory.create(any(StrategyType.class), any(List.class)))
         .thenReturn(dummyFunction);
 
     // Inject dependencies

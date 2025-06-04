@@ -26,6 +26,27 @@ java_test(
 )
 
 java_test(
+    name = "GAEngineFactoryImplTest",
+    srcs = ["GAEngineFactoryImplTest.java"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:fitness_function_factory",
+        "//src/main/java/com/verlumen/tradestream/discovery:ga_engine_factory",
+        "//src/main/java/com/verlumen/tradestream/discovery:ga_engine_factory_impl",
+        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
+        "//src/main/java/com/verlumen/tradestream/discovery:param_config_manager",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:guice_testlib",
+        "//third_party/java:jenetics",
+        "//third_party/java:junit",
+        "//third_party/java:mockito_core",
+        "//third_party/java:truth",
+    ],
+)
+
+java_test(
     name = "GenotypeConverterImplTest",
     size = "small",
     srcs = ["GenotypeConverterImplTest.java"],
@@ -43,27 +64,6 @@ java_test(
         "//third_party/java:junit",
         "//third_party/java:mockito_core",
         "//third_party/java:protobuf_java",
-        "//third_party/java:truth",
-    ],
-)
-
-java_test(
-    name = "GAEngineFactoryImplTest",
-    srcs = ["GAEngineFactoryImplTest.java"],
-    deps = [
-        "//protos:backtesting_java_proto",
-        "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/discovery:fitness_function_factory",
-        "//src/main/java/com/verlumen/tradestream/discovery:ga_engine_factory",
-        "//src/main/java/com/verlumen/tradestream/discovery:ga_engine_factory_impl",
-        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
-        "//src/main/java/com/verlumen/tradestream/discovery:param_config_manager",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:guice_testlib",
-        "//third_party/java:jenetics",
-        "//third_party/java:junit",
-        "//third_party/java:mockito_core",
         "//third_party/java:truth",
     ],
 )

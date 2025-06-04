@@ -63,6 +63,7 @@ kt_jvm_library(
     ],
     deps = [
         "//protos:backtesting_java_proto",
+        "//protos:strategies_java_proto",
         "//third_party/java:jenetics",
     ],
 )
@@ -108,6 +109,8 @@ java_library(
         ":param_config",
         ":param_config_manager",
         "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
