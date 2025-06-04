@@ -72,7 +72,7 @@ class RunGADiscoveryFn
                 populationSize = discoveryRequest.gaConfig.populationSize
             )
 
-            val engine
+            val engine: Engine<*, Double>
             try {
                 engine = gaEngineFactory.createEngine(engineParams)
             } catch (e: Exception) {
@@ -81,7 +81,7 @@ class RunGADiscoveryFn
             }
 
             @Suppress("UNCHECKED_CAST")
-            val evolutionResult
+            val evolutionResult: EvolutionResult<Gene<*, *>, Double>
             try {
                 evolutionResult = engine
                     .stream()
