@@ -2,7 +2,6 @@ package com.verlumen.tradestream.discovery
 
 import com.google.inject.Inject
 import com.verlumen.tradestream.backtesting.GAOptimizationRequest
-import io.jenetics.Chromosome
 import io.jenetics.DoubleChromosome
 import io.jenetics.Genotype
 import io.jenetics.IntegerChromosome
