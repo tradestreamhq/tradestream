@@ -7,7 +7,7 @@ import java.io.Serializable
 data class GAEngineParams(
     val strategyType: StrategyType,
     val candlesList: List<Candle>,
-    val populationSize: Int
+    val populationSize: Int,
 ) : Serializable {
     companion object {
         private const val serialVersionUID = 1L
