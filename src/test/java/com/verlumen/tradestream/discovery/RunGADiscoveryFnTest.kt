@@ -8,10 +8,6 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.Any
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
-import com.verlumen.tradestream.discovery.DiscoveredStrategy
-import com.verlumen.tradestream.discovery.GAConfig
-import com.verlumen.tradestream.discovery.StrategyDiscoveryRequest
-import com.verlumen.tradestream.discovery.StrategyDiscoveryResult
 import com.verlumen.tradestream.marketdata.Candle
 import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
 import com.verlumen.tradestream.strategies.SmaRsiParameters
@@ -32,7 +28,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
-import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
@@ -44,7 +39,6 @@ class RunGADiscoveryFnTest {
     @get:Rule
     val pipeline: TestPipeline = TestPipeline.create()
 
-    // Use BoundFieldModule to inject these mocks
     @Bind @Mock
     lateinit var mockCandleFetcher: InfluxDbCandleFetcher
 
@@ -57,40 +51,34 @@ class RunGADiscoveryFnTest {
     @Mock
     lateinit var mockEngine: Engine<DoubleGene, Double>
 
-    // The class under test - will be injected by Guice
     @Inject
     lateinit var runGADiscoveryFn: RunGADiscoveryFn
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-
-        // Create Guice injector with BoundFieldModule to inject the test fixture
         val injector = Guice.createInjector(BoundFieldModule.of(this))
         injector.injectMembers(this)
     }
 
     private fun createTestRequest(): StrategyDiscoveryRequest {
         val now = System.currentTimeMillis()
-        return StrategyDiscoveryRequest
-            .newBuilder()
+        return StrategyDiscoveryRequest.newBuilder()
             .setSymbol("BTC/USD")
             .setStartTime(Timestamps.fromMillis(now - 200000))
             .setEndTime(Timestamps.fromMillis(now - 100000))
             .setStrategyType(StrategyType.SMA_RSI)
             .setTopN(1)
             .setGaConfig(
-                GAConfig
-                    .newBuilder()
+                GAConfig.newBuilder()
                     .setMaxGenerations(10)
                     .setPopulationSize(20)
-                    .build(),
+                    .build()
             ).build()
     }
 
     private fun createDummyCandle(timestamp: Timestamp): Candle =
-        Candle
-            .newBuilder()
+        Candle.newBuilder()
             .setTimestamp(timestamp)
             .setCurrencyPair("BTC/USD")
             .setOpen(100.0)
@@ -106,53 +94,42 @@ class RunGADiscoveryFnTest {
         val dummyCandle = createDummyCandle(request.startTime)
         val candles = ImmutableList.of(dummyCandle)
 
-        val smaRsiParams =
-            SmaRsiParameters
-                .newBuilder()
-                .setMovingAveragePeriod(10)
-                .setRsiPeriod(14)
-                .setOverboughtThreshold(70.0)
-                .setOversoldThreshold(30.0)
-                .build()
+        val smaRsiParams = SmaRsiParameters.newBuilder()
+            .setMovingAveragePeriod(10)
+            .setRsiPeriod(14)
+            .setOverboughtThreshold(70.0)
+            .setOversoldThreshold(30.0)
+            .build()
         val paramsAny = Any.pack(smaRsiParams)
 
         val genotype = Genotype.of(DoubleChromosome.of(0.0, 1.0))
         val phenotype = Phenotype.of(genotype, 1, 10.5)
 
-        // Configure mock behavior
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
         whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(mockEngine as Engine<*, Double>?)
 
         val mockEvolutionResult = mock(EvolutionResult::class.java) as EvolutionResult<DoubleGene, Double>
-        @Suppress("UNCHECKED_CAST")
         val mockEvolutionStream = mock(EvolutionStream::class.java) as EvolutionStream<DoubleGene, Double>
 
         whenever(mockEngine.stream()).thenReturn(mockEvolutionStream)
         whenever(mockEvolutionStream.limit(anyLong())).thenReturn(mockEvolutionStream)
-        @Suppress("UNCHECKED_CAST")
         whenever(mockEvolutionStream.collect(any(Collector::class.java) as Collector<in EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>))
             .thenReturn(mockEvolutionResult)
 
-        val mockPopulation = Population.of(phenotype as Phenotype<DoubleGene, Double>)
-        whenever(mockEvolutionResult.population()).thenReturn(mockPopulation)
-
-
+        whenever(mockEvolutionResult.population()).thenReturn(listOf(phenotype))
         whenever(mockGenotypeConverter.convertToParameters(any<Genotype<*>>(), eq(StrategyType.SMA_RSI)))
             .thenReturn(paramsAny)
 
-        // Test the injected instance
         val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(Create.of(request))
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
 
-        val expectedStrategy =
-            DiscoveredStrategy
-                .newBuilder()
-                .setStrategy(Strategy.newBuilder().setType(StrategyType.SMA_RSI).setParameters(paramsAny))
-                .setScore(10.5)
-                .setSymbol("BTC/USD")
-                .setStartTime(request.startTime)
-                .setEndTime(request.endTime)
-                .build()
+        val expectedStrategy = DiscoveredStrategy.newBuilder()
+            .setStrategy(Strategy.newBuilder().setType(StrategyType.SMA_RSI).setParameters(paramsAny))
+            .setScore(10.5)
+            .setSymbol("BTC/USD")
+            .setStartTime(request.startTime)
+            .setEndTime(request.endTime)
+            .build()
         val expectedResult = StrategyDiscoveryResult.newBuilder().addTopStrategies(expectedStrategy).build()
 
         PAssert.that(output).containsInAnyOrder(expectedResult)
@@ -181,15 +158,13 @@ class RunGADiscoveryFnTest {
         whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(mockEngine as Engine<*, Double>?)
 
         val mockEvolutionResultEmpty = mock(EvolutionResult::class.java) as EvolutionResult<DoubleGene, Double>
-        @Suppress("UNCHECKED_CAST")
         val mockEvolutionStreamEmpty = mock(EvolutionStream::class.java) as EvolutionStream<DoubleGene, Double>
 
         whenever(mockEngine.stream()).thenReturn(mockEvolutionStreamEmpty)
         whenever(mockEvolutionStreamEmpty.limit(anyLong())).thenReturn(mockEvolutionStreamEmpty)
-        @Suppress("UNCHECKED_CAST")
         whenever(mockEvolutionStreamEmpty.collect(any(Collector::class.java) as Collector<in EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>))
             .thenReturn(mockEvolutionResultEmpty)
-        whenever(mockEvolutionResultEmpty.population()).thenReturn(Population.empty())
+        whenever(mockEvolutionResultEmpty.population()).thenReturn(emptyList())
 
         val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(Create.of(request))
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
