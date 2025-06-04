@@ -88,7 +88,6 @@ class RunGADiscoveryFn
                 bestPhenotypes =
                     engine
                         .stream()
-                        .limit(discoveryRequest.topN.toLong())
                         .collect(EvolutionResult.toBestPhenotypes(discoveryRequest.topN))
             } catch (e: Exception) {
                 logger.atSevere().withCause(e).log("Error during GA evolution for %s", discoveryRequest.symbol)
