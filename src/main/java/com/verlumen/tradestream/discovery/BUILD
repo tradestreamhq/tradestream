@@ -93,7 +93,7 @@ kt_jvm_library(
     name = "ga_engine_factory",
     srcs = ["GAEngineFactory.kt"],
     deps = [
-        "//protos:discovery_java_proto", # Changed from backtesting_java_proto
+        "//protos:discovery_java_proto",
         "//third_party/java:jenetics",
     ],
 )
@@ -108,7 +108,7 @@ java_library(
         ":ga_engine_factory",
         ":param_config",
         ":param_config_manager",
-        "//protos:discovery_java_proto", # Changed from backtesting_java_proto
+        "//protos:discovery_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//third_party/java:guava",
