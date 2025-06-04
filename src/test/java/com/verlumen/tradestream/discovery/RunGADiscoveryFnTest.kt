@@ -34,7 +34,6 @@ import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
-import org.mockito.kotlin.anyLong
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -119,7 +118,7 @@ class RunGADiscoveryFnTest {
         val mockEvolutionStream: EvolutionStream<DoubleGene, Double> = mock()
 
         whenever(mockEngine.stream()).thenReturn(mockEvolutionStream)
-        whenever(mockEvolutionStream.limit(anyLong())).thenReturn(mockEvolutionStream)
+        whenever(mockEvolutionStream.limit(any<Long>())).thenReturn(mockEvolutionStream)
         whenever(
             mockEvolutionStream.collect(
                 any<Collector<EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>>()
@@ -174,7 +173,7 @@ class RunGADiscoveryFnTest {
         val mockEvolutionStreamEmpty: EvolutionStream<DoubleGene, Double> = mock()
 
         whenever(mockEngine.stream()).thenReturn(mockEvolutionStreamEmpty)
-        whenever(mockEvolutionStreamEmpty.limit(anyLong())).thenReturn(mockEvolutionStreamEmpty)
+        whenever(mockEvolutionStreamEmpty.limit(any<Long>())).thenReturn(mockEvolutionStreamEmpty)
         whenever(
             mockEvolutionStreamEmpty.collect(
                 any<Collector<EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>>()
