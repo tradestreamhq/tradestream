@@ -10,10 +10,13 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
+// Import the new GAEngineParams class
+import com.verlumen.tradestream.discovery.GAEngineParams;
+import com.verlumen.tradestream.marketdata.Candle; // Import Candle
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Genotype;
 import io.jenetics.engine.Engine;
+import java.util.List;
 import java.util.function.Function;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,21 +32,21 @@ public class GAEngineFactoryImplTest {
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
   @Bind @Mock private ParamConfigManager mockParamConfigManager;
-  @Bind @Mock private FitnessCalculator mockFitnessCalculator;
+  @Bind @Mock private FitnessFunctionFactory mockFitnessFunctionFactory;
   @Bind @Mock private ParamConfig mockParamConfig;
 
   @Inject private GAEngineFactoryImpl engineFactory;
 
-  private GAOptimizationRequest testRequest;
+  private GAEngineParams testParams;
 
   @Before
   public void setUp() {
-    // Setup a basic test request
-    testRequest =
-        GAOptimizationRequest.newBuilder()
-            .setStrategyType(StrategyType.SMA_RSI)
-            .setPopulationSize(20)
-            .build();
+    // Setup a basic test request using GAEngineParams
+    testParams =
+        new GAEngineParams(
+            StrategyType.SMA_RSI,
+            ImmutableList.of(Candle.newBuilder().build()), // Add a dummy candle list
+            20);
 
     // Configure mocks
     when(mockParamConfigManager.getParamConfig(any(StrategyType.class)))
@@ -51,10 +54,10 @@ public class GAEngineFactoryImplTest {
     when(mockParamConfig.initialChromosomes()).thenReturn(ImmutableList.of());
 
     // Mock the fitness calculator to return a dummy function
-    // This is critical - createFitnessFunction should never return null
+    // This is critical - create should never return null
     Function<Genotype<?>, Double> dummyFunction =
         genotype -> 1.0; // Just return a constant value for testing
-    when(mockFitnessCalculator.createFitnessFunction(any(GAOptimizationRequest.class)))
+    when(mockFitnessFunctionFactory.create(any(StrategyType.class), any(List.class)))
         .thenReturn(dummyFunction);
 
     // Inject dependencies
@@ -64,7 +67,7 @@ public class GAEngineFactoryImplTest {
   @Test
   public void createEngine_withValidRequest_returnsConfiguredEngine() {
     // Act
-    Engine<?, Double> engine = engineFactory.createEngine(testRequest);
+    Engine<?, Double> engine = engineFactory.createEngine(testParams);
 
     // Assert
     assertNotNull("Engine should not be null", engine);
@@ -76,11 +79,11 @@ public class GAEngineFactoryImplTest {
   public void createEngine_withCustomPopulationSize_usesRequestedSize() {
     // Arrange
     int customSize = 42;
-    GAOptimizationRequest customRequest =
-        testRequest.toBuilder().setPopulationSize(customSize).build();
+    GAEngineParams customParams =
+        new GAEngineParams(testParams.getStrategyType(), testParams.getCandlesList(), customSize);
 
     // Act
-    Engine<?, Double> engine = engineFactory.createEngine(customRequest);
+    Engine<?, Double> engine = engineFactory.createEngine(customParams);
 
     // Assert
     assertNotNull("Engine should not be null", engine);
@@ -91,10 +94,11 @@ public class GAEngineFactoryImplTest {
   @Test
   public void createEngine_withZeroPopulationSize_usesDefaultSize() {
     // Arrange
-    GAOptimizationRequest zeroSizeRequest = testRequest.toBuilder().setPopulationSize(0).build();
+    GAEngineParams zeroSizeParams =
+        new GAEngineParams(testParams.getStrategyType(), testParams.getCandlesList(), 0);
 
     // Act
-    Engine<?, Double> engine = engineFactory.createEngine(zeroSizeRequest);
+    Engine<?, Double> engine = engineFactory.createEngine(zeroSizeParams);
 
     // Assert
     assertNotNull("Engine should not be null", engine);

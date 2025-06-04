@@ -9,6 +9,5 @@ class StrategiesModule : AbstractModule() {
         bind(object : TypeLiteral<ImmutableList<StrategyFactory<*>>>() {})
             .toInstance(StrategyFactories.ALL_FACTORIES)
         bind(StrategyManager::class.java).to(StrategyManagerImpl::class.java)
-        bind(StrategyState.Factory::class.java).to(StrategyStateFactoryImpl::class.java)
     }
 }

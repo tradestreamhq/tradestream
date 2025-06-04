@@ -71,7 +71,6 @@ java_test(
         "//third_party/java:joda_time",
         "//third_party/java:junit",
         "//third_party/java:mockito_core",
-        "//third_party/java:protobuf_java",
         "//third_party/java:ta4j_core",
         "//third_party/java:truth",
     ],

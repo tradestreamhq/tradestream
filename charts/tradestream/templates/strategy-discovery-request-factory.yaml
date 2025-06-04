@@ -61,8 +61,6 @@ spec:
                   value: "{{ join "," .Values.strategyDiscoveryRequestFactory.config.fibonacciWindowsMinutes }}"
                 - name: DEFAULT_TOP_N
                   value: "{{ .Values.strategyDiscoveryRequestFactory.config.defaultTopN }}"
-                - name: DEFAULT_MAX_GENERATIONS
-                  value: "{{ .Values.strategyDiscoveryRequestFactory.config.defaultMaxGenerations }}"
                 - name: DEFAULT_POPULATION_SIZE
                   value: "{{ .Values.strategyDiscoveryRequestFactory.config.defaultPopulationSize }}"
               resources:

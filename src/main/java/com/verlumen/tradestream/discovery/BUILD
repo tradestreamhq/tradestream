@@ -30,8 +30,8 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
     ],
     deps = [
-        ":fitness_calculator",
-        ":fitness_calculator_impl",
+        ":fitness_function_factory",
+        ":fitness_function_factory_impl",
         ":ga_engine_factory",
         ":ga_engine_factory_impl",
         ":genotype_converter",
@@ -45,27 +45,38 @@ kt_jvm_library(
     ],
 )
 
-java_library(
-    name = "fitness_calculator",
-    srcs = ["FitnessCalculator.java"],
+kt_jvm_library(
+    name = "fitness_function",
+    srcs = ["FitnessFunction.kt"],
+    deps = [
+        "//third_party/java:jenetics",
+    ],
+)
+
+kt_jvm_library(
+    name = "fitness_function_factory",
+    srcs = ["FitnessFunctionFactory.kt"],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
         "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
-        "//protos:backtesting_java_proto",
+        "//protos:backtesting_java_proto",  # GAOptimizationRequest is still used by some callers, even if GAEngineFactory is decoupled
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
         "//third_party/java:jenetics",
     ],
 )
 
-java_library(
-    name = "fitness_calculator_impl",
-    srcs = ["FitnessCalculatorImpl.java"],
+kt_jvm_library(
+    name = "fitness_function_factory_impl",
+    srcs = ["FitnessFunctionFactoryImpl.kt"],
     deps = [
-        ":fitness_calculator",
+        ":fitness_function_factory",
         ":genotype_converter",
         "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
@@ -80,11 +91,20 @@ java_library(
     srcs = ["GAConstants.java"],
 )
 
-java_library(
-    name = "ga_engine_factory",
-    srcs = ["GAEngineFactory.java"],
+kt_jvm_library(
+    name = "ga_engine_params",
+    srcs = ["GAEngineParams.kt"],
     deps = [
-        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",  # For Candle
+        "//protos:strategies_java_proto",  # For StrategyType
+    ],
+)
+
+kt_jvm_library(
+    name = "ga_engine_factory",
+    srcs = ["GAEngineFactory.kt"],
+    deps = [
+        ":ga_engine_params",
         "//third_party/java:jenetics",
     ],
 )
@@ -94,12 +114,14 @@ java_library(
     srcs = ["GAEngineFactoryImpl.java"],
     deps = [
         ":chromosome_spec",
-        ":fitness_calculator",
+        ":fitness_function_factory",
         ":ga_constants",
         ":ga_engine_factory",
+        ":ga_engine_params",
         ":param_config",
         ":param_config_manager",
-        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",  # For Candle in GAEngineParams
+        "//protos:strategies_java_proto",  # For StrategyType in GAEngineParams
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
