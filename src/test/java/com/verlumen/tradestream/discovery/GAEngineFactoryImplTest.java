@@ -80,10 +80,7 @@ public class GAEngineFactoryImplTest {
     // Arrange
     int customSize = 42;
     GAEngineParams customParams =
-        new GAEngineParams(
-            testParams.getStrategyType(),
-            testParams.getCandlesList(),
-            customSize);
+        new GAEngineParams(testParams.getStrategyType(), testParams.getCandlesList(), customSize);
 
     // Act
     Engine<?, Double> engine = engineFactory.createEngine(customParams);
