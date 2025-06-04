@@ -72,7 +72,7 @@ class RunGADiscoveryFn
                 populationSize = discoveryRequest.gaConfig.populationSize
             )
 
-            val engine: Engine<*, Double>
+            val engine
             try {
                 engine = gaEngineFactory.createEngine(engineParams)
             } catch (e: Exception) {
@@ -81,12 +81,12 @@ class RunGADiscoveryFn
             }
 
             @Suppress("UNCHECKED_CAST")
-            val evolutionResult: EvolutionResult<*, Double>
+            val evolutionResult
             try {
                 evolutionResult = engine
                     .stream()
                     .limit(discoveryRequest.gaConfig.maxGenerations.toLong())
-                    .collect(EvolutionResult.toBestEvolutionResult()) as EvolutionResult<*, Double>
+                    .collect(EvolutionResult.toBestEvolutionResult())
             } catch (e: Exception) {
                 logger.atSevere().withCause(e).log("Error during GA evolution for %s", discoveryRequest.symbol)
                 return
@@ -94,7 +94,8 @@ class RunGADiscoveryFn
 
             // Extract top N phenotypes from the final population
             @Suppress("UNCHECKED_CAST")
-            val bestPhenotypes = (evolutionResult.population() as Collection<Phenotype<*, Double>>)
+            val population = evolutionResult.population() as Collection<Phenotype<*, Double>>
+            val bestPhenotypes = population
                 .sortedByDescending { phenotype -> phenotype.fitness() }
                 .take(discoveryRequest.topN)
 
@@ -106,10 +107,11 @@ class RunGADiscoveryFn
             val resultBuilder = StrategyDiscoveryResult.newBuilder()
             for (phenotype in bestPhenotypes) {
                 val bestGenotype = phenotype.genotype()
-                val score = phenotype.fitness() as Double
+                val score = phenotype.fitness()
 
                 val strategyParamsAny: Any
                 try {
+                    @Suppress("UNCHECKED_CAST")
                     strategyParamsAny = genotypeConverter.convertToParameters(bestGenotype as Genotype<*>, discoveryRequest.strategyType)
                 } catch (e: Exception) {
                     logger.atWarning().withCause(e).log("Failed to convert genotype to parameters for %s", discoveryRequest.symbol)
@@ -136,9 +138,9 @@ class RunGADiscoveryFn
                 resultBuilder.addTopStrategies(discoveredStrategy)
             }
 
-            val finalResult = resultBuilder.build()
-            if (finalResult.topStrategiesCount > 0) {
-                context.output(finalResult)
+            val discoveryResult = resultBuilder.build()
+            if (discoveryResult.topStrategiesCount > 0) {
+                context.output(discoveryResult)
             } else {
                 logger.atInfo().log("No strategies to output after GA processing for %s", discoveryRequest.symbol)
             }
