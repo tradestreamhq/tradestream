@@ -61,15 +61,3 @@ kt_jvm_library(
         "//third_party/java:guice",
     ],
 )
-
-java_library(
-    name = "run_backtest",
-    srcs = ["RunBacktest.java"],
-    deps = [
-        ":backtest_runner",
-        "//protos:backtesting_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:guice",
-        "//third_party/java:protobuf_java",
-    ],
-)
