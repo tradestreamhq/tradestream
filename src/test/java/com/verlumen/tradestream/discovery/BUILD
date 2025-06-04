@@ -89,6 +89,9 @@ java_test(
 kt_jvm_test(
     name = "RunGADiscoveryFnTest",
     srcs = ["RunGADiscoveryFnTest.kt"],
+    runtime_deps = [
+        "//third_party/java:beam_runners_direct_java",
+    ],
     deps = [
         "//protos:discovery_java_proto",
         "//protos:marketdata_java_proto",
