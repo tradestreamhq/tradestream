@@ -192,7 +192,6 @@ strategyDiscoveryRequestFactory:
       - "75025" # ~52.1 days
       - "121393" # ~84.3 days
     defaultTopN: 5
-    defaultMaxGenerations: 30
     defaultPopulationSize: 50
   redis:
     host: '{{ include "tradestream.fullname" . }}-redis-master'

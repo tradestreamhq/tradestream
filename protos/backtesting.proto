@@ -46,10 +46,7 @@ message BacktestResult {
 message GAOptimizationRequest {
   repeated marketdata.Candle candles = 1;
   strategies.StrategyType strategy_type = 2;
-
-  // Optional GA config
-  int32 max_generations = 3;
-  int32 population_size = 4;
+  int32 population_size = 3;
 }
 
 // Response from the GA service: best discovered param set + best score
