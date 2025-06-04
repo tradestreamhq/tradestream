@@ -114,7 +114,7 @@ public class GAEngineFactoryImplTest {
     // Ideally verify the default population size was used
   }
 
-   @Test
+  @Test
   public void createEngine_withNoGaConfig_usesDefaultPopulationSize() {
     // Arrange
     StrategyDiscoveryRequest noGaConfigRequest = testRequest.toBuilder().clearGaConfig().build();
