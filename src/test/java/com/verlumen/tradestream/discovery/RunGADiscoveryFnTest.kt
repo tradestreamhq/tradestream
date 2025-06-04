@@ -13,7 +13,11 @@ import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
 import com.verlumen.tradestream.strategies.SmaRsiParameters
 import com.verlumen.tradestream.strategies.Strategy
 import com.verlumen.tradestream.strategies.StrategyType
-import io.jenetics.*
+import io.jenetics.DoubleChromosome
+import io.jenetics.DoubleGene
+import io.jenetics.Genotype
+import io.jenetics.ISeq
+import io.jenetics.Phenotype
 import io.jenetics.engine.Engine
 import io.jenetics.engine.EvolutionResult
 import io.jenetics.engine.EvolutionStream
@@ -30,7 +34,9 @@ import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyLong
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.util.stream.Collector
 
@@ -106,18 +112,17 @@ class RunGADiscoveryFnTest {
         val phenotype = Phenotype.of(genotype, 1, 10.5)
 
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
-        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(mockEngine as Engine<*, Double>?)
+        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(mockEngine)
 
-        val mockEvolutionResult = mock(EvolutionResult::class.java) as EvolutionResult<DoubleGene, Double>
-        val mockEvolutionStream = mock(EvolutionStream::class.java) as EvolutionStream<DoubleGene, Double>
+        val mockEvolutionResult: EvolutionResult<DoubleGene, Double> = mock()
+        val mockEvolutionStream: EvolutionStream<DoubleGene, Double> = mock()
 
         whenever(mockEngine.stream()).thenReturn(mockEvolutionStream)
         whenever(mockEvolutionStream.limit(anyLong())).thenReturn(mockEvolutionStream)
-        whenever(mockEvolutionStream.collect(any(Collector::class.java) as Collector<in EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>))
-            .thenReturn(mockEvolutionResult)
+        whenever(mockEvolutionStream.collect(any())).thenReturn(mockEvolutionResult)
+        whenever(mockEvolutionResult.population()).thenReturn(ISeq.of(phenotype))
 
-        whenever(mockEvolutionResult.population()).thenReturn(listOf(phenotype))
-        whenever(mockGenotypeConverter.convertToParameters(any<Genotype<*>>(), eq(StrategyType.SMA_RSI)))
+        whenever(mockGenotypeConverter.convertToParameters(any(), eq(StrategyType.SMA_RSI)))
             .thenReturn(paramsAny)
 
         val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(Create.of(request))
@@ -155,16 +160,15 @@ class RunGADiscoveryFnTest {
         val candles = ImmutableList.of(dummyCandle)
 
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
-        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(mockEngine as Engine<*, Double>?)
+        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(mockEngine)
 
-        val mockEvolutionResultEmpty = mock(EvolutionResult::class.java) as EvolutionResult<DoubleGene, Double>
-        val mockEvolutionStreamEmpty = mock(EvolutionStream::class.java) as EvolutionStream<DoubleGene, Double>
+        val mockEvolutionResultEmpty: EvolutionResult<DoubleGene, Double> = mock()
+        val mockEvolutionStreamEmpty: EvolutionStream<DoubleGene, Double> = mock()
 
         whenever(mockEngine.stream()).thenReturn(mockEvolutionStreamEmpty)
         whenever(mockEvolutionStreamEmpty.limit(anyLong())).thenReturn(mockEvolutionStreamEmpty)
-        whenever(mockEvolutionStreamEmpty.collect(any(Collector::class.java) as Collector<in EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>))
-            .thenReturn(mockEvolutionResultEmpty)
-        whenever(mockEvolutionResultEmpty.population()).thenReturn(emptyList())
+        whenever(mockEvolutionStreamEmpty.collect(any())).thenReturn(mockEvolutionResultEmpty)
+        whenever(mockEvolutionResultEmpty.population()).thenReturn(ISeq.empty())
 
         val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(Create.of(request))
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
