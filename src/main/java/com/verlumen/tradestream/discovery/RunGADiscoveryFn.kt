@@ -80,21 +80,20 @@ class RunGADiscoveryFn
                 return
             }
 
-            val finalResult: EvolutionResult<*, Double>
+            val evolutionResult
             try {
-                finalResult =
-                    engine
-                        .stream()
-                        .limit(discoveryRequest.gaConfig.maxGenerations.toLong())
-                        .collect(EvolutionResult.toBestEvolutionResult())
+                evolutionResult = engine
+                    .stream()
+                    .limit(discoveryRequest.gaConfig.maxGenerations.toLong())
+                    .collect(EvolutionResult.toBestEvolutionResult())
             } catch (e: Exception) {
                 logger.atSevere().withCause(e).log("Error during GA evolution for %s", discoveryRequest.symbol)
                 return
             }
 
             // Extract top N phenotypes from the final population
-            val bestPhenotypes: List<Phenotype<*, Double>> = finalResult
-                .population
+            val bestPhenotypes = evolutionResult
+                .population()
                 .sortedByDescending { it.fitness() }
                 .take(discoveryRequest.topN)
 
@@ -105,12 +104,12 @@ class RunGADiscoveryFn
 
             val resultBuilder = StrategyDiscoveryResult.newBuilder()
             for (phenotype in bestPhenotypes) {
-                val bestGenotype = phenotype.genotype() as Genotype<*>
-                val score = phenotype.fitness()
+                val bestGenotype = phenotype.genotype()
+                val score = phenotype.fitness() as Double
 
                 val strategyParamsAny: Any
                 try {
-                    strategyParamsAny = genotypeConverter.convertToParameters(bestGenotype, discoveryRequest.strategyType)
+                    strategyParamsAny = genotypeConverter.convertToParameters(bestGenotype as Genotype<*>, discoveryRequest.strategyType)
                 } catch (e: Exception) {
                     logger.atWarning().withCause(e).log("Failed to convert genotype to parameters for %s", discoveryRequest.symbol)
                     continue // Skip this phenotype
