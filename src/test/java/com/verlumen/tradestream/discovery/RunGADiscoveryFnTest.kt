@@ -2,6 +2,7 @@ package com.verlumen.tradestream.discovery
 
 import com.google.common.collect.ImmutableList
 import com.google.inject.Guice
+import com.google.inject.Inject
 import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.Any
@@ -36,7 +37,6 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
-import javax.inject.Inject
 import java.util.stream.Collector
 
 @RunWith(JUnit4::class)
