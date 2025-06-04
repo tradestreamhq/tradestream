@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.discovery;
 
 import com.google.inject.Inject;
-import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.Genotype;
@@ -29,14 +28,14 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
   }
 
   @Override
-  public Engine<?, Double> createEngine(GAOptimizationRequest request) {
+  public Engine<?, Double> createEngine(GAEngineParams params) {
     // Create the initial genotype from the parameter specifications
-    Genotype<?> gtf = createGenotype(request);
+    Genotype<?> gtf = createGenotype(params);
 
     // Build and return the GA engine with the specified settings
     return Engine.builder(
-            fitnessFunctionFactory.create(request.getStrategyType(), request.getCandlesList()), gtf)
-        .populationSize(getPopulationSize(request))
+            fitnessFunctionFactory.create(params.getStrategyType(), params.getCandlesList()), gtf)
+        .populationSize(getPopulationSize(params))
         .selector(new TournamentSelector<>(GAConstants.TOURNAMENT_SIZE))
         .alterers(
             new Mutator<>(GAConstants.MUTATION_PROBABILITY),
@@ -47,18 +46,18 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
   /**
    * Creates a genotype based on parameter specifications.
    *
-   * @param request the GA optimization request
+   * @param params The GA engine parameters
    * @return a genotype with chromosomes configured according to parameter specifications
    */
-  private Genotype<?> createGenotype(GAOptimizationRequest request) {
+  private Genotype<?> createGenotype(GAEngineParams params) {
     try {
-      ParamConfig config = paramConfigManager.getParamConfig(request.getStrategyType());
+      ParamConfig config = paramConfigManager.getParamConfig(params.getStrategyType());
 
       // Get the chromosomes from the parameter configuration
       List<? extends NumericChromosome<?, ?>> numericChromosomes = config.initialChromosomes();
 
       if (numericChromosomes.isEmpty()) {
-        logger.warning("No chromosomes defined for strategy type: " + request.getStrategyType());
+        logger.warning("No chromosomes defined for strategy type: " + params.getStrategyType());
         return Genotype.of(DoubleChromosome.of(0.0, 1.0));
       }
 
@@ -104,7 +103,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
     } catch (Exception e) {
       logger.warning(
           "Error creating genotype for strategy type "
-              + request.getStrategyType()
+              + params.getStrategyType()
               + ": "
               + e.getMessage());
       // Fallback to a simple genotype with a single chromosome
@@ -112,9 +111,9 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
     }
   }
 
-  private int getPopulationSize(GAOptimizationRequest request) {
-    return request.getPopulationSize() > 0
-        ? request.getPopulationSize()
+  private int getPopulationSize(GAEngineParams params) {
+    return params.getPopulationSize() > 0
+        ? params.getPopulationSize()
         : GAConstants.DEFAULT_POPULATION_SIZE;
   }
 }

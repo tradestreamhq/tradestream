@@ -10,7 +10,9 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
+// Import the new GAEngineParams class
+import com.verlumen.tradestream.discovery.GAEngineParams;
+import com.verlumen.tradestream.marketdata.Candle; // Import Candle
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Genotype;
 import io.jenetics.engine.Engine;
@@ -35,16 +37,16 @@ public class GAEngineFactoryImplTest {
 
   @Inject private GAEngineFactoryImpl engineFactory;
 
-  private GAOptimizationRequest testRequest;
+  private GAEngineParams testParams;
 
   @Before
   public void setUp() {
-    // Setup a basic test request
-    testRequest =
-        GAOptimizationRequest.newBuilder()
-            .setStrategyType(StrategyType.SMA_RSI)
-            .setPopulationSize(20)
-            .build();
+    // Setup a basic test request using GAEngineParams
+    testParams =
+        new GAEngineParams(
+            StrategyType.SMA_RSI,
+            ImmutableList.of(Candle.newBuilder().build()), // Add a dummy candle list
+            20);
 
     // Configure mocks
     when(mockParamConfigManager.getParamConfig(any(StrategyType.class)))
@@ -65,7 +67,7 @@ public class GAEngineFactoryImplTest {
   @Test
   public void createEngine_withValidRequest_returnsConfiguredEngine() {
     // Act
-    Engine<?, Double> engine = engineFactory.createEngine(testRequest);
+    Engine<?, Double> engine = engineFactory.createEngine(testParams);
 
     // Assert
     assertNotNull("Engine should not be null", engine);
@@ -77,11 +79,14 @@ public class GAEngineFactoryImplTest {
   public void createEngine_withCustomPopulationSize_usesRequestedSize() {
     // Arrange
     int customSize = 42;
-    GAOptimizationRequest customRequest =
-        testRequest.toBuilder().setPopulationSize(customSize).build();
+    GAEngineParams customParams =
+        new GAEngineParams(
+            testParams.getStrategyType(),
+            testParams.getCandlesList(),
+            customSize);
 
     // Act
-    Engine<?, Double> engine = engineFactory.createEngine(customRequest);
+    Engine<?, Double> engine = engineFactory.createEngine(customParams);
 
     // Assert
     assertNotNull("Engine should not be null", engine);
@@ -92,10 +97,14 @@ public class GAEngineFactoryImplTest {
   @Test
   public void createEngine_withZeroPopulationSize_usesDefaultSize() {
     // Arrange
-    GAOptimizationRequest zeroSizeRequest = testRequest.toBuilder().setPopulationSize(0).build();
+    GAEngineParams zeroSizeParams =
+        new GAEngineParams(
+            testParams.getStrategyType(),
+            testParams.getCandlesList(),
+            0);
 
     // Act
-    Engine<?, Double> engine = engineFactory.createEngine(zeroSizeRequest);
+    Engine<?, Double> engine = engineFactory.createEngine(zeroSizeParams);
 
     // Assert
     assertNotNull("Engine should not be null", engine);
