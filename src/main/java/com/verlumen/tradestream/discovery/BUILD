@@ -98,9 +98,9 @@ java_library(
     ],
 )
 
-java_library(
+kt_jvm_library(
     name = "ga_engine_factory_impl",
-    srcs = ["GAEngineFactoryImpl.java"],
+    srcs = ["GAEngineFactoryImpl.kt"],
     deps = [
         ":chromosome_spec",
         ":fitness_function_factory",
