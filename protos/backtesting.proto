@@ -37,20 +37,3 @@ message BacktestResult {
   double beta = 13;
   double strategy_score = 14;
 }
-
-// =========================
-//        GA Service
-// =========================
-
-// GA request describing the data, strategy type, and any optional GA config
-message GAOptimizationRequest {
-  repeated marketdata.Candle candles = 1;
-  strategies.StrategyType strategy_type = 2;
-  int32 population_size = 3;
-}
-
-// Response from the GA service: best discovered param set + best score
-message BestStrategyResponse {
-  google.protobuf.Any best_strategy_parameters = 1;
-  double best_score = 2;
-}

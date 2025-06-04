@@ -3,7 +3,6 @@ syntax = "proto3";
 package discovery;
 
 import "google/protobuf/timestamp.proto";
-
 import "protos/strategies.proto";
 
 // Configuration for Genetic Algorithm based optimization
