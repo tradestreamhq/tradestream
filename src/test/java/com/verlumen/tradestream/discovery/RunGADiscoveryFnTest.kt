@@ -16,11 +16,11 @@ import com.verlumen.tradestream.strategies.StrategyType
 import io.jenetics.DoubleChromosome
 import io.jenetics.DoubleGene
 import io.jenetics.Genotype
-import io.jenetics.ISeq
 import io.jenetics.Phenotype
 import io.jenetics.engine.Engine
 import io.jenetics.engine.EvolutionResult
 import io.jenetics.engine.EvolutionStream
+import io.jenetics.util.ISeq
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
