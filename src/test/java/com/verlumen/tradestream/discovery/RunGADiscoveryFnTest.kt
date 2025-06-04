@@ -19,6 +19,7 @@ import com.verlumen.tradestream.strategies.StrategyType
 import io.jenetics.*
 import io.jenetics.engine.Engine
 import io.jenetics.engine.EvolutionResult
+import io.jenetics.engine.EvolutionStream
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
@@ -33,8 +34,10 @@ import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import javax.inject.Inject
+import java.util.stream.Collector
 
 @RunWith(JUnit4::class)
 class RunGADiscoveryFnTest {
@@ -118,17 +121,21 @@ class RunGADiscoveryFnTest {
 
         // Configure mock behavior
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
-        whenever(mockGaEngineFactory.createEngine(any<GAOptimizationRequest>())).thenReturn(mockEngine as Engine<*, Double>?)
+        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(mockEngine as Engine<*, Double>?)
 
-        val evolutionResultStream =
-            mock(java.util.stream.Stream::class.java) as java.util.stream.Stream<EvolutionResult<DoubleGene, Double>>
-        val limitedStream = mock(java.util.stream.Stream::class.java) as java.util.stream.Stream<EvolutionResult<DoubleGene, Double>>
+        val mockEvolutionResult = mock(EvolutionResult::class.java) as EvolutionResult<DoubleGene, Double>
+        @Suppress("UNCHECKED_CAST")
+        val mockEvolutionStream = mock(EvolutionStream::class.java) as EvolutionStream<DoubleGene, Double>
 
-        whenever(mockEngine.stream()).thenReturn(evolutionResultStream)
-        whenever(evolutionResultStream.limit(anyLong())).thenReturn(limitedStream)
-        whenever(
-            limitedStream.collect(EvolutionResult.toBestPhenotypes<DoubleGene, Double>()),
-        ).thenReturn(listOf(phenotype as Phenotype<*, Double>))
+        whenever(mockEngine.stream()).thenReturn(mockEvolutionStream)
+        whenever(mockEvolutionStream.limit(anyLong())).thenReturn(mockEvolutionStream)
+        @Suppress("UNCHECKED_CAST")
+        whenever(mockEvolutionStream.collect(any(Collector::class.java) as Collector<in EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>))
+            .thenReturn(mockEvolutionResult)
+
+        val mockPopulation = Population.of(phenotype as Phenotype<DoubleGene, Double>)
+        whenever(mockEvolutionResult.population()).thenReturn(mockPopulation)
+
 
         whenever(mockGenotypeConverter.convertToParameters(any<Genotype<*>>(), eq(StrategyType.SMA_RSI)))
             .thenReturn(paramsAny)
@@ -171,14 +178,18 @@ class RunGADiscoveryFnTest {
         val candles = ImmutableList.of(dummyCandle)
 
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
-        whenever(mockGaEngineFactory.createEngine(any<GAOptimizationRequest>())).thenReturn(mockEngine as Engine<*, Double>?)
+        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(mockEngine as Engine<*, Double>?)
 
-        val evolutionResultStream =
-            mock(java.util.stream.Stream::class.java) as java.util.stream.Stream<EvolutionResult<DoubleGene, Double>>
-        val limitedStream = mock(java.util.stream.Stream::class.java) as java.util.stream.Stream<EvolutionResult<DoubleGene, Double>>
-        whenever(mockEngine.stream()).thenReturn(evolutionResultStream)
-        whenever(evolutionResultStream.limit(anyLong())).thenReturn(limitedStream)
-        whenever(limitedStream.collect(EvolutionResult.toBestPhenotypes<DoubleGene, Double>())).thenReturn(emptyList())
+        val mockEvolutionResultEmpty = mock(EvolutionResult::class.java) as EvolutionResult<DoubleGene, Double>
+        @Suppress("UNCHECKED_CAST")
+        val mockEvolutionStreamEmpty = mock(EvolutionStream::class.java) as EvolutionStream<DoubleGene, Double>
+
+        whenever(mockEngine.stream()).thenReturn(mockEvolutionStreamEmpty)
+        whenever(mockEvolutionStreamEmpty.limit(anyLong())).thenReturn(mockEvolutionStreamEmpty)
+        @Suppress("UNCHECKED_CAST")
+        whenever(mockEvolutionStreamEmpty.collect(any(Collector::class.java) as Collector<in EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>))
+            .thenReturn(mockEvolutionResultEmpty)
+        whenever(mockEvolutionResultEmpty.population()).thenReturn(Population.empty())
 
         val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(Create.of(request))
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
