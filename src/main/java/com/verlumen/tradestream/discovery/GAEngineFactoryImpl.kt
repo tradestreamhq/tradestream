@@ -25,13 +25,12 @@ internal class GAEngineFactoryImpl
             // If it should be createFitnessFunction(request), adjust accordingly.
             val fitnessFunction = fitnessFunctionFactory.create(request.strategyType, request.candlesList)
 
-            return Engine
-                .builder(fitnessFunction, gtf)
+            return Engine.builder(fitnessFunction, gtf)
                 .populationSize(getPopulationSize(request))
-                .selector(TournamentSelector(GAConstants.TOURNAMENT_SIZE)) // Type inference should handle Genotype<*>
+                .selector(TournamentSelector<Gene<*,*>, Double>(GAConstants.TOURNAMENT_SIZE))
                 .alterers(
-                    Mutator(GAConstants.MUTATION_PROBABILITY),
-                    SinglePointCrossover(GAConstants.CROSSOVER_PROBABILITY),
+                    Mutator<Gene<*,*>, Double>(GAConstants.MUTATION_PROBABILITY),
+                    SinglePointCrossover<Gene<*,*>, Double>(GAConstants.CROSSOVER_PROBABILITY),
                 ).build()
         }
 
