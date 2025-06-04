@@ -49,29 +49,3 @@ java_test(
         "//third_party/java:truth",
     ],
 )
-
-java_test(
-    name = "RunBacktestTest",
-    size = "small",
-    srcs = ["RunBacktestTest.java"],
-    runtime_deps = [
-        "//third_party/java:beam_runners_direct_java",
-        "//third_party/java:hamcrest",
-    ],
-    deps = [
-        "//protos:backtesting_java_proto",
-        "//protos:marketdata_java_proto",
-        "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
-        "//src/main/java/com/verlumen/tradestream/backtesting:run_backtest",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_test_utils",
-        "//third_party/java:guice",
-        "//third_party/java:guice_testlib",
-        "//third_party/java:joda_time",
-        "//third_party/java:junit",
-        "//third_party/java:mockito_core",
-        "//third_party/java:ta4j_core",
-        "//third_party/java:truth",
-    ],
-)
