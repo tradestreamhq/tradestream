@@ -12,6 +12,7 @@ import io.jenetics.Genotype
 import io.jenetics.Phenotype
 import io.jenetics.engine.Engine
 import io.jenetics.engine.EvolutionResult
+import io.jenetics.Gene
 import org.apache.beam.sdk.transforms.DoFn
 
 /**
@@ -65,18 +66,15 @@ class RunGADiscoveryFn
                 return
             }
 
-            val gaOptimizationRequest =
-                GAOptimizationRequest
-                    .newBuilder()
-                    .addAllCandles(candles)
-                    .setStrategyType(discoveryRequest.strategyType)
-                    .setMaxGenerations(discoveryRequest.gaConfig.maxGenerations)
-                    .setPopulationSize(discoveryRequest.gaConfig.populationSize)
-                    .build()
+            val engineParams = GAEngineParams(
+                strategyType = discoveryRequest.strategyType,
+                candlesList = candles,
+                populationSize = discoveryRequest.gaConfig.populationSize
+            )
 
             val engine: Engine<*, Double>
             try {
-                engine = gaEngineFactory.createEngine(gaOptimizationRequest)
+                engine = gaEngineFactory.createEngine(engineParams)
             } catch (e: Exception) {
                 logger.atSevere().withCause(e).log("Error creating GA Engine for request: %s.", discoveryRequest.symbol)
                 return
@@ -87,7 +85,8 @@ class RunGADiscoveryFn
                 bestPhenotypes =
                     engine
                         .stream()
-                        .collect(EvolutionResult.toBestPhenotypes(discoveryRequest.topN))
+                        .limit(discoveryRequest.gaConfig.maxGenerations.toLong())
+                        .collect(EvolutionResult.toBestPhenotypes<Gene<*,*>, Double>(discoveryRequest.topN))
             } catch (e: Exception) {
                 logger.atSevere().withCause(e).log("Error during GA evolution for %s", discoveryRequest.symbol)
                 return
