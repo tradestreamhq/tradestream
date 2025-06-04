@@ -30,6 +30,7 @@ java_test(
     srcs = ["GAEngineFactoryImplTest.java"],
     deps = [
         "//protos:backtesting_java_proto",
+        "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:fitness_function_factory",
         "//src/main/java/com/verlumen/tradestream/discovery:ga_engine_factory",
