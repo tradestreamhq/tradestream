@@ -62,7 +62,8 @@ kt_jvm_library(
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
-        "//protos:backtesting_java_proto",
+        "//protos:backtesting_java_proto",  # GAOptimizationRequest is still used by some callers, even if GAEngineFactory is decoupled
+        "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//third_party/java:jenetics",
     ],
@@ -75,6 +76,7 @@ kt_jvm_library(
         ":fitness_function_factory",
         ":genotype_converter",
         "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
@@ -90,10 +92,19 @@ java_library(
 )
 
 kt_jvm_library(
+    name = "ga_engine_params",
+    srcs = ["GAEngineParams.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",  # For Candle
+        "//protos:strategies_java_proto",  # For StrategyType
+    ],
+)
+
+kt_jvm_library(
     name = "ga_engine_factory",
     srcs = ["GAEngineFactory.kt"],
     deps = [
-        "//protos:backtesting_java_proto",
+        ":ga_engine_params",
         "//third_party/java:jenetics",
     ],
 )
@@ -106,11 +117,11 @@ java_library(
         ":fitness_function_factory",
         ":ga_constants",
         ":ga_engine_factory",
+        ":ga_engine_params",
         ":param_config",
         ":param_config_manager",
-        "//protos:backtesting_java_proto",
-        "//protos:marketdata_java_proto",
-        "//protos:strategies_java_proto",
+        "//protos:marketdata_java_proto",  # For Candle in GAEngineParams
+        "//protos:strategies_java_proto",  # For StrategyType in GAEngineParams
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
