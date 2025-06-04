@@ -35,7 +35,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
 
     // Build and return the GA engine with the specified settings
     return Engine.builder(
-            fitnessCalculator.createFitnessFunction(
+            fitnessFunctionFactory.create(
                 request.getStrategyType(), request.getCandlesList()),
             gtf)
         .populationSize(getPopulationSize(request))
