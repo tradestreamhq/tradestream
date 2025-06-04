@@ -28,7 +28,7 @@ internal class GAEngineFactoryImpl
             return Engine
                 .builder(fitnessFunction, gtf)
                 .populationSize(getPopulationSize(request))
-                .selector(TournamentSelector<NumericGene<*,*>, Double>(GAConstants.TOURNAMENT_SIZE))
+                .selector(TournamentSelector<NumericGene<*, *>, Double>(GAConstants.TOURNAMENT_SIZE))
                 .alterers(
                     Mutator<NumericGene<*,*>, Double>(GAConstants.MUTATION_PROBABILITY),
                     SinglePointCrossover<NumericGene<*,*>, Double>(GAConstants.CROSSOVER_PROBABILITY),
