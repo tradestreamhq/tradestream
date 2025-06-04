@@ -80,21 +80,22 @@ class RunGADiscoveryFn
                 return
             }
 
-            val evolutionResult
+            @Suppress("UNCHECKED_CAST")
+            val evolutionResult: EvolutionResult<*, Double>
             try {
                 evolutionResult = engine
                     .stream()
                     .limit(discoveryRequest.gaConfig.maxGenerations.toLong())
-                    .collect(EvolutionResult.toBestEvolutionResult())
+                    .collect(EvolutionResult.toBestEvolutionResult()) as EvolutionResult<*, Double>
             } catch (e: Exception) {
                 logger.atSevere().withCause(e).log("Error during GA evolution for %s", discoveryRequest.symbol)
                 return
             }
 
             // Extract top N phenotypes from the final population
-            val bestPhenotypes = evolutionResult
-                .population()
-                .sortedByDescending { it.fitness() }
+            @Suppress("UNCHECKED_CAST")
+            val bestPhenotypes = (evolutionResult.population() as Collection<Phenotype<*, Double>>)
+                .sortedByDescending { phenotype -> phenotype.fitness() }
                 .take(discoveryRequest.topN)
 
             if (bestPhenotypes.isEmpty()) {
