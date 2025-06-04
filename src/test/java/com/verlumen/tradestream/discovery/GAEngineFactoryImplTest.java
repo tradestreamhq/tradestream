@@ -98,10 +98,7 @@ public class GAEngineFactoryImplTest {
   public void createEngine_withZeroPopulationSize_usesDefaultSize() {
     // Arrange
     GAEngineParams zeroSizeParams =
-        new GAEngineParams(
-            testParams.getStrategyType(),
-            testParams.getCandlesList(),
-            0);
+        new GAEngineParams(testParams.getStrategyType(), testParams.getCandlesList(), 0);
 
     // Act
     Engine<?, Double> engine = engineFactory.createEngine(zeroSizeParams);
