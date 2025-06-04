@@ -80,17 +80,23 @@ class RunGADiscoveryFn
                 return
             }
 
-            val bestPhenotypes: List<Phenotype<*, Double>>
+            val finalResult: EvolutionResult<*, Double>
             try {
-                bestPhenotypes =
+                finalResult =
                     engine
                         .stream()
                         .limit(discoveryRequest.gaConfig.maxGenerations.toLong())
-                        .collect(EvolutionResult.toBestPhenotypes<Gene<*,*>, Double>(discoveryRequest.topN))
+                        .collect(EvolutionResult.toBestEvolutionResult())
             } catch (e: Exception) {
                 logger.atSevere().withCause(e).log("Error during GA evolution for %s", discoveryRequest.symbol)
                 return
             }
+
+            // Extract top N phenotypes from the final population
+            val bestPhenotypes: List<Phenotype<*, Double>> = finalResult
+                .population
+                .sortedByDescending { it.fitness() }
+                .take(discoveryRequest.topN)
 
             if (bestPhenotypes.isEmpty()) {
                 logger.atWarning().log("GA run yielded no best phenotypes for %s", discoveryRequest.symbol)
