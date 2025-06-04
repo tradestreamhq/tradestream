@@ -16,7 +16,6 @@ import com.verlumen.tradestream.backtesting.BacktestRequestFactory;
 import com.verlumen.tradestream.backtesting.BacktestRequestFactoryImpl;
 import com.verlumen.tradestream.backtesting.BacktestResult;
 import com.verlumen.tradestream.backtesting.BacktestRunner;
-import com.verlumen.tradestream.backtesting.GAOptimizationRequest;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.DoubleChromosome;
@@ -32,12 +31,16 @@ import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
 public class FitnessFunctionFactoryImplTest {
+  private static final ImmutableList<Candle> CANDLES =
+      ImmutableList.of(
+          Candle.newBuilder().setOpen(100.0).setClose(105.0).setHigh(110).setLow(95).build());
+  private static final StrategyType STRATEGY_TYPE = StrategyType.SMA_RSI;
+
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
   @Bind private BacktestRequestFactory backtestRequestFactory;
   @Bind @Mock private BacktestRunner mockBacktestRunner;
   @Bind @Mock private GenotypeConverter mockGenotypeConverter;
-  @Bind private GAOptimizationRequest optimizationRequest;
 
   @Inject private FitnessFunctionFactoryImpl fitnessFunctionFactory;
 
@@ -47,21 +50,7 @@ public class FitnessFunctionFactoryImplTest {
   public void setUp() throws Exception {
     // Setup
     backtestRequestFactory = new BacktestRequestFactoryImpl();
-    optimizationRequest =
-        GAOptimizationRequest.newBuilder()
-            .setStrategyType(StrategyType.SMA_RSI)
-            .addAllCandles(
-                ImmutableList.of(
-                    Candle.newBuilder()
-                        .setOpen(100.0)
-                        .setClose(105.0)
-                        .setHigh(110)
-                        .setLow(95)
-                        .build()))
-            .build();
-
     testGenotype = Genotype.of(DoubleChromosome.of(0.0, 1.0));
-
     Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
   }
 
@@ -76,7 +65,7 @@ public class FitnessFunctionFactoryImplTest {
         .thenReturn(Any.getDefaultInstance()); // Return a dummy Any
 
     // Act: Create the fitness function and apply it to a test genotype
-    var fitnessFunction = fitnessFunctionFactory.create(optimizationRequest);
+    var fitnessFunction = fitnessFunctionFactory.create(STRATEGY_TYPE, CANDLES);
     double actualScore = fitnessFunction.apply(testGenotype);
 
     // Assert: Check the return value
@@ -92,7 +81,7 @@ public class FitnessFunctionFactoryImplTest {
         .thenReturn(Any.getDefaultInstance());
 
     // Act: Create the fitness function and apply it
-    var fitnessFunction = fitnessFunctionFactory.create(optimizationRequest);
+    var fitnessFunction = fitnessFunctionFactory.create(STRATEGY_TYPE, CANDLES);
     double score = fitnessFunction.apply(testGenotype);
 
     // Assert: Expect the lowest possible fitness score
@@ -106,7 +95,7 @@ public class FitnessFunctionFactoryImplTest {
         .thenThrow(new RuntimeException("Simulated conversion error"));
 
     // Act: Create the fitness function and apply it
-    var fitnessFunction = fitnessFunctionFactory.create(optimizationRequest);
+    var fitnessFunction = fitnessFunctionFactory.create(STRATEGY_TYPE, CANDLES);
     double score = fitnessFunction.apply(testGenotype);
 
     // Assert: Expect the lowest possible fitness score
@@ -116,13 +105,7 @@ public class FitnessFunctionFactoryImplTest {
   // Edge Case: Empty Candle List (this should also be covered in BacktestRunner tests)
   @Test
   public void create_emptyCandles_returnsNegativeInfinity() throws Exception {
-    // Arrange: Create a request with an empty candle list
-    GAOptimizationRequest emptyRequest =
-        GAOptimizationRequest.newBuilder()
-            .setStrategyType(StrategyType.SMA_RSI)
-            .clearCandles() // Explicitly clear candles
-            .build();
-
+    // Arrange: Setup mock behavior
     when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
         .thenReturn(Any.getDefaultInstance());
 
@@ -131,7 +114,7 @@ public class FitnessFunctionFactoryImplTest {
         .thenThrow(new IllegalArgumentException("Empty candles list"));
 
     // Act: Create the function and apply it
-    var fitnessFunction = fitnessFunctionFactory.create(emptyRequest);
+    var fitnessFunction = fitnessFunctionFactory.create(STRATEGY_TYPE, ImmutableList.of());
     double score = fitnessFunction.apply(testGenotype);
 
     // Assert
