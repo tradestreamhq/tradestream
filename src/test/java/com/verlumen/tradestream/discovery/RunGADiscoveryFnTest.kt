@@ -97,14 +97,14 @@ class RunGADiscoveryFnTest {
      * Creates a real, minimal engine for testing purposes.
      * This engine uses a simple fitness function and small population size for fast tests.
      */
-    private fun createTestEngine(): Engine<DoubleGene, Double> {
-        return Engine.builder(
-            // Simple fitness function that returns a predictable value based on first gene
-            { genotype: Genotype<DoubleGene> -> genotype.chromosome().get(0).allele() * 10.0 },
-            // Simple genotype factory - single chromosome with one gene
-            Genotype.of(DoubleChromosome.of(0.0, 1.0, 1))
-        )
-            .populationSize(5) // Small population for fast tests
+    private fun createTestEngine(): Engine<DoubleGene, Double> =
+        Engine
+            .builder(
+                // Simple fitness function that returns a predictable value based on first gene
+                { genotype: Genotype<DoubleGene> -> genotype.chromosome().get(0).allele() * 10.0 },
+                // Simple genotype factory - single chromosome with one gene
+                Genotype.of(DoubleChromosome.of(0.0, 1.0, 1)),
+            ).populationSize(5) // Small population for fast tests
             .build()
     }
 
