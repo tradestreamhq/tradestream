@@ -173,24 +173,23 @@ class RunGADiscoveryFnTest {
         val request = createTestRequest()
         val dummyCandle = createDummyCandle(request.startTime)
         val candles = ImmutableList.of(dummyCandle)
-
-        // Create an engine that will return no results (empty population)
-        val emptyEngine =
-            Engine
-                .builder(
-                    { _: Genotype<DoubleGene> -> 0.0 }, // fitness function
-                    Genotype.of(DoubleChromosome.of(0.0, 1.0, 1)),
-                ).populationSize(0) // This will result in empty population
-                .build()
-
+    
+        val mockEvolutionResult = mock(EvolutionResult::class.java) as EvolutionResult<DoubleGene, Double>
+        whenever(mockEvolutionResult.population()).thenReturn(ISeq.empty())
+    
+        val mockEvolutionStream = mock(EvolutionStream::class.java) as EvolutionStream<DoubleGene, Double>
+        whenever(mockEvolutionStream.limit(any())).thenReturn(mockEvolutionStream)
+        whenever(mockEvolutionStream.collect(any())).thenReturn(mockEvolutionResult)
+    
+        val mockEngine = mock(Engine::class.java) as Engine<DoubleGene, Double>
+        whenever(mockEngine.stream()).thenReturn(mockEvolutionStream)
+    
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
-        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(emptyEngine)
-
-        val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(
-            Create.of<StrategyDiscoveryRequest>(request)
-        )
-        val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
-
+        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(mockEngine)
+    
+        val input = pipeline.apply(Create.of(request))
+        val output = input.apply(ParDo.of(runGADiscoveryFn))
+    
         PAssert.that(output).empty()
         pipeline.run().waitUntilFinish()
     }
