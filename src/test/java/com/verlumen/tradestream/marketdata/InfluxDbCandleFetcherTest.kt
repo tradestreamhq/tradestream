@@ -164,7 +164,7 @@ class InfluxDbCandleFetcherTest {
 
     // Helper methods to create test data
 
-    private fun createTestFetcher(): InfluxDbCandleFetcher = InfluxDbCandleFetcher(mockInfluxDBClient, testOrg, testBucket)
+    private fun createTestFetcher(): InfluxDbCandleFetcher = InfluxDbCandleFetcher(()-> mockInfluxDBClient, testOrg, testBucket)
 
     private fun createMockTablesWithValidData(): List<FluxTable> {
         val record1 =
