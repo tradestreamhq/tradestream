@@ -6,7 +6,7 @@ import com.google.protobuf.Any
 import com.verlumen.tradestream.discovery.DiscoveredStrategy
 import com.verlumen.tradestream.discovery.StrategyDiscoveryRequest
 import com.verlumen.tradestream.discovery.StrategyDiscoveryResult
-import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
+import com.verlumen.tradestream.marketdata.CandleFetcher
 import com.verlumen.tradestream.strategies.Strategy
 import io.jenetics.DoubleGene
 import io.jenetics.Genotype
