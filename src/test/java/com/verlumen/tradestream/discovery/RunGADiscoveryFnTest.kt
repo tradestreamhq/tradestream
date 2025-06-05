@@ -11,15 +11,11 @@ import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.marketdata.Candle
 import com.verlumen.tradestream.marketdata.CandleFetcher
 import com.verlumen.tradestream.strategies.SmaRsiParameters
-import com.verlumen.tradestream.strategies.Strategy
 import com.verlumen.tradestream.strategies.StrategyType
 import io.jenetics.DoubleChromosome
 import io.jenetics.DoubleGene
 import io.jenetics.Genotype
-import io.jenetics.Phenotype
 import io.jenetics.engine.Engine
-import io.jenetics.engine.EvolutionResult
-import io.jenetics.util.ISeq
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
@@ -133,9 +129,10 @@ class RunGADiscoveryFnTest {
             mockGenotypeConverter.convertToParameters(any(), eq(StrategyType.SMA_RSI)),
         ).thenReturn(paramsAny)
 
-        val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(
-            Create.of<StrategyDiscoveryRequest>(request)
-        )
+        val input: PCollection<StrategyDiscoveryRequest> =
+            pipeline.apply(
+                Create.of<StrategyDiscoveryRequest>(request),
+            )
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
 
         // We can't predict the exact score since we're using a real engine,
@@ -159,9 +156,10 @@ class RunGADiscoveryFnTest {
         val request = createTestRequest()
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(ImmutableList.of())
 
-        val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(
-            Create.of<StrategyDiscoveryRequest>(request)
-        )
+        val input: PCollection<StrategyDiscoveryRequest> =
+            pipeline.apply(
+                Create.of<StrategyDiscoveryRequest>(request),
+            )
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
 
         PAssert.that(output).empty()
@@ -186,9 +184,10 @@ class RunGADiscoveryFnTest {
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
         whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(emptyEngine)
 
-        val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(
-            Create.of<StrategyDiscoveryRequest>(request)
-        )
+        val input: PCollection<StrategyDiscoveryRequest> =
+            pipeline.apply(
+                Create.of<StrategyDiscoveryRequest>(request),
+            )
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
 
         PAssert.that(output).empty()
