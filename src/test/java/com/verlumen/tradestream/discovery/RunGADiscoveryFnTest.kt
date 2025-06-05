@@ -16,8 +16,6 @@ import io.jenetics.DoubleChromosome
 import io.jenetics.DoubleGene
 import io.jenetics.Genotype
 import io.jenetics.engine.Engine
-import io.jenetics.engine.EvolutionResult
-import io.jenetics.Phenotype
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
@@ -33,7 +31,6 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
-import java.io.Serializable // Import Serializable for the test engines if needed by mocking framework in some contexts
 
 @RunWith(JUnit4::class)
 class RunGADiscoveryFnTest {
@@ -60,18 +57,16 @@ class RunGADiscoveryFnTest {
             Engine
                 .builder(
                     { genotype: Genotype<DoubleGene> -> genotype.chromosome().get(0).allele() * 1.0 },
-                    Genotype.of(DoubleChromosome.of(0.0, 1.0, 1))
-                )
-                .populationSize(5)
+                    Genotype.of(DoubleChromosome.of(0.0, 1.0, 1)),
+                ).populationSize(5)
                 .build()
 
         fun createEngineThatYieldsNoBestToTake(): Engine<DoubleGene, Double> =
             Engine
                 .builder(
                     { _: Genotype<DoubleGene> -> 0.0 },
-                    Genotype.of(DoubleChromosome.of(0.0, 1.0, 1))
-                )
-                .populationSize(1) // Valid population size
+                    Genotype.of(DoubleChromosome.of(0.0, 1.0, 1)),
+                ).populationSize(1) // Valid population size
                 .build()
     }
 

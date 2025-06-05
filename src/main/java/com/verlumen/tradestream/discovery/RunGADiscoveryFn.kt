@@ -8,14 +8,14 @@ import com.verlumen.tradestream.discovery.StrategyDiscoveryRequest
 import com.verlumen.tradestream.discovery.StrategyDiscoveryResult
 import com.verlumen.tradestream.marketdata.CandleFetcher
 import com.verlumen.tradestream.strategies.Strategy
-import io.jenetics.DoubleGene
-import io.jenetics.Genotype
 import io.jenetics.engine.Engine
 import io.jenetics.engine.EvolutionResult
 import org.apache.beam.sdk.transforms.DoFn
 import java.io.Serializable
 
-class RunGADiscoveryFn : DoFn<StrategyDiscoveryRequest, StrategyDiscoveryResult>, Serializable {
+class RunGADiscoveryFn :
+    DoFn<StrategyDiscoveryRequest, StrategyDiscoveryResult>,
+    Serializable {
     private val candleFetcher: CandleFetcher
     private val gaEngineFactory: GAEngineFactory
     private val genotypeConverter: GenotypeConverter
@@ -151,7 +151,8 @@ class RunGADiscoveryFn : DoFn<StrategyDiscoveryRequest, StrategyDiscoveryResult>
 
     @Teardown
     fun teardown() {
-        try { // Added try-catch for safety
+        try {
+            // Added try-catch for safety
             candleFetcher.close()
         } catch (e: Exception) {
             logger.atWarning().withCause(e).log("Error closing candleFetcher during teardown.")
