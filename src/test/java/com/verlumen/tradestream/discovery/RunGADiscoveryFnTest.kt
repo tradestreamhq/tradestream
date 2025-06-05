@@ -142,7 +142,6 @@ class RunGADiscoveryFnTest {
         PAssert.that(output).satisfies { results ->
             val resultList = results.toList()
             assert(resultList.size == 1) { "Expected 1 result, got ${resultList.size}" }
-            
             val result = resultList[0]
             assert(result.topStrategiesCount == 1) { "Expected 1 strategy, got ${result.topStrategiesCount}" }
             val strategy = result.getTopStrategies(0)
