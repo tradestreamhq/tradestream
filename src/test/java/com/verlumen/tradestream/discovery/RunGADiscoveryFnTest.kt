@@ -100,7 +100,7 @@ class RunGADiscoveryFnTest {
     private fun createTestEngine(): Engine<DoubleGene, Double> {
         return Engine.builder(
             // Simple fitness function that returns a predictable value based on first gene
-            { genotype: Genotype<DoubleGene> -> genotype.chromosome().gene(0).allele() * 10.0 },
+            { genotype: Genotype<DoubleGene> -> genotype.chromosome().get(0).allele() * 10.0 },
             // Simple genotype factory - single chromosome with one gene
             Genotype.of(DoubleChromosome.of(0.0, 1.0, 1))
         )
