@@ -91,6 +91,7 @@ kt_jvm_test(
     srcs = ["RunGADiscoveryFnTest.kt"],
     runtime_deps = [
         "//third_party/java:beam_runners_direct_java",
+        "//third_party/java:hamcrest",
     ],
     deps = [
         "//protos:discovery_java_proto",
