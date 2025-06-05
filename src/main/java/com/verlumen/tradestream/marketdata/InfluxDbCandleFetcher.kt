@@ -3,6 +3,7 @@ package com.verlumen.tradestream.marketdata
 import com.google.common.collect.ImmutableList
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
+import com.google.inject.Provider
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
 import com.influxdb.client.InfluxDBClient
@@ -14,13 +15,23 @@ import java.io.Serializable
 class InfluxDbCandleFetcher
     @Inject
     constructor(
-        @Transient private val influxDBClient: InfluxDBClient,
+        private val influxDBClientProvider: Provider<InfluxDBClient>,
         private val org: String,
         private val bucket: String,
     ) : CandleFetcher, Serializable {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
             private const val serialVersionUID = 1L
+        }
+
+        @Transient
+        private var cachedClient: InfluxDBClient? = null
+
+        private fun getClient(): InfluxDBClient {
+            if (cachedClient == null) {
+                cachedClient = influxDBClientProvider.get()
+            }
+            return cachedClient!!
         }
 
         init {
@@ -36,6 +47,7 @@ class InfluxDbCandleFetcher
             val endIso = Timestamps.toString(endTime)
             val fluxQuery = buildFluxQuery(symbol, startIso, endIso)
             logger.atInfo().log("Executing Flux query for %s: %s", symbol, fluxQuery)
+            val influxDBClient = getClient()
             val queryApi = influxDBClient.queryApi
             val candlesBuilder = ImmutableList.builder<Candle>()
 
@@ -108,7 +120,9 @@ class InfluxDbCandleFetcher
         }
 
         override fun close() {
-            influxDBClient.close()
+            cachedClient?.close()
+            cachedClient = null
             logger.atInfo().log("InfluxDbCandleFetcher closed.")
         }
     }
+    
