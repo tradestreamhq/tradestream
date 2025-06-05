@@ -176,12 +176,13 @@ class RunGADiscoveryFnTest {
         val candles = ImmutableList.of(dummyCandle)
 
         // Create an engine that will return no results (empty population)
-        val emptyEngine = Engine.builder(
-            { _: Genotype<DoubleGene> -> 0.0 }, // fitness function
-            Genotype.of(DoubleChromosome.of(0.0, 1.0, 1))
-        )
-            .populationSize(0) // This will result in empty population
-            .build()
+        val emptyEngine =
+            Engine
+                .builder(
+                    { _: Genotype<DoubleGene> -> 0.0 }, // fitness function
+                    Genotype.of(DoubleChromosome.of(0.0, 1.0, 1)),
+                ).populationSize(0) // This will result in empty population
+                .build()
 
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
         whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(emptyEngine)
