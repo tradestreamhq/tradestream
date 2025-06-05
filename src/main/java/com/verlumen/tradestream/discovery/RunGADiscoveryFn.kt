@@ -86,11 +86,12 @@ class RunGADiscoveryFn :
         try {
             val stream = engine.stream()
                 .limit(discoveryRequest.gaConfig.maxGenerations.toLong())
-            val optionalResult = stream.max(Comparator.naturalOrder<EvolutionResult<*, Double>>())
+            // Fixed: Use Comparator.comparing with bestFitness() instead of naturalOrder
+            val optionalResult = stream.max(Comparator.comparing<EvolutionResult<*, Double>, Double> { it.bestFitness() })
 
             if (!optionalResult.isPresent) {
                 logger.atWarning().log("GA evolution stream was empty for %s after limit %d. Max generations: %d",
-                    discoveryRequest.symbol, discoveryRequest.gaConfig.maxGenerations)
+                    discoveryRequest.symbol, discoveryRequest.gaConfig.maxGenerations.toLong(), discoveryRequest.gaConfig.maxGenerations)
                 return
             }
             evolutionResult = optionalResult.get()
@@ -167,4 +168,3 @@ class RunGADiscoveryFn :
         logger.atInfo().log("RunGADiscoveryFn teardown.")
     }
 }
-
