@@ -226,7 +226,7 @@ kt_jvm_library(
         "//protos:backtesting_java_proto",
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:flogger",
         "//third_party/java:guice",
