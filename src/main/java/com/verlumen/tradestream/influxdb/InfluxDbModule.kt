@@ -11,8 +11,8 @@ internal class InfluxDBClientProvider(
     private val influxDbToken: String,
     private val influxDbOrg: String,
     private val influxDbBucket: String,
-) : Provider<InfluxDBClient>, Serializable {
-    
+) : Provider<InfluxDBClient>,
+    Serializable {
     override fun get(): InfluxDBClient =
         InfluxDBClientFactory.create(
             influxDbUrl,
@@ -28,7 +28,6 @@ class InfluxDbModule(
     private val influxDbOrg: String,
     private val influxDbBucket: String,
 ) : AbstractModule() {
-    
     override fun configure() {
         bind(InfluxDBClient::class.java)
             .toProvider(
@@ -36,8 +35,8 @@ class InfluxDbModule(
                     influxDbUrl,
                     influxDbToken,
                     influxDbOrg,
-                    influxDbBucket
-                )
+                    influxDbBucket,
+                ),
             )
     }
 }

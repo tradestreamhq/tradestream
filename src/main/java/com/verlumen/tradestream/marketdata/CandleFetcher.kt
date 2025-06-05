@@ -7,7 +7,9 @@ import java.io.Serializable
 /**
  * Interface for fetching candle data.
  */
-interface CandleFetcher : AutoCloseable, Serializable {
+interface CandleFetcher :
+    AutoCloseable,
+    Serializable {
     /**
      * Fetches candle data for a given symbol within a specified time range.
      *

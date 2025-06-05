@@ -41,17 +41,19 @@ import java.util.stream.Collector
 
 @RunWith(JUnit4::class)
 class RunGADiscoveryFnTest {
-
     @get:Rule
     val pipeline: TestPipeline = TestPipeline.create()
 
-    @Bind @Mock(serializable = true)
+    @Bind
+    @Mock(serializable = true)
     lateinit var mockCandleFetcher: CandleFetcher
 
-    @Bind @Mock(serializable = true)
+    @Bind
+    @Mock(serializable = true)
     lateinit var mockGaEngineFactory: GAEngineFactory
 
-    @Bind @Mock(serializable = true)
+    @Bind
+    @Mock(serializable = true)
     lateinit var mockGenotypeConverter: GenotypeConverter
 
     @Mock(serializable = true)
@@ -69,22 +71,25 @@ class RunGADiscoveryFnTest {
 
     private fun createTestRequest(): StrategyDiscoveryRequest {
         val now = System.currentTimeMillis()
-        return StrategyDiscoveryRequest.newBuilder()
+        return StrategyDiscoveryRequest
+            .newBuilder()
             .setSymbol("BTC/USD")
             .setStartTime(Timestamps.fromMillis(now - 200000))
             .setEndTime(Timestamps.fromMillis(now - 100000))
             .setStrategyType(StrategyType.SMA_RSI)
             .setTopN(1)
             .setGaConfig(
-                GAConfig.newBuilder()
+                GAConfig
+                    .newBuilder()
                     .setMaxGenerations(10)
                     .setPopulationSize(20)
-                    .build()
+                    .build(),
             ).build()
     }
 
     private fun createDummyCandle(timestamp: Timestamp): Candle =
-        Candle.newBuilder()
+        Candle
+            .newBuilder()
             .setTimestamp(timestamp)
             .setCurrencyPair("BTC/USD")
             .setOpen(100.0)
@@ -100,12 +105,14 @@ class RunGADiscoveryFnTest {
         val dummyCandle = createDummyCandle(request.startTime)
         val candles = ImmutableList.of(dummyCandle)
 
-        val smaRsiParams = SmaRsiParameters.newBuilder()
-            .setMovingAveragePeriod(10)
-            .setRsiPeriod(14)
-            .setOverboughtThreshold(70.0)
-            .setOversoldThreshold(30.0)
-            .build()
+        val smaRsiParams =
+            SmaRsiParameters
+                .newBuilder()
+                .setMovingAveragePeriod(10)
+                .setRsiPeriod(14)
+                .setOverboughtThreshold(70.0)
+                .setOversoldThreshold(30.0)
+                .build()
         val paramsAny = Any.pack(smaRsiParams)
 
         val genotype = Genotype.of(DoubleChromosome.of(0.0, 1.0))
@@ -121,28 +128,32 @@ class RunGADiscoveryFnTest {
         whenever(mockEvolutionStream.limit(any<Long>())).thenReturn(mockEvolutionStream)
         whenever(
             mockEvolutionStream.collect(
-                any<Collector<EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>>()
-            )
+                any<Collector<EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>>(),
+            ),
         ).thenReturn(mockEvolutionResult)
         whenever(mockEvolutionResult.population()).thenReturn(ISeq.of(phenotype))
 
         whenever(
-            mockGenotypeConverter.convertToParameters(any(), eq(StrategyType.SMA_RSI))
+            mockGenotypeConverter.convertToParameters(any(), eq(StrategyType.SMA_RSI)),
         ).thenReturn(paramsAny)
 
         val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(Create.of(request))
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
 
-        val expectedStrategy = DiscoveredStrategy.newBuilder()
-            .setStrategy(Strategy.newBuilder().setType(StrategyType.SMA_RSI).setParameters(paramsAny))
-            .setScore(10.5)
-            .setSymbol("BTC/USD")
-            .setStartTime(request.startTime)
-            .setEndTime(request.endTime)
-            .build()
-        val expectedResult = StrategyDiscoveryResult.newBuilder()
-            .addTopStrategies(expectedStrategy)
-            .build()
+        val expectedStrategy =
+            DiscoveredStrategy
+                .newBuilder()
+                .setStrategy(Strategy.newBuilder().setType(StrategyType.SMA_RSI).setParameters(paramsAny))
+                .setScore(10.5)
+                .setSymbol("BTC/USD")
+                .setStartTime(request.startTime)
+                .setEndTime(request.endTime)
+                .build()
+        val expectedResult =
+            StrategyDiscoveryResult
+                .newBuilder()
+                .addTopStrategies(expectedStrategy)
+                .build()
 
         PAssert.that(output).containsInAnyOrder(expectedResult)
         pipeline.run().waitUntilFinish()
@@ -176,8 +187,8 @@ class RunGADiscoveryFnTest {
         whenever(mockEvolutionStreamEmpty.limit(any<Long>())).thenReturn(mockEvolutionStreamEmpty)
         whenever(
             mockEvolutionStreamEmpty.collect(
-                any<Collector<EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>>()
-            )
+                any<Collector<EvolutionResult<DoubleGene, Double>, *, EvolutionResult<DoubleGene, Double>>>(),
+            ),
         ).thenReturn(mockEvolutionResultEmpty)
         whenever(mockEvolutionResultEmpty.population()).thenReturn(ISeq.empty())
 

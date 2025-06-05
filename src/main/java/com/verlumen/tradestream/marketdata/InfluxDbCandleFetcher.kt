@@ -18,7 +18,8 @@ class InfluxDbCandleFetcher
         private val influxDBClientProvider: Provider<InfluxDBClient>,
         private val org: String,
         private val bucket: String,
-    ) : CandleFetcher, Serializable {
+    ) : CandleFetcher,
+        Serializable {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
             private const val serialVersionUID = 1L
@@ -125,4 +126,3 @@ class InfluxDbCandleFetcher
             logger.atInfo().log("InfluxDbCandleFetcher closed.")
         }
     }
-    
