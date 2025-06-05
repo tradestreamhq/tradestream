@@ -9,7 +9,7 @@ import com.google.protobuf.Any
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.marketdata.Candle
-import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
+import com.verlumen.tradestream.marketdata.CandleFetcher
 import com.verlumen.tradestream.strategies.SmaRsiParameters
 import com.verlumen.tradestream.strategies.Strategy
 import com.verlumen.tradestream.strategies.StrategyType
@@ -36,7 +36,7 @@ import java.util.stream.Collector
 
 class TestCandleFetcher(
     private val cannedCandles: ImmutableList<Candle> = ImmutableList.of()
-) : InfluxDbCandleFetcher(
+) : CandleFetcher(
     { throw UnsupportedOperationException("Test implementation") }, 
     "test-org", 
     "test-bucket"
