@@ -31,6 +31,30 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
+import java.io.Serializable
+
+// Create a serializable factory for test engines
+class SerializableTestEngineFactory : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+        
+        fun createSuccessEngine(): Engine<DoubleGene, Double> =
+            Engine
+                .builder(
+                    { genotype: Genotype<DoubleGene> -> genotype.chromosome().get(0).allele() * 1.0 },
+                    Genotype.of(DoubleChromosome.of(0.0, 1.0, 1)),
+                ).populationSize(5)
+                .build()
+
+        fun createEmptyResultEngine(): Engine<DoubleGene, Double> =
+            Engine
+                .builder(
+                    { _: Genotype<DoubleGene> -> 0.0 },
+                    Genotype.of(DoubleChromosome.of(0.0, 1.0, 1)),
+                ).populationSize(1)
+                .build()
+    }
+}
 
 @RunWith(JUnit4::class)
 class RunGADiscoveryFnTest {
@@ -52,39 +76,11 @@ class RunGADiscoveryFnTest {
     @Inject
     lateinit var runGADiscoveryFn: RunGADiscoveryFn
 
-    companion object { // Companion object for static-like test engine creation methods
-        fun createTestSuccessEngine(): Engine<DoubleGene, Double> =
-            Engine
-                .builder(
-                    { genotype: Genotype<DoubleGene> -> genotype.chromosome().get(0).allele() * 1.0 },
-                    Genotype.of(DoubleChromosome.of(0.0, 1.0, 1)),
-                ).populationSize(5)
-                .build()
-
-        fun createEngineThatYieldsNoBestToTake(): Engine<DoubleGene, Double> =
-            Engine
-                .builder(
-                    { _: Genotype<DoubleGene> -> 0.0 },
-                    Genotype.of(DoubleChromosome.of(0.0, 1.0, 1)),
-                ).populationSize(1) // Valid population size
-                .build()
-    }
-
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
         val injector = Guice.createInjector(BoundFieldModule.of(this))
         injector.injectMembers(this)
-        // Ensure RunGADiscoveryFn is serializable after injection.
-        // This is a sanity check; actual serialization is handled by Beam.
-        try {
-            val baos = java.io.ByteArrayOutputStream()
-            val oos = java.io.ObjectOutputStream(baos)
-            oos.writeObject(runGADiscoveryFn)
-            oos.close()
-        } catch (e: java.io.NotSerializableException) {
-            throw AssertionError("RunGADiscoveryFn is not serializable after mock injection", e)
-        }
     }
 
     private fun createTestRequest(): StrategyDiscoveryRequest {
@@ -134,19 +130,17 @@ class RunGADiscoveryFnTest {
         val paramsAny = Any.pack(smaRsiParams)
 
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
-        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenAnswer {
-            // Call the static-like method from companion object
-            createTestSuccessEngine()
-        }
+        
+        // Use a static reference instead of a lambda that captures 'this'
+        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>()))
+            .thenReturn(SerializableTestEngineFactory.createSuccessEngine())
 
         whenever(
             mockGenotypeConverter.convertToParameters(any(), eq(StrategyType.SMA_RSI)),
         ).thenReturn(paramsAny)
 
         val input: PCollection<StrategyDiscoveryRequest> =
-            pipeline.apply(
-                Create.of<StrategyDiscoveryRequest>(request),
-            )
+            pipeline.apply(Create.of(request))
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
 
         PAssert.that(output).satisfies { results ->
@@ -157,7 +151,7 @@ class RunGADiscoveryFnTest {
             val strategy = result.getTopStrategies(0)
             assert(strategy.symbol == "BTC/USD") { "Expected BTC/USD, got ${strategy.symbol}" }
             assert(strategy.strategy.type == StrategyType.SMA_RSI) { "Expected SMA_RSI type" }
-            assert(strategy.score >= 0) { "Expected non-negative score, got ${strategy.score}" } // Fitness is allele * 10.0, allele is 0.0 to 1.0
+            assert(strategy.score >= 0) { "Expected non-negative score, got ${strategy.score}" }
             null
         }
         pipeline.run().waitUntilFinish()
@@ -169,9 +163,7 @@ class RunGADiscoveryFnTest {
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(ImmutableList.of())
 
         val input: PCollection<StrategyDiscoveryRequest> =
-            pipeline.apply(
-                Create.of<StrategyDiscoveryRequest>(request),
-            )
+            pipeline.apply(Create.of(request))
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
 
         PAssert.that(output).empty()
@@ -181,25 +173,22 @@ class RunGADiscoveryFnTest {
     @Test
     fun testRunGADiscoveryFn_gaYieldsNoResults() {
         val requestOriginal = createTestRequest()
-        // Modify the request for this test case to ensure take(0) is called
         val request = requestOriginal.toBuilder().setTopN(0).build()
 
         val dummyCandle = createDummyCandle(request.startTime)
         val candles = ImmutableList.of(dummyCandle)
 
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
-        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenAnswer {
-            createEngineThatYieldsNoBestToTake()
-        }
-        // Genotype converter won't be called if bestPhenotypes is empty after .take(0)
+        
+        // Use static reference instead of lambda
+        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>()))
+            .thenReturn(SerializableTestEngineFactory.createEmptyResultEngine())
 
         val input: PCollection<StrategyDiscoveryRequest> =
-            pipeline.apply(
-                Create.of<StrategyDiscoveryRequest>(request), // Use modified request
-            )
+            pipeline.apply(Create.of(request))
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
 
-        PAssert.that(output).empty() // No strategies should be outputted if topN is 0
+        PAssert.that(output).empty()
         pipeline.run().waitUntilFinish()
     }
 }
