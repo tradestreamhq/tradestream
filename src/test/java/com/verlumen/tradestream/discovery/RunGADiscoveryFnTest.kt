@@ -45,16 +45,16 @@ class RunGADiscoveryFnTest {
     @get:Rule
     val pipeline: TestPipeline = TestPipeline.create()
 
-    @Bind @Mock
+    @Bind @Mock(serializable = true)
     lateinit var mockCandleFetcher: CandleFetcher
 
-    @Bind @Mock
+    @Bind @Mock(serializable = true)
     lateinit var mockGaEngineFactory: GAEngineFactory
 
-    @Bind @Mock
+    @Bind @Mock(serializable = true)
     lateinit var mockGenotypeConverter: GenotypeConverter
 
-    @Mock
+    @Mock(serializable = true)
     lateinit var mockEngine: Engine<DoubleGene, Double>
 
     @Inject
