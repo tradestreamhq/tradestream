@@ -99,7 +99,7 @@ kt_jvm_test(
         "//src/main/java/com/verlumen/tradestream/discovery:ga_engine_factory",
         "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
         "//src/main/java/com/verlumen/tradestream/discovery:run_ga_discovery_fn",
-        "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_test_utils",
         "//third_party/java:guice",
