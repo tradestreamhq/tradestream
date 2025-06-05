@@ -152,7 +152,6 @@ class RunGADiscoveryFnTest {
             
             null // satisfies expects null return
         }
-        
         pipeline.run().waitUntilFinish()
     }
 
