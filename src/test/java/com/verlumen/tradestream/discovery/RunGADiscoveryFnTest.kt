@@ -11,10 +11,12 @@ import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.marketdata.Candle
 import com.verlumen.tradestream.marketdata.CandleFetcher
 import com.verlumen.tradestream.strategies.SmaRsiParameters
+import com.verlumen.tradestream.strategies.Strategy
 import com.verlumen.tradestream.strategies.StrategyType
 import io.jenetics.DoubleChromosome
 import io.jenetics.DoubleGene
 import io.jenetics.Genotype
+import io.jenetics.Phenotype
 import io.jenetics.engine.Engine
 import io.jenetics.engine.EvolutionResult
 import io.jenetics.util.ISeq
@@ -131,10 +133,9 @@ class RunGADiscoveryFnTest {
             mockGenotypeConverter.convertToParameters(any(), eq(StrategyType.SMA_RSI)),
         ).thenReturn(paramsAny)
 
-        val input: PCollection<StrategyDiscoveryRequest> =
-            pipeline.apply(
-                Create.of<StrategyDiscoveryRequest>(request),
-            )
+        val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(
+            Create.of<StrategyDiscoveryRequest>(request)
+        )
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
 
         // We can't predict the exact score since we're using a real engine,
@@ -158,10 +159,9 @@ class RunGADiscoveryFnTest {
         val request = createTestRequest()
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(ImmutableList.of())
 
-        val input: PCollection<StrategyDiscoveryRequest> =
-            pipeline.apply(
-                Create.of<StrategyDiscoveryRequest>(request),
-            )
+        val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(
+            Create.of<StrategyDiscoveryRequest>(request)
+        )
         val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
 
         PAssert.that(output).empty()
@@ -174,21 +174,22 @@ class RunGADiscoveryFnTest {
         val dummyCandle = createDummyCandle(request.startTime)
         val candles = ImmutableList.of(dummyCandle)
 
-        val mockEvolutionResult = mock(EvolutionResult::class.java) as EvolutionResult<DoubleGene, Double>
-        whenever(mockEvolutionResult.population()).thenReturn(ISeq.empty())
-
-        val mockEvolutionStream = mock(EvolutionStream::class.java) as EvolutionStream<DoubleGene, Double>
-        whenever(mockEvolutionStream.limit(any())).thenReturn(mockEvolutionStream)
-        whenever(mockEvolutionStream.collect(any())).thenReturn(mockEvolutionResult)
-
-        val mockEngine = mock(Engine::class.java) as Engine<DoubleGene, Double>
-        whenever(mockEngine.stream()).thenReturn(mockEvolutionStream)
+        // Create an engine that will return no results (empty population)
+        val emptyEngine =
+            Engine
+                .builder(
+                    { _: Genotype<DoubleGene> -> 0.0 }, // fitness function
+                    Genotype.of(DoubleChromosome.of(0.0, 1.0, 1)),
+                ).populationSize(0) // This will result in empty population
+                .build()
 
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
-        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(mockEngine)
+        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>())).thenReturn(emptyEngine)
 
-        val input = pipeline.apply(Create.of(request))
-        val output = input.apply(ParDo.of(runGADiscoveryFn))
+        val input: PCollection<StrategyDiscoveryRequest> = pipeline.apply(
+            Create.of<StrategyDiscoveryRequest>(request)
+        )
+        val output: PCollection<StrategyDiscoveryResult> = input.apply(ParDo.of(runGADiscoveryFn))
 
         PAssert.that(output).empty()
         pipeline.run().waitUntilFinish()
