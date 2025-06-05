@@ -12,6 +12,7 @@ import io.jenetics.engine.Engine
 import io.jenetics.engine.EvolutionResult
 import org.apache.beam.sdk.transforms.DoFn
 import java.io.Serializable
+import java.util.Comparator
 
 class RunGADiscoveryFn :
     DoFn<StrategyDiscoveryRequest, StrategyDiscoveryResult>,
@@ -81,16 +82,22 @@ class RunGADiscoveryFn :
             }
 
         // 4) Run the evolution (also local)
-        val evolutionResult: EvolutionResult<*, Double> = // Changed to EvolutionResult<*, Double>
-            try {
-                engine
-                    .stream()
-                    .limit(discoveryRequest.gaConfig.maxGenerations.toLong())
-                    .collect(EvolutionResult.toBestEvolutionResult())
-            } catch (e: Exception) {
-                logger.atSevere().withCause(e).log("Error during GA evolution for %s", discoveryRequest.symbol)
+        val evolutionResult: EvolutionResult<*, Double>
+        try {
+            val stream = engine.stream()
+                .limit(discoveryRequest.gaConfig.maxGenerations.toLong())
+            val optionalResult = stream.max(Comparator.naturalOrder<EvolutionResult<*, Double>>())
+
+            if (!optionalResult.isPresent) {
+                logger.atWarning().log("GA evolution stream was empty for %s after limit %d. Max generations: %d",
+                    discoveryRequest.symbol, discoveryRequest.gaConfig.maxGenerations)
                 return
             }
+            evolutionResult = optionalResult.get()
+        } catch (e: Exception) {
+            logger.atSevere().withCause(e).log("Error during GA evolution for %s", discoveryRequest.symbol)
+            return
+        }
 
         // 5) Pick top N phenotypes
         val bestPhenotypes =
@@ -160,3 +167,4 @@ class RunGADiscoveryFn :
         logger.atInfo().log("RunGADiscoveryFn teardown.")
     }
 }
+
