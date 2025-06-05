@@ -17,7 +17,7 @@ import org.apache.beam.sdk.transforms.DoFn
 class RunGADiscoveryFn
     @Inject
     constructor(
-        private val candleFetcher: InfluxDbCandleFetcher,
+        private val candleFetcher: CandleFetcher,
         private val gaEngineFactory: GAEngineFactory,
         private val genotypeConverter: GenotypeConverter,
     ) : DoFn<StrategyDiscoveryRequest, StrategyDiscoveryResult>() {
