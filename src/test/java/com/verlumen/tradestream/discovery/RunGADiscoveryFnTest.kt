@@ -145,7 +145,6 @@ class RunGADiscoveryFnTest {
             
             val result = resultList[0]
             assert(result.topStrategiesCount == 1) { "Expected 1 strategy, got ${result.topStrategiesCount}" }
-            
             val strategy = result.getTopStrategies(0)
             assert(strategy.symbol == "BTC/USD") { "Expected BTC/USD, got ${strategy.symbol}" }
             assert(strategy.strategy.type == StrategyType.SMA_RSI) { "Expected SMA_RSI type" }
