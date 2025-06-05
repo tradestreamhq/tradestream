@@ -6,6 +6,7 @@ import com.google.inject.Inject
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
 import com.influxdb.client.InfluxDBClient
+import java.io.Serializable
 
 /**
  * Fetches candle data from an InfluxDB instance using the Java client.
@@ -13,12 +14,13 @@ import com.influxdb.client.InfluxDBClient
 class InfluxDbCandleFetcher
     @Inject
     constructor(
-        private val influxDBClient: InfluxDBClient,
+        @Transient private val influxDBClient: InfluxDBClient,
         private val org: String,
         private val bucket: String,
-    ) : CandleFetcher {
+    ) : CandleFetcher, Serializable {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
+            private const val serialVersionUID = 1L
         }
 
         init {

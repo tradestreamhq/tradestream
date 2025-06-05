@@ -2,11 +2,12 @@ package com.verlumen.tradestream.marketdata
 
 import com.google.common.collect.ImmutableList
 import com.google.protobuf.Timestamp
+import java.io.Serializable
 
 /**
  * Interface for fetching candle data.
  */
-interface CandleFetcher : AutoCloseable {
+interface CandleFetcher : AutoCloseable, Serializable {
     /**
      * Fetches candle data for a given symbol within a specified time range.
      *
