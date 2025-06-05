@@ -149,7 +149,6 @@ class RunGADiscoveryFnTest {
             assert(strategy.symbol == "BTC/USD") { "Expected BTC/USD, got ${strategy.symbol}" }
             assert(strategy.strategy.type == StrategyType.SMA_RSI) { "Expected SMA_RSI type" }
             assert(strategy.score > 0) { "Expected positive score, got ${strategy.score}" }
-            
             null // satisfies expects null return
         }
         pipeline.run().waitUntilFinish()
