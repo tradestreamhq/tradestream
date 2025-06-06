@@ -24,7 +24,7 @@ java_library(
 )
 
 kt_jvm_library(
-    name = "deserialize_strategy_discovery_request_fn"
+    name = "deserialize_strategy_discovery_request_fn",
     srcs = ["DeserializeStrategyDiscoveryRequestFn.kt"],
     deps = [
         "//third_party/java:beam_sdks_java_core",
