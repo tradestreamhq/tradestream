@@ -32,6 +32,12 @@ proto_library(
     ],
 )
 
+java_proto_library(
+    name = "discovery_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":discovery_proto"],
+)
+
 py_proto_library(
     name = "discovery_py_proto",
     visibility = ["//visibility:public"],

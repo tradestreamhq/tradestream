@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package discovery;
 
+option java_package = "com.verlumen.tradestream.discovery";
+option java_multiple_files = true;
+
 import "google/protobuf/timestamp.proto";
 import "protos/strategies.proto";
 
@@ -30,7 +33,7 @@ message StrategyDiscoveryRequest {
 // and the context of its discovery.
 message DiscoveredStrategy {
   strategies.Strategy strategy = 1;          // The actual strategy (type and parameters)
-  double score = 2;                           // The score achieved by this strategy instance
+  double score = 2;                         // The score achieved by this strategy instance
   string symbol = 3;                          // Symbol used for this discovery/evaluation
   google.protobuf.Timestamp start_time = 4;   // Inclusive start time of data used
   google.protobuf.Timestamp end_time = 5;     // Exclusive end time of data used

@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_test")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 
 java_test(
     name = "FitnessFunctionFactoryImplTest",
@@ -81,6 +82,33 @@ java_test(
         "//third_party/java:guava",
         "//third_party/java:junit",
         "//third_party/java:test_parameter_injector",
+        "//third_party/java:truth",
+    ],
+)
+
+kt_jvm_test(
+    name = "RunGADiscoveryFnTest",
+    srcs = ["RunGADiscoveryFnTest.kt"],
+    runtime_deps = [
+        "//third_party/java:beam_runners_direct_java",
+        "//third_party/java:hamcrest",
+    ],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:ga_engine_factory",
+        "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
+        "//src/main/java/com/verlumen/tradestream/discovery:run_ga_discovery_fn",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_test_utils",
+        "//third_party/java:guice",
+        "//third_party/java:guice_testlib",
+        "//third_party/java:jenetics",
+        "//third_party/java:junit",
+        "//third_party/java:mockito_core",
+        "//third_party/java:mockito_kotlin",
         "//third_party/java:truth",
     ],
 )
