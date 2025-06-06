@@ -59,7 +59,7 @@ class SerializableTestEngineFactory : Serializable {
 @RunWith(JUnit4::class)
 class RunGADiscoveryFnTest {
     @get:Rule
-    val pipeline: TestPipeline = TestPipeline.create()
+    val pipeline: TestPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(true)
 
     @Bind
     @Mock(serializable = true)
@@ -131,9 +131,8 @@ class RunGADiscoveryFnTest {
 
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
         
-        // Use a static reference instead of a lambda that captures 'this'
         whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>()))
-            .thenReturn(SerializableTestEngineFactory.createSuccessEngine())
+            .thenAnswer { SerializableTestEngineFactory.createSuccessEngine() }
 
         whenever(
             mockGenotypeConverter.convertToParameters(any(), eq(StrategyType.SMA_RSI)),
@@ -180,9 +179,8 @@ class RunGADiscoveryFnTest {
 
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
         
-        // Use static reference instead of lambda
         whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>()))
-            .thenReturn(SerializableTestEngineFactory.createEmptyResultEngine())
+            .thenAnswer { SerializableTestEngineFactory.createEmptyResultEngine() }
 
         val input: PCollection<StrategyDiscoveryRequest> =
             pipeline.apply(Create.of(request))
