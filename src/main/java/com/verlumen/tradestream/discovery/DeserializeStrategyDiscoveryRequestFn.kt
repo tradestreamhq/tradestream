@@ -24,7 +24,6 @@ class DeserializeStrategyDiscoveryRequestFn : DoFn<KV<String, ByteArray>, Strate
     @ProcessElement
     fun processElement(context: ProcessContext) {
         val kafkaValue = context.element().value
-        
         if (kafkaValue != null) {
             try {
                 val request = StrategyDiscoveryRequest.parseFrom(kafkaValue)
