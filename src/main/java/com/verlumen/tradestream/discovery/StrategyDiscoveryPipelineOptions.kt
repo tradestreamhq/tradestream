@@ -10,7 +10,6 @@ interface StrategyDiscoveryPipelineOptions :
     PipelineOptions,
     FlinkPipelineOptions,
     StreamingOptions {
-    
     @get:Description("Kafka bootstrap servers")
     @get:Default.String("localhost:9092")
     var kafkaBootstrapServers: String
