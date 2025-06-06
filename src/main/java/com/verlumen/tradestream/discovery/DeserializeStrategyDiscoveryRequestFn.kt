@@ -1,8 +1,7 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
-import com.google.common.flogger.FluentLogger
-import com.google.common.flogger.FluentLogger
+import com.google.protobuf.InvalidProtocolBufferException
 import com.verlumen.tradestream.discovery.proto.Discovery.StrategyDiscoveryRequest
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.values.KV
