@@ -16,7 +16,6 @@ import org.apache.beam.sdk.options.StreamingOptions
 interface StrategyDiscoveryPipelineOptions :
     PipelineOptions,
     StreamingOptions {
-
     @get:Description("Kafka bootstrap servers")
     @get:Default.String("localhost:9092")
     var kafkaBootstrapServers: String
