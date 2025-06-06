@@ -157,7 +157,7 @@ class RunGADiscoveryFnTest {
         )
 
         val output = pipeline
-            .apply(Create.of(newRequest(topN = 1)))
+            .apply(Create.of(newRequest(topN = 0)))
             .apply(ParDo.of(fn))
 
         PAssert.that(output).empty()
