@@ -12,7 +12,7 @@ import com.google.common.flogger.FluentLogger
  * 
  * Input: KV<String, ByteArray> from Kafka
  * Output: StrategyDiscoveryRequest proto objects
- * 
+ *
  * Handles deserialization errors gracefully by logging and dropping invalid messages.
  */
 class DeserializeStrategyDiscoveryRequestFn : DoFn<KV<String, ByteArray>, StrategyDiscoveryRequest>() {
