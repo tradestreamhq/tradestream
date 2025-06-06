@@ -84,14 +84,20 @@ class RunGADiscoveryFn :
         // 4) Run the evolution (also local)
         val evolutionResult: EvolutionResult<*, Double>
         try {
-            val stream = engine.stream()
-                .limit(discoveryRequest.gaConfig.maxGenerations.toLong())
+            val stream =
+                engine
+                    .stream()
+                    .limit(discoveryRequest.gaConfig.maxGenerations.toLong())
             // Fixed: Use Comparator.comparing with bestFitness() instead of naturalOrder
             val optionalResult = stream.max(Comparator.comparing<EvolutionResult<*, Double>, Double> { it.bestFitness() })
 
             if (!optionalResult.isPresent) {
-                logger.atWarning().log("GA evolution stream was empty for %s after limit %d. Max generations: %d",
-                    discoveryRequest.symbol, discoveryRequest.gaConfig.maxGenerations.toLong(), discoveryRequest.gaConfig.maxGenerations)
+                logger.atWarning().log(
+                    "GA evolution stream was empty for %s after limit %d. Max generations: %d",
+                    discoveryRequest.symbol,
+                    discoveryRequest.gaConfig.maxGenerations.toLong(),
+                    discoveryRequest.gaConfig.maxGenerations,
+                )
                 return
             }
             evolutionResult = optionalResult.get()

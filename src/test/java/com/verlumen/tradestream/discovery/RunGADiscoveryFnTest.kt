@@ -28,8 +28,14 @@ import java.io.Serializable
  * It builds a fresh Jenetics [Engine] on every invocation to avoid holding
  * non‑serialisable state inside the DoFn payload.
  */
-private class StubGAEngineFactory(private val empty: Boolean = false) : GAEngineFactory, Serializable {
-    companion object { private const val serialVersionUID: Long = 1L }
+private class StubGAEngineFactory(
+    private val empty: Boolean = false,
+) : GAEngineFactory,
+    Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1L
+    }
+
     override fun createEngine(params: GAEngineParams): Engine<*, Double> =
         if (empty) {
             Engine
@@ -45,14 +51,28 @@ private class StubGAEngineFactory(private val empty: Boolean = false) : GAEngine
 }
 
 /** Simple serialisable [CandleFetcher] whose behaviour is configurable. */
-private class StubCandleFetcher(private val empty: Boolean = false) : CandleFetcher, Serializable {
-    companion object { private const val serialVersionUID: Long = 1L }
-    override fun fetchCandles(symbol: String, startTime: Timestamp, endTime: Timestamp): ImmutableList<Candle> =
-        if (empty) ImmutableList.of() else ImmutableList.of(createDummyCandle(symbol, startTime))
+private class StubCandleFetcher(
+    private val empty: Boolean = false,
+) : CandleFetcher,
+    Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1L
+    }
+
+    override fun fetchCandles(
+        symbol: String,
+        startTime: Timestamp,
+        endTime: Timestamp,
+    ): ImmutableList<Candle> = if (empty) ImmutableList.of() else ImmutableList.of(createDummyCandle(symbol, startTime))
+
     override fun close() {}
 
-    private fun createDummyCandle(symbol: String, ts: Timestamp): Candle =
-        Candle.newBuilder()
+    private fun createDummyCandle(
+        symbol: String,
+        ts: Timestamp,
+    ): Candle =
+        Candle
+            .newBuilder()
             .setTimestamp(ts)
             .setCurrencyPair(symbol)
             .setOpen(100.0)
@@ -64,11 +84,20 @@ private class StubCandleFetcher(private val empty: Boolean = false) : CandleFetc
 }
 
 /** Trivial serialisable [GenotypeConverter] returning fixed SMA‑RSI params. */
-private class StubGenotypeConverter : GenotypeConverter, Serializable {
-    companion object { private const val serialVersionUID: Long = 1L }
-    override fun convertToParameters(genotype: Genotype<*>, strategyType: StrategyType): Any =
+private class StubGenotypeConverter :
+    GenotypeConverter,
+    Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1L
+    }
+
+    override fun convertToParameters(
+        genotype: Genotype<*>,
+        strategyType: StrategyType,
+    ): Any =
         Any.pack(
-            SmaRsiParameters.newBuilder()
+            SmaRsiParameters
+                .newBuilder()
                 .setMovingAveragePeriod(10)
                 .setRsiPeriod(14)
                 .setOverboughtThreshold(70.0)
@@ -79,46 +108,48 @@ private class StubGenotypeConverter : GenotypeConverter, Serializable {
 
 @RunWith(JUnit4::class)
 class RunGADiscoveryFnTest {
-
     @get:Rule
     val pipeline: TestPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(true)
 
-    /* ---------------------------------------------------------------------- */
-    /* Helper builders                                                        */
-    /* ---------------------------------------------------------------------- */
+    // ----------------------------------------------------------------------
+    // Helper builders
+    // ----------------------------------------------------------------------
 
     private fun newRequest(topN: Int = 1): StrategyDiscoveryRequest {
         val now = System.currentTimeMillis()
-        return StrategyDiscoveryRequest.newBuilder()
+        return StrategyDiscoveryRequest
+            .newBuilder()
             .setSymbol("BTC/USD")
             .setStartTime(Timestamps.fromMillis(now - 200_000))
             .setEndTime(Timestamps.fromMillis(now - 100_000))
             .setStrategyType(StrategyType.SMA_RSI)
             .setTopN(topN)
             .setGaConfig(
-                GAConfig.newBuilder()
+                GAConfig
+                    .newBuilder()
                     .setMaxGenerations(10)
                     .setPopulationSize(20)
                     .build(),
-            )
-            .build()
+            ).build()
     }
 
-    /* ---------------------------------------------------------------------- */
-    /* Tests                                                                   */
-    /* ---------------------------------------------------------------------- */
+    // ----------------------------------------------------------------------
+    // Tests
+    // ----------------------------------------------------------------------
 
     @Test
     fun testRunGADiscoveryFn_success() {
-        val fn = RunGADiscoveryFn(
-            StubCandleFetcher(empty = false),
-            StubGAEngineFactory(empty = false),
-            StubGenotypeConverter(),
-        )
+        val fn =
+            RunGADiscoveryFn(
+                StubCandleFetcher(empty = false),
+                StubGAEngineFactory(empty = false),
+                StubGenotypeConverter(),
+            )
 
-        val output: PCollection<StrategyDiscoveryResult> = pipeline
-            .apply(Create.of(newRequest()))
-            .apply(ParDo.of(fn))
+        val output: PCollection<StrategyDiscoveryResult> =
+            pipeline
+                .apply(Create.of(newRequest()))
+                .apply(ParDo.of(fn))
 
         PAssert.that(output).satisfies { iterable ->
             val results = iterable.toList()
@@ -134,15 +165,17 @@ class RunGADiscoveryFnTest {
 
     @Test
     fun testRunGADiscoveryFn_noCandles() {
-        val fn = RunGADiscoveryFn(
-            StubCandleFetcher(empty = true),
-            StubGAEngineFactory(empty = false),
-            StubGenotypeConverter(),
-        )
+        val fn =
+            RunGADiscoveryFn(
+                StubCandleFetcher(empty = true),
+                StubGAEngineFactory(empty = false),
+                StubGenotypeConverter(),
+            )
 
-        val output = pipeline
-            .apply(Create.of(newRequest()))
-            .apply(ParDo.of(fn))
+        val output =
+            pipeline
+                .apply(Create.of(newRequest()))
+                .apply(ParDo.of(fn))
 
         PAssert.that(output).empty()
         pipeline.run().waitUntilFinish()
@@ -150,15 +183,17 @@ class RunGADiscoveryFnTest {
 
     @Test
     fun testRunGADiscoveryFn_gaYieldsNoResults() {
-        val fn = RunGADiscoveryFn(
-            StubCandleFetcher(empty = false),
-            StubGAEngineFactory(empty = true), // Engine always returns 0 fitness
-            StubGenotypeConverter(),
-        )
+        val fn =
+            RunGADiscoveryFn(
+                StubCandleFetcher(empty = false),
+                StubGAEngineFactory(empty = true), // Engine always returns 0 fitness
+                StubGenotypeConverter(),
+            )
 
-        val output = pipeline
-            .apply(Create.of(newRequest(topN = 0)))
-            .apply(ParDo.of(fn))
+        val output =
+            pipeline
+                .apply(Create.of(newRequest(topN = 0)))
+                .apply(ParDo.of(fn))
 
         PAssert.that(output).empty()
         pipeline.run().waitUntilFinish()
