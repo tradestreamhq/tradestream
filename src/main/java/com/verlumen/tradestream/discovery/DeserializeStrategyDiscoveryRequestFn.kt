@@ -9,7 +9,7 @@ import com.google.common.flogger.FluentLogger
 /**
  * Apache Beam transform that deserializes Kafka messages containing
  * StrategyDiscoveryRequest protobuf messages.
- * 
+ *
  * Input: KV<String, ByteArray> from Kafka
  * Output: StrategyDiscoveryRequest proto objects
  *
