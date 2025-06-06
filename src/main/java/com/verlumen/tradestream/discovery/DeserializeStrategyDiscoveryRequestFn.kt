@@ -30,7 +30,8 @@ class DeserializeStrategyDiscoveryRequestFn : DoFn<KV<String, ByteArray>, Strate
                 val request = StrategyDiscoveryRequest.parseFrom(kafkaValue)
                 context.output(request)
             } catch (e: InvalidProtocolBufferException) {
-                logger.atSevere()
+                logger
+                    .atSevere()
                     .withCause(e)
                     .log("Failed to deserialize StrategyDiscoveryRequest proto.")
             }
