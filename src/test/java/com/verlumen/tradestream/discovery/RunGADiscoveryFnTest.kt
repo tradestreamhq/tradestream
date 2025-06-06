@@ -130,10 +130,7 @@ class RunGADiscoveryFnTest {
         val paramsAny = Any.pack(smaRsiParams)
 
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
-        
-        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>()))
-            .thenAnswer { SerializableTestEngineFactory.createSuccessEngine() }
-
+        whenever(mockGaEngineFactory.createEngine(any())).thenReturn(SerializableTestEngineFactory.createSuccessEngine())
         whenever(
             mockGenotypeConverter.convertToParameters(any(), eq(StrategyType.SMA_RSI)),
         ).thenReturn(paramsAny)
@@ -178,9 +175,7 @@ class RunGADiscoveryFnTest {
         val candles = ImmutableList.of(dummyCandle)
 
         whenever(mockCandleFetcher.fetchCandles(any(), any(), any())).thenReturn(candles)
-        
-        whenever(mockGaEngineFactory.createEngine(any<GAEngineParams>()))
-            .thenAnswer { SerializableTestEngineFactory.createEmptyResultEngine() }
+        whenever(mockGaEngineFactory.createEngine(any())).thenReturn(SerializableTestEngineFactory.createEmptyResultEngine())
 
         val input: PCollection<StrategyDiscoveryRequest> =
             pipeline.apply(Create.of(request))
