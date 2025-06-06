@@ -234,3 +234,11 @@ kt_jvm_library(
         "//third_party/java:protobuf_java_util",
     ],
 )
+
+kt_jvm_library(
+    name = "strategy_discovery_pipeline_options",
+    srcs = ["StrategyDiscoveryPipelineOptions.kt"],
+    deps = [
+        "//third_party/java:beam_sdks_java_core",
+    ],
+)
