@@ -4,7 +4,6 @@ import com.google.protobuf.InvalidProtocolBufferException
 import com.verlumen.tradestream.discovery.proto.Discovery.StrategyDiscoveryRequest
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.values.KV
-import com.google.common.flogger.FluentLogger
 
 /**
  * Apache Beam transform that deserializes Kafka messages containing
