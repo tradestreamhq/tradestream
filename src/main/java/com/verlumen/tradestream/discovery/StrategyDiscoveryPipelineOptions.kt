@@ -1,15 +1,22 @@
 package com.verlumen.tradestream.discovery
 
-import org.apache.beam.runners.flink.FlinkPipelineOptions
 import org.apache.beam.sdk.options.Default
 import org.apache.beam.sdk.options.Description
 import org.apache.beam.sdk.options.PipelineOptions
 import org.apache.beam.sdk.options.StreamingOptions
 
+/**
+ * Runtime flags for the strategy-discovery job.
+ *
+ * All fields are regular PipelineOptions so the
+ * same JAR can run on any Beam runner (Direct, Flink,
+ * Dataflow, Spark, etc.).  We keep StreamingOptions
+ * to mark the job as unbounded.
+ */
 interface StrategyDiscoveryPipelineOptions :
     PipelineOptions,
-    FlinkPipelineOptions,
     StreamingOptions {
+
     @get:Description("Kafka bootstrap servers")
     @get:Default.String("localhost:9092")
     var kafkaBootstrapServers: String
