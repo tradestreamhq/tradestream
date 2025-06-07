@@ -5,6 +5,7 @@ kt_jvm_library(
     srcs = ["PostgreSQLDataSourceFactory.kt"],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/discovery:__pkg__",
+        "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
         "//src/test/java/com/verlumen/tradestream/postgres:__pkg__",
     ],
