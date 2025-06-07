@@ -244,5 +244,5 @@ class WriteDiscoveredStrategiesToPostgresFn
  * with runtime-provided database configuration parameters.
  */
 interface WriteDiscoveredStrategiesToPostgresFnFactory {
-    fun create(        dataSourceConfig: DataSourceConfig    ): WriteDiscoveredStrategiesToPostgresFn
+    fun create(dataSourceConfig: DataSourceConfig): WriteDiscoveredStrategiesToPostgresFn
 }
