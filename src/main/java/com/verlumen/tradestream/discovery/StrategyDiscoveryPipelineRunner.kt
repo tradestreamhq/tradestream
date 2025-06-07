@@ -1,7 +1,7 @@
 package com.verlumen.tradestream.discovery
 
-import com.verlumen.tradestream.postgres.PostgresModule
 import com.google.inject.Guice
+import com.verlumen.tradestream.postgres.PostgresModule
 import org.apache.beam.sdk.options.PipelineOptionsFactory
 
 /**
@@ -30,7 +30,10 @@ class StrategyDiscoveryPipelineRunner {
                     .withValidation()
                     .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
-            val injector = Guice.createInjector(DiscoveryModule(), PostgresModule(),)
+            val injector = Guice.createInjector(
+                DiscoveryModule(), 
+                PostgresModule(),
+            )
             val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
 
             factory.create(options).run()
