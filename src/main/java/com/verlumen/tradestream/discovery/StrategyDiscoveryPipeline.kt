@@ -58,11 +58,5 @@ object StrategyDiscoveryPipeline {
     }
 
     private fun createInjector(options: StrategyDiscoveryPipelineOptions): Injector =
-        Guice.createInjector(
-            StrategyDiscoveryModule(options),
-            // Add other modules as needed
-            // BacktestingModule(),
-            // MarketDataModule(),
-            // etc.
-        )
+        Guice.createInjector(DiscoveryModule(options))
 }
