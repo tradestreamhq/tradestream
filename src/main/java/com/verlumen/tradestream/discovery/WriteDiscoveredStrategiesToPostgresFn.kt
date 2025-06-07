@@ -263,7 +263,7 @@ class WriteDiscoveredStrategiesToPostgresFn
         }
     }
 
- /**
+/**
  * Factory interface for creating WriteDiscoveredStrategiesToPostgresFn instances
  * with runtime-provided database configuration parameters.
  */
