@@ -44,10 +44,6 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
     @Mock
     lateinit var mockConnection: Connection
 
-    // Mock provider for the DataSource
-    @Bind
-    val mockDataSourceProvider: Provider<DataSource> = Provider { mockDataSource }
-
     // The class under test - will be injected by Guice
     @Inject
     lateinit var writeDiscoveredStrategiesToPostgresFn: WriteDiscoveredStrategiesToPostgresFn
