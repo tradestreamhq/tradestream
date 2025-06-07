@@ -8,7 +8,7 @@ import org.apache.beam.sdk.transforms.DoFn
  * 
  * Input: StrategyDiscoveryResult (containing multiple strategies)
  * Output: Individual DiscoveredStrategy objects
- * 
+ *
  * This flattens the result structure to enable individual processing
  * of each discovered strategy.
  */
