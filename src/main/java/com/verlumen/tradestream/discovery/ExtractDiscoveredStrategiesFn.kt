@@ -13,7 +13,6 @@ import org.apache.beam.sdk.transforms.DoFn
  * of each discovered strategy.
  */
 class ExtractDiscoveredStrategiesFn : DoFn<StrategyDiscoveryResult, DiscoveredStrategy>() {
-    
     @ProcessElement
     fun processElement(context: ProcessContext) {
         val result = context.element()
