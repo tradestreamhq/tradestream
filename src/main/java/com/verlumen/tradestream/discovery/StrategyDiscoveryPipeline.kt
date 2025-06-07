@@ -49,14 +49,17 @@ class StrategyDiscoveryPipeline(
                     .withTopic(strategyDiscoveryRequestTopic)
                     .withKeyDeserializer(StringDeserializer::class.java)
                     .withValueDeserializer(ByteArrayDeserializer::class.java),
-            ).apply(
+            )
+            .apply(
                 "ExtractKVFromRecord",
                 MapElements.via(
-                    object : SimpleFunction<KafkaRecord<String, ByteArray>, KV<String, ByteArray>> {
-                        override fun apply(input: KafkaRecord<String, ByteArray>): KV<String, ByteArray> = input.kv
+                    object : SimpleFunction<KafkaRecord<String, ByteArray>, KV<String, ByteArray>>() {
+                        override fun apply(input: KafkaRecord<String, ByteArray>): KV<String, ByteArray> =
+                            input.kv
                     },
                 ),
-            ).apply("DeserializeProtoRequests", ParDo.of(deserializeFn))
+            )
+            .apply("DeserializeProtoRequests", ParDo.of(deserializeFn))
             .apply("RunGAStrategyDiscovery", ParDo.of(runGAFn))
             .apply("ExtractStrategies", ParDo.of(extractFn))
             .apply("WriteToPostgreSQL", ParDo.of(writeFn))
