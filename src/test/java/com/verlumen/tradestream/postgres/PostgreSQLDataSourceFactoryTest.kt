@@ -1,5 +1,6 @@
-package com.verlumen.tradestream.discovery
+package com.verlumen.tradestream.postgres
 
+import com.verlumen.tradestream.sql.DataSourceFactory
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
