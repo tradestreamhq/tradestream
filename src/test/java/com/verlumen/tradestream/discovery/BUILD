@@ -164,6 +164,7 @@ kt_jvm_test(
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline",
+        "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline_factory",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:guice",
         "//third_party/java:guice_testlib",
