@@ -15,12 +15,13 @@ class PostgreSQLDataSourceFactoryTest {
 
     @Test
     fun testCreateDataSourceWithRequiredParameters() {
-        val config = DataSourceConfig(
-            serverName = "localhost",
-            databaseName = "test_db",
-            username = "test_user",
-            password = "test_password"
-        )
+        val config =
+            DataSourceConfig(
+                serverName = "localhost",
+                databaseName = "test_db",
+                username = "test_user",
+                password = "test_password",
+            )
 
         val dataSource = factory.create(config)
 
@@ -37,17 +38,18 @@ class PostgreSQLDataSourceFactoryTest {
 
     @Test
     fun testCreateDataSourceWithAllParameters() {
-        val config = DataSourceConfig(
-            serverName = "prod-db.example.com",
-            databaseName = "production_db",
-            username = "prod_user",
-            password = "secure_password",
-            portNumber = 5433,
-            applicationName = "tradestream-discovery",
-            connectTimeout = 30,
-            socketTimeout = 60,
-            readOnly = true
-        )
+        val config =
+            DataSourceConfig(
+                serverName = "prod-db.example.com",
+                databaseName = "production_db",
+                username = "prod_user",
+                password = "secure_password",
+                portNumber = 5433,
+                applicationName = "tradestream-discovery",
+                connectTimeout = 30,
+                socketTimeout = 60,
+                readOnly = true,
+            )
 
         val dataSource = factory.create(config)
 
@@ -68,17 +70,18 @@ class PostgreSQLDataSourceFactoryTest {
 
     @Test
     fun testCreateDataSourceWithNullOptionalParameters() {
-        val config = DataSourceConfig(
-            serverName = "localhost",
-            databaseName = "test_db",
-            username = "test_user",
-            password = "test_password",
-            portNumber = null,
-            applicationName = null,
-            connectTimeout = null,
-            socketTimeout = null,
-            readOnly = null
-        )
+        val config =
+            DataSourceConfig(
+                serverName = "localhost",
+                databaseName = "test_db",
+                username = "test_user",
+                password = "test_password",
+                portNumber = null,
+                applicationName = null,
+                connectTimeout = null,
+                socketTimeout = null,
+                readOnly = null,
+            )
 
         val dataSource = factory.create(config)
 
@@ -90,7 +93,7 @@ class PostgreSQLDataSourceFactoryTest {
         assert(pgDataSource.databaseName == "test_db") { "Database name should match" }
         assert(pgDataSource.user == "test_user") { "Username should match" }
         assert(pgDataSource.password == "test_password") { "Password should match" }
-        
+
         // Null parameters should result in default values
         assert(pgDataSource.portNumber == 0) { "Port number should be default (0) when null" }
         // Note: PostgreSQL driver uses default values for null optional parameters
@@ -98,13 +101,14 @@ class PostgreSQLDataSourceFactoryTest {
 
     @Test
     fun testCreateDataSourceWithEmptyOptionalStringParameters() {
-        val config = DataSourceConfig(
-            serverName = "localhost",
-            databaseName = "test_db",
-            username = "test_user",
-            password = "test_password",
-            applicationName = "" // Empty string should not be set
-        )
+        val config =
+            DataSourceConfig(
+                serverName = "localhost",
+                databaseName = "test_db",
+                username = "test_user",
+                password = "test_password",
+                applicationName = "", // Empty string should not be set
+            )
 
         val dataSource = factory.create(config)
 
@@ -112,7 +116,7 @@ class PostgreSQLDataSourceFactoryTest {
 
         // Cast to PGSimpleDataSource to verify configuration
         val pgDataSource = dataSource as PGSimpleDataSource
-        
+
         // Empty application name should not be set (takeIf { it.isNotBlank() } prevents it)
         assert(pgDataSource.applicationName == null || pgDataSource.applicationName.isEmpty()) {
             "Empty application name should not be set"
@@ -121,100 +125,108 @@ class PostgreSQLDataSourceFactoryTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun testCreateDataSourceWithBlankServerName() {
-        val config = DataSourceConfig(
-            serverName = "",
-            databaseName = "test_db", 
-            username = "test_user",
-            password = "test_password"
-        )
+        val config =
+            DataSourceConfig(
+                serverName = "",
+                databaseName = "test_db",
+                username = "test_user",
+                password = "test_password",
+            )
 
         factory.create(config) // Should throw IllegalArgumentException
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testCreateDataSourceWithBlankDatabaseName() {
-        val config = DataSourceConfig(
-            serverName = "localhost",
-            databaseName = "",
-            username = "test_user",
-            password = "test_password"
-        )
+        val config =
+            DataSourceConfig(
+                serverName = "localhost",
+                databaseName = "",
+                username = "test_user",
+                password = "test_password",
+            )
 
         factory.create(config) // Should throw IllegalArgumentException
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testCreateDataSourceWithBlankUsername() {
-        val config = DataSourceConfig(
-            serverName = "localhost",
-            databaseName = "test_db",
-            username = "",
-            password = "test_password"
-        )
+        val config =
+            DataSourceConfig(
+                serverName = "localhost",
+                databaseName = "test_db",
+                username = "",
+                password = "test_password",
+            )
 
         factory.create(config) // Should throw IllegalArgumentException
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testCreateDataSourceWithBlankPassword() {
-        val config = DataSourceConfig(
-            serverName = "localhost",
-            databaseName = "test_db",
-            username = "test_user",
-            password = ""
-        )
+        val config =
+            DataSourceConfig(
+                serverName = "localhost",
+                databaseName = "test_db",
+                username = "test_user",
+                password = "",
+            )
 
         factory.create(config) // Should throw IllegalArgumentException
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testCreateDataSourceWithNegativePortNumber() {
-        val config = DataSourceConfig(
-            serverName = "localhost",
-            databaseName = "test_db",
-            username = "test_user",
-            password = "test_password",
-            portNumber = -1
-        )
+        val config =
+            DataSourceConfig(
+                serverName = "localhost",
+                databaseName = "test_db",
+                username = "test_user",
+                password = "test_password",
+                portNumber = -1,
+            )
 
         factory.create(config) // Should throw IllegalArgumentException
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testCreateDataSourceWithZeroPortNumber() {
-        val config = DataSourceConfig(
-            serverName = "localhost",
-            databaseName = "test_db",
-            username = "test_user",
-            password = "test_password",
-            portNumber = 0
-        )
+        val config =
+            DataSourceConfig(
+                serverName = "localhost",
+                databaseName = "test_db",
+                username = "test_user",
+                password = "test_password",
+                portNumber = 0,
+            )
 
         factory.create(config) // Should throw IllegalArgumentException
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testCreateDataSourceWithNegativeConnectTimeout() {
-        val config = DataSourceConfig(
-            serverName = "localhost",
-            databaseName = "test_db",
-            username = "test_user",
-            password = "test_password",
-            connectTimeout = -1
-        )
+        val config =
+            DataSourceConfig(
+                serverName = "localhost",
+                databaseName = "test_db",
+                username = "test_user",
+                password = "test_password",
+                connectTimeout = -1,
+            )
 
         factory.create(config) // Should throw IllegalArgumentException
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testCreateDataSourceWithNegativeSocketTimeout() {
-        val config = DataSourceConfig(
-            serverName = "localhost",
-            databaseName = "test_db",
-            username = "test_user",
-            password = "test_password",
-            socketTimeout = -1
-        )
+        val config =
+            DataSourceConfig(
+                serverName = "localhost",
+                databaseName = "test_db",
+                username = "test_user",
+                password = "test_password",
+                socketTimeout = -1,
+            )
 
         factory.create(config) // Should throw IllegalArgumentException
     }
@@ -230,7 +242,7 @@ class PostgreSQLDataSourceFactoryTest {
                 password = "valid_password",
                 portNumber = 5432,
                 connectTimeout = 30,
-                socketTimeout = 60
+                socketTimeout = 60,
             )
         } catch (e: Exception) {
             assert(false) { "Valid configuration should not throw exception: ${e.message}" }
@@ -239,12 +251,13 @@ class PostgreSQLDataSourceFactoryTest {
 
     @Test
     fun testUseConnectionExtensionFunction() {
-        val config = DataSourceConfig(
-            serverName = "localhost",
-            databaseName = "test_db",
-            username = "test_user",
-            password = "test_password"
-        )
+        val config =
+            DataSourceConfig(
+                serverName = "localhost",
+                databaseName = "test_db",
+                username = "test_user",
+                password = "test_password",
+            )
 
         val dataSource = factory.create(config)
 
