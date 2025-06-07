@@ -13,6 +13,7 @@ import com.verlumen.tradestream.kafka.KafkaModule;
 import com.verlumen.tradestream.marketdata.FillForwardCandles;
 import com.verlumen.tradestream.marketdata.MarketDataModule;
 import com.verlumen.tradestream.marketdata.TradeToCandle;
+import com.verlumen.tradestream.postgres.PostgresModule;
 import com.verlumen.tradestream.signals.SignalsModule;
 import com.verlumen.tradestream.strategies.StrategiesModule;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
@@ -85,6 +86,7 @@ abstract class PipelineModule extends AbstractModule {
     install(InstrumentsModule.create(runMode(), coinMarketCapApiKey(), topCurrencyCount()));
     install(KafkaModule.create(bootstrapServers()));
     install(MarketDataModule.create(exchangeName(), candleDuration(), runMode(), tiingoApiKey()));
+    install(new PostgresModule());
     install(SignalsModule.create(signalTopic()));
     install(new StrategiesModule());
     install(Ta4jModule.create());
