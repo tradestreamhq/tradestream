@@ -282,7 +282,6 @@ kt_jvm_library(
         "//third_party/java:flogger",
         "//third_party/java:guice",
         "//third_party/java:kafka_clients",
-
     ],
 )
 
