@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.inject.Guice
+import com.google.inject.Inject
 import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.Any
@@ -17,9 +18,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.sql.Connection
 import java.time.Instant
@@ -73,7 +74,7 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         injector.injectMembers(this)
 
         // Setup mock behavior for DataSourceFactory
-        whenever(mockDataSourceFactory.create(any<DataSourceConfig>())).thenReturn(mockDataSource)
+        whenever(mockDataSourceFactory.create(any())).thenReturn(mockDataSource)
         whenever(mockDataSource.connection).thenReturn(mockConnection)
 
         // Create the function under test directly (simulating what the factory would do)

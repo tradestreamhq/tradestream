@@ -21,7 +21,7 @@ class PostgreSQLDataSourceFactory : DataSourceFactory {
 
                 // Optional parameters with null checks
                 config.portNumber?.let { portNumber = it }
-                config.applicationName?.takeIf { it.isNotBlank() }?.let { applicationName = it }
+                config.applicationName?.let { applicationName = it }
                 config.connectTimeout?.let { connectTimeout = it }
                 config.socketTimeout?.let { socketTimeout = it }
                 config.readOnly?.let { isReadOnly = it }
