@@ -11,7 +11,6 @@ import javax.sql.DataSource
  */
 @RunWith(JUnit4::class)
 class PostgreSQLDataSourceFactoryTest {
-
     private val factory = PostgreSQLDataSourceFactory()
 
     @Test
