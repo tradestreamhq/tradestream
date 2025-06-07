@@ -75,7 +75,6 @@ class WriteDiscoveredStrategiesToPostgresFn
             
             // Create DataSource using the factory
             dataSource = dataSourceFactory.create(config)
-            
             // Establish connection
             connection =
                 dataSource!!.connection.apply {
