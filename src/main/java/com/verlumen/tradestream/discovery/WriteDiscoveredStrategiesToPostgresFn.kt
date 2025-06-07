@@ -5,7 +5,6 @@ import com.google.inject.Provider
 import com.google.common.flogger.FluentLogger
 import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.util.JsonFormat
-import com.verlumen.tradestream.discovery.proto.Discovery.DiscoveredStrategy
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow
 import org.postgresql.copy.CopyManager
