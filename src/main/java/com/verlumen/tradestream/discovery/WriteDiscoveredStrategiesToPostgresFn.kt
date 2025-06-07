@@ -77,10 +77,11 @@ class WriteDiscoveredStrategiesToPostgresFn
             dataSource = dataSourceFactory.create(config)
             
             // Establish connection
-            connection = dataSource!!.connection.apply {
-                autoCommit = false
-            }
-            
+            connection =
+                dataSource!!.connection.apply {
+                    autoCommit = false
+                }
+
             logger.atInfo().log(
                 "PostgreSQL connection established for bulk writes to ${config.databaseName}@${config.serverName}"
             )
