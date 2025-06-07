@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.inject.Guice
-import com.google.inject.Inject
 import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.Any
@@ -19,9 +18,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
-import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 import java.sql.Connection
@@ -80,18 +77,19 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         whenever(mockDataSource.connection).thenReturn(mockConnection)
 
         // Create the function under test directly (simulating what the factory would do)
-        writeDiscoveredStrategiesToPostgresFn = WriteDiscoveredStrategiesToPostgresFn(
-            dataSourceFactory = mockDataSourceFactory,
-            serverName = testServerName,
-            databaseName = testDatabaseName,
-            username = testUsername,
-            password = testPassword,
-            portNumber = testPortNumber,
-            applicationName = testApplicationName,
-            connectTimeout = testConnectTimeout,
-            socketTimeout = testSocketTimeout,
-            readOnly = testReadOnly
-        )
+        writeDiscoveredStrategiesToPostgresFn =
+            WriteDiscoveredStrategiesToPostgresFn(
+                dataSourceFactory = mockDataSourceFactory,
+                serverName = testServerName,
+                databaseName = testDatabaseName,
+                username = testUsername,
+                password = testPassword,
+                portNumber = testPortNumber,
+                applicationName = testApplicationName,
+                connectTimeout = testConnectTimeout,
+                socketTimeout = testSocketTimeout,
+                readOnly = testReadOnly,
+            )
     }
 
     @Test
@@ -229,17 +227,18 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
     @Test
     fun testDataSourceConfigurationValidation() {
         // Test that valid configuration creates the DataSource without errors
-        val config = DataSourceConfig(
-            serverName = testServerName,
-            databaseName = testDatabaseName,
-            username = testUsername,
-            password = testPassword,
-            portNumber = testPortNumber,
-            applicationName = testApplicationName,
-            connectTimeout = testConnectTimeout,
-            socketTimeout = testSocketTimeout,
-            readOnly = testReadOnly
-        )
+        val config =
+            DataSourceConfig(
+                serverName = testServerName,
+                databaseName = testDatabaseName,
+                username = testUsername,
+                password = testPassword,
+                portNumber = testPortNumber,
+                applicationName = testApplicationName,
+                connectTimeout = testConnectTimeout,
+                socketTimeout = testSocketTimeout,
+                readOnly = testReadOnly,
+            )
 
         // This should not throw any exceptions
         try {
