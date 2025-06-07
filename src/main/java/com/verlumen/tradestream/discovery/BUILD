@@ -278,7 +278,6 @@ kt_jvm_library(
         ":strategy_discovery_pipeline",
         ":strategy_discovery_pipeline_options",
         ":write_discovered_strategies_to_postgres_fn",
-        "//third_party/java:guice",
         "//third_party/java:beam_sdks_java_io_kafka",
         "//third_party/java:flogger",
         "//third_party/java:guice",
