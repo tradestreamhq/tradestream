@@ -152,3 +152,27 @@ kt_jvm_test(
         "//third_party/java:truth",
     ],
 )
+
+kt_jvm_test(
+    name = "WriteDiscoveredStrategiesToPostgresFnTest",
+    srcs = ["WriteDiscoveredStrategiesToPostgresFnTest.kt"],
+    runtime_deps = [
+        "//third_party/java:beam_runners_direct_java",
+        "//third_party/java:hamcrest",
+    ],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:write_discovered_strategies_to_postgres_fn",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_test_utils",
+        "//third_party/java:guice",
+        "//third_party/java:guice_testlib",
+        "//third_party/java:jenetics",
+        "//third_party/java:junit",
+        "//third_party/java:mockito_core",
+        "//third_party/java:mockito_kotlin",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:truth",
+    ],
+)
