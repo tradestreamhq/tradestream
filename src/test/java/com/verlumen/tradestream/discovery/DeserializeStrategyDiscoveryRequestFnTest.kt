@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.inject.Guice
+import com.google.inject.Inject
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.strategies.StrategyType
@@ -16,7 +17,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.MockitoAnnotations
-import javax.inject.Inject
 
 @RunWith(JUnit4::class)
 class DeserializeStrategyDiscoveryRequestFnTest {
