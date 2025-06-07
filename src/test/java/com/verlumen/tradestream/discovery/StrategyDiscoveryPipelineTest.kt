@@ -1,8 +1,6 @@
 package com.verlumen.tradestream.discovery
 
-import com.google.inject.AbstractModule
 import com.google.inject.Guice
-import com.google.inject.testing.fieldbinder.Bind
 import org.apache.beam.sdk.options.PipelineOptionsFactory
 import org.junit.Before
 import org.junit.Test
@@ -10,6 +8,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.whenever
 
 /**
  * Unit tests for the main StrategyDiscoveryPipeline.
@@ -19,7 +18,7 @@ import org.mockito.MockitoAnnotations
  */
 @RunWith(JUnit4::class)
 class StrategyDiscoveryPipelineTest {
-    @Bind @Mock
+    @Mock
     lateinit var mockOptions: StrategyDiscoveryPipelineOptions
 
     @Before
@@ -27,55 +26,33 @@ class StrategyDiscoveryPipelineTest {
         MockitoAnnotations.openMocks(this)
 
         // Configure mock options with required values
-        org.mockito.kotlin
-            .whenever(mockOptions.databaseJdbcUrl)
-            .thenReturn("jdbc:postgresql://test:5432/test")
-        org.mockito.kotlin
-            .whenever(mockOptions.databaseUsername)
-            .thenReturn("test")
-        org.mockito.kotlin
-            .whenever(mockOptions.databasePassword)
-            .thenReturn("test")
-        org.mockito.kotlin
-            .whenever(mockOptions.influxDbUrl)
-            .thenReturn("http://test:8086")
-        org.mockito.kotlin
-            .whenever(mockOptions.influxDbToken)
-            .thenReturn("test-token")
-        org.mockito.kotlin
-            .whenever(mockOptions.influxDbOrg)
-            .thenReturn("test-org")
-        org.mockito.kotlin
-            .whenever(mockOptions.influxDbBucket)
-            .thenReturn("test-bucket")
-        org.mockito.kotlin
-            .whenever(mockOptions.kafkaBootstrapServers)
-            .thenReturn("localhost:9092")
-        org.mockito.kotlin
-            .whenever(mockOptions.strategyDiscoveryRequestTopic)
-            .thenReturn("test-topic")
+        whenever(mockOptions.kafkaBootstrapServers).thenReturn("localhost:9092")
+        whenever(mockOptions.strategyDiscoveryRequestTopic).thenReturn("test-topic")
     }
 
     @Test
-    fun testCreateInjectorWithValidOptions() {
-        // Test that the injector can be created with valid options
-        val injector =
-            Guice.createInjector(
-                object : AbstractModule() {
-                    override fun configure() {
-                        install(DiscoveryModule(mockOptions))
-                    }
-                },
-            )
+    fun testCreateInjectorWithParameterlessModule() {
+        // Test that the injector can be created with parameterless DiscoveryModule
+        val injector = Guice.createInjector(DiscoveryModule())
 
-        // Verify that basic bindings work
-        val options = injector.getInstance(StrategyDiscoveryPipelineOptions::class.java)
-        assert(options === mockOptions) { "Should bind the provided options instance" }
+        // Verify that the factory can be instantiated
+        val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
+        assert(factory != null) { "Factory should be instantiable" }
+    }
+
+    @Test
+    fun testFactoryCreatesValidPipeline() {
+        val injector = Guice.createInjector(DiscoveryModule())
+        val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
+
+        // Test that the factory can create a pipeline with valid options
+        val pipeline = factory.create(mockOptions)
+        assert(pipeline != null) { "Pipeline should be created successfully" }
     }
 
     @Test
     fun testTransformInstantiation() {
-        val injector = Guice.createInjector(DiscoveryModule(mockOptions))
+        val injector = Guice.createInjector(DiscoveryModule())
 
         // Test that all transform classes can be instantiated
         val deserializeFn = injector.getInstance(DeserializeStrategyDiscoveryRequestFn::class.java)
@@ -89,26 +66,17 @@ class StrategyDiscoveryPipelineTest {
     }
 
     @Test
-    fun testPipelineOptionsValidation() {
-        // Test with invalid options
-        val invalidOptions = PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java)
-        // Don't set required fields
+    fun testFactoryWithRealOptions() {
+        // Test with real options instead of mocks
+        val realOptions = PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java)
+        realOptions.kafkaBootstrapServers = "localhost:9092"
+        realOptions.strategyDiscoveryRequestTopic = "test-topic"
 
-        val injector = Guice.createInjector(DiscoveryModule(invalidOptions))
-
-        // Should fail when trying to create DataSource without required config
-        try {
-            injector.getInstance(javax.sql.DataSource::class.java)
-            assert(false) { "Should fail with missing database configuration" }
-        } catch (e: Exception) {
-            // Expected - missing configuration should cause failure
-            assert(
-                e.message?.contains("required") == true ||
-                    e.cause?.message?.contains("required") == true,
-            ) {
-                "Error should mention missing required configuration"
-            }
-        }
+        val injector = Guice.createInjector(DiscoveryModule())
+        val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
+        
+        val pipeline = factory.create(realOptions)
+        assert(pipeline != null) { "Pipeline should be created with real options" }
     }
 
     @Test
