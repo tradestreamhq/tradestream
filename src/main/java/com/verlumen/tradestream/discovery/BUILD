@@ -285,6 +285,14 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
+    name = "strategy_discovery_pipeline_options",
+    srcs = ["StrategyDiscoveryPipelineOptions.kt"],
+    deps = [
+        "//third_party/java:beam_sdks_java_core",
+    ],
+)
+
+kt_jvm_library(
     name = "strategy_discovery_pipeline_runner",
     srcs = [
         "StrategyDiscoveryPipelineRunner.kt",
@@ -295,14 +303,6 @@ kt_jvm_library(
         ":strategy_discovery_pipeline_options",
         "//third_party/java:beam_sdks_java_io_kafka",
         "//third_party/java:guice",
-    ],
-)
-
-kt_jvm_library(
-    name = "strategy_discovery_pipeline_options",
-    srcs = ["StrategyDiscoveryPipelineOptions.kt"],
-    deps = [
-        "//third_party/java:beam_sdks_java_core",
     ],
 )
 
