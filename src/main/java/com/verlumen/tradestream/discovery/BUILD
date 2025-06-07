@@ -5,6 +5,12 @@ package(default_visibility = [
     "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
 ])
 
+java_binary(
+    name = "app",
+    main_class = "com.verlumen.tradestream.discovery.StrategyDiscoveryPipeline",
+    runtime_deps = [":strategy_discovery_pipeline"],
+)
+
 java_library(
     name = "chromosome_spec",
     srcs = [
@@ -254,6 +260,14 @@ kt_jvm_library(
         "//third_party/java:guice",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java_util",
+    ],
+)
+
+kt_jvm_library(
+    name = "strategy_discovery_pipeline",
+    srcs = ["StrategyDiscoveryPipeline.kt"],
+    deps = [
+        ":strategy_discovery_pipeline_options",
     ],
 )
 
