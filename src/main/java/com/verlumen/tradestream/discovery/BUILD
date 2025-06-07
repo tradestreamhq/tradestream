@@ -84,10 +84,10 @@ kt_jvm_library(
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
+        ":fitness_function",
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
-        "//third_party/java:jenetics",
     ],
 )
 
@@ -95,6 +95,7 @@ kt_jvm_library(
     name = "fitness_function_factory_impl",
     srcs = ["FitnessFunctionFactoryImpl.kt"],
     deps = [
+        ":fitness_function",
         ":fitness_function_factory",
         ":genotype_converter",
         "//protos:backtesting_java_proto",
@@ -103,7 +104,6 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
         "//third_party/java:guice",
-        "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
     ],
 )
