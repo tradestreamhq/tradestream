@@ -1,8 +1,6 @@
 package com.verlumen.tradestream.discovery
 
 import javax.sql.DataSource
-import java.sql.Connection
-import java.sql.SQLException
 
 /**
  * Factory interface for creating DataSource instances.
