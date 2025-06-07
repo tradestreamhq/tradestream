@@ -24,11 +24,6 @@ java_library(
 )
 
 kt_jvm_library(
-    name = "data_source_factory",
-    srcs = ["DataSourceFactory.kt"],
-)
-
-kt_jvm_library(
     name = "deserialize_strategy_discovery_request_fn",
     srcs = ["DeserializeStrategyDiscoveryRequestFn.kt"],
     deps = [
@@ -241,17 +236,6 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/backtesting/patternrecognition:pattern_recognition_params",
         "//src/main/java/com/verlumen/tradestream/backtesting/trendfollowing:trend_following_params",
         "//third_party/java:guava",
-    ],
-)
-
-kt_jvm_library(
-    name = "postgre_sql_data_source_factory",
-    srcs = ["PostgreSQLDataSourceFactory.kt"],
-    deps = [
-        ":data_source_factory",
-        "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
-        "//third_party/java:postgresql",
     ],
 )
 
