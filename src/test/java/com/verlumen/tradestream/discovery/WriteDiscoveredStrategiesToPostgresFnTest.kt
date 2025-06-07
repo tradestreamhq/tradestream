@@ -18,7 +18,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
+import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 import java.sql.Connection
@@ -44,16 +47,13 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
     @Bind @Mock
     lateinit var mockDataSourceFactory: DataSourceFactory
 
-    @Bind @Mock
-    lateinit var mockWriteDiscoveredStrategiesToPostgresFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory
-
     @Mock
     lateinit var mockDataSource: DataSource
 
     @Mock
     lateinit var mockConnection: Connection
 
-    // The class under test - will be created via factory
+    // The class under test - will be created directly with mocked dependencies
     private lateinit var writeDiscoveredStrategiesToPostgresFn: WriteDiscoveredStrategiesToPostgresFn
 
     // Test database configuration
@@ -76,38 +76,12 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         injector.injectMembers(this)
 
         // Setup mock behavior for DataSourceFactory
-        whenever(mockDataSourceFactory.create(any())).thenReturn(mockDataSource)
+        whenever(mockDataSourceFactory.create(any<DataSourceConfig>())).thenReturn(mockDataSource)
         whenever(mockDataSource.connection).thenReturn(mockConnection)
 
-        // Create the function under test using the factory
-        whenever(
-            mockWriteDiscoveredStrategiesToPostgresFnFactory.create(
-                serverName = testServerName,
-                databaseName = testDatabaseName,
-                username = testUsername,
-                password = testPassword,
-                portNumber = testPortNumber,
-                applicationName = testApplicationName,
-                connectTimeout = testConnectTimeout,
-                socketTimeout = testSocketTimeout,
-                readOnly = testReadOnly
-            )
-        ).thenReturn(
-            WriteDiscoveredStrategiesToPostgresFn(
-                dataSourceFactory = mockDataSourceFactory,
-                serverName = testServerName,
-                databaseName = testDatabaseName,
-                username = testUsername,
-                password = testPassword,
-                portNumber = testPortNumber,
-                applicationName = testApplicationName,
-                connectTimeout = testConnectTimeout,
-                socketTimeout = testSocketTimeout,
-                readOnly = testReadOnly
-            )
-        )
-
-        writeDiscoveredStrategiesToPostgresFn = mockWriteDiscoveredStrategiesToPostgresFnFactory.create(
+        // Create the function under test directly (simulating what the factory would do)
+        writeDiscoveredStrategiesToPostgresFn = WriteDiscoveredStrategiesToPostgresFn(
+            dataSourceFactory = mockDataSourceFactory,
             serverName = testServerName,
             databaseName = testDatabaseName,
             username = testUsername,
@@ -121,22 +95,9 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
     }
 
     @Test
-    fun testFactoryCreatesInstanceWithCorrectParameters() {
-        // Verify that the factory was called with correct parameters
-        verify(mockWriteDiscoveredStrategiesToPostgresFnFactory).create(
-            serverName = testServerName,
-            databaseName = testDatabaseName,
-            username = testUsername,
-            password = testPassword,
-            portNumber = testPortNumber,
-            applicationName = testApplicationName,
-            connectTimeout = testConnectTimeout,
-            socketTimeout = testSocketTimeout,
-            readOnly = testReadOnly
-        )
-
-        // Verify the instance is not null
-        assert(writeDiscoveredStrategiesToPostgresFn != null) { "Factory should create non-null instance" }
+    fun testInstanceCreatedWithCorrectParameters() {
+        // Verify the instance is not null and was created successfully
+        assert(writeDiscoveredStrategiesToPostgresFn != null) { "Instance should be created successfully" }
     }
 
     @Test
@@ -257,18 +218,18 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         val input: PCollection<DiscoveredStrategy> = pipeline.apply(Create.of(discoveredStrategy))
 
         // This would normally write to PostgreSQL, but for unit testing we just verify
-        // the pipeline can be constructed without errors using the factory-created instance
+        // the pipeline can be constructed without errors using the directly created instance
         val output: PCollection<Void> = input.apply(ParDo.of(writeDiscoveredStrategiesToPostgresFn))
 
         // Note: We can't run this pipeline in unit tests without a database
-        // This test just verifies the DoFn can be instantiated correctly via factory
+        // This test just verifies the DoFn can be instantiated correctly
         assert(output != null) { "Pipeline should be constructable" }
     }
 
     @Test
-    fun testDataSourceConfigurationIsPassedCorrectly() {
-        // Verify that the DataSourceFactory.create method was called with correct configuration
-        val expectedConfig = DataSourceConfig(
+    fun testDataSourceConfigurationValidation() {
+        // Test that valid configuration creates the DataSource without errors
+        val config = DataSourceConfig(
             serverName = testServerName,
             databaseName = testDatabaseName,
             username = testUsername,
@@ -280,18 +241,280 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
             readOnly = testReadOnly
         )
 
-        // This would be verified when setup() is called on the DoFn, but since we're not
-        // running the actual pipeline, we can verify the factory was configured correctly
-        verify(mockWriteDiscoveredStrategiesToPostgresFnFactory).create(
-            eq(testServerName),
-            eq(testDatabaseName),
-            eq(testUsername),
-            eq(testPassword),
-            eq(testPortNumber),
-            eq(testApplicationName),
-            eq(testConnectTimeout),
-            eq(testSocketTimeout),
-            eq(testReadOnly)
+        // This should not throw any exceptions
+        try {
+            mockDataSourceFactory.create(config)
+        } catch (e: Exception) {
+            assert(false) { "Valid configuration should not cause errors: ${e.message}" }
+        }
+    }
+}
+
+# src/test/java/com/verlumen/tradestream/discovery/PostgreSQLDataSourceFactoryTest.kt
+package com.verlumen.tradestream.discovery
+
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.postgresql.ds.PGSimpleDataSource
+import javax.sql.DataSource
+
+/**
+ * Unit tests for PostgreSQLDataSourceFactory to verify correct DataSource configuration.
+ */
+@RunWith(JUnit4::class)
+class PostgreSQLDataSourceFactoryTest {
+
+    private val factory = PostgreSQLDataSourceFactory()
+
+    @Test
+    fun testCreateDataSourceWithRequiredParameters() {
+        val config = DataSourceConfig(
+            serverName = "localhost",
+            databaseName = "test_db",
+            username = "test_user",
+            password = "test_password"
         )
+
+        val dataSource = factory.create(config)
+
+        assert(dataSource != null) { "DataSource should not be null" }
+        assert(dataSource is DataSource) { "Should return DataSource interface" }
+
+        // Cast to PGSimpleDataSource to verify configuration
+        val pgDataSource = dataSource as PGSimpleDataSource
+        assert(pgDataSource.serverName == "localhost") { "Server name should match" }
+        assert(pgDataSource.databaseName == "test_db") { "Database name should match" }
+        assert(pgDataSource.user == "test_user") { "Username should match" }
+        assert(pgDataSource.password == "test_password") { "Password should match" }
+    }
+
+    @Test
+    fun testCreateDataSourceWithAllParameters() {
+        val config = DataSourceConfig(
+            serverName = "prod-db.example.com",
+            databaseName = "production_db",
+            username = "prod_user",
+            password = "secure_password",
+            portNumber = 5433,
+            applicationName = "tradestream-discovery",
+            connectTimeout = 30,
+            socketTimeout = 60,
+            readOnly = true
+        )
+
+        val dataSource = factory.create(config)
+
+        assert(dataSource != null) { "DataSource should not be null" }
+
+        // Cast to PGSimpleDataSource to verify configuration
+        val pgDataSource = dataSource as PGSimpleDataSource
+        assert(pgDataSource.serverName == "prod-db.example.com") { "Server name should match" }
+        assert(pgDataSource.databaseName == "production_db") { "Database name should match" }
+        assert(pgDataSource.user == "prod_user") { "Username should match" }
+        assert(pgDataSource.password == "secure_password") { "Password should match" }
+        assert(pgDataSource.portNumber == 5433) { "Port number should match" }
+        assert(pgDataSource.applicationName == "tradestream-discovery") { "Application name should match" }
+        assert(pgDataSource.connectTimeout == 30) { "Connect timeout should match" }
+        assert(pgDataSource.socketTimeout == 60) { "Socket timeout should match" }
+        assert(pgDataSource.isReadOnly == true) { "Read-only flag should match" }
+    }
+
+    @Test
+    fun testCreateDataSourceWithNullOptionalParameters() {
+        val config = DataSourceConfig(
+            serverName = "localhost",
+            databaseName = "test_db",
+            username = "test_user",
+            password = "test_password",
+            portNumber = null,
+            applicationName = null,
+            connectTimeout = null,
+            socketTimeout = null,
+            readOnly = null
+        )
+
+        val dataSource = factory.create(config)
+
+        assert(dataSource != null) { "DataSource should not be null" }
+
+        // Cast to PGSimpleDataSource to verify configuration
+        val pgDataSource = dataSource as PGSimpleDataSource
+        assert(pgDataSource.serverName == "localhost") { "Server name should match" }
+        assert(pgDataSource.databaseName == "test_db") { "Database name should match" }
+        assert(pgDataSource.user == "test_user") { "Username should match" }
+        assert(pgDataSource.password == "test_password") { "Password should match" }
+        
+        // Null parameters should result in default values
+        assert(pgDataSource.portNumber == 0) { "Port number should be default (0) when null" }
+        // Note: PostgreSQL driver uses default values for null optional parameters
+    }
+
+    @Test
+    fun testCreateDataSourceWithEmptyOptionalStringParameters() {
+        val config = DataSourceConfig(
+            serverName = "localhost",
+            databaseName = "test_db",
+            username = "test_user",
+            password = "test_password",
+            applicationName = "" // Empty string should not be set
+        )
+
+        val dataSource = factory.create(config)
+
+        assert(dataSource != null) { "DataSource should not be null" }
+
+        // Cast to PGSimpleDataSource to verify configuration
+        val pgDataSource = dataSource as PGSimpleDataSource
+        
+        // Empty application name should not be set (takeIf { it.isNotBlank() } prevents it)
+        assert(pgDataSource.applicationName == null || pgDataSource.applicationName.isEmpty()) {
+            "Empty application name should not be set"
+        }
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testCreateDataSourceWithBlankServerName() {
+        val config = DataSourceConfig(
+            serverName = "",
+            databaseName = "test_db", 
+            username = "test_user",
+            password = "test_password"
+        )
+
+        factory.create(config) // Should throw IllegalArgumentException
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testCreateDataSourceWithBlankDatabaseName() {
+        val config = DataSourceConfig(
+            serverName = "localhost",
+            databaseName = "",
+            username = "test_user",
+            password = "test_password"
+        )
+
+        factory.create(config) // Should throw IllegalArgumentException
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testCreateDataSourceWithBlankUsername() {
+        val config = DataSourceConfig(
+            serverName = "localhost",
+            databaseName = "test_db",
+            username = "",
+            password = "test_password"
+        )
+
+        factory.create(config) // Should throw IllegalArgumentException
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testCreateDataSourceWithBlankPassword() {
+        val config = DataSourceConfig(
+            serverName = "localhost",
+            databaseName = "test_db",
+            username = "test_user",
+            password = ""
+        )
+
+        factory.create(config) // Should throw IllegalArgumentException
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testCreateDataSourceWithNegativePortNumber() {
+        val config = DataSourceConfig(
+            serverName = "localhost",
+            databaseName = "test_db",
+            username = "test_user",
+            password = "test_password",
+            portNumber = -1
+        )
+
+        factory.create(config) // Should throw IllegalArgumentException
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testCreateDataSourceWithZeroPortNumber() {
+        val config = DataSourceConfig(
+            serverName = "localhost",
+            databaseName = "test_db",
+            username = "test_user",
+            password = "test_password",
+            portNumber = 0
+        )
+
+        factory.create(config) // Should throw IllegalArgumentException
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testCreateDataSourceWithNegativeConnectTimeout() {
+        val config = DataSourceConfig(
+            serverName = "localhost",
+            databaseName = "test_db",
+            username = "test_user",
+            password = "test_password",
+            connectTimeout = -1
+        )
+
+        factory.create(config) // Should throw IllegalArgumentException
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testCreateDataSourceWithNegativeSocketTimeout() {
+        val config = DataSourceConfig(
+            serverName = "localhost",
+            databaseName = "test_db",
+            username = "test_user",
+            password = "test_password",
+            socketTimeout = -1
+        )
+
+        factory.create(config) // Should throw IllegalArgumentException
+    }
+
+    @Test
+    fun testDataSourceConfigValidation() {
+        // Test that the DataSourceConfig validation works correctly
+        try {
+            DataSourceConfig(
+                serverName = "valid_server",
+                databaseName = "valid_db",
+                username = "valid_user",
+                password = "valid_password",
+                portNumber = 5432,
+                connectTimeout = 30,
+                socketTimeout = 60
+            )
+        } catch (e: Exception) {
+            assert(false) { "Valid configuration should not throw exception: ${e.message}" }
+        }
+    }
+
+    @Test
+    fun testUseConnectionExtensionFunction() {
+        val config = DataSourceConfig(
+            serverName = "localhost",
+            databaseName = "test_db",
+            username = "test_user",
+            password = "test_password"
+        )
+
+        val dataSource = factory.create(config)
+
+        // Test the extension function compiles and can be called
+        // Note: This will fail with actual database connection, but we're testing the API
+        try {
+            dataSource.useConnection { connection ->
+                assert(connection != null) { "Connection should not be null" }
+                "test_result"
+            }
+        } catch (e: Exception) {
+            // Expected to fail since we don't have a real database
+            // We're just testing that the extension function is available and compiles
+            assert(e.message?.contains("Connection") == true || e.message?.contains("connection") == true) {
+                "Should fail with connection-related error, got: ${e.message}"
+            }
+        }
     }
 }

@@ -127,6 +127,18 @@ java_test(
 )
 
 kt_jvm_test(
+    name = "PostgreSQLDataSourceFactoryTest",
+    srcs = ["PostgreSQLDataSourceFactoryTest.kt"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/discovery:data_source_factory",
+        "//src/main/java/com/verlumen/tradestream/discovery:postgre_sql_data_source_factory",
+        "//third_party/java:junit",
+        "//third_party/java:postgresql",
+        "//third_party/java:truth",
+    ],
+)
+
+kt_jvm_test(
     name = "RunGADiscoveryFnTest",
     srcs = ["RunGADiscoveryFnTest.kt"],
     runtime_deps = [
@@ -163,6 +175,7 @@ kt_jvm_test(
     deps = [
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:data_source_factory",
         "//src/main/java/com/verlumen/tradestream/discovery:write_discovered_strategies_to_postgres_fn",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_test_utils",
@@ -172,7 +185,9 @@ kt_jvm_test(
         "//third_party/java:junit",
         "//third_party/java:mockito_core",
         "//third_party/java:mockito_kotlin",
+        "//third_party/java:postgresql",
         "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
         "//third_party/java:truth",
     ],
 )
