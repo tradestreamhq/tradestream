@@ -30,7 +30,6 @@ class DeserializeStrategyDiscoveryRequestFnTest {
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        
         // Create Guice injector with BoundFieldModule to inject the test fixture
         val injector = Guice.createInjector(BoundFieldModule.of(this))
         injector.injectMembers(this)
