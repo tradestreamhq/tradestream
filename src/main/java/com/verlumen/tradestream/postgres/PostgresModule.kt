@@ -5,5 +5,5 @@ import com.google.inject.AbstractModule
 class PostgresModule : AbstractModule() {
     override fun configure() {
         bind(DataSourceFactory::class.java).to(PostgreSQLDataSourceFactory::class.java)
-   }
+    }
 }
