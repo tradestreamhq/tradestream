@@ -278,6 +278,6 @@ interface WriteDiscoveredStrategiesToPostgresFnFactory {
         applicationName: String? = null,
         connectTimeout: Int? = null,
         socketTimeout: Int? = null,
-        readOnly: Boolean? = null
+        readOnly: Boolean? = null,
     ): WriteDiscoveredStrategiesToPostgresFn
 }
