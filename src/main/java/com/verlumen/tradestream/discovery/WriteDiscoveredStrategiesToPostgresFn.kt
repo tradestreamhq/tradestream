@@ -8,7 +8,6 @@ import com.google.protobuf.util.JsonFormat
 import com.verlumen.tradestream.sql.DataSourceConfig
 import com.verlumen.tradestream.sql.DataSourceFactory
 import org.apache.beam.sdk.transforms.DoFn
-import org.apache.beam.sdk.transforms.windowing.BoundedWindow
 import org.postgresql.core.BaseConnection
 import java.io.StringReader
 import java.security.MessageDigest
@@ -89,8 +88,7 @@ class WriteDiscoveredStrategiesToPostgresFn
 
         @ProcessElement
         fun processElement(
-            @Element element: DiscoveredStrategy,
-            window: BoundedWindow,
+            @Element element: DiscoveredStrategy
         ) {
             val csvRow = convertToCsvRow(element)
             batch.offer(csvRow)
