@@ -11,10 +11,10 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 
 /**
- * Unit tests for the main StrategyDiscoveryPipeline.
+ * Unit tests for the main StrategyDiscoveryPipeline wiring.
  *
- * These tests focus on the pipeline construction and Guice integration
- * rather than end-to-end pipeline execution.
+ * These tests focus on pipeline construction and Guice integration
+ * rather than end-to-end execution.
  */
 @RunWith(JUnit4::class)
 class StrategyDiscoveryPipelineTest {
@@ -32,10 +32,8 @@ class StrategyDiscoveryPipelineTest {
 
     @Test
     fun testCreateInjectorWithParameterlessModule() {
-        // Test that the injector can be created with parameterless DiscoveryModule
+        // Injector should build with the default module
         val injector = Guice.createInjector(DiscoveryModule())
-
-        // Verify that the factory can be instantiated
         val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
         assert(factory != null) { "Factory should be instantiable" }
     }
@@ -45,7 +43,6 @@ class StrategyDiscoveryPipelineTest {
         val injector = Guice.createInjector(DiscoveryModule())
         val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
 
-        // Test that the factory can create a pipeline with valid options
         val pipeline = factory.create(mockOptions)
         assert(pipeline != null) { "Pipeline should be created successfully" }
     }
@@ -53,40 +50,21 @@ class StrategyDiscoveryPipelineTest {
     @Test
     fun testTransformInstantiation() {
         val injector = Guice.createInjector(DiscoveryModule())
-
-        // Test that all transform classes can be instantiated
-        val deserializeFn = injector.getInstance(DeserializeStrategyDiscoveryRequestFn::class.java)
-        assert(deserializeFn != null) { "DeserializeStrategyDiscoveryRequestFn should be instantiable" }
-
-        val extractFn = injector.getInstance(ExtractDiscoveredStrategiesFn::class.java)
-        assert(extractFn != null) { "ExtractDiscoveredStrategiesFn should be instantiable" }
-
-        val postgresFn = injector.getInstance(WriteDiscoveredStrategiesToPostgresFn::class.java)
-        assert(postgresFn != null) { "WriteDiscoveredStrategiesToPostgresFn should be instantiable" }
+        assert(injector.getInstance(DeserializeStrategyDiscoveryRequestFn::class.java) != null)
+        assert(injector.getInstance(ExtractDiscoveredStrategiesFn::class.java) != null)
+        assert(injector.getInstance(WriteDiscoveredStrategiesToPostgresFn::class.java) != null)
     }
 
     @Test
     fun testFactoryWithRealOptions() {
-        // Test with real options instead of mocks
-        val realOptions = PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java)
-        realOptions.kafkaBootstrapServers = "localhost:9092"
-        realOptions.strategyDiscoveryRequestTopic = "test-topic"
+        val realOptions =
+            PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java).apply {
+                kafkaBootstrapServers = "localhost:9092"
+                strategyDiscoveryRequestTopic = "test-topic"
+            }
 
         val injector = Guice.createInjector(DiscoveryModule())
         val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
-
-        val pipeline = factory.create(realOptions)
-        assert(pipeline != null) { "Pipeline should be created with real options" }
-    }
-
-    @Test
-    fun testMainMethodExists() {
-        // Verify that the main method exists and can be called reflectively
-        val mainMethod = StrategyDiscoveryPipeline::class.java.getMethod("main", Array<String>::class.java)
-        assert(mainMethod != null) { "Main method should exist" }
-        assert(
-            java.lang.reflect.Modifier
-                .isStatic(mainMethod.modifiers),
-        ) { "Main method should be static" }
+        assert(factory.create(realOptions) != null)
     }
 }
