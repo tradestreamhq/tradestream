@@ -51,6 +51,7 @@ kt_jvm_library(
         ":param_config_manager",
         ":param_config_manager_impl",
         ":param_configs",
+        ":write_discovered_strategies_to_postgres_fn",
         "//protos:discovery_java_proto",
         "//third_party/java:guava",
         "//third_party/java:guice",
