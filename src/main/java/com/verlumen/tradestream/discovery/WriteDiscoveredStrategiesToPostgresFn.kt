@@ -179,10 +179,9 @@ class WriteDiscoveredStrategiesToPostgresFn
             conn.prepareStatement(createTempTableSql).use { it.execute() }
 
             // Bulk insert into temp table using COPY
-            val copyManager = (conn as BaseConnection).copyAPI
             val csvData = batchData.joinToString("\n")
 
-            copyManager.copyIn(
+            conn.copyAPI.copyIn(
                 "COPY temp_strategies FROM STDIN WITH (FORMAT csv, DELIMITER E'\\t')",
                 StringReader(csvData),
             )
