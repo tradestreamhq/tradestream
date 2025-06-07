@@ -3,8 +3,6 @@ package com.verlumen.tradestream.discovery
 import com.google.inject.Guice
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.util.Timestamps
-import com.verlumen.tradestream.discovery.proto.Discovery.GAConfig
-import com.verlumen.tradestream.discovery.proto.Discovery.StrategyDiscoveryRequest
 import com.verlumen.tradestream.strategies.StrategyType
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
