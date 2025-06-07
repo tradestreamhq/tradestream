@@ -3,7 +3,6 @@ package com.verlumen.tradestream.discovery
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
-import com.google.inject.assistedinject.AssistedFactory
 import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.util.JsonFormat
 import org.apache.beam.sdk.transforms.DoFn
@@ -266,7 +265,6 @@ class WriteDiscoveredStrategiesToPostgresFn
  * Factory interface for creating WriteDiscoveredStrategiesToPostgresFn instances
  * with runtime-provided database configuration parameters.
  */
-@AssistedFactory
 interface WriteDiscoveredStrategiesToPostgresFnFactory {
     fun create(
         serverName: String,
