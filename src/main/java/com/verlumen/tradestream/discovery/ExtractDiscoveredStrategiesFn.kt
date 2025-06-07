@@ -1,7 +1,5 @@
 package com.verlumen.tradestream.discovery
 
-import com.verlumen.tradestream.discovery.proto.Discovery.DiscoveredStrategy
-import com.verlumen.tradestream.discovery.proto.Discovery.StrategyDiscoveryResult
 import org.apache.beam.sdk.transforms.DoFn
 
 /**
