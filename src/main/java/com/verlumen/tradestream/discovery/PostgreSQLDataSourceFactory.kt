@@ -1,5 +1,8 @@
 package com.verlumen.tradestream.discovery
 
+import org.postgresql.ds.PGSimpleDataSource
+import javax.sql.DataSource
+
 /**
  * PostgreSQL implementation of DataSourceFactory using PGSimpleDataSource
  * as recommended by the PostgreSQL JDBC documentation.
