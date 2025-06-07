@@ -4,8 +4,12 @@ import com.google.common.flogger.FluentLogger
 import com.google.inject.Guice
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.io.kafka.KafkaIO
+import org.apache.beam.sdk.io.kafka.KafkaRecord
 import org.apache.beam.sdk.options.PipelineOptionsFactory
+import org.apache.beam.sdk.transforms.MapElements
 import org.apache.beam.sdk.transforms.ParDo
+import org.apache.beam.sdk.transforms.SerializableFunction
+import org.apache.beam.sdk.values.KV
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import javax.inject.Inject
@@ -50,10 +54,20 @@ constructor(
                     .withKeyDeserializer(StringDeserializer::class.java)
                     .withValueDeserializer(ByteArrayDeserializer::class.java),
             )
+            .apply(
+                "ExtractKVFromRecord",
+                MapElements.via(
+                    object : SerializableFunction<KafkaRecord<String, ByteArray>, KV<String, ByteArray>> {
+                        override fun apply(input: KafkaRecord<String, ByteArray>): KV<String, ByteArray> {
+                            return input.kv
+                        }
+                    },
+                ),
+            )
             .apply("DeserializeProtoRequests", ParDo.of(deserializeFn))
-            .apply("RunGAStrategyDiscovery",   ParDo.of(runGAFn))
-            .apply("ExtractStrategies",        ParDo.of(extractFn))
-            .apply("WriteToPostgreSQL",        ParDo.of(writeFn))
+            .apply("RunGAStrategyDiscovery", ParDo.of(runGAFn))
+            .apply("ExtractStrategies", ParDo.of(extractFn))
+            .apply("WriteToPostgreSQL", ParDo.of(writeFn))
 
         pipeline.run().waitUntilFinish()
     }
@@ -67,10 +81,11 @@ constructor(
          */
         @JvmStatic
         fun main(args: Array<String>) {
-            val options = PipelineOptionsFactory
-                .fromArgs(*args)
-                .withValidation()
-                .`as`(StrategyDiscoveryPipelineOptions::class.java)
+            val options =
+                PipelineOptionsFactory
+                    .fromArgs(*args)
+                    .withValidation()
+                    .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
             val injector = Guice.createInjector(DiscoveryModule(options))
             injector.getInstance(StrategyDiscoveryPipeline::class.java).run()
