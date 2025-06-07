@@ -87,9 +87,7 @@ class WriteDiscoveredStrategiesToPostgresFn
         }
 
         @ProcessElement
-        fun processElement(
-            @Element element: DiscoveredStrategy,
-        ) {
+        fun processElement(@Element element: DiscoveredStrategy) {
             val csvRow = convertToCsvRow(element)
             batch.offer(csvRow)
 
