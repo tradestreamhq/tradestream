@@ -54,8 +54,7 @@ class StrategyDiscoveryPipeline(
                 "ExtractKVFromRecord",
                 MapElements.via(
                     object : SimpleFunction<KafkaRecord<String, ByteArray>, KV<String, ByteArray>>() {
-                        override fun apply(input: KafkaRecord<String, ByteArray>): KV<String, ByteArray> =
-                            input.kv
+                        override fun apply(input: KafkaRecord<String, ByteArray>): KV<String, ByteArray> = input.kv
                     },
                 ),
             ).apply("DeserializeProtoRequests", ParDo.of(deserializeFn))
