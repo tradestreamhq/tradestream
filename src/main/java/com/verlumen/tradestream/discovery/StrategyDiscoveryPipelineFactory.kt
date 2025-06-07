@@ -25,16 +25,14 @@ class StrategyDiscoveryPipelineFactoryImpl
         private val extractFn: ExtractDiscoveredStrategiesFn,
         private val writeFn: WriteDiscoveredStrategiesToPostgresFn,
     ) : StrategyDiscoveryPipelineFactory {
-    
-    override fun create(options: StrategyDiscoveryPipelineOptions): StrategyDiscoveryPipeline {
-        return StrategyDiscoveryPipeline(
-            kafkaBootstrapServers = options.kafkaBootstrapServers,
-            strategyDiscoveryRequestTopic = options.strategyDiscoveryRequestTopic,
-            isStreaming = true, // Default to streaming mode
-            deserializeFn = deserializeFn,
-            runGAFn = runGAFn,
-            extractFn = extractFn,
-            writeFn = writeFn,
-        )
+        override fun create(options: StrategyDiscoveryPipelineOptions): StrategyDiscoveryPipeline =
+            StrategyDiscoveryPipeline(
+                kafkaBootstrapServers = options.kafkaBootstrapServers,
+                strategyDiscoveryRequestTopic = options.strategyDiscoveryRequestTopic,
+                isStreaming = true, // Default to streaming mode
+                deserializeFn = deserializeFn,
+                runGAFn = runGAFn,
+                extractFn = extractFn,
+                writeFn = writeFn,
+            )
     }
-}

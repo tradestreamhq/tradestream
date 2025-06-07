@@ -82,7 +82,7 @@ class StrategyDiscoveryPipeline(
 
             val injector = Guice.createInjector(DiscoveryModule())
             val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
-            
+
             factory.create(options).run()
         }
     }

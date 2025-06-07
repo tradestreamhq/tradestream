@@ -74,7 +74,7 @@ class StrategyDiscoveryPipelineTest {
 
         val injector = Guice.createInjector(DiscoveryModule())
         val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
-        
+
         val pipeline = factory.create(realOptions)
         assert(pipeline != null) { "Pipeline should be created with real options" }
     }
