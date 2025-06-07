@@ -49,8 +49,7 @@ class StrategyDiscoveryPipeline(
                     .withTopic(strategyDiscoveryRequestTopic)
                     .withKeyDeserializer(StringDeserializer::class.java)
                     .withValueDeserializer(ByteArrayDeserializer::class.java),
-            )
-            .apply(
+            ).apply(
                 "ExtractKVFromRecord",
                 MapElements.via(
                     object : SimpleFunction<KafkaRecord<String, ByteArray>, KV<String, ByteArray>>() {
