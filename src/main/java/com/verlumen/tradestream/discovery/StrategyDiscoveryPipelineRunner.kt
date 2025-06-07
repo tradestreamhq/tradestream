@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.discovery
 
+import com.verlumen.tradestream.postgres.PostgresModule
 import com.google.inject.Guice
 import org.apache.beam.sdk.options.PipelineOptionsFactory
 
