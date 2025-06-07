@@ -7,7 +7,7 @@ import org.apache.beam.sdk.io.kafka.KafkaRecord
 import org.apache.beam.sdk.options.PipelineOptionsFactory
 import org.apache.beam.sdk.transforms.MapElements
 import org.apache.beam.sdk.transforms.ParDo
-import org.apache.beam.sdk.transforms.SerializableFunction
+import org.apache.beam.sdk.transforms.SimpleFunction
 import org.apache.beam.sdk.values.KV
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -52,7 +52,7 @@ class StrategyDiscoveryPipeline(
             ).apply(
                 "ExtractKVFromRecord",
                 MapElements.via(
-                    object : SerializableFunction<KafkaRecord<String, ByteArray>, KV<String, ByteArray>> {
+                    object : SimpleFunction<KafkaRecord<String, ByteArray>, KV<String, ByteArray>> {
                         override fun apply(input: KafkaRecord<String, ByteArray>): KV<String, ByteArray> = input.kv
                     },
                 ),
