@@ -5,7 +5,6 @@ kt_jvm_test(
     srcs = ["PostgreSQLDataSourceFactoryTest.kt"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/postgres:postgre_sql_data_source_factory",
-        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
         "//third_party/java:junit",
         "//third_party/java:postgresql",
         "//third_party/java:truth",
