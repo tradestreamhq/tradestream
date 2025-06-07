@@ -61,18 +61,19 @@ class WriteDiscoveredStrategiesToPostgresFn
         @Setup
         fun setup() {
             // Create DataSource configuration from assisted-injected parameters
-            val config = DataSourceConfig(
-                serverName = serverName,
-                databaseName = databaseName,
-                username = username,
-                password = password,
-                portNumber = portNumber,
-                applicationName = applicationName,
-                connectTimeout = connectTimeout,
-                socketTimeout = socketTimeout,
-                readOnly = readOnly
-            )
-            
+            val config =
+                DataSourceConfig(
+                    serverName = serverName,
+                    databaseName = databaseName,
+                    username = username,
+                    password = password,
+                    portNumber = portNumber,
+                    applicationName = applicationName,
+                    connectTimeout = connectTimeout,
+                    socketTimeout = socketTimeout,
+                    readOnly = readOnly,
+                )
+
             // Create DataSource using the factory
             dataSource = dataSourceFactory.create(config)
             // Establish connection
