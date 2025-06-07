@@ -1,9 +1,29 @@
 load("@rules_java//java:defs.bzl", "java_test")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 
+kt_jvm_test(
+    name = "DeserializeStrategyDiscoveryRequestFnTest",
+    srcs = ["DeserializeStrategyDiscoveryRequestFnTest.kt"],
+    runtime_deps = [
+        "//third_party/java:beam_runners_direct_java",
+        "//third_party/java:hamcrest",
+    ],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:deserialize_strategy_discovery_request_fn",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_test_utils",
+        "//third_party/java:guice",
+        "//third_party/java:guice_testlib",
+        "//third_party/java:junit",
+        "//third_party/java:mockito_core",
+        "//third_party/java:protobuf_java",
+    ],
+)
+
 java_test(
     name = "FitnessFunctionFactoryImplTest",
-    size = "small",
     srcs = ["FitnessFunctionFactoryImplTest.java"],
     deps = [
         "//protos:backtesting_java_proto",
@@ -51,7 +71,6 @@ java_test(
 
 java_test(
     name = "GenotypeConverterImplTest",
-    size = "small",
     srcs = ["GenotypeConverterImplTest.java"],
     deps = [
         "//protos:strategies_java_proto",

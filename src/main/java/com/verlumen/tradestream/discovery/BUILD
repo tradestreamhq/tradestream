@@ -24,6 +24,17 @@ java_library(
 )
 
 kt_jvm_library(
+    name = "deserialize_strategy_discovery_request_fn",
+    srcs = ["DeserializeStrategyDiscoveryRequestFn.kt"],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:protobuf_java",
+    ],
+)
+
+kt_jvm_library(
     name = "discovery_module",
     srcs = ["DiscoveryModule.kt"],
     visibility = [
@@ -40,8 +51,10 @@ kt_jvm_library(
         ":param_config_manager",
         ":param_config_manager_impl",
         ":param_configs",
+        "//protos:discovery_java_proto",
         "//third_party/java:guava",
         "//third_party/java:guice",
+        "//third_party/java:protobuf_java",
     ],
 )
 
@@ -62,7 +75,7 @@ kt_jvm_library(
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
-        "//protos:backtesting_java_proto",  # GAOptimizationRequest is still used by some callers, even if GAEngineFactory is decoupled
+        "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
         "//third_party/java:jenetics",
