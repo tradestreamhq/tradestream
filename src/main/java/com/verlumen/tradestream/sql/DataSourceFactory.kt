@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.discovery
+package com.verlumen.tradestream.sql
 
 import javax.sql.DataSource
 

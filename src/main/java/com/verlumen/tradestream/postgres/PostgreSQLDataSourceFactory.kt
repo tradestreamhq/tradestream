@@ -1,5 +1,7 @@
-package com.verlumen.tradestream.discovery
+package com.verlumen.tradestream.postgres
 
+import com.verlumen.tradestream.sql.DataSourceConfig
+import com.verlumen.tradestream.sql.DataSourceFactory
 import org.postgresql.ds.PGSimpleDataSource
 import java.sql.Connection
 import javax.sql.DataSource
