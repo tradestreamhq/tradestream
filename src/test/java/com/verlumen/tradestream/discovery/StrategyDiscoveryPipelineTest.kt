@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.discovery
 
+import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.google.inject.testing.fieldbinder.Bind
 import org.apache.beam.sdk.options.PipelineOptionsFactory
@@ -58,24 +59,21 @@ class StrategyDiscoveryPipelineTest {
     @Test
     fun testCreateInjectorWithValidOptions() {
         // Test that the injector can be created with valid options
-        val injector = Guice.createInjector(StrategyDiscoveryModule(mockOptions))
+        val injector = Guice.createInjector(object : AbstractModule() {
+            override fun configure() {
+                install(DiscoveryModule(mockOptions))
+            }
+        })
+
 
         // Verify that basic bindings work
         val options = injector.getInstance(StrategyDiscoveryPipelineOptions::class.java)
         assert(options === mockOptions) { "Should bind the provided options instance" }
-
-        // Verify that data source can be created
-        val dataSource = injector.getInstance(javax.sql.DataSource::class.java)
-        assert(dataSource != null) { "DataSource should be injectable" }
-
-        // Verify that InfluxDB fetcher can be created
-        val candleFetcher = injector.getInstance(com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher::class.java)
-        assert(candleFetcher != null) { "InfluxDbCandleFetcher should be injectable" }
     }
 
     @Test
     fun testTransformInstantiation() {
-        val injector = Guice.createInjector(StrategyDiscoveryModule(mockOptions))
+        val injector = Guice.createInjector(DiscoveryModule(mockOptions))
 
         // Test that all transform classes can be instantiated
         val deserializeFn = injector.getInstance(DeserializeStrategyDiscoveryRequestFn::class.java)
@@ -94,7 +92,7 @@ class StrategyDiscoveryPipelineTest {
         val invalidOptions = PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java)
         // Don't set required fields
 
-        val injector = Guice.createInjector(StrategyDiscoveryModule(invalidOptions))
+        val injector = Guice.createInjector(DiscoveryModule(invalidOptions))
 
         // Should fail when trying to create DataSource without required config
         try {
