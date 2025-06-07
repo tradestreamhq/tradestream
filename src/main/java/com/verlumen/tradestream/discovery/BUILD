@@ -87,6 +87,7 @@ kt_jvm_library(
     name = "fitness_function_factory_impl",
     srcs = ["FitnessFunctionFactoryImpl.kt"],
     deps = [
+        ":fitness_function",
         ":fitness_function_factory",
         ":genotype_converter",
         "//protos:backtesting_java_proto",
