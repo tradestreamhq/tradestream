@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.inject.Guice
+import com.google.inject.Inject
 import com.google.inject.Provider
 import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
@@ -23,7 +24,6 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 import java.sql.Connection
 import java.time.Instant
-import javax.inject.Inject
 import javax.sql.DataSource
 
 /**
