@@ -29,7 +29,7 @@ class StrategyDiscoveryPipelineRunner {
                     .withValidation()
                     .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
-            val injector = Guice.createInjector(DiscoveryModule())
+            val injector = Guice.createInjector(DiscoveryModule(), PostgresModule(),)
             val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
 
             factory.create(options).run()
