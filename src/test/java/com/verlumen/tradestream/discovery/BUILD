@@ -22,6 +22,27 @@ kt_jvm_test(
     ],
 )
 
+kt_jvm_test(
+    name = "ExtractDiscoveredStrategiesFnTest",
+    srcs = ["ExtractDiscoveredStrategiesFnTest.kt"],
+    runtime_deps = [
+        "//third_party/java:beam_runners_direct_java",
+        "//third_party/java:hamcrest",
+    ],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:extract_discovered_strategies_fn",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_test_utils",
+        "//third_party/java:guice",
+        "//third_party/java:guice_testlib",
+        "//third_party/java:junit",
+        "//third_party/java:mockito_core",
+        "//third_party/java:protobuf_java",
+    ],
+)
+
 java_test(
     name = "FitnessFunctionFactoryImplTest",
     srcs = ["FitnessFunctionFactoryImplTest.java"],
