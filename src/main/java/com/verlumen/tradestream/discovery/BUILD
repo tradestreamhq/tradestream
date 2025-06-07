@@ -75,6 +75,7 @@ kt_jvm_library(
         "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
+        ":fitness_function",
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
