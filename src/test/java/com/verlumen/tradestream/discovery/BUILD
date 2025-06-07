@@ -1,9 +1,44 @@
 load("@rules_java//java:defs.bzl", "java_test")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 
+import com.google.inject.Guice
+import com.google.inject.testing.fieldbinder.BoundFieldModule
+import com.google.protobuf.util.Timestamps
+import com.verlumen.tradestream.strategies.StrategyType
+import org.apache.beam.sdk.testing.PAssert
+import org.apache.beam.sdk.testing.TestPipeline
+import org.apache.beam.sdk.transforms.Create
+import org.apache.beam.sdk.transforms.ParDo
+import org.apache.beam.sdk.values.KV
+import org.apache.beam.sdk.values.PCollection
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.mockito.MockitoAnnotations
+
+kt_jvm_test(
+    name = "DeserializeStrategyDiscoveryRequestFnTest",
+    srcs = ["DeserializeStrategyDiscoveryRequestFnTest.kt"],
+    runtime_deps = [
+        "//third_party/java:beam_runners_direct_java",
+        "//third_party/java:hamcrest",
+    ],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:deserialize_strategy_discovery_request_fn",
+        "//third_party/java:guice",
+        "//third_party/java:guice_testlib",
+        "//third_party/java:junit",
+        "//third_party/java:mockito_core",
+        "//third_party/java:protobuf_java",
+    ],
+)
+
 java_test(
     name = "FitnessFunctionFactoryImplTest",
-    size = "small",
     srcs = ["FitnessFunctionFactoryImplTest.java"],
     deps = [
         "//protos:backtesting_java_proto",
@@ -51,7 +86,6 @@ java_test(
 
 java_test(
     name = "GenotypeConverterImplTest",
-    size = "small",
     srcs = ["GenotypeConverterImplTest.java"],
     deps = [
         "//protos:strategies_java_proto",
