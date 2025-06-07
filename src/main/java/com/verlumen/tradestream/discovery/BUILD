@@ -271,12 +271,25 @@ kt_jvm_library(
         ":discovery_module",
         ":extract_discovered_strategies_fn",
         ":run_ga_discovery_fn",
+        ":strategy_discovery_pipeline_factory",
         ":strategy_discovery_pipeline_options",
         ":write_discovered_strategies_to_postgres_fn",
         "//third_party/java:beam_sdks_java_io_kafka",
         "//third_party/java:flogger",
         "//third_party/java:guice",
         "//third_party/java:kafka_clients",
+    ],
+)
+
+kt_jvm_library(
+    name = "strategy_discovery_pipeline_factory",
+    srcs = ["StrategyDiscoveryPipelineFactory.kt"],
+    deps = [
+        ":deserialize_strategy_discovery_request_fn",
+        ":extract_discovered_strategies_fn",
+        ":run_ga_discovery_fn",
+        ":write_discovered_strategies_to_postgres_fn",
+        "//third_party/java:guice",
     ],
 )
 
