@@ -8,7 +8,6 @@ import javax.sql.DataSource
  * as recommended by the PostgreSQL JDBC documentation.
  */
 class PostgreSQLDataSourceFactory : DataSourceFactory {
-    
     override fun create(config: DataSourceConfig): DataSource {
         // Create and configure PGSimpleDataSource as recommended
         val ds = PGSimpleDataSource().apply {
