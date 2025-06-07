@@ -2,9 +2,11 @@ package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
-import com.google.inject.Provider
+import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.util.JsonFormat
+import com.verlumen.tradestream.sql.DataSourceConfig
+import com.verlumen.tradestream.sql.DataSourceFactory
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow
 import org.postgresql.core.BaseConnection
@@ -25,18 +27,30 @@ import javax.sql.DataSource
  * - Supports upsert logic with ON CONFLICT using temporary tables
  * - Processes 50K+ strategies per second vs ~5K with standard JdbcIO
  *
- * All dependencies are injected via Guice.
+ * Database configuration is provided via assisted injection for runtime flexibility.
  */
 class WriteDiscoveredStrategiesToPostgresFn
     @Inject
     constructor(
-        private val dataSourceProvider: Provider<DataSource>,
+        private val dataSourceFactory: DataSourceFactory,
+        @Assisted private val serverName: String,
+        @Assisted private val databaseName: String,
+        @Assisted private val username: String,
+        @Assisted private val password: String,
+        @Assisted private val portNumber: Int?,
+        @Assisted private val applicationName: String?,
+        @Assisted private val connectTimeout: Int?,
+        @Assisted private val socketTimeout: Int?,
+        @Assisted private val readOnly: Boolean?,
     ) : DoFn<DiscoveredStrategy, Void>() {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
             private const val BATCH_SIZE = 100
             private const val MAX_RETRIES = 3
         }
+
+        @Transient
+        private var dataSource: DataSource? = null
 
         @Transient
         private var connection: Connection? = null
@@ -46,11 +60,31 @@ class WriteDiscoveredStrategiesToPostgresFn
 
         @Setup
         fun setup() {
+            // Create DataSource configuration from assisted-injected parameters
+            val config =
+                DataSourceConfig(
+                    serverName = serverName,
+                    databaseName = databaseName,
+                    username = username,
+                    password = password,
+                    portNumber = portNumber,
+                    applicationName = applicationName,
+                    connectTimeout = connectTimeout,
+                    socketTimeout = socketTimeout,
+                    readOnly = readOnly,
+                )
+
+            // Create DataSource using the factory
+            dataSource = dataSourceFactory.create(config)
+            // Establish connection
             connection =
-                dataSourceProvider.get().connection.apply {
+                dataSource!!.connection.apply {
                     autoCommit = false
                 }
-            logger.atInfo().log("PostgreSQL connection established for bulk writes")
+
+            logger.atInfo().log(
+                "PostgreSQL connection established for bulk writes to ${config.databaseName}@${config.serverName}",
+            )
         }
 
         @ProcessElement
@@ -114,7 +148,7 @@ class WriteDiscoveredStrategiesToPostgresFn
 
                     try {
                         currentConnection.rollback()
-                        Thread.sleep(1000L * retryCount) // Exponential backoff (fixed: Long argument)
+                        Thread.sleep(1000L * retryCount) // Exponential backoff
                     } catch (rollbackEx: Exception) {
                         logger
                             .atWarning()
@@ -228,3 +262,21 @@ class WriteDiscoveredStrategiesToPostgresFn
             return digest.joinToString("") { "%02x".format(it) }
         }
     }
+
+/**
+ * Factory interface for creating WriteDiscoveredStrategiesToPostgresFn instances
+ * with runtime-provided database configuration parameters.
+ */
+interface WriteDiscoveredStrategiesToPostgresFnFactory {
+    fun create(
+        serverName: String,
+        databaseName: String,
+        username: String,
+        password: String,
+        portNumber: Int? = null,
+        applicationName: String? = null,
+        connectTimeout: Int? = null,
+        socketTimeout: Int? = null,
+        readOnly: Boolean? = null,
+    ): WriteDiscoveredStrategiesToPostgresFn
+}

@@ -185,6 +185,7 @@ kt_jvm_test(
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:write_discovered_strategies_to_postgres_fn",
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_test_utils",
         "//third_party/java:guice",
@@ -193,7 +194,9 @@ kt_jvm_test(
         "//third_party/java:junit",
         "//third_party/java:mockito_core",
         "//third_party/java:mockito_kotlin",
+        "//third_party/java:postgresql",
         "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
         "//third_party/java:truth",
     ],
 )
