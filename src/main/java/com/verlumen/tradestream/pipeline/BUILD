@@ -99,6 +99,7 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/marketdata:fill_forward_candles",
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_to_candle",
+        "//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
         "//src/main/java/com/verlumen/tradestream/signals:signals_module",
         "//src/main/java/com/verlumen/tradestream/strategies:strategies_module",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
