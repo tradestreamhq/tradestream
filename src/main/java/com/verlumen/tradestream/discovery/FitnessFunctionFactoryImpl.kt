@@ -26,7 +26,7 @@ class FitnessFunctionFactoryImpl
         override fun create(
             strategyType: StrategyType,
             candles: List<Candle>,
-        ): Function<Genotype<*>, Double> =
+        ): FitnessFunction =
             Function { genotype ->
                 try {
                     val params: Any = genotypeConverter.convertToParameters(genotype, strategyType)
