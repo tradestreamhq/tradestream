@@ -19,6 +19,9 @@ kt_jvm_library(
 kt_jvm_library(
     name = "postgres_module",
     srcs = ["PostgresModule.kt"],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/discovery:__pkg__",
+    ],
     deps = [
         ":postgre_sql_data_source_factory",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
