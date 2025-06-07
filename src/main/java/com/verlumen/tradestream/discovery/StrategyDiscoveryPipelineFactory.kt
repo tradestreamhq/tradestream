@@ -23,16 +23,34 @@ class StrategyDiscoveryPipelineFactoryImpl
         private val deserializeFn: DeserializeStrategyDiscoveryRequestFn,
         private val runGAFn: RunGADiscoveryFn,
         private val extractFn: ExtractDiscoveredStrategiesFn,
-        private val writeFn: WriteDiscoveredStrategiesToPostgresFn,
+        private val writeFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory,
     ) : StrategyDiscoveryPipelineFactory {
-        override fun create(options: StrategyDiscoveryPipelineOptions): StrategyDiscoveryPipeline =
-            StrategyDiscoveryPipeline(
+        override fun create(options: StrategyDiscoveryPipelineOptions): StrategyDiscoveryPipeline {
+            val username = requireNotNull(options.databaseUsername) { "Database username is required." }
+            val password = requireNotNull(options.databasePassword) { "Database password is required." }
+
+            val writeFn =
+                writeFnFactory.create(
+                    serverName = options.dbServerName,
+                    databaseName = options.dbDatabaseName,
+                    username = username,
+                    password = password,
+                    portNumber = options.dbPortNumber,
+                    // Pass null for other optional params for now as they are not in options
+                    applicationName = null,
+                    connectTimeout = null,
+                    socketTimeout = null,
+                    readOnly = null,
+                )
+
+            return StrategyDiscoveryPipeline(
                 kafkaBootstrapServers = options.kafkaBootstrapServers,
                 strategyDiscoveryRequestTopic = options.strategyDiscoveryRequestTopic,
-                isStreaming = true, // Default to streaming mode
+                isStreaming = true,
                 deserializeFn = deserializeFn,
                 runGAFn = runGAFn,
                 extractFn = extractFn,
                 writeFn = writeFn,
             )
+        }
     }
