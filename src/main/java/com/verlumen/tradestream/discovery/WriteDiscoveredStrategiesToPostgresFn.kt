@@ -40,7 +40,7 @@ class WriteDiscoveredStrategiesToPostgresFn
         @Assisted private val applicationName: String?,
         @Assisted private val connectTimeout: Int?,
         @Assisted private val socketTimeout: Int?,
-        @Assisted private val readOnly: Boolean?
+        @Assisted private val readOnly: Boolean?,
     ) : DoFn<DiscoveredStrategy, Void>() {
 
         companion object {
