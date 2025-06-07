@@ -67,23 +67,5 @@ class StrategyDiscoveryPipeline(
 
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
-
-        /**
-         * Entry-point. Builds the injector, gets a factory instance,
-         * creates a fully-configured [StrategyDiscoveryPipeline], and executes it.
-         */
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val options =
-                PipelineOptionsFactory
-                    .fromArgs(*args)
-                    .withValidation()
-                    .`as`(StrategyDiscoveryPipelineOptions::class.java)
-
-            val injector = Guice.createInjector(DiscoveryModule())
-            val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
-
-            factory.create(options).run()
-        }
     }
 }
