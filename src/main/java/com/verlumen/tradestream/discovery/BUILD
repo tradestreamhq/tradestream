@@ -24,6 +24,11 @@ java_library(
 )
 
 kt_jvm_library(
+    name = "data_source_factory",
+    srcs = ["DataSourceFactory.kt"],
+)
+
+kt_jvm_library(
     name = "deserialize_strategy_discovery_request_fn",
     srcs = ["DeserializeStrategyDiscoveryRequestFn.kt"],
     deps = [
@@ -240,6 +245,17 @@ java_library(
 )
 
 kt_jvm_library(
+    name = "postgre_sql_data_source_factory",
+    srcs = ["PostgreSQLDataSourceFactory.kt"],
+    deps = [
+        ":data_source_factory",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:postgresql",
+    ],
+)
+
+kt_jvm_library(
     name = "run_ga_discovery_fn",
     srcs = ["RunGADiscoveryFn.kt"],
     deps = [
@@ -269,12 +285,14 @@ kt_jvm_library(
     name = "write_discovered_strategies_to_postgres_fn",
     srcs = ["WriteDiscoveredStrategiesToPostgresFn.kt"],
     deps = [
+        ":data_source_factory",
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:flogger",
         "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
         "//third_party/java:postgresql",
         "//third_party/java:protobuf_java",
         "//third_party/java:protobuf_java_util",

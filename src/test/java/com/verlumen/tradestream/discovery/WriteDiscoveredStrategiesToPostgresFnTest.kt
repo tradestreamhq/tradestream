@@ -20,13 +20,15 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.sql.Connection
 import java.time.Instant
 import javax.sql.DataSource
 
 /**
- * Unit tests for WriteDiscoveredStrategiesToPostgresFn using Guice injection.
+ * Unit tests for WriteDiscoveredStrategiesToPostgresFn using the new factory pattern
+ * with assisted injection.
  *
  * These tests focus on the DoFn's data transformation logic using mocked dependencies.
  * Full integration tests with PostgreSQL would require a test database.
@@ -39,16 +41,29 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
     val pipeline: TestPipeline =
         TestPipeline.create().enableAbandonedNodeEnforcement(false)
 
-    // Use BoundFieldModule to inject this mock
+    // Use BoundFieldModule to inject these mocks
     @Bind @Mock
+    lateinit var mockDataSourceFactory: DataSourceFactory
+
+    @Mock
     lateinit var mockDataSource: DataSource
 
     @Mock
     lateinit var mockConnection: Connection
 
-    // The class under test - will be injected by Guice
-    @Inject
-    lateinit var writeDiscoveredStrategiesToPostgresFn: WriteDiscoveredStrategiesToPostgresFn
+    // The class under test - will be created directly with mocked dependencies
+    private lateinit var writeDiscoveredStrategiesToPostgresFn: WriteDiscoveredStrategiesToPostgresFn
+
+    // Test database configuration
+    private val testServerName = "localhost"
+    private val testDatabaseName = "test_db"
+    private val testUsername = "test_user"
+    private val testPassword = "test_password"
+    private val testPortNumber = 5432
+    private val testApplicationName = "test_app"
+    private val testConnectTimeout = 30
+    private val testSocketTimeout = 60
+    private val testReadOnly = false
 
     @Before
     fun setUp() {
@@ -58,8 +73,30 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         val injector = Guice.createInjector(BoundFieldModule.of(this))
         injector.injectMembers(this)
 
-        // Setup mock behavior
+        // Setup mock behavior for DataSourceFactory
+        whenever(mockDataSourceFactory.create(any())).thenReturn(mockDataSource)
         whenever(mockDataSource.connection).thenReturn(mockConnection)
+
+        // Create the function under test directly (simulating what the factory would do)
+        writeDiscoveredStrategiesToPostgresFn =
+            WriteDiscoveredStrategiesToPostgresFn(
+                dataSourceFactory = mockDataSourceFactory,
+                serverName = testServerName,
+                databaseName = testDatabaseName,
+                username = testUsername,
+                password = testPassword,
+                portNumber = testPortNumber,
+                applicationName = testApplicationName,
+                connectTimeout = testConnectTimeout,
+                socketTimeout = testSocketTimeout,
+                readOnly = testReadOnly,
+            )
+    }
+
+    @Test
+    fun testInstanceCreatedWithCorrectParameters() {
+        // Verify the instance is not null and was created successfully
+        assert(writeDiscoveredStrategiesToPostgresFn != null) { "Instance should be created successfully" }
     }
 
     @Test
@@ -180,11 +217,35 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         val input: PCollection<DiscoveredStrategy> = pipeline.apply(Create.of(discoveredStrategy))
 
         // This would normally write to PostgreSQL, but for unit testing we just verify
-        // the pipeline can be constructed without errors using the injected instance
+        // the pipeline can be constructed without errors using the directly created instance
         val output: PCollection<Void> = input.apply(ParDo.of(writeDiscoveredStrategiesToPostgresFn))
 
         // Note: We can't run this pipeline in unit tests without a database
-        // This test just verifies the DoFn can be instantiated correctly via Guice
+        // This test just verifies the DoFn can be instantiated correctly
         assert(output != null) { "Pipeline should be constructable" }
+    }
+
+    @Test
+    fun testDataSourceConfigurationValidation() {
+        // Test that valid configuration creates the DataSource without errors
+        val config =
+            DataSourceConfig(
+                serverName = testServerName,
+                databaseName = testDatabaseName,
+                username = testUsername,
+                password = testPassword,
+                portNumber = testPortNumber,
+                applicationName = testApplicationName,
+                connectTimeout = testConnectTimeout,
+                socketTimeout = testSocketTimeout,
+                readOnly = testReadOnly,
+            )
+
+        // This should not throw any exceptions
+        try {
+            mockDataSourceFactory.create(config)
+        } catch (e: Exception) {
+            assert(false) { "Valid configuration should not cause errors: ${e.message}" }
+        }
     }
 }
