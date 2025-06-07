@@ -2,41 +2,41 @@ package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Guice
-import com.google.inject.Injector
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.io.kafka.KafkaIO
 import org.apache.beam.sdk.options.PipelineOptionsFactory
 import org.apache.beam.sdk.transforms.ParDo
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.kafka.common.serialization.StringDeserializer
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
- * Main pipeline for discovering trading strategies using genetic algorithms.
+ * Builds and executes the strategy-discovery Beam pipeline.
  *
  * Flow:
- * 1. Read strategy discovery requests from Kafka
+ * 1. Read discovery requests from Kafka
  * 2. Deserialize protobuf messages
- * 3. Run GA optimization for each request
- * 4. Extract discovered strategies from results
- * 5. Write strategies to PostgreSQL database
+ * 3. Run GA optimisation for each request
+ * 4. Extract discovered strategies
+ * 5. Persist strategies to PostgreSQL
  *
- * All transforms are created via Guice dependency injection.
+ * All DoFns and options arrive through Guice.
  */
-object StrategyDiscoveryPipeline {
-    private val logger = FluentLogger.forEnclosingClass()
+@Singleton
+class StrategyDiscoveryPipeline
+@Inject
+constructor(
+    private val options: StrategyDiscoveryPipelineOptions,
+    private val deserializeFn: DeserializeStrategyDiscoveryRequestFn,
+    private val runGAFn: RunGADiscoveryFn,
+    private val extractFn: ExtractDiscoveredStrategiesFn,
+    private val writeFn: WriteDiscoveredStrategiesToPostgresFn,
+) {
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val options =
-            PipelineOptionsFactory
-                .fromArgs(*args)
-                .withValidation()
-                .`as`(StrategyDiscoveryPipelineOptions::class.java)
-
+    fun run() {
+        // Ensure streaming mode; useful if caller forgets --streaming=true
         options.isStreaming = true
-
-        // Create Guice injector with modules
-        val injector = createInjector(options)
 
         val pipeline = Pipeline.create(options)
 
@@ -49,14 +49,31 @@ object StrategyDiscoveryPipeline {
                     .withTopic(options.strategyDiscoveryRequestTopic)
                     .withKeyDeserializer(StringDeserializer::class.java)
                     .withValueDeserializer(ByteArrayDeserializer::class.java),
-            ).apply("DeserializeProtoRequests", ParDo.of(injector.getInstance(DeserializeStrategyDiscoveryRequestFn::class.java)))
-            .apply("RunGAStrategyDiscovery", ParDo.of(injector.getInstance(RunGADiscoveryFn::class.java)))
-            .apply("ExtractDiscoveredStrategies", ParDo.of(injector.getInstance(ExtractDiscoveredStrategiesFn::class.java)))
-            .apply("WriteToPostgreSQL", ParDo.of(injector.getInstance(WriteDiscoveredStrategiesToPostgresFn::class.java)))
+            )
+            .apply("DeserializeProtoRequests", ParDo.of(deserializeFn))
+            .apply("RunGAStrategyDiscovery",   ParDo.of(runGAFn))
+            .apply("ExtractStrategies",        ParDo.of(extractFn))
+            .apply("WriteToPostgreSQL",        ParDo.of(writeFn))
 
         pipeline.run().waitUntilFinish()
     }
 
-    private fun createInjector(options: StrategyDiscoveryPipelineOptions): Injector =
-        Guice.createInjector(DiscoveryModule(options))
+    companion object {
+        private val logger = FluentLogger.forEnclosingClass()
+
+        /**
+         * Entry-point.  Builds the injector, gets **one** fully-wired instance of
+         * [StrategyDiscoveryPipeline], and executes it.
+         */
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val options = PipelineOptionsFactory
+                .fromArgs(*args)
+                .withValidation()
+                .`as`(StrategyDiscoveryPipelineOptions::class.java)
+
+            val injector = Guice.createInjector(DiscoveryModule(options))
+            injector.getInstance(StrategyDiscoveryPipeline::class.java).run()
+        }
+    }
 }
