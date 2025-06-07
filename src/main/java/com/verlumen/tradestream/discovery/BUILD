@@ -274,7 +274,6 @@ kt_jvm_library(
         ":deserialize_strategy_discovery_request_fn",
         ":extract_discovered_strategies_fn",
         ":run_ga_discovery_fn",
-        ":strategy_discovery_pipeline",
         ":strategy_discovery_pipeline_options",
         ":write_discovered_strategies_to_postgres_fn",
         "//third_party/java:beam_sdks_java_io_kafka",
