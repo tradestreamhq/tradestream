@@ -58,8 +58,7 @@ class StrategyDiscoveryPipeline(
                             input.kv
                     },
                 ),
-            )
-            .apply("DeserializeProtoRequests", ParDo.of(deserializeFn))
+            ).apply("DeserializeProtoRequests", ParDo.of(deserializeFn))
             .apply("RunGAStrategyDiscovery", ParDo.of(runGAFn))
             .apply("ExtractStrategies", ParDo.of(extractFn))
             .apply("WriteToPostgreSQL", ParDo.of(writeFn))
