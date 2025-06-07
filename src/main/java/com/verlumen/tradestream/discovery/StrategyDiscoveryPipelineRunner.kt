@@ -3,10 +3,6 @@ package com.verlumen.tradestream.discovery
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Guice
 import org.apache.beam.sdk.options.PipelineOptionsFactory
-import org.apache.beam.sdk.transforms.MapElements
-import org.apache.beam.sdk.transforms.ParDo
-import org.apache.beam.sdk.transforms.SerializableFunction
-import org.apache.beam.sdk.values.KV
 
 /**
  * Builds and executes the strategy-discovery Beam pipeline.
