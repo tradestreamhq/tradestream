@@ -171,6 +171,7 @@ kt_jvm_test(
         "//third_party/java:mockito_core",
     ],
 )
+
 kt_jvm_test(
     name = "WriteDiscoveredStrategiesToPostgresFnTest",
     srcs = ["WriteDiscoveredStrategiesToPostgresFnTest.kt"],
