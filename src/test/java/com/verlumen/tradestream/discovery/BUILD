@@ -176,4 +176,3 @@ kt_jvm_test(
         "//third_party/java:truth",
     ],
 )
-
