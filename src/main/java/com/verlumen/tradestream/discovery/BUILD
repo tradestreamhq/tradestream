@@ -24,6 +24,11 @@ java_library(
 )
 
 kt_jvm_library(
+    name = "data_source_factory",
+    srcs = ["DataSourceFactory.kt"],
+)
+
+kt_jvm_library(
     name = "deserialize_strategy_discovery_request_fn",
     srcs = ["DeserializeStrategyDiscoveryRequestFn.kt"],
     deps = [
