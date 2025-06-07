@@ -177,21 +177,3 @@ kt_jvm_test(
     ],
 )
 
-
-import com.google.inject.Guice
-import com.google.inject.Provider
-import com.google.inject.testing.fieldbinder.Bind
-import com.google.inject.testing.fieldbinder.BoundFieldModule
-import org.apache.beam.sdk.transforms.Create
-import org.apache.beam.sdk.transforms.ParDo
-import org.apache.beam.sdk.values.PCollection
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
-import org.mockito.Mock
-import org.mockito.MockitoAnnotations
-import org.mockito.kotlin.whenever
-
-
