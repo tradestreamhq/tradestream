@@ -59,12 +59,14 @@ class StrategyDiscoveryPipelineTest {
     @Test
     fun testCreateInjectorWithValidOptions() {
         // Test that the injector can be created with valid options
-        val injector = Guice.createInjector(object : AbstractModule() {
-            override fun configure() {
-                install(DiscoveryModule(mockOptions))
-            }
-        })
-
+        val injector =
+            Guice.createInjector(
+                object : AbstractModule() {
+                    override fun configure() {
+                        install(DiscoveryModule(mockOptions))
+                    }
+                },
+            )
 
         // Verify that basic bindings work
         val options = injector.getInstance(StrategyDiscoveryPipelineOptions::class.java)

@@ -2,6 +2,8 @@ package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Guice
+import com.google.inject.Inject
+import com.google.inject.Singleton
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.io.kafka.KafkaIO
 import org.apache.beam.sdk.io.kafka.KafkaRecord
@@ -12,8 +14,6 @@ import org.apache.beam.sdk.transforms.SerializableFunction
 import org.apache.beam.sdk.values.KV
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.kafka.common.serialization.StringDeserializer
-import com.google.inject.Inject
-import com.google.inject.Singleton
 
 /**
  * Builds and executes the strategy-discovery Beam pipeline.
@@ -29,66 +29,61 @@ import com.google.inject.Singleton
  */
 @Singleton
 class StrategyDiscoveryPipeline
-@Inject
-constructor(
-    private val options: StrategyDiscoveryPipelineOptions,
-    private val deserializeFn: DeserializeStrategyDiscoveryRequestFn,
-    private val runGAFn: RunGADiscoveryFn,
-    private val extractFn: ExtractDiscoveredStrategiesFn,
-    private val writeFn: WriteDiscoveredStrategiesToPostgresFn,
-) {
+    @Inject
+    constructor(
+        private val options: StrategyDiscoveryPipelineOptions,
+        private val deserializeFn: DeserializeStrategyDiscoveryRequestFn,
+        private val runGAFn: RunGADiscoveryFn,
+        private val extractFn: ExtractDiscoveredStrategiesFn,
+        private val writeFn: WriteDiscoveredStrategiesToPostgresFn,
+    ) {
+        fun run() {
+            // Ensure streaming mode; useful if caller forgets --streaming=true
+            options.isStreaming = true
 
-    fun run() {
-        // Ensure streaming mode; useful if caller forgets --streaming=true
-        options.isStreaming = true
+            val pipeline = Pipeline.create(options)
 
-        val pipeline = Pipeline.create(options)
+            pipeline
+                .apply(
+                    "ReadDiscoveryRequestsFromKafka",
+                    KafkaIO
+                        .read<String, ByteArray>()
+                        .withBootstrapServers(options.kafkaBootstrapServers)
+                        .withTopic(options.strategyDiscoveryRequestTopic)
+                        .withKeyDeserializer(StringDeserializer::class.java)
+                        .withValueDeserializer(ByteArrayDeserializer::class.java),
+                ).apply(
+                    "ExtractKVFromRecord",
+                    MapElements.via(
+                        object : SerializableFunction<KafkaRecord<String, ByteArray>, KV<String, ByteArray>> {
+                            override fun apply(input: KafkaRecord<String, ByteArray>): KV<String, ByteArray> = input.kv
+                        },
+                    ),
+                ).apply("DeserializeProtoRequests", ParDo.of(deserializeFn))
+                .apply("RunGAStrategyDiscovery", ParDo.of(runGAFn))
+                .apply("ExtractStrategies", ParDo.of(extractFn))
+                .apply("WriteToPostgreSQL", ParDo.of(writeFn))
 
-        pipeline
-            .apply(
-                "ReadDiscoveryRequestsFromKafka",
-                KafkaIO
-                    .read<String, ByteArray>()
-                    .withBootstrapServers(options.kafkaBootstrapServers)
-                    .withTopic(options.strategyDiscoveryRequestTopic)
-                    .withKeyDeserializer(StringDeserializer::class.java)
-                    .withValueDeserializer(ByteArrayDeserializer::class.java),
-            )
-            .apply(
-                "ExtractKVFromRecord",
-                MapElements.via(
-                    object : SerializableFunction<KafkaRecord<String, ByteArray>, KV<String, ByteArray>> {
-                        override fun apply(input: KafkaRecord<String, ByteArray>): KV<String, ByteArray> {
-                            return input.kv
-                        }
-                    },
-                ),
-            )
-            .apply("DeserializeProtoRequests", ParDo.of(deserializeFn))
-            .apply("RunGAStrategyDiscovery", ParDo.of(runGAFn))
-            .apply("ExtractStrategies", ParDo.of(extractFn))
-            .apply("WriteToPostgreSQL", ParDo.of(writeFn))
+            pipeline.run().waitUntilFinish()
+        }
 
-        pipeline.run().waitUntilFinish()
-    }
+        companion object {
+            private val logger = FluentLogger.forEnclosingClass()
 
-    companion object {
-        private val logger = FluentLogger.forEnclosingClass()
+            /**
+             * Entry-point.  Builds the injector, gets **one** fully-wired instance of
+             * [StrategyDiscoveryPipeline], and executes it.
+             */
+            @JvmStatic
+            fun main(args: Array<String>) {
+                val options =
+                    PipelineOptionsFactory
+                        .fromArgs(*args)
+                        .withValidation()
+                        .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
-        /**
-         * Entry-point.  Builds the injector, gets **one** fully-wired instance of
-         * [StrategyDiscoveryPipeline], and executes it.
-         */
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val options =
-                PipelineOptionsFactory
-                    .fromArgs(*args)
-                    .withValidation()
-                    .`as`(StrategyDiscoveryPipelineOptions::class.java)
-
-            val injector = Guice.createInjector(DiscoveryModule(options))
-            injector.getInstance(StrategyDiscoveryPipeline::class.java).run()
+                val injector = Guice.createInjector(DiscoveryModule(options))
+                injector.getInstance(StrategyDiscoveryPipeline::class.java).run()
+            }
         }
     }
-}
