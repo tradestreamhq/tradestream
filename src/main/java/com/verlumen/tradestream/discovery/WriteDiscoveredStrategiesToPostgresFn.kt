@@ -5,6 +5,8 @@ import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.util.JsonFormat
+import com.verlumen.tradestream.sql.DataSourceConfig
+import com.verlumen.tradestream.sql.DataSourceFactory
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow
 import org.postgresql.core.BaseConnection
