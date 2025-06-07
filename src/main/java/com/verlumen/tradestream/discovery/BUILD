@@ -7,8 +7,8 @@ package(default_visibility = [
 
 java_binary(
     name = "app",
-    main_class = "com.verlumen.tradestream.discovery.StrategyDiscoveryPipeline",
-    runtime_deps = [":strategy_discovery_pipeline"],
+    main_class = "com.verlumen.tradestream.discovery.StrategyDiscoveryPipelineRunner",
+    runtime_deps = [":strategy_discovery_pipeline_runner"],
 )
 
 java_library(
