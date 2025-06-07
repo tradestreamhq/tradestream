@@ -79,7 +79,6 @@ kt_jvm_library(
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
         "//protos:strategies_java_proto",
-        "//third_party/java:jenetics",
     ],
 )
 
@@ -96,7 +95,6 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
         "//third_party/java:guice",
-        "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
     ],
 )
