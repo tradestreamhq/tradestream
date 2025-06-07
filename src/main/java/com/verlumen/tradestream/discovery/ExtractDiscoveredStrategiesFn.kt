@@ -5,7 +5,7 @@ import org.apache.beam.sdk.transforms.DoFn
 /**
  * Apache Beam transform that extracts individual discovered strategies from
  * StrategyDiscoveryResult objects.
- * 
+ *
  * Input: StrategyDiscoveryResult (containing multiple strategies)
  * Output: Individual DiscoveredStrategy objects
  *
