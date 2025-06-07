@@ -248,7 +248,8 @@ kt_jvm_library(
     name = "postgre_sql_data_source_factory",
     srcs = ["PostgreSQLDataSourceFactory.kt"],
     deps = [
-        "//third_party/java:postgresql"
+        ":data_source_factory",
+        "//third_party/java:postgresql",
     ],
 )
 
