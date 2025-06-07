@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
-import com.google.inject.Guice
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.io.kafka.KafkaIO
 import org.apache.beam.sdk.io.kafka.KafkaRecord
