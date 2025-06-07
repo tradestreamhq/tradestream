@@ -42,7 +42,6 @@ class WriteDiscoveredStrategiesToPostgresFn
         @Assisted private val socketTimeout: Int?,
         @Assisted private val readOnly: Boolean?,
     ) : DoFn<DiscoveredStrategy, Void>() {
-
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
             private const val BATCH_SIZE = 100
