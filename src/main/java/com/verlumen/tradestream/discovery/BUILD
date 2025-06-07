@@ -66,7 +66,6 @@ kt_jvm_library(
         ":param_config_manager",
         ":param_config_manager_impl",
         ":param_configs",
-        ":strategy_discovery_pipeline_options",
         "//protos:discovery_java_proto",
         "//third_party/java:guava",
         "//third_party/java:guice",
