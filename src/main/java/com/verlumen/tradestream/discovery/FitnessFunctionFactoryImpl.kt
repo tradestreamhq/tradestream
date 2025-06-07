@@ -9,7 +9,6 @@ import com.verlumen.tradestream.backtesting.BacktestRunner
 import com.verlumen.tradestream.marketdata.Candle
 import com.verlumen.tradestream.strategies.Strategy
 import com.verlumen.tradestream.strategies.StrategyType
-import io.jenetics.Genotype
 import java.util.function.Function
 
 /**
