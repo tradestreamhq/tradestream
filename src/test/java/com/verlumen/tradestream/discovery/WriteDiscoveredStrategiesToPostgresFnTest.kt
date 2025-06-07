@@ -34,8 +34,11 @@ import javax.sql.DataSource
  */
 @RunWith(JUnit4::class)
 class WriteDiscoveredStrategiesToPostgresFnTest {
+    // We do not run the pipeline in these unit tests; turn off the enforcement that
+    // would otherwise throw PipelineRunMissingException.
     @get:Rule
-    val pipeline: TestPipeline = TestPipeline.create()
+    val pipeline: TestPipeline =
+        TestPipeline.create().enableAbandonedNodeEnforcement(false)
 
     // Use BoundFieldModule to inject this mock
     @Bind @Mock
@@ -43,10 +46,6 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
 
     @Mock
     lateinit var mockConnection: Connection
-
-    // Mock provider for the DataSource
-    @Bind
-    val mockDataSourceProvider: Provider<DataSource> = Provider { mockDataSource }
 
     // The class under test - will be injected by Guice
     @Inject

@@ -2,9 +2,7 @@ package com.verlumen.tradestream.discovery
 
 import com.verlumen.tradestream.marketdata.Candle
 import com.verlumen.tradestream.strategies.StrategyType
-import io.jenetics.Genotype
 import java.io.Serializable
-import java.util.function.Function
 
 /** Defines the contract for calculating fitness scores using backtesting. */
 interface FitnessFunctionFactory : Serializable {
@@ -18,5 +16,5 @@ interface FitnessFunctionFactory : Serializable {
     fun create(
         strategyType: StrategyType,
         candles: List<Candle>,
-    ): Function<Genotype<*>, Double>
+    ): FitnessFunction
 }

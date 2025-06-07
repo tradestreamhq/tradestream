@@ -272,6 +272,14 @@ java_library(
 )
 
 java_library(
+    name = "postgresql",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_postgresql_postgresql",
+    ],
+)
+
+java_library(
     name = "protobuf_java",
     visibility = ["//visibility:public"],
     exports = [
