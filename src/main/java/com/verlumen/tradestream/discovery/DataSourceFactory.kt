@@ -28,7 +28,7 @@ data class DataSourceConfig(
     val applicationName: String? = null,
     val connectTimeout: Int? = null,
     val socketTimeout: Int? = null,
-    val readOnly: Boolean? = null
+    val readOnly: Boolean? = null,
 ) {
     init {
         require(serverName.isNotBlank()) { "Server name cannot be blank" }
