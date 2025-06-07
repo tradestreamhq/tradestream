@@ -23,8 +23,7 @@ import org.apache.beam.sdk.values.KV
  *
  * All DoFns arrive through the factory pattern with Guice.
  */
-class StrategyDiscoveryPipelineRunner(
-) {
+class StrategyDiscoveryPipelineRunner {
     companion object {
         /**
          * Entry-point. Builds the injector, gets a factory instance,
