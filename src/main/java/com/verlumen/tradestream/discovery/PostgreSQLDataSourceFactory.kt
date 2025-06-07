@@ -33,4 +33,4 @@ class PostgreSQLDataSourceFactory : DataSourceFactory {
 }
 
 // Extension function for convenient DataSource usage with automatic resource management
-inline fun <T> DataSource.useConnection(block: (Connection) -> T): T = connection.use(block)
+fun <T> DataSource.useConnection(block: (Connection) -> T): T = connection.use(block)
