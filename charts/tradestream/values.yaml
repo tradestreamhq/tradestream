@@ -113,7 +113,7 @@ strategyDiscoveryPipeline:
   # Database configuration for this specific pipeline.
   # These are examples, you must configure your PostgreSQL instance and secrets.
   database:
-    host: "your-postgres-host" # e.g., my-tradestream-postgresql.tradestream-namespace.svc.cluster.local
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
     database: "tradestream"
     username: "postgres"
@@ -180,6 +180,18 @@ redis:
     # persistence:
     #   enabled: true
     #   size: 8Gi
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  auth:
+    database: "tradestream"
+    existingSecret: "tradestream-postgres-secret"
+    secretKeys:
+      postgresPasswordKey: "password"
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
 # Top Crypto Updater CronJob configuration
 topCryptoUpdaterCronjob:
   enabled: true
