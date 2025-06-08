@@ -42,7 +42,9 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
     ],
     deps = [
+        ":postgre_sql_bulk_copier_factory",
         ":postgre_sql_data_source_factory",
+        "//src/main/java/com/verlumen/tradestream/sql:bulk_copier_factory",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
         "//third_party/java:guice",
     ],
