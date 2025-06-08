@@ -272,6 +272,7 @@ kt_jvm_library(
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
+        "//src/main/java/com/verlumen/tradestream/sql:bulk_copier_factory",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:flogger",
