@@ -5,7 +5,6 @@ import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
 
-
 class DiscoveryModule : AbstractModule() {
     override fun configure() {
         bind(FitnessFunctionFactory::class.java).to(FitnessFunctionFactoryImpl::class.java)
@@ -18,7 +17,8 @@ class DiscoveryModule : AbstractModule() {
             FactoryModuleBuilder()
                 .implement(
                     WriteDiscoveredStrategiesToPostgresFn::class.java,
-                    WriteDiscoveredStrategiesToPostgresFn::class.java)
-                .build(WriteDiscoveredStrategiesToPostgresFnFactory::class.java))
+                    WriteDiscoveredStrategiesToPostgresFn::class.java,
+                ).build(WriteDiscoveredStrategiesToPostgresFnFactory::class.java),
+        )
     }
 }
