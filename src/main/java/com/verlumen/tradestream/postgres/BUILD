@@ -10,7 +10,7 @@ kt_jvm_library(
         "//src/test/java/com/verlumen/tradestream/postgres:__pkg__",
     ],
     deps = [
-        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//src/main/java/com/verlumen/tradestream/sql:bulk_copier_factory",
         "//third_party/java:guice",
         "//third_party/java:guice_assistedinject",
         "//third_party/java:postgresql",
