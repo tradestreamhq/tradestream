@@ -22,7 +22,9 @@ object PostgreSQLBulkCopierFactory : BulkCopierFactory {
      * Private implementation of the BulkCopier that holds the connection
      * and performs the copy operation.
      */
-    private class PostgresCopier(private val connection: Connection) : BulkCopier {
+    private class PostgresCopier(
+        private val connection: Connection,
+    ) : BulkCopier {
         /**
          * Executes a bulk insert into a table using the PostgreSQL `COPY` command.
          * The data is expected to be in CSV format with a tab delimiter.
