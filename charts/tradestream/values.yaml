@@ -80,6 +80,47 @@ pipeline:
     jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
     parallelism: 1
     upgradeMode: stateless
+strategyDiscoveryPipeline:
+  enabled: false
+  runMode: wet
+  image:
+    repository: tradestreamhq/strategy-discovery-pipeline
+    tag: v2.13.1-develop
+    pullPolicy: IfNotPresent
+  version: v1_18
+  configuration:
+    env.java.opts.jobmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
+    env.java.opts.taskmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
+    taskmanager.numberOfTaskSlots: "1"
+    execution.checkpointing.interval: "300000"
+    execution.checkpointing.mode: "EXACTLY_ONCE"
+    execution.checkpointing.timeout: "1800000"
+    execution.checkpointing.externalized-checkpoint-retention: "RETAIN_ON_CANCELLATION"
+    state.backend: "rocksdb"
+    state.backend.incremental: "true"
+  serviceAccount: flink
+  jobManager:
+    memory: 2048m
+    cpu: 1
+  taskManager:
+    memory: 2048m
+    cpu: 1
+  job:
+    entryClass: com.verlumen.tradestream.discovery.StrategyDiscoveryPipelineRunner
+    jarURI: local:///src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar
+    parallelism: 1
+    upgradeMode: stateless
+  # Database configuration for this specific pipeline.
+  # These are examples, you must configure your PostgreSQL instance and secrets.
+  database:
+    host: "your-postgres-host" # e.g., my-tradestream-postgresql.tradestream-namespace.svc.cluster.local
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    # Recommend creating a secret with the password.
+    passwordSecret:
+      name: "tradestream-postgres-secret"
+      key: "password"
 candleIngestor:
   enabled: true
   schedule: "*/1 * * * *" # Run every 1 minute
@@ -91,7 +132,7 @@ candleIngestor:
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
-    tag: "v2.13.2-develop"
+    tag: "v2.13.1-develop"
   config:
     # CCXT Exchange Configuration
     exchanges:
@@ -146,7 +187,7 @@ topCryptoUpdaterCronjob:
   image:
     repository: "tradestreamhq/top-crypto-updater"
     pullPolicy: IfNotPresent
-    tag: "v2.13.2-develop"
+    tag: "v2.13.1-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
@@ -170,7 +211,7 @@ strategyDiscoveryRequestFactory:
   image:
     repository: "tradestreamhq/strategy-discovery-request-factory"
     pullPolicy: IfNotPresent
-    tag: "v2.13.2-develop"
+    tag: "v2.13.1-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3

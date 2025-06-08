@@ -47,6 +47,9 @@ jobs:
             --from-literal=INFLUXDB_TOKEN="$(openssl rand -hex 32)" \
             --from-literal=INFLUXDB_ORG="tradestream-org" \
             --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret generic tradestream-postgres-secret \
+            --from-literal=password=fakepass \
+            --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
 
       - uses: bazel-contrib/setup-bazel@0.14.0
         with:
@@ -87,6 +90,12 @@ jobs:
             --repository localhost:5000/strategy-discovery-request-factory \
             --tag "latest"
 
+          # Build and push strategy-discovery-pipeline image
+          bazel run //src/main/java/com/verlumen/tradestream/discovery:push_image \
+            -- \
+            --repository localhost:5000/strategy-discovery-pipeline \
+            --tag "latest"
+
           # Load images into minikube
           docker pull localhost:5000/tradestream-data-pipeline:latest
           docker tag localhost:5000/tradestream-data-pipeline:latest tradestream-data-pipeline:latest
@@ -100,6 +109,9 @@ jobs:
           docker pull localhost:5000/strategy-discovery-request-factory:latest
           docker tag localhost:5000/strategy-discovery-request-factory:latest strategy-discovery-request-factory:latest
           minikube image load strategy-discovery-request-factory:latest
+          docker pull localhost:5000/strategy-discovery-pipeline:latest
+          docker tag localhost:5000/strategy-discovery-pipeline:latest strategy-discovery-pipeline:latest
+          minikube image load strategy-discovery-pipeline:latest
 
       - name: Install Cert Manager
         run: |
@@ -123,6 +135,8 @@ jobs:
             --set topCryptoUpdaterCronjob.image.tag=latest \
             --set strategyDiscoveryRequestFactory.image.repository=strategy-discovery-request-factory \
             --set strategyDiscoveryRequestFactory.image.tag=latest \
+            --set strategyDiscoveryPipeline.image.repository=strategy-discovery-pipeline \
+            --set strategyDiscoveryPipeline.image.tag=latest \
             --set pipeline.runMode=dry \
             --set redis.enabled=true \
             --set topCryptoUpdaterCronjob.enabled=true \
