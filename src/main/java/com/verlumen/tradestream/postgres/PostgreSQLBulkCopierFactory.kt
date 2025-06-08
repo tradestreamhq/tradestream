@@ -17,9 +17,7 @@ object PostgreSQLBulkCopierFactory : BulkCopierFactory {
      * @param connection The active PostgreSQL database connection.
      * @return An instance of a [BulkCopier] that uses the PostgreSQL `COPY` command.
      */
-    override fun create(connection: Connection): BulkCopier {
-        return PostgresCopier(connection)
-    }
+    override fun create(connection: Connection): BulkCopier = PostgresCopier(connection)
 
     /**
      * Private implementation of the BulkCopier that holds the connection
