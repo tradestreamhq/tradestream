@@ -21,15 +21,13 @@ class StrategyDiscoveryPipelineRunner {
         private const val DATABASE_USERNAME_ENV_VAR = "DATABASE_USERNAME"
         private const val DATABASE_PASSWORD_ENV_VAR = "DATABASE_PASSWORD"
 
-        private fun getDatabaseUsername(options: StrategyDiscoveryPipelineOptions): String? {
-            return options.databaseUsername.takeIf { !it.isNullOrEmpty() }
+        private fun getDatabaseUsername(options: StrategyDiscoveryPipelineOptions): String? =
+            options.databaseUsername.takeIf { !it.isNullOrEmpty() }
                 ?: System.getenv(DATABASE_USERNAME_ENV_VAR)
-        }
 
-        private fun getDatabasePassword(options: StrategyDiscoveryPipelineOptions): String? {
-            return options.databasePassword.takeIf { !it.isNullOrEmpty() }
+        private fun getDatabasePassword(options: StrategyDiscoveryPipelineOptions): String? =
+            options.databasePassword.takeIf { !it.isNullOrEmpty() }
                 ?: System.getenv(DATABASE_PASSWORD_ENV_VAR)
-        }
 
         /**
          * Entry-point. Builds the injector, gets a factory instance,
