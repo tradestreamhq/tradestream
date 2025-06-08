@@ -13,12 +13,13 @@ import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
+import org.mockito.kotlin.any
 
 /**
  * Unit tests for StrategyDiscoveryPipeline wiring.
  *
  * `BoundFieldModule` automatically binds all @Mock fields into the Guice injector,
- * satisfying the dependencies that DiscoveryModule expects.
+ * satisfying the dependencies without using production modules.
  */
 @RunWith(JUnit4::class)
 class StrategyDiscoveryPipelineTest {
@@ -30,7 +31,17 @@ class StrategyDiscoveryPipelineTest {
     @Bind @Mock lateinit var backtestRequestFactory: BacktestRequestFactory
     @Bind @Mock lateinit var backtestRunner: BacktestRunner
 
-    // Injector that includes the mocks and production bindings.
+    // ----- Mock the pipeline components directly -----------------------------------------------
+    @Bind @Mock lateinit var deserializeStrategyDiscoveryRequestFn: DeserializeStrategyDiscoveryRequestFn
+    @Bind @Mock lateinit var runGADiscoveryFn: RunGADiscoveryFn
+    @Bind @Mock lateinit var extractDiscoveredStrategiesFn: ExtractDiscoveredStrategiesFn
+    @Bind @Mock lateinit var writeDiscoveredStrategiesToPostgresFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory
+    @Bind @Mock lateinit var strategyDiscoveryPipelineFactory: StrategyDiscoveryPipelineFactory
+
+    // Mock pipeline instance
+    @Mock lateinit var mockPipeline: StrategyDiscoveryPipeline
+
+    // Injector that includes only the mocks
     private val injector by lazy {
         Guice.createInjector(
             BoundFieldModule.of(this)
@@ -49,10 +60,13 @@ class StrategyDiscoveryPipelineTest {
         whenever(mockOptions.dbPortNumber).thenReturn(5432)
         whenever(mockOptions.databaseUsername).thenReturn("user")
         whenever(mockOptions.databasePassword).thenReturn("pass")
+
+        // Configure the factory mock to return our mock pipeline
+        whenever(strategyDiscoveryPipelineFactory.create(any())).thenReturn(mockPipeline)
     }
 
     @Test
-    fun testCreateInjectorWithParameterlessModule() {
+    fun testCreateInjectorWithMockedDependencies() {
         val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
         assert(factory != null) { "Factory should be instantiable" }
     }
@@ -62,6 +76,7 @@ class StrategyDiscoveryPipelineTest {
         val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
         val pipeline = factory.create(mockOptions)
         assert(pipeline != null) { "Pipeline should be created successfully" }
+        assert(pipeline == mockPipeline) { "Should return the mocked pipeline instance" }
     }
 
     @Test
@@ -85,6 +100,8 @@ class StrategyDiscoveryPipelineTest {
             }
 
         val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
-        assert(factory.create(realOptions) != null)
+        val pipeline = factory.create(realOptions)
+        assert(pipeline != null) { "Pipeline should be created successfully" }
+        assert(pipeline == mockPipeline) { "Should return the mocked pipeline instance" }
     }
 }
