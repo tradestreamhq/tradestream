@@ -18,6 +18,19 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory
  */
 class StrategyDiscoveryPipelineRunner {
     companion object {
+        private const val DATABASE_USERNAME_ENV_VAR = "DATABASE_USERNAME"
+        private const val DATABASE_PASSWORD_ENV_VAR = "DATABASE_PASSWORD"
+
+        private fun getDatabaseUsername(options: StrategyDiscoveryPipelineOptions): String? {
+            return options.databaseUsername.takeIf { !it.isNullOrEmpty() }
+                ?: System.getenv(DATABASE_USERNAME_ENV_VAR)
+        }
+
+        private fun getDatabasePassword(options: StrategyDiscoveryPipelineOptions): String? {
+            return options.databasePassword.takeIf { !it.isNullOrEmpty() }
+                ?: System.getenv(DATABASE_PASSWORD_ENV_VAR)
+        }
+
         /**
          * Entry-point. Builds the injector, gets a factory instance,
          * creates a fully-configured [StrategyDiscoveryPipeline], and executes it.
@@ -29,6 +42,10 @@ class StrategyDiscoveryPipelineRunner {
                     .fromArgs(*args)
                     .withValidation()
                     .`as`(StrategyDiscoveryPipelineOptions::class.java)
+
+            // Override from environment variables if not set in args
+            options.databaseUsername = getDatabaseUsername(options)
+            options.databasePassword = getDatabasePassword(options)
 
             val injector =
                 Guice.createInjector(
