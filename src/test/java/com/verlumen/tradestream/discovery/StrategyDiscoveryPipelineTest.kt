@@ -14,6 +14,7 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 /**
  * Unit tests for StrategyDiscoveryPipeline wiring.
