@@ -5,7 +5,7 @@ commandTests:
     args:
       - "-jar"
       - "/src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar"
-      - "--help"
+      - "--help=StrategyDiscoveryPipelineOptions"
     expectedOutput:
       - "kafkaBootstrapServers"
       - "databaseUsername"
