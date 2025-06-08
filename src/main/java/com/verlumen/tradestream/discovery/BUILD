@@ -35,15 +35,6 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
-    name = "extract_discovered_strategies_fn",
-    srcs = ["ExtractDiscoveredStrategiesFn.kt"],
-    deps = [
-        "//protos:discovery_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-    ],
-)
-
-kt_jvm_library(
     name = "discovery_module",
     srcs = ["DiscoveryModule.kt"],
     visibility = [
@@ -60,10 +51,21 @@ kt_jvm_library(
         ":param_config_manager",
         ":param_config_manager_impl",
         ":param_configs",
+        ":write_discovered_strategies_to_postgres_fn",
         "//protos:discovery_java_proto",
         "//third_party/java:guava",
         "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
         "//third_party/java:protobuf_java",
+    ],
+)
+
+kt_jvm_library(
+    name = "extract_discovered_strategies_fn",
+    srcs = ["ExtractDiscoveredStrategiesFn.kt"],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//third_party/java:beam_sdks_java_core",
     ],
 )
 

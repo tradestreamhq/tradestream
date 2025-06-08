@@ -60,7 +60,7 @@ class WriteDiscoveredStrategiesToPostgresFn
                 }
 
             logger.atInfo().log(
-                "PostgreSQL connection established for bulk writes to ${dataSourceConfigdatabaseName}@${dataSourceConfigserverName}",
+                "PostgreSQL connection established for bulk writes to ${dataSourceConfig.databaseName}@${dataSourceConfig.serverName}",
             )
         }
 
