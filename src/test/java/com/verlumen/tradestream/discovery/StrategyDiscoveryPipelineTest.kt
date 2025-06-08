@@ -57,7 +57,7 @@ class StrategyDiscoveryPipelineTest {
         val injector = Guice.createInjector(DiscoveryModule())
         assert(injector.getInstance(DeserializeStrategyDiscoveryRequestFn::class.java) != null)
         assert(injector.getInstance(ExtractDiscoveredStrategiesFn::class.java) != null)
-        assert(injector.getInstance(WriteDiscoveredStrategiesToPostgresFn.Factory::class.java) != null)
+        assert(injector.getInstance(WriteDiscoveredStrategiesToPostgresFnFactory::class.java) != null)
     }
 
     @Test
