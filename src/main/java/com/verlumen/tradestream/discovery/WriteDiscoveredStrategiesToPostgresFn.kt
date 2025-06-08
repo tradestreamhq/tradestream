@@ -32,15 +32,7 @@ class WriteDiscoveredStrategiesToPostgresFn
     @Inject
     constructor(
         private val dataSourceFactory: DataSourceFactory,
-        @Assisted private val serverName: String,
-        @Assisted private val databaseName: String,
-        @Assisted private val username: String,
-        @Assisted private val password: String,
-        @Assisted private val portNumber: Int?,
-        @Assisted private val applicationName: String?,
-        @Assisted private val connectTimeout: Int?,
-        @Assisted private val socketTimeout: Int?,
-        @Assisted private val readOnly: Boolean?,
+        @Assisted private val dataSourceConfig: DataSourceConfig,
     ) : DoFn<DiscoveredStrategy, Void>() {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
@@ -59,22 +51,8 @@ class WriteDiscoveredStrategiesToPostgresFn
 
         @Setup
         fun setup() {
-            // Create DataSource configuration from assisted-injected parameters
-            val config =
-                DataSourceConfig(
-                    serverName = serverName,
-                    databaseName = databaseName,
-                    username = username,
-                    password = password,
-                    portNumber = portNumber,
-                    applicationName = applicationName,
-                    connectTimeout = connectTimeout,
-                    socketTimeout = socketTimeout,
-                    readOnly = readOnly,
-                )
-
             // Create DataSource using the factory
-            dataSource = dataSourceFactory.create(config)
+            dataSource = dataSourceFactory.create(dataSourceConfig)
             // Establish connection
             connection =
                 dataSource!!.connection.apply {
@@ -82,7 +60,7 @@ class WriteDiscoveredStrategiesToPostgresFn
                 }
 
             logger.atInfo().log(
-                "PostgreSQL connection established for bulk writes to ${config.databaseName}@${config.serverName}",
+                "PostgreSQL connection established for bulk writes to ${dataSourceConfig.databaseName}@${dataSourceConfig.serverName}",
             )
         }
 
@@ -266,15 +244,5 @@ class WriteDiscoveredStrategiesToPostgresFn
  * with runtime-provided database configuration parameters.
  */
 interface WriteDiscoveredStrategiesToPostgresFnFactory {
-    fun create(
-        serverName: String,
-        databaseName: String,
-        username: String,
-        password: String,
-        portNumber: Int? = null,
-        applicationName: String? = null,
-        connectTimeout: Int? = null,
-        socketTimeout: Int? = null,
-        readOnly: Boolean? = null,
-    ): WriteDiscoveredStrategiesToPostgresFn
+    fun create(dataSourceConfig: DataSourceConfig): WriteDiscoveredStrategiesToPostgresFn
 }
