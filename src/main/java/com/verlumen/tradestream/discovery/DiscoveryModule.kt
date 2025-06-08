@@ -3,6 +3,7 @@ package com.verlumen.tradestream.discovery
 import com.google.common.collect.ImmutableList
 import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
+import com.google.inject.assistedinject.FactoryModuleBuilder
 
 class DiscoveryModule : AbstractModule() {
     override fun configure() {
@@ -12,5 +13,13 @@ class DiscoveryModule : AbstractModule() {
         bind(ParamConfigManager::class.java).to(ParamConfigManagerImpl::class.java)
         bind(StrategyDiscoveryPipelineFactory::class.java).to(StrategyDiscoveryPipelineFactoryImpl::class.java)
         bind(object : TypeLiteral<ImmutableList<ParamConfig>>() {}).toInstance(ParamConfigs.ALL_CONFIGS)
+
+        install(
+            FactoryModuleBuilder()
+                .implement(
+                    WriteDiscoveredStrategiesToPostgresFn::class.java,
+                    WriteDiscoveredStrategiesToPostgresFn::class.java,
+                ).build(WriteDiscoveredStrategiesToPostgresFnFactory::class.java),
+        )
     }
 }
