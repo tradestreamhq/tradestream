@@ -141,7 +141,9 @@ jobs:
             --set redis.enabled=true \
             --set topCryptoUpdaterCronjob.enabled=true \
             --set strategyDiscoveryRequestFactory.enabled=true \
-            --set influxdb.enabled=true
+            --set influxdb.enabled=true \
+            --set strategyDiscoveryPipeline.enabled=true \
+            --set postgresql.enabled=true
 
       - name: Monitor Deployment
         run: |
