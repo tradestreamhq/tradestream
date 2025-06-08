@@ -278,7 +278,6 @@ kt_jvm_library(
         "//third_party/java:flogger",
         "//third_party/java:guice",
         "//third_party/java:guice_assistedinject",
-        "//third_party/java:postgresql",
         "//third_party/java:protobuf_java",
         "//third_party/java:protobuf_java_util",
     ],
