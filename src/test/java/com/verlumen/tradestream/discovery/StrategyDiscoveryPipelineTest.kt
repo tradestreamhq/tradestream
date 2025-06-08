@@ -31,11 +31,20 @@ class StrategyDiscoveryPipelineTest {
     @Bind @Mock lateinit var backtestRunner: BacktestRunner
 
     // ----- Mock the pipeline components directly -----------------------------------------------
-    @Bind @Mock lateinit var deserializeStrategyDiscoveryRequestFn: DeserializeStrategyDiscoveryRequestFn
-    @Bind @Mock lateinit var runGADiscoveryFn: RunGADiscoveryFn
-    @Bind @Mock lateinit var extractDiscoveredStrategiesFn: ExtractDiscoveredStrategiesFn
-    @Bind @Mock lateinit var writeDiscoveredStrategiesToPostgresFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory
-    @Bind @Mock lateinit var strategyDiscoveryPipelineFactory: StrategyDiscoveryPipelineFactory
+    @Bind @Mock
+    lateinit var deserializeStrategyDiscoveryRequestFn: DeserializeStrategyDiscoveryRequestFn
+
+    @Bind @Mock
+    lateinit var runGADiscoveryFn: RunGADiscoveryFn
+
+    @Bind @Mock
+    lateinit var extractDiscoveredStrategiesFn: ExtractDiscoveredStrategiesFn
+
+    @Bind @Mock
+    lateinit var writeDiscoveredStrategiesToPostgresFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory
+
+    @Bind @Mock
+    lateinit var strategyDiscoveryPipelineFactory: StrategyDiscoveryPipelineFactory
 
     // Mock pipeline instance
     @Mock lateinit var mockPipeline: StrategyDiscoveryPipeline
