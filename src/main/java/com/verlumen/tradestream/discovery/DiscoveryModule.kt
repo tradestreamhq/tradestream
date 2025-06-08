@@ -12,9 +12,13 @@ class DiscoveryModule : AbstractModule() {
         bind(GenotypeConverter::class.java).to(GenotypeConverterImpl::class.java)
         bind(ParamConfigManager::class.java).to(ParamConfigManagerImpl::class.java)
         bind(object : TypeLiteral<ImmutableList<ParamConfig>>() {}).toInstance(ParamConfigs.ALL_CONFIGS)
+
         install(
             FactoryModuleBuilder()
-                .build(WriteDiscoveredStrategiesToPostgresFn.Factory::class.java),
+                .implement(
+                    WriteDiscoveredStrategiesToPostgresFn::class.java,
+                    WriteDiscoveredStrategiesToPostgresFn::class.java,
+                ).build(WriteDiscoveredStrategiesToPostgresFnFactory::class.java),
         )
     }
 }
