@@ -27,8 +27,11 @@ class StrategyDiscoveryPipelineTest {
     @Mock lateinit var mockOptions: StrategyDiscoveryPipelineOptions
 
     // ----- Back-testing dependencies required by FitnessFunctionFactoryImpl ---------------------
-    @Bind @Mock lateinit var backtestRequestFactory: BacktestRequestFactory
-    @Bind @Mock lateinit var backtestRunner: BacktestRunner
+    @Bind @Mock
+    lateinit var backtestRequestFactory: BacktestRequestFactory
+
+    @Bind @Mock
+    lateinit var backtestRunner: BacktestRunner
 
     // ----- Mock the pipeline components directly -----------------------------------------------
     @Bind @Mock
