@@ -27,7 +27,10 @@ object PostgreSQLBulkCopierFactory : BulkCopierFactory {
          * Executes a bulk insert into a table using the PostgreSQL `COPY` command.
          * The data is expected to be in CSV format with a tab delimiter.
          */
-        override fun copy(targetTable: String, reader: Reader) {
+        override fun copy(
+            targetTable: String,
+            reader: Reader,
+        ) {
             val copyManager = (connection as BaseConnection).copyAPI
             val sql = "COPY $targetTable FROM STDIN WITH (FORMAT csv, DELIMITER E'\\t')"
             copyManager.copyIn(sql, reader)
