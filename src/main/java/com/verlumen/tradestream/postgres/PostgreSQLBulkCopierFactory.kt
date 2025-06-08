@@ -10,7 +10,6 @@ import java.sql.Connection
  * A factory that creates [BulkCopier] instances tailored for PostgreSQL.
  */
 object PostgreSQLBulkCopierFactory : BulkCopierFactory {
-
     /**
      * Creates a PostgreSQL-specific [BulkCopier].
      *
