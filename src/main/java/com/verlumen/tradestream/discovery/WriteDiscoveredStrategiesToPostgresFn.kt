@@ -5,10 +5,10 @@ import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.util.JsonFormat
+import com.verlumen.tradestream.sql.BulkCopierFactory
 import com.verlumen.tradestream.sql.DataSourceConfig
 import com.verlumen.tradestream.sql.DataSourceFactory
 import org.apache.beam.sdk.transforms.DoFn
-import org.postgresql.core.BaseConnection
 import java.io.StringReader
 import java.security.MessageDigest
 import java.sql.Connection
@@ -31,6 +31,7 @@ import javax.sql.DataSource
 class WriteDiscoveredStrategiesToPostgresFn
     @Inject
     constructor(
+        private val bulkCopierFactory: BulkCopierFactory,
         private val dataSourceFactory: DataSourceFactory,
         @Assisted private val dataSourceConfig: DataSourceConfig,
     ) : DoFn<DiscoveredStrategy, Void>() {
@@ -157,11 +158,11 @@ class WriteDiscoveredStrategiesToPostgresFn
             conn.prepareStatement(createTempTableSql).use { it.execute() }
 
             // Bulk insert into temp table using COPY
-            val copyManager = (conn as BaseConnection).copyAPI
+            val copyManager = bulkCopierFactory.create(conn)
             val csvData = batchData.joinToString("\n")
 
-            copyManager.copyIn(
-                "COPY temp_strategies FROM STDIN WITH (FORMAT csv, DELIMITER E'\\t')",
+            copyManager.copy(
+                "temp_strategies",
                 StringReader(csvData),
             )
 
@@ -169,17 +170,17 @@ class WriteDiscoveredStrategiesToPostgresFn
             val upsertSql =
                 """
                 INSERT INTO Strategies (
-                    strategy_id, symbol, strategy_type, parameters, 
-                    first_discovered_at, last_evaluated_at, current_score, 
-                    is_active, strategy_hash, discovery_symbol, 
+                    strategy_id, symbol, strategy_type, parameters,
+                    first_discovered_at, last_evaluated_at, current_score,
+                    is_active, strategy_hash, discovery_symbol,
                     discovery_start_time, discovery_end_time
                 )
-                SELECT 
+                SELECT
                     gen_random_uuid(), symbol, strategy_type, parameters,
                     NOW(), NOW(), current_score, TRUE, strategy_hash,
                     discovery_symbol, discovery_start_time, discovery_end_time
                 FROM temp_strategies
-                ON CONFLICT (strategy_hash) DO UPDATE SET 
+                ON CONFLICT (strategy_hash) DO UPDATE SET
                     current_score = EXCLUDED.current_score,
                     last_evaluated_at = NOW()
                 """.trimIndent()

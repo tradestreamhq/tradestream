@@ -185,6 +185,7 @@ kt_jvm_test(
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:write_discovered_strategies_to_postgres_fn",
+        "//src/main/java/com/verlumen/tradestream/sql:bulk_copier_factory",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_test_utils",
