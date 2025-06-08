@@ -9,8 +9,8 @@ package(default_visibility = [
 ])
 
 kt_jvm_library(
-    name = "bulk_copier",
-    srcs = ["BulkCopier.kt"],
+    name = "bulk_copier_factory",
+    srcs = ["BulkCopierFactory.kt"],
 )
 
 kt_jvm_library(
