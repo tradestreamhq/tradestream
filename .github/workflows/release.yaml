@@ -12,10 +12,12 @@ jobs:
       CANDLE_INGESTOR_REPO: tradestreamhq/candle-ingestor
       TOP_CRYPTO_UPDATER_REPO: tradestreamhq/top-crypto-updater
       STRATEGY_DISCOVERY_REQUEST_FACTORY_REPO: tradestreamhq/strategy-discovery-request-factory
+      STRATEGY_DISCOVERY_PIPELINE_REPO: tradestreamhq/strategy-discovery-pipeline
       PIPELINE_SECTION_KEY: pipeline
       CANDLE_INGESTOR_SECTION_KEY: candleIngestor
       TOP_CRYPTO_UPDATER_SECTION_KEY: topCryptoUpdaterCronjob
       STRATEGY_DISCOVERY_REQUEST_FACTORY_SECTION_KEY: strategyDiscoveryRequestFactory
+      STRATEGY_DISCOVERY_PIPELINE_SECTION_KEY: strategyDiscoveryPipeline
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -82,6 +84,11 @@ jobs:
           bazel run //services/strategy_discovery_request_factory:push_strategy_discovery_request_factory_image \
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
+      - name: Push the Strategy Discovery Pipeline image
+        run: |
+          bazel run //src/main/java/com/verlumen/tradestream/discovery:push_image \
+            -- \
+            --tag ${{ steps.version.outputs.version_tag }}
 
       - name: Install yq
         run: |
@@ -99,7 +106,9 @@ jobs:
             .["${{ env.TOP_CRYPTO_UPDATER_SECTION_KEY }}"].image.repository = "${{ env.TOP_CRYPTO_UPDATER_REPO }}" |
             .["${{ env.TOP_CRYPTO_UPDATER_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
             .["${{ env.STRATEGY_DISCOVERY_REQUEST_FACTORY_SECTION_KEY }}"].image.repository = "${{ env.STRATEGY_DISCOVERY_REQUEST_FACTORY_REPO }}" |
-            .["${{ env.STRATEGY_DISCOVERY_REQUEST_FACTORY_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}"
+            .["${{ env.STRATEGY_DISCOVERY_REQUEST_FACTORY_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
+            .["${{ env.STRATEGY_DISCOVERY_PIPELINE_SECTION_KEY }}"].image.repository = "${{ env.STRATEGY_DISCOVERY_PIPELINE_REPO }}" |
+            .["${{ env.STRATEGY_DISCOVERY_PIPELINE_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}"
           ' charts/tradestream/values.yaml > charts/tradestream/values.yaml.tmp
           mv charts/tradestream/values.yaml.tmp charts/tradestream/values.yaml
 
