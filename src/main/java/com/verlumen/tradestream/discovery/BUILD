@@ -45,7 +45,6 @@ kt_jvm_library(
     srcs = ["DiscoveryModule.kt"],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
-        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
         ":fitness_function_factory",
