@@ -154,6 +154,28 @@ kt_jvm_test(
 )
 
 kt_jvm_test(
+    name = "StrategyDiscoveryPipelineTest",
+    srcs = ["StrategyDiscoveryPipelineTest.kt"],
+    runtime_deps = [
+        "//third_party/java:beam_runners_direct_java",
+        "//third_party/java:hamcrest",
+    ],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
+        "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guice",
+        "//third_party/java:guice_testlib",
+        "//third_party/java:junit",
+        "//third_party/java:mockito_core",
+        "//third_party/java:mockito_kotlin",
+    ],
+)
+
+kt_jvm_test(
     name = "WriteDiscoveredStrategiesToPostgresFnTest",
     srcs = ["WriteDiscoveredStrategiesToPostgresFnTest.kt"],
     runtime_deps = [

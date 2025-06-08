@@ -39,8 +39,17 @@ interface StrategyDiscoveryPipelineOptions :
     @get:Default.String("tradestream-data")
     var influxDbBucket: String
 
-    @get:Description("Database JDBC URL for writing results (e.g., jdbc:postgresql://localhost:5432/tradestream)")
-    var databaseJdbcUrl: String?
+    @get:Description("PostgreSQL server name for writing results")
+    @get:Default.String("localhost")
+    var dbServerName: String
+
+    @get:Description("PostgreSQL database name for writing results")
+    @get:Default.String("tradestream")
+    var dbDatabaseName: String
+
+    @get:Description("PostgreSQL port for writing results")
+    @get:Default.Integer(5432)
+    var dbPortNumber: Int
 
     @get:Description("Database username")
     var databaseUsername: String?

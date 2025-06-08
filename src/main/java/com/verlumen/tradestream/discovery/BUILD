@@ -5,6 +5,12 @@ package(default_visibility = [
     "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
 ])
 
+java_binary(
+    name = "app",
+    main_class = "com.verlumen.tradestream.discovery.StrategyDiscoveryPipelineRunner",
+    runtime_deps = [":strategy_discovery_pipeline_runner"],
+)
+
 java_library(
     name = "chromosome_spec",
     srcs = [
@@ -51,6 +57,7 @@ kt_jvm_library(
         ":param_config_manager",
         ":param_config_manager_impl",
         ":param_configs",
+        ":strategy_discovery_pipeline",
         ":write_discovered_strategies_to_postgres_fn",
         "//protos:discovery_java_proto",
         "//third_party/java:guava",
@@ -260,10 +267,45 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
+    name = "strategy_discovery_pipeline",
+    srcs = [
+        "StrategyDiscoveryPipeline.kt",
+        "StrategyDiscoveryPipelineFactory.kt",
+    ],
+    deps = [
+        ":deserialize_strategy_discovery_request_fn",
+        ":extract_discovered_strategies_fn",
+        ":run_ga_discovery_fn",
+        ":strategy_discovery_pipeline_options",
+        ":write_discovered_strategies_to_postgres_fn",
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//third_party/java:beam_sdks_java_io_kafka",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:kafka_clients",
+    ],
+)
+
+kt_jvm_library(
     name = "strategy_discovery_pipeline_options",
     srcs = ["StrategyDiscoveryPipelineOptions.kt"],
     deps = [
         "//third_party/java:beam_sdks_java_core",
+    ],
+)
+
+kt_jvm_library(
+    name = "strategy_discovery_pipeline_runner",
+    srcs = [
+        "StrategyDiscoveryPipelineRunner.kt",
+    ],
+    deps = [
+        ":discovery_module",
+        ":strategy_discovery_pipeline",
+        ":strategy_discovery_pipeline_options",
+        "//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
+        "//third_party/java:beam_sdks_java_io_kafka",
+        "//third_party/java:guice",
     ],
 )
 
