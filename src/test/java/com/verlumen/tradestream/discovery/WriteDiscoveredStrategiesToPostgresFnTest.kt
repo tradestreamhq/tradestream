@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.inject.Guice
+import com.google.inject.Inject
 import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.Any
@@ -82,15 +83,18 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         writeDiscoveredStrategiesToPostgresFn =
             WriteDiscoveredStrategiesToPostgresFn(
                 dataSourceFactory = mockDataSourceFactory,
-                serverName = testServerName,
-                databaseName = testDatabaseName,
-                username = testUsername,
-                password = testPassword,
-                portNumber = testPortNumber,
-                applicationName = testApplicationName,
-                connectTimeout = testConnectTimeout,
-                socketTimeout = testSocketTimeout,
-                readOnly = testReadOnly,
+                dataSourceConfig =
+                    DataSourceConfig(
+                        serverName = testServerName,
+                        databaseName = testDatabaseName,
+                        username = testUsername,
+                        password = testPassword,
+                        portNumber = testPortNumber,
+                        applicationName = testApplicationName,
+                        connectTimeout = testConnectTimeout,
+                        socketTimeout = testSocketTimeout,
+                        readOnly = testReadOnly,
+                    ),
             )
     }
 
