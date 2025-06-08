@@ -13,7 +13,10 @@ interface BulkCopier {
      * @param targetTable The name of the table to copy data into.
      * @param reader The [Reader] containing the data to be copied.
      */
-    fun copy(targetTable: String, reader: Reader)
+    fun copy(
+        targetTable: String,
+        reader: Reader,
+    )
 }
 
 /**
