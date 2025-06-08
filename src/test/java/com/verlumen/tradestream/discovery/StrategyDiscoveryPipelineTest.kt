@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.inject.Guice
+import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.verlumen.tradestream.backtesting.BacktestRequestFactory
 import com.verlumen.tradestream.backtesting.BacktestRunner
@@ -26,8 +27,8 @@ class StrategyDiscoveryPipelineTest {
     @Mock lateinit var mockOptions: StrategyDiscoveryPipelineOptions
 
     // ----- Back-testing dependencies required by FitnessFunctionFactoryImpl ---------------------
-    @Mock lateinit var backtestRequestFactory: BacktestRequestFactory
-    @Mock lateinit var backtestRunner: BacktestRunner
+    @Bind @Mock lateinit var backtestRequestFactory: BacktestRequestFactory
+    @Bind @Mock lateinit var backtestRunner: BacktestRunner
 
     // Injector that includes the mocks and production bindings.
     private val injector by lazy {
