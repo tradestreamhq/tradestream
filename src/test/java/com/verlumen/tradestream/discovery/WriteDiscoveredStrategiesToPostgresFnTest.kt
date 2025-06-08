@@ -6,6 +6,7 @@ import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.Any
 import com.google.protobuf.Timestamp
+import com.verlumen.tradestream.sql.BulkCopierFactory
 import com.verlumen.tradestream.sql.DataSourceConfig
 import com.verlumen.tradestream.sql.DataSourceFactory
 import com.verlumen.tradestream.strategies.SmaRsiParameters
@@ -47,6 +48,9 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
     @Bind @Mock
     lateinit var mockDataSourceFactory: DataSourceFactory
 
+    @Bind @Mock
+    lateinit var mockBulkCopierFactory: BulkCopierFactory
+
     @Mock
     lateinit var mockDataSource: DataSource
 
@@ -82,6 +86,7 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         // Create the function under test directly (simulating what the factory would do)
         writeDiscoveredStrategiesToPostgresFn =
             WriteDiscoveredStrategiesToPostgresFn(
+                bulkCopierFactory = mockBulkCopierFactory,
                 dataSourceFactory = mockDataSourceFactory,
                 serverName = testServerName,
                 databaseName = testDatabaseName,
