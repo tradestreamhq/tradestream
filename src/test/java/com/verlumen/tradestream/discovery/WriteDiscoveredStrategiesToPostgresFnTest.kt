@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.inject.Guice
-import com.google.inject.Inject
 import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.Any
