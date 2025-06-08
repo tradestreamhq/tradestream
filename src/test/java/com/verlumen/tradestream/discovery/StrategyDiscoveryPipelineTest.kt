@@ -23,7 +23,6 @@ import org.mockito.kotlin.any
  */
 @RunWith(JUnit4::class)
 class StrategyDiscoveryPipelineTest {
-
     // ----- Beam pipeline options ---------------------------------------------------------------
     @Mock lateinit var mockOptions: StrategyDiscoveryPipelineOptions
 
