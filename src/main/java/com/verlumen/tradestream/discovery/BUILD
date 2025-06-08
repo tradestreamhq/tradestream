@@ -279,6 +279,7 @@ kt_jvm_library(
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline_options",
         ":write_discovered_strategies_to_postgres_fn",
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_config",
         "//third_party/java:beam_sdks_java_io_kafka",
         "//third_party/java:flogger",
         "//third_party/java:guice",
