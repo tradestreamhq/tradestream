@@ -50,6 +50,9 @@ class WriteDiscoveredStrategiesToPostgresFn
         }
 
         @Transient
+        private var dataSource: DataSource? = null
+
+        @Transient
         private var connection: Connection? = null
 
         @Transient
@@ -189,17 +192,17 @@ class WriteDiscoveredStrategiesToPostgresFn
             val upsertSql =
                 """
                 INSERT INTO Strategies (
-                    strategy_id, symbol, strategy_type, parameters, 
-                    first_discovered_at, last_evaluated_at, current_score, 
-                    is_active, strategy_hash, discovery_symbol, 
+                    strategy_id, symbol, strategy_type, parameters,
+                    first_discovered_at, last_evaluated_at, current_score,
+                    is_active, strategy_hash, discovery_symbol,
                     discovery_start_time, discovery_end_time
                 )
-                SELECT 
+                SELECT
                     gen_random_uuid(), symbol, strategy_type, parameters,
                     NOW(), NOW(), current_score, TRUE, strategy_hash,
                     discovery_symbol, discovery_start_time, discovery_end_time
                 FROM temp_strategies
-                ON CONFLICT (strategy_hash) DO UPDATE SET 
+                ON CONFLICT (strategy_hash) DO UPDATE SET
                     current_score = EXCLUDED.current_score,
                     last_evaluated_at = NOW()
                 """.trimIndent()
