@@ -163,7 +163,6 @@ kt_jvm_test(
     deps = [
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/discovery:discovery_module",
         "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:guice",
