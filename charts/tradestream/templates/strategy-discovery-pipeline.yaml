@@ -30,13 +30,13 @@ spec:
     entryClass: {{ .Values.strategyDiscoveryPipeline.job.entryClass }}
     jarURI: {{ .Values.strategyDiscoveryPipeline.job.jarURI }}
     args:
-      - "--bootstrapServers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+      - '--bootstrapServers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092'
       - "--runner=FlinkRunner"
       - "--isStreaming=true"
       - "--dbServerName={{ .Values.strategyDiscoveryPipeline.database.host }}"
       - "--dbDatabaseName={{ .Values.strategyDiscoveryPipeline.database.database }}"
       - "--dbPortNumber={{ .Values.strategyDiscoveryPipeline.database.port }}"
-      - "--influxDbUrl=http://{{ include "tradestream.fullname" . }}-influxdb:80"
+      - '--influxDbUrl=http://{{ include "tradestream.fullname" . }}-influxdb:80'
       - "--influxDbOrg={{ .Values.influxdb.adminUser.organization }}"
       - "--influxDbBucket={{ .Values.influxdb.adminUser.bucket }}"
     parallelism: {{ .Values.strategyDiscoveryPipeline.job.parallelism }}
