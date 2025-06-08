@@ -13,8 +13,10 @@ spec:
   imagePullPolicy: {{ default "IfNotPresent" .Values.strategyDiscoveryPipeline.image.pullPolicy }}
   flinkVersion: {{ .Values.strategyDiscoveryPipeline.version }}
   flinkConfiguration:
-    {{- toYaml .Values.strategyDiscoveryPipeline.configuration | nindent 4 }}
     io.tmp.dirs: "/opt/flink/writable-tmp"
+    {{- with .Values.strategyDiscoveryPipeline.configuration }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   serviceAccount: {{ .Values.strategyDiscoveryPipeline.serviceAccount }}
   jobManager:
     resource:
@@ -34,7 +36,6 @@ spec:
       - "--dbServerName={{ .Values.strategyDiscoveryPipeline.database.host }}"
       - "--dbDatabaseName={{ .Values.strategyDiscoveryPipeline.database.database }}"
       - "--dbPortNumber={{ .Values.strategyDiscoveryPipeline.database.port }}"
-      # InfluxDB args - for candle fetcher
       - "--influxDbUrl=http://{{ include "tradestream.fullname" . }}-influxdb:80"
       - "--influxDbOrg={{ .Values.influxdb.adminUser.organization }}"
       - "--influxDbBucket={{ .Values.influxdb.adminUser.bucket }}"
@@ -53,7 +54,6 @@ spec:
           env:
             - name: TMPDIR
               value: /opt/flink/writable-tmp
-            # Secret for Postgres credentials
             - name: DATABASE_USERNAME
               value: {{ .Values.strategyDiscoveryPipeline.database.username | quote }}
             - name: DATABASE_PASSWORD
@@ -61,7 +61,6 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.strategyDiscoveryPipeline.database.passwordSecret.name }}
                   key: {{ .Values.strategyDiscoveryPipeline.database.passwordSecret.key }}
-            # Secret for InfluxDB token
             - name: INFLUXDB_TOKEN
               valueFrom:
                 secretKeyRef:
