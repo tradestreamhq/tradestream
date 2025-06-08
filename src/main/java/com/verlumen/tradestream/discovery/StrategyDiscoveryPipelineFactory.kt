@@ -2,6 +2,7 @@ package com.verlumen.tradestream.discovery
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
+import com.verlumen.tradestream.sql.DataSourceConfig
 
 /**
  * Factory for creating StrategyDiscoveryPipeline instances with configuration.
@@ -29,8 +30,8 @@ class StrategyDiscoveryPipelineFactoryImpl
             val username = requireNotNull(options.databaseUsername) { "Database username is required." }
             val password = requireNotNull(options.databasePassword) { "Database password is required." }
 
-            val writeFn =
-                writeFnFactory.create(
+            val dataSourceConfig =
+                DataSourceConfig(
                     serverName = options.dbServerName,
                     databaseName = options.dbDatabaseName,
                     username = username,
@@ -42,6 +43,7 @@ class StrategyDiscoveryPipelineFactoryImpl
                     socketTimeout = null,
                     readOnly = null,
                 )
+            val writeFn = writeFnFactory.create(dataSourceConfig)
 
             return StrategyDiscoveryPipeline(
                 kafkaBootstrapServers = options.kafkaBootstrapServers,
