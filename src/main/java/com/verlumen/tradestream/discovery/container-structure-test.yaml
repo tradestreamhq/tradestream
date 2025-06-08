@@ -1,0 +1,11 @@
+schemaVersion: "2.0.0"
+commandTests:
+  - name: "Strategy Discovery Pipeline Help"
+    command: "java"
+    args:
+      - "-jar"
+      - "/src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar"
+      - "--help"
+    expectedOutput:
+      - "kafkaBootstrapServers"
+      - "databaseUsername"
