@@ -33,8 +33,7 @@ class StrategyDiscoveryPipelineTest {
     // Injector that includes the mocks and production bindings.
     private val injector by lazy {
         Guice.createInjector(
-            BoundFieldModule.of(this), // binds @Mock fields
-            DiscoveryModule(),
+            BoundFieldModule.of(this)
         )
     }
 
