@@ -35,6 +35,7 @@ class StrategyDiscoveryPipelineRunner {
          */
         @JvmStatic
         fun main(args: Array<String>) {
+            PipelineOptionsFactory.register(StrategyDiscoveryPipelineOptions::class.java)
             val options =
                 PipelineOptionsFactory
                     .fromArgs(*args)
