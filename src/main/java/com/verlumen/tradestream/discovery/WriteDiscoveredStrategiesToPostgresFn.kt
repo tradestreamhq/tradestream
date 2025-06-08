@@ -5,10 +5,10 @@ import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.util.JsonFormat
+import com.verlumen.tradestream.sql.BulkCopierFactory
 import com.verlumen.tradestream.sql.DataSourceConfig
 import com.verlumen.tradestream.sql.DataSourceFactory
 import org.apache.beam.sdk.transforms.DoFn
-import org.postgresql.core.BaseConnection
 import java.io.StringReader
 import java.security.MessageDigest
 import java.sql.Connection
@@ -31,6 +31,7 @@ import javax.sql.DataSource
 class WriteDiscoveredStrategiesToPostgresFn
     @Inject
     constructor(
+        private val bulkCopierFactory: BulkCopierFactory,
         private val dataSourceFactory: DataSourceFactory,
         @Assisted private val serverName: String,
         @Assisted private val databaseName: String,
@@ -47,9 +48,6 @@ class WriteDiscoveredStrategiesToPostgresFn
             private const val BATCH_SIZE = 100
             private const val MAX_RETRIES = 3
         }
-
-        @Transient
-        private var dataSource: DataSource? = null
 
         @Transient
         private var connection: Connection? = null
@@ -179,11 +177,11 @@ class WriteDiscoveredStrategiesToPostgresFn
             conn.prepareStatement(createTempTableSql).use { it.execute() }
 
             // Bulk insert into temp table using COPY
-            val copyManager = (conn as BaseConnection).copyAPI
+            val copyManager = bulkCopierFactory.create(conn)
             val csvData = batchData.joinToString("\n")
 
-            copyManager.copyIn(
-                "COPY temp_strategies FROM STDIN WITH (FORMAT csv, DELIMITER E'\\t')",
+            copyManager.copy(
+                "temp_strategies",
                 StringReader(csvData),
             )
 
