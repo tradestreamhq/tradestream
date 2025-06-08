@@ -1,5 +1,9 @@
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+load("@aspect_bazel_lib//lib:tar.bzl", "tar")
+load("@container_structure_test//:defs.bzl", "container_structure_test")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("//platforms:transition.bzl", "multi_arch")
 
 package(default_visibility = [
     "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
@@ -9,6 +13,46 @@ java_binary(
     name = "app",
     main_class = "com.verlumen.tradestream.discovery.StrategyDiscoveryPipelineRunner",
     runtime_deps = [":strategy_discovery_pipeline_runner"],
+)
+
+tar(
+    name = "layer",
+    srcs = [":app_deploy.jar"],
+)
+
+oci_image(
+    name = "image",
+    base = "@flink_java17",
+    entrypoint = [
+        "java",
+        "-jar",
+        "/src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar",
+    ],
+    tars = [
+        ":layer",
+    ],
+)
+
+multi_arch(
+    name = "images",
+    image = ":image",
+    platforms = [
+        "//platforms:linux_arm64",
+        "//platforms:linux_amd64",
+    ],
+)
+
+oci_image_index(
+    name = "index",
+    images = [
+        ":images",
+    ],
+)
+
+oci_push(
+    name = "push_image",
+    image = ":index",
+    repository = "tradestreamhq/strategy-discovery-pipeline",
 )
 
 java_library(
@@ -325,4 +369,11 @@ kt_jvm_library(
         "//third_party/java:protobuf_java",
         "//third_party/java:protobuf_java_util",
     ],
+)
+
+container_structure_test(
+    name = "container_test",
+    configs = ["container-structure-test.yaml"],
+    image = ":image",
+    tags = ["requires-docker"],
 )
