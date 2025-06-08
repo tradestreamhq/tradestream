@@ -43,7 +43,7 @@ class StrategyDiscoveryPipelineTest {
     // Injector that includes only the mocks
     private val injector by lazy {
         Guice.createInjector(
-            BoundFieldModule.of(this)
+            BoundFieldModule.of(this),
         )
     }
 
