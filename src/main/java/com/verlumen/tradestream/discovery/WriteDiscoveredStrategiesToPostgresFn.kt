@@ -77,7 +77,7 @@ class WriteDiscoveredStrategiesToPostgresFn
         ) {
             if (dryRun) {
                 logger.atInfo().log(
-                    "Dry run - would write strategy: ${element.strategy.type.name} for ${element.symbol} with score ${element.score}"
+                    "Dry run - would write strategy: ${element.strategy.type.name} for ${element.symbol} with score ${element.score}",
                 )
                 return
             }

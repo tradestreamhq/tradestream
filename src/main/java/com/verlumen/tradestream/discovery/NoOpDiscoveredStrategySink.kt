@@ -18,7 +18,9 @@ class NoOpDiscoveredStrategySink : DiscoveredStrategySink {
             ParDo.of(
                 object : DoFn<DiscoveredStrategy, Void>() {
                     @ProcessElement
-                    fun processElement(@Element strategy: DiscoveredStrategy) {
+                    fun processElement(
+                        @Element strategy: DiscoveredStrategy,
+                    ) {
                         logger.atInfo().log("Would persist strategy: ${strategy.strategyId}")
                     }
                 },

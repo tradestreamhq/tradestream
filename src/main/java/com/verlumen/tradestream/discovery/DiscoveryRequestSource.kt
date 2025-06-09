@@ -1,10 +1,7 @@
 package com.verlumen.tradestream.discovery
 
-import com.google.common.collect.ImmutableList
 import com.google.inject.assistedinject.AssistedFactory
-import com.google.inject.assistedinject.AssistedInject
 import com.verlumen.tradestream.execution.RunMode
-import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.PTransform
 import org.apache.beam.sdk.values.PCollection
 import org.apache.beam.sdk.values.PInput

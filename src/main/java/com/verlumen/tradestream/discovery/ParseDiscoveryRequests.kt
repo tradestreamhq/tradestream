@@ -11,9 +11,8 @@ import org.apache.beam.sdk.values.PCollection
  * A PTransform that parses StrategyDiscoveryRequest messages from Kafka JSON strings.
  */
 class ParseDiscoveryRequests : PTransform<PCollection<String>, PCollection<StrategyDiscoveryRequest>>() {
-    override fun expand(input: PCollection<String>): PCollection<StrategyDiscoveryRequest> {
-        return input.apply(ParDo.of(ParseDiscoveryRequestsFn()))
-    }
+    override fun expand(input: PCollection<String>): PCollection<StrategyDiscoveryRequest> =
+        input.apply(ParDo.of(ParseDiscoveryRequestsFn()))
 
     private class ParseDiscoveryRequestsFn : DoFn<String, StrategyDiscoveryRequest>() {
         companion object {
