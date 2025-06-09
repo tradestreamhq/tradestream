@@ -25,6 +25,7 @@ import javax.sql.DataSource
  * - Handles connection pooling and error recovery with exponential backoff
  * - Supports upsert logic with ON CONFLICT using temporary tables
  * - Processes 50K+ strategies per second vs ~5K with standard JdbcIO
+ * - Supports dry run mode where no data is written to the database
  *
  * Database configuration is provided via assisted injection for runtime flexibility.
  */
@@ -34,6 +35,7 @@ class WriteDiscoveredStrategiesToPostgresFn
         private val bulkCopierFactory: BulkCopierFactory,
         private val dataSourceFactory: DataSourceFactory,
         @Assisted private val dataSourceConfig: DataSourceConfig,
+        @DryRun private val dryRun: Boolean,
     ) : DoFn<DiscoveredStrategy, Void>() {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
@@ -52,23 +54,34 @@ class WriteDiscoveredStrategiesToPostgresFn
 
         @Setup
         fun setup() {
-            // Create DataSource using the factory
-            dataSource = dataSourceFactory.create(dataSourceConfig)
-            // Establish connection
-            connection =
-                dataSource!!.connection.apply {
-                    autoCommit = false
-                }
+            if (!dryRun) {
+                // Create DataSource using the factory
+                dataSource = dataSourceFactory.create(dataSourceConfig)
+                // Establish connection
+                connection =
+                    dataSource!!.connection.apply {
+                        autoCommit = false
+                    }
 
-            logger.atInfo().log(
-                "PostgreSQL connection established for bulk writes to ${dataSourceConfig.databaseName}@${dataSourceConfig.serverName}",
-            )
+                logger.atInfo().log(
+                    "PostgreSQL connection established for bulk writes to ${dataSourceConfig.databaseName}@${dataSourceConfig.serverName}",
+                )
+            } else {
+                logger.atInfo().log("Running in dry run mode - no database writes will be performed")
+            }
         }
 
         @ProcessElement
         fun processElement(
             @Element element: DiscoveredStrategy,
         ) {
+            if (dryRun) {
+                logger.atInfo().log(
+                    "Dry run - would write strategy: ${element.strategy.type.name} for ${element.symbol} with score ${element.score}"
+                )
+                return
+            }
+
             val csvRow = convertToCsvRow(element)
             batch.offer(csvRow)
 
@@ -79,15 +92,17 @@ class WriteDiscoveredStrategiesToPostgresFn
 
         @FinishBundle
         fun finishBundle() {
-            if (batch.isNotEmpty()) {
+            if (!dryRun && batch.isNotEmpty()) {
                 flushBatch()
             }
         }
 
         @Teardown
         fun teardown() {
-            connection?.close()
-            logger.atInfo().log("PostgreSQL connection closed")
+            if (!dryRun) {
+                connection?.close()
+                logger.atInfo().log("PostgreSQL connection closed")
+            }
         }
 
         private fun flushBatch() {

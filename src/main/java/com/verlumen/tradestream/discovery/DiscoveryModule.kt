@@ -13,6 +13,12 @@ class DiscoveryModule : AbstractModule() {
         bind(ParamConfigManager::class.java).to(ParamConfigManagerImpl::class.java)
         bind(object : TypeLiteral<ImmutableList<ParamConfig>>() {}).toInstance(ParamConfigs.ALL_CONFIGS)
 
+        // Bind the appropriate request source implementation based on run mode
+        bind(DiscoveryRequestSource::class.java).toProvider(DiscoveryRequestSourceProvider::class.java)
+
+        // Bind the appropriate sink implementation based on run mode
+        bind(DiscoveredStrategySink::class.java).toProvider(DiscoveredStrategySinkProvider::class.java)
+
         install(
             FactoryModuleBuilder()
                 .implement(
@@ -22,3 +28,7 @@ class DiscoveryModule : AbstractModule() {
         )
     }
 }
+
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
+annotation class DryRun

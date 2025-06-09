@@ -18,6 +18,8 @@ import com.verlumen.tradestream.signals.SignalsModule;
 import com.verlumen.tradestream.strategies.StrategiesModule;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
 import org.joda.time.Duration;
+import com.verlumen.tradestream.discovery.DataSourceConfig;
+import javax.inject.Singleton;
 
 @AutoValue
 abstract class PipelineModule extends AbstractModule {
@@ -79,17 +81,41 @@ abstract class PipelineModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    install(new BacktestingModule());
-    install(new DiscoveryModule());
-    install(HttpModule.create());
-    install(new InfluxDbModule(influxDbUrl(), influxDbToken(), influxDbOrg(), influxDbBucket()));
-    install(InstrumentsModule.create(runMode(), coinMarketCapApiKey(), topCurrencyCount()));
-    install(KafkaModule.create(bootstrapServers()));
-    install(MarketDataModule.create(exchangeName(), candleDuration(), runMode(), tiingoApiKey()));
-    install(new PostgresModule());
+    install(
+        MarketDataModule.create(
+            exchangeName(),
+            candleDuration(),
+            runMode(),
+            tiingoApiKey()));
+    install(
+        InstrumentsModule.create(
+            runMode(),
+            coinMarketCapApiKey(),
+            topCurrencyCount()));
     install(SignalsModule.create(signalTopic()));
-    install(new StrategiesModule());
+    install(
+        DiscoveryModule.create(
+            dataSourceConfig(),
+            runMode() == RunMode.DRY));
+    install(StrategiesModule.create());
+    install(BacktestingModule.create());
+    install(HttpModule.create());
+    install(InfluxDbModule.create(influxDbUrl(), influxDbToken(), influxDbOrg(), influxDbBucket()));
+    install(KafkaModule.create(bootstrapServers()));
+    install(PostgresModule.create());
     install(Ta4jModule.create());
+  }
+
+  @Provides
+  @Singleton
+  DataSourceConfig dataSourceConfig() {
+    return DataSourceConfig.create(
+        "localhost", // serverName
+        5432, // port
+        "tradestream", // databaseName
+        "postgres", // user
+        "postgres", // password
+        "tradestream"); // schema
   }
 
   @Provides
