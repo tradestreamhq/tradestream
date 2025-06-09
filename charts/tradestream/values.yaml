@@ -29,8 +29,6 @@ kafka:
       protocol: PLAINTEXT
     controller:
       protocol: PLAINTEXT
-  configurationOverrides:
-    "controller.quorum.voters": "0@kafka-0.kafka-headless:9093,1@kafka-1.kafka-headless:9093,2@kafka-2.kafka-headless:9093"
   podSecurityContext:
     runAsUser: 1001
     fsGroup: 1001
@@ -70,11 +68,11 @@ pipeline:
     state.backend.incremental: "true"
   serviceAccount: flink
   jobManager:
-    memory: 4096m
-    cpu: 2
+    memory: 2048m
+    cpu: 1
   taskManager:
-    memory: 4096m
-    cpu: 2
+    memory: 2048m
+    cpu: 1
   job:
     entryClass: com.verlumen.tradestream.pipeline.App
     jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
