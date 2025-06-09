@@ -44,7 +44,7 @@ class StrategyDiscoveryPipelineTest {
     lateinit var extractDiscoveredStrategiesFn: ExtractDiscoveredStrategiesFn
 
     @Bind @Mock
-    lateinit var writeDiscoveredStrategiesToPostgresFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory
+    lateinit var discoveredStrategySink: DiscoveredStrategySink
 
     @Bind @Mock
     lateinit var strategyDiscoveryPipelineFactory: StrategyDiscoveryPipelineFactory
@@ -94,7 +94,7 @@ class StrategyDiscoveryPipelineTest {
     fun testTransformInstantiation() {
         assert(injector.getInstance(DeserializeStrategyDiscoveryRequestFn::class.java) != null)
         assert(injector.getInstance(ExtractDiscoveredStrategiesFn::class.java) != null)
-        assert(injector.getInstance(WriteDiscoveredStrategiesToPostgresFnFactory::class.java) != null)
+        assert(injector.getInstance(DiscoveredStrategySink::class.java) != null)
     }
 
     @Test
