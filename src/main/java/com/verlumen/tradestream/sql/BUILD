@@ -23,5 +23,6 @@ kt_jvm_library(
     srcs = ["DataSourceFactory.kt"],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/discovery:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
 )
