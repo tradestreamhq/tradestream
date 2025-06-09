@@ -40,4 +40,4 @@ class KafkaDiscoveryRequestSource
                     .apply("ParseDiscoveryRequests", ParseDiscoveryRequests()),
             )
         }
-    } 
+    }

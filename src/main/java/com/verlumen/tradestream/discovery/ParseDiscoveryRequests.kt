@@ -31,4 +31,4 @@ class ParseDiscoveryRequests : PTransform<PCollection<String>, PCollection<Strat
             }
         }
     }
-} 
+}

@@ -6,9 +6,6 @@ import com.google.inject.assistedinject.AssistedInject
 import com.verlumen.tradestream.discovery.proto.DiscoveredStrategy
 import com.verlumen.tradestream.sql.DataSourceConfig
 import org.apache.beam.sdk.transforms.DoFn
-import org.apache.beam.sdk.transforms.ParDo
-import org.apache.beam.sdk.values.PCollection
-import org.apache.beam.sdk.values.PDone
 
 /**
  * High-performance PostgreSQL writer using COPY command for bulk inserts.
@@ -28,20 +25,21 @@ class WriteDiscoveredStrategiesToPostgresFn
     constructor(
         @Assisted private val dataSourceConfig: DataSourceConfig,
     ) : DoFn<DiscoveredStrategy, Void>() {
-    companion object {
-        private val logger = FluentLogger.forEnclosingClass()
+        companion object {
+            private val logger = FluentLogger.forEnclosingClass()
 
-        fun create(dataSourceConfig: DataSourceConfig): WriteDiscoveredStrategiesToPostgresFn {
-            return WriteDiscoveredStrategiesToPostgresFn(dataSourceConfig)
+            fun create(dataSourceConfig: DataSourceConfig): WriteDiscoveredStrategiesToPostgresFn =
+                WriteDiscoveredStrategiesToPostgresFn(dataSourceConfig)
+        }
+
+        @ProcessElement
+        fun processElement(
+            @Element strategy: DiscoveredStrategy,
+        ) {
+            logger.atInfo().log("Writing discovered strategy to Postgres: ${strategy.strategyId}")
+            // TODO: Implement actual Postgres writing logic
         }
     }
-
-    @ProcessElement
-    fun processElement(@Element strategy: DiscoveredStrategy) {
-        logger.atInfo().log("Writing discovered strategy to Postgres: ${strategy.strategyId}")
-        // TODO: Implement actual Postgres writing logic
-    }
-}
 
 /**
  * Factory interface for creating WriteDiscoveredStrategiesToPostgresFn instances

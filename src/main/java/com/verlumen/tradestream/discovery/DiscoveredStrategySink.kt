@@ -14,4 +14,4 @@ interface DiscoveredStrategySink : PTransform<PCollection<DiscoveredStrategy>, P
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
     }
-} 
+}

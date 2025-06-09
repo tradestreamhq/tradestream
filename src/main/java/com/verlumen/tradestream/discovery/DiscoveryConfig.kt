@@ -9,4 +9,4 @@ data class DiscoveryConfig
     constructor(
         val dataSourceConfig: DataSourceConfig,
         val runMode: RunMode,
-    ) 
+    )

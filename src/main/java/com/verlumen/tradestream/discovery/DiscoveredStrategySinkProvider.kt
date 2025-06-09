@@ -14,4 +14,4 @@ class DiscoveredStrategySinkProvider
                 RunMode.DRY -> NoOpDiscoveredStrategySink()
                 RunMode.WET -> PostgresDiscoveredStrategySink(config.dataSourceConfig)
             }
-    } 
+    }

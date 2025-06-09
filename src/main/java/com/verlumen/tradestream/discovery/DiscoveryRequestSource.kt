@@ -15,4 +15,4 @@ interface DiscoveryRequestSource : PTransform<PInput, PCollection<StrategyDiscov
     interface Factory {
         fun create(runMode: RunMode): DiscoveryRequestSource
     }
-} 
+}

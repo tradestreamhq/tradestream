@@ -14,4 +14,4 @@ class DiscoveryRequestSourceProvider
                 RunMode.DRY -> DryRunDiscoveryRequestSource()
                 RunMode.WET -> KafkaDiscoveryRequestSource()
             }
-    } 
+    }
