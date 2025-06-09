@@ -2,16 +2,18 @@ package com.verlumen.tradestream.discovery
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
+import com.google.inject.assistedinject.AssistedFactory
 import com.verlumen.tradestream.sql.DataSourceConfig
 
 /**
  * Factory for creating StrategyDiscoveryPipeline instances with configuration.
  */
+@AssistedFactory
 interface StrategyDiscoveryPipelineFactory {
     /**
      * Creates a new StrategyDiscoveryPipeline with the given options.
      */
-    fun create(options: StrategyDiscoveryPipelineOptions): StrategyDiscoveryPipeline
+    fun create(): StrategyDiscoveryPipeline
 }
 
 /**
@@ -26,7 +28,7 @@ class StrategyDiscoveryPipelineFactoryImpl
         private val extractFn: ExtractDiscoveredStrategiesFn,
         private val writeFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory,
     ) : StrategyDiscoveryPipelineFactory {
-        override fun create(options: StrategyDiscoveryPipelineOptions): StrategyDiscoveryPipeline {
+        override fun create(): StrategyDiscoveryPipeline {
             val username = requireNotNull(options.databaseUsername) { "Database username is required." }
             val password = requireNotNull(options.databasePassword) { "Database password is required." }
 

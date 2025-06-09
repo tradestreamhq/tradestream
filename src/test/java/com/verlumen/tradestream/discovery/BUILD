@@ -202,3 +202,68 @@ kt_jvm_test(
         "//third_party/java:truth",
     ],
 )
+
+kt_jvm_test(
+    name = "DryRunDiscoveryRequestSourceTest",
+    srcs = ["DryRunDiscoveryRequestSourceTest.kt"],
+    runtime_deps = [
+        "//third_party/java:beam_runners_direct_java",
+        "//third_party/java:hamcrest",
+    ],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:discovery_request_source",
+        "//src/main/java/com/verlumen/tradestream/discovery:dry_run_discovery_request_source",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guice",
+        "//third_party/java:guice_testlib",
+        "//third_party/java:junit",
+        "//third_party/java:mockito_core",
+        "//third_party/java:mockito_kotlin",
+    ],
+)
+
+kt_jvm_test(
+    name = "KafkaDiscoveryRequestSourceTest",
+    srcs = ["KafkaDiscoveryRequestSourceTest.kt"],
+    runtime_deps = [
+        "//third_party/java:beam_runners_direct_java",
+        "//third_party/java:hamcrest",
+    ],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:discovery_request_source",
+        "//src/main/java/com/verlumen/tradestream/discovery:kafka_discovery_request_source",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_consumer_factory",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_io_kafka",
+        "//third_party/java:guice",
+        "//third_party/java:guice_testlib",
+        "//third_party/java:junit",
+        "//third_party/java:kafka_clients",
+        "//third_party/java:mockito_core",
+        "//third_party/java:mockito_kotlin",
+    ],
+)
+
+kt_jvm_test(
+    name = "ParseDiscoveryRequestsTest",
+    srcs = ["ParseDiscoveryRequestsTest.kt"],
+    runtime_deps = [
+        "//third_party/java:beam_runners_direct_java",
+        "//third_party/java:hamcrest",
+    ],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:parse_discovery_requests",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guice",
+        "//third_party/java:guice_testlib",
+        "//third_party/java:junit",
+        "//third_party/java:mockito_core",
+        "//third_party/java:mockito_kotlin",
+    ],
+)

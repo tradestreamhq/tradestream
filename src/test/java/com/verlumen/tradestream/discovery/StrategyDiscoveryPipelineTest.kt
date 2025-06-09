@@ -5,14 +5,17 @@ import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.verlumen.tradestream.backtesting.BacktestRequestFactory
 import com.verlumen.tradestream.backtesting.BacktestRunner
-import org.apache.beam.sdk.options.PipelineOptionsFactory
+import com.verlumen.tradestream.execution.RunMode
+import org.apache.beam.sdk.testing.TestPipeline
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 /**
@@ -23,8 +26,8 @@ import org.mockito.kotlin.whenever
  */
 @RunWith(JUnit4::class)
 class StrategyDiscoveryPipelineTest {
-    // ----- Beam pipeline options ---------------------------------------------------------------
-    @Mock lateinit var mockOptions: StrategyDiscoveryPipelineOptions
+    @get:Rule
+    val pipeline: TestPipeline = TestPipeline.create()
 
     // ----- Back-testing dependencies required by FitnessFunctionFactoryImpl ---------------------
     @Bind @Mock
@@ -35,7 +38,7 @@ class StrategyDiscoveryPipelineTest {
 
     // ----- Mock the pipeline components directly -----------------------------------------------
     @Bind @Mock
-    lateinit var deserializeStrategyDiscoveryRequestFn: DeserializeStrategyDiscoveryRequestFn
+    lateinit var discoveryRequestSource: DiscoveryRequestSource
 
     @Bind @Mock
     lateinit var runGADiscoveryFn: RunGADiscoveryFn
@@ -62,18 +65,7 @@ class StrategyDiscoveryPipelineTest {
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-
-        // Minimal configuration for the mocked pipeline options
-        whenever(mockOptions.kafkaBootstrapServers).thenReturn("localhost:9092")
-        whenever(mockOptions.strategyDiscoveryRequestTopic).thenReturn("test-topic")
-        whenever(mockOptions.dbServerName).thenReturn("localhost")
-        whenever(mockOptions.dbDatabaseName).thenReturn("test-db")
-        whenever(mockOptions.dbPortNumber).thenReturn(5432)
-        whenever(mockOptions.databaseUsername).thenReturn("user")
-        whenever(mockOptions.databasePassword).thenReturn("pass")
-
-        // Configure the factory mock to return our mock pipeline
-        whenever(strategyDiscoveryPipelineFactory.create(any())).thenReturn(mockPipeline)
+        whenever(strategyDiscoveryPipelineFactory.create()).thenReturn(mockPipeline)
     }
 
     @Test
@@ -85,34 +77,36 @@ class StrategyDiscoveryPipelineTest {
     @Test
     fun testFactoryCreatesValidPipeline() {
         val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
-        val pipeline = factory.create(mockOptions)
+        val pipeline = factory.create()
         assert(pipeline != null) { "Pipeline should be created successfully" }
         assert(pipeline == mockPipeline) { "Should return the mocked pipeline instance" }
     }
 
     @Test
     fun testTransformInstantiation() {
-        assert(injector.getInstance(DeserializeStrategyDiscoveryRequestFn::class.java) != null)
+        assert(injector.getInstance(DiscoveryRequestSource::class.java) != null)
+        assert(injector.getInstance(RunGADiscoveryFn::class.java) != null)
         assert(injector.getInstance(ExtractDiscoveredStrategiesFn::class.java) != null)
         assert(injector.getInstance(DiscoveredStrategySink::class.java) != null)
     }
 
     @Test
-    fun testFactoryWithRealOptions() {
-        val realOptions =
-            PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java).apply {
-                kafkaBootstrapServers = "localhost:9092"
-                strategyDiscoveryRequestTopic = "test-topic"
-                dbServerName = "localhost"
-                dbDatabaseName = "test-db"
-                dbPortNumber = 5432
-                databaseUsername = "user"
-                databasePassword = "password"
-            }
+    fun testPipelineRunsInDryMode() {
+        val pipeline =
+            StrategyDiscoveryPipeline(
+                pipeline = this.pipeline,
+                runMode = RunMode.DRY,
+                discoveryRequestSource = discoveryRequestSource,
+                runGAFn = runGADiscoveryFn,
+                extractFn = extractDiscoveredStrategiesFn,
+                discoveredStrategySink = discoveredStrategySink,
+            )
 
-        val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
-        val pipeline = factory.create(realOptions)
-        assert(pipeline != null) { "Pipeline should be created successfully" }
-        assert(pipeline == mockPipeline) { "Should return the mocked pipeline instance" }
+        pipeline.run()
+
+        verify(discoveryRequestSource).expand(any())
+        verify(runGADiscoveryFn).expand(any())
+        verify(extractDiscoveredStrategiesFn).expand(any())
+        verify(discoveredStrategySink).expand(any())
     }
 }

@@ -56,4 +56,8 @@ interface StrategyDiscoveryPipelineOptions :
 
     @get:Description("Database password")
     var databasePassword: String?
+
+    @get:Description("Whether to run in dry run mode (no Kafka/Postgres)")
+    @get:Default.Boolean(false)
+    var dryRun: Boolean
 }
