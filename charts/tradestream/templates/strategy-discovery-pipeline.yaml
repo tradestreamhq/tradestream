@@ -30,15 +30,15 @@ spec:
     entryClass: {{ .Values.strategyDiscoveryPipeline.job.entryClass }}
     jarURI: {{ .Values.strategyDiscoveryPipeline.job.jarURI }}
     args:
-      - '--bootstrapServers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092'
+      - {{ printf "--bootstrapServers=%s-kafka.%s.svc.cluster.local:9092" (include "tradestream.fullname" .) .Release.Namespace | quote }}
       - "--runner=FlinkRunner"
       - "--isStreaming=true"
-      - "--dbServerName={{ .Values.strategyDiscoveryPipeline.database.host }}"
-      - "--dbDatabaseName={{ .Values.strategyDiscoveryPipeline.database.database }}"
-      - "--dbPortNumber={{ .Values.strategyDiscoveryPipeline.database.port }}"
-      - '--influxDbUrl=http://{{ include "tradestream.fullname" . }}-influxdb:80'
-      - "--influxDbOrg={{ .Values.influxdb.adminUser.organization }}"
-      - "--influxDbBucket={{ .Values.influxdb.adminUser.bucket }}"
+      - {{ printf "--dbServerName=%s" .Values.strategyDiscoveryPipeline.database.host | quote }}
+      - {{ printf "--dbDatabaseName=%s" .Values.strategyDiscoveryPipeline.database.database | quote }}
+      - {{ printf "--dbPortNumber=%v" .Values.strategyDiscoveryPipeline.database.port | quote }}
+      - {{ printf "--influxDbUrl=http://%s-influxdb:80" (include "tradestream.fullname" .) | quote }}
+      - {{ printf "--influxDbOrg=%s" .Values.influxdb.adminUser.organization | quote }}
+      - {{ printf "--influxDbBucket=%s" .Values.influxdb.adminUser.bucket | quote }}
     parallelism: {{ .Values.strategyDiscoveryPipeline.job.parallelism }}
     upgradeMode: {{ .Values.strategyDiscoveryPipeline.job.upgradeMode }}
   podTemplate:
