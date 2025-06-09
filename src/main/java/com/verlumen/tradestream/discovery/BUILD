@@ -412,8 +412,8 @@ kt_jvm_library(
     deps = [
         ":discovery_request_source",
         "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_type",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:guava",
         "//third_party/java:guice",
