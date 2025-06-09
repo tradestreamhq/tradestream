@@ -44,15 +44,6 @@ use_repo(pip, "pypi")
 
 JAVA_LANGUAGE_LEVEL = "17"
 
-java = use_extension("@rules_java//java:extensions.bzl", "java")
-java.toolchain(
-    name = "java",
-    java_runtime = "@rules_java//toolchains:remotejdk_17",
-    source_version = JAVA_LANGUAGE_LEVEL,
-    target_version = JAVA_LANGUAGE_LEVEL,
-)
-use_repo(java, "java_tools")
-
 register_toolchains(
     "@rules_java//toolchains:all",
 )
@@ -131,11 +122,10 @@ oci.pull(
     ],
 )
 use_repo(oci, "openjdk_java")
-
 oci.pull(
     name = "flink_java17",
-    image = "docker.io/library/flink:1.18-java17",
     digest = "sha256:e3836db6fbdf5186156cebe9aaa9a8d7a6edfa43450476faa1224fae8d5c4b80",
+    image = "docker.io/library/flink:1.18-java17",
     platforms = [
         "linux/amd64",
         "linux/arm64/v8",
@@ -153,7 +143,13 @@ oci.pull(
 )
 use_repo(
     oci,
+    "flink_java17_linux_amd64",
+    "flink_java17_linux_arm64_v8",
+    "openjdk_java_linux_amd64",
+    "openjdk_java_linux_arm64_v8",
     "python_3_13_slim",
+    "python_3_13_slim_linux_amd64",
+    "python_3_13_slim_linux_arm64_v8",
 )
 
 bazel_lib = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
