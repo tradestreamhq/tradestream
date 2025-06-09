@@ -38,3 +38,13 @@ java_library(
         ":kafka_defaults",
     ],
 )
+
+java_library(
+    name = "kafka_consumer_factory",
+    srcs = ["KafkaConsumerFactory.java"],
+    deps = [
+        ":kafka_properties",
+        "//third_party/java:guice",
+        "//third_party/java:kafka_clients",
+    ],
+)
