@@ -91,6 +91,11 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
     ],
     deps = [
+        ":discovered_strategy_sink",
+        ":discovered_strategy_sink_provider",
+        ":discovery_config",
+        ":discovery_request_source",
+        ":discovery_request_source_provider",
         ":fitness_function_factory",
         ":fitness_function_factory_impl",
         ":ga_engine_factory",
@@ -318,11 +323,12 @@ kt_jvm_library(
     ],
     deps = [
         ":deserialize_strategy_discovery_request_fn",
+        ":discovered_strategy_sink",
+        ":discovery_request_source",
         ":extract_discovered_strategies_fn",
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline_options",
-        ":write_discovered_strategies_to_postgres_fn",
-        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
         "//third_party/java:flogger",
         "//third_party/java:guice",
@@ -376,4 +382,132 @@ container_structure_test(
     configs = ["container-structure-test.yaml"],
     image = ":image",
     tags = ["requires-docker"],
+)
+
+kt_jvm_library(
+    name = "discovery_config",
+    srcs = ["DiscoveryConfig.kt"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_config",
+        "//third_party/java:guice",
+    ],
+)
+
+kt_jvm_library(
+    name = "discovery_request_source",
+    srcs = ["DiscoveryRequestSource.kt"],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+    ],
+)
+
+kt_jvm_library(
+    name = "dry_run_discovery_request_source",
+    srcs = ["DryRunDiscoveryRequestSource.kt"],
+    deps = [
+        ":discovery_request_source",
+        "//protos:discovery_java_proto",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_type",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:protobuf_java",
+    ],
+)
+
+kt_jvm_library(
+    name = "kafka_discovery_request_source",
+    srcs = ["KafkaDiscoveryRequestSource.kt"],
+    deps = [
+        ":discovery_request_source",
+        ":parse_discovery_requests",
+        "//protos:discovery_java_proto",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/kafka:kafka_consumer_factory",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_io_kafka",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:kafka_clients",
+    ],
+)
+
+kt_jvm_library(
+    name = "parse_discovery_requests",
+    srcs = ["ParseDiscoveryRequests.kt"],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
+    ],
+)
+
+kt_jvm_library(
+    name = "discovered_strategy_sink",
+    srcs = ["DiscoveredStrategySink.kt"],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+    ],
+)
+
+kt_jvm_library(
+    name = "postgres_discovered_strategy_sink",
+    srcs = ["PostgresDiscoveredStrategySink.kt"],
+    deps = [
+        ":discovered_strategy_sink",
+        ":write_discovered_strategies_to_postgres_fn",
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_config",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+    ],
+)
+
+kt_jvm_library(
+    name = "no_op_discovered_strategy_sink",
+    srcs = ["NoOpDiscoveredStrategySink.kt"],
+    deps = [
+        ":discovered_strategy_sink",
+        "//protos:discovery_java_proto",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+    ],
+)
+
+kt_jvm_library(
+    name = "discovery_request_source_provider",
+    srcs = ["DiscoveryRequestSourceProvider.kt"],
+    deps = [
+        ":discovery_config",
+        ":discovery_request_source",
+        ":dry_run_discovery_request_source",
+        ":kafka_discovery_request_source",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party/java:guice",
+    ],
+)
+
+kt_jvm_library(
+    name = "discovered_strategy_sink_provider",
+    srcs = ["DiscoveredStrategySinkProvider.kt"],
+    deps = [
+        ":discovery_config",
+        ":discovered_strategy_sink",
+        ":no_op_discovered_strategy_sink",
+        ":postgres_discovered_strategy_sink",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party/java:guice",
+    ],
 )
