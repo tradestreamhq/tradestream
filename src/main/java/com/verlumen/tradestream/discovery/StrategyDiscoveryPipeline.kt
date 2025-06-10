@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
-import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.strategies.StrategyType
 import org.apache.beam.sdk.Pipeline
@@ -44,29 +43,31 @@ class StrategyDiscoveryPipeline(
 
         val pipeline = Pipeline.create(options)
 
-        val input = if (options.dryRun) {
-            pipeline.apply(
-                "CreateTestData",
-                Create.of(createTestDiscoveryRequests())
-            )
-        } else {
-            pipeline.apply(
-                "ReadDiscoveryRequestsFromKafka",
-                KafkaIO
-                    .read<String, ByteArray>()
-                    .withBootstrapServers(kafkaBootstrapServers)
-                    .withTopic(strategyDiscoveryRequestTopic)
-                    .withKeyDeserializer(StringDeserializer::class.java)
-                    .withValueDeserializer(ByteArrayDeserializer::class.java),
-            ).apply(
-                "ExtractKVFromRecord",
-                MapElements.via(
-                    object : SimpleFunction<KafkaRecord<String, ByteArray>, KV<String, ByteArray>>() {
-                        override fun apply(input: KafkaRecord<String, ByteArray>): KV<String, ByteArray> = input.kv
-                    },
-                ),
-            )
-        }
+        val input =
+            if (options.dryRun) {
+                pipeline.apply(
+                    "CreateTestData",
+                    Create.of(createTestDiscoveryRequests()),
+                )
+            } else {
+                pipeline
+                    .apply(
+                        "ReadDiscoveryRequestsFromKafka",
+                        KafkaIO
+                            .read<String, ByteArray>()
+                            .withBootstrapServers(kafkaBootstrapServers)
+                            .withTopic(strategyDiscoveryRequestTopic)
+                            .withKeyDeserializer(StringDeserializer::class.java)
+                            .withValueDeserializer(ByteArrayDeserializer::class.java),
+                    ).apply(
+                        "ExtractKVFromRecord",
+                        MapElements.via(
+                            object : SimpleFunction<KafkaRecord<String, ByteArray>, KV<String, ByteArray>>() {
+                                override fun apply(input: KafkaRecord<String, ByteArray>): KV<String, ByteArray> = input.kv
+                            },
+                        ),
+                    )
+            }
 
         input
             .apply("DeserializeProtoRequests", ParDo.of(deserializeFn))
@@ -82,20 +83,21 @@ class StrategyDiscoveryPipeline(
         val startTime = Timestamps.fromMillis(now - 100000)
         val endTime = Timestamps.fromMillis(now)
 
-        val requestProto = StrategyDiscoveryRequest
-            .newBuilder()
-            .setSymbol("BTC/USD")
-            .setStartTime(startTime)
-            .setEndTime(endTime)
-            .setStrategyType(StrategyType.SMA_RSI)
-            .setTopN(10)
-            .setGaConfig(
-                GAConfig
-                    .newBuilder()
-                    .setMaxGenerations(50)
-                    .setPopulationSize(100)
-                    .build(),
-            ).build()
+        val requestProto =
+            StrategyDiscoveryRequest
+                .newBuilder()
+                .setSymbol("BTC/USD")
+                .setStartTime(startTime)
+                .setEndTime(endTime)
+                .setStrategyType(StrategyType.SMA_RSI)
+                .setTopN(10)
+                .setGaConfig(
+                    GAConfig
+                        .newBuilder()
+                        .setMaxGenerations(50)
+                        .setPopulationSize(100)
+                        .build(),
+                ).build()
 
         return listOf(KV.of("test-key", requestProto.toByteArray()))
     }

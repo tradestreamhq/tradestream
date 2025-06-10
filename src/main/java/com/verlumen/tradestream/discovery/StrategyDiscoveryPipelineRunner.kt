@@ -59,7 +59,7 @@ class StrategyDiscoveryPipelineRunner {
                         exchangeName = "discovery",
                         granularity = Duration.standardMinutes(1),
                         runMode = com.verlumen.tradestream.execution.RunMode.DRY,
-                        tiingoApiKey = "fakeKey"
+                        tiingoApiKey = "fakeKey",
                     ),
                     PostgresModule(),
                     StrategiesModule(),
