@@ -3,28 +3,20 @@ package com.verlumen.tradestream.discovery
 import org.apache.beam.sdk.transforms.PTransform
 import org.apache.beam.sdk.values.PBegin
 import org.apache.beam.sdk.values.PCollection
-import java.io.Serializable
 
 /**
- * Abstract transformation that reads strategy discovery requests from a source
- * and outputs deserialized StrategyDiscoveryRequest objects.
- *
- * This abstraction allows the pipeline to support different sources for strategy
- * discovery requests (Kafka, files, etc.) without changing the core pipeline logic.
+ * Abstract base class for reading strategy discovery requests from various sources.
+ * 
+ * This abstraction replaces the first few steps of the strategy discovery pipeline,
+ * allowing different source implementations (Kafka, files, etc.) while keeping
+ * the rest of the pipeline unchanged.
  */
-abstract class DiscoveryRequestSource : PTransform<PBegin, PCollection<StrategyDiscoveryRequest>>, Serializable {
-    
-    companion object {
-        private const val serialVersionUID = 1L
-    }
-}
+abstract class DiscoveryRequestSource : PTransform<PBegin, PCollection<StrategyDiscoveryRequest>>()
 
 /**
- * Factory interface for creating DiscoveryRequestSource instances with runtime configuration.
+ * Factory interface for creating DiscoveryRequestSource instances with 
+ * runtime-provided configuration parameters.
  */
 interface DiscoveryRequestSourceFactory {
-    /**
-     * Creates a DiscoveryRequestSource configured with the given pipeline options.
-     */
     fun create(options: StrategyDiscoveryPipelineOptions): DiscoveryRequestSource
 }
