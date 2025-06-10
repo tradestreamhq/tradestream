@@ -40,8 +40,13 @@ class StrategyDiscoveryPipeline(
 
         val pipeline = Pipeline.create(options)
 
-        pipeline
-            .apply(
+        val input = if (options.dryRun) {
+            pipeline.apply(
+                "CreateTestData",
+                Create.of(createTestDiscoveryRequests())
+            )
+        } else {
+            pipeline.apply(
                 "ReadDiscoveryRequestsFromKafka",
                 KafkaIO
                     .read<String, ByteArray>()
@@ -56,12 +61,39 @@ class StrategyDiscoveryPipeline(
                         override fun apply(input: KafkaRecord<String, ByteArray>): KV<String, ByteArray> = input.kv
                     },
                 ),
-            ).apply("DeserializeProtoRequests", ParDo.of(deserializeFn))
+            )
+        }
+
+        input
+            .apply("DeserializeProtoRequests", ParDo.of(deserializeFn))
             .apply("RunGAStrategyDiscovery", ParDo.of(runGAFn))
             .apply("ExtractStrategies", ParDo.of(extractFn))
             .apply("WriteToPostgreSQL", ParDo.of(writeFn))
 
         pipeline.run().waitUntilFinish()
+    }
+
+    private fun createTestDiscoveryRequests(): List<KV<String, ByteArray>> {
+        val now = System.currentTimeMillis()
+        val startTime = Timestamps.fromMillis(now - 100000)
+        val endTime = Timestamps.fromMillis(now)
+
+        val requestProto = StrategyDiscoveryRequest
+            .newBuilder()
+            .setSymbol("BTC/USD")
+            .setStartTime(startTime)
+            .setEndTime(endTime)
+            .setStrategyType(StrategyType.SMA_RSI)
+            .setTopN(10)
+            .setGaConfig(
+                GAConfig
+                    .newBuilder()
+                    .setMaxGenerations(50)
+                    .setPopulationSize(100)
+                    .build(),
+            ).build()
+
+        return listOf(KV.of("test-key", requestProto.toByteArray()))
     }
 
     companion object {

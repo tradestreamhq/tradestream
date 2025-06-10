@@ -56,4 +56,8 @@ interface StrategyDiscoveryPipelineOptions :
 
     @get:Description("Database password")
     var databasePassword: String?
+
+    @get:Description("Run in dry-run mode with test data instead of reading from Kafka")
+    @get:Default.Boolean(false)
+    var dryRun: Boolean
 }

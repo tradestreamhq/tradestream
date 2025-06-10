@@ -9,3 +9,14 @@ commandTests:
     expectedOutput:
       - "kafkaBootstrapServers"
       - "databaseUsername"
+      - "dryRun"
+
+  - name: "Strategy Discovery Pipeline Dry Run"
+    command: "java"
+    args:
+      - "-jar"
+      - "/src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar"
+      - "--dryRun=true"
+      - "--databaseUsername=test"
+      - "--databasePassword=test"
+    exitCode: 0
