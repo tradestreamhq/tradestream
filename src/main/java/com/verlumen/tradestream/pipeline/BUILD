@@ -110,6 +110,7 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/strategies:strategies_module",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
         "//third_party/java:auto_value",
+        "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:joda_time",
         "//third_party/java:protobuf_java_util",
