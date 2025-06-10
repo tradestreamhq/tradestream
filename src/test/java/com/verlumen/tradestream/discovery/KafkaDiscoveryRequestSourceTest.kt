@@ -3,17 +3,24 @@ package com.verlumen.tradestream.discovery
 import com.google.common.truth.Truth.assertThat
 import com.google.inject.Guice
 import com.google.inject.Inject
+import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
+import com.google.inject.assistedinject.FactoryModuleBuilder
+import com.google.inject.AbstractModule
 import org.apache.beam.sdk.options.PipelineOptionsFactory
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import java.io.Serializable
 
 @RunWith(JUnit4::class)
 class KafkaDiscoveryRequestSourceTest {
+    
+    @Bind @Mock
+    lateinit var deserializeStrategyDiscoveryRequestFn: DeserializeStrategyDiscoveryRequestFn
     
     @Inject
     lateinit var discoveryRequestSourceFactory: DiscoveryRequestSourceFactory
@@ -21,8 +28,21 @@ class KafkaDiscoveryRequestSourceTest {
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        // Create Guice injector with BoundFieldModule to inject the test fixture
-        val injector = Guice.createInjector(BoundFieldModule.of(this), DiscoveryModule())
+        
+        // Create minimal test module with just what we need
+        val testModule = object : AbstractModule() {
+            override fun configure() {
+                install(
+                    FactoryModuleBuilder()
+                        .implement(
+                            DiscoveryRequestSource::class.java,
+                            KafkaDiscoveryRequestSource::class.java,
+                        ).build(DiscoveryRequestSourceFactory::class.java),
+                )
+            }
+        }
+        
+        val injector = Guice.createInjector(BoundFieldModule.of(this), testModule)
         injector.injectMembers(this)
     }
 
