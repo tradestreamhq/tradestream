@@ -13,7 +13,7 @@ class NoOpDiscoveredStrategySink : DiscoveredStrategySink {
     }
 
     override fun expand(input: PCollection<DiscoveredStrategy>): PDone {
-        input.apply(
+        return input.apply(
             ParDo.of(
                 object : DoFn<DiscoveredStrategy, Void>() {
                     @ProcessElement
@@ -28,6 +28,5 @@ class NoOpDiscoveredStrategySink : DiscoveredStrategySink {
                 },
             ),
         )
-        return PDone.in(input.pipeline)
     }
 }
