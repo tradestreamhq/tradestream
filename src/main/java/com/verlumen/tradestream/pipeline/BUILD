@@ -19,7 +19,7 @@ java_binary(
     deps = [
         ":pipeline_module",
         ":timing_config",
-        "//protos:marketdata_proto",
+        "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_lookback_do_fn",
