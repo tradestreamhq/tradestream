@@ -153,18 +153,18 @@ public final class App {
     void setInfluxDbBucket(String value);
   }
 
-  private final CandleSourceFactory candleSourceFactory;
+  private final CandleSource candleSource;
   private final DryRunTradeSource.Factory dryRunTradeSourceFactory;
   private final Supplier<List<CurrencyPair>> currencyPairs;
   private final TimingConfig timingConfig;
 
   @Inject
   App(
-      CandleSourceFactory candleSourceFactory,
+      CandleSource candleSource,
       DryRunTradeSource.Factory dryRunTradeSourceFactory,
       Supplier<List<CurrencyPair>> currencyPairs,
       TimingConfig timingConfig) {
-    this.candleSourceFactory = candleSourceFactory;
+    this.candleSource = candleSource;
     this.dryRunTradeSourceFactory = dryRunTradeSourceFactory;
     this.currencyPairs = currencyPairs;
     this.timingConfig = timingConfig;
@@ -173,12 +173,6 @@ public final class App {
   /** Build the Beam pipeline, integrating all components. */
   private Pipeline buildPipeline(Pipeline pipeline, Options options) {
     logger.atInfo().log("Starting to build the pipeline.");
-
-    // Create the appropriate CandleSource based on runtime configuration
-    RunMode runMode = RunMode.fromString(options.getRunMode());
-    Duration granularity = Duration.standardMinutes(options.getCandleDurationMinutes());
-    String tiingoApiKey = getTiingoApiKey(options);
-    CandleSource candleSource = candleSourceFactory.create(runMode, granularity, tiingoApiKey);
 
     // 1. Read candles.
     PCollection<KV<String, Candle>> candles = pipeline.apply("LoadCandles", candleSource);

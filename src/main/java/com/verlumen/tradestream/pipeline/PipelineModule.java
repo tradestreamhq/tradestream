@@ -106,4 +106,18 @@ abstract class PipelineModule extends AbstractModule {
   TradeToCandle provideTradeToCandle(TradeToCandle.Factory factory) {
     return factory.create(candleDuration());
   }
+
+  @Provides
+  CandleSource provideCandleSource(CandleSourceFactory factory) {
+    return factory.create(runMode(), candleDuration(), tiingoApiKey());
+  }
+
+  @Provides
+  App provideApp(
+      CandleSource candleSource,
+      DryRunTradeSource.Factory dryRunTradeSourceFactory,
+      Supplier<List<CurrencyPair>> currencyPairs,
+      TimingConfig timingConfig) {
+    return new App(candleSource, dryRunTradeSourceFactory, currencyPairs, timingConfig);
+  }
 }
