@@ -3,6 +3,7 @@ package com.verlumen.tradestream.discovery
 import com.google.inject.Guice
 import com.google.inject.Inject
 import com.google.inject.testing.fieldbinder.BoundFieldModule
+import com.google.protobuf.util.JsonFormat
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.strategies.StrategyType
 import org.apache.beam.sdk.testing.PAssert
@@ -49,10 +50,10 @@ class ParseDiscoveryRequestsTest {
                         .setPopulationSize(100)
                         .build(),
                 ).build()
-                .toJsonString()
 
-        val input: PCollection<String> = pipeline.apply(Create.of(request))
-        val output: PCollection<StrategyDiscoveryRequest> = input.apply(ParDo.of(parseFn))
+        val jsonRequest = JsonFormat.printer().print(request)
+        val input: PCollection<String> = pipeline.apply(Create.of(listOf(jsonRequest)))
+        val output: PCollection<StrategyDiscoveryRequest> = input.apply(parseFn)
 
         PAssert.that(output).satisfies { requests ->
             val requestList = requests.toList()
@@ -73,8 +74,8 @@ class ParseDiscoveryRequestsTest {
 
     @Test
     fun testParseInvalidRequest() {
-        val input: PCollection<String> = pipeline.apply(Create.of("not-a-json"))
-        val output: PCollection<StrategyDiscoveryRequest> = input.apply(ParDo.of(parseFn))
+        val input: PCollection<String> = pipeline.apply(Create.of(listOf("not-a-json")))
+        val output: PCollection<StrategyDiscoveryRequest> = input.apply(parseFn)
 
         PAssert.that(output).empty()
         pipeline.run().waitUntilFinish()
@@ -82,8 +83,8 @@ class ParseDiscoveryRequestsTest {
 
     @Test
     fun testParseEmptyRequest() {
-        val input: PCollection<String> = pipeline.apply(Create.of(""))
-        val output: PCollection<StrategyDiscoveryRequest> = input.apply(ParDo.of(parseFn))
+        val input: PCollection<String> = pipeline.apply(Create.of(listOf("")))
+        val output: PCollection<StrategyDiscoveryRequest> = input.apply(parseFn)
 
         PAssert.that(output).empty()
         pipeline.run().waitUntilFinish()
