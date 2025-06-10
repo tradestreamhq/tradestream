@@ -129,8 +129,8 @@ java_library(
     name = "pipeline",
     srcs = glob(["*.java"]),
     deps = [
-        "//src/main/java/com/verlumen/tradestream/execution",
-        "//src/main/java/com/verlumen/tradestream/instruments",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//src/main/java/com/verlumen/tradestream/instruments:instruments_module",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_source_factory",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_source_factory_impl",
         "//src/main/java/com/verlumen/tradestream/marketdata:dry_run_trade_source",
