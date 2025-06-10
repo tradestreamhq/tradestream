@@ -2,7 +2,7 @@ package com.verlumen.tradestream.discovery
 
 import com.google.inject.assistedinject.Assisted
 import com.google.inject.assistedinject.AssistedInject
-import com.google.protobuf.util.Timestamps
+import com.google.protobuf.Timestamp
 import com.verlumen.tradestream.strategies.StrategyType
 import org.apache.beam.sdk.transforms.Create
 import org.apache.beam.sdk.transforms.PTransform
@@ -30,8 +30,8 @@ class DryRunDiscoveryRequestSource
                 StrategyDiscoveryRequest
                     .newBuilder()
                     .setSymbol(symbol)
-                    .setStartTime(Timestamps.fromMillis(System.currentTimeMillis() - 100000))
-                    .setEndTime(Timestamps.fromMillis(System.currentTimeMillis()))
+                    .setStartTime(Timestamp.newBuilder().setSeconds((System.currentTimeMillis() - 100000) / 1000).build())
+                    .setEndTime(Timestamp.newBuilder().setSeconds(System.currentTimeMillis() / 1000).build())
                     .setStrategyType(strategyType)
                     .setTopN(DEFAULT_TOP_N)
                     .setGaConfig(
@@ -42,7 +42,7 @@ class DryRunDiscoveryRequestSource
                             .build(),
                     ).build()
 
-            return input.pipeline.apply(Create.of(request))
+            return input.pipeline.apply(Create.of(listOf(request)))
         }
 
         /**
