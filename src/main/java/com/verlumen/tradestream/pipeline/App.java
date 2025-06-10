@@ -11,6 +11,9 @@ import com.verlumen.tradestream.instruments.CurrencyPair;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.marketdata.CandleLookbackDoFn;
 import com.verlumen.tradestream.marketdata.CandleSource;
+import com.verlumen.tradestream.marketdata.CandleSourceFactory;
+import com.verlumen.tradestream.marketdata.DryRunTradeSource;
+import com.verlumen.tradestream.marketdata.TradeSource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -150,16 +153,19 @@ public final class App {
     void setInfluxDbBucket(String value);
   }
 
-  private final CandleSource candleSource;
+  private final CandleSourceFactory candleSourceFactory;
+  private final DryRunTradeSource.Factory dryRunTradeSourceFactory;
   private final Supplier<List<CurrencyPair>> currencyPairs;
   private final TimingConfig timingConfig;
 
   @Inject
   App(
-      CandleSource candleSource,
+      CandleSourceFactory candleSourceFactory,
+      DryRunTradeSource.Factory dryRunTradeSourceFactory,
       Supplier<List<CurrencyPair>> currencyPairs,
       TimingConfig timingConfig) {
-    this.candleSource = candleSource;
+    this.candleSourceFactory = candleSourceFactory;
+    this.dryRunTradeSourceFactory = dryRunTradeSourceFactory;
     this.currencyPairs = currencyPairs;
     this.timingConfig = timingConfig;
   }
@@ -167,6 +173,12 @@ public final class App {
   /** Build the Beam pipeline, integrating all components. */
   private Pipeline buildPipeline(Pipeline pipeline, Options options) {
     logger.atInfo().log("Starting to build the pipeline.");
+
+    // Create the appropriate CandleSource based on runtime configuration
+    RunMode runMode = RunMode.fromString(options.getRunMode());
+    Duration granularity = Duration.standardMinutes(options.getCandleDurationMinutes());
+    String tiingoApiKey = getTiingoApiKey(options);
+    CandleSource candleSource = candleSourceFactory.create(runMode, granularity, tiingoApiKey);
 
     // 1. Read candles.
     PCollection<KV<String, Candle>> candles = pipeline.apply("LoadCandles", candleSource);

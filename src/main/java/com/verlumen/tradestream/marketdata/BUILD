@@ -63,6 +63,32 @@ java_library(
     ],
 )
 
+# Factory for creating CandleSource instances
+java_library(
+    name = "candle_source_factory",
+    srcs = ["CandleSourceFactory.java"],
+    deps = [
+        ":candle_source",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party/java:joda_time",
+    ],
+)
+
+# Implementation of CandleSourceFactory
+java_library(
+    name = "candle_source_factory_impl",
+    srcs = ["CandleSourceFactoryImpl.java"],
+    deps = [
+        ":candle_source",
+        ":candle_source_factory",
+        ":trade_backed_candle_source",
+        ":tiingo_crypto_candle_source",
+        "//src/main/java/com/verlumen/tradestream/execution:run_mode",
+        "//third_party/java:guice",
+        "//third_party/java:joda_time",
+    ],
+)
+
 # Trade source for dry runs
 java_library(
     name = "dry_run_trade_source",
@@ -73,6 +99,10 @@ java_library(
         "//third_party/java:auto_value",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -162,6 +192,8 @@ java_library(
     deps = [
         ":candle_fetcher",
         ":candle_source",
+        ":candle_source_factory",
+        ":candle_source_factory_impl",
         ":dry_run_trade_source",
         ":exchange_streaming_client",
         ":fill_forward_candles",
