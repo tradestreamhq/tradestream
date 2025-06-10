@@ -1,4 +1,3 @@
-// src/main/java/com/verlumen/tradestream/discovery/KafkaDiscoveryRequestSource.kt
 package com.verlumen.tradestream.discovery
 
 import com.google.inject.Inject
@@ -15,25 +14,13 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.kafka.common.serialization.StringDeserializer
 
 /**
- * Kafka implementation of DiscoveryRequestSource that reads strategy discovery
- * requests from a Kafka topic and deserializes them.
- *
- * This implementation encapsulates:
- * 1. Reading from Kafka
- * 2. Extracting key-value pairs from Kafka records
- * 3. Deserializing protobuf messages to StrategyDiscoveryRequest objects
- *
- * Configuration is provided through assisted injection.
+ * Kafka implementation of DiscoveryRequestSource that reads strategy discovery requests
+ * from a Kafka topic and deserializes them into StrategyDiscoveryRequest objects.
  */
 class KafkaDiscoveryRequestSource @Inject constructor(
     private val deserializeFn: DeserializeStrategyDiscoveryRequestFn,
-    @Assisted private val kafkaBootstrapServers: String,
-    @Assisted private val strategyDiscoveryRequestTopic: String
+    @Assisted private val options: StrategyDiscoveryPipelineOptions
 ) : DiscoveryRequestSource() {
-
-    companion object {
-        private const val serialVersionUID = 1L
-    }
 
     override fun expand(input: PBegin): PCollection<StrategyDiscoveryRequest> {
         return input.pipeline
@@ -41,18 +28,18 @@ class KafkaDiscoveryRequestSource @Inject constructor(
                 "ReadDiscoveryRequestsFromKafka",
                 KafkaIO
                     .read<String, ByteArray>()
-                    .withBootstrapServers(kafkaBootstrapServers)
-                    .withTopic(strategyDiscoveryRequestTopic)
+                    .withBootstrapServers(options.kafkaBootstrapServers)
+                    .withTopic(options.strategyDiscoveryRequestTopic)
                     .withKeyDeserializer(StringDeserializer::class.java)
-                    .withValueDeserializer(ByteArrayDeserializer::class.java),
+                    .withValueDeserializer(ByteArrayDeserializer::class.java)
             )
             .apply(
                 "ExtractKVFromRecord",
                 MapElements.via(
                     object : SimpleFunction<KafkaRecord<String, ByteArray>, KV<String, ByteArray>>() {
                         override fun apply(input: KafkaRecord<String, ByteArray>): KV<String, ByteArray> = input.kv
-                    },
-                ),
+                    }
+                )
             )
             .apply("DeserializeProtoRequests", ParDo.of(deserializeFn))
     }
