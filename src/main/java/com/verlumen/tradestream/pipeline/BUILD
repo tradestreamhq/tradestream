@@ -22,6 +22,7 @@ java_binary(
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//src/main/java/com/verlumen/tradestream/marketdata:dry_run_trade_source",
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
         "//third_party/java:beam_runners_flink_java",
         "//third_party/java:beam_sdks_java_core",
