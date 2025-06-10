@@ -85,17 +85,6 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
-    name = "discovery_request_source",
-    srcs = ["DiscoveryRequestSource.kt"],
-    visibility = [
-        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
-    ],
-    deps = [
-        "//third_party/java:beam_sdks_java_core",
-    ],
-)
-
-kt_jvm_library(
     name = "discovery_module",
     srcs = ["DiscoveryModule.kt"],
     visibility = [
@@ -103,13 +92,13 @@ kt_jvm_library(
     ],
     deps = [
         ":discovery_request_source",
+        ":kafka_discovery_request_source",
         ":fitness_function_factory",
         ":fitness_function_factory_impl",
         ":ga_engine_factory",
         ":ga_engine_factory_impl",
         ":genotype_converter",
         ":genotype_converter_impl",
-        ":kafka_discovery_request_source",
         ":param_config",
         ":param_config_manager",
         ":param_config_manager_impl",
@@ -121,6 +110,16 @@ kt_jvm_library(
         "//third_party/java:guice",
         "//third_party/java:guice_assistedinject",
         "//third_party/java:protobuf_java",
+    ],
+)
+
+kt_jvm_library(
+    name = "discovery_request_source",
+    srcs = ["DiscoveryRequestSource.kt"],
+    deps = [
+        ":strategy_discovery_pipeline_options",
+        "//protos:discovery_java_proto",
+        "//third_party/java:beam_sdks_java_core",
     ],
 )
 
@@ -252,9 +251,12 @@ kt_jvm_library(
     deps = [
         ":deserialize_strategy_discovery_request_fn",
         ":discovery_request_source",
+        ":strategy_discovery_pipeline_options",
+        "//protos:discovery_java_proto",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
         "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
         "//third_party/java:kafka_clients",
     ],
 )
@@ -345,7 +347,6 @@ kt_jvm_library(
     deps = [
         ":discovery_request_source",
         ":extract_discovered_strategies_fn",
-        ":kafka_discovery_request_source",
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline_options",
         ":write_discovered_strategies_to_postgres_fn",
