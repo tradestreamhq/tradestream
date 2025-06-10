@@ -29,20 +29,14 @@ class KafkaDiscoveryRequestSourceTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
         
-        // Create minimal test module with just what we need
-        val testModule = object : AbstractModule() {
-            override fun configure() {
-                install(
-                    FactoryModuleBuilder()
-                        .implement(
-                            DiscoveryRequestSource::class.java,
-                            KafkaDiscoveryRequestSource::class.java,
-                        ).build(DiscoveryRequestSourceFactory::class.java),
-                )
-            }
-        }
+        // FactoryModuleBuilder.build() already returns a Module
+        val factoryModule = FactoryModuleBuilder()
+            .implement(
+                DiscoveryRequestSource::class.java,
+                KafkaDiscoveryRequestSource::class.java,
+            ).build(DiscoveryRequestSourceFactory::class.java)
         
-        val injector = Guice.createInjector(BoundFieldModule.of(this), testModule)
+        val injector = Guice.createInjector(BoundFieldModule.of(this), factoryModule)
         injector.injectMembers(this)
     }
 
