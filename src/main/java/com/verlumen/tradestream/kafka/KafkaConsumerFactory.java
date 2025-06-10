@@ -8,6 +8,7 @@ import java.util.Properties;
 
 public class KafkaConsumerFactory {
     private final KafkaProperties kafkaProperties;
+    private static final String GROUP_ID = "tradestream-consumer-group";
 
     @Inject
     public KafkaConsumerFactory(KafkaProperties kafkaProperties) {
@@ -15,15 +16,15 @@ public class KafkaConsumerFactory {
     }
 
     public String getBootstrapServers() {
-        return kafkaProperties.getBootstrapServers();
+        return kafkaProperties.bootstrapServers();
     }
 
     public Consumer<String, byte[]> createConsumer() {
         Properties props = new Properties();
-        props.put("bootstrap.servers", kafkaProperties.getBootstrapServers());
+        props.put("bootstrap.servers", kafkaProperties.bootstrapServers());
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-        props.put("group.id", kafkaProperties.getGroupId());
+        props.put("group.id", GROUP_ID);
         props.put("auto.offset.reset", "earliest");
         return new KafkaConsumer<>(props);
     }
