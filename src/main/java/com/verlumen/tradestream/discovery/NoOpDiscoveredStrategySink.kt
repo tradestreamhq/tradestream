@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.discovery
 
-import com.google.fluentlogging.FluentLogger
+import com.google.common.flogger.FluentLogger
 import com.verlumen.tradestream.discovery.DiscoveredStrategy
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.ParDo
@@ -13,18 +13,21 @@ class NoOpDiscoveredStrategySink : DiscoveredStrategySink {
     }
 
     override fun expand(input: PCollection<DiscoveredStrategy>): PDone {
-        logger.atInfo().log("Dry run mode: skipping strategy persistence")
-        return input.apply(
+        input.apply(
             ParDo.of(
                 object : DoFn<DiscoveredStrategy, Void>() {
                     @ProcessElement
                     fun processElement(
                         @Element strategy: DiscoveredStrategy,
                     ) {
-                        logger.atInfo().log("Would persist strategy: ${strategy.strategyId}")
+                        logger.atInfo().log(
+                            "Would persist strategy: type=${strategy.strategy.type}, " +
+                                "score=${strategy.score}, symbol=${strategy.symbol}",
+                        )
                     }
                 },
             ),
         )
+        return PDone.in(input.pipeline)
     }
 }
