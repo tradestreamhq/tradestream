@@ -7,6 +7,10 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
  * Guice module for market data components.
  */
 public final class MarketDataModule extends AbstractModule {
+  public static MarketDataModule create() {
+    return new MarketDataModule();
+  }
+
   @Override
   protected void configure() {
     bind(CandleFetcher.class).to(InfluxDbCandleFetcher.class);
