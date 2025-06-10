@@ -1,7 +1,7 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.fluentlogging.FluentLogger
-import com.verlumen.tradestream.discovery.proto.DiscoveredStrategy
+import com.verlumen.tradestream.discovery.DiscoveredStrategy
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.values.PCollection
