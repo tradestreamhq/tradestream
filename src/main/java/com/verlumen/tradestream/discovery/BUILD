@@ -351,6 +351,7 @@ kt_jvm_library(
         ":discovery_module",
         ":strategy_discovery_pipeline",
         ":strategy_discovery_pipeline_options",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
