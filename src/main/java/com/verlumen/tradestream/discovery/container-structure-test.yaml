@@ -19,4 +19,5 @@ commandTests:
       - "--dryRun=true"
       - "--databaseUsername=test"
       - "--databasePassword=test"
+      - "--runner=DirectRunner"
     exitCode: 0
