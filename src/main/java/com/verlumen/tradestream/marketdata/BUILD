@@ -189,6 +189,15 @@ java_library(
 java_library(
     name = "market_data_module",
     srcs = ["MarketDataModule.java"],
+    exports = [
+        ":candle_source_factory",
+        ":candle_source_factory_impl",
+        ":candle_source",
+        ":trade_source",
+        ":fill_forward_candles",
+        ":trade_to_candle",
+        ":candle_lookback_do_fn",
+    ],
     deps = [
         ":candle_fetcher",
         ":candle_source",
