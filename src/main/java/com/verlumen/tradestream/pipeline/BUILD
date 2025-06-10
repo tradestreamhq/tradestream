@@ -89,6 +89,7 @@ java_library(
     srcs = ["PipelineModule.java"],
     deps = [
         ":timing_config",
+        "//protos:marketdata_java_proto",  # Added for Trade
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/discovery:discovery_module",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
@@ -96,8 +97,13 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_module",
         "//src/main/java/com/verlumen/tradestream/instruments:instruments_module",
         "//src/main/java/com/verlumen/tradestream/kafka:kafka_module",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_source",  # Added for CandleSource
+        "//src/main/java/com/verlumen/tradestream/marketdata:dry_run_trade_source",  # Added for DryRunTradeSource
         "//src/main/java/com/verlumen/tradestream/marketdata:fill_forward_candles",
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
+        "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_crypto_candle_source",  # Added for TiingoCryptoCandleSource
+        "//src/main/java/com/verlumen/tradestream/marketdata:trade_backed_candle_source",  # Added for TradeBackedCandleSource
+        "//src/main/java/com/verlumen/tradestream/marketdata:trade_source",  # Added for TradeSource
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_to_candle",
         "//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
         "//src/main/java/com/verlumen/tradestream/signals:signals_module",
