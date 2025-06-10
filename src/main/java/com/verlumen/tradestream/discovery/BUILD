@@ -458,7 +458,6 @@ kt_jvm_library(
     deps = [
         "//protos:discovery_java_proto",
         "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:flogger",
     ],
 )
 
