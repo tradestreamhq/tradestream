@@ -3,17 +3,18 @@ package com.verlumen.tradestream.marketdata;
 import static com.google.protobuf.util.Timestamps.fromMillis;
 
 import com.google.auto.value.AutoValue;
+import com.google.inject.Inject;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
 
+
 @AutoValue
 abstract class DryRunTradeSource extends TradeSource {
-  @AssistedInject
-  static DryRunTradeSource create(@Assisted String exchangeName) {
+  @Inject
+  DryRunTradeSource(@Assisted String exchangeName) {
     return new AutoValue_DryRunTradeSource(
         ImmutableList.of(
             Trade.newBuilder()

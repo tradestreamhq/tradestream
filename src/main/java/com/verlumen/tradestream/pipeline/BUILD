@@ -135,7 +135,7 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_source_factory_impl",
         "//src/main/java/com/verlumen/tradestream/marketdata:dry_run_trade_source",
         "//third_party/java:beam_java_core",
-        "//third_party/java:beam_runners_flink",
+        "//third_party/java:beam_runners_flink_java",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:guice_assistedinject",
