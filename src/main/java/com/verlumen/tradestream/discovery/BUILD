@@ -358,7 +358,6 @@ kt_jvm_library(
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
         "//third_party/java:guice",
-        "//third_party/java:beam_runners_direct_java",
     ],
 )
 
