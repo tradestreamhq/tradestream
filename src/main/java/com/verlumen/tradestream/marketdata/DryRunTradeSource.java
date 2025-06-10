@@ -9,7 +9,7 @@ import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
 
-final class DryRunTradeSource extends TradeSource {
+public final class DryRunTradeSource extends TradeSource {
   private final ImmutableList<Trade> trades;
 
   @Inject
