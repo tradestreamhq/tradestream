@@ -353,6 +353,8 @@ kt_jvm_library(
         ":strategy_discovery_pipeline_options",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategies_module",
+        "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
         "//third_party/java:guice",

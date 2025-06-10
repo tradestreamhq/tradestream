@@ -3,6 +3,8 @@ package com.verlumen.tradestream.discovery
 import com.google.inject.Guice
 import com.verlumen.tradestream.backtesting.BacktestingModule
 import com.verlumen.tradestream.postgres.PostgresModule
+import com.verlumen.tradestream.strategies.StrategiesModule
+import com.verlumen.tradestream.ta4j.Ta4jModule
 import org.apache.beam.sdk.options.PipelineOptionsFactory
 
 /**
@@ -52,6 +54,8 @@ class StrategyDiscoveryPipelineRunner {
                     BacktestingModule(),
                     DiscoveryModule(),
                     PostgresModule(),
+                    StrategiesModule(),
+                    Ta4jModule.create(),
                 )
             val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
 
