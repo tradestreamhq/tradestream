@@ -1,90 +1,57 @@
 package com.verlumen.tradestream.discovery
 
-import com.google.common.collect.ImmutableList
-import com.google.common.flogger.FluentLogger
 import com.google.inject.assistedinject.Assisted
 import com.google.inject.assistedinject.AssistedInject
-import com.google.protobuf.Timestamp
-import com.verlumen.tradestream.execution.RunMode
+import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.strategies.StrategyType
 import org.apache.beam.sdk.transforms.Create
+import org.apache.beam.sdk.transforms.PTransform
 import org.apache.beam.sdk.values.PCollection
 import org.apache.beam.sdk.values.PInput
-import java.time.Instant
 
 /**
- * A dry run implementation of DiscoveryRequestSource that generates test requests.
- * This is useful for testing the strategy discovery pipeline without affecting production data.
+ * A source that generates a single discovery request for testing/dry run purposes.
  */
 class DryRunDiscoveryRequestSource
     @AssistedInject
     constructor(
-        @Assisted private val runMode: RunMode,
-    ) : DiscoveryRequestSource {
+        @Assisted private val symbol: String,
+        @Assisted private val strategyType: StrategyType,
+    ) : PTransform<PInput, PCollection<StrategyDiscoveryRequest>>(),
+        DiscoveryRequestSource {
         companion object {
-            private val logger = FluentLogger.forEnclosingClass()
+            private const val DEFAULT_TOP_N = 10
+            private const val DEFAULT_MAX_GENERATIONS = 50
+            private const val DEFAULT_POPULATION_SIZE = 100
         }
 
         override fun expand(input: PInput): PCollection<StrategyDiscoveryRequest> {
-            logger.atInfo().log("Creating dry run discovery requests")
+            val request =
+                StrategyDiscoveryRequest
+                    .newBuilder()
+                    .setSymbol(symbol)
+                    .setStartTime(Timestamps.fromMillis(System.currentTimeMillis() - 100000))
+                    .setEndTime(Timestamps.fromMillis(System.currentTimeMillis()))
+                    .setStrategyType(strategyType)
+                    .setTopN(DEFAULT_TOP_N)
+                    .setGaConfig(
+                        GAConfig
+                            .newBuilder()
+                            .setMaxGenerations(DEFAULT_MAX_GENERATIONS)
+                            .setPopulationSize(DEFAULT_POPULATION_SIZE)
+                            .build(),
+                    ).build()
 
-            val now = Instant.now()
-            val startTime = now.minus(java.time.Duration.ofDays(30))
-            val endTime = now
-
-            val requests =
-                ImmutableList.of(
-                    createRequest(
-                        symbol = "BTC/USD",
-                        strategyType = StrategyType.SMA_RSI,
-                        startTime = startTime,
-                        endTime = endTime,
-                    ),
-                    createRequest(
-                        symbol = "ETH/USD",
-                        strategyType = StrategyType.EMA_MACD,
-                        startTime = startTime,
-                        endTime = endTime,
-                    ),
-                    createRequest(
-                        symbol = "SOL/USD",
-                        strategyType = StrategyType.ADX_STOCHASTIC,
-                        startTime = startTime,
-                        endTime = endTime,
-                    ),
-                )
-
-            return input.pipeline.apply(Create.of(requests))
+            return input.pipeline.apply(Create.of(request))
         }
 
-        private fun createRequest(
-            symbol: String,
-            strategyType: StrategyType,
-            startTime: Instant,
-            endTime: Instant,
-        ): StrategyDiscoveryRequest =
-            StrategyDiscoveryRequest
-                .newBuilder()
-                .setSymbol(symbol)
-                .setStrategyType(strategyType)
-                .setStartTime(
-                    Timestamp
-                        .newBuilder()
-                        .setSeconds(startTime.epochSecond)
-                        .setNanos(startTime.nano)
-                        .build(),
-                ).setEndTime(
-                    Timestamp
-                        .newBuilder()
-                        .setSeconds(endTime.epochSecond)
-                        .setNanos(endTime.nano)
-                        .build(),
-                ).setTopN(5)
-                .setGaConfig(
-                    GAConfig
-                        .newBuilder()
-                        .setMaxGenerations(10)
-                        .setPopulationSize(100)
-                        .build(),
-                ).build()
+        /**
+         * Factory interface for assisted injection
+         */
+        interface Factory {
+            fun create(
+                symbol: String,
+                strategyType: StrategyType,
+            ): DryRunDiscoveryRequestSource
+        }
     }

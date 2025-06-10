@@ -9,7 +9,6 @@ import com.verlumen.tradestream.strategies.StrategyType
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
-import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.values.PCollection
 import org.junit.Before
 import org.junit.Rule
@@ -89,4 +88,4 @@ class ParseDiscoveryRequestsTest {
         PAssert.that(output).empty()
         pipeline.run().waitUntilFinish()
     }
-} 
+}

@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.discovery
 
 import com.verlumen.tradestream.discovery.DiscoveredStrategy
-import org.apache.beam.sdk.transforms.PTransform
 import org.apache.beam.sdk.values.PCollection
 import org.apache.beam.sdk.values.PDone
 

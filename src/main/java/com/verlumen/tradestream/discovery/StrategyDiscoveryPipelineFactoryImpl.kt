@@ -24,4 +24,4 @@ class StrategyDiscoveryPipelineFactoryImpl
                 extractFn = extractFn,
                 discoveredStrategySink = discoveredStrategySink,
             )
-    } 
+    }

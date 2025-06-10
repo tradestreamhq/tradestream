@@ -35,6 +35,19 @@ class DiscoveryModule : AbstractModule() {
             .toProvider(DiscoveredStrategySinkProvider::class.java)
             .`in`(Singleton::class.java)
 
+        // Bind the request source factories
+        install(
+            FactoryModuleBuilder()
+                .implement(DiscoveryRequestSource::class.java, DryRunDiscoveryRequestSource::class.java)
+                .build(DryRunDiscoveryRequestSource.Factory::class.java),
+        )
+
+        install(
+            FactoryModuleBuilder()
+                .implement(DiscoveryRequestSource::class.java, KafkaDiscoveryRequestSource::class.java)
+                .build(KafkaDiscoveryRequestSource.Factory::class.java),
+        )
+
         install(
             FactoryModuleBuilder()
                 .implement(

@@ -196,4 +196,4 @@ class KafkaDiscoveryRequestSourceTest {
             override fun wakeup() {}
         }
     }
-} 
+}

@@ -1,18 +1,15 @@
 package com.verlumen.tradestream.discovery
 
-import com.google.inject.assistedinject.Assisted
-import com.google.inject.assistedinject.AssistedInject
-import com.verlumen.tradestream.execution.RunMode
-import org.apache.beam.sdk.transforms.PTransform
 import org.apache.beam.sdk.values.PCollection
-import org.apache.beam.sdk.values.PInput
 
 /**
- * Interface for sources of strategy discovery requests.
- * Different implementations can provide requests from different sources (e.g., Kafka, dry run).
+ * Interface for sources that provide strategy discovery requests.
+ * Implementations should handle the actual source of requests (e.g., Kafka, dry run, etc.).
  */
-interface DiscoveryRequestSource : PTransform<PInput, PCollection<StrategyDiscoveryRequest>> {
-    interface Factory {
-        fun create(@Assisted runMode: RunMode): DiscoveryRequestSource
-    }
+interface DiscoveryRequestSource {
+    /**
+     * Expands this source into a PCollection of strategy discovery requests.
+     * The input type is implementation-specific.
+     */
+    fun expand(input: Any): PCollection<StrategyDiscoveryRequest>
 }

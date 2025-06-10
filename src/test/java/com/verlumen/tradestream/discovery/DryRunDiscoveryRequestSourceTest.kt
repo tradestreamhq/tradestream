@@ -59,4 +59,4 @@ class DryRunDiscoveryRequestSourceTest {
 
         pipeline.run().waitUntilFinish()
     }
-} 
+}
