@@ -2,10 +2,12 @@ package com.verlumen.tradestream.discovery
 
 import com.google.inject.Guice
 import com.verlumen.tradestream.backtesting.BacktestingModule
+import com.verlumen.tradestream.marketdata.MarketDataModule
 import com.verlumen.tradestream.postgres.PostgresModule
 import com.verlumen.tradestream.strategies.StrategiesModule
 import com.verlumen.tradestream.ta4j.Ta4jModule
 import org.apache.beam.sdk.options.PipelineOptionsFactory
+import org.joda.time.Duration
 
 /**
  * Builds and executes the strategy-discovery Beam pipeline.
@@ -53,6 +55,12 @@ class StrategyDiscoveryPipelineRunner {
                 Guice.createInjector(
                     BacktestingModule(),
                     DiscoveryModule(),
+                    MarketDataModule.create(
+                        exchangeName = "discovery",
+                        granularity = Duration.standardMinutes(1),
+                        runMode = com.verlumen.tradestream.execution.RunMode.DRY,
+                        tiingoApiKey = "fakeKey"
+                    ),
                     PostgresModule(),
                     StrategiesModule(),
                     Ta4jModule.create(),
