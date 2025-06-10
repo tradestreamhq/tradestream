@@ -4,6 +4,7 @@ import com.google.common.flogger.FluentLogger
 import com.verlumen.tradestream.discovery.DiscoveredStrategy
 import org.apache.beam.sdk.transforms.DoFn
 import org.apache.beam.sdk.transforms.ParDo
+import org.apache.beam.sdk.transforms.View
 import org.apache.beam.sdk.values.PCollection
 import org.apache.beam.sdk.values.PDone
 
@@ -13,7 +14,7 @@ class NoOpDiscoveredStrategySink : DiscoveredStrategySink {
     }
 
     override fun expand(input: PCollection<DiscoveredStrategy>): PDone {
-        return input.apply(
+        input.apply(
             ParDo.of(
                 object : DoFn<DiscoveredStrategy, Void>() {
                     @ProcessElement
@@ -28,5 +29,6 @@ class NoOpDiscoveredStrategySink : DiscoveredStrategySink {
                 },
             ),
         )
+        return PDone.in(input.pipeline)
     }
 }
