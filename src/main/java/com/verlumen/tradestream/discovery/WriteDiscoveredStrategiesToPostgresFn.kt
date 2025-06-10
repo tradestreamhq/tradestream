@@ -38,12 +38,12 @@ class WriteDiscoveredStrategiesToPostgresFn
             private const val BATCH_SIZE = 100
             private const val MAX_RETRIES = 3
 
-            fun create(dataSourceConfig: DataSourceConfig): WriteDiscoveredStrategiesToPostgresFn =
-                WriteDiscoveredStrategiesToPostgresFn(
-                    bulkCopierFactory = BulkCopierFactory(),
-                    dataSourceFactory = DataSourceFactory(),
-                    dataSourceConfig = dataSourceConfig,
-                )
+            /**
+             * Factory interface for assisted injection
+             */
+            interface Factory {
+                fun create(dataSourceConfig: DataSourceConfig): WriteDiscoveredStrategiesToPostgresFn
+            }
         }
 
         @Transient

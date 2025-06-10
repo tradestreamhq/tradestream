@@ -12,6 +12,7 @@ class PostgresDiscoveredStrategySink
     @Inject
     constructor(
         private val dataSourceConfig: DataSourceConfig,
+        private val writeFnFactory: WriteDiscoveredStrategiesToPostgresFn.Factory,
     ) : DiscoveredStrategySink {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
@@ -21,7 +22,7 @@ class PostgresDiscoveredStrategySink
             logger.atInfo().log("Writing discovered strategies to Postgres")
             return input.apply(
                 ParDo.of(
-                    WriteDiscoveredStrategiesToPostgresFn.create(dataSourceConfig),
+                    writeFnFactory.create(dataSourceConfig),
                 ),
             )
         }
