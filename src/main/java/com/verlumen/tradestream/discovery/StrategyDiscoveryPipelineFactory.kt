@@ -21,7 +21,7 @@ interface StrategyDiscoveryPipelineFactory {
 class StrategyDiscoveryPipelineFactoryImpl
     @Inject
     constructor(
-        private val deserializeFn: DeserializeStrategyDiscoveryRequestFn,
+        private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
         private val runGAFn: RunGADiscoveryFn,
         private val extractFn: ExtractDiscoveredStrategiesFn,
         private val writeFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory,
@@ -45,11 +45,12 @@ class StrategyDiscoveryPipelineFactoryImpl
                 )
             val writeFn = writeFnFactory.create(dataSourceConfig)
 
+            // Create the discovery request source configured with pipeline options
+            val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
+
             return StrategyDiscoveryPipeline(
-                kafkaBootstrapServers = options.kafkaBootstrapServers,
-                strategyDiscoveryRequestTopic = options.strategyDiscoveryRequestTopic,
                 isStreaming = true,
-                deserializeFn = deserializeFn,
+                discoveryRequestSource = discoveryRequestSource,
                 runGAFn = runGAFn,
                 extractFn = extractFn,
                 writeFn = writeFn,
