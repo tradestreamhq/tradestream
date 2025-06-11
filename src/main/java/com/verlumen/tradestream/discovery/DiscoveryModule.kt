@@ -20,5 +20,13 @@ class DiscoveryModule : AbstractModule() {
                     WriteDiscoveredStrategiesToPostgresFn::class.java,
                 ).build(WriteDiscoveredStrategiesToPostgresFnFactory::class.java),
         )
+
+        install(
+            FactoryModuleBuilder()
+                .implement(
+                    DiscoveryRequestSource::class.java,
+                    KafkaDiscoveryRequestSource::class.java,
+                ).build(DiscoveryRequestSourceFactory::class.java),
+        )
     }
 }

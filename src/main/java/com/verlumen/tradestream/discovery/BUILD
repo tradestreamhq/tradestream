@@ -91,6 +91,8 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
     ],
     deps = [
+        ":discovery_request_source",
+        ":kafka_discovery_request_source",
         ":fitness_function_factory",
         ":fitness_function_factory_impl",
         ":ga_engine_factory",
@@ -108,6 +110,16 @@ kt_jvm_library(
         "//third_party/java:guice",
         "//third_party/java:guice_assistedinject",
         "//third_party/java:protobuf_java",
+    ],
+)
+
+kt_jvm_library(
+    name = "discovery_request_source",
+    srcs = ["DiscoveryRequestSource.kt"],
+    deps = [
+        ":strategy_discovery_pipeline_options",
+        "//protos:discovery_java_proto",
+        "//third_party/java:beam_sdks_java_core",
     ],
 )
 
@@ -233,6 +245,22 @@ java_library(
     ],
 )
 
+kt_jvm_library(
+    name = "kafka_discovery_request_source",
+    srcs = ["KafkaDiscoveryRequestSource.kt"],
+    deps = [
+        ":deserialize_strategy_discovery_request_fn",
+        ":discovery_request_source",
+        ":strategy_discovery_pipeline_options",
+        "//protos:discovery_java_proto",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_io_kafka",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:kafka_clients",
+    ],
+)
+
 java_library(
     name = "param_config",
     srcs = ["ParamConfig.java"],
@@ -317,16 +345,15 @@ kt_jvm_library(
         "StrategyDiscoveryPipelineFactory.kt",
     ],
     deps = [
-        ":deserialize_strategy_discovery_request_fn",
+        ":discovery_request_source",
         ":extract_discovered_strategies_fn",
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline_options",
         ":write_discovered_strategies_to_postgres_fn",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
-        "//third_party/java:beam_sdks_java_io_kafka",
+        "//third_party/java:beam_sdks_java_core",
         "//third_party/java:flogger",
         "//third_party/java:guice",
-        "//third_party/java:kafka_clients",
     ],
 )
 

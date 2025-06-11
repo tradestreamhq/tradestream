@@ -21,10 +21,10 @@ interface StrategyDiscoveryPipelineFactory {
 class StrategyDiscoveryPipelineFactoryImpl
     @Inject
     constructor(
-        private val deserializeFn: DeserializeStrategyDiscoveryRequestFn,
         private val runGAFn: RunGADiscoveryFn,
         private val extractFn: ExtractDiscoveredStrategiesFn,
         private val writeFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory,
+        private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
     ) : StrategyDiscoveryPipelineFactory {
         override fun create(options: StrategyDiscoveryPipelineOptions): StrategyDiscoveryPipeline {
             val username = requireNotNull(options.databaseUsername) { "Database username is required." }
@@ -37,7 +37,6 @@ class StrategyDiscoveryPipelineFactoryImpl
                     username = username,
                     password = password,
                     portNumber = options.dbPortNumber,
-                    // Pass null for other optional params for now as they are not in options
                     applicationName = null,
                     connectTimeout = null,
                     socketTimeout = null,
@@ -45,11 +44,11 @@ class StrategyDiscoveryPipelineFactoryImpl
                 )
             val writeFn = writeFnFactory.create(dataSourceConfig)
 
+            // Create the discovery request source configured with pipeline options
+            val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
+
             return StrategyDiscoveryPipeline(
-                kafkaBootstrapServers = options.kafkaBootstrapServers,
-                strategyDiscoveryRequestTopic = options.strategyDiscoveryRequestTopic,
-                isStreaming = true,
-                deserializeFn = deserializeFn,
+                discoveryRequestSource = discoveryRequestSource,
                 runGAFn = runGAFn,
                 extractFn = extractFn,
                 writeFn = writeFn,
