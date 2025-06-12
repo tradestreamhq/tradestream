@@ -7,7 +7,6 @@ import com.verlumen.tradestream.postgres.PostgresModule
 import com.verlumen.tradestream.strategies.StrategiesModule
 import com.verlumen.tradestream.ta4j.Ta4jModule
 import org.apache.beam.sdk.options.PipelineOptionsFactory
-import org.joda.time.Duration
 
 /**
  * Builds and executes the strategy-discovery Beam pipeline.
