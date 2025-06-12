@@ -18,13 +18,18 @@ import org.apache.beam.sdk.transforms.ParDo
  *
  * All transforms arrive through the factory pattern with Guice.
  */
-class StrategyDiscoveryPipeline(
-    private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
-    private val runGAFn: RunGADiscoveryFn,
-    private val extractFn: ExtractDiscoveredStrategiesFn,
-    private val writeFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory,
-) {
+class StrategyDiscoveryPipeline
+    @Inject
+    constructor(
+        private val runGAFn: RunGADiscoveryFn,
+        private val extractFn: ExtractDiscoveredStrategiesFn,
+        private val writeFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory,
+        private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
+    ) {
     fun run(options: StrategyDiscoveryPipelineOptions) {
+            val username = requireNotNull(options.databaseUsername) { "Database username is required." }
+            val password = requireNotNull(options.databasePassword) { "Database password is required." }
+
         val dataSourceConfig =
             DataSourceConfig(
                 serverName = options.dbServerName,
