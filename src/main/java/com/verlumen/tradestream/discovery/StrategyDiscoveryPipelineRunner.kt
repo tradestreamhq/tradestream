@@ -33,6 +33,13 @@ class StrategyDiscoveryPipelineRunner {
             options.databasePassword.takeIf { !it.isNullOrEmpty() }
                 ?: System.getenv(DATABASE_PASSWORD_ENV_VAR)
 
+        private fun getDiscoveryModule(options: StrategyDiscoveryPipelineOptions): Any {
+            if (options.dryRun) {
+                return DryRunDiscoveryModule()
+            }
+            return ProdDiscoveryModule()
+        }
+
         /**
          * Entry-point. Builds the injector, gets a factory instance,
          * creates a fully-configured [StrategyDiscoveryPipeline], and executes it.
@@ -53,7 +60,7 @@ class StrategyDiscoveryPipelineRunner {
             val injector =
                 Guice.createInjector(
                     BacktestingModule(),
-                    DiscoveryModule(),
+                    getDiscoveryModule(options),
                     MarketDataModule.create(),
                     PostgresModule(),
                     StrategiesModule(),
@@ -61,7 +68,7 @@ class StrategyDiscoveryPipelineRunner {
                 )
             val pipeline = injector.getInstance(StrategyDiscoveryPipeline::class.java)
 
-            pipeeline.run(options)
+            pipeline.run(options)
         }
     }
 }
