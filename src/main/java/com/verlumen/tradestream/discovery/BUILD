@@ -359,6 +359,7 @@ kt_jvm_library(
     ],
     deps = [
         ":discovery_request_source",
+        ":dry_run_discovery_request_source",
         ":extract_discovered_strategies_fn",
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline_options",
