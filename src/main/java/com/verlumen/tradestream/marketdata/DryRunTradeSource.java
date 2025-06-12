@@ -7,8 +7,8 @@ import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
 
 @AutoValue
-abstract class DryRunTradeSource extends TradeSource {
-  static DryRunTradeSource create(ImmutableList<Trade> trades) {
+public abstract class DryRunTradeSource extends TradeSource {
+  public static DryRunTradeSource create(ImmutableList<Trade> trades) {
     return new AutoValue_DryRunTradeSource(trades);
   }
 
