@@ -217,9 +217,6 @@ kt_jvm_test(
         "//third_party/java:mockito_core",
         "//third_party/java:mockito_kotlin",
         "//third_party/java:truth",
-        
-        # Kotlin test dependencies
-        "//third_party/java:kotlin_test",
     ],
 )
 
