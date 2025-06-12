@@ -55,19 +55,14 @@ class StrategyDiscoveryPipelineRunner {
                 Guice.createInjector(
                     BacktestingModule(),
                     DiscoveryModule(),
-                    MarketDataModule.create(
-                        exchangeName = "discovery",
-                        granularity = Duration.standardMinutes(1),
-                        runMode = com.verlumen.tradestream.execution.RunMode.DRY,
-                        tiingoApiKey = "fakeKey",
-                    ),
+                    MarketDataModule.create(),
                     PostgresModule(),
                     StrategiesModule(),
                     Ta4jModule.create(),
                 )
-            val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
+            val pipeline = injector.getInstance(StrategyDiscoveryPipeline::class.java)
 
-            factory.create(options).run()
+            pipeeline.run(options)
         }
     }
 }
