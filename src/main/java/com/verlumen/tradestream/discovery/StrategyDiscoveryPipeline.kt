@@ -22,10 +22,7 @@ class StrategyDiscoveryPipeline(
     private val extractFn: ExtractDiscoveredStrategiesFn,
     private val writeFn: WriteDiscoveredStrategiesToPostgresFn,
 ) {
-    fun run() {
-        val options = PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java)
-        options.isStreaming = true
-
+    fun run(options: StrategyDiscoveryPipelineOptions) {
         val pipeline = Pipeline.create(options)
 
         pipeline
