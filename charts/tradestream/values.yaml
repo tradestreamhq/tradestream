@@ -110,8 +110,6 @@ strategyDiscoveryPipeline:
     jarURI: local:///src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar
     parallelism: 1
     upgradeMode: stateless
-    args:
-      - "--dryRun=false" # Set to true for testing without Kafka
   # Database configuration for this specific pipeline.
   # These are examples, you must configure your PostgreSQL instance and secrets.
   database:
