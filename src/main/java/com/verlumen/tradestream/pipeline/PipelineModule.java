@@ -9,7 +9,7 @@ import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.verlumen.tradestream.backtesting.BacktestingModule;
-import com.verlumen.tradestream.discovery.DiscoveryModule;
+import com.verlumen.tradestream.discovery.ProdDiscoveryModule;
 import com.verlumen.tradestream.execution.RunMode;
 import com.verlumen.tradestream.http.HttpModule;
 import com.verlumen.tradestream.influxdb.InfluxDbModule;
@@ -91,7 +91,7 @@ abstract class PipelineModule extends AbstractModule {
   @Override
   protected void configure() {
     install(new BacktestingModule());
-    install(new DiscoveryModule());
+    install(new ProdDiscoveryModule());
     install(HttpModule.create());
     install(new InfluxDbModule(influxDbUrl(), influxDbToken(), influxDbOrg(), influxDbBucket()));
     install(InstrumentsModule.create(runMode(), coinMarketCapApiKey(), topCurrencyCount()));
