@@ -183,20 +183,43 @@ kt_jvm_test(
         "//third_party/java:hamcrest",
     ],
     deps = [
-        "//protos:discovery_java_proto",
-        "//protos:strategies_java_proto",
+        # Core pipeline dependencies
+        "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline",
+        "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline_options",
+        "//src/main/java/com/verlumen/tradestream/discovery:run_ga_discovery_fn",
+        "//src/main/java/com/verlumen/tradestream/discovery:extract_discovered_strategies_fn",
+        "//src/main/java/com/verlumen/tradestream/discovery:write_discovered_strategies_to_postgres_fn",
+        "//src/main/java/com/verlumen/tradestream/discovery:discovery_request_source",
+        "//src/main/java/com/verlumen/tradestream/discovery:deserialize_strategy_discovery_request_fn",
+        
+        # Backtesting dependencies (from existing test)
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
-        "//src/main/java/com/verlumen/tradestream/discovery:deserialize_strategy_discovery_request_fn",
-        "//src/main/java/com/verlumen/tradestream/discovery:extract_discovered_strategies_fn",
-        "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline",
-        "//src/main/java/com/verlumen/tradestream/discovery:write_discovered_strategies_to_postgres_fn",
+        
+        # SQL and database dependencies
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        
+        # Protobuf dependencies
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        
+        # Apache Beam dependencies
         "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_test_utils",
+        
+        # Guice dependencies for dependency injection
         "//third_party/java:guice",
         "//third_party/java:guice_testlib",
+        "//third_party/java:guice_assistedinject",
+        
+        # Testing dependencies
         "//third_party/java:junit",
         "//third_party/java:mockito_core",
         "//third_party/java:mockito_kotlin",
+        "//third_party/java:truth",
+        
+        # Kotlin test dependencies
+        "//third_party/java:kotlin_test",
     ],
 )
 
