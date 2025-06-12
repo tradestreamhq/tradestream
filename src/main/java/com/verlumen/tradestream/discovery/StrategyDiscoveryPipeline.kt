@@ -35,6 +35,8 @@ fun run(options: StrategyDiscoveryPipelineOptions) {
                 socketTimeout = null,
                 readOnly = null,
             )
+
+        val discoveryRequestSource = discoveryRequestSourceFactory.create(options);
         val writeFn = writeFnFactory.create(dataSourceConfig)
 
         val pipeline = Pipeline.create(options)
