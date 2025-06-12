@@ -2,7 +2,6 @@ package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
 import com.google.protobuf.util.Timestamps
-import com.verlumen.tradestream.strategies.StrategyType
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.options.PipelineOptionsFactory
 import org.apache.beam.sdk.transforms.Create
@@ -39,30 +38,6 @@ class StrategyDiscoveryPipeline(
             .apply("WriteToPostgreSQL", ParDo.of(writeFn))
 
         pipeline.run().waitUntilFinish()
-    }
-
-    private fun createTestDiscoveryRequests(): List<KV<String, ByteArray>> {
-        val now = System.currentTimeMillis()
-        val startTime = Timestamps.fromMillis(now - 100000)
-        val endTime = Timestamps.fromMillis(now)
-
-        val requestProto =
-            StrategyDiscoveryRequest
-                .newBuilder()
-                .setSymbol("BTC/USD")
-                .setStartTime(startTime)
-                .setEndTime(endTime)
-                .setStrategyType(StrategyType.SMA_RSI)
-                .setTopN(10)
-                .setGaConfig(
-                    GAConfig
-                        .newBuilder()
-                        .setMaxGenerations(50)
-                        .setPopulationSize(100)
-                        .build(),
-                ).build()
-
-        return listOf(requestProto.toByteArray()))
     }
 
     companion object {
