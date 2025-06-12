@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
+import com.google.inject.Inject
 import com.verlumen.tradestream.sql.DataSourceConfig
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.transforms.ParDo
