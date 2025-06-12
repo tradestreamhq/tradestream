@@ -22,7 +22,7 @@ class StrategyDiscoveryPipeline(
     private val extractFn: ExtractDiscoveredStrategiesFn,
     private val writeFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory,
 ) {
-fun run(options: StrategyDiscoveryPipelineOptions) {
+    fun run(options: StrategyDiscoveryPipelineOptions) {
         val dataSourceConfig =
             DataSourceConfig(
                 serverName = options.dbServerName,
