@@ -1,15 +1,14 @@
 package com.verlumen.tradestream.discovery
 
+import com.google.common.truth.Truth.assertThat
 import com.google.inject.Guice
 import com.google.inject.Inject
 import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.verlumen.tradestream.sql.DataSourceConfig
-import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.options.PipelineOptionsFactory
 import org.apache.beam.sdk.testing.TestPipeline
-import org.apache.beam.sdk.transforms.ParDo
-import org.apache.beam.sdk.values.PCollection
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -18,34 +17,38 @@ import org.junit.runners.JUnit4
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import org.mockito.kotlin.*
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
+import org.mockito.kotlin.any
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 
 /**
  * Comprehensive unit test suite for StrategyDiscoveryPipeline using Mockito and BoundFieldModule.
- * 
+ *
  * Tests the pipeline construction, configuration, transform wiring, and execution logic
  * without actually running the Apache Beam pipeline.
  */
 @RunWith(JUnit4::class)
 class StrategyDiscoveryPipelineTest {
-
     @get:Rule
     val testPipeline: TestPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(false)
 
     // Mock all dependencies using BoundFieldModule
-    @Bind @Mock
+    @Bind
+    @Mock
     lateinit var mockRunGAFn: RunGADiscoveryFn
 
-    @Bind @Mock
+    @Bind
+    @Mock
     lateinit var mockExtractFn: ExtractDiscoveredStrategiesFn
 
-    @Bind @Mock
+    @Bind
+    @Mock
     lateinit var mockWriteFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory
 
-    @Bind @Mock
+    @Bind
+    @Mock
     lateinit var mockDiscoveryRequestSourceFactory: DiscoveryRequestSourceFactory
 
     // Additional mocks for testing
@@ -57,19 +60,6 @@ class StrategyDiscoveryPipelineTest {
 
     @Mock
     lateinit var mockOptions: StrategyDiscoveryPipelineOptions
-
-    // Mock PCollections for pipeline flow testing
-    @Mock
-    lateinit var mockRequestsPCollection: PCollection<StrategyDiscoveryRequest>
-
-    @Mock
-    lateinit var mockResultsPCollection: PCollection<StrategyDiscoveryResult>
-
-    @Mock
-    lateinit var mockStrategiesPCollection: PCollection<DiscoveredStrategy>
-
-    @Mock
-    lateinit var mockVoidPCollection: PCollection<Void>
 
     // The class under test - injected by Guice
     @Inject
@@ -99,14 +89,13 @@ class StrategyDiscoveryPipelineTest {
         whenever(mockDiscoveryRequestSourceFactory.create(any())).thenReturn(mockDiscoveryRequestSource)
         whenever(mockWriteFnFactory.create(any())).thenReturn(mockWriteFn)
 
-        // Mock pipeline transforms (Note: In real tests, these would be harder to mock due to Beam's architecture)
         // For unit testing purposes, we're focusing on the configuration and wiring logic
     }
 
     @Test
     fun testPipelineInstantiation() {
         // Verify that Guice can create an instance of StrategyDiscoveryPipeline
-        assertNotNull(strategyDiscoveryPipeline, "Pipeline should be instantiated successfully")
+        assertThat(strategyDiscoveryPipeline).isNotNull()
     }
 
     @Test
@@ -116,17 +105,17 @@ class StrategyDiscoveryPipelineTest {
 
         // Verify that factories were called with correct parameters
         verify(mockDiscoveryRequestSourceFactory).create(mockOptions)
-        
+
         // Verify DataSourceConfig was created with correct parameters
         val dataSourceConfigCaptor = ArgumentCaptor.forClass(DataSourceConfig::class.java)
         verify(mockWriteFnFactory).create(dataSourceConfigCaptor.capture())
-        
+
         val capturedConfig = dataSourceConfigCaptor.value
-        assertEquals("localhost", capturedConfig.serverName)
-        assertEquals("test_db", capturedConfig.databaseName)
-        assertEquals("test_user", capturedConfig.username)
-        assertEquals("test_password", capturedConfig.password)
-        assertEquals(5432, capturedConfig.portNumber)
+        assertThat(capturedConfig.serverName).isEqualTo("localhost")
+        assertThat(capturedConfig.databaseName).isEqualTo("test_db")
+        assertThat(capturedConfig.username).isEqualTo("test_user")
+        assertThat(capturedConfig.password).isEqualTo("test_password")
+        assertThat(capturedConfig.portNumber).isEqualTo(5432)
     }
 
     @Test
@@ -135,10 +124,11 @@ class StrategyDiscoveryPipelineTest {
         whenever(mockOptions.databaseUsername).thenReturn(null)
 
         // Verify that pipeline throws IllegalArgumentException
-        assertFailsWith<IllegalArgumentException>(
-            message = "Should throw exception when database username is null"
-        ) {
+        try {
             strategyDiscoveryPipeline.run(mockOptions)
+            fail("Should throw exception when database username is null")
+        } catch (e: IllegalArgumentException) {
+            // expected
         }
     }
 
@@ -148,10 +138,11 @@ class StrategyDiscoveryPipelineTest {
         whenever(mockOptions.databasePassword).thenReturn(null)
 
         // Verify that pipeline throws IllegalArgumentException
-        assertFailsWith<IllegalArgumentException>(
-            message = "Should throw exception when database password is null"
-        ) {
+        try {
             strategyDiscoveryPipeline.run(mockOptions)
+            fail("Should throw exception when database password is null")
+        } catch (e: IllegalArgumentException) {
+            // expected
         }
     }
 
@@ -161,10 +152,11 @@ class StrategyDiscoveryPipelineTest {
         whenever(mockOptions.databaseUsername).thenReturn("")
 
         // Verify that pipeline throws IllegalArgumentException
-        assertFailsWith<IllegalArgumentException>(
-            message = "Should throw exception when database username is empty"
-        ) {
+        try {
             strategyDiscoveryPipeline.run(mockOptions)
+            fail("Should throw exception when database username is empty")
+        } catch (e: IllegalArgumentException) {
+            // expected
         }
     }
 
@@ -174,10 +166,11 @@ class StrategyDiscoveryPipelineTest {
         whenever(mockOptions.databasePassword).thenReturn("")
 
         // Verify that pipeline throws IllegalArgumentException
-        assertFailsWith<IllegalArgumentException>(
-            message = "Should throw exception when database password is empty"
-        ) {
+        try {
             strategyDiscoveryPipeline.run(mockOptions)
+            fail("Should throw exception when database password is empty")
+        } catch (e: IllegalArgumentException) {
+            // expected
         }
     }
 
@@ -195,17 +188,17 @@ class StrategyDiscoveryPipelineTest {
         // Verify DataSourceConfig was created with custom values
         val dataSourceConfigCaptor = ArgumentCaptor.forClass(DataSourceConfig::class.java)
         verify(mockWriteFnFactory).create(dataSourceConfigCaptor.capture())
-        
+
         val capturedConfig = dataSourceConfigCaptor.value
-        assertEquals("custom-host", capturedConfig.serverName)
-        assertEquals("custom-db", capturedConfig.databaseName)
-        assertEquals("custom-user", capturedConfig.username)
-        assertEquals("custom-pass", capturedConfig.password)
-        assertEquals(3306, capturedConfig.portNumber)
-        assertEquals(null, capturedConfig.applicationName)
-        assertEquals(null, capturedConfig.connectTimeout)
-        assertEquals(null, capturedConfig.socketTimeout)
-        assertEquals(null, capturedConfig.readOnly)
+        assertThat(capturedConfig.serverName).isEqualTo("custom-host")
+        assertThat(capturedConfig.databaseName).isEqualTo("custom-db")
+        assertThat(capturedConfig.username).isEqualTo("custom-user")
+        assertThat(capturedConfig.password).isEqualTo("custom-pass")
+        assertThat(capturedConfig.portNumber).isEqualTo(3306)
+        assertThat(capturedConfig.applicationName).isNull()
+        assertThat(capturedConfig.connectTimeout).isNull()
+        assertThat(capturedConfig.socketTimeout).isNull()
+        assertThat(capturedConfig.readOnly).isNull()
     }
 
     @Test
@@ -234,13 +227,14 @@ class StrategyDiscoveryPipelineTest {
     @Test
     fun testOptionsPassedCorrectlyToRequestSourceFactory() {
         // Create specific options to verify they're passed through correctly
-        val specificOptions = PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java).apply {
-            databaseUsername = "specific_user"
-            databasePassword = "specific_pass"
-            dbServerName = "specific_host"
-            dbDatabaseName = "specific_db"
-            dbPortNumber = 1234
-        }
+        val specificOptions =
+            PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java).apply {
+                databaseUsername = "specific_user"
+                databasePassword = "specific_pass"
+                dbServerName = "specific_host"
+                dbDatabaseName = "specific_db"
+                dbPortNumber = 1234
+            }
 
         strategyDiscoveryPipeline.run(specificOptions)
 
@@ -251,8 +245,8 @@ class StrategyDiscoveryPipelineTest {
     @Test
     fun testDependencyInjectionIntegrity() {
         // Verify all dependencies were injected correctly
-        assertNotNull(strategyDiscoveryPipeline, "Pipeline should be injected")
-        
+        assertThat(strategyDiscoveryPipeline).isNotNull()
+
         // We can't directly access private fields, but we can verify behavior
         // by ensuring the pipeline can run without NullPointerExceptions
         try {
@@ -265,13 +259,14 @@ class StrategyDiscoveryPipelineTest {
     @Test
     fun testPipelineWithDifferentOptionsCombinations() {
         // Test with minimal required options
-        val minimalOptions = PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java).apply {
-            databaseUsername = "min_user"
-            databasePassword = "min_pass"
-            dbServerName = "localhost"
-            dbDatabaseName = "test"
-            dbPortNumber = 5432
-        }
+        val minimalOptions =
+            PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java).apply {
+                databaseUsername = "min_user"
+                databasePassword = "min_pass"
+                dbServerName = "localhost"
+                dbDatabaseName = "test"
+                dbPortNumber = 5432
+            }
 
         strategyDiscoveryPipeline.run(minimalOptions)
 
@@ -286,45 +281,44 @@ class StrategyDiscoveryPipelineTest {
             .thenThrow(RuntimeException("Factory error"))
 
         // Verify exception is propagated
-        assertFailsWith<RuntimeException>(
-            message = "Should propagate factory exceptions"
-        ) {
+        try {
             strategyDiscoveryPipeline.run(mockOptions)
+            fail("Should propagate factory exceptions")
+        } catch (e: RuntimeException) {
+            // expected
         }
     }
 
     @Test
     fun testErrorPropagationFromWriteFnFactory() {
         // Setup write function factory to throw exception
-        whenever(mockWriteFnFactory.create(any()))
-            .thenThrow(RuntimeException("Write factory error"))
+        whenever(mockWriteFnFactory.create(any())).thenThrow(RuntimeException("Write factory error"))
 
         // Verify exception is propagated
-        assertFailsWith<RuntimeException>(
-            message = "Should propagate write factory exceptions"
-        ) {
+        try {
             strategyDiscoveryPipeline.run(mockOptions)
+            fail("Should propagate write factory exceptions")
+        } catch (e: RuntimeException) {
+            // expected
         }
     }
 
-    /**
-     * Integration test that verifies the complete flow works with real options
-     * but mocked dependencies.
-     */
+    /** Integration test that verifies the complete flow works with real options but mocked dependencies. */
     @Test
     fun testIntegrationWithRealOptions() {
-        val realOptions = PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java).apply {
-            databaseUsername = "integration_user"
-            databasePassword = "integration_pass"
-            dbServerName = "integration_host"
-            dbDatabaseName = "integration_db"
-            dbPortNumber = 5432
-            kafkaBootstrapServers = "localhost:9092"
-            strategyDiscoveryRequestTopic = "test-topic"
-            influxDbUrl = "http://localhost:8086"
-            influxDbOrg = "test-org"
-            influxDbBucket = "test-bucket"
-        }
+        val realOptions =
+            PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java).apply {
+                databaseUsername = "integration_user"
+                databasePassword = "integration_pass"
+                dbServerName = "integration_host"
+                dbDatabaseName = "integration_db"
+                dbPortNumber = 5432
+                kafkaBootstrapServers = "localhost:9092"
+                strategyDiscoveryRequestTopic = "test-topic"
+                influxDbUrl = "http://localhost:8086"
+                influxDbOrg = "test-org"
+                influxDbBucket = "test-bucket"
+            }
 
         // Should complete without exceptions
         strategyDiscoveryPipeline.run(realOptions)
