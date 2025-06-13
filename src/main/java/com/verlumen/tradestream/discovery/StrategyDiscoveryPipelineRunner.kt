@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.inject.Guice
+import com.google.inject.Module
 import com.verlumen.tradestream.backtesting.BacktestingModule
 import com.verlumen.tradestream.marketdata.MarketDataModule
 import com.verlumen.tradestream.postgres.PostgresModule
@@ -33,7 +34,7 @@ class StrategyDiscoveryPipelineRunner {
             options.databasePassword.takeIf { !it.isNullOrEmpty() }
                 ?: System.getenv(DATABASE_PASSWORD_ENV_VAR)
 
-        private fun getDiscoveryModule(options: StrategyDiscoveryPipelineOptions): Any {
+        private fun getDiscoveryModule(options: StrategyDiscoveryPipelineOptions): Module {
             if (options.dryRun) {
                 return DryRunDiscoveryModule()
             }
