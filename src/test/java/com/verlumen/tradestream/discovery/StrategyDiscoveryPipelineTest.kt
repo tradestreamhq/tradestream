@@ -86,7 +86,7 @@ class StrategyDiscoveryPipelineTest {
             object : DiscoveryRequestSource() {
                 override fun expand(input: PBegin): PCollection<StrategyDiscoveryRequest> {
                     return input.pipeline.apply(
-                        Create.empty(TypeDescriptors.of(StrategyDiscoveryRequest::class.java)),
+                        Create.of(emptyList<StrategyDiscoveryRequest>())
                     )
                 }
             },
