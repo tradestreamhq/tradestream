@@ -10,6 +10,7 @@ import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
 import org.apache.beam.sdk.values.PBegin
 import org.apache.beam.sdk.values.PCollection
+import org.apache.beam.sdk.values.TypeDescriptor
 import org.apache.beam.sdk.values.TypeDescriptors
 import org.junit.Assert.fail
 import org.junit.Before
@@ -81,12 +82,12 @@ class StrategyDiscoveryPipelineTest {
         options.dbDatabaseName = "test_db"
         options.dbPortNumber = 5432
 
-        // Mock factory returns
+        // Mock factory returns 
         whenever(mockDiscoveryRequestSourceFactory.create(any())).thenReturn(
             object : DiscoveryRequestSource() {
                 override fun expand(input: PBegin): PCollection<StrategyDiscoveryRequest> {
                     return input.pipeline.apply(
-                        Create.of(emptyList<StrategyDiscoveryRequest>())
+                        Create.empty(TypeDescriptor.of(StrategyDiscoveryRequest::class.java))
                     )
                 }
             },
