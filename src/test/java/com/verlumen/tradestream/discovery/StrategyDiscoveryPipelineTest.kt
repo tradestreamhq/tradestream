@@ -262,13 +262,14 @@ class StrategyDiscoveryPipelineTest {
     @Test
     fun testOptionsPassedCorrectlyToRequestSourceFactory() {
         // Create specific options to verify they're passed through correctly
-        val specificOptions = testPipeline.options.`as`(StrategyDiscoveryPipelineOptions::class.java).apply {
-            databaseUsername = "specific_user"
-            databasePassword = "specific_pass"
-            dbServerName = "specific_host"
-            dbDatabaseName = "specific_db"
-            dbPortNumber = 1234
-        }
+        val specificOptions =
+            testPipeline.options.`as`(StrategyDiscoveryPipelineOptions::class.java).apply {
+                databaseUsername = "specific_user"
+                databasePassword = "specific_pass"
+                dbServerName = "specific_host"
+                dbDatabaseName = "specific_db"
+                dbPortNumber = 1234
+            }
 
         // Test that the factory is called with the correct options
         mockDiscoveryRequestSourceFactory.create(specificOptions)
