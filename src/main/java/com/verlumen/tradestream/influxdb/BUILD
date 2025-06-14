@@ -21,6 +21,8 @@ kt_jvm_library(
     name = "influx_db_module",
     srcs = ["InfluxDbModule.kt"],
     deps = [
+        ":influx_db_client_factory",
+        ":influx_db_config",
         "//third_party/java:guice",
         "//third_party/java:influxdb_client_java",
     ],
