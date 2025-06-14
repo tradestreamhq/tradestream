@@ -210,7 +210,6 @@ kt_jvm_test(
         "//third_party/java:guice",
         "//third_party/java:guice_testlib",
         "//third_party/java:guice_assistedinject",
-        
         # Testing dependencies
         "//third_party/java:junit",
         "//third_party/java:mockito_core",
