@@ -135,6 +135,8 @@ kt_jvm_library(
     deps = [
         ":candle_fetcher",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_client_factory",
+        "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",
         "//third_party/java:flogger",
         "//third_party/java:guice",
         "//third_party/java:influxdb_client_java",
