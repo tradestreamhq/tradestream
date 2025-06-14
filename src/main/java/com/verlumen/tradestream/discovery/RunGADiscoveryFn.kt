@@ -2,6 +2,7 @@ package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
+import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.Any
 import com.verlumen.tradestream.discovery.DiscoveredStrategy
 import com.verlumen.tradestream.discovery.StrategyDiscoveryRequest
@@ -23,7 +24,7 @@ class RunGADiscoveryFn :
 
     @Inject
     constructor(
-        candleFetcher: CandleFetcher,
+        @Assisted candleFetcher: CandleFetcher,
         gaEngineFactory: GAEngineFactory,
         genotypeConverter: GenotypeConverter,
     ) {
@@ -161,16 +162,5 @@ class RunGADiscoveryFn :
         } else {
             logger.atInfo().log("No strategies to output after GA processing for %s", discoveryRequest.symbol)
         }
-    }
-
-    @Teardown
-    fun teardown() {
-        try {
-            // Added try-catch for safety
-            candleFetcher.close()
-        } catch (e: Exception) {
-            logger.atWarning().withCause(e).log("Error closing candleFetcher during teardown.")
-        }
-        logger.atInfo().log("RunGADiscoveryFn teardown.")
     }
 }
