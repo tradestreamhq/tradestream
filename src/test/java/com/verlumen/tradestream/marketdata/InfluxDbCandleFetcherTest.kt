@@ -52,7 +52,6 @@ class InfluxDbCandleFetcherTest {
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        
         // Set up the mock client factory to return our mock client
         `when`(mockInfluxDbClientFactory.create(testConfig)).thenReturn(mockInfluxDBClient)
         `when`(mockInfluxDBClient.queryApi).thenReturn(mockQueryApi)
