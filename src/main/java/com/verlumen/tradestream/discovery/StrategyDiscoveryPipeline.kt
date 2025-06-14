@@ -20,10 +20,11 @@ import org.apache.beam.sdk.transforms.ParDo
 class StrategyDiscoveryPipeline
     @Inject
     constructor(
-        private val runGAFn: RunGADiscoveryFn,
+        private val runGADiscoveryFnFactory: RunGADiscoveryFnFactory,
         private val extractFn: ExtractDiscoveredStrategiesFn,
         private val writeFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory,
         private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
+        private val candleFetcherFactory: InfluxDbCandleFetcherFactory,
     ) {
         fun run(options: StrategyDiscoveryPipelineOptions) {
             val username = requireNotNull(options.databaseUsername) { "Database username is required." }
@@ -42,7 +43,9 @@ class StrategyDiscoveryPipeline
                     readOnly = null,
                 )
 
+            val candleFetcher = candleFetcherFactory.create();
             val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
+            val runGaFn = runGADiscoveryFnFactory.create(candleFetcher)
             val writeFn = writeFnFactory.create(dataSourceConfig)
 
             val pipeline = Pipeline.create(options)
