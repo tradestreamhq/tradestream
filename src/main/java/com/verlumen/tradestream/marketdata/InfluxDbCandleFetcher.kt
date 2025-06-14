@@ -15,7 +15,7 @@ import java.io.Serializable
 class InfluxDbCandleFetcher
     @Inject
     constructor(
-        private val influxDBClientProvider: Provider<InfluxDBClient>,
+        private val influxDBClient: InfluxDBClient,
         private val org: String,
         private val bucket: String,
     ) : CandleFetcher,
@@ -30,7 +30,7 @@ class InfluxDbCandleFetcher
 
         private fun getClient(): InfluxDBClient {
             if (cachedClient == null) {
-                cachedClient = influxDBClientProvider.get()
+                cachedClient = influxDBClient.get()
             }
             return cachedClient!!
         }
