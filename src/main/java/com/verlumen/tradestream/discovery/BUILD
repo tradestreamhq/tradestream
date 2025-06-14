@@ -56,21 +56,21 @@ repository = "tradestreamhq/strategy-discovery-pipeline",
 )
 
 java_library(
-name = "chromosome_spec",
-srcs = [
-"ChromosomeSpec.java",
-"DoubleChromosomeSpec.java",
-"IntegerChromosomeSpec.java",
-],
-visibility = [
-"//src/main/java/com/verlumen/tradestream/backtesting:subpackages",
-"//src/test/java/com/verlumen/tradestream/backtesting:subpackages",
-"//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
-],
-deps = [
-"//third_party/java:guava",
-"//third_party/java:jenetics",
-],
+    name = "chromosome_spec",
+    srcs = [
+        "ChromosomeSpec.java",
+        "DoubleChromosomeSpec.java",
+        "IntegerChromosomeSpec.java",
+    ],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:subpackages",
+        "//src/test/java/com/verlumen/tradestream/backtesting:subpackages",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
+    ],
+    deps = [
+        "//third_party/java:guava",
+        "//third_party/java:jenetics",
+    ],
 )
 
 kt_jvm_library(
