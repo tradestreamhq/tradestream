@@ -11,12 +11,15 @@ public class MarketDataModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(CandleFetcher.class).to(InfluxDbCandleFetcher.class);
     install(new FactoryModuleBuilder().build(FillForwardCandlesFn.Factory.class));
     install(
         new FactoryModuleBuilder()
             .implement(FillForwardCandles.class, FillForwardCandles.class)
             .build(FillForwardCandles.Factory.class));
+    install(
+        new FactoryModuleBuilder()
+            .implement(InfluxDbCandleFetcher.class, InfluxDbCandleFetcher.class)
+            .build(InfluxDbCandleFetcher.Factory.class));
     install(
         new FactoryModuleBuilder()
             .implement(TiingoCryptoCandleSource.class, TiingoCryptoCandleSource.class)

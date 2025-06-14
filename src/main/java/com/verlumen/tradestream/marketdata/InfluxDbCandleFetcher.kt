@@ -1,12 +1,12 @@
 package com.verlumen.tradestream.marketdata
 
-import com.google.common.collect.ImmutableList
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
-import com.google.inject.Provider
+import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
-import com.influxdb.client.InfluxDBClient
+import com.verlumen.tradestream.influxdb.InfluxDbClientFactory
+import com.verlumen.tradestream.influxdb.InfluxDbConfig
 import java.io.Serializable
 
 /**
@@ -15,9 +15,8 @@ import java.io.Serializable
 class InfluxDbCandleFetcher
     @Inject
     constructor(
-        private val influxDBClientProvider: Provider<InfluxDBClient>,
-        private val org: String,
-        private val bucket: String,
+        private val influxDbClientFactory: InfluxDbClientFactory,
+        @Assisted private val influxDbConfig: InfluxDbConfig,
     ) : CandleFetcher,
         Serializable {
         companion object {
@@ -25,63 +24,55 @@ class InfluxDbCandleFetcher
             private const val serialVersionUID = 1L
         }
 
-        @Transient
-        private var cachedClient: InfluxDBClient? = null
-
-        private fun getClient(): InfluxDBClient {
-            if (cachedClient == null) {
-                cachedClient = influxDBClientProvider.get()
-            }
-            return cachedClient!!
-        }
-
-        init {
-            logger.atInfo().log("InfluxDbCandleFetcher initialized for org: %s, bucket: %s", org, bucket)
-        }
-
         override fun fetchCandles(
             symbol: String,
             startTime: Timestamp,
             endTime: Timestamp,
-        ): ImmutableList<Candle> {
+        ): List<Candle> {
             val startIso = Timestamps.toString(startTime)
             val endIso = Timestamps.toString(endTime)
             val fluxQuery = buildFluxQuery(symbol, startIso, endIso)
             logger.atInfo().log("Executing Flux query for %s: %s", symbol, fluxQuery)
-            val influxDBClient = getClient()
-            val queryApi = influxDBClient.queryApi
-            val candlesBuilder = ImmutableList.builder<Candle>()
 
-            try {
-                val tables = queryApi.query(fluxQuery, org)
-                for (table in tables) {
-                    for (record in table.records) {
-                        try {
-                            val candle = parseCandle(record, symbol)
-                            if (candle != null) {
-                                candlesBuilder.add(candle)
+            return executeQueryWithClient(fluxQuery, symbol, startIso, endIso)
+        }
+
+        private fun executeQueryWithClient(
+            fluxQuery: String,
+            symbol: String,
+            startIso: String,
+            endIso: String,
+        ): List<Candle> =
+            influxDbClientFactory.create(influxDbConfig).use { influxDBClient ->
+                val queryApi = influxDBClient.queryApi
+                val candles = mutableListOf<Candle>()
+
+                try {
+                    val tables = queryApi.query(fluxQuery, influxDbConfig.org)
+                    for (table in tables) {
+                        for (record in table.records) {
+                            try {
+                                val candle = parseCandle(record, symbol)
+                                if (candle != null) {
+                                    candles.add(candle)
+                                }
+                            } catch (e: Exception) {
+                                logger.atWarning().withCause(e).log(
+                                    "Failed to parse FluxRecord into Candle for symbol %s. Record: %s",
+                                    symbol,
+                                    record.values,
+                                )
                             }
-                        } catch (e: Exception) {
-                            logger.atWarning().withCause(e).log(
-                                "Failed to parse FluxRecord into Candle for symbol %s. Record: %s",
-                                symbol,
-                                record.values,
-                            )
                         }
                     }
+                } catch (e: Exception) {
+                    logger.atSevere().withCause(e).log("Error fetching candles from InfluxDB for %s", symbol)
+                    // Consider re-throwing a custom exception or returning an empty list with error state
                 }
-            } catch (e: Exception) {
-                logger.atSevere().withCause(e).log("Error fetching candles from InfluxDB for %s", symbol)
-                // Consider re-throwing a custom exception or returning an empty list with error state
-            } catch (e: Exception) {
-                logger.atSevere().withCause(e).log("Error fetching candles from InfluxDB for %s", symbol)
-                // Consider re-throwing a custom exception or returning an empty list with error state
-            }
 
-            val result = candlesBuilder.build()
-            logger.atInfo().log("Fetched %d candles for symbol %s from %s to %s", result.size, symbol, startIso, endIso)
-            return result
-        }
+                logger.atInfo().log("Fetched %d candles for symbol %s from %s to %s", candles.size, symbol, startIso, endIso)
+                listOf(*candles.toTypedArray())
+            }
 
         private fun buildFluxQuery(
             symbol: String,
@@ -89,7 +80,7 @@ class InfluxDbCandleFetcher
             endIso: String,
         ): String =
             """
-            from(bucket: "$bucket")
+            from(bucket: "${influxDbConfig.bucket}")
               |> range(start: $startIso, stop: $endIso)
               |> filter(fn: (r) => r._measurement == "candles")
               |> filter(fn: (r) => r.currency_pair == "$symbol")
@@ -120,9 +111,8 @@ class InfluxDbCandleFetcher
                 .build()
         }
 
-        override fun close() {
-            cachedClient?.close()
-            cachedClient = null
-            logger.atInfo().log("InfluxDbCandleFetcher closed.")
+        // Factory interface for Guice AssistedInject
+        interface Factory {
+            fun create(influxDbConfig: InfluxDbConfig): InfluxDbCandleFetcher
         }
     }

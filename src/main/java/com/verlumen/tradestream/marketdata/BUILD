@@ -22,7 +22,6 @@ kt_jvm_library(
     srcs = ["CandleFetcher.kt"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party/java:guava",
         "//third_party/java:protobuf_java",
     ],
 )
@@ -135,8 +134,11 @@ kt_jvm_library(
     deps = [
         ":candle_fetcher",
         "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_client_factory",
+        "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",
         "//third_party/java:flogger",
         "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
         "//third_party/java:influxdb_client_java",
         "//third_party/java:protobuf_java_util",
     ],

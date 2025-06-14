@@ -15,6 +15,12 @@ class DiscoveryModule : AbstractModule() {
 
         install(
             FactoryModuleBuilder()
+                .implement(RunGADiscoveryFn::class.java, RunGADiscoveryFn::class.java)
+                .build(RunGADiscoveryFnFactory::class.java),
+        )
+
+        install(
+            FactoryModuleBuilder()
                 .implement(
                     WriteDiscoveredStrategiesToPostgresFn::class.java,
                     WriteDiscoveredStrategiesToPostgresFn::class.java,
