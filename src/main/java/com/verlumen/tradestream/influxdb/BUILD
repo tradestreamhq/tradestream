@@ -8,6 +8,7 @@ kt_jvm_library(
     name = "influx_db_client_factory",
     srcs = ["InfluxDbClientFactory.kt"],
     deps = [
+        ":influx_db_config",
         "//third_party/java:influxdb_client_java",
     ],
 )
