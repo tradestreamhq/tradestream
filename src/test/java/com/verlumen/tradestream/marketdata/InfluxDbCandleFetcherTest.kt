@@ -107,8 +107,6 @@ class InfluxDbCandleFetcherTest {
 
         // Verify the Flux query was executed
         verify(mockQueryApi).query(anyString(), eq(testConfig.org))
-        
-        fetcher.close()
     }
 
     @Test
@@ -128,7 +126,6 @@ class InfluxDbCandleFetcherTest {
 
         // Assert
         assertThat(candles).isEmpty() // Records with null time should be skipped
-        fetcher.close()
     }
 
     @Test
@@ -148,7 +145,6 @@ class InfluxDbCandleFetcherTest {
 
         // Assert
         assertThat(candles).isEmpty() // Records with parsing errors should be skipped
-        fetcher.close()
     }
 
     @Test
@@ -168,7 +164,6 @@ class InfluxDbCandleFetcherTest {
 
         // Assert
         assertThat(candles).isEmpty()
-        fetcher.close()
     }
 
     @Test
@@ -195,7 +190,6 @@ class InfluxDbCandleFetcherTest {
             },
             eq(testConfig.org),
         )
-        fetcher.close()
     }
 
     // Helper methods to create test data (unchanged from original)
