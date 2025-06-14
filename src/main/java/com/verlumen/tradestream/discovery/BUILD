@@ -379,7 +379,6 @@ kt_jvm_library(
         ":strategy_discovery_pipeline",
         ":strategy_discovery_pipeline_options",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
-        "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_module",
         "//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
         "//src/main/java/com/verlumen/tradestream/strategies:strategies_module",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
