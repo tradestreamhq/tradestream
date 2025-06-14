@@ -5,6 +5,8 @@ import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
+import com.verlumen.tradestream.instruments.CurrencyPair
+import java.util.function.Supplier
 
 internal class BaseModule : AbstractModule() {
     override fun configure() {
@@ -18,7 +20,6 @@ internal class BaseModule : AbstractModule() {
                 .implement(RunGADiscoveryFn::class.java, RunGADiscoveryFn::class.java)
                 .build(RunGADiscoveryFnFactory::class.java),
         )
-
         install(
             FactoryModuleBuilder()
                 .implement(
@@ -30,7 +31,8 @@ internal class BaseModule : AbstractModule() {
 
     // TODO: we need to delete provideCurrencyPairSupplier as soon as we remove all remaining dependencies
     @Provides
-    fun provideCurrencyPairSupplier(): Supplier<java.util.List<CurrencyPair>> = java.util.function.Supplier { emptyList() }
+    fun provideCurrencyPairSupplier(): Supplier<java.util.List<CurrencyPair>> = 
+        java.util.function.Supplier { emptyList() }
 }
 
 class DiscoveryModule : AbstractModule() {
