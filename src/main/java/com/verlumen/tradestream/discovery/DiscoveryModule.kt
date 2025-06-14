@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList
 import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
+import java.util.function.Supplier
 
 internal class BaseModule : AbstractModule() {
     override fun configure() {
@@ -12,7 +13,6 @@ internal class BaseModule : AbstractModule() {
         bind(GenotypeConverter::class.java).to(GenotypeConverterImpl::class.java)
         bind(ParamConfigManager::class.java).to(ParamConfigManagerImpl::class.java)
         bind(object : TypeLiteral<ImmutableList<ParamConfig>>() {}).toInstance(ParamConfigs.ALL_CONFIGS)
-
         install(
             FactoryModuleBuilder()
                 .implement(
@@ -20,6 +20,11 @@ internal class BaseModule : AbstractModule() {
                     WriteDiscoveredStrategiesToPostgresFn::class.java,
                 ).build(WriteDiscoveredStrategiesToPostgresFnFactory::class.java),
         )
+    }
+    
+    @Provides
+    fun provideCurrencyPairSupplier(): Supplier<List<CurrencyPair>> {
+        return Supplier { emptyList() }
     }
 }
 
