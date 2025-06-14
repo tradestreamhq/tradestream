@@ -430,8 +430,8 @@ deps = [
 )
 
 container_structure_test(
-name = "container_test",
-configs = ["container-structure-test.yaml"],
-image = ":image",
-tags = ["requires-docker"],
+    name = "container_test",
+    configs = ["container-structure-test.yaml"],
+    image = ":image",
+    tags = ["requires-docker"],
 )
