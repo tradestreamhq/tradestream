@@ -3,7 +3,6 @@ package com.verlumen.tradestream.discovery
 import com.google.inject.Guice
 import com.google.inject.Module
 import com.verlumen.tradestream.backtesting.BacktestingModule
-import com.verlumen.tradestream.marketdata.MarketDataModule
 import com.verlumen.tradestream.postgres.PostgresModule
 import com.verlumen.tradestream.strategies.StrategiesModule
 import com.verlumen.tradestream.ta4j.Ta4jModule
@@ -59,7 +58,6 @@ class StrategyDiscoveryPipelineRunner {
                 Guice.createInjector(
                     BacktestingModule(),
                     getDiscoveryModule(options),
-                    MarketDataModule.create(),
                     PostgresModule(),
                     StrategiesModule(),
                     Ta4jModule.create(),
