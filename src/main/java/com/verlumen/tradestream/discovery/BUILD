@@ -10,9 +10,9 @@ package(default_visibility = [
 ])
 
 java_binary(
-name = "app",
-main_class = "com.verlumen.tradestream.discovery.StrategyDiscoveryPipelineRunner",
-runtime_deps = [":strategy_discovery_pipeline_runner"],
+    name = "app",
+    main_class = "com.verlumen.tradestream.discovery.StrategyDiscoveryPipelineRunner",
+    runtime_deps = [":strategy_discovery_pipeline_runner"],
 )
 
 tar(
