@@ -7,11 +7,6 @@ import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.verlumen.tradestream.sql.DataSourceConfig
 import org.apache.beam.sdk.testing.TestPipeline
-import org.apache.beam.sdk.transforms.Create
-import org.apache.beam.sdk.values.PBegin
-import org.apache.beam.sdk.values.PCollection
-import org.apache.beam.sdk.values.TypeDescriptor
-import org.apache.beam.sdk.values.TypeDescriptors
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
