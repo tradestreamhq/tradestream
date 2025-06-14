@@ -43,7 +43,7 @@ class StrategyDiscoveryPipeline
                     readOnly = null,
                 )
 
-            val candleFetcher = candleFetcherFactory.create();
+            val candleFetcher = candleFetcherFactory.create()
             val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
             val runGaFn = runGADiscoveryFnFactory.create(candleFetcher)
             val writeFn = writeFnFactory.create(dataSourceConfig)

@@ -20,11 +20,9 @@ internal class BaseModule : AbstractModule() {
                 ).build(WriteDiscoveredStrategiesToPostgresFnFactory::class.java),
         )
     }
-    
+
     @Provides
-    fun provideCurrencyPairSupplier(): Supplier<java.util.List<CurrencyPair>> {
-        return java.util.function.Supplier { emptyList() }
-    }
+    fun provideCurrencyPairSupplier(): Supplier<java.util.List<CurrencyPair>> = java.util.function.Supplier { emptyList() }
 }
 
 class DryRunDiscoveryModule : AbstractModule() {
