@@ -2,6 +2,8 @@ package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
+import com.verlumen.tradestream.influxdb.InfluxDbConfig
+import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
 import com.verlumen.tradestream.sql.DataSourceConfig
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.transforms.ParDo
@@ -24,7 +26,7 @@ class StrategyDiscoveryPipeline
         private val extractFn: ExtractDiscoveredStrategiesFn,
         private val writeFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory,
         private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
-        private val candleFetcherFactory: InfluxDbCandleFetcherFactory,
+        private val candleFetcherFactory: InfluxDbCandleFetcher.Factory,
     ) {
         fun run(options: StrategyDiscoveryPipelineOptions) {
             val username = requireNotNull(options.databaseUsername) { "Database username is required." }
@@ -43,7 +45,14 @@ class StrategyDiscoveryPipeline
                     readOnly = null,
                 )
 
-            val candleFetcher = candleFetcherFactory.create()
+            val influxDbConfig =
+                InfluxDbConfig(
+                    url = options.influxDbUrl,
+                    token = requireNotNull(options.influxDbToken) { "InfluxDB token is required." },
+                    org = options.influxDbOrg,
+                    bucket = options.influxDbBucket,
+                )
+            val candleFetcher = candleFetcherFactory.create(influxDbConfig)
             val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
             val runGaFn = runGADiscoveryFnFactory.create(candleFetcher)
             val writeFn = writeFnFactory.create(dataSourceConfig)
@@ -52,7 +61,7 @@ class StrategyDiscoveryPipeline
 
             pipeline
                 .apply("ReadDiscoveryRequests", discoveryRequestSource)
-                .apply("RunGAStrategyDiscovery", ParDo.of(runGAFn))
+                .apply("RunGAStrategyDiscovery", ParDo.of(runGaFn))
                 .apply("ExtractStrategies", ParDo.of(extractFn))
                 .apply("WriteToPostgreSQL", ParDo.of(writeFn))
 

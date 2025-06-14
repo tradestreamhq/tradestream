@@ -368,6 +368,8 @@ kt_jvm_library(
         ":strategy_discovery_pipeline_options",
         ":write_discovered_strategies_to_postgres_fn",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",
+        "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
