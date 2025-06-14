@@ -117,13 +117,13 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
-name = "discovery_request_source",
-srcs = ["DiscoveryRequestSource.kt"],
-deps = [
-":strategy_discovery_pipeline_options",
-"//protos:discovery_java_proto",
-"//third_party/java:beam_sdks_java_core",
-],
+    name = "discovery_request_source",
+    srcs = ["DiscoveryRequestSource.kt"],
+    deps = [
+        ":strategy_discovery_pipeline_options",
+        "//protos:discovery_java_proto",
+        "//third_party/java:beam_sdks_java_core",
+    ],
 )
 
 kt_jvm_library(
