@@ -18,7 +18,6 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 
 /**
@@ -155,17 +154,17 @@ class StrategyDiscoveryPipelineTest {
     fun testEmptyDatabaseUsernameHandling() {
         // Setup options with empty username
         options.databaseUsername = ""
-    
+
         // The actual pipeline uses requireNotNull, which would pass for empty strings
         // Test that empty string is not null (which is the actual validation)
         val username = options.databaseUsername
         assertThat(username).isNotNull()
         assertThat(username).isEmpty()
-        
+
         // The pipeline would accept this as valid (not null), though it might cause
         // runtime issues later - this aligns with the actual validation logic
     }
-    
+
     @Test
     fun testEmptyDatabasePasswordHandling() {
         // Setup options with empty password
@@ -175,7 +174,7 @@ class StrategyDiscoveryPipelineTest {
         val password = options.databasePassword
         assertThat(password).isNotNull()
         assertThat(password).isEmpty()
-        
+
         // The pipeline would accept this as valid (not null), though it might cause
         // runtime issues later - this aligns with the actual validation logic
     }
@@ -184,23 +183,24 @@ class StrategyDiscoveryPipelineTest {
     fun testDataSourceConfigurationCreation() {
         // Setup options with all configuration values
         options.dbServerName = "custom-host"
-        options.dbDatabaseName = "custom-db" 
+        options.dbDatabaseName = "custom-db"
         options.databaseUsername = "custom-user"
         options.databasePassword = "custom-pass"
         options.dbPortNumber = 3306
 
         // Test DataSourceConfig creation with custom values
-        val dataSourceConfig = DataSourceConfig(
-            serverName = options.dbServerName,
-            databaseName = options.dbDatabaseName,
-            username = options.databaseUsername!!,
-            password = options.databasePassword!!,
-            portNumber = options.dbPortNumber,
-            applicationName = null,
-            connectTimeout = null,
-            socketTimeout = null,
-            readOnly = null,
-        )
+        val dataSourceConfig =
+            DataSourceConfig(
+                serverName = options.dbServerName,
+                databaseName = options.dbDatabaseName,
+                username = options.databaseUsername!!,
+                password = options.databasePassword!!,
+                portNumber = options.dbPortNumber,
+                applicationName = null,
+                connectTimeout = null,
+                socketTimeout = null,
+                readOnly = null,
+            )
 
         assertThat(dataSourceConfig.serverName).isEqualTo("custom-host")
         assertThat(dataSourceConfig.databaseName).isEqualTo("custom-db")
@@ -216,20 +216,23 @@ class StrategyDiscoveryPipelineTest {
     @Test
     fun testFactoryCreationLogic() {
         // Test that the factory creation logic works correctly
-        
+
         // Create factories as the pipeline would
         val discoveryRequestSource = mockDiscoveryRequestSourceFactory.create(options)
-        val writeFn = mockWriteFnFactory.create(DataSourceConfig(
-            serverName = options.dbServerName,
-            databaseName = options.dbDatabaseName,
-            username = options.databaseUsername!!,
-            password = options.databasePassword!!,
-            portNumber = options.dbPortNumber,
-            applicationName = null,
-            connectTimeout = null,
-            socketTimeout = null,
-            readOnly = null,
-        ))
+        val writeFn =
+            mockWriteFnFactory.create(
+                DataSourceConfig(
+                    serverName = options.dbServerName,
+                    databaseName = options.dbDatabaseName,
+                    username = options.databaseUsername!!,
+                    password = options.databasePassword!!,
+                    portNumber = options.dbPortNumber,
+                    applicationName = null,
+                    connectTimeout = null,
+                    socketTimeout = null,
+                    readOnly = null,
+                ),
+            )
 
         // Verify factories return expected objects
         assertThat(discoveryRequestSource).isEqualTo(mockDiscoveryRequestSource)
