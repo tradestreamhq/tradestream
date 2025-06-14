@@ -58,13 +58,14 @@ class InfluxDbCandleFetcherTest {
         `when`(mockInfluxDBClient.queryApi).thenReturn(mockQueryApi)
 
         // Create Guice injector with BoundFieldModule and factory
-        val modules: List<Module> = listOf(
-            BoundFieldModule.of(this),
-            FactoryModuleBuilder()
-                .implement(InfluxDbCandleFetcher::class.java, InfluxDbCandleFetcher::class.java)
-                .build(InfluxDbCandleFetcher.Factory::class.java)
-        )
-        
+        val modules: List<Module> =
+            listOf(
+                BoundFieldModule.of(this),
+                FactoryModuleBuilder()
+                    .implement(InfluxDbCandleFetcher::class.java, InfluxDbCandleFetcher::class.java)
+                    .build(InfluxDbCandleFetcher.Factory::class.java),
+            )
+
         val injector = Guice.createInjector(modules)
         injector.injectMembers(this)
     }
