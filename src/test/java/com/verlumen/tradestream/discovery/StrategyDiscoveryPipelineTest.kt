@@ -170,7 +170,6 @@ class StrategyDiscoveryPipelineTest {
     fun testEmptyDatabasePasswordHandling() {
         // Setup options with empty password
         options.databasePassword = ""
-    
         // The actual pipeline uses requireNotNull, which would pass for empty strings
         // Test that empty string is not null (which is the actual validation)
         val password = options.databasePassword
