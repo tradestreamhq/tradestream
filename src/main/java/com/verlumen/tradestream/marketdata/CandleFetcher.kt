@@ -1,8 +1,6 @@
 package com.verlumen.tradestream.marketdata
 
-import com.google.common.collect.ImmutableList
 import com.google.protobuf.Timestamp
-import java.io.Serializable
 
 /**
  * Interface for fetching candle data.
@@ -20,5 +18,5 @@ interface CandleFetcher {
         symbol: String,
         startTime: Timestamp,
         endTime: Timestamp,
-    ): ImmutableList<Candle>
+    ): List<Candle>
 }
