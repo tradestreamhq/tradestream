@@ -34,7 +34,7 @@ internal class BaseModule : AbstractModule() {
 
     // TODO: we need to delete provideCurrencyPairSupplier as soon as we remove all remaining dependencies
     @Provides
-    fun provideCurrencyPairSupplier(): Supplier<java.util.List<CurrencyPair>> = java.util.function.Supplier { Collections.emptyList() }
+    fun provideCurrencyPairSupplier(): Supplier<java.util.List<CurrencyPair>> = java.util.function.Supplier { Collections.emptyList<CurrencyPair>() }
 }
 
 class DiscoveryModule : AbstractModule() {
