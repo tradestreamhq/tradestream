@@ -42,12 +42,13 @@ class InfluxDbCandleFetcherTest {
     @Inject
     private lateinit var influxDbCandleFetcherFactory: InfluxDbCandleFetcher.Factory
 
-    private val testConfig = InfluxDbConfig(
-        url = "http://localhost:8086",
-        token = "test-token",
-        org = "test-org",
-        bucket = "test-bucket"
-    )
+    private val testConfig =
+        InfluxDbConfig(
+            url = "http://localhost:8086",
+            token = "test-token",
+            org = "test-org",
+            bucket = "test-bucket",
+        )
 
     @Before
     fun setUp() {
