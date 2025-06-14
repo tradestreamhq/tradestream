@@ -205,12 +205,12 @@ deps = [
 )
 
 kt_jvm_library(
-name = "ga_engine_factory",
-srcs = ["GAEngineFactory.kt"],
-deps = [
-":ga_engine_params",
-"//third_party/java:jenetics",
-],
+    name = "ga_engine_factory",
+    srcs = ["GAEngineFactory.kt"],
+    deps = [
+        ":ga_engine_params",
+        "//third_party/java:jenetics",
+    ],
 )
 
 java_library(
