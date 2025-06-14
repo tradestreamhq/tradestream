@@ -93,7 +93,6 @@ abstract class PipelineModule extends AbstractModule {
     install(new BacktestingModule());
     install(new DiscoveryModule());
     install(HttpModule.create());
-    install(new InfluxDbModule(influxDbUrl(), influxDbToken(), influxDbOrg(), influxDbBucket()));
     install(InstrumentsModule.create(runMode(), coinMarketCapApiKey(), topCurrencyCount()));
     install(KafkaModule.create(bootstrapServers()));
     install(MarketDataModule.create()); // No parameters needed anymore
