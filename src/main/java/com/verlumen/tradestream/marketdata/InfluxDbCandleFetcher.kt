@@ -19,7 +19,8 @@ class InfluxDbCandleFetcher
     constructor(
         private val influxDbClientFactory: InfluxDbClientFactory,
         @Assisted private val influxDbConfig: InfluxDbConfig,
-    ) : CandleFetcher, Serializable {
+    ) : CandleFetcher,
+        Serializable {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
             private const val serialVersionUID = 1L
