@@ -94,7 +94,7 @@ abstract class PipelineModule extends AbstractModule {
     install(new DiscoveryModule());
     install(HttpModule.create());
     install(new InfluxDbModule(influxDbUrl(), influxDbToken(), influxDbOrg(), influxDbBucket()));
-    install(InstrumentsModule.create(runMode(), coinMarketCapApiKey(), topCurrencyCount()));
+    install(InstrumentsModule.create());
     install(KafkaModule.create(bootstrapServers()));
     install(MarketDataModule.create()); // No parameters needed anymore
     install(new PostgresModule());
