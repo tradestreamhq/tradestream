@@ -296,17 +296,17 @@ java_library(
 )
 
 java_library(
-name = "param_config_manager",
-srcs = ["ParamConfigManager.java"],
-visibility = [
-"//src/main/java/com/verlumen/tradestream/backtesting:subpackages",
-"//src/test/java/com/verlumen/tradestream/backtesting:pkg",
-"//src/test/java/com/verlumen/tradestream/discovery:pkg",
-],
-deps = [
-":param_config",
-"//protos:strategies_java_proto",
-],
+    name = "param_config_manager",
+    srcs = ["ParamConfigManager.java"],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:subpackages",
+        "//src/test/java/com/verlumen/tradestream/backtesting:pkg",
+        "//src/test/java/com/verlumen/tradestream/discovery:pkg",
+    ],
+    deps = [
+        ":param_config",
+        "//protos:strategies_java_proto",
+    ],
 )
 
 java_library(
