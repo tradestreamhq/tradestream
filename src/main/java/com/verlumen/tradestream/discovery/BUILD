@@ -16,8 +16,8 @@ java_binary(
 )
 
 tar(
-name = "layer",
-srcs = [":app_deploy.jar"],
+    name = "layer",
+    srcs = [":app_deploy.jar"],
 )
 
 oci_image(
