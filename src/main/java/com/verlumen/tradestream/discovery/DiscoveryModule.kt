@@ -31,6 +31,19 @@ internal class BaseModule : AbstractModule() {
     fun provideCurrencyPairSupplier(): Supplier<java.util.List<CurrencyPair>> = java.util.function.Supplier { emptyList() }
 }
 
+class DiscoveryModule : AbstractModule() {
+    override fun configure() {
+        install(BaseModule())
+        install(
+            FactoryModuleBuilder()
+                .implement(
+                    DiscoveryRequestSource::class.java,
+                    KafkaDiscoveryRequestSource::class.java,
+                ).build(DiscoveryRequestSourceFactory::class.java),
+        )
+    }
+}
+
 class DryRunDiscoveryModule : AbstractModule() {
     override fun configure() {
         install(BaseModule())
@@ -44,15 +57,4 @@ class DryRunDiscoveryModule : AbstractModule() {
     }
 }
 
-class DiscoveryModule : AbstractModule() {
-    override fun configure() {
-        install(BaseModule())
-        install(
-            FactoryModuleBuilder()
-                .implement(
-                    DiscoveryRequestSource::class.java,
-                    KafkaDiscoveryRequestSource::class.java,
-                ).build(DiscoveryRequestSourceFactory::class.java),
-        )
-    }
-}
+
