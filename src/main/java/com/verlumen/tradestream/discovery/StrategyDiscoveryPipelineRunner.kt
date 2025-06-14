@@ -35,12 +35,8 @@ class StrategyDiscoveryPipelineRunner {
             options.databasePassword.takeIf { !it.isNullOrEmpty() }
                 ?: System.getenv(DATABASE_PASSWORD_ENV_VAR)
 
-        private fun getDiscoveryModule(options: StrategyDiscoveryPipelineOptions): Module {
-            if (options.dryRun) {
-                return DryRunDiscoveryModule()
-            }
-            return DiscoveryModule()
-        }
+        private fun getDiscoveryModule(options: StrategyDiscoveryPipelineOptions): Module =
+            if (options.dryRun) DryRunDiscoveryModule() else DiscoveryModule()
 
         /**
          * Entry-point. Builds the injector, gets a factory instance,

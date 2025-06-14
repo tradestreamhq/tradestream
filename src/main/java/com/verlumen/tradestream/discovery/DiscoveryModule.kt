@@ -5,6 +5,8 @@ import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
+import com.verlumen.tradestream.instruments.CurrencyPair
+import java.util.function.Supplier
 
 internal class BaseModule : AbstractModule() {
     override fun configure() {
@@ -13,6 +15,7 @@ internal class BaseModule : AbstractModule() {
         bind(GenotypeConverter::class.java).to(GenotypeConverterImpl::class.java)
         bind(ParamConfigManager::class.java).to(ParamConfigManagerImpl::class.java)
         bind(object : TypeLiteral<ImmutableList<ParamConfig>>() {}).toInstance(ParamConfigs.ALL_CONFIGS)
+
         install(
             FactoryModuleBuilder()
                 .implement(RunGADiscoveryFn::class.java, RunGADiscoveryFn::class.java)
