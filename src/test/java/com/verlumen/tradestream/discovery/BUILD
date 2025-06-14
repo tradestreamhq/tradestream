@@ -196,7 +196,6 @@ kt_jvm_test(
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
         # SQL and database dependencies
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
-        
         # Protobuf dependencies
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
