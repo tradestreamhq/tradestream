@@ -196,12 +196,12 @@ srcs = ["GAConstants.java"],
 )
 
 kt_jvm_library(
-name = "ga_engine_params",
-srcs = ["GAEngineParams.kt"],
-deps = [
-"//protos:marketdata_java_proto",  # For Candle
-"//protos:strategies_java_proto",  # For StrategyType
-],
+    name = "ga_engine_params",
+    srcs = ["GAEngineParams.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",  # For Candle
+        "//protos:strategies_java_proto",  # For StrategyType
+    ],
 )
 
 kt_jvm_library(
