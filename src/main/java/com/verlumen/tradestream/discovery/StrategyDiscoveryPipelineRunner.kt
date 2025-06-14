@@ -3,7 +3,6 @@ package com.verlumen.tradestream.discovery
 import com.google.inject.Guice
 import com.google.inject.Module
 import com.verlumen.tradestream.backtesting.BacktestingModule
-import com.verlumen.tradestream.influxdb.InfluxDbModule
 import com.verlumen.tradestream.marketdata.MarketDataModule
 import com.verlumen.tradestream.postgres.PostgresModule
 import com.verlumen.tradestream.strategies.StrategiesModule
@@ -59,7 +58,6 @@ class StrategyDiscoveryPipelineRunner {
             val injector =
                 Guice.createInjector(
                     BacktestingModule(),
-                    InfluxDbModule(),
                     getDiscoveryModule(options),
                     MarketDataModule.create(),
                     PostgresModule(),
