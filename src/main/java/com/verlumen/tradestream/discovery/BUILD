@@ -43,10 +43,10 @@ multi_arch(
 )
 
 oci_image_index(
-name = "index",
-images = [
-":images",
-],
+    name = "index",
+    images = [
+        ":images",
+    ],
 )
 
 oci_push(
