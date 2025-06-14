@@ -338,22 +338,22 @@ deps = [
 )
 
 kt_jvm_library(
-name = "run_ga_discovery_fn",
-srcs = ["RunGADiscoveryFn.kt"],
-deps = [
-":ga_engine_factory",
-":genotype_converter",
-"//protos:backtesting_java_proto",
-"//protos:discovery_java_proto",
-"//protos:strategies_java_proto",
-"//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
-"//third_party/java:beam_sdks_java_core",
-"//third_party/java:flogger",
-"//third_party/java:guice",
-"//third_party/java:guice_assistedinject",
-"//third_party/java:jenetics",
-"//third_party/java:protobuf_java_util",
-],
+    name = "run_ga_discovery_fn",
+    srcs = ["RunGADiscoveryFn.kt"],
+    deps = [
+        ":ga_engine_factory",
+        ":genotype_converter",
+        "//protos:backtesting_java_proto",
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:jenetics",
+        "//third_party/java:protobuf_java_util",
+    ],
 )
 
 kt_jvm_library(
