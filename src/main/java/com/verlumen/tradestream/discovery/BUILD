@@ -334,6 +334,7 @@ kt_jvm_library(
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:flogger",
         "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java_util",
     ],
