@@ -6,7 +6,7 @@ load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 load("//platforms:transition.bzl", "multi_arch")
 
 package(default_visibility = [
-"//src/test/java/com/verlumen/tradestream/discovery:pkg",
+"//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
 ])
 
 java_binary(
@@ -65,7 +65,7 @@ srcs = [
 visibility = [
 "//src/main/java/com/verlumen/tradestream/backtesting:subpackages",
 "//src/test/java/com/verlumen/tradestream/backtesting:subpackages",
-"//src/test/java/com/verlumen/tradestream/discovery:pkg",
+"//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
 ],
 deps = [
 "//third_party/java:guava",
@@ -88,7 +88,7 @@ kt_jvm_library(
 name = "discovery_module",
 srcs = ["DiscoveryModule.kt"],
 visibility = [
-"//src/main/java/com/verlumen/tradestream/pipeline:pkg",
+"//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
 ],
 deps = [
 ":discovery_request_source",
@@ -161,9 +161,9 @@ kt_jvm_library(
 name = "fitness_function_factory",
 srcs = ["FitnessFunctionFactory.kt"],
 visibility = [
-"//src/main/java/com/verlumen/tradestream/backtesting:pkg",
-"//src/test/java/com/verlumen/tradestream/backtesting:pkg",
-"//src/test/java/com/verlumen/tradestream/discovery:pkg",
+"//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
+"//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
+"//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
 ],
 deps = [
 ":fitness_function",
@@ -236,9 +236,9 @@ java_library(
     name = "genotype_converter",
     srcs = ["GenotypeConverter.java"],
     visibility = [
-        "//src/main/java/com/verlumen/tradestream/backtesting:pkg",
-        "//src/test/java/com/verlumen/tradestream/backtesting:pkg",
-        "//src/test/java/com/verlumen/tradestream/discovery:pkg",
+        "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
         "//protos:strategies_java_proto",
@@ -283,8 +283,8 @@ java_library(
     srcs = ["ParamConfig.java"],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/backtesting:subpackages",
-        "//src/test/java/com/verlumen/tradestream/backtesting:pkg",
-        "//src/test/java/com/verlumen/tradestream/discovery:pkg",
+        "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
         ":chromosome_spec",
@@ -300,8 +300,8 @@ java_library(
     srcs = ["ParamConfigManager.java"],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/backtesting:subpackages",
-        "//src/test/java/com/verlumen/tradestream/backtesting:pkg",
-        "//src/test/java/com/verlumen/tradestream/discovery:pkg",
+        "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
         ":param_config",
