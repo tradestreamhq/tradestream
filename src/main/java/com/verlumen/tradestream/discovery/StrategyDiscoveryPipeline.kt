@@ -16,16 +16,15 @@ import org.apache.beam.sdk.transforms.ParDo
  *
  * All transforms arrive through the factory pattern with Guice.
  */
-class StrategyDiscoveryPipeline(
+class StrategyDiscoveryPipeline
+    @Inject
+    constructor(
     private val discoveryRequestSource: DiscoveryRequestSource,
     private val runGAFn: RunGADiscoveryFn,
     private val extractFn: ExtractDiscoveredStrategiesFn,
     private val writeFn: WriteDiscoveredStrategiesToPostgresFn,
 ) {
-    fun run() {
-        val options = PipelineOptionsFactory.create().`as`(StrategyDiscoveryPipelineOptions::class.java)
-        options.isStreaming = true
-
+    fun run(options: StrategyDiscoveryPipelineOptions) {
         val pipeline = Pipeline.create(options)
 
         pipeline
