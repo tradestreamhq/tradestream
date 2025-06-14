@@ -22,7 +22,6 @@ kt_jvm_library(
     srcs = ["CandleFetcher.kt"],
     deps = [
         "//protos:marketdata_java_proto",
-        "//third_party/java:guava",
         "//third_party/java:protobuf_java",
     ],
 )
