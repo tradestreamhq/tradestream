@@ -127,17 +127,17 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
-name = "dry_run_discovery_request_source",
-srcs = ["DryRunDiscoveryRequestSource.kt"],
-deps = [
-":deserialize_strategy_discovery_request_fn",
-":discovery_request_source",
-":strategy_discovery_pipeline_options",
-"//protos:discovery_java_proto",
-"//third_party/java:beam_sdks_java_core",
-"//third_party/java:guice",
-"//third_party/java:guice_assistedinject",
-],
+    name = "dry_run_discovery_request_source",
+    srcs = ["DryRunDiscoveryRequestSource.kt"],
+    deps = [
+        ":deserialize_strategy_discovery_request_fn",
+        ":discovery_request_source",
+        ":strategy_discovery_pipeline_options",
+        "//protos:discovery_java_proto",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+    ],
 )
 
 kt_jvm_library(
