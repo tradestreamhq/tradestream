@@ -102,17 +102,18 @@ class StrategyDiscoveryPipelineTest {
         val username = requireNotNull(options.databaseUsername) { "Database username is required." }
         val password = requireNotNull(options.databasePassword) { "Database password is required." }
 
-        val dataSourceConfig = DataSourceConfig(
-            serverName = options.dbServerName,
-            databaseName = options.dbDatabaseName,
-            username = username,
-            password = password,
-            portNumber = options.dbPortNumber,
-            applicationName = null,
-            connectTimeout = null,
-            socketTimeout = null,
-            readOnly = null,
-        )
+        val dataSourceConfig =
+            DataSourceConfig(
+                serverName = options.dbServerName,
+                databaseName = options.dbDatabaseName,
+                username = username,
+                password = password,
+                portNumber = options.dbPortNumber,
+                applicationName = null,
+                connectTimeout = null,
+                socketTimeout = null,
+                readOnly = null,
+            )
 
         // Verify configuration is created correctly
         assertThat(dataSourceConfig.serverName).isEqualTo("localhost")
