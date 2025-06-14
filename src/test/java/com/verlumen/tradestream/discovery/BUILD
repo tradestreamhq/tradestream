@@ -204,13 +204,7 @@ kt_jvm_test(
         "//third_party/java:beam_sdks_java_test_utils",
         # Guice dependencies for dependency injection
         "//third_party/java:guice",
-        "//third_party/java:guice_testlib",
         "//third_party/java:guice_assistedinject",
-        # Testing dependencies
-        "//third_party/java:junit",
-        "//third_party/java:mockito_core",
-        "//third_party/java:mockito_kotlin",
-        "//third_party/java:truth",
     ],
 )
 
