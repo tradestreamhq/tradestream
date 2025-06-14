@@ -36,10 +36,7 @@ class StrategyDiscoveryPipelineRunner {
                 ?: System.getenv(DATABASE_PASSWORD_ENV_VAR)
 
         private fun getDiscoveryModule(options: StrategyDiscoveryPipelineOptions): Module {
-            if (options.dryRun) {
-                return DryRunDiscoveryModule()
-            }
-            return ProdDiscoveryModule()
+            return DiscoveryModule()
         }
 
         /**
