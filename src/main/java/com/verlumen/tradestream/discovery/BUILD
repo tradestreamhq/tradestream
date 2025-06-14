@@ -341,9 +341,7 @@ kt_jvm_library(
 kt_jvm_library(
     name = "strategy_discovery_pipeline",
     srcs = [
-        "StrategyDiscoveryPipeline.kt",
-        "StrategyDiscoveryPipelineFactory.kt",
-    ],
+        "StrategyDiscoveryPipeline.kt"    ],
     deps = [
         ":discovery_request_source",
         ":extract_discovered_strategies_fn",
