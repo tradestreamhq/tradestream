@@ -16,7 +16,7 @@ class DiscoveryModule : AbstractModule() {
         install(
             FactoryModuleBuilder()
                 .implement(RunGADiscoveryFn::class.java, RunGADiscoveryFn::class.java)
-                .build(RunGADiscoveryFnFactory::class.java)
+                .build(RunGADiscoveryFnFactory::class.java),
         )
 
         install(
