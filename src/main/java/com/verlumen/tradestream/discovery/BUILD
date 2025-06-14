@@ -6,7 +6,7 @@ load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 load("//platforms:transition.bzl", "multi_arch")
 
 package(default_visibility = [
-"//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
+    "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
 ])
 
 java_binary(
