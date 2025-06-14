@@ -240,7 +240,6 @@ class StrategyDiscoveryPipelineTest {
     fun testDependencyInjectionIntegrity() {
         // Verify all dependencies were injected correctly
         assertThat(strategyDiscoveryPipeline).isNotNull()
-        
         // Test that we can create the necessary components
         val requestSource = mockDiscoveryRequestSourceFactory.create(options)
         val writeFn =
