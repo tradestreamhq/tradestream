@@ -321,18 +321,19 @@ class StrategyDiscoveryPipelineTest {
     @Test
     fun testIntegrationOfConfigurationComponents() {
         // Test that all configuration components work together
-        val realOptions = testPipeline.options.`as`(StrategyDiscoveryPipelineOptions::class.java).apply {
-            databaseUsername = "integration_user"
-            databasePassword = "integration_pass"
-            dbServerName = "integration_host"
-            dbDatabaseName = "integration_db"
-            dbPortNumber = 5432
-            kafkaBootstrapServers = "localhost:9092"
-            strategyDiscoveryRequestTopic = "test-topic"
-            influxDbUrl = "http://localhost:8086"
-            influxDbOrg = "test-org"
-            influxDbBucket = "test-bucket"
-        }
+        val realOptions =
+            testPipeline.options.`as`(StrategyDiscoveryPipelineOptions::class.java).apply {
+                databaseUsername = "integration_user"
+                databasePassword = "integration_pass"
+                dbServerName = "integration_host"
+                dbDatabaseName = "integration_db"
+                dbPortNumber = 5432
+                kafkaBootstrapServers = "localhost:9092"
+                strategyDiscoveryRequestTopic = "test-topic"
+                influxDbUrl = "http://localhost:8086"
+                influxDbOrg = "test-org"
+                influxDbBucket = "test-bucket"
+            }
 
         // Test configuration creation
         val dataSourceConfig = DataSourceConfig(
