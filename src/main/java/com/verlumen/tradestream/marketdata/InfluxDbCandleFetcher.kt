@@ -43,8 +43,8 @@ class InfluxDbCandleFetcher
             symbol: String,
             startIso: String,
             endIso: String,
-        ): ImmutableList<Candle> {
-            return influxDbClientFactory.create(influxDbConfig).use { influxDBClient ->
+        ): ImmutableList<Candle> =
+            influxDbClientFactory.create(influxDbConfig).use { influxDBClient ->
                 val queryApi = influxDBClient.queryApi
                 val candlesBuilder = ImmutableList.builder<Candle>()
 
