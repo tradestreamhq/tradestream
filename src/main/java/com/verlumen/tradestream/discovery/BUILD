@@ -21,16 +21,16 @@ tar(
 )
 
 oci_image(
-name = "image",
-base = "@flink_java17",
-entrypoint = [
-"java",
-"-jar",
-"/src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar",
-],
-tars = [
-":layer",
-],
+    name = "image",
+    base = "@flink_java17",
+    entrypoint = [
+        "java",
+        "-jar",
+        "/src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar",
+    ],
+    tars = [
+        ":layer",
+    ],
 )
 
 multi_arch(
