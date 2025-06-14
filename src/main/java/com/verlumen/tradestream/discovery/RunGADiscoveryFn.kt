@@ -164,3 +164,18 @@ class RunGADiscoveryFn :
         }
     }
 }
+
+/**
+ * Factory interface for creating RunGADiscoveryFn instances with assisted injection.
+ * This factory is used by Guice to manage the assisted injection of CandleFetcher
+ * while automatically injecting GAEngineFactory and GenotypeConverter dependencies.
+ */
+interface RunGADiscoveryFnFactory {
+    /**
+     * Creates a new RunGADiscoveryFn instance with the provided CandleFetcher.
+     * 
+     * @param candleFetcher The CandleFetcher instance to be injected as an assisted parameter
+     * @return A new RunGADiscoveryFn instance with all dependencies properly injected
+     */
+    fun create(candleFetcher: CandleFetcher): RunGADiscoveryFn
+}
