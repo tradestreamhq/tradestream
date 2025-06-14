@@ -103,6 +103,7 @@ kt_jvm_library(
         ":param_config_manager",
         ":param_config_manager_impl",
         ":param_configs",
+        ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline",
         ":write_discovered_strategies_to_postgres_fn",
         "//protos:discovery_java_proto",
