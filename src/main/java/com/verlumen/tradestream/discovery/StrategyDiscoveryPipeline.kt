@@ -1,8 +1,9 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
+import com.google.inject.Inject
+import com.verlumen.tradestream.sql.DataSourceConfig
 import org.apache.beam.sdk.Pipeline
-import org.apache.beam.sdk.options.PipelineOptionsFactory
 import org.apache.beam.sdk.transforms.ParDo
 
 /**
@@ -19,24 +20,43 @@ import org.apache.beam.sdk.transforms.ParDo
 class StrategyDiscoveryPipeline
     @Inject
     constructor(
-    private val discoveryRequestSource: DiscoveryRequestSource,
-    private val runGAFn: RunGADiscoveryFn,
-    private val extractFn: ExtractDiscoveredStrategiesFn,
-    private val writeFn: WriteDiscoveredStrategiesToPostgresFn,
-) {
-    fun run(options: StrategyDiscoveryPipelineOptions) {
-        val pipeline = Pipeline.create(options)
+        private val runGAFn: RunGADiscoveryFn,
+        private val extractFn: ExtractDiscoveredStrategiesFn,
+        private val writeFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory,
+        private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
+    ) {
+        fun run(options: StrategyDiscoveryPipelineOptions) {
+            val username = requireNotNull(options.databaseUsername) { "Database username is required." }
+            val password = requireNotNull(options.databasePassword) { "Database password is required." }
 
-        pipeline
-            .apply("ReadDiscoveryRequests", discoveryRequestSource)
-            .apply("RunGAStrategyDiscovery", ParDo.of(runGAFn))
-            .apply("ExtractStrategies", ParDo.of(extractFn))
-            .apply("WriteToPostgreSQL", ParDo.of(writeFn))
+            val dataSourceConfig =
+                DataSourceConfig(
+                    serverName = options.dbServerName,
+                    databaseName = options.dbDatabaseName,
+                    username = username,
+                    password = password,
+                    portNumber = options.dbPortNumber,
+                    applicationName = null,
+                    connectTimeout = null,
+                    socketTimeout = null,
+                    readOnly = null,
+                )
 
-        pipeline.run().waitUntilFinish()
+            val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
+            val writeFn = writeFnFactory.create(dataSourceConfig)
+
+            val pipeline = Pipeline.create(options)
+
+            pipeline
+                .apply("ReadDiscoveryRequests", discoveryRequestSource)
+                .apply("RunGAStrategyDiscovery", ParDo.of(runGAFn))
+                .apply("ExtractStrategies", ParDo.of(extractFn))
+                .apply("WriteToPostgreSQL", ParDo.of(writeFn))
+
+            pipeline.run().waitUntilFinish()
+        }
+
+        companion object {
+            private val logger = FluentLogger.forEnclosingClass()
+        }
     }
-
-    companion object {
-        private val logger = FluentLogger.forEnclosingClass()
-    }
-}
