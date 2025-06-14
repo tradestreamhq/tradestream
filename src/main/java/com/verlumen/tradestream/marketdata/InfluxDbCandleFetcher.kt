@@ -110,4 +110,9 @@ class InfluxDbCandleFetcher
                 .setVolume((record.getValueByKey("volume") as Number).toDouble())
                 .build()
         }
+
+        // Factory interface for Guice AssistedInject
+        interface Factory {
+            fun create(influxDbConfig: InfluxDbConfig): InfluxDbCandleFetcher
+        }
     }
