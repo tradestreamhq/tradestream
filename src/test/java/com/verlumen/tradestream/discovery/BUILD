@@ -199,7 +199,6 @@ kt_jvm_test(
         # Protobuf dependencies
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
-        
         # Apache Beam dependencies
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_test_utils",
