@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList
 import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
-import java.util.function.Supplier
 
 internal class BaseModule : AbstractModule() {
     override fun configure() {
@@ -23,8 +22,8 @@ internal class BaseModule : AbstractModule() {
     }
     
     @Provides
-    fun provideCurrencyPairSupplier(): Supplier<List<CurrencyPair>> {
-        return Supplier { emptyList() }
+    fun provideCurrencyPairSupplier(): Supplier<java.util.List<CurrencyPair>> {
+        return java.util.function.Supplier { emptyList() }
     }
 }
 
