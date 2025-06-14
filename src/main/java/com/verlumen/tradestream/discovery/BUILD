@@ -158,19 +158,19 @@ deps = [
 )
 
 kt_jvm_library(
-name = "fitness_function_factory",
-srcs = ["FitnessFunctionFactory.kt"],
-visibility = [
-"//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
-"//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
-"//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
-],
-deps = [
-":fitness_function",
-"//protos:backtesting_java_proto",
-"//protos:marketdata_java_proto",
-"//protos:strategies_java_proto",
-],
+    name = "fitness_function_factory",
+    srcs = ["FitnessFunctionFactory.kt"],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
+    ],
+    deps = [
+        ":fitness_function",
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+    ],
 )
 
 kt_jvm_library(
