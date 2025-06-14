@@ -383,11 +383,11 @@ deps = [
 )
 
 kt_jvm_library(
-name = "strategy_discovery_pipeline_options",
-srcs = ["StrategyDiscoveryPipelineOptions.kt"],
-deps = [
-"//third_party/java:beam_sdks_java_core",
-],
+    name = "strategy_discovery_pipeline_options",
+    srcs = ["StrategyDiscoveryPipelineOptions.kt"],
+    deps = [
+        "//third_party/java:beam_sdks_java_core",
+    ],
 )
 
 kt_jvm_library(
