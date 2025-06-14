@@ -55,6 +55,8 @@ class StrategyDiscoveryPipelineRunner {
                     .withValidation()
                     .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
+            options.isStreaming = true
+
             // Override from environment variables if not set in args
             options.databaseUsername = getDatabaseUsername(options)
             options.databasePassword = getDatabasePassword(options)
