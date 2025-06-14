@@ -150,11 +150,11 @@ deps = [
 )
 
 kt_jvm_library(
-name = "fitness_function",
-srcs = ["FitnessFunction.kt"],
-deps = [
-"//third_party/java:jenetics",
-],
+    name = "fitness_function",
+    srcs = ["FitnessFunction.kt"],
+    deps = [
+        "//third_party/java:jenetics",
+    ],
 )
 
 kt_jvm_library(
