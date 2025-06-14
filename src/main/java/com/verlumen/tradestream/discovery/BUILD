@@ -412,21 +412,21 @@ deps = [
 )
 
 kt_jvm_library(
-name = "write_discovered_strategies_to_postgres_fn",
-srcs = ["WriteDiscoveredStrategiesToPostgresFn.kt"],
-deps = [
-"//protos:discovery_java_proto",
-"//protos:strategies_java_proto",
-"//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
-"//src/main/java/com/verlumen/tradestream/sql:bulk_copier_factory",
-"//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
-"//third_party/java:beam_sdks_java_core",
-"//third_party/java:flogger",
-"//third_party/java:guice",
-"//third_party/java:guice_assistedinject",
-"//third_party/java:protobuf_java",
-"//third_party/java:protobuf_java_util",
-],
+    name = "write_discovered_strategies_to_postgres_fn",
+    srcs = ["WriteDiscoveredStrategiesToPostgresFn.kt"],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
+        "//src/main/java/com/verlumen/tradestream/sql:bulk_copier_factory",
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
+    ],
 )
 
 container_structure_test(
