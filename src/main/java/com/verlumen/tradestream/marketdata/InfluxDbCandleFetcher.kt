@@ -1,9 +1,7 @@
 package com.verlumen.tradestream.marketdata
 
-import com.google.common.collect.ImmutableList
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
-import com.google.inject.Provider
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.influxdb.InfluxDbClientFactory
@@ -29,7 +27,7 @@ class InfluxDbCandleFetcher
             symbol: String,
             startTime: Timestamp,
             endTime: Timestamp,
-        ): ImmutableList<Candle> {
+        ): List<Candle> {
             val startIso = Timestamps.toString(startTime)
             val endIso = Timestamps.toString(endTime)
             val fluxQuery = buildFluxQuery(symbol, startIso, endIso)
@@ -43,10 +41,10 @@ class InfluxDbCandleFetcher
             symbol: String,
             startIso: String,
             endIso: String,
-        ): ImmutableList<Candle> =
+        ): List<Candle> =
             influxDbClientFactory.create(influxDbConfig).use { influxDBClient ->
                 val queryApi = influxDBClient.queryApi
-                val candlesBuilder = ImmutableList.builder<Candle>()
+                val candles = mutableListOf<Candle>()
 
                 try {
                     val tables = queryApi.query(fluxQuery, influxDbConfig.org)
@@ -55,7 +53,7 @@ class InfluxDbCandleFetcher
                             try {
                                 val candle = parseCandle(record, symbol)
                                 if (candle != null) {
-                                    candlesBuilder.add(candle)
+                                    candles.add(candle)
                                 }
                             } catch (e: Exception) {
                                 logger.atWarning().withCause(e).log(
@@ -71,11 +69,9 @@ class InfluxDbCandleFetcher
                     // Consider re-throwing a custom exception or returning an empty list with error state
                 }
 
-                val result = candlesBuilder.build()
-                logger.atInfo().log("Fetched %d candles for symbol %s from %s to %s", result.size, symbol, startIso, endIso)
-                result
+                logger.atInfo().log("Fetched %d candles for symbol %s from %s to %s", candles.size, symbol, startIso, endIso)
+                listOf(*candles.toTypedArray())
             }
-        }
 
         private fun buildFluxQuery(
             symbol: String,
