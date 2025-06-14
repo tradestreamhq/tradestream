@@ -74,14 +74,14 @@ java_library(
 )
 
 kt_jvm_library(
-name = "deserialize_strategy_discovery_request_fn",
-srcs = ["DeserializeStrategyDiscoveryRequestFn.kt"],
-deps = [
-"//protos:discovery_java_proto",
-"//third_party/java:beam_sdks_java_core",
-"//third_party/java:flogger",
-"//third_party/java:protobuf_java",
-],
+    name = "deserialize_strategy_discovery_request_fn",
+    srcs = ["DeserializeStrategyDiscoveryRequestFn.kt"],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:protobuf_java",
+    ],
 )
 
 kt_jvm_library(
