@@ -97,7 +97,6 @@ class StrategyDiscoveryPipelineTest {
     fun testValidOptionsProcessing() {
         // Test configuration processing without pipeline execution
         // We'll test the individual components that would be configured
-
         // Test DataSourceConfig creation
         val username = requireNotNull(options.databaseUsername) { "Database username is required." }
         val password = requireNotNull(options.databasePassword) { "Database password is required." }
