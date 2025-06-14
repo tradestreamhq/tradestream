@@ -205,6 +205,10 @@ kt_jvm_test(
         # Guice dependencies for dependency injection
         "//third_party/java:guice",
         "//third_party/java:guice_assistedinject",
+        "//third_party/java:guice_testlib",
+        "//third_party/java:junit",
+        "//third_party/java:mockito_core",
+        "//third_party/java:mockito_kotlin",
     ],
 )
 
