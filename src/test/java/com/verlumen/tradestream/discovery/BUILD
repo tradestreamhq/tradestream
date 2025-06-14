@@ -205,7 +205,6 @@ kt_jvm_test(
         # Apache Beam dependencies
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_test_utils",
-        
         # Guice dependencies for dependency injection
         "//third_party/java:guice",
         "//third_party/java:guice_testlib",
