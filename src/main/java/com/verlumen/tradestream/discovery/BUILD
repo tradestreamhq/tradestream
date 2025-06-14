@@ -191,8 +191,8 @@ deps = [
 )
 
 java_library(
-name = "ga_constants",
-srcs = ["GAConstants.java"],
+    name = "ga_constants",
+    srcs = ["GAConstants.java"],
 )
 
 kt_jvm_library(
