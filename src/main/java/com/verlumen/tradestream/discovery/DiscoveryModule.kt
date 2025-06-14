@@ -44,7 +44,7 @@ class DryRunDiscoveryModule : AbstractModule() {
     }
 }
 
-class ProdDiscoveryModule : AbstractModule() {
+class DiscoveryModule : AbstractModule() {
     override fun configure() {
         install(BaseModule())
         install(

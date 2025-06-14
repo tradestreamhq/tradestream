@@ -39,7 +39,7 @@ class StrategyDiscoveryPipelineRunner {
             if (options.dryRun) {
                 return DryRunDiscoveryModule()
             }
-            return ProdDiscoveryModule()
+            return DiscoveryModule()
         }
 
         /**
