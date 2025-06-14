@@ -113,9 +113,4 @@ class InfluxDbCandleFetcher
                 .setVolume((record.getValueByKey("volume") as Number).toDouble())
                 .build()
         }
-
-        override fun close() {
-            // No need to manage client lifecycle manually anymore since we're using try-with-resources
-            logger.atInfo().log("InfluxDbCandleFetcher closed.")
-        }
     }
