@@ -391,24 +391,24 @@ deps = [
 )
 
 kt_jvm_library(
-name = "strategy_discovery_pipeline_runner",
-srcs = [
-"StrategyDiscoveryPipelineRunner.kt",
-],
-deps = [
-":discovery_module",
-":strategy_discovery_pipeline",
-":strategy_discovery_pipeline_options",
-"//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
-"//src/main/java/com/verlumen/tradestream/influxdb:influx_db_module",
-"//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
-"//src/main/java/com/verlumen/tradestream/strategies:strategies_module",
-"//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
-"//third_party/java:beam_runners_direct_java",
-"//third_party/java:beam_sdks_java_core",
-"//third_party/java:beam_sdks_java_io_kafka",
-"//third_party/java:guice",
-],
+    name = "strategy_discovery_pipeline_runner",
+    srcs = [
+        "StrategyDiscoveryPipelineRunner.kt",
+    ],
+    deps = [
+        ":discovery_module",
+        ":strategy_discovery_pipeline",
+        ":strategy_discovery_pipeline_options",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
+        "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_module",
+        "//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategies_module",
+        "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
+        "//third_party/java:beam_runners_direct_java",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_io_kafka",
+        "//third_party/java:guice",
+    ],
 )
 
 kt_jvm_library(
