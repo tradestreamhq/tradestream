@@ -7,9 +7,7 @@ import java.io.Serializable
 /**
  * Interface for fetching candle data.
  */
-interface CandleFetcher :
-    AutoCloseable,
-    Serializable {
+interface CandleFetcher {
     /**
      * Fetches candle data for a given symbol within a specified time range.
      *
@@ -23,8 +21,4 @@ interface CandleFetcher :
         startTime: Timestamp,
         endTime: Timestamp,
     ): ImmutableList<Candle>
-
-    // The close() method is implicitly required by extending AutoCloseable
-    // and must be implemented by concrete classes.
-    override fun close()
 }
