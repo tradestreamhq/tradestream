@@ -1,15 +1,11 @@
 package com.verlumen.tradestream.marketdata
 
-import com.google.common.collect.ImmutableList
 import com.google.protobuf.Timestamp
-import java.io.Serializable
 
 /**
  * Interface for fetching candle data.
  */
-interface CandleFetcher :
-    AutoCloseable,
-    Serializable {
+interface CandleFetcher {
     /**
      * Fetches candle data for a given symbol within a specified time range.
      *
@@ -22,9 +18,5 @@ interface CandleFetcher :
         symbol: String,
         startTime: Timestamp,
         endTime: Timestamp,
-    ): ImmutableList<Candle>
-
-    // The close() method is implicitly required by extending AutoCloseable
-    // and must be implemented by concrete classes.
-    override fun close()
+    ): List<Candle>
 }

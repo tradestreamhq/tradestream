@@ -1,11 +1,19 @@
 package com.verlumen.tradestream.marketdata
 
 import com.google.common.truth.Truth.assertThat
+import com.google.inject.Guice
+import com.google.inject.Inject
+import com.google.inject.Module
+import com.google.inject.assistedinject.FactoryModuleBuilder
+import com.google.inject.testing.fieldbinder.Bind
+import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.util.Timestamps
 import com.influxdb.client.InfluxDBClient
 import com.influxdb.client.QueryApi
 import com.influxdb.query.FluxRecord
 import com.influxdb.query.FluxTable
+import com.verlumen.tradestream.influxdb.InfluxDbClientFactory
+import com.verlumen.tradestream.influxdb.InfluxDbConfig
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -21,17 +29,44 @@ import java.time.Instant
 
 @RunWith(JUnit4::class)
 class InfluxDbCandleFetcherTest {
-    @Mock private lateinit var mockInfluxDBClient: InfluxDBClient
+    @Bind
+    @Mock
+    private lateinit var mockInfluxDbClientFactory: InfluxDbClientFactory
 
-    @Mock private lateinit var mockQueryApi: QueryApi
+    @Mock
+    private lateinit var mockInfluxDBClient: InfluxDBClient
 
-    private val testOrg = "test-org"
-    private val testBucket = "test-bucket"
+    @Mock
+    private lateinit var mockQueryApi: QueryApi
+
+    @Inject
+    private lateinit var influxDbCandleFetcherFactory: InfluxDbCandleFetcher.Factory
+
+    private val testConfig = InfluxDbConfig(
+        url = "http://localhost:8086",
+        token = "test-token",
+        org = "test-org",
+        bucket = "test-bucket"
+    )
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
+        // Set up the mock client factory to return our mock client
+        `when`(mockInfluxDbClientFactory.create(testConfig)).thenReturn(mockInfluxDBClient)
         `when`(mockInfluxDBClient.queryApi).thenReturn(mockQueryApi)
+
+        // Create Guice injector with BoundFieldModule and factory
+        val modules: List<Module> =
+            listOf(
+                BoundFieldModule.of(this),
+                FactoryModuleBuilder()
+                    .implement(InfluxDbCandleFetcher::class.java, InfluxDbCandleFetcher::class.java)
+                    .build(InfluxDbCandleFetcher.Factory::class.java),
+            )
+
+        val injector = Guice.createInjector(modules)
+        injector.injectMembers(this)
     }
 
     @Test
@@ -42,9 +77,9 @@ class InfluxDbCandleFetcherTest {
         val endTime = Timestamps.fromMillis(Instant.parse("2025-01-01T01:00:00Z").toEpochMilli())
 
         val mockTables = createMockTablesWithValidData()
-        `when`(mockQueryApi.query(anyString(), eq(testOrg))).thenReturn(mockTables)
+        `when`(mockQueryApi.query(anyString(), eq(testConfig.org))).thenReturn(mockTables)
 
-        val fetcher = createTestFetcher()
+        val fetcher = influxDbCandleFetcherFactory.create(testConfig)
 
         // Act
         val candles = fetcher.fetchCandles(symbol, startTime, endTime)
@@ -70,9 +105,7 @@ class InfluxDbCandleFetcherTest {
         assertThat(secondCandle.volume).isEqualTo(200.75)
 
         // Verify the Flux query was executed
-        verify(mockQueryApi).query(anyString(), eq(testOrg))
-
-        fetcher.close()
+        verify(mockQueryApi).query(anyString(), eq(testConfig.org))
     }
 
     @Test
@@ -83,16 +116,15 @@ class InfluxDbCandleFetcherTest {
         val endTime = Timestamps.fromMillis(Instant.parse("2025-01-01T01:00:00Z").toEpochMilli())
 
         val mockTables = createMockTablesWithNullTime()
-        `when`(mockQueryApi.query(anyString(), eq(testOrg))).thenReturn(mockTables)
+        `when`(mockQueryApi.query(anyString(), eq(testConfig.org))).thenReturn(mockTables)
 
-        val fetcher = createTestFetcher()
+        val fetcher = influxDbCandleFetcherFactory.create(testConfig)
 
         // Act
         val candles = fetcher.fetchCandles(symbol, startTime, endTime)
 
         // Assert
         assertThat(candles).isEmpty() // Records with null time should be skipped
-        fetcher.close()
     }
 
     @Test
@@ -103,16 +135,15 @@ class InfluxDbCandleFetcherTest {
         val endTime = Timestamps.fromMillis(Instant.parse("2025-01-01T01:00:00Z").toEpochMilli())
 
         val mockTables = createMockTablesWithMalformedData()
-        `when`(mockQueryApi.query(anyString(), eq(testOrg))).thenReturn(mockTables)
+        `when`(mockQueryApi.query(anyString(), eq(testConfig.org))).thenReturn(mockTables)
 
-        val fetcher = createTestFetcher()
+        val fetcher = influxDbCandleFetcherFactory.create(testConfig)
 
         // Act
         val candles = fetcher.fetchCandles(symbol, startTime, endTime)
 
         // Assert
         assertThat(candles).isEmpty() // Records with parsing errors should be skipped
-        fetcher.close()
     }
 
     @Test
@@ -122,17 +153,16 @@ class InfluxDbCandleFetcherTest {
         val startTime = Timestamps.fromMillis(Instant.parse("2025-01-01T00:00:00Z").toEpochMilli())
         val endTime = Timestamps.fromMillis(Instant.parse("2025-01-01T01:00:00Z").toEpochMilli())
 
-        `when`(mockQueryApi.query(anyString(), eq(testOrg)))
+        `when`(mockQueryApi.query(anyString(), eq(testConfig.org)))
             .thenThrow(RuntimeException("InfluxDB connection timeout"))
 
-        val fetcher = createTestFetcher()
+        val fetcher = influxDbCandleFetcherFactory.create(testConfig)
 
         // Act
         val candles = fetcher.fetchCandles(symbol, startTime, endTime)
 
         // Assert
         assertThat(candles).isEmpty()
-        fetcher.close()
     }
 
     @Test
@@ -141,9 +171,9 @@ class InfluxDbCandleFetcherTest {
         val symbol = "DOGE-USD"
         val startTime = Timestamps.fromMillis(Instant.parse("2025-06-01T12:00:00Z").toEpochMilli())
         val endTime = Timestamps.fromMillis(Instant.parse("2025-06-01T13:00:00Z").toEpochMilli())
-        `when`(mockQueryApi.query(anyString(), eq(testOrg))).thenReturn(emptyList())
+        `when`(mockQueryApi.query(anyString(), eq(testConfig.org))).thenReturn(emptyList())
 
-        val fetcher = createTestFetcher()
+        val fetcher = influxDbCandleFetcherFactory.create(testConfig)
 
         // Act
         fetcher.fetchCandles(symbol, startTime, endTime)
@@ -151,21 +181,17 @@ class InfluxDbCandleFetcherTest {
         // Assert - Verify that the query contains expected elements
         verify(mockQueryApi).query(
             org.mockito.ArgumentMatchers.argThat { query: String ->
-                query.contains("from(bucket: \"$testBucket\")") &&
+                query.contains("from(bucket: \"${testConfig.bucket}\")") &&
                     query.contains("r.currency_pair == \"$symbol\"") &&
                     query.contains("r._measurement == \"candles\"") &&
                     query.contains("2025-06-01T12:00:00Z") &&
                     query.contains("2025-06-01T13:00:00Z")
             },
-            eq(testOrg),
+            eq(testConfig.org),
         )
-        fetcher.close()
     }
 
-    // Helper methods to create test data
-
-    private fun createTestFetcher(): InfluxDbCandleFetcher = InfluxDbCandleFetcher({ mockInfluxDBClient }, testOrg, testBucket)
-
+    // Helper methods to create test data (unchanged from original)
     private fun createMockTablesWithValidData(): List<FluxTable> {
         val record1 =
             createMockRecord(

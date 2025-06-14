@@ -65,8 +65,6 @@ private class StubCandleFetcher(
         endTime: Timestamp,
     ): ImmutableList<Candle> = if (empty) ImmutableList.of() else ImmutableList.of(createDummyCandle(symbol, startTime))
 
-    override fun close() {}
-
     private fun createDummyCandle(
         symbol: String,
         ts: Timestamp,

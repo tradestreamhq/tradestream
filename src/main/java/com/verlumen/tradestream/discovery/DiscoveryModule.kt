@@ -14,6 +14,12 @@ internal class BaseModule : AbstractModule() {
         bind(object : TypeLiteral<ImmutableList<ParamConfig>>() {}).toInstance(ParamConfigs.ALL_CONFIGS)
         install(
             FactoryModuleBuilder()
+                .implement(RunGADiscoveryFn::class.java, RunGADiscoveryFn::class.java)
+                .build(RunGADiscoveryFnFactory::class.java),
+        )
+
+        install(
+            FactoryModuleBuilder()
                 .implement(
                     WriteDiscoveredStrategiesToPostgresFn::class.java,
                     WriteDiscoveredStrategiesToPostgresFn::class.java,
