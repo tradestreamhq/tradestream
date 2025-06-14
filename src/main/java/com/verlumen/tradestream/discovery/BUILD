@@ -34,12 +34,12 @@ oci_image(
 )
 
 multi_arch(
-name = "images",
-image = ":image",
-platforms = [
-"//platforms:linux_arm64",
-"//platforms:linux_amd64",
-],
+    name = "images",
+    image = ":image",
+    platforms = [
+        "//platforms:linux_arm64",
+        "//platforms:linux_amd64",
+    ],
 )
 
 oci_image_index(
