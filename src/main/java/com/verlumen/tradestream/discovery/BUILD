@@ -279,20 +279,20 @@ deps = [
 )
 
 java_library(
-name = "param_config",
-srcs = ["ParamConfig.java"],
-visibility = [
-"//src/main/java/com/verlumen/tradestream/backtesting:subpackages",
-"//src/test/java/com/verlumen/tradestream/backtesting:pkg",
-"//src/test/java/com/verlumen/tradestream/discovery:pkg",
-],
-deps = [
-":chromosome_spec",
-"//protos:strategies_java_proto",
-"//third_party/java:guava",
-"//third_party/java:jenetics",
-"//third_party/java:protobuf_java",
-],
+    name = "param_config",
+    srcs = ["ParamConfig.java"],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:subpackages",
+        "//src/test/java/com/verlumen/tradestream/backtesting:pkg",
+        "//src/test/java/com/verlumen/tradestream/discovery:pkg",
+    ],
+    deps = [
+        ":chromosome_spec",
+        "//protos:strategies_java_proto",
+        "//third_party/java:guava",
+        "//third_party/java:jenetics",
+        "//third_party/java:protobuf_java",
+    ],
 )
 
 java_library(
