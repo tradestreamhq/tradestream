@@ -173,7 +173,7 @@ class RunGADiscoveryFn :
 interface RunGADiscoveryFnFactory {
     /**
      * Creates a new RunGADiscoveryFn instance with the provided CandleFetcher.
-     * 
+     *
      * @param candleFetcher The CandleFetcher instance to be injected as an assisted parameter
      * @return A new RunGADiscoveryFn instance with all dependencies properly injected
      */
