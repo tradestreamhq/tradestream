@@ -50,9 +50,9 @@ oci_image_index(
 )
 
 oci_push(
-name = "push_image",
-image = ":index",
-repository = "tradestreamhq/strategy-discovery-pipeline",
+    name = "push_image",
+    image = ":index",
+    repository = "tradestreamhq/strategy-discovery-pipeline",
 )
 
 java_library(
