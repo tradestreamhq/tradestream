@@ -299,17 +299,19 @@ class StrategyDiscoveryPipelineTest {
 
         // Verify exception is propagated when factory is called
         try {
-            mockWriteFnFactory.create(DataSourceConfig(
-                serverName = "test",
-                databaseName = "test",
-                username = "test",
-                password = "test",
-                portNumber = 5432,
-                applicationName = null,
-                connectTimeout = null,
-                socketTimeout = null,
-                readOnly = null,
-            ))
+            mockWriteFnFactory.create(
+                DataSourceConfig(
+                    serverName = "test",
+                    databaseName = "test",
+                    username = "test",
+                    password = "test",
+                    portNumber = 5432,
+                    applicationName = null,
+                    connectTimeout = null,
+                    socketTimeout = null,
+                    readOnly = null,
+                ),
+            )
             fail("Should propagate write factory exceptions")
         } catch (e: RuntimeException) {
             assertThat(e.message).isEqualTo("Write factory error")
