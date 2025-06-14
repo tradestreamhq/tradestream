@@ -214,22 +214,22 @@ deps = [
 )
 
 java_library(
-name = "ga_engine_factory_impl",
-srcs = ["GAEngineFactoryImpl.java"],
-deps = [
-":chromosome_spec",
-":fitness_function_factory",
-":ga_constants",
-":ga_engine_factory",
-":ga_engine_params",
-":param_config",
-":param_config_manager",
-"//protos:marketdata_java_proto",  # For Candle in GAEngineParams
-"//protos:strategies_java_proto",  # For StrategyType in GAEngineParams
-"//third_party/java:guava",
-"//third_party/java:guice",
-"//third_party/java:jenetics",
-],
+    name = "ga_engine_factory_impl",
+    srcs = ["GAEngineFactoryImpl.java"],
+    deps = [
+        ":chromosome_spec",
+        ":fitness_function_factory",
+        ":ga_constants",
+        ":ga_engine_factory",
+        ":ga_engine_params",
+        ":param_config",
+        ":param_config_manager",
+        "//protos:marketdata_java_proto",  # For Candle in GAEngineParams
+        "//protos:strategies_java_proto",  # For StrategyType in GAEngineParams
+        "//third_party/java:guava",
+        "//third_party/java:guice",
+        "//third_party/java:jenetics",
+    ],
 )
 
 java_library(
