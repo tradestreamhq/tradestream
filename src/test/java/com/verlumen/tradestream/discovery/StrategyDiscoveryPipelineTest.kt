@@ -336,17 +336,18 @@ class StrategyDiscoveryPipelineTest {
             }
 
         // Test configuration creation
-        val dataSourceConfig = DataSourceConfig(
-            serverName = realOptions.dbServerName,
-            databaseName = realOptions.dbDatabaseName,
-            username = realOptions.databaseUsername!!,
-            password = realOptions.databasePassword!!,
-            portNumber = realOptions.dbPortNumber,
-            applicationName = null,
-            connectTimeout = null,
-            socketTimeout = null,
-            readOnly = null,
-        )
+        val dataSourceConfig =
+            DataSourceConfig(
+                serverName = realOptions.dbServerName,
+                databaseName = realOptions.dbDatabaseName,
+                username = realOptions.databaseUsername!!,
+                password = realOptions.databasePassword!!,
+                portNumber = realOptions.dbPortNumber,
+                applicationName = null,
+                connectTimeout = null,
+                socketTimeout = null,
+                readOnly = null,
+            )
 
         // Test factory calls
         val requestSource = mockDiscoveryRequestSourceFactory.create(realOptions)
