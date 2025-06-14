@@ -19,6 +19,10 @@ public class MarketDataModule extends AbstractModule {
             .build(FillForwardCandles.Factory.class));
     install(
         new FactoryModuleBuilder()
+            .implement(InfluxDbCandleFetcher.class, InfluxDbCandleFetcher.class)
+            .build(InfluxDbCandleFetcher.Factory.class));
+    install(
+        new FactoryModuleBuilder()
             .implement(TiingoCryptoCandleSource.class, TiingoCryptoCandleSource.class)
             .build(TiingoCryptoCandleSource.Factory.class));
     install(
