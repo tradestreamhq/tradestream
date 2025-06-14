@@ -8,7 +8,6 @@ import com.google.protobuf.Timestamp
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.influxdb.InfluxDbClientFactory
 import com.verlumen.tradestream.influxdb.InfluxDbConfig
-import com.influxdb.client.InfluxDBClient
 import java.io.Serializable
 
 /**
