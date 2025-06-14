@@ -233,18 +233,18 @@ deps = [
 )
 
 java_library(
-name = "genotype_converter",
-srcs = ["GenotypeConverter.java"],
-visibility = [
-"//src/main/java/com/verlumen/tradestream/backtesting:pkg",
-"//src/test/java/com/verlumen/tradestream/backtesting:pkg",
-"//src/test/java/com/verlumen/tradestream/discovery:pkg",
-],
-deps = [
-"//protos:strategies_java_proto",
-"//third_party/java:jenetics",
-"//third_party/java:protobuf_java",
-],
+    name = "genotype_converter",
+    srcs = ["GenotypeConverter.java"],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:pkg",
+        "//src/test/java/com/verlumen/tradestream/backtesting:pkg",
+        "//src/test/java/com/verlumen/tradestream/discovery:pkg",
+    ],
+    deps = [
+        "//protos:strategies_java_proto",
+        "//third_party/java:jenetics",
+        "//third_party/java:protobuf_java",
+    ],
 )
 
 java_library(
