@@ -273,7 +273,6 @@ class StrategyDiscoveryPipelineTest {
 
         // Test that the factory is called with the correct options
         mockDiscoveryRequestSourceFactory.create(specificOptions)
-        
         // Verify the exact options object was passed
         verify(mockDiscoveryRequestSourceFactory).create(specificOptions)
     }
