@@ -357,29 +357,29 @@ deps = [
 )
 
 kt_jvm_library(
-name = "strategy_discovery_pipeline",
-srcs = [
-"StrategyDiscoveryPipeline.kt",
-],
-deps = [
-":discovery_request_source",
-":dry_run_discovery_request_source",
-":extract_discovered_strategies_fn",
-":run_ga_discovery_fn",
-":strategy_discovery_pipeline_options",
-":write_discovered_strategies_to_postgres_fn",
-"//protos:strategies_java_proto",
-"//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",
-"//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
-"//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
-"//third_party/java:beam_sdks_java_core",
-"//third_party/java:beam_sdks_java_io_kafka",
-"//third_party/java:flogger",
-"//third_party/java:guice",
-"//third_party/java:kafka_clients",
-"//third_party/java:protobuf_java",
-"//third_party/java:protobuf_java_util",
-],
+    name = "strategy_discovery_pipeline",
+    srcs = [
+        "StrategyDiscoveryPipeline.kt",
+    ],
+    deps = [
+        ":discovery_request_source",
+        ":dry_run_discovery_request_source",
+        ":extract_discovered_strategies_fn",
+        ":run_ga_discovery_fn",
+        ":strategy_discovery_pipeline_options",
+        ":write_discovered_strategies_to_postgres_fn",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",
+        "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_io_kafka",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:kafka_clients",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
+    ],
 )
 
 kt_jvm_library(
