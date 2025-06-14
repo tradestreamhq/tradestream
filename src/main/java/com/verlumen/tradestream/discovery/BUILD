@@ -342,7 +342,6 @@ kt_jvm_library(
     name = "strategy_discovery_pipeline",
     srcs = [
         "StrategyDiscoveryPipeline.kt",
-        "StrategyDiscoveryPipelineFactory.kt",
     ],
     deps = [
         ":discovery_request_source",
@@ -350,10 +349,15 @@ kt_jvm_library(
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline_options",
         ":write_discovered_strategies_to_postgres_fn",
+        "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
         "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_io_kafka",
         "//third_party/java:flogger",
         "//third_party/java:guice",
+        "//third_party/java:kafka_clients",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -374,7 +378,12 @@ kt_jvm_library(
         ":discovery_module",
         ":strategy_discovery_pipeline",
         ":strategy_discovery_pipeline_options",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategies_module",
+        "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
+        "//third_party/java:beam_runners_direct_java",
+        "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
         "//third_party/java:guice",
     ],

@@ -1,7 +1,11 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.inject.Guice
+import com.google.inject.Module
+import com.verlumen.tradestream.backtesting.BacktestingModule
 import com.verlumen.tradestream.postgres.PostgresModule
+import com.verlumen.tradestream.strategies.StrategiesModule
+import com.verlumen.tradestream.ta4j.Ta4jModule
 import org.apache.beam.sdk.options.PipelineOptionsFactory
 
 /**
@@ -29,6 +33,8 @@ class StrategyDiscoveryPipelineRunner {
             options.databasePassword.takeIf { !it.isNullOrEmpty() }
                 ?: System.getenv(DATABASE_PASSWORD_ENV_VAR)
 
+        private fun getDiscoveryModule(options: StrategyDiscoveryPipelineOptions): Module = DiscoveryModule()
+
         /**
          * Entry-point. Builds the injector, gets a factory instance,
          * creates a fully-configured [StrategyDiscoveryPipeline], and executes it.
@@ -42,18 +48,23 @@ class StrategyDiscoveryPipelineRunner {
                     .withValidation()
                     .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
+            options.isStreaming = true
+
             // Override from environment variables if not set in args
             options.databaseUsername = getDatabaseUsername(options)
             options.databasePassword = getDatabasePassword(options)
 
             val injector =
                 Guice.createInjector(
-                    DiscoveryModule(),
+                    BacktestingModule(),
+                    getDiscoveryModule(options),
                     PostgresModule(),
+                    StrategiesModule(),
+                    Ta4jModule.create(),
                 )
-            val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
+            val pipeline = injector.getInstance(StrategyDiscoveryPipeline::class.java)
 
-            factory.create(options).run()
+            pipeline.run(options)
         }
     }
 }
