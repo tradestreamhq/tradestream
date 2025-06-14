@@ -243,18 +243,21 @@ class StrategyDiscoveryPipelineTest {
         
         // Test that we can create the necessary components
         val requestSource = mockDiscoveryRequestSourceFactory.create(options)
-        val writeFn = mockWriteFnFactory.create(DataSourceConfig(
-            serverName = options.dbServerName,
-            databaseName = options.dbDatabaseName,
-            username = options.databaseUsername!!,
-            password = options.databasePassword!!,
-            portNumber = options.dbPortNumber,
-            applicationName = null,
-            connectTimeout = null,
-            socketTimeout = null,
-            readOnly = null,
-        ))
-        
+        val writeFn =
+            mockWriteFnFactory.create(
+                DataSourceConfig(
+                    serverName = options.dbServerName,
+                    databaseName = options.dbDatabaseName,
+                    username = options.databaseUsername!!,
+                    password = options.databasePassword!!,
+                    portNumber = options.dbPortNumber,
+                    applicationName = null,
+                    connectTimeout = null,
+                    socketTimeout = null,
+                    readOnly = null,
+                ),
+            )
+
         assertThat(requestSource).isNotNull()
         assertThat(writeFn).isNotNull()
     }
