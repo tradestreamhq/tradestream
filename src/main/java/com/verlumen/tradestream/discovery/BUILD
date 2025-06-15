@@ -52,6 +52,15 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
+    name = "discovered_strategy_sink",
+    srcs = ["DiscoveredStrategySink.kt"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//third_party/java:beam_sdks_java_core",
+    ],
+)
+
+kt_jvm_library(
     name = "discovery_module",
     srcs = ["DiscoveryModule.kt"],
     visibility = [
