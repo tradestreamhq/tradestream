@@ -27,23 +27,23 @@ class BacktestRequestFactoryImpl
         @Transient
         private val logger: FluentLogger = FluentLogger.forEnclosingClass()
 
-    /**
-     * Creates a [BacktestRequest] using the provided candles and strategy.
-     * Logs the creation event.
-     *
-     * @param candles  The list of historical price candles.
-     * @param strategy The trading strategy to be backtested.
-     * @return A configured [BacktestRequest] object.
-     */
-    override fun create(
-        candles: List<Candle>,
-        strategy: Strategy,
-    ): BacktestRequest {
-        logger.atFine().log(
-            "Creating BacktestRequest for strategy: %s with %d candles.",
-            strategy.javaClass.simpleName,
-            candles.size,
-        )
+        /**
+         * Creates a [BacktestRequest] using the provided candles and strategy.
+         * Logs the creation event.
+         *
+         * @param candles  The list of historical price candles.
+         * @param strategy The trading strategy to be backtested.
+         * @return A configured [BacktestRequest] object.
+         */
+        override fun create(
+            candles: List<Candle>,
+            strategy: Strategy,
+        ): BacktestRequest {
+            logger.atFine().log(
+                "Creating BacktestRequest for strategy: %s with %d candles.",
+                strategy.javaClass.simpleName,
+                candles.size,
+            )
 
             // Build the BacktestRequest using the protobuf builder
             val request =
