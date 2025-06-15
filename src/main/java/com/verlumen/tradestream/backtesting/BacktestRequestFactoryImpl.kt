@@ -45,13 +45,13 @@ class BacktestRequestFactoryImpl
             candles.size,
         )
 
-        // Build the BacktestRequest using the protobuf builder
-        val request =
-            BacktestRequest
-                .newBuilder()
-                .addAllCandles(candles) // Add all candles
-                .setStrategy(strategy)  // Attach the strategy
-                .build()
+            // Build the BacktestRequest using the protobuf builder
+            val request =
+                BacktestRequest
+                    .newBuilder()
+                    .addAllCandles(candles) // Add all candles
+                    .setStrategy(strategy) // Attach the strategy
+                    .build()
 
             logger.atFine().log("BacktestRequest created successfully.")
             return request
