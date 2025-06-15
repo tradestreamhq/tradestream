@@ -18,18 +18,11 @@ class BacktestRequestFactoryImpl
         Serializable {
         companion object {
             private const val serialVersionUID: Long = 1L
+            private val logger: FluentLogger = FluentLogger.forEnclosingClass()
         }
 
         /**
-         * Logger is marked as `transient` so that the non-serializable
-         * `FluentLogger` does not get written to the serialization stream.
-         */
-        @Transient
-        private val logger: FluentLogger = FluentLogger.forEnclosingClass()
-
-        /**
          * Creates a [BacktestRequest] using the provided candles and strategy.
-         * Logs the creation event.
          *
          * @param candles  The list of historical price candles.
          * @param strategy The trading strategy to be backtested.
@@ -45,12 +38,11 @@ class BacktestRequestFactoryImpl
                 candles.size,
             )
 
-            // Build the BacktestRequest using the protobuf builder
             val request =
                 BacktestRequest
                     .newBuilder()
-                    .addAllCandles(candles) // Add all candles
-                    .setStrategy(strategy) // Attach the strategy
+                    .addAllCandles(candles)
+                    .setStrategy(strategy)
                     .build()
 
             logger.atFine().log("BacktestRequest created successfully.")
