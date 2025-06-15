@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.discovery;
+package com.verlumen.tradestream.strategies;
 
 import com.google.common.collect.Range;
 import io.jenetics.NumericChromosome;
