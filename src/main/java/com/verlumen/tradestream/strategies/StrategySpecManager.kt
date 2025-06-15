@@ -16,4 +16,3 @@ class StrategySpecManager @Inject constructor(
     fun getSupportedTypes(): Set<StrategyType> {
         return specs.keys
     }
-}
