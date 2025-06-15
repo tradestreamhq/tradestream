@@ -59,6 +59,7 @@ kt_jvm_library(
     ],
     deps = [
         ":discovery_request_source",
+        ":dry_run_discovery_request_source",
         ":fitness_function_factory",
         ":fitness_function_factory_impl",
         ":ga_engine_factory",
@@ -74,7 +75,6 @@ kt_jvm_library(
         ":strategy_discovery_pipeline",
         ":write_discovered_strategies_to_postgres_fn",
         "//protos:discovery_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
         "//third_party/java:guava",
         "//third_party/java:guice",
@@ -414,6 +414,16 @@ kt_jvm_library(
         "//third_party/java:beam_runners_direct_java",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
+        "//third_party/java:guice",
+    ],
+)
+
+kt_jvm_library(
+    name = "temporary_currency_pair_module",
+    srcs = ["TemporaryCurrencyPairModule.kt"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
+        "//third_party/java:guava",
         "//third_party/java:guice",
     ],
 )

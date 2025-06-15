@@ -5,7 +5,6 @@ import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
-import com.verlumen.tradestream.instruments.CurrencyPair
 import java.util.function.Supplier
 
 internal class BaseModule : AbstractModule() {
@@ -30,13 +29,6 @@ internal class BaseModule : AbstractModule() {
                 ).build(WriteDiscoveredStrategiesToPostgresFnFactory::class.java),
         )
     }
-
-    // TODO: we need to delete provideCurrencyPairSupplier as soon as we remove all remaining dependencies
-    @Provides
-    fun provideCurrencyPairSupplier(): Supplier<java.util.List<CurrencyPair>> =
-        Supplier {
-            ImmutableList.of<CurrencyPair>()
-        }
 }
 
 class DiscoveryModule : AbstractModule() {
