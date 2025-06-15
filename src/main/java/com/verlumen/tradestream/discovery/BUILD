@@ -15,24 +15,6 @@ java_binary(
     runtime_deps = [":strategy_discovery_pipeline_runner"],
 )
 
-java_library(
-    name = "chromosome_spec",
-    srcs = [
-        "ChromosomeSpec.java",
-        "DoubleChromosomeSpec.java",
-        "IntegerChromosomeSpec.java",
-    ],
-    visibility = [
-        "//src/main/java/com/verlumen/tradestream/backtesting:__subpackages__",
-        "//src/test/java/com/verlumen/tradestream/backtesting:__subpackages__",
-        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
-    ],
-    deps = [
-        "//third_party/java:guava",
-        "//third_party/java:jenetics",
-    ],
-)
-
 container_structure_test(
     name = "container_test",
     configs = ["container-structure-test.yaml"],
