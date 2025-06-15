@@ -1,9 +1,8 @@
 package com.verlumen.tradestream.influxdb
 
-import kotlinx.serialization.Serializable
+import java.io.Serializable
 
-@Serializable
-data class InfluxDbConfig(
+data class InfluxDbConfig:Serializable(
     val url: String,
     val token: String,
     val org: String,
