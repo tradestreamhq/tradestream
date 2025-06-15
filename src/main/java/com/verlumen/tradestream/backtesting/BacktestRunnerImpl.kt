@@ -2,7 +2,7 @@ package com.verlumen.tradestream.backtesting
 
 import com.google.inject.Inject
 import com.google.protobuf.InvalidProtocolBufferException
-import com.verlumen.tradestream.strategies.StrategyManager
+import com.verlumen.tradestream.strategies.*
 import com.verlumen.tradestream.ta4j.BarSeriesFactory
 import org.ta4j.core.AnalysisCriterion
 import org.ta4j.core.BarSeries
@@ -23,19 +23,14 @@ class BacktestRunnerImpl
     @Inject
     constructor(
         private val barSeriesFactory: BarSeriesFactory,
-        private val strategyManager: StrategyManager,
     ) : BacktestRunner {
         @Throws(InvalidProtocolBufferException::class)
         override fun runBacktest(request: BacktestRequest): BacktestResult {
             require(request.candlesList.isNotEmpty()) { "Bar series cannot be empty" }
+            require(request.strategy.type.isSupported()) { "Strategy type is not supported" }
 
             val series = barSeriesFactory.createBarSeries(request.candlesList)
-            val strategy =
-                strategyManager.createStrategy(
-                    series,
-                    request.strategy.type,
-                    request.strategy.parameters,
-                )
+            val strategy = request.strategy.type.createStrategy(series, request.strategy.parameters)
 
             // Run the strategy
             val tradingRecord = runStrategy(series, strategy)
