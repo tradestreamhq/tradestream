@@ -24,8 +24,8 @@ class StrategySpecsTest {
         // that is missing from the `strategySpecMap`.
         assertTrue(
             "StrategySpec for '$strategyType' should be supported but was not. " +
-            "Please add its entry to the 'strategySpecMap' in StrategySpecs.kt.",
-            strategyType.isSupported()
+                "Please add its entry to the 'strategySpecMap' in StrategySpecs.kt.",
+            strategyType.isSupported(),
         )
     }
 }
