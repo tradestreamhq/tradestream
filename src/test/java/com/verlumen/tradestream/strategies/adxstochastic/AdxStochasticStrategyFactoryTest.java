@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.momentumoscillators;
+package com.verlumen.tradestream.strategies.adxstochastic;
 
 import static com.google.common.truth.Truth.assertThat;
 
