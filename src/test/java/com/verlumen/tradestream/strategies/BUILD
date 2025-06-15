@@ -44,7 +44,7 @@ kt_jvm_test(
         "//protos:strategies_java_proto",
 
         # The library under test, which contains the .spec and .isSupported() extensions
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_spec",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
 
         # JUnit and TestParameterInjector for running the parameterized test
         "//third_party/java:junit",
