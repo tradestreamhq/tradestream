@@ -1,4 +1,3 @@
-# src/main/java/com/verlumen/tradestream/discovery/BUILD
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
@@ -71,6 +70,7 @@ kt_jvm_library(
     deps = [
         ":discovered_strategy_sink",
         ":discovery_request_source",
+        ":dry_run_candle_fetcher",
         ":dry_run_discovered_strategy_sink",
         ":dry_run_discovery_request_source",
         ":fitness_function_factory",
@@ -116,6 +116,17 @@ kt_jvm_library(
         "//third_party/java:flogger",
         "//third_party/java:guice",
         "//third_party/java:guice_assistedinject",
+    ],
+)
+
+kt_jvm_library(
+    name = "dry_run_candle_fetcher",
+    srcs = ["DryRunCandleFetcher.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
+        "//third_party/java:guava",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -429,6 +440,7 @@ kt_jvm_library(
     ],
     deps = [
         ":discovery_module",
+        ":dry_run_candle_fetcher",
         ":strategy_discovery_pipeline",
         ":strategy_discovery_pipeline_options",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
@@ -443,7 +455,9 @@ kt_jvm_library(
         "//third_party/java:beam_runners_direct_java",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
+        "//third_party/java:guava",
         "//third_party/java:guice",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
