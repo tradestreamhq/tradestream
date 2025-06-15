@@ -38,7 +38,7 @@ class WriteDiscoveredStrategiesToPostgresFn
             private val logger = FluentLogger.forEnclosingClass()
             private const val BATCH_SIZE = 100
             private const val MAX_RETRIES = 3
-    }
+        }
 
         @Transient
         private var dataSource: DataSource? = null
