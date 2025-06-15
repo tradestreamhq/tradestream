@@ -73,14 +73,20 @@ java_library(
 )
 
 kt_jvm_library(
-    name = "strategy_spec",
+    name = "strategy_specs",
     srcs = [
         "StrategySpec.kt",
-        "StrategySpecManager.kt",
+        "StrategySpecs.kt",
     ],
+    visibility = ["//visibility:public"],
     deps = [
-        ":strategy_factory",
+        # Core interfaces required by the spec definitions
         "//src/main/java/com/verlumen/tradestream/discovery:param_config",
-        "//third_party/java:guice",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
+        "//protos:strategies_java_proto",
+
+        # Implementations for each strategy included in the map
+        # "//src/main/java/com/verlumen/tradestream/strategies/emamacd:emamacd_lib",
+        # "//src/main/java/com/verlumen/tradestream/strategies/smarsi:smarsi_lib",
     ],
 )
