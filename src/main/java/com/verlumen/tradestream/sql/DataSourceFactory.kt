@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.sql
 
+import java.io.Serializable
 import javax.sql.DataSource
 
 /**
@@ -29,7 +30,7 @@ data class DataSourceConfig(
     val connectTimeout: Int? = null,
     val socketTimeout: Int? = null,
     val readOnly: Boolean? = null,
-) {
+) : Serializable {
     init {
         require(serverName.isNotBlank()) { "Server name cannot be blank" }
         require(databaseName.isNotBlank()) { "Database name cannot be blank" }
