@@ -20,54 +20,57 @@ import org.apache.beam.sdk.transforms.ParDo
  * All transforms arrive through the factory pattern with Guice.
  */
 class StrategyDiscoveryPipeline
-@Inject
-constructor(
-    private val runGADiscoveryFnFactory: RunGADiscoveryFnFactory,
-    private val extractFn: ExtractDiscoveredStrategiesFn,
-    private val sinkFactory: DiscoveredStrategySinkFactory,
-    private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
-) {
-    fun run(options: StrategyDiscoveryPipelineOptions, candleFetcher: CandleFetcher) {
-        val username = requireNotNull(options.databaseUsername) { "Database username is required." }
-        val password = requireNotNull(options.databasePassword) { "Database password is required." }
+    @Inject
+    constructor(
+        private val runGADiscoveryFnFactory: RunGADiscoveryFnFactory,
+        private val extractFn: ExtractDiscoveredStrategiesFn,
+        private val sinkFactory: DiscoveredStrategySinkFactory,
+        private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
+    ) {
+        fun run(
+            options: StrategyDiscoveryPipelineOptions,
+            candleFetcher: CandleFetcher,
+        ) {
+            val username = requireNotNull(options.databaseUsername) { "Database username is required." }
+            val password = requireNotNull(options.databasePassword) { "Database password is required." }
 
-        val dataSourceConfig =
-            DataSourceConfig(
-                serverName = options.dbServerName,
-                databaseName = options.dbDatabaseName,
-                username = username,
-                password = password,
-                portNumber = options.dbPortNumber,
-                applicationName = null,
-                connectTimeout = null,
-                socketTimeout = null,
-                readOnly = null,
-            )
+            val dataSourceConfig =
+                DataSourceConfig(
+                    serverName = options.dbServerName,
+                    databaseName = options.dbDatabaseName,
+                    username = username,
+                    password = password,
+                    portNumber = options.dbPortNumber,
+                    applicationName = null,
+                    connectTimeout = null,
+                    socketTimeout = null,
+                    readOnly = null,
+                )
 
-        val influxDbConfig =
-            InfluxDbConfig(
-                url = options.influxDbUrl,
-                token = requireNotNull(options.influxDbToken) { "InfluxDB token is required." },
-                org = options.influxDbOrg,
-                bucket = options.influxDbBucket,
-            )
-        
-        val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
-        val runGaFn = runGADiscoveryFnFactory.create(candleFetcher)
-        val sink = sinkFactory.create(dataSourceConfig)
+            val influxDbConfig =
+                InfluxDbConfig(
+                    url = options.influxDbUrl,
+                    token = requireNotNull(options.influxDbToken) { "InfluxDB token is required." },
+                    org = options.influxDbOrg,
+                    bucket = options.influxDbBucket,
+                )
 
-        val pipeline = Pipeline.create(options)
+            val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
+            val runGaFn = runGADiscoveryFnFactory.create(candleFetcher)
+            val sink = sinkFactory.create(dataSourceConfig)
 
-        pipeline
-            .apply("ReadDiscoveryRequests", discoveryRequestSource)
-            .apply("RunGAStrategyDiscovery", ParDo.of(runGaFn))
-            .apply("ExtractStrategies", ParDo.of(extractFn))
-            .apply("WriteToSink", ParDo.of(sink))
+            val pipeline = Pipeline.create(options)
 
-        pipeline.run().waitUntilFinish()
+            pipeline
+                .apply("ReadDiscoveryRequests", discoveryRequestSource)
+                .apply("RunGAStrategyDiscovery", ParDo.of(runGaFn))
+                .apply("ExtractStrategies", ParDo.of(extractFn))
+                .apply("WriteToSink", ParDo.of(sink))
+
+            pipeline.run().waitUntilFinish()
+        }
+
+        companion object {
+            private val logger = FluentLogger.forEnclosingClass()
+        }
     }
-
-    companion object {
-        private val logger = FluentLogger.forEnclosingClass()
-    }
-}

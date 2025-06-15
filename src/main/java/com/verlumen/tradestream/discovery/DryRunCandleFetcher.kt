@@ -7,7 +7,9 @@ import com.verlumen.tradestream.marketdata.CandleFetcher
 import java.io.Serializable
 
 /** Simple serialisable [CandleFetcher] for dry runs. */
-class DryRunCandleFetcher : CandleFetcher, Serializable {
+class DryRunCandleFetcher :
+    CandleFetcher,
+    Serializable {
     override fun fetchCandles(
         symbol: String,
         startTime: Timestamp,
