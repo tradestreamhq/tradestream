@@ -5,7 +5,6 @@ import com.google.inject.Guice
 import com.google.inject.Inject
 import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
-import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
 import com.verlumen.tradestream.sql.DataSourceConfig
 import org.apache.beam.sdk.testing.TestPipeline
 import org.junit.Assert.fail
@@ -49,9 +48,6 @@ class StrategyDiscoveryPipelineTest {
     @Bind @Mock
     lateinit var mockDiscoveryRequestSourceFactory: DiscoveryRequestSourceFactory
 
-    @Bind @Mock
-    lateinit var mockCandleFetcherFactory: InfluxDbCandleFetcher.Factory
-
     // Additional mocks for testing
     @Mock
     lateinit var mockRunGAFn: RunGADiscoveryFn
@@ -61,9 +57,6 @@ class StrategyDiscoveryPipelineTest {
 
     @Mock
     lateinit var mockDiscoveryRequestSource: DiscoveryRequestSource
-
-    @Mock
-    lateinit var mockCandleFetcher: InfluxDbCandleFetcher
 
     private lateinit var options: StrategyDiscoveryPipelineOptions
 
@@ -96,7 +89,6 @@ class StrategyDiscoveryPipelineTest {
         // Create a simple mock source that doesn't try to build complex transforms
         whenever(mockDiscoveryRequestSourceFactory.create(any())).thenReturn(mockDiscoveryRequestSource)
         whenever(mockRunGADiscoveryFnFactory.create(any())).thenReturn(mockRunGAFn)
-        whenever(mockCandleFetcherFactory.create(any())).thenReturn(mockCandleFetcher)
         whenever(mockStrategySinkFactory.create(any())).thenReturn(mockStrategySink)
     }
 
