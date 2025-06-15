@@ -21,7 +21,6 @@ kt_jvm_library(
     srcs = ["MomentumOscillatorParams.kt"],
     deps = [
         ":adx_stochastic_param_config",
-        ":sma_rsi_param_config",
         "//src/main/java/com/verlumen/tradestream/discovery:param_config",
     ],
 )
