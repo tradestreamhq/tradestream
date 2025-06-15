@@ -62,7 +62,7 @@ class StrategyDiscoveryPipelineRunner {
                 Guice.createInjector(
                     BacktestingModule(),
                     getDiscoveryModule(options),
-                    HttpModule.create(),
+                    HttpModule.create(), // Remove when nothing depends on it
                     InfluxDbModule(),
                     MarketDataModule.create(),
                     PostgresModule(),
