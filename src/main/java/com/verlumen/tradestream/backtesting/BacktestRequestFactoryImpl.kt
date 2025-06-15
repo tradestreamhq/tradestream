@@ -53,6 +53,7 @@ class BacktestRequestFactoryImpl
                 .setStrategy(strategy)  // Attach the strategy
                 .build()
 
-        logger.atFine().log("BacktestRequest created successfully.")
-        return request
+            logger.atFine().log("BacktestRequest created successfully.")
+            return request
+        }
     }
