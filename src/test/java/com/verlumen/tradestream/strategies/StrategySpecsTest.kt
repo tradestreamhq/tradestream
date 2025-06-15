@@ -4,12 +4,12 @@ import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.Any
 import com.google.testing.junit.testparameterinjector.TestParameter
 import com.google.testing.junit.testparameterinjector.TestParameterInjector
-import org.ta4j.core.BaseBarSeries
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeFalse
 import org.junit.Assume.assumeTrue
 import org.junit.runner.RunWith
 import org.junit.Test
+import org.ta4j.core.BaseBarSeries
 
 @RunWith(TestParameterInjector::class)
 class StrategySpecsTest {
