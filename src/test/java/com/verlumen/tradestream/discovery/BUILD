@@ -190,6 +190,7 @@ kt_jvm_test(
         "//src/main/java/com/verlumen/tradestream/discovery:deserialize_strategy_discovery_request_fn",
         "//src/main/java/com/verlumen/tradestream/discovery:extract_discovered_strategies_fn",
         "//src/main/java/com/verlumen/tradestream/discovery:discovered_strategy_sink",
+        "//src/main/java/com/verlumen/tradestream/discovery:extract_discovered_strategies_fn",
         "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline",
         "//src/main/java/com/verlumen/tradestream/discovery:write_discovered_strategies_to_postgres_fn",
         "//third_party/java:beam_sdks_java_core",
