@@ -13,8 +13,12 @@ import java.io.Serializable
  */
 class BacktestRequestFactoryImpl
     @Inject
-    constructor() : BacktestRequestFactory,
-    Serializable {
+    constructor() :
+    BacktestRequestFactory,
+        Serializable {
+        companion object {
+            private const val serialVersionUID: Long = 1L
+        }
 
     companion object {
         private const val serialVersionUID: Long = 1L
