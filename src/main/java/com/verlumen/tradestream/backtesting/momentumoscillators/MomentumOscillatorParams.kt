@@ -12,6 +12,5 @@ object MomentumOscillatorParams {
     val allConfigs: List<ParamConfig> =
         listOf(
             AdxStochasticParamConfig.create(),
-            SmaRsiParamConfig.create(),
         )
 }
