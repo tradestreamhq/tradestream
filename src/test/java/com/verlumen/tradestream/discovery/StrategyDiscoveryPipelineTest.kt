@@ -5,7 +5,6 @@ import com.google.inject.Guice
 import com.google.inject.Inject
 import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
-import com.verlumen.tradestream.influxdb.InfluxDbConfig
 import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
 import com.verlumen.tradestream.sql.DataSourceConfig
 import org.apache.beam.sdk.testing.TestPipeline
