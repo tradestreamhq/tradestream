@@ -2,10 +2,13 @@ package com.verlumen.tradestream.discovery
 
 import com.google.common.collect.ImmutableList
 import com.google.inject.AbstractModule
+import com.google.inject.Provides
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
+import com.verlumen.tradestream.instruments.CurrencyPair
+import java.util.function.Supplier
 
-class DiscoveryModule : AbstractModule() {
+internal class BaseModule : AbstractModule() {
     override fun configure() {
         bind(FitnessFunctionFactory::class.java).to(FitnessFunctionFactoryImpl::class.java)
         bind(GAEngineFactory::class.java).to(GAEngineFactoryImpl::class.java)
@@ -26,12 +29,37 @@ class DiscoveryModule : AbstractModule() {
                     WriteDiscoveredStrategiesToPostgresFn::class.java,
                 ).build(WriteDiscoveredStrategiesToPostgresFnFactory::class.java),
         )
+    }
 
+    // TODO: we need to delete provideCurrencyPairSupplier as soon as we remove all remaining dependencies
+    @Provides
+    fun provideCurrencyPairSupplier(): Supplier<java.util.List<CurrencyPair>> =
+        Supplier {
+            ImmutableList.of<CurrencyPair>()
+        }
+}
+
+class DiscoveryModule : AbstractModule() {
+    override fun configure() {
+        install(BaseModule())
         install(
             FactoryModuleBuilder()
                 .implement(
                     DiscoveryRequestSource::class.java,
                     KafkaDiscoveryRequestSource::class.java,
+                ).build(DiscoveryRequestSourceFactory::class.java),
+        )
+    }
+}
+
+class DryRunDiscoveryModule : AbstractModule() {
+    override fun configure() {
+        install(BaseModule())
+        install(
+            FactoryModuleBuilder()
+                .implement(
+                    DiscoveryRequestSource::class.java,
+                    DryRunDiscoveryRequestSource::class.java,
                 ).build(DiscoveryRequestSourceFactory::class.java),
         )
     }
