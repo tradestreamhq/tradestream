@@ -18,6 +18,7 @@ class InfluxDbClientFactoryImpl :
             config.org,
             config.bucket,
         )
+
     companion object {
         private const val serialVersionUID: Long = 1L
     }
