@@ -92,7 +92,7 @@ class StrategySpecsTest {
 
     @Test
     fun `isSupported returns correct value for strategy type`(
-        @TestParameter strategyType: StrategyType
+        @TestParameter strategyType: StrategyType,
     ) {
         // Act
         val isSupported = strategyType.isSupported()
