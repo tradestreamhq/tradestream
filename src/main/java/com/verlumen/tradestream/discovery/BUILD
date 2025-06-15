@@ -92,6 +92,7 @@ kt_jvm_library(
     ],
     deps = [
         ":discovery_request_source",
+        ":dry_run_discovery_request_source",
         ":fitness_function_factory",
         ":fitness_function_factory_impl",
         ":ga_engine_factory",
