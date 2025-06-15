@@ -81,8 +81,7 @@ pipeline:
     parallelism: 1
     upgradeMode: stateless
 strategyDiscoveryPipeline:
-  enabled: false
-  runMode: wet
+  enabled: true
   image:
     repository: tradestreamhq/strategy-discovery-pipeline
     tag: v2.20.2-develop
