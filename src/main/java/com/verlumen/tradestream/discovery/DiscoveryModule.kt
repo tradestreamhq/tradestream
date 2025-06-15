@@ -30,13 +30,6 @@ internal class BaseModule : AbstractModule() {
                 ).build(WriteDiscoveredStrategiesToPostgresFnFactory::class.java),
         )
     }
-
-    // TODO: we need to delete provideCurrencyPairSupplier as soon as we remove all remaining dependencies
-    @Provides
-    fun provideCurrencyPairSupplier(): Supplier<java.util.List<CurrencyPair>> =
-        Supplier {
-            ImmutableList.of<CurrencyPair>() as java.util.List<CurrencyPair>
-        }
 }
 
 class DiscoveryModule : AbstractModule() {
