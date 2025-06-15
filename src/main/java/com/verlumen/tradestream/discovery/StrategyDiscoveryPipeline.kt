@@ -2,6 +2,8 @@ package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
+import com.verlumen.tradestream.influxdb.InfluxDbConfig
+import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
 import com.verlumen.tradestream.sql.DataSourceConfig
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.transforms.ParDo
@@ -20,10 +22,11 @@ import org.apache.beam.sdk.transforms.ParDo
 class StrategyDiscoveryPipeline
     @Inject
     constructor(
-        private val runGAFn: RunGADiscoveryFn,
+        private val runGADiscoveryFnFactory: RunGADiscoveryFnFactory,
         private val extractFn: ExtractDiscoveredStrategiesFn,
         private val sinkFactory: DiscoveredStrategySinkFactory,
         private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
+        private val candleFetcherFactory: InfluxDbCandleFetcher.Factory,
     ) {
         fun run(options: StrategyDiscoveryPipelineOptions) {
             val username = requireNotNull(options.databaseUsername) { "Database username is required." }
@@ -42,14 +45,23 @@ class StrategyDiscoveryPipeline
                     readOnly = null,
                 )
 
+            val influxDbConfig =
+                InfluxDbConfig(
+                    url = options.influxDbUrl,
+                    token = requireNotNull(options.influxDbToken) { "InfluxDB token is required." },
+                    org = options.influxDbOrg,
+                    bucket = options.influxDbBucket,
+                )
+            val candleFetcher = candleFetcherFactory.create(influxDbConfig)
             val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
+            val runGaFn = runGADiscoveryFnFactory.create(candleFetcher)
             val sink = sinkFactory.create(dataSourceConfig)
 
             val pipeline = Pipeline.create(options)
 
             pipeline
                 .apply("ReadDiscoveryRequests", discoveryRequestSource)
-                .apply("RunGAStrategyDiscovery", ParDo.of(runGAFn))
+                .apply("RunGAStrategyDiscovery", ParDo.of(runGaFn))
                 .apply("ExtractStrategies", ParDo.of(extractFn))
                 .apply("WriteToSink", ParDo.of(sink))
 

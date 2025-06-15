@@ -183,6 +183,7 @@ kt_jvm_test(
         "//third_party/java:hamcrest",
     ],
     deps = [
+        # Core pipeline dependencies
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory",
@@ -191,9 +192,20 @@ kt_jvm_test(
         "//src/main/java/com/verlumen/tradestream/discovery:discovered_strategy_sink",
         "//src/main/java/com/verlumen/tradestream/discovery:extract_discovered_strategies_fn",
         "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline",
+        "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline_options",
+        "//src/main/java/com/verlumen/tradestream/discovery:run_ga_discovery_fn",
         "//src/main/java/com/verlumen/tradestream/discovery:write_discovered_strategies_to_postgres_fn",
+        "//src/main/java/com/verlumen/tradestream/discovery:discovery_request_source",
+        # Backtesting dependencies (from existing test)
+        # SQL and database dependencies
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        # Protobuf dependencies
+        # Apache Beam dependencies
         "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:beam_sdks_java_test_utils",
+        # Guice dependencies for dependency injection
         "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
         "//third_party/java:guice_testlib",
         "//third_party/java:junit",
         "//third_party/java:mockito_core",
