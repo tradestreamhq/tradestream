@@ -184,6 +184,13 @@ kt_jvm_test(
     ],
     deps = [
         # Core pipeline dependencies
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory",
+        "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
+        "//src/main/java/com/verlumen/tradestream/discovery:deserialize_strategy_discovery_request_fn",
+        "//src/main/java/com/verlumen/tradestream/discovery:discovered_strategy_sink",
+        "//src/main/java/com/verlumen/tradestream/discovery:extract_discovered_strategies_fn",
         "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline",
         "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline_options",
         "//src/main/java/com/verlumen/tradestream/discovery:run_ga_discovery_fn",

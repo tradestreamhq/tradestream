@@ -44,7 +44,7 @@ class StrategyDiscoveryPipelineTest {
     lateinit var mockExtractFn: ExtractDiscoveredStrategiesFn
 
     @Bind @Mock
-    lateinit var mockWriteFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory
+    lateinit var mockStrategySinkFactory: DiscoveredStrategySinkFactory
 
     @Bind @Mock
     lateinit var mockDiscoveryRequestSourceFactory: DiscoveryRequestSourceFactory
@@ -57,7 +57,7 @@ class StrategyDiscoveryPipelineTest {
     lateinit var mockRunGAFn: RunGADiscoveryFn
 
     @Mock
-    lateinit var mockWriteFn: WriteDiscoveredStrategiesToPostgresFn
+    lateinit var mockStrategySink: DiscoveredStrategySink
 
     @Mock
     lateinit var mockDiscoveryRequestSource: DiscoveryRequestSource
@@ -95,9 +95,9 @@ class StrategyDiscoveryPipelineTest {
 
         // Create a simple mock source that doesn't try to build complex transforms
         whenever(mockDiscoveryRequestSourceFactory.create(any())).thenReturn(mockDiscoveryRequestSource)
-        whenever(mockWriteFnFactory.create(any())).thenReturn(mockWriteFn)
         whenever(mockRunGADiscoveryFnFactory.create(any())).thenReturn(mockRunGAFn)
         whenever(mockCandleFetcherFactory.create(any())).thenReturn(mockCandleFetcher)
+        whenever(mockStrategySinkFactory.create(any())).thenReturn(mockStrategySink)
     }
 
     @Test
@@ -233,8 +233,8 @@ class StrategyDiscoveryPipelineTest {
 
         // Create factories as the pipeline would
         val discoveryRequestSource = mockDiscoveryRequestSourceFactory.create(options)
-        val writeFn =
-            mockWriteFnFactory.create(
+        val strategySink =
+            mockStrategySinkFactory.create(
                 DataSourceConfig(
                     serverName = options.dbServerName,
                     databaseName = options.dbDatabaseName,
@@ -249,8 +249,8 @@ class StrategyDiscoveryPipelineTest {
             )
 
         // Verify factories return expected objects
-        assertThat(discoveryRequestSource).isEqualTo(mockDiscoveryRequestSource)
-        assertThat(writeFn).isEqualTo(mockWriteFn)
+        assertThat(discoveryRequestSource).isSameInstanceAs(mockDiscoveryRequestSource)
+        assertThat(strategySink).isSameInstanceAs(mockStrategySink)
     }
 
     @Test
@@ -259,8 +259,8 @@ class StrategyDiscoveryPipelineTest {
         assertThat(strategyDiscoveryPipeline).isNotNull()
         // Test that we can create the necessary components
         val requestSource = mockDiscoveryRequestSourceFactory.create(options)
-        val writeFn =
-            mockWriteFnFactory.create(
+        val strategySink =
+            mockStrategySinkFactory.create(
                 DataSourceConfig(
                     serverName = options.dbServerName,
                     databaseName = options.dbDatabaseName,
@@ -274,8 +274,8 @@ class StrategyDiscoveryPipelineTest {
                 ),
             )
 
-        assertThat(requestSource).isNotNull()
-        assertThat(writeFn).isNotNull()
+        assertThat(requestSource as Any?).isNotNull()
+        assertThat(strategySink as Any?).isNotNull()
     }
 
     @Test
@@ -314,13 +314,13 @@ class StrategyDiscoveryPipelineTest {
     }
 
     @Test
-    fun testErrorPropagationFromWriteFnFactory() {
+    fun testErrorPropagationFromStrategySinkFactory() {
         // Setup write function factory to throw exception
-        whenever(mockWriteFnFactory.create(any())).thenThrow(RuntimeException("Write factory error"))
+        whenever(mockStrategySinkFactory.create(any())).thenThrow(RuntimeException("Write factory error"))
 
         // Verify exception is propagated when factory is called
         try {
-            mockWriteFnFactory.create(
+            mockStrategySinkFactory.create(
                 DataSourceConfig(
                     serverName = "test",
                     databaseName = "test",
@@ -373,12 +373,12 @@ class StrategyDiscoveryPipelineTest {
 
         // Test factory calls
         val requestSource = mockDiscoveryRequestSourceFactory.create(realOptions)
-        val writeFn = mockWriteFnFactory.create(dataSourceConfig)
+        val strategySink = mockStrategySinkFactory.create(dataSourceConfig)
 
         // Verify configuration and factory interactions
         assertThat(dataSourceConfig.serverName).isEqualTo("integration_host")
         assertThat(dataSourceConfig.databaseName).isEqualTo("integration_db")
-        assertThat(requestSource).isNotNull()
-        assertThat(writeFn).isNotNull()
+        assertThat(requestSource as Any?).isNotNull()
+        assertThat(strategySink as Any?).isNotNull()
     }
 }

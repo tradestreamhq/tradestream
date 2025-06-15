@@ -52,13 +52,25 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
+    name = "discovered_strategy_sink",
+    srcs = ["DiscoveredStrategySink.kt"],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//third_party/java:beam_sdks_java_core",
+    ],
+)
+
+kt_jvm_library(
     name = "discovery_module",
     srcs = ["DiscoveryModule.kt"],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/pipeline:__pkg__",
     ],
     deps = [
+        ":discovered_strategy_sink",
         ":discovery_request_source",
+        ":dry_run_discovered_strategy_sink",
         ":dry_run_discovery_request_source",
         ":fitness_function_factory",
         ":fitness_function_factory_impl",
@@ -91,6 +103,18 @@ kt_jvm_library(
         ":strategy_discovery_pipeline_options",
         "//protos:discovery_java_proto",
         "//third_party/java:beam_sdks_java_core",
+    ],
+)
+
+kt_jvm_library(
+    name = "dry_run_discovered_strategy_sink",
+    srcs = ["DryRunDiscoveredStrategySink.kt"],
+    deps = [
+        ":discovered_strategy_sink",
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
     ],
 )
 
@@ -370,12 +394,12 @@ kt_jvm_library(
         "StrategyDiscoveryPipeline.kt",
     ],
     deps = [
+        ":discovered_strategy_sink",
         ":discovery_request_source",
         ":dry_run_discovery_request_source",
         ":extract_discovered_strategies_fn",
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline_options",
-        ":write_discovered_strategies_to_postgres_fn",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",
         "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
@@ -434,6 +458,7 @@ kt_jvm_library(
     name = "write_discovered_strategies_to_postgres_fn",
     srcs = ["WriteDiscoveredStrategiesToPostgresFn.kt"],
     deps = [
+        ":discovered_strategy_sink",
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",

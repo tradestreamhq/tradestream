@@ -18,14 +18,6 @@ internal class BaseModule : AbstractModule() {
                 .implement(RunGADiscoveryFn::class.java, RunGADiscoveryFn::class.java)
                 .build(RunGADiscoveryFnFactory::class.java),
         )
-
-        install(
-            FactoryModuleBuilder()
-                .implement(
-                    WriteDiscoveredStrategiesToPostgresFn::class.java,
-                    WriteDiscoveredStrategiesToPostgresFn::class.java,
-                ).build(WriteDiscoveredStrategiesToPostgresFnFactory::class.java),
-        )
     }
 }
 
@@ -39,6 +31,13 @@ class DiscoveryModule : AbstractModule() {
                     KafkaDiscoveryRequestSource::class.java,
                 ).build(DiscoveryRequestSourceFactory::class.java),
         )
+        install(
+            FactoryModuleBuilder()
+                .implement(
+                    DiscoveredStrategySink::class.java,
+                    WriteDiscoveredStrategiesToPostgresFn::class.java,
+                ).build(DiscoveredStrategySinkFactory::class.java),
+        )
     }
 }
 
@@ -51,6 +50,13 @@ class DryRunDiscoveryModule : AbstractModule() {
                     DiscoveryRequestSource::class.java,
                     DryRunDiscoveryRequestSource::class.java,
                 ).build(DiscoveryRequestSourceFactory::class.java),
+        )
+        install(
+            FactoryModuleBuilder()
+                .implement(
+                    DiscoveredStrategySink::class.java,
+                    DryRunDiscoveredStrategySink::class.java,
+                ).build(DiscoveredStrategySinkFactory::class.java),
         )
     }
 }

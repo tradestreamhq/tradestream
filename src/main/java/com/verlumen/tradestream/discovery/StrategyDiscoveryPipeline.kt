@@ -24,7 +24,7 @@ class StrategyDiscoveryPipeline
     constructor(
         private val runGADiscoveryFnFactory: RunGADiscoveryFnFactory,
         private val extractFn: ExtractDiscoveredStrategiesFn,
-        private val writeFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory,
+        private val sinkFactory: DiscoveredStrategySinkFactory,
         private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
         private val candleFetcherFactory: InfluxDbCandleFetcher.Factory,
     ) {
@@ -55,7 +55,7 @@ class StrategyDiscoveryPipeline
             val candleFetcher = candleFetcherFactory.create(influxDbConfig)
             val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
             val runGaFn = runGADiscoveryFnFactory.create(candleFetcher)
-            val writeFn = writeFnFactory.create(dataSourceConfig)
+            val sink = sinkFactory.create(dataSourceConfig)
 
             val pipeline = Pipeline.create(options)
 
@@ -63,7 +63,7 @@ class StrategyDiscoveryPipeline
                 .apply("ReadDiscoveryRequests", discoveryRequestSource)
                 .apply("RunGAStrategyDiscovery", ParDo.of(runGaFn))
                 .apply("ExtractStrategies", ParDo.of(extractFn))
-                .apply("WriteToPostgreSQL", ParDo.of(writeFn))
+                .apply("WriteToSink", ParDo.of(sink))
 
             pipeline.run().waitUntilFinish()
         }
