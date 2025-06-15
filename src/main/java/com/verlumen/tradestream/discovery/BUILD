@@ -73,6 +73,7 @@ kt_jvm_library(
         ":param_configs",
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline",
+        ":temporary_currency_pair_module",
         ":write_discovered_strategies_to_postgres_fn",
         "//protos:discovery_java_proto",
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
