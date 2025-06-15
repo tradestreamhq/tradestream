@@ -1,6 +1,6 @@
 package com.verlumen.tradestream.strategies
 
-import javax.inject.Inject
+import com.google.inject.Inject
 
 /**
  * Manages and provides StrategySpec instances for different strategy types.
