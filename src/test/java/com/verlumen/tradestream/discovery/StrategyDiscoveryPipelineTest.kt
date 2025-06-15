@@ -34,7 +34,6 @@ import org.mockito.kotlin.whenever
  */
 @RunWith(JUnit4::class)
 class StrategyDiscoveryPipelineTest {
-
     @get:Rule
     val testPipeline: TestPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(false)
 
