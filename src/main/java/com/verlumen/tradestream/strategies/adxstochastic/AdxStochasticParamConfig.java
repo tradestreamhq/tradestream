@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.adxstochastic;
+package com.verlumen.tradestream.strategies.adxstochastic;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
