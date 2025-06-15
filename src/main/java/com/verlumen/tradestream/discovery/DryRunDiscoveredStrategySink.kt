@@ -21,4 +21,3 @@ class DryRunDiscoveredStrategySink @Inject constructor(
     companion object {
         private val logger = FluentLogger.forEnclosingClass()
     }
-}
