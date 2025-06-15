@@ -5,7 +5,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
 import com.google.inject.assistedinject.FactoryModuleBuilder
 
-class DiscoveryModule : AbstractModule() {
+internal class BaseModule : AbstractModule() {
     override fun configure() {
         bind(FitnessFunctionFactory::class.java).to(FitnessFunctionFactoryImpl::class.java)
         bind(GAEngineFactory::class.java).to(GAEngineFactoryImpl::class.java)
@@ -26,12 +26,30 @@ class DiscoveryModule : AbstractModule() {
                     WriteDiscoveredStrategiesToPostgresFn::class.java,
                 ).build(WriteDiscoveredStrategiesToPostgresFnFactory::class.java),
         )
+    }
+}
 
+class DiscoveryModule : AbstractModule() {
+    override fun configure() {
+        install(BaseModule())
         install(
             FactoryModuleBuilder()
                 .implement(
                     DiscoveryRequestSource::class.java,
                     KafkaDiscoveryRequestSource::class.java,
+                ).build(DiscoveryRequestSourceFactory::class.java),
+        )
+    }
+}
+
+class DryRunDiscoveryModule : AbstractModule() {
+    override fun configure() {
+        install(BaseModule())
+        install(
+            FactoryModuleBuilder()
+                .implement(
+                    DiscoveryRequestSource::class.java,
+                    DryRunDiscoveryRequestSource::class.java,
                 ).build(DiscoveryRequestSourceFactory::class.java),
         )
     }
