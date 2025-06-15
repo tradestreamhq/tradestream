@@ -8,7 +8,9 @@ interface InfluxDbClientFactory {
     fun create(config: InfluxDbConfig): InfluxDBClient
 }
 
-class InfluxDbClientFactoryImpl : InfluxDbClientFactory, Serializable {
+class InfluxDbClientFactoryImpl :
+    InfluxDbClientFactory,
+    Serializable {
     override fun create(config: InfluxDbConfig): InfluxDBClient =
         com.influxdb.client.InfluxDBClientFactory.create(
             config.url,
