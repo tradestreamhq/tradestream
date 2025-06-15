@@ -108,7 +108,7 @@ class StrategySpecsTest {
 
     @Test
     fun `unsupported strategy type throws NotImplementedError for spec property`(
-        @TestParameter strategyType: StrategyType
+        @TestParameter strategyType: StrategyType,
     ) {
         // Only test unsupported types
         assumeTrue("$strategyType is supported, skipping error test", !strategyType.isSupported())
