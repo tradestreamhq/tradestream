@@ -14,5 +14,5 @@ abstract class DiscoveredStrategySink : DoFn<DiscoveredStrategy, Void>()
  * Factory for creating [DiscoveredStrategySink] instances.
  */
 interface DiscoveredStrategySinkFactory {
-  fun create(dataSourceConfig: DataSourceConfig): DiscoveredStrategySink
+    fun create(dataSourceConfig: DataSourceConfig): DiscoveredStrategySink
 }
