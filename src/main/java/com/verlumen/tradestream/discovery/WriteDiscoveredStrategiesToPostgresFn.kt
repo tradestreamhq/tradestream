@@ -34,7 +34,7 @@ class WriteDiscoveredStrategiesToPostgresFn
         private val dataSourceFactory: DataSourceFactory,
         @Assisted private val dataSourceConfig: DataSourceConfig,
     ) : DiscoveredStrategySink() {
-    companion object {
+        companion object {
             private val logger = FluentLogger.forEnclosingClass()
             private const val BATCH_SIZE = 100
             private const val MAX_RETRIES = 3
