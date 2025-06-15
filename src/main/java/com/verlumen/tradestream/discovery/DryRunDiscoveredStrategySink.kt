@@ -18,6 +18,7 @@ class DryRunDiscoveredStrategySink @Inject constructor(
         logger.atInfo().log("Dry Run Sink: Would write strategy for symbol '%s' with score %f", strategy.symbol, strategy.score)
     }
 
-    companion object {
-        private val logger = FluentLogger.forEnclosingClass()
+        companion object {
+            private val logger = FluentLogger.forEnclosingClass()
+        }
     }
