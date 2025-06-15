@@ -25,8 +25,9 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> = mapOf(
  * @throws NotImplementedError if no spec is defined for the given strategy type.
  */
 val StrategyType.spec: StrategySpec
-    get() = strategySpecMap[this]
-        ?: throw NotImplementedError("No StrategySpec defined for strategy type: $this")
+    get() =
+        strategySpecMap[this]
+            ?: throw NotImplementedError("No StrategySpec defined for strategy type: $this")
 
 /**
  * An extension function that returns `true` if a [StrategySpec] has been
