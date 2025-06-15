@@ -66,6 +66,7 @@ class StrategyDiscoveryPipelineRunner {
                     PostgresModule(),
                     StrategiesModule(),
                     Ta4jModule.create(),
+                    TemporaryCurrencyPairModule(), // Remove when nothing depends on it
                 )
             val pipeline = injector.getInstance(StrategyDiscoveryPipeline::class.java)
 
