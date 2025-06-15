@@ -8,7 +8,6 @@ import com.google.protobuf.util.JsonFormat
 import com.verlumen.tradestream.sql.BulkCopierFactory
 import com.verlumen.tradestream.sql.DataSourceConfig
 import com.verlumen.tradestream.sql.DataSourceFactory
-import org.apache.beam.sdk.transforms.DoFn
 import java.io.StringReader
 import java.security.MessageDigest
 import java.sql.Connection
@@ -34,7 +33,7 @@ class WriteDiscoveredStrategiesToPostgresFn
         private val bulkCopierFactory: BulkCopierFactory,
         private val dataSourceFactory: DataSourceFactory,
         @Assisted private val dataSourceConfig: DataSourceConfig,
-    ) : DoFn<DiscoveredStrategy, Void>() {
+    ) : DiscoveredStrategySink() {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
             private const val BATCH_SIZE = 100
@@ -154,7 +153,6 @@ class WriteDiscoveredStrategiesToPostgresFn
                     discovery_end_time TIMESTAMP
                 ) ON COMMIT DROP
                 """.trimIndent()
-
             conn.prepareStatement(createTempTableSql).use { it.execute() }
 
             // Bulk insert into temp table using COPY
@@ -184,7 +182,6 @@ class WriteDiscoveredStrategiesToPostgresFn
                     current_score = EXCLUDED.current_score,
                     last_evaluated_at = NOW()
                 """.trimIndent()
-
             conn.prepareStatement(upsertSql).use { it.execute() }
         }
 
@@ -239,11 +236,3 @@ class WriteDiscoveredStrategiesToPostgresFn
             return digest.joinToString("") { "%02x".format(it) }
         }
     }
-
-/**
- * Factory interface for creating WriteDiscoveredStrategiesToPostgresFn instances
- * with runtime-provided database configuration parameters.
- */
-interface WriteDiscoveredStrategiesToPostgresFnFactory {
-    fun create(dataSourceConfig: DataSourceConfig): WriteDiscoveredStrategiesToPostgresFn
-}
