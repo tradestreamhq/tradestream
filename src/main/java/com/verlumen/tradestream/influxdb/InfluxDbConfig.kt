@@ -6,5 +6,5 @@ data class InfluxDbConfig(
     val url: String,
     val token: String,
     val org: String,
-    val bucket: String
+    val bucket: String,
 ) : Serializable
