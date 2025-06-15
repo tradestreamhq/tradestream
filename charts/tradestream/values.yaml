@@ -55,7 +55,7 @@ pipeline:
   runMode: wet
   image:
     repository: tradestreamhq/tradestream-data-pipeline
-    tag: v2.20.3-develop
+    tag: v2.21.0-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -84,7 +84,7 @@ strategyDiscoveryPipeline:
   enabled: true
   image:
     repository: tradestreamhq/strategy-discovery-pipeline
-    tag: v2.20.3-develop
+    tag: v2.21.0-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -109,17 +109,17 @@ strategyDiscoveryPipeline:
     jarURI: local:///src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar
     parallelism: 1
     upgradeMode: stateless
-  # Database configuration for this specific pipeline.
-  # These are examples, you must configure your PostgreSQL instance and secrets.
+  # Database configuration - now uses the PostgreSQL chart
   database:
-    host: "your-postgres-host" # e.g., my-tradestream-postgresql.tradestream-namespace.svc.cluster.local
+    # These will be templated to use the PostgreSQL service from the chart
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
     port: 5432
     database: "tradestream"
     username: "postgres"
-    # Recommend creating a secret with the password.
+    # Reference the auto-generated PostgreSQL secret
     passwordSecret:
-      name: "tradestream-postgres-secret"
-      key: "password"
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
 candleIngestor:
   enabled: true
   schedule: "*/1 * * * *" # Run every 1 minute
@@ -131,7 +131,7 @@ candleIngestor:
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
-    tag: "v2.20.3-develop"
+    tag: "v2.21.0-develop"
   config:
     # CCXT Exchange Configuration
     exchanges:
@@ -179,6 +179,24 @@ redis:
     # persistence:
     #   enabled: true
     #   size: 8Gi
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "tradestream123" # Change this for production
+    username: "postgres"
+    database: "tradestream"
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "1"
+        memory: "2Gi"
 # Top Crypto Updater CronJob configuration
 topCryptoUpdaterCronjob:
   enabled: true
@@ -186,7 +204,7 @@ topCryptoUpdaterCronjob:
   image:
     repository: "tradestreamhq/top-crypto-updater"
     pullPolicy: IfNotPresent
-    tag: "v2.20.3-develop"
+    tag: "v2.21.0-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
@@ -210,7 +228,7 @@ strategyDiscoveryRequestFactory:
   image:
     repository: "tradestreamhq/strategy-discovery-request-factory"
     pullPolicy: IfNotPresent
-    tag: "v2.20.3-develop"
+    tag: "v2.21.0-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3

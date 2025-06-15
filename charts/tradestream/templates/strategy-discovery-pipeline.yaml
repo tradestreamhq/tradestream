@@ -31,7 +31,7 @@ spec:
       - "--bootstrapServers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
       - "--runner=FlinkRunner"
       - "--isStreaming=true"
-      - "--dbServerName={{ .Values.strategyDiscoveryPipeline.database.host }}"
+      - "--dbServerName={{ tpl .Values.strategyDiscoveryPipeline.database.host . }}"
       - "--dbDatabaseName={{ .Values.strategyDiscoveryPipeline.database.database }}"
       - "--dbPortNumber={{ .Values.strategyDiscoveryPipeline.database.port }}"
       # InfluxDB args - for candle fetcher
@@ -59,7 +59,7 @@ spec:
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.strategyDiscoveryPipeline.database.passwordSecret.name }}
+                  name: {{ tpl .Values.strategyDiscoveryPipeline.database.passwordSecret.name . }}
                   key: {{ .Values.strategyDiscoveryPipeline.database.passwordSecret.key }}
             # Secret for InfluxDB token
             - name: INFLUXDB_TOKEN

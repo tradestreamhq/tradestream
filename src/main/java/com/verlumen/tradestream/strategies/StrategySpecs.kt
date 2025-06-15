@@ -1,5 +1,10 @@
 package com.verlumen.tradestream.strategies
 
+import com.google.protobuf.Any
+import com.google.protobuf.InvalidProtocolBufferException
+import org.ta4j.core.BarSeries
+import org.ta4j.core.Strategy
+
 // import com.verlumen.tradestream.strategies.emamacd.*
 // import com.verlumen.tradestream.strategies.smarsi.*
 
@@ -35,3 +40,57 @@ val StrategyType.spec: StrategySpec
  * implemented for this [StrategyType] by checking for its key in the central map.
  */
 fun StrategyType.isSupported(): Boolean = strategySpecMap.containsKey(this)
+
+/**
+ * Extension function to create a new Ta4j Strategy instance using default parameters.
+ *
+ * @param barSeries the bar series to associate with the strategy
+ * @return a new instance of a Ta4j Strategy configured with the default parameters
+ * @throws InvalidProtocolBufferException if there is an error unpacking the default parameters
+ */
+@Throws(InvalidProtocolBufferException::class)
+fun StrategyType.createStrategy(barSeries: BarSeries): Strategy = createStrategy(barSeries, getDefaultParameters())
+
+/**
+ * Extension function to create a new Ta4j Strategy instance using provided parameters.
+ *
+ * @param barSeries the bar series to associate with the strategy
+ * @param parameters the configuration parameters for the strategy, wrapped in an Any message
+ * @return a new instance of a Ta4j Strategy configured with the provided parameters
+ * @throws InvalidProtocolBufferException if there is an error unpacking the parameters
+ */
+@Throws(InvalidProtocolBufferException::class)
+fun StrategyType.createStrategy(
+    barSeries: BarSeries,
+    parameters: Any,
+): Strategy = getStrategyFactory().createStrategy(barSeries, parameters)
+
+/**
+ * Extension function to retrieve the default configuration parameters for this strategy type.
+ *
+ * This method obtains the default parameters from the associated StrategyFactory and
+ * packs them into a protocol buffers Any message.
+ *
+ * @return an Any message containing the default parameters for this strategy type
+ */
+fun StrategyType.getDefaultParameters(): Any = Any.pack(getStrategyFactory().getDefaultParameters())
+
+/**
+ * Extension function to retrieve the StrategyFactory corresponding to this strategy type.
+ *
+ * The returned factory is responsible for creating instances of the strategy as well as
+ * providing its default configuration parameters.
+ *
+ * @return the StrategyFactory associated with this strategy type
+ */
+fun StrategyType.getStrategyFactory(): StrategyFactory<*> = this.spec.strategyFactory
+
+/**
+ * Returns a list of all supported strategy types.
+ *
+ * This list includes every available StrategyType that can be used to create and
+ * configure trading strategies.
+ *
+ * @return a list of supported StrategyType instances
+ */
+fun getSupportedStrategyTypes(): List<StrategyType> = strategySpecMap.keys.toList()
