@@ -81,6 +81,7 @@ kt_jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # Core interfaces required by the spec definitions
+        ":strategy_factory",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
