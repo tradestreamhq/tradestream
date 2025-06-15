@@ -435,6 +435,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",
         "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
         "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_module",
+        "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
         "//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
         "//src/main/java/com/verlumen/tradestream/strategies:strategies_module",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
