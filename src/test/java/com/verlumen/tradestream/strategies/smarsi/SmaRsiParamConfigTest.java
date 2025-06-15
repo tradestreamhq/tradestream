@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.strategies.smarsi;
+package com.verlumen.tradestream.strategies.smarsi;
 
 import static com.google.common.truth.Truth.assertThat;
 
