@@ -4,6 +4,24 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
+    name = "chromosome_spec",
+    srcs = [
+        "ChromosomeSpec.java",
+        "DoubleChromosomeSpec.java",
+        "IntegerChromosomeSpec.java",
+    ],
+    visibility = [
+        "//src/main/java/com/verlumen/tradestream/backtesting:__subpackages__",
+        "//src/test/java/com/verlumen/tradestream/backtesting:__subpackages__",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
+    ],
+    deps = [
+        "//third_party/java:guava",
+        "//third_party/java:jenetics",
+    ],
+)
+
+java_library(
     name = "param_config",
     srcs = ["ParamConfig.java"],
     visibility = [
