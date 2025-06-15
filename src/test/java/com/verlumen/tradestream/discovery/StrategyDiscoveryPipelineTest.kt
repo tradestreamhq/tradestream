@@ -5,6 +5,8 @@ import com.google.inject.Guice
 import com.google.inject.Inject
 import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
+import com.verlumen.tradestream.influxdb.InfluxDbConfig
+import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
 import com.verlumen.tradestream.sql.DataSourceConfig
 import org.apache.beam.sdk.testing.TestPipeline
 import org.junit.Assert.fail
@@ -32,12 +34,13 @@ import org.mockito.kotlin.whenever
  */
 @RunWith(JUnit4::class)
 class StrategyDiscoveryPipelineTest {
+
     @get:Rule
     val testPipeline: TestPipeline = TestPipeline.create().enableAbandonedNodeEnforcement(false)
 
     // Mock all dependencies using BoundFieldModule
     @Bind @Mock
-    lateinit var mockRunGAFn: RunGADiscoveryFn
+    lateinit var mockRunGADiscoveryFnFactory: RunGADiscoveryFnFactory
 
     @Bind @Mock
     lateinit var mockExtractFn: ExtractDiscoveredStrategiesFn
@@ -48,12 +51,21 @@ class StrategyDiscoveryPipelineTest {
     @Bind @Mock
     lateinit var mockDiscoveryRequestSourceFactory: DiscoveryRequestSourceFactory
 
+    @Bind @Mock
+    lateinit var mockCandleFetcherFactory: InfluxDbCandleFetcher.Factory
+
     // Additional mocks for testing
+    @Mock
+    lateinit var mockRunGAFn: RunGADiscoveryFn
+
     @Mock
     lateinit var mockWriteFn: WriteDiscoveredStrategiesToPostgresFn
 
     @Mock
     lateinit var mockDiscoveryRequestSource: DiscoveryRequestSource
+
+    @Mock
+    lateinit var mockCandleFetcher: InfluxDbCandleFetcher
 
     private lateinit var options: StrategyDiscoveryPipelineOptions
 
@@ -81,10 +93,13 @@ class StrategyDiscoveryPipelineTest {
         options.dbServerName = "localhost"
         options.dbDatabaseName = "test_db"
         options.dbPortNumber = 5432
+        options.influxDbToken = "test-token"
 
         // Create a simple mock source that doesn't try to build complex transforms
         whenever(mockDiscoveryRequestSourceFactory.create(any())).thenReturn(mockDiscoveryRequestSource)
         whenever(mockWriteFnFactory.create(any())).thenReturn(mockWriteFn)
+        whenever(mockRunGADiscoveryFnFactory.create(any())).thenReturn(mockRunGAFn)
+        whenever(mockCandleFetcherFactory.create(any())).thenReturn(mockCandleFetcher)
     }
 
     @Test
@@ -97,6 +112,7 @@ class StrategyDiscoveryPipelineTest {
     fun testValidOptionsProcessing() {
         // Test configuration processing without pipeline execution
         // We'll test the individual components that would be configured
+
         // Test DataSourceConfig creation
         val username = requireNotNull(options.databaseUsername) { "Database username is required." }
         val password = requireNotNull(options.databasePassword) { "Database password is required." }
@@ -274,10 +290,12 @@ class StrategyDiscoveryPipelineTest {
                 dbServerName = "specific_host"
                 dbDatabaseName = "specific_db"
                 dbPortNumber = 1234
+                influxDbToken = "specific-token"
             }
 
         // Test that the factory is called with the correct options
         mockDiscoveryRequestSourceFactory.create(specificOptions)
+
         // Verify the exact options object was passed
         verify(mockDiscoveryRequestSourceFactory).create(specificOptions)
     }
@@ -336,6 +354,7 @@ class StrategyDiscoveryPipelineTest {
                 kafkaBootstrapServers = "localhost:9092"
                 strategyDiscoveryRequestTopic = "test-topic"
                 influxDbUrl = "http://localhost:8086"
+                influxDbToken = "test-token"
                 influxDbOrg = "test-org"
                 influxDbBucket = "test-bucket"
             }
