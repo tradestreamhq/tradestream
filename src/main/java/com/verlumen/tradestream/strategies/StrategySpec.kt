@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategyspecs
+package com.verlumen.tradestream.strategies
 
 import com.verlumen.tradestream.discovery.ParamConfig
 import com.verlumen.tradestream.strategies.StrategyFactory
