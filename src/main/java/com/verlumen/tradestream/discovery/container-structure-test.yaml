@@ -19,6 +19,6 @@ commandTests:
       - "--dryRun=true"
       - "--databaseUsername=test"
       - "--databasePassword=test"
-      - "--influxDbToken=fake-influxdb-token"
+      - "--influxDbToken=not-a-real-token"
       - "--runner=DirectRunner"
     exitCode: 0
