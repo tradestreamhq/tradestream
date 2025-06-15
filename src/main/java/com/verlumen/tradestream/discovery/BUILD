@@ -15,46 +15,6 @@ java_binary(
     runtime_deps = [":strategy_discovery_pipeline_runner"],
 )
 
-tar(
-    name = "layer",
-    srcs = [":app_deploy.jar"],
-)
-
-oci_image(
-    name = "image",
-    base = "@flink_java17",
-    entrypoint = [
-        "java",
-        "-jar",
-        "/src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar",
-    ],
-    tars = [
-        ":layer",
-    ],
-)
-
-multi_arch(
-    name = "images",
-    image = ":image",
-    platforms = [
-        "//platforms:linux_arm64",
-        "//platforms:linux_amd64",
-    ],
-)
-
-oci_image_index(
-    name = "index",
-    images = [
-        ":images",
-    ],
-)
-
-oci_push(
-    name = "push_image",
-    image = ":index",
-    repository = "tradestreamhq/strategy-discovery-pipeline",
-)
-
 java_library(
     name = "chromosome_spec",
     srcs = [
@@ -71,6 +31,13 @@ java_library(
         "//third_party/java:guava",
         "//third_party/java:jenetics",
     ],
+)
+
+container_structure_test(
+    name = "container_test",
+    configs = ["container-structure-test.yaml"],
+    image = ":image",
+    tags = ["requires-docker"],
 )
 
 kt_jvm_library(
@@ -194,15 +161,6 @@ java_library(
 )
 
 kt_jvm_library(
-    name = "ga_engine_params",
-    srcs = ["GAEngineParams.kt"],
-    deps = [
-        "//protos:marketdata_java_proto",  # For Candle
-        "//protos:strategies_java_proto",  # For StrategyType
-    ],
-)
-
-kt_jvm_library(
     name = "ga_engine_factory",
     srcs = ["GAEngineFactory.kt"],
     deps = [
@@ -227,6 +185,15 @@ java_library(
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
+    ],
+)
+
+kt_jvm_library(
+    name = "ga_engine_params",
+    srcs = ["GAEngineParams.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",  # For Candle
+        "//protos:strategies_java_proto",  # For StrategyType
     ],
 )
 
@@ -260,6 +227,35 @@ java_library(
     ],
 )
 
+oci_image(
+    name = "image",
+    base = "@flink_java17",
+    entrypoint = [
+        "java",
+        "-jar",
+        "/src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar",
+    ],
+    tars = [
+        ":layer",
+    ],
+)
+
+multi_arch(
+    name = "images",
+    image = ":image",
+    platforms = [
+        "//platforms:linux_arm64",
+        "//platforms:linux_amd64",
+    ],
+)
+
+oci_image_index(
+    name = "index",
+    images = [
+        ":images",
+    ],
+)
+
 kt_jvm_library(
     name = "kafka_discovery_request_source",
     srcs = ["KafkaDiscoveryRequestSource.kt"],
@@ -274,6 +270,11 @@ kt_jvm_library(
         "//third_party/java:guice_assistedinject",
         "//third_party/java:kafka_clients",
     ],
+)
+
+tar(
+    name = "layer",
+    srcs = [":app_deploy.jar"],
 )
 
 java_library(
@@ -333,6 +334,12 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/backtesting/trendfollowing:trend_following_params",
         "//third_party/java:guava",
     ],
+)
+
+oci_push(
+    name = "push_image",
+    image = ":index",
+    repository = "tradestreamhq/strategy-discovery-pipeline",
 )
 
 kt_jvm_library(
@@ -421,11 +428,4 @@ kt_jvm_library(
         "//third_party/java:protobuf_java",
         "//third_party/java:protobuf_java_util",
     ],
-)
-
-container_structure_test(
-    name = "container_test",
-    configs = ["container-structure-test.yaml"],
-    image = ":image",
-    tags = ["requires-docker"],
 )
