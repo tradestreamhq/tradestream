@@ -2,7 +2,6 @@ package com.verlumen.tradestream.discovery
 
 import com.google.inject.Guice
 import com.google.inject.Inject
-import com.google.inject.Injector
 import com.google.inject.Module
 import com.google.inject.Provider
 import com.verlumen.tradestream.influxdb.InfluxDbConfig
