@@ -56,4 +56,3 @@ class BacktestRequestFactoryImpl
         logger.atFine().log("BacktestRequest created successfully.")
         return request
     }
-}
