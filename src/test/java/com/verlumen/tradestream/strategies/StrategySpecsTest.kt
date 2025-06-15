@@ -9,7 +9,6 @@ import org.junit.runner.RunWith
 
 @RunWith(TestParameterInjector::class)
 class StrategySpecsTest {
-
     @Test
     fun `strategy type has a spec defined`(
         @TestParameter strategyType: StrategyType,
