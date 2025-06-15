@@ -7,8 +7,8 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeFalse
 import org.junit.Assume.assumeTrue
-import org.junit.runner.RunWith
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.ta4j.core.BaseBarSeries
 
 @RunWith(TestParameterInjector::class)
