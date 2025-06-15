@@ -400,6 +400,8 @@ kt_jvm_library(
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline_options",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
