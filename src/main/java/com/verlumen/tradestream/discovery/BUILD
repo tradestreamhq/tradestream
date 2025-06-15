@@ -1,3 +1,4 @@
+# src/main/java/com/verlumen/tradestream/discovery/BUILD
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
@@ -434,6 +435,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/http:http_module",
         "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",
         "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_module",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
         "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
         "//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
         "//src/main/java/com/verlumen/tradestream/strategies:strategies_module",

@@ -4,6 +4,7 @@ import com.google.inject.Guice
 import com.google.inject.Injector
 import com.google.inject.Module
 import com.verlumen.tradestream.influxdb.InfluxDbConfig
+import com.verlumen.tradestream.marketdata.CandleFetcher
 import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
 import com.verlumen.tradestream.backtesting.BacktestingModule
 import com.verlumen.tradestream.http.HttpModule
@@ -44,7 +45,7 @@ class StrategyDiscoveryPipelineRunner {
                     bucket = options.influxDbBucket,
                 )
 
-            val influxDbFactory = injector.getInstance(InfluxDbCandleFetcher.Factory)
+            val influxDbFactory = injector.getInstance(InfluxDbCandleFetcher.Factory::class.java)
             return influxDbFactory.create(influxDbConfig)
         }
         
