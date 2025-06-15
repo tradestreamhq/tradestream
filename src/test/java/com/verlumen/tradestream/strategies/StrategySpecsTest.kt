@@ -77,7 +77,7 @@ class StrategySpecsTest {
 
     @Test
     fun `spec property returns correct spec for supported types`(
-        @TestParameter strategyType: StrategyType
+        @TestParameter strategyType: StrategyType,
     ) {
         // Skip if strategy not implemented yet
         assumeTrue("$strategyType strategy not implemented yet", strategyType.isSupported())
