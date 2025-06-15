@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.discovery;
+package com.verlumen.tradestream.strategies;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
