@@ -2,8 +2,8 @@ load("@rules_java//java:defs.bzl", "java_library")
 
 package(default_visibility = [
         "//src/main/java/com/verlumen/tradestream/strategies:__subpackages__",
-        "//src/test/java/com/verlumen/tradestream/strategies:__subpackages__"
-    ]
+        "//src/test/java/com/verlumen/tradestream/strategies:__subpackages__",
+    ],
 )
 
 java_library(
