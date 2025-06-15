@@ -14,4 +14,3 @@ class StrategySpecManager
             specs[strategyType]
                 ?: throw IllegalArgumentException("No spec found for strategy type: $strategyType")
     }
-}
