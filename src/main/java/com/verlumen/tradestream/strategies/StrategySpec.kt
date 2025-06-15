@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.strategies
 
 import com.verlumen.tradestream.discovery.ParamConfig
-import com.verlumen.tradestream.strategies.StrategyFactory
 
 /**
  * A specification that encapsulates all components related to a trading strategy.
@@ -11,5 +10,5 @@ import com.verlumen.tradestream.strategies.StrategyFactory
  */
 data class StrategySpec(
     val paramConfig: ParamConfig,
-    val strategyFactory: StrategyFactory,
+    val strategyFactory: StrategyFactory<*>,
 )
