@@ -11,7 +11,6 @@ import org.ta4j.core.BaseBarSeries
 
 @RunWith(TestParameterInjector::class)
 class StrategySpecsTest {
-
     private val barSeries = BaseBarSeries()
 
     @Test
