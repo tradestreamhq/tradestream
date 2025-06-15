@@ -34,6 +34,7 @@ class StrategySpecsTest {
                 "Please add its entry to the 'strategySpecMap' in StrategySpecs.kt.",
             strategyType.isSupported(),
         )
+    }
 
     @Test
     fun `createStrategy with default parameters returns strategy`(
