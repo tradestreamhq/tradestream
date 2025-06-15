@@ -1,8 +1,10 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.inject.Guice
+import com.google.inject.Inject
 import com.google.inject.Injector
 import com.google.inject.Module
+import com.google.inject.Provider
 import com.verlumen.tradestream.influxdb.InfluxDbConfig
 import com.verlumen.tradestream.marketdata.CandleFetcher
 import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
@@ -28,26 +30,52 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory
  * All DoFns arrive through the factory pattern with Guice.
  */
 class StrategyDiscoveryPipelineRunner {
+    
+    /**
+     * Factory class that uses dependency injection to create pipeline instances
+     * and their dependencies based on configuration options.
+     */
+    class StrategyDiscoveryPipelineFactory @Inject constructor(
+        private val pipelineProvider: Provider<StrategyDiscoveryPipeline>,
+        private val dryRunCandleFetcherProvider: Provider<DryRunCandleFetcher>,
+        private val influxDbCandleFetcherFactoryProvider: Provider<InfluxDbCandleFetcher.Factory>
+    ) {
+        
+        data class PipelineComponents(
+            val pipeline: StrategyDiscoveryPipeline,
+            val candleFetcher: CandleFetcher
+        )
+        
+        /**
+         * Creates the pipeline and candle fetcher based on the provided options.
+         */
+        fun create(options: StrategyDiscoveryPipelineOptions): PipelineComponents {
+            val pipeline = pipelineProvider.get()
+            val candleFetcher = createCandleFetcher(options)
+            
+            return PipelineComponents(pipeline, candleFetcher)
+        }
+        
+        private fun createCandleFetcher(options: StrategyDiscoveryPipelineOptions): CandleFetcher {
+            if (options.dryRun) {
+                return dryRunCandleFetcherProvider.get()
+            }
+
+            val influxDbConfig = InfluxDbConfig(
+                url = options.influxDbUrl,
+                token = requireNotNull(options.influxDbToken) { "InfluxDB token is required." },
+                org = options.influxDbOrg,
+                bucket = options.influxDbBucket,
+            )
+
+            val influxDbFactory = influxDbCandleFetcherFactoryProvider.get()
+            return influxDbFactory.create(influxDbConfig)
+        }
+    }
+    
     companion object {
         private const val DATABASE_USERNAME_ENV_VAR = "DATABASE_USERNAME"
         private const val DATABASE_PASSWORD_ENV_VAR = "DATABASE_PASSWORD"
-
-        private fun getCandleFetcher(options: StrategyDiscoveryPipelineOptions, injector: Injector): CandleFetcher {
-            if (options.dryRun) {
-                return injector.getInstance(DryRunCandleFetcher::class.java)
-            }
-
-            val influxDbConfig =
-                InfluxDbConfig(
-                    url = options.influxDbUrl,
-                    token = requireNotNull(options.influxDbToken) { "InfluxDB token is required." },
-                    org = options.influxDbOrg,
-                    bucket = options.influxDbBucket,
-                )
-
-            val influxDbFactory = injector.getInstance(InfluxDbCandleFetcher.Factory::class.java)
-            return influxDbFactory.create(influxDbConfig)
-        }
         
         private fun getDatabaseUsername(options: StrategyDiscoveryPipelineOptions): String? =
             options.databaseUsername.takeIf { !it.isNullOrEmpty() }
@@ -91,10 +119,11 @@ class StrategyDiscoveryPipelineRunner {
                     Ta4jModule.create(),
                     TemporaryCurrencyPairModule(), // Remove when nothing depends on it
                 )
-            val pipeline = injector.getInstance(StrategyDiscoveryPipeline::class.java)
-            val candleFetcher = getCandleFetcher(options, injector)
+            
+            val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
+            val components = factory.create(options)
 
-            pipeline.run(options, candleFetcher)
+            components.pipeline.run(options, components.candleFetcher)
         }
     }
 }
