@@ -1,6 +1,8 @@
 package com.verlumen.tradestream.influxdb
 
-data class InfluxDbConfig(
+import java.io.Serializable
+
+data class InfluxDbConfig:Serializable(
     val url: String,
     val token: String,
     val org: String,
