@@ -104,6 +104,18 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
+    name = "dry_run_discovered_strategy_sink",
+    srcs = ["DryRunDiscoveredStrategySink.kt"],
+    deps = [
+        ":discovered_strategy_sink",
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+    ],
+)
+
+kt_jvm_library(
     name = "dry_run_discovery_request_source",
     srcs = ["DryRunDiscoveryRequestSource.kt"],
     deps = [
