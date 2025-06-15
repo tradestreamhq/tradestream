@@ -35,7 +35,7 @@ internal class BaseModule : AbstractModule() {
     @Provides
     fun provideCurrencyPairSupplier(): Supplier<java.util.List<CurrencyPair>> =
         Supplier {
-            ImmutableList.of<CurrencyPair>()
+            ImmutableList.of<CurrencyPair>() as java.util.List<CurrencyPair>
         }
 }
 
