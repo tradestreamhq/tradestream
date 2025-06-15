@@ -13,6 +13,5 @@ class StrategySpecManager @Inject constructor(
             ?: throw IllegalArgumentException("No spec found for strategy type: $strategyType")
     }
 
-    fun getSupportedTypes(): Set<StrategyType> {
-        return specs.keys
+        fun getSupportedTypes(): Set<StrategyType> = specs.keys
     }
