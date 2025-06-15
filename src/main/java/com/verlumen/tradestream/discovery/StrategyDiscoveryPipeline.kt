@@ -2,8 +2,6 @@ package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
-import com.verlumen.tradestream.influxdb.InfluxDbConfig
-import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
 import com.verlumen.tradestream.sql.DataSourceConfig
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.transforms.ParDo
@@ -26,9 +24,8 @@ class StrategyDiscoveryPipeline
         private val extractFn: ExtractDiscoveredStrategiesFn,
         private val sinkFactory: DiscoveredStrategySinkFactory,
         private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
-        private val candleFetcherFactory: InfluxDbCandleFetcher.Factory,
     ) {
-        fun run(options: StrategyDiscoveryPipelineOptions) {
+        fun run(options: StrategyDiscoveryPipelineOptions, candleFetcher: CandleFetcher) {
             val username = requireNotNull(options.databaseUsername) { "Database username is required." }
             val password = requireNotNull(options.databasePassword) { "Database password is required." }
 
@@ -52,7 +49,6 @@ class StrategyDiscoveryPipeline
                     org = options.influxDbOrg,
                     bucket = options.influxDbBucket,
                 )
-            val candleFetcher = candleFetcherFactory.create(influxDbConfig)
             val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
             val runGaFn = runGADiscoveryFnFactory.create(candleFetcher)
             val sink = sinkFactory.create(dataSourceConfig)
