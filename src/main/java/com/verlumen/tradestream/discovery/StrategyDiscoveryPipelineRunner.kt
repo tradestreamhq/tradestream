@@ -1,7 +1,10 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.inject.Guice
+import com.google.inject.Injector
 import com.google.inject.Module
+import com.verlumen.tradestream.influxdb.InfluxDbConfig
+import com.verlumen.tradestream.marketdata.InfluxDbCandleFetcher
 import com.verlumen.tradestream.backtesting.BacktestingModule
 import com.verlumen.tradestream.http.HttpModule
 import com.verlumen.tradestream.influxdb.InfluxDbModule
@@ -28,6 +31,23 @@ class StrategyDiscoveryPipelineRunner {
         private const val DATABASE_USERNAME_ENV_VAR = "DATABASE_USERNAME"
         private const val DATABASE_PASSWORD_ENV_VAR = "DATABASE_PASSWORD"
 
+        private fun getCandleFetcher(options: StrategyDiscoveryPipelineOptions, injector: Injector): CandleFetcher {
+            if (options.dryRun) {
+                return injector.getInstance(DryRunCandleFetcher::class.java)
+            }
+
+            val influxDbConfig =
+                InfluxDbConfig(
+                    url = options.influxDbUrl,
+                    token = requireNotNull(options.influxDbToken) { "InfluxDB token is required." },
+                    org = options.influxDbOrg,
+                    bucket = options.influxDbBucket,
+                )
+
+            val influxDbFactory = injector.getInstance(InfluxDbCandleFetcher.Factory)
+            return influxDbFactory.create(influxDbConfig)
+        }
+        
         private fun getDatabaseUsername(options: StrategyDiscoveryPipelineOptions): String? =
             options.databaseUsername.takeIf { !it.isNullOrEmpty() }
                 ?: System.getenv(DATABASE_USERNAME_ENV_VAR)
@@ -71,8 +91,9 @@ class StrategyDiscoveryPipelineRunner {
                     TemporaryCurrencyPairModule(), // Remove when nothing depends on it
                 )
             val pipeline = injector.getInstance(StrategyDiscoveryPipeline::class.java)
+            val candleFetcher = getCandleFetcher(options, injector)
 
-            pipeline.run(options)
+            pipeline.run(options, candleFetcher)
         }
     }
 }
