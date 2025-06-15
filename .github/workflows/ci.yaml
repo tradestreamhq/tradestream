@@ -47,9 +47,6 @@ jobs:
             --from-literal=INFLUXDB_TOKEN="$(openssl rand -hex 32)" \
             --from-literal=INFLUXDB_ORG="tradestream-org" \
             --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
-          kubectl create secret generic tradestream-postgres-secret \
-            --from-literal=password=fakepass \
-            --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
 
       - uses: bazel-contrib/setup-bazel@0.14.0
         with:
@@ -139,6 +136,7 @@ jobs:
             --set strategyDiscoveryPipeline.image.tag=latest \
             --set pipeline.runMode=dry \
             --set redis.enabled=true \
+            --set postgresql.enabled=true \
             --set topCryptoUpdaterCronjob.enabled=true \
             --set strategyDiscoveryRequestFactory.enabled=true \
             --set influxdb.enabled=true
