@@ -7,17 +7,18 @@ package com.verlumen.tradestream.strategies
  * The single source of truth for all implemented strategy specifications.
  * The map's keys define which strategies are considered "supported".
  */
-private val strategySpecMap: Map<StrategyType, StrategySpec> = mapOf(
-    // StrategyType.SMA_RSI to StrategySpec(
-    //     paramConfig = SmaRsiParamConfig.create(),
-    //     strategyFactory = SmaRsiStrategyFactory.create()
-    // ),
-    // StrategyType.EMA_MACD to StrategySpec(
-    //     paramConfig = EmaMacdParamConfig.create(),
-    //     strategyFactory = EmaMacdStrategyFactory.create()
-    // )
-    // To add a new strategy, just add a new entry here.
-)
+private val strategySpecMap: Map<StrategyType, StrategySpec> =
+    mapOf(
+        // StrategyType.SMA_RSI to StrategySpec(
+        //     paramConfig = SmaRsiParamConfig.create(),
+        //     strategyFactory = SmaRsiStrategyFactory.create()
+        // ),
+        // StrategyType.EMA_MACD to StrategySpec(
+        //     paramConfig = EmaMacdParamConfig.create(),
+        //     strategyFactory = EmaMacdStrategyFactory.create()
+        // )
+        // To add a new strategy, just add a new entry here.
+    )
 
 /**
  * An extension property that retrieves the corresponding [StrategySpec] from the central map.
