@@ -20,16 +20,12 @@ class BacktestRequestFactoryImpl
             private const val serialVersionUID: Long = 1L
         }
 
-    companion object {
-        private const val serialVersionUID: Long = 1L
-    }
-
-    /**
-     * Logger is marked as `transient` so that the non-serializable
-     * `FluentLogger` does not get written to the serialization stream.
-     */
-    @Transient
-    private val logger: FluentLogger = FluentLogger.forEnclosingClass()
+        /**
+         * Logger is marked as `transient` so that the non-serializable
+         * `FluentLogger` does not get written to the serialization stream.
+         */
+        @Transient
+        private val logger: FluentLogger = FluentLogger.forEnclosingClass()
 
     /**
      * Creates a [BacktestRequest] using the provided candles and strategy.
