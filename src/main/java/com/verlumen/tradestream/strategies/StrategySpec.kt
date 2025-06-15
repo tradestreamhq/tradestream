@@ -11,5 +11,5 @@ import com.verlumen.tradestream.strategies.StrategyFactory
  */
 data class StrategySpec(
     val paramConfig: ParamConfig,
-    val strategyFactory: StrategyFactory
+    val strategyFactory: StrategyFactory,
 )
