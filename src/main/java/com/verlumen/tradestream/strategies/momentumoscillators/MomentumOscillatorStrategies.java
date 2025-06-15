@@ -13,7 +13,6 @@ public final class MomentumOscillatorStrategies {
   public static final ImmutableList<StrategyFactory<?>> ALL_FACTORIES =
       ImmutableList.<StrategyFactory<?>>builder()
           .add(AdxStochasticStrategyFactory.create())
-          .add(SmaRsiStrategyFactory.create())
           .build();
 
   // Prevent instantiation

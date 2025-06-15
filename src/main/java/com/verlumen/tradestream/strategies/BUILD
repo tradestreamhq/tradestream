@@ -71,3 +71,24 @@ java_library(
         "//third_party/java:ta4j_core",
     ],
 )
+
+kt_jvm_library(
+    name = "strategy_specs",
+    srcs = [
+        "StrategySpec.kt",
+        "StrategySpecs.kt",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        # Core interfaces required by the spec definitions
+        ":strategy_factory",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:ta4j_core",
+
+        # Implementations for each strategy included in the map
+        # "//src/main/java/com/verlumen/tradestream/strategies/emamacd:emamacd_lib",
+        # "//src/main/java/com/verlumen/tradestream/strategies/smarsi:smarsi_lib",
+    ],
+)
