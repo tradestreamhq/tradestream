@@ -14,7 +14,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.Strategy;
-import com.verlumen.tradestream.strategies.StrategyManager;
 import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
 import java.time.ZonedDateTime;
@@ -35,8 +34,6 @@ import org.ta4j.core.BaseStrategy;
 public class BacktestRunnerImplTest {
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-  @Bind @Mock private StrategyManager mockStrategyManager;
-
   private List<Candle> candlesList;
   private org.ta4j.core.Strategy ta4jStrategy;
   private ZonedDateTime startTime;
@@ -48,20 +45,6 @@ public class BacktestRunnerImplTest {
     // Initialize test data
     candlesList = new ArrayList<>();
     startTime = ZonedDateTime.now();
-
-    // Create a simple strategy that enters on bar index 1 and exits on bar index 3
-    ta4jStrategy =
-        new BaseStrategy(
-            (index, series) -> index == 1, // Entry rule
-            (index, series) -> index == 3 // Exit rule
-            );
-
-    // Setup the mock strategy manager to return our ta4j strategy
-    when(mockStrategyManager.createStrategy(
-            org.mockito.ArgumentMatchers.any(BarSeries.class),
-            org.mockito.ArgumentMatchers.any(StrategyType.class),
-            org.mockito.ArgumentMatchers.any(Any.class)))
-        .thenReturn(ta4jStrategy);
 
     // Inject our dependencies
     Guice.createInjector(BoundFieldModule.of(this), Ta4jModule.create()).injectMembers(this);
@@ -160,20 +143,6 @@ public class BacktestRunnerImplTest {
     // Arrange
     // Add test data
     addTestBars(100.0, 100.0, 100.0, 100.0, 100.0);
-
-    // Create a different mock for this test that returns a no-trade strategy
-    org.ta4j.core.Strategy noTradeStrategy =
-        new BaseStrategy(
-            (index, series) -> false, // Never enter
-            (index, series) -> false // Never exit
-            );
-
-    // Override mock for this test only
-    when(mockStrategyManager.createStrategy(
-            org.mockito.ArgumentMatchers.any(BarSeries.class),
-            org.mockito.ArgumentMatchers.any(StrategyType.class),
-            org.mockito.ArgumentMatchers.any(Any.class)))
-        .thenReturn(noTradeStrategy);
 
     BacktestRequest request =
         BacktestRequest.newBuilder()
