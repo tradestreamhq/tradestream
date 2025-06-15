@@ -32,6 +32,4 @@ val StrategyType.spec: StrategySpec
  * An extension function that returns `true` if a [StrategySpec] has been
  * implemented for this [StrategyType] by checking for its key in the central map.
  */
-fun StrategyType.isSupported(): Boolean {
-    return strategySpecMap.containsKey(this)
-}
+fun StrategyType.isSupported(): Boolean = strategySpecMap.containsKey(this)
