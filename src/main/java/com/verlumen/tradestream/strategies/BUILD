@@ -71,3 +71,16 @@ java_library(
         "//third_party/java:ta4j_core",
     ],
 )
+
+kt_jvm_library(
+    name = "strategy_spec",
+    srcs = [
+        "StrategySpec.kt",
+        "StrategySpecManager.kt",
+    ],
+    deps = [
+        ":strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
+        "//third_party/java:guice",
+    ],
+)
