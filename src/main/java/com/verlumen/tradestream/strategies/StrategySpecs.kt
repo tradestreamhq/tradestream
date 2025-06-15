@@ -14,10 +14,11 @@ import com.verlumen.tradestream.strategies.smarsi.*
  */
 private val strategySpecMap: Map<StrategyType, StrategySpec> =
     mapOf(
-        StrategyType.SMA_RSI to StrategySpec(
-            paramConfig = SmaRsiParamConfig.create(),
-            strategyFactory = SmaRsiStrategyFactory.create()
-        ),
+        StrategyType.SMA_RSI to
+            StrategySpec(
+                paramConfig = SmaRsiParamConfig.create(),
+                strategyFactory = SmaRsiStrategyFactory.create(),
+            ),
         // StrategyType.EMA_MACD to StrategySpec(
         //     paramConfig = EmaMacdParamConfig.create(),
         //     strategyFactory = EmaMacdStrategyFactory.create()
