@@ -13,45 +13,37 @@ import java.io.Serializable
  */
 class BacktestRequestFactoryImpl
     @Inject
-    constructor() : BacktestRequestFactory,
-    Serializable {
+    constructor() :
+    BacktestRequestFactory,
+        Serializable {
+        companion object {
+            private const val serialVersionUID: Long = 1L
+            private val logger: FluentLogger = FluentLogger.forEnclosingClass()
+        }
 
-    companion object {
-        private const val serialVersionUID: Long = 1L
-    }
+        /**
+         * Creates a [BacktestRequest] using the provided candles and strategy.
+         *
+         * @param candles  The list of historical price candles.
+         * @param strategy The trading strategy to be backtested.
+         * @return A configured [BacktestRequest] object.
+         */
+        override fun create(
+            candles: List<Candle>,
+            strategy: Strategy,
+        ): BacktestRequest {
+            logger.atFine().log(
+                "Creating BacktestRequest for strategy: %s with %d candles.",
+                strategy.javaClass.simpleName,
+                candles.size,
+            )
 
-    /**
-     * Logger is marked as `transient` so that the non-serializable
-     * `FluentLogger` does not get written to the serialization stream.
-     */
-    @Transient
-    private val logger: FluentLogger = FluentLogger.forEnclosingClass()
-
-    /**
-     * Creates a [BacktestRequest] using the provided candles and strategy.
-     * Logs the creation event.
-     *
-     * @param candles  The list of historical price candles.
-     * @param strategy The trading strategy to be backtested.
-     * @return A configured [BacktestRequest] object.
-     */
-    override fun create(
-        candles: List<Candle>,
-        strategy: Strategy,
-    ): BacktestRequest {
-        logger.atFine().log(
-            "Creating BacktestRequest for strategy: %s with %d candles.",
-            strategy.javaClass.simpleName,
-            candles.size,
-        )
-
-        // Build the BacktestRequest using the protobuf builder
-        val request =
-            BacktestRequest
-                .newBuilder()
-                .addAllCandles(candles) // Add all candles
-                .setStrategy(strategy)  // Attach the strategy
-                .build()
+            val request =
+                BacktestRequest
+                    .newBuilder()
+                    .addAllCandles(candles)
+                    .setStrategy(strategy)
+                    .build()
 
         logger.atFine().log("BacktestRequest created successfully.")
         return request
