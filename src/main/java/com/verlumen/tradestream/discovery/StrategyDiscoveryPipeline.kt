@@ -22,7 +22,7 @@ class StrategyDiscoveryPipeline
     constructor(
         private val runGAFn: RunGADiscoveryFn,
         private val extractFn: ExtractDiscoveredStrategiesFn,
-        private val writeFnFactory: WriteDiscoveredStrategiesToPostgresFnFactory,
+        private val sinkFactory: DiscoveredStrategySinkFactory,
         private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
     ) {
         fun run(options: StrategyDiscoveryPipelineOptions) {
@@ -43,7 +43,7 @@ class StrategyDiscoveryPipeline
                 )
 
             val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
-            val writeFn = writeFnFactory.create(dataSourceConfig)
+            val sink = sinkFactory.create(dataSourceConfig)
 
             val pipeline = Pipeline.create(options)
 
@@ -51,7 +51,7 @@ class StrategyDiscoveryPipeline
                 .apply("ReadDiscoveryRequests", discoveryRequestSource)
                 .apply("RunGAStrategyDiscovery", ParDo.of(runGAFn))
                 .apply("ExtractStrategies", ParDo.of(extractFn))
-                .apply("WriteToPostgreSQL", ParDo.of(writeFn))
+                .apply("WriteToSink", ParDo.of(sink))
 
             pipeline.run().waitUntilFinish()
         }
