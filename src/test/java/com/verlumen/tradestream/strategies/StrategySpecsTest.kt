@@ -12,12 +12,11 @@ import kotlin.test.assertFailsWith
 
 @RunWith(TestParameterInjector::class)
 class StrategySpecsTest {
-
     private val barSeries = BaseBarSeries()
 
     @Test
     fun `createStrategy with default parameters returns strategy`(
-        @TestParameter strategyType: StrategyType
+        @TestParameter strategyType: StrategyType,
     ) {
         // Skip if strategy not implemented yet
         assumeTrue("$strategyType strategy not implemented yet", strategyType.isSupported())
@@ -31,7 +30,7 @@ class StrategySpecsTest {
 
     @Test
     fun `createStrategy with custom parameters returns strategy`(
-        @TestParameter strategyType: StrategyType
+        @TestParameter strategyType: StrategyType,
     ) {
         // Skip if strategy not implemented yet
         assumeTrue("$strategyType strategy not implemented yet", strategyType.isSupported())
@@ -48,7 +47,7 @@ class StrategySpecsTest {
 
     @Test
     fun `getDefaultParameters returns packed default parameters`(
-        @TestParameter strategyType: StrategyType
+        @TestParameter strategyType: StrategyType,
     ) {
         // Skip if strategy not implemented yet
         assumeTrue("$strategyType strategy not implemented yet", strategyType.isSupported())
@@ -63,7 +62,7 @@ class StrategySpecsTest {
 
     @Test
     fun `getStrategyFactory returns correct factory`(
-        @TestParameter strategyType: StrategyType
+        @TestParameter strategyType: StrategyType,
     ) {
         // Skip if strategy not implemented yet
         assumeTrue("$strategyType strategy not implemented yet", strategyType.isSupported())
@@ -78,7 +77,7 @@ class StrategySpecsTest {
 
     @Test
     fun `spec property returns correct spec for supported types`(
-        @TestParameter strategyType: StrategyType
+        @TestParameter strategyType: StrategyType,
     ) {
         // Skip if strategy not implemented yet
         assumeTrue("$strategyType strategy not implemented yet", strategyType.isSupported())
@@ -93,7 +92,7 @@ class StrategySpecsTest {
 
     @Test
     fun `isSupported returns correct value for strategy type`(
-        @TestParameter strategyType: StrategyType
+        @TestParameter strategyType: StrategyType,
     ) {
         // Act
         val isSupported = strategyType.isSupported()
@@ -109,61 +108,65 @@ class StrategySpecsTest {
 
     @Test
     fun `unsupported strategy type throws NotImplementedError for spec property`(
-        @TestParameter strategyType: StrategyType
+        @TestParameter strategyType: StrategyType,
     ) {
         // Only test unsupported types
         assumeTrue("$strategyType is supported, skipping error test", !strategyType.isSupported())
 
         // Act & Assert
-        val exception = assertFailsWith<NotImplementedError> {
-            strategyType.spec
-        }
-        
+        val exception =
+            assertFailsWith<NotImplementedError> {
+                strategyType.spec
+            }
+
         assertThat(exception.message).contains("No StrategySpec defined for strategy type: $strategyType")
     }
 
     @Test
     fun `unsupported strategy type throws NotImplementedError for createStrategy`(
-        @TestParameter strategyType: StrategyType
+        @TestParameter strategyType: StrategyType,
     ) {
         // Only test unsupported types
         assumeTrue("$strategyType is supported, skipping error test", !strategyType.isSupported())
 
         // Act & Assert
-        val exception = assertFailsWith<NotImplementedError> {
-            strategyType.createStrategy(barSeries)
-        }
-        
+        val exception =
+            assertFailsWith<NotImplementedError> {
+                strategyType.createStrategy(barSeries)
+            }
+
         assertThat(exception.message).contains("No StrategySpec defined for strategy type: $strategyType")
     }
 
     @Test
     fun `unsupported strategy type throws NotImplementedError for getStrategyFactory`(
-        @TestParameter strategyType: StrategyType
+        @TestParameter strategyType: StrategyType,
     ) {
         // Only test unsupported types
         assumeTrue("$strategyType is supported, skipping error test", !strategyType.isSupported())
 
         // Act & Assert
-        val exception = assertFailsWith<NotImplementedError> {
-            strategyType.getStrategyFactory()
-        }
-        
+        val exception =
+            assertFailsWith<NotImplementedError> {
+                strategyType.getStrategyFactory()
+            }
+
         assertThat(exception.message).contains("No StrategySpec defined for strategy type: $strategyType")
     }
 
     @Test
     fun `unsupported strategy type throws NotImplementedError for getDefaultParameters`(
-        @TestParameter strategyType: StrategyType
+        @TestParameter strategyType: StrategyType,
     ) {
         // Only test unsupported types
         assumeTrue("$strategyType is supported, skipping error test", !strategyType.isSupported())
 
         // Act & Assert
-        val exception = assertFailsWith<NotImplementedError> {
-            strategyType.getDefaultParameters()
-        }
-        
+        val exception =
+            assertFailsWith<NotImplementedError> {
+                strategyType.getDefaultParameters()
+            }
+
         assertThat(exception.message).contains("No StrategySpec defined for strategy type: $strategyType")
     }
 

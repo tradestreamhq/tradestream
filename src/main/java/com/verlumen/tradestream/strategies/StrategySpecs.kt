@@ -49,9 +49,7 @@ fun StrategyType.isSupported(): Boolean = strategySpecMap.containsKey(this)
  * @throws InvalidProtocolBufferException if there is an error unpacking the default parameters
  */
 @Throws(InvalidProtocolBufferException::class)
-fun StrategyType.createStrategy(barSeries: BarSeries): Strategy {
-    return createStrategy(barSeries, getDefaultParameters())
-}
+fun StrategyType.createStrategy(barSeries: BarSeries): Strategy = createStrategy(barSeries, getDefaultParameters())
 
 /**
  * Extension function to create a new Ta4j Strategy instance using provided parameters.
@@ -62,9 +60,10 @@ fun StrategyType.createStrategy(barSeries: BarSeries): Strategy {
  * @throws InvalidProtocolBufferException if there is an error unpacking the parameters
  */
 @Throws(InvalidProtocolBufferException::class)
-fun StrategyType.createStrategy(barSeries: BarSeries, parameters: Any): Strategy {
-    return getStrategyFactory().createStrategy(barSeries, parameters)
-}
+fun StrategyType.createStrategy(
+    barSeries: BarSeries,
+    parameters: Any,
+): Strategy = getStrategyFactory().createStrategy(barSeries, parameters)
 
 /**
  * Extension function to retrieve the default configuration parameters for this strategy type.
@@ -74,9 +73,7 @@ fun StrategyType.createStrategy(barSeries: BarSeries, parameters: Any): Strategy
  *
  * @return an Any message containing the default parameters for this strategy type
  */
-fun StrategyType.getDefaultParameters(): Any {
-    return Any.pack(getStrategyFactory().getDefaultParameters())
-}
+fun StrategyType.getDefaultParameters(): Any = Any.pack(getStrategyFactory().getDefaultParameters())
 
 /**
  * Extension function to retrieve the StrategyFactory corresponding to this strategy type.
@@ -86,9 +83,7 @@ fun StrategyType.getDefaultParameters(): Any {
  *
  * @return the StrategyFactory associated with this strategy type
  */
-fun StrategyType.getStrategyFactory(): StrategyFactory<*> {
-    return this.spec.strategyFactory
-}
+fun StrategyType.getStrategyFactory(): StrategyFactory<*> = this.spec.strategyFactory
 
 /**
  * Returns a list of all supported strategy types.
@@ -98,6 +93,4 @@ fun StrategyType.getStrategyFactory(): StrategyFactory<*> {
  *
  * @return a list of supported StrategyType instances
  */
-fun getSupportedStrategyTypes(): List<StrategyType> {
-    return strategySpecMap.keys.toList()
-}
+fun getSupportedStrategyTypes(): List<StrategyType> = strategySpecMap.keys.toList()
