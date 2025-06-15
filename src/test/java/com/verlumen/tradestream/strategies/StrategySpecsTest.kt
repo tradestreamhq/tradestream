@@ -18,7 +18,7 @@ class StrategySpecsTest {
         assumeFalse(
             "Skipping special enum value",
             strategyType == StrategyType.UNRECOGNIZED ||
-                strategyType == StrategyType.STRATEGY_TYPE_UNSPECIFIED,
+                strategyType == StrategyType.UNSPECIFIED,
         )
 
         // The assertion that matters. This will fail for any valid strategy
