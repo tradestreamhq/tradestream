@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.momentumoscillators;
+package com.verlumen.tradestream.backtesting.smarsi;
 
 import static com.google.common.truth.Truth.assertThat;
 
