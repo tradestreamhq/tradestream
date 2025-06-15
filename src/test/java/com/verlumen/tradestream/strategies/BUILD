@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_test")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 
 java_test(
     name = "StrategyManagerImplTest",
