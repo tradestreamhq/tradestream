@@ -8,7 +8,7 @@ package(
 )
 
 java_library(
-    name = "adx_stochastic_param_config",
+    name = "param_config",
     srcs = ["AdxStochasticParamConfig.java"],
     deps = [
         "//protos:strategies_java_proto",
@@ -21,7 +21,7 @@ java_library(
 )
 
 java_library(
-    name = "adx_stochastic_strategy_factory",
+    name = "strategy_factory",
     srcs = ["AdxStochasticStrategyFactory.java"],
     deps = [
         "//protos:strategies_java_proto",
