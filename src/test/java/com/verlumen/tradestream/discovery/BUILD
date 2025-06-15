@@ -197,7 +197,6 @@ kt_jvm_test(
         "//src/main/java/com/verlumen/tradestream/discovery:extract_discovered_strategies_fn",
         "//src/main/java/com/verlumen/tradestream/discovery:write_discovered_strategies_to_postgres_fn",
         "//src/main/java/com/verlumen/tradestream/discovery:discovery_request_source",
-        "//src/main/java/com/verlumen/tradestream/discovery:deserialize_strategy_discovery_request_fn",
         # Backtesting dependencies (from existing test)
         # SQL and database dependencies
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
