@@ -64,6 +64,7 @@ java_test(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
         "//src/main/java/com/verlumen/tradestream/backtesting:run_backtest",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_test_utils",
         "//third_party/java:guice",
