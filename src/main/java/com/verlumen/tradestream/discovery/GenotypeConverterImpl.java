@@ -3,6 +3,8 @@ package com.verlumen.tradestream.discovery;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
+import com.verlumen.tradestream.strategies.StrategySpec;
+import com.verlumen.tradestream.strategies.StrategySpecsKt;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Chromosome;
 import io.jenetics.Genotype;
@@ -16,13 +18,8 @@ import java.util.Objects;
  * conversion logic to make it reusable and testable.
  */
 final class GenotypeConverterImpl implements GenotypeConverter {
-
-  private final ParamConfigManager paramConfigManager;
-
   @Inject
-  GenotypeConverterImpl(ParamConfigManager paramConfigManager) {
-    this.paramConfigManager = paramConfigManager;
-  }
+  GenotypeConverterImpl() {}
 
   /**
    * Converts the genotype from the genetic algorithm into strategy parameters.
@@ -40,7 +37,8 @@ final class GenotypeConverterImpl implements GenotypeConverter {
     Objects.requireNonNull(type, "Strategy type cannot be null");
 
     // Get the parameter configuration for the strategy
-    ParamConfig config = paramConfigManager.getParamConfig(type);
+    StrategySpec spec = StrategySpecsKt.getSpec(params.getStrategyType());
+    ParamConfig config = spec.getParamConfig();
 
     // Extract chromosomes from the genotype
     List<NumericChromosome<?, ?>> chromosomes = new ArrayList<>();
