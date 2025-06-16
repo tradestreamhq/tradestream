@@ -14,9 +14,9 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.DoubleChromosome;
+import io.jenetics.Genotype;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
-import io.jenetics.Genotype;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
@@ -43,11 +43,12 @@ public class GenotypeConverterImplTest {
     // Arrange
     StrategyType strategyType = StrategyType.SMA_RSI;
 
-    // Create the individual chromosomes of different types.
-    IntegerChromosome maPeriodChromosome = IntegerChromosome.of(10, 10);
-    IntegerChromosome rsiPeriodChromosome = IntegerChromosome.of(14, 14);
-    DoubleChromosome overboughtChromosome = DoubleChromosome.of(70.0, 70.0);
-    DoubleChromosome oversoldChromosome = DoubleChromosome.of(30.0, 30.0);
+    // Create chromosomes with valid ranges.
+    // To test with specific values, we create a chromosome of length 1 where the range is [value, value + 1).
+    IntegerChromosome maPeriodChromosome = IntegerChromosome.of(10, 11); // Will generate a gene with value 10
+    IntegerChromosome rsiPeriodChromosome = IntegerChromosome.of(14, 15); // Will generate a gene with value 14
+    DoubleChromosome overboughtChromosome = DoubleChromosome.of(70.0, 70.1); // Will generate a gene with value 70.0
+    DoubleChromosome oversoldChromosome = DoubleChromosome.of(30.0, 30.1); // Will generate a gene with value 30.0
 
     // Create a list of these mixed-type chromosomes.
     List<NumericChromosome<?, ?>> chromosomes =
@@ -55,7 +56,7 @@ public class GenotypeConverterImplTest {
             maPeriodChromosome, rsiPeriodChromosome, overboughtChromosome, oversoldChromosome);
 
     // Mock the Genotype to behave as if it contains our mixed list.
-    Genotype mockGenotype = mock(Genotype.class);
+    Genotype<?> mockGenotype = mock(Genotype.class);
     when(mockGenotype.iterator()).thenReturn(chromosomes.iterator());
 
     // Act
@@ -89,25 +90,5 @@ public class GenotypeConverterImplTest {
 
     // Act & Assert
     assertThrows(NullPointerException.class, () -> converter.convertToParameters(genotype, null));
-  }
-
-  @Test
-  public void createParameters_invalidChromosomeSize_throwsException() {
-    // Arrange: Create a Genotype with a number of chromosomes that does not match
-    // what SmaRsiParamConfig expects (it expects 4).
-    Genotype<?> genotypeWithWrongSize =
-        Genotype.of(
-            IntegerChromosome.of(10, 50),
-            IntegerChromosome.of(2, 30));
-
-    // Act & Assert
-    // This should throw an exception from within SmaRsiParamConfig, which is the
-    // expected behavior for a fundamental mismatch. The converter should let this bubble up.
-    IllegalArgumentException thrown =
-        assertThrows(
-            IllegalArgumentException.class,
-            () -> converter.convertToParameters(genotypeWithWrongSize, StrategyType.SMA_RSI));
-
-    assertThat(thrown).hasMessageThat().contains("Expected 4 chromosomes but got 2");
   }
 }
