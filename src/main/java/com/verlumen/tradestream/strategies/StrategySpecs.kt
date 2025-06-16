@@ -5,6 +5,7 @@ import com.google.protobuf.InvalidProtocolBufferException
 import org.ta4j.core.BarSeries
 import org.ta4j.core.Strategy
 
+import com.verlumen.tradestream.strategies.adxstochastic.*
 // import com.verlumen.tradestream.strategies.emamacd.*
 import com.verlumen.tradestream.strategies.smarsi.SmaRsiParamConfig
 import com.verlumen.tradestream.strategies.smarsi.SmaRsiStrategyFactory
@@ -15,6 +16,11 @@ import com.verlumen.tradestream.strategies.smarsi.SmaRsiStrategyFactory
  */
 private val strategySpecMap: Map<StrategyType, StrategySpec> =
     mapOf(
+        StrategyType.ADX_STOCHASTIC to
+            StrategySpec(
+                paramConfig = AdxStochasticParamConfig(),
+                strategyFactory = AdxStochasticStrategyFactory(),
+            ),
         StrategyType.SMA_RSI to
             StrategySpec(
                 paramConfig = SmaRsiParamConfig(),

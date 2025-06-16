@@ -83,12 +83,12 @@ kt_jvm_library(
         ":strategy_factory",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:param_config",
-        "//src/main/java/com/verlumen/tradestream/strategies/smarsi:spec",
         "//third_party/java:protobuf_java",
         "//third_party/java:ta4j_core",
 
         # Implementations for each strategy included in the map
-        # "//src/main/java/com/verlumen/tradestream/strategies/emamacd:emamacd_lib",
-        # "//src/main/java/com/verlumen/tradestream/strategies/smarsi:smarsi_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:spec",
+        # "//src/main/java/com/verlumen/tradestream/strategies/emamacd:spec",
+        "//src/main/java/com/verlumen/tradestream/strategies/smarsi:spec",
     ],
 )
