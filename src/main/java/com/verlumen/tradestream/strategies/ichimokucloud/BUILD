@@ -1,7 +1,8 @@
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = [
-    "//src/test/java/com/verlumen/tradestream/strategies/ichimokucloud:__pkg__"])
+    "//src/test/java/com/verlumen/tradestream/strategies/ichimokucloud:__pkg__",
+])
 
 java_library(
     name = "param_config",
