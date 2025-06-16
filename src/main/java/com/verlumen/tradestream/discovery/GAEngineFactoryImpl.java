@@ -1,6 +1,8 @@
 package com.verlumen.tradestream.discovery;
 
 import com.google.inject.Inject;
+import com.verlumen.tradestream.strategies.StrategySpec;
+import com.verlumen.tradestream.strategies.StrategySpecsKt;
 import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.Genotype;
@@ -17,13 +19,10 @@ import java.util.logging.Logger;
 final class GAEngineFactoryImpl implements GAEngineFactory {
   private static final Logger logger = Logger.getLogger(GAEngineFactoryImpl.class.getName());
 
-  private final ParamConfigManager paramConfigManager;
   private final FitnessFunctionFactory fitnessFunctionFactory;
 
   @Inject
-  GAEngineFactoryImpl(
-      ParamConfigManager paramConfigManager, FitnessFunctionFactory fitnessFunctionFactory) {
-    this.paramConfigManager = paramConfigManager;
+  GAEngineFactoryImpl(FitnessFunctionFactory fitnessFunctionFactory) {
     this.fitnessFunctionFactory = fitnessFunctionFactory;
   }
 
@@ -51,7 +50,8 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
    */
   private Genotype<?> createGenotype(GAEngineParams params) {
     try {
-      ParamConfig config = paramConfigManager.getParamConfig(params.getStrategyType());
+      StrategySpec spec = StrategySpecsKt.getSpec(params.getStrategyType());
+      ParamConfig config = spec.getParamConfig();
 
       // Get the chromosomes from the parameter configuration
       List<? extends NumericChromosome<?, ?>> numericChromosomes = config.initialChromosomes();
