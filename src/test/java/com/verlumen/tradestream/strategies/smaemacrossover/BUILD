@@ -6,7 +6,7 @@ java_test(
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
-        "//src/main/java/com/verlumen/tradestream/strategies/movingaverages:movingaverages_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/smaemacrossover:movingaverages_lib",
         "//third_party/java:flogger",
         "//third_party/java:guava",
         "//third_party/java:guice",
