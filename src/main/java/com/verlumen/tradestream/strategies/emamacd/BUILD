@@ -8,7 +8,7 @@ package(
 )
 
 java_library(
-    name = "ema_macd_param_config",
+    name = "param_config",
     srcs = ["EmaMacdParamConfig.java"],
     deps = [
         "//protos:strategies_java_proto",
