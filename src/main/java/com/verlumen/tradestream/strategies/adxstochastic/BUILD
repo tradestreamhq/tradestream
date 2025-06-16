@@ -2,7 +2,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 
 package(
     default_visibility = [
-        "//src/test/java/com/verlumen/tradestream/strategies:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/strategies/adxstochastic:__pkg__",
     ],
 )
 
