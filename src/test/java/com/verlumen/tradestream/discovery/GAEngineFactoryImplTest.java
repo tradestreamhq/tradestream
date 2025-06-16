@@ -10,9 +10,8 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-// Import the new GAEngineParams class
 import com.verlumen.tradestream.discovery.GAEngineParams;
-import com.verlumen.tradestream.marketdata.Candle; // Import Candle
+import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Genotype;
 import io.jenetics.engine.Engine;
@@ -31,7 +30,6 @@ import org.mockito.junit.MockitoRule;
 public class GAEngineFactoryImplTest {
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-  @Bind @Mock private ParamConfigManager mockParamConfigManager;
   @Bind @Mock private FitnessFunctionFactory mockFitnessFunctionFactory;
   @Bind @Mock private ParamConfig mockParamConfig;
 
@@ -49,8 +47,6 @@ public class GAEngineFactoryImplTest {
             20);
 
     // Configure mocks
-    when(mockParamConfigManager.getParamConfig(any(StrategyType.class)))
-        .thenReturn(mockParamConfig);
     when(mockParamConfig.initialChromosomes()).thenReturn(ImmutableList.of());
 
     // Mock the fitness calculator to return a dummy function
