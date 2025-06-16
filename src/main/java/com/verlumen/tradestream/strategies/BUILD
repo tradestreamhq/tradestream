@@ -29,7 +29,6 @@ java_library(
     srcs = ["StrategyFactories.java"],
     deps = [
         ":strategy_factory",
-        "//src/main/java/com/verlumen/tradestream/strategies/momentumoscillators:oscillators_lib",
         "//src/main/java/com/verlumen/tradestream/strategies/movingaverages:movingaverages_lib",
         "//third_party/java:guava",
     ],

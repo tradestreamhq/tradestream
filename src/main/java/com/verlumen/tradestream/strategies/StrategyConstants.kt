@@ -5,6 +5,5 @@ object StrategyConstants {
     val supportedStrategyTypes: Set<StrategyType> =
         setOf(
             StrategyType.EMA_MACD,
-            StrategyType.ADX_STOCHASTIC,
         )
 }

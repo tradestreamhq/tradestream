@@ -10,7 +10,5 @@ import com.verlumen.tradestream.discovery.ParamConfig
 object MomentumOscillatorParams {
     @JvmField
     val allConfigs: List<ParamConfig> =
-        listOf(
-            AdxStochasticParamConfig.create(),
-        )
+        emptyList()
 }
