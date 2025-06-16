@@ -65,6 +65,4 @@ public final class AdxStochasticStrategyFactory
   public StrategyType getStrategyType() {
     return StrategyType.ADX_STOCHASTIC;
   }
-
-  private AdxStochasticStrategyFactory() {}
 }
