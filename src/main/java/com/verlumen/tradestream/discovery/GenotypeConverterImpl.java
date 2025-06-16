@@ -37,7 +37,7 @@ final class GenotypeConverterImpl implements GenotypeConverter {
     Objects.requireNonNull(type, "Strategy type cannot be null");
 
     // Get the parameter configuration for the strategy
-    StrategySpec spec = StrategySpecsKt.getSpec(params.getStrategyType());
+    StrategySpec spec = StrategySpecsKt.getSpec(type);
     ParamConfig config = spec.getParamConfig();
 
     // Extract chromosomes from the genotype
