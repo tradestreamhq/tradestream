@@ -6,7 +6,7 @@ import org.ta4j.core.BarSeries
 import org.ta4j.core.Strategy
 
 // import com.verlumen.tradestream.strategies.emamacd.*
-// import com.verlumen.tradestream.strategies.smarsi.*
+import com.verlumen.tradestream.strategies.smarsi.*
 
 /**
  * The single source of truth for all implemented strategy specifications.
@@ -14,10 +14,11 @@ import org.ta4j.core.Strategy
  */
 private val strategySpecMap: Map<StrategyType, StrategySpec> =
     mapOf(
-        // StrategyType.SMA_RSI to StrategySpec(
-        //     paramConfig = SmaRsiParamConfig.create(),
-        //     strategyFactory = SmaRsiStrategyFactory.create()
-        // ),
+        StrategyType.SMA_RSI to
+            StrategySpec(
+                paramConfig = SmaRsiParamConfig.create(),
+                strategyFactory = SmaRsiStrategyFactory.create(),
+            ),
         // StrategyType.EMA_MACD to StrategySpec(
         //     paramConfig = EmaMacdParamConfig.create(),
         //     strategyFactory = EmaMacdStrategyFactory.create()

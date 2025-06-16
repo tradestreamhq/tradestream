@@ -7,7 +7,7 @@ package(
 )
 
 java_library(
-    name = "sma_rsi_param_config",
+    name = "param_config",
     srcs = ["SmaRsiParamConfig.java"],
     deps = [
         "//protos:strategies_java_proto",
@@ -20,7 +20,7 @@ java_library(
 )
 
 java_library(
-    name = "sma_rsi_strategy_factory",
+    name = "strategy_factory",
     srcs = ["SmaRsiStrategyFactory.java"],
     deps = [
         "//protos:strategies_java_proto",
@@ -28,5 +28,14 @@ java_library(
         "//third_party/java:guava",
         "//third_party/java:protobuf_java",
         "//third_party/java:ta4j_core",
+    ],
+)
+
+java_library(
+    name = "spec",
+    visibility = ["//src/main/java/com/verlumen/tradestream/strategies:__pkg__"],
+    exports = [
+        ":param_config",
+        ":strategy_factory",
     ],
 )

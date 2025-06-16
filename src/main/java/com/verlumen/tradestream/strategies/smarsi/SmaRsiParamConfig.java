@@ -10,7 +10,7 @@ import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.util.logging.Logger;
 
-final class SmaRsiParamConfig implements ParamConfig {
+public final class SmaRsiParamConfig implements ParamConfig {
   private static final Logger logger = Logger.getLogger(SmaRsiParamConfig.class.getName());
 
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
@@ -23,7 +23,7 @@ final class SmaRsiParamConfig implements ParamConfig {
           ChromosomeSpec.ofDouble(15.0, 40.0) // Oversold Threshold
           );
 
-  static SmaRsiParamConfig create() {
+  public static SmaRsiParamConfig create() {
     return new SmaRsiParamConfig();
   }
 

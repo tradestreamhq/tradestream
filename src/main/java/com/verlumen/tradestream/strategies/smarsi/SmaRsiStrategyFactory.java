@@ -15,8 +15,8 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
-final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
-  static SmaRsiStrategyFactory create() {
+public final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
+  public static SmaRsiStrategyFactory create() {
     return new SmaRsiStrategyFactory();
   }
 
