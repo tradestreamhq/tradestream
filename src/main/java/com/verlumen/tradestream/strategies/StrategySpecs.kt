@@ -6,7 +6,8 @@ import org.ta4j.core.BarSeries
 import org.ta4j.core.Strategy
 
 // import com.verlumen.tradestream.strategies.emamacd.*
-import com.verlumen.tradestream.strategies.smarsi.*
+import com.verlumen.tradestream.strategies.smarsi.SmaRsiParamConfig
+import com.verlumen.tradestream.strategies.smarsi.SmaRsiStrategyFactory
 
 /**
  * The single source of truth for all implemented strategy specifications.
