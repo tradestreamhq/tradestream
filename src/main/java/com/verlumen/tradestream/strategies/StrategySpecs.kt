@@ -11,6 +11,8 @@ import com.verlumen.tradestream.strategies.emamacd.EmaMacdParamConfig
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdStrategyFactory
 import com.verlumen.tradestream.strategies.smarsi.SmaRsiParamConfig
 import com.verlumen.tradestream.strategies.smarsi.SmaRsiStrategyFactory
+import org.ta4j.core.BarSeries
+import org.ta4j.core.Strategy
 
 /**
  * The single source of truth for all implemented strategy specifications.
