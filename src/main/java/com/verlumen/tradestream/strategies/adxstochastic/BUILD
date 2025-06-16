@@ -30,3 +30,12 @@ java_library(
         "//third_party/java:ta4j_core",
     ],
 )
+
+java_library(
+    name = "spec",
+    visibility = ["//src/main/java/com/verlumen/tradestream/strategies:__pkg__"],
+    exports = [
+        ":param_config",
+        ":strategy_factory",
+    ],
+)
