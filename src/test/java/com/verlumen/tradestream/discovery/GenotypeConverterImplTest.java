@@ -31,8 +31,7 @@ import org.mockito.junit.MockitoRule;
 public class GenotypeConverterImplTest {
   @Rule public MockitoRule rule = MockitoJUnit.rule();
 
-  @Bind @Mock private ParamConfigManager mockParamConfigManager;
-  @Bind @Mock private ParamConfig mockParamConfig;
+  @Mock private ParamConfig mockParamConfig;
 
   @Inject private GenotypeConverterImpl converter;
 
