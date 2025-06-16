@@ -2,14 +2,12 @@ package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
-import static org.mockito.Mockito.when;
+import static com.verlumen.tradestream.strategies.StrategySpecsKt.getDefaultParameters;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.marketdata.Candle;
@@ -24,18 +22,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.BaseStrategy;
 
 @RunWith(JUnit4.class)
 public class BacktestRunnerImplTest {
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
   private List<Candle> candlesList;
-  private org.ta4j.core.Strategy ta4jStrategy;
   private ZonedDateTime startTime;
 
   @Inject private BacktestRunnerImpl backtestRunner;
@@ -45,7 +39,6 @@ public class BacktestRunnerImplTest {
     // Initialize test data
     candlesList = new ArrayList<>();
     startTime = ZonedDateTime.now();
-
 
     // Inject our dependencies
     Guice.createInjector(BoundFieldModule.of(this), Ta4jModule.create()).injectMembers(this);
@@ -57,7 +50,7 @@ public class BacktestRunnerImplTest {
     BacktestRequest request =
         BacktestRequest.newBuilder()
             .addAllCandles(ImmutableList.of()) // Empty candles list
-            .setStrategy(Strategy.newBuilder().setType(StrategyType.SMA_RSI).build())
+            .setStrategy(createStrategyWithDefaults(StrategyType.SMA_RSI))
             .build();
 
     // Act & Assert
@@ -77,7 +70,7 @@ public class BacktestRunnerImplTest {
     BacktestRequest request =
         BacktestRequest.newBuilder()
             .addAllCandles(candlesList)
-            .setStrategy(Strategy.newBuilder().setType(StrategyType.SMA_RSI).build())
+            .setStrategy(createStrategyWithDefaults(StrategyType.SMA_RSI))
             .build();
 
     // Act
@@ -105,7 +98,7 @@ public class BacktestRunnerImplTest {
     BacktestRequest request =
         BacktestRequest.newBuilder()
             .addAllCandles(candlesList)
-            .setStrategy(Strategy.newBuilder().setType(StrategyType.SMA_RSI).build())
+            .setStrategy(createStrategyWithDefaults(StrategyType.SMA_RSI))
             .build();
 
     // Act
@@ -127,7 +120,7 @@ public class BacktestRunnerImplTest {
     BacktestRequest request =
         BacktestRequest.newBuilder()
             .addAllCandles(candlesList)
-            .setStrategy(Strategy.newBuilder().setType(StrategyType.SMA_RSI).build())
+            .setStrategy(createStrategyWithDefaults(StrategyType.SMA_RSI))
             .build();
 
     // Act
@@ -148,7 +141,7 @@ public class BacktestRunnerImplTest {
     BacktestRequest request =
         BacktestRequest.newBuilder()
             .addAllCandles(candlesList)
-            .setStrategy(Strategy.newBuilder().setType(StrategyType.SMA_RSI).build())
+            .setStrategy(createStrategyWithDefaults(StrategyType.SMA_RSI))
             .build();
 
     // Act
@@ -158,6 +151,39 @@ public class BacktestRunnerImplTest {
     assertThat(result.getNumberOfTrades()).isEqualTo(0);
     assertThat(result.getWinRate()).isEqualTo(0.0);
     assertThat(result.getAverageTradeDuration()).isEqualTo(0.0);
+  }
+
+  @Test
+  public void runBacktest_withStrategyWithoutParameters_throwsException() {
+    // Arrange
+    addTestBars(100.0, 101.0, 102.0, 103.0, 104.0);
+
+    // Create strategy without parameters (like the original failing tests)
+    Strategy strategyWithoutParams = Strategy.newBuilder()
+        .setType(StrategyType.SMA_RSI)
+        .build();
+
+    BacktestRequest request =
+        BacktestRequest.newBuilder()
+            .addAllCandles(candlesList)
+            .setStrategy(strategyWithoutParams)
+            .build();
+
+    // Act & Assert
+    IllegalArgumentException thrown =
+        assertThrows(IllegalArgumentException.class, () -> backtestRunner.runBacktest(request));
+
+    assertThat(thrown).hasMessageThat().contains("Strategy must have valid parameters");
+    assertThat(thrown).hasMessageThat().contains("Use getDefaultParameters(strategyType)");
+    assertThat(thrown).hasMessageThat().contains("SMA_RSI");
+  }
+
+  // Helper method to create properly configured strategies
+  private Strategy createStrategyWithDefaults(StrategyType strategyType) {
+    return Strategy.newBuilder()
+        .setType(strategyType)
+        .setParameters(getDefaultParameters(strategyType)) // Kotlin extension function called from Java
+        .build();
   }
 
   private void addTestBars(double... prices) {
