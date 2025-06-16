@@ -1,9 +1,11 @@
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = [
+    "//src/test/java/com/verlumen/tradestream/strategies/ichimokucloud:__pkg__",
+])
 
 java_library(
-    name = "ichimoku_cloud_param_config",
+    name = "param_config",
     srcs = ["IchimokuCloudParamConfig.java"],
     deps = [
         "//protos:strategies_java_proto",
@@ -12,14 +14,5 @@ java_library(
         "//third_party/java:guava",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
-    ],
-)
-
-kt_jvm_library(
-    name = "trend_following_params",
-    srcs = ["TrendFollowingParams.kt"],
-    deps = [
-        ":ichimoku_cloud_param_config",
-        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
     ],
 )

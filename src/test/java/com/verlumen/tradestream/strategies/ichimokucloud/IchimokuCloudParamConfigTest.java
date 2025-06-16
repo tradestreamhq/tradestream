@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.trendfollowing;
+package com.verlumen.tradestream.strategies.ichimokucloud;
 
 import static com.google.common.truth.Truth.assertThat;
 
