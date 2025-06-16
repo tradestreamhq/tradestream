@@ -248,7 +248,6 @@ java_library(
     deps = [
         ":genotype_converter",
         ":param_config",
-        ":param_config_manager",
         "//protos:strategies_java_proto",
         "//third_party/java:guava",
         "//third_party/java:guice",
