@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.discovery;
 
 import com.google.common.collect.ImmutableList;
-import com.verlumen.tradestream.backtesting.momentumoscillators.MomentumOscillatorParams;
 import com.verlumen.tradestream.backtesting.movingaverages.MovingAverageParams;
 import com.verlumen.tradestream.backtesting.patternrecognition.PatternRecognitionParams;
 import com.verlumen.tradestream.backtesting.trendfollowing.TrendFollowingParams;
