@@ -28,10 +28,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
                 paramConfig = SmaRsiParamConfig(),
                 strategyFactory = SmaRsiStrategyFactory(),
             ),
-        StrategyType.EMA_MACD to StrategySpec(
-            paramConfig = EmaMacdParamConfig(),
-            strategyFactory = EmaMacdStrategyFactory()
-        )
+        StrategyType.EMA_MACD to
+            StrategySpec(
+                paramConfig = EmaMacdParamConfig(),
+                strategyFactory = EmaMacdStrategyFactory(),
+            ),
         // To add a new strategy, just add a new entry here.
     )
 
