@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.movingaverages;
+package com.verlumen.tradestream.strategies.smaemacrossover;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -35,7 +35,7 @@ public class SmaEmaCrossoverStrategyFactoryTest {
 
   @Before
   public void setUp() throws InvalidProtocolBufferException {
-    factory = SmaEmaCrossoverStrategyFactory.create();
+    factory = new SmaEmaCrossoverStrategyFactory();
     params =
         SmaEmaCrossoverParameters.newBuilder()
             .setSmaPeriod(SMA_PERIOD)
