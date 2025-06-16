@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.movingaverages;
+package com.verlumen.tradestream.strategies.emamacd;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
