@@ -50,8 +50,7 @@ public class GenotypeConverterImplTest {
 
     // Use the more general Chromosome<?> type for the list.
     List<Chromosome<?>> chromosomes =
-        List.of(
-            maPeriodChromosome, rsiPeriodChromosome, overboughtChromosome, oversoldChromosome);
+        List.of(maPeriodChromosome, rsiPeriodChromosome, overboughtChromosome, oversoldChromosome);
 
     // Mock the Genotype to behave as if it contains our mixed list.
     // Use the doReturn(...).when(...) syntax to avoid generics issues with Mockito.
