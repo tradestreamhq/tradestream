@@ -244,6 +244,7 @@ java_library(
         ":genotype_converter",
         ":param_config",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
