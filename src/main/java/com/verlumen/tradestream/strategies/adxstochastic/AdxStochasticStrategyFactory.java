@@ -14,7 +14,8 @@ import org.ta4j.core.indicators.adx.ADXIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
-public final class AdxStochasticStrategyFactory implements StrategyFactory<AdxStochasticParameters> {
+public final class AdxStochasticStrategyFactory
+    implements StrategyFactory<AdxStochasticParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, AdxStochasticParameters params) {
     checkArgument(params.getAdxPeriod() > 0, "ADX period must be positive");
