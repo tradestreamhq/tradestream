@@ -2,9 +2,6 @@ package com.verlumen.tradestream.strategies
 
 import com.google.protobuf.Any
 import com.google.protobuf.InvalidProtocolBufferException
-import org.ta4j.core.BarSeries
-import org.ta4j.core.Strategy
-
 import com.verlumen.tradestream.strategies.adxstochastic.AdxStochasticParamConfig
 import com.verlumen.tradestream.strategies.adxstochastic.AdxStochasticStrategyFactory
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdParamConfig
