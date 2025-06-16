@@ -77,7 +77,8 @@ public class GenotypeConverterImplTest {
     StrategyType strategyType = StrategyType.SMA_RSI;
 
     // Act & Assert
-    assertThrows(NullPointerException.class, () -> converter.convertToParameters(null, strategyType));
+    assertThrows(
+        NullPointerException.class, () -> converter.convertToParameters(null, strategyType));
   }
 
   @Test
