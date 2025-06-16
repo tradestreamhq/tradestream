@@ -55,8 +55,6 @@ public final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParame
         .build();
   }
 
-  private SmaRsiStrategyFactory() {}
-
   @Override
   public StrategyType getStrategyType() {
     return StrategyType.SMA_RSI;
