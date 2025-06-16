@@ -44,7 +44,6 @@ public class GenotypeConverterImplTest {
   public void convertToParameters_validGenotype_returnsCorrectParameters() {
     // Arrange
     StrategyType strategyType = StrategyType.SMA_RSI;
-    when(mockParamConfigManager.getParamConfig(strategyType)).thenReturn(mockParamConfig);
 
     // We need to define a genotype for the test
     Genotype<DoubleGene> genotype = Genotype.of(DoubleChromosome.of(0.0, 1.0));
@@ -88,7 +87,6 @@ public class GenotypeConverterImplTest {
   public void convertToParameters_invalidChromosomeType_throwsIllegalArgumentException() {
     // Arrange
     StrategyType strategyType = StrategyType.SMA_RSI;
-    when(mockParamConfigManager.getParamConfig(strategyType)).thenReturn(mockParamConfig);
 
     // Create a Genotype with a chromosome
     Genotype<DoubleGene> genotype = Genotype.of(DoubleChromosome.of(0.0, 1.0));
