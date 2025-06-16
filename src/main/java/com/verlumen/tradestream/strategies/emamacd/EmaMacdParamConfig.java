@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.movingaverages;
+package com.verlumen.tradestream.strategies.emamacd;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
