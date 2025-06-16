@@ -7,7 +7,7 @@ import com.google.inject.TypeLiteral
 class StrategiesModule : AbstractModule() {
     override fun configure() {
         bind(object : TypeLiteral<ImmutableList<StrategyFactory<*>>>() {})
-            .toInstance(StrategyFactories.ALL_FACTORIES)
+            .toInstance(ImmutableList.of())
         bind(StrategyManager::class.java).to(StrategyManagerImpl::class.java)
     }
 }
