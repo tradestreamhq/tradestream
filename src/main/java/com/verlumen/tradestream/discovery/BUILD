@@ -321,19 +321,6 @@ java_library(
     ],
 )
 
-java_library(
-    name = "param_configs",
-    srcs = [
-        "ParamConfigs.java",
-    ],
-    deps = [
-        ":param_config",
-        "//src/main/java/com/verlumen/tradestream/backtesting/patternrecognition:pattern_recognition_params",
-        "//src/main/java/com/verlumen/tradestream/backtesting/trendfollowing:trend_following_params",
-        "//third_party/java:guava",
-    ],
-)
-
 oci_push(
     name = "push_image",
     image = ":index",
