@@ -10,7 +10,6 @@ internal class BaseModule : AbstractModule() {
         bind(FitnessFunctionFactory::class.java).to(FitnessFunctionFactoryImpl::class.java)
         bind(GAEngineFactory::class.java).to(GAEngineFactoryImpl::class.java)
         bind(GenotypeConverter::class.java).to(GenotypeConverterImpl::class.java)
-        bind(object : TypeLiteral<ImmutableList<ParamConfig>>() {}).toInstance(ParamConfigs.ALL_CONFIGS)
 
         install(
             FactoryModuleBuilder()
