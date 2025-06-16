@@ -9,7 +9,6 @@ import com.verlumen.tradestream.backtesting.trendfollowing.TrendFollowingParams;
 final class ParamConfigs {
   static final ImmutableList<ParamConfig> ALL_CONFIGS =
       ImmutableList.<ParamConfig>builder()
-          .addAll(MomentumOscillatorParams.allConfigs)
           .addAll(MovingAverageParams.allConfigs)
           .addAll(PatternRecognitionParams.allConfigs)
           .addAll(TrendFollowingParams.allConfigs)
