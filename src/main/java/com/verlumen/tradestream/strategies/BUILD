@@ -7,7 +7,6 @@ kt_jvm_library(
     name = "strategies_module",
     srcs = ["StrategiesModule.kt"],
     deps = [
-        ":strategy_factories",
         ":strategy_factory",
         ":strategy_manager",
         ":strategy_manager_impl",
