@@ -87,8 +87,11 @@ kt_jvm_library(
         "//third_party/java:ta4j_core",
 
         # Implementations for each strategy included in the map
-        "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:spec",
-        # "//src/main/java/com/verlumen/tradestream/strategies/emamacd:spec",
-        "//src/main/java/com/verlumen/tradestream/strategies/smarsi:spec",
+        "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/emamacd:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/emamacd:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/smarsi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/smarsi:strategy_factory",
     ],
 )
