@@ -16,8 +16,8 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
     mapOf(
         StrategyType.SMA_RSI to
             StrategySpec(
-                paramConfig = SmaRsiParamConfig.create(),
-                strategyFactory = SmaRsiStrategyFactory.create(),
+                paramConfig = SmaRsiParamConfig(),
+                strategyFactory = SmaRsiStrategyFactory(),
             ),
         // StrategyType.EMA_MACD to StrategySpec(
         //     paramConfig = EmaMacdParamConfig.create(),
