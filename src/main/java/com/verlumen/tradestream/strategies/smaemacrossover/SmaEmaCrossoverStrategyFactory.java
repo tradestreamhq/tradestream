@@ -16,7 +16,8 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
-public final class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCrossoverParameters> {
+public final class SmaEmaCrossoverStrategyFactory
+    implements StrategyFactory<SmaEmaCrossoverParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, SmaEmaCrossoverParameters params)
       throws InvalidProtocolBufferException {
