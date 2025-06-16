@@ -22,7 +22,7 @@ public class AdxStochasticParamConfigTest {
 
   @Before
   public void setUp() {
-    config = AdxStochasticParamConfig.create();
+    config = new AdxStochasticParamConfig();
   }
 
   @Test
