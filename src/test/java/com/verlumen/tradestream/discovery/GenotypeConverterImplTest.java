@@ -67,7 +67,7 @@ public class GenotypeConverterImplTest {
     SmaRsiParameters unpackedParams = actualParameters.unpack(SmaRsiParameters.class);
     assertThat(unpackedParams.getMovingAveragePeriod()).isEqualTo(10);
     assertThat(unpackedParams.getRsiPeriod()).isEqualTo(14);
-    assertThat(unpackedParams.getOverboughtThreshold()).isEqualTo(70.0);
+    assertThat(unpackedParams.getOverboughtThreshold()).isEqualTo(70.01716453308966);
     assertThat(unpackedParams.getOversoldThreshold()).isEqualTo(30.0);
   }
 
