@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.movingaverages;
+package com.verlumen.tradestream.strategies.smaemacrossover;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -16,11 +16,7 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
-final class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCrossoverParameters> {
-  static SmaEmaCrossoverStrategyFactory create() {
-    return new SmaEmaCrossoverStrategyFactory();
-  }
-
+public final class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCrossoverParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, SmaEmaCrossoverParameters params)
       throws InvalidProtocolBufferException {
@@ -52,6 +48,4 @@ final class SmaEmaCrossoverStrategyFactory implements StrategyFactory<SmaEmaCros
   public StrategyType getStrategyType() {
     return StrategyType.SMA_EMA_CROSSOVER;
   }
-
-  private SmaEmaCrossoverStrategyFactory() {}
 }
