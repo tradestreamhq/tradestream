@@ -12,7 +12,6 @@ final class StrategyFactories {
   /** An immutable list of all strategy factories across all categories. */
   static final ImmutableList<StrategyFactory<?>> ALL_FACTORIES =
       ImmutableList.<StrategyFactory<?>>builder()
-          .addAll(MovingAverageStrategies.ALL_FACTORIES)
           .build();
 
   // Prevent instantiation
