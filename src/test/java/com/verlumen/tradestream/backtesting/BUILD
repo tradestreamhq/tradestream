@@ -13,6 +13,8 @@ kt_jvm_test(
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory_impl",
         # Interface (needed if the test references the interface type)
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_request_factory",
+        # Strategy type extension methods
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
         # Protobuf dependencies
         "//protos:backtesting_java_proto",
         "//protos:marketdata_java_proto",
@@ -37,6 +39,7 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner_impl",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
         "//third_party/java:guava",
         "//third_party/java:guice",
