@@ -21,7 +21,6 @@ kt_jvm_library(
     ],
 )
 
-
 java_library(
     name = "strategy_factory",
     srcs = ["StrategyFactory.java"],

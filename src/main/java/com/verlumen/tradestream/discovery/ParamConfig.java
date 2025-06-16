@@ -7,8 +7,7 @@ import io.jenetics.NumericChromosome;
 import java.io.Serializable;
 
 /**
- * Represents configuration for a strategy's parameters that supports multiple parameter types. Used
- * by GeneticAlgorithmOrchestrator to optimize parameters.
+ * Represents configuration for a strategy's parameters that supports multiple parameter types.
  */
 public interface ParamConfig extends Serializable {
   /**
