@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.momentumoscillators;
+package com.verlumen.tradestream.strategies.smarsi;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -38,7 +38,7 @@ public class SmaRsiStrategyFactoryTest {
 
   @Before
   public void setUp() throws InvalidProtocolBufferException {
-    factory = SmaRsiStrategyFactory.create();
+    factory = new SmaRsiStrategyFactory();
 
     // Standard parameters
     params =

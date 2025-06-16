@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.momentumoscillators;
+package com.verlumen.tradestream.strategies.adxstochastic;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -14,11 +14,8 @@ import org.ta4j.core.indicators.adx.ADXIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
-final class AdxStochasticStrategyFactory implements StrategyFactory<AdxStochasticParameters> {
-  static AdxStochasticStrategyFactory create() {
-    return new AdxStochasticStrategyFactory();
-  }
-
+public final class AdxStochasticStrategyFactory
+    implements StrategyFactory<AdxStochasticParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, AdxStochasticParameters params) {
     checkArgument(params.getAdxPeriod() > 0, "ADX period must be positive");
@@ -68,6 +65,4 @@ final class AdxStochasticStrategyFactory implements StrategyFactory<AdxStochasti
   public StrategyType getStrategyType() {
     return StrategyType.ADX_STOCHASTIC;
   }
-
-  private AdxStochasticStrategyFactory() {}
 }

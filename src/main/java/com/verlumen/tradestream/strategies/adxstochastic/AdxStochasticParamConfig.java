@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.momentumoscillators;
+package com.verlumen.tradestream.strategies.adxstochastic;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
@@ -9,7 +9,7 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
-final class AdxStochasticParamConfig implements ParamConfig {
+public final class AdxStochasticParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
           // Integer parameters
@@ -19,12 +19,6 @@ final class AdxStochasticParamConfig implements ParamConfig {
           ChromosomeSpec.ofInteger(60, 90), // Overbought Threshold
           ChromosomeSpec.ofInteger(10, 40) // Oversold Threshold
           );
-
-  static AdxStochasticParamConfig create() {
-    return new AdxStochasticParamConfig();
-  }
-
-  private AdxStochasticParamConfig() {}
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {

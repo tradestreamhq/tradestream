@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.momentumoscillators;
+package com.verlumen.tradestream.strategies.smarsi;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -21,7 +21,7 @@ public class SmaRsiParamConfigTest {
 
   @Before
   public void setUp() {
-    config = SmaRsiParamConfig.create();
+    config = new SmaRsiParamConfig();
   }
 
   @Test

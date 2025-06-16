@@ -21,6 +21,7 @@ kt_jvm_library(
     ],
 )
 
+
 java_library(
     name = "strategy_factory",
     srcs = ["StrategyFactory.java"],
@@ -47,7 +48,11 @@ kt_jvm_library(
         "//third_party/java:ta4j_core",
 
         # Implementations for each strategy included in the map
-        # "//src/main/java/com/verlumen/tradestream/strategies/emamacd:emamacd_lib",
-        # "//src/main/java/com/verlumen/tradestream/strategies/smarsi:smarsi_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/emamacd:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/emamacd:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/smarsi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/smarsi:strategy_factory",
     ],
 )

@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.movingaverages;
+package com.verlumen.tradestream.strategies.emamacd;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
@@ -9,7 +9,7 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
-final class EmaMacdParamConfig implements ParamConfig {
+public final class EmaMacdParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
           // Integer parameters
@@ -17,12 +17,6 @@ final class EmaMacdParamConfig implements ParamConfig {
           ChromosomeSpec.ofInteger(10, 50), // Long EMA Period
           ChromosomeSpec.ofInteger(5, 20) // Signal Period
           );
-
-  static EmaMacdParamConfig create() {
-    return new EmaMacdParamConfig();
-  }
-
-  private EmaMacdParamConfig() {}
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {

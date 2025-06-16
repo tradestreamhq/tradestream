@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.momentumoscillators;
+package com.verlumen.tradestream.strategies.smarsi;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -15,11 +15,7 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
-final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
-  static SmaRsiStrategyFactory create() {
-    return new SmaRsiStrategyFactory();
-  }
-
+public final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, SmaRsiParameters params) {
     checkArgument(params.getMovingAveragePeriod() > 0, "Moving average period must be positive");
@@ -58,8 +54,6 @@ final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
         .setOversoldThreshold(30) // Oversold threshold, often set at 30
         .build();
   }
-
-  private SmaRsiStrategyFactory() {}
 
   @Override
   public StrategyType getStrategyType() {

@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.momentumoscillators;
+package com.verlumen.tradestream.strategies.smarsi;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
@@ -10,7 +10,7 @@ import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.util.logging.Logger;
 
-final class SmaRsiParamConfig implements ParamConfig {
+public final class SmaRsiParamConfig implements ParamConfig {
   private static final Logger logger = Logger.getLogger(SmaRsiParamConfig.class.getName());
 
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
@@ -22,12 +22,6 @@ final class SmaRsiParamConfig implements ParamConfig {
           ChromosomeSpec.ofDouble(60.0, 85.0), // Overbought Threshold
           ChromosomeSpec.ofDouble(15.0, 40.0) // Oversold Threshold
           );
-
-  static SmaRsiParamConfig create() {
-    return new SmaRsiParamConfig();
-  }
-
-  private SmaRsiParamConfig() {}
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {

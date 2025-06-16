@@ -13,7 +13,6 @@ public final class MovingAverageStrategies {
       ImmutableList.of(
           DoubleEmaCrossoverStrategyFactory.create(),
           MomentumSmaCrossoverStrategyFactory.create(),
-          EmaMacdStrategyFactory.create(),
           SmaEmaCrossoverStrategyFactory.create(),
           TripleEmaCrossoverStrategyFactory.create());
 

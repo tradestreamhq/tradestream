@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.momentumoscillators;
+package com.verlumen.tradestream.strategies.adxstochastic;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -37,7 +37,7 @@ public class AdxStochasticStrategyFactoryTest {
 
   @Before
   public void setUp() throws InvalidProtocolBufferException {
-    factory = AdxStochasticStrategyFactory.create();
+    factory = new AdxStochasticStrategyFactory();
 
     // Standard parameters
     params =
