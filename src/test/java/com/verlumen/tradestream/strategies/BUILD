@@ -21,21 +21,6 @@ java_test(
     ],
 )
 
-java_test(
-    name = "StrategyFactoriesTest",
-    srcs = ["StrategyFactoriesTest.java"],
-    deps = [
-        "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_constants",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factories",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
-        "//third_party/java:guava",
-        "//third_party/java:junit",
-        "//third_party/java:test_parameter_injector",
-        "//third_party/java:truth",
-    ],
-)
-
 kt_jvm_test(
     name = "StrategySpecsTest",
     srcs = ["StrategySpecsTest.kt"],

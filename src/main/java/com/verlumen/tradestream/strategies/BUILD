@@ -7,7 +7,6 @@ kt_jvm_library(
     name = "strategies_module",
     srcs = ["StrategiesModule.kt"],
     deps = [
-        ":strategy_factories",
         ":strategy_factory",
         ":strategy_manager",
         ":strategy_manager_impl",
@@ -21,17 +20,6 @@ kt_jvm_library(
     srcs = ["StrategyConstants.kt"],
     deps = [
         "//protos:strategies_java_proto",
-    ],
-)
-
-java_library(
-    name = "strategy_factories",
-    srcs = ["StrategyFactories.java"],
-    deps = [
-        ":strategy_factory",
-        "//src/main/java/com/verlumen/tradestream/strategies/momentumoscillators:oscillators_lib",
-        "//src/main/java/com/verlumen/tradestream/strategies/movingaverages:movingaverages_lib",
-        "//third_party/java:guava",
     ],
 )
 
@@ -88,7 +76,11 @@ kt_jvm_library(
         "//third_party/java:ta4j_core",
 
         # Implementations for each strategy included in the map
-        # "//src/main/java/com/verlumen/tradestream/strategies/emamacd:emamacd_lib",
-        # "//src/main/java/com/verlumen/tradestream/strategies/smarsi:smarsi_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/emamacd:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/emamacd:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/smarsi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/smarsi:strategy_factory",
     ],
 )

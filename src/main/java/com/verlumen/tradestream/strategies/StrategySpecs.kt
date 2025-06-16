@@ -2,11 +2,14 @@ package com.verlumen.tradestream.strategies
 
 import com.google.protobuf.Any
 import com.google.protobuf.InvalidProtocolBufferException
+import com.verlumen.tradestream.strategies.adxstochastic.AdxStochasticParamConfig
+import com.verlumen.tradestream.strategies.adxstochastic.AdxStochasticStrategyFactory
+import com.verlumen.tradestream.strategies.emamacd.EmaMacdParamConfig
+import com.verlumen.tradestream.strategies.emamacd.EmaMacdStrategyFactory
+import com.verlumen.tradestream.strategies.smarsi.SmaRsiParamConfig
+import com.verlumen.tradestream.strategies.smarsi.SmaRsiStrategyFactory
 import org.ta4j.core.BarSeries
 import org.ta4j.core.Strategy
-
-// import com.verlumen.tradestream.strategies.emamacd.*
-// import com.verlumen.tradestream.strategies.smarsi.*
 
 /**
  * The single source of truth for all implemented strategy specifications.
@@ -14,14 +17,21 @@ import org.ta4j.core.Strategy
  */
 private val strategySpecMap: Map<StrategyType, StrategySpec> =
     mapOf(
-        // StrategyType.SMA_RSI to StrategySpec(
-        //     paramConfig = SmaRsiParamConfig.create(),
-        //     strategyFactory = SmaRsiStrategyFactory.create()
-        // ),
-        // StrategyType.EMA_MACD to StrategySpec(
-        //     paramConfig = EmaMacdParamConfig.create(),
-        //     strategyFactory = EmaMacdStrategyFactory.create()
-        // )
+        StrategyType.ADX_STOCHASTIC to
+            StrategySpec(
+                paramConfig = AdxStochasticParamConfig(),
+                strategyFactory = AdxStochasticStrategyFactory(),
+            ),
+        StrategyType.SMA_RSI to
+            StrategySpec(
+                paramConfig = SmaRsiParamConfig(),
+                strategyFactory = SmaRsiStrategyFactory(),
+            ),
+        StrategyType.EMA_MACD to
+            StrategySpec(
+                paramConfig = EmaMacdParamConfig(),
+                strategyFactory = EmaMacdStrategyFactory(),
+            ),
         // To add a new strategy, just add a new entry here.
     )
 
