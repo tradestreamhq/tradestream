@@ -81,10 +81,6 @@ kt_jvm_library(
         ":genotype_converter",
         ":genotype_converter_impl",
         ":kafka_discovery_request_source",
-        ":param_config",
-        ":param_config_manager",
-        ":param_config_manager_impl",
-        ":param_configs",
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline",
         ":temporary_currency_pair_module",
@@ -208,9 +204,9 @@ java_library(
         ":ga_engine_factory",
         ":ga_engine_params",
         ":param_config",
-        ":param_config_manager",
-        "//protos:marketdata_java_proto",  # For Candle in GAEngineParams
-        "//protos:strategies_java_proto",  # For StrategyType in GAEngineParams
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
@@ -247,8 +243,8 @@ java_library(
     deps = [
         ":genotype_converter",
         ":param_config",
-        ":param_config_manager",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
@@ -322,46 +318,6 @@ java_library(
         "//third_party/java:guava",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
-    ],
-)
-
-java_library(
-    name = "param_config_manager",
-    srcs = ["ParamConfigManager.java"],
-    visibility = [
-        "//src/main/java/com/verlumen/tradestream/backtesting:__subpackages__",
-        "//src/test/java/com/verlumen/tradestream/backtesting:__pkg__",
-        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
-    ],
-    deps = [
-        ":param_config",
-        "//protos:strategies_java_proto",
-    ],
-)
-
-java_library(
-    name = "param_config_manager_impl",
-    srcs = ["ParamConfigManagerImpl.java"],
-    deps = [
-        ":param_config",
-        ":param_config_manager",
-        "//protos:strategies_java_proto",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:mug",
-    ],
-)
-
-java_library(
-    name = "param_configs",
-    srcs = [
-        "ParamConfigs.java",
-    ],
-    deps = [
-        ":param_config",
-        "//src/main/java/com/verlumen/tradestream/backtesting/patternrecognition:pattern_recognition_params",
-        "//src/main/java/com/verlumen/tradestream/backtesting/trendfollowing:trend_following_params",
-        "//third_party/java:guava",
     ],
 )
 
