@@ -2,6 +2,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 
 package(
     default_visibility = [
+        "//src/main/java/com/verlumen/tradestream/strategies:__pkg__",
         "//src/test/java/com/verlumen/tradestream/strategies/adxstochastic:__pkg__",
     ],
 )
@@ -28,14 +29,5 @@ java_library(
         "//third_party/java:guava",
         "//third_party/java:protobuf_java",
         "//third_party/java:ta4j_core",
-    ],
-)
-
-java_library(
-    name = "spec",
-    visibility = ["//src/main/java/com/verlumen/tradestream/strategies:__pkg__"],
-    exports = [
-        ":param_config",
-        ":strategy_factory",
     ],
 )
