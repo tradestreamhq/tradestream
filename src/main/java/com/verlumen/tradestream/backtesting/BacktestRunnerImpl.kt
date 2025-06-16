@@ -28,7 +28,10 @@ class BacktestRunnerImpl
         @Throws(InvalidProtocolBufferException::class)
         override fun runBacktest(request: BacktestRequest): BacktestResult {
             require(request.candlesList.isNotEmpty()) { "Bar series cannot be empty" }
-            require(request.strategy.type.isSupported()) { "Strategy type is not supported" }
+            require(request.strategy.type.isSupported()) { "Strategy type ${request.strategy.type} is not supported" }
+            require(request.strategy.hasParameters() && !request.strategy.parameters.typeUrl.isEmpty()) { 
+                "Strategy must have valid parameters. Use getDefaultParameters(strategyType) to get defaults for ${request.strategy.type}" 
+            }
 
             val series = barSeriesFactory.createBarSeries(request.candlesList)
             val strategy = request.strategy.type.createStrategy(series, request.strategy.parameters)
