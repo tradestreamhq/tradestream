@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.strategies;
 
 import com.google.common.collect.ImmutableList;
-import com.verlumen.tradestream.strategies.movingaverages.MovingAverageStrategies;
 
 /**
  * Provides a centralized collection of all available strategy factories across all categories. This
