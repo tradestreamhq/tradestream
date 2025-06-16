@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.movingaverages;
+package com.verlumen.tradestream.strategies.doubleemacrossover;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -35,7 +35,7 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
 
   @Before
   public void setUp() throws InvalidProtocolBufferException {
-    factory = DoubleEmaCrossoverStrategyFactory.create();
+    factory = new DoubleEmaCrossoverStrategyFactory();
 
     // Standard parameters
     params =
