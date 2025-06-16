@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.backtesting.trendfollowing;
+package com.verlumen.tradestream.strategies.ichimokucloud;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
