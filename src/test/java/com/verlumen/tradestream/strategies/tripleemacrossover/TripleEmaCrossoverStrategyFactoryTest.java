@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.movingaverages;
+package com.verlumen.tradestream.strategies.tripleemacrossover;
 
 import static com.google.common.truth.Truth.assertThat;
 
