@@ -209,8 +209,9 @@ java_library(
         ":ga_engine_params",
         ":param_config",
         ":param_config_manager",
-        "//protos:marketdata_java_proto",  # For Candle in GAEngineParams
-        "//protos:strategies_java_proto",  # For StrategyType in GAEngineParams
+        "//protos:marketdata_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:jenetics",
