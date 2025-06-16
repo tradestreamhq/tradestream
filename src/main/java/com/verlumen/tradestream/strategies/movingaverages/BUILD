@@ -4,7 +4,15 @@ package(default_visibility = ["//visibility:public"])
 
 java_library(
     name = "movingaverages_lib",
-    srcs = glob(["*.java"]),
+    srcs = glob(
+        ["*.java"],
+        exclude = [
+            "DoubleEmaCrossoverStrategyFactory.java",
+            "MomentumSmaCrossoverStrategyFactory.java",
+            "SmaEmaCrossoverStrategyFactory.java",
+            "TripleEmaCrossoverStrategyFactory.java",
+        ],
+    ),
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",

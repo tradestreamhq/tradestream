@@ -93,5 +93,12 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/emamacd:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/smarsi:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/smarsi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/movingaverages/doubleemacrossover:doubleemacrossover_strategy_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/movingaverages/momentumsmarrossover:momentumsmarrossover_strategy_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/movingaverages/smaemacrossover:smaemacrossover_strategy_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/movingaverages/tripleemacrossover:tripleemacrossover_strategy_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/aroonmfi:aroonmfi_strategy_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/ichimokucloud:ichimokucloud_strategy_lib",
+        "//src/main/java/com/verlumen/tradestream/strategies/parabolicsar:parabolicsar_strategy_lib",
     ],
 )

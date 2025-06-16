@@ -10,12 +10,10 @@ import com.verlumen.tradestream.strategies.StrategyFactory;
 public final class MovingAverageStrategies {
   /** An immutable list of all moving average strategy factories. */
   public static final ImmutableList<StrategyFactory<?>> ALL_FACTORIES =
-      ImmutableList.of(
-          DoubleEmaCrossoverStrategyFactory.create(),
-          MomentumSmaCrossoverStrategyFactory.create(),
-          SmaEmaCrossoverStrategyFactory.create(),
-          TripleEmaCrossoverStrategyFactory.create());
+      ImmutableList.of();
 
   // Prevent instantiation
   private MovingAverageStrategies() {}
 }
+// Remove unused import if DoubleEmaCrossoverStrategyFactory was the only thing from its package,
+// or if it's no longer needed. The linter/compiler will catch this if missed.

@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.movingaverages;
+package com.verlumen.tradestream.strategies.movingaverages.momentumsmarrossover;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -29,8 +29,8 @@ final class MomentumSmaCrossoverStrategyFactory
     checkArgument(params.getSmaPeriod() > 0, "SMA period must be positive");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    MomentumIndicator momentumIndicator =
-        new MomentumIndicator(closePrice, params.getMomentumPeriod());
+    com.verlumen.tradestream.strategies.movingaverages.MomentumIndicator momentumIndicator =
+        new com.verlumen.tradestream.strategies.movingaverages.MomentumIndicator(closePrice, params.getMomentumPeriod());
     SMAIndicator smaIndicator = new SMAIndicator(momentumIndicator, params.getSmaPeriod());
 
     // Entry rule - First check if momentum is positive, then check for crossover

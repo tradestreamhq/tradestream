@@ -6,6 +6,20 @@ import com.verlumen.tradestream.strategies.adxstochastic.AdxStochasticParamConfi
 import com.verlumen.tradestream.strategies.adxstochastic.AdxStochasticStrategyFactory
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdParamConfig
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdStrategyFactory
+import com.verlumen.tradestream.strategies.movingaverages.doubleemacrossover.DoubleEmaCrossoverParamConfig
+import com.verlumen.tradestream.strategies.movingaverages.doubleemacrossover.DoubleEmaCrossoverStrategyFactory
+import com.verlumen.tradestream.strategies.movingaverages.momentumsmarrossover.MomentumSmaCrossoverParamConfig
+import com.verlumen.tradestream.strategies.movingaverages.momentumsmarrossover.MomentumSmaCrossoverStrategyFactory
+import com.verlumen.tradestream.strategies.movingaverages.smaemacrossover.SmaEmaCrossoverParamConfig
+import com.verlumen.tradestream.strategies.movingaverages.smaemacrossover.SmaEmaCrossoverStrategyFactory
+import com.verlumen.tradestream.strategies.movingaverages.tripleemacrossover.TripleEmaCrossoverParamConfig
+import com.verlumen.tradestream.strategies.movingaverages.tripleemacrossover.TripleEmaCrossoverStrategyFactory
+import com.verlumen.tradestream.strategies.aroonmfi.AroonMfiParamConfig
+import com.verlumen.tradestream.strategies.aroonmfi.AroonMfiStrategyFactory
+import com.verlumen.tradestream.strategies.ichimokucloud.IchimokuCloudParamConfig
+import com.verlumen.tradestream.strategies.ichimokucloud.IchimokuCloudStrategyFactory
+import com.verlumen.tradestream.strategies.parabolicsar.ParabolicSarParamConfig
+import com.verlumen.tradestream.strategies.parabolicsar.ParabolicSarStrategyFactory
 import com.verlumen.tradestream.strategies.smarsi.SmaRsiParamConfig
 import com.verlumen.tradestream.strategies.smarsi.SmaRsiStrategyFactory
 import org.ta4j.core.BarSeries
@@ -31,6 +45,41 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = EmaMacdParamConfig(),
                 strategyFactory = EmaMacdStrategyFactory(),
+            ),
+        StrategyType.DOUBLE_EMA_CROSSOVER to
+            StrategySpec(
+                paramConfig = DoubleEmaCrossoverParamConfig(),
+                strategyFactory = DoubleEmaCrossoverStrategyFactory(),
+            ),
+        StrategyType.MOMENTUM_SMA_CROSSOVER to
+            StrategySpec(
+                paramConfig = MomentumSmaCrossoverParamConfig(),
+                strategyFactory = MomentumSmaCrossoverStrategyFactory(),
+            ),
+        StrategyType.SMA_EMA_CROSSOVER to
+            StrategySpec(
+                paramConfig = SmaEmaCrossoverParamConfig(),
+                strategyFactory = SmaEmaCrossoverStrategyFactory(),
+            ),
+        StrategyType.TRIPLE_EMA_CROSSOVER to
+            StrategySpec(
+                paramConfig = TripleEmaCrossoverParamConfig(),
+                strategyFactory = TripleEmaCrossoverStrategyFactory(),
+            ),
+        StrategyType.AROON_MFI to
+            StrategySpec(
+                paramConfig = AroonMfiParamConfig(),
+                strategyFactory = AroonMfiStrategyFactory(),
+            ),
+        StrategyType.ICHIMOKU_CLOUD to
+            StrategySpec(
+                paramConfig = IchimokuCloudParamConfig(),
+                strategyFactory = IchimokuCloudStrategyFactory(),
+            ),
+        StrategyType.PARABOLIC_SAR to
+            StrategySpec(
+                paramConfig = ParabolicSarParamConfig(),
+                strategyFactory = ParabolicSarStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
