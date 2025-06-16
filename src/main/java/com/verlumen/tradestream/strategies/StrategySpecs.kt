@@ -17,8 +17,8 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
     mapOf(
         StrategyType.ADX_STOCHASTIC to
             StrategySpec(
-                paramConfig = AdxStochasticParamConfig.create(),
-                strategyFactory = AdxStochasticStrategyFactory.create(),
+                paramConfig = AdxStochasticParamConfig(),
+                strategyFactory = AdxStochasticStrategyFactory(),
             ),
         StrategyType.SMA_RSI to
             StrategySpec(
