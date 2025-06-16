@@ -38,7 +38,7 @@ public class SmaRsiStrategyFactoryTest {
 
   @Before
   public void setUp() throws InvalidProtocolBufferException {
-    factory = SmaRsiStrategyFactory();
+    factory = new SmaRsiStrategyFactory();
 
     // Standard parameters
     params =
