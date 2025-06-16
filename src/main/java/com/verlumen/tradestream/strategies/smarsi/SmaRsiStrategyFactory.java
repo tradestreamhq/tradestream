@@ -16,7 +16,7 @@ import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
 public final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
-  static SmaRsiStrategyFactory create() {
+  public static SmaRsiStrategyFactory create() {
     return new SmaRsiStrategyFactory();
   }
 
