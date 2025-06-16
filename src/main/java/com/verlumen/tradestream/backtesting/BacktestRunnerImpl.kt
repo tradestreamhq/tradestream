@@ -2,7 +2,8 @@ package com.verlumen.tradestream.backtesting
 
 import com.google.inject.Inject
 import com.google.protobuf.InvalidProtocolBufferException
-import com.verlumen.tradestream.strategies.*
+import com.verlumen.tradestream.strategies.createStrategy
+import com.verlumen.tradestream.strategies.isSupported
 import com.verlumen.tradestream.ta4j.BarSeriesFactory
 import org.ta4j.core.AnalysisCriterion
 import org.ta4j.core.BarSeries
