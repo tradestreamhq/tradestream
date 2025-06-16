@@ -16,10 +16,6 @@ import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
 public final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParameters> {
-  public static SmaRsiStrategyFactory create() {
-    return new SmaRsiStrategyFactory();
-  }
-
   @Override
   public Strategy createStrategy(BarSeries series, SmaRsiParameters params) {
     checkArgument(params.getMovingAveragePeriod() > 0, "Moving average period must be positive");
@@ -58,8 +54,6 @@ public final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParame
         .setOversoldThreshold(30) // Oversold threshold, often set at 30
         .build();
   }
-
-  private SmaRsiStrategyFactory() {}
 
   @Override
   public StrategyType getStrategyType() {
