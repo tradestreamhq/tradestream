@@ -24,15 +24,6 @@ kt_jvm_library(
 )
 
 java_library(
-    name = "strategy_factories",
-    srcs = ["StrategyFactories.java"],
-    deps = [
-        ":strategy_factory",
-        "//third_party/java:guava",
-    ],
-)
-
-java_library(
     name = "strategy_factory",
     srcs = ["StrategyFactory.java"],
     deps = [
