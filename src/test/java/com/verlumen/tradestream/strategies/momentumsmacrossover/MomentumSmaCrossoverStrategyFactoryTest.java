@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.movingaverages;
+package com.verlumen.tradestream.strategies.momentumsmacrossover;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -35,7 +35,7 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
 
   @Before
   public void setUp() throws InvalidProtocolBufferException {
-    factory = MomentumSmaCrossoverStrategyFactory.create();
+    factory = new MomentumSmaCrossoverStrategyFactory();
     params =
         MomentumSmaCrossoverParameters.newBuilder()
             .setMomentumPeriod(MOMENTUM_PERIOD)
