@@ -12,7 +12,7 @@ import io.jenetics.NumericChromosome;
 public final class MacdCrossoverParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
-          ChromosomeSpec.ofInteger(5, 20),  // Short EMA Period
+          ChromosomeSpec.ofInteger(5, 20), // Short EMA Period
           ChromosomeSpec.ofInteger(15, 50), // Long EMA Period
           ChromosomeSpec.ofInteger(5, 20)   // Signal Period
       );
