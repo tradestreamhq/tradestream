@@ -9,9 +9,11 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.DonchianChannelLowerIndicator;
-import org.ta4j.core.indicators.DonchianChannelUpperIndicator;
+import org.ta4j.core.indicators.HighestValueIndicator;
+import org.ta4j.core.indicators.LowestValueIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.indicators.helpers.HighPriceIndicator;
+import org.ta4j.core.indicators.helpers.LowPriceIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
@@ -21,8 +23,14 @@ public final class DonchianBreakoutStrategyFactory implements StrategyFactory<Do
     checkArgument(params.getDonchianPeriod() > 0, "Donchian period must be positive");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    DonchianChannelUpperIndicator upperChannel = new DonchianChannelUpperIndicator(series, params.getDonchianPeriod());
-    DonchianChannelLowerIndicator lowerChannel = new DonchianChannelLowerIndicator(series, params.getDonchianPeriod());
+    
+    // Donchian Channel Upper = Highest High over the period
+    HighPriceIndicator highPrice = new HighPriceIndicator(series);
+    HighestValueIndicator upperChannel = new HighestValueIndicator(highPrice, params.getDonchianPeriod());
+    
+    // Donchian Channel Lower = Lowest Low over the period
+    LowPriceIndicator lowPrice = new LowPriceIndicator(series);
+    LowestValueIndicator lowerChannel = new LowestValueIndicator(lowPrice, params.getDonchianPeriod());
 
     // Entry rule: Buy when price crosses above upper Donchian channel
     Rule entryRule = new OverIndicatorRule(closePrice, upperChannel);
