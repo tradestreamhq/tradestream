@@ -13,8 +13,8 @@ public final class SmaEmaCrossoverParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
           ChromosomeSpec.ofInteger(5, 50), // SMA Period
-          ChromosomeSpec.ofInteger(5, 50)  // EMA Period
-      );
+          ChromosomeSpec.ofInteger(5, 50) // EMA Period
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
