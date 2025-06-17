@@ -55,11 +55,12 @@ public class MacdCrossoverStrategyFactoryTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void validateShortEmaPeriod() throws InvalidProtocolBufferException {
-    params = MacdCrossoverParameters.newBuilder()
-        .setShortEmaPeriod(-1)
-        .setLongEmaPeriod(26)
-        .setSignalPeriod(9)
-        .build();
+    params =
+        MacdCrossoverParameters.newBuilder()
+            .setShortEmaPeriod(-1)
+            .setLongEmaPeriod(26)
+            .setSignalPeriod(9)
+            .build();
     factory.createStrategy(series, params);
   }
 
