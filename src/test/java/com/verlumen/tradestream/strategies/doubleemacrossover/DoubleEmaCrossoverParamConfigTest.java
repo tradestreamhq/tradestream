@@ -35,7 +35,7 @@ public class DoubleEmaCrossoverParamConfigTest {
   public void testCreateParameters_validChromosomes_returnsPackedParameters() {
     List<NumericChromosome<?, ?>> chromosomes =
         List.of(
-            IntegerChromosome.of(2, 30, 12),  // Short EMA Period
+            IntegerChromosome.of(2, 30, 12), // Short EMA Period
             IntegerChromosome.of(10, 100, 26) // Long EMA Period
             );
 
