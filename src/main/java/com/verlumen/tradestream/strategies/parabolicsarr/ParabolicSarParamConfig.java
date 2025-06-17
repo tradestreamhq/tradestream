@@ -12,10 +12,10 @@ import io.jenetics.NumericChromosome;
 public final class ParabolicSarParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
-          ChromosomeSpec.ofDouble(0.01, 0.05),  // Acceleration Factor Start
-          ChromosomeSpec.ofDouble(0.01, 0.05),  // Acceleration Factor Increment
-          ChromosomeSpec.ofDouble(0.1, 0.5)     // Acceleration Factor Max
-      );
+          ChromosomeSpec.ofDouble(0.01, 0.05), // Acceleration Factor Start
+          ChromosomeSpec.ofDouble(0.01, 0.05), // Acceleration Factor Increment
+          ChromosomeSpec.ofDouble(0.1, 0.5) // Acceleration Factor Max
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
