@@ -139,8 +139,7 @@ public class BacktestRunnerImplTest {
 
   @Test
   public void runBacktest_withNoTrades_returnsZeroMetrics() throws InvalidProtocolBufferException {
-    // Arrange
-    // Add test data
+    // Arrange - Create stable data that won't trigger trades
     addTestBarsForNoTrades();
 
     BacktestRequest request =
