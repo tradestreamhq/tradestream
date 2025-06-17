@@ -15,7 +15,8 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
-public final class StochasticRsiStrategyFactory implements StrategyFactory<StochasticRsiParameters> {
+public final class StochasticRsiStrategyFactory
+    implements StrategyFactory<StochasticRsiParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, StochasticRsiParameters params) {
     checkArgument(params.getRsiPeriod() > 0, "RSI period must be positive");
