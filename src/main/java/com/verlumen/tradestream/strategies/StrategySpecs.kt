@@ -1,4 +1,3 @@
-# Updated src/main/java/com/verlumen/tradestream/strategies/StrategySpecs.kt
 package com.verlumen.tradestream.strategies
 
 import com.google.protobuf.Any
@@ -53,30 +52,40 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
                 paramConfig = AdxStochasticParamConfig(),
                 strategyFactory = AdxStochasticStrategyFactory(),
             ),
-        StrategyType.SMA_RSI to
+        StrategyType.ATR_CCI to
             StrategySpec(
-                paramConfig = SmaRsiParamConfig(),
-                strategyFactory = SmaRsiStrategyFactory(),
+                paramConfig = AtrCciParamConfig(),
+                strategyFactory = AtrCciStrategyFactory(),
             ),
-        StrategyType.EMA_MACD to
+        StrategyType.ATR_TRAILING_STOP to
             StrategySpec(
-                paramConfig = EmaMacdParamConfig(),
-                strategyFactory = EmaMacdStrategyFactory(),
+                paramConfig = AtrTrailingStopParamConfig(),
+                strategyFactory = AtrTrailingStopStrategyFactory(),
+            ),
+        StrategyType.BBAND_W_R to
+            StrategySpec(
+                paramConfig = BbandWRParamConfig(),
+                strategyFactory = BbandWRStrategyFactory(),
+            ),
+        StrategyType.DONCHIAN_BREAKOUT to
+            StrategySpec(
+                paramConfig = DonchianBreakoutParamConfig(),
+                strategyFactory = DonchianBreakoutStrategyFactory(),
             ),
         StrategyType.DOUBLE_EMA_CROSSOVER to
             StrategySpec(
                 paramConfig = DoubleEmaCrossoverParamConfig(),
                 strategyFactory = DoubleEmaCrossoverStrategyFactory(),
             ),
-        StrategyType.SMA_EMA_CROSSOVER to
+        StrategyType.EMA_MACD to
             StrategySpec(
-                paramConfig = SmaEmaCrossoverParamConfig(),
-                strategyFactory = SmaEmaCrossoverStrategyFactory(),
+                paramConfig = EmaMacdParamConfig(),
+                strategyFactory = EmaMacdStrategyFactory(),
             ),
-        StrategyType.TRIPLE_EMA_CROSSOVER to
+        StrategyType.MACD_CROSSOVER to
             StrategySpec(
-                paramConfig = TripleEmaCrossoverParamConfig(),
-                strategyFactory = TripleEmaCrossoverStrategyFactory(),
+                paramConfig = MacdCrossoverParamConfig(),
+                strategyFactory = MacdCrossoverStrategyFactory(),
             ),
         StrategyType.MOMENTUM_SMA_CROSSOVER to
             StrategySpec(
@@ -88,55 +97,45 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
                 paramConfig = ParabolicSarParamConfig(),
                 strategyFactory = ParabolicSarStrategyFactory(),
             ),
-        StrategyType.DONCHIAN_BREAKOUT to
+        StrategyType.RSI_EMA_CROSSOVER to
             StrategySpec(
-                paramConfig = DonchianBreakoutParamConfig(),
-                strategyFactory = DonchianBreakoutStrategyFactory(),
-            ),
-        StrategyType.MACD_CROSSOVER to
-            StrategySpec(
-                paramConfig = MacdCrossoverParamConfig(),
-                strategyFactory = MacdCrossoverStrategyFactory(),
-            ),
-        StrategyType.VOLATILITY_STOP to
-            StrategySpec(
-                paramConfig = VolatilityStopParamConfig(),
-                strategyFactory = VolatilityStopStrategyFactory(),
-            ),
-        StrategyType.ATR_TRAILING_STOP to
-            StrategySpec(
-                paramConfig = AtrTrailingStopParamConfig(),
-                strategyFactory = AtrTrailingStopStrategyFactory(),
-            ),
-        StrategyType.STOCHASTIC_RSI to
-            StrategySpec(
-                paramConfig = StochasticRsiParamConfig(),
-                strategyFactory = StochasticRsiStrategyFactory(),
-            ),
-        StrategyType.BBAND_W_R to
-            StrategySpec(
-                paramConfig = BbandWRParamConfig(),
-                strategyFactory = BbandWRStrategyFactory(),
-            ),
-        StrategyType.ATR_CCI to
-            StrategySpec(
-                paramConfig = AtrCciParamConfig(),
-                strategyFactory = AtrCciStrategyFactory(),
+                paramConfig = RsiEmaCrossoverParamConfig(),
+                strategyFactory = RsiEmaCrossoverStrategyFactory(),
             ),
         StrategyType.RVI to
             StrategySpec(
                 paramConfig = RviParamConfig(),
                 strategyFactory = RviStrategyFactory(),
             ),
+        StrategyType.SMA_EMA_CROSSOVER to
+            StrategySpec(
+                paramConfig = SmaEmaCrossoverParamConfig(),
+                strategyFactory = SmaEmaCrossoverStrategyFactory(),
+            ),
+        StrategyType.SMA_RSI to
+            StrategySpec(
+                paramConfig = SmaRsiParamConfig(),
+                strategyFactory = SmaRsiStrategyFactory(),
+            ),
+        StrategyType.STOCHASTIC_RSI to
+            StrategySpec(
+                paramConfig = StochasticRsiParamConfig(),
+                strategyFactory = StochasticRsiStrategyFactory(),
+            ),
+        StrategyType.TRIPLE_EMA_CROSSOVER to
+            StrategySpec(
+                paramConfig = TripleEmaCrossoverParamConfig(),
+                strategyFactory = TripleEmaCrossoverStrategyFactory(),
+            ),
+        StrategyType.VOLATILITY_STOP to
+            StrategySpec(
+                paramConfig = VolatilityStopParamConfig(),
+                strategyFactory = VolatilityStopStrategyFactory(),
+            ),
         StrategyType.VWAP_CROSSOVER to
             StrategySpec(
                 paramConfig = VwapCrossoverParamConfig(),
                 strategyFactory = VwapCrossoverStrategyFactory(),
-            ),
-        StrategyType.RSI_EMA_CROSSOVER to
-            StrategySpec(
-                paramConfig = RsiEmaCrossoverParamConfig(),
-                strategyFactory = RsiEmaCrossoverStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
