@@ -83,7 +83,6 @@ public class BacktestRunnerImplTest {
     assertThat(result.getWinRate()).isAtLeast(0.0);
     assertThat(result.getWinRate()).isAtMost(1.0);
     assertThat(result.getVolatility()).isAtLeast(0.0);
-    
     // If trades occurred, cumulative return should be non-zero
     if (result.getNumberOfTrades() > 0) {
       assertThat(Math.abs(result.getCumulativeReturn())).isGreaterThan(0.0);
