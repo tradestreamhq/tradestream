@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.backtesting;
 
+import static com.verlumen.tradestream.strategies.StrategySpecsKt.getDefaultParameters;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static com.verlumen.tradestream.strategies.StrategySpecsKt.getDefaultParameters;
