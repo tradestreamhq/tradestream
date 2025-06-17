@@ -17,9 +17,13 @@ import org.ta4j.core.rules.UnderIndicatorRule;
 public final class ParabolicSarStrategyFactory implements StrategyFactory<ParabolicSarParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, ParabolicSarParameters params) {
-    checkArgument(params.getAccelerationFactorStart() > 0, "Acceleration factor start must be positive");
-    checkArgument(params.getAccelerationFactorIncrement() > 0, "Acceleration factor increment must be positive");
-    checkArgument(params.getAccelerationFactorMax() > 0, "Acceleration factor max must be positive");
+    checkArgument(
+        params.getAccelerationFactorStart() > 0, "Acceleration factor start must be positive");
+    checkArgument(
+        params.getAccelerationFactorIncrement() > 0,
+        "Acceleration factor increment must be positive");
+    checkArgument(
+        params.getAccelerationFactorMax() > 0, "Acceleration factor max must be positive");
     checkArgument(
         params.getAccelerationFactorMax() >= params.getAccelerationFactorStart(),
         "Acceleration factor max must be >= start");
