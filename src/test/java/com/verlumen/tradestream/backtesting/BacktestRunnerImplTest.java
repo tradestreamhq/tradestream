@@ -110,7 +110,6 @@ public class BacktestRunnerImplTest {
     assertThat(result.getVolatility()).isAtLeast(0.0);
     assertThat(result.getWinRate()).isAtLeast(0.0);
     assertThat(result.getWinRate()).isAtMost(1.0);
-    
     // If trades occurred and were losing, profit factor should be low
     if (result.getNumberOfTrades() > 0 && result.getCumulativeReturn() < 0) {
       assertThat(result.getProfitFactor()).isAtMost(1.0);
