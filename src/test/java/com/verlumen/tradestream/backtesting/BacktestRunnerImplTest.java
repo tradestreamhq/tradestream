@@ -198,7 +198,6 @@ public class BacktestRunnerImplTest {
   private void addTestBarsForOversoldRecovery() {
     candlesList.clear();
     double basePrice = 100.0;
-    
     // Phase 1: Baseline (10 bars)
     for (int i = 0; i < 10; i++) {
       candlesList.add(createCandle(startTime.plusMinutes(i), basePrice + (i * 0.5)));
