@@ -28,7 +28,6 @@ public final class StochasticRsiStrategyFactory implements StrategyFactory<Stoch
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
     RSIIndicator rsi = new RSIIndicator(closePrice, params.getRsiPeriod());
-    
     // Create a bar series from RSI values to apply Stochastic to RSI
     // Note: This is a simplified approach. In practice, you'd need a custom indicator
     // that applies Stochastic calculation to RSI values
