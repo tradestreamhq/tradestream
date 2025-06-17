@@ -13,8 +13,8 @@ public final class MomentumSmaCrossoverParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
           ChromosomeSpec.ofInteger(5, 30), // Momentum Period
-          ChromosomeSpec.ofInteger(5, 50)  // SMA Period
-      );
+          ChromosomeSpec.ofInteger(5, 50) // SMA Period
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
