@@ -167,9 +167,7 @@ public class BacktestRunnerImplTest {
     addTestBarsForOversoldRecovery();
 
     // Create strategy without parameters (like the original failing tests)
-    Strategy strategyWithoutParams = Strategy.newBuilder()
-        .setType(StrategyType.SMA_RSI)
-        .build();
+    Strategy strategyWithoutParams = Strategy.newBuilder().setType(StrategyType.SMA_RSI).build();
 
     BacktestRequest request =
         BacktestRequest.newBuilder()
