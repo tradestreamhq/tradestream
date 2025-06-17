@@ -36,7 +36,8 @@ public final class StochasticRsiStrategyFactory implements StrategyFactory<Stoch
         new StochasticOscillatorKIndicator(series, params.getStochasticKPeriod());
 
     // Entry rule: Stochastic RSI crosses above oversold threshold
-    Rule entryRule = new OverIndicatorRule(stochasticRsi, series.numOf(params.getOversoldThreshold()));
+    Rule entryRule =
+        new OverIndicatorRule(stochasticRsi, series.numOf(params.getOversoldThreshold()));
 
     // Exit rule: Stochastic RSI crosses below overbought threshold  
     Rule exitRule = new UnderIndicatorRule(stochasticRsi, series.numOf(params.getOverboughtThreshold()));
