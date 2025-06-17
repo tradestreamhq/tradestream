@@ -16,7 +16,7 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
-final class MomentumSmaCrossoverStrategyFactory
+public final class MomentumSmaCrossoverStrategyFactory
     implements StrategyFactory<MomentumSmaCrossoverParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, MomentumSmaCrossoverParameters params)
