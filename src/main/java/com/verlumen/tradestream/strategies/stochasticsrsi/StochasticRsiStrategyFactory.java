@@ -32,7 +32,7 @@ public final class StochasticRsiStrategyFactory implements StrategyFactory<Stoch
     // Create a bar series from RSI values to apply Stochastic to RSI
     // Note: This is a simplified approach. In practice, you'd need a custom indicator
     // that applies Stochastic calculation to RSI values
-    StochasticOscillatorKIndicator stochasticRsi = 
+    StochasticOscillatorKIndicator stochasticRsi =
         new StochasticOscillatorKIndicator(series, params.getStochasticKPeriod());
 
     // Entry rule: Stochastic RSI crosses above oversold threshold
