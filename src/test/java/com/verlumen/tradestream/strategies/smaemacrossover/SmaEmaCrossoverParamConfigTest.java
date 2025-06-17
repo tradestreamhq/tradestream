@@ -36,8 +36,8 @@ public class SmaEmaCrossoverParamConfigTest {
     List<NumericChromosome<?, ?>> chromosomes =
         List.of(
             IntegerChromosome.of(5, 50, 20), // SMA Period
-            IntegerChromosome.of(5, 50, 14)  // EMA Period
-        );
+            IntegerChromosome.of(5, 50, 14) // EMA Period
+            );
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(SmaEmaCrossoverParameters.class)).isTrue();
