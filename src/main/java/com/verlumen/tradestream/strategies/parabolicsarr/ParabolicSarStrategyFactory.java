@@ -39,7 +39,8 @@ public final class ParabolicSarStrategyFactory implements StrategyFactory<Parabo
     Rule exitRule = new UnderIndicatorRule(closePrice, psar);
 
     return new BaseStrategy(
-        String.format("%s (AF: %.3f-%.3f, Inc: %.3f)",
+        String.format(
+            "%s (AF: %.3f-%.3f, Inc: %.3f)",
             getStrategyType().name(),
             params.getAccelerationFactorStart(),
             params.getAccelerationFactorMax(),
