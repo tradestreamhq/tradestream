@@ -247,7 +247,6 @@ public class BacktestRunnerImplTest {
   private void addTestBarsForNoTrades() {
     candlesList.clear();
     double basePrice = 100.0;
-    
     // Very stable prices with minimal variation
     for (int i = 0; i < 25; i++) {
       double price = basePrice + (Math.sin(i * 0.1) * 0.5); // Tiny oscillation
