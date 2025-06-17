@@ -135,7 +135,6 @@ public class BacktestRunnerImplTest {
     // Assert - Focus on volatility calculation rather than specific Sharpe ratio
     assertThat(result.getVolatility()).isGreaterThan(0.1); // Should be high due to volatile data
     assertThat(result.getMaxDrawdown()).isGreaterThan(0.0);
-    
     // Sharpe ratio calculation depends on many factors, so just verify it's calculated
     assertThat(Double.isFinite(result.getSharpeRatio())).isTrue();
   }
