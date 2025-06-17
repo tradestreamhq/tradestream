@@ -190,7 +190,8 @@ public class BacktestRunnerImplTest {
   private Strategy createStrategyWithDefaults(StrategyType strategyType) {
     return Strategy.newBuilder()
         .setType(strategyType)
-        .setParameters(getDefaultParameters(strategyType)) // Kotlin extension function called from Java
+        .setParameters(
+            getDefaultParameters(strategyType)) // Kotlin extension function called from Java
         .build();
   }
 
