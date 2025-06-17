@@ -2,6 +2,7 @@ package com.verlumen.tradestream.strategies.stochasticsrsi;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.verlumen.tradestream.strategies.StochasticRsiParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
