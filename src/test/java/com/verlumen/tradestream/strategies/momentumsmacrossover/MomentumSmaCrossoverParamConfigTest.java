@@ -35,8 +35,8 @@ public class MomentumSmaCrossoverParamConfigTest {
     List<NumericChromosome<?, ?>> chromosomes =
         List.of(
             IntegerChromosome.of(5, 30, 10), // Momentum Period
-            IntegerChromosome.of(5, 50, 20)  // SMA Period
-        );
+            IntegerChromosome.of(5, 50, 20) // SMA Period
+            );
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(MomentumSmaCrossoverParameters.class)).isTrue();
