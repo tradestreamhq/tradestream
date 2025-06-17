@@ -3,9 +3,9 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
-java_library(
+kt_jvm_library(
     name = "momentum_indicator",
-    srcs = ["MomentumIndicator.java"],
+    srcs = ["MomentumIndicator.kt"],
     deps = [
         "//third_party/java:ta4j_core",
     ],
