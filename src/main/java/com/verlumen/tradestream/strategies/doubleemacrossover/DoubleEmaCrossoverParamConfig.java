@@ -14,7 +14,7 @@ public final class DoubleEmaCrossoverParamConfig implements ParamConfig {
       ImmutableList.of(
           ChromosomeSpec.ofInteger(2, 30), // Short EMA Period
           ChromosomeSpec.ofInteger(10, 100) // Long EMA Period
-      );
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
