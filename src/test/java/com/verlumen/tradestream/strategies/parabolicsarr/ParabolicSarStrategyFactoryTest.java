@@ -55,11 +55,12 @@ public class ParabolicSarStrategyFactoryTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void validateAccelerationFactorStart() throws InvalidProtocolBufferException {
-    params = ParabolicSarParameters.newBuilder()
-        .setAccelerationFactorStart(-0.01)
-        .setAccelerationFactorIncrement(0.02)
-        .setAccelerationFactorMax(0.2)
-        .build();
+    params =
+        ParabolicSarParameters.newBuilder()
+            .setAccelerationFactorStart(-0.01)
+            .setAccelerationFactorIncrement(0.02)
+            .setAccelerationFactorMax(0.2)
+            .build();
     factory.createStrategy(series, params);
   }
 
