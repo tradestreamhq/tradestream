@@ -36,8 +36,8 @@ public class MacdCrossoverParamConfigTest {
         List.of(
             IntegerChromosome.of(5, 20, 12),  // Short EMA Period
             IntegerChromosome.of(15, 50, 26), // Long EMA Period
-            IntegerChromosome.of(5, 20, 9)    // Signal Period
-        );
+            IntegerChromosome.of(5, 20, 9) // Signal Period
+            );
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(MacdCrossoverParameters.class)).isTrue();
