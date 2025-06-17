@@ -8,7 +8,7 @@ java_library(
     srcs = ["MomentumIndicator.java"],
     deps = [
         "//third_party/java:ta4j_core",
-    ]
+    ],
 )
 
 kt_jvm_library(
