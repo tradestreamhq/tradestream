@@ -4,6 +4,14 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 package(default_visibility = ["//visibility:public"])
 
 kt_jvm_library(
+    name = "momentum_indicator",
+    srcs = ["MomentumIndicator.kt"],
+    deps = [
+        "//third_party/java:ta4j_core",
+    ],
+)
+
+kt_jvm_library(
     name = "strategies_module",
     srcs = ["StrategiesModule.kt"],
     deps = [
