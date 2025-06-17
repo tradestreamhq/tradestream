@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.strategies.smaemacrossover;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
