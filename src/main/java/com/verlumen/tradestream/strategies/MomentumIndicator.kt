@@ -7,7 +7,7 @@ import org.ta4j.core.num.Num
 /** Momentum indicator that measures price changes over a specified period as a percentage. */
 class MomentumIndicator(
     private val closePrice: ClosePriceIndicator,
-    private val period: Int
+    private val period: Int,
 ) : CachedIndicator<Num>(closePrice) {
     override fun calculate(index: Int): Num {
         if (index < period) {
