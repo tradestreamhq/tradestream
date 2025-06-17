@@ -3,10 +3,11 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(default_visibility = ["//visibility:public"])
 
 java_library(
-    name = "movingaverages_lib",
-    srcs = glob(["*.java"]),
+    name = "strategy_factory",
+    srcs = ["MomentumSmaCrossoverStrategyFactory.java"],
     deps = [
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies:momentum_indicator",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
         "//third_party/java:guava",
         "//third_party/java:protobuf_java",
