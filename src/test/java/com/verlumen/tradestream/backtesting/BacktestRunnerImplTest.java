@@ -203,7 +203,6 @@ public class BacktestRunnerImplTest {
     for (int i = 0; i < 10; i++) {
       candlesList.add(createCandle(startTime.plusMinutes(i), basePrice + (i * 0.5)));
     }
-    
     // Phase 2: Sharp decline to create oversold conditions (10 bars)
     for (int i = 10; i < 20; i++) {
       double price = basePrice + 5 - ((i - 9) * 3); // Sharp decline
