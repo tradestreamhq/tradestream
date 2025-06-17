@@ -50,9 +50,9 @@ public final class ParabolicSarStrategyFactory implements StrategyFactory<Parabo
   @Override
   public ParabolicSarParameters getDefaultParameters() {
     return ParabolicSarParameters.newBuilder()
-        .setAccelerationFactorStart(0.02)  // Standard PSAR start
-        .setAccelerationFactorIncrement(0.02)  // Standard increment
-        .setAccelerationFactorMax(0.2)  // Standard max
+        .setAccelerationFactorStart(0.02) // Standard PSAR start
+        .setAccelerationFactorIncrement(0.02) // Standard increment
+        .setAccelerationFactorMax(0.2) // Standard max
         .build();
   }
 
