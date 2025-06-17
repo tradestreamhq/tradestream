@@ -12,9 +12,9 @@ import io.jenetics.NumericChromosome;
 public final class StochasticRsiParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
-          ChromosomeSpec.ofInteger(5, 30),  // RSI Period
-          ChromosomeSpec.ofInteger(5, 30),  // Stochastic K Period
-          ChromosomeSpec.ofInteger(3, 15),  // Stochastic D Period
+          ChromosomeSpec.ofInteger(5, 30), // RSI Period
+          ChromosomeSpec.ofInteger(5, 30), // Stochastic K Period
+          ChromosomeSpec.ofInteger(3, 15), // Stochastic D Period
           ChromosomeSpec.ofInteger(60, 95), // Overbought Threshold
           ChromosomeSpec.ofInteger(5, 40) // Oversold Threshold
           );
