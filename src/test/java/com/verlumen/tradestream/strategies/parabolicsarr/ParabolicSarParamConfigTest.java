@@ -34,10 +34,10 @@ public class ParabolicSarParamConfigTest {
   public void testCreateParameters_validChromosomes_returnsPackedParameters() {
     List<NumericChromosome<?, ?>> chromosomes =
         List.of(
-            DoubleChromosome.of(0.01, 0.05),  // AF Start
-            DoubleChromosome.of(0.01, 0.05),  // AF Increment
-            DoubleChromosome.of(0.1, 0.5)     // AF Max
-        );
+            DoubleChromosome.of(0.01, 0.05), // AF Start
+            DoubleChromosome.of(0.01, 0.05), // AF Increment
+            DoubleChromosome.of(0.1, 0.5) // AF Max
+            );
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(ParabolicSarParameters.class)).isTrue();
