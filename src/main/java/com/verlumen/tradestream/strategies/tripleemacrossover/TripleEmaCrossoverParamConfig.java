@@ -12,7 +12,7 @@ import io.jenetics.NumericChromosome;
 public final class TripleEmaCrossoverParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
-          ChromosomeSpec.ofInteger(2, 20),  // Short EMA Period
+          ChromosomeSpec.ofInteger(2, 20), // Short EMA Period
           ChromosomeSpec.ofInteger(10, 50), // Medium EMA Period
           ChromosomeSpec.ofInteger(20, 100) // Long EMA Period
           );
