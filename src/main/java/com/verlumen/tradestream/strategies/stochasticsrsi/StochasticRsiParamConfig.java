@@ -16,8 +16,8 @@ public final class StochasticRsiParamConfig implements ParamConfig {
           ChromosomeSpec.ofInteger(5, 30),  // Stochastic K Period
           ChromosomeSpec.ofInteger(3, 15),  // Stochastic D Period
           ChromosomeSpec.ofInteger(60, 95), // Overbought Threshold
-          ChromosomeSpec.ofInteger(5, 40)   // Oversold Threshold
-      );
+          ChromosomeSpec.ofInteger(5, 40) // Oversold Threshold
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
