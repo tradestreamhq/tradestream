@@ -209,7 +209,6 @@ public class BacktestRunnerImplTest {
       double price = basePrice + 5 - ((i - 9) * 3); // Sharp decline
       candlesList.add(createCandle(startTime.plusMinutes(i), Math.max(price, 70.0)));
     }
-    
     // Phase 3: Recovery (15 bars)
     for (int i = 20; i < 35; i++) {
       double price = 70.0 + ((i - 19) * 2); // Recovery
