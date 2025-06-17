@@ -34,7 +34,7 @@ public class MacdCrossoverParamConfigTest {
   public void testCreateParameters_validChromosomes_returnsPackedParameters() {
     List<NumericChromosome<?, ?>> chromosomes =
         List.of(
-            IntegerChromosome.of(5, 20, 12),  // Short EMA Period
+            IntegerChromosome.of(5, 20, 12), // Short EMA Period
             IntegerChromosome.of(15, 50, 26), // Long EMA Period
             IntegerChromosome.of(5, 20, 9) // Signal Period
             );
