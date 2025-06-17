@@ -233,7 +233,6 @@ public class BacktestRunnerImplTest {
   private void addTestBarsForHighVolatility() {
     candlesList.clear();
     double basePrice = 100.0;
-    
     // Create zigzag pattern with high volatility
     for (int i = 0; i < 30; i++) {
       double volatility = (i % 2 == 0) ? 15.0 : -15.0; // Alternate high/low
