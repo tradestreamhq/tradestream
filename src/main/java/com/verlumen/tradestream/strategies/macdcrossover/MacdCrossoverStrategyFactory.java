@@ -15,7 +15,8 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
-public final class MacdCrossoverStrategyFactory implements StrategyFactory<MacdCrossoverParameters> {
+public final class MacdCrossoverStrategyFactory
+    implements StrategyFactory<MacdCrossoverParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, MacdCrossoverParameters params) {
     checkArgument(params.getShortEmaPeriod() > 0, "Short EMA period must be positive");
