@@ -35,7 +35,7 @@ public class TripleEmaCrossoverStrategyFactoryTest {
 
   @Before
   public void setUp() throws InvalidProtocolBufferException {
-    factory = TripleEmaCrossoverStrategyFactory.create();
+    factory = new TripleEmaCrossoverStrategyFactory();
     params =
         TripleEmaCrossoverParameters.newBuilder()
             .setShortEmaPeriod(SHORT_EMA)
