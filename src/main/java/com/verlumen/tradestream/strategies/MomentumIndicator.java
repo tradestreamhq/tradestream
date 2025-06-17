@@ -5,7 +5,7 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
 
 /** Momentum indicator that measures price changes over a specified period as a percentage. */
-final class MomentumIndicator extends CachedIndicator<Num> {
+public final class MomentumIndicator extends CachedIndicator<Num> {
   private final ClosePriceIndicator closePrice;
   private final int period;
 
