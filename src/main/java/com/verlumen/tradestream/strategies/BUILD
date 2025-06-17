@@ -8,8 +8,6 @@ kt_jvm_library(
     srcs = ["StrategiesModule.kt"],
     deps = [
         ":strategy_factory",
-        ":strategy_manager",
-        ":strategy_manager_impl",
         "//third_party/java:guava",
         "//third_party/java:guice",
     ],
@@ -28,33 +26,6 @@ java_library(
     srcs = ["StrategyFactory.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//third_party/java:protobuf_java",
-        "//third_party/java:ta4j_core",
-    ],
-)
-
-java_library(
-    name = "strategy_manager",
-    srcs = ["StrategyManager.java"],
-    deps = [
-        ":strategy_factory",
-        "//protos:strategies_java_proto",
-        "//third_party/java:guava",
-        "//third_party/java:protobuf_java",
-        "//third_party/java:ta4j_core",
-    ],
-)
-
-java_library(
-    name = "strategy_manager_impl",
-    srcs = ["StrategyManagerImpl.java"],
-    deps = [
-        ":strategy_factory",
-        ":strategy_manager",
-        "//protos:strategies_java_proto",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:mug",
         "//third_party/java:protobuf_java",
         "//third_party/java:ta4j_core",
     ],

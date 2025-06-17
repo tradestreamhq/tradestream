@@ -38,7 +38,6 @@ java_test(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner_impl",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
         "//third_party/java:guava",
