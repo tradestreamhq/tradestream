@@ -27,7 +27,8 @@ public final class MacdCrossoverStrategyFactory
         "Long EMA period must be greater than short EMA period");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    MACDIndicator macdIndicator = new MACDIndicator(closePrice, params.getShortEmaPeriod(), params.getLongEmaPeriod());
+    MACDIndicator macdIndicator =
+        new MACDIndicator(closePrice, params.getShortEmaPeriod(), params.getLongEmaPeriod());
     EMAIndicator signalIndicator = new EMAIndicator(macdIndicator, params.getSignalPeriod());
 
     // Entry rule: MACD crosses above Signal Line
