@@ -15,7 +15,7 @@ public final class TripleEmaCrossoverParamConfig implements ParamConfig {
           ChromosomeSpec.ofInteger(2, 20),  // Short EMA Period
           ChromosomeSpec.ofInteger(10, 50), // Medium EMA Period
           ChromosomeSpec.ofInteger(20, 100) // Long EMA Period
-      );
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
