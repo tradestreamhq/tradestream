@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.movingaverages;
+package com.verlumen.tradestream.strategies.momentumsmacrossover;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -18,10 +18,6 @@ import org.ta4j.core.rules.UnderIndicatorRule;
 
 final class MomentumSmaCrossoverStrategyFactory
     implements StrategyFactory<MomentumSmaCrossoverParameters> {
-  static MomentumSmaCrossoverStrategyFactory create() {
-    return new MomentumSmaCrossoverStrategyFactory();
-  }
-
   @Override
   public Strategy createStrategy(BarSeries series, MomentumSmaCrossoverParameters params)
       throws InvalidProtocolBufferException {
@@ -67,6 +63,4 @@ final class MomentumSmaCrossoverStrategyFactory
   public StrategyType getStrategyType() {
     return StrategyType.MOMENTUM_SMA_CROSSOVER;
   }
-
-  private MomentumSmaCrossoverStrategyFactory() {}
 }
