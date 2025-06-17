@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.movingaverages;
+package com.verlumen.tradestream.strategies.tripleemacrossover;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -16,10 +16,6 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
 public class TripleEmaCrossoverStrategyFactory
     implements StrategyFactory<TripleEmaCrossoverParameters> {
-  static TripleEmaCrossoverStrategyFactory create() {
-    return new TripleEmaCrossoverStrategyFactory();
-  }
-
   @Override
   public Strategy createStrategy(BarSeries series, TripleEmaCrossoverParameters params) {
     checkArgument(params.getShortEmaPeriod() > 0, "Short EMA period must be positive");
@@ -70,6 +66,4 @@ public class TripleEmaCrossoverStrategyFactory
   public StrategyType getStrategyType() {
     return StrategyType.TRIPLE_EMA_CROSSOVER;
   }
-
-  private TripleEmaCrossoverStrategyFactory() {}
 }
