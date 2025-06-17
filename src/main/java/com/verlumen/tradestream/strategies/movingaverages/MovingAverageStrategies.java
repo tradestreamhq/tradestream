@@ -12,7 +12,6 @@ public final class MovingAverageStrategies {
   public static final ImmutableList<StrategyFactory<?>> ALL_FACTORIES =
       ImmutableList.of(
           MomentumSmaCrossoverStrategyFactory.create(),
-          SmaEmaCrossoverStrategyFactory.create(),
           TripleEmaCrossoverStrategyFactory.create());
 
   // Prevent instantiation
