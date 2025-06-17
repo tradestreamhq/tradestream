@@ -11,12 +11,7 @@ public final class MovingAverageStrategies {
   /** An immutable list of all moving average strategy factories. */
   public static final ImmutableList<StrategyFactory<?>> ALL_FACTORIES =
       ImmutableList.of(
-          MomentumSmaCrossoverStrategyFactory.create(),
-<<<<<<< tradestreamhq-patch-12
-          SmaEmaCrossoverStrategyFactory.create());
-=======
-          TripleEmaCrossoverStrategyFactory.create());
->>>>>>> develop
+          MomentumSmaCrossoverStrategyFactory.create());
 
   // Prevent instantiation
   private MovingAverageStrategies() {}
