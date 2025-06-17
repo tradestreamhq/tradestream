@@ -34,10 +34,10 @@ public class TripleEmaCrossoverParamConfigTest {
   public void testCreateParameters_validChromosomes_returnsPackedParameters() {
     List<NumericChromosome<?, ?>> chromosomes =
         List.of(
-            IntegerChromosome.of(2, 20, 10),   // Short EMA Period
-            IntegerChromosome.of(10, 50, 20),  // Medium EMA Period
-            IntegerChromosome.of(20, 100, 50)  // Long EMA Period
-        );
+            IntegerChromosome.of(2, 20, 10), // Short EMA Period
+            IntegerChromosome.of(10, 50, 20), // Medium EMA Period
+            IntegerChromosome.of(20, 100, 50) // Long EMA Period
+            );
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(TripleEmaCrossoverParameters.class)).isTrue();
