@@ -221,7 +221,6 @@ public class BacktestRunnerImplTest {
   private void addTestBarsForLosingScenario() {
     candlesList.clear();
     double basePrice = 100.0;
-    
     // Gradual decline over 30 bars
     for (int i = 0; i < 30; i++) {
       double price = basePrice - (i * 1.5); // Steady decline
