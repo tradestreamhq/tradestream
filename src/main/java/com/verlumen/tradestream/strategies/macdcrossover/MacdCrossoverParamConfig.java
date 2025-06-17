@@ -14,8 +14,8 @@ public final class MacdCrossoverParamConfig implements ParamConfig {
       ImmutableList.of(
           ChromosomeSpec.ofInteger(5, 20), // Short EMA Period
           ChromosomeSpec.ofInteger(15, 50), // Long EMA Period
-          ChromosomeSpec.ofInteger(5, 20)   // Signal Period
-      );
+          ChromosomeSpec.ofInteger(5, 20) // Signal Period
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
