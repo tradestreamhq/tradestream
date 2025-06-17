@@ -22,7 +22,5 @@ class MomentumIndicator(
         return currentClose.minus(previousClose).dividedBy(previousClose).multipliedBy(numOf(100))
     }
 
-    override fun getUnstableBars(): Int {
-        return period
-    }
+    override fun getUnstableBars(): Int = period
 }
