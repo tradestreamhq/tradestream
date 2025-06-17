@@ -141,7 +141,7 @@ public class BacktestRunnerImplTest {
   public void runBacktest_withNoTrades_returnsZeroMetrics() throws InvalidProtocolBufferException {
     // Arrange
     // Add test data
-    addTestBars(100.0, 100.0, 100.0, 100.0, 100.0);
+    addTestBarsForNoTrades();
 
     BacktestRequest request =
         BacktestRequest.newBuilder()
