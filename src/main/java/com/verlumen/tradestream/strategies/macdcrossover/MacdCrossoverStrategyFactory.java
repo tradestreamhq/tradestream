@@ -36,7 +36,8 @@ public final class MacdCrossoverStrategyFactory implements StrategyFactory<MacdC
     Rule exitRule = new CrossedDownIndicatorRule(macdIndicator, signalIndicator);
 
     return new BaseStrategy(
-        String.format("%s (%d, %d, %d)",
+        String.format(
+            "%s (%d, %d, %d)",
             getStrategyType().name(),
             params.getShortEmaPeriod(),
             params.getLongEmaPeriod(),
