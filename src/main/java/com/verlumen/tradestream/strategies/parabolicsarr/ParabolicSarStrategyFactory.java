@@ -25,10 +25,12 @@ public final class ParabolicSarStrategyFactory implements StrategyFactory<Parabo
         "Acceleration factor max must be >= start");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    ParabolicSarIndicator psar = new ParabolicSarIndicator(series,
-        series.numOf(params.getAccelerationFactorStart()),
-        series.numOf(params.getAccelerationFactorIncrement()),
-        series.numOf(params.getAccelerationFactorMax()));
+    ParabolicSarIndicator psar =
+        new ParabolicSarIndicator(
+            series,
+            series.numOf(params.getAccelerationFactorStart()),
+            series.numOf(params.getAccelerationFactorIncrement()),
+            series.numOf(params.getAccelerationFactorMax()));
 
     // Entry rule: Buy when price crosses above Parabolic SAR
     Rule entryRule = new OverIndicatorRule(closePrice, psar);
