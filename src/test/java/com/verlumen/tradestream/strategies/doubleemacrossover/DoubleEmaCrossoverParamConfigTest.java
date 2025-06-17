@@ -37,7 +37,7 @@ public class DoubleEmaCrossoverParamConfigTest {
         List.of(
             IntegerChromosome.of(2, 30, 12),  // Short EMA Period
             IntegerChromosome.of(10, 100, 26) // Long EMA Period
-        );
+            );
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(DoubleEmaCrossoverParameters.class)).isTrue();
