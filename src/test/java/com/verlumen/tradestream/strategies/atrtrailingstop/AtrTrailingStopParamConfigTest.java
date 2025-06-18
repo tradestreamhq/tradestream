@@ -30,7 +30,6 @@ public class AtrTrailingStopParamConfigTest {
   public void testGetChromosomeSpecs_returnsExpectedSpecs() {
     ImmutableList<ChromosomeSpec<?>> specs = config.getChromosomeSpecs();
     assertThat(specs).hasSize(2);
-    
     // ATR Period: range 5-30
     assertThat(specs.get(0).getRange().lowerEndpoint()).isEqualTo(5);
     assertThat(specs.get(0).getRange().upperEndpoint()).isEqualTo(30);
