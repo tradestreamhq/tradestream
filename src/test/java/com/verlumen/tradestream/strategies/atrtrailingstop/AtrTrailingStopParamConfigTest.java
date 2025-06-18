@@ -33,7 +33,6 @@ public class AtrTrailingStopParamConfigTest {
     // ATR Period: range 5-30
     assertThat(specs.get(0).getRange().lowerEndpoint()).isEqualTo(5);
     assertThat(specs.get(0).getRange().upperEndpoint()).isEqualTo(30);
-    
     // Multiplier: range 1.0-5.0
     assertThat(specs.get(1).getRange().lowerEndpoint()).isEqualTo(1.0);
     assertThat(specs.get(1).getRange().upperEndpoint()).isEqualTo(5.0);
