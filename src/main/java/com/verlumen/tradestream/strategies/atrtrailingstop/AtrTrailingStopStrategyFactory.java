@@ -20,9 +20,7 @@ import org.ta4j.core.rules.UnderIndicatorRule;
 public final class AtrTrailingStopStrategyFactory
     implements StrategyFactory<AtrTrailingStopParameters> {
 
-  /**
-   * Custom indicator to calculate trailing stop: previousClose - (ATR * multiplier)
-   */
+  /** Custom indicator to calculate trailing stop: previousClose - (ATR * multiplier) */
   private static class TrailingStopIndicator extends CachedIndicator<Num> {
     private final PreviousValueIndicator previousClose;
     private final ATRIndicator atr;
