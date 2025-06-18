@@ -122,7 +122,6 @@ public class AtrTrailingStopStrategyFactoryTest {
       double prevClose = previousClose.getValue(i).doubleValue();
       double atr = atrIndicator.getValue(i).doubleValue();
       double trailingStop = prevClose - (atr * MULTIPLIER);
-      
       if (currentPrice < trailingStop) {
         exitIndex = i;
         System.out.printf(
