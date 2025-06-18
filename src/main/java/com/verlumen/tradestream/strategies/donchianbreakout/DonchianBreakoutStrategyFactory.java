@@ -23,7 +23,6 @@ public final class DonchianBreakoutStrategyFactory implements StrategyFactory<Do
     checkArgument(params.getDonchianPeriod() > 0, "Donchian period must be positive");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    
     // Donchian Channel Upper = Highest High over the period
     HighPriceIndicator highPrice = new HighPriceIndicator(series);
     HighestValueIndicator upperChannel =
