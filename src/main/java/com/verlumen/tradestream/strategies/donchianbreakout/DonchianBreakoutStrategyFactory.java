@@ -30,7 +30,8 @@ public final class DonchianBreakoutStrategyFactory implements StrategyFactory<Do
     
     // Donchian Channel Lower = Lowest Low over the period
     LowPriceIndicator lowPrice = new LowPriceIndicator(series);
-    LowestValueIndicator lowerChannel = new LowestValueIndicator(lowPrice, params.getDonchianPeriod());
+    LowestValueIndicator lowerChannel =
+        new LowestValueIndicator(lowPrice, params.getDonchianPeriod());
 
     // Entry rule: Buy when price crosses above upper Donchian channel
     Rule entryRule = new OverIndicatorRule(closePrice, upperChannel);
