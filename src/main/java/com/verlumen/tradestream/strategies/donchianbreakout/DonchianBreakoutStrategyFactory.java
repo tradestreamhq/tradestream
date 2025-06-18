@@ -26,8 +26,9 @@ public final class DonchianBreakoutStrategyFactory implements StrategyFactory<Do
     
     // Donchian Channel Upper = Highest High over the period
     HighPriceIndicator highPrice = new HighPriceIndicator(series);
-    HighestValueIndicator upperChannel = new HighestValueIndicator(highPrice, params.getDonchianPeriod());
-    
+    HighestValueIndicator upperChannel =
+        new HighestValueIndicator(highPrice, params.getDonchianPeriod());
+
     // Donchian Channel Lower = Lowest Low over the period
     LowPriceIndicator lowPrice = new LowPriceIndicator(series);
     LowestValueIndicator lowerChannel =
