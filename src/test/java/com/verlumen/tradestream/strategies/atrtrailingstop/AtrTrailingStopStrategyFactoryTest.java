@@ -162,7 +162,6 @@ public class AtrTrailingStopStrategyFactoryTest {
   @Test
   public void createStrategy_withValidParameters_returnsStrategy() throws InvalidProtocolBufferException {
     Strategy result = factory.createStrategy(series, params);
-    
     assertThat(result).isNotNull();
     assertThat(result.getName()).contains("ATR_TRAILING_STOP");
     assertThat(result.getName()).contains("ATR: 14");
