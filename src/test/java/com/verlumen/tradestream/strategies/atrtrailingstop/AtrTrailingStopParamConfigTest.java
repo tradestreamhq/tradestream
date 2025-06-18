@@ -42,11 +42,11 @@ public class AtrTrailingStopParamConfigTest {
 
   @Test
   public void testCreateParameters_validChromosomes_returnsPackedParameters() {
-    // Create chromosomes with correct parameter order: min, max, value
+    // Create chromosomes with single genes each, random values in given range
     List<NumericChromosome<?, ?>> chromosomes =
         List.of(
-            IntegerChromosome.of(5, 30, 14), // ATR Period
-            DoubleChromosome.of(1.0, 5.0, 2.0) // Multiplier
+            IntegerChromosome.of(5, 30, 1), // ATR Period - single gene
+            DoubleChromosome.of(1.0, 5.0) // Multiplier - defaults to single gene
         );
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
@@ -57,7 +57,7 @@ public class AtrTrailingStopParamConfigTest {
   public void testCreateParameters_invalidChromosomeSize_throwsException() {
     // Create a single chromosome
     List<NumericChromosome<?, ?>> chromosomes =
-        List.of(IntegerChromosome.of(5, 30, 14)); // Only one chromosome
+        List.of(IntegerChromosome.of(5, 30, 1)); // Only one chromosome
 
     IllegalArgumentException thrown =
         assertThrows(
@@ -80,17 +80,27 @@ public class AtrTrailingStopParamConfigTest {
   }
 
   @Test
-  public void testCreateParameters_extractsCorrectValues() throws Exception {
-    // Create chromosomes with specific values
-    IntegerChromosome atrPeriodChrom = IntegerChromosome.of(5, 30, 20);
-    DoubleChromosome multiplierChrom = DoubleChromosome.of(1.0, 5.0, 2.5);
+  public void testCreateParameters_extractsValuesInCorrectRanges() throws Exception {
+    // Create chromosomes and extract their actual values for testing
+    IntegerChromosome atrPeriodChrom = IntegerChromosome.of(5, 30, 1);
+    DoubleChromosome multiplierChrom = DoubleChromosome.of(1.0, 5.0);
 
     List<NumericChromosome<?, ?>> chromosomes = List.of(atrPeriodChrom, multiplierChrom);
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     AtrTrailingStopParameters params = packedParams.unpack(AtrTrailingStopParameters.class);
 
-    assertThat(params.getAtrPeriod()).isEqualTo(20);
-    assertThat(params.getMultiplier()).isEqualTo(2.5);
+    // Extract the actual values from chromosomes
+    int expectedAtrPeriod = atrPeriodChrom.gene().allele();
+    double expectedMultiplier = multiplierChrom.gene().allele();
+
+    assertThat(params.getAtrPeriod()).isEqualTo(expectedAtrPeriod);
+    assertThat(params.getMultiplier()).isEqualTo(expectedMultiplier);
+    
+    // Also verify values are within expected ranges
+    assertThat(params.getAtrPeriod()).isAtLeast(5);
+    assertThat(params.getAtrPeriod()).isAtMost(30);
+    assertThat(params.getMultiplier()).isAtLeast(1.0);
+    assertThat(params.getMultiplier()).isAtMost(5.0);
   }
 }
