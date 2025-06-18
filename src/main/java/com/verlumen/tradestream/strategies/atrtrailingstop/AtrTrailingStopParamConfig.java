@@ -13,9 +13,9 @@ import io.jenetics.NumericChromosome;
 public final class AtrTrailingStopParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
-          ChromosomeSpec.ofInteger(5, 30),   // ATR Period
-          ChromosomeSpec.ofDouble(1.0, 5.0)  // Multiplier
-      );
+          ChromosomeSpec.ofInteger(5, 30), // ATR Period
+          ChromosomeSpec.ofDouble(1.0, 5.0) // Multiplier
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
