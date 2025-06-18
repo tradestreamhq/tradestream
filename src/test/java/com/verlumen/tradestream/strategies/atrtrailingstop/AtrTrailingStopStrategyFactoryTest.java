@@ -83,7 +83,6 @@ public class AtrTrailingStopStrategyFactoryTest {
   @Test
   public void getDefaultParameters_returnsValidDefaults() {
     AtrTrailingStopParameters defaults = factory.getDefaultParameters();
-    
     assertThat(defaults.getAtrPeriod()).isEqualTo(14);
     assertThat(defaults.getMultiplier()).isEqualTo(2.0);
   }
