@@ -141,10 +141,7 @@ public class AtrTrailingStopStrategyFactoryTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateAtrPeriod() throws InvalidProtocolBufferException {
     params =
-        AtrTrailingStopParameters.newBuilder()
-            .setAtrPeriod(-1)
-            .setMultiplier(MULTIPLIER)
-            .build();
+        AtrTrailingStopParameters.newBuilder().setAtrPeriod(-1).setMultiplier(MULTIPLIER).build();
     factory.createStrategy(series, params);
   }
 
