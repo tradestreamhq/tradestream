@@ -58,7 +58,8 @@ public final class AtrTrailingStopStrategyFactory
     PreviousValueIndicator previousClose = new PreviousValueIndicator(closePrice, 1);
 
     // Create custom trailing stop indicator
-    TrailingStopIndicator trailingStop = new TrailingStopIndicator(closePrice, atr, params.getMultiplier());
+    TrailingStopIndicator trailingStop =
+        new TrailingStopIndicator(closePrice, atr, params.getMultiplier());
 
     // Entry rule: Simple momentum rule (price above previous close)
     Rule entryRule = new OverIndicatorRule(closePrice, previousClose);
