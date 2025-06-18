@@ -17,7 +17,8 @@ import org.ta4j.core.indicators.helpers.LowestValueIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
-public final class DonchianBreakoutStrategyFactory implements StrategyFactory<DonchianBreakoutParameters> {
+public final class DonchianBreakoutStrategyFactory
+    implements StrategyFactory<DonchianBreakoutParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, DonchianBreakoutParameters params) {
     checkArgument(params.getDonchianPeriod() > 0, "Donchian period must be positive");
