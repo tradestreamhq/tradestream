@@ -49,8 +49,8 @@ public final class AtrTrailingStopStrategyFactory
   @Override
   public AtrTrailingStopParameters getDefaultParameters() {
     return AtrTrailingStopParameters.newBuilder()
-        .setAtrPeriod(14)      // Standard ATR period
-        .setMultiplier(2.0)    // Common multiplier
+        .setAtrPeriod(14) // Standard ATR period
+        .setMultiplier(2.0) // Common multiplier
         .build();
   }
 
