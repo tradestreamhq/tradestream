@@ -13,7 +13,7 @@ public final class DonchianBreakoutParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
           ChromosomeSpec.ofInteger(10, 50) // Donchian Period
-      );
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
