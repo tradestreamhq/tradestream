@@ -38,10 +38,9 @@ public final class AtrTrailingStopStrategyFactory
     Rule exitRule = new UnderIndicatorRule(closePrice, trailingStop);
 
     return new BaseStrategy(
-        String.format("%s (ATR: %d, Mult: %.2f)",
-            getStrategyType().name(),
-            params.getAtrPeriod(),
-            params.getMultiplier()),
+        String.format(
+            "%s (ATR: %d, Mult: %.2f)",
+            getStrategyType().name(), params.getAtrPeriod(), params.getMultiplier()),
         entryRule,
         exitRule,
         params.getAtrPeriod());
