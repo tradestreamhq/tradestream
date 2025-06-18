@@ -47,7 +47,7 @@ public class AtrTrailingStopParamConfigTest {
         List.of(
             IntegerChromosome.of(5, 30, 1), // ATR Period - single gene
             DoubleChromosome.of(1.0, 5.0) // Multiplier - defaults to single gene
-        );
+            );
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(AtrTrailingStopParameters.class)).isTrue();
