@@ -178,6 +178,6 @@ public class AtrTrailingStopStrategyFactoryTest {
         price - 1.0, // low (slightly lower for realistic ATR calculation)
         price, // close
         100.0 // volume
-    );
+        );
   }
 }
