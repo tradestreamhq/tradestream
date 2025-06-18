@@ -48,7 +48,7 @@ public final class DonchianBreakoutStrategyFactory implements StrategyFactory<Do
   @Override
   public DonchianBreakoutParameters getDefaultParameters() {
     return DonchianBreakoutParameters.newBuilder()
-        .setDonchianPeriod(20)  // Common Donchian channel period
+        .setDonchianPeriod(20) // Common Donchian channel period
         .build();
   }
 
