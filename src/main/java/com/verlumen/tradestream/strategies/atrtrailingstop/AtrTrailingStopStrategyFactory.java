@@ -28,7 +28,8 @@ public final class AtrTrailingStopStrategyFactory
     private final ATRIndicator atr;
     private final double multiplier;
 
-    public TrailingStopIndicator(ClosePriceIndicator closePrice, ATRIndicator atr, double multiplier) {
+    public TrailingStopIndicator(
+        ClosePriceIndicator closePrice, ATRIndicator atr, double multiplier) {
       super(closePrice);
       this.previousClose = new PreviousValueIndicator(closePrice, 1);
       this.atr = atr;
