@@ -35,7 +35,9 @@ public final class AdxStochasticStrategyFactory
     // and Stochastic Oscillator K below oversold threshold
     Rule entryRule =
         new OverIndicatorRule(adxIndicator, DecimalNum.valueOf(20))
-            .and(new UnderIndicatorRule(stochasticK, DecimalNum.valueOf(params.getOversoldThreshold())));
+            .and(
+                new UnderIndicatorRule(
+                    stochasticK, DecimalNum.valueOf(params.getOversoldThreshold())));
 
     // Exit rule: ADX below a threshold (e.g., 20) indicating a weak trend
     // and Stochastic Oscillator K above overbought threshold
