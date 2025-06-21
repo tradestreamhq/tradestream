@@ -125,7 +125,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.TRIPLE_EMA_CROSSOVER to
             StrategySpec(
                 paramConfig = TripleEmaCrossoverParamConfig(),
-                strategyFactory = TripleEmaCrossoverStrategyFactory()
+                strategyFactory = TripleEmaCrossoverStrategyFactory(),
             ),
         StrategyType.VOLATILITY_STOP to
             StrategySpec(
