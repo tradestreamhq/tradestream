@@ -58,7 +58,6 @@ public class RviStrategyFactoryTest {
           basePrice - 0.1     // close (below open, bearish)
       ));
     }
-  
     // Phase 2: Transition period to establish RVI below signal line (bars 15-17)
     for (int i = 15; i < 18; i++) {
       double basePrice = 50.0;
