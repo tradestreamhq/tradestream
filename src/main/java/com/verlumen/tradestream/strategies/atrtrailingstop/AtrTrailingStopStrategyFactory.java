@@ -42,8 +42,8 @@ public final class AtrTrailingStopStrategyFactory
     }
 
     @Override
-    public int getUnstableBars() {
-      return Math.max(previousClose.getUnstableBars(), atr.getUnstableBars());
+    public int getCountOfUnstableBars() {
+      return Math.max(previousClose.getCountOfUnstableBars(), atr.getCountOfUnstableBars());
     }
   }
 
