@@ -35,8 +35,11 @@ public class RviIndicator extends CachedIndicator<Num> {
             return numOf(0);
         }
 
-        Num sum = numOf(0);
-        int count = 0;
+  @Override
+  protected Num calculate(int index) {
+    if (index < period - 1) {
+      return numOf(0);
+    }
 
         for (int i = index - period + 1; i <= index; i++) {
             Num close = closePrice.getValue(i);
