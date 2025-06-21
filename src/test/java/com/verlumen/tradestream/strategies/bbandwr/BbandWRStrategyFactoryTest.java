@@ -188,8 +188,10 @@ public class BbandWRStrategyFactoryTest {
   @Test
   public void createStrategy_withValidParameters_createsStrategyWithCorrectName() throws InvalidProtocolBufferException {
     Strategy testStrategy = factory.createStrategy(series, params);
-    String expectedName = String.format("BBAND_W_R (BB: %d, WR: %d, StdDev: %.1f)",
-        BBANDS_PERIOD, WR_PERIOD, STD_DEV_MULTIPLIER);
+    String expectedName =
+        String.format(
+            "BBAND_W_R (BB: %d, WR: %d, StdDev: %.1f)",
+            BBANDS_PERIOD, WR_PERIOD, STD_DEV_MULTIPLIER);
     assertThat(testStrategy.getName()).isEqualTo(expectedName);
   }
 
