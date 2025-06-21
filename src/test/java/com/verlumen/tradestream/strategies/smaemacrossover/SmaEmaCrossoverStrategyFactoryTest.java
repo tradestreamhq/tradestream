@@ -4,7 +4,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.SmaEmaCrossoverParameters;
-import com.verlumen.tradestream.strategies.StrategyType;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import org.junit.Before;
@@ -77,11 +76,6 @@ public class SmaEmaCrossoverStrategyFactoryTest {
 
     // Create strategy
     strategy = factory.createStrategy(series, params);
-  }
-
-  @Test
-  public void getStrategyType_returnsSmaEmaCrossover() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.SMA_EMA_CROSSOVER);
   }
 
   @Test

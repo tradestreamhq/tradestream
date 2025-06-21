@@ -41,7 +41,7 @@ public final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParame
     String strategyName =
         String.format(
             "%s (RSI-%d SMA-%d)",
-            getStrategyType().name(), params.getRsiPeriod(), params.getMovingAveragePeriod());
+            StrategyType.SMA_RSI.name(), params.getRsiPeriod(), params.getMovingAveragePeriod());
     return new BaseStrategy(strategyName, entryRule, exitRule, params.getRsiPeriod());
   }
 
@@ -53,10 +53,5 @@ public final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParame
         .setOverboughtThreshold(70) // Overbought threshold, often set at 70
         .setOversoldThreshold(30) // Oversold threshold, often set at 30
         .build();
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.SMA_RSI;
   }
 }

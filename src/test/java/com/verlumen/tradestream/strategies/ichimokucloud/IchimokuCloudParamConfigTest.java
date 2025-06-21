@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.strategies.IchimokuCloudParameters;
-import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.util.List;
@@ -80,10 +79,5 @@ public class IchimokuCloudParamConfigTest {
     IntegerChromosome tenkanSenPeriod = (IntegerChromosome) chromosomes.get(0);
     assertThat(tenkanSenPeriod.min()).isEqualTo(5);
     assertThat(tenkanSenPeriod.max()).isEqualTo(60);
-  }
-
-  @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.ICHIMOKU_CLOUD);
   }
 }
