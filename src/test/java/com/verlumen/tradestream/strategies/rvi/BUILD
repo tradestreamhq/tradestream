@@ -22,6 +22,7 @@ java_test(
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/rvi:rvi_indicator",
         "//src/main/java/com/verlumen/tradestream/strategies/rvi:strategy_factory",
         "//third_party/java:flogger",
         "//third_party/java:guava",
