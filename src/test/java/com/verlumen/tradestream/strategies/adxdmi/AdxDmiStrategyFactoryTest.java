@@ -23,7 +23,13 @@ public class AdxDmiStrategyFactoryTest {
     for (int i = 0; i < 50; i++) {
       series.addBar(
           new BaseBar(
-              Duration.ofDays(1), ZonedDateTime.now().plusDays(i), 100 + i, 100 + i, 100 + i, 100 + i, 100));
+              Duration.ofDays(1),
+              ZonedDateTime.now().plusDays(i),
+              100 + i,
+              100 + i,
+              100 + i,
+              100 + i,
+              100));
     }
   }
 
