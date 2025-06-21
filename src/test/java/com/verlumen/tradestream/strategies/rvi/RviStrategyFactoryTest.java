@@ -39,60 +39,70 @@ public class RviStrategyFactoryTest {
   @Before
   public void setUp() {
     factory = new RviStrategyFactory();
-
+  
     // Standard parameters
     params = RviParameters.newBuilder().setPeriod(RVI_PERIOD).build();
-
+  
     // Initialize series
     series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
-
-    // Create initial stable period with neutral RVI (bars 0-14)
-    // Using bars where close ≈ open to create low RVI values
+  
+    // Phase 1: Create bearish/neutral conditions (bars 0-14)
+    // This will create negative or near-zero RVI values
     for (int i = 0; i < 15; i++) {
       double basePrice = 50.0;
       series.addBar(createBar(now.plusMinutes(i), 
-          basePrice,      // open
-          basePrice + 0.5, // high  
-          basePrice - 0.5, // low
-          basePrice + 0.1  // close (slightly above open)
+          basePrice + 0.2,    // open (slightly above base)
+          basePrice + 0.5,    // high  
+          basePrice - 0.5,    // low
+          basePrice - 0.1     // close (below open, bearish)
       ));
     }
-
-    // Create bullish pattern for entry signal (bars 15-19)
-    // RVI should increase when close > open consistently
-    for (int i = 15; i < 20; i++) {
-      double basePrice = 50.0 + (i - 14) * 2; // Increasing trend
+  
+    // Phase 2: Transition period to establish RVI below signal line (bars 15-17)
+    for (int i = 15; i < 18; i++) {
+      double basePrice = 50.0;
       series.addBar(createBar(now.plusMinutes(i),
-          basePrice,      // open
-          basePrice + 2.0, // high
-          basePrice - 0.5, // low  
-          basePrice + 1.5  // close significantly above open
+          basePrice,          // open
+          basePrice + 0.3,    // high
+          basePrice - 0.3,    // low  
+          basePrice           // close (neutral, RVI ≈ 0)
       ));
     }
-
-    // Create bearish pattern for exit signal (bars 20-24)
-    // RVI should decrease when close < open consistently  
-    for (int i = 20; i < 25; i++) {
-      double basePrice = 60.0 - (i - 19) * 2; // Decreasing trend
+  
+    // Phase 3: Strong bullish pattern for clear entry signal (bars 18-22)
+    // This should create a clear cross-up from RVI below signal line to above
+    for (int i = 18; i < 23; i++) {
+      double basePrice = 50.0 + (i - 17) * 3; // Increasing trend
       series.addBar(createBar(now.plusMinutes(i),
-          basePrice,      // open
-          basePrice + 0.5, // high
-          basePrice - 2.0, // low
-          basePrice - 1.5  // close significantly below open
+          basePrice,          // open
+          basePrice + 3.0,    // high
+          basePrice - 0.5,    // low  
+          basePrice + 2.5     // close strongly above open (very bullish)
       ));
     }
-
+  
+    // Phase 4: Bearish pattern for exit signal (bars 23-27)
+    for (int i = 23; i < 28; i++) {
+      double basePrice = 65.0 - (i - 22) * 3; // Decreasing trend
+      series.addBar(createBar(now.plusMinutes(i),
+          basePrice,          // open
+          basePrice + 0.5,    // high
+          basePrice - 3.0,    // low
+          basePrice - 2.5     // close strongly below open (very bearish)
+      ));
+    }
+  
     // Initialize indicators for debugging
     closePrice = new ClosePriceIndicator(series);
     openPrice = new OpenPriceIndicator(series);
     highPrice = new HighPriceIndicator(series);
     lowPrice = new LowPriceIndicator(series);
-
+  
     // Use the existing RviIndicator class
     rvi = new RviIndicator(closePrice, openPrice, highPrice, lowPrice, RVI_PERIOD);
     rviSignal = new SMAIndicator(rvi, 4); // 4-period signal line
-
+  
     // Create strategy
     strategy = factory.createStrategy(series, params);
   }
@@ -100,30 +110,53 @@ public class RviStrategyFactoryTest {
   @Test
   public void entryRule_shouldTrigger_whenRviCrossesAboveSignalLine() {
     // Log RVI values around the expected crossover
-    for (int i = 15; i <= 20; i++) {
+    System.out.println("=== RVI Entry Test Debug ===");
+    for (int i = 15; i <= 22; i++) {
       if (i < series.getBarCount()) {
+        double rviValue = rvi.getValue(i).doubleValue();
+        double signalValue = rviSignal.getValue(i).doubleValue();
+        boolean entryTriggered = strategy.getEntryRule().isSatisfied(i);
+        
         System.out.printf(
-            "Bar %d - Open: %.2f, High: %.2f, Low: %.2f, Close: %.2f, RVI: %.4f, Signal: %.4f%n",
+            "Bar %d - O:%.2f H:%.2f L:%.2f C:%.2f | RVI:%.4f Signal:%.4f | Entry:%s%n",
             i,
             openPrice.getValue(i).doubleValue(),
             highPrice.getValue(i).doubleValue(), 
             lowPrice.getValue(i).doubleValue(),
             closePrice.getValue(i).doubleValue(),
-            rvi.getValue(i).doubleValue(),
-            rviSignal.getValue(i).doubleValue());
+            rviValue,
+            signalValue,
+            entryTriggered ? "YES" : "no");
       }
     }
-
-    // Find entry signal in the bullish pattern section
+  
+    // Find entry signal in the bullish pattern section (bars 18-22)
     boolean entryFound = false;
-    for (int i = 15; i < 20 && i < series.getBarCount(); i++) {
+    int entryBar = -1;
+    for (int i = 18; i <= 22 && i < series.getBarCount(); i++) {
       if (strategy.getEntryRule().isSatisfied(i)) {
         System.out.println("Entry rule satisfied at bar " + i);
         entryFound = true;
+        entryBar = i;
         break;
       }
     }
-
+  
+    // Verify that RVI crossed above signal line at the entry bar
+    if (entryFound && entryBar > 0) {
+      double rviPrev = rvi.getValue(entryBar - 1).doubleValue();
+      double signalPrev = rviSignal.getValue(entryBar - 1).doubleValue();
+      double rviCurrent = rvi.getValue(entryBar).doubleValue();
+      double signalCurrent = rviSignal.getValue(entryBar).doubleValue();
+      
+      System.out.printf("Crossover verification - Prev: RVI=%.4f Signal=%.4f, Current: RVI=%.4f Signal=%.4f%n",
+          rviPrev, signalPrev, rviCurrent, signalCurrent);
+      
+      // Verify it's actually a cross-up
+      assertThat(rviPrev).isLessThan(signalPrev); // RVI was below signal
+      assertThat(rviCurrent).isGreaterThan(signalCurrent); // RVI is now above signal
+    }
+  
     assertThat(entryFound).isTrue();
   }
 
