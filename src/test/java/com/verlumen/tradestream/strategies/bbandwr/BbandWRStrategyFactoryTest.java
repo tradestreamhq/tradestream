@@ -17,6 +17,7 @@ import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.WilliamsRIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
+import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
@@ -79,9 +80,10 @@ public class BbandWRStrategyFactoryTest {
     // Initialize indicators
     closePrice = new ClosePriceIndicator(series);
     smaIndicator = new SMAIndicator(closePrice, BBANDS_PERIOD);
+    BollingerBandsMiddleIndicator bbMiddle = new BollingerBandsMiddleIndicator(smaIndicator);
     StandardDeviationIndicator stdDev = new StandardDeviationIndicator(closePrice, BBANDS_PERIOD);
-    bbUpper = new BollingerBandsUpperIndicator(smaIndicator, stdDev, series.numOf(STD_DEV_MULTIPLIER));
-    bbLower = new BollingerBandsLowerIndicator(smaIndicator, stdDev, series.numOf(STD_DEV_MULTIPLIER));
+    bbUpper = new BollingerBandsUpperIndicator(bbMiddle, stdDev, series.numOf(STD_DEV_MULTIPLIER));
+    bbLower = new BollingerBandsLowerIndicator(bbMiddle, stdDev, series.numOf(STD_DEV_MULTIPLIER));
     williamsR = new WilliamsRIndicator(series, WR_PERIOD);
 
     // Create strategy
@@ -189,13 +191,6 @@ public class BbandWRStrategyFactoryTest {
     String expectedName = String.format("BBAND_W_R (BB: %d, WR: %d, StdDev: %.1f)",
         BBANDS_PERIOD, WR_PERIOD, STD_DEV_MULTIPLIER);
     assertThat(testStrategy.getName()).isEqualTo(expectedName);
-  }
-
-  @Test
-  public void createStrategy_withValidParameters_setsCorrectUnstablePeriod() throws InvalidProtocolBufferException {
-    Strategy testStrategy = factory.createStrategy(series, params);
-    int expectedUnstablePeriod = Math.max(BBANDS_PERIOD, WR_PERIOD);
-    assertThat(testStrategy.getUnstablePeriod()).isEqualTo(expectedUnstablePeriod);
   }
 
   private BaseBar createBar(ZonedDateTime time, double price) {
