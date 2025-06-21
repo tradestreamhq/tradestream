@@ -6,7 +6,7 @@ import org.ta4j.core.indicators.helpers.HighPriceIndicator;
 import org.ta4j.core.indicators.helpers.LowPriceIndicator;
 import org.ta4j.core.indicators.helpers.OpenPriceIndicator;
 import org.ta4j.core.num.Num;
-import org.ta4j.core.num.PrecisionNum;
+import org.ta4j.core.num.DecimalNum;
 
 /**
  * Relative Vigor Index (RVI) indicator.
@@ -37,10 +37,10 @@ public class RviIndicator extends CachedIndicator<Num> {
   @Override
   protected Num calculate(int index) {
     if (index < period - 1) {
-      return PrecisionNum.valueOf(0);
+      return DecimalNum.valueOf(0);
     }
 
-    Num sum = PrecisionNum.valueOf(0);
+    Num sum = DecimalNum.valueOf(0);
     int count = 0;
 
     for (int i = index - period + 1; i <= index; i++) {
@@ -62,10 +62,10 @@ public class RviIndicator extends CachedIndicator<Num> {
     }
 
     if (count == 0) {
-      return PrecisionNum.valueOf(0);
+      return DecimalNum.valueOf(0);
     }
 
-    return sum.dividedBy(PrecisionNum.valueOf(count));
+    return sum.dividedBy(DecimalNum.valueOf(count));
   }
 
   @Override
