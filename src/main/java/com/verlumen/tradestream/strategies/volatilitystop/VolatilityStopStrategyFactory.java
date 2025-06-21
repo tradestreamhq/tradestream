@@ -29,7 +29,8 @@ public final class VolatilityStopStrategyFactory
     private final ATRIndicator atr;
     private final double multiplier;
 
-    public VolatilityStopIndicator(ClosePriceIndicator closePrice, ATRIndicator atr, double multiplier) {
+    public VolatilityStopIndicator(
+        ClosePriceIndicator closePrice, ATRIndicator atr, double multiplier) {
       super(closePrice);
       this.previousClose = new PreviousValueIndicator(closePrice, 1);
       this.atr = atr;
