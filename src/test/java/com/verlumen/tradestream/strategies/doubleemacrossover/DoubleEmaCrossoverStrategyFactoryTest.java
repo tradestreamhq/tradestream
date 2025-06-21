@@ -84,11 +84,6 @@ public class DoubleEmaCrossoverStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsDoubleEmaCrossover() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.DOUBLE_EMA_CROSSOVER);
-  }
-
-  @Test
   public void entryRule_shouldTrigger_whenShortEmaCrossesAboveLongEma() {
     // Log EMA values around the expected cross-up
     for (int i = 6; i <= 9; i++) {

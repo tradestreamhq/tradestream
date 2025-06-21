@@ -42,9 +42,4 @@ public class MacdCrossoverParamConfigTest {
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(MacdCrossoverParameters.class)).isTrue();
   }
-
-  @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.MACD_CROSSOVER);
-  }
 }

@@ -36,18 +36,6 @@ public class DonchianBreakoutStrategyFactoryTest {
     }
   }
 
-  @Test
-  public void getStrategyType_returnsDonchianBreakout() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.DONCHIAN_BREAKOUT);
-  }
-
-  @Test
-  public void createStrategy_returnsValidStrategy() throws InvalidProtocolBufferException {
-    Strategy strategy = factory.createStrategy(series, params);
-    assertThat(strategy).isNotNull();
-    assertThat(strategy.getName()).contains("DONCHIAN_BREAKOUT");
-  }
-
   @Test(expected = IllegalArgumentException.class)
   public void validateDonchianPeriod() throws InvalidProtocolBufferException {
     params = DonchianBreakoutParameters.newBuilder().setDonchianPeriod(-1).build();

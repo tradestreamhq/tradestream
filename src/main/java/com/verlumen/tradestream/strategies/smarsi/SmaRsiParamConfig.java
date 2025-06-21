@@ -124,9 +124,4 @@ public final class SmaRsiParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.SMA_RSI;
-  }
 }

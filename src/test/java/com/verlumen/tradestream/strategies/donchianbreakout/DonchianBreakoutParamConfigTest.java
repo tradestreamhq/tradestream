@@ -38,9 +38,4 @@ public class DonchianBreakoutParamConfigTest {
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(DonchianBreakoutParameters.class)).isTrue();
   }
-
-  @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.DONCHIAN_BREAKOUT);
-  }
 }

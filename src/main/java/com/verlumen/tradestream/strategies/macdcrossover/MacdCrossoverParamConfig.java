@@ -49,9 +49,4 @@ public final class MacdCrossoverParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.MACD_CROSSOVER;
-  }
 }

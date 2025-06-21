@@ -42,9 +42,4 @@ public class VolatilityStopParamConfigTest {
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(VolatilityStopParameters.class)).isTrue();
   }
-
-  @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.VOLATILITY_STOP);
-  }
 }

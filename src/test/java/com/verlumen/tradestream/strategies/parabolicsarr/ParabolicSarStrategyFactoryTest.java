@@ -42,11 +42,6 @@ public class ParabolicSarStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsParabolicSar() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.PARABOLIC_SAR);
-  }
-
-  @Test
   public void createStrategy_returnsValidStrategy() throws InvalidProtocolBufferException {
     Strategy strategy = factory.createStrategy(series, params);
     assertThat(strategy).isNotNull();

@@ -81,9 +81,4 @@ public class IchimokuCloudParamConfigTest {
     assertThat(tenkanSenPeriod.min()).isEqualTo(5);
     assertThat(tenkanSenPeriod.max()).isEqualTo(60);
   }
-
-  @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.ICHIMOKU_CLOUD);
-  }
 }

@@ -42,9 +42,4 @@ public class TripleEmaCrossoverParamConfigTest {
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(TripleEmaCrossoverParameters.class)).isTrue();
   }
-
-  @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.TRIPLE_EMA_CROSSOVER);
-  }
 }

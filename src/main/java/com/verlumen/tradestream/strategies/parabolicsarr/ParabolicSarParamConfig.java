@@ -58,9 +58,4 @@ public final class ParabolicSarParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.PARABOLIC_SAR;
-  }
 }

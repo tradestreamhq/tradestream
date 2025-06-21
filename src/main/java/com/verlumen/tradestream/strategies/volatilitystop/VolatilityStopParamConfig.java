@@ -47,9 +47,4 @@ public final class VolatilityStopParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.VOLATILITY_STOP;
-  }
 }

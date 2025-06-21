@@ -52,9 +52,4 @@ public final class EmaMacdParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.EMA_MACD;
-  }
 }

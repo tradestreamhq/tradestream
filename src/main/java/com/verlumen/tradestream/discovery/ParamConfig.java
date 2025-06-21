@@ -29,11 +29,4 @@ public interface ParamConfig extends Serializable {
    * @return List of initial chromosomes for optimization
    */
   ImmutableList<? extends NumericChromosome<?, ?>> initialChromosomes();
-
-  /**
-   * Returns the strategy type that this parameter configuration is for.
-   *
-   * @return The strategy type associated with these parameters
-   */
-  StrategyType getStrategyType();
 }

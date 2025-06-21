@@ -47,9 +47,4 @@ public final class AtrTrailingStopParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.ATR_TRAILING_STOP;
-  }
 }

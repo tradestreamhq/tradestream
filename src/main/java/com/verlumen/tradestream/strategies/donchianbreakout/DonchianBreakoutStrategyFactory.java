@@ -41,7 +41,8 @@ public final class DonchianBreakoutStrategyFactory
     Rule exitRule = new UnderIndicatorRule(closePrice, lowerChannel);
 
     return new BaseStrategy(
-        String.format("%s (Period: %d)", getStrategyType().name(), params.getDonchianPeriod()),
+        String.format(
+            "%s (Period: %d)", StrategyType.DONCHIAN_BREAKOUT.name(), params.getDonchianPeriod()),
         entryRule,
         exitRule,
         params.getDonchianPeriod());
@@ -52,10 +53,5 @@ public final class DonchianBreakoutStrategyFactory
     return DonchianBreakoutParameters.newBuilder()
         .setDonchianPeriod(20) // Common Donchian channel period
         .build();
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.DONCHIAN_BREAKOUT;
   }
 }
