@@ -12,8 +12,8 @@ public final class VwapCrossoverParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
           ChromosomeSpec.ofInteger(10, 50), // VWAP Period
-          ChromosomeSpec.ofInteger(10, 50)  // Moving Average Period
-      );
+          ChromosomeSpec.ofInteger(10, 50) // Moving Average Period
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
