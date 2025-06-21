@@ -221,7 +221,6 @@ public class RviStrategyFactoryTest {
   public void getDefaultParameters_returnsValidParameters() {
     RviParameters defaultParams = factory.getDefaultParameters();
     assertThat(defaultParams.getPeriod()).isEqualTo(10);
-    
     // Should be able to create strategy with default parameters
     Strategy defaultStrategy = factory.createStrategy(series, defaultParams);
     assertThat(defaultStrategy).isNotNull();
