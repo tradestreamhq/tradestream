@@ -75,12 +75,14 @@ public class RviStrategyFactoryTest {
     // This should create a clear cross-up from RVI below signal line to above
     for (int i = 18; i < 23; i++) {
       double basePrice = 50.0 + (i - 17) * 3; // Increasing trend
-      series.addBar(createBar(now.plusMinutes(i),
-          basePrice,          // open
-          basePrice + 3.0,    // high
-          basePrice - 0.5,    // low  
-          basePrice + 2.5     // close strongly above open (very bullish)
-      ));
+      series.addBar(
+          createBar(
+              now.plusMinutes(i),
+              basePrice, // open
+              basePrice + 3.0, // high
+              basePrice - 0.5, // low
+              basePrice + 2.5 // close strongly above open (very bullish)
+              ));
     }
     // Phase 4: Bearish pattern for exit signal (bars 23-27)
     for (int i = 23; i < 28; i++) {
