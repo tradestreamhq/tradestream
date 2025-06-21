@@ -49,7 +49,7 @@ public final class RviStrategyFactory implements StrategyFactory<RviParameters> 
   @Override
   public RviParameters getDefaultParameters() {
     return RviParameters.newBuilder()
-        .setPeriod(10)  // Standard RVI period
+        .setPeriod(10) // Standard RVI period
         .build();
   }
 }
