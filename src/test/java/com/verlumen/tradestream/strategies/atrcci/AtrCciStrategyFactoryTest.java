@@ -172,11 +172,7 @@ public class AtrCciStrategyFactoryTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void validateCciPeriod() throws InvalidProtocolBufferException {
-    params =
-        AtrCciParameters.newBuilder()
-            .setAtrPeriod(ATR_PERIOD)
-            .setCciPeriod(-1)
-            .build();
+    params = AtrCciParameters.newBuilder().setAtrPeriod(ATR_PERIOD).setCciPeriod(-1).build();
     factory.createStrategy(series, params);
   }
 
