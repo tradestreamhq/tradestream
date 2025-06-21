@@ -14,9 +14,9 @@ import org.junit.runners.JUnit4;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.WilliamsRIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
-import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
@@ -34,7 +34,7 @@ public class BbandWRStrategyFactoryTest {
 
   // For debugging calculations
   private ClosePriceIndicator closePrice;
-  private BollingerBandsMiddleIndicator bbMiddle;
+  private SMAIndicator smaIndicator;
   private BollingerBandsUpperIndicator bbUpper;
   private BollingerBandsLowerIndicator bbLower;
   private WilliamsRIndicator williamsR;
@@ -78,10 +78,10 @@ public class BbandWRStrategyFactoryTest {
 
     // Initialize indicators
     closePrice = new ClosePriceIndicator(series);
-    bbMiddle = new BollingerBandsMiddleIndicator(closePrice, BBANDS_PERIOD);
+    smaIndicator = new SMAIndicator(closePrice, BBANDS_PERIOD);
     StandardDeviationIndicator stdDev = new StandardDeviationIndicator(closePrice, BBANDS_PERIOD);
-    bbUpper = new BollingerBandsUpperIndicator(bbMiddle, stdDev, STD_DEV_MULTIPLIER);
-    bbLower = new BollingerBandsLowerIndicator(bbMiddle, stdDev, STD_DEV_MULTIPLIER);
+    bbUpper = new BollingerBandsUpperIndicator(smaIndicator, stdDev, series.numOf(STD_DEV_MULTIPLIER));
+    bbLower = new BollingerBandsLowerIndicator(smaIndicator, stdDev, series.numOf(STD_DEV_MULTIPLIER));
     williamsR = new WilliamsRIndicator(series, WR_PERIOD);
 
     // Create strategy
