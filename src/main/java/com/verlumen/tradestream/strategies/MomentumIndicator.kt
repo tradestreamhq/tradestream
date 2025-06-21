@@ -13,13 +13,13 @@ class MomentumIndicator(
     override fun calculate(index: Int): Num {
         if (index < period) {
             // Not enough data yet
-            return barSeries.numOf(0)
+            return numOf(0)
         }
         // Calculate percentage change:
         // ((Current Price - Price n periods ago) / Price n periods ago) * 100
         val currentClose = closePrice.getValue(index)
         val previousClose = closePrice.getValue(index - period)
-        return currentClose.minus(previousClose).dividedBy(previousClose).multipliedBy(barSeries.numOf(100))
+        return currentClose.minus(previousClose).dividedBy(previousClose).multipliedBy(numOf(100))
     }
 
     override fun getCountOfUnstableBars(): Int = period
