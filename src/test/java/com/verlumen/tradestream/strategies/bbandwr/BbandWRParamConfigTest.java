@@ -98,7 +98,6 @@ public class BbandWRParamConfigTest {
     int expectedBbandsPeriod = bbandsPeriodChrom.gene().allele();
     int expectedWrPeriod = wrPeriodChrom.gene().allele();
     double expectedStdDevMultiplier = stdDevMultiplierChrom.gene().allele();
-    
     assertThat(params.getBbandsPeriod()).isEqualTo(expectedBbandsPeriod);
     assertThat(params.getWrPeriod()).isEqualTo(expectedWrPeriod);
     assertThat(params.getStdDevMultiplier()).isEqualTo(expectedStdDevMultiplier);
