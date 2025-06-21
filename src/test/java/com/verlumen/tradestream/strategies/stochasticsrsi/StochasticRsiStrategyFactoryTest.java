@@ -84,11 +84,6 @@ public class StochasticRsiStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsStochasticRsi() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.STOCHASTIC_RSI);
-  }
-
-  @Test
   public void entryRule_shouldTrigger_whenStochasticRsiAboveOversold() {
     // Find a bar index where Stochastic K is above oversold threshold
     int entryIndex = -1;

@@ -46,7 +46,7 @@ public final class StochasticRsiStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (RSI: %d, StochK: %d)",
-            getStrategyType().name(), params.getRsiPeriod(), params.getStochasticKPeriod()),
+            StrategyType.STOCHASTIC_RSI.name(), params.getRsiPeriod(), params.getStochasticKPeriod()),
         entryRule,
         exitRule,
         Math.max(params.getRsiPeriod(), params.getStochasticKPeriod()));
@@ -61,10 +61,5 @@ public final class StochasticRsiStrategyFactory
         .setOverboughtThreshold(80)
         .setOversoldThreshold(20)
         .build();
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.STOCHASTIC_RSI;
   }
 }

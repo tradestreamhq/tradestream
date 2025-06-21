@@ -65,9 +65,4 @@ public class StochasticRsiParamConfigTest {
     ImmutableList<? extends NumericChromosome<?, ?>> chromosomes = config.initialChromosomes();
     assertThat(chromosomes).hasSize(5);
   }
-
-  @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.STOCHASTIC_RSI);
-  }
 }

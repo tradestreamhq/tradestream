@@ -55,9 +55,4 @@ public final class StochasticRsiParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.STOCHASTIC_RSI;
-  }
 }
