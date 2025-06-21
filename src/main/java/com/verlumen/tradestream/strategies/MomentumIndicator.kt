@@ -14,7 +14,7 @@ class MomentumIndicator(
         if (index < period) numOf(0.0) // Not enough data yet
         else calculatePercentageChange(index)
     
-    override fun getCountOfUnstableBars(): Int = period
+    override fun getUnstableBars(): Int = period
     
     private fun calculatePercentageChange(index: Int): Num {
         // ((Current Price - Price n periods ago) / Price n periods ago) * 100
