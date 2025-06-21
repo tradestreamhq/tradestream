@@ -70,11 +70,6 @@ public class AtrCciParamConfigTest {
   }
 
   @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.ATR_CCI);
-  }
-
-  @Test
   public void testCreateParameters_extractsValuesInCorrectRanges() throws Exception {
     // Create chromosomes and extract their actual values for testing
     IntegerChromosome atrPeriodChrom = IntegerChromosome.of(5, 30, 1);

@@ -37,7 +37,7 @@ public final class AtrCciStrategyFactory implements StrategyFactory<AtrCciParame
     return new BaseStrategy(
         String.format(
             "%s (ATR: %d, CCI: %d)",
-            getStrategyType().name(), params.getAtrPeriod(), params.getCciPeriod()),
+            StrategyType.ATR_CCI.name(), params.getAtrPeriod(), params.getCciPeriod()),
         entryRule,
         exitRule,
         Math.max(params.getAtrPeriod(), params.getCciPeriod()));
@@ -49,10 +49,5 @@ public final class AtrCciStrategyFactory implements StrategyFactory<AtrCciParame
         .setAtrPeriod(14) // Standard ATR period
         .setCciPeriod(20) // Standard CCI period
         .build();
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.ATR_CCI;
   }
 }

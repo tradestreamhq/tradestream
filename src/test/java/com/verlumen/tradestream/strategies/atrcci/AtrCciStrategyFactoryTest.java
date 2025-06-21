@@ -83,11 +83,6 @@ public class AtrCciStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsAtrCci() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.ATR_CCI);
-  }
-
-  @Test
   public void getDefaultParameters_returnsValidDefaults() {
     AtrCciParameters defaults = factory.getDefaultParameters();
     assertThat(defaults.getAtrPeriod()).isEqualTo(14);

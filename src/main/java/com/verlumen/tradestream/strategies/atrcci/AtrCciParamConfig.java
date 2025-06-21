@@ -46,9 +46,4 @@ public final class AtrCciParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.ATR_CCI;
-  }
 }
