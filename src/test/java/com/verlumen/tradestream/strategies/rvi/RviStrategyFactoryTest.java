@@ -3,7 +3,6 @@ package com.verlumen.tradestream.strategies.rvi;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.verlumen.tradestream.strategies.RviParameters;
-import com.verlumen.tradestream.strategies.StrategyType;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import org.junit.Before;
