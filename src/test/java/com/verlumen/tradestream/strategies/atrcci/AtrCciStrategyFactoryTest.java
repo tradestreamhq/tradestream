@@ -198,8 +198,8 @@ public class AtrCciStrategyFactoryTest {
         Duration.ofMinutes(1),
         time,
         price, // open
-        high,  // high
-        low,   // low
+        high, // high
+        low, // low
         price, // close
         100.0 // volume
         );
