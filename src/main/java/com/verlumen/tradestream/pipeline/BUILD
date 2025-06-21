@@ -107,7 +107,6 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/marketdata:trade_to_candle",
         "//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
         "//src/main/java/com/verlumen/tradestream/signals:signals_module",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategies_module",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
         "//third_party/java:auto_value",
         "//third_party/java:guava",
