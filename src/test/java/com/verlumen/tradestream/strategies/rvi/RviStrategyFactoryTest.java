@@ -94,7 +94,6 @@ public class RviStrategyFactoryTest {
               basePrice - 2.5 // close strongly below open (very bearish)
               ));
     }
-  
     // Initialize indicators for debugging
     closePrice = new ClosePriceIndicator(series);
     openPrice = new OpenPriceIndicator(series);
