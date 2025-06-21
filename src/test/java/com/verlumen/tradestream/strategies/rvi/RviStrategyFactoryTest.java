@@ -101,7 +101,6 @@ public class RviStrategyFactoryTest {
     openPrice = new OpenPriceIndicator(series);
     highPrice = new HighPriceIndicator(series);
     lowPrice = new LowPriceIndicator(series);
-  
     // Use the existing RviIndicator class
     rvi = new RviIndicator(closePrice, openPrice, highPrice, lowPrice, RVI_PERIOD);
     rviSignal = new SMAIndicator(rvi, 4); // 4-period signal line
