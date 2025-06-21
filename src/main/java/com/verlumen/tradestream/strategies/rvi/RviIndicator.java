@@ -67,12 +67,4 @@ public class RviIndicator extends CachedIndicator<Num> {
     public int getUnstableBars() {
         return period;
     }
-
-    return sum.dividedBy(numOf(count));
-  }
-
-  @Override
-  public int getUnstableBars() {
-    return period;
-  }
 }
