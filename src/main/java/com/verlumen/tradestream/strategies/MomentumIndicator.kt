@@ -3,6 +3,7 @@ package com.verlumen.tradestream.strategies
 import org.ta4j.core.indicators.CachedIndicator
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator
 import org.ta4j.core.num.DecimalNum
+import org.ta4j.core.num.Num
 
 /** Momentum indicator that measures price changes over a specified period as a percentage. */
 class MomentumIndicator(
