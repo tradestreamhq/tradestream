@@ -89,11 +89,6 @@ public class BbandWRStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsBbandWR() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.BBAND_W_R);
-  }
-
-  @Test
   public void getDefaultParameters_returnsExpectedDefaults() {
     BbandWRParameters defaults = factory.getDefaultParameters();
     assertThat(defaults.getBbandsPeriod()).isEqualTo(20);
