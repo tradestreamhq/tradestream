@@ -71,7 +71,6 @@ public class BbandWRParamConfigTest {
     // Bollinger Bands Period (10-50)
     assertThat(specs.get(0).getRange().lowerEndpoint()).isEqualTo(10);
     assertThat(specs.get(0).getRange().upperEndpoint()).isEqualTo(50);
-    
     // Williams %R Period (5-30)
     assertThat(specs.get(1).getRange().lowerEndpoint()).isEqualTo(5);
     assertThat(specs.get(1).getRange().upperEndpoint()).isEqualTo(30);
