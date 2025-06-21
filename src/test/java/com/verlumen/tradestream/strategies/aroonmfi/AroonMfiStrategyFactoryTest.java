@@ -103,7 +103,8 @@ public class AroonMfiStrategyFactoryTest {
     Strategy strategy = factory.createStrategy(series, params);
     
     // Test that the strategy can evaluate at different indices without throwing exceptions
-    for (int i = 25; i < series.getBarCount(); i++) {
+    // Start from a higher index to ensure we have enough data for all indicators
+    for (int i = Math.max(25, strategy.getUnstableBars()); i < series.getBarCount(); i++) {
       boolean shouldEnter = strategy.shouldEnter(i);
       boolean shouldExit = strategy.shouldExit(i);
       // Both can be false, but shouldn't throw exceptions
