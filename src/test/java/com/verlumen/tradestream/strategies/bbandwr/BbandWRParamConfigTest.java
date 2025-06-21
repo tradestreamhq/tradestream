@@ -50,10 +50,7 @@ public class BbandWRParamConfigTest {
   public void testCreateParameters_invalidChromosomeSize_throwsException() {
     // Create only two chromosomes instead of three
     List<NumericChromosome<?, ?>> chromosomes =
-        List.of(
-            IntegerChromosome.of(10, 50, 1),
-            IntegerChromosome.of(5, 30, 1)
-        );
+        List.of(IntegerChromosome.of(10, 50, 1), IntegerChromosome.of(5, 30, 1));
 
     IllegalArgumentException thrown =
         assertThrows(
