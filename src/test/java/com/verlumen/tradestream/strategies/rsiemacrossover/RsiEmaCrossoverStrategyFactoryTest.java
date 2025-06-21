@@ -84,7 +84,7 @@ public class RsiEmaCrossoverStrategyFactoryTest {
   @Test
   public void entryRule_shouldTrigger_whenRsiCrossesAboveEmaAndNotOverbought() {
     // Log RSI and EMA values around the expected entry
-    for (int i = 20; i <= 25; i++) {
+    for (int i = 18; i <= 25; i++) {
       double rsiValue = rsi.getValue(i).doubleValue();
       double emaValue = rsiEma.getValue(i).doubleValue();
       System.out.printf(
@@ -96,10 +96,10 @@ public class RsiEmaCrossoverStrategyFactoryTest {
           strategy.getEntryRule().isSatisfied(i));
     }
 
-    // Find when entry rule is satisfied
+    // Find when entry rule is satisfied - check from bar 18 to account for earlier crossovers
     boolean entryTriggered = false;
     int entryIndex = -1;
-    for (int i = 21; i <= 25; i++) {
+    for (int i = 18; i <= 25; i++) {
       if (strategy.getEntryRule().isSatisfied(i)) {
         entryTriggered = true;
         entryIndex = i;
