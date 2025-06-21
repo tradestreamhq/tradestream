@@ -42,12 +42,11 @@ public class RviIndicator extends CachedIndicator<Num> {
     Num sum = numOf(0);
     int count = 0;
 
-            Num range = high.minus(low);
-            
-            // Avoid division by zero
-            if (range.isZero()) {
-                continue;
-            }
+    for (int i = index - period + 1; i <= index; i++) {
+      Num close = closePrice.getValue(i);
+      Num open = openPrice.getValue(i);
+      Num high = highPrice.getValue(i);
+      Num low = lowPrice.getValue(i);
 
       Num range = high.minus(low);
 
