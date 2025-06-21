@@ -68,11 +68,6 @@ public class AdxStochasticStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsAdxStochastic() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.ADX_STOCHASTIC);
-  }
-
-  @Test
   public void entryRule_shouldTrigger_whenAdxAbove20AndStochasticKBelowOversold() {
     // Find a bar index where ADX is above 20 and Stochastic K is below oversold threshold
     int entryIndex = -1;

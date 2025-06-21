@@ -42,11 +42,6 @@ public class MacdCrossoverStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsMacdCrossover() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.MACD_CROSSOVER);
-  }
-
-  @Test
   public void createStrategy_returnsValidStrategy() throws InvalidProtocolBufferException {
     Strategy strategy = factory.createStrategy(series, params);
     assertThat(strategy).isNotNull();

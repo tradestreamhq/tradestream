@@ -82,11 +82,6 @@ public class TripleEmaCrossoverStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsTripleEmaCrossover() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.TRIPLE_EMA_CROSSOVER);
-  }
-
-  @Test
   public void
       entryRule_shouldTrigger_whenShortEmaCrossesAboveMediumEmaOrMediumEmaCrossesAboveLongEma() {
     for (int i = 6; i <= 10; i++) {

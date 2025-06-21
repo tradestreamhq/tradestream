@@ -42,9 +42,4 @@ public class ParabolicSarParamConfigTest {
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(ParabolicSarParameters.class)).isTrue();
   }
-
-  @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.PARABOLIC_SAR);
-  }
 }

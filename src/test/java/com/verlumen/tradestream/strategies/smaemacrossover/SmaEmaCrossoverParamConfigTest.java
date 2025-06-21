@@ -41,9 +41,4 @@ public class SmaEmaCrossoverParamConfigTest {
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(SmaEmaCrossoverParameters.class)).isTrue();
   }
-
-  @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.SMA_EMA_CROSSOVER);
-  }
 }

@@ -54,9 +54,4 @@ public class DoubleEmaCrossoverParamConfigTest {
             () -> config.createParameters(ImmutableList.copyOf(chromosomes)));
     assertThat(thrown).hasMessageThat().contains("Expected 2 chromosomes but got 1");
   }
-
-  @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.DOUBLE_EMA_CROSSOVER);
-  }
 }

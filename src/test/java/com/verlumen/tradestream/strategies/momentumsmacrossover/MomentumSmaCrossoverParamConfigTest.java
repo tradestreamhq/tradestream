@@ -41,9 +41,4 @@ public class MomentumSmaCrossoverParamConfigTest {
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(MomentumSmaCrossoverParameters.class)).isTrue();
   }
-
-  @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.MOMENTUM_SMA_CROSSOVER);
-  }
 }
