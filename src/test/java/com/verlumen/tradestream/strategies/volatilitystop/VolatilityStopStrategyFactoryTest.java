@@ -3,7 +3,6 @@ package com.verlumen.tradestream.strategies.volatilitystop;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.VolatilityStopParameters;
 import java.time.Duration;
 import java.time.ZonedDateTime;
