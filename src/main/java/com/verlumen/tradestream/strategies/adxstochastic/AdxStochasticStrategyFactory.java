@@ -41,7 +41,9 @@ public final class AdxStochasticStrategyFactory
     // and Stochastic Oscillator K above overbought threshold
     Rule exitRule =
         new UnderIndicatorRule(adxIndicator, DecimalNum.valueOf(20))
-            .and(new OverIndicatorRule(stochasticK, DecimalNum.valueOf(params.getOverboughtThreshold())));
+            .and(
+                new OverIndicatorRule(
+                    stochasticK, DecimalNum.valueOf(params.getOverboughtThreshold())));
 
     return new BaseStrategy(
         String.format(
