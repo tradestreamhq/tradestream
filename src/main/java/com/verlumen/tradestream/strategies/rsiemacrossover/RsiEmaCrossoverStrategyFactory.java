@@ -35,7 +35,8 @@ public final class RsiEmaCrossoverStrategyFactory
 
     // Exit rule: RSI crosses below its EMA AND RSI is not oversold (> 30)
     Rule exitRule =
-        new CrossedDownIndicatorRule(rsi, rsiEma).and(new OverIndicatorRule(rsi, DecimalNum.valueOf(30)));
+        new CrossedDownIndicatorRule(rsi, rsiEma)
+            .and(new OverIndicatorRule(rsi, DecimalNum.valueOf(30)));
 
     return new BaseStrategy(
         String.format(
