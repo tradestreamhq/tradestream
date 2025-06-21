@@ -54,10 +54,7 @@ public class VolatilityStopStrategyFactoryTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void validateAtrPeriod() throws InvalidProtocolBufferException {
-    params = VolatilityStopParameters.newBuilder()
-        .setAtrPeriod(-1)
-        .setMultiplier(2.0)
-        .build();
+    params = VolatilityStopParameters.newBuilder().setAtrPeriod(-1).setMultiplier(2.0).build();
     factory.createStrategy(series, params);
   }
 
