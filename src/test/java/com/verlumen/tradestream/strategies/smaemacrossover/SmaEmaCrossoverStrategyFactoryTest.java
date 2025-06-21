@@ -13,7 +13,7 @@ import org.junit.runners.JUnit4;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.averages.EMAIndicator;
 import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 
