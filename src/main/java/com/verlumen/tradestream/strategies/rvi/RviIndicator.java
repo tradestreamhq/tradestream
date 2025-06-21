@@ -36,10 +36,10 @@ public class RviIndicator extends CachedIndicator<Num> {
   @Override
   protected Num calculate(int index) {
     if (index < period - 1) {
-      return numOf(0);
+      return getBarSeries().numOf(0.0);
     }
 
-    Num sum = numOf(0);
+    Num sum = getBarSeries().numOf(0.0);
     int count = 0;
 
     for (int i = index - period + 1; i <= index; i++) {
@@ -61,10 +61,10 @@ public class RviIndicator extends CachedIndicator<Num> {
     }
 
     if (count == 0) {
-      return numOf(0);
+      return getBarSeries().numOf(0.0);
     }
 
-    return sum.dividedBy(numOf(count));
+    return sum.dividedBy(getBarSeries().numOf(count));
   }
 
   @Override
