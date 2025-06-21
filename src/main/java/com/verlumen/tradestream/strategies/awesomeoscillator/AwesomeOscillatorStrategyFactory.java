@@ -38,7 +38,9 @@ public class AwesomeOscillatorStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (Short: %d, Long: %d)",
-            StrategyType.AWESOME_OSCILLATOR.name(), params.getShortPeriod(), params.getLongPeriod()),
+            StrategyType.AWESOME_OSCILLATOR.name(),
+            params.getShortPeriod(),
+            params.getLongPeriod()),
         entryRule,
         exitRule,
         params.getLongPeriod());
