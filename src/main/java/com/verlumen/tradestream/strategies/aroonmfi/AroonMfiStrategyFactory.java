@@ -11,7 +11,9 @@ import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.AroonDownIndicator;
 import org.ta4j.core.indicators.AroonUpIndicator;
+import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.helpers.TypicalPriceIndicator;
+import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
@@ -65,7 +67,7 @@ public class AroonMfiStrategyFactory implements StrategyFactory<AroonMfiParamete
  * Custom Money Flow Index (MFI) indicator implementation
  * Based on the standard MFI calculation formula
  */
-class MFIIndicator extends org.ta4j.core.indicators.CachedIndicator<org.ta4j.core.Num> {
+class MFIIndicator extends CachedIndicator<Num> {
   private final int timeFrame;
   private final TypicalPriceIndicator typicalPriceIndicator;
   private final BarSeries barSeries;
@@ -78,21 +80,21 @@ class MFIIndicator extends org.ta4j.core.indicators.CachedIndicator<org.ta4j.cor
   }
 
   @Override
-  protected org.ta4j.core.Num calculate(int index) {
+  protected Num calculate(int index) {
     if (index < timeFrame) {
       return numOf(50); // Default neutral value for insufficient data
     }
 
-    org.ta4j.core.Num positiveFlow = numOf(0);
-    org.ta4j.core.Num negativeFlow = numOf(0);
+    Num positiveFlow = numOf(0);
+    Num negativeFlow = numOf(0);
 
     // Calculate money flow for the specified time frame
     for (int i = index - timeFrame + 1; i <= index; i++) {
       if (i > 0) {
-        org.ta4j.core.Num currentTypicalPrice = typicalPriceIndicator.getValue(i);
-        org.ta4j.core.Num previousTypicalPrice = typicalPriceIndicator.getValue(i - 1);
-        org.ta4j.core.Num volume = barSeries.getBar(i).getVolume();
-        org.ta4j.core.Num rawMoneyFlow = currentTypicalPrice.multipliedBy(volume);
+        Num currentTypicalPrice = typicalPriceIndicator.getValue(i);
+        Num previousTypicalPrice = typicalPriceIndicator.getValue(i - 1);
+        Num volume = barSeries.getBar(i).getVolume();
+        Num rawMoneyFlow = currentTypicalPrice.multipliedBy(volume);
 
         if (currentTypicalPrice.isGreaterThan(previousTypicalPrice)) {
           positiveFlow = positiveFlow.plus(rawMoneyFlow);
@@ -111,10 +113,10 @@ class MFIIndicator extends org.ta4j.core.indicators.CachedIndicator<org.ta4j.cor
     }
 
     // Calculate Money Flow Ratio
-    org.ta4j.core.Num moneyFlowRatio = positiveFlow.dividedBy(negativeFlow);
+    Num moneyFlowRatio = positiveFlow.dividedBy(negativeFlow);
 
     // Calculate Money Flow Index
-    org.ta4j.core.Num mfi = numOf(100).minus(numOf(100).dividedBy(numOf(1).plus(moneyFlowRatio)));
+    Num mfi = numOf(100).minus(numOf(100).dividedBy(numOf(1).plus(moneyFlowRatio)));
 
     return mfi;
   }
