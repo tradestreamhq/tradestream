@@ -24,11 +24,7 @@ public class VolatilityStopStrategyFactoryTest {
   @Before
   public void setUp() throws InvalidProtocolBufferException {
     factory = new VolatilityStopStrategyFactory();
-    params =
-        VolatilityStopParameters.newBuilder()
-            .setAtrPeriod(14)
-            .setMultiplier(2.0)
-            .build();
+    params = VolatilityStopParameters.newBuilder().setAtrPeriod(14).setMultiplier(2.0).build();
 
     series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
