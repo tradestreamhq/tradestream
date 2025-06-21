@@ -33,7 +33,7 @@ public final class VwapCrossoverStrategyFactory implements StrategyFactory<VwapC
 
     return new BaseStrategy(
         String.format("%s (VWAP: %d, MA: %d)",
-            getStrategyType().name(),
+            StrategyType.VWAP_CROSSOVER.name(),
             params.getVwapPeriod(),
             params.getMovingAveragePeriod()),
         entryRule,
