@@ -12,16 +12,6 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
-    name = "strategies_module",
-    srcs = ["StrategiesModule.kt"],
-    deps = [
-        ":strategy_factory",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-    ],
-)
-
-kt_jvm_library(
     name = "strategy_constants",
     srcs = ["StrategyConstants.kt"],
     deps = [

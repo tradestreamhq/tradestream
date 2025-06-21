@@ -26,7 +26,6 @@ import com.verlumen.tradestream.marketdata.TradeSource;
 import com.verlumen.tradestream.marketdata.TradeToCandle;
 import com.verlumen.tradestream.postgres.PostgresModule;
 import com.verlumen.tradestream.signals.SignalsModule;
-import com.verlumen.tradestream.strategies.StrategiesModule;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
 import org.joda.time.Duration;
 
@@ -99,7 +98,6 @@ abstract class PipelineModule extends AbstractModule {
     install(MarketDataModule.create());
     install(new PostgresModule());
     install(SignalsModule.create(signalTopic()));
-    install(new StrategiesModule());
     install(Ta4jModule.create());
   }
 
