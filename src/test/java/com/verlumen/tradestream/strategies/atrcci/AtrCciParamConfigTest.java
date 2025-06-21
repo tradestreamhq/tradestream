@@ -93,7 +93,6 @@ public class AtrCciParamConfigTest {
 
     assertThat(params.getAtrPeriod()).isEqualTo(expectedAtrPeriod);
     assertThat(params.getCciPeriod()).isEqualTo(expectedCciPeriod);
-    
     // Also verify values are within expected ranges
     assertThat(params.getAtrPeriod()).isAtLeast(5);
     assertThat(params.getAtrPeriod()).isAtMost(30);
