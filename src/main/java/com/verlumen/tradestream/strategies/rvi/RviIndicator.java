@@ -9,9 +9,8 @@ import org.ta4j.core.num.Num;
 
 /**
  * Relative Vigor Index (RVI) indicator.
- * 
- * The RVI is calculated as a simple moving average of the ratio:
- * (Close - Open) / (High - Low)
+ *
+ * <p>The RVI is calculated as a simple moving average of the ratio: (Close - Open) / (High - Low)
  */
 public class RviIndicator extends CachedIndicator<Num> {
     private final ClosePriceIndicator closePrice;
