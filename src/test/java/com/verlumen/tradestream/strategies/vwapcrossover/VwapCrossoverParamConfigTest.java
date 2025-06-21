@@ -58,7 +58,6 @@ public class VwapCrossoverParamConfigTest {
       
       assertThat(params.getVwapPeriod()).isEqualTo(expectedVwapPeriod);
       assertThat(params.getMovingAveragePeriod()).isEqualTo(expectedMaPeriod);
-      
       // Also verify values are within expected ranges
       assertThat(params.getVwapPeriod()).isAtLeast(10);
       assertThat(params.getVwapPeriod()).isAtMost(50);
