@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.strategies.composite;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.discovery.ParamConfig;
@@ -25,8 +24,8 @@ import java.util.EnumSet;
 public final class CompositeParamConfig implements ParamConfig {
   
   // Base strategies that can be combined (avoiding COMPOSITE to prevent infinite recursion)
-  private static final ImmutableSet<StrategyType> BASE_STRATEGIES =
-      ImmutableSet.copyOf(
+  private static final ImmutableList<StrategyType> BASE_STRATEGIES =
+      ImmutableList.copyOf(
           EnumSet.complementOf(
               EnumSet.of(
                   StrategyType.UNRECOGNIZED,
