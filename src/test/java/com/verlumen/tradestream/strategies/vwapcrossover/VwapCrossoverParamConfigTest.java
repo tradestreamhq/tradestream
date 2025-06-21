@@ -48,6 +48,7 @@ public class VwapCrossoverParamConfigTest {
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(VwapCrossoverParameters.class)).isTrue();
+    
     try {
       VwapCrossoverParameters params = packedParams.unpack(VwapCrossoverParameters.class);
       // Extract the actual values from chromosomes and assert those
