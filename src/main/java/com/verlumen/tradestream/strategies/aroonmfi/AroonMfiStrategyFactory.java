@@ -144,7 +144,6 @@ class AroonDownIndicator extends CachedIndicator<Num> {
 
     // Calculate periods since lowest low
     int periodsSinceLow = index - lowestIndex;
-    
     // Aroon Down = ((timeFrame - periods since lowest low) / timeFrame) * 100
     return numOf(timeFrame - periodsSinceLow).dividedBy(numOf(timeFrame)).multipliedBy(numOf(100));
   }
