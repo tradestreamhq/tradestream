@@ -111,9 +111,7 @@ class AroonUpIndicator extends CachedIndicator<Num> {
   }
 }
 
-/**
- * Custom Aroon Down indicator implementation
- */
+/** Custom Aroon Down indicator implementation */
 class AroonDownIndicator extends CachedIndicator<Num> {
   private final int timeFrame;
   private final LowPriceIndicator lowPriceIndicator;
