@@ -61,9 +61,4 @@ public class TripleEmaCrossoverStrategyFactory
         .setLongEmaPeriod(50) // Default long EMA period for overall trend
         .build();
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.TRIPLE_EMA_CROSSOVER;
-  }
 }

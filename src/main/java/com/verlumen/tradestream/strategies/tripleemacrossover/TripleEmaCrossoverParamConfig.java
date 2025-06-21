@@ -49,9 +49,4 @@ public final class TripleEmaCrossoverParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.TRIPLE_EMA_CROSSOVER;
-  }
 }

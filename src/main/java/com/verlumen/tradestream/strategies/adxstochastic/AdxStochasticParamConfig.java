@@ -58,9 +58,4 @@ public final class AdxStochasticParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.ADX_STOCHASTIC;
-  }
 }

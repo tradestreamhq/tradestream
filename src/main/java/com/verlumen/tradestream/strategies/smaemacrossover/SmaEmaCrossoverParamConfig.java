@@ -46,9 +46,4 @@ public final class SmaEmaCrossoverParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.SMA_EMA_CROSSOVER;
-  }
 }

@@ -44,9 +44,4 @@ public final class SmaEmaCrossoverStrategyFactory
         .setEmaPeriod(50) // Default EMA period, commonly used for medium-term trend
         .build();
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.SMA_EMA_CROSSOVER;
-  }
 }

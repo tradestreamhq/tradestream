@@ -46,9 +46,4 @@ public final class MomentumSmaCrossoverParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.MOMENTUM_SMA_CROSSOVER;
-  }
 }

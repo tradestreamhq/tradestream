@@ -53,9 +53,4 @@ public final class DoubleEmaCrossoverStrategyFactory
         .setLongEmaPeriod(26)
         .build();
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.DOUBLE_EMA_CROSSOVER;
-  }
 }

@@ -57,9 +57,4 @@ public final class MacdCrossoverStrategyFactory
         .setSignalPeriod(9)
         .build();
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.MACD_CROSSOVER;
-  }
 }

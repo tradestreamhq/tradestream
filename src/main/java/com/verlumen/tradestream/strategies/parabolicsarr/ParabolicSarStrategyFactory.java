@@ -63,8 +63,4 @@ public final class ParabolicSarStrategyFactory implements StrategyFactory<Parabo
         .build();
   }
 
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.PARABOLIC_SAR;
-  }
 }

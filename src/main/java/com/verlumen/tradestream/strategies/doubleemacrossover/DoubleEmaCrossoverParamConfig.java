@@ -46,9 +46,4 @@ public final class DoubleEmaCrossoverParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.DOUBLE_EMA_CROSSOVER;
-  }
 }

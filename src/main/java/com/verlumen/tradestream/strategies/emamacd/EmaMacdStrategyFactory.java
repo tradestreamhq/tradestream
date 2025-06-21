@@ -18,11 +18,6 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
 public final class EmaMacdStrategyFactory implements StrategyFactory<EmaMacdParameters> {
   @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.EMA_MACD;
-  }
-
-  @Override
   public Strategy createStrategy(BarSeries series, EmaMacdParameters params)
       throws InvalidProtocolBufferException {
     checkArgument(params.getShortEmaPeriod() > 0, "Short EMA period must be positive");

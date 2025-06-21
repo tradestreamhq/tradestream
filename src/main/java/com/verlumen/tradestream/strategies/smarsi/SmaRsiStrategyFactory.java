@@ -54,9 +54,4 @@ public final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParame
         .setOversoldThreshold(30) // Oversold threshold, often set at 30
         .build();
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.SMA_RSI;
-  }
 }

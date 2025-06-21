@@ -60,9 +60,4 @@ public final class AdxStochasticStrategyFactory
         .setOversoldThreshold(20) // Default oversold threshold
         .build();
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.ADX_STOCHASTIC;
-  }
 }

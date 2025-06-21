@@ -59,9 +59,4 @@ public final class MomentumSmaCrossoverStrategyFactory
         .setSmaPeriod(20)
         .build();
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.MOMENTUM_SMA_CROSSOVER;
-  }
 }

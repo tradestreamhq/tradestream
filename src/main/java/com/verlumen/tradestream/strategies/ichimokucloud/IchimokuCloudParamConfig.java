@@ -75,9 +75,4 @@ final class IchimokuCloudParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.ICHIMOKU_CLOUD;
-  }
 }
