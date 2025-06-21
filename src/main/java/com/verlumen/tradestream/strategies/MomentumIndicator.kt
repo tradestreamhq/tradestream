@@ -15,7 +15,6 @@ class MomentumIndicator(
         else calculatePercentageChange(index)
     
     override fun getUnstableBars(): Int = period
-    
     private fun calculatePercentageChange(index: Int): Num {
         // ((Current Price - Price n periods ago) / Price n periods ago) * 100
         val currentClose = closePrice.getValue(index)
