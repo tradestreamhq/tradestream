@@ -120,7 +120,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.STOCHASTIC_RSI to
             StrategySpec(
                 paramConfig = StochasticRsiParamConfig(),
-                strategyFactory = StochasticRsiStrategyFactory()
+                strategyFactory = StochasticRsiStrategyFactory(),
             ),
         StrategyType.TRIPLE_EMA_CROSSOVER to
             StrategySpec(
