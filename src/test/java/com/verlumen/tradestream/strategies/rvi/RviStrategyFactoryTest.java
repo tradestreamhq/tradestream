@@ -71,7 +71,6 @@ public class RviStrategyFactoryTest {
               basePrice // close (neutral, RVI ≈ 0)
               ));
     }
-  
     // Phase 3: Strong bullish pattern for clear entry signal (bars 18-22)
     // This should create a clear cross-up from RVI below signal line to above
     for (int i = 18; i < 23; i++) {
