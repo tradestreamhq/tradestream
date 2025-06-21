@@ -95,7 +95,6 @@ class AroonUpIndicator extends CachedIndicator<Num> {
 
     // Calculate periods since highest high
     int periodsSinceHigh = index - highestIndex;
-    
     // Aroon Up = ((timeFrame - periods since highest high) / timeFrame) * 100
     return numOf(timeFrame - periodsSinceHigh).dividedBy(numOf(timeFrame)).multipliedBy(numOf(100));
   }
