@@ -68,7 +68,7 @@ public class RviIndicator extends CachedIndicator<Num> {
   }
 
   @Override
-  public int getUnstableBars() {
+  public int getCountOfUnstableBars() {
     return period;
   }
 }
