@@ -33,7 +33,7 @@ public final class SmaEmaCrossoverStrategyFactory
     String strategyName =
         String.format(
             "%s (SMA-%d EMA-%d)",
-            getStrategyType().name(), params.getSmaPeriod(), params.getEmaPeriod());
+            StrategyType.SMA_EMA_CROSSOVER.name(), params.getSmaPeriod(), params.getEmaPeriod());
     return new BaseStrategy(strategyName, entryRule, exitRule, params.getEmaPeriod());
   }
 

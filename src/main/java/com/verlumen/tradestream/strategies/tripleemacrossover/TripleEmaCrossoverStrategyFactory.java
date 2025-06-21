@@ -44,7 +44,7 @@ public class TripleEmaCrossoverStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (%d, %d, %d)",
-            getStrategyType().name(),
+            StrategyType.TRIPLE_EMA_CROSSOVER.name(),
             params.getShortEmaPeriod(),
             params.getMediumEmaPeriod(),
             params.getLongEmaPeriod()),

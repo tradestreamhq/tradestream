@@ -45,7 +45,7 @@ public final class ParabolicSarStrategyFactory implements StrategyFactory<Parabo
     return new BaseStrategy(
         String.format(
             "%s (AF: %.3f-%.3f, Inc: %.3f)",
-            getStrategyType().name(),
+            StrategyType.PARABOLIC_SAR.name(),
             params.getAccelerationFactorStart(),
             params.getAccelerationFactorMax(),
             params.getAccelerationFactorIncrement()),

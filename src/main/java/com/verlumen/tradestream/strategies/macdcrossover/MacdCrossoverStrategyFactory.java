@@ -40,7 +40,7 @@ public final class MacdCrossoverStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (%d, %d, %d)",
-            getStrategyType().name(),
+            StrategyType.MACD_CROSSOVER.name(),
             params.getShortEmaPeriod(),
             params.getLongEmaPeriod(),
             params.getSignalPeriod()),

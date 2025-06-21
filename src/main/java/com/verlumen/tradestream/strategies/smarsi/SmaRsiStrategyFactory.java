@@ -41,7 +41,7 @@ public final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParame
     String strategyName =
         String.format(
             "%s (RSI-%d SMA-%d)",
-            getStrategyType().name(), params.getRsiPeriod(), params.getMovingAveragePeriod());
+            StrategyType.SMA_RSI.name(), params.getRsiPeriod(), params.getMovingAveragePeriod());
     return new BaseStrategy(strategyName, entryRule, exitRule, params.getRsiPeriod());
   }
 
