@@ -62,9 +62,7 @@ public class AroonMfiStrategyFactory implements StrategyFactory<AroonMfiParamete
   }
 }
 
-/**
- * Custom Aroon Up indicator implementation
- */
+/** Custom Aroon Up indicator implementation */
 class AroonUpIndicator extends CachedIndicator<Num> {
   private final int timeFrame;
   private final HighPriceIndicator highPriceIndicator;
