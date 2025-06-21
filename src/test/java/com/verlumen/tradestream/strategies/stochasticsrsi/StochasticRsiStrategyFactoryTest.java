@@ -206,7 +206,6 @@ public class StochasticRsiStrategyFactoryTest {
   @Test
   public void getDefaultParameters_returnsValidParameters() {
     StochasticRsiParameters defaultParams = factory.getDefaultParameters();
-    
     assertThat(defaultParams.getRsiPeriod()).isEqualTo(14);
     assertThat(defaultParams.getStochasticKPeriod()).isEqualTo(14);
     assertThat(defaultParams.getStochasticDPeriod()).isEqualTo(3);
