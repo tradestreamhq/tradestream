@@ -232,11 +232,11 @@ public class RviStrategyFactoryTest {
     return new BaseBar(
         Duration.ofMinutes(1),
         time,
-        open,   // open
-        high,   // high  
-        low,    // low
-        close,  // close
-        100.0   // volume
-    );
+        open, // open
+        high, // high
+        low, // low
+        close, // close
+        100.0 // volume
+        );
   }
 }
