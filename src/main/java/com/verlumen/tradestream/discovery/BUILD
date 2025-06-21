@@ -87,7 +87,6 @@ kt_jvm_library(
         ":write_discovered_strategies_to_postgres_fn",
         "//protos:discovery_java_proto",
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
-        "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:guice_assistedinject",
         "//third_party/java:protobuf_java",

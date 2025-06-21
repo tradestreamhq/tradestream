@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.strategies.donchianbreakout;
 
-
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.DonchianBreakoutParameters;
 import java.time.Duration;
