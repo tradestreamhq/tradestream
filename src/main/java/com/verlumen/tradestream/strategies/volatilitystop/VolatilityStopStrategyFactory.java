@@ -60,7 +60,8 @@ public final class VolatilityStopStrategyFactory
     PreviousValueIndicator previousClose = new PreviousValueIndicator(closePrice, 1);
 
     // Calculate volatility stop level using custom indicator
-    VolatilityStopIndicator stopLevel = new VolatilityStopIndicator(closePrice, atr, params.getMultiplier());
+    VolatilityStopIndicator stopLevel =
+        new VolatilityStopIndicator(closePrice, atr, params.getMultiplier());
 
     // Entry rule: This is typically combined with other entry signals
     // For simplicity, we'll use a basic price momentum rule
