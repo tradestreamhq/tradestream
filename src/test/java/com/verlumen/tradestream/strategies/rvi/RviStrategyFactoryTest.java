@@ -131,7 +131,6 @@ public class RviStrategyFactoryTest {
             entryTriggered ? "YES" : "no");
       }
     }
-  
     // Find entry signal in the transition and bullish pattern sections
     boolean entryFound = false;
     int entryBar = -1;
