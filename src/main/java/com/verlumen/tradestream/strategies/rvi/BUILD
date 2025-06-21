@@ -8,6 +8,14 @@ package(
 )
 
 java_library(
+    name = "rvi_indicator",
+    srcs = ["RviIndicator.java"],
+    deps = [
+        "//third_party/java:ta4j_core",
+    ],
+)
+
+java_library(
     name = "param_config",
     srcs = ["RviParamConfig.java"],
     deps = [
@@ -24,6 +32,7 @@ java_library(
     name = "strategy_factory",
     srcs = ["RviStrategyFactory.java"],
     deps = [
+        ":rvi_indicator",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
         "//third_party/java:guava",
