@@ -130,7 +130,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.VOLATILITY_STOP to
             StrategySpec(
                 paramConfig = VolatilityStopParamConfig(),
-                strategyFactory = VolatilityStopStrategyFactory()
+                strategyFactory = VolatilityStopStrategyFactory(),
             ),
         StrategyType.VWAP_CROSSOVER to
             StrategySpec(
