@@ -150,8 +150,9 @@ public class RviStrategyFactoryTest {
       double signalPrev = rviSignal.getValue(entryBar - 1).doubleValue();
       double rviCurrent = rvi.getValue(entryBar).doubleValue();
       double signalCurrent = rviSignal.getValue(entryBar).doubleValue();
-      
-      System.out.printf("Crossover verification - Prev: RVI=%.4f Signal=%.4f, Current: RVI=%.4f Signal=%.4f%n",
+
+      System.out.printf(
+          "Crossover verification - Prev: RVI=%.4f Signal=%.4f, Current: RVI=%.4f Signal=%.4f%n",
           rviPrev, signalPrev, rviCurrent, signalCurrent);
       // Verify it's actually a cross-up
       assertThat(rviPrev).isAtMost(signalPrev); // RVI was below or equal to signal
