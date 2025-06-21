@@ -15,7 +15,8 @@ import org.ta4j.core.indicators.volume.VWAPIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
-public final class VwapCrossoverStrategyFactory implements StrategyFactory<VwapCrossoverParameters> {
+public final class VwapCrossoverStrategyFactory
+    implements StrategyFactory<VwapCrossoverParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, VwapCrossoverParameters params) {
     checkArgument(params.getVwapPeriod() > 0, "VWAP period must be positive");
