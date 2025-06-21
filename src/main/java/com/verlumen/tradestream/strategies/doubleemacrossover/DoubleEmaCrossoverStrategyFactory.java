@@ -40,7 +40,9 @@ public final class DoubleEmaCrossoverStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (%d, %d)",
-            getStrategyType().name(), params.getShortEmaPeriod(), params.getLongEmaPeriod()),
+            StrategyType.DOUBLE_EMA_CROSSOVER.name(),
+            params.getShortEmaPeriod(),
+            params.getLongEmaPeriod()),
         entryRule,
         exitRule,
         params.getLongEmaPeriod());
@@ -52,10 +54,5 @@ public final class DoubleEmaCrossoverStrategyFactory
         .setShortEmaPeriod(12)
         .setLongEmaPeriod(26)
         .build();
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.DOUBLE_EMA_CROSSOVER;
   }
 }

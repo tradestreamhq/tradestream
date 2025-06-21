@@ -44,7 +44,7 @@ public class TripleEmaCrossoverStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (%d, %d, %d)",
-            getStrategyType().name(),
+            StrategyType.TRIPLE_EMA_CROSSOVER.name(),
             params.getShortEmaPeriod(),
             params.getMediumEmaPeriod(),
             params.getLongEmaPeriod()),
@@ -60,10 +60,5 @@ public class TripleEmaCrossoverStrategyFactory
         .setMediumEmaPeriod(20) // Default medium EMA period for smoother trends
         .setLongEmaPeriod(50) // Default long EMA period for overall trend
         .build();
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.TRIPLE_EMA_CROSSOVER;
   }
 }

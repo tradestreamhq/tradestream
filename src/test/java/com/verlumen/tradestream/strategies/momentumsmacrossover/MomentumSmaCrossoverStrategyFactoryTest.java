@@ -74,11 +74,6 @@ public class MomentumSmaCrossoverStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsMomentumSmaCrossover() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.MOMENTUM_SMA_CROSSOVER);
-  }
-
-  @Test
   public void entryRule_shouldTrigger_whenMomentumCrossesAboveSma()
       throws InvalidProtocolBufferException {
     series = new BaseBarSeries();

@@ -80,11 +80,6 @@ public class SmaEmaCrossoverStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsSmaEmaCrossover() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.SMA_EMA_CROSSOVER);
-  }
-
-  @Test
   public void entryRule_shouldTrigger_whenSmaCrossesAboveEma() {
     // Entry rule should not trigger before bar 8
     assertThat(strategy.getEntryRule().isSatisfied(7)).isFalse();

@@ -86,11 +86,6 @@ public class SmaRsiStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsSmaRsi() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.SMA_RSI);
-  }
-
-  @Test
   public void entryRule_shouldTrigger_whenRsiAndSmaAreUnderOversold() {
     for (int i = 6; i <= 10; i++) {
       System.out.printf(
