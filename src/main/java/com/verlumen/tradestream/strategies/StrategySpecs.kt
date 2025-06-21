@@ -80,7 +80,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.DONCHIAN_BREAKOUT to
             StrategySpec(
                 paramConfig = DonchianBreakoutParamConfig(),
-                strategyFactory = DonchianBreakoutStrategyFactory()
+                strategyFactory = DonchianBreakoutStrategyFactory(),
             ),
         StrategyType.DOUBLE_EMA_CROSSOVER to
             StrategySpec(
