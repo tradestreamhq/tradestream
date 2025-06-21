@@ -39,7 +39,7 @@ public final class RsiEmaCrossoverStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (RSI: %d, EMA: %d)",
-            getStrategyType().name(), params.getRsiPeriod(), params.getEmaPeriod()),
+            StrategyType.RSI_EMA_CROSSOVER.name(), params.getRsiPeriod(), params.getEmaPeriod()),
         entryRule,
         exitRule,
         Math.max(params.getRsiPeriod(), params.getEmaPeriod()));
@@ -51,10 +51,5 @@ public final class RsiEmaCrossoverStrategyFactory
         .setRsiPeriod(14) // Standard RSI period
         .setEmaPeriod(10) // EMA period for RSI smoothing
         .build();
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.RSI_EMA_CROSSOVER;
   }
 }

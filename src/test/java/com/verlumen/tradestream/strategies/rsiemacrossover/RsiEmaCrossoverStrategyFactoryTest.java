@@ -83,11 +83,6 @@ public class RsiEmaCrossoverStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsRsiEmaCrossover() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.RSI_EMA_CROSSOVER);
-  }
-
-  @Test
   public void entryRule_shouldTrigger_whenRsiCrossesAboveEmaAndNotOverbought() {
     // Log RSI and EMA values around the expected entry
     for (int i = 20; i <= 25; i++) {

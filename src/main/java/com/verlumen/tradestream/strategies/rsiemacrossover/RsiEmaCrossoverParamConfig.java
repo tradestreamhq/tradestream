@@ -46,9 +46,4 @@ public final class RsiEmaCrossoverParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.RSI_EMA_CROSSOVER;
-  }
 }

@@ -83,9 +83,4 @@ public class RsiEmaCrossoverParamConfigTest {
     assertThat(emaPeriod.gene().min()).isEqualTo(5);
     assertThat(emaPeriod.gene().max()).isEqualTo(20);
   }
-
-  @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.RSI_EMA_CROSSOVER);
-  }
 }
