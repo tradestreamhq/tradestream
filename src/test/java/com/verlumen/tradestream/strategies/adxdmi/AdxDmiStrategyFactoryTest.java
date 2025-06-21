@@ -36,7 +36,8 @@ public class AdxDmiStrategyFactoryTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testCreateStrategy_negativeAdxPeriod() {
-    AdxDmiParameters params = AdxDmiParameters.newBuilder().setAdxPeriod(-1).setDiPeriod(14).build();
+    AdxDmiParameters params =
+        AdxDmiParameters.newBuilder().setAdxPeriod(-1).setDiPeriod(14).build();
     factory.createStrategy(series, params);
   }
 }
