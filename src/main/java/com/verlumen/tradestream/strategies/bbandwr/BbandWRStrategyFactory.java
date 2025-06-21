@@ -48,9 +48,11 @@ public final class BbandWRStrategyFactory implements StrategyFactory<BbandWRPara
     Rule entryRule = new UnderIndicatorRule(closePrice, bbLower)
         .and(new UnderIndicatorRule(williamsR, series.numOf(-80)));
 
-    // Exit rule: Price touches/crosses above upper Bollinger Band AND Williams %R is overbought (> -20)
-    Rule exitRule = new OverIndicatorRule(closePrice, bbUpper)
-        .and(new OverIndicatorRule(williamsR, series.numOf(-20)));
+    // Exit rule: Price touches/crosses above upper Bollinger Band AND Williams %R is overbought (>
+    // -20)
+    Rule exitRule =
+        new OverIndicatorRule(closePrice, bbUpper)
+            .and(new OverIndicatorRule(williamsR, series.numOf(-20)));
 
     return new BaseStrategy(
         String.format("%s (BB: %d, WR: %d, StdDev: %.1f)",
