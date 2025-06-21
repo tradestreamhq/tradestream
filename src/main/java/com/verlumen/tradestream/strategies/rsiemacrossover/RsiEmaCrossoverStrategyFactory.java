@@ -31,7 +31,8 @@ public final class RsiEmaCrossoverStrategyFactory
 
     // Entry rule: RSI crosses above its EMA AND RSI is not overbought (< 70)
     Rule entryRule =
-        new CrossedUpIndicatorRule(rsi, rsiEma).and(new UnderIndicatorRule(rsi, DecimalNum.valueOf(70)));
+        new CrossedUpIndicatorRule(rsi, rsiEma)
+            .and(new UnderIndicatorRule(rsi, DecimalNum.valueOf(70)));
 
     // Exit rule: RSI crosses below its EMA AND RSI is not oversold (> 30)
     Rule exitRule =
