@@ -34,10 +34,9 @@ public final class AtrCciStrategyFactory implements StrategyFactory<AtrCciParame
         .and(new UnderIndicatorRule(atr, previousAtr));
 
     return new BaseStrategy(
-        String.format("%s (ATR: %d, CCI: %d)",
-            getStrategyType().name(),
-            params.getAtrPeriod(),
-            params.getCciPeriod()),
+        String.format(
+            "%s (ATR: %d, CCI: %d)",
+            getStrategyType().name(), params.getAtrPeriod(), params.getCciPeriod()),
         entryRule,
         exitRule,
         Math.max(params.getAtrPeriod(), params.getCciPeriod()));
