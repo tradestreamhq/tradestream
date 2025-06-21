@@ -41,10 +41,7 @@ public class AtrCciStrategyFactoryTest {
 
     // Standard parameters
     params =
-        AtrCciParameters.newBuilder()
-            .setAtrPeriod(ATR_PERIOD)
-            .setCciPeriod(CCI_PERIOD)
-            .build();
+        AtrCciParameters.newBuilder().setAtrPeriod(ATR_PERIOD).setCciPeriod(CCI_PERIOD).build();
 
     // Initialize series
     series = new BaseBarSeries();
