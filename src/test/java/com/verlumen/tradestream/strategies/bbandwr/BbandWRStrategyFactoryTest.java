@@ -186,7 +186,8 @@ public class BbandWRStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_withValidParameters_createsStrategyWithCorrectName() throws InvalidProtocolBufferException {
+  public void createStrategy_withValidParameters_createsStrategyWithCorrectName()
+      throws InvalidProtocolBufferException {
     Strategy testStrategy = factory.createStrategy(series, params);
     String expectedName =
         String.format(
