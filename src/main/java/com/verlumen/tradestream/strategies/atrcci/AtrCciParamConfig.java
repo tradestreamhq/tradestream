@@ -12,9 +12,9 @@ import io.jenetics.NumericChromosome;
 public final class AtrCciParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
-          ChromosomeSpec.ofInteger(5, 30),  // ATR Period
-          ChromosomeSpec.ofInteger(10, 50)  // CCI Period
-      );
+          ChromosomeSpec.ofInteger(5, 30), // ATR Period
+          ChromosomeSpec.ofInteger(10, 50) // CCI Period
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
