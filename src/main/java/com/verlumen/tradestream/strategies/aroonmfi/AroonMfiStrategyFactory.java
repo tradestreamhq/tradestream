@@ -9,9 +9,9 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
-import org.ta4j.core.indicators.AroonDownIndicator;
-import org.ta4j.core.indicators.AroonUpIndicator;
 import org.ta4j.core.indicators.CachedIndicator;
+import org.ta4j.core.indicators.helpers.HighPriceIndicator;
+import org.ta4j.core.indicators.helpers.LowPriceIndicator;
 import org.ta4j.core.indicators.helpers.TypicalPriceIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
@@ -29,10 +29,9 @@ public class AroonMfiStrategyFactory implements StrategyFactory<AroonMfiParamete
         params.getOverboughtThreshold() > params.getOversoldThreshold(),
         "Overbought threshold must be greater than oversold threshold");
 
+    // Custom implementations since they might not be available in ta4j 0.17
     AroonUpIndicator aroonUp = new AroonUpIndicator(series, params.getAroonPeriod());
     AroonDownIndicator aroonDown = new AroonDownIndicator(series, params.getAroonPeriod());
-    
-    // Custom MFI implementation since it's not available in ta4j core
     MFIIndicator mfi = new MFIIndicator(series, params.getMfiPeriod());
 
     Rule entryRule =
@@ -64,8 +63,105 @@ public class AroonMfiStrategyFactory implements StrategyFactory<AroonMfiParamete
 }
 
 /**
+ * Custom Aroon Up indicator implementation
+ */
+class AroonUpIndicator extends CachedIndicator<Num> {
+  private final int timeFrame;
+  private final HighPriceIndicator highPriceIndicator;
+
+  public AroonUpIndicator(BarSeries series, int timeFrame) {
+    super(series);
+    this.timeFrame = timeFrame;
+    this.highPriceIndicator = new HighPriceIndicator(series);
+  }
+
+  @Override
+  protected Num calculate(int index) {
+    if (index < timeFrame - 1) {
+      return numOf(0);
+    }
+
+    int highestIndex = index - timeFrame + 1;
+    Num highestPrice = highPriceIndicator.getValue(highestIndex);
+
+    // Find the index of the highest high within the time frame
+    for (int i = index - timeFrame + 2; i <= index; i++) {
+      Num currentHigh = highPriceIndicator.getValue(i);
+      if (currentHigh.isGreaterThan(highestPrice)) {
+        highestPrice = currentHigh;
+        highestIndex = i;
+      }
+    }
+
+    // Calculate periods since highest high
+    int periodsSinceHigh = index - highestIndex;
+    
+    // Aroon Up = ((timeFrame - periods since highest high) / timeFrame) * 100
+    return numOf(timeFrame - periodsSinceHigh).dividedBy(numOf(timeFrame)).multipliedBy(numOf(100));
+  }
+
+  @Override
+  public int getUnstableBars() {
+    return timeFrame;
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + " timeFrame: " + timeFrame;
+  }
+}
+
+/**
+ * Custom Aroon Down indicator implementation
+ */
+class AroonDownIndicator extends CachedIndicator<Num> {
+  private final int timeFrame;
+  private final LowPriceIndicator lowPriceIndicator;
+
+  public AroonDownIndicator(BarSeries series, int timeFrame) {
+    super(series);
+    this.timeFrame = timeFrame;
+    this.lowPriceIndicator = new LowPriceIndicator(series);
+  }
+
+  @Override
+  protected Num calculate(int index) {
+    if (index < timeFrame - 1) {
+      return numOf(0);
+    }
+
+    int lowestIndex = index - timeFrame + 1;
+    Num lowestPrice = lowPriceIndicator.getValue(lowestIndex);
+
+    // Find the index of the lowest low within the time frame
+    for (int i = index - timeFrame + 2; i <= index; i++) {
+      Num currentLow = lowPriceIndicator.getValue(i);
+      if (currentLow.isLessThan(lowestPrice)) {
+        lowestPrice = currentLow;
+        lowestIndex = i;
+      }
+    }
+
+    // Calculate periods since lowest low
+    int periodsSinceLow = index - lowestIndex;
+    
+    // Aroon Down = ((timeFrame - periods since lowest low) / timeFrame) * 100
+    return numOf(timeFrame - periodsSinceLow).dividedBy(numOf(timeFrame)).multipliedBy(numOf(100));
+  }
+
+  @Override
+  public int getUnstableBars() {
+    return timeFrame;
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + " timeFrame: " + timeFrame;
+  }
+}
+
+/**
  * Custom Money Flow Index (MFI) indicator implementation
- * Based on the standard MFI calculation formula
  */
 class MFIIndicator extends CachedIndicator<Num> {
   private final int timeFrame;
@@ -119,6 +215,11 @@ class MFIIndicator extends CachedIndicator<Num> {
     Num mfi = numOf(100).minus(numOf(100).dividedBy(numOf(1).plus(moneyFlowRatio)));
 
     return mfi;
+  }
+
+  @Override
+  public int getUnstableBars() {
+    return timeFrame;
   }
 
   @Override
