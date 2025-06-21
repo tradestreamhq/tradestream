@@ -168,7 +168,6 @@ public class RviStrategyFactoryTest {
       double rviValue = rvi.getValue(i).doubleValue();
       double signalValue = rviSignal.getValue(i).doubleValue();
       boolean exitTriggered = strategy.getExitRule().isSatisfied(i);
-      
       System.out.printf(
           "Bar %d - O:%.2f H:%.2f L:%.2f C:%.2f | RVI:%.4f Signal:%.4f | Exit:%s%n",
           i,
