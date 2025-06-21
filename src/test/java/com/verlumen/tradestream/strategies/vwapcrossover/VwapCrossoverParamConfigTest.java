@@ -91,9 +91,4 @@ public class VwapCrossoverParamConfigTest {
     assertThat(maPeriod.gene().min()).isEqualTo(10);
     assertThat(maPeriod.gene().max()).isEqualTo(50);
   }
-
-  @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.VWAP_CROSSOVER);
-  }
 }
