@@ -149,9 +149,9 @@ public class BarSeriesBuilderTest {
     // Act
     BarSeries series = BarSeriesBuilder.createBarSeries(candles);
     Bar bar = series.getBar(0);
-    ZonedDateTime actualDateTime = bar.getBeginTime();
-    ZonedDateTime expectedDateTime = Instant.ofEpochMilli(epochMillis).atZone(ZoneId.of("UTC"));
+    Instant actualInstant = bar.getBeginTime();
+    Instant expectedInstant = Instant.ofEpochMilli(epochMillis);
     // Assert: the bar's start time is correctly converted to UTC ZonedDateTime
-    assertEquals("Bar start time should be correctly converted", expectedDateTime, actualDateTime);
+    assertEquals("Bar start time should be correctly converted", expectedInstant, actualInstant);
   }
 }
