@@ -192,7 +192,6 @@ public class RviStrategyFactoryTest {
         break;
       }
     }
-  
     // Verify that RVI crossed below signal line at the exit bar
     if (exitFound && exitBar > 0) {
       double rviPrev = rvi.getValue(exitBar - 1).doubleValue();
