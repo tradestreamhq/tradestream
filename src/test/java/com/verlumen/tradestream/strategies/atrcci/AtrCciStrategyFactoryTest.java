@@ -136,7 +136,6 @@ public class AtrCciStrategyFactoryTest {
       double cci = cciIndicator.getValue(i).doubleValue();
       double atr = atrIndicator.getValue(i).doubleValue();
       double prevAtr = previousAtr.getValue(i).doubleValue();
-      
       if (cci < 100 && atr < prevAtr) {
         exitIndex = i;
         break;
