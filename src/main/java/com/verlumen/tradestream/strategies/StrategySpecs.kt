@@ -115,7 +115,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.SMA_EMA_CROSSOVER to
             StrategySpec(
                 paramConfig = SmaEmaCrossoverParamConfig(),
-                strategyFactory = SmaEmaCrossoverStrategyFactory()
+                strategyFactory = SmaEmaCrossoverStrategyFactory(),
             ),
         StrategyType.STOCHASTIC_RSI to
             StrategySpec(
