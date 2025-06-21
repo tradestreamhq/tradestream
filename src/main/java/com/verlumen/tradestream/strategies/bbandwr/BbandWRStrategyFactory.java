@@ -9,8 +9,8 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
-import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
@@ -27,11 +27,11 @@ public final class BbandWRStrategyFactory implements StrategyFactory<BbandWRPara
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
     
-    // Bollinger Bands
-    BollingerBandsMiddleIndicator bbMiddle = new BollingerBandsMiddleIndicator(closePrice, params.getBbandsPeriod());
+    // Bollinger Bands - use SMA as the middle indicator
+    SMAIndicator bbMiddle = new SMAIndicator(closePrice, params.getBbandsPeriod());
     StandardDeviationIndicator stdDev = new StandardDeviationIndicator(closePrice, params.getBbandsPeriod());
-    BollingerBandsUpperIndicator bbUpper = new BollingerBandsUpperIndicator(bbMiddle, stdDev, params.getStdDevMultiplier());
-    BollingerBandsLowerIndicator bbLower = new BollingerBandsLowerIndicator(bbMiddle, stdDev, params.getStdDevMultiplier());
+    BollingerBandsUpperIndicator bbUpper = new BollingerBandsUpperIndicator(bbMiddle, stdDev, series.numOf(params.getStdDevMultiplier()));
+    BollingerBandsLowerIndicator bbLower = new BollingerBandsLowerIndicator(bbMiddle, stdDev, series.numOf(params.getStdDevMultiplier()));
     
     // Williams %R
     WilliamsRIndicator williamsR = new WilliamsRIndicator(series, params.getWrPeriod());
