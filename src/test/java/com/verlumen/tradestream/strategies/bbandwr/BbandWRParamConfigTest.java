@@ -75,7 +75,6 @@ public class BbandWRParamConfigTest {
     // Williams %R Period (5-30)
     assertThat(specs.get(1).getRange().lowerEndpoint()).isEqualTo(5);
     assertThat(specs.get(1).getRange().upperEndpoint()).isEqualTo(30);
-    
     // Standard Deviation Multiplier (1.5-3.0)
     assertThat(specs.get(2).getRange().lowerEndpoint()).isEqualTo(1.5);
     assertThat(specs.get(2).getRange().upperEndpoint()).isEqualTo(3.0);
