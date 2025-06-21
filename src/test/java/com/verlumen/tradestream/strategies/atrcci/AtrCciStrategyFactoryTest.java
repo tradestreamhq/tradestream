@@ -71,7 +71,8 @@ public class AtrCciStrategyFactoryTest {
     // Period with high prices and high CCI (above +100), then decreasing volatility
     for (int i = 20; i < 25; i++) {
       double price = 125.0 + (i - 19) * 2; // Continued upward but slower
-      series.addBar(createBar(now.plusMinutes(i), price, 3.0 - (i - 20) * 0.5)); // Decreasing volatility
+      series.addBar(
+          createBar(now.plusMinutes(i), price, 3.0 - (i - 20) * 0.5)); // Decreasing volatility
     }
 
     // Initialize indicators
