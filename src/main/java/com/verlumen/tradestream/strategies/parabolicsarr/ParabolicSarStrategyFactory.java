@@ -62,5 +62,4 @@ public final class ParabolicSarStrategyFactory implements StrategyFactory<Parabo
         .setAccelerationFactorMax(0.2) // Standard max
         .build();
   }
-
 }
