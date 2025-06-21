@@ -71,7 +71,6 @@ public class BbandWRParamConfigTest {
   @Test
   public void testChromosomeSpecs_haveCorrectRanges() {
     ImmutableList<ChromosomeSpec<?>> specs = config.getChromosomeSpecs();
-    
     // Bollinger Bands Period (10-50)
     assertThat(specs.get(0).getRange().lowerEndpoint()).isEqualTo(10);
     assertThat(specs.get(0).getRange().upperEndpoint()).isEqualTo(50);
