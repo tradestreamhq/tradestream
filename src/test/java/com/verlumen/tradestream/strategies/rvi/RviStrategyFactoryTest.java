@@ -180,7 +180,6 @@ public class RviStrategyFactoryTest {
           signalValue,
           exitTriggered ? "YES" : "no");
     }
-  
     // Find exit signal in the bearish pattern section (bars 23+)
     boolean exitFound = false;
     int exitBar = -1;
