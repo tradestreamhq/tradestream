@@ -86,7 +86,6 @@ public class VwapCrossoverParamConfigTest {
   public void testInitialChromosomes_returnsExpectedSize() {
     ImmutableList<? extends NumericChromosome<?, ?>> chromosomes = config.initialChromosomes();
     assertThat(chromosomes).hasSize(2);
-    
     // Verify all chromosomes are IntegerChromosome
     assertThat(chromosomes.get(0)).isInstanceOf(IntegerChromosome.class);
     assertThat(chromosomes.get(1)).isInstanceOf(IntegerChromosome.class);
