@@ -37,9 +37,9 @@ public class BbandWRParamConfigTest {
     // Create chromosomes with correct parameter order
     List<NumericChromosome<?, ?>> chromosomes =
         List.of(
-            IntegerChromosome.of(10, 50, 20), // Bollinger Bands Period
-            IntegerChromosome.of(5, 30, 14), // Williams %R Period
-            DoubleChromosome.of(1.5, 3.0, 2.0) // Standard Deviation Multiplier
+            IntegerChromosome.of(10, 50, 1), // Bollinger Bands Period
+            IntegerChromosome.of(5, 30, 1), // Williams %R Period
+            DoubleChromosome.of(1.5, 3.0, 1) // Standard Deviation Multiplier
             );
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
@@ -51,8 +51,8 @@ public class BbandWRParamConfigTest {
     // Create only two chromosomes instead of three
     List<NumericChromosome<?, ?>> chromosomes =
         List.of(
-            IntegerChromosome.of(10, 50, 20),
-            IntegerChromosome.of(5, 30, 14)
+            IntegerChromosome.of(10, 50, 1),
+            IntegerChromosome.of(5, 30, 1)
         );
 
     IllegalArgumentException thrown =
@@ -87,19 +87,32 @@ public class BbandWRParamConfigTest {
 
   @Test
   public void testCreateParameters_extractsCorrectValues() throws Exception {
-    // Create chromosomes with specific values
+    // Create chromosomes with single genes each
+    IntegerChromosome bbandsPeriodChrom = IntegerChromosome.of(10, 50, 1);
+    IntegerChromosome wrPeriodChrom = IntegerChromosome.of(5, 30, 1);
+    DoubleChromosome stdDevMultiplierChrom = DoubleChromosome.of(1.5, 3.0, 1);
+
     List<NumericChromosome<?, ?>> chromosomes =
-        List.of(
-            IntegerChromosome.of(10, 50, 25), // Bollinger Bands Period
-            IntegerChromosome.of(5, 30, 20), // Williams %R Period
-            DoubleChromosome.of(1.5, 3.0, 2.5) // Standard Deviation Multiplier
-            );
+        List.of(bbandsPeriodChrom, wrPeriodChrom, stdDevMultiplierChrom);
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     BbandWRParameters params = packedParams.unpack(BbandWRParameters.class);
     
-    assertThat(params.getBbandsPeriod()).isEqualTo(25);
-    assertThat(params.getWrPeriod()).isEqualTo(20);
-    assertThat(params.getStdDevMultiplier()).isEqualTo(2.5);
+    // Extract the actual values from chromosomes
+    int expectedBbandsPeriod = bbandsPeriodChrom.gene().allele();
+    int expectedWrPeriod = wrPeriodChrom.gene().allele();
+    double expectedStdDevMultiplier = stdDevMultiplierChrom.gene().allele();
+    
+    assertThat(params.getBbandsPeriod()).isEqualTo(expectedBbandsPeriod);
+    assertThat(params.getWrPeriod()).isEqualTo(expectedWrPeriod);
+    assertThat(params.getStdDevMultiplier()).isEqualTo(expectedStdDevMultiplier);
+    
+    // Also verify values are within expected ranges
+    assertThat(params.getBbandsPeriod()).isAtLeast(10);
+    assertThat(params.getBbandsPeriod()).isAtMost(50);
+    assertThat(params.getWrPeriod()).isAtLeast(5);
+    assertThat(params.getWrPeriod()).isAtMost(30);
+    assertThat(params.getStdDevMultiplier()).isAtLeast(1.5);
+    assertThat(params.getStdDevMultiplier()).isAtMost(3.0);
   }
 }
