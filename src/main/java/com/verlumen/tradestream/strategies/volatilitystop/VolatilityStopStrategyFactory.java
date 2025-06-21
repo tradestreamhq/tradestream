@@ -19,7 +19,6 @@ import org.ta4j.core.rules.UnderIndicatorRule;
 
 public final class VolatilityStopStrategyFactory
     implements StrategyFactory<VolatilityStopParameters> {
-  
   /**
    * Custom indicator that calculates the volatility stop level: previous close - (ATR * multiplier)
    */
