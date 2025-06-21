@@ -82,7 +82,6 @@ public class RviStrategyFactoryTest {
           basePrice + 2.5     // close strongly above open (very bullish)
       ));
     }
-  
     // Phase 4: Bearish pattern for exit signal (bars 23-27)
     for (int i = 23; i < 28; i++) {
       double basePrice = 65.0 - (i - 22) * 3; // Decreasing trend
