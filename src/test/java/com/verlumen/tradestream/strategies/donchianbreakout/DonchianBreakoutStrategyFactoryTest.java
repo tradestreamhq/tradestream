@@ -1,10 +1,7 @@
 package com.verlumen.tradestream.strategies.donchianbreakout;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.DonchianBreakoutParameters;
-import com.verlumen.tradestream.strategies.StrategyType;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import org.junit.Before;
@@ -13,7 +10,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
-import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
 public class DonchianBreakoutStrategyFactoryTest {
