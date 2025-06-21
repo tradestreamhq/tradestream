@@ -135,8 +135,8 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.VWAP_CROSSOVER to
             StrategySpec(
                 paramConfig = VwapCrossoverParamConfig(),
-                strategyFactory = VwapCrossoverStrategyFactory()
-            )
+                strategyFactory = VwapCrossoverStrategyFactory(),
+            ),
         // To add a new strategy, just add a new entry here.
     )
 
