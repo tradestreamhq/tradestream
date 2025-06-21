@@ -11,7 +11,7 @@ import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.AroonDownIndicator;
 import org.ta4j.core.indicators.AroonUpIndicator;
-import org.ta4j.core.indicators.volume.MFIIndicator;
+import org.ta4j.core.indicators.helpers.TypicalPriceIndicator;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
@@ -29,6 +29,8 @@ public class AroonMfiStrategyFactory implements StrategyFactory<AroonMfiParamete
 
     AroonUpIndicator aroonUp = new AroonUpIndicator(series, params.getAroonPeriod());
     AroonDownIndicator aroonDown = new AroonDownIndicator(series, params.getAroonPeriod());
+    
+    // Custom MFI implementation since it's not available in ta4j core
     MFIIndicator mfi = new MFIIndicator(series, params.getMfiPeriod());
 
     Rule entryRule =
@@ -56,5 +58,69 @@ public class AroonMfiStrategyFactory implements StrategyFactory<AroonMfiParamete
         .setOverboughtThreshold(80)
         .setOversoldThreshold(20)
         .build();
+  }
+}
+
+/**
+ * Custom Money Flow Index (MFI) indicator implementation
+ * Based on the standard MFI calculation formula
+ */
+class MFIIndicator extends org.ta4j.core.indicators.CachedIndicator<org.ta4j.core.Num> {
+  private final int timeFrame;
+  private final TypicalPriceIndicator typicalPriceIndicator;
+  private final BarSeries barSeries;
+
+  public MFIIndicator(BarSeries barSeries, int timeFrame) {
+    super(barSeries);
+    this.barSeries = barSeries;
+    this.timeFrame = timeFrame;
+    this.typicalPriceIndicator = new TypicalPriceIndicator(barSeries);
+  }
+
+  @Override
+  protected org.ta4j.core.Num calculate(int index) {
+    if (index < timeFrame) {
+      return numOf(50); // Default neutral value for insufficient data
+    }
+
+    org.ta4j.core.Num positiveFlow = numOf(0);
+    org.ta4j.core.Num negativeFlow = numOf(0);
+
+    // Calculate money flow for the specified time frame
+    for (int i = index - timeFrame + 1; i <= index; i++) {
+      if (i > 0) {
+        org.ta4j.core.Num currentTypicalPrice = typicalPriceIndicator.getValue(i);
+        org.ta4j.core.Num previousTypicalPrice = typicalPriceIndicator.getValue(i - 1);
+        org.ta4j.core.Num volume = barSeries.getBar(i).getVolume();
+        org.ta4j.core.Num rawMoneyFlow = currentTypicalPrice.multipliedBy(volume);
+
+        if (currentTypicalPrice.isGreaterThan(previousTypicalPrice)) {
+          positiveFlow = positiveFlow.plus(rawMoneyFlow);
+        } else if (currentTypicalPrice.isLessThan(previousTypicalPrice)) {
+          negativeFlow = negativeFlow.plus(rawMoneyFlow);
+        }
+      }
+    }
+
+    // Avoid division by zero
+    if (negativeFlow.isZero()) {
+      return numOf(100);
+    }
+    if (positiveFlow.isZero()) {
+      return numOf(0);
+    }
+
+    // Calculate Money Flow Ratio
+    org.ta4j.core.Num moneyFlowRatio = positiveFlow.dividedBy(negativeFlow);
+
+    // Calculate Money Flow Index
+    org.ta4j.core.Num mfi = numOf(100).minus(numOf(100).dividedBy(numOf(1).plus(moneyFlowRatio)));
+
+    return mfi;
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + " timeFrame: " + timeFrame;
   }
 }
