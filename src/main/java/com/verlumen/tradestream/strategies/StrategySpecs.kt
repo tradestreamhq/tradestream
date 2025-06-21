@@ -110,7 +110,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.RVI to
             StrategySpec(
                 paramConfig = RviParamConfig(),
-                strategyFactory = RviStrategyFactory()
+                strategyFactory = RviStrategyFactory(),
             ),
         StrategyType.SMA_EMA_CROSSOVER to
             StrategySpec(
