@@ -58,8 +58,9 @@ public class RviIndicator extends CachedIndicator<Num> {
         return sum.dividedBy(numOf(count));
     }
 
-    if (count == 0) {
-      return numOf(0);
+    @Override
+    public int getUnstableBars() {
+        return period;
     }
 
     return sum.dividedBy(numOf(count));
