@@ -32,7 +32,8 @@ public final class VwapCrossoverStrategyFactory implements StrategyFactory<VwapC
     Rule exitRule = new CrossedDownIndicatorRule(closePrice, vwap);
 
     return new BaseStrategy(
-        String.format("%s (VWAP: %d, MA: %d)",
+        String.format(
+            "%s (VWAP: %d, MA: %d)",
             StrategyType.VWAP_CROSSOVER.name(),
             params.getVwapPeriod(),
             params.getMovingAveragePeriod()),
