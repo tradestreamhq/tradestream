@@ -101,7 +101,6 @@ public class AroonMfiStrategyFactoryTest {
   public void testStrategyExecutesWithoutErrors() {
     AroonMfiParameters params = factory.getDefaultParameters();
     Strategy strategy = factory.createStrategy(series, params);
-    
     // Test that the strategy can evaluate at different indices without throwing exceptions
     // Start from a higher index to ensure we have enough data for all indicators
     for (int i = Math.max(25, strategy.getUnstableBars()); i < series.getBarCount(); i++) {
