@@ -3,6 +3,7 @@ package com.verlumen.tradestream.strategies.vwapcrossover;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.VwapCrossoverParameters;
 import java.time.Duration;
 import java.time.ZonedDateTime;
