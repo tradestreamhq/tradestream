@@ -9,17 +9,19 @@ class MomentumIndicator(
     private val closePrice: ClosePriceIndicator,
     private val period: Int,
 ) : CachedIndicator<Num>(closePrice) {
-    override fun calculate(index: Int): Num {
+    override fun calculate(index: Int): Num =
         if (index < period) {
-            // Not enough data yet
-            return numOf(0)
+            numOf(0.0) // Not enough data yet
+        } else {
+            calculatePercentageChange(index)
         }
-        // Calculate percentage change:
+
+    override fun getUnstableBars(): Int = period
+
+    private fun calculatePercentageChange(index: Int): Num {
         // ((Current Price - Price n periods ago) / Price n periods ago) * 100
         val currentClose = closePrice.getValue(index)
         val previousClose = closePrice.getValue(index - period)
-        return currentClose.minus(previousClose).dividedBy(previousClose).multipliedBy(numOf(100))
+        return currentClose.minus(previousClose).dividedBy(previousClose).multipliedBy(getBarSeries().numOf(100))
     }
-
-    override fun getUnstableBars(): Int = period
 }
