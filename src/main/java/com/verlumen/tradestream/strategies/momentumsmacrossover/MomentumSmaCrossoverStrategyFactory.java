@@ -43,7 +43,9 @@ public final class MomentumSmaCrossoverStrategyFactory
     String strategyName =
         String.format(
             "%s (MOM-%d/SMA-%d)",
-            getStrategyType().name(), params.getMomentumPeriod(), params.getSmaPeriod());
+            StrategyType.MOMENTUM_SMA_CROSSOVER.name(),
+            params.getMomentumPeriod(),
+            params.getSmaPeriod());
 
     return new BaseStrategy(
         strategyName,
@@ -58,10 +60,5 @@ public final class MomentumSmaCrossoverStrategyFactory
         .setMomentumPeriod(10)
         .setSmaPeriod(20)
         .build();
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.MOMENTUM_SMA_CROSSOVER;
   }
 }

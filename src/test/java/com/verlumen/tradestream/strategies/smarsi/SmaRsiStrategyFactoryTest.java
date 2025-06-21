@@ -4,7 +4,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
-import com.verlumen.tradestream.strategies.StrategyType;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import org.junit.Before;
@@ -83,11 +82,6 @@ public class SmaRsiStrategyFactoryTest {
 
     // Create strategy
     strategy = factory.createStrategy(series, params);
-  }
-
-  @Test
-  public void getStrategyType_returnsSmaRsi() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.SMA_RSI);
   }
 
   @Test

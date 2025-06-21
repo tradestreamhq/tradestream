@@ -12,16 +12,6 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
-    name = "strategies_module",
-    srcs = ["StrategiesModule.kt"],
-    deps = [
-        ":strategy_factory",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-    ],
-)
-
-kt_jvm_library(
     name = "strategy_constants",
     srcs = ["StrategyConstants.kt"],
     deps = [
@@ -57,9 +47,39 @@ kt_jvm_library(
         # Implementations for each strategy included in the map
         "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/atrcci:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/atrcci:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/atrtrailingstop:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/atrtrailingstop:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/bbandwr:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/bbandwr:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/donchianbreakout:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/donchianbreakout:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/doubleemacrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/doubleemacrossover:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/emamacd:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/emamacd:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/macdcrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/macdcrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/momentumsmacrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/momentumsmacrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/parabolicsarr:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/parabolicsarr:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/rsiemacrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/rsiemacrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/rvi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/rvi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/smaemacrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/smaemacrossover:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/smarsi:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/smarsi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/stochasticsrsi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/stochasticsrsi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/tripleemacrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/tripleemacrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/volatilitystop:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/volatilitystop:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/vwapcrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/vwapcrossover:strategy_factory",
     ],
 )

@@ -51,13 +51,6 @@ public interface StrategyFactory<T extends Message> extends Serializable {
   T getDefaultParameters();
 
   /**
-   * Gets the {@link StrategyType} that this factory handles.
-   *
-   * @return The {@link StrategyType} this factory is responsible for creating.
-   */
-  StrategyType getStrategyType();
-
-  /**
    * Returns the {@link Class} of the parameter message that this strategy factory uses. This is
    * determined using reflection on the generic type parameter of the interface.
    *

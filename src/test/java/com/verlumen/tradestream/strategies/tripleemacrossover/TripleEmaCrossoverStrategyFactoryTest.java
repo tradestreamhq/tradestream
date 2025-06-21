@@ -3,7 +3,6 @@ package com.verlumen.tradestream.strategies.tripleemacrossover;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.TripleEmaCrossoverParameters;
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -79,11 +78,6 @@ public class TripleEmaCrossoverStrategyFactoryTest {
 
     // Create strategy
     strategy = factory.createStrategy(series, params);
-  }
-
-  @Test
-  public void getStrategyType_returnsTripleEmaCrossover() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.TRIPLE_EMA_CROSSOVER);
   }
 
   @Test

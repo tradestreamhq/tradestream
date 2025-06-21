@@ -4,10 +4,40 @@ import com.google.protobuf.Any
 import com.google.protobuf.InvalidProtocolBufferException
 import com.verlumen.tradestream.strategies.adxstochastic.AdxStochasticParamConfig
 import com.verlumen.tradestream.strategies.adxstochastic.AdxStochasticStrategyFactory
+import com.verlumen.tradestream.strategies.atrcci.AtrCciParamConfig
+import com.verlumen.tradestream.strategies.atrcci.AtrCciStrategyFactory
+import com.verlumen.tradestream.strategies.atrtrailingstop.AtrTrailingStopParamConfig
+import com.verlumen.tradestream.strategies.atrtrailingstop.AtrTrailingStopStrategyFactory
+import com.verlumen.tradestream.strategies.bbandwr.BbandWRParamConfig
+import com.verlumen.tradestream.strategies.bbandwr.BbandWRStrategyFactory
+import com.verlumen.tradestream.strategies.donchianbreakout.DonchianBreakoutParamConfig
+import com.verlumen.tradestream.strategies.donchianbreakout.DonchianBreakoutStrategyFactory
+import com.verlumen.tradestream.strategies.doubleemacrossover.DoubleEmaCrossoverParamConfig
+import com.verlumen.tradestream.strategies.doubleemacrossover.DoubleEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdParamConfig
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdStrategyFactory
+import com.verlumen.tradestream.strategies.macdcrossover.MacdCrossoverParamConfig
+import com.verlumen.tradestream.strategies.macdcrossover.MacdCrossoverStrategyFactory
+import com.verlumen.tradestream.strategies.momentumsmacrossover.MomentumSmaCrossoverParamConfig
+import com.verlumen.tradestream.strategies.momentumsmacrossover.MomentumSmaCrossoverStrategyFactory
+import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarParamConfig
+import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarStrategyFactory
+import com.verlumen.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverParamConfig
+import com.verlumen.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverStrategyFactory
+import com.verlumen.tradestream.strategies.rvi.RviParamConfig
+import com.verlumen.tradestream.strategies.rvi.RviStrategyFactory
+import com.verlumen.tradestream.strategies.smaemacrossover.SmaEmaCrossoverParamConfig
+import com.verlumen.tradestream.strategies.smaemacrossover.SmaEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.smarsi.SmaRsiParamConfig
 import com.verlumen.tradestream.strategies.smarsi.SmaRsiStrategyFactory
+import com.verlumen.tradestream.strategies.stochasticsrsi.StochasticRsiParamConfig
+import com.verlumen.tradestream.strategies.stochasticsrsi.StochasticRsiStrategyFactory
+import com.verlumen.tradestream.strategies.tripleemacrossover.TripleEmaCrossoverParamConfig
+import com.verlumen.tradestream.strategies.tripleemacrossover.TripleEmaCrossoverStrategyFactory
+import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopParamConfig
+import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopStrategyFactory
+import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverParamConfig
+import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverStrategyFactory
 import org.ta4j.core.BarSeries
 import org.ta4j.core.Strategy
 
@@ -31,6 +61,81 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = EmaMacdParamConfig(),
                 strategyFactory = EmaMacdStrategyFactory(),
+            ),
+        StrategyType.ATR_CCI to
+            StrategySpec(
+                paramConfig = AtrCciParamConfig(),
+                strategyFactory = AtrCciStrategyFactory(),
+            ),
+        StrategyType.ATR_TRAILING_STOP to
+            StrategySpec(
+                paramConfig = AtrTrailingStopParamConfig(),
+                strategyFactory = AtrTrailingStopStrategyFactory(),
+            ),
+        StrategyType.BBAND_W_R to
+            StrategySpec(
+                paramConfig = BbandWRParamConfig(),
+                strategyFactory = BbandWRStrategyFactory(),
+            ),
+        StrategyType.DONCHIAN_BREAKOUT to
+            StrategySpec(
+                paramConfig = DonchianBreakoutParamConfig(),
+                strategyFactory = DonchianBreakoutStrategyFactory(),
+            ),
+        StrategyType.DOUBLE_EMA_CROSSOVER to
+            StrategySpec(
+                paramConfig = DoubleEmaCrossoverParamConfig(),
+                strategyFactory = DoubleEmaCrossoverStrategyFactory(),
+            ),
+        StrategyType.MACD_CROSSOVER to
+            StrategySpec(
+                paramConfig = MacdCrossoverParamConfig(),
+                strategyFactory = MacdCrossoverStrategyFactory(),
+            ),
+        StrategyType.MOMENTUM_SMA_CROSSOVER to
+            StrategySpec(
+                paramConfig = MomentumSmaCrossoverParamConfig(),
+                strategyFactory = MomentumSmaCrossoverStrategyFactory(),
+            ),
+        StrategyType.PARABOLIC_SAR to
+            StrategySpec(
+                paramConfig = ParabolicSarParamConfig(),
+                strategyFactory = ParabolicSarStrategyFactory(),
+            ),
+        StrategyType.RSI_EMA_CROSSOVER to
+            StrategySpec(
+                paramConfig = RsiEmaCrossoverParamConfig(),
+                strategyFactory = RsiEmaCrossoverStrategyFactory(),
+            ),
+        StrategyType.RVI to
+            StrategySpec(
+                paramConfig = RviParamConfig(),
+                strategyFactory = RviStrategyFactory(),
+            ),
+        StrategyType.SMA_EMA_CROSSOVER to
+            StrategySpec(
+                paramConfig = SmaEmaCrossoverParamConfig(),
+                strategyFactory = SmaEmaCrossoverStrategyFactory(),
+            ),
+        StrategyType.STOCHASTIC_RSI to
+            StrategySpec(
+                paramConfig = StochasticRsiParamConfig(),
+                strategyFactory = StochasticRsiStrategyFactory(),
+            ),
+        StrategyType.TRIPLE_EMA_CROSSOVER to
+            StrategySpec(
+                paramConfig = TripleEmaCrossoverParamConfig(),
+                strategyFactory = TripleEmaCrossoverStrategyFactory(),
+            ),
+        StrategyType.VOLATILITY_STOP to
+            StrategySpec(
+                paramConfig = VolatilityStopParamConfig(),
+                strategyFactory = VolatilityStopStrategyFactory(),
+            ),
+        StrategyType.VWAP_CROSSOVER to
+            StrategySpec(
+                paramConfig = VwapCrossoverParamConfig(),
+                strategyFactory = VwapCrossoverStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )

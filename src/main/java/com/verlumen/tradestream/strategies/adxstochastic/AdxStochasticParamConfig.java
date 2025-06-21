@@ -5,7 +5,6 @@ import com.google.protobuf.Any;
 import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.discovery.ParamConfig;
 import com.verlumen.tradestream.strategies.AdxStochasticParameters;
-import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
@@ -57,10 +56,5 @@ public final class AdxStochasticParamConfig implements ParamConfig {
     return SPECS.stream()
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.ADX_STOCHASTIC;
   }
 }

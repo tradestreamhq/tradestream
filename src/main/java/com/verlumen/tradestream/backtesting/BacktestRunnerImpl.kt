@@ -93,13 +93,10 @@ class BacktestRunnerImpl
 
             // Skip unstable period at the start
             for (i in strategy.unstableBars until series.barCount) {
-                // Check if we should enter long position
                 if (strategy.shouldEnter(i)) {
                     // Enter with a position size of 1 unit
                     tradingRecord.enter(i, series.getBar(i).closePrice, series.numOf(1))
-                }
-                // Check if we should exit an open position
-                else if (strategy.shouldExit(i) && tradingRecord.currentPosition.isOpened) {
+                } else if (strategy.shouldExit(i) && tradingRecord.currentPosition.isOpened) {
                     tradingRecord.exit(i, series.getBar(i).closePrice, series.numOf(1))
                 }
             }
