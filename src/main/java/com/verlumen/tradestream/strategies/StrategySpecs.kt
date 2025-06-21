@@ -95,7 +95,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.MOMENTUM_SMA_CROSSOVER to
             StrategySpec(
                 paramConfig = MomentumSmaCrossoverParamConfig(),
-                strategyFactory = MomentumSmaCrossoverStrategyFactory()
+                strategyFactory = MomentumSmaCrossoverStrategyFactory(),
             ),
         StrategyType.PARABOLIC_SAR to
             StrategySpec(
