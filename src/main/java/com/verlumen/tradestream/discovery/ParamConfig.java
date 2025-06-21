@@ -4,7 +4,7 @@ import com.google.protobuf.Any;
 import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.NumericChromosome;
 import java.io.Serializable;
-import java.util.List
+import java.util.List;
 
 /**
  * Represents configuration for a strategy's parameters that supports multiple parameter types.
