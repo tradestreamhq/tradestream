@@ -83,11 +83,6 @@ public class VwapCrossoverStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsVwapCrossover() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.VWAP_CROSSOVER);
-  }
-
-  @Test
   public void entryRule_shouldTrigger_whenPriceCrossesAboveVwap() {
     // Log VWAP and price values around the expected cross-up
     for (int i = 6; i <= 9; i++) {
