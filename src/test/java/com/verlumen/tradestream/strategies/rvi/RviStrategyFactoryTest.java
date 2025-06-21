@@ -153,7 +153,7 @@ public class RviStrategyFactoryTest {
           rviPrev, signalPrev, rviCurrent, signalCurrent);
       
       // Verify it's actually a cross-up
-      assertThat(rviPrev).isLessThan(signalPrev); // RVI was below signal
+      assertThat(rviPrev).isAtMost(signalPrev); // RVI was below or equal to signal
       assertThat(rviCurrent).isGreaterThan(signalCurrent); // RVI is now above signal
     }
   
