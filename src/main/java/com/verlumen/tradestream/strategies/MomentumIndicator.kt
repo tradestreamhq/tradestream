@@ -9,7 +9,6 @@ class MomentumIndicator(
     private val closePrice: ClosePriceIndicator,
     private val period: Int,
 ) : CachedIndicator<Num>(closePrice) {
-
     override fun calculate(index: Int): Num {
         if (index < period) {
             // Not enough data yet
