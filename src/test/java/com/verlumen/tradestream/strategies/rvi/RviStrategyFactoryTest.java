@@ -18,7 +18,6 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.HighPriceIndicator;
 import org.ta4j.core.indicators.helpers.LowPriceIndicator;
 import org.ta4j.core.indicators.helpers.OpenPriceIndicator;
-import org.ta4j.core.indicators.helpers.TransformIndicator;
 
 @RunWith(JUnit4.class)
 public class RviStrategyFactoryTest {
@@ -30,7 +29,7 @@ public class RviStrategyFactoryTest {
   private Strategy strategy;
 
   // For debugging RVI calculations
-  private SMAIndicator rvi;
+  private RviIndicator rvi;
   private SMAIndicator rviSignal;
   private ClosePriceIndicator closePrice;
   private OpenPriceIndicator openPrice;
@@ -90,11 +89,8 @@ public class RviStrategyFactoryTest {
     highPrice = new HighPriceIndicator(series);
     lowPrice = new LowPriceIndicator(series);
 
-    // RVI calculation: SMA((Close - Open) / (High - Low), period)
-    TransformIndicator numerator = TransformIndicator.minus(closePrice, openPrice);
-    TransformIndicator denominator = TransformIndicator.minus(highPrice, lowPrice);
-    TransformIndicator rviRaw = TransformIndicator.divide(numerator, denominator);
-    rvi = new SMAIndicator(rviRaw, RVI_PERIOD);
+    // Use the existing RviIndicator class
+    rvi = new RviIndicator(closePrice, openPrice, highPrice, lowPrice, RVI_PERIOD);
     rviSignal = new SMAIndicator(rvi, 4); // 4-period signal line
 
     // Create strategy
