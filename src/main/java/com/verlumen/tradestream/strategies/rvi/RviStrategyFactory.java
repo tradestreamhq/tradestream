@@ -45,7 +45,7 @@ public final class RviStrategyFactory implements StrategyFactory<RviParameters> 
     Rule exitRule = new CrossedDownIndicatorRule(rvi, rviSignal);
 
     return new BaseStrategy(
-        String.format("%s (Period: %d)", getStrategyType().name(), params.getPeriod()),
+        String.format("%s (Period: %d)", StrategyType.RVI.name(), params.getPeriod()),
         entryRule,
         exitRule,
         params.getPeriod());
@@ -56,10 +56,5 @@ public final class RviStrategyFactory implements StrategyFactory<RviParameters> 
     return RviParameters.newBuilder()
         .setPeriod(10)  // Standard RVI period
         .build();
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.RVI;
   }
 }
