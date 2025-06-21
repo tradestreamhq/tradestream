@@ -202,7 +202,6 @@ public class RviStrategyFactoryTest {
       
       System.out.printf("Exit crossover verification - Prev: RVI=%.4f Signal=%.4f, Current: RVI=%.4f Signal=%.4f%n",
           rviPrev, signalPrev, rviCurrent, signalCurrent);
-      
       // Verify it's actually a cross-down
       assertThat(rviPrev).isGreaterThan(signalPrev); // RVI was above signal
       assertThat(rviCurrent).isLessThan(signalCurrent); // RVI is now below signal
