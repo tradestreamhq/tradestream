@@ -29,7 +29,8 @@ public class AdxDmiStrategyFactoryTest {
 
   @Test
   public void testCreateStrategy() {
-    AdxDmiParameters params = AdxDmiParameters.newBuilder().setAdxPeriod(14).setDiPeriod(14).build();
+    AdxDmiParameters params =
+        AdxDmiParameters.newBuilder().setAdxPeriod(14).setDiPeriod(14).build();
     Strategy strategy = factory.createStrategy(series, params);
     assertThat(strategy).isNotNull();
   }
