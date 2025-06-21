@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.discovery.ParamConfig;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.VwapCrossoverParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
