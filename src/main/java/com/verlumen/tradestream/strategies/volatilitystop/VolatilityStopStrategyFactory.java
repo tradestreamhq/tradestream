@@ -7,16 +7,49 @@ import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.VolatilityStopParameters;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
+import org.ta4j.core.Indicator;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.ATRIndicator;
+import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.PreviousValueIndicator;
-import org.ta4j.core.indicators.helpers.TransformIndicator;
+import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
 public final class VolatilityStopStrategyFactory
     implements StrategyFactory<VolatilityStopParameters> {
+  
+  /**
+   * Custom indicator that calculates the volatility stop level:
+   * previous close - (ATR * multiplier)
+   */
+  private static class VolatilityStopIndicator extends CachedIndicator<Num> {
+    private final PreviousValueIndicator previousClose;
+    private final ATRIndicator atr;
+    private final double multiplier;
+
+    public VolatilityStopIndicator(ClosePriceIndicator closePrice, ATRIndicator atr, double multiplier) {
+      super(closePrice);
+      this.previousClose = new PreviousValueIndicator(closePrice, 1);
+      this.atr = atr;
+      this.multiplier = multiplier;
+    }
+
+    @Override
+    protected Num calculate(int index) {
+      Num prevClose = previousClose.getValue(index);
+      Num atrValue = atr.getValue(index);
+      Num volatilityOffset = atrValue.multipliedBy(numOf(multiplier));
+      return prevClose.minus(volatilityOffset);
+    }
+
+    @Override
+    public int getUnstableBars() {
+      return Math.max(previousClose.getUnstableBars(), atr.getUnstableBars());
+    }
+  }
+
   @Override
   public Strategy createStrategy(BarSeries series, VolatilityStopParameters params) {
     checkArgument(params.getAtrPeriod() > 0, "ATR period must be positive");
@@ -26,9 +59,8 @@ public final class VolatilityStopStrategyFactory
     ATRIndicator atr = new ATRIndicator(series, params.getAtrPeriod());
     PreviousValueIndicator previousClose = new PreviousValueIndicator(closePrice, 1);
 
-    // Calculate volatility stop: previous close - (ATR * multiplier)
-    TransformIndicator volatilityStop = TransformIndicator.multiply(atr, params.getMultiplier());
-    TransformIndicator stopLevel = TransformIndicator.minus(previousClose, volatilityStop);
+    // Calculate volatility stop level using custom indicator
+    VolatilityStopIndicator stopLevel = new VolatilityStopIndicator(closePrice, atr, params.getMultiplier());
 
     // Entry rule: This is typically combined with other entry signals
     // For simplicity, we'll use a basic price momentum rule
