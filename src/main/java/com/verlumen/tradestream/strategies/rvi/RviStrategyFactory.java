@@ -18,6 +18,7 @@ import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
 public final class RviStrategyFactory implements StrategyFactory<RviParameters> {
+
   @Override
   public Strategy createStrategy(BarSeries series, RviParameters params) {
     checkArgument(params.getPeriod() > 0, "RVI period must be positive");
@@ -39,7 +40,7 @@ public final class RviStrategyFactory implements StrategyFactory<RviParameters> 
     Rule exitRule = new CrossedDownIndicatorRule(rvi, rviSignal);
 
     return new BaseStrategy(
-        String.format("%s (Period: %d)", StrategyType.RVI.name(), params.getPeriod()),
+        String.format("%s (Period: %d)", getStrategyType().name(), params.getPeriod()),
         entryRule,
         exitRule,
         params.getPeriod());
