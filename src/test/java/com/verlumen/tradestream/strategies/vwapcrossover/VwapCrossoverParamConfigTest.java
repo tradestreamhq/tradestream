@@ -32,7 +32,6 @@ public class VwapCrossoverParamConfigTest {
     // VWAP Period (10-50)
     assertThat(specs.get(0).getRange().lowerEndpoint()).isEqualTo(10);
     assertThat(specs.get(0).getRange().upperEndpoint()).isEqualTo(50);
-    
     // Moving Average Period (10-50)
     assertThat(specs.get(1).getRange().lowerEndpoint()).isEqualTo(10);
     assertThat(specs.get(1).getRange().upperEndpoint()).isEqualTo(50);
