@@ -20,7 +20,6 @@ public class AroonMfiStrategyFactoryTest {
   public void setUp() {
     factory = new AroonMfiStrategyFactory();
     series = new BaseBarSeries();
-    
     // Create more realistic test data with varying prices and volumes
     ZonedDateTime startTime = ZonedDateTime.now();
     for (int i = 0; i < 50; i++) {
