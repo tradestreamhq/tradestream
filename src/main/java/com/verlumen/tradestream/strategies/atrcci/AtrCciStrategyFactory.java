@@ -46,8 +46,8 @@ public final class AtrCciStrategyFactory implements StrategyFactory<AtrCciParame
   @Override
   public AtrCciParameters getDefaultParameters() {
     return AtrCciParameters.newBuilder()
-        .setAtrPeriod(14)  // Standard ATR period
-        .setCciPeriod(20)  // Standard CCI period
+        .setAtrPeriod(14) // Standard ATR period
+        .setCciPeriod(20) // Standard CCI period
         .build();
   }
 
