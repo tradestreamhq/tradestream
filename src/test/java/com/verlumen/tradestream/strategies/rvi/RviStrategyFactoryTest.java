@@ -174,7 +174,7 @@ public class RviStrategyFactoryTest {
           i,
           openPrice.getValue(i).doubleValue(),
           highPrice.getValue(i).doubleValue(),
-          lowPrice.getValue(i).doubleValue(), 
+          lowPrice.getValue(i).doubleValue(),
           closePrice.getValue(i).doubleValue(),
           rviValue,
           signalValue,
