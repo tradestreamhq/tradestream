@@ -14,7 +14,7 @@ import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.RSIIndicator;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.averages.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 
 @RunWith(JUnit4.class)
