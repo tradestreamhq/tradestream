@@ -12,30 +12,35 @@ import java.time.ZonedDateTime;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
-import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 
 final class BarSeriesBuilder {
   private static Duration ONE_MINUTE = Duration.ofMinutes(1);
   private static ZoneId UTC = ZoneId.of("UTC");
 
   public static BarSeries createBarSeries(ImmutableList<Candle> candles) {
-    BaseBarSeries series = new BaseBarSeries();
-    candles.stream().map(BarSeriesBuilder::createBar).forEach(series::addBar);
+    BarSeries series = new BaseBarSeriesBuilder()
+        .withName("candleSeries")
+        .build();
+    
+    candles.stream()
+        .map(BarSeriesBuilder::createBar)
+        .forEach(series::addBar);
 
     return series;
   }
 
   private static Bar createBar(Candle candle) {
-    Instant endTime = Instant.ofEpochMilli(Timestamps.toMillis(candle.getTimestamp()));
-    return BaseBar.builder()
-        .timePeriod(ONE_MINUTE)
-        .endTime(endTime)
-        .openPrice(valueOf(candle.getOpen()))
-        .highPrice(valueOf(candle.getHigh()))
-        .lowPrice(valueOf(candle.getLow()))
-        .closePrice(valueOf(candle.getClose()))
-        .volume(valueOf(candle.getVolume()))
-        .build();
+    ZonedDateTime endTime = getZonedDateTime(candle);
+    return new BaseBar(
+        ONE_MINUTE,
+        endTime,
+        candle.getOpen(),
+        candle.getHigh(),
+        candle.getLow(),
+        candle.getClose(),
+        candle.getVolume()
+    );
   }
 
   private static ZonedDateTime getZonedDateTime(Candle candle) {
