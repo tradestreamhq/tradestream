@@ -5,9 +5,7 @@ import com.google.protobuf.Any;
 import io.jenetics.NumericChromosome;
 import java.io.Serializable;
 
-/**
- * Represents configuration for a strategy's parameters that supports multiple parameter types.
- */
+/** Represents configuration for a strategy's parameters that supports multiple parameter types. */
 public interface ParamConfig extends Serializable {
   /**
    * Returns a list of chromosome specifications, each defining a parameter's type and constraints.
