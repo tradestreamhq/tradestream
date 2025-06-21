@@ -14,7 +14,6 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.HighPriceIndicator;
 import org.ta4j.core.indicators.helpers.LowPriceIndicator;
 import org.ta4j.core.indicators.helpers.OpenPriceIndicator;
-import org.ta4j.core.indicators.helpers.TransformIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
@@ -29,13 +28,8 @@ public final class RviStrategyFactory implements StrategyFactory<RviParameters> 
     HighPriceIndicator high = new HighPriceIndicator(series);
     LowPriceIndicator low = new LowPriceIndicator(series);
 
-    // RVI calculation: SMA((Close - Open) / (High - Low), period)
-    // Simplified version using available indicators
-    TransformIndicator numerator = TransformIndicator.minus(close, open);
-    TransformIndicator denominator = TransformIndicator.minus(high, low);
-    TransformIndicator rviRaw = TransformIndicator.divide(numerator, denominator);
-    
-    SMAIndicator rvi = new SMAIndicator(rviRaw, params.getPeriod());
+    // RVI calculation using custom indicator
+    RviIndicator rvi = new RviIndicator(close, open, high, low, params.getPeriod());
     SMAIndicator rviSignal = new SMAIndicator(rvi, 4); // 4-period signal line
 
     // Entry rule: RVI crosses above signal line
