@@ -10,7 +10,6 @@ import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.backtesting.BacktestRequest;
 import com.verlumen.tradestream.backtesting.BacktestRequestFactory;
 import com.verlumen.tradestream.backtesting.BacktestRequestFactoryImpl;

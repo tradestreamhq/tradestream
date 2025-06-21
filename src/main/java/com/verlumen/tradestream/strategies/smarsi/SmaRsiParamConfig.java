@@ -5,7 +5,6 @@ import com.google.protobuf.Any;
 import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.discovery.ParamConfig;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
-import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.util.logging.Logger;
