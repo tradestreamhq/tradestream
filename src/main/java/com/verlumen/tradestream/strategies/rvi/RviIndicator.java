@@ -19,21 +19,19 @@ public class RviIndicator extends CachedIndicator<Num> {
   private final LowPriceIndicator lowPrice;
   private final int period;
 
-    public RviIndicator(ClosePriceIndicator closePrice, OpenPriceIndicator openPrice,
-                       HighPriceIndicator highPrice, LowPriceIndicator lowPrice, int period) {
-        super(closePrice);
-        this.closePrice = closePrice;
-        this.openPrice = openPrice;
-        this.highPrice = highPrice;
-        this.lowPrice = lowPrice;
-        this.period = period;
-    }
-
-    @Override
-    protected Num calculate(int index) {
-        if (index < period - 1) {
-            return numOf(0);
-        }
+  public RviIndicator(
+      ClosePriceIndicator closePrice,
+      OpenPriceIndicator openPrice,
+      HighPriceIndicator highPrice,
+      LowPriceIndicator lowPrice,
+      int period) {
+    super(closePrice);
+    this.closePrice = closePrice;
+    this.openPrice = openPrice;
+    this.highPrice = highPrice;
+    this.lowPrice = lowPrice;
+    this.period = period;
+  }
 
   @Override
   protected Num calculate(int index) {
