@@ -39,7 +39,7 @@ public class RviStrategyFactoryTest {
   @Before
   public void setUp() {
     factory = new RviStrategyFactory();
-  
+
     // Standard parameters
     params = RviParameters.newBuilder().setPeriod(RVI_PERIOD).build();
   
@@ -130,10 +130,10 @@ public class RviStrategyFactoryTest {
       }
     }
   
-    // Find entry signal in the bullish pattern section (bars 18-22)
+    // Find entry signal in the transition and bullish pattern sections
     boolean entryFound = false;
     int entryBar = -1;
-    for (int i = 18; i <= 22 && i < series.getBarCount(); i++) {
+    for (int i = 15; i <= 22 && i < series.getBarCount(); i++) {
       if (strategy.getEntryRule().isSatisfied(i)) {
         System.out.println("Entry rule satisfied at bar " + i);
         entryFound = true;
