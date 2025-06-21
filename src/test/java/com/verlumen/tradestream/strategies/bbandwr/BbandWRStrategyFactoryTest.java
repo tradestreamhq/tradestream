@@ -82,8 +82,10 @@ public class BbandWRStrategyFactoryTest {
     smaIndicator = new SMAIndicator(closePrice, BBANDS_PERIOD);
     BollingerBandsMiddleIndicator bbMiddle = new BollingerBandsMiddleIndicator(smaIndicator);
     StandardDeviationIndicator stdDev = new StandardDeviationIndicator(closePrice, BBANDS_PERIOD);
-    bbUpper = new BollingerBandsUpperIndicator(bbMiddle, stdDev, DecimalNum.valueOf(STD_DEV_MULTIPLIER));
-    bbLower = new BollingerBandsLowerIndicator(bbMiddle, stdDev, DecimalNum.valueOf(STD_DEV_MULTIPLIER));
+    bbUpper =
+        new BollingerBandsUpperIndicator(bbMiddle, stdDev, DecimalNum.valueOf(STD_DEV_MULTIPLIER));
+    bbLower =
+        new BollingerBandsLowerIndicator(bbMiddle, stdDev, DecimalNum.valueOf(STD_DEV_MULTIPLIER));
     williamsR = new WilliamsRIndicator(series, WR_PERIOD);
 
     // Create strategy
