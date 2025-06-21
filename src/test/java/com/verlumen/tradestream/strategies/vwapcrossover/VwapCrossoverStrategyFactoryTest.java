@@ -114,7 +114,9 @@ public class VwapCrossoverStrategyFactoryTest {
     for (int i = 10; i <= 13; i++) {
       System.out.printf(
           "Bar %d - Price: %.2f, VWAP: %.2f%n",
-          i, closePrice.getValue(i).doubleValue(), vwapIndicator.getValue(i).doubleValue());
+          i,
+          closePrice.getValue(i).doubleValue(),
+          vwapIndicator.getValue(i).doubleValue());
     }
 
     // No exit signal before the drop
