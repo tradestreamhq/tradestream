@@ -50,10 +50,9 @@ public class RviIndicator extends CachedIndicator<Num> {
 
       Num range = high.minus(low);
 
-      // Avoid division by zero
-      if (range.isZero()) {
-        continue;
-      }
+        if (count == 0) {
+            return numOf(0);
+        }
 
       Num rviValue = close.minus(open).dividedBy(range);
       sum = sum.plus(rviValue);
