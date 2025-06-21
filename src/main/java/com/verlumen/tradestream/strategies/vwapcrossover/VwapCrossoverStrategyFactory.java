@@ -44,8 +44,8 @@ public final class VwapCrossoverStrategyFactory implements StrategyFactory<VwapC
   @Override
   public VwapCrossoverParameters getDefaultParameters() {
     return VwapCrossoverParameters.newBuilder()
-        .setVwapPeriod(20)           // Standard VWAP period
-        .setMovingAveragePeriod(20)  // Standard moving average period
+        .setVwapPeriod(20) // Standard VWAP period
+        .setMovingAveragePeriod(20) // Standard moving average period
         .build();
   }
 }
