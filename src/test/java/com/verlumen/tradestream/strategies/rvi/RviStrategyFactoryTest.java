@@ -105,7 +105,6 @@ public class RviStrategyFactoryTest {
     // Use the existing RviIndicator class
     rvi = new RviIndicator(closePrice, openPrice, highPrice, lowPrice, RVI_PERIOD);
     rviSignal = new SMAIndicator(rvi, 4); // 4-period signal line
-  
     // Create strategy
     strategy = factory.createStrategy(series, params);
   }
