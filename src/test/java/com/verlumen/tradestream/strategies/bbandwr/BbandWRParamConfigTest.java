@@ -93,7 +93,6 @@ public class BbandWRParamConfigTest {
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     BbandWRParameters params = packedParams.unpack(BbandWRParameters.class);
-    
     // Extract the actual values from chromosomes
     int expectedBbandsPeriod = bbandsPeriodChrom.gene().allele();
     int expectedWrPeriod = wrPeriodChrom.gene().allele();
