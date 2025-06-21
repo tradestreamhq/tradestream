@@ -90,7 +90,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.MACD_CROSSOVER to
             StrategySpec(
                 paramConfig = MacdCrossoverParamConfig(),
-                strategyFactory = MacdCrossoverStrategyFactory()
+                strategyFactory = MacdCrossoverStrategyFactory(),
             ),
         StrategyType.MOMENTUM_SMA_CROSSOVER to
             StrategySpec(
