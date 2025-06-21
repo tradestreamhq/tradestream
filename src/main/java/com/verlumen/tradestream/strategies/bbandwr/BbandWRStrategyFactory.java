@@ -32,10 +32,15 @@ public final class BbandWRStrategyFactory implements StrategyFactory<BbandWRPara
     // Bollinger Bands
     SMAIndicator sma = new SMAIndicator(closePrice, params.getBbandsPeriod());
     BollingerBandsMiddleIndicator bbMiddle = new BollingerBandsMiddleIndicator(sma);
-    StandardDeviationIndicator stdDev = new StandardDeviationIndicator(closePrice, params.getBbandsPeriod());
-    BollingerBandsUpperIndicator bbUpper = new BollingerBandsUpperIndicator(bbMiddle, stdDev, series.numOf(params.getStdDevMultiplier()));
-    BollingerBandsLowerIndicator bbLower = new BollingerBandsLowerIndicator(bbMiddle, stdDev, series.numOf(params.getStdDevMultiplier()));
-    
+    StandardDeviationIndicator stdDev =
+        new StandardDeviationIndicator(closePrice, params.getBbandsPeriod());
+    BollingerBandsUpperIndicator bbUpper =
+        new BollingerBandsUpperIndicator(
+            bbMiddle, stdDev, series.numOf(params.getStdDevMultiplier()));
+    BollingerBandsLowerIndicator bbLower =
+        new BollingerBandsLowerIndicator(
+            bbMiddle, stdDev, series.numOf(params.getStdDevMultiplier()));
+
     // Williams %R
     WilliamsRIndicator williamsR = new WilliamsRIndicator(series, params.getWrPeriod());
 
