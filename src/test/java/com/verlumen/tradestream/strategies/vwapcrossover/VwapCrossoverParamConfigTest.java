@@ -51,6 +51,7 @@ public class VwapCrossoverParamConfigTest {
     
     try {
       VwapCrossoverParameters params = packedParams.unpack(VwapCrossoverParameters.class);
+      
       // Extract the actual values from chromosomes and assert those
       int expectedVwapPeriod = vwapPeriodChrom.gene().allele();
       int expectedMaPeriod = maPeriodChrom.gene().allele();
