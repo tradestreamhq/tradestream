@@ -46,7 +46,7 @@ public final class BbandWRStrategyFactory implements StrategyFactory<BbandWRPara
 
     return new BaseStrategy(
         String.format("%s (BB: %d, WR: %d, StdDev: %.1f)",
-            getStrategyType().name(),
+            StrategyType.BBAND_W_R.name(),
             params.getBbandsPeriod(),
             params.getWrPeriod(),
             params.getStdDevMultiplier()),
@@ -62,10 +62,5 @@ public final class BbandWRStrategyFactory implements StrategyFactory<BbandWRPara
         .setWrPeriod(14)            // Standard Williams %R period
         .setStdDevMultiplier(2.0)   // Standard deviation multiplier
         .build();
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.BBAND_W_R;
   }
 }
