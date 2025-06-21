@@ -160,9 +160,7 @@ class AroonDownIndicator extends CachedIndicator<Num> {
   }
 }
 
-/**
- * Custom Money Flow Index (MFI) indicator implementation
- */
+/** Custom Money Flow Index (MFI) indicator implementation */
 class MFIIndicator extends CachedIndicator<Num> {
   private final int timeFrame;
   private final TypicalPriceIndicator typicalPriceIndicator;
