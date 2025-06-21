@@ -42,8 +42,8 @@ public class VwapCrossoverParamConfigTest {
   public void testCreateParameters_validChromosomes_returnsPackedParameters() {
     // Create chromosomes with single genes and extract their actual values
     IntegerChromosome vwapPeriodChrom = IntegerChromosome.of(10, 50, 1); // Single gene
-    IntegerChromosome maPeriodChrom = IntegerChromosome.of(10, 50, 1); // Single gene
-
+    IntegerChromosome maPeriodChrom = IntegerChromosome.of(10, 50, 1);   // Single gene
+    
     List<NumericChromosome<?, ?>> chromosomes = List.of(vwapPeriodChrom, maPeriodChrom);
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
