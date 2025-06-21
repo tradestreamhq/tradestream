@@ -27,12 +27,12 @@ public class AroonMfiStrategyFactoryTest {
       long volume = 1000 + (i * 10); // Increasing volume
       series.addBar(
           new BaseBar(
-              Duration.ofDays(1), 
-              startTime.plusDays(i), 
-              price, 
-              price + 2, 
-              price - 1, 
-              price + 1, 
+              Duration.ofDays(1),
+              startTime.plusDays(i),
+              price,
+              price + 2,
+              price - 1,
+              price + 1,
               volume));
     }
   }
