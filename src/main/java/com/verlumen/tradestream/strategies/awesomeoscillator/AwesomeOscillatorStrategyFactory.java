@@ -10,6 +10,7 @@ import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.AwesomeOscillatorIndicator;
+import org.ta4j.core.indicators.helpers.MedianPriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
@@ -23,8 +24,10 @@ public class AwesomeOscillatorStrategyFactory
         params.getLongPeriod() > params.getShortPeriod(),
         "Long period must be greater than short period");
 
+    // Create MedianPriceIndicator first, then use it for AwesomeOscillatorIndicator
+    MedianPriceIndicator medianPrice = new MedianPriceIndicator(series);
     AwesomeOscillatorIndicator ao =
-        new AwesomeOscillatorIndicator(series, params.getShortPeriod(), params.getLongPeriod());
+        new AwesomeOscillatorIndicator(medianPrice, params.getShortPeriod(), params.getLongPeriod());
 
     // Entry rule: AO crosses above zero
     Rule entryRule = new CrossedUpIndicatorRule(ao, series.numOf(0));
