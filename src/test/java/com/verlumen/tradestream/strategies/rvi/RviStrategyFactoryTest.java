@@ -130,28 +130,51 @@ public class RviStrategyFactoryTest {
   @Test
   public void exitRule_shouldTrigger_whenRviCrossesBelowSignalLine() {
     // Log RVI values around the expected crossover
+    System.out.println("=== RVI Exit Test Debug ===");
     for (int i = 20; i < series.getBarCount(); i++) {
+      double rviValue = rvi.getValue(i).doubleValue();
+      double signalValue = rviSignal.getValue(i).doubleValue();
+      boolean exitTriggered = strategy.getExitRule().isSatisfied(i);
+      
       System.out.printf(
-          "Bar %d - Open: %.2f, High: %.2f, Low: %.2f, Close: %.2f, RVI: %.4f, Signal: %.4f%n",
+          "Bar %d - O:%.2f H:%.2f L:%.2f C:%.2f | RVI:%.4f Signal:%.4f | Exit:%s%n",
           i,
           openPrice.getValue(i).doubleValue(),
           highPrice.getValue(i).doubleValue(),
           lowPrice.getValue(i).doubleValue(), 
           closePrice.getValue(i).doubleValue(),
-          rvi.getValue(i).doubleValue(),
-          rviSignal.getValue(i).doubleValue());
+          rviValue,
+          signalValue,
+          exitTriggered ? "YES" : "no");
     }
-
-    // Find exit signal in the bearish pattern section
+  
+    // Find exit signal in the bearish pattern section (bars 23+)
     boolean exitFound = false;
-    for (int i = 20; i < series.getBarCount(); i++) {
+    int exitBar = -1;
+    for (int i = 23; i < series.getBarCount(); i++) {
       if (strategy.getExitRule().isSatisfied(i)) {
         System.out.println("Exit rule satisfied at bar " + i);
         exitFound = true;
+        exitBar = i;
         break;
       }
     }
-
+  
+    // Verify that RVI crossed below signal line at the exit bar
+    if (exitFound && exitBar > 0) {
+      double rviPrev = rvi.getValue(exitBar - 1).doubleValue();
+      double signalPrev = rviSignal.getValue(exitBar - 1).doubleValue();
+      double rviCurrent = rvi.getValue(exitBar).doubleValue();
+      double signalCurrent = rviSignal.getValue(exitBar).doubleValue();
+      
+      System.out.printf("Exit crossover verification - Prev: RVI=%.4f Signal=%.4f, Current: RVI=%.4f Signal=%.4f%n",
+          rviPrev, signalPrev, rviCurrent, signalCurrent);
+      
+      // Verify it's actually a cross-down
+      assertThat(rviPrev).isGreaterThan(signalPrev); // RVI was above signal
+      assertThat(rviCurrent).isLessThan(signalCurrent); // RVI is now below signal
+    }
+  
     assertThat(exitFound).isTrue();
   }
 
