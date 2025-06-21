@@ -106,7 +106,6 @@ public class BbandWRStrategyFactoryTest {
       double price = closePrice.getValue(i).doubleValue();
       double lowerBand = bbLower.getValue(i).doubleValue();
       double wr = williamsR.getValue(i).doubleValue();
-      
       System.out.printf(
           "Bar %d - Price: %.2f, Lower Band: %.2f, Williams %%R: %.2f%n", i, price, lowerBand, wr);
 
