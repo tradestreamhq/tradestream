@@ -33,7 +33,7 @@ public final class SmaEmaCrossoverStrategyFactory
     String strategyName =
         String.format(
             "%s (SMA-%d EMA-%d)",
-            getStrategyType().name(), params.getSmaPeriod(), params.getEmaPeriod());
+            StrategyType.SMA_EMA_CROSSOVER.name(), params.getSmaPeriod(), params.getEmaPeriod());
     return new BaseStrategy(strategyName, entryRule, exitRule, params.getEmaPeriod());
   }
 
@@ -43,10 +43,5 @@ public final class SmaEmaCrossoverStrategyFactory
         .setSmaPeriod(20) // Default SMA period, typically used as a short-term trend
         .setEmaPeriod(50) // Default EMA period, commonly used for medium-term trend
         .build();
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.SMA_EMA_CROSSOVER;
   }
 }
