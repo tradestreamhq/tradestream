@@ -75,7 +75,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.BBAND_W_R to
             StrategySpec(
                 paramConfig = BbandWRParamConfig(),
-                strategyFactory = BbandWRStrategyFactory()
+                strategyFactory = BbandWRStrategyFactory(),
             ),
         StrategyType.DONCHIAN_BREAKOUT to
             StrategySpec(
