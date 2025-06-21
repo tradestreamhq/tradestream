@@ -62,9 +62,6 @@ public class VolatilityStopStrategyFactoryTest {
   }
 
   private BaseBar createBar(ZonedDateTime time, double price) {
-    return new BaseBar(
-        Duration.ofMinutes(1),
-        time,
-        price, price, price, price, 100.0);
+    return new BaseBar(Duration.ofMinutes(1), time, price, price, price, price, 100.0);
   }
 }
