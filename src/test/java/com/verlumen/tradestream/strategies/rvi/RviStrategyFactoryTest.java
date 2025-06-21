@@ -153,7 +153,6 @@ public class RviStrategyFactoryTest {
       
       System.out.printf("Crossover verification - Prev: RVI=%.4f Signal=%.4f, Current: RVI=%.4f Signal=%.4f%n",
           rviPrev, signalPrev, rviCurrent, signalCurrent);
-      
       // Verify it's actually a cross-up
       assertThat(rviPrev).isAtMost(signalPrev); // RVI was below or equal to signal
       assertThat(rviCurrent).isGreaterThan(signalCurrent); // RVI is now above signal
