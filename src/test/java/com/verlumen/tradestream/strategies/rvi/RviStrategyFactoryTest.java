@@ -42,7 +42,6 @@ public class RviStrategyFactoryTest {
 
     // Standard parameters
     params = RviParameters.newBuilder().setPeriod(RVI_PERIOD).build();
-  
     // Initialize series
     series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
