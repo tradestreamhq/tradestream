@@ -228,7 +228,8 @@ public class RviStrategyFactoryTest {
   }
 
   /** Helper for creating a Bar with specific OHLC prices. */
-  private BaseBar createBar(ZonedDateTime time, double open, double high, double low, double close) {
+  private BaseBar createBar(
+      ZonedDateTime time, double open, double high, double low, double close) {
     return new BaseBar(
         Duration.ofMinutes(1),
         time,
