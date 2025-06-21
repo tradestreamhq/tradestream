@@ -41,7 +41,7 @@ public final class EmaMacdStrategyFactory implements StrategyFactory<EmaMacdPara
     String strategyName =
         String.format(
             "%s (Short EMA: %d, Long EMA: %d, Signal: %d)",
-            STRATEGY_TYPE.EMA_MACD.name(),
+            StrategyType.EMA_MACD.name(),
             params.getShortEmaPeriod(),
             params.getLongEmaPeriod(),
             params.getSignalPeriod());
