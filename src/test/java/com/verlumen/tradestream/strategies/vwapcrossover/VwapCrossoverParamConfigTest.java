@@ -95,7 +95,6 @@ public class VwapCrossoverParamConfigTest {
     IntegerChromosome vwapPeriod = (IntegerChromosome) chromosomes.get(0);
     assertThat(vwapPeriod.gene().min()).isEqualTo(10);
     assertThat(vwapPeriod.gene().max()).isEqualTo(50);
-    
     IntegerChromosome maPeriod = (IntegerChromosome) chromosomes.get(1);
     assertThat(maPeriod.gene().min()).isEqualTo(10);
     assertThat(maPeriod.gene().max()).isEqualTo(50);
