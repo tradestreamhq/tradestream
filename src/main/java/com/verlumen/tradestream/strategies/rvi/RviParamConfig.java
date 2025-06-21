@@ -29,9 +29,7 @@ public final class RviParamConfig implements ParamConfig {
     IntegerChromosome periodChrom = (IntegerChromosome) chromosomes.get(0);
 
     RviParameters parameters =
-        RviParameters.newBuilder()
-            .setPeriod(periodChrom.gene().allele())
-            .build();
+        RviParameters.newBuilder().setPeriod(periodChrom.gene().allele()).build();
 
     return Any.pack(parameters);
   }
