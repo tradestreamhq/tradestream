@@ -28,7 +28,6 @@ public final class BbandWRStrategyFactory implements StrategyFactory<BbandWRPara
         params.getStdDevMultiplier() > 0, "Standard deviation multiplier must be positive");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    
     // Bollinger Bands
     SMAIndicator sma = new SMAIndicator(closePrice, params.getBbandsPeriod());
     BollingerBandsMiddleIndicator bbMiddle = new BollingerBandsMiddleIndicator(sma);
