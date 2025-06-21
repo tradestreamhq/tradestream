@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.strategies.AtrTrailingStopParameters;
-import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;

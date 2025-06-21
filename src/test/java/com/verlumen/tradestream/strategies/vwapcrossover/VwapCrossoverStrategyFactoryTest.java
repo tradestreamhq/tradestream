@@ -3,7 +3,6 @@ package com.verlumen.tradestream.strategies.vwapcrossover;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.VwapCrossoverParameters;
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -88,9 +87,7 @@ public class VwapCrossoverStrategyFactoryTest {
     for (int i = 6; i <= 9; i++) {
       System.out.printf(
           "Bar %d - Price: %.2f, VWAP: %.2f%n",
-          i,
-          closePrice.getValue(i).doubleValue(),
-          vwapIndicator.getValue(i).doubleValue());
+          i, closePrice.getValue(i).doubleValue(), vwapIndicator.getValue(i).doubleValue());
     }
 
     // No entry signal during baseline
@@ -114,9 +111,7 @@ public class VwapCrossoverStrategyFactoryTest {
     for (int i = 10; i <= 13; i++) {
       System.out.printf(
           "Bar %d - Price: %.2f, VWAP: %.2f%n",
-          i,
-          closePrice.getValue(i).doubleValue(),
-          vwapIndicator.getValue(i).doubleValue());
+          i, closePrice.getValue(i).doubleValue(), vwapIndicator.getValue(i).doubleValue());
     }
 
     // No exit signal before the drop

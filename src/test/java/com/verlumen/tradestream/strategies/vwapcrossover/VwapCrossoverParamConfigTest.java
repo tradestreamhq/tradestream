@@ -28,11 +28,11 @@ public class VwapCrossoverParamConfigTest {
   public void testGetChromosomeSpecs_returnsExpectedSpecs() {
     ImmutableList<ChromosomeSpec<?>> specs = config.getChromosomeSpecs();
     assertThat(specs).hasSize(2);
-    
+
     // VWAP Period (10-50)
     assertThat(specs.get(0).getRange().lowerEndpoint()).isEqualTo(10);
     assertThat(specs.get(0).getRange().upperEndpoint()).isEqualTo(50);
-    
+
     // Moving Average Period (10-50)
     assertThat(specs.get(1).getRange().lowerEndpoint()).isEqualTo(10);
     assertThat(specs.get(1).getRange().upperEndpoint()).isEqualTo(50);
@@ -42,20 +42,20 @@ public class VwapCrossoverParamConfigTest {
   public void testCreateParameters_validChromosomes_returnsPackedParameters() {
     // Create chromosomes with single genes and extract their actual values
     IntegerChromosome vwapPeriodChrom = IntegerChromosome.of(10, 50, 1); // Single gene
-    IntegerChromosome maPeriodChrom = IntegerChromosome.of(10, 50, 1);   // Single gene
-    
+    IntegerChromosome maPeriodChrom = IntegerChromosome.of(10, 50, 1); // Single gene
+
     List<NumericChromosome<?, ?>> chromosomes = List.of(vwapPeriodChrom, maPeriodChrom);
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(VwapCrossoverParameters.class)).isTrue();
-    
+
     try {
       VwapCrossoverParameters params = packedParams.unpack(VwapCrossoverParameters.class);
-      
+
       // Extract the actual values from chromosomes and assert those
       int expectedVwapPeriod = vwapPeriodChrom.gene().allele();
       int expectedMaPeriod = maPeriodChrom.gene().allele();
-      
+
       assertThat(params.getVwapPeriod()).isEqualTo(expectedVwapPeriod);
       assertThat(params.getMovingAveragePeriod()).isEqualTo(expectedMaPeriod);
       // Also verify values are within expected ranges

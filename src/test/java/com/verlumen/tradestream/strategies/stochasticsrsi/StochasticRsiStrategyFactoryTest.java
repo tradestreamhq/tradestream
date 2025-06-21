@@ -4,7 +4,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.StochasticRsiParameters;
-import com.verlumen.tradestream.strategies.StrategyType;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import org.junit.Before;
