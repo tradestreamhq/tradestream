@@ -60,9 +60,9 @@ public final class BbandWRStrategyFactory implements StrategyFactory<BbandWRPara
   @Override
   public BbandWRParameters getDefaultParameters() {
     return BbandWRParameters.newBuilder()
-        .setBbandsPeriod(20)        // Standard Bollinger Bands period
-        .setWrPeriod(14)            // Standard Williams %R period
-        .setStdDevMultiplier(2.0)   // Standard deviation multiplier
+        .setBbandsPeriod(20) // Standard Bollinger Bands period
+        .setWrPeriod(14) // Standard Williams %R period
+        .setStdDevMultiplier(2.0) // Standard deviation multiplier
         .build();
   }
 }
