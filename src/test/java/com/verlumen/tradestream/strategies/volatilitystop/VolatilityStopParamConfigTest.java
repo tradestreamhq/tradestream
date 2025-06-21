@@ -35,9 +35,9 @@ public class VolatilityStopParamConfigTest {
   public void testCreateParameters_validChromosomes_returnsPackedParameters() {
     List<NumericChromosome<?, ?>> chromosomes =
         List.of(
-            IntegerChromosome.of(5, 30, 14),  // ATR Period
-            DoubleChromosome.of(1.0, 5.0)     // Multiplier
-        );
+            IntegerChromosome.of(5, 30, 14), // ATR Period
+            DoubleChromosome.of(1.0, 5.0) // Multiplier
+            );
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(VolatilityStopParameters.class)).isTrue();
