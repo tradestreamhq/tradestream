@@ -46,7 +46,6 @@ public class RviStrategyFactoryTest {
     // Initialize series
     series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
-  
     // Phase 1: Create bearish/neutral conditions (bars 0-14)
     // This will create negative or near-zero RVI values
     for (int i = 0; i < 15; i++) {
