@@ -37,11 +37,6 @@ public class VolatilityStopStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsVolatilityStop() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.VOLATILITY_STOP);
-  }
-
-  @Test
   public void createStrategy_returnsValidStrategy() throws InvalidProtocolBufferException {
     Strategy strategy = factory.createStrategy(series, params);
     assertThat(strategy).isNotNull();

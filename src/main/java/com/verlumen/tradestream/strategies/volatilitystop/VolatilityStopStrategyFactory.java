@@ -71,7 +71,7 @@ public final class VolatilityStopStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (ATR: %d, Mult: %.2f)",
-            getStrategyType().name(), params.getAtrPeriod(), params.getMultiplier()),
+            StrategyType.VOLATILITY_STOP.name(), params.getAtrPeriod(), params.getMultiplier()),
         entryRule,
         exitRule,
         params.getAtrPeriod());
@@ -83,10 +83,5 @@ public final class VolatilityStopStrategyFactory
         .setAtrPeriod(14) // Standard ATR period
         .setMultiplier(2.0) // Common multiplier for stop distance
         .build();
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.VOLATILITY_STOP;
   }
 }
