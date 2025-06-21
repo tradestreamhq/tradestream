@@ -21,8 +21,7 @@ public final class VolatilityStopStrategyFactory
     implements StrategyFactory<VolatilityStopParameters> {
   
   /**
-   * Custom indicator that calculates the volatility stop level:
-   * previous close - (ATR * multiplier)
+   * Custom indicator that calculates the volatility stop level: previous close - (ATR * multiplier)
    */
   private static class VolatilityStopIndicator extends CachedIndicator<Num> {
     private final PreviousValueIndicator previousClose;
