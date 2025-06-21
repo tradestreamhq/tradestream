@@ -13,11 +13,11 @@ import org.ta4j.core.num.Num;
  * <p>The RVI is calculated as a simple moving average of the ratio: (Close - Open) / (High - Low)
  */
 public class RviIndicator extends CachedIndicator<Num> {
-    private final ClosePriceIndicator closePrice;
-    private final OpenPriceIndicator openPrice;
-    private final HighPriceIndicator highPrice;
-    private final LowPriceIndicator lowPrice;
-    private final int period;
+  private final ClosePriceIndicator closePrice;
+  private final OpenPriceIndicator openPrice;
+  private final HighPriceIndicator highPrice;
+  private final LowPriceIndicator lowPrice;
+  private final int period;
 
     public RviIndicator(ClosePriceIndicator closePrice, OpenPriceIndicator openPrice,
                        HighPriceIndicator highPrice, LowPriceIndicator lowPrice, int period) {
