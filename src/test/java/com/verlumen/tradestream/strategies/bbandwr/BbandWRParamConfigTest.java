@@ -106,7 +106,6 @@ public class BbandWRParamConfigTest {
     assertThat(params.getBbandsPeriod()).isEqualTo(expectedBbandsPeriod);
     assertThat(params.getWrPeriod()).isEqualTo(expectedWrPeriod);
     assertThat(params.getStdDevMultiplier()).isEqualTo(expectedStdDevMultiplier);
-    
     // Also verify values are within expected ranges
     assertThat(params.getBbandsPeriod()).isAtLeast(10);
     assertThat(params.getBbandsPeriod()).isAtMost(50);
