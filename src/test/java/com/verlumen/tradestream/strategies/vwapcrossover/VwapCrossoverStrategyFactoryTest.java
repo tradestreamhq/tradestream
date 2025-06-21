@@ -157,7 +157,6 @@ public class VwapCrossoverStrategyFactoryTest {
   @Test
   public void getDefaultParameters_returnsValidParameters() {
     VwapCrossoverParameters defaultParams = factory.getDefaultParameters();
-    
     assertThat(defaultParams.getVwapPeriod()).isEqualTo(20);
     assertThat(defaultParams.getMovingAveragePeriod()).isEqualTo(20);
   }
