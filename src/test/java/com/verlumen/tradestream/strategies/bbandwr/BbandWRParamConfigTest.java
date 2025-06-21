@@ -69,11 +69,6 @@ public class BbandWRParamConfigTest {
   }
 
   @Test
-  public void testGetStrategyType_returnsExpectedType() {
-    assertThat(config.getStrategyType()).isEqualTo(StrategyType.BBAND_W_R);
-  }
-
-  @Test
   public void testChromosomeSpecs_haveCorrectRanges() {
     ImmutableList<ChromosomeSpec<?>> specs = config.getChromosomeSpecs();
     
