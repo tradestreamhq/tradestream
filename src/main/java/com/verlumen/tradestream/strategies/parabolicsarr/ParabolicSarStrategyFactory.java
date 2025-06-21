@@ -11,6 +11,7 @@ import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.ParabolicSarIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
@@ -32,9 +33,9 @@ public final class ParabolicSarStrategyFactory implements StrategyFactory<Parabo
     ParabolicSarIndicator psar =
         new ParabolicSarIndicator(
             series,
-            series.numOf(params.getAccelerationFactorStart()),
-            series.numOf(params.getAccelerationFactorIncrement()),
-            series.numOf(params.getAccelerationFactorMax()));
+            DecimalNum.valueOf(params.getAccelerationFactorStart()),
+            DecimalNum.valueOf(params.getAccelerationFactorIncrement()),
+            DecimalNum.valueOf(params.getAccelerationFactorMax()));
 
     // Entry rule: Buy when price crosses above Parabolic SAR
     Rule entryRule = new OverIndicatorRule(closePrice, psar);

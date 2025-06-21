@@ -12,6 +12,7 @@ import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.ATRIndicator;
 import org.ta4j.core.indicators.CCIIndicator;
 import org.ta4j.core.indicators.helpers.PreviousValueIndicator;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
@@ -27,11 +28,11 @@ public final class AtrCciStrategyFactory implements StrategyFactory<AtrCciParame
 
     // Entry rule: CCI crosses above -100 AND ATR is increasing (indicating rising volatility)
     Rule entryRule =
-        new OverIndicatorRule(cci, series.numOf(-100)).and(new OverIndicatorRule(atr, previousAtr));
+        new OverIndicatorRule(cci, DecimalNum.valueOf(-100)).and(new OverIndicatorRule(atr, previousAtr));
 
     // Exit rule: CCI crosses below +100 AND ATR is decreasing (indicating falling volatility)
     Rule exitRule =
-        new UnderIndicatorRule(cci, series.numOf(100))
+        new UnderIndicatorRule(cci, DecimalNum.valueOf(100))
             .and(new UnderIndicatorRule(atr, previousAtr));
 
     return new BaseStrategy(

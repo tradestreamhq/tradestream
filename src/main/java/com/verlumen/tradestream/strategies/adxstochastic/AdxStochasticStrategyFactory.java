@@ -11,6 +11,7 @@ import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.StochasticOscillatorKIndicator;
 import org.ta4j.core.indicators.adx.ADXIndicator;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
@@ -33,14 +34,14 @@ public final class AdxStochasticStrategyFactory
     // Entry rule: ADX above a threshold (e.g., 20) indicating a strong trend
     // and Stochastic Oscillator K below oversold threshold
     Rule entryRule =
-        new OverIndicatorRule(adxIndicator, series.numOf(20))
-            .and(new UnderIndicatorRule(stochasticK, series.numOf(params.getOversoldThreshold())));
+        new OverIndicatorRule(adxIndicator, DecimalNum.valueOf(20))
+            .and(new UnderIndicatorRule(stochasticK, DecimalNum.valueOf(params.getOversoldThreshold())));
 
     // Exit rule: ADX below a threshold (e.g., 20) indicating a weak trend
     // and Stochastic Oscillator K above overbought threshold
     Rule exitRule =
-        new UnderIndicatorRule(adxIndicator, series.numOf(20))
-            .and(new OverIndicatorRule(stochasticK, series.numOf(params.getOverboughtThreshold())));
+        new UnderIndicatorRule(adxIndicator, DecimalNum.valueOf(20))
+            .and(new OverIndicatorRule(stochasticK, DecimalNum.valueOf(params.getOverboughtThreshold())));
 
     return new BaseStrategy(
         String.format(

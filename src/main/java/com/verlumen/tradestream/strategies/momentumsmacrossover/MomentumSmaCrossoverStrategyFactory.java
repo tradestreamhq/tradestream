@@ -12,6 +12,7 @@ import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 import org.ta4j.core.rules.OverIndicatorRule;
@@ -32,12 +33,12 @@ public final class MomentumSmaCrossoverStrategyFactory
 
     // Entry rule - First check if momentum is positive, then check for crossover
     var entryRule =
-        new OverIndicatorRule(momentumIndicator, series.numOf(0))
+        new OverIndicatorRule(momentumIndicator, DecimalNum.valueOf(0))
             .and(new CrossedUpIndicatorRule(momentumIndicator, smaIndicator));
 
     // Exit rule - First check if momentum is negative, then check for crossover
     var exitRule =
-        new UnderIndicatorRule(momentumIndicator, series.numOf(0))
+        new UnderIndicatorRule(momentumIndicator, DecimalNum.valueOf(0))
             .and(new CrossedDownIndicatorRule(momentumIndicator, smaIndicator));
 
     String strategyName =

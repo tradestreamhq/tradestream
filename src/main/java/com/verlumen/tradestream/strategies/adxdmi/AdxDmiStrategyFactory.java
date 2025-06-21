@@ -12,6 +12,7 @@ import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.adx.ADXIndicator;
 import org.ta4j.core.indicators.adx.MinusDIIndicator;
 import org.ta4j.core.indicators.adx.PlusDIIndicator;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 import org.ta4j.core.rules.OverIndicatorRule;
@@ -28,7 +29,7 @@ public class AdxDmiStrategyFactory implements StrategyFactory<AdxDmiParameters> 
 
     // Entry rule: ADX is above 25 (strong trend) and +DI crosses above -DI
     Rule entryRule =
-        new OverIndicatorRule(adx, series.numOf(25))
+        new OverIndicatorRule(adx, DecimalNum.valueOf(25))
             .and(new CrossedUpIndicatorRule(plusDI, minusDI));
 
     // Exit rule: +DI crosses below -DI

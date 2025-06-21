@@ -16,6 +16,7 @@ import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
@@ -35,10 +36,10 @@ public final class BbandWRStrategyFactory implements StrategyFactory<BbandWRPara
         new StandardDeviationIndicator(closePrice, params.getBbandsPeriod());
     BollingerBandsUpperIndicator bbUpper =
         new BollingerBandsUpperIndicator(
-            bbMiddle, stdDev, series.numOf(params.getStdDevMultiplier()));
+            bbMiddle, stdDev, DecimalNum.valueOf(params.getStdDevMultiplier()));
     BollingerBandsLowerIndicator bbLower =
         new BollingerBandsLowerIndicator(
-            bbMiddle, stdDev, series.numOf(params.getStdDevMultiplier()));
+            bbMiddle, stdDev, DecimalNum.valueOf(params.getStdDevMultiplier()));
 
     // Williams %R
     WilliamsRIndicator williamsR = new WilliamsRIndicator(series, params.getWrPeriod());
@@ -47,13 +48,13 @@ public final class BbandWRStrategyFactory implements StrategyFactory<BbandWRPara
     // -80)
     Rule entryRule =
         new UnderIndicatorRule(closePrice, bbLower)
-            .and(new UnderIndicatorRule(williamsR, series.numOf(-80)));
+            .and(new UnderIndicatorRule(williamsR, DecimalNum.valueOf(-80)));
 
     // Exit rule: Price touches/crosses above upper Bollinger Band AND Williams %R is overbought (>
     // -20)
     Rule exitRule =
         new OverIndicatorRule(closePrice, bbUpper)
-            .and(new OverIndicatorRule(williamsR, series.numOf(-20)));
+            .and(new OverIndicatorRule(williamsR, DecimalNum.valueOf(-20)));
 
     return new BaseStrategy(
         String.format(

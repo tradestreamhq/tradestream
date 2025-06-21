@@ -12,6 +12,7 @@ import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.RSIIndicator;
 import org.ta4j.core.indicators.StochasticOscillatorKIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
@@ -37,11 +38,11 @@ public final class StochasticRsiStrategyFactory
 
     // Entry rule: Stochastic RSI crosses above oversold threshold
     Rule entryRule =
-        new OverIndicatorRule(stochasticRsi, series.numOf(params.getOversoldThreshold()));
+        new OverIndicatorRule(stochasticRsi, DecimalNum.valueOf(params.getOversoldThreshold()));
 
     // Exit rule: Stochastic RSI crosses below overbought threshold
     Rule exitRule =
-        new UnderIndicatorRule(stochasticRsi, series.numOf(params.getOverboughtThreshold()));
+        new UnderIndicatorRule(stochasticRsi, DecimalNum.valueOf(params.getOverboughtThreshold()));
 
     return new BaseStrategy(
         String.format(

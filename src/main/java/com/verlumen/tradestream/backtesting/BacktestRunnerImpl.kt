@@ -13,6 +13,7 @@ import org.ta4j.core.TradingRecord
 import org.ta4j.core.criteria.pnl.ProfitLossCriterion
 import org.ta4j.core.criteria.pnl.ProfitLossRatioCriterion
 import org.ta4j.core.criteria.pnl.ReturnCriterion
+import org.ta4j.core.num.DecimalNum
 import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -95,9 +96,9 @@ class BacktestRunnerImpl
             for (i in strategy.unstableBars until series.barCount) {
                 if (strategy.shouldEnter(i)) {
                     // Enter with a position size of 1 unit
-                    tradingRecord.enter(i, series.getBar(i).closePrice, series.numOf(1))
+                    tradingRecord.enter(i, series.getBar(i).closePrice, DecimalNum.valueOf(1))
                 } else if (strategy.shouldExit(i) && tradingRecord.currentPosition.isOpened) {
-                    tradingRecord.exit(i, series.getBar(i).closePrice, series.numOf(1))
+                    tradingRecord.exit(i, series.getBar(i).closePrice, DecimalNum.valueOf(1))
                 }
             }
 
