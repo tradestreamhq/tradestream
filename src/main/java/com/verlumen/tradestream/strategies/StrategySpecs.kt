@@ -70,7 +70,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.ATR_TRAILING_STOP to
             StrategySpec(
                 paramConfig = AtrTrailingStopParamConfig(),
-                strategyFactory = AtrTrailingStopStrategyFactory()
+                strategyFactory = AtrTrailingStopStrategyFactory(),
             ),
         StrategyType.BBAND_W_R to
             StrategySpec(
