@@ -1263,3 +1263,16 @@ message VariablePeriodEmaParameters {
   int32 minPeriod = 1;
   int32 maxPeriod = 2;
 }
+
+message CompositeStrategyParameters {
+  Strategy left_strategy = 1;
+  Strategy right_strategy = 2;
+  
+  enum LogicalOperator {
+    AND = 0;
+    OR = 1;
+  }
+  
+  LogicalOperator entry_operator = 3;
+  LogicalOperator exit_operator = 4;
+}
