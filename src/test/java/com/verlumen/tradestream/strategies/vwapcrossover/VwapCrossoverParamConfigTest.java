@@ -6,7 +6,6 @@ import static org.junit.Assert.assertThrows;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.discovery.ChromosomeSpec;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.VwapCrossoverParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
@@ -41,20 +40,30 @@ public class VwapCrossoverParamConfigTest {
 
   @Test
   public void testCreateParameters_validChromosomes_returnsPackedParameters() {
-    // Create chromosomes with correct parameter order: min, max, value
-    List<NumericChromosome<?, ?>> chromosomes =
-        List.of(
-            IntegerChromosome.of(10, 50, 20), // VWAP Period
-            IntegerChromosome.of(10, 50, 25)  // Moving Average Period
-        );
+    // Create chromosomes with single genes and extract their actual values
+    IntegerChromosome vwapPeriodChrom = IntegerChromosome.of(10, 50, 1); // Single gene
+    IntegerChromosome maPeriodChrom = IntegerChromosome.of(10, 50, 1);   // Single gene
+    
+    List<NumericChromosome<?, ?>> chromosomes = List.of(vwapPeriodChrom, maPeriodChrom);
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
     assertThat(packedParams.is(VwapCrossoverParameters.class)).isTrue();
     
     try {
       VwapCrossoverParameters params = packedParams.unpack(VwapCrossoverParameters.class);
-      assertThat(params.getVwapPeriod()).isEqualTo(20);
-      assertThat(params.getMovingAveragePeriod()).isEqualTo(25);
+      
+      // Extract the actual values from chromosomes and assert those
+      int expectedVwapPeriod = vwapPeriodChrom.gene().allele();
+      int expectedMaPeriod = maPeriodChrom.gene().allele();
+      
+      assertThat(params.getVwapPeriod()).isEqualTo(expectedVwapPeriod);
+      assertThat(params.getMovingAveragePeriod()).isEqualTo(expectedMaPeriod);
+      
+      // Also verify values are within expected ranges
+      assertThat(params.getVwapPeriod()).isAtLeast(10);
+      assertThat(params.getVwapPeriod()).isAtMost(50);
+      assertThat(params.getMovingAveragePeriod()).isAtLeast(10);
+      assertThat(params.getMovingAveragePeriod()).isAtMost(50);
     } catch (Exception e) {
       throw new RuntimeException("Failed to unpack parameters", e);
     }
@@ -64,7 +73,7 @@ public class VwapCrossoverParamConfigTest {
   public void testCreateParameters_invalidChromosomeSize_throwsException() {
     // Create a single chromosome when 2 are expected
     List<NumericChromosome<?, ?>> chromosomes =
-        List.of(IntegerChromosome.of(10, 50, 20)); // Only one chromosome
+        List.of(IntegerChromosome.of(10, 50, 1)); // Only one chromosome
 
     IllegalArgumentException thrown =
         assertThrows(
