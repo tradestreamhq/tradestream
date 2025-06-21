@@ -46,9 +46,4 @@ public final class VwapCrossoverParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.VWAP_CROSSOVER;
-  }
 }
