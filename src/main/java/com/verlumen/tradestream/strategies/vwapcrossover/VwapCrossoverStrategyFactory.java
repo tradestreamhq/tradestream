@@ -12,6 +12,8 @@ import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.volume.VWAPIndicator;
+import org.ta4j.core.indicators.volume.VWAPIndicator;
+import org.ta4j.core.indicators.volume.VWAPIndicator;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
 public final class VwapCrossoverStrategyFactory
