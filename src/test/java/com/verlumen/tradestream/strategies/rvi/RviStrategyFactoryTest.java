@@ -143,7 +143,6 @@ public class RviStrategyFactoryTest {
         break;
       }
     }
-  
     // Verify that RVI crossed above signal line at the entry bar
     if (entryFound && entryBar > 0) {
       double rviPrev = rvi.getValue(entryBar - 1).doubleValue();
