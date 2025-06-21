@@ -11,8 +11,8 @@ import io.jenetics.NumericChromosome;
 public final class RviParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
-          ChromosomeSpec.ofInteger(5, 30)  // RVI Period
-      );
+          ChromosomeSpec.ofInteger(5, 30) // RVI Period
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
