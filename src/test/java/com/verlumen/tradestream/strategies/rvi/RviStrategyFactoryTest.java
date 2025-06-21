@@ -207,7 +207,6 @@ public class RviStrategyFactoryTest {
       assertThat(rviPrev).isGreaterThan(signalPrev); // RVI was above signal
       assertThat(rviCurrent).isLessThan(signalCurrent); // RVI is now below signal
     }
-  
     assertThat(exitFound).isTrue();
   }
 
