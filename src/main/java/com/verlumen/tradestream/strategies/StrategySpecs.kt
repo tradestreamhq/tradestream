@@ -85,7 +85,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.DOUBLE_EMA_CROSSOVER to
             StrategySpec(
                 paramConfig = DoubleEmaCrossoverParamConfig(),
-                strategyFactory = DoubleEmaCrossoverStrategyFactory()
+                strategyFactory = DoubleEmaCrossoverStrategyFactory(),
             ),
         StrategyType.MACD_CROSSOVER to
             StrategySpec(
