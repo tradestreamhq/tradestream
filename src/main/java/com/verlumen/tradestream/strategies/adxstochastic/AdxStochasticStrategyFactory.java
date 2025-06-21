@@ -45,7 +45,9 @@ public final class AdxStochasticStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (ADX-%d, StochasticK-%d)",
-            StrategyType.ADX_STOCHASTIC.name(), params.getAdxPeriod(), params.getStochasticKPeriod()),
+            StrategyType.ADX_STOCHASTIC.name(),
+            params.getAdxPeriod(),
+            params.getStochasticKPeriod()),
         entryRule,
         exitRule,
         params.getAdxPeriod()); // Unstable period is ADX period
