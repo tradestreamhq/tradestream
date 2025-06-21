@@ -65,7 +65,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.ATR_CCI to
             StrategySpec(
                 paramConfig = AtrCciParamConfig(),
-                strategyFactory = AtrCciStrategyFactory()
+                strategyFactory = AtrCciStrategyFactory(),
             ),
         StrategyType.ATR_TRAILING_STOP to
             StrategySpec(
