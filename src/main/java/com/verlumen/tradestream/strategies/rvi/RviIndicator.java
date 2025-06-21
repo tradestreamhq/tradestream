@@ -7,6 +7,7 @@ import org.ta4j.core.indicators.helpers.LowPriceIndicator;
 import org.ta4j.core.indicators.helpers.OpenPriceIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.num.DecimalNum;
+import org.ta4j.core.num.Num;
 
 /**
  * Relative Vigor Index (RVI) indicator.
