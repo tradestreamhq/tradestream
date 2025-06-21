@@ -37,10 +37,9 @@ public final class VolatilityStopStrategyFactory implements StrategyFactory<Vola
     Rule exitRule = new UnderIndicatorRule(closePrice, stopLevel);
 
     return new BaseStrategy(
-        String.format("%s (ATR: %d, Mult: %.2f)",
-            getStrategyType().name(),
-            params.getAtrPeriod(),
-            params.getMultiplier()),
+        String.format(
+            "%s (ATR: %d, Mult: %.2f)",
+            getStrategyType().name(), params.getAtrPeriod(), params.getMultiplier()),
         entryRule,
         exitRule,
         params.getAtrPeriod());
