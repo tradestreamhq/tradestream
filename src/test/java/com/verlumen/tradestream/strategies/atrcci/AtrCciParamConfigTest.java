@@ -33,7 +33,6 @@ public class AtrCciParamConfigTest {
     // ATR Period: range 5-30
     assertThat(specs.get(0).getRange().lowerEndpoint()).isEqualTo(5);
     assertThat(specs.get(0).getRange().upperEndpoint()).isEqualTo(30);
-    
     // CCI Period: range 10-50
     assertThat(specs.get(1).getRange().lowerEndpoint()).isEqualTo(10);
     assertThat(specs.get(1).getRange().upperEndpoint()).isEqualTo(50);
