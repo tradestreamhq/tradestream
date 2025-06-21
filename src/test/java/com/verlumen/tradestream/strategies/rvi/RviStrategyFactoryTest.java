@@ -85,12 +85,14 @@ public class RviStrategyFactoryTest {
     // Phase 4: Bearish pattern for exit signal (bars 23-27)
     for (int i = 23; i < 28; i++) {
       double basePrice = 65.0 - (i - 22) * 3; // Decreasing trend
-      series.addBar(createBar(now.plusMinutes(i),
-          basePrice,          // open
-          basePrice + 0.5,    // high
-          basePrice - 3.0,    // low
-          basePrice - 2.5     // close strongly below open (very bearish)
-      ));
+      series.addBar(
+          createBar(
+              now.plusMinutes(i),
+              basePrice, // open
+              basePrice + 0.5, // high
+              basePrice - 3.0, // low
+              basePrice - 2.5 // close strongly below open (very bearish)
+              ));
     }
   
     // Initialize indicators for debugging
