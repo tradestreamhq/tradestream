@@ -51,12 +51,14 @@ public class RviStrategyFactoryTest {
     // This will create negative or near-zero RVI values
     for (int i = 0; i < 15; i++) {
       double basePrice = 50.0;
-      series.addBar(createBar(now.plusMinutes(i), 
-          basePrice + 0.2,    // open (slightly above base)
-          basePrice + 0.5,    // high  
-          basePrice - 0.5,    // low
-          basePrice - 0.1     // close (below open, bearish)
-      ));
+      series.addBar(
+          createBar(
+              now.plusMinutes(i),
+              basePrice + 0.2, // open (slightly above base)
+              basePrice + 0.5, // high
+              basePrice - 0.5, // low
+              basePrice - 0.1 // close (below open, bearish)
+              ));
     }
     // Phase 2: Transition period to establish RVI below signal line (bars 15-17)
     for (int i = 15; i < 18; i++) {
