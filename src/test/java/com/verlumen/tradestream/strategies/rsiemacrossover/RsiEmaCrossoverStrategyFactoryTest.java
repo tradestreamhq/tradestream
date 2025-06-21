@@ -3,7 +3,6 @@ package com.verlumen.tradestream.strategies.rsiemacrossover;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.verlumen.tradestream.strategies.RsiEmaCrossoverParameters;
-import com.verlumen.tradestream.strategies.StrategyType;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import org.junit.Before;
