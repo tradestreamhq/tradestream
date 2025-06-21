@@ -201,7 +201,7 @@ public class AtrCciStrategyFactoryTest {
         high,  // high
         low,   // low
         price, // close
-        100.0  // volume
+        100.0 // volume
         );
   }
 }
