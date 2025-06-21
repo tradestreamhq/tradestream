@@ -21,6 +21,5 @@ class MomentumIndicator(
         val previousClose = closePrice.getValue(index - period)
         return currentClose.minus(previousClose).dividedBy(previousClose).multipliedBy(series.numOf(100))
     }
-    
     override fun getCountOfUnstableBars(): Int = period
 }
