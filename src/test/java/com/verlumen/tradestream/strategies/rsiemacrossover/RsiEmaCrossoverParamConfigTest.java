@@ -29,11 +29,11 @@ public class RsiEmaCrossoverParamConfigTest {
   public void testGetChromosomeSpecs_returnsExpectedSpecs() {
     ImmutableList<ChromosomeSpec<?>> specs = config.getChromosomeSpecs();
     assertThat(specs).hasSize(2);
-    
+
     // RSI Period (5-30)
     assertThat(specs.get(0).getRange().lowerEndpoint()).isEqualTo(5);
     assertThat(specs.get(0).getRange().upperEndpoint()).isEqualTo(30);
-    
+
     // EMA Period (5-20)
     assertThat(specs.get(1).getRange().lowerEndpoint()).isEqualTo(5);
     assertThat(specs.get(1).getRange().upperEndpoint()).isEqualTo(20);
@@ -45,7 +45,7 @@ public class RsiEmaCrossoverParamConfigTest {
     List<NumericChromosome<?, ?>> chromosomes =
         List.of(
             IntegerChromosome.of(5, 30, 14), // RSI Period
-            IntegerChromosome.of(5, 20, 10)  // EMA Period
+            IntegerChromosome.of(5, 20, 10) // EMA Period
             );
 
     Any packedParams = config.createParameters(ImmutableList.copyOf(chromosomes));
@@ -69,16 +69,16 @@ public class RsiEmaCrossoverParamConfigTest {
   public void testInitialChromosomes_returnsExpectedSize() {
     ImmutableList<? extends NumericChromosome<?, ?>> chromosomes = config.initialChromosomes();
     assertThat(chromosomes).hasSize(2);
-    
+
     // Verify they are all IntegerChromosomes
     assertThat(chromosomes.get(0)).isInstanceOf(IntegerChromosome.class);
     assertThat(chromosomes.get(1)).isInstanceOf(IntegerChromosome.class);
-    
+
     // Verify ranges
     IntegerChromosome rsiPeriod = (IntegerChromosome) chromosomes.get(0);
     assertThat(rsiPeriod.gene().min()).isEqualTo(5);
     assertThat(rsiPeriod.gene().max()).isEqualTo(30);
-    
+
     IntegerChromosome emaPeriod = (IntegerChromosome) chromosomes.get(1);
     assertThat(emaPeriod.gene().min()).isEqualTo(5);
     assertThat(emaPeriod.gene().max()).isEqualTo(20);

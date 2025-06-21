@@ -49,10 +49,10 @@ public class RsiEmaCrossoverStrategyFactoryTest {
 
     // Bars 0-20: Create baseline with mixed price movements to establish RSI and EMA
     double[] baselinePrices = {
-      50.0, 49.0, 51.0, 48.0, 52.0, 47.0, 53.0, 46.0, 54.0, 45.0,
-      55.0, 44.0, 56.0, 43.0, 57.0, 42.0, 58.0, 41.0, 59.0, 40.0, 60.0
+      50.0, 49.0, 51.0, 48.0, 52.0, 47.0, 53.0, 46.0, 54.0, 45.0, 55.0, 44.0, 56.0, 43.0, 57.0,
+      42.0, 58.0, 41.0, 59.0, 40.0, 60.0
     };
-    
+
     for (int i = 0; i < baselinePrices.length; i++) {
       series.addBar(createBar(now.plusMinutes(i), baselinePrices[i]));
     }
@@ -150,20 +150,14 @@ public class RsiEmaCrossoverStrategyFactoryTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateRsiPeriod() {
     params =
-        RsiEmaCrossoverParameters.newBuilder()
-            .setRsiPeriod(-1)
-            .setEmaPeriod(EMA_PERIOD)
-            .build();
+        RsiEmaCrossoverParameters.newBuilder().setRsiPeriod(-1).setEmaPeriod(EMA_PERIOD).build();
     factory.createStrategy(series, params);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void validateEmaPeriod() {
     params =
-        RsiEmaCrossoverParameters.newBuilder()
-            .setRsiPeriod(RSI_PERIOD)
-            .setEmaPeriod(-1)
-            .build();
+        RsiEmaCrossoverParameters.newBuilder().setRsiPeriod(RSI_PERIOD).setEmaPeriod(-1).build();
     factory.createStrategy(series, params);
   }
 

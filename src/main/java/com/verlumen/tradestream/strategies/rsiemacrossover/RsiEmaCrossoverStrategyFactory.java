@@ -17,7 +17,8 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
-public final class RsiEmaCrossoverStrategyFactory implements StrategyFactory<RsiEmaCrossoverParameters> {
+public final class RsiEmaCrossoverStrategyFactory
+    implements StrategyFactory<RsiEmaCrossoverParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, RsiEmaCrossoverParameters params) {
     checkArgument(params.getRsiPeriod() > 0, "RSI period must be positive");
@@ -28,18 +29,17 @@ public final class RsiEmaCrossoverStrategyFactory implements StrategyFactory<Rsi
     EMAIndicator rsiEma = new EMAIndicator(rsi, params.getEmaPeriod());
 
     // Entry rule: RSI crosses above its EMA AND RSI is not overbought (< 70)
-    Rule entryRule = new CrossedUpIndicatorRule(rsi, rsiEma)
-        .and(new UnderIndicatorRule(rsi, series.numOf(70)));
+    Rule entryRule =
+        new CrossedUpIndicatorRule(rsi, rsiEma).and(new UnderIndicatorRule(rsi, series.numOf(70)));
 
     // Exit rule: RSI crosses below its EMA AND RSI is not oversold (> 30)
-    Rule exitRule = new CrossedDownIndicatorRule(rsi, rsiEma)
-        .and(new OverIndicatorRule(rsi, series.numOf(30)));
+    Rule exitRule =
+        new CrossedDownIndicatorRule(rsi, rsiEma).and(new OverIndicatorRule(rsi, series.numOf(30)));
 
     return new BaseStrategy(
-        String.format("%s (RSI: %d, EMA: %d)",
-            getStrategyType().name(),
-            params.getRsiPeriod(),
-            params.getEmaPeriod()),
+        String.format(
+            "%s (RSI: %d, EMA: %d)",
+            getStrategyType().name(), params.getRsiPeriod(), params.getEmaPeriod()),
         entryRule,
         exitRule,
         Math.max(params.getRsiPeriod(), params.getEmaPeriod()));
@@ -48,8 +48,8 @@ public final class RsiEmaCrossoverStrategyFactory implements StrategyFactory<Rsi
   @Override
   public RsiEmaCrossoverParameters getDefaultParameters() {
     return RsiEmaCrossoverParameters.newBuilder()
-        .setRsiPeriod(14)  // Standard RSI period
-        .setEmaPeriod(10)  // EMA period for RSI smoothing
+        .setRsiPeriod(14) // Standard RSI period
+        .setEmaPeriod(10) // EMA period for RSI smoothing
         .build();
   }
 
