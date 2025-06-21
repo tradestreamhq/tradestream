@@ -90,7 +90,6 @@ public class VwapCrossoverParamConfigTest {
     // Verify all chromosomes are IntegerChromosome
     assertThat(chromosomes.get(0)).isInstanceOf(IntegerChromosome.class);
     assertThat(chromosomes.get(1)).isInstanceOf(IntegerChromosome.class);
-    
     // Verify ranges
     IntegerChromosome vwapPeriod = (IntegerChromosome) chromosomes.get(0);
     assertThat(vwapPeriod.gene().min()).isEqualTo(10);
