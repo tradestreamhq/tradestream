@@ -28,6 +28,7 @@ public class VwapCrossoverParamConfigTest {
   public void testGetChromosomeSpecs_returnsExpectedSpecs() {
     ImmutableList<ChromosomeSpec<?>> specs = config.getChromosomeSpecs();
     assertThat(specs).hasSize(2);
+    
     // VWAP Period (10-50)
     assertThat(specs.get(0).getRange().lowerEndpoint()).isEqualTo(10);
     assertThat(specs.get(0).getRange().upperEndpoint()).isEqualTo(50);
