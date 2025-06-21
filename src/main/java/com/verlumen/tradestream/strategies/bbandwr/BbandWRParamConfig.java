@@ -12,10 +12,10 @@ import io.jenetics.NumericChromosome;
 public final class BbandWRParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
-          ChromosomeSpec.ofInteger(10, 50),   // Bollinger Bands Period
-          ChromosomeSpec.ofInteger(5, 30),    // Williams %R Period
-          ChromosomeSpec.ofDouble(1.5, 3.0)   // Standard Deviation Multiplier
-      );
+          ChromosomeSpec.ofInteger(10, 50), // Bollinger Bands Period
+          ChromosomeSpec.ofInteger(5, 30), // Williams %R Period
+          ChromosomeSpec.ofDouble(1.5, 3.0) // Standard Deviation Multiplier
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
