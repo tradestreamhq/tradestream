@@ -135,9 +135,8 @@ public class BbandWRStrategyFactoryTest {
       double wr = williamsR.getValue(i).doubleValue();
       
       System.out.printf(
-          "Bar %d - Price: %.2f, Upper Band: %.2f, Williams %%R: %.2f%n",
-          i, price, upperBand, wr);
-      
+          "Bar %d - Price: %.2f, Upper Band: %.2f, Williams %%R: %.2f%n", i, price, upperBand, wr);
+
       if (price > upperBand && wr > -20) {
         exitIndex = i;
         break;
