@@ -3,13 +3,13 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(
     default_visibility = [
         "//src/main/java/com/verlumen/tradestream/strategies:__pkg__",
-        "//src/test/java/com/verlumen/tradestream/strategies/smaemacrossover:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/strategies/stochasticsrsi:__pkg__",
     ],
 )
 
 java_library(
     name = "param_config",
-    srcs = ["SmaEmaCrossoverParamConfig.java"],
+    srcs = ["StochasticRsiParamConfig.java"],
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
@@ -22,7 +22,7 @@ java_library(
 
 java_library(
     name = "strategy_factory",
-    srcs = ["SmaEmaCrossoverStrategyFactory.java"],
+    srcs = ["StochasticRsiStrategyFactory.java"],
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
