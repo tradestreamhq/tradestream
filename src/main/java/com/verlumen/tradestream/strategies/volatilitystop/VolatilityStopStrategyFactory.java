@@ -49,8 +49,8 @@ public final class VolatilityStopStrategyFactory implements StrategyFactory<Vola
   @Override
   public VolatilityStopParameters getDefaultParameters() {
     return VolatilityStopParameters.newBuilder()
-        .setAtrPeriod(14)      // Standard ATR period
-        .setMultiplier(2.0)    // Common multiplier for stop distance
+        .setAtrPeriod(14) // Standard ATR period
+        .setMultiplier(2.0) // Common multiplier for stop distance
         .build();
   }
 
