@@ -82,7 +82,7 @@ public class AroonMfiStrategyFactoryTest {
         AroonMfiParameters.newBuilder()
             .setAroonPeriod(25)
             .setMfiPeriod(14)
-            .setOverboughtThreshold(20)  // Lower than oversold
+            .setOverboughtThreshold(20) // Lower than oversold
             .setOversoldThreshold(80)
             .build();
     factory.createStrategy(series, params);
