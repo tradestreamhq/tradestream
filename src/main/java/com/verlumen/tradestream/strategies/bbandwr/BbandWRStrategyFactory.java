@@ -24,7 +24,8 @@ public final class BbandWRStrategyFactory implements StrategyFactory<BbandWRPara
   public Strategy createStrategy(BarSeries series, BbandWRParameters params) {
     checkArgument(params.getBbandsPeriod() > 0, "Bollinger Bands period must be positive");
     checkArgument(params.getWrPeriod() > 0, "Williams %R period must be positive");
-    checkArgument(params.getStdDevMultiplier() > 0, "Standard deviation multiplier must be positive");
+    checkArgument(
+        params.getStdDevMultiplier() > 0, "Standard deviation multiplier must be positive");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
     
