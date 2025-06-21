@@ -27,7 +27,8 @@ public class AwesomeOscillatorStrategyFactory
     // Create MedianPriceIndicator first, then use it for AwesomeOscillatorIndicator
     MedianPriceIndicator medianPrice = new MedianPriceIndicator(series);
     AwesomeOscillatorIndicator ao =
-        new AwesomeOscillatorIndicator(medianPrice, params.getShortPeriod(), params.getLongPeriod());
+        new AwesomeOscillatorIndicator(
+            medianPrice, params.getShortPeriod(), params.getLongPeriod());
 
     // Entry rule: AO crosses above zero
     Rule entryRule = new CrossedUpIndicatorRule(ao, series.numOf(0));
