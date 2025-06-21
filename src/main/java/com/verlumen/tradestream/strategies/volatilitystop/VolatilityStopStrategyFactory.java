@@ -15,7 +15,8 @@ import org.ta4j.core.indicators.helpers.PreviousValueIndicator;
 import org.ta4j.core.indicators.helpers.TransformIndicator;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
-public final class VolatilityStopStrategyFactory implements StrategyFactory<VolatilityStopParameters> {
+public final class VolatilityStopStrategyFactory
+    implements StrategyFactory<VolatilityStopParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, VolatilityStopParameters params) {
     checkArgument(params.getAtrPeriod() > 0, "ATR period must be positive");
