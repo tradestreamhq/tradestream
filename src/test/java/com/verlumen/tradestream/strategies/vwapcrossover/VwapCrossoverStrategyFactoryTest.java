@@ -88,9 +88,7 @@ public class VwapCrossoverStrategyFactoryTest {
     for (int i = 6; i <= 9; i++) {
       System.out.printf(
           "Bar %d - Price: %.2f, VWAP: %.2f%n",
-          i,
-          closePrice.getValue(i).doubleValue(),
-          vwapIndicator.getValue(i).doubleValue());
+          i, closePrice.getValue(i).doubleValue(), vwapIndicator.getValue(i).doubleValue());
     }
 
     // No entry signal during baseline
