@@ -11,7 +11,7 @@ class MomentumIndicator(
 ) : CachedIndicator<Num>(closePrice) {
     
     override fun calculate(index: Int): Num = 
-        if (index < period) getBarSeries().numOf(0.0) // Not enough data yet
+        if (index < period) numOf(0.0) // Not enough data yet
         else calculatePercentageChange(index)
     
     override fun getCountOfUnstableBars(): Int = period
