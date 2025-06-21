@@ -62,12 +62,14 @@ public class RviStrategyFactoryTest {
     // Phase 2: Transition period to establish RVI below signal line (bars 15-17)
     for (int i = 15; i < 18; i++) {
       double basePrice = 50.0;
-      series.addBar(createBar(now.plusMinutes(i),
-          basePrice,          // open
-          basePrice + 0.3,    // high
-          basePrice - 0.3,    // low  
-          basePrice           // close (neutral, RVI ≈ 0)
-      ));
+      series.addBar(
+          createBar(
+              now.plusMinutes(i),
+              basePrice, // open
+              basePrice + 0.3, // high
+              basePrice - 0.3, // low
+              basePrice // close (neutral, RVI ≈ 0)
+              ));
     }
   
     // Phase 3: Strong bullish pattern for clear entry signal (bars 18-22)
