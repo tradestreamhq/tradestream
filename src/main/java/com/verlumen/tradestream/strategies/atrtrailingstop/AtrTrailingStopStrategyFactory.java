@@ -69,7 +69,7 @@ public final class AtrTrailingStopStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (ATR: %d, Mult: %.2f)",
-            getStrategyType().name(), params.getAtrPeriod(), params.getMultiplier()),
+            StrategyType.ATR_TRAILING_STOP.name(), params.getAtrPeriod(), params.getMultiplier()),
         entryRule,
         exitRule,
         params.getAtrPeriod());
@@ -81,10 +81,5 @@ public final class AtrTrailingStopStrategyFactory
         .setAtrPeriod(14) // Standard ATR period
         .setMultiplier(2.0) // Common multiplier
         .build();
-  }
-
-  @Override
-  public StrategyType getStrategyType() {
-    return StrategyType.ATR_TRAILING_STOP;
   }
 }

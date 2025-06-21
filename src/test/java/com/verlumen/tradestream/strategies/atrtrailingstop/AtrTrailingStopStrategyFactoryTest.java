@@ -76,11 +76,6 @@ public class AtrTrailingStopStrategyFactoryTest {
   }
 
   @Test
-  public void getStrategyType_returnsAtrTrailingStop() {
-    assertThat(factory.getStrategyType()).isEqualTo(StrategyType.ATR_TRAILING_STOP);
-  }
-
-  @Test
   public void getDefaultParameters_returnsValidDefaults() {
     AtrTrailingStopParameters defaults = factory.getDefaultParameters();
     assertThat(defaults.getAtrPeriod()).isEqualTo(14);
