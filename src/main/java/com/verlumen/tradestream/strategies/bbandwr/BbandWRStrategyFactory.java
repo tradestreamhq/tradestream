@@ -54,7 +54,8 @@ public final class BbandWRStrategyFactory implements StrategyFactory<BbandWRPara
             .and(new OverIndicatorRule(williamsR, series.numOf(-20)));
 
     return new BaseStrategy(
-        String.format("%s (BB: %d, WR: %d, StdDev: %.1f)",
+        String.format(
+            "%s (BB: %d, WR: %d, StdDev: %.1f)",
             StrategyType.BBAND_W_R.name(),
             params.getBbandsPeriod(),
             params.getWrPeriod(),
