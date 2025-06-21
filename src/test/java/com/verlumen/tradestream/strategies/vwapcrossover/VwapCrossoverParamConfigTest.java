@@ -55,7 +55,6 @@ public class VwapCrossoverParamConfigTest {
       // Extract the actual values from chromosomes and assert those
       int expectedVwapPeriod = vwapPeriodChrom.gene().allele();
       int expectedMaPeriod = maPeriodChrom.gene().allele();
-      
       assertThat(params.getVwapPeriod()).isEqualTo(expectedVwapPeriod);
       assertThat(params.getMovingAveragePeriod()).isEqualTo(expectedMaPeriod);
       // Also verify values are within expected ranges
