@@ -122,7 +122,7 @@ public class RviStrategyFactoryTest {
             "Bar %d - O:%.2f H:%.2f L:%.2f C:%.2f | RVI:%.4f Signal:%.4f | Entry:%s%n",
             i,
             openPrice.getValue(i).doubleValue(),
-            highPrice.getValue(i).doubleValue(), 
+            highPrice.getValue(i).doubleValue(),
             lowPrice.getValue(i).doubleValue(),
             closePrice.getValue(i).doubleValue(),
             rviValue,
