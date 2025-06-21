@@ -31,20 +31,22 @@ final class BarSeriesBuilder {
   }
 
   private static Bar createBar(Candle candle) {
-    ZonedDateTime endTime = getZonedDateTime(candle);
+    Instant endTime = getInstant(candle);
     return new BaseBar(
         ONE_MINUTE,
         endTime,
-        candle.getOpen(),
-        candle.getHigh(),
-        candle.getLow(),
-        candle.getClose(),
-        candle.getVolume()
+        valueOf(candle.getOpen()),
+        valueOf(candle.getHigh()),
+        valueOf(candle.getLow()),
+        valueOf(candle.getClose()),
+        valueOf(candle.getVolume()),
+        valueOf(0), // amount - defaulting to 0 since not available in Candle
+        0L          // number of trades - defaulting to 0 since not available in Candle
     );
   }
 
-  private static ZonedDateTime getZonedDateTime(Candle candle) {
+  private static Instant getInstant(Candle candle) {
     long epochMillis = Timestamps.toMillis(candle.getTimestamp());
-    return Instant.ofEpochMilli(epochMillis).atZone(UTC);
+    return Instant.ofEpochMilli(epochMillis);
   }
 }
