@@ -13,6 +13,7 @@ import org.ta4j.core.indicators.ATRIndicator;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.PreviousValueIndicator;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
@@ -38,7 +39,7 @@ public final class AtrTrailingStopStrategyFactory
     protected Num calculate(int index) {
       Num prevClose = previousClose.getValue(index);
       Num atrValue = atr.getValue(index);
-      return prevClose.minus(atrValue.multipliedBy(numOf(multiplier)));
+      return prevClose.minus(atrValue.multipliedBy(DecimalNum.valueOf(multiplier)));
     }
 
     @Override

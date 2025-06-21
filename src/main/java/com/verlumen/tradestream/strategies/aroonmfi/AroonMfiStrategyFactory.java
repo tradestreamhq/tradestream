@@ -13,6 +13,7 @@ import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.helpers.HighPriceIndicator;
 import org.ta4j.core.indicators.helpers.LowPriceIndicator;
 import org.ta4j.core.indicators.helpers.TypicalPriceIndicator;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 import org.ta4j.core.rules.OverIndicatorRule;
@@ -94,7 +95,7 @@ class AroonUpIndicator extends CachedIndicator<Num> {
     // Calculate periods since highest high
     int periodsSinceHigh = index - highestIndex;
     // Aroon Up = ((timeFrame - periods since highest high) / timeFrame) * 100
-    return numOf(timeFrame - periodsSinceHigh).dividedBy(numOf(timeFrame)).multipliedBy(numOf(100));
+    return numOf(timeFrame - periodsSinceHigh).dividedBy(DecimalNum.valueOf(timeFrame)).multipliedBy(DecimalNum.valueOf(100));
   }
 
   @Override
@@ -140,7 +141,7 @@ class AroonDownIndicator extends CachedIndicator<Num> {
     // Calculate periods since lowest low
     int periodsSinceLow = index - lowestIndex;
     // Aroon Down = ((timeFrame - periods since lowest low) / timeFrame) * 100
-    return numOf(timeFrame - periodsSinceLow).dividedBy(numOf(timeFrame)).multipliedBy(numOf(100));
+    return numOf(timeFrame - periodsSinceLow).dividedBy(DecimalNum.valueOf(timeFrame)).multipliedBy(DecimalNum.valueOf(100));
   }
 
   @Override
@@ -204,7 +205,7 @@ class MFIIndicator extends CachedIndicator<Num> {
     Num moneyFlowRatio = positiveFlow.dividedBy(negativeFlow);
 
     // Calculate Money Flow Index
-    Num mfi = numOf(100).minus(numOf(100).dividedBy(numOf(1).plus(moneyFlowRatio)));
+    Num mfi = numOf(100).minus(DecimalNum.valueOf(100).dividedBy(DecimalNum.valueOf(1).plus(moneyFlowRatio)));
 
     return mfi;
   }
