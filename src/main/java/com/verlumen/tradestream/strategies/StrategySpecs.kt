@@ -100,7 +100,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.PARABOLIC_SAR to
             StrategySpec(
                 paramConfig = ParabolicSarParamConfig(),
-                strategyFactory = ParabolicSarStrategyFactory()
+                strategyFactory = ParabolicSarStrategyFactory(),
             ),
         StrategyType.RSI_EMA_CROSSOVER to
             StrategySpec(
