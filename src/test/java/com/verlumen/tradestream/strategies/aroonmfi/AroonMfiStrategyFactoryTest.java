@@ -109,7 +109,7 @@ public class AroonMfiStrategyFactoryTest {
       boolean shouldExit = strategy.shouldExit(i);
       // Both can be false, but shouldn't throw exceptions
       assertThat(shouldEnter || !shouldEnter).isTrue(); // Always true, just checking no exception
-      assertThat(shouldExit || !shouldExit).isTrue();   // Always true, just checking no exception
+      assertThat(shouldExit || !shouldExit).isTrue(); // Always true, just checking no exception
     }
   }
 }
