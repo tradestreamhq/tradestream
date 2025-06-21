@@ -156,7 +156,6 @@ public class RviStrategyFactoryTest {
       assertThat(rviPrev).isAtMost(signalPrev); // RVI was below or equal to signal
       assertThat(rviCurrent).isGreaterThan(signalCurrent); // RVI is now above signal
     }
-  
     assertThat(entryFound).isTrue();
   }
 
