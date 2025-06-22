@@ -64,7 +64,7 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
         .setTenkanSenPeriod(9)   // Standard Tenkan-sen period
         .setKijunSenPeriod(26)   // Standard Kijun-sen period
         .setSenkouSpanBPeriod(52) // Standard Senkou Span B period
-        .setChikouSpanPeriod(26)  // Standard Chikou Span period
+        .setChikouSpanPeriod(26) // Standard Chikou Span period
         .build();
   }
 
