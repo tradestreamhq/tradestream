@@ -19,7 +19,6 @@ java_test(
     test_class = "com.verlumen.tradestream.strategies.massindex.MassIndexStrategyFactoryTest",
     deps = [
         "//src/main/java/com/verlumen/tradestream/strategies/massindex:strategy_factory",
-        "//src/main/java/com/verlumen/tradestream/ta4j:test_bar_series_builder",
         "//protos:strategies_java_proto",
         "//third_party/java:junit",
         "//third_party/java:truth",
