@@ -176,7 +176,7 @@ class StrategySpecsTest {
 
         // Assert
         assertThat(result).isNotNull()
-        assertThat(result).hasSize(20)
+        assertThat(result).hasSize(22)
     }
 
     @Test
