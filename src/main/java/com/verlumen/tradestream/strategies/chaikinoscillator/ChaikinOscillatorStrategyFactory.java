@@ -40,9 +40,7 @@ public class ChaikinOscillatorStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (Fast: %d, Slow: %d)",
-            StrategyType.CHAIKIN_OSCILLATOR.name(),
-            params.getFastPeriod(),
-            params.getSlowPeriod()),
+            StrategyType.CHAIKIN_OSCILLATOR.name(), params.getFastPeriod(), params.getSlowPeriod()),
         entryRule,
         exitRule,
         params.getSlowPeriod());
@@ -58,12 +56,11 @@ public class ChaikinOscillatorStrategyFactory
 
   /**
    * Custom Chaikin Oscillator indicator implementation.
-   * 
-   * The Chaikin Oscillator is calculated as:
-   * 1. Money Flow Multiplier = ((Close - Low) - (High - Close)) / (High - Low)
-   * 2. Money Flow Volume = Money Flow Multiplier × Volume
-   * 3. Accumulation/Distribution Line = Sum of Money Flow Volume
-   * 4. Chaikin Oscillator = EMA(ADL, fast) - EMA(ADL, slow)
+   *
+   * <p>The Chaikin Oscillator is calculated as: 1. Money Flow Multiplier = ((Close - Low) - (High -
+   * Close)) / (High - Low) 2. Money Flow Volume = Money Flow Multiplier × Volume 3.
+   * Accumulation/Distribution Line = Sum of Money Flow Volume 4. Chaikin Oscillator = EMA(ADL,
+   * fast) - EMA(ADL, slow)
    */
   private static class ChaikinOscillatorIndicator extends CachedIndicator<org.ta4j.core.num.Num> {
     private final EMAIndicator fastEma;
@@ -88,10 +85,7 @@ public class ChaikinOscillatorStrategyFactory
     }
   }
 
-  /**
-   * Accumulation/Distribution Line indicator.
-   * ADL = Sum of Money Flow Volume
-   */
+  /** Accumulation/Distribution Line indicator. ADL = Sum of Money Flow Volume */
   private static class ADLIndicator extends CachedIndicator<org.ta4j.core.num.Num> {
     private final MoneyFlowVolumeIndicator mfv;
 
@@ -115,10 +109,7 @@ public class ChaikinOscillatorStrategyFactory
     }
   }
 
-  /**
-   * Money Flow Volume indicator.
-   * MFV = Money Flow Multiplier × Volume
-   */
+  /** Money Flow Volume indicator. MFV = Money Flow Multiplier × Volume */
   private static class MoneyFlowVolumeIndicator extends CachedIndicator<org.ta4j.core.num.Num> {
     private final MoneyFlowMultiplierIndicator mfm;
     private final VolumeIndicator volume;
@@ -140,10 +131,7 @@ public class ChaikinOscillatorStrategyFactory
     }
   }
 
-  /**
-   * Money Flow Multiplier indicator.
-   * MFM = ((Close - Low) - (High - Close)) / (High - Low)
-   */
+  /** Money Flow Multiplier indicator. MFM = ((Close - Low) - (High - Close)) / (High - Low) */
   private static class MoneyFlowMultiplierIndicator extends CachedIndicator<org.ta4j.core.num.Num> {
     private final ClosePriceIndicator close;
     private final HighPriceIndicator high;
@@ -161,17 +149,17 @@ public class ChaikinOscillatorStrategyFactory
       org.ta4j.core.num.Num closePrice = close.getValue(index);
       org.ta4j.core.num.Num highPrice = high.getValue(index);
       org.ta4j.core.num.Num lowPrice = low.getValue(index);
-      
+
       org.ta4j.core.num.Num highLow = highPrice.minus(lowPrice);
-      
+
       // Avoid division by zero
       if (highLow.isZero()) {
         return numOf(0);
       }
-      
+
       org.ta4j.core.num.Num closeLow = closePrice.minus(lowPrice);
       org.ta4j.core.num.Num highClose = highPrice.minus(closePrice);
-      
+
       return closeLow.minus(highClose).dividedBy(highLow);
     }
 
