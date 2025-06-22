@@ -19,6 +19,7 @@ java_library(
     srcs = [
         "VolumeWeightedMacdStrategyFactory.java",
         "VolumeWeightedMacdLineIndicator.java",
+        "VolumeWeightedMacdStrategyFactory.java",
     ],
     visibility = ["//visibility:public"],
     deps = [
