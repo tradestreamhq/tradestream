@@ -19,8 +19,6 @@ java_test(
     deps = [
         "//src/main/java/com/verlumen/tradestream/strategies/volumeweightedmacd:strategy_factory",
         "//third_party/java:junit",
-        "//third_party/java:ta4j_core",
-        "//protos:strategies_java_proto",
         "//third_party/java:protobuf_java",
         "//third_party/java:ta4j_core",
     ],
