@@ -10,7 +10,8 @@ import io.jenetics.NumericChromosome;
 import java.util.logging.Logger;
 
 public final class VolumeSpreadAnalysisParamConfig implements ParamConfig {
-  private static final Logger logger = Logger.getLogger(VolumeSpreadAnalysisParamConfig.class.getName());
+  private static final Logger logger =
+      Logger.getLogger(VolumeSpreadAnalysisParamConfig.class.getName());
 
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
