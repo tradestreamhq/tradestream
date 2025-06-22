@@ -81,7 +81,6 @@ public final class VolumeSpreadAnalysisStrategyFactory implements StrategyFactor
       
       // Calculate price spread (range)
       Num priceSpread = currentHigh.minus(currentLow);
-      
       // Calculate closing position (where close is within the range)
       Num range = currentHigh.minus(currentLow);
       Num closePosition = currentClose.minus(currentLow).dividedBy(range);
