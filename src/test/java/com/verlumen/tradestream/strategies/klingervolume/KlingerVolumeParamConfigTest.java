@@ -17,14 +17,14 @@ public final class KlingerVolumeParamConfigTest {
   @Test
   public void getChromosomeSpecs_returnsExpectedSpecs() {
     ImmutableList<?> specs = config.getChromosomeSpecs();
-    
+
     assertThat(specs).hasSize(3);
   }
 
   @Test
   public void initialChromosomes_returnsExpectedChromosomes() {
     ImmutableList<? extends NumericChromosome<?, ?>> chromosomes = config.initialChromosomes();
-    
+
     assertThat(chromosomes).hasSize(3);
     assertThat(chromosomes.get(0)).isInstanceOf(IntegerChromosome.class);
     assertThat(chromosomes.get(1)).isInstanceOf(IntegerChromosome.class);
@@ -72,4 +72,4 @@ public final class KlingerVolumeParamConfigTest {
     assertThat(parameters.getLongPeriod()).isEqualTo(35);
     assertThat(parameters.getSignalPeriod()).isEqualTo(10);
   }
-} 
+}

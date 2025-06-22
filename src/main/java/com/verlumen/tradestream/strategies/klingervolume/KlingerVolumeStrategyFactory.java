@@ -105,7 +105,7 @@ public final class KlingerVolumeStrategyFactory implements StrategyFactory<Kling
 
         Num range = high.minus(low);
         Num priceChange = close.minus(prevClose);
-        
+
         // Daily force calculation
         if (trend.isGreaterThan(numOf(0))) {
           dailyForce = vol.multipliedBy(priceChange).dividedBy(range);
@@ -117,7 +117,7 @@ public final class KlingerVolumeStrategyFactory implements StrategyFactory<Kling
       // Calculate KVO as difference between short and long EMAs of daily force
       Num shortEMA = calculateEMA(index, shortPeriod, dailyForce);
       Num longEMA = calculateEMA(index, longPeriod, dailyForce);
-      
+
       return shortEMA.minus(longEMA);
     }
 
@@ -137,4 +137,4 @@ public final class KlingerVolumeStrategyFactory implements StrategyFactory<Kling
       return Math.max(shortPeriod, longPeriod);
     }
   }
-} 
+}
