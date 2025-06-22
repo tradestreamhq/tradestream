@@ -1,22 +1,19 @@
-package com.verlumen.tradestream.strategies.klingervolume;
+package com.verlumen.tradestream.strategies.vpt;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.discovery.ParamConfig;
-import com.verlumen.tradestream.strategies.KlingerVolumeParameters;
+import com.verlumen.tradestream.strategies.VptParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.util.logging.Logger;
 
-public final class KlingerVolumeParamConfig implements ParamConfig {
-  private static final Logger logger = Logger.getLogger(KlingerVolumeParamConfig.class.getName());
+public final class VptParamConfig implements ParamConfig {
+  private static final Logger logger = Logger.getLogger(VptParamConfig.class.getName());
 
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
-      ImmutableList.of(
-          ChromosomeSpec.ofInteger(5, 15), // shortPeriod
-          ChromosomeSpec.ofInteger(20, 50), // longPeriod
-          ChromosomeSpec.ofInteger(5, 15)); // signalPeriod
+      ImmutableList.of(ChromosomeSpec.ofInteger(10, 50)); // period
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
@@ -25,21 +22,14 @@ public final class KlingerVolumeParamConfig implements ParamConfig {
 
   @Override
   public Any createParameters(ImmutableList<? extends NumericChromosome<?, ?>> chromosomes) {
-    if (chromosomes.size() != 3) {
-      logger.warning("Expected 3 chromosomes but got " + chromosomes.size());
+    if (chromosomes.size() != 1) {
+      logger.warning("Expected 1 chromosome but got " + chromosomes.size());
       return getDefaultParameters();
     }
 
-    int shortPeriod = getIntegerValue(chromosomes, 0, 10);
-    int longPeriod = getIntegerValue(chromosomes, 1, 35);
-    int signalPeriod = getIntegerValue(chromosomes, 2, 10);
+    int period = getIntegerValue(chromosomes, 0, 20);
 
-    KlingerVolumeParameters parameters =
-        KlingerVolumeParameters.newBuilder()
-            .setShortPeriod(shortPeriod)
-            .setLongPeriod(longPeriod)
-            .setSignalPeriod(signalPeriod)
-            .build();
+    VptParameters parameters = VptParameters.newBuilder().setPeriod(period).build();
 
     return Any.pack(parameters);
   }
@@ -62,11 +52,6 @@ public final class KlingerVolumeParamConfig implements ParamConfig {
   }
 
   private Any getDefaultParameters() {
-    return Any.pack(
-        KlingerVolumeParameters.newBuilder()
-            .setShortPeriod(10)
-            .setLongPeriod(35)
-            .setSignalPeriod(10)
-            .build());
+    return Any.pack(VptParameters.newBuilder().setPeriod(20).build());
   }
 }

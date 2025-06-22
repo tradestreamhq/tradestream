@@ -66,6 +66,8 @@ import com.verlumen.tradestream.strategies.volumebreakout.VolumeBreakoutParamCon
 import com.verlumen.tradestream.strategies.volumebreakout.VolumeBreakoutStrategyFactory
 import com.verlumen.tradestream.strategies.volumeweightedmacd.VolumeWeightedMacdParamConfig
 import com.verlumen.tradestream.strategies.volumeweightedmacd.VolumeWeightedMacdStrategyFactory
+import com.verlumen.tradestream.strategies.vpt.VptParamConfig
+import com.verlumen.tradestream.strategies.vpt.VptStrategyFactory
 import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverParamConfig
 import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.vwapmeanreversion.VwapMeanReversionParamConfig
@@ -248,6 +250,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = PvtParamConfig(),
                 strategyFactory = PvtStrategyFactory(),
+            ),
+        StrategyType.VPT to
+            StrategySpec(
+                paramConfig = VptParamConfig(),
+                strategyFactory = VptStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
