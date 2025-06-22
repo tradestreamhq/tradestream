@@ -245,7 +245,6 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
     protected Num calculate(int index) {
       Num spanA = senkouSpanA.getValue(index);
       Num spanB = senkouSpanB.getValue(index);
-      
       // Return the higher of the two spans as the cloud boundary
       return spanA.isGreaterThan(spanB) ? spanA : spanB;
     }
