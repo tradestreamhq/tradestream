@@ -23,4 +23,4 @@ java_test(
         "//protos:strategies_java_proto",
         "//third_party/java:protobuf_java",
     ],
-) 
+)
