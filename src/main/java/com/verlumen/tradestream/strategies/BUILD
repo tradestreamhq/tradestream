@@ -53,6 +53,8 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/atrtrailingstop:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/bbandwr:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/bbandwr:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/cmfzeroline:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/cmfzeroline:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/donchianbreakout:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/donchianbreakout:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/doubleemacrossover:param_config",

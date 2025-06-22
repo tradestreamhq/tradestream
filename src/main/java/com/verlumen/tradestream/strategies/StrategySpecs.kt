@@ -10,6 +10,8 @@ import com.verlumen.tradestream.strategies.atrtrailingstop.AtrTrailingStopParamC
 import com.verlumen.tradestream.strategies.atrtrailingstop.AtrTrailingStopStrategyFactory
 import com.verlumen.tradestream.strategies.bbandwr.BbandWRParamConfig
 import com.verlumen.tradestream.strategies.bbandwr.BbandWRStrategyFactory
+import com.verlumen.tradestream.strategies.cmfzeroline.CmfZeroLineParamConfig
+import com.verlumen.tradestream.strategies.cmfzeroline.CmfZeroLineStrategyFactory
 import com.verlumen.tradestream.strategies.donchianbreakout.DonchianBreakoutParamConfig
 import com.verlumen.tradestream.strategies.donchianbreakout.DonchianBreakoutStrategyFactory
 import com.verlumen.tradestream.strategies.doubleemacrossover.DoubleEmaCrossoverParamConfig
@@ -80,6 +82,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = BbandWRParamConfig(),
                 strategyFactory = BbandWRStrategyFactory(),
+            ),
+        StrategyType.CMF_ZERO_LINE to
+            StrategySpec(
+                paramConfig = CmfZeroLineParamConfig(),
+                strategyFactory = CmfZeroLineStrategyFactory(),
             ),
         StrategyType.DONCHIAN_BREAKOUT to
             StrategySpec(
