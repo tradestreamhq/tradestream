@@ -29,20 +29,6 @@ java_library(
     ],
 )
 
-java_library(
-    name = "heikenashi_param_config",
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/strategies/heikenashi:param_config",
-    ],
-)
-
-java_library(
-    name = "heikenashi_strategy_factory",
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/strategies/heikenashi:strategy_factory",
-    ],
-)
-
 kt_jvm_library(
     name = "strategy_specs",
     srcs = [
