@@ -17,6 +17,7 @@ java_test(
     srcs = ["VolumeWeightedMacdStrategyFactoryTest.java"],
     test_class = "com.verlumen.tradestream.strategies.volumeweightedmacd.VolumeWeightedMacdStrategyFactoryTest",
     deps = [
+        "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies/volumeweightedmacd:strategy_factory",
         "//third_party/java:junit",
         "//third_party/java:protobuf_java",
