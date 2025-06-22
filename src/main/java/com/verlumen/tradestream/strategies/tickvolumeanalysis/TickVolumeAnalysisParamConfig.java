@@ -10,11 +10,11 @@ import io.jenetics.NumericChromosome;
 import java.util.logging.Logger;
 
 public final class TickVolumeAnalysisParamConfig implements ParamConfig {
-  private static final Logger logger = Logger.getLogger(TickVolumeAnalysisParamConfig.class.getName());
+  private static final Logger logger =
+      Logger.getLogger(TickVolumeAnalysisParamConfig.class.getName());
 
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
-      ImmutableList.of(
-          ChromosomeSpec.ofInteger(10, 50)); // tickPeriod
+      ImmutableList.of(ChromosomeSpec.ofInteger(10, 50)); // tickPeriod
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
@@ -31,9 +31,7 @@ public final class TickVolumeAnalysisParamConfig implements ParamConfig {
     int tickPeriod = getIntegerValue(chromosomes, 0, 20);
 
     TickVolumeAnalysisParameters parameters =
-        TickVolumeAnalysisParameters.newBuilder()
-            .setTickPeriod(tickPeriod)
-            .build();
+        TickVolumeAnalysisParameters.newBuilder().setTickPeriod(tickPeriod).build();
 
     return Any.pack(parameters);
   }
@@ -45,7 +43,8 @@ public final class TickVolumeAnalysisParamConfig implements ParamConfig {
         .collect(ImmutableList.toImmutableList());
   }
 
-  private int getIntegerValue(ImmutableList<? extends NumericChromosome<?, ?>> chromosomes, int index, int defaultValue) {
+  private int getIntegerValue(
+      ImmutableList<? extends NumericChromosome<?, ?>> chromosomes, int index, int defaultValue) {
     try {
       return ((IntegerChromosome) chromosomes.get(index)).intValue();
     } catch (Exception e) {
@@ -55,9 +54,6 @@ public final class TickVolumeAnalysisParamConfig implements ParamConfig {
   }
 
   private Any getDefaultParameters() {
-    return Any.pack(
-        TickVolumeAnalysisParameters.newBuilder()
-            .setTickPeriod(20)
-            .build());
+    return Any.pack(TickVolumeAnalysisParameters.newBuilder().setTickPeriod(20).build());
   }
-} 
+}
