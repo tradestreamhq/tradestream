@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.momentumpinball;
+package com.verlumen.tradestream.strategies.volumeweightedmacd;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -14,28 +14,28 @@ import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
 
-/** Tests for {@link MomentumPinballStrategyFactory}. */
-public class MomentumPinballStrategyFactoryTest {
+/** Tests for {@link VolumeWeightedMacdStrategyFactory}. */
+public class VolumeWeightedMacdStrategyFactoryTest {
 
-  private final MomentumPinballStrategyFactory factory = new MomentumPinballStrategyFactory();
+  private final VolumeWeightedMacdStrategyFactory factory = new VolumeWeightedMacdStrategyFactory();
 
   @Test
   public void testGetStrategyType() {
-    assertEquals(StrategyType.MOMENTUM_PINBALL, factory.getStrategyType());
+    assertEquals(StrategyType.VOLUME_WEIGHTED_MACD, factory.getStrategyType());
   }
 
   @Test
   public void testCreateStrategyWithCustomParameters() throws InvalidProtocolBufferException {
-    BarSeries barSeries = createTestBarSeries();
-
     var params =
-        com.verlumen.tradestream.strategies.MomentumPinballParameters.newBuilder()
-            .setShortPeriod(5)
-            .setLongPeriod(15)
+        com.verlumen.tradestream.strategies.VolumeWeightedMacdParameters.newBuilder()
+            .setShortPeriod(8)
+            .setLongPeriod(21)
+            .setSignalPeriod(5)
             .build();
 
+    BarSeries barSeries = createTestBarSeries();
     Any packedParams = Any.pack(params);
-    Strategy strategy = factory.createStrategy(barSeries, params);
+    Strategy strategy = factory.createStrategy(barSeries, packedParams);
 
     assertNotNull(strategy);
     assertNotNull(strategy.getEntryRule());
@@ -43,21 +43,20 @@ public class MomentumPinballStrategyFactoryTest {
   }
 
   private BarSeries createTestBarSeries() {
-    BarSeries barSeries = new BaseBarSeries();
-    ZonedDateTime now = ZonedDateTime.now();
+    var barSeries = new BaseBarSeries();
+    var now = ZonedDateTime.now();
 
-    // Add some test bars
-    for (int i = 0; i < 30; i++) {
-      double price = 100.0 + i * 0.5;
-      barSeries.addBar(
+    for (int i = 0; i < 50; i++) {
+      var bar =
           new BaseBar(
               Duration.ofMinutes(1),
               now.plusMinutes(i),
-              price,
-              price + 1.0,
-              price - 0.5,
-              price + 0.2,
-              1000.0));
+              100.0 + i,
+              100.0 + i + 1,
+              100.0 + i - 0.5,
+              100.0 + i + 0.5,
+              1000 + i * 10);
+      barSeries.addBar(bar);
     }
 
     return barSeries;

@@ -1,50 +1,54 @@
-package com.verlumen.tradestream.strategies.momentumpinball;
+package com.verlumen.tradestream.strategies.volumeweightedmacd;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.discovery.ParamConfig;
-import com.verlumen.tradestream.strategies.MomentumPinballParameters;
 import com.verlumen.tradestream.strategies.StrategyType;
+import com.verlumen.tradestream.strategies.VolumeWeightedMacdParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.util.logging.Logger;
 
 /**
- * Parameter configuration for the Momentum Pinball strategy.
+ * Parameter configuration for the Volume Weighted MACD strategy.
  *
- * <p>This strategy combines short term and long term momentum indicators to identify trading
- * opportunities. It enters when long momentum is positive and short momentum crosses above a
- * threshold, and exits when long momentum is negative and short momentum crosses below a threshold.
+ * <p>This strategy combines volume into MACD calculations by using VWAP and volume-weighted EMAs to
+ * create a more volume-sensitive MACD indicator. It enters when the MACD line crosses above the
+ * signal line, and exits when the MACD line crosses below the signal line.
  */
-public class MomentumPinballParamConfig implements ParamConfig {
+public class VolumeWeightedMacdParamConfig implements ParamConfig {
 
-  private static final Logger logger = Logger.getLogger(MomentumPinballParamConfig.class.getName());
+  private static final int DEFAULT_SHORT_PERIOD = 12;
+  private static final int DEFAULT_LONG_PERIOD = 26;
+  private static final int DEFAULT_SIGNAL_PERIOD = 9;
 
-  private static final int DEFAULT_SHORT_PERIOD = 10;
-  private static final int DEFAULT_LONG_PERIOD = 20;
+  private static final Logger logger =
+      Logger.getLogger(VolumeWeightedMacdParamConfig.class.getName());
 
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
-          ChromosomeSpec.ofInteger(2, 30), // shortPeriod
-          ChromosomeSpec.ofInteger(5, 60) // longPeriod
+          ChromosomeSpec.ofInteger(5, 20), // Short Period
+          ChromosomeSpec.ofInteger(15, 50), // Long Period
+          ChromosomeSpec.ofInteger(5, 15) // Signal Period
           );
 
   public StrategyType getStrategyType() {
-    return StrategyType.MOMENTUM_PINBALL;
+    return StrategyType.VOLUME_WEIGHTED_MACD;
   }
 
   public Any getDefaultParameters() {
     return Any.pack(
-        MomentumPinballParameters.newBuilder()
+        VolumeWeightedMacdParameters.newBuilder()
             .setShortPeriod(DEFAULT_SHORT_PERIOD)
             .setLongPeriod(DEFAULT_LONG_PERIOD)
+            .setSignalPeriod(DEFAULT_SIGNAL_PERIOD)
             .build());
   }
 
-  public MomentumPinballParameters unpack(Any parameters) throws InvalidProtocolBufferException {
-    return parameters.unpack(MomentumPinballParameters.class);
+  public VolumeWeightedMacdParameters unpack(Any parameters) throws InvalidProtocolBufferException {
+    return parameters.unpack(VolumeWeightedMacdParameters.class);
   }
 
   @Override
@@ -61,22 +65,29 @@ public class MomentumPinballParamConfig implements ParamConfig {
                 + SPECS.size()
                 + " chromosomes but got "
                 + chromosomes.size()
-                + " - Using default values for Momentum Pinball parameters");
+                + " - Using default values for Volume Weighted MACD parameters");
+
         return getDefaultParameters();
       }
+
       int shortPeriod = getIntegerValue(chromosomes, 0, DEFAULT_SHORT_PERIOD);
       int longPeriod = getIntegerValue(chromosomes, 1, DEFAULT_LONG_PERIOD);
-      MomentumPinballParameters parameters =
-          MomentumPinballParameters.newBuilder()
+      int signalPeriod = getIntegerValue(chromosomes, 2, DEFAULT_SIGNAL_PERIOD);
+
+      VolumeWeightedMacdParameters parameters =
+          VolumeWeightedMacdParameters.newBuilder()
               .setShortPeriod(shortPeriod)
               .setLongPeriod(longPeriod)
+              .setSignalPeriod(signalPeriod)
               .build();
+
       return Any.pack(parameters);
     } catch (Exception e) {
       logger.warning(
-          "Error creating Momentum Pinball parameters: "
+          "Error creating Volume Weighted MACD parameters: "
               + e.getMessage()
               + " - Using default values");
+
       return getDefaultParameters();
     }
   }
@@ -87,6 +98,7 @@ public class MomentumPinballParamConfig implements ParamConfig {
       if (index >= chromosomes.size()) {
         return defaultValue;
       }
+
       NumericChromosome<?, ?> chromosome = chromosomes.get(index);
       if (chromosome instanceof IntegerChromosome) {
         return ((IntegerChromosome) chromosome).gene().intValue();

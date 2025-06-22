@@ -30,10 +30,11 @@ public class MomentumPinballParamConfigTest {
 
   @Test
   public void testUnpack() throws InvalidProtocolBufferException {
-    var originalParams = com.verlumen.tradestream.strategies.MomentumPinballParameters.newBuilder()
-        .setShortPeriod(15)
-        .setLongPeriod(30)
-        .build();
+    var originalParams =
+        com.verlumen.tradestream.strategies.MomentumPinballParameters.newBuilder()
+            .setShortPeriod(15)
+            .setLongPeriod(30)
+            .build();
 
     Any packedParams = Any.pack(originalParams);
     var unpackedParams = paramConfig.unpack(packedParams);
@@ -41,4 +42,4 @@ public class MomentumPinballParamConfigTest {
     assertEquals(15, unpackedParams.getShortPeriod());
     assertEquals(30, unpackedParams.getLongPeriod());
   }
-} 
+}
