@@ -50,6 +50,8 @@ import com.verlumen.tradestream.strategies.tripleemacrossover.TripleEmaCrossover
 import com.verlumen.tradestream.strategies.tripleemacrossover.TripleEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopParamConfig
 import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopStrategyFactory
+import com.verlumen.tradestream.strategies.volumeweightedmacd.VolumeWeightedMacdParamConfig
+import com.verlumen.tradestream.strategies.volumeweightedmacd.VolumeWeightedMacdStrategyFactory
 import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverParamConfig
 import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverStrategyFactory
 import org.ta4j.core.BarSeries
@@ -170,6 +172,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = VolatilityStopParamConfig(),
                 strategyFactory = VolatilityStopStrategyFactory(),
+            ),
+        StrategyType.VOLUME_WEIGHTED_MACD to
+            StrategySpec(
+                paramConfig = VolumeWeightedMacdParamConfig(),
+                strategyFactory = VolumeWeightedMacdStrategyFactory(),
             ),
         StrategyType.VWAP_CROSSOVER to
             StrategySpec(
