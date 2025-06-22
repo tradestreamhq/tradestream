@@ -14,8 +14,7 @@ import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
-public final class KlingerVolumeStrategyFactory
-    implements StrategyFactory<KlingerVolumeParameters> {
+public final class KlingerVolumeStrategyFactory implements StrategyFactory<KlingerVolumeParameters> {
 
   @Override
   public KlingerVolumeParameters getDefaultParameters() {
@@ -32,40 +31,30 @@ public final class KlingerVolumeStrategyFactory
     HighPriceIndicator highPrice = new HighPriceIndicator(series);
     LowPriceIndicator lowPrice = new LowPriceIndicator(series);
     VolumeIndicator volume = new VolumeIndicator(series);
-
+    
     // Custom Klinger Volume Oscillator
-    KlingerVolumeOscillator kvo =
-        new KlingerVolumeOscillator(
-            closePrice,
-            highPrice,
-            lowPrice,
-            volume,
-            parameters.getShortPeriod(),
-            parameters.getLongPeriod());
-
+    KlingerVolumeOscillator kvo = new KlingerVolumeOscillator(closePrice, highPrice, lowPrice, volume, parameters.getShortPeriod(), parameters.getLongPeriod());
+    
     // Signal line (EMA of KVO)
     EMAIndicator signalLine = new EMAIndicator(kvo, parameters.getSignalPeriod());
-
+    
     // Entry rules: KVO crosses above signal line (bullish) or below signal line (bearish)
-    var entryRule =
+    var entryRule = 
         new CrossedUpIndicatorRule(kvo, signalLine)
             .or(new CrossedDownIndicatorRule(kvo, signalLine));
-
+    
     // Exit rules: KVO crosses back to signal line in the opposite direction
-    var exitRule =
+    var exitRule = 
         new CrossedDownIndicatorRule(kvo, signalLine)
             .or(new CrossedUpIndicatorRule(kvo, signalLine));
-
+    
     return new org.ta4j.core.BaseStrategy(
-        "KLINGER_VOLUME",
-        entryRule,
-        exitRule,
-        Math.max(parameters.getLongPeriod(), parameters.getSignalPeriod()));
+        "KLINGER_VOLUME", entryRule, exitRule, Math.max(parameters.getLongPeriod(), parameters.getSignalPeriod()));
   }
 
   /**
-   * Custom Klinger Volume Oscillator indicator. The KVO is a volume-based indicator that combines
-   * price and volume to identify trend changes.
+   * Custom Klinger Volume Oscillator indicator.
+   * The KVO is a volume-based indicator that combines price and volume to identify trend changes.
    */
   private static class KlingerVolumeOscillator extends CachedIndicator<Num> {
     private final ClosePriceIndicator closePrice;
@@ -75,13 +64,9 @@ public final class KlingerVolumeStrategyFactory
     private final int shortPeriod;
     private final int longPeriod;
 
-    public KlingerVolumeOscillator(
-        ClosePriceIndicator closePrice,
-        HighPriceIndicator highPrice,
-        LowPriceIndicator lowPrice,
-        VolumeIndicator volume,
-        int shortPeriod,
-        int longPeriod) {
+    public KlingerVolumeOscillator(ClosePriceIndicator closePrice, HighPriceIndicator highPrice, 
+                                  LowPriceIndicator lowPrice, VolumeIndicator volume, 
+                                  int shortPeriod, int longPeriod) {
       super(closePrice);
       this.closePrice = closePrice;
       this.highPrice = highPrice;
@@ -140,10 +125,10 @@ public final class KlingerVolumeStrategyFactory
       if (index < period) {
         return value;
       }
-
+      
       Num multiplier = numOf(2.0 / (period + 1));
       Num prevEMA = getValue(index - 1);
-
+      
       return value.multipliedBy(multiplier).plus(prevEMA.multipliedBy(numOf(1).minus(multiplier)));
     }
 
@@ -152,4 +137,4 @@ public final class KlingerVolumeStrategyFactory
       return Math.max(shortPeriod, longPeriod);
     }
   }
-}
+} 
