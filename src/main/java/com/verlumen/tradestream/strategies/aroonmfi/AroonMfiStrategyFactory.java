@@ -77,7 +77,7 @@ class AroonUpIndicator extends CachedIndicator<Num> {
   @Override
   protected Num calculate(int index) {
     if (index < timeFrame - 1) {
-      return numOf(0);
+      return DecimalNum.valueOf(0);
     }
 
     int highestIndex = index - timeFrame + 1;
@@ -95,7 +95,7 @@ class AroonUpIndicator extends CachedIndicator<Num> {
     // Calculate periods since highest high
     int periodsSinceHigh = index - highestIndex;
     // Aroon Up = ((timeFrame - periods since highest high) / timeFrame) * 100
-    return numOf(timeFrame - periodsSinceHigh).dividedBy(DecimalNum.valueOf(timeFrame)).multipliedBy(DecimalNum.valueOf(100));
+    return DecimalNum.valueOf(timeFrame - periodsSinceHigh).dividedBy(DecimalNum.valueOf(timeFrame)).multipliedBy(DecimalNum.valueOf(100));
   }
 
   @Override
@@ -123,7 +123,7 @@ class AroonDownIndicator extends CachedIndicator<Num> {
   @Override
   protected Num calculate(int index) {
     if (index < timeFrame - 1) {
-      return numOf(0);
+      return DecimalNum.valueOf(0);
     }
 
     int lowestIndex = index - timeFrame + 1;
@@ -141,7 +141,7 @@ class AroonDownIndicator extends CachedIndicator<Num> {
     // Calculate periods since lowest low
     int periodsSinceLow = index - lowestIndex;
     // Aroon Down = ((timeFrame - periods since lowest low) / timeFrame) * 100
-    return numOf(timeFrame - periodsSinceLow).dividedBy(DecimalNum.valueOf(timeFrame)).multipliedBy(DecimalNum.valueOf(100));
+    return DecimalNum.valueOf(timeFrame - periodsSinceLow).dividedBy(DecimalNum.valueOf(timeFrame)).multipliedBy(DecimalNum.valueOf(100));
   }
 
   @Override
@@ -171,11 +171,11 @@ class MFIIndicator extends CachedIndicator<Num> {
   @Override
   protected Num calculate(int index) {
     if (index < timeFrame) {
-      return numOf(50); // Default neutral value for insufficient data
+      return DecimalNum.valueOf(50); // Default neutral value for insufficient data
     }
 
-    Num positiveFlow = numOf(0);
-    Num negativeFlow = numOf(0);
+    Num positiveFlow = DecimalNum.valueOf(0);
+    Num negativeFlow = DecimalNum.valueOf(0);
 
     // Calculate money flow for the specified time frame
     for (int i = index - timeFrame + 1; i <= index; i++) {
@@ -195,17 +195,17 @@ class MFIIndicator extends CachedIndicator<Num> {
 
     // Avoid division by zero
     if (negativeFlow.isZero()) {
-      return numOf(100);
+      return DecimalNum.valueOf(100);
     }
     if (positiveFlow.isZero()) {
-      return numOf(0);
+      return DecimalNum.valueOf(0);
     }
 
     // Calculate Money Flow Ratio
     Num moneyFlowRatio = positiveFlow.dividedBy(negativeFlow);
 
     // Calculate Money Flow Index
-    Num mfi = numOf(100).minus(DecimalNum.valueOf(100).dividedBy(DecimalNum.valueOf(1).plus(moneyFlowRatio)));
+    Num mfi = DecimalNum.valueOf(100).minus(DecimalNum.valueOf(100).dividedBy(DecimalNum.valueOf(1).plus(moneyFlowRatio)));
 
     return mfi;
   }
