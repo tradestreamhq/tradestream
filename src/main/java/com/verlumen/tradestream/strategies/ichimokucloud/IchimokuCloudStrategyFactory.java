@@ -255,4 +255,4 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
       return Math.max(senkouSpanA.getUnstableBars(), senkouSpanB.getUnstableBars());
     }
   }
-} 
+}
