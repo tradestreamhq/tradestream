@@ -24,6 +24,8 @@ import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiParamConfig
 import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiStrategyFactory
 import com.verlumen.tradestream.strategies.ichimokucloud.IchimokuCloudParamConfig
 import com.verlumen.tradestream.strategies.ichimokucloud.IchimokuCloudStrategyFactory
+import com.verlumen.tradestream.strategies.kstoscillator.KstOscillatorParamConfig
+import com.verlumen.tradestream.strategies.kstoscillator.KstOscillatorStrategyFactory
 import com.verlumen.tradestream.strategies.macdcrossover.MacdCrossoverParamConfig
 import com.verlumen.tradestream.strategies.macdcrossover.MacdCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.momentumsmacrossover.MomentumSmaCrossoverParamConfig
@@ -164,6 +166,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = VwapCrossoverParamConfig(),
                 strategyFactory = VwapCrossoverStrategyFactory(),
+            ),
+        StrategyType.KST_OSCILLATOR to
+            StrategySpec(
+                paramConfig = KstOscillatorParamConfig(),
+                strategyFactory = KstOscillatorStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
