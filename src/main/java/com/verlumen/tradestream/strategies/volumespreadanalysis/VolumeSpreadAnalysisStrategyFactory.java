@@ -56,8 +56,11 @@ public final class VolumeSpreadAnalysisStrategyFactory implements StrategyFactor
     private final LowPriceIndicator lowPrice;
     private final VolumeIndicator volume;
 
-    public VolumeSpreadAnalysisIndicator(ClosePriceIndicator closePrice, HighPriceIndicator highPrice, 
-                                       LowPriceIndicator lowPrice, VolumeIndicator volume) {
+    public VolumeSpreadAnalysisIndicator(
+        ClosePriceIndicator closePrice,
+        HighPriceIndicator highPrice,
+        LowPriceIndicator lowPrice,
+        VolumeIndicator volume) {
       super(closePrice);
       this.closePrice = closePrice;
       this.highPrice = highPrice;
