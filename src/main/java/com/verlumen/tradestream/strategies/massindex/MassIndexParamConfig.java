@@ -13,8 +13,8 @@ import java.util.logging.Logger;
  * Configuration for Mass Index strategy parameters.
  *
  * <p>The Mass Index is designed to identify trend reversals based on changes in the High-Low range.
- * It uses the High-Low range, EMA of the High-Low range, Double EMA of the High-Low range,
- * and sums the ratio of the EMA to the Double EMA.
+ * It uses the High-Low range, EMA of the High-Low range, Double EMA of the High-Low range, and sums
+ * the ratio of the EMA to the Double EMA.
  */
 public final class MassIndexParamConfig implements ParamConfig {
 
@@ -23,8 +23,8 @@ public final class MassIndexParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
           ChromosomeSpec.ofInteger(5, 50), // EMA Period
-          ChromosomeSpec.ofInteger(5, 25)  // Sum Period
-      );
+          ChromosomeSpec.ofInteger(5, 25) // Sum Period
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
@@ -42,32 +42,21 @@ public final class MassIndexParamConfig implements ParamConfig {
                 + chromosomes.size()
                 + " - Using default values for Mass Index parameters");
 
-        return Any.pack(
-            MassIndexParameters.newBuilder()
-                .setEmaPeriod(9)
-                .setSumPeriod(25)
-                .build());
+        return Any.pack(MassIndexParameters.newBuilder().setEmaPeriod(9).setSumPeriod(25).build());
       }
 
       int emaPeriod = getIntegerValue(chromosomes, 0, 9);
       int sumPeriod = getIntegerValue(chromosomes, 1, 25);
 
       MassIndexParameters parameters =
-          MassIndexParameters.newBuilder()
-              .setEmaPeriod(emaPeriod)
-              .setSumPeriod(sumPeriod)
-              .build();
+          MassIndexParameters.newBuilder().setEmaPeriod(emaPeriod).setSumPeriod(sumPeriod).build();
 
       return Any.pack(parameters);
     } catch (Exception e) {
       logger.warning(
           "Error creating Mass Index parameters: " + e.getMessage() + " - Using default values");
 
-      return Any.pack(
-          MassIndexParameters.newBuilder()
-              .setEmaPeriod(9)
-              .setSumPeriod(25)
-              .build());
+      return Any.pack(MassIndexParameters.newBuilder().setEmaPeriod(9).setSumPeriod(25).build());
     }
   }
 
@@ -95,4 +84,4 @@ public final class MassIndexParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-} 
+}

@@ -94,4 +94,4 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/vwapcrossover:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/vwapcrossover:strategy_factory",
     ],
-) 
+)

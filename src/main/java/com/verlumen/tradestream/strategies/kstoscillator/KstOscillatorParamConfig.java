@@ -12,8 +12,8 @@ import java.util.logging.Logger;
 /**
  * Configuration for KST Oscillator strategy parameters.
  *
- * <p>The KST Oscillator uses different Rate of Change (ROC) periods with different smoothing.
- * It combines four ROC indicators with different periods and smoothing to create a comprehensive
+ * <p>The KST Oscillator uses different Rate of Change (ROC) periods with different smoothing. It
+ * combines four ROC indicators with different periods and smoothing to create a comprehensive
  * momentum indicator.
  */
 public final class KstOscillatorParamConfig implements ParamConfig {
@@ -22,11 +22,11 @@ public final class KstOscillatorParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
           // Integer parameters for RMA periods
-          ChromosomeSpec.ofInteger(5, 20),  // RMA1 Period
+          ChromosomeSpec.ofInteger(5, 20), // RMA1 Period
           ChromosomeSpec.ofInteger(10, 25), // RMA2 Period
           ChromosomeSpec.ofInteger(15, 30), // RMA3 Period
           ChromosomeSpec.ofInteger(20, 40), // RMA4 Period
-          ChromosomeSpec.ofInteger(5, 15)   // Signal Period
+          ChromosomeSpec.ofInteger(5, 15) // Signal Period
           );
 
   @Override
@@ -76,7 +76,9 @@ public final class KstOscillatorParamConfig implements ParamConfig {
       return Any.pack(parameters);
     } catch (Exception e) {
       logger.warning(
-          "Error creating KST Oscillator parameters: " + e.getMessage() + " - Using default values");
+          "Error creating KST Oscillator parameters: "
+              + e.getMessage()
+              + " - Using default values");
 
       // Create default parameters on any error
       return Any.pack(
@@ -116,4 +118,4 @@ public final class KstOscillatorParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-} 
+}

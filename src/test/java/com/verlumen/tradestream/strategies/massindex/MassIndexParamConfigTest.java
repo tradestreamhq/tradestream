@@ -30,4 +30,4 @@ public final class MassIndexParamConfigTest {
     assertThat(params.getEmaPeriod()).isGreaterThan(0);
     assertThat(params.getSumPeriod()).isGreaterThan(0);
   }
-} 
+}

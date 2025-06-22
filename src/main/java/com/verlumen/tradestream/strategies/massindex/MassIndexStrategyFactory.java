@@ -24,10 +24,7 @@ public final class MassIndexStrategyFactory implements StrategyFactory<MassIndex
 
   @Override
   public MassIndexParameters getDefaultParameters() {
-    return MassIndexParameters.newBuilder()
-        .setEmaPeriod(9)
-        .setSumPeriod(25)
-        .build();
+    return MassIndexParameters.newBuilder().setEmaPeriod(9).setSumPeriod(25).build();
   }
 
   @Override
@@ -39,18 +36,18 @@ public final class MassIndexStrategyFactory implements StrategyFactory<MassIndex
     MassIndexIndicator massIndex = new MassIndexIndicator(barSeries, parameters);
 
     // Entry rule: Mass Index rises above 27 and then falls below 26.5 (reversal bulge)
-    Rule entryRule = new CrossedDownIndicatorRule(massIndex, new ConstantIndicator(barSeries, 26.5));
+    Rule entryRule =
+        new CrossedDownIndicatorRule(massIndex, new ConstantIndicator(barSeries, 26.5));
 
     // Exit rule: Mass Index rises above 27 again or falls below 25
-    Rule exitRule = new CrossedUpIndicatorRule(massIndex, new ConstantIndicator(barSeries, 27))
-        .or(new CrossedDownIndicatorRule(massIndex, new ConstantIndicator(barSeries, 25)));
+    Rule exitRule =
+        new CrossedUpIndicatorRule(massIndex, new ConstantIndicator(barSeries, 27))
+            .or(new CrossedDownIndicatorRule(massIndex, new ConstantIndicator(barSeries, 25)));
 
     return new BaseStrategy(entryRule, exitRule);
   }
 
-  /**
-   * Custom High-Low Range indicator.
-   */
+  /** Custom High-Low Range indicator. */
   private static class HighLowRangeIndicator extends CachedIndicator<org.ta4j.core.num.Num> {
 
     public HighLowRangeIndicator(BarSeries barSeries) {
@@ -72,11 +69,8 @@ public final class MassIndexStrategyFactory implements StrategyFactory<MassIndex
   /**
    * Custom Mass Index indicator implementation.
    *
-   * <p>The Mass Index is calculated as:
-   * 1. High-Low range
-   * 2. EMA of High-Low range
-   * 3. Double EMA of High-Low range
-   * 4. Sum of EMA/Double EMA ratios over the specified period
+   * <p>The Mass Index is calculated as: 1. High-Low range 2. EMA of High-Low range 3. Double EMA of
+   * High-Low range 4. Sum of EMA/Double EMA ratios over the specified period
    */
   private static class MassIndexIndicator extends CachedIndicator<org.ta4j.core.num.Num> {
 
@@ -92,7 +86,7 @@ public final class MassIndexStrategyFactory implements StrategyFactory<MassIndex
       this.ema = new EMAIndicator(highLow, parameters.getEmaPeriod());
       this.doubleEma = new EMAIndicator(ema, parameters.getEmaPeriod());
       this.sumPeriod = parameters.getSumPeriod();
-      
+
       // Create a ratio indicator and then sum it
       EmaRatioIndicator ratioIndicator = new EmaRatioIndicator(ema, doubleEma);
       this.sumIndicator = new SMAIndicator(ratioIndicator, sumPeriod);
@@ -112,9 +106,7 @@ public final class MassIndexStrategyFactory implements StrategyFactory<MassIndex
     }
   }
 
-  /**
-   * Indicator that calculates the ratio of EMA to Double EMA.
-   */
+  /** Indicator that calculates the ratio of EMA to Double EMA. */
   private static class EmaRatioIndicator extends CachedIndicator<org.ta4j.core.num.Num> {
 
     private final EMAIndicator ema;
@@ -130,11 +122,11 @@ public final class MassIndexStrategyFactory implements StrategyFactory<MassIndex
     protected org.ta4j.core.num.Num calculate(int index) {
       org.ta4j.core.num.Num emaValue = ema.getValue(index);
       org.ta4j.core.num.Num doubleEmaValue = doubleEma.getValue(index);
-      
+
       if (doubleEmaValue.isZero()) {
         return numOf(0);
       }
-      
+
       return emaValue.dividedBy(doubleEmaValue);
     }
 
@@ -144,9 +136,7 @@ public final class MassIndexStrategyFactory implements StrategyFactory<MassIndex
     }
   }
 
-  /**
-   * Constant indicator for comparison.
-   */
+  /** Constant indicator for comparison. */
   private static class ConstantIndicator extends CachedIndicator<org.ta4j.core.num.Num> {
 
     private final org.ta4j.core.num.Num value;
@@ -166,4 +156,4 @@ public final class MassIndexStrategyFactory implements StrategyFactory<MassIndex
       return 0;
     }
   }
-} 
+}

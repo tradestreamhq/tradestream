@@ -24,7 +24,8 @@ public final class KstOscillatorParamConfigTest {
   @Test
   public void createParameters_withDefaultChromosomes_returnsValidAny() throws Exception {
     List<? extends NumericChromosome<?, ?>> chromosomes = config.initialChromosomes();
-    Any packed = config.createParameters(com.google.common.collect.ImmutableList.copyOf(chromosomes));
+    Any packed =
+        config.createParameters(com.google.common.collect.ImmutableList.copyOf(chromosomes));
     assertThat(packed.is(KstOscillatorParameters.class)).isTrue();
     KstOscillatorParameters params = packed.unpack(KstOscillatorParameters.class);
     assertThat(params.getRma1Period()).isGreaterThan(0);
@@ -33,4 +34,4 @@ public final class KstOscillatorParamConfigTest {
     assertThat(params.getRma4Period()).isGreaterThan(0);
     assertThat(params.getSignalPeriod()).isGreaterThan(0);
   }
-} 
+}
