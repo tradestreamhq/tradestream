@@ -3,6 +3,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 java_library(
     name = "param_config",
     srcs = ["StochasticEmaParamConfig.java"],
+    visibility = ["//visibility:public"],
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
@@ -11,12 +12,12 @@ java_library(
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
     ],
-    visibility = ["//visibility:public"],
 )
 
 java_library(
     name = "strategy_factory",
     srcs = ["StochasticEmaStrategyFactory.java"],
+    visibility = ["//visibility:public"],
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
@@ -24,5 +25,4 @@ java_library(
         "//third_party/java:protobuf_java",
         "//third_party/java:ta4j_core",
     ],
-    visibility = ["//visibility:public"],
-) 
+)

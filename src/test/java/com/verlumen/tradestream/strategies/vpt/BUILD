@@ -3,9 +3,9 @@ java_test(
     srcs = ["VptParamConfigTest.java"],
     test_class = "com.verlumen.tradestream.strategies.vpt.VptParamConfigTest",
     deps = [
-        "//src/main/java/com/verlumen/tradestream/strategies/vpt:param_config",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
+        "//src/main/java/com/verlumen/tradestream/strategies/vpt:param_config",
         "//third_party/java:guava",
         "//third_party/java:jenetics",
         "//third_party/java:junit",
@@ -19,8 +19,8 @@ java_test(
     srcs = ["VptStrategyFactoryTest.java"],
     test_class = "com.verlumen.tradestream.strategies.vpt.VptStrategyFactoryTest",
     deps = [
-        "//src/main/java/com/verlumen/tradestream/strategies/vpt:strategy_factory",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies/vpt:strategy_factory",
         "//third_party/java:guava",
         "//third_party/java:junit",
         "//third_party/java:protobuf_java",
