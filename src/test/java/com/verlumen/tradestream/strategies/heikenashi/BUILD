@@ -26,5 +26,6 @@ java_test(
         "//third_party/java:protobuf_java",
         "//third_party/java:truth",
         "//third_party/java:ta4j_core",
+        "//third_party/java:truth",
     ],
 )
