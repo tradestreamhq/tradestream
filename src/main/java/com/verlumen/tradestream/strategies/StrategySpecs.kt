@@ -64,6 +64,8 @@ import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopParamCon
 import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopStrategyFactory
 import com.verlumen.tradestream.strategies.volumebreakout.VolumeBreakoutParamConfig
 import com.verlumen.tradestream.strategies.volumebreakout.VolumeBreakoutStrategyFactory
+import com.verlumen.tradestream.strategies.volumespreadanalysis.VolumeSpreadAnalysisParamConfig
+import com.verlumen.tradestream.strategies.volumespreadanalysis.VolumeSpreadAnalysisStrategyFactory
 import com.verlumen.tradestream.strategies.volumeweightedmacd.VolumeWeightedMacdParamConfig
 import com.verlumen.tradestream.strategies.volumeweightedmacd.VolumeWeightedMacdStrategyFactory
 import com.verlumen.tradestream.strategies.vpt.VptParamConfig
@@ -72,8 +74,6 @@ import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverParamConfi
 import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.vwapmeanreversion.VwapMeanReversionParamConfig
 import com.verlumen.tradestream.strategies.vwapmeanreversion.VwapMeanReversionStrategyFactory
-import com.verlumen.tradestream.strategies.volumespreadanalysis.VolumeSpreadAnalysisParamConfig
-import com.verlumen.tradestream.strategies.volumespreadanalysis.VolumeSpreadAnalysisStrategyFactory
 import org.ta4j.core.BarSeries
 import org.ta4j.core.Strategy
 

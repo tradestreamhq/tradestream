@@ -14,8 +14,7 @@ public final class VolumeSpreadAnalysisParamConfig implements ParamConfig {
       Logger.getLogger(VolumeSpreadAnalysisParamConfig.class.getName());
 
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
-      ImmutableList.of(
-          ChromosomeSpec.ofInteger(10, 50)); // volumePeriod
+      ImmutableList.of(ChromosomeSpec.ofInteger(10, 50)); // volumePeriod
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
@@ -44,7 +43,8 @@ public final class VolumeSpreadAnalysisParamConfig implements ParamConfig {
         .collect(ImmutableList.toImmutableList());
   }
 
-  private int getIntegerValue(ImmutableList<? extends NumericChromosome<?, ?>> chromosomes, int index, int defaultValue) {
+  private int getIntegerValue(
+      ImmutableList<? extends NumericChromosome<?, ?>> chromosomes, int index, int defaultValue) {
     try {
       return ((IntegerChromosome) chromosomes.get(index)).intValue();
     } catch (Exception e) {
@@ -54,9 +54,6 @@ public final class VolumeSpreadAnalysisParamConfig implements ParamConfig {
   }
 
   private Any getDefaultParameters() {
-    return Any.pack(
-        VolumeSpreadAnalysisParameters.newBuilder()
-            .setVolumePeriod(20)
-            .build());
+    return Any.pack(VolumeSpreadAnalysisParameters.newBuilder().setVolumePeriod(20).build());
   }
-} 
+}

@@ -13,10 +13,9 @@ import org.ta4j.core.indicators.helpers.VolumeIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
-import org.ta4j.core.rules.OverIndicatorRule;
-import org.ta4j.core.rules.UnderIndicatorRule;
 
-public final class VolumeSpreadAnalysisStrategyFactory implements StrategyFactory<VolumeSpreadAnalysisParameters> {
+public final class VolumeSpreadAnalysisStrategyFactory
+    implements StrategyFactory<VolumeSpreadAnalysisParameters> {
 
   @Override
   public VolumeSpreadAnalysisParameters getDefaultParameters() {
@@ -29,19 +28,20 @@ public final class VolumeSpreadAnalysisStrategyFactory implements StrategyFactor
     HighPriceIndicator highPrice = new HighPriceIndicator(series);
     LowPriceIndicator lowPrice = new LowPriceIndicator(series);
     VolumeIndicator volume = new VolumeIndicator(series);
-    
+
     // Calculate Volume Spread Analysis (VSA) indicator
-    VolumeSpreadAnalysisIndicator vsa = new VolumeSpreadAnalysisIndicator(closePrice, highPrice, lowPrice, volume);
-    
+    VolumeSpreadAnalysisIndicator vsa =
+        new VolumeSpreadAnalysisIndicator(closePrice, highPrice, lowPrice, volume);
+
     // Calculate SMA of VSA for signal line
     SMAIndicator vsaSMA = new SMAIndicator(vsa, parameters.getVolumePeriod());
-    
+
     // Entry rules: VSA crosses above its SMA (bullish volume spread)
     var entryRule = new CrossedUpIndicatorRule(vsa, vsaSMA);
-    
+
     // Exit rules: VSA crosses below its SMA (bearish volume spread)
     var exitRule = new CrossedDownIndicatorRule(vsa, vsaSMA);
-    
+
     return new org.ta4j.core.BaseStrategy(
         "VolumeSpreadAnalysis", entryRule, exitRule, parameters.getVolumePeriod());
   }
