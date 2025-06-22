@@ -5,6 +5,7 @@ java_test(
     srcs = ["VolumeWeightedMacdParamConfigTest.java"],
     test_class = "com.verlumen.tradestream.strategies.volumeweightedmacd.VolumeWeightedMacdParamConfigTest",
     deps = [
+        "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies/volumeweightedmacd:param_config",
         "//third_party/java:junit",
         "//protos:strategies_java_proto",
