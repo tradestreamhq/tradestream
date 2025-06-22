@@ -137,4 +137,4 @@ public final class KlingerVolumeStrategyFactory implements StrategyFactory<Kling
       return Math.max(shortPeriod, longPeriod);
     }
   }
-} 
+}
