@@ -1,0 +1,79 @@
+# @rules
+
+# =========================================
+# 1. High-Level Project Overview
+# =========================================
+# This is the TradeStream project, an algorithmic trading platform.
+# The core technologies are Java/Kotlin for backend services, Python for data services, Bazel for the build system, and Kubernetes/Helm for deployment.
+# The system relies heavily on real-time data processing using Apache Beam on Flink, with Kafka as the message broker.
+# Data persistence is handled by InfluxDB for time-series data and PostgreSQL for relational data. Redis is used for caching.
+
+# =========================================
+# 2. Build System: Bazel
+# =========================================
+# This project uses Bazel version 7.4.0. All builds, tests, and service execution must be done through Bazel.
+# - To build the entire project: `bazel build //...`
+# - To run all tests: `bazel test //...`
+# - To run unit tests with coverage: `bazel coverage //...` 
+# - To run a specific service, use `bazel run //path/to/service:target`. For example, to push the main data pipeline image: `bazel run //src/main/java/com/verlumen/tradestream/pipeline:push_image` 
+# - We use BuildBuddy for remote caching and build analysis. Ensure your configuration in `.bazelrc` points to the correct backend.
+
+# =========================================
+# 3. Language-Specific Rules
+# =========================================
+
+# -----------------------------------------
+# 3.1. Java / Kotlin
+# -----------------------------------------
+# - The project uses Java 17  and Kotlin 1.9.
+# - All Java code MUST be formatted using `google-java-format`. A CI check enforces this in `format-java-code.yaml`.
+# - All Kotlin code MUST be formatted using `ktlint`. A CI check enforces this in `format-kotlin-code.yaml`.
+# - Dependency injection is managed via Guice. All major components (services, factories, etc.) should be bound in their respective Guice modules (e.g., `DiscoveryModule.kt` , `BacktestingModule.kt` ).
+# - For financial calculations and trading strategy implementation, use the `ta4j-core` library.
+# - The primary data processing framework is Apache Beam, running on the FlinkRunner.
+# - For logging, use `Flogger`.
+
+# -----------------------------------------
+# 3.2. Python
+# -----------------------------------------
+# - Python services use version 3.13.
+# - All Python code MUST be formatted with the `black` formatter.
+# - Python dependencies are managed via `pip-compile` from `requirements.in`. To update dependencies, run `bazel run //:requirements.update` , which will regenerate `requirements_lock.txt`.
+# - Key Python libraries include `ccxt` for cryptocurrency exchange interaction, `influxdb-client` for database access, and `redis` for caching.
+# - The `candle_ingestor` service is a key Python component responsible for fetching and storing OHLCV data.
+
+# -----------------------------------------
+# 3.3. Starlark (Bazel files)
+# -----------------------------------------
+# - All Bazel files (`BUILD`, `.bzl`, `WORKSPACE`, `MODULE.bazel`) MUST be formatted using `buildifier`.
+# - When adding new dependencies, update the `MODULE.bazel` file for both `bazel_dep` and `pip.parse` or `maven.install` sections.
+
+# -----------------------------------------
+# 3.4. YAML
+# -----------------------------------------
+# - All YAML files, primarily for GitHub Actions workflows and Helm charts, MUST be formatted with `prettier`.
+# - When adding a new service, ensure it is included in the `ci.yaml` workflow for build, image loading, and deployment testing.
+# - New container images for release should be added to the `release.yaml` workflow.
+
+# =========================================
+# 4. Data Serialization: Protocol Buffers
+# =========================================
+# - Data contracts between services are defined using Protocol Buffers (`.proto` files) located in the `/protos` directory.
+# - When adding or modifying `.proto` files, you must update the `protos/BUILD` file to include the necessary `proto_library`, `java_proto_library`, and `py_proto_library` targets.
+# - Strategy parameters are defined as individual messages and packed into a `google.protobuf.Any` field within the `Strategy` message. See `strategies.proto` for examples.
+
+# =========================================
+# 5. Deployment: Kubernetes & Helm
+# =========================================
+# - The entire application is deployed to Kubernetes using the Helm chart located in `/charts/tradestream`.
+# - Configuration for services is managed via `values.yaml`. When adding a new service, create a corresponding section in `values.yaml` and a template in `charts/tradestream/templates/`.
+# - The CI pipeline includes a job to test the Helm chart installation on a minikube cluster. Any changes must pass this check.
+
+# =========================================
+# 6. Coding Standards & Best Practices
+# =========================================
+# - Follow the existing formatting rules enforced by the CI pipelines for all languages.
+# - All new features should have corresponding unit tests. Refer to existing `*_test.py`, `*Test.java`, and `*Test.kt` files for examples.
+# - When creating new trading strategies, you must define a `StrategyFactory` and a `ParamConfig` and register them in `StrategySpecs.kt`.
+# - Avoid hardcoding configuration values. Use flags or environment variables, with defaults defined in the respective `main` files or Helm charts.
+# - Do not use deprecated libraries or patterns. For example, the `tiingo_client` has been replaced by the `ccxt_client` for candle data ingestion.
