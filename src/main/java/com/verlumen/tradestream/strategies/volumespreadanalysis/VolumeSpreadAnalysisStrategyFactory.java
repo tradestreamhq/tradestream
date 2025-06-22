@@ -88,7 +88,6 @@ public final class VolumeSpreadAnalysisStrategyFactory implements StrategyFactor
       
       // Calculate volume ratio
       Num volumeRatio = currentVolume.dividedBy(previousVolume);
-      
       // VSA score: combines volume, spread, and closing position
       // Higher values indicate bullish sentiment, lower values indicate bearish sentiment
       Num vsaScore = volumeRatio.multipliedBy(closePosition).multipliedBy(priceSpread);
