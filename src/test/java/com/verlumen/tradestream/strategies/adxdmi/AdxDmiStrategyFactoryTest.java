@@ -11,6 +11,7 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.num.DecimalNum;
 
 public class AdxDmiStrategyFactoryTest {
   private AdxDmiStrategyFactory factory;
