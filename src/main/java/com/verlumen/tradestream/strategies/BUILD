@@ -45,6 +45,8 @@ kt_jvm_library(
         "//third_party/java:ta4j_core",
 
         # Implementations for each strategy included in the map
+        "//src/main/java/com/verlumen/tradestream/strategies/adxdmi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/adxdmi:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/atrcci:param_config",
@@ -69,6 +71,8 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/ichimokucloud:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/kstoscillator:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/kstoscillator:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/linearregressionchannels:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/linearregressionchannels:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/macdcrossover:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/macdcrossover:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/massindex:param_config",
