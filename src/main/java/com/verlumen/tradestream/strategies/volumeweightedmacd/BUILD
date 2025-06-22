@@ -17,7 +17,6 @@ java_library(
 java_library(
     name = "strategy_factory",
     srcs = [
-        "VolumeWeightedMacdStrategyFactory.java",
         "VolumeWeightedMacdLineIndicator.java",
         "VolumeWeightedMacdStrategyFactory.java",
     ],
