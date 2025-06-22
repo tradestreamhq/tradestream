@@ -83,6 +83,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
                 paramConfig = BbandWRParamConfig(),
                 strategyFactory = BbandWRStrategyFactory(),
             ),
+        StrategyType.CHAIKIN_OSCILLATOR to
+            StrategySpec(
+                paramConfig = ChaikinOscillatorParamConfig(),
+                strategyFactory = ChaikinOscillatorStrategyFactory(),
+            ),
         StrategyType.CMF_ZERO_LINE to
             StrategySpec(
                 paramConfig = CmfZeroLineParamConfig(),
@@ -157,11 +162,6 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = VwapCrossoverParamConfig(),
                 strategyFactory = VwapCrossoverStrategyFactory(),
-            ),
-        StrategyType.CHAIKIN_OSCILLATOR to
-            StrategySpec(
-                paramConfig = ChaikinOscillatorParamConfig(),
-                strategyFactory = ChaikinOscillatorStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
