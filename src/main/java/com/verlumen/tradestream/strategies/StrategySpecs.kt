@@ -30,6 +30,8 @@ import com.verlumen.tradestream.strategies.macdcrossover.MacdCrossoverParamConfi
 import com.verlumen.tradestream.strategies.macdcrossover.MacdCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.massindex.MassIndexParamConfig
 import com.verlumen.tradestream.strategies.massindex.MassIndexStrategyFactory
+import com.verlumen.tradestream.strategies.momentumpinball.MomentumPinballParamConfig
+import com.verlumen.tradestream.strategies.momentumpinball.MomentumPinballStrategyFactory
 import com.verlumen.tradestream.strategies.momentumsmacrossover.MomentumSmaCrossoverParamConfig
 import com.verlumen.tradestream.strategies.momentumsmacrossover.MomentumSmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarParamConfig
@@ -123,6 +125,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = MacdCrossoverParamConfig(),
                 strategyFactory = MacdCrossoverStrategyFactory(),
+            ),
+        StrategyType.MOMENTUM_PINBALL to
+            StrategySpec(
+                paramConfig = MomentumPinballParamConfig(),
+                strategyFactory = MomentumPinballStrategyFactory(),
             ),
         StrategyType.MOMENTUM_SMA_CROSSOVER to
             StrategySpec(
