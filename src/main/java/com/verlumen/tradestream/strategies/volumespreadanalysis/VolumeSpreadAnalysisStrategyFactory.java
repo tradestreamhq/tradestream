@@ -85,7 +85,6 @@ public final class VolumeSpreadAnalysisStrategyFactory implements StrategyFactor
       // Calculate closing position (where close is within the range)
       Num range = currentHigh.minus(currentLow);
       Num closePosition = currentClose.minus(currentLow).dividedBy(range);
-      
       // Calculate volume ratio
       Num volumeRatio = currentVolume.dividedBy(previousVolume);
       // VSA score: combines volume, spread, and closing position
