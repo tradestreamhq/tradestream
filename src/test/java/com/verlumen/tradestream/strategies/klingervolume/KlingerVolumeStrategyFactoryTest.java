@@ -87,4 +87,4 @@ public final class KlingerVolumeStrategyFactoryTest {
     
     return new org.ta4j.core.BaseBarSeries("test", bars);
   }
-} 
+}
