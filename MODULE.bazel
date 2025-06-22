@@ -1,6 +1,6 @@
 module(
     name = "tradestream",
-    version = "v2.36.1-develop",
+    version = "v2.37.1-develop",
     compatibility_level = 1,
 )
 
