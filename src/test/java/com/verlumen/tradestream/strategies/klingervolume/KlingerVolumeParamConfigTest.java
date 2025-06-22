@@ -72,4 +72,4 @@ public final class KlingerVolumeParamConfigTest {
     assertThat(parameters.getLongPeriod()).isEqualTo(35);
     assertThat(parameters.getSignalPeriod()).isEqualTo(10);
   }
-} 
+}
