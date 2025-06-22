@@ -2,6 +2,8 @@ package com.verlumen.tradestream.strategies
 
 import com.google.protobuf.Any
 import com.google.protobuf.InvalidProtocolBufferException
+import com.verlumen.tradestream.strategies.adxdmi.AdxDmiParamConfig
+import com.verlumen.tradestream.strategies.adxdmi.AdxDmiStrategyFactory
 import com.verlumen.tradestream.strategies.adxstochastic.AdxStochasticParamConfig
 import com.verlumen.tradestream.strategies.adxstochastic.AdxStochasticStrategyFactory
 import com.verlumen.tradestream.strategies.atrcci.AtrCciParamConfig
@@ -26,6 +28,8 @@ import com.verlumen.tradestream.strategies.ichimokucloud.IchimokuCloudParamConfi
 import com.verlumen.tradestream.strategies.ichimokucloud.IchimokuCloudStrategyFactory
 import com.verlumen.tradestream.strategies.kstoscillator.KstOscillatorParamConfig
 import com.verlumen.tradestream.strategies.kstoscillator.KstOscillatorStrategyFactory
+import com.verlumen.tradestream.strategies.linearregressionchannels.LinearRegressionChannelsParamConfig
+import com.verlumen.tradestream.strategies.linearregressionchannels.LinearRegressionChannelsStrategyFactory
 import com.verlumen.tradestream.strategies.macdcrossover.MacdCrossoverParamConfig
 import com.verlumen.tradestream.strategies.macdcrossover.MacdCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.massindex.MassIndexParamConfig
@@ -194,6 +198,16 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = MassIndexParamConfig(),
                 strategyFactory = MassIndexStrategyFactory(),
+            ),
+        StrategyType.ADX_DMI to
+            StrategySpec(
+                paramConfig = AdxDmiParamConfig(),
+                strategyFactory = AdxDmiStrategyFactory(),
+            ),
+        StrategyType.LINEAR_REGRESSION_CHANNELS to
+            StrategySpec(
+                paramConfig = LinearRegressionChannelsParamConfig(),
+                strategyFactory = LinearRegressionChannelsStrategyFactory(),
             ),
         StrategyType.STOCHASTIC_EMA to
             StrategySpec(
