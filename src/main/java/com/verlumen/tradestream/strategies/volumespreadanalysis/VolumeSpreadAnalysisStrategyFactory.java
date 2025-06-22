@@ -47,8 +47,8 @@ public final class VolumeSpreadAnalysisStrategyFactory implements StrategyFactor
   }
 
   /**
-   * Custom indicator that calculates Volume Spread Analysis (VSA).
-   * VSA combines volume, price spread, and closing position to identify market sentiment.
+   * Custom indicator that calculates Volume Spread Analysis (VSA). VSA combines volume, price
+   * spread, and closing position to identify market sentiment.
    */
   private static class VolumeSpreadAnalysisIndicator extends CachedIndicator<Num> {
     private final ClosePriceIndicator closePrice;
