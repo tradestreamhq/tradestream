@@ -59,6 +59,8 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/doubleemacrossover:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/emamacd:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/emamacd:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/heikenashi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/heikenashi:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/ichimokucloud:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/ichimokucloud:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/macdcrossover:param_config",
