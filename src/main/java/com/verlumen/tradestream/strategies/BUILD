@@ -107,5 +107,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/vwapmeanreversion:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/obvema:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/obvema:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/klingervolume:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/klingervolume:strategy_factory",
     ],
 )
