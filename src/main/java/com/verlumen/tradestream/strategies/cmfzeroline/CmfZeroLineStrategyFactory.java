@@ -106,7 +106,6 @@ public class CmfZeroLineStrategyFactory implements StrategyFactory<CmfZeroLinePa
       if (sumVolume.isZero()) {
         return numOf(0);
       }
-      
       return sumMoneyFlowVolume.dividedBy(sumVolume);
     }
 
