@@ -18,7 +18,8 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
-public final class IchimokuCloudStrategyFactory implements StrategyFactory<IchimokuCloudParameters> {
+public final class IchimokuCloudStrategyFactory
+    implements StrategyFactory<IchimokuCloudParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, IchimokuCloudParameters params) {
     checkArgument(params.getTenkanSenPeriod() > 0, "Tenkan-sen period must be positive");
