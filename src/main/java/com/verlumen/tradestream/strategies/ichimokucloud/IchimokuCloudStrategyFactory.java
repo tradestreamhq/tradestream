@@ -18,7 +18,8 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
-public final class IchimokuCloudStrategyFactory implements StrategyFactory<IchimokuCloudParameters> {
+public final class IchimokuCloudStrategyFactory
+    implements StrategyFactory<IchimokuCloudParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, IchimokuCloudParameters params) {
     checkArgument(params.getTenkanSenPeriod() > 0, "Tenkan-sen period must be positive");
@@ -27,12 +28,13 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
     checkArgument(params.getChikouSpanPeriod() > 0, "Chikou Span period must be positive");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    
+
     // Create individual Ichimoku indicators
     TenkanSenIndicator tenkanSen = new TenkanSenIndicator(series, params.getTenkanSenPeriod());
     KijunSenIndicator kijunSen = new KijunSenIndicator(series, params.getKijunSenPeriod());
     SenkouSpanAIndicator senkouSpanA = new SenkouSpanAIndicator(tenkanSen, kijunSen);
-    SenkouSpanBIndicator senkouSpanB = new SenkouSpanBIndicator(series, params.getSenkouSpanBPeriod());
+    SenkouSpanBIndicator senkouSpanB =
+        new SenkouSpanBIndicator(series, params.getSenkouSpanBPeriod());
     KumoCloudIndicator kumoCloud = new KumoCloudIndicator(senkouSpanA, senkouSpanB);
 
     // Entry rule: Buy when Tenkan-sen crosses above Kijun-sen and price is above the cloud
@@ -61,10 +63,10 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
   @Override
   public IchimokuCloudParameters getDefaultParameters() {
     return IchimokuCloudParameters.newBuilder()
-        .setTenkanSenPeriod(9)   // Standard Tenkan-sen period
-        .setKijunSenPeriod(26)   // Standard Kijun-sen period
+        .setTenkanSenPeriod(9) // Standard Tenkan-sen period
+        .setKijunSenPeriod(26) // Standard Kijun-sen period
         .setSenkouSpanBPeriod(52) // Standard Senkou Span B period
-        .setChikouSpanPeriod(26)  // Standard Chikou Span period
+        .setChikouSpanPeriod(26) // Standard Chikou Span period
         .build();
   }
 
@@ -93,7 +95,7 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
       for (int i = index - period + 2; i <= index; i++) {
         Num currentHigh = highPrice.getValue(i);
         Num currentLow = lowPrice.getValue(i);
-        
+
         if (currentHigh.isGreaterThan(highestHigh)) {
           highestHigh = currentHigh;
         }
@@ -136,7 +138,7 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
       for (int i = index - period + 2; i <= index; i++) {
         Num currentHigh = highPrice.getValue(i);
         Num currentLow = lowPrice.getValue(i);
-        
+
         if (currentHigh.isGreaterThan(highestHigh)) {
           highestHigh = currentHigh;
         }
@@ -175,7 +177,7 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
 
       Num tenkanValue = tenkanSen.getValue(shiftedIndex);
       Num kijunValue = kijunSen.getValue(shiftedIndex);
-      
+
       return tenkanValue.plus(kijunValue).dividedBy(numOf(2));
     }
 
@@ -185,7 +187,9 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
     }
   }
 
-  /** Senkou Span B (Leading Span B) = (52-period high + 52-period low) / 2, shifted 26 periods ahead */
+  /**
+   * Senkou Span B (Leading Span B) = (52-period high + 52-period low) / 2, shifted 26 periods ahead
+   */
   private static class SenkouSpanBIndicator extends CachedIndicator<Num> {
     private final HighPriceIndicator highPrice;
     private final LowPriceIndicator lowPrice;
@@ -212,7 +216,7 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
       for (int i = shiftedIndex - period + 2; i <= shiftedIndex; i++) {
         Num currentHigh = highPrice.getValue(i);
         Num currentLow = lowPrice.getValue(i);
-        
+
         if (currentHigh.isGreaterThan(highestHigh)) {
           highestHigh = currentHigh;
         }
@@ -245,7 +249,7 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
     protected Num calculate(int index) {
       Num spanA = senkouSpanA.getValue(index);
       Num spanB = senkouSpanB.getValue(index);
-      
+
       // Return the higher of the two spans as the cloud boundary
       return spanA.isGreaterThan(spanB) ? spanA : spanB;
     }
@@ -255,4 +259,4 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
       return Math.max(senkouSpanA.getUnstableBars(), senkouSpanB.getUnstableBars());
     }
   }
-} 
+}
