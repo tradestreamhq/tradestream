@@ -32,9 +32,7 @@ public final class VolumeSpreadAnalysisParamConfig implements ParamConfig {
     int volumePeriod = getIntegerValue(chromosomes, 0, 20);
 
     VolumeSpreadAnalysisParameters parameters =
-        VolumeSpreadAnalysisParameters.newBuilder()
-            .setVolumePeriod(volumePeriod)
-            .build();
+        VolumeSpreadAnalysisParameters.newBuilder().setVolumePeriod(volumePeriod).build();
 
     return Any.pack(parameters);
   }
