@@ -26,6 +26,8 @@ import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiParamConfig
 import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiStrategyFactory
 import com.verlumen.tradestream.strategies.ichimokucloud.IchimokuCloudParamConfig
 import com.verlumen.tradestream.strategies.ichimokucloud.IchimokuCloudStrategyFactory
+import com.verlumen.tradestream.strategies.klingervolume.KlingerVolumeParamConfig
+import com.verlumen.tradestream.strategies.klingervolume.KlingerVolumeStrategyFactory
 import com.verlumen.tradestream.strategies.kstoscillator.KstOscillatorParamConfig
 import com.verlumen.tradestream.strategies.kstoscillator.KstOscillatorStrategyFactory
 import com.verlumen.tradestream.strategies.linearregressionchannels.LinearRegressionChannelsParamConfig
@@ -227,6 +229,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = ObvEmaParamConfig(),
                 strategyFactory = ObvEmaStrategyFactory(),
+            ),
+        StrategyType.KLINGER_VOLUME to
+            StrategySpec(
+                paramConfig = KlingerVolumeParamConfig(),
+                strategyFactory = KlingerVolumeStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
