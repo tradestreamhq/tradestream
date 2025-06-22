@@ -73,7 +73,6 @@ public final class VolumeSpreadAnalysisStrategyFactory implements StrategyFactor
       if (index == 0) {
         return numOf(0);
       }
-      
       Num currentClose = closePrice.getValue(index);
       Num currentHigh = highPrice.getValue(index);
       Num currentLow = lowPrice.getValue(index);
