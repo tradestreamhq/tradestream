@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.strategies.volumespreadanalysis;
 
-import com.verlumen.tradestream.strategies.VolumeSpreadAnalysisParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
