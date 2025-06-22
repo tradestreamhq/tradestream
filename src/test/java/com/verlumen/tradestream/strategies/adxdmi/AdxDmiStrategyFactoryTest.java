@@ -20,7 +20,7 @@ public class AdxDmiStrategyFactoryTest {
   @Before
   public void setUp() {
     factory = new AdxDmiStrategyFactory();
-    series = new BaseBarSeries("test"); // Add series name
+    series = new BaseBarSeries();
     for (int i = 0; i < 50; i++) {
       series.addBar(createBar(ZonedDateTime.now().plusDays(i), 100 + i));
     }
