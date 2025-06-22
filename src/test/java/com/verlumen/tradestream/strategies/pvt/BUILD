@@ -1,9 +1,9 @@
 java_test(
     name = "param_config_test",
-    srcs = ["VolumeBreakoutParamConfigTest.java"],
-    test_class = "com.verlumen.tradestream.strategies.volumebreakout.VolumeBreakoutParamConfigTest",
+    srcs = ["PvtParamConfigTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.pvt.PvtParamConfigTest",
     deps = [
-        "//src/main/java/com/verlumen/tradestream/strategies/volumebreakout:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/pvt:param_config",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
         "//third_party/java:guava",
@@ -16,10 +16,10 @@ java_test(
 
 java_test(
     name = "strategy_factory_test",
-    srcs = ["VolumeBreakoutStrategyFactoryTest.java"],
-    test_class = "com.verlumen.tradestream.strategies.volumebreakout.VolumeBreakoutStrategyFactoryTest",
+    srcs = ["PvtStrategyFactoryTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.pvt.PvtStrategyFactoryTest",
     deps = [
-        "//src/main/java/com/verlumen/tradestream/strategies/volumebreakout:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/pvt:strategy_factory",
         "//protos:strategies_java_proto",
         "//third_party/java:guava",
         "//third_party/java:junit",

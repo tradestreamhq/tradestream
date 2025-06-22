@@ -44,6 +44,8 @@ import com.verlumen.tradestream.strategies.obvema.ObvEmaParamConfig
 import com.verlumen.tradestream.strategies.obvema.ObvEmaStrategyFactory
 import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarParamConfig
 import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarStrategyFactory
+import com.verlumen.tradestream.strategies.pvt.PvtParamConfig
+import com.verlumen.tradestream.strategies.pvt.PvtStrategyFactory
 import com.verlumen.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverParamConfig
 import com.verlumen.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.rvi.RviParamConfig
@@ -241,6 +243,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = VolumeBreakoutParamConfig(),
                 strategyFactory = VolumeBreakoutStrategyFactory(),
+            ),
+        StrategyType.PVT to
+            StrategySpec(
+                paramConfig = PvtParamConfig(),
+                strategyFactory = PvtStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )

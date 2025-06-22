@@ -1,6 +1,6 @@
 java_library(
     name = "param_config",
-    srcs = ["VolumeBreakoutParamConfig.java"],
+    srcs = ["PvtParamConfig.java"],
     visibility = ["//visibility:public"],
     deps = [
         "//protos:strategies_java_proto",
@@ -14,7 +14,7 @@ java_library(
 
 java_library(
     name = "strategy_factory",
-    srcs = ["VolumeBreakoutStrategyFactory.java"],
+    srcs = ["PvtStrategyFactory.java"],
     visibility = ["//visibility:public"],
     deps = [
         ":param_config",
