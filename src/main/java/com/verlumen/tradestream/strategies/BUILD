@@ -111,5 +111,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/klingervolume:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/volumebreakout:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/volumebreakout:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/pvt:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/pvt:strategy_factory",
     ],
 )
