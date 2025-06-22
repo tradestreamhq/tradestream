@@ -208,6 +208,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = LinearRegressionChannelsParamConfig(),
                 strategyFactory = LinearRegressionChannelsStrategyFactory(),
+            ),
         StrategyType.STOCHASTIC_EMA to
             StrategySpec(
                 paramConfig = StochasticEmaParamConfig(),
