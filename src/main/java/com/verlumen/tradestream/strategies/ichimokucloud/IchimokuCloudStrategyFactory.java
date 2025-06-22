@@ -28,7 +28,6 @@ public final class IchimokuCloudStrategyFactory
     checkArgument(params.getChikouSpanPeriod() > 0, "Chikou Span period must be positive");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    
     // Create individual Ichimoku indicators
     TenkanSenIndicator tenkanSen = new TenkanSenIndicator(series, params.getTenkanSenPeriod());
     KijunSenIndicator kijunSen = new KijunSenIndicator(series, params.getKijunSenPeriod());
