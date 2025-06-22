@@ -20,9 +20,7 @@ public final class VolumeSpreadAnalysisStrategyFactory implements StrategyFactor
 
   @Override
   public VolumeSpreadAnalysisParameters getDefaultParameters() {
-    return VolumeSpreadAnalysisParameters.newBuilder()
-        .setVolumePeriod(20)
-        .build();
+    return VolumeSpreadAnalysisParameters.newBuilder().setVolumePeriod(20).build();
   }
 
   @Override
