@@ -213,7 +213,6 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
       for (int i = shiftedIndex - period + 2; i <= shiftedIndex; i++) {
         Num currentHigh = highPrice.getValue(i);
         Num currentLow = lowPrice.getValue(i);
-        
         if (currentHigh.isGreaterThan(highestHigh)) {
           highestHigh = currentHigh;
         }
