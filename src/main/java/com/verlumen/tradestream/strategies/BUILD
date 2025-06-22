@@ -93,6 +93,8 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/smarsi:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/stochasticsrsi:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/stochasticsrsi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/stochasticema:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/stochasticema:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/tripleemacrossover:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/tripleemacrossover:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/volatilitystop:param_config",

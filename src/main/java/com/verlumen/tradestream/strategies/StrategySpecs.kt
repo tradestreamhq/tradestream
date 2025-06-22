@@ -48,6 +48,8 @@ import com.verlumen.tradestream.strategies.smaemacrossover.SmaEmaCrossoverParamC
 import com.verlumen.tradestream.strategies.smaemacrossover.SmaEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.smarsi.SmaRsiParamConfig
 import com.verlumen.tradestream.strategies.smarsi.SmaRsiStrategyFactory
+import com.verlumen.tradestream.strategies.stochasticema.StochasticEmaParamConfig
+import com.verlumen.tradestream.strategies.stochasticema.StochasticEmaStrategyFactory
 import com.verlumen.tradestream.strategies.stochasticsrsi.StochasticRsiParamConfig
 import com.verlumen.tradestream.strategies.stochasticsrsi.StochasticRsiStrategyFactory
 import com.verlumen.tradestream.strategies.tripleemacrossover.TripleEmaCrossoverParamConfig
@@ -206,6 +208,10 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = LinearRegressionChannelsParamConfig(),
                 strategyFactory = LinearRegressionChannelsStrategyFactory(),
+        StrategyType.STOCHASTIC_EMA to
+            StrategySpec(
+                paramConfig = StochasticEmaParamConfig(),
+                strategyFactory = StochasticEmaStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
