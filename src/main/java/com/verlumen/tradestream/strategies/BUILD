@@ -103,5 +103,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/volumeweightedmacd:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/vwapcrossover:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/vwapcrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/vwapmeanreversion:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/vwapmeanreversion:strategy_factory",
     ],
 )

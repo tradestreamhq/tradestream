@@ -60,6 +60,8 @@ import com.verlumen.tradestream.strategies.volumeweightedmacd.VolumeWeightedMacd
 import com.verlumen.tradestream.strategies.volumeweightedmacd.VolumeWeightedMacdStrategyFactory
 import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverParamConfig
 import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverStrategyFactory
+import com.verlumen.tradestream.strategies.vwapmeanreversion.VwapMeanReversionParamConfig
+import com.verlumen.tradestream.strategies.vwapmeanreversion.VwapMeanReversionStrategyFactory
 import org.ta4j.core.BarSeries
 import org.ta4j.core.Strategy
 
@@ -208,6 +210,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = LinearRegressionChannelsParamConfig(),
                 strategyFactory = LinearRegressionChannelsStrategyFactory(),
+            ),
+        StrategyType.VWAP_MEAN_REVERSION to
+            StrategySpec(
+                paramConfig = VwapMeanReversionParamConfig(),
+                strategyFactory = VwapMeanReversionStrategyFactory(),
             ),
         StrategyType.STOCHASTIC_EMA to
             StrategySpec(
