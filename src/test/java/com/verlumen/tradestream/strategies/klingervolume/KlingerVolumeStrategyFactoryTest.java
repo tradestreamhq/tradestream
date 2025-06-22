@@ -52,7 +52,6 @@ public final class KlingerVolumeStrategyFactoryTest {
   public void createStrategy_withDefaultParameters_returnsValidStrategy() {
     BarSeries series = createTestBarSeries();
     KlingerVolumeParameters parameters = factory.getDefaultParameters();
-    
     Strategy strategy = factory.createStrategy(series, parameters);
 
     assertThat(strategy).isNotNull();
