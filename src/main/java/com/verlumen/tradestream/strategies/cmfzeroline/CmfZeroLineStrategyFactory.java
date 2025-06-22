@@ -98,7 +98,6 @@ public class CmfZeroLineStrategyFactory implements StrategyFactory<CmfZeroLinePa
           Num moneyFlowVolume = moneyFlowMultiplier.multipliedBy(vol);
           sumMoneyFlowVolume = sumMoneyFlowVolume.plus(moneyFlowVolume);
         }
-        
         sumVolume = sumVolume.plus(vol);
       }
 
