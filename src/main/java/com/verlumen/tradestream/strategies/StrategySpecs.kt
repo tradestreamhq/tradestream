@@ -72,6 +72,8 @@ import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverParamConfi
 import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.vwapmeanreversion.VwapMeanReversionParamConfig
 import com.verlumen.tradestream.strategies.vwapmeanreversion.VwapMeanReversionStrategyFactory
+import com.verlumen.tradestream.strategies.volumespreadanalysis.VolumeSpreadAnalysisParamConfig
+import com.verlumen.tradestream.strategies.volumespreadanalysis.VolumeSpreadAnalysisStrategyFactory
 import org.ta4j.core.BarSeries
 import org.ta4j.core.Strategy
 
@@ -255,6 +257,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = VptParamConfig(),
                 strategyFactory = VptStrategyFactory(),
+            ),
+        StrategyType.VOLUME_SPREAD_ANALYSIS to
+            StrategySpec(
+                paramConfig = VolumeSpreadAnalysisParamConfig(),
+                strategyFactory = VolumeSpreadAnalysisStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
