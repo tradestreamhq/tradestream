@@ -8,7 +8,6 @@ java_test(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies/volumeweightedmacd:param_config",
         "//third_party/java:junit",
-        "//protos:strategies_java_proto",
         "//third_party/java:protobuf_java",
     ],
 )
