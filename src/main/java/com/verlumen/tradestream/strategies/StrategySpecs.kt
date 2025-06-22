@@ -98,6 +98,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
                 paramConfig = DoubleEmaCrossoverParamConfig(),
                 strategyFactory = DoubleEmaCrossoverStrategyFactory(),
             ),
+        StrategyType.HEIKEN_ASHI to
+            StrategySpec(
+                paramConfig = HeikenAshiParamConfig(),
+                strategyFactory = HeikenAshiStrategyFactory(),
+            ),
         StrategyType.ICHIMOKU_CLOUD to
             StrategySpec(
                 paramConfig = IchimokuCloudParamConfig(),
