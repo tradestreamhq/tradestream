@@ -3,13 +3,13 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(
     default_visibility = [
         "//src/main/java/com/verlumen/tradestream/strategies:__pkg__",
-        "//src/test/java/com/verlumen/tradestream/strategies/ichimokucloud:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/strategies/heikenashi:__pkg__",
     ],
 )
 
 java_library(
     name = "param_config",
-    srcs = ["IchimokuCloudParamConfig.java"],
+    srcs = ["HeikenAshiParamConfig.java"],
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
@@ -22,7 +22,7 @@ java_library(
 
 java_library(
     name = "strategy_factory",
-    srcs = ["IchimokuCloudStrategyFactory.java"],
+    srcs = ["HeikenAshiStrategyFactory.java"],
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
