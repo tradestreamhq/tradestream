@@ -14,9 +14,9 @@ public final class KlingerVolumeParamConfig implements ParamConfig {
 
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
-          ChromosomeSpec.ofInteger(5, 15),   // shortPeriod
-          ChromosomeSpec.ofInteger(20, 50),  // longPeriod
-          ChromosomeSpec.ofInteger(5, 15));  // signalPeriod
+          ChromosomeSpec.ofInteger(5, 15), // shortPeriod
+          ChromosomeSpec.ofInteger(20, 50), // longPeriod
+          ChromosomeSpec.ofInteger(5, 15)); // signalPeriod
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
@@ -51,7 +51,8 @@ public final class KlingerVolumeParamConfig implements ParamConfig {
         .collect(ImmutableList.toImmutableList());
   }
 
-  private int getIntegerValue(ImmutableList<? extends NumericChromosome<?, ?>> chromosomes, int index, int defaultValue) {
+  private int getIntegerValue(
+      ImmutableList<? extends NumericChromosome<?, ?>> chromosomes, int index, int defaultValue) {
     try {
       return ((IntegerChromosome) chromosomes.get(index)).intValue();
     } catch (Exception e) {
@@ -68,4 +69,4 @@ public final class KlingerVolumeParamConfig implements ParamConfig {
             .setSignalPeriod(10)
             .build());
   }
-} 
+}

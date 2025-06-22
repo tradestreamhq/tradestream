@@ -60,6 +60,8 @@ import com.verlumen.tradestream.strategies.tripleemacrossover.TripleEmaCrossover
 import com.verlumen.tradestream.strategies.tripleemacrossover.TripleEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopParamConfig
 import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopStrategyFactory
+import com.verlumen.tradestream.strategies.volumebreakout.VolumeBreakoutParamConfig
+import com.verlumen.tradestream.strategies.volumebreakout.VolumeBreakoutStrategyFactory
 import com.verlumen.tradestream.strategies.volumeweightedmacd.VolumeWeightedMacdParamConfig
 import com.verlumen.tradestream.strategies.volumeweightedmacd.VolumeWeightedMacdStrategyFactory
 import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverParamConfig
@@ -234,6 +236,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = KlingerVolumeParamConfig(),
                 strategyFactory = KlingerVolumeStrategyFactory(),
+            ),
+        StrategyType.VOLUME_BREAKOUT to
+            StrategySpec(
+                paramConfig = VolumeBreakoutParamConfig(),
+                strategyFactory = VolumeBreakoutStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )

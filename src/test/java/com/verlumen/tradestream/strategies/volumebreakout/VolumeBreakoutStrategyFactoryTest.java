@@ -1,8 +1,8 @@
-package com.verlumen.tradestream.strategies.klingervolume;
+package com.verlumen.tradestream.strategies.volumebreakout;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.verlumen.tradestream.strategies.KlingerVolumeParameters;
+import com.verlumen.tradestream.strategies.VolumeBreakoutParameters;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -14,50 +14,44 @@ import org.ta4j.core.BaseBar;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.num.DecimalNum;
 
-public final class KlingerVolumeStrategyFactoryTest {
+public final class VolumeBreakoutStrategyFactoryTest {
 
-  private final KlingerVolumeStrategyFactory factory = new KlingerVolumeStrategyFactory();
+  private final VolumeBreakoutStrategyFactory factory = new VolumeBreakoutStrategyFactory();
 
   @Test
   public void getDefaultParameters_returnsExpectedParameters() {
-    KlingerVolumeParameters parameters = factory.getDefaultParameters();
+    VolumeBreakoutParameters parameters = factory.getDefaultParameters();
 
-    assertThat(parameters.getShortPeriod()).isEqualTo(10);
-    assertThat(parameters.getLongPeriod()).isEqualTo(35);
-    assertThat(parameters.getSignalPeriod()).isEqualTo(10);
+    assertThat(parameters.getVolumeMultiplier()).isEqualTo(2.0);
   }
 
   @Test
   public void createStrategy_returnsValidStrategy() {
     BarSeries series = createTestBarSeries();
-    KlingerVolumeParameters parameters =
-        KlingerVolumeParameters.newBuilder()
-            .setShortPeriod(5)
-            .setLongPeriod(10)
-            .setSignalPeriod(5)
-            .build();
+    VolumeBreakoutParameters parameters =
+        VolumeBreakoutParameters.newBuilder().setVolumeMultiplier(2.5).build();
 
     Strategy strategy = factory.createStrategy(series, parameters);
 
     assertThat(strategy).isNotNull();
-    assertThat(strategy.getName()).isEqualTo("KLINGER_VOLUME");
+    assertThat(strategy.getName()).isEqualTo("VOLUME_BREAKOUT");
     assertThat(strategy.getEntryRule()).isNotNull();
     assertThat(strategy.getExitRule()).isNotNull();
-    assertThat(strategy.getUnstableBars()).isEqualTo(10);
+    assertThat(strategy.getUnstableBars()).isEqualTo(20);
   }
 
   @Test
   public void createStrategy_withDefaultParameters_returnsValidStrategy() {
     BarSeries series = createTestBarSeries();
-    KlingerVolumeParameters parameters = factory.getDefaultParameters();
+    VolumeBreakoutParameters parameters = factory.getDefaultParameters();
 
     Strategy strategy = factory.createStrategy(series, parameters);
 
     assertThat(strategy).isNotNull();
-    assertThat(strategy.getName()).isEqualTo("KLINGER_VOLUME");
+    assertThat(strategy.getName()).isEqualTo("VOLUME_BREAKOUT");
     assertThat(strategy.getEntryRule()).isNotNull();
     assertThat(strategy.getExitRule()).isNotNull();
-    assertThat(strategy.getUnstableBars()).isEqualTo(35);
+    assertThat(strategy.getUnstableBars()).isEqualTo(20);
   }
 
   private BarSeries createTestBarSeries() {

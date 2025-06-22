@@ -17,14 +17,14 @@ public final class KlingerVolumeParamConfigTest {
   @Test
   public void getChromosomeSpecs_returnsExpectedSpecs() {
     ImmutableList<?> specs = config.getChromosomeSpecs();
-    
+
     assertThat(specs).hasSize(3);
   }
 
   @Test
   public void initialChromosomes_returnsExpectedChromosomes() {
     ImmutableList<? extends NumericChromosome<?, ?>> chromosomes = config.initialChromosomes();
-    
+
     assertThat(chromosomes).hasSize(3);
     assertThat(chromosomes.get(0)).isInstanceOf(IntegerChromosome.class);
     assertThat(chromosomes.get(1)).isInstanceOf(IntegerChromosome.class);
@@ -38,12 +38,12 @@ public final class KlingerVolumeParamConfigTest {
     IntegerChromosome shortPeriodChromosome = IntegerChromosome.of(5, 15, 10);
     IntegerChromosome longPeriodChromosome = IntegerChromosome.of(20, 50, 35);
     IntegerChromosome signalPeriodChromosome = IntegerChromosome.of(5, 15, 10);
-    
-    ImmutableList<NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
-        shortPeriodChromosome, longPeriodChromosome, signalPeriodChromosome);
-    
+
+    ImmutableList<NumericChromosome<?, ?>> chromosomes =
+        ImmutableList.of(shortPeriodChromosome, longPeriodChromosome, signalPeriodChromosome);
+
     Any result = config.createParameters(chromosomes);
-    
+
     assertThat(result.is(KlingerVolumeParameters.class)).isTrue();
     KlingerVolumeParameters parameters = result.unpack(KlingerVolumeParameters.class);
     assertThat(parameters.getShortPeriod()).isAtLeast(5);
@@ -60,16 +60,16 @@ public final class KlingerVolumeParamConfigTest {
     // Create only 2 chromosomes instead of 3
     IntegerChromosome shortPeriodChromosome = IntegerChromosome.of(5, 15, 10);
     IntegerChromosome longPeriodChromosome = IntegerChromosome.of(20, 50, 35);
-    
-    ImmutableList<NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
-        shortPeriodChromosome, longPeriodChromosome);
-    
+
+    ImmutableList<NumericChromosome<?, ?>> chromosomes =
+        ImmutableList.of(shortPeriodChromosome, longPeriodChromosome);
+
     Any result = config.createParameters(chromosomes);
-    
+
     assertThat(result.is(KlingerVolumeParameters.class)).isTrue();
     KlingerVolumeParameters parameters = result.unpack(KlingerVolumeParameters.class);
     assertThat(parameters.getShortPeriod()).isEqualTo(10);
     assertThat(parameters.getLongPeriod()).isEqualTo(35);
     assertThat(parameters.getSignalPeriod()).isEqualTo(10);
   }
-} 
+}
