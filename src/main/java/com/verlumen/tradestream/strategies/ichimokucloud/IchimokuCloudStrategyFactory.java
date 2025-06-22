@@ -185,7 +185,9 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
     }
   }
 
-  /** Senkou Span B (Leading Span B) = (52-period high + 52-period low) / 2, shifted 26 periods ahead */
+  /**
+   * Senkou Span B (Leading Span B) = (52-period high + 52-period low) / 2, shifted 26 periods ahead
+   */
   private static class SenkouSpanBIndicator extends CachedIndicator<Num> {
     private final HighPriceIndicator highPrice;
     private final LowPriceIndicator lowPrice;
