@@ -47,11 +47,10 @@ public class CmfZeroLineStrategyFactory implements StrategyFactory<CmfZeroLinePa
 
   /**
    * Custom Chaikin Money Flow (CMF) indicator implementation.
-   * 
-   * The Chaikin Money Flow is calculated as:
-   * 1. Money Flow Multiplier = ((Close - Low) - (High - Close)) / (High - Low)
-   * 2. Money Flow Volume = Money Flow Multiplier × Volume
-   * 3. CMF = Sum of Money Flow Volume over period / Sum of Volume over period
+   *
+   * <p>The Chaikin Money Flow is calculated as: 1. Money Flow Multiplier = ((Close - Low) - (High -
+   * Close)) / (High - Low) 2. Money Flow Volume = Money Flow Multiplier × Volume 3. CMF = Sum of
+   * Money Flow Volume over period / Sum of Volume over period
    */
   private static class ChaikinMoneyFlowIndicator extends CachedIndicator<Num> {
     private final int period;
