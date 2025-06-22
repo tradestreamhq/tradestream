@@ -8,30 +8,14 @@ import com.verlumen.tradestream.strategies.IchimokuCloudParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
-final class IchimokuCloudParamConfig implements ParamConfig {
-  // Individual chromosome specs
-  private static final ChromosomeSpec<?> TENKAN_SEN_PERIOD_SPEC = ChromosomeSpec.ofInteger(5, 60);
-
-  private static final ChromosomeSpec<?> KIJUN_SEN_PERIOD_SPEC = ChromosomeSpec.ofInteger(10, 120);
-
-  private static final ChromosomeSpec<?> SENKOU_SPAN_B_PERIOD_SPEC =
-      ChromosomeSpec.ofInteger(20, 240);
-
-  private static final ChromosomeSpec<?> CHIKOU_SPAN_PERIOD_SPEC =
-      ChromosomeSpec.ofInteger(10, 120);
-
+public final class IchimokuCloudParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
-          TENKAN_SEN_PERIOD_SPEC,
-          KIJUN_SEN_PERIOD_SPEC,
-          SENKOU_SPAN_B_PERIOD_SPEC,
-          CHIKOU_SPAN_PERIOD_SPEC);
-
-  static IchimokuCloudParamConfig create() {
-    return new IchimokuCloudParamConfig();
-  }
-
-  private IchimokuCloudParamConfig() {}
+          ChromosomeSpec.ofInteger(5, 20), // tenkanSenPeriod
+          ChromosomeSpec.ofInteger(20, 60), // kijunSenPeriod
+          ChromosomeSpec.ofInteger(50, 200), // senkouSpanBPeriod
+          ChromosomeSpec.ofInteger(20, 60) // chikouSpanPeriod
+          );
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
@@ -42,29 +26,21 @@ final class IchimokuCloudParamConfig implements ParamConfig {
   public Any createParameters(ImmutableList<? extends NumericChromosome<?, ?>> chromosomes) {
     if (chromosomes.size() != SPECS.size()) {
       throw new IllegalArgumentException(
-          "Expected " + SPECS.size() + " chromosomes, but got " + chromosomes.size());
+          "Expected " + SPECS.size() + " chromosomes but got " + chromosomes.size());
     }
 
-    // Directly get the first value from each chromosome
-    IntegerChromosome tenkanSenChromosome = (IntegerChromosome) chromosomes.get(0);
-    IntegerChromosome kijunSenChromosome = (IntegerChromosome) chromosomes.get(1);
-    IntegerChromosome senkouSpanBChromosome = (IntegerChromosome) chromosomes.get(2);
-    IntegerChromosome chikouSpanChromosome = (IntegerChromosome) chromosomes.get(3);
-
-    // Use the get(0) method to access the first gene
-    int tenkanSenPeriod = tenkanSenChromosome.get(0).allele();
-    int kijunSenPeriod = kijunSenChromosome.get(0).allele();
-    int senkouSpanBPeriod = senkouSpanBChromosome.get(0).allele();
-    int chikouSpanPeriod = chikouSpanChromosome.get(0).allele();
+    IntegerChromosome tenkanSenPeriodChrom = (IntegerChromosome) chromosomes.get(0);
+    IntegerChromosome kijunSenPeriodChrom = (IntegerChromosome) chromosomes.get(1);
+    IntegerChromosome senkouSpanBPeriodChrom = (IntegerChromosome) chromosomes.get(2);
+    IntegerChromosome chikouSpanPeriodChrom = (IntegerChromosome) chromosomes.get(3);
 
     IchimokuCloudParameters parameters =
         IchimokuCloudParameters.newBuilder()
-            .setTenkanSenPeriod(tenkanSenPeriod)
-            .setKijunSenPeriod(kijunSenPeriod)
-            .setSenkouSpanBPeriod(senkouSpanBPeriod)
-            .setChikouSpanPeriod(chikouSpanPeriod)
+            .setTenkanSenPeriod(tenkanSenPeriodChrom.gene().allele())
+            .setKijunSenPeriod(kijunSenPeriodChrom.gene().allele())
+            .setSenkouSpanBPeriod(senkouSpanBPeriodChrom.gene().allele())
+            .setChikouSpanPeriod(chikouSpanPeriodChrom.gene().allele())
             .build();
-
     return Any.pack(parameters);
   }
 
