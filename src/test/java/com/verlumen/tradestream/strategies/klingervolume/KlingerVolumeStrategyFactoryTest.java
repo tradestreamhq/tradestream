@@ -84,7 +84,6 @@ public final class KlingerVolumeStrategyFactoryTest {
           DecimalNum.valueOf(volume),
           DecimalNum.valueOf(0)));
     }
-    
     return new org.ta4j.core.BaseBarSeries("test", bars);
   }
 }
