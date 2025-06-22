@@ -1,6 +1,6 @@
 java_library(
     name = "param_config",
-    srcs = ["KstOscillatorParamConfig.java"],
+    srcs = ["MassIndexParamConfig.java"],
     visibility = ["//visibility:public"],
     deps = [
         "//protos:strategies_java_proto",
@@ -14,7 +14,7 @@ java_library(
 
 java_library(
     name = "strategy_factory",
-    srcs = ["KstOscillatorStrategyFactory.java"],
+    srcs = ["MassIndexStrategyFactory.java"],
     visibility = ["//visibility:public"],
     deps = [
         ":param_config",

@@ -71,6 +71,8 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/kstoscillator:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/macdcrossover:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/macdcrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/massindex:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/massindex:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/momentumsmacrossover:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/momentumsmacrossover:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/parabolicsarr:param_config",
@@ -92,4 +94,4 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/vwapcrossover:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/vwapcrossover:strategy_factory",
     ],
-) 
+)

@@ -28,6 +28,8 @@ import com.verlumen.tradestream.strategies.kstoscillator.KstOscillatorParamConfi
 import com.verlumen.tradestream.strategies.kstoscillator.KstOscillatorStrategyFactory
 import com.verlumen.tradestream.strategies.macdcrossover.MacdCrossoverParamConfig
 import com.verlumen.tradestream.strategies.macdcrossover.MacdCrossoverStrategyFactory
+import com.verlumen.tradestream.strategies.massindex.MassIndexParamConfig
+import com.verlumen.tradestream.strategies.massindex.MassIndexStrategyFactory
 import com.verlumen.tradestream.strategies.momentumsmacrossover.MomentumSmaCrossoverParamConfig
 import com.verlumen.tradestream.strategies.momentumsmacrossover.MomentumSmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarParamConfig
@@ -171,6 +173,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = KstOscillatorParamConfig(),
                 strategyFactory = KstOscillatorStrategyFactory(),
+            ),
+        StrategyType.MASS_INDEX to
+            StrategySpec(
+                paramConfig = MassIndexParamConfig(),
+                strategyFactory = MassIndexStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )

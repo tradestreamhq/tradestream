@@ -1,3 +1,7 @@
+# --- OCI Image Rules ---
+load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
+load("@container_structure_test//:defs.bzl", "container_structure_test")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 
 package(default_visibility = ["//visibility:public"])
@@ -110,11 +114,6 @@ py_test(
         "//third_party/python:protobuf",
     ],
 )
-
-# --- OCI Image Rules ---
-load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
-load("@container_structure_test//:defs.bzl", "container_structure_test")
 
 py_image_layer(
     name = "layers",
