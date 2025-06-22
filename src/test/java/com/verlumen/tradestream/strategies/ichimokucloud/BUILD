@@ -22,8 +22,8 @@ java_test(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies/ichimokucloud:strategy_factory",
         "//third_party/java:junit",
-        "//third_party/java:truth",
-        "//third_party/java:ta4j_core",
         "//third_party/java:protobuf_java",
+        "//third_party/java:ta4j_core",
+        "//third_party/java:truth",
     ],
 )

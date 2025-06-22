@@ -28,7 +28,6 @@ public final class IchimokuCloudStrategyFactory
     checkArgument(params.getChikouSpanPeriod() > 0, "Chikou Span period must be positive");
 
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-
     // Create individual Ichimoku indicators
     TenkanSenIndicator tenkanSen = new TenkanSenIndicator(series, params.getTenkanSenPeriod());
     KijunSenIndicator kijunSen = new KijunSenIndicator(series, params.getKijunSenPeriod());
@@ -95,7 +94,6 @@ public final class IchimokuCloudStrategyFactory
       for (int i = index - period + 2; i <= index; i++) {
         Num currentHigh = highPrice.getValue(i);
         Num currentLow = lowPrice.getValue(i);
-
         if (currentHigh.isGreaterThan(highestHigh)) {
           highestHigh = currentHigh;
         }
@@ -138,7 +136,6 @@ public final class IchimokuCloudStrategyFactory
       for (int i = index - period + 2; i <= index; i++) {
         Num currentHigh = highPrice.getValue(i);
         Num currentLow = lowPrice.getValue(i);
-
         if (currentHigh.isGreaterThan(highestHigh)) {
           highestHigh = currentHigh;
         }
@@ -177,7 +174,6 @@ public final class IchimokuCloudStrategyFactory
 
       Num tenkanValue = tenkanSen.getValue(shiftedIndex);
       Num kijunValue = kijunSen.getValue(shiftedIndex);
-
       return tenkanValue.plus(kijunValue).dividedBy(numOf(2));
     }
 
@@ -216,7 +212,6 @@ public final class IchimokuCloudStrategyFactory
       for (int i = shiftedIndex - period + 2; i <= shiftedIndex; i++) {
         Num currentHigh = highPrice.getValue(i);
         Num currentLow = lowPrice.getValue(i);
-
         if (currentHigh.isGreaterThan(highestHigh)) {
           highestHigh = currentHigh;
         }
@@ -249,7 +244,6 @@ public final class IchimokuCloudStrategyFactory
     protected Num calculate(int index) {
       Num spanA = senkouSpanA.getValue(index);
       Num spanB = senkouSpanB.getValue(index);
-
       // Return the higher of the two spans as the cloud boundary
       return spanA.isGreaterThan(spanB) ? spanA : spanB;
     }
