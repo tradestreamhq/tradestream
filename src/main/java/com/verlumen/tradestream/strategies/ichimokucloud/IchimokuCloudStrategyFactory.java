@@ -32,7 +32,8 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
     TenkanSenIndicator tenkanSen = new TenkanSenIndicator(series, params.getTenkanSenPeriod());
     KijunSenIndicator kijunSen = new KijunSenIndicator(series, params.getKijunSenPeriod());
     SenkouSpanAIndicator senkouSpanA = new SenkouSpanAIndicator(tenkanSen, kijunSen);
-    SenkouSpanBIndicator senkouSpanB = new SenkouSpanBIndicator(series, params.getSenkouSpanBPeriod());
+    SenkouSpanBIndicator senkouSpanB =
+        new SenkouSpanBIndicator(series, params.getSenkouSpanBPeriod());
     KumoCloudIndicator kumoCloud = new KumoCloudIndicator(senkouSpanA, senkouSpanB);
 
     // Entry rule: Buy when Tenkan-sen crosses above Kijun-sen and price is above the cloud
