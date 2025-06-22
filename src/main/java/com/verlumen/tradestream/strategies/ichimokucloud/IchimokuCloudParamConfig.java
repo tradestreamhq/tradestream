@@ -14,7 +14,7 @@ public final class IchimokuCloudParamConfig implements ParamConfig {
           ChromosomeSpec.ofInteger(5, 20), // tenkanSenPeriod
           ChromosomeSpec.ofInteger(20, 60), // kijunSenPeriod
           ChromosomeSpec.ofInteger(50, 200), // senkouSpanBPeriod
-          ChromosomeSpec.ofInteger(20, 60)   // chikouSpanPeriod
+          ChromosomeSpec.ofInteger(20, 60) // chikouSpanPeriod
           );
 
   @Override
