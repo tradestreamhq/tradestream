@@ -175,7 +175,6 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
 
       Num tenkanValue = tenkanSen.getValue(shiftedIndex);
       Num kijunValue = kijunSen.getValue(shiftedIndex);
-      
       return tenkanValue.plus(kijunValue).dividedBy(numOf(2));
     }
 
