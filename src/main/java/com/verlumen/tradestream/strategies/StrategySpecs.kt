@@ -10,6 +10,8 @@ import com.verlumen.tradestream.strategies.atrtrailingstop.AtrTrailingStopParamC
 import com.verlumen.tradestream.strategies.atrtrailingstop.AtrTrailingStopStrategyFactory
 import com.verlumen.tradestream.strategies.bbandwr.BbandWRParamConfig
 import com.verlumen.tradestream.strategies.bbandwr.BbandWRStrategyFactory
+import com.verlumen.tradestream.strategies.chaikinoscillator.ChaikinOscillatorParamConfig
+import com.verlumen.tradestream.strategies.chaikinoscillator.ChaikinOscillatorStrategyFactory
 import com.verlumen.tradestream.strategies.donchianbreakout.DonchianBreakoutParamConfig
 import com.verlumen.tradestream.strategies.donchianbreakout.DonchianBreakoutStrategyFactory
 import com.verlumen.tradestream.strategies.doubleemacrossover.DoubleEmaCrossoverParamConfig
@@ -136,6 +138,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = VwapCrossoverParamConfig(),
                 strategyFactory = VwapCrossoverStrategyFactory(),
+            ),
+        StrategyType.CHAIKIN_OSCILLATOR to
+            StrategySpec(
+                paramConfig = ChaikinOscillatorParamConfig(),
+                strategyFactory = ChaikinOscillatorStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
