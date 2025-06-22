@@ -176,9 +176,7 @@ class StrategySpecsTest {
 
         // Assert
         assertThat(result).isNotNull()
-        // Should match the keys in strategySpecMap
-        // Currently empty since all entries are commented out
-        assertThat(result).hasSize(21)
+        assertThat(result).hasSize(22)
     }
 
     @Test

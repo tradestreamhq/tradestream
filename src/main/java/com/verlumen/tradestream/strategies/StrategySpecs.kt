@@ -10,6 +10,8 @@ import com.verlumen.tradestream.strategies.atrtrailingstop.AtrTrailingStopParamC
 import com.verlumen.tradestream.strategies.atrtrailingstop.AtrTrailingStopStrategyFactory
 import com.verlumen.tradestream.strategies.bbandwr.BbandWRParamConfig
 import com.verlumen.tradestream.strategies.bbandwr.BbandWRStrategyFactory
+import com.verlumen.tradestream.strategies.chaikinoscillator.ChaikinOscillatorParamConfig
+import com.verlumen.tradestream.strategies.chaikinoscillator.ChaikinOscillatorStrategyFactory
 import com.verlumen.tradestream.strategies.cmfzeroline.CmfZeroLineParamConfig
 import com.verlumen.tradestream.strategies.cmfzeroline.CmfZeroLineStrategyFactory
 import com.verlumen.tradestream.strategies.donchianbreakout.DonchianBreakoutParamConfig
@@ -83,6 +85,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
                 paramConfig = BbandWRParamConfig(),
                 strategyFactory = BbandWRStrategyFactory(),
             ),
+        StrategyType.CHAIKIN_OSCILLATOR to
+            StrategySpec(
+                paramConfig = ChaikinOscillatorParamConfig(),
+                strategyFactory = ChaikinOscillatorStrategyFactory(),
+            ),
         StrategyType.CMF_ZERO_LINE to
             StrategySpec(
                 paramConfig = CmfZeroLineParamConfig(),
@@ -97,6 +104,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = DoubleEmaCrossoverParamConfig(),
                 strategyFactory = DoubleEmaCrossoverStrategyFactory(),
+            ),
+        StrategyType.HEIKEN_ASHI to
+            StrategySpec(
+                paramConfig = HeikenAshiParamConfig(),
+                strategyFactory = HeikenAshiStrategyFactory(),
             ),
         StrategyType.ICHIMOKU_CLOUD to
             StrategySpec(
@@ -152,11 +164,6 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = VwapCrossoverParamConfig(),
                 strategyFactory = VwapCrossoverStrategyFactory(),
-            ),
-        StrategyType.HEIKEN_ASHI to
-            StrategySpec(
-                paramConfig = HeikenAshiParamConfig(),
-                strategyFactory = HeikenAshiStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
