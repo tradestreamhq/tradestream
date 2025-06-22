@@ -38,6 +38,8 @@ import com.verlumen.tradestream.strategies.momentumpinball.MomentumPinballParamC
 import com.verlumen.tradestream.strategies.momentumpinball.MomentumPinballStrategyFactory
 import com.verlumen.tradestream.strategies.momentumsmacrossover.MomentumSmaCrossoverParamConfig
 import com.verlumen.tradestream.strategies.momentumsmacrossover.MomentumSmaCrossoverStrategyFactory
+import com.verlumen.tradestream.strategies.obvema.ObvEmaParamConfig
+import com.verlumen.tradestream.strategies.obvema.ObvEmaStrategyFactory
 import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarParamConfig
 import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarStrategyFactory
 import com.verlumen.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverParamConfig
@@ -220,6 +222,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = StochasticEmaParamConfig(),
                 strategyFactory = StochasticEmaStrategyFactory(),
+            ),
+        StrategyType.OBV_EMA to
+            StrategySpec(
+                paramConfig = ObvEmaParamConfig(),
+                strategyFactory = ObvEmaStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
