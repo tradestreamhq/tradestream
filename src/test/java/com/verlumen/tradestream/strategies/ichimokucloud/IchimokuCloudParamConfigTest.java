@@ -20,7 +20,7 @@ public class IchimokuCloudParamConfigTest {
 
   @Before
   public void setUp() {
-    config = IchimokuCloudParamConfig.create();
+    config = new IchimokuCloudParamConfig();
   }
 
   @Test
@@ -78,6 +78,6 @@ public class IchimokuCloudParamConfigTest {
     // Verify ranges
     IntegerChromosome tenkanSenPeriod = (IntegerChromosome) chromosomes.get(0);
     assertThat(tenkanSenPeriod.min()).isEqualTo(5);
-    assertThat(tenkanSenPeriod.max()).isEqualTo(60);
+    assertThat(tenkanSenPeriod.max()).isEqualTo(20);
   }
 }

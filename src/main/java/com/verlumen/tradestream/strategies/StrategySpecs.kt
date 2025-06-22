@@ -16,6 +16,10 @@ import com.verlumen.tradestream.strategies.doubleemacrossover.DoubleEmaCrossover
 import com.verlumen.tradestream.strategies.doubleemacrossover.DoubleEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdParamConfig
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdStrategyFactory
+import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiParamConfig
+import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiStrategyFactory
+import com.verlumen.tradestream.strategies.ichimokucloud.IchimokuCloudParamConfig
+import com.verlumen.tradestream.strategies.ichimokucloud.IchimokuCloudStrategyFactory
 import com.verlumen.tradestream.strategies.macdcrossover.MacdCrossoverParamConfig
 import com.verlumen.tradestream.strategies.macdcrossover.MacdCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.momentumsmacrossover.MomentumSmaCrossoverParamConfig
@@ -87,6 +91,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
                 paramConfig = DoubleEmaCrossoverParamConfig(),
                 strategyFactory = DoubleEmaCrossoverStrategyFactory(),
             ),
+        StrategyType.ICHIMOKU_CLOUD to
+            StrategySpec(
+                paramConfig = IchimokuCloudParamConfig(),
+                strategyFactory = IchimokuCloudStrategyFactory(),
+            ),
         StrategyType.MACD_CROSSOVER to
             StrategySpec(
                 paramConfig = MacdCrossoverParamConfig(),
@@ -136,6 +145,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = VwapCrossoverParamConfig(),
                 strategyFactory = VwapCrossoverStrategyFactory(),
+            ),
+        StrategyType.HEIKEN_ASHI to
+            StrategySpec(
+                paramConfig = HeikenAshiParamConfig(),
+                strategyFactory = HeikenAshiStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
