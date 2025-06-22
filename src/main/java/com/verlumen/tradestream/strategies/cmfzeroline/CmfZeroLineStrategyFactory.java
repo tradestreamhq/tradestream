@@ -93,7 +93,6 @@ public class CmfZeroLineStrategyFactory implements StrategyFactory<CmfZeroLinePa
           Num closeLow = close.minus(low);
           Num highClose = high.minus(close);
           Num moneyFlowMultiplier = closeLow.minus(highClose).dividedBy(highLow);
-          
           // Calculate Money Flow Volume
           Num moneyFlowVolume = moneyFlowMultiplier.multipliedBy(vol);
           sumMoneyFlowVolume = sumMoneyFlowVolume.plus(moneyFlowVolume);
