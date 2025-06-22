@@ -100,4 +100,4 @@ public final class VolumeSpreadAnalysisStrategyFactory implements StrategyFactor
       return 0;
     }
   }
-} 
+}
