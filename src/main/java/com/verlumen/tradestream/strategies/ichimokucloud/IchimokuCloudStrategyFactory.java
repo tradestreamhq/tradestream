@@ -61,8 +61,8 @@ public final class IchimokuCloudStrategyFactory implements StrategyFactory<Ichim
   @Override
   public IchimokuCloudParameters getDefaultParameters() {
     return IchimokuCloudParameters.newBuilder()
-        .setTenkanSenPeriod(9)   // Standard Tenkan-sen period
-        .setKijunSenPeriod(26)   // Standard Kijun-sen period
+        .setTenkanSenPeriod(9) // Standard Tenkan-sen period
+        .setKijunSenPeriod(26) // Standard Kijun-sen period
         .setSenkouSpanBPeriod(52) // Standard Senkou Span B period
         .setChikouSpanPeriod(26) // Standard Chikou Span period
         .build();
