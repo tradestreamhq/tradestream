@@ -29,4 +29,4 @@ java_test(
         "//third_party/java:junit",
         "//third_party/java:truth",
     ],
-) 
+)
