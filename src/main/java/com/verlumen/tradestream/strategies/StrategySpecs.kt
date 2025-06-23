@@ -54,6 +54,8 @@ import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarParamConfig
 import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarStrategyFactory
 import com.verlumen.tradestream.strategies.pvt.PvtParamConfig
 import com.verlumen.tradestream.strategies.pvt.PvtStrategyFactory
+import com.verlumen.tradestream.strategies.rainbowoscillator.RainbowOscillatorParamConfig
+import com.verlumen.tradestream.strategies.rainbowoscillator.RainbowOscillatorStrategyFactory
 import com.verlumen.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverParamConfig
 import com.verlumen.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.rvi.RviParamConfig
@@ -304,6 +306,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = DemaTemaCrossoverParamConfig(),
                 strategyFactory = DemaTemaCrossoverStrategyFactory(),
+            ),
+        StrategyType.RAINBOW_OSCILLATOR to
+            StrategySpec(
+                paramConfig = RainbowOscillatorParamConfig(),
+                strategyFactory = RainbowOscillatorStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
