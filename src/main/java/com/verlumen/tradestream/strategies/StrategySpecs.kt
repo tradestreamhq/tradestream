@@ -382,6 +382,7 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
                 RenkoChartParamConfig(),
                 RenkoChartStrategyFactory(),
             ),
+        // To add a new strategy, just add a new entry here.
     )
 
 /**
