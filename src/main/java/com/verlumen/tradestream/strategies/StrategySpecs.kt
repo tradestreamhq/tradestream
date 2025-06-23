@@ -56,6 +56,8 @@ import com.verlumen.tradestream.strategies.obvema.ObvEmaParamConfig
 import com.verlumen.tradestream.strategies.obvema.ObvEmaStrategyFactory
 import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarParamConfig
 import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarStrategyFactory
+import com.verlumen.tradestream.strategies.pivot.PivotParamConfig
+import com.verlumen.tradestream.strategies.pivot.PivotStrategyFactory
 import com.verlumen.tradestream.strategies.priceoscillatorsignal.PriceOscillatorSignalParamConfig
 import com.verlumen.tradestream.strategies.priceoscillatorsignal.PriceOscillatorSignalStrategyFactory
 import com.verlumen.tradestream.strategies.pvt.PvtParamConfig
@@ -346,6 +348,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = RegressionChannelParamConfig(),
                 strategyFactory = RegressionChannelStrategyFactory(),
+            ),
+        StrategyType.PIVOT to
+            StrategySpec(
+                paramConfig = PivotParamConfig(),
+                strategyFactory = PivotStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )

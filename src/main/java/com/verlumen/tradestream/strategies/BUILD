@@ -80,6 +80,8 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/momentumsmacrossover:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/parabolicsarr:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/parabolicsarr:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/pivot:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/pivot:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/rsiemacrossover:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/rsiemacrossover:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/rvi:param_config",
