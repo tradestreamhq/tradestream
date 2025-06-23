@@ -20,4 +20,4 @@ class MomentumIndicator(
         }
 
     override fun getUnstableBars(): Int = period
-} 
+}
