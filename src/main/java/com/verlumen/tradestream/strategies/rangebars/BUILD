@@ -22,4 +22,4 @@ java_library(
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
         "//third_party/java:ta4j_core",
     ],
-) 
+)
