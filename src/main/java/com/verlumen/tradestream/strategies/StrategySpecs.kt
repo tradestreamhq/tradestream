@@ -32,6 +32,8 @@ import com.verlumen.tradestream.strategies.elderrayma.ElderRayMAParamConfig
 import com.verlumen.tradestream.strategies.elderrayma.ElderRayMAStrategyFactory
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdParamConfig
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdStrategyFactory
+import com.verlumen.tradestream.strategies.frama.FramaParamConfig
+import com.verlumen.tradestream.strategies.frama.FramaStrategyFactory
 import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiParamConfig
 import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiStrategyFactory
 import com.verlumen.tradestream.strategies.ichimokucloud.IchimokuCloudParamConfig
@@ -317,6 +319,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = ElderRayMAParamConfig(),
                 strategyFactory = ElderRayMAStrategyFactory(),
+            ),
+        StrategyType.FRAMA to
+            StrategySpec(
+                paramConfig = FramaParamConfig(),
+                strategyFactory = FramaStrategyFactory(),
             ),
         StrategyType.RAINBOW_OSCILLATOR to
             StrategySpec(
