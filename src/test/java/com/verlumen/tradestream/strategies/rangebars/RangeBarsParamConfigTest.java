@@ -2,13 +2,13 @@ package com.verlumen.tradestream.strategies.rangebars;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.discovery.ParamConfig;
 import com.verlumen.tradestream.strategies.RangeBarsParameters;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.NumericChromosome;
 import java.util.List;
-import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
 public final class RangeBarsParamConfigTest {
@@ -28,7 +28,8 @@ public final class RangeBarsParamConfigTest {
 
   @Test
   public void testCreateParameters_valid() throws Exception {
-    ImmutableList<? extends NumericChromosome<?, ?>> chromosomes = ImmutableList.copyOf(config.initialChromosomes());
+    ImmutableList<? extends NumericChromosome<?, ?>> chromosomes =
+        ImmutableList.copyOf(config.initialChromosomes());
     Any packed = config.createParameters(chromosomes);
     RangeBarsParameters params = packed.unpack(RangeBarsParameters.class);
     assertThat(params.hasRangeSize()).isTrue();
@@ -40,4 +41,4 @@ public final class RangeBarsParamConfigTest {
     RangeBarsParameters params = packed.unpack(RangeBarsParameters.class);
     assertThat(params.hasRangeSize()).isTrue();
   }
-} 
+}

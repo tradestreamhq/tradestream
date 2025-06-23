@@ -30,6 +30,8 @@ import com.verlumen.tradestream.strategies.doubleemacrossover.DoubleEmaCrossover
 import com.verlumen.tradestream.strategies.doubleemacrossover.DoubleEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.doubletopbottom.DoubleTopBottomParamConfig
 import com.verlumen.tradestream.strategies.doubletopbottom.DoubleTopBottomStrategyFactory
+import com.verlumen.tradestream.strategies.dpocrossover.DpoCrossoverParamConfig
+import com.verlumen.tradestream.strategies.dpocrossover.DpoCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.elderrayma.ElderRayMAParamConfig
 import com.verlumen.tradestream.strategies.elderrayma.ElderRayMAStrategyFactory
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdParamConfig
@@ -402,6 +404,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = SarMfiParamConfig(),
                 strategyFactory = SarMfiStrategyFactory(),
+            ),
+        StrategyType.DPO_CROSSOVER to
+            StrategySpec(
+                paramConfig = DpoCrossoverParamConfig(),
+                strategyFactory = DpoCrossoverStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )

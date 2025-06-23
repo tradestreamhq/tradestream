@@ -2,6 +2,7 @@ package com.verlumen.tradestream.strategies.renkochart;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.verlumen.tradestream.strategies.RenkoChartParameters;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import org.junit.Test;
@@ -10,7 +11,6 @@ import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.TradingRecord;
-import com.verlumen.tradestream.strategies.RenkoChartParameters;
 
 public final class RenkoChartStrategyFactoryTest {
   private final RenkoChartStrategyFactory factory = new RenkoChartStrategyFactory();

@@ -29,4 +29,4 @@ public final class SarMfiStrategyFactoryTest {
     assertThat(strategy.getEntryRule()).isNull();
     assertThat(strategy.getExitRule()).isNull();
   }
-} 
+}
