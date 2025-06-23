@@ -929,31 +929,6 @@ enum StrategyType {
   //  - minPeriod (int): Minimum period for the EMA
   //  - maxPeriod (int): Maximum period for the EMA
   VARIABLE_PERIOD_EMA = 60;
-
-  // Composite Strategy
-  //
-  // Combines two strategies using logical operators for entry and exit rules.
-  // This allows for complex strategy combinations without pre-defining every possible combination.
-  //
-  // Indicators:
-  //   - All indicators from the two constituent strategies
-  //
-  // Entry Condition:
-  //   - Determined by entry_operator applied to the entry rules of both strategies
-  //   - AND: Both strategies must signal entry
-  //   - OR: Either strategy can signal entry
-  //
-  // Exit Condition:
-  //   - Determined by exit_operator applied to the exit rules of both strategies
-  //   - AND: Both strategies must signal exit
-  //   - OR: Either strategy can signal exit
-  //
-  // Parameters:
-  //   - left_strategy: The first strategy to combine
-  //   - right_strategy: The second strategy to combine
-  //   - entry_operator: Logical operator for entry rules (AND/OR)
-  //   - exit_operator: Logical operator for exit rules (AND/OR)
-  COMPOSITE = 61;
 }
 
 message SmaRsiParameters {
@@ -1262,17 +1237,4 @@ message DpoCrossoverParameters {
 message VariablePeriodEmaParameters {
   int32 minPeriod = 1;
   int32 maxPeriod = 2;
-}
-
-message CompositeStrategyParameters {
-  Strategy left_strategy = 1;
-  Strategy right_strategy = 2;
-  
-  enum LogicalOperator {
-    AND = 0;
-    OR = 1;
-  }
-  
-  LogicalOperator entry_operator = 3;
-  LogicalOperator exit_operator = 4;
 }
