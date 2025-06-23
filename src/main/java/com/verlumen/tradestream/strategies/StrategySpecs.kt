@@ -387,7 +387,6 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
         StrategyType.RANGE_BARS to StrategySpec(
             RangeBarsParamConfig(),
             RangeBarsStrategyFactory(),
-            RangeBarsParameters.getDefaultInstance()
         ),
         // To add a new strategy, just add a new entry here.
     )
