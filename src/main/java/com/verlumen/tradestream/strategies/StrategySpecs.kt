@@ -72,6 +72,8 @@ import com.verlumen.tradestream.strategies.rainbowoscillator.RainbowOscillatorPa
 import com.verlumen.tradestream.strategies.rainbowoscillator.RainbowOscillatorStrategyFactory
 import com.verlumen.tradestream.strategies.regressionchannel.RegressionChannelParamConfig
 import com.verlumen.tradestream.strategies.regressionchannel.RegressionChannelStrategyFactory
+import com.verlumen.tradestream.strategies.renkochart.RenkoChartParamConfig
+import com.verlumen.tradestream.strategies.renkochart.RenkoChartStrategyFactory
 import com.verlumen.tradestream.strategies.rocma.RocMaCrossoverParamConfig
 import com.verlumen.tradestream.strategies.rocma.RocMaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverParamConfig
@@ -374,6 +376,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = PriceGapParamConfig(),
                 strategyFactory = PriceGapStrategyFactory(),
+            ),
+        StrategyType.RENKO_CHART to
+            StrategySpec(
+                RenkoChartParamConfig(),
+                RenkoChartStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
