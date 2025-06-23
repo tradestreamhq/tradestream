@@ -390,18 +390,18 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             ),
         StrategyType.RANGE_BARS to
             StrategySpec(
-                RangeBarsParamConfig(),
-                RangeBarsStrategyFactory(),
+                paramConfig = RangeBarsParamConfig(),
+                strategyFactory = RangeBarsStrategyFactory(),
             ),
         StrategyType.GANN_SWING to
             StrategySpec(
-                GannSwingParamConfig(),
-                GannSwingStrategyFactory(),
+                paramConfig = GannSwingParamConfig(),
+                strategyFactory = GannSwingStrategyFactory(),
             ),
         StrategyType.SAR_MFI to
             StrategySpec(
-                SarMfiParamConfig(),
-                SarMfiStrategyFactory(),
+                paramConfig = SarMfiParamConfig(),
+                strategyFactory = SarMfiStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
