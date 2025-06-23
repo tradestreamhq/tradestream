@@ -108,6 +108,8 @@ import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverParamConfi
 import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.vwapmeanreversion.VwapMeanReversionParamConfig
 import com.verlumen.tradestream.strategies.vwapmeanreversion.VwapMeanReversionStrategyFactory
+import com.verlumen.tradestream.strategies.rangebars.RangeBarsParamConfig
+import com.verlumen.tradestream.strategies.rangebars.RangeBarsStrategyFactory
 import org.ta4j.core.BarSeries
 import org.ta4j.core.Strategy
 
@@ -382,6 +384,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
                 RenkoChartParamConfig(),
                 RenkoChartStrategyFactory(),
             ),
+        StrategyType.RANGE_BARS to StrategySpec(
+            RangeBarsParamConfig(),
+            RangeBarsStrategyFactory(),
+            RangeBarsParameters.getDefaultInstance()
+        ),
         // To add a new strategy, just add a new entry here.
     )
 
