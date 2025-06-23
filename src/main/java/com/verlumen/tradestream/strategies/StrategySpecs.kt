@@ -384,10 +384,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
                 RenkoChartParamConfig(),
                 RenkoChartStrategyFactory(),
             ),
-        StrategyType.RANGE_BARS to StrategySpec(
-            RangeBarsParamConfig(),
-            RangeBarsStrategyFactory(),
-        ),
+        StrategyType.RANGE_BARS to
+            StrategySpec(
+                RangeBarsParamConfig(),
+                RangeBarsStrategyFactory(),
+            ),
         // To add a new strategy, just add a new entry here.
     )
 
