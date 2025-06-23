@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.discovery.ParamConfig;
-import io.jenetics.NumericChromosome;
 import com.verlumen.tradestream.strategies.RangeBarsParameters;
+import io.jenetics.NumericChromosome;
 
 public final class RangeBarsParamConfig implements ParamConfig {
   private static final double MIN_RANGE_SIZE = 0.1;
@@ -36,4 +36,4 @@ public final class RangeBarsParamConfig implements ParamConfig {
     }
     return builder.build();
   }
-} 
+}

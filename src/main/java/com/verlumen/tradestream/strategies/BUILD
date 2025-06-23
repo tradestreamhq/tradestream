@@ -144,5 +144,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/renkochart:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/rangebars:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/rangebars:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/gannswing:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/gannswing:strategy_factory",
     ],
 )
