@@ -52,6 +52,8 @@ import com.verlumen.tradestream.strategies.obvema.ObvEmaParamConfig
 import com.verlumen.tradestream.strategies.obvema.ObvEmaStrategyFactory
 import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarParamConfig
 import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarStrategyFactory
+import com.verlumen.tradestream.strategies.priceoscillatorsignal.PriceOscillatorSignalParamConfig
+import com.verlumen.tradestream.strategies.priceoscillatorsignal.PriceOscillatorSignalStrategyFactory
 import com.verlumen.tradestream.strategies.pvt.PvtParamConfig
 import com.verlumen.tradestream.strategies.pvt.PvtStrategyFactory
 import com.verlumen.tradestream.strategies.rainbowoscillator.RainbowOscillatorParamConfig
@@ -311,6 +313,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = RainbowOscillatorParamConfig(),
                 strategyFactory = RainbowOscillatorStrategyFactory(),
+            ),
+        StrategyType.PRICE_OSCILLATOR_SIGNAL to
+            StrategySpec(
+                paramConfig = PriceOscillatorSignalParamConfig(),
+                strategyFactory = PriceOscillatorSignalStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
