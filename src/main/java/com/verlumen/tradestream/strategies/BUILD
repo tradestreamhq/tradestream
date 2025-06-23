@@ -140,5 +140,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/rocma:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/priceoscillatorsignal:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/priceoscillatorsignal:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/renkochart:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/renkochart:strategy_factory",
     ],
 )
