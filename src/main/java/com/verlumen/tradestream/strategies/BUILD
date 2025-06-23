@@ -126,6 +126,8 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/awesomeoscillator:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/rainbowoscillator:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/rainbowoscillator:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/regressionchannel:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/regressionchannel:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/rocma:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/rocma:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/priceoscillatorsignal:param_config",
