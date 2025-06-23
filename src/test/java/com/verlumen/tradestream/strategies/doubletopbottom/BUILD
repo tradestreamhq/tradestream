@@ -29,4 +29,4 @@ java_test(
         "@com_google_protobuf//java/core",
         "@tradestream_maven//:com_google_protobuf_protobuf_java",
     ],
-) 
+)

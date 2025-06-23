@@ -62,6 +62,8 @@ import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarParamConfig
 import com.verlumen.tradestream.strategies.parabolicsarr.ParabolicSarStrategyFactory
 import com.verlumen.tradestream.strategies.pivot.PivotParamConfig
 import com.verlumen.tradestream.strategies.pivot.PivotStrategyFactory
+import com.verlumen.tradestream.strategies.pricegap.PriceGapParamConfig
+import com.verlumen.tradestream.strategies.pricegap.PriceGapStrategyFactory
 import com.verlumen.tradestream.strategies.priceoscillatorsignal.PriceOscillatorSignalParamConfig
 import com.verlumen.tradestream.strategies.priceoscillatorsignal.PriceOscillatorSignalStrategyFactory
 import com.verlumen.tradestream.strategies.pvt.PvtParamConfig
@@ -367,6 +369,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = FibonacciRetracementsParamConfig(),
                 strategyFactory = FibonacciRetracementsStrategyFactory(),
+            ),
+        StrategyType.PRICE_GAP to
+            StrategySpec(
+                paramConfig = PriceGapParamConfig(),
+                strategyFactory = PriceGapStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )

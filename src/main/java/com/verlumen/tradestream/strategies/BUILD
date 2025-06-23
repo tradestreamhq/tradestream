@@ -60,6 +60,8 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/doubletopbottom:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/fibonacciretracements:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/fibonacciretracements:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/pricegap:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/pricegap:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/emamacd:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/emamacd:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/elderrayma:param_config",
