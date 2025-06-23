@@ -28,6 +28,8 @@ import com.verlumen.tradestream.strategies.donchianbreakout.DonchianBreakoutPara
 import com.verlumen.tradestream.strategies.donchianbreakout.DonchianBreakoutStrategyFactory
 import com.verlumen.tradestream.strategies.doubleemacrossover.DoubleEmaCrossoverParamConfig
 import com.verlumen.tradestream.strategies.doubleemacrossover.DoubleEmaCrossoverStrategyFactory
+import com.verlumen.tradestream.strategies.elderrayma.ElderRayMAParamConfig
+import com.verlumen.tradestream.strategies.elderrayma.ElderRayMAStrategyFactory
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdParamConfig
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdStrategyFactory
 import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiParamConfig
@@ -308,6 +310,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = DemaTemaCrossoverParamConfig(),
                 strategyFactory = DemaTemaCrossoverStrategyFactory(),
+            ),
+        StrategyType.ELDER_RAY_MA to
+            StrategySpec(
+                paramConfig = ElderRayMAParamConfig(),
+                strategyFactory = ElderRayMAStrategyFactory(),
             ),
         StrategyType.RAINBOW_OSCILLATOR to
             StrategySpec(
