@@ -16,6 +16,8 @@ import com.verlumen.tradestream.strategies.chaikinoscillator.ChaikinOscillatorPa
 import com.verlumen.tradestream.strategies.chaikinoscillator.ChaikinOscillatorStrategyFactory
 import com.verlumen.tradestream.strategies.cmfzeroline.CmfZeroLineParamConfig
 import com.verlumen.tradestream.strategies.cmfzeroline.CmfZeroLineStrategyFactory
+import com.verlumen.tradestream.strategies.cmomfi.CmoMfiParamConfig
+import com.verlumen.tradestream.strategies.cmomfi.CmoMfiStrategyFactory
 import com.verlumen.tradestream.strategies.donchianbreakout.DonchianBreakoutParamConfig
 import com.verlumen.tradestream.strategies.donchianbreakout.DonchianBreakoutStrategyFactory
 import com.verlumen.tradestream.strategies.doubleemacrossover.DoubleEmaCrossoverParamConfig
@@ -58,6 +60,8 @@ import com.verlumen.tradestream.strategies.stochasticema.StochasticEmaParamConfi
 import com.verlumen.tradestream.strategies.stochasticema.StochasticEmaStrategyFactory
 import com.verlumen.tradestream.strategies.stochasticsrsi.StochasticRsiParamConfig
 import com.verlumen.tradestream.strategies.stochasticsrsi.StochasticRsiStrategyFactory
+import com.verlumen.tradestream.strategies.tickvolumeanalysis.TickVolumeAnalysisParamConfig
+import com.verlumen.tradestream.strategies.tickvolumeanalysis.TickVolumeAnalysisStrategyFactory
 import com.verlumen.tradestream.strategies.tripleemacrossover.TripleEmaCrossoverParamConfig
 import com.verlumen.tradestream.strategies.tripleemacrossover.TripleEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopParamConfig
@@ -123,6 +127,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
                 paramConfig = CmfZeroLineParamConfig(),
                 strategyFactory = CmfZeroLineStrategyFactory(),
             ),
+        StrategyType.CMO_MFI to
+            StrategySpec(
+                paramConfig = CmoMfiParamConfig(),
+                strategyFactory = CmoMfiStrategyFactory(),
+            ),
         StrategyType.DONCHIAN_BREAKOUT to
             StrategySpec(
                 paramConfig = DonchianBreakoutParamConfig(),
@@ -182,6 +191,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = StochasticRsiParamConfig(),
                 strategyFactory = StochasticRsiStrategyFactory(),
+            ),
+        StrategyType.TICK_VOLUME_ANALYSIS to
+            StrategySpec(
+                paramConfig = TickVolumeAnalysisParamConfig(),
+                strategyFactory = TickVolumeAnalysisStrategyFactory(),
             ),
         StrategyType.TRIPLE_EMA_CROSSOVER to
             StrategySpec(
