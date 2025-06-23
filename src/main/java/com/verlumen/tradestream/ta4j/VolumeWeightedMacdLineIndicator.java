@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.volumeweightedmacd;
+package com.verlumen.tradestream.ta4j;
 
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.CachedIndicator;

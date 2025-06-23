@@ -4,14 +4,6 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 package(default_visibility = ["//visibility:public"])
 
 kt_jvm_library(
-    name = "momentum_indicator",
-    srcs = ["MomentumIndicator.kt"],
-    deps = [
-        "//third_party/java:ta4j_core",
-    ],
-)
-
-kt_jvm_library(
     name = "strategy_constants",
     srcs = ["StrategyConstants.kt"],
     deps = [
@@ -43,7 +35,6 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/discovery:param_config",
         "//third_party/java:protobuf_java",
         "//third_party/java:ta4j_core",
-
         # Implementations for each strategy included in the map
         "//src/main/java/com/verlumen/tradestream/strategies/adxdmi:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/adxdmi:strategy_factory",
@@ -121,5 +112,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/vpt:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/volumespreadanalysis:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/volumespreadanalysis:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/trixsignalline:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/trixsignalline:strategy_factory",
     ],
 )

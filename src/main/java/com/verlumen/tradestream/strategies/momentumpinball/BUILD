@@ -21,8 +21,8 @@ java_library(
     deps = [
         ":param_config",
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/strategies:momentum_indicator",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/ta4j:momentum_indicator",
         "//third_party/java:protobuf_java",
         "//third_party/java:ta4j_core",
     ],

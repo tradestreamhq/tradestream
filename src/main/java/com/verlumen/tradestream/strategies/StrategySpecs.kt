@@ -64,6 +64,8 @@ import com.verlumen.tradestream.strategies.tickvolumeanalysis.TickVolumeAnalysis
 import com.verlumen.tradestream.strategies.tickvolumeanalysis.TickVolumeAnalysisStrategyFactory
 import com.verlumen.tradestream.strategies.tripleemacrossover.TripleEmaCrossoverParamConfig
 import com.verlumen.tradestream.strategies.tripleemacrossover.TripleEmaCrossoverStrategyFactory
+import com.verlumen.tradestream.strategies.trixsignalline.TrixSignalLineParamConfig
+import com.verlumen.tradestream.strategies.trixsignalline.TrixSignalLineStrategyFactory
 import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopParamConfig
 import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopStrategyFactory
 import com.verlumen.tradestream.strategies.volumebreakout.VolumeBreakoutParamConfig
@@ -276,6 +278,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = VolumeSpreadAnalysisParamConfig(),
                 strategyFactory = VolumeSpreadAnalysisStrategyFactory(),
+            ),
+        StrategyType.TRIX_SIGNAL_LINE to
+            StrategySpec(
+                paramConfig = TrixSignalLineParamConfig(),
+                strategyFactory = TrixSignalLineStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )

@@ -1,15 +1,11 @@
 load("@rules_java//java:defs.bzl", "java_library")
 
-package(
-    default_visibility = [
-        "//src/main/java/com/verlumen/tradestream/strategies:__pkg__",
-        "//src/test/java/com/verlumen/tradestream/strategies/rvi:__pkg__",
-    ],
-)
+package(default_visibility = ["//visibility:public"])
 
 java_library(
     name = "param_config",
-    srcs = ["RviParamConfig.java"],
+    srcs = ["TrixSignalLineParamConfig.java"],
+    visibility = ["//visibility:public"],
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
@@ -22,13 +18,13 @@ java_library(
 
 java_library(
     name = "strategy_factory",
-    srcs = ["RviStrategyFactory.java"],
+    srcs = ["TrixSignalLineStrategyFactory.java"],
+    visibility = ["//visibility:public"],
     deps = [
+        ":param_config",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
-        "//src/main/java/com/verlumen/tradestream/ta4j:rvi_indicator",
-        "//third_party/java:guava",
-        "//third_party/java:protobuf_java",
+        "//src/main/java/com/verlumen/tradestream/ta4j:trix_indicator",
         "//third_party/java:ta4j_core",
     ],
 )

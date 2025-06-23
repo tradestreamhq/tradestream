@@ -3,6 +3,7 @@ package com.verlumen.tradestream.strategies.rvi;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.verlumen.tradestream.strategies.RviParameters;
+import com.verlumen.tradestream.ta4j.RviIndicator;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import org.junit.Before;
@@ -99,7 +100,6 @@ public class RviStrategyFactoryTest {
     openPrice = new OpenPriceIndicator(series);
     highPrice = new HighPriceIndicator(series);
     lowPrice = new LowPriceIndicator(series);
-    // Use the existing RviIndicator class
     rvi = new RviIndicator(closePrice, openPrice, highPrice, lowPrice, RVI_PERIOD);
     rviSignal = new SMAIndicator(rvi, 4); // 4-period signal line
     // Create strategy

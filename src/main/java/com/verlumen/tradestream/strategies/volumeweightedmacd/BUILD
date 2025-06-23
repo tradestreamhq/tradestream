@@ -17,7 +17,6 @@ java_library(
 java_library(
     name = "strategy_factory",
     srcs = [
-        "VolumeWeightedMacdLineIndicator.java",
         "VolumeWeightedMacdStrategyFactory.java",
     ],
     visibility = ["//visibility:public"],
@@ -25,6 +24,7 @@ java_library(
         ":param_config",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/ta4j:volume_weighted_macd_line_indicator",
         "//third_party/java:protobuf_java",
         "//third_party/java:ta4j_core",
     ],

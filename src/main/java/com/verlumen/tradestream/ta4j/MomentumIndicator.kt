@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies
+package com.verlumen.tradestream.ta4j
 
 import org.ta4j.core.indicators.CachedIndicator
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator
@@ -20,4 +20,4 @@ class MomentumIndicator(
         }
 
     override fun getUnstableBars(): Int = period
-}
+} 
