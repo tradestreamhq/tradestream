@@ -102,6 +102,8 @@ import com.verlumen.tradestream.strategies.tripleemacrossover.TripleEmaCrossover
 import com.verlumen.tradestream.strategies.tripleemacrossover.TripleEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.trixsignalline.TrixSignalLineParamConfig
 import com.verlumen.tradestream.strategies.trixsignalline.TrixSignalLineStrategyFactory
+import com.verlumen.tradestream.strategies.variableperiodema.VariablePeriodEmaParamConfig
+import com.verlumen.tradestream.strategies.variableperiodema.VariablePeriodEmaStrategyFactory
 import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopParamConfig
 import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopStrategyFactory
 import com.verlumen.tradestream.strategies.volumebreakout.VolumeBreakoutParamConfig
@@ -409,6 +411,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = DpoCrossoverParamConfig(),
                 strategyFactory = DpoCrossoverStrategyFactory(),
+            ),
+        StrategyType.VARIABLE_PERIOD_EMA to
+            StrategySpec(
+                paramConfig = VariablePeriodEmaParamConfig(),
+                strategyFactory = VariablePeriodEmaStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )

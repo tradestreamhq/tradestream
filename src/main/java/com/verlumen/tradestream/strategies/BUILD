@@ -150,5 +150,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/sarmfi:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/dpocrossover:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/dpocrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/variableperiodema:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/variableperiodema:strategy_factory",
     ],
 )
