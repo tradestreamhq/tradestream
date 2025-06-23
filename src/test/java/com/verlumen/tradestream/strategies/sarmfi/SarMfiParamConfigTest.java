@@ -2,13 +2,11 @@ package com.verlumen.tradestream.strategies.sarmfi;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.discovery.ParamConfig;
 import com.verlumen.tradestream.strategies.SarMfiParameters;
 import io.jenetics.NumericChromosome;
-import io.jenetics.DoubleChromosome;
-import io.jenetics.IntegerChromosome;
-import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
 public final class SarMfiParamConfigTest {
@@ -26,7 +24,8 @@ public final class SarMfiParamConfigTest {
 
   @Test
   public void testCreateParameters_valid() throws Exception {
-    ImmutableList<? extends NumericChromosome<?, ?>> chromosomes = ImmutableList.copyOf(config.initialChromosomes());
+    ImmutableList<? extends NumericChromosome<?, ?>> chromosomes =
+        ImmutableList.copyOf(config.initialChromosomes());
     Any packed = config.createParameters(chromosomes);
     SarMfiParameters params = packed.unpack(SarMfiParameters.class);
     assertThat(params.hasAccelerationFactorStart()).isTrue();
@@ -44,4 +43,4 @@ public final class SarMfiParamConfigTest {
     assertThat(params.hasAccelerationFactorMax()).isTrue();
     assertThat(params.hasMfiPeriod()).isTrue();
   }
-} 
+}

@@ -4,10 +4,10 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Any;
+import com.verlumen.tradestream.strategies.RenkoChartParameters;
 import io.jenetics.NumericChromosome;
 import java.util.List;
 import org.junit.Test;
-import com.verlumen.tradestream.strategies.RenkoChartParameters;
 
 public final class RenkoChartParamConfigTest {
   private final RenkoChartParamConfig config = new RenkoChartParamConfig();

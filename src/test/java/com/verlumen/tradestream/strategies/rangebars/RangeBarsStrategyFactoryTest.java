@@ -26,4 +26,4 @@ public final class RangeBarsStrategyFactoryTest {
     assertThat(strategy.shouldEnter(0)).isFalse();
     assertThat(strategy.shouldExit(0)).isFalse();
   }
-} 
+}
