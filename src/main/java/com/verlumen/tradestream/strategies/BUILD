@@ -120,5 +120,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/aroonmfi:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/awesomeoscillator:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/awesomeoscillator:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/rainbowoscillator:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/rainbowoscillator:strategy_factory",
     ],
 )
