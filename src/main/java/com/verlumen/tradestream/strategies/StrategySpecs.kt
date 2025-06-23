@@ -84,6 +84,8 @@ import com.verlumen.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverParamC
 import com.verlumen.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.rvi.RviParamConfig
 import com.verlumen.tradestream.strategies.rvi.RviStrategyFactory
+import com.verlumen.tradestream.strategies.sarmfi.SarMfiParamConfig
+import com.verlumen.tradestream.strategies.sarmfi.SarMfiStrategyFactory
 import com.verlumen.tradestream.strategies.smaemacrossover.SmaEmaCrossoverParamConfig
 import com.verlumen.tradestream.strategies.smaemacrossover.SmaEmaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.smarsi.SmaRsiParamConfig
@@ -395,6 +397,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 GannSwingParamConfig(),
                 GannSwingStrategyFactory(),
+            ),
+        StrategyType.SAR_MFI to
+            StrategySpec(
+                SarMfiParamConfig(),
+                SarMfiStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )

@@ -25,5 +25,9 @@ kt_jvm_test(
         # Gannswing tests
         "//src/test/java/com/verlumen/tradestream/strategies/gannswing:param_config_test",
         "//src/test/java/com/verlumen/tradestream/strategies/gannswing:strategy_factory_test",
+
+        # Sarmfi tests
+        "//src/test/java/com/verlumen/tradestream/strategies/sarmfi:param_config_test",
+        "//src/test/java/com/verlumen/tradestream/strategies/sarmfi:strategy_factory_test",
     ],
 )
