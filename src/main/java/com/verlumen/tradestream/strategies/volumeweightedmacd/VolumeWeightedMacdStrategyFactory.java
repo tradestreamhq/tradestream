@@ -3,6 +3,7 @@ package com.verlumen.tradestream.strategies.volumeweightedmacd;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.VolumeWeightedMacdParameters;
+import com.verlumen.tradestream.ta4j.VolumeWeightedMacdLineIndicator;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.EMAIndicator;

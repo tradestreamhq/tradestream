@@ -3,8 +3,8 @@ package com.verlumen.tradestream.strategies.momentumsmacrossover;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.strategies.MomentumIndicator;
 import com.verlumen.tradestream.strategies.MomentumSmaCrossoverParameters;
+import com.verlumen.tradestream.ta4j.MomentumIndicator;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import org.junit.Before;

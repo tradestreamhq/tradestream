@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.verlumen.tradestream.strategies.RviParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import com.verlumen.tradestream.strategies.StrategyType;
+import com.verlumen.tradestream.ta4j.RviIndicator;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
