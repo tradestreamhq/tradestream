@@ -56,6 +56,8 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/donchianbreakout:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/doubleemacrossover:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/doubleemacrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/doubletopbottom:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/doubletopbottom:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/emamacd:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/emamacd:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/elderrayma:param_config",
