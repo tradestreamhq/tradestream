@@ -6,10 +6,14 @@ import com.verlumen.tradestream.strategies.adxdmi.AdxDmiParamConfig
 import com.verlumen.tradestream.strategies.adxdmi.AdxDmiStrategyFactory
 import com.verlumen.tradestream.strategies.adxstochastic.AdxStochasticParamConfig
 import com.verlumen.tradestream.strategies.adxstochastic.AdxStochasticStrategyFactory
+import com.verlumen.tradestream.strategies.aroonmfi.AroonMfiParamConfig
+import com.verlumen.tradestream.strategies.aroonmfi.AroonMfiStrategyFactory
 import com.verlumen.tradestream.strategies.atrcci.AtrCciParamConfig
 import com.verlumen.tradestream.strategies.atrcci.AtrCciStrategyFactory
 import com.verlumen.tradestream.strategies.atrtrailingstop.AtrTrailingStopParamConfig
 import com.verlumen.tradestream.strategies.atrtrailingstop.AtrTrailingStopStrategyFactory
+import com.verlumen.tradestream.strategies.awesomeoscillator.AwesomeOscillatorParamConfig
+import com.verlumen.tradestream.strategies.awesomeoscillator.AwesomeOscillatorStrategyFactory
 import com.verlumen.tradestream.strategies.bbandwr.BbandWRParamConfig
 import com.verlumen.tradestream.strategies.bbandwr.BbandWRStrategyFactory
 import com.verlumen.tradestream.strategies.chaikinoscillator.ChaikinOscillatorParamConfig
@@ -18,6 +22,8 @@ import com.verlumen.tradestream.strategies.cmfzeroline.CmfZeroLineParamConfig
 import com.verlumen.tradestream.strategies.cmfzeroline.CmfZeroLineStrategyFactory
 import com.verlumen.tradestream.strategies.cmomfi.CmoMfiParamConfig
 import com.verlumen.tradestream.strategies.cmomfi.CmoMfiStrategyFactory
+import com.verlumen.tradestream.strategies.dematemacrossover.DemaTemaCrossoverParamConfig
+import com.verlumen.tradestream.strategies.dematemacrossover.DemaTemaCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.donchianbreakout.DonchianBreakoutParamConfig
 import com.verlumen.tradestream.strategies.donchianbreakout.DonchianBreakoutStrategyFactory
 import com.verlumen.tradestream.strategies.doubleemacrossover.DoubleEmaCrossoverParamConfig
@@ -283,6 +289,21 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = TrixSignalLineParamConfig(),
                 strategyFactory = TrixSignalLineStrategyFactory(),
+            ),
+        StrategyType.AROON_MFI to
+            StrategySpec(
+                paramConfig = AroonMfiParamConfig(),
+                strategyFactory = AroonMfiStrategyFactory(),
+            ),
+        StrategyType.AWESOME_OSCILLATOR to
+            StrategySpec(
+                paramConfig = AwesomeOscillatorParamConfig(),
+                strategyFactory = AwesomeOscillatorStrategyFactory(),
+            ),
+        StrategyType.DEMA_TEMA_CROSSOVER to
+            StrategySpec(
+                paramConfig = DemaTemaCrossoverParamConfig(),
+                strategyFactory = DemaTemaCrossoverStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )

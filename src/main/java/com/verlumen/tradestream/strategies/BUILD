@@ -114,5 +114,11 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies/volumespreadanalysis:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/strategies/trixsignalline:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/trixsignalline:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/dematemacrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/dematemacrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/aroonmfi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/aroonmfi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/awesomeoscillator:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/awesomeoscillator:strategy_factory",
     ],
 )
