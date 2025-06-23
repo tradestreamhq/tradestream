@@ -38,6 +38,8 @@ import com.verlumen.tradestream.strategies.fibonacciretracements.FibonacciRetrac
 import com.verlumen.tradestream.strategies.fibonacciretracements.FibonacciRetracementsStrategyFactory
 import com.verlumen.tradestream.strategies.frama.FramaParamConfig
 import com.verlumen.tradestream.strategies.frama.FramaStrategyFactory
+import com.verlumen.tradestream.strategies.gannswing.GannSwingParamConfig
+import com.verlumen.tradestream.strategies.gannswing.GannSwingStrategyFactory
 import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiParamConfig
 import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiStrategyFactory
 import com.verlumen.tradestream.strategies.ichimokucloud.IchimokuCloudParamConfig
@@ -70,6 +72,8 @@ import com.verlumen.tradestream.strategies.pvt.PvtParamConfig
 import com.verlumen.tradestream.strategies.pvt.PvtStrategyFactory
 import com.verlumen.tradestream.strategies.rainbowoscillator.RainbowOscillatorParamConfig
 import com.verlumen.tradestream.strategies.rainbowoscillator.RainbowOscillatorStrategyFactory
+import com.verlumen.tradestream.strategies.rangebars.RangeBarsParamConfig
+import com.verlumen.tradestream.strategies.rangebars.RangeBarsStrategyFactory
 import com.verlumen.tradestream.strategies.regressionchannel.RegressionChannelParamConfig
 import com.verlumen.tradestream.strategies.regressionchannel.RegressionChannelStrategyFactory
 import com.verlumen.tradestream.strategies.renkochart.RenkoChartParamConfig
@@ -108,8 +112,6 @@ import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverParamConfi
 import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.vwapmeanreversion.VwapMeanReversionParamConfig
 import com.verlumen.tradestream.strategies.vwapmeanreversion.VwapMeanReversionStrategyFactory
-import com.verlumen.tradestream.strategies.rangebars.RangeBarsParamConfig
-import com.verlumen.tradestream.strategies.rangebars.RangeBarsStrategyFactory
 import org.ta4j.core.BarSeries
 import org.ta4j.core.Strategy
 
@@ -388,6 +390,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 RangeBarsParamConfig(),
                 RangeBarsStrategyFactory(),
+            ),
+        StrategyType.GANN_SWING to
+            StrategySpec(
+                GannSwingParamConfig(),
+                GannSwingStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )

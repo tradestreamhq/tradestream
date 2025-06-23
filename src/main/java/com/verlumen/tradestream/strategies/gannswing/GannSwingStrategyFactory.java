@@ -1,22 +1,21 @@
-package com.verlumen.tradestream.strategies.rangebars;
+package com.verlumen.tradestream.strategies.gannswing;
 
-import com.verlumen.tradestream.strategies.RangeBarsParameters;
+import com.verlumen.tradestream.strategies.GannSwingParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 
-public final class RangeBarsStrategyFactory implements StrategyFactory<RangeBarsParameters> {
+public final class GannSwingStrategyFactory implements StrategyFactory<GannSwingParameters> {
   @Override
-  public RangeBarsParameters getDefaultParameters() {
-    return RangeBarsParameters.newBuilder().setRangeSize(1.0).build();
+  public GannSwingParameters getDefaultParameters() {
+    return GannSwingParameters.newBuilder().setGannPeriod(14).build();
   }
 
   @Override
-  public Strategy createStrategy(BarSeries series, RangeBarsParameters parameters) {
-    // TODO: Implement the actual Range Bars strategy logic using TA4J or custom indicators.
-    // For now, return a dummy strategy to satisfy the interface.
-    return new org.ta4j.core.Strategy() {
+  public Strategy createStrategy(BarSeries series, GannSwingParameters parameters) {
+    // TODO: Implement the actual Gann Swing strategy logic using TA4J or custom indicators.
+    // For now, return a dummy Strategy implementation.
+    return new Strategy() {
       @Override
       public boolean shouldEnter(int index) {
         return false;
@@ -29,7 +28,7 @@ public final class RangeBarsStrategyFactory implements StrategyFactory<RangeBars
 
       @Override
       public String getName() {
-        return "RangeBarsDummy";
+        return "GannSwingDummy";
       }
 
       @Override
@@ -43,9 +42,7 @@ public final class RangeBarsStrategyFactory implements StrategyFactory<RangeBars
       }
 
       @Override
-      public void setUnstableBars(int unstableBars) {
-        /* no-op for dummy */
-      }
+      public void setUnstableBars(int unstableBars) {}
 
       @Override
       public Strategy opposite() {
@@ -53,12 +50,12 @@ public final class RangeBarsStrategyFactory implements StrategyFactory<RangeBars
       }
 
       @Override
-      public Strategy or(String name, Strategy other, int unstableBars) {
+      public Strategy or(String name, Strategy other, int unstablePeriod) {
         return this;
       }
 
       @Override
-      public Strategy and(String name, Strategy other, int unstableBars) {
+      public Strategy and(String name, Strategy other, int unstablePeriod) {
         return this;
       }
 
@@ -73,12 +70,12 @@ public final class RangeBarsStrategyFactory implements StrategyFactory<RangeBars
       }
 
       @Override
-      public Rule getEntryRule() {
+      public org.ta4j.core.Rule getEntryRule() {
         return null;
       }
 
       @Override
-      public Rule getExitRule() {
+      public org.ta4j.core.Rule getExitRule() {
         return null;
       }
     };

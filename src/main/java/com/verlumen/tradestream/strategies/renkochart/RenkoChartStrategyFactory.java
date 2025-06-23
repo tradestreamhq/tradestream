@@ -1,13 +1,13 @@
 package com.verlumen.tradestream.strategies.renkochart;
 
+import com.verlumen.tradestream.strategies.RenkoChartParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
+import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.AbstractRule;
-import org.ta4j.core.Rule;
-import com.verlumen.tradestream.strategies.RenkoChartParameters;
 
 public final class RenkoChartStrategyFactory implements StrategyFactory<RenkoChartParameters> {
   @Override
