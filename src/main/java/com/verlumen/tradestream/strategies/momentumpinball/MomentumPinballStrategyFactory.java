@@ -1,8 +1,8 @@
 package com.verlumen.tradestream.strategies.momentumpinball;
 
-import com.verlumen.tradestream.strategies.MomentumIndicator;
 import com.verlumen.tradestream.strategies.MomentumPinballParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
+import com.verlumen.tradestream.ta4j.MomentumIndicator;
 import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
