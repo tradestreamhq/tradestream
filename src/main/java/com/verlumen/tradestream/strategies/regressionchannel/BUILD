@@ -26,4 +26,4 @@ java_library(
         "//third_party/java:protobuf_java",
         "//third_party/java:ta4j_core",
     ],
-) 
+)

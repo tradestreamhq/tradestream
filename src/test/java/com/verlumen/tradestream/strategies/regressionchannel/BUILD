@@ -5,13 +5,13 @@ java_test(
     srcs = ["RegressionChannelParamConfigTest.java"],
     test_class = "com.verlumen.tradestream.strategies.regressionchannel.RegressionChannelParamConfigTest",
     deps = [
-        "//src/main/java/com/verlumen/tradestream/strategies/regressionchannel:param_config",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/regressionchannel:param_config",
         "//third_party/java:guava",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
-        "//third_party/java:truth"
+        "//third_party/java:truth",
     ],
 )
 
@@ -20,11 +20,11 @@ java_test(
     srcs = ["RegressionChannelStrategyFactoryTest.java"],
     test_class = "com.verlumen.tradestream.strategies.regressionchannel.RegressionChannelStrategyFactoryTest",
     deps = [
-        "//src/main/java/com/verlumen/tradestream/strategies/regressionchannel:strategy_factory",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/strategies/regressionchannel:strategy_factory",
         "//third_party/java:guava",
         "//third_party/java:protobuf_java",
+        "//third_party/java:ta4j_core",
         "//third_party/java:truth",
-        "//third_party/java:ta4j_core"
     ],
-) 
+)

@@ -34,6 +34,8 @@ import com.verlumen.tradestream.strategies.elderrayma.ElderRayMAParamConfig
 import com.verlumen.tradestream.strategies.elderrayma.ElderRayMAStrategyFactory
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdParamConfig
 import com.verlumen.tradestream.strategies.emamacd.EmaMacdStrategyFactory
+import com.verlumen.tradestream.strategies.fibonacciretracements.FibonacciRetracementsParamConfig
+import com.verlumen.tradestream.strategies.fibonacciretracements.FibonacciRetracementsStrategyFactory
 import com.verlumen.tradestream.strategies.frama.FramaParamConfig
 import com.verlumen.tradestream.strategies.frama.FramaStrategyFactory
 import com.verlumen.tradestream.strategies.heikenashi.HeikenAshiParamConfig
@@ -360,6 +362,11 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = DoubleTopBottomParamConfig(),
                 strategyFactory = DoubleTopBottomStrategyFactory(),
+            ),
+        StrategyType.FIBONACCI_RETRACEMENTS to
+            StrategySpec(
+                paramConfig = FibonacciRetracementsParamConfig(),
+                strategyFactory = FibonacciRetracementsStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
