@@ -7,6 +7,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.VolumeProfileDeviationsParameters;
 import io.jenetics.IntegerChromosome;
+import io.jenetics.IntegerGene;
 import org.junit.Test;
 
 public final class VolumeProfileDeviationsParamConfigTest {
@@ -27,7 +28,7 @@ public final class VolumeProfileDeviationsParamConfigTest {
   public void createParameters_withValidChromosomes_returnsValidParameters()
       throws InvalidProtocolBufferException {
     ImmutableList<IntegerChromosome> chromosomes = ImmutableList.of(
-        IntegerChromosome.of(10, 100, 1));
+        IntegerChromosome.of(IntegerGene.of(50, 10, 100)));
 
     Any parameters = config.createParameters(chromosomes);
     VolumeProfileDeviationsParameters unpacked = parameters.unpack(VolumeProfileDeviationsParameters.class);
