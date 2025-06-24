@@ -223,3 +223,14 @@ kt_jvm_test(
         "//third_party/java:truth",
     ],
 )
+
+kt_jvm_test(
+    name = "StrategyDiscoveryPipelineRunnerTest",
+    srcs = ["StrategyDiscoveryPipelineRunnerTest.kt"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline_options",
+        "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:junit",
+        "//third_party/java:truth",
+    ],
+)
