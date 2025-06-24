@@ -79,7 +79,6 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/discovery:ga_engine_factory_impl",
         "//src/main/java/com/verlumen/tradestream/discovery:ga_engine_params",
         "//src/main/java/com/verlumen/tradestream/discovery:param_config",
-        "//src/main/java/com/verlumen/tradestream/discovery:param_config_manager",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:guice_testlib",
@@ -99,7 +98,6 @@ java_test(
         "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter",
         "//src/main/java/com/verlumen/tradestream/discovery:genotype_converter_impl",
         "//src/main/java/com/verlumen/tradestream/discovery:param_config",
-        "//src/main/java/com/verlumen/tradestream/discovery:param_config_manager",
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:guice_testlib",
@@ -119,9 +117,9 @@ kt_jvm_test(
         "//third_party/java:hamcrest",
     ],
     deps = [
-        "//src/main/java/com/verlumen/tradestream/discovery:discovery_request_source",
-        "//src/main/java/com/verlumen/tradestream/discovery:kafka_discovery_request_source", 
         "//src/main/java/com/verlumen/tradestream/discovery:deserialize_strategy_discovery_request_fn",
+        "//src/main/java/com/verlumen/tradestream/discovery:discovery_request_source",
+        "//src/main/java/com/verlumen/tradestream/discovery:kafka_discovery_request_source",
         "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline_options",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:guice",
@@ -129,21 +127,6 @@ kt_jvm_test(
         "//third_party/java:guice_testlib",
         "//third_party/java:junit",
         "//third_party/java:mockito_core",
-        "//third_party/java:truth",
-    ],
-)
-
-java_test(
-    name = "ParamConfigsTest",
-    srcs = ["ParamConfigsTest.java"],
-    deps = [
-        "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
-        "//src/main/java/com/verlumen/tradestream/discovery:param_configs",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_constants",
-        "//third_party/java:guava",
-        "//third_party/java:junit",
-        "//third_party/java:test_parameter_injector",
         "//third_party/java:truth",
     ],
 )

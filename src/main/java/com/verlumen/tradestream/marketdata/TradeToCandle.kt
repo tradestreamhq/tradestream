@@ -6,10 +6,16 @@ import com.google.inject.assistedinject.Assisted
 import org.apache.beam.sdk.coders.KvCoder
 import org.apache.beam.sdk.coders.StringUtf8Coder
 import org.apache.beam.sdk.extensions.protobuf.ProtoCoder
-import org.apache.beam.sdk.transforms.*
+import org.apache.beam.sdk.transforms.Combine
+import org.apache.beam.sdk.transforms.MapElements
+import org.apache.beam.sdk.transforms.PTransform
+import org.apache.beam.sdk.transforms.SerializableFunction
 import org.apache.beam.sdk.transforms.windowing.FixedWindows
 import org.apache.beam.sdk.transforms.windowing.Window
-import org.apache.beam.sdk.values.*
+import org.apache.beam.sdk.values.KV
+import org.apache.beam.sdk.values.PCollection
+import org.apache.beam.sdk.values.TypeDescriptor
+import org.apache.beam.sdk.values.TypeDescriptors
 import org.joda.time.Duration
 import java.io.Serializable
 

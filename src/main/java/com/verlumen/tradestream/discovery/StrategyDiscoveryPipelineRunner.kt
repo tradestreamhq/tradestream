@@ -7,7 +7,6 @@ import com.verlumen.tradestream.http.HttpModule
 import com.verlumen.tradestream.influxdb.InfluxDbModule
 import com.verlumen.tradestream.marketdata.MarketDataModule
 import com.verlumen.tradestream.postgres.PostgresModule
-import com.verlumen.tradestream.strategies.StrategiesModule
 import com.verlumen.tradestream.ta4j.Ta4jModule
 import org.apache.beam.sdk.options.PipelineOptionsFactory
 
@@ -66,7 +65,6 @@ class StrategyDiscoveryPipelineRunner {
                     InfluxDbModule(),
                     MarketDataModule.create(),
                     PostgresModule(),
-                    StrategiesModule(),
                     Ta4jModule.create(),
                     TemporaryCurrencyPairModule(), // Remove when nothing depends on it
                 )
