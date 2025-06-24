@@ -10,6 +10,8 @@ java_test(
         "//third_party/java:guava",
         "//third_party/java:jenetics",
         "//third_party/java:protobuf_java",
+        "//protos:strategies_proto",
+        "//protos:strategies_java_proto",
     ],
 )
 
@@ -23,5 +25,7 @@ java_test(
         "//third_party/java:junit",
         "//third_party/java:truth",
         "//third_party/java:ta4j_core",
+        "//protos:strategies_proto",
+        "//protos:strategies_java_proto",
     ],
 ) 
