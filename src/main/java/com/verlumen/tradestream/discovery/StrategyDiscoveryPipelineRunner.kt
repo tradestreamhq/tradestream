@@ -95,7 +95,6 @@ class StrategyDiscoveryPipelineRunner {
         fun main(args: Array<String>) {
             // Set JVM flag for Jenetics RNG to work with both DirectRunner and FlinkRunner
             System.setProperty("io.jenetics.util.defaultRandomGenerator", "Random")
-            
             PipelineOptionsFactory.register(StrategyDiscoveryPipelineOptions::class.java)
             val options =
                 PipelineOptionsFactory
