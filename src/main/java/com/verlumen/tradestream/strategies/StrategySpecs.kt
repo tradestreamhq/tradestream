@@ -108,6 +108,10 @@ import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopParamCon
 import com.verlumen.tradestream.strategies.volatilitystop.VolatilityStopStrategyFactory
 import com.verlumen.tradestream.strategies.volumebreakout.VolumeBreakoutParamConfig
 import com.verlumen.tradestream.strategies.volumebreakout.VolumeBreakoutStrategyFactory
+import com.verlumen.tradestream.strategies.volumeprofile.VolumeProfileParamConfig
+import com.verlumen.tradestream.strategies.volumeprofile.VolumeProfileStrategyFactory
+import com.verlumen.tradestream.strategies.volumeprofiledeviations.VolumeProfileDeviationsParamConfig
+import com.verlumen.tradestream.strategies.volumeprofiledeviations.VolumeProfileDeviationsStrategyFactory
 import com.verlumen.tradestream.strategies.volumespreadanalysis.VolumeSpreadAnalysisParamConfig
 import com.verlumen.tradestream.strategies.volumespreadanalysis.VolumeSpreadAnalysisStrategyFactory
 import com.verlumen.tradestream.strategies.volumeweightedmacd.VolumeWeightedMacdParamConfig
@@ -416,6 +420,16 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
             StrategySpec(
                 paramConfig = VariablePeriodEmaParamConfig(),
                 strategyFactory = VariablePeriodEmaStrategyFactory(),
+            ),
+        StrategyType.VOLUME_PROFILE to
+            StrategySpec(
+                paramConfig = VolumeProfileParamConfig(),
+                strategyFactory = VolumeProfileStrategyFactory(),
+            ),
+        StrategyType.VOLUME_PROFILE_DEVIATIONS to
+            StrategySpec(
+                paramConfig = VolumeProfileDeviationsParamConfig(),
+                strategyFactory = VolumeProfileDeviationsStrategyFactory(),
             ),
         // To add a new strategy, just add a new entry here.
     )
