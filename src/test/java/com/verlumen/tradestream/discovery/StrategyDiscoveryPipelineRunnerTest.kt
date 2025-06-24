@@ -16,6 +16,24 @@ import org.junit.runners.JUnit4
 class StrategyDiscoveryPipelineRunnerTest {
 
     /**
+     * Test Case 0: Verify that FlinkRunner class is available for production deployment.
+     * This test ensures that the FlinkRunner dependency is properly included in runtime_deps.
+     */
+    @Test
+    fun `flink runner class should be available for production deployment`() {
+        // ARRANGE & ACT: Attempt to load the FlinkRunner class
+        val flinkRunnerClass = try {
+            Class.forName("org.apache.beam.runners.flink.FlinkRunner")
+        } catch (e: ClassNotFoundException) {
+            null
+        }
+
+        // ASSERT: Verify that the FlinkRunner class is available
+        assertThat(flinkRunnerClass).isNotNull()
+        assertThat(flinkRunnerClass?.name).isEqualTo("org.apache.beam.runners.flink.FlinkRunner")
+    }
+
+    /**
      * Test Case 1: Replicate the production bug.
      * This test proves that a semicolon-delimited string of arguments causes the
      * PipelineOptionsFactory to fail with the expected exception.
