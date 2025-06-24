@@ -3,6 +3,7 @@ package com.verlumen.tradestream.postgres
 import com.verlumen.tradestream.sql.DataSourceConfig
 import com.verlumen.tradestream.sql.DataSourceFactory
 import org.postgresql.ds.PGSimpleDataSource
+import java.io.Serializable
 import java.sql.Connection
 import javax.sql.DataSource
 
@@ -10,7 +11,9 @@ import javax.sql.DataSource
  * PostgreSQL implementation of DataSourceFactory using PGSimpleDataSource
  * as recommended by the PostgreSQL JDBC documentation.
  */
-class PostgreSQLDataSourceFactory : DataSourceFactory {
+class PostgreSQLDataSourceFactory : DataSourceFactory, Serializable {
+    private val serialVersionUID: Long = 1L
+
     override fun create(config: DataSourceConfig): DataSource {
         // Create and configure PGSimpleDataSource as recommended
         val ds =

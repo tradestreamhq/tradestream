@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.sql
 
 import java.io.Reader
+import java.io.Serializable
 import java.sql.Connection
 
 /**
@@ -22,7 +23,7 @@ interface BulkCopier {
 /**
  * A factory for creating [BulkCopier] instances.
  */
-interface BulkCopierFactory {
+interface BulkCopierFactory : Serializable {
     /**
      * Creates a new [BulkCopier] instance using the provided database connection.
      *

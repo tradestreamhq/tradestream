@@ -4,12 +4,15 @@ import com.verlumen.tradestream.sql.BulkCopier
 import com.verlumen.tradestream.sql.BulkCopierFactory
 import org.postgresql.core.BaseConnection
 import java.io.Reader
+import java.io.Serializable
 import java.sql.Connection
 
 /**
  * A factory that creates [BulkCopier] instances tailored for PostgreSQL.
  */
-object PostgreSQLBulkCopierFactory : BulkCopierFactory {
+object PostgreSQLBulkCopierFactory : BulkCopierFactory, Serializable {
+    private const val serialVersionUID: Long = 1L
+
     /**
      * Creates a PostgreSQL-specific [BulkCopier].
      *

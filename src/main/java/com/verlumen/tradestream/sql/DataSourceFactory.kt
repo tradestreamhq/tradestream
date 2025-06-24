@@ -6,7 +6,7 @@ import javax.sql.DataSource
 /**
  * Factory interface for creating DataSource instances.
  */
-interface DataSourceFactory {
+interface DataSourceFactory : Serializable {
     /**
      * Creates a configured DataSource instance.
      *
