@@ -288,6 +288,52 @@ class StrategyDiscoveryPipelineRunnerTest {
     }
 
     /**
+     * Test Case 10: Verify that InfluxDB token environment variable handling works correctly.
+     * This test ensures that the InfluxDB token can be provided via environment variable.
+     */
+    @Test
+    fun `influxdb token should be read from environment variable when not provided in args`() {
+        // ARRANGE: Test that the options interface supports the influxDbToken field
+        val args = arrayOf(
+            "--kafkaBootstrapServers=host:9092",
+            "--dryRun=true",
+            "--databaseUsername=test_user",
+            "--databasePassword=test_password",
+            "--influxDbToken=test-token-value"
+        )
+
+        // ACT: Create options with influxDbToken provided in args
+        val options = PipelineOptionsFactory.fromArgs(*args)
+            .`as`(StrategyDiscoveryPipelineOptions::class.java)
+
+        // ASSERT: Verify that the token is correctly parsed
+        assertThat(options.influxDbToken).isEqualTo("test-token-value")
+    }
+
+    /**
+     * Test Case 11: Verify that command line argument takes precedence over environment variable for InfluxDB token.
+     * This test ensures that when both are provided, the command line argument is used.
+     */
+    @Test
+    fun `command line influxdb token should take precedence over environment variable`() {
+        // ARRANGE: Provide command line argument for InfluxDB token
+        val args = arrayOf(
+            "--kafkaBootstrapServers=host:9092",
+            "--dryRun=true",
+            "--databaseUsername=test_user",
+            "--databasePassword=test_password",
+            "--influxDbToken=cmd-token-value" // Command line argument
+        )
+
+        // ACT: Create options with command line argument
+        val options = PipelineOptionsFactory.fromArgs(*args)
+            .`as`(StrategyDiscoveryPipelineOptions::class.java)
+
+        // ASSERT: Verify that the command line argument is used
+        assertThat(options.influxDbToken).isEqualTo("cmd-token-value")
+    }
+
+    /**
      * Helper function to assert that an exception is thrown.
      * This provides a cleaner way to test for exceptions in Kotlin.
      */

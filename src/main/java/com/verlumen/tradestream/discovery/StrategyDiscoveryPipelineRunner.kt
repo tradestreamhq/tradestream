@@ -75,6 +75,7 @@ class StrategyDiscoveryPipelineRunner {
     companion object {
         private const val DATABASE_USERNAME_ENV_VAR = "DATABASE_USERNAME"
         private const val DATABASE_PASSWORD_ENV_VAR = "DATABASE_PASSWORD"
+        private const val INFLUXDB_TOKEN_ENV_VAR = "INFLUXDB_TOKEN"
 
         private fun getDatabaseUsername(options: StrategyDiscoveryPipelineOptions): String? =
             options.databaseUsername.takeIf { !it.isNullOrEmpty() }
@@ -83,6 +84,10 @@ class StrategyDiscoveryPipelineRunner {
         private fun getDatabasePassword(options: StrategyDiscoveryPipelineOptions): String? =
             options.databasePassword.takeIf { !it.isNullOrEmpty() }
                 ?: System.getenv(DATABASE_PASSWORD_ENV_VAR)
+
+        private fun getInfluxDbToken(options: StrategyDiscoveryPipelineOptions): String? =
+            options.influxDbToken.takeIf { !it.isNullOrEmpty() }
+                ?: System.getenv(INFLUXDB_TOKEN_ENV_VAR)
 
         private fun getDiscoveryModule(options: StrategyDiscoveryPipelineOptions): Module =
             if (options.dryRun) DryRunDiscoveryModule() else DiscoveryModule()
@@ -107,6 +112,7 @@ class StrategyDiscoveryPipelineRunner {
             // Override from environment variables if not set in args
             options.databaseUsername = getDatabaseUsername(options)
             options.databasePassword = getDatabasePassword(options)
+            options.influxDbToken = getInfluxDbToken(options)
 
             val injector =
                 Guice.createInjector(
