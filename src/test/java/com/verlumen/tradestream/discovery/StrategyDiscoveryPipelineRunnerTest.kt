@@ -282,7 +282,10 @@ class StrategyDiscoveryPipelineRunnerTest {
                 @Suppress("UNCHECKED_CAST")
                 return e as T
             } else {
-                throw AssertionError("Expected ${exceptionClass.simpleName} to be thrown, but ${e.javaClass.simpleName} was thrown instead.", e)
+                throw AssertionError(
+                    "Expected ${exceptionClass.simpleName} to be thrown, but ${e.javaClass.simpleName} was thrown instead.",
+                    e,
+                )
             }
         }
     }
