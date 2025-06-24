@@ -72,6 +72,7 @@ kt_jvm_library(
     deps = [
         ":discovered_strategy_sink",
         ":discovery_request_source",
+        ":dry_run_candle_fetcher",
         ":dry_run_discovered_strategy_sink",
         ":dry_run_discovery_request_source",
         ":fitness_function_factory",
@@ -112,6 +113,17 @@ kt_jvm_library(
         "//third_party/java:flogger",
         "//third_party/java:guice",
         "//third_party/java:guice_assistedinject",
+    ],
+)
+
+kt_jvm_library(
+    name = "dry_run_candle_fetcher",
+    srcs = ["DryRunCandleFetcher.kt"],
+    deps = [
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
+        "//third_party/java:guava",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
@@ -358,7 +370,7 @@ kt_jvm_library(
         ":strategy_discovery_pipeline_options",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",
-        "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
@@ -385,17 +397,23 @@ kt_jvm_library(
     ],
     deps = [
         ":discovery_module",
+        ":dry_run_candle_fetcher",
         ":strategy_discovery_pipeline",
         ":strategy_discovery_pipeline_options",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
         "//src/main/java/com/verlumen/tradestream/http:http_module",
+        "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",
         "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_module",
+        "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
+        "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
         "//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
         "//third_party/java:beam_runners_direct_java",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
+        "//third_party/java:guava",
         "//third_party/java:guice",
+        "//third_party/java:protobuf_java_util",
     ],
 )
 
