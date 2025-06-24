@@ -36,6 +36,7 @@ spec:
       - "--dbPortNumber={{ .Values.strategyDiscoveryPipeline.database.port }}"
       # InfluxDB args - for candle fetcher
       - "--influxDbUrl=http://{{ include "tradestream.fullname" . }}-influxdb:80"
+      - "--influxDbToken=${INFLUXDB_TOKEN}"
       - "--influxDbOrg={{ .Values.influxdb.adminUser.organization }}"
       - "--influxDbBucket={{ .Values.influxdb.adminUser.bucket }}"
     parallelism: {{ .Values.strategyDiscoveryPipeline.job.parallelism }}
