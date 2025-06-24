@@ -47,14 +47,6 @@ class StrategyDiscoveryPipeline
                     readOnly = null,
                 )
 
-            val influxDbConfig =
-                InfluxDbConfig(
-                    url = options.influxDbUrl,
-                    token = requireNotNull(options.influxDbToken) { "InfluxDB token is required." },
-                    org = options.influxDbOrg,
-                    bucket = options.influxDbBucket,
-                )
-
             val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
             val runGaFn = runGADiscoveryFnFactory.create(candleFetcher)
             val sink = sinkFactory.create(dataSourceConfig)
@@ -67,7 +59,8 @@ class StrategyDiscoveryPipeline
                 .apply("ExtractStrategies", ParDo.of(extractFn))
                 .apply("WriteToSink", ParDo.of(sink))
 
-            pipeline.run().waitUntilFinish()
+            // For detached execution, just run the pipeline without waiting
+            pipeline.run()
         }
 
         companion object {
