@@ -227,6 +227,9 @@ kt_jvm_test(
 kt_jvm_test(
     name = "StrategyDiscoveryPipelineRunnerTest",
     srcs = ["StrategyDiscoveryPipelineRunnerTest.kt"],
+    runtime_deps = [
+        "//third_party/java:beam_runners_flink_java",
+    ],
     deps = [
         "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline_options",
         "//third_party/java:beam_sdks_java_core",
