@@ -22,5 +22,5 @@ commandTests:
       - "--influxDbToken=not-a-real-token"
       - "--runner=DirectRunner"
     exitCode: 0
-    expectedOutput:
+    expectedError:
       - "Dry Run Sink: Would write strategy for symbol 'BTCUSDT'"

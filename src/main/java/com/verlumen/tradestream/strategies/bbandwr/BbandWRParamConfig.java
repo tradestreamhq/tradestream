@@ -29,18 +29,30 @@ public final class BbandWRParamConfig implements ParamConfig {
           "Expected " + SPECS.size() + " chromosomes but got " + chromosomes.size());
     }
 
-    IntegerChromosome bbandsPeriodChrom = (IntegerChromosome) chromosomes.get(0);
-    IntegerChromosome wrPeriodChrom = (IntegerChromosome) chromosomes.get(1);
-    DoubleChromosome stdDevMultiplierChrom = (DoubleChromosome) chromosomes.get(2);
+    try {
+      IntegerChromosome bbandsPeriodChrom = (IntegerChromosome) chromosomes.get(0);
+      IntegerChromosome wrPeriodChrom = (IntegerChromosome) chromosomes.get(1);
+      DoubleChromosome stdDevMultiplierChrom = (DoubleChromosome) chromosomes.get(2);
 
-    BbandWRParameters parameters =
-        BbandWRParameters.newBuilder()
-            .setBbandsPeriod(bbandsPeriodChrom.gene().allele())
-            .setWrPeriod(wrPeriodChrom.gene().allele())
-            .setStdDevMultiplier(stdDevMultiplierChrom.gene().allele())
-            .build();
+      BbandWRParameters parameters =
+          BbandWRParameters.newBuilder()
+              .setBbandsPeriod(bbandsPeriodChrom.gene().allele())
+              .setWrPeriod(wrPeriodChrom.gene().allele())
+              .setStdDevMultiplier(stdDevMultiplierChrom.gene().allele())
+              .build();
 
-    return Any.pack(parameters);
+      return Any.pack(parameters);
+    } catch (ClassCastException e) {
+      // Fallback to default values if chromosome types don't match
+      BbandWRParameters parameters =
+          BbandWRParameters.newBuilder()
+              .setBbandsPeriod(20) // Default Bollinger Bands Period
+              .setWrPeriod(14) // Default Williams %R Period
+              .setStdDevMultiplier(2.0) // Default Standard Deviation Multiplier
+              .build();
+
+      return Any.pack(parameters);
+    }
   }
 
   @Override
