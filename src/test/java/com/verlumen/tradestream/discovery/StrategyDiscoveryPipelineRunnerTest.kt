@@ -22,11 +22,12 @@ class StrategyDiscoveryPipelineRunnerTest {
     @Test
     fun `flink runner class should be available for production deployment`() {
         // ARRANGE & ACT: Attempt to load the FlinkRunner class
-        val flinkRunnerClass = try {
-            Class.forName("org.apache.beam.runners.flink.FlinkRunner")
-        } catch (e: ClassNotFoundException) {
-            null
-        }
+        val flinkRunnerClass =
+            try {
+                Class.forName("org.apache.beam.runners.flink.FlinkRunner")
+            } catch (e: ClassNotFoundException) {
+                null
+            }
 
         // ASSERT: Verify that the FlinkRunner class is available
         assertThat(flinkRunnerClass).isNotNull()
