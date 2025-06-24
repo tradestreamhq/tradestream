@@ -14,7 +14,6 @@ import org.junit.runners.JUnit4
  */
 @RunWith(JUnit4::class)
 class StrategyDiscoveryPipelineRunnerTest {
-
     /**
      * Test Case 0: Verify that FlinkRunner class is available for production deployment.
      * This test ensures that the FlinkRunner dependency is properly included in runtime_deps.
