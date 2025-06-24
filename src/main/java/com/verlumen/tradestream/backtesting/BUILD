@@ -41,7 +41,7 @@ kt_jvm_library(
         ":backtest_runner",
         "//protos:backtesting_java_proto",
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
         "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_factory",
         "//third_party/java:guice",
         "//third_party/java:protobuf_java",

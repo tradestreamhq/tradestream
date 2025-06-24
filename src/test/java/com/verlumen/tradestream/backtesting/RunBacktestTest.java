@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.backtesting;
 
+import static com.verlumen.tradestream.strategies.StrategySpecsKt.getDefaultParameters;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 
@@ -129,7 +130,11 @@ public class RunBacktestTest {
                 .setClose(105.0)
                 .setVolume(1000.0)
                 .build())
-        .setStrategy(Strategy.newBuilder().setType(StrategyType.SMA_RSI).build())
+        .setStrategy(
+            Strategy.newBuilder()
+                .setType(StrategyType.SMA_RSI)
+                .setParameters(getDefaultParameters(StrategyType.SMA_RSI)) // Add proper parameters
+                .build())
         .build();
   }
 
