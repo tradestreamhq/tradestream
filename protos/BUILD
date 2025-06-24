@@ -67,7 +67,6 @@ py_proto_library(
 proto_library(
     name = "strategies_proto",
     srcs = ["strategies.proto"],
-    visibility = ["//visibility:public"],
     deps = [
         "@com_google_protobuf//:any_proto",
     ],

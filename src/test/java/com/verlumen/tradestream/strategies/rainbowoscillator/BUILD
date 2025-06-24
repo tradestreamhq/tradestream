@@ -4,7 +4,6 @@ java_test(
     test_class = "com.verlumen.tradestream.strategies.rainbowoscillator.RainbowOscillatorParamConfigTest",
     deps = [
         "//protos:strategies_java_proto",
-        "//protos:strategies_proto",
         "//src/main/java/com/verlumen/tradestream/strategies/rainbowoscillator:param_config",
         "//third_party/java:guava",
         "//third_party/java:jenetics",
@@ -20,7 +19,6 @@ java_test(
     test_class = "com.verlumen.tradestream.strategies.rainbowoscillator.RainbowOscillatorStrategyFactoryTest",
     deps = [
         "//protos:strategies_java_proto",
-        "//protos:strategies_proto",
         "//src/main/java/com/verlumen/tradestream/strategies/rainbowoscillator:strategy_factory",
         "//third_party/java:junit",
         "//third_party/java:protobuf_java",
