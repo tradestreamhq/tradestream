@@ -8,6 +8,7 @@ import com.google.protobuf.util.JsonFormat
 import com.verlumen.tradestream.sql.BulkCopierFactory
 import com.verlumen.tradestream.sql.DataSourceConfig
 import com.verlumen.tradestream.sql.DataSourceFactory
+import com.verlumen.tradestream.strategies.StrategyParameterTypeRegistry
 import java.io.StringReader
 import java.security.MessageDigest
 import java.sql.Connection
@@ -46,8 +47,8 @@ class WriteDiscoveredStrategiesToPostgresFn
         @Transient
         private var connection: Connection? = null
 
-        @Transient
-        private val batch = ConcurrentLinkedQueue<String>()
+        // Remove @Transient to prevent null after deserialization
+        private var batch: ConcurrentLinkedQueue<String>? = null
 
         @Setup
         fun setup() {
@@ -58,6 +59,9 @@ class WriteDiscoveredStrategiesToPostgresFn
                 dataSource!!.connection.apply {
                     autoCommit = false
                 }
+            
+            // Initialize batch queue
+            batch = ConcurrentLinkedQueue()
 
             logger.atInfo().log(
                 "PostgreSQL connection established for bulk writes to ${dataSourceConfig.databaseName}@${dataSourceConfig.serverName}",
@@ -69,16 +73,16 @@ class WriteDiscoveredStrategiesToPostgresFn
             @Element element: DiscoveredStrategy,
         ) {
             val csvRow = convertToCsvRow(element)
-            batch.offer(csvRow)
+            batch?.offer(csvRow)
 
-            if (batch.size >= BATCH_SIZE) {
+            if (batch?.size ?: 0 >= BATCH_SIZE) {
                 flushBatch()
             }
         }
 
         @FinishBundle
         fun finishBundle() {
-            if (batch.isNotEmpty()) {
+            if (batch?.isNotEmpty() == true) {
                 flushBatch()
             }
         }
@@ -91,11 +95,12 @@ class WriteDiscoveredStrategiesToPostgresFn
 
         private fun flushBatch() {
             val currentConnection = connection ?: return
+            val currentBatch = batch ?: return
             val batchData = mutableListOf<String>()
 
             // Drain the queue
-            while (batch.isNotEmpty()) {
-                batch.poll()?.let { batchData.add(it) }
+            while (currentBatch.isNotEmpty()) {
+                currentBatch.poll()?.let { batchData.add(it) }
             }
 
             if (batchData.isEmpty()) return
@@ -186,53 +191,20 @@ class WriteDiscoveredStrategiesToPostgresFn
         }
 
         private fun convertToCsvRow(element: DiscoveredStrategy): String {
-            val paramsJson =
-                try {
-                    JsonFormat.printer().print(element.strategy.parameters)
-                } catch (e: InvalidProtocolBufferException) {
-                    logger
-                        .atWarning()
-                        .withCause(e)
-                        .log("Could not format strategy parameters to JSON")
-                    "{}"
-                }
-
-            val hashInput = "${element.symbol}:${element.strategy.type.name}:$paramsJson"
-            val strategyHash = sha256(hashInput)
-
-            val startTime =
-                Instant.ofEpochSecond(
-                    element.startTime.seconds,
-                    element.startTime.nanos.toLong(),
-                )
-            val endTime =
-                Instant.ofEpochSecond(
-                    element.endTime.seconds,
-                    element.endTime.nanos.toLong(),
-                )
-
+            val parametersJson = StrategyParameterTypeRegistry.formatParametersToJson(element.strategy.parameters)
+            val hash = MessageDigest.getInstance("SHA-256")
+                .digest(parametersJson.toByteArray())
+                .joinToString("") { "%02x".format(it) }
             // Tab-separated values for PostgreSQL COPY
-            val escapedJson =
-                paramsJson
-                    .replace("\t", "    ")
-                    .replace("\n", " ")
-                    .replace("\r", " ")
-
             return listOf(
                 element.symbol,
                 element.strategy.type.name,
-                escapedJson,
+                parametersJson,
                 element.score.toString(),
-                strategyHash,
+                hash,
                 element.symbol, // discovery_symbol
-                startTime.toString(),
-                endTime.toString(),
+                element.startTime.seconds.toString(),
+                element.endTime.seconds.toString()
             ).joinToString("\t")
-        }
-
-        private fun sha256(input: String): String {
-            val bytes = input.toByteArray()
-            val digest = MessageDigest.getInstance("SHA-256").digest(bytes)
-            return digest.joinToString("") { "%02x".format(it) }
         }
     }

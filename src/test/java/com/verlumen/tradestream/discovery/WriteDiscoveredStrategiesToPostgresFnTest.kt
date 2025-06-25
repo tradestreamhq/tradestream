@@ -27,6 +27,8 @@ import org.mockito.kotlin.whenever
 import java.sql.Connection
 import java.time.Instant
 import javax.sql.DataSource
+import com.google.protobuf.ByteString
+import org.mockito.Mockito.mock
 
 /**
  * Unit tests for WriteDiscoveredStrategiesToPostgresFn using the new factory pattern
@@ -168,27 +170,6 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
     }
 
     @Test
-    fun testSha256HashGeneration() {
-        // Test the SHA256 hash generation using reflection
-        val sha256Method =
-            WriteDiscoveredStrategiesToPostgresFn::class.java
-                .getDeclaredMethod("sha256", String::class.java)
-        sha256Method.isAccessible = true
-
-        val input = "test_input"
-        val hash1 = sha256Method.invoke(writeDiscoveredStrategiesToPostgresFn, input) as String
-        val hash2 = sha256Method.invoke(writeDiscoveredStrategiesToPostgresFn, input) as String
-
-        // Same input should produce same hash
-        assert(hash1 == hash2) { "Same input should produce same hash" }
-        assert(hash1.length == 64) { "SHA256 hash should be 64 characters long" }
-
-        // Different input should produce different hash
-        val differentHash = sha256Method.invoke(writeDiscoveredStrategiesToPostgresFn, "different_input") as String
-        assert(hash1 != differentHash) { "Different inputs should produce different hashes" }
-    }
-
-    @Test
     fun testPipelineDoesNotFailWithValidStrategy() {
         // This test verifies the DoFn can be constructed and added to pipeline
         // without database connection (actual database writes would require integration tests)
@@ -256,5 +237,54 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         } catch (e: Exception) {
             assert(false) { "Valid configuration should not cause errors: ${e.message}" }
         }
+    }
+
+    @Test
+    fun testBatchIsInitializedAfterSetup() {
+        // Before setup, batch should be null
+        val batchField = WriteDiscoveredStrategiesToPostgresFn::class.java.getDeclaredField("batch")
+        batchField.isAccessible = true
+        batchField.set(writeDiscoveredStrategiesToPostgresFn, null)
+
+        // Call setup
+        val setupMethod = WriteDiscoveredStrategiesToPostgresFn::class.java.getDeclaredMethod("setup")
+        setupMethod.isAccessible = true
+        setupMethod.invoke(writeDiscoveredStrategiesToPostgresFn)
+
+        // After setup, batch should be a ConcurrentLinkedQueue and empty
+        val batchValue = batchField.get(writeDiscoveredStrategiesToPostgresFn)
+        assert(batchValue is java.util.concurrent.ConcurrentLinkedQueue<*>) { "Batch should be initialized as ConcurrentLinkedQueue" }
+        assert((batchValue as java.util.concurrent.ConcurrentLinkedQueue<*>).isEmpty()) { "Batch should be empty after setup" }
+    }
+
+    @Test
+    fun testCsvRowGenerationWithInvalidAny() {
+        val bulkCopierFactory = mock(BulkCopierFactory::class.java)
+        val dataSourceFactory = mock(DataSourceFactory::class.java)
+        val dataSourceConfig = mock(DataSourceConfig::class.java)
+        val fn = WriteDiscoveredStrategiesToPostgresFn(bulkCopierFactory, dataSourceFactory, dataSourceConfig)
+        val invalidAny = Any.newBuilder()
+            .setTypeUrl("type.googleapis.com/unknown.UnknownParameters")
+            .setValue(ByteString.copyFromUtf8("garbage"))
+            .build()
+        val element = DiscoveredStrategy.newBuilder()
+            .setSymbol("BTCUSD")
+            .setStrategy(
+                Strategy.newBuilder()
+                    .setType(StrategyType.UNSPECIFIED)
+                    .setParameters(invalidAny)
+                    .build()
+            )
+            .setScore(1.0)
+            .setStartTime(Timestamp.newBuilder().setSeconds(0).build())
+            .setEndTime(Timestamp.newBuilder().setSeconds(1).build())
+            .build()
+        val method = WriteDiscoveredStrategiesToPostgresFn::class.java.getDeclaredMethod("convertToCsvRow", DiscoveredStrategy::class.java)
+        method.isAccessible = true
+        val row = method.invoke(fn, element) as String
+        val paramsColumn = row.split("\t")[2]
+        assert(paramsColumn.contains("base64_data")) { "Parameters column should contain base64_data for invalid Any, got: $paramsColumn" }
+        assert(paramsColumn.contains("type_url")) { "Parameters column should contain type_url for invalid Any, got: $paramsColumn" }
+        assert(paramsColumn.contains("unknown.UnknownParameters")) { "Parameters column should contain the correct type_url, got: $paramsColumn" }
     }
 }
