@@ -12,6 +12,7 @@ import com.verlumen.tradestream.strategies.AwesomeOscillatorParameters
 import com.verlumen.tradestream.strategies.BbandWRParameters
 import com.verlumen.tradestream.strategies.ChaikinOscillatorParameters
 import com.verlumen.tradestream.strategies.CmfZeroLineParameters
+import com.verlumen.tradestream.strategies.CmoMfiParameters
 import com.verlumen.tradestream.strategies.DemaTemaCrossoverParameters
 import com.verlumen.tradestream.strategies.DonchianBreakoutParameters
 import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters
