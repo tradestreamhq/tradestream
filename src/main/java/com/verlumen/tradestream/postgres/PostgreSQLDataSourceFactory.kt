@@ -11,7 +11,9 @@ import javax.sql.DataSource
  * PostgreSQL implementation of DataSourceFactory using PGSimpleDataSource
  * as recommended by the PostgreSQL JDBC documentation.
  */
-class PostgreSQLDataSourceFactory : DataSourceFactory, Serializable {
+class PostgreSQLDataSourceFactory :
+    DataSourceFactory,
+    Serializable {
     private val serialVersionUID: Long = 1L
 
     override fun create(config: DataSourceConfig): DataSource {

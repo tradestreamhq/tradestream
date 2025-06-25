@@ -10,7 +10,8 @@ import org.ta4j.core.Strategy;
 
 public final class VolumeProfileDeviationsStrategyFactoryTest {
 
-  private final VolumeProfileDeviationsStrategyFactory factory = new VolumeProfileDeviationsStrategyFactory();
+  private final VolumeProfileDeviationsStrategyFactory factory =
+      new VolumeProfileDeviationsStrategyFactory();
 
   @Test
   public void getDefaultParameters_returnsValidParameters() {
@@ -23,9 +24,8 @@ public final class VolumeProfileDeviationsStrategyFactoryTest {
   @Test
   public void createStrategy_returnsValidStrategy() {
     BarSeries series = new BaseBarSeries();
-    VolumeProfileDeviationsParameters parameters = VolumeProfileDeviationsParameters.newBuilder()
-        .setPeriod(30)
-        .build();
+    VolumeProfileDeviationsParameters parameters =
+        VolumeProfileDeviationsParameters.newBuilder().setPeriod(30).build();
 
     Strategy strategy = factory.createStrategy(series, parameters);
 
@@ -33,4 +33,4 @@ public final class VolumeProfileDeviationsStrategyFactoryTest {
     assertThat(strategy.getEntryRule()).isNotNull();
     assertThat(strategy.getExitRule()).isNotNull();
   }
-} 
+}
