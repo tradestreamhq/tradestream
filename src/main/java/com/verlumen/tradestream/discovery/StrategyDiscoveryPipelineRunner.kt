@@ -112,8 +112,8 @@ class StrategyDiscoveryPipelineRunner {
 
             // Configure Flink-specific options for detached execution
             val flinkOptions = options.`as`(FlinkPipelineOptions::class.java)
-            flinkOptions.setAttachedMode(false)
-            flinkOptions.setStreaming(true)
+            flinkOptions.setAttachedMode(options.dryRun)
+            flinkOptions.setStreaming(options.isStreaming)
 
             // Override from environment variables if not set in args
             options.databaseUsername = getDatabaseUsername(options)
