@@ -8,8 +8,8 @@ import com.verlumen.tradestream.strategies.VolumeProfileDeviationsParameters;
 import io.jenetics.NumericChromosome;
 
 public final class VolumeProfileDeviationsParamConfig implements ParamConfig {
-  private static final ImmutableList<ChromosomeSpec<?>> SPECS = ImmutableList.of(
-      ChromosomeSpec.ofInteger(10, 100));
+  private static final ImmutableList<ChromosomeSpec<?>> SPECS =
+      ImmutableList.of(ChromosomeSpec.ofInteger(10, 100));
 
   @Override
   public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
@@ -23,15 +23,13 @@ public final class VolumeProfileDeviationsParamConfig implements ParamConfig {
       if (!chromosomes.isEmpty()) {
         period = ((Number) chromosomes.get(0).gene().allele()).intValue();
       }
-      VolumeProfileDeviationsParameters parameters = VolumeProfileDeviationsParameters.newBuilder()
-          .setPeriod(period)
-          .build();
+      VolumeProfileDeviationsParameters parameters =
+          VolumeProfileDeviationsParameters.newBuilder().setPeriod(period).build();
       return Any.pack(parameters);
     } catch (Exception e) {
       // Return default parameters if there's an error
-      VolumeProfileDeviationsParameters parameters = VolumeProfileDeviationsParameters.newBuilder()
-          .setPeriod(20)
-          .build();
+      VolumeProfileDeviationsParameters parameters =
+          VolumeProfileDeviationsParameters.newBuilder().setPeriod(20).build();
       return Any.pack(parameters);
     }
   }
@@ -42,4 +40,4 @@ public final class VolumeProfileDeviationsParamConfig implements ParamConfig {
         .map(ChromosomeSpec::createChromosome)
         .collect(ImmutableList.toImmutableList());
   }
-} 
+}

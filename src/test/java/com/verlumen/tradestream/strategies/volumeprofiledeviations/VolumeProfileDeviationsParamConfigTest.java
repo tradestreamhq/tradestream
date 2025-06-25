@@ -12,7 +12,8 @@ import org.junit.Test;
 
 public final class VolumeProfileDeviationsParamConfigTest {
 
-  private final VolumeProfileDeviationsParamConfig config = new VolumeProfileDeviationsParamConfig();
+  private final VolumeProfileDeviationsParamConfig config =
+      new VolumeProfileDeviationsParamConfig();
 
   @Test
   public void getChromosomeSpecs_returnsExpectedSpecs() {
@@ -27,11 +28,12 @@ public final class VolumeProfileDeviationsParamConfigTest {
   @Test
   public void createParameters_withValidChromosomes_returnsValidParameters()
       throws InvalidProtocolBufferException {
-    ImmutableList<IntegerChromosome> chromosomes = ImmutableList.of(
-        IntegerChromosome.of(IntegerGene.of(50, 10, 100)));
+    ImmutableList<IntegerChromosome> chromosomes =
+        ImmutableList.of(IntegerChromosome.of(IntegerGene.of(50, 10, 100)));
 
     Any parameters = config.createParameters(chromosomes);
-    VolumeProfileDeviationsParameters unpacked = parameters.unpack(VolumeProfileDeviationsParameters.class);
+    VolumeProfileDeviationsParameters unpacked =
+        parameters.unpack(VolumeProfileDeviationsParameters.class);
 
     assertThat(unpacked.getPeriod()).isEqualTo(50);
   }
@@ -42,8 +44,9 @@ public final class VolumeProfileDeviationsParamConfigTest {
     ImmutableList<IntegerChromosome> chromosomes = ImmutableList.of();
 
     Any parameters = config.createParameters(chromosomes);
-    VolumeProfileDeviationsParameters unpacked = parameters.unpack(VolumeProfileDeviationsParameters.class);
+    VolumeProfileDeviationsParameters unpacked =
+        parameters.unpack(VolumeProfileDeviationsParameters.class);
 
     assertThat(unpacked.getPeriod()).isEqualTo(20);
   }
-} 
+}

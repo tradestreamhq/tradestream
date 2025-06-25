@@ -9,7 +9,7 @@ import org.junit.runners.JUnit4
 /**
  * Comprehensive test suite that definitively proves the root cause of the
  * java.lang.IllegalArgumentException and validates the correct argument-passing format.
- * 
+ *
  * These tests serve as a verifiable handoff to the deployment team.
  */
 @RunWith(JUnit4::class)
@@ -41,20 +41,24 @@ class StrategyDiscoveryPipelineRunnerTest {
     @Test
     fun `given a single semicolon-delimited string, pipeline options creation should fail`() {
         // ARRANGE: Simulate the exact argument string format from the logs.
-        val brokenArgs = arrayOf(
-            "--bootstrapServers=host:9092;--streaming=true"
-        )
+        val brokenArgs =
+            arrayOf(
+                "--bootstrapServers=host:9092;--streaming=true",
+            )
 
         // ACT & ASSERT: Verify that this specific input throws an IllegalArgumentException.
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            PipelineOptionsFactory.fromArgs(*brokenArgs)
-                .`as`(StrategyDiscoveryPipelineOptions::class.java)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                PipelineOptionsFactory
+                    .fromArgs(*brokenArgs)
+                    .`as`(StrategyDiscoveryPipelineOptions::class.java)
+            }
 
         // ASSERT: Further inspect the exception to confirm it's failing for the right reason.
         // This makes the test highly specific and valuable for diagnosis.
-        val expectedMessage = "Class interface com.verlumen.tradestream.discovery.StrategyDiscoveryPipelineOptions " +
-                              "missing a property named 'bootstrapServers'."
+        val expectedMessage =
+            "Class interface com.verlumen.tradestream.discovery.StrategyDiscoveryPipelineOptions " +
+                "missing a property named 'bootstrapServers'."
         assertThat(exception.message).isEqualTo(expectedMessage)
     }
 
@@ -67,18 +71,21 @@ class StrategyDiscoveryPipelineRunnerTest {
     @Test
     fun `given a correctly formatted string array, pipeline options creation should succeed`() {
         // ARRANGE: Define the arguments in the correct format.
-        val correctArgs = arrayOf(
-            "--kafkaBootstrapServers=host:9092",
-            "--streaming=true",
-            "--dryRun=true",
-            "--databaseUsername=test_user",
-            "--databasePassword=test_password",
-            "--influxDbToken=test-token"
-        )
+        val correctArgs =
+            arrayOf(
+                "--kafkaBootstrapServers=host:9092",
+                "--streaming=true",
+                "--dryRun=true",
+                "--databaseUsername=test_user",
+                "--databasePassword=test_password",
+                "--influxDbToken=test-token",
+            )
 
         // ACT: Attempt to create the options. No exception should be thrown.
-        val options = PipelineOptionsFactory.fromArgs(*correctArgs)
-            .`as`(StrategyDiscoveryPipelineOptions::class.java)
+        val options =
+            PipelineOptionsFactory
+                .fromArgs(*correctArgs)
+                .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
         // ASSERT: Verify that the properties were correctly parsed and set.
         assertThat(options.kafkaBootstrapServers).isEqualTo("host:9092")
@@ -96,13 +103,16 @@ class StrategyDiscoveryPipelineRunnerTest {
     @Test
     fun `given space-delimited arguments in single string, pipeline options creation should treat as one value`() {
         // ARRANGE: Simulate space-delimited arguments in a single string.
-        val spaceDelimitedArgs = arrayOf(
-            "--kafkaBootstrapServers=host:9092 --streaming=true"
-        )
+        val spaceDelimitedArgs =
+            arrayOf(
+                "--kafkaBootstrapServers=host:9092 --streaming=true",
+            )
 
         // ACT: Attempt to create the options with space-delimited arguments.
-        val options = PipelineOptionsFactory.fromArgs(*spaceDelimitedArgs)
-            .`as`(StrategyDiscoveryPipelineOptions::class.java)
+        val options =
+            PipelineOptionsFactory
+                .fromArgs(*spaceDelimitedArgs)
+                .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
         // ASSERT: The entire string is the value for kafkaBootstrapServers, streaming is not set.
         assertThat(options.kafkaBootstrapServers).isEqualTo("host:9092 --streaming=true")
@@ -117,13 +127,16 @@ class StrategyDiscoveryPipelineRunnerTest {
     @Test
     fun `given comma-delimited arguments in single string, pipeline options creation should treat as one value`() {
         // ARRANGE: Simulate comma-delimited arguments in a single string.
-        val commaDelimitedArgs = arrayOf(
-            "--kafkaBootstrapServers=host:9092,--streaming=true"
-        )
+        val commaDelimitedArgs =
+            arrayOf(
+                "--kafkaBootstrapServers=host:9092,--streaming=true",
+            )
 
         // ACT: Attempt to create the options with comma-delimited arguments.
-        val options = PipelineOptionsFactory.fromArgs(*commaDelimitedArgs)
-            .`as`(StrategyDiscoveryPipelineOptions::class.java)
+        val options =
+            PipelineOptionsFactory
+                .fromArgs(*commaDelimitedArgs)
+                .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
         // ASSERT: The entire string is the value for kafkaBootstrapServers, streaming is not set.
         assertThat(options.kafkaBootstrapServers).isEqualTo("host:9092,--streaming=true")
@@ -140,8 +153,10 @@ class StrategyDiscoveryPipelineRunnerTest {
         val emptyArgs = arrayOf<String>()
 
         // ACT: Attempt to create the options with empty arguments.
-        val options = PipelineOptionsFactory.fromArgs(*emptyArgs)
-            .`as`(StrategyDiscoveryPipelineOptions::class.java)
+        val options =
+            PipelineOptionsFactory
+                .fromArgs(*emptyArgs)
+                .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
         // ASSERT: Verify that default values are used.
         assertThat(options.kafkaBootstrapServers).isEqualTo("localhost:9092") // Default from @Default.String
@@ -161,21 +176,24 @@ class StrategyDiscoveryPipelineRunnerTest {
     @Test
     fun `given partial arguments, pipeline options creation should succeed with mixed defaults`() {
         // ARRANGE: Provide only some arguments, leaving others to use defaults.
-        val partialArgs = arrayOf(
-            "--kafkaBootstrapServers=custom-host:9092",
-            "--dryRun=true",
-            "--databaseUsername=custom_user"
-        )
+        val partialArgs =
+            arrayOf(
+                "--kafkaBootstrapServers=custom-host:9092",
+                "--dryRun=true",
+                "--databaseUsername=custom_user",
+            )
 
         // ACT: Attempt to create the options with partial arguments.
-        val options = PipelineOptionsFactory.fromArgs(*partialArgs)
-            .`as`(StrategyDiscoveryPipelineOptions::class.java)
+        val options =
+            PipelineOptionsFactory
+                .fromArgs(*partialArgs)
+                .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
         // ASSERT: Verify that provided arguments are set and defaults are used for others.
         assertThat(options.kafkaBootstrapServers).isEqualTo("custom-host:9092")
         assertThat(options.dryRun).isTrue()
         assertThat(options.databaseUsername).isEqualTo("custom_user")
-        
+
         // Verify defaults are still used for unspecified arguments.
         assertThat(options.strategyDiscoveryRequestTopic).isEqualTo("strategy-discovery-requests")
         assertThat(options.influxDbUrl).isEqualTo("http://localhost:8086")
@@ -189,15 +207,18 @@ class StrategyDiscoveryPipelineRunnerTest {
     @Test
     fun `given invalid property name, pipeline options creation should fail with clear error`() {
         // ARRANGE: Use an invalid property name that doesn't exist in the options interface.
-        val invalidArgs = arrayOf(
-            "--invalidProperty=value"
-        )
+        val invalidArgs =
+            arrayOf(
+                "--invalidProperty=value",
+            )
 
         // ACT & ASSERT: Verify that this throws an IllegalArgumentException with a clear message.
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            PipelineOptionsFactory.fromArgs(*invalidArgs)
-                .`as`(StrategyDiscoveryPipelineOptions::class.java)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                PipelineOptionsFactory
+                    .fromArgs(*invalidArgs)
+                    .`as`(StrategyDiscoveryPipelineOptions::class.java)
+            }
 
         // ASSERT: Verify the exception message indicates the invalid property.
         assertThat(exception.message).contains("missing a property named 'invalidProperty'")
@@ -210,23 +231,26 @@ class StrategyDiscoveryPipelineRunnerTest {
     @Test
     fun `main method should handle correctly formatted arguments`() {
         // ARRANGE: Simulate the arguments that would be passed to the main method.
-        val mainArgs = arrayOf(
-            "--kafkaBootstrapServers=host:9092",
-            "--streaming=true",
-            "--dryRun=true",
-            "--databaseUsername=test_user",
-            "--databasePassword=test_password",
-            "--influxDbToken=test-token",
-            "--influxDbUrl=http://localhost:8086",
-            "--influxDbOrg=test-org",
-            "--influxDbBucket=test-bucket"
-        )
+        val mainArgs =
+            arrayOf(
+                "--kafkaBootstrapServers=host:9092",
+                "--streaming=true",
+                "--dryRun=true",
+                "--databaseUsername=test_user",
+                "--databasePassword=test_password",
+                "--influxDbToken=test-token",
+                "--influxDbUrl=http://localhost:8086",
+                "--influxDbOrg=test-org",
+                "--influxDbBucket=test-bucket",
+            )
 
         // ACT: Test the argument parsing logic that would be used in main method.
         // Note: We're not calling the actual main method to avoid complex setup,
         // but we're testing the same argument parsing logic.
-        val options = PipelineOptionsFactory.fromArgs(*mainArgs)
-            .`as`(StrategyDiscoveryPipelineOptions::class.java)
+        val options =
+            PipelineOptionsFactory
+                .fromArgs(*mainArgs)
+                .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
         // ASSERT: Verify all arguments are parsed correctly.
         assertThat(options.kafkaBootstrapServers).isEqualTo("host:9092")
@@ -247,15 +271,18 @@ class StrategyDiscoveryPipelineRunnerTest {
     @Test
     fun `production error scenario should be replicated`() {
         // ARRANGE: Simulate the exact production scenario where arguments are concatenated.
-        val productionBrokenArgs = arrayOf(
-            "--bootstrapServers=host:9092;--runner=FlinkRunner;--streaming=true"
-        )
+        val productionBrokenArgs =
+            arrayOf(
+                "--bootstrapServers=host:9092;--runner=FlinkRunner;--streaming=true",
+            )
 
         // ACT & ASSERT: Verify that this specific input throws an IllegalArgumentException.
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            PipelineOptionsFactory.fromArgs(*productionBrokenArgs)
-                .`as`(StrategyDiscoveryPipelineOptions::class.java)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                PipelineOptionsFactory
+                    .fromArgs(*productionBrokenArgs)
+                    .`as`(StrategyDiscoveryPipelineOptions::class.java)
+            }
 
         // ASSERT: Verify the exception message indicates the root cause.
         // The PipelineOptionsFactory treats the entire string as a single property name.
@@ -270,20 +297,24 @@ class StrategyDiscoveryPipelineRunnerTest {
     @Test
     fun `production error message format should be replicated`() {
         // ARRANGE: Simulate the exact production scenario with the exact property name from logs.
-        val productionBrokenArgs = arrayOf(
-            "--bootstrapServers=host:9092;--runner=FlinkRunner;--streaming=true"
-        )
+        val productionBrokenArgs =
+            arrayOf(
+                "--bootstrapServers=host:9092;--runner=FlinkRunner;--streaming=true",
+            )
 
         // ACT & ASSERT: Verify that this specific input throws an IllegalArgumentException.
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            PipelineOptionsFactory.fromArgs(*productionBrokenArgs)
-                .`as`(StrategyDiscoveryPipelineOptions::class.java)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                PipelineOptionsFactory
+                    .fromArgs(*productionBrokenArgs)
+                    .`as`(StrategyDiscoveryPipelineOptions::class.java)
+            }
 
         // ASSERT: Verify the exact exception message format from production.
         // The PipelineOptionsFactory treats the entire string as a single property name.
-        val expectedMessage = "Class interface com.verlumen.tradestream.discovery.StrategyDiscoveryPipelineOptions " +
-                              "missing a property named 'bootstrapServers'."
+        val expectedMessage =
+            "Class interface com.verlumen.tradestream.discovery.StrategyDiscoveryPipelineOptions " +
+                "missing a property named 'bootstrapServers'."
         assertThat(exception.message).isEqualTo(expectedMessage)
     }
 
@@ -294,17 +325,20 @@ class StrategyDiscoveryPipelineRunnerTest {
     @Test
     fun `influxdb token should be read from environment variable when not provided in args`() {
         // ARRANGE: Test that the options interface supports the influxDbToken field
-        val args = arrayOf(
-            "--kafkaBootstrapServers=host:9092",
-            "--dryRun=true",
-            "--databaseUsername=test_user",
-            "--databasePassword=test_password",
-            "--influxDbToken=test-token-value"
-        )
+        val args =
+            arrayOf(
+                "--kafkaBootstrapServers=host:9092",
+                "--dryRun=true",
+                "--databaseUsername=test_user",
+                "--databasePassword=test_password",
+                "--influxDbToken=test-token-value",
+            )
 
         // ACT: Create options with influxDbToken provided in args
-        val options = PipelineOptionsFactory.fromArgs(*args)
-            .`as`(StrategyDiscoveryPipelineOptions::class.java)
+        val options =
+            PipelineOptionsFactory
+                .fromArgs(*args)
+                .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
         // ASSERT: Verify that the token is correctly parsed
         assertThat(options.influxDbToken).isEqualTo("test-token-value")
@@ -317,17 +351,20 @@ class StrategyDiscoveryPipelineRunnerTest {
     @Test
     fun `command line influxdb token should take precedence over environment variable`() {
         // ARRANGE: Provide command line argument for InfluxDB token
-        val args = arrayOf(
-            "--kafkaBootstrapServers=host:9092",
-            "--dryRun=true",
-            "--databaseUsername=test_user",
-            "--databasePassword=test_password",
-            "--influxDbToken=cmd-token-value" // Command line argument
-        )
+        val args =
+            arrayOf(
+                "--kafkaBootstrapServers=host:9092",
+                "--dryRun=true",
+                "--databaseUsername=test_user",
+                "--databasePassword=test_password",
+                "--influxDbToken=cmd-token-value", // Command line argument
+            )
 
         // ACT: Create options with command line argument
-        val options = PipelineOptionsFactory.fromArgs(*args)
-            .`as`(StrategyDiscoveryPipelineOptions::class.java)
+        val options =
+            PipelineOptionsFactory
+                .fromArgs(*args)
+                .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
         // ASSERT: Verify that the command line argument is used
         assertThat(options.influxDbToken).isEqualTo("cmd-token-value")
@@ -337,7 +374,10 @@ class StrategyDiscoveryPipelineRunnerTest {
      * Helper function to assert that an exception is thrown.
      * This provides a cleaner way to test for exceptions in Kotlin.
      */
-    private fun <T : Throwable> assertThrows(exceptionClass: Class<T>, block: () -> Unit): T {
+    private fun <T : Throwable> assertThrows(
+        exceptionClass: Class<T>,
+        block: () -> Unit,
+    ): T {
         try {
             block()
             throw AssertionError("Expected ${exceptionClass.simpleName} to be thrown, but no exception was thrown.")
@@ -353,4 +393,4 @@ class StrategyDiscoveryPipelineRunnerTest {
             }
         }
     }
-} 
+}

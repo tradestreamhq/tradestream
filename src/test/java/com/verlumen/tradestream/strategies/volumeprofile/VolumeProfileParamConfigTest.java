@@ -27,8 +27,8 @@ public final class VolumeProfileParamConfigTest {
   @Test
   public void createParameters_withValidChromosomes_returnsValidParameters()
       throws InvalidProtocolBufferException {
-    ImmutableList<IntegerChromosome> chromosomes = ImmutableList.of(
-        IntegerChromosome.of(IntegerGene.of(50, 10, 100)));
+    ImmutableList<IntegerChromosome> chromosomes =
+        ImmutableList.of(IntegerChromosome.of(IntegerGene.of(50, 10, 100)));
 
     Any parameters = config.createParameters(chromosomes);
     VolumeProfileParameters unpacked = parameters.unpack(VolumeProfileParameters.class);
@@ -46,4 +46,4 @@ public final class VolumeProfileParamConfigTest {
 
     assertThat(unpacked.getPeriod()).isEqualTo(20);
   }
-} 
+}
