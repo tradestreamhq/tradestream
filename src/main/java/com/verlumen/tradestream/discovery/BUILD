@@ -438,6 +438,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
         "//src/main/java/com/verlumen/tradestream/sql:bulk_copier_factory",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_parameter_type_registry",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:flogger",
         "//third_party/java:guice",
