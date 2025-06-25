@@ -165,6 +165,8 @@ kt_jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         "//protos:strategies_java_proto",
+        "//third_party/java:flogger",
+        "//third_party/java:gson",
         "//third_party/java:protobuf_java_util",
     ],
 )

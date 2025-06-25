@@ -1,6 +1,7 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
+import com.google.gson.JsonParser
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import com.verlumen.tradestream.sql.BulkCopierFactory
@@ -70,10 +71,16 @@ class WriteDiscoveredStrategiesToPostgresFn
             @Element element: DiscoveredStrategy,
         ) {
             val csvRow = convertToCsvRow(element)
-            batch?.offer(csvRow)
+            if (csvRow != null) {
+                batch?.offer(csvRow)
 
-            if (batch?.size ?: 0 >= BATCH_SIZE) {
-                flushBatch()
+                if (batch?.size ?: 0 >= BATCH_SIZE) {
+                    flushBatch()
+                }
+            } else {
+                logger.atWarning().log(
+                    "Skipping strategy ${element.strategy.type.name} for ${element.symbol} due to invalid JSON parameters",
+                )
             }
         }
 
@@ -102,12 +109,29 @@ class WriteDiscoveredStrategiesToPostgresFn
 
             if (batchData.isEmpty()) return
 
+            // Validate all JSON parameters in the batch before database operations
+            val validatedBatchData =
+                batchData.filter { csvRow ->
+                    validateCsvRowJson(csvRow)
+                }
+
+            if (validatedBatchData.size != batchData.size) {
+                logger.atWarning().log(
+                    "Filtered out ${batchData.size - validatedBatchData.size} rows with invalid JSON from batch of ${batchData.size}",
+                )
+            }
+
+            if (validatedBatchData.isEmpty()) {
+                logger.atWarning().log("No valid rows in batch, skipping database write")
+                return
+            }
+
             var retryCount = 0
             while (retryCount < MAX_RETRIES) {
                 try {
-                    executeBulkInsert(currentConnection, batchData)
+                    executeBulkInsert(currentConnection, validatedBatchData)
                     currentConnection.commit()
-                    logger.atInfo().log("Successfully wrote batch of ${batchData.size} strategies")
+                    logger.atInfo().log("Successfully wrote batch of ${validatedBatchData.size} strategies")
                     break
                 } catch (e: Exception) {
                     retryCount++
@@ -161,6 +185,10 @@ class WriteDiscoveredStrategiesToPostgresFn
             val copyManager = bulkCopierFactory.create(conn)
             val csvData = batchData.joinToString("\n")
 
+            // Log a sample of the CSV data for debugging (first 3 rows)
+            val sampleRows = batchData.take(3)
+            logger.atFine().log("Sample CSV rows for COPY operation: ${sampleRows.joinToString(" | ")}")
+
             copyManager.copy(
                 "temp_strategies",
                 StringReader(csvData),
@@ -187,8 +215,23 @@ class WriteDiscoveredStrategiesToPostgresFn
             conn.prepareStatement(upsertSql).use { it.execute() }
         }
 
-        private fun convertToCsvRow(element: DiscoveredStrategy): String {
+        public fun convertToCsvRow(element: DiscoveredStrategy): String? {
             val parametersJson = StrategyParameterTypeRegistry.formatParametersToJson(element.strategy.parameters)
+
+            // Treat error JSON as invalid
+            if (parametersJson.contains("\"error\"")) {
+                logger.atWarning().log(
+                    "Error JSON parameters for strategy ${element.strategy.type.name} on ${element.symbol}: '$parametersJson'",
+                )
+                return null
+            }
+            // Validate JSON before proceeding
+            if (!validateJsonParameter(parametersJson)) {
+                logger.atWarning().log(
+                    "Invalid JSON parameters for strategy ${element.strategy.type.name} on ${element.symbol}: '$parametersJson'",
+                )
+                return null
+            }
             val hash =
                 MessageDigest
                     .getInstance("SHA-256")
@@ -205,5 +248,45 @@ class WriteDiscoveredStrategiesToPostgresFn
                 element.startTime.seconds.toString(),
                 element.endTime.seconds.toString(),
             ).joinToString("\t")
+        }
+
+        public fun validateJsonParameter(jsonString: String?): Boolean {
+            if (jsonString.isNullOrBlank()) {
+                logger.atWarning().log("JSON parameter is null or blank")
+                return false
+            }
+
+            val trimmed = jsonString.trim()
+            return try {
+                // Parse to ensure valid JSON
+                JsonParser.parseString(trimmed)
+
+                // Additional validation for JSON structure
+                if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
+                    logger.atWarning().log("JSON parameter has invalid structure: '$trimmed'")
+                    false
+                } else {
+                    true
+                }
+            } catch (e: Exception) {
+                logger.atWarning().withCause(e).log("Invalid JSON detected: '$jsonString'")
+                false
+            }
+        }
+
+        public fun validateCsvRowJson(csvRow: String): Boolean {
+            return try {
+                val fields = csvRow.split("\t")
+                if (fields.size < 3) {
+                    logger.atWarning().log("CSV row has insufficient fields: '$csvRow'")
+                    return false
+                }
+
+                val parametersJson = fields[2] // parameters field is at index 2
+                validateJsonParameter(parametersJson)
+            } catch (e: Exception) {
+                logger.atWarning().withCause(e).log("Failed to validate CSV row JSON: '$csvRow'")
+                false
+            }
         }
     }
