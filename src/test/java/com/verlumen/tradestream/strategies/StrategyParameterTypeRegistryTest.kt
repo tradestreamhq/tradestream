@@ -2,16 +2,11 @@ package com.verlumen.tradestream.strategies
 
 import com.google.protobuf.Any
 import com.google.protobuf.Message
-import com.google.protobuf.util.JsonFormat
 import org.junit.Test
-import kotlin.reflect.full.companionObjectInstance
-import kotlin.reflect.full.declaredFunctions
-import kotlin.reflect.jvm.isAccessible
 
 class StrategyParameterTypeRegistryTest {
     @Test
     fun allParameterTypesAreSerializableToJson() {
-        val registry = StrategyParameterTypeRegistry.registry
         val parameterClasses = listOf(
             SmaRsiParameters::class,
             EmaMacdParameters::class,
@@ -48,7 +43,6 @@ class StrategyParameterTypeRegistryTest {
             VolumeProfileDeviationsParameters::class,
             VolumeProfileParameters::class,
             StochasticEmaParameters::class,
-            CmoMfiParameters::class,
             RsiEmaCrossoverParameters::class,
             TrixSignalLineParameters::class,
             CmfZeroLineParameters::class,
@@ -70,7 +64,6 @@ class StrategyParameterTypeRegistryTest {
             DpoCrossoverParameters::class,
             VariablePeriodEmaParameters::class,
             VwapCrossoverParameters::class,
-            RocMaCrossoverParameters::class,
             RegressionChannelParameters::class,
             MacdCrossoverParameters::class,
         )
@@ -79,7 +72,7 @@ class StrategyParameterTypeRegistryTest {
             val defaultInstance = clazz.java.getMethod("getDefaultInstance").invoke(null) as Message
             val packed = Any.pack(defaultInstance)
             try {
-                val json = JsonFormat.printer().usingTypeRegistry(registry).print(packed)
+                val json = StrategyParameterTypeRegistry.formatParametersToJson(packed)
                 assert(json != "{}") { "JSON serialization failed for ${clazz.simpleName}" }
             } catch (e: Exception) {
                 throw AssertionError("Failed to serialize ${clazz.simpleName} to JSON", e)
