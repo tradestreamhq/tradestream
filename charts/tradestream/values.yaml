@@ -99,11 +99,11 @@ strategyDiscoveryPipeline:
     state.backend.incremental: "true"
   serviceAccount: flink
   jobManager:
-    memory: 2048m
-    cpu: 1
+    memory: 4096m
+    cpu: 2
   taskManager:
-    memory: 2048m
-    cpu: 1
+    memory: 4096m
+    cpu: 2
   job:
     entryClass: com.verlumen.tradestream.discovery.StrategyDiscoveryPipelineRunner
     jarURI: local:///src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar
