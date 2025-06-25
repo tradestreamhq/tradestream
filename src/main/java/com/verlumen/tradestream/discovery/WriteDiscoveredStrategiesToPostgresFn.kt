@@ -3,8 +3,6 @@ package com.verlumen.tradestream.discovery
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
-import com.google.protobuf.InvalidProtocolBufferException
-import com.google.protobuf.util.JsonFormat
 import com.verlumen.tradestream.sql.BulkCopierFactory
 import com.verlumen.tradestream.sql.DataSourceConfig
 import com.verlumen.tradestream.sql.DataSourceFactory
@@ -12,7 +10,6 @@ import com.verlumen.tradestream.strategies.StrategyParameterTypeRegistry
 import java.io.StringReader
 import java.security.MessageDigest
 import java.sql.Connection
-import java.time.Instant
 import java.util.concurrent.ConcurrentLinkedQueue
 import javax.sql.DataSource
 
@@ -59,7 +56,7 @@ class WriteDiscoveredStrategiesToPostgresFn
                 dataSource!!.connection.apply {
                     autoCommit = false
                 }
-            
+
             // Initialize batch queue
             batch = ConcurrentLinkedQueue()
 
@@ -192,9 +189,11 @@ class WriteDiscoveredStrategiesToPostgresFn
 
         private fun convertToCsvRow(element: DiscoveredStrategy): String {
             val parametersJson = StrategyParameterTypeRegistry.formatParametersToJson(element.strategy.parameters)
-            val hash = MessageDigest.getInstance("SHA-256")
-                .digest(parametersJson.toByteArray())
-                .joinToString("") { "%02x".format(it) }
+            val hash =
+                MessageDigest
+                    .getInstance("SHA-256")
+                    .digest(parametersJson.toByteArray())
+                    .joinToString("") { "%02x".format(it) }
             // Tab-separated values for PostgreSQL COPY
             return listOf(
                 element.symbol,
@@ -204,7 +203,7 @@ class WriteDiscoveredStrategiesToPostgresFn
                 hash,
                 element.symbol, // discovery_symbol
                 element.startTime.seconds.toString(),
-                element.endTime.seconds.toString()
+                element.endTime.seconds.toString(),
             ).joinToString("\t")
         }
     }

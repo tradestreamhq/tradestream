@@ -4,6 +4,7 @@ import com.google.inject.Guice
 import com.google.inject.testing.fieldbinder.Bind
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.Any
+import com.google.protobuf.ByteString
 import com.google.protobuf.Timestamp
 import com.verlumen.tradestream.sql.BulkCopierFactory
 import com.verlumen.tradestream.sql.DataSourceConfig
@@ -21,14 +22,13 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
+import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.sql.Connection
 import java.time.Instant
 import javax.sql.DataSource
-import com.google.protobuf.ByteString
-import org.mockito.Mockito.mock
 
 /**
  * Unit tests for WriteDiscoveredStrategiesToPostgresFn using the new factory pattern
@@ -263,28 +263,34 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         val dataSourceFactory = mock(DataSourceFactory::class.java)
         val dataSourceConfig = mock(DataSourceConfig::class.java)
         val fn = WriteDiscoveredStrategiesToPostgresFn(bulkCopierFactory, dataSourceFactory, dataSourceConfig)
-        val invalidAny = Any.newBuilder()
-            .setTypeUrl("type.googleapis.com/unknown.UnknownParameters")
-            .setValue(ByteString.copyFromUtf8("garbage"))
-            .build()
-        val element = DiscoveredStrategy.newBuilder()
-            .setSymbol("BTCUSD")
-            .setStrategy(
-                Strategy.newBuilder()
-                    .setType(StrategyType.UNSPECIFIED)
-                    .setParameters(invalidAny)
-                    .build()
-            )
-            .setScore(1.0)
-            .setStartTime(Timestamp.newBuilder().setSeconds(0).build())
-            .setEndTime(Timestamp.newBuilder().setSeconds(1).build())
-            .build()
+        val invalidAny =
+            Any
+                .newBuilder()
+                .setTypeUrl("type.googleapis.com/unknown.UnknownParameters")
+                .setValue(ByteString.copyFromUtf8("garbage"))
+                .build()
+        val element =
+            DiscoveredStrategy
+                .newBuilder()
+                .setSymbol("BTCUSD")
+                .setStrategy(
+                    Strategy
+                        .newBuilder()
+                        .setType(StrategyType.UNSPECIFIED)
+                        .setParameters(invalidAny)
+                        .build(),
+                ).setScore(1.0)
+                .setStartTime(Timestamp.newBuilder().setSeconds(0).build())
+                .setEndTime(Timestamp.newBuilder().setSeconds(1).build())
+                .build()
         val method = WriteDiscoveredStrategiesToPostgresFn::class.java.getDeclaredMethod("convertToCsvRow", DiscoveredStrategy::class.java)
         method.isAccessible = true
         val row = method.invoke(fn, element) as String
         val paramsColumn = row.split("\t")[2]
         assert(paramsColumn.contains("base64_data")) { "Parameters column should contain base64_data for invalid Any, got: $paramsColumn" }
         assert(paramsColumn.contains("type_url")) { "Parameters column should contain type_url for invalid Any, got: $paramsColumn" }
-        assert(paramsColumn.contains("unknown.UnknownParameters")) { "Parameters column should contain the correct type_url, got: $paramsColumn" }
+        assert(
+            paramsColumn.contains("unknown.UnknownParameters"),
+        ) { "Parameters column should contain the correct type_url, got: $paramsColumn" }
     }
 }
