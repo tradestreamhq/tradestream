@@ -412,6 +412,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/marketdata:influxdb_candle_fetcher",
         "//src/main/java/com/verlumen/tradestream/postgres:postgres_module",
         "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
+        "//third_party/java:beam_runners_flink_java",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_io_kafka",
         "//third_party/java:guava",

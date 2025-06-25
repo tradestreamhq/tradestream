@@ -14,6 +14,7 @@ import com.verlumen.tradestream.marketdata.MarketDataModule
 import com.verlumen.tradestream.postgres.PostgresModule
 import com.verlumen.tradestream.ta4j.Ta4jModule
 import org.apache.beam.sdk.options.PipelineOptionsFactory
+import org.apache.beam.runners.flink.FlinkPipelineOptions
 
 /**
  * Builds and executes the strategy-discovery Beam pipeline.
@@ -108,6 +109,9 @@ class StrategyDiscoveryPipelineRunner {
                     .`as`(StrategyDiscoveryPipelineOptions::class.java)
 
             options.isStreaming = !options.dryRun
+
+            // Set detached mode for FlinkRunner to match Kubernetes deployment
+            options.as(FlinkPipelineOptions::class.java).isDetachedMode = true
 
             // Override from environment variables if not set in args
             options.databaseUsername = getDatabaseUsername(options)
