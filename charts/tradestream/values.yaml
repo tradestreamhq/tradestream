@@ -50,35 +50,6 @@ kafkaUi:
   service:
     type: ClusterIP
     port: 8080
-pipeline:
-  enabled: true
-  runMode: wet
-  image:
-    repository: tradestreamhq/tradestream-data-pipeline
-    tag: v2.45.19-develop
-    pullPolicy: IfNotPresent
-  version: v1_18
-  configuration:
-    env.java.opts.jobmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
-    env.java.opts.taskmanager: "-Dio.jenetics.util.defaultRandomGenerator=Random"
-    taskmanager.numberOfTaskSlots: "1"
-    execution.checkpointing.interval: "300000"
-    execution.checkpointing.mode: "EXACTLY_ONCE"
-    execution.checkpointing.timeout: "1800000"
-    execution.checkpointing.externalized-checkpoint-retention: "RETAIN_ON_CANCELLATION"
-    state.backend: "rocksdb"
-    state.backend.incremental: "true"
-  serviceAccount: flink
-  jobManager:
-    memory: 4096m
-    cpu: 2
-  taskManager:
-    memory: 4096m
-    cpu: 2
-  job:
-    entryClass: com.verlumen.tradestream.pipeline.App
-    jarURI: local:///src/main/java/com/verlumen/tradestream/pipeline/app_deploy.jar
-    parallelism: 1
     upgradeMode: stateless
 strategyDiscoveryPipeline:
   enabled: true

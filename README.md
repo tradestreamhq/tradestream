@@ -6,11 +6,10 @@ TradeStream is an algorithmic trading platform that leverages real-time data str
 
 TradeStream consists of several key components:
 
-1. **Data Pipeline**: An Apache Beam pipeline running on Apache Flink that processes trade data, computes technical indicators, handles data ingestion, and includes the Strategy Engine which uses Ta4J to evaluate trading strategies
-2. **Trade Signals**: Output from the pipeline that can be consumed by an order executor
-4. **Kafka**: Message broker for all data streams, running in KRaft mode (Zookeeper-less)
-5. **Kafka UI**: Web interface for monitoring Kafka topics
-6. **Deployment**: Managed via Helm charts on Kubernetes, with CI/CD through GitHub Actions
+1. **Trade Signals**: Output from the platform that can be consumed by an order executor
+2. **Kafka**: Message broker for all data streams, running in KRaft mode (Zookeeper-less)
+3. **Kafka UI**: Web interface for monitoring Kafka topics
+4. **Deployment**: Managed via Helm charts on Kubernetes, with CI/CD through GitHub Actions
 
 ### Data Flow
 
@@ -22,24 +21,22 @@ graph LR
     end
 
     subgraph TradeStream
-        DataPipeline["Data Pipeline (Flink)"] --> Kafka["Kafka (Trades Topic)"]
-        Kafka --> DataPipeline
-        DataPipeline --> Kafka3["Kafka (Signals Topic)"]
+        Kafka["Kafka (Trades Topic)"]
+        Kafka --> Kafka3["Kafka (Signals Topic)"]
     end
 
     subgraph Monitoring
       Kafka --> KafkaUI[Kafka UI]
     end
 
-    style DataPipeline fill:#ccf,stroke:#333,stroke-width:2px
     style Kafka fill:#f5f,stroke:#333,stroke-width:2px
     style KafkaUI fill:#ccf,stroke:#333,stroke-width:2px
 ```
 
 The platform processes data through the following steps:
 
-1. **Data Pipeline**: Connects to Coinbase via WebSocket to stream real-time trade data to Kafka, processes trades, generates technical indicators, evaluates trading strategies using Ta4j, and generates signals
-3. **Monitoring**: Provides visibility into data flows through Kafka UI
+1. **Data Processing**: Connects to Coinbase via WebSocket to stream real-time trade data to Kafka, processes trades, generates technical indicators, evaluates trading strategies using Ta4j, and generates signals
+2. **Monitoring**: Provides visibility into data flows through Kafka UI
 
 ## Installation
 
@@ -59,8 +56,6 @@ Key configuration parameters in `values.yaml`:
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `kafka.replicaCount` | Number of Kafka brokers | 3 |
-| `pipeline.runMode` | Pipeline run mode: `wet` (live) or `dry` (simulated) | `wet` |
-| `pipeline.version` | Flink version | `v1_18` |
 
 ## Project Structure
 
@@ -76,7 +71,6 @@ Key configuration parameters in `values.yaml`:
 │   ├── instruments/          # Financial instruments
 │   ├── kafka/                # Kafka utilities
 │   ├── marketdata/           # Market data processing
-│   ├── pipeline/             # Main Beam pipeline with ingestion and strategies
 │   └── strategies/           # Trading strategy definitions
 └── platforms/                # Platform configs
 ```

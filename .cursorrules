@@ -15,7 +15,7 @@
 # - To build the entire project: `bazel build //...`
 # - To run all tests: `bazel test //...`
 # - To run unit tests with coverage: `bazel coverage //...` 
-# - To run a specific service, use `bazel run //path/to/service:target`. For example, to push the main data pipeline image: `bazel run //src/main/java/com/verlumen/tradestream/pipeline:push_image` 
+# - To run a specific service, use `bazel run //path/to/service:target`
 # - We use BuildBuddy for remote caching and build analysis. Ensure your configuration in `.bazelrc` points to the correct backend.
 
 # =========================================

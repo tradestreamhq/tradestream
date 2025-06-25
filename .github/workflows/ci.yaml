@@ -62,12 +62,6 @@ jobs:
       - name: Build and Load Images
         run: |
           set -eo pipefail
-
-          # Build and push pipeline image
-          bazel run //src/main/java/com/verlumen/tradestream/pipeline:push_image \
-            -- \
-            --repository localhost:5000/tradestream-data-pipeline \
-            --tag "latest"
             
           # Build and push candle ingestor image
           bazel run //services/candle_ingestor:push_candle_ingestor_image \
@@ -94,9 +88,6 @@ jobs:
             --tag "latest"
 
           # Load images into minikube
-          docker pull localhost:5000/tradestream-data-pipeline:latest
-          docker tag localhost:5000/tradestream-data-pipeline:latest tradestream-data-pipeline:latest
-          minikube image load tradestream-data-pipeline:latest
           docker pull localhost:5000/candle-ingestor:latest
           docker tag localhost:5000/candle-ingestor:latest candle-ingestor:latest
           minikube image load candle-ingestor:latest
@@ -124,8 +115,6 @@ jobs:
 
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
-            --set pipeline.image.repository=tradestream-data-pipeline \
-            --set pipeline.image.tag=latest \
             --set candleIngestor.image.repository=candle-ingestor \
             --set candleIngestor.image.tag=latest \
             --set topCryptoUpdaterCronjob.image.repository=top-crypto-updater \
@@ -134,7 +123,6 @@ jobs:
             --set strategyDiscoveryRequestFactory.image.tag=latest \
             --set strategyDiscoveryPipeline.image.repository=strategy-discovery-pipeline \
             --set strategyDiscoveryPipeline.image.tag=latest \
-            --set pipeline.runMode=dry \
             --set redis.enabled=true \
             --set postgresql.enabled=true \
             --set topCryptoUpdaterCronjob.enabled=true \
