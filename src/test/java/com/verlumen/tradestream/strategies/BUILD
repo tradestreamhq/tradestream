@@ -41,5 +41,6 @@ kt_jvm_test(
         "//third_party/java:gson",
         "//third_party/java:junit",
         "//third_party/java:protobuf_java_util",
+        "//third_party/java:test_parameter_injector",
     ],
 )

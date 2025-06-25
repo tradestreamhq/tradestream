@@ -4,8 +4,12 @@ import com.google.gson.JsonParser
 import com.google.protobuf.Any
 import com.google.protobuf.ByteString
 import com.google.protobuf.Message
+import com.google.testing.junit.testparameterinjector.TestParameter
+import com.google.testing.junit.testparameterinjector.TestParameterInjector
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(TestParameterInjector::class)
 class StrategyParameterTypeRegistryTest {
     @Test
     fun allParameterTypesAreSerializableToJson() {
@@ -236,22 +240,23 @@ class StrategyParameterTypeRegistryTest {
     }
 
     @Test
-    fun allSupportedStrategyTypesAreMappedInRegistry() {
-        for (strategyType in getSupportedStrategyTypes()) {
-            // Skip special enums
-            if (strategyType == StrategyType.UNSPECIFIED || strategyType == StrategyType.UNRECOGNIZED) continue
-            val defaultParams = strategyType.getDefaultParameters()
-            val json = StrategyParameterTypeRegistry.formatParametersToJson(defaultParams)
-            // The fallback always includes "base64_data" or "error"
-            assert(!json.contains("base64_data") && !json.contains("error")) {
-                "Fallback JSON should not be hit for supported type: $strategyType, got: $json"
-            }
-            // Should be valid JSON
-            try {
-                JsonParser.parseString(json)
-            } catch (e: Exception) {
-                throw AssertionError("Generated JSON for $strategyType is invalid: '$json'", e)
-            }
+    fun allSupportedStrategyTypesAreMappedInRegistry(
+        @TestParameter strategyType: StrategyType,
+    ) {
+        // Skip special enums
+        if (strategyType == StrategyType.UNSPECIFIED || strategyType == StrategyType.UNRECOGNIZED) return
+
+        val defaultParams = strategyType.getDefaultParameters()
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(defaultParams)
+        // The fallback always includes "base64_data" or "error"
+        assert(!json.contains("base64_data") && !json.contains("error")) {
+            "Fallback JSON should not be hit for supported type: $strategyType, got: $json"
+        }
+        // Should be valid JSON
+        try {
+            JsonParser.parseString(json)
+        } catch (e: Exception) {
+            throw AssertionError("Generated JSON for $strategyType is invalid: '$json'", e)
         }
     }
 
