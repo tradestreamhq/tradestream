@@ -37,6 +37,8 @@ kt_jvm_test(
     test_class = "com.verlumen.tradestream.strategies.StrategyParameterTypeRegistryTest",
     deps = [
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_parameter_type_registry",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
+        "//third_party/java:gson",
         "//third_party/java:junit",
         "//third_party/java:protobuf_java_util",
     ],

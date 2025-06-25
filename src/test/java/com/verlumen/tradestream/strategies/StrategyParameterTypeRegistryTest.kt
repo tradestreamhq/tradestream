@@ -1,6 +1,8 @@
 package com.verlumen.tradestream.strategies
 
+import com.google.gson.JsonParser
 import com.google.protobuf.Any
+import com.google.protobuf.ByteString
 import com.google.protobuf.Message
 import org.junit.Test
 
@@ -78,6 +80,211 @@ class StrategyParameterTypeRegistryTest {
             } catch (e: Exception) {
                 throw AssertionError("Failed to serialize ${clazz.simpleName} to JSON", e)
             }
+        }
+    }
+
+    @Test
+    fun fallbackCaseProducesValidJson() {
+        // Create an unknown Any type that will trigger the fallback case
+        val unknownAny =
+            Any
+                .newBuilder()
+                .setTypeUrl("type.googleapis.com/unknown.UnknownParameters")
+                .setValue(ByteString.copyFromUtf8("garbage data"))
+                .build()
+
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
+
+        // Verify the JSON is valid by parsing it
+        try {
+            JsonParser.parseString(json)
+        } catch (e: Exception) {
+            throw AssertionError("Generated JSON is invalid: $json", e)
+        }
+
+        // Verify it contains the expected fields
+        assert(json.contains("base64_data")) { "JSON should contain base64_data field" }
+        assert(json.contains("type_url")) { "JSON should contain type_url field" }
+        assert(json.contains("unknown.UnknownParameters")) { "JSON should contain the correct type_url" }
+    }
+
+    @Test
+    fun invalidProtocolBufferExceptionProducesValidJson() {
+        // Create an Any with invalid protobuf data that will cause InvalidProtocolBufferException
+        val invalidAny =
+            Any
+                .newBuilder()
+                .setTypeUrl("type.googleapis.com/strategies.SmaRsiParameters")
+                .setValue(ByteString.copyFromUtf8("invalid protobuf data"))
+                .build()
+
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(invalidAny)
+
+        // Verify the JSON is valid by parsing it
+        try {
+            JsonParser.parseString(json)
+        } catch (e: Exception) {
+            throw AssertionError("Generated JSON is invalid: $json", e)
+        }
+
+        // Verify it contains the expected fields
+        assert(json.contains("base64_data")) { "JSON should contain base64_data field" }
+        assert(json.contains("type_url")) { "JSON should contain type_url field" }
+        assert(json.contains("strategies.SmaRsiParameters")) { "JSON should contain the correct type_url" }
+    }
+
+    @Test
+    fun jsonIsNotTruncated() {
+        // Test that the JSON output is complete and not truncated
+        val unknownAny =
+            Any
+                .newBuilder()
+                .setTypeUrl("type.googleapis.com/unknown.UnknownParameters")
+                .setValue(ByteString.copyFromUtf8("test data"))
+                .build()
+
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
+
+        // Check that the JSON starts and ends properly
+        assert(json.startsWith("{")) { "JSON should start with '{'" }
+        assert(json.endsWith("}")) { "JSON should end with '}'" }
+
+        // Check that it's not just a single character
+        assert(json.length > 1) { "JSON should be more than just '{' or '{}'" }
+
+        // Check that it contains both required fields
+        assert(json.contains("\"base64_data\"")) { "JSON should contain base64_data field" }
+        assert(json.contains("\"type_url\"")) { "JSON should contain type_url field" }
+
+        // Verify it's valid JSON by parsing
+        try {
+            JsonParser.parseString(json)
+        } catch (e: Exception) {
+            throw AssertionError("Generated JSON is invalid or truncated: '$json'", e)
+        }
+    }
+
+    @Test
+    fun jsonHandlesSpecialCharacters() {
+        // Test that the JSON output handles special characters in the data
+        val specialData = "test\"data'with\n\t\r\\special chars"
+        val unknownAny =
+            Any
+                .newBuilder()
+                .setTypeUrl("type.googleapis.com/unknown.UnknownParameters")
+                .setValue(ByteString.copyFromUtf8(specialData))
+                .build()
+
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
+
+        // Verify it's valid JSON by parsing
+        try {
+            JsonParser.parseString(json)
+        } catch (e: Exception) {
+            throw AssertionError("Generated JSON with special characters is invalid: '$json'", e)
+        }
+
+        // Verify it contains the base64 encoded data
+        assert(json.contains("base64_data")) { "JSON should contain base64_data field" }
+    }
+
+    @Test
+    fun jsonIsSafeForTabSeparatedValues() {
+        // Test that the JSON output is safe for tab-separated CSV format
+        // This is critical for PostgreSQL COPY command
+        val dataWithTabs = "data\twith\ttabs"
+        val unknownAny =
+            Any
+                .newBuilder()
+                .setTypeUrl("type.googleapis.com/unknown.UnknownParameters")
+                .setValue(ByteString.copyFromUtf8(dataWithTabs))
+                .build()
+
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
+
+        // Verify it's valid JSON by parsing
+        try {
+            JsonParser.parseString(json)
+        } catch (e: Exception) {
+            throw AssertionError("Generated JSON with tabs is invalid: '$json'", e)
+        }
+
+        // Verify it contains the base64 encoded data (which should not contain tabs)
+        assert(json.contains("base64_data")) { "JSON should contain base64_data field" }
+
+        // Verify that the JSON string itself doesn't contain unescaped tabs
+        // Base64 encoding should handle this, but let's be explicit
+        assert(!json.contains("\t")) { "JSON string should not contain unescaped tabs" }
+    }
+
+    @Test
+    fun emptyAnyProducesValidJson() {
+        // Test that an empty/default Any produces a valid JSON object
+        val emptyAny = Any.getDefaultInstance()
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(emptyAny)
+        // Should not be just '{' or empty
+        assert(json.trim() != "{") { "Empty Any should not produce just '{'" }
+        assert(json.trim().isNotEmpty()) { "Empty Any should not produce empty string" }
+        // Should be valid JSON
+        try {
+            JsonParser.parseString(json)
+        } catch (e: Exception) {
+            throw AssertionError("Generated JSON for empty Any is invalid: '$json'", e)
+        }
+        // Should contain the error field
+        assert(json.contains("error")) { "JSON for empty Any should contain error field" }
+    }
+
+    @Test
+    fun allSupportedStrategyTypesAreMappedInRegistry() {
+        for (strategyType in getSupportedStrategyTypes()) {
+            // Skip special enums
+            if (strategyType == StrategyType.UNSPECIFIED || strategyType == StrategyType.UNRECOGNIZED) continue
+            val defaultParams = strategyType.getDefaultParameters()
+            val json = StrategyParameterTypeRegistry.formatParametersToJson(defaultParams)
+            // The fallback always includes "base64_data" or "error"
+            assert(!json.contains("base64_data") && !json.contains("error")) {
+                "Fallback JSON should not be hit for supported type: $strategyType, got: $json"
+            }
+            // Should be valid JSON
+            try {
+                JsonParser.parseString(json)
+            } catch (e: Exception) {
+                throw AssertionError("Generated JSON for $strategyType is invalid: '$json'", e)
+            }
+        }
+    }
+
+    @Test
+    fun fallbackIsHitForUnsupportedOrInvalidTypes() {
+        // Use an unknown type URL
+        val unknownAny =
+            Any
+                .newBuilder()
+                .setTypeUrl("type.googleapis.com/unknown.UnknownParameters")
+                .setValue(ByteString.copyFromUtf8("garbage"))
+                .build()
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
+        assert(json.contains("base64_data") && json.contains("type_url")) {
+            "Fallback JSON should be hit for unknown type"
+        }
+        // Should be valid JSON
+        try {
+            JsonParser.parseString(json)
+        } catch (e: Exception) {
+            throw AssertionError("Generated fallback JSON is invalid: '$json'", e)
+        }
+    }
+
+    @Test
+    fun fallbackIsHitForEmptyAny() {
+        val emptyAny = Any.getDefaultInstance()
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(emptyAny)
+        assert(json.contains("error")) { "Fallback JSON should be hit for empty Any" }
+        try {
+            JsonParser.parseString(json)
+        } catch (e: Exception) {
+            throw AssertionError("Generated fallback JSON for empty Any is invalid: '$json'", e)
         }
     }
 }
