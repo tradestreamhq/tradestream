@@ -432,7 +432,9 @@ def get_historical_candles_ccxt(
 
         # Convert to CCXT format for consistency with strategy discovery
         for candle in candles:
-            candle["currency_pair"] = ccxt_symbol  # Use CCXT format for consistency with strategy discovery
+            candle["currency_pair"] = (
+                ccxt_symbol  # Use CCXT format for consistency with strategy discovery
+            )
 
         return candles
 
