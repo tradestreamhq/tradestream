@@ -224,7 +224,7 @@ topCryptoUpdaterCronjob:
 # Strategy Discovery Request Factory CronJob configuration
 strategyDiscoveryRequestFactory:
   enabled: true
-  schedule: "* * * * *" # Run at the start of every hour
+  schedule: "* * * * *" # Run every minute
   image:
     repository: "tradestreamhq/strategy-discovery-request-factory"
     pullPolicy: IfNotPresent
@@ -237,8 +237,9 @@ strategyDiscoveryRequestFactory:
     kafkaTopic: "strategy-discovery-requests"
     trackerServiceName: "strategy_discovery_processor" # Name for this service's own state
     globalStatusTrackerServiceName: "global_candle_status" # Name of the service that reports latest candle data
-    minProcessingAdvanceMinutes: 5 # Min minutes new data must be ahead to trigger
+    minProcessingAdvanceMinutes: 1 # Min minutes new data must be ahead to trigger (reduced from 5 to 1)
     fibonacciWindowsMinutes: # Fibonacci sequence windows in minutes
+      - "60" # ~1 hour (added for testing and initial data availability)
       - "1597" # ~1.1 days
       - "2584" # ~1.8 days
       - "4181" # ~2.9 days

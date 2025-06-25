@@ -430,9 +430,9 @@ def get_historical_candles_ccxt(
                 ccxt_symbol, timeframe, start_timestamp_ms, limit
             )
 
-        # Convert back to Tiingo-compatible format for existing code
+        # Convert to CCXT format for consistency with strategy discovery
         for candle in candles:
-            candle["currency_pair"] = ticker  # Keep original Tiingo format
+            candle["currency_pair"] = ccxt_symbol  # Use CCXT format for consistency with strategy discovery
 
         return candles
 
@@ -576,6 +576,7 @@ def run_backfill(
                     )
 
                 dummy_ts_ms = int(aligned_chunk_start_dt.timestamp() * 1000)
+                ccxt_symbol = convert_tiingo_symbol_to_ccxt(ticker)
                 historical_candles = [
                     {
                         "timestamp_ms": dummy_ts_ms,
@@ -584,7 +585,7 @@ def run_backfill(
                         "low": 0.9,
                         "close": 1.05,
                         "volume": 100.0,
-                        "currency_pair": ticker,
+                        "currency_pair": ccxt_symbol,
                     }
                 ]
             else:
@@ -765,6 +766,7 @@ def run_catch_up(
             )
             if start_dt_utc < end_dt_utc:
                 dummy_ts_ms = int(start_dt_utc.timestamp() * 1000)
+                ccxt_symbol = convert_tiingo_symbol_to_ccxt(ticker)
                 fetched_candles = [
                     {
                         "timestamp_ms": dummy_ts_ms,
@@ -773,7 +775,7 @@ def run_catch_up(
                         "low": 1.9,
                         "close": 2.05,
                         "volume": 200.0,
-                        "currency_pair": ticker,
+                        "currency_pair": ccxt_symbol,
                     }
                 ]
         else:
