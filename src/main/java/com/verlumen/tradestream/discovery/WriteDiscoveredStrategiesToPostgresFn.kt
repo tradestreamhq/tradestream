@@ -21,9 +21,10 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class WriteDiscoveredStrategiesToPostgresFn
     @Inject
     constructor(
-        @Transient private val strategyRepositoryFactory: StrategyRepository.Factory,
+        private val strategyRepositoryFactory: StrategyRepository.Factory,
         @Assisted private val dataSourceConfig: com.verlumen.tradestream.sql.DataSourceConfig,
-    ) : DiscoveredStrategySink(), Serializable {
+    ) : DiscoveredStrategySink(),
+        Serializable {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
             private const val BATCH_SIZE = 100
@@ -38,7 +39,7 @@ class WriteDiscoveredStrategiesToPostgresFn
         fun setup() {
             // Initialize batch queue
             batch = ConcurrentLinkedQueue()
-            
+
             // Create the strategy repository using the factory
             strategyRepository = strategyRepositoryFactory.create(dataSourceConfig)
         }

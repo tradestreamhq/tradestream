@@ -14,7 +14,7 @@ interface StrategyRepository : Serializable {
     fun findAll(): List<DiscoveredStrategy>
 
     /**
-     * Factory interface for assisted injection
+     * Factory interface for assisted injection and Beam serialization
      */
     interface Factory : Serializable {
         fun create(dataSourceConfig: DataSourceConfig): StrategyRepository
