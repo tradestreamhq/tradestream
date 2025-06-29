@@ -106,7 +106,7 @@ kafka:
     rollingUpdate:
       partition: 0
   podManagementPolicy: Parallel
-  extraEnv:
+  env:
     - name: KAFKA_HEAP_OPTS
       value: "-Xmx1g -Xms1g"
 kafkaUi:
