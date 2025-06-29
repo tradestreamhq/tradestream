@@ -13,6 +13,7 @@ import java.security.MessageDigest
 import java.sql.Connection
 import java.util.concurrent.ConcurrentLinkedQueue
 import javax.sql.DataSource
+import org.apache.commons.codec.digest.DigestUtils
 
 /**
  * High-performance PostgreSQL writer using COPY command for bulk inserts.
@@ -112,12 +113,12 @@ class WriteDiscoveredStrategiesToPostgresFn
             // Validate all JSON parameters in the batch before database operations
             val validatedBatchData =
                 batchData.filter { csvRow ->
-                    validateCsvRowJson(csvRow)
+                    validateCsvRowTextProto(csvRow)
                 }
 
             if (validatedBatchData.size != batchData.size) {
                 logger.atWarning().log(
-                    "Filtered out ${batchData.size - validatedBatchData.size} rows with invalid JSON from batch of ${batchData.size}",
+                    "Filtered out ${batchData.size - validatedBatchData.size} rows with invalid TextProto from batch of ${batchData.size}",
                 )
             }
 
@@ -216,73 +217,45 @@ class WriteDiscoveredStrategiesToPostgresFn
         }
 
         public fun convertToCsvRow(element: DiscoveredStrategy): String? {
-            val parametersJson = StrategyParameterTypeRegistry.formatParametersToJson(element.strategy.parameters)
+            val parametersTextProto = StrategyParameterTypeRegistry.formatParametersToTextProto(element.strategy.parameters)
 
-            // Treat error JSON as invalid
-            if (parametersJson.contains("\"error\"")) {
+            // Treat error textproto as invalid
+            if (parametersTextProto.contains("error:")) {
                 logger.atWarning().log(
-                    "Error JSON parameters for strategy ${element.strategy.type.name} on ${element.symbol}: '$parametersJson'",
+                    "Error TextProto parameters for strategy ${element.strategy.type.name} on ${element.symbol}: '$parametersTextProto'",
                 )
                 return null
             }
-            // Validate JSON before proceeding
-            if (!validateJsonParameter(parametersJson)) {
+            // Validate textproto before proceeding
+            if (!validateTextProtoParameter(parametersTextProto)) {
                 logger.atWarning().log(
-                    "Invalid JSON parameters for strategy ${element.strategy.type.name} on ${element.symbol}: '$parametersJson'",
+                    "Invalid TextProto parameters for strategy ${element.strategy.type.name} on ${element.symbol}: '$parametersTextProto'",
                 )
                 return null
             }
-            val hash =
-                MessageDigest
-                    .getInstance("SHA-256")
-                    .digest(parametersJson.toByteArray())
-                    .joinToString("") { "%02x".format(it) }
-            
-            // Replace only problematic characters that would break tab-delimited CSV
-            // Don't escape quotes or backslashes as that would make JSON invalid
-            val csvSafeJson = parametersJson
-                .replace("\t", " ")     // Replace tabs with spaces
-                .replace("\n", " ")     // Replace newlines with spaces  
-                .replace("\r", " ")     // Replace carriage returns with spaces
-            
-            // Tab-separated values for PostgreSQL COPY
+
+            val hash = DigestUtils.sha256Hex(parametersTextProto)
+
+            // TextProto is much simpler than JSON - just replace tabs and newlines with spaces
+            val escapedTextProto = parametersTextProto
+                .replace("\t", " ")     // Replace tabs that would break CSV
+                .replace("\n", " ")     // Replace newlines that would break CSV  
+                .replace("\r", " ")     // Replace carriage returns
+                .trim()                 // Remove leading/trailing whitespace
+
             return listOf(
                 element.symbol,
                 element.strategy.type.name,
-                csvSafeJson,            // Use CSV-safe JSON
+                escapedTextProto,        // Use escaped TextProto instead of raw TextProto
                 element.score.toString(),
                 hash,
-                element.symbol, // discovery_symbol
+                element.symbol,
                 element.startTime.seconds.toString(),
                 element.endTime.seconds.toString(),
             ).joinToString("\t")
         }
 
-        public fun validateJsonParameter(jsonString: String?): Boolean {
-            if (jsonString.isNullOrBlank()) {
-                logger.atWarning().log("JSON parameter is null or blank")
-                return false
-            }
-
-            val trimmed = jsonString.trim()
-            return try {
-                // Parse to ensure valid JSON
-                JsonParser.parseString(trimmed)
-
-                // Additional validation for JSON structure
-                if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
-                    logger.atWarning().log("JSON parameter has invalid structure: '$trimmed'")
-                    false
-                } else {
-                    true
-                }
-            } catch (e: Exception) {
-                logger.atWarning().withCause(e).log("Invalid JSON detected: '$jsonString'")
-                false
-            }
-        }
-
-        public fun validateCsvRowJson(csvRow: String): Boolean {
+        public fun validateCsvRowTextProto(csvRow: String): Boolean {
             return try {
                 val fields = csvRow.split("\t")
                 if (fields.size < 3) {
@@ -290,10 +263,40 @@ class WriteDiscoveredStrategiesToPostgresFn
                     return false
                 }
 
-                val parametersJson = fields[2] // parameters field is at index 2
-                validateJsonParameter(parametersJson)
+                val escapedParametersTextProto = fields[2] // parameters field is at index 2
+                
+                // Unescape the TextProto for validation
+                val parametersTextProto = escapedParametersTextProto
+                    .replace("\\t", "\t")     // Unescape tabs
+                    .replace("\\n", "\n")     // Unescape newlines
+                    .replace("\\r", "\r")     // Unescape carriage returns
+                
+                validateTextProtoParameter(parametersTextProto)
             } catch (e: Exception) {
-                logger.atWarning().withCause(e).log("Failed to validate CSV row JSON: '$csvRow'")
+                logger.atWarning().withCause(e).log("Failed to validate CSV row TextProto: '$csvRow'")
+                false
+            }
+        }
+
+        public fun validateTextProtoParameter(textProto: String): Boolean {
+            if (textProto.isNullOrBlank()) {
+                logger.atWarning().log("TextProto parameter is null or blank")
+                return false
+            }
+            val trimmed = textProto.trim()
+            return try {
+                // Accept any non-blank string with at least one colon and not containing 'error:'
+                if (trimmed.contains("error:")) {
+                    logger.atWarning().log("TextProto parameter contains error: '$trimmed'")
+                    false
+                } else if (trimmed.contains(":")) {
+                    true
+                } else {
+                    logger.atWarning().log("TextProto parameter has invalid format: '$trimmed'")
+                    false
+                }
+            } catch (e: Exception) {
+                logger.atWarning().withCause(e).log("Invalid TextProto detected: '$textProto'")
                 false
             }
         }
