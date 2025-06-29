@@ -2,6 +2,7 @@ package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
+import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.Any
 import com.google.protobuf.Timestamp
 import com.verlumen.tradestream.discovery.StrategyCsvUtil
@@ -19,7 +20,7 @@ class PostgresStrategyRepository
     constructor(
         private val bulkCopierFactory: BulkCopierFactory,
         private val dataSourceFactory: DataSourceFactory,
-        private val dataSourceConfig: DataSourceConfig,
+        @Assisted private val dataSourceConfig: DataSourceConfig,
     ) : StrategyRepository {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()

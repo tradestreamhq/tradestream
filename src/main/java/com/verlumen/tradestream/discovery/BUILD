@@ -467,6 +467,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_parameter_type_registry",
         "//third_party/java:flogger",
         "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
         "//third_party/java:org_json",
         "//third_party/java:protobuf_java",
         "//third_party/java:protobuf_java_util",

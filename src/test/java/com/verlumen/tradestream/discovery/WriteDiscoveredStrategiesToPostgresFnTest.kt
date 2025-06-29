@@ -48,6 +48,11 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
     @Bind @Mock
     lateinit var mockStrategyRepository: StrategyRepository
 
+    // Add a mock factory that returns the mock repository
+    private val mockStrategyRepositoryFactory = object : StrategyRepository.Factory {
+        override fun create(dataSourceConfig: DataSourceConfig): StrategyRepository = mockStrategyRepository
+    }
+
     // The class under test - will be created directly with mocked dependencies
     private lateinit var writeDiscoveredStrategiesToPostgresFn: WriteDiscoveredStrategiesToPostgresFn
 
@@ -83,7 +88,7 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
                 socketTimeout = testSocketTimeout,
                 readOnly = testReadOnly,
             )
-        writeDiscoveredStrategiesToPostgresFn = WriteDiscoveredStrategiesToPostgresFn(mockStrategyRepository, dataSourceConfig)
+        writeDiscoveredStrategiesToPostgresFn = WriteDiscoveredStrategiesToPostgresFn(mockStrategyRepositoryFactory, dataSourceConfig)
     }
 
     @Test
