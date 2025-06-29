@@ -106,6 +106,9 @@ kafka:
     rollingUpdate:
       partition: 0
   podManagementPolicy: Parallel
+  extraEnv:
+    - name: KAFKA_HEAP_OPTS
+      value: "-Xmx1g -Xms1g"
 kafkaUi:
   replicaCount: 1
   image:
