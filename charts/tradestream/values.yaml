@@ -70,13 +70,6 @@ kafka:
     capabilities:
       drop:
         - ALL
-  resources:
-    requests:
-      cpu: "500m"
-      memory: "1Gi"
-    limits:
-      cpu: "1"
-      memory: "2Gi"
   startupProbe:
     enabled: true
     initialDelaySeconds: 30
@@ -106,9 +99,17 @@ kafka:
     rollingUpdate:
       partition: 0
   podManagementPolicy: Parallel
-  extraEnvVars:
-    - name: KAFKA_HEAP_OPTS
-      value: "-Xmx1g -Xms1g"
+  controller:
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "1"
+        memory: "2Gi"
+    extraEnvVars:
+      - name: KAFKA_HEAP_OPTS
+        value: "-Xmx1g -Xms1g"
 kafkaUi:
   replicaCount: 1
   image:
