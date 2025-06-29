@@ -1,25 +1,21 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
-import com.google.gson.JsonParser
+import com.google.common.truth.Truth.assertThat
 import com.google.inject.Guice
 import com.google.inject.testing.fieldbinder.Bind
+import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.Any
-import com.google.protobuf.ByteString
 import com.google.protobuf.Timestamp
-import com.verlumen.tradestream.sql.BulkCopier
-import com.verlumen.tradestream.sql.BulkCopierFactory
-import com.verlumen.tradestream.sql.DataSourceFactory
+import com.verlumen.tradestream.discovery.StrategyCsvUtil
 import com.verlumen.tradestream.sql.DataSourceConfig
-import com.verlumen.tradestream.strategies.AdxStochasticParameters
-import com.verlumen.tradestream.strategies.AroonMfiParameters
 import com.verlumen.tradestream.strategies.EmaMacdParameters
-import com.verlumen.tradestream.strategies.IchimokuCloudParameters
-import com.verlumen.tradestream.strategies.ParabolicSarParameters
 import com.verlumen.tradestream.strategies.SmaRsiParameters
 import com.verlumen.tradestream.strategies.Strategy
 import com.verlumen.tradestream.strategies.StrategyType
 import org.apache.beam.sdk.testing.TestPipeline
+import org.apache.commons.csv.CSVFormat
+import org.apache.commons.csv.CSVParser
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -27,21 +23,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import java.sql.Connection
-import java.sql.PreparedStatement
-import javax.sql.DataSource
-import com.google.common.truth.Truth.assertThat
-import org.apache.commons.csv.CSVFormat
-import org.apache.commons.csv.CSVParser
-import org.apache.commons.csv.CSVRecord
-import java.io.StringReader
-import com.verlumen.tradestream.strategies.EmaMacdParameters
-import com.verlumen.tradestream.strategies.AdxStochasticParameters
-import com.verlumen.tradestream.strategies.AroonMfiParameters
-import com.verlumen.tradestream.strategies.IchimokuCloudParameters
-import com.verlumen.tradestream.strategies.ParabolicSarParameters
-import com.verlumen.tradestream.discovery.StrategyCsvUtil
-import org.mockito.kotlin.mock
 import java.time.Instant
 
 /**
@@ -90,17 +71,18 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         injector.injectMembers(this)
 
         // Create the function under test directly (simulating what the factory would do)
-        val dataSourceConfig = DataSourceConfig(
-            serverName = testServerName,
-            databaseName = testDatabaseName,
-            username = testUsername,
-            password = testPassword,
-            portNumber = testPortNumber,
-            applicationName = testApplicationName,
-            connectTimeout = testConnectTimeout,
-            socketTimeout = testSocketTimeout,
-            readOnly = testReadOnly,
-        )
+        val dataSourceConfig =
+            DataSourceConfig(
+                serverName = testServerName,
+                databaseName = testDatabaseName,
+                username = testUsername,
+                password = testPassword,
+                portNumber = testPortNumber,
+                applicationName = testApplicationName,
+                connectTimeout = testConnectTimeout,
+                socketTimeout = testSocketTimeout,
+                readOnly = testReadOnly,
+            )
         writeDiscoveredStrategiesToPostgresFn = WriteDiscoveredStrategiesToPostgresFn(mockStrategyRepository, dataSourceConfig)
     }
 
@@ -115,27 +97,31 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         val startTime = Instant.parse("2023-01-01T00:00:00Z")
         val endTime = Instant.parse("2023-01-02T00:00:00Z")
 
-        val strategy = Strategy.newBuilder()
-            .setType(StrategyType.SMA_RSI)
-            .setParameters(
-                Any.pack(
-                    SmaRsiParameters.newBuilder()
-                        .setMovingAveragePeriod(14)
-                        .setRsiPeriod(14)
-                        .setOverboughtThreshold(70.0)
-                        .setOversoldThreshold(30.0)
-                        .build()
-                )
-            )
-            .build()
+        val strategy =
+            Strategy
+                .newBuilder()
+                .setType(StrategyType.SMA_RSI)
+                .setParameters(
+                    Any.pack(
+                        SmaRsiParameters
+                            .newBuilder()
+                            .setMovingAveragePeriod(14)
+                            .setRsiPeriod(14)
+                            .setOverboughtThreshold(70.0)
+                            .setOversoldThreshold(30.0)
+                            .build(),
+                    ),
+                ).build()
 
-        val discoveredStrategy = DiscoveredStrategy.newBuilder()
-            .setSymbol("BTCUSDT")
-            .setStrategy(strategy)
-            .setScore(0.85)
-            .setStartTime(Timestamp.newBuilder().setSeconds(startTime.epochSecond).build())
-            .setEndTime(Timestamp.newBuilder().setSeconds(endTime.epochSecond).build())
-            .build()
+        val discoveredStrategy =
+            DiscoveredStrategy
+                .newBuilder()
+                .setSymbol("BTCUSDT")
+                .setStrategy(strategy)
+                .setScore(0.85)
+                .setStartTime(Timestamp.newBuilder().setSeconds(startTime.epochSecond).build())
+                .setEndTime(Timestamp.newBuilder().setSeconds(endTime.epochSecond).build())
+                .build()
 
         val csvRow = StrategyCsvUtil.convertToCsvRow(discoveredStrategy)
         assertThat(csvRow).isNotNull()
@@ -158,26 +144,30 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
 
     @Test
     fun `test PostgreSQL COPY compatibility`() {
-        val strategy = Strategy.newBuilder()
-            .setType(StrategyType.EMA_MACD)
-            .setParameters(
-                Any.pack(
-                    EmaMacdParameters.newBuilder()
-                        .setShortEmaPeriod(12)
-                        .setLongEmaPeriod(26)
-                        .setSignalPeriod(9)
-                        .build()
-                )
-            )
-            .build()
+        val strategy =
+            Strategy
+                .newBuilder()
+                .setType(StrategyType.EMA_MACD)
+                .setParameters(
+                    Any.pack(
+                        EmaMacdParameters
+                            .newBuilder()
+                            .setShortEmaPeriod(12)
+                            .setLongEmaPeriod(26)
+                            .setSignalPeriod(9)
+                            .build(),
+                    ),
+                ).build()
 
-        val discoveredStrategy = DiscoveredStrategy.newBuilder()
-            .setSymbol("ETHUSDT")
-            .setStrategy(strategy)
-            .setScore(0.92)
-            .setStartTime(Timestamp.newBuilder().setSeconds(1640995200).build())
-            .setEndTime(Timestamp.newBuilder().setSeconds(1641081600).build())
-            .build()
+        val discoveredStrategy =
+            DiscoveredStrategy
+                .newBuilder()
+                .setSymbol("ETHUSDT")
+                .setStrategy(strategy)
+                .setScore(0.92)
+                .setStartTime(Timestamp.newBuilder().setSeconds(1640995200).build())
+                .setEndTime(Timestamp.newBuilder().setSeconds(1641081600).build())
+                .build()
 
         val csvRow = StrategyCsvUtil.convertToCsvRow(discoveredStrategy)
         assertThat(csvRow).isNotNull()

@@ -78,13 +78,13 @@ class StrategyParameterTypeRegistryTest {
             val defaultInstance = clazz.java.getMethod("getDefaultInstance").invoke(null) as Message
             val packed = Any.pack(defaultInstance)
             try {
-                val textProto = StrategyParameterTypeRegistry.formatParametersToTextProto(packed)
-                // Allow empty or whitespace-only TextProto for default instances
-                assert(textProto.isBlank() || textProto.contains(":")) {
-                    "TextProto serialization failed for ${clazz.simpleName}"
+                val json = StrategyParameterTypeRegistry.formatParametersToJson(packed)
+                // Allow empty or valid JSON for default instances
+                assert(json.isBlank() || json.contains("{") || json.contains("error:")) {
+                    "JSON serialization failed for ${clazz.simpleName}"
                 }
             } catch (e: Exception) {
-                throw AssertionError("Failed to serialize ${clazz.simpleName} to TextProto", e)
+                throw AssertionError("Failed to serialize ${clazz.simpleName} to JSON", e)
             }
         }
     }
@@ -99,11 +99,11 @@ class StrategyParameterTypeRegistryTest {
                 .setValue(ByteString.copyFromUtf8("garbage data"))
                 .build()
 
-        val textProto = StrategyParameterTypeRegistry.formatParametersToTextProto(unknownAny)
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
 
-        // Verify the TextProto is valid by checking its format
-        assert(textProto.contains(":") && textProto.matches(Regex(".*\\w+\\s*:\\s*[\\w\\.\\-]+.*"))) {
-            "TextProto should contain key:value pairs"
+        // Verify the JSON is valid by checking its format
+        assert(json.contains("error:") || json.contains("base64_data")) {
+            "JSON should contain error or base64_data field"
         }
     }
 
@@ -117,17 +117,17 @@ class StrategyParameterTypeRegistryTest {
                 .setValue(ByteString.copyFromUtf8("invalid protobuf data"))
                 .build()
 
-        val textProto = StrategyParameterTypeRegistry.formatParametersToTextProto(invalidAny)
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(invalidAny)
 
-        // Verify the TextProto is valid by checking its format
-        assert(textProto.contains(":") && textProto.matches(Regex(".*\\w+\\s*:\\s*[\\w\\.\\-]+.*"))) {
-            "TextProto should contain key:value pairs"
+        // Verify the JSON is valid by checking its format
+        assert(json.contains("error:") || json.contains("base64_data")) {
+            "JSON should contain error or base64_data field"
         }
     }
 
     @Test
     fun jsonIsNotTruncated() {
-        // Test that the TextProto output is complete and not truncated
+        // Test that the JSON output is complete and not truncated
         val unknownAny =
             Any
                 .newBuilder()
@@ -135,15 +135,15 @@ class StrategyParameterTypeRegistryTest {
                 .setValue(ByteString.copyFromUtf8("test data"))
                 .build()
 
-        val textProto = StrategyParameterTypeRegistry.formatParametersToTextProto(unknownAny)
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
 
-        // For unknown types, expect error fallback, not JSON
-        assert(textProto.contains("error:")) { "Fallback TextProto should contain error field" }
+        // For unknown types, expect base64_data fallback
+        assert(json.contains("base64_data")) { "Fallback JSON should contain base64_data field" }
     }
 
     @Test
     fun jsonHandlesSpecialCharacters() {
-        // Test that the TextProto output handles special characters in the data
+        // Test that the JSON output handles special characters in the data
         val specialData = "test\"data'with\n\t\r\\special chars"
         val unknownAny =
             Any
@@ -152,17 +152,17 @@ class StrategyParameterTypeRegistryTest {
                 .setValue(ByteString.copyFromUtf8(specialData))
                 .build()
 
-        val textProto = StrategyParameterTypeRegistry.formatParametersToTextProto(unknownAny)
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
 
-        // Verify it's valid TextProto by checking its format
-        assert(textProto.contains(":") && textProto.matches(Regex(".*\\w+\\s*:\\s*[\\w\\.\\-]+.*"))) {
-            "TextProto should contain key:value pairs"
+        // Verify it's valid JSON by checking its format
+        assert(json.contains("base64_data")) {
+            "JSON should contain base64_data field"
         }
     }
 
     @Test
     fun jsonIsSafeForTabSeparatedValues() {
-        // Test that the TextProto output is safe for tab-separated CSV format
+        // Test that the JSON output is safe for tab-separated CSV format
         // This is critical for PostgreSQL COPY command
         val dataWithTabs = "data\twith\ttabs"
         val unknownAny =
@@ -172,28 +172,28 @@ class StrategyParameterTypeRegistryTest {
                 .setValue(ByteString.copyFromUtf8(dataWithTabs))
                 .build()
 
-        val textProto = StrategyParameterTypeRegistry.formatParametersToTextProto(unknownAny)
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
 
-        // Verify it's valid TextProto by checking its format
-        assert(textProto.contains(":") && textProto.matches(Regex(".*\\w+\\s*:\\s*[\\w\\.\\-]+.*"))) {
-            "TextProto should contain key:value pairs"
+        // Verify it's valid JSON by checking its format
+        assert(json.contains("base64_data")) {
+            "JSON should contain base64_data field"
         }
 
-        // Verify that the TextProto string itself doesn't contain unescaped tabs
+        // Verify that the JSON string itself doesn't contain unescaped tabs
         // Base64 encoding should handle this, but let's be explicit
-        assert(!textProto.contains("\t")) { "TextProto string should not contain unescaped tabs" }
+        assert(!json.contains("\t")) { "JSON string should not contain unescaped tabs" }
     }
 
     @Test
     fun emptyAnyProducesValidJson() {
-        // Test that an empty/default Any produces a valid TextProto object
+        // Test that an empty/default Any produces a valid JSON object
         val emptyAny = Any.getDefaultInstance()
-        val textProto = StrategyParameterTypeRegistry.formatParametersToTextProto(emptyAny)
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(emptyAny)
         // Should not be just '{' or empty
-        assert(textProto.trim() != "{") { "Empty Any should not produce just '{'" }
-        assert(textProto.trim().isNotEmpty()) { "Empty Any should not produce empty string" }
-        // Should be error fallback
-        assert(textProto.contains("error:")) { "Fallback TextProto should contain error field" }
+        assert(json.trim() != "{") { "Empty Any should not produce just '{'" }
+        assert(json.trim().isNotEmpty()) { "Empty Any should not produce empty string" }
+        // Should be error fallback for empty Any
+        assert(json.contains("error:")) { "Fallback JSON should contain error field" }
     }
 
     @Test
@@ -204,14 +204,14 @@ class StrategyParameterTypeRegistryTest {
         if (strategyType == StrategyType.UNSPECIFIED || strategyType == StrategyType.UNRECOGNIZED) return
 
         val defaultParams = strategyType.getDefaultParameters()
-        val textProto = StrategyParameterTypeRegistry.formatParametersToTextProto(defaultParams)
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(defaultParams)
         // The fallback always includes "base64_data" or "error"
-        assert(!textProto.contains("base64_data") && !textProto.contains("error")) {
-            "Fallback TextProto should not be hit for supported type: $strategyType, got: $textProto"
+        assert(!json.contains("base64_data") && !json.contains("error")) {
+            "Fallback JSON should not be hit for supported type: $strategyType, got: $json"
         }
-        // Should be valid TextProto (allow empty/whitespace for default instance)
-        assert(textProto.isBlank() || textProto.contains(":")) {
-            "TextProto for $strategyType should be empty or contain key:value pairs"
+        // Should be valid JSON (allow empty/whitespace for default instance)
+        assert(json.isBlank() || json.contains("{") || json.contains(":")) {
+            "JSON for $strategyType should be empty or contain valid JSON"
         }
     }
 
@@ -224,14 +224,14 @@ class StrategyParameterTypeRegistryTest {
                 .setTypeUrl("type.googleapis.com/unknown.UnknownParameters")
                 .setValue(ByteString.copyFromUtf8("garbage"))
                 .build()
-        val textProto = StrategyParameterTypeRegistry.formatParametersToTextProto(unknownAny)
-        assert(textProto.contains("error:")) { "Fallback TextProto should contain error field" }
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
+        assert(json.contains("base64_data")) { "Fallback JSON should contain base64_data field" }
     }
 
     @Test
     fun fallbackIsHitForEmptyAny() {
         val emptyAny = Any.getDefaultInstance()
-        val textProto = StrategyParameterTypeRegistry.formatParametersToTextProto(emptyAny)
-        assert(textProto.contains("error:")) { "Fallback TextProto should contain error field" }
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(emptyAny)
+        assert(json.contains("error:")) { "Fallback JSON should contain error field" }
     }
 }

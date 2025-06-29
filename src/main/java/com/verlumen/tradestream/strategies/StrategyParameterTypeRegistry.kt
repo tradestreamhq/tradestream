@@ -4,7 +4,6 @@ import com.google.common.flogger.FluentLogger
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.protobuf.Any
-import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.util.JsonFormat
 import com.verlumen.tradestream.strategies.AdxDmiParameters
 import com.verlumen.tradestream.strategies.AdxStochasticParameters
@@ -74,7 +73,7 @@ object StrategyParameterTypeRegistry {
     fun formatParametersToJson(any: Any): String =
         try {
             if (any.typeUrl.isNullOrBlank() || any.value == com.google.protobuf.ByteString.EMPTY) {
-                return "error: \"empty parameters\""
+                "error: \"empty parameters\""
             } else {
                 val jsonString =
                     when (any.typeUrl) {
@@ -321,14 +320,10 @@ object StrategyParameterTypeRegistry {
                         else ->
                             createFallbackJson(any)
                     }
-
-                validateAndReturnJson(jsonString, any.typeUrl)
+                jsonString
             }
         } catch (e: Exception) {
-            logger.atWarning().withCause(e).log(
-                "Failed to format parameters to JSON for type ${any.typeUrl}: ${e.message}",
-            )
-            createFallbackJson(any)
+            "error: \"invalid proto: ${e.message}\""
         }
 
     private fun createFallbackJson(any: Any): String {

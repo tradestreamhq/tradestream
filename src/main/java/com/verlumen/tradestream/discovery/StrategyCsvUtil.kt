@@ -1,8 +1,8 @@
 package com.verlumen.tradestream.discovery
 
-import java.util.Base64
-import org.json.JSONObject
 import org.json.JSONException
+import org.json.JSONObject
+import java.util.Base64
 
 object StrategyCsvUtil {
     fun convertToCsvRow(element: DiscoveredStrategy): String? {
@@ -12,7 +12,12 @@ object StrategyCsvUtil {
         }
         val base64 = Base64.getEncoder().encodeToString(parametersAny.toByteArray())
         val json = "{" + "\"base64_data\": \"$base64\"}"
-        val hash = java.security.MessageDigest.getInstance("SHA-256").digest(parametersAny.toByteArray()).joinToString("") { "%02x".format(it) }
+        val hash =
+            java.security.MessageDigest
+                .getInstance(
+                    "SHA-256",
+                ).digest(parametersAny.toByteArray())
+                .joinToString("") { "%02x".format(it) }
         return listOf(
             element.symbol,
             element.strategy.type.name,
@@ -32,12 +37,11 @@ object StrategyCsvUtil {
         return validateJsonParameter(json)
     }
 
-    fun validateJsonParameter(json: String): Boolean {
-        return try {
+    fun validateJsonParameter(json: String): Boolean =
+        try {
             JSONObject(json)
             true
         } catch (e: JSONException) {
             false
         }
-    }
-} 
+}

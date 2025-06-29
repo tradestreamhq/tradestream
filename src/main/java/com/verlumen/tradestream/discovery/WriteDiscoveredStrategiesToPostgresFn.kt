@@ -4,8 +4,6 @@ import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.Base64
-import com.google.protobuf.Any
 
 /**
  * High-performance PostgreSQL writer using COPY command for bulk inserts.
@@ -25,56 +23,56 @@ class WriteDiscoveredStrategiesToPostgresFn
         private val strategyRepository: StrategyRepository,
         @Assisted private val dataSourceConfig: com.verlumen.tradestream.sql.DataSourceConfig,
     ) : DiscoveredStrategySink() {
-    companion object {
-        private val logger = FluentLogger.forEnclosingClass()
-        private const val BATCH_SIZE = 100
-    }
+        companion object {
+            private val logger = FluentLogger.forEnclosingClass()
+            private const val BATCH_SIZE = 100
+        }
 
-    // Remove @Transient to prevent null after deserialization
-    private var batch: ConcurrentLinkedQueue<DiscoveredStrategy>? = null
+        // Remove @Transient to prevent null after deserialization
+        private var batch: ConcurrentLinkedQueue<DiscoveredStrategy>? = null
 
-    @Setup
-    fun setup() {
-        // Initialize batch queue
-        batch = ConcurrentLinkedQueue()
-    }
+        @Setup
+        fun setup() {
+            // Initialize batch queue
+            batch = ConcurrentLinkedQueue()
+        }
 
-    @ProcessElement
-    fun processElement(
-        @Element element: DiscoveredStrategy,
-    ) {
-        batch?.offer(element)
-        if (batch?.size ?: 0 >= BATCH_SIZE) {
-            flushBatch()
+        @ProcessElement
+        fun processElement(
+            @Element element: DiscoveredStrategy,
+        ) {
+            batch?.offer(element)
+            if (batch?.size ?: 0 >= BATCH_SIZE) {
+                flushBatch()
+            }
+        }
+
+        @FinishBundle
+        fun finishBundle() {
+            if (batch?.isNotEmpty() == true) {
+                flushBatch()
+            }
+        }
+
+        @Teardown
+        fun teardown() {
+            // No-op
+        }
+
+        private fun flushBatch() {
+            val currentBatch = batch ?: return
+            val batchData = mutableListOf<DiscoveredStrategy>()
+            while (currentBatch.isNotEmpty()) {
+                currentBatch.poll()?.let { batchData.add(it) }
+            }
+            if (batchData.isEmpty()) return
+
+            try {
+                strategyRepository.saveAll(batchData)
+                logger.atInfo().log("Successfully persisted ${batchData.size} strategies")
+            } catch (e: Exception) {
+                logger.atSevere().withCause(e).log("Failed to persist ${batchData.size} strategies")
+                throw e
+            }
         }
     }
-
-    @FinishBundle
-    fun finishBundle() {
-        if (batch?.isNotEmpty() == true) {
-            flushBatch()
-        }
-    }
-
-    @Teardown
-    fun teardown() {
-        // No-op
-    }
-
-    private fun flushBatch() {
-        val currentBatch = batch ?: return
-        val batchData = mutableListOf<DiscoveredStrategy>()
-        while (currentBatch.isNotEmpty()) {
-            currentBatch.poll()?.let { batchData.add(it) }
-        }
-        if (batchData.isEmpty()) return
-
-        try {
-            strategyRepository.saveAll(batchData)
-            logger.atInfo().log("Successfully persisted ${batchData.size} strategies")
-        } catch (e: Exception) {
-            logger.atSevere().withCause(e).log("Failed to persist ${batchData.size} strategies")
-            throw e
-        }
-    }
-}

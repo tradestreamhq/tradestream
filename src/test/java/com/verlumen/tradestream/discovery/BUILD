@@ -211,6 +211,7 @@ kt_jvm_test(
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:beam_sdks_java_test_utils",
+        "//third_party/java:commons_csv",
         "//third_party/java:guice",
         "//third_party/java:guice_testlib",
         "//third_party/java:jenetics",
@@ -221,7 +222,6 @@ kt_jvm_test(
         "//third_party/java:protobuf_java",
         "//third_party/java:protobuf_java_util",
         "//third_party/java:truth",
-        "//third_party/java:commons_csv",
     ],
 )
 
@@ -244,13 +244,13 @@ kt_jvm_test(
     srcs = ["PostgresStrategyRepositoryTest.kt"],
     deps = [
         "//src/main/java/com/verlumen/tradestream/discovery:strategy_repository",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
-        "//third_party/java:protobuf_java",
-        "//third_party/java:protobuf_java_util",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
         "//third_party/java:flogger",
         "//third_party/java:guice",
-        "//third_party/java:mockito_kotlin",
         "//third_party/java:junit",
+        "//third_party/java:mockito_kotlin",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
     ],
 )
