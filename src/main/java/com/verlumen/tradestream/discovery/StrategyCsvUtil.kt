@@ -1,5 +1,6 @@
 package com.verlumen.tradestream.discovery
 
+import com.verlumen.tradestream.strategies.StrategyParameterTypeRegistry
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.Base64
@@ -7,11 +8,7 @@ import java.util.Base64
 object StrategyCsvUtil {
     fun convertToCsvRow(element: DiscoveredStrategy): String? {
         val parametersAny = element.strategy.parameters
-        if (parametersAny.value.isEmpty()) {
-            return ""
-        }
-        val base64 = Base64.getEncoder().encodeToString(parametersAny.toByteArray())
-        val json = "{" + "\"base64_data\": \"$base64\"}"
+        val json = StrategyParameterTypeRegistry.formatParametersToJson(parametersAny)
         val hash =
             java.security.MessageDigest
                 .getInstance(

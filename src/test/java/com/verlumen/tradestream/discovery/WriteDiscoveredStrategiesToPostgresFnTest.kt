@@ -4,6 +4,7 @@ import com.google.common.flogger.FluentLogger
 import com.google.common.truth.Truth.assertThat
 import com.google.inject.Guice
 import com.google.inject.testing.fieldbinder.Bind
+import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.Any
 import com.google.protobuf.Timestamp
 import com.verlumen.tradestream.discovery.StrategyCsvUtil
@@ -152,8 +153,8 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
                     Any.pack(
                         EmaMacdParameters
                             .newBuilder()
-                            .setShortPeriod(12)
-                            .setLongPeriod(26)
+                            .setShortEmaPeriod(12)
+                            .setLongEmaPeriod(26)
                             .setSignalPeriod(9)
                             .build(),
                     ),
@@ -175,11 +176,16 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         // Verify the CSV row doesn't contain problematic characters for COPY
         assertThat(csvRow).doesNotContain("\n")
         assertThat(csvRow).doesNotContain("\r")
-        assertThat(csvRow).doesNotContain("\t") // Should use tab as delimiter, not contain it in data
+        val fields = csvRow?.split("\t") ?: emptyList()
+        assertThat(fields.size).isEqualTo(8)
+        // The parameters field (field 2) should not contain a tab
+        assertThat(fields[2]).doesNotContain("\t")
 
-        // Verify the row has the expected number of fields
-        val fields = csvRow.split("\t")
-        assertThat(fields).hasLength(8)
+        // Verify the parameters field contains the expected JSON keys
+        val paramsJson = fields[2]
+        assertThat(paramsJson).contains("shortEmaPeriod")
+        assertThat(paramsJson).contains("longEmaPeriod")
+        assertThat(paramsJson).contains("signalPeriod")
     }
 
     @Test

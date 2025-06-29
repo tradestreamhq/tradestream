@@ -101,9 +101,9 @@ class StrategyParameterTypeRegistryTest {
 
         val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
 
-        // Verify the JSON is valid by checking its format
-        assert(json.contains("error:") || json.contains("base64_data")) {
-            "JSON should contain error or base64_data field"
+        // Verify the JSON contains an error message for unknown types
+        assert(json.contains("error:") && json.contains("unknown parameter type")) {
+            "JSON should contain error message for unknown parameter type"
         }
     }
 
@@ -119,9 +119,9 @@ class StrategyParameterTypeRegistryTest {
 
         val json = StrategyParameterTypeRegistry.formatParametersToJson(invalidAny)
 
-        // Verify the JSON is valid by checking its format
-        assert(json.contains("error:") || json.contains("base64_data")) {
-            "JSON should contain error or base64_data field"
+        // Verify the JSON contains an error message for invalid protobuf
+        assert(json.contains("error:")) {
+            "JSON should contain error message for invalid protobuf data"
         }
     }
 
@@ -137,8 +137,10 @@ class StrategyParameterTypeRegistryTest {
 
         val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
 
-        // For unknown types, expect base64_data fallback
-        assert(json.contains("base64_data")) { "Fallback JSON should contain base64_data field" }
+        // For unknown types, expect error message
+        assert(json.contains("error:") && json.contains("unknown parameter type")) { 
+            "Error message should be complete for unknown parameter type" 
+        }
     }
 
     @Test
@@ -154,9 +156,9 @@ class StrategyParameterTypeRegistryTest {
 
         val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
 
-        // Verify it's valid JSON by checking its format
-        assert(json.contains("base64_data")) {
-            "JSON should contain base64_data field"
+        // Verify it's a valid error message that doesn't contain problematic characters
+        assert(json.contains("error:") && !json.contains("\t") && !json.contains("\n") && !json.contains("\r")) {
+            "Error message should be safe for CSV format and not contain special characters"
         }
     }
 
@@ -174,9 +176,9 @@ class StrategyParameterTypeRegistryTest {
 
         val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
 
-        // Verify it's valid JSON by checking its format
-        assert(json.contains("base64_data")) {
-            "JSON should contain base64_data field"
+        // Verify it's a valid error message that doesn't contain tabs
+        assert(json.contains("error:") && !json.contains("\t")) {
+            "Error message should not contain tabs for CSV compatibility"
         }
     }
 
