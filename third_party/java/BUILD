@@ -336,3 +336,11 @@ java_library(
         "@tradestream_maven//:org_knowm_xchange_xchange_stream_core",
     ],
 )
+
+java_library(
+    name = "commons_csv",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_apache_commons_commons_csv",
+    ],
+)

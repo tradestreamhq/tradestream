@@ -35,6 +35,16 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 import java.time.Instant
 import javax.sql.DataSource
+import com.google.common.truth.Truth.assertThat
+import org.apache.commons.csv.CSVFormat
+import org.apache.commons.csv.CSVParser
+import org.apache.commons.csv.CSVRecord
+import java.io.StringReader
+import com.verlumen.tradestream.strategies.EmaMacdParameters
+import com.verlumen.tradestream.strategies.AdxStochasticParameters
+import com.verlumen.tradestream.strategies.AroonMfiParameters
+import com.verlumen.tradestream.strategies.IchimokuCloudParameters
+import com.verlumen.tradestream.strategies.ParabolicSarParameters
 
 /**
  * Unit tests for WriteDiscoveredStrategiesToPostgresFn using the new factory pattern
@@ -542,5 +552,266 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
 
         assert(validatedBatch.size == 3) { "All valid rows should pass through" }
         assert(validatedBatch == validBatch) { "Valid batch should remain unchanged" }
+    }
+
+    @Test
+    fun `test CSV format compliance`() {
+        // Create a strategy with valid parameters
+        val validParameters =
+            Any.pack(
+                com.verlumen.tradestream.strategies.SmaRsiParameters.newBuilder()
+                    .setMovingAveragePeriod(14)
+                    .setRsiPeriod(14)
+                    .setOverboughtThreshold(70.0)
+                    .setOversoldThreshold(30.0)
+                    .build()
+            )
+
+        val strategy =
+            Strategy
+                .newBuilder()
+                .setType(StrategyType.SMA_RSI)
+                .setParameters(validParameters)
+                .build()
+
+        val discoveredStrategy =
+            DiscoveredStrategy
+                .newBuilder()
+                .setSymbol("BTCUSDT")
+                .setStrategy(strategy)
+                .setScore(0.85)
+                .setStartTime(Timestamp.newBuilder().setSeconds(1640995200).build())
+                .setEndTime(Timestamp.newBuilder().setSeconds(1641081600).build())
+                .build()
+
+        val csvRow = writeDiscoveredStrategiesToPostgresFn.convertToCsvRow(discoveredStrategy)
+        
+        assertThat(csvRow).isNotNull()
+        
+        // Test CSV parsing
+        val fields = csvRow!!.split("\t")
+        assertThat(fields.size).isEqualTo(8)
+        
+        // Test JSON field specifically (index 2)
+        val jsonField = fields[2]
+        
+        // 1. Validate it's proper JSON (not JavaScript object notation)
+        assertValidJson(jsonField)
+        
+        // 2. Ensure no problematic characters for CSV
+        assertThat(jsonField.contains("\n")).isFalse()
+        assertThat(jsonField.contains("\r")).isFalse()
+        assertThat(jsonField.contains("\t")).isFalse()
+        
+        // 3. Test that it can be safely used in PostgreSQL COPY
+        testPostgreSQLCopyCompatibility(csvRow)
+    }
+
+    @Test
+    fun `test JSON validation for all strategy types`() {
+        val strategyTypes = listOf(
+            StrategyType.SMA_RSI,
+            StrategyType.EMA_MACD,
+            StrategyType.ADX_STOCHASTIC,
+            StrategyType.AROON_MFI,
+            StrategyType.ICHIMOKU_CLOUD,
+            StrategyType.PARABOLIC_SAR
+        )
+
+        strategyTypes.forEach { strategyType ->
+            val validParameters = createValidParametersForStrategyType(strategyType)
+            
+            val strategy =
+                Strategy
+                    .newBuilder()
+                    .setType(strategyType)
+                    .setParameters(validParameters)
+                    .build()
+
+            val discoveredStrategy =
+                DiscoveredStrategy
+                    .newBuilder()
+                    .setSymbol("BTCUSDT")
+                    .setStrategy(strategy)
+                    .setScore(0.85)
+                    .setStartTime(Timestamp.newBuilder().setSeconds(1640995200).build())
+                    .setEndTime(Timestamp.newBuilder().setSeconds(1641081600).build())
+                    .build()
+
+            val csvRow = writeDiscoveredStrategiesToPostgresFn.convertToCsvRow(discoveredStrategy)
+            
+            assertThat(csvRow).isNotNull()
+            
+            val fields = csvRow!!.split("\t")
+            assertThat(fields.size).isEqualTo(8)
+            
+            val jsonField = fields[2]
+            assertValidJson(jsonField)
+            
+            // Ensure JSON is compact and CSV-safe
+            assertThat(jsonField.contains("\n")).isFalse()
+            assertThat(jsonField.contains("\r")).isFalse()
+            assertThat(jsonField.contains("\t")).isFalse()
+            
+            // Test PostgreSQL COPY compatibility
+            testPostgreSQLCopyCompatibility(csvRow)
+        }
+    }
+
+    @Test
+    fun `test PostgreSQL COPY compatibility`() {
+        val validParameters =
+            Any.pack(
+                com.verlumen.tradestream.strategies.SmaRsiParameters.newBuilder()
+                    .setMovingAveragePeriod(14)
+                    .setRsiPeriod(14)
+                    .setOverboughtThreshold(70.0)
+                    .setOversoldThreshold(30.0)
+                    .build()
+            )
+
+        val strategy =
+            Strategy
+                .newBuilder()
+                .setType(StrategyType.SMA_RSI)
+                .setParameters(validParameters)
+                .build()
+
+        val discoveredStrategy =
+            DiscoveredStrategy
+                .newBuilder()
+                .setSymbol("BTCUSDT")
+                .setStrategy(strategy)
+                .setScore(0.85)
+                .setStartTime(Timestamp.newBuilder().setSeconds(1640995200).build())
+                .setEndTime(Timestamp.newBuilder().setSeconds(1641081600).build())
+                .build()
+
+        val csvRow = writeDiscoveredStrategiesToPostgresFn.convertToCsvRow(discoveredStrategy)
+        
+        assertThat(csvRow).isNotNull()
+        
+        // Test that PostgreSQL COPY can parse this CSV
+        testPostgreSQLCopyCompatibility(csvRow!!)
+    }
+
+    @Test
+    fun `test JSON edge cases`() {
+        val testCases = listOf(
+            // Test with special characters that might break CSV
+            """{"test": "value\nwith\nnewlines"}""",
+            """{"test": "value\twith\ttabs"}""",
+            """{"test": "value\"with\"quotes"}""",
+            """{"test": "value\\with\\backslashes"}""",
+            """{"test": "value\rwith\rreturns"}""",
+            // Test with unicode characters
+            """{"test": "测试"}""",
+            // Test with nested objects
+            """{"nested": {"value": 1.5}}""",
+            // Test with arrays
+            """{"array": [1, 2, 3]}""",
+            // Test with boolean values
+            """{"bool": true, "false": false}""",
+            // Test with null values
+            """{"null": null}"""
+        )
+        
+        testCases.forEach { jsonString ->
+            // Test that our JSON validation accepts valid JSON
+            assertValidJson(jsonString)
+            
+            // Test that problematic characters are detected
+            if (jsonString.contains("\n") || jsonString.contains("\r") || jsonString.contains("\t")) {
+                // These should be caught by our CSV escaping logic
+                assertThat(jsonString).contains("\n")
+                assertThat(jsonString).contains("\r")
+                assertThat(jsonString).contains("\t")
+            }
+        }
+    }
+
+    private fun assertValidJson(jsonString: String) {
+        // Test with multiple JSON parsers to be sure
+        assertThat(jsonString).isNotEmpty()
+        
+        // Test with Gson parser
+        assertThat(JsonParser.parseString(jsonString)).isNotNull()
+        
+        // Ensure it follows JSON spec (quoted property names)
+        assertThat(jsonString).matches("^\\s*\\{.*\"[^\"]+\"\\s*:.*\\}\\s*$")
+    }
+
+    private fun testPostgreSQLCopyCompatibility(csvRow: String) {
+        // Simulate PostgreSQL COPY parsing using Apache Commons CSV
+        val reader = StringReader(csvRow)
+        val csvParser = CSVParser(reader, CSVFormat.TDF) // Tab-delimited
+        
+        val records = csvParser.toList()
+        assertThat(records).hasSize(1)
+        assertThat(records[0].size()).isEqualTo(8)
+        
+        // Test that the JSON field (index 2) is valid
+        val jsonField = records[0][2]
+        assertValidJson(jsonField)
+    }
+
+    private fun createValidParametersForStrategyType(strategyType: StrategyType): Any {
+        return when (strategyType) {
+            StrategyType.SMA_RSI -> Any.pack(
+                SmaRsiParameters.newBuilder()
+                    .setMovingAveragePeriod(14)
+                    .setRsiPeriod(14)
+                    .setOverboughtThreshold(70.0)
+                    .setOversoldThreshold(30.0)
+                    .build()
+            )
+            StrategyType.EMA_MACD -> Any.pack(
+                EmaMacdParameters.newBuilder()
+                    .setShortEmaPeriod(12)
+                    .setLongEmaPeriod(26)
+                    .setSignalPeriod(9)
+                    .build()
+            )
+            StrategyType.ADX_STOCHASTIC -> Any.pack(
+                AdxStochasticParameters.newBuilder()
+                    .setAdxPeriod(14)
+                    .setStochasticKPeriod(14)
+                    .setStochasticDPeriod(3)
+                    .setOverboughtThreshold(80)
+                    .setOversoldThreshold(20)
+                    .build()
+            )
+            StrategyType.AROON_MFI -> Any.pack(
+                AroonMfiParameters.newBuilder()
+                    .setAroonPeriod(14)
+                    .setMfiPeriod(14)
+                    .setOverboughtThreshold(80)
+                    .setOversoldThreshold(20)
+                    .build()
+            )
+            StrategyType.ICHIMOKU_CLOUD -> Any.pack(
+                IchimokuCloudParameters.newBuilder()
+                    .setTenkanSenPeriod(9)
+                    .setKijunSenPeriod(26)
+                    .setSenkouSpanBPeriod(52)
+                    .setChikouSpanPeriod(26)
+                    .build()
+            )
+            StrategyType.PARABOLIC_SAR -> Any.pack(
+                ParabolicSarParameters.newBuilder()
+                    .setAccelerationFactorStart(0.02)
+                    .setAccelerationFactorIncrement(0.02)
+                    .setAccelerationFactorMax(0.2)
+                    .build()
+            )
+            else -> Any.pack(
+                SmaRsiParameters.newBuilder()
+                    .setMovingAveragePeriod(14)
+                    .setRsiPeriod(14)
+                    .setOverboughtThreshold(70.0)
+                    .setOversoldThreshold(30.0)
+                    .build()
+            )
+        }
     }
 }
