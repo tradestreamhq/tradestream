@@ -237,11 +237,19 @@ class WriteDiscoveredStrategiesToPostgresFn
                     .getInstance("SHA-256")
                     .digest(parametersJson.toByteArray())
                     .joinToString("") { "%02x".format(it) }
+            
+            // Replace only problematic characters that would break tab-delimited CSV
+            // Don't escape quotes or backslashes as that would make JSON invalid
+            val csvSafeJson = parametersJson
+                .replace("\t", " ")     // Replace tabs with spaces
+                .replace("\n", " ")     // Replace newlines with spaces  
+                .replace("\r", " ")     // Replace carriage returns with spaces
+            
             // Tab-separated values for PostgreSQL COPY
             return listOf(
                 element.symbol,
                 element.strategy.type.name,
-                parametersJson,
+                csvSafeJson,            // Use CSV-safe JSON
                 element.score.toString(),
                 hash,
                 element.symbol, // discovery_symbol
