@@ -78,237 +78,243 @@ object StrategyParameterTypeRegistry {
                 val jsonString =
                     when (any.typeUrl) {
                         "type.googleapis.com/strategies.SmaRsiParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(SmaRsiParameters::class.java),
                             )
                         "type.googleapis.com/strategies.EmaMacdParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(EmaMacdParameters::class.java),
                             )
                         "type.googleapis.com/strategies.AdxStochasticParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(AdxStochasticParameters::class.java),
                             )
                         "type.googleapis.com/strategies.AroonMfiParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(AroonMfiParameters::class.java),
                             )
                         "type.googleapis.com/strategies.IchimokuCloudParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(IchimokuCloudParameters::class.java),
                             )
                         "type.googleapis.com/strategies.ParabolicSarParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(ParabolicSarParameters::class.java),
                             )
                         "type.googleapis.com/strategies.SmaEmaCrossoverParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(SmaEmaCrossoverParameters::class.java),
                             )
                         "type.googleapis.com/strategies.DoubleEmaCrossoverParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(DoubleEmaCrossoverParameters::class.java),
                             )
                         "type.googleapis.com/strategies.TripleEmaCrossoverParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(TripleEmaCrossoverParameters::class.java),
                             )
                         "type.googleapis.com/strategies.MacdCrossoverParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(MacdCrossoverParameters::class.java),
                             )
                         "type.googleapis.com/strategies.RsiEmaCrossoverParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RsiEmaCrossoverParameters::class.java),
                             )
                         "type.googleapis.com/strategies.StochasticEmaParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(StochasticEmaParameters::class.java),
                             )
                         "type.googleapis.com/strategies.StochasticRsiParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(StochasticRsiParameters::class.java),
                             )
                         "type.googleapis.com/strategies.VwapCrossoverParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VwapCrossoverParameters::class.java),
                             )
                         "type.googleapis.com/strategies.VwapMeanReversionParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VwapMeanReversionParameters::class.java),
                             )
                         "type.googleapis.com/strategies.VolumeWeightedMacdParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VolumeWeightedMacdParameters::class.java),
                             )
                         "type.googleapis.com/strategies.ObvEmaParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(ObvEmaParameters::class.java),
                             )
-                        "type.googleapis.com/strategies.PvtParameters" -> JsonFormat.printer().print(any.unpack(PvtParameters::class.java))
-                        "type.googleapis.com/strategies.VptParameters" -> JsonFormat.printer().print(any.unpack(VptParameters::class.java))
+                        "type.googleapis.com/strategies.PvtParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
+                                any.unpack(PvtParameters::class.java),
+                            )
+                        "type.googleapis.com/strategies.VptParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
+                                any.unpack(VptParameters::class.java),
+                            )
                         "type.googleapis.com/strategies.VolumeBreakoutParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VolumeBreakoutParameters::class.java),
                             )
                         "type.googleapis.com/strategies.VolumeSpreadAnalysisParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VolumeSpreadAnalysisParameters::class.java),
                             )
                         "type.googleapis.com/strategies.TrixSignalLineParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(TrixSignalLineParameters::class.java),
                             )
                         "type.googleapis.com/strategies.DemaTemaCrossoverParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(DemaTemaCrossoverParameters::class.java),
                             )
                         "type.googleapis.com/strategies.AwesomeOscillatorParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(AwesomeOscillatorParameters::class.java),
                             )
                         "type.googleapis.com/strategies.RainbowOscillatorParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RainbowOscillatorParameters::class.java),
                             )
                         "type.googleapis.com/strategies.RegressionChannelParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RegressionChannelParameters::class.java),
                             )
                         "type.googleapis.com/strategies.PriceOscillatorSignalParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(PriceOscillatorSignalParameters::class.java),
                             )
                         "type.googleapis.com/strategies.RenkoChartParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RenkoChartParameters::class.java),
                             )
                         "type.googleapis.com/strategies.RangeBarsParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RangeBarsParameters::class.java),
                             )
                         "type.googleapis.com/strategies.GannSwingParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(GannSwingParameters::class.java),
                             )
                         "type.googleapis.com/strategies.SarMfiParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(SarMfiParameters::class.java),
                             )
                         "type.googleapis.com/strategies.DpoCrossoverParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(DpoCrossoverParameters::class.java),
                             )
                         "type.googleapis.com/strategies.VariablePeriodEmaParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VariablePeriodEmaParameters::class.java),
                             )
                         "type.googleapis.com/strategies.VolumeProfileParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VolumeProfileParameters::class.java),
                             )
                         "type.googleapis.com/strategies.VolumeProfileDeviationsParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VolumeProfileDeviationsParameters::class.java),
                             )
                         "type.googleapis.com/strategies.AdxDmiParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(AdxDmiParameters::class.java),
                             )
                         "type.googleapis.com/strategies.AtrCciParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(AtrCciParameters::class.java),
                             )
                         "type.googleapis.com/strategies.AtrTrailingStopParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(AtrTrailingStopParameters::class.java),
                             )
                         "type.googleapis.com/strategies.BbandWRParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(BbandWRParameters::class.java),
                             )
                         "type.googleapis.com/strategies.ChaikinOscillatorParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(ChaikinOscillatorParameters::class.java),
                             )
                         "type.googleapis.com/strategies.CmfZeroLineParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(CmfZeroLineParameters::class.java),
                             )
                         "type.googleapis.com/strategies.DonchianBreakoutParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(DonchianBreakoutParameters::class.java),
                             )
                         "type.googleapis.com/strategies.DoubleTopBottomParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(DoubleTopBottomParameters::class.java),
                             )
                         "type.googleapis.com/strategies.FibonacciRetracementsParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(FibonacciRetracementsParameters::class.java),
                             )
                         "type.googleapis.com/strategies.PriceGapParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(PriceGapParameters::class.java),
                             )
                         "type.googleapis.com/strategies.ElderRayMAParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(ElderRayMAParameters::class.java),
                             )
                         "type.googleapis.com/strategies.FramaParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(FramaParameters::class.java),
                             )
                         "type.googleapis.com/strategies.HeikenAshiParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(HeikenAshiParameters::class.java),
                             )
                         "type.googleapis.com/strategies.KstOscillatorParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(KstOscillatorParameters::class.java),
                             )
                         "type.googleapis.com/strategies.LinearRegressionChannelsParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(LinearRegressionChannelsParameters::class.java),
                             )
                         "type.googleapis.com/strategies.MassIndexParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(MassIndexParameters::class.java),
                             )
                         "type.googleapis.com/strategies.MomentumPinballParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(MomentumPinballParameters::class.java),
                             )
                         "type.googleapis.com/strategies.MomentumSmaCrossoverParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(MomentumSmaCrossoverParameters::class.java),
                             )
                         "type.googleapis.com/strategies.PivotParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(PivotParameters::class.java),
                             )
                         "type.googleapis.com/strategies.RviParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RviParameters::class.java),
                             )
                         "type.googleapis.com/strategies.KlingerVolumeParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(KlingerVolumeParameters::class.java),
                             )
                         "type.googleapis.com/strategies.VolatilityStopParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VolatilityStopParameters::class.java),
                             )
                         "type.googleapis.com/strategies.TickVolumeAnalysisParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(TickVolumeAnalysisParameters::class.java),
                             )
                         "type.googleapis.com/strategies.CmoMfiParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(CmoMfiParameters::class.java),
                             )
                         "type.googleapis.com/strategies.RocMaCrossoverParameters" ->
-                            JsonFormat.printer().print(
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RocMaCrossoverParameters::class.java),
                             )
                         else ->
@@ -359,7 +365,15 @@ object StrategyParameterTypeRegistry {
                 )
                 createErrorJson("invalid json structure")
             } else {
-                jsonString
+                // Additional validation for CSV safety - ensure no newlines or tabs
+                if (jsonString.contains("\n") || jsonString.contains("\r") || jsonString.contains("\t")) {
+                    logger.atWarning().log(
+                        "Generated JSON for $typeUrl contains newlines or tabs that would break CSV format: '$jsonString'",
+                    )
+                    createErrorJson("json contains unsafe characters for csv")
+                } else {
+                    jsonString
+                }
             }
         } catch (e: Exception) {
             logger.atSevere().withCause(e).log(
