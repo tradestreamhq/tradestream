@@ -455,6 +455,7 @@ kt_jvm_library(
 kt_jvm_library(
     name = "strategy_repository",
     srcs = [
+        "DryRunStrategyRepository.kt",
         "PostgresStrategyRepository.kt",
         "StrategyCsvUtil.kt",
         "StrategyRepository.kt",

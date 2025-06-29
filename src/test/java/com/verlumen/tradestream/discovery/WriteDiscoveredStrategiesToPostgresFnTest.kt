@@ -49,9 +49,10 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
     lateinit var mockStrategyRepository: StrategyRepository
 
     // Add a mock factory that returns the mock repository
-    private val mockStrategyRepositoryFactory = object : StrategyRepository.Factory {
-        override fun create(dataSourceConfig: DataSourceConfig): StrategyRepository = mockStrategyRepository
-    }
+    private val mockStrategyRepositoryFactory =
+        object : StrategyRepository.Factory {
+            override fun create(dataSourceConfig: DataSourceConfig): StrategyRepository = mockStrategyRepository
+        }
 
     // The class under test - will be created directly with mocked dependencies
     private lateinit var writeDiscoveredStrategiesToPostgresFn: WriteDiscoveredStrategiesToPostgresFn

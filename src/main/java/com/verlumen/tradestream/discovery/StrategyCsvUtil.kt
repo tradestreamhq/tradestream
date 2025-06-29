@@ -3,7 +3,6 @@ package com.verlumen.tradestream.discovery
 import com.verlumen.tradestream.strategies.StrategyParameterTypeRegistry
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.Base64
 
 object StrategyCsvUtil {
     fun convertToCsvRow(element: DiscoveredStrategy): String? {

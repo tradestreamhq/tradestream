@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.strategies
 
 import com.google.common.flogger.FluentLogger
-import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.protobuf.Any
 import com.google.protobuf.util.JsonFormat
@@ -329,13 +328,12 @@ object StrategyParameterTypeRegistry {
             "error: \"${e.message}\""
         }
 
-    fun validateJsonParameter(jsonString: String): Boolean {
-        return try {
+    fun validateJsonParameter(jsonString: String): Boolean =
+        try {
             val jsonElement = JsonParser.parseString(jsonString)
             jsonElement.isJsonObject
         } catch (e: Exception) {
             logger.atWarning().withCause(e).log("Invalid JSON parameter: $jsonString")
             false
         }
-    }
 }
