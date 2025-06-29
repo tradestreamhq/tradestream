@@ -1,6 +1,6 @@
 module(
     name = "tradestream",
-    version = "v1.0.1-main",
+    version = "v2.45.42-develop",
     compatibility_level = 1,
 )
 
@@ -111,6 +111,7 @@ maven.install(
         "junit:junit:4.13.2",
         "org.mockito:mockito-core:5.17.0",
         "org.mockito.kotlin:mockito-kotlin:5.4.0",
+        "org.json:json:20240303",
     ],
     fetch_sources = True,
     repositories = [
