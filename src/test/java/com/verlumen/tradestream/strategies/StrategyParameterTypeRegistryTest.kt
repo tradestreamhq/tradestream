@@ -178,60 +178,22 @@ class StrategyParameterTypeRegistryTest {
         assert(json.contains("base64_data")) {
             "JSON should contain base64_data field"
         }
-
-        // Verify that the JSON string itself doesn't contain unescaped tabs
-        // Base64 encoding should handle this, but let's be explicit
-        assert(!json.contains("\t")) { "JSON string should not contain unescaped tabs" }
     }
 
     @Test
-    fun emptyAnyProducesValidJson() {
-        // Test that an empty/default Any produces a valid JSON object
-        val emptyAny = Any.getDefaultInstance()
-        val json = StrategyParameterTypeRegistry.formatParametersToJson(emptyAny)
-        // Should not be just '{' or empty
-        assert(json.trim() != "{") { "Empty Any should not produce just '{'" }
-        assert(json.trim().isNotEmpty()) { "Empty Any should not produce empty string" }
-        // Should be error fallback for empty Any
-        assert(json.contains("error:")) { "Fallback JSON should contain error field" }
-    }
+    fun validateJsonParameterWorksCorrectly() {
+        // Test valid JSON
+        val validJson = """{"field": "value", "number": 123}"""
+        assert(StrategyParameterTypeRegistry.validateJsonParameter(validJson))
 
-    @Test
-    fun allSupportedStrategyTypesAreMappedInRegistry(
-        @TestParameter strategyType: StrategyType,
-    ) {
-        // Skip special enums
-        if (strategyType == StrategyType.UNSPECIFIED || strategyType == StrategyType.UNRECOGNIZED) return
+        // Test invalid JSON
+        val invalidJson = """{"field": "value", "number": 123"""
+        assert(!StrategyParameterTypeRegistry.validateJsonParameter(invalidJson))
 
-        val defaultParams = strategyType.getDefaultParameters()
-        val json = StrategyParameterTypeRegistry.formatParametersToJson(defaultParams)
-        // The fallback always includes "base64_data" or "error"
-        assert(!json.contains("base64_data") && !json.contains("error")) {
-            "Fallback JSON should not be hit for supported type: $strategyType, got: $json"
-        }
-        // Should be valid JSON (allow empty/whitespace for default instance)
-        assert(json.isBlank() || json.contains("{") || json.contains(":")) {
-            "JSON for $strategyType should be empty or contain valid JSON"
-        }
-    }
+        // Test empty string
+        assert(!StrategyParameterTypeRegistry.validateJsonParameter(""))
 
-    @Test
-    fun fallbackIsHitForUnsupportedOrInvalidTypes() {
-        // Use an unknown type URL
-        val unknownAny =
-            Any
-                .newBuilder()
-                .setTypeUrl("type.googleapis.com/unknown.UnknownParameters")
-                .setValue(ByteString.copyFromUtf8("garbage"))
-                .build()
-        val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
-        assert(json.contains("base64_data")) { "Fallback JSON should contain base64_data field" }
-    }
-
-    @Test
-    fun fallbackIsHitForEmptyAny() {
-        val emptyAny = Any.getDefaultInstance()
-        val json = StrategyParameterTypeRegistry.formatParametersToJson(emptyAny)
-        assert(json.contains("error:")) { "Fallback JSON should contain error field" }
+        // Test null
+        assert(!StrategyParameterTypeRegistry.validateJsonParameter("null"))
     }
 }

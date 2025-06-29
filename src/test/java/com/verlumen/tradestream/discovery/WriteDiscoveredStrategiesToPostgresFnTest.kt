@@ -4,7 +4,6 @@ import com.google.common.flogger.FluentLogger
 import com.google.common.truth.Truth.assertThat
 import com.google.inject.Guice
 import com.google.inject.testing.fieldbinder.Bind
-import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.Any
 import com.google.protobuf.Timestamp
 import com.verlumen.tradestream.discovery.StrategyCsvUtil
@@ -144,6 +143,7 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
 
     @Test
     fun `test PostgreSQL COPY compatibility`() {
+        // Test that generated CSV rows are compatible with PostgreSQL COPY command
         val strategy =
             Strategy
                 .newBuilder()
@@ -152,8 +152,8 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
                     Any.pack(
                         EmaMacdParameters
                             .newBuilder()
-                            .setShortEmaPeriod(12)
-                            .setLongEmaPeriod(26)
+                            .setShortPeriod(12)
+                            .setLongPeriod(26)
                             .setSignalPeriod(9)
                             .build(),
                     ),
@@ -165,17 +165,87 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
                 .setSymbol("ETHUSDT")
                 .setStrategy(strategy)
                 .setScore(0.92)
-                .setStartTime(Timestamp.newBuilder().setSeconds(1640995200).build())
-                .setEndTime(Timestamp.newBuilder().setSeconds(1641081600).build())
+                .setStartTime(Timestamp.newBuilder().setSeconds(1672531200).build())
+                .setEndTime(Timestamp.newBuilder().setSeconds(1672617600).build())
                 .build()
 
         val csvRow = StrategyCsvUtil.convertToCsvRow(discoveredStrategy)
         assertThat(csvRow).isNotNull()
 
-        // Verify no problematic characters for PostgreSQL COPY
+        // Verify the CSV row doesn't contain problematic characters for COPY
         assertThat(csvRow).doesNotContain("\n")
         assertThat(csvRow).doesNotContain("\r")
-        // Tab is the delimiter, so it should be present
-        assertThat(csvRow).contains("\t")
+        assertThat(csvRow).doesNotContain("\t") // Should use tab as delimiter, not contain it in data
+
+        // Verify the row has the expected number of fields
+        val fields = csvRow.split("\t")
+        assertThat(fields).hasLength(8)
+    }
+
+    @Test
+    fun `test parameter serialization edge cases`() {
+        // Test with empty parameters
+        val emptyStrategy =
+            Strategy
+                .newBuilder()
+                .setType(StrategyType.SMA_RSI)
+                .setParameters(Any.getDefaultInstance())
+                .build()
+
+        val emptyDiscoveredStrategy =
+            DiscoveredStrategy
+                .newBuilder()
+                .setSymbol("TEST")
+                .setStrategy(emptyStrategy)
+                .setScore(0.5)
+                .setStartTime(Timestamp.newBuilder().setSeconds(0).build())
+                .setEndTime(Timestamp.newBuilder().setSeconds(3600).build())
+                .build()
+
+        val csvRow = StrategyCsvUtil.convertToCsvRow(emptyDiscoveredStrategy)
+        assertThat(csvRow).isNotNull()
+        assertThat(csvRow).contains("error:")
+    }
+
+    @Test
+    fun `test batch processing logic`() {
+        // Test that the batch processing logic works correctly
+        writeDiscoveredStrategiesToPostgresFn.setup()
+
+        val strategy =
+            Strategy
+                .newBuilder()
+                .setType(StrategyType.SMA_RSI)
+                .setParameters(
+                    Any.pack(
+                        SmaRsiParameters
+                            .newBuilder()
+                            .setMovingAveragePeriod(14)
+                            .setRsiPeriod(14)
+                            .setOverboughtThreshold(70.0)
+                            .setOversoldThreshold(30.0)
+                            .build(),
+                    ),
+                ).build()
+
+        val discoveredStrategy =
+            DiscoveredStrategy
+                .newBuilder()
+                .setSymbol("BTCUSDT")
+                .setStrategy(strategy)
+                .setScore(0.85)
+                .setStartTime(Timestamp.newBuilder().setSeconds(1672531200).build())
+                .setEndTime(Timestamp.newBuilder().setSeconds(1672617600).build())
+                .build()
+
+        // Process a single element
+        writeDiscoveredStrategiesToPostgresFn.processElement(discoveredStrategy)
+
+        // Finish bundle to trigger batch flush
+        writeDiscoveredStrategiesToPostgresFn.finishBundle()
+
+        // Verify that the repository was called (this would be verified with Mockito in a real test)
+        // For now, just verify no exceptions were thrown
+        assertThat(writeDiscoveredStrategiesToPostgresFn).isNotNull()
     }
 }

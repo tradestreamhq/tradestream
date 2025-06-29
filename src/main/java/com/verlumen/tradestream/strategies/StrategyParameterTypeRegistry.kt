@@ -241,6 +241,10 @@ object StrategyParameterTypeRegistry {
                             JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(CmfZeroLineParameters::class.java),
                             )
+                        "type.googleapis.com/strategies.CmoMfiParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
+                                any.unpack(CmoMfiParameters::class.java),
+                            )
                         "type.googleapis.com/strategies.DonchianBreakoutParameters" ->
                             JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(DonchianBreakoutParameters::class.java),
@@ -249,17 +253,13 @@ object StrategyParameterTypeRegistry {
                             JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(DoubleTopBottomParameters::class.java),
                             )
-                        "type.googleapis.com/strategies.FibonacciRetracementsParameters" ->
-                            JsonFormat.printer().omittingInsignificantWhitespace().print(
-                                any.unpack(FibonacciRetracementsParameters::class.java),
-                            )
-                        "type.googleapis.com/strategies.PriceGapParameters" ->
-                            JsonFormat.printer().omittingInsignificantWhitespace().print(
-                                any.unpack(PriceGapParameters::class.java),
-                            )
                         "type.googleapis.com/strategies.ElderRayMAParameters" ->
                             JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(ElderRayMAParameters::class.java),
+                            )
+                        "type.googleapis.com/strategies.FibonacciRetracementsParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
+                                any.unpack(FibonacciRetracementsParameters::class.java),
                             )
                         "type.googleapis.com/strategies.FramaParameters" ->
                             JsonFormat.printer().omittingInsignificantWhitespace().print(
@@ -268,6 +268,10 @@ object StrategyParameterTypeRegistry {
                         "type.googleapis.com/strategies.HeikenAshiParameters" ->
                             JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(HeikenAshiParameters::class.java),
+                            )
+                        "type.googleapis.com/strategies.KlingerVolumeParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
+                                any.unpack(KlingerVolumeParameters::class.java),
                             )
                         "type.googleapis.com/strategies.KstOscillatorParameters" ->
                             JsonFormat.printer().omittingInsignificantWhitespace().print(
@@ -293,69 +297,45 @@ object StrategyParameterTypeRegistry {
                             JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(PivotParameters::class.java),
                             )
-                        "type.googleapis.com/strategies.RviParameters" ->
+                        "type.googleapis.com/strategies.PriceGapParameters" ->
                             JsonFormat.printer().omittingInsignificantWhitespace().print(
-                                any.unpack(RviParameters::class.java),
-                            )
-                        "type.googleapis.com/strategies.KlingerVolumeParameters" ->
-                            JsonFormat.printer().omittingInsignificantWhitespace().print(
-                                any.unpack(KlingerVolumeParameters::class.java),
-                            )
-                        "type.googleapis.com/strategies.VolatilityStopParameters" ->
-                            JsonFormat.printer().omittingInsignificantWhitespace().print(
-                                any.unpack(VolatilityStopParameters::class.java),
-                            )
-                        "type.googleapis.com/strategies.TickVolumeAnalysisParameters" ->
-                            JsonFormat.printer().omittingInsignificantWhitespace().print(
-                                any.unpack(TickVolumeAnalysisParameters::class.java),
-                            )
-                        "type.googleapis.com/strategies.CmoMfiParameters" ->
-                            JsonFormat.printer().omittingInsignificantWhitespace().print(
-                                any.unpack(CmoMfiParameters::class.java),
+                                any.unpack(PriceGapParameters::class.java),
                             )
                         "type.googleapis.com/strategies.RocMaCrossoverParameters" ->
                             JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RocMaCrossoverParameters::class.java),
                             )
-                        else ->
-                            createFallbackJson(any)
+                        "type.googleapis.com/strategies.RviParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
+                                any.unpack(RviParameters::class.java),
+                            )
+                        "type.googleapis.com/strategies.TickVolumeAnalysisParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
+                                any.unpack(TickVolumeAnalysisParameters::class.java),
+                            )
+                        "type.googleapis.com/strategies.VolatilityStopParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
+                                any.unpack(VolatilityStopParameters::class.java),
+                            )
+                        else -> {
+                            logger.atWarning().log("Unknown parameter type: ${any.typeUrl}")
+                            "error: \"unknown parameter type: ${any.typeUrl}\""
+                        }
                     }
                 jsonString
             }
         } catch (e: Exception) {
-            "error: \"invalid proto: ${e.message}\""
+            logger.atSevere().withCause(e).log("Failed to format parameters to JSON")
+            "error: \"${e.message}\""
         }
 
-    private fun createFallbackJson(any: Any): String {
-        val jsonObject = JsonObject()
-        jsonObject.addProperty(
-            "base64_data",
-            java.util.Base64
-                .getEncoder()
-                .encodeToString(any.value.toByteArray()),
-        )
-        jsonObject.addProperty("type_url", any.typeUrl)
-        return jsonObject.toString()
-    }
-
-    private fun createErrorJson(errorMessage: String): String {
-        val jsonObject = JsonObject()
-        jsonObject.addProperty("error", errorMessage)
-        return jsonObject.toString()
-    }
-
-    private fun validateAndReturnJson(
-        jsonString: String,
-        typeUrl: String,
-    ): String =
-        try {
-            // Parse the JSON to ensure it's valid
-            JsonParser.parseString(jsonString)
-            jsonString
+    fun validateJsonParameter(jsonString: String): Boolean {
+        return try {
+            val jsonElement = JsonParser.parseString(jsonString)
+            jsonElement.isJsonObject
         } catch (e: Exception) {
-            logger.atWarning().withCause(e).log(
-                "Generated JSON for $typeUrl is invalid: '$jsonString'",
-            )
-            createErrorJson("invalid json")
+            logger.atWarning().withCause(e).log("Invalid JSON parameter: $jsonString")
+            false
         }
+    }
 }
