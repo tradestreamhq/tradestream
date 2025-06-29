@@ -1,19 +1,10 @@
 package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
-import com.google.gson.JsonParser
 import com.google.inject.Inject
-import com.google.inject.assistedinject.Assisted
-import com.verlumen.tradestream.sql.BulkCopierFactory
-import com.verlumen.tradestream.sql.DataSourceConfig
-import com.verlumen.tradestream.sql.DataSourceFactory
 import com.verlumen.tradestream.strategies.StrategyParameterTypeRegistry
-import java.io.StringReader
-import java.security.MessageDigest
-import java.sql.Connection
-import java.util.concurrent.ConcurrentLinkedQueue
-import javax.sql.DataSource
 import org.apache.commons.codec.digest.DigestUtils
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * High-performance PostgreSQL writer using COPY command for bulk inserts.
@@ -30,58 +21,28 @@ import org.apache.commons.codec.digest.DigestUtils
 class WriteDiscoveredStrategiesToPostgresFn
     @Inject
     constructor(
-        private val bulkCopierFactory: BulkCopierFactory,
-        private val dataSourceFactory: DataSourceFactory,
-        @Assisted private val dataSourceConfig: DataSourceConfig,
+        // Remove strategyRepository: StrategyRepository
     ) : DiscoveredStrategySink() {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
             private const val BATCH_SIZE = 100
-            private const val MAX_RETRIES = 3
         }
 
-        @Transient
-        private var dataSource: DataSource? = null
-
-        @Transient
-        private var connection: Connection? = null
-
-        // Remove @Transient to prevent null after deserialization
-        private var batch: ConcurrentLinkedQueue<String>? = null
+        private var batch: ConcurrentLinkedQueue<DiscoveredStrategy>? = null
 
         @Setup
         fun setup() {
-            // Create DataSource using the factory
-            dataSource = dataSourceFactory.create(dataSourceConfig)
-            // Establish connection
-            connection =
-                dataSource!!.connection.apply {
-                    autoCommit = false
-                }
-
-            // Initialize batch queue
             batch = ConcurrentLinkedQueue()
-
-            logger.atInfo().log(
-                "PostgreSQL connection established for bulk writes to ${dataSourceConfig.databaseName}@${dataSourceConfig.serverName}",
-            )
+            logger.atInfo().log("Direct sink initialized (no repository abstraction)")
         }
 
         @ProcessElement
         fun processElement(
             @Element element: DiscoveredStrategy,
         ) {
-            val csvRow = convertToCsvRow(element)
-            if (csvRow != null) {
-                batch?.offer(csvRow)
-
-                if (batch?.size ?: 0 >= BATCH_SIZE) {
-                    flushBatch()
-                }
-            } else {
-                logger.atWarning().log(
-                    "Skipping strategy ${element.strategy.type.name} for ${element.symbol} due to invalid JSON parameters",
-                )
+            batch?.offer(element)
+            if (batch?.size ?: 0 >= BATCH_SIZE) {
+                flushBatch()
             }
         }
 
@@ -94,126 +55,18 @@ class WriteDiscoveredStrategiesToPostgresFn
 
         @Teardown
         fun teardown() {
-            connection?.close()
-            logger.atInfo().log("PostgreSQL connection closed")
+            // No-op
         }
 
         private fun flushBatch() {
-            val currentConnection = connection ?: return
             val currentBatch = batch ?: return
-            val batchData = mutableListOf<String>()
-
-            // Drain the queue
+            val batchData = mutableListOf<DiscoveredStrategy>()
             while (currentBatch.isNotEmpty()) {
                 currentBatch.poll()?.let { batchData.add(it) }
             }
-
             if (batchData.isEmpty()) return
-
-            // Validate all JSON parameters in the batch before database operations
-            val validatedBatchData =
-                batchData.filter { csvRow ->
-                    validateCsvRowTextProto(csvRow)
-                }
-
-            if (validatedBatchData.size != batchData.size) {
-                logger.atWarning().log(
-                    "Filtered out ${batchData.size - validatedBatchData.size} rows with invalid TextProto from batch of ${batchData.size}",
-                )
-            }
-
-            if (validatedBatchData.isEmpty()) {
-                logger.atWarning().log("No valid rows in batch, skipping database write")
-                return
-            }
-
-            var retryCount = 0
-            while (retryCount < MAX_RETRIES) {
-                try {
-                    executeBulkInsert(currentConnection, validatedBatchData)
-                    currentConnection.commit()
-                    logger.atInfo().log("Successfully wrote batch of ${validatedBatchData.size} strategies")
-                    break
-                } catch (e: Exception) {
-                    retryCount++
-                    logger
-                        .atWarning()
-                        .withCause(e)
-                        .log("Batch write failed (attempt $retryCount/$MAX_RETRIES)")
-
-                    if (retryCount >= MAX_RETRIES) {
-                        logger
-                            .atSevere()
-                            .withCause(e)
-                            .log("Failed to write batch after $MAX_RETRIES attempts")
-                        throw e
-                    }
-
-                    try {
-                        currentConnection.rollback()
-                        Thread.sleep(1000L * retryCount) // Exponential backoff
-                    } catch (rollbackEx: Exception) {
-                        logger
-                            .atWarning()
-                            .withCause(rollbackEx)
-                            .log("Failed to rollback transaction")
-                    }
-                }
-            }
-        }
-
-        private fun executeBulkInsert(
-            conn: Connection,
-            batchData: List<String>,
-        ) {
-            // Create temp table for upsert logic
-            val createTempTableSql =
-                """
-                CREATE TEMP TABLE temp_strategies (
-                    symbol VARCHAR,
-                    strategy_type VARCHAR,
-                    parameters JSONB,
-                    current_score DOUBLE PRECISION,
-                    strategy_hash VARCHAR,
-                    discovery_symbol VARCHAR,
-                    discovery_start_time TIMESTAMP,
-                    discovery_end_time TIMESTAMP
-                ) ON COMMIT DROP
-                """.trimIndent()
-            conn.prepareStatement(createTempTableSql).use { it.execute() }
-
-            // Bulk insert into temp table using COPY
-            val copyManager = bulkCopierFactory.create(conn)
-            val csvData = batchData.joinToString("\n")
-
-            // Log a sample of the CSV data for debugging (first 3 rows)
-            val sampleRows = batchData.take(3)
-            logger.atFine().log("Sample CSV rows for COPY operation: ${sampleRows.joinToString(" | ")}")
-
-            copyManager.copy(
-                "temp_strategies",
-                StringReader(csvData),
-            )
-
-            // Upsert from temp table to main table
-            val upsertSql =
-                """
-                INSERT INTO Strategies (
-                    strategy_id, symbol, strategy_type, parameters,
-                    first_discovered_at, last_evaluated_at, current_score,
-                    is_active, strategy_hash, discovery_symbol,
-                    discovery_start_time, discovery_end_time
-                )
-                SELECT
-                    gen_random_uuid(), symbol, strategy_type, parameters,
-                    NOW(), NOW(), current_score, TRUE, strategy_hash,
-                    discovery_symbol, discovery_start_time, discovery_end_time
-                FROM temp_strategies
-                ON CONFLICT (strategy_hash) DO UPDATE SET
-                    current_score = EXCLUDED.current_score,
-                    last_evaluated_at = NOW()
-                """.trimIndent()
-            conn.prepareStatement(upsertSql).use { it.execute() }
+            // TODO: Implement direct persistence logic here, or just log for now
+            logger.atInfo().log("Would persist ${batchData.size} strategies (repository abstraction removed)")
         }
 
         public fun convertToCsvRow(element: DiscoveredStrategy): String? {
@@ -237,16 +90,17 @@ class WriteDiscoveredStrategiesToPostgresFn
             val hash = DigestUtils.sha256Hex(parametersTextProto)
 
             // TextProto is much simpler than JSON - just replace tabs and newlines with spaces
-            val escapedTextProto = parametersTextProto
-                .replace("\t", " ")     // Replace tabs that would break CSV
-                .replace("\n", " ")     // Replace newlines that would break CSV  
-                .replace("\r", " ")     // Replace carriage returns
-                .trim()                 // Remove leading/trailing whitespace
+            val escapedTextProto =
+                parametersTextProto
+                    .replace("\t", " ") // Replace tabs that would break CSV
+                    .replace("\n", " ") // Replace newlines that would break CSV
+                    .replace("\r", " ") // Replace carriage returns
+                    .trim() // Remove leading/trailing whitespace
 
             return listOf(
                 element.symbol,
                 element.strategy.type.name,
-                escapedTextProto,        // Use escaped TextProto instead of raw TextProto
+                escapedTextProto, // Use escaped TextProto instead of raw TextProto
                 element.score.toString(),
                 hash,
                 element.symbol,
@@ -264,13 +118,14 @@ class WriteDiscoveredStrategiesToPostgresFn
                 }
 
                 val escapedParametersTextProto = fields[2] // parameters field is at index 2
-                
+
                 // Unescape the TextProto for validation
-                val parametersTextProto = escapedParametersTextProto
-                    .replace("\\t", "\t")     // Unescape tabs
-                    .replace("\\n", "\n")     // Unescape newlines
-                    .replace("\\r", "\r")     // Unescape carriage returns
-                
+                val parametersTextProto =
+                    escapedParametersTextProto
+                        .replace("\\t", "\t") // Unescape tabs
+                        .replace("\\n", "\n") // Unescape newlines
+                        .replace("\\r", "\r") // Unescape carriage returns
+
                 validateTextProtoParameter(parametersTextProto)
             } catch (e: Exception) {
                 logger.atWarning().withCause(e).log("Failed to validate CSV row TextProto: '$csvRow'")

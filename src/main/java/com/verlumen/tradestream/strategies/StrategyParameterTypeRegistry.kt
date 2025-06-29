@@ -4,7 +4,6 @@ import com.google.common.flogger.FluentLogger
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.protobuf.Any
-import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.TextFormat
 import com.verlumen.tradestream.strategies.AdxDmiParameters
 import com.verlumen.tradestream.strategies.AdxStochasticParameters
@@ -71,10 +70,10 @@ object StrategyParameterTypeRegistry {
     // Trigger new build with JSON serialization fix
     private val logger = FluentLogger.forEnclosingClass()
 
-    fun formatParametersToTextProto(any: Any): String =
+    fun formatParametersToTextProto(any: Any): String {
         try {
             if (any.typeUrl.isNullOrBlank() || any.value == com.google.protobuf.ByteString.EMPTY) {
-                createErrorJson("empty parameters")
+                return "error: \"empty parameters\""
             } else {
                 val textProtoString =
                     when (any.typeUrl) {
@@ -82,7 +81,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(SmaRsiParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -90,7 +89,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(EmaMacdParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -98,7 +97,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(AdxStochasticParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -106,7 +105,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(AroonMfiParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -114,7 +113,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(IchimokuCloudParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -122,7 +121,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(ParabolicSarParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -130,7 +129,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(SmaEmaCrossoverParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -138,7 +137,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(DoubleEmaCrossoverParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -146,7 +145,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(TripleEmaCrossoverParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -154,7 +153,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(MacdCrossoverParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -162,7 +161,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(RsiEmaCrossoverParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -170,7 +169,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(StochasticEmaParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -178,7 +177,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(StochasticRsiParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -186,7 +185,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(VwapCrossoverParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -194,7 +193,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(VwapMeanReversionParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -202,7 +201,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(VolumeWeightedMacdParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -210,7 +209,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(ObvEmaParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -218,7 +217,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(PvtParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -226,7 +225,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(VptParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -234,7 +233,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(VolumeBreakoutParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -242,7 +241,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(VolumeSpreadAnalysisParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -250,7 +249,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(TrixSignalLineParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -258,7 +257,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(DemaTemaCrossoverParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -266,7 +265,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(AwesomeOscillatorParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -274,7 +273,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(RainbowOscillatorParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -282,7 +281,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(RegressionChannelParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -290,7 +289,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(PriceOscillatorSignalParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -298,7 +297,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(RenkoChartParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -306,7 +305,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(RangeBarsParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -314,7 +313,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(GannSwingParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -322,7 +321,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(SarMfiParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -330,7 +329,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(DpoCrossoverParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -338,7 +337,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(VariablePeriodEmaParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -346,7 +345,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(VolumeProfileParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -354,7 +353,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(VolumeProfileDeviationsParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -362,7 +361,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(AdxDmiParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -370,7 +369,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(AtrCciParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -378,7 +377,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(AtrTrailingStopParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -386,7 +385,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(BbandWRParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -394,7 +393,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(ChaikinOscillatorParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -402,7 +401,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(CmfZeroLineParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -410,7 +409,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(DonchianBreakoutParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -418,7 +417,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(DoubleTopBottomParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -426,7 +425,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(FibonacciRetracementsParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -434,7 +433,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(PriceGapParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -442,7 +441,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(ElderRayMAParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -450,7 +449,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(FramaParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -458,7 +457,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(HeikenAshiParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -466,7 +465,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(KstOscillatorParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -474,7 +473,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(LinearRegressionChannelsParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -482,7 +481,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(MassIndexParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -490,7 +489,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(MomentumPinballParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -498,7 +497,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(MomentumSmaCrossoverParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -506,7 +505,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(PivotParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -514,7 +513,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(RviParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -522,7 +521,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(KlingerVolumeParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -530,7 +529,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(VolatilityStopParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -538,7 +537,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(TickVolumeAnalysisParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -546,7 +545,7 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(CmoMfiParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
@@ -554,23 +553,21 @@ object StrategyParameterTypeRegistry {
                             val builder = StringBuilder()
                             TextFormat.printer().print(
                                 any.unpack(RocMaCrossoverParameters::class.java),
-                                builder
+                                builder,
                             )
                             builder.toString()
                         }
                         else -> {
-                            logger.atWarning().log("Unknown parameter type: ${any.typeUrl}")
-                            createErrorJson("unknown parameter type: ${any.typeUrl}")
+                            // Unknown type fallback
+                            return "error: \"unknown type: ${any.typeUrl}\""
                         }
                     }
-
-                // Replace newlines and tabs with spaces for CSV compatibility
-                textProtoString.replace("\n", " ").replace("\t", " ").trim()
+                return textProtoString
             }
         } catch (e: Exception) {
-            logger.atWarning().withCause(e).log("Error formatting parameters to textproto")
-            createErrorJson("formatting error: ${e.message}")
+            return "error: \"invalid proto: ${e.message}\""
         }
+    }
 
     private fun createFallbackJson(any: Any): String {
         val jsonObject = JsonObject()
