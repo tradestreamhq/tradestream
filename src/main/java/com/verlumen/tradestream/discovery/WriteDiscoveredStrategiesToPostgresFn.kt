@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class WriteDiscoveredStrategiesToPostgresFn
     @Inject
     constructor(
-        private val strategyRepository: StrategyRepository,
+        private val strategyRepositoryFactory: StrategyRepository.Factory,
         @Assisted private val dataSourceConfig: com.verlumen.tradestream.sql.DataSourceConfig,
     ) : DiscoveredStrategySink() {
         companion object {
@@ -30,11 +30,15 @@ class WriteDiscoveredStrategiesToPostgresFn
 
         // Remove @Transient to prevent null after deserialization
         private var batch: ConcurrentLinkedQueue<DiscoveredStrategy>? = null
+        private var strategyRepository: StrategyRepository? = null
 
         @Setup
         fun setup() {
             // Initialize batch queue
             batch = ConcurrentLinkedQueue()
+            
+            // Create the strategy repository using the factory
+            strategyRepository = strategyRepositoryFactory.create(dataSourceConfig)
         }
 
         @ProcessElement
@@ -68,7 +72,7 @@ class WriteDiscoveredStrategiesToPostgresFn
             if (batchData.isEmpty()) return
 
             try {
-                strategyRepository.saveAll(batchData)
+                strategyRepository?.saveAll(batchData)
                 logger.atInfo().log("Successfully persisted ${batchData.size} strategies")
             } catch (e: Exception) {
                 logger.atSevere().withCause(e).log("Failed to persist ${batchData.size} strategies")

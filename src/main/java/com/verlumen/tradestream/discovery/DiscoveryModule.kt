@@ -34,7 +34,13 @@ class DiscoveryModule : AbstractModule() {
                     WriteDiscoveredStrategiesToPostgresFn::class.java,
                 ).build(DiscoveredStrategySinkFactory::class.java),
         )
-        bind(StrategyRepository::class.java).to(PostgresStrategyRepository::class.java)
+        install(
+            FactoryModuleBuilder()
+                .implement(
+                    StrategyRepository::class.java,
+                    PostgresStrategyRepository::class.java,
+                ).build(StrategyRepository.Factory::class.java),
+        )
     }
 }
 
