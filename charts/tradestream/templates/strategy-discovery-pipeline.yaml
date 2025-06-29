@@ -1,0 +1,74 @@
+{{- if .Values.strategyDiscoveryPipeline.enabled }}
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-discovery-pipeline
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: strategy-discovery-pipeline
+    release: {{ .Release.Name }}
+spec:
+  image: {{ .Values.strategyDiscoveryPipeline.image.repository }}:{{ .Values.strategyDiscoveryPipeline.image.tag }}
+  imagePullPolicy: {{ default "IfNotPresent" .Values.strategyDiscoveryPipeline.image.pullPolicy }}
+  flinkVersion: {{ .Values.strategyDiscoveryPipeline.version }}
+  flinkConfiguration:
+    {{- toYaml .Values.strategyDiscoveryPipeline.configuration | nindent 4 }}
+    io.tmp.dirs: "/opt/flink/writable-tmp"
+  serviceAccount: {{ .Values.strategyDiscoveryPipeline.serviceAccount }}
+  jobManager:
+    resource:
+      memory: {{ .Values.strategyDiscoveryPipeline.jobManager.memory }}
+      cpu: {{ .Values.strategyDiscoveryPipeline.jobManager.cpu }}
+  taskManager:
+    resource:
+      memory: {{ .Values.strategyDiscoveryPipeline.taskManager.memory }}
+      cpu: {{ .Values.strategyDiscoveryPipeline.taskManager.cpu }}
+  job:
+    entryClass: {{ .Values.strategyDiscoveryPipeline.job.entryClass }}
+    jarURI: {{ .Values.strategyDiscoveryPipeline.job.jarURI }}
+    args:
+      - "--kafkaBootstrapServers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+      - "--runner=FlinkRunner"
+      - "--streaming=true"
+      - "--dbServerName={{ tpl .Values.strategyDiscoveryPipeline.database.host . }}"
+      - "--dbDatabaseName={{ .Values.strategyDiscoveryPipeline.database.database }}"
+      - "--dbPortNumber={{ .Values.strategyDiscoveryPipeline.database.port }}"
+      # InfluxDB args - for candle fetcher
+      - "--influxDbUrl=http://{{ include "tradestream.fullname" . }}-influxdb:80"
+      - "--influxDbOrg={{ .Values.influxdb.adminUser.organization }}"
+      - "--influxDbBucket={{ .Values.influxdb.adminUser.bucket }}"
+    parallelism: {{ .Values.strategyDiscoveryPipeline.job.parallelism }}
+    upgradeMode: {{ .Values.strategyDiscoveryPipeline.job.upgradeMode }}
+  podTemplate:
+    metadata:
+      labels:
+        custom-pod-template: "true"
+    spec:
+      volumes:
+        - name: flink-writable-volume
+          emptyDir: {}
+      containers:
+        - name: flink-main-container
+          env:
+            - name: TMPDIR
+              value: /opt/flink/writable-tmp
+            # Secret for Postgres credentials
+            - name: DATABASE_USERNAME
+              value: {{ .Values.strategyDiscoveryPipeline.database.username | quote }}
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.strategyDiscoveryPipeline.database.passwordSecret.name . }}
+                  key: {{ .Values.strategyDiscoveryPipeline.database.passwordSecret.key }}
+            # Secret for InfluxDB token
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.influxdb.adminUser.existingSecret | default (printf "%s-influxdb-admin-secret" (include "tradestream.fullname" .)) }}
+                  key: admin-token
+          volumeMounts:
+            - name: flink-writable-volume
+              mountPath: /opt/flink/writable-tmp
+              readOnly: false
+{{- end }}

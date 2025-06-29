@@ -34,39 +34,72 @@ jobs:
           kubectl create secret generic coinmarketcap \
             --from-literal=apiKey=FAKE_API_KEY \
             --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret generic tiingo \
+            --from-literal=apiKey=FAKE_API_KEY \
+            --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
+          # Create admin secret for InfluxDB
+          kubectl create secret generic influxdb-admin-secret \
+            --from-literal=admin-username="admin" \
+            --from-literal=admin-password="$(openssl rand -base64 12)" \
+            --from-literal=admin-token="$(openssl rand -hex 32)" \
+            --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret generic influxdb-candle-ingestor-credentials \
+            --from-literal=INFLUXDB_TOKEN="$(openssl rand -hex 32)" \
+            --from-literal=INFLUXDB_ORG="tradestream-org" \
+            --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
 
-      - uses: bazel-contrib/setup-bazel@0.9.1
+      - uses: bazel-contrib/setup-bazel@0.14.0
         with:
+          # Avoid downloading Bazel every time.
           bazelisk-cache: true
+          bazelrc: |
+            build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
+          # Store build cache per workflow.
           disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows.
           repository-cache: true
 
       - name: Build and Load Images
         run: |
           set -eo pipefail
-          
-          # Build and push data ingestion image
-          bazel run //src/main/java/com/verlumen/tradestream/ingestion:push_image \
-            --verbose_failures \
+            
+          # Build and push candle ingestor image
+          bazel run //services/candle_ingestor:push_candle_ingestor_image \
             -- \
-            --repository localhost:5000/tradestream-data-ingestion \
+            --repository localhost:5000/candle-ingestor \
             --tag "latest"
-          
-          # Build and push pipeline image
-          bazel run //src/main/java/com/verlumen/tradestream/pipeline:push_image \
-            --verbose_failures \
+
+          # Build and push top-crypto-updater image
+          bazel run //services/top_crypto_updater:push_top_crypto_updater_image \
             -- \
-            --repository localhost:5000/tradestream-data-pipeline \
+            --repository localhost:5000/top-crypto-updater \
             --tag "latest"
-          
+
+          # Build and push strategy-discovery-request-factory image
+          bazel run //services/strategy_discovery_request_factory:push_strategy_discovery_request_factory_image \
+            -- \
+            --repository localhost:5000/strategy-discovery-request-factory \
+            --tag "latest"
+
+          # Build and push strategy-discovery-pipeline image
+          bazel run //src/main/java/com/verlumen/tradestream/discovery:push_image \
+            -- \
+            --repository localhost:5000/strategy-discovery-pipeline \
+            --tag "latest"
+
           # Load images into minikube
-          docker pull localhost:5000/tradestream-data-ingestion:latest
-          docker tag localhost:5000/tradestream-data-ingestion:latest tradestream-data-ingestion:latest
-          minikube image load tradestream-data-ingestion:latest
-          
-          docker pull localhost:5000/tradestream-data-pipeline:latest
-          docker tag localhost:5000/tradestream-data-pipeline:latest tradestream-data-pipeline:latest
-          minikube image load tradestream-data-pipeline:latest
+          docker pull localhost:5000/candle-ingestor:latest
+          docker tag localhost:5000/candle-ingestor:latest candle-ingestor:latest
+          minikube image load candle-ingestor:latest
+          docker pull localhost:5000/top-crypto-updater:latest
+          docker tag localhost:5000/top-crypto-updater:latest top-crypto-updater:latest
+          minikube image load top-crypto-updater:latest
+          docker pull localhost:5000/strategy-discovery-request-factory:latest
+          docker tag localhost:5000/strategy-discovery-request-factory:latest strategy-discovery-request-factory:latest
+          minikube image load strategy-discovery-request-factory:latest
+          docker pull localhost:5000/strategy-discovery-pipeline:latest
+          docker tag localhost:5000/strategy-discovery-pipeline:latest strategy-discovery-pipeline:latest
+          minikube image load strategy-discovery-pipeline:latest
 
       - name: Install Cert Manager
         run: |
@@ -79,25 +112,53 @@ jobs:
         run: |
           set -eo pipefail
           helm dependency update charts/tradestream
-          
-          # Fixed pipeline image repository to use correct image
+
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
-            --set dataIngestion.image.repository=tradestream-data-ingestion \
-            --set dataIngestion.image.tag=latest \
-            --set dataIngestion.runMode=dry \
-            --set pipeline.image.repository=tradestream-data-pipeline \
-            --set pipeline.image.tag=latest \
-            --set pipeline.runMode=dry
+            --set candleIngestor.image.repository=candle-ingestor \
+            --set candleIngestor.image.tag=latest \
+            --set topCryptoUpdaterCronjob.image.repository=top-crypto-updater \
+            --set topCryptoUpdaterCronjob.image.tag=latest \
+            --set strategyDiscoveryRequestFactory.image.repository=strategy-discovery-request-factory \
+            --set strategyDiscoveryRequestFactory.image.tag=latest \
+            --set strategyDiscoveryPipeline.image.repository=strategy-discovery-pipeline \
+            --set strategyDiscoveryPipeline.image.tag=latest \
+            --set redis.enabled=true \
+            --set postgresql.enabled=true \
+            --set topCryptoUpdaterCronjob.enabled=true \
+            --set strategyDiscoveryRequestFactory.enabled=true \
+            --set influxdb.enabled=true
 
       - name: Monitor Deployment
         run: |
           kubectl wait --for=condition=Ready -n tradestream-namespace pod --all --timeout=300s
+          # Verify CronJob was created successfully (CronJobs don't have Ready/Established conditions)
+          echo "Checking if CronJob exists..."
+          kubectl get cronjob my-tradestream-top-crypto-updater -n tradestream-namespace
+          kubectl get cronjob my-tradestream-strategy-discovery-request-factory -n tradestream-namespace
+          # Check CronJob status and configuration
+          echo "CronJob details:"
+          kubectl describe cronjob my-tradestream-top-crypto-updater -n tradestream-namespace
+          kubectl describe cronjob my-tradestream-strategy-discovery-request-factory -n tradestream-namespace
+          # Verify CronJob is not suspended
+          if kubectl get cronjob my-tradestream-top-crypto-updater -n tradestream-namespace -o jsonpath='{.spec.suspend}' | grep -q true; then
+            echo "ERROR: CronJob my-tradestream-top-crypto-updater is suspended"
+            exit 1
+          else
+            echo "CronJob my-tradestream-top-crypto-updater is active and ready to run on schedule"
+          fi
+          if kubectl get cronjob my-tradestream-strategy-discovery-request-factory -n tradestream-namespace -o jsonpath='{.spec.suspend}' | grep -q true; then
+            echo "ERROR: CronJob my-tradestream-strategy-discovery-request-factory is suspended"
+            exit 1
+          else
+            echo "CronJob my-tradestream-strategy-discovery-request-factory is active and ready to run on schedule"
+          fi
 
       - name: Diagnostics
         if: always()
         run: |
           echo "=== FINAL DIAGNOSTIC SNAPSHOT ==="
           kubectl get all -n tradestream-namespace -o wide
+          kubectl get cronjobs -n tradestream-namespace -o yaml
           kubectl get events -n tradestream-namespace --sort-by=.metadata.creationTimestamp
           helm status my-tradestream -n tradestream-namespace

@@ -14,8 +14,7 @@ import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 
 /**
- * Unit tests for BarSeriesBuilder.
- * Each test uses the AAA pattern with one assertion per test case.
+ * Unit tests for BarSeriesBuilder. Each test uses the AAA pattern with one assertion per test case.
  */
 public class BarSeriesBuilderTest {
 
@@ -23,14 +22,15 @@ public class BarSeriesBuilderTest {
    * Helper method to build a real Candle using its protobuf builder.
    *
    * @param epochMillis timestamp in milliseconds
-   * @param open        open value
-   * @param high        high value
-   * @param low         low value
-   * @param close       close value
-   * @param volume      volume value
+   * @param open open value
+   * @param high high value
+   * @param low low value
+   * @param close close value
+   * @param volume volume value
    * @return a Candle protobuf message
    */
-  private Candle buildCandle(long epochMillis, double open, double high, double low, double close, double volume) {
+  private Candle buildCandle(
+      long epochMillis, double open, double high, double low, double close, double volume) {
     Timestamp ts = Timestamps.fromMillis(epochMillis);
     return Candle.newBuilder()
         .setTimestamp(ts)

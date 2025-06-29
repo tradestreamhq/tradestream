@@ -6,7 +6,7 @@ java_test(
     deps = [
         "//src/main/java/com/verlumen/tradestream/instruments:currency",
         "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party:junit",
-        "//third_party:truth",
+        "//third_party/java:junit",
+        "//third_party/java:truth",
     ],
 )

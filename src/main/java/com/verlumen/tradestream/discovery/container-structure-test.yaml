@@ -1,0 +1,26 @@
+schemaVersion: "2.0.0"
+commandTests:
+  - name: "Strategy Discovery Pipeline Help"
+    command: "java"
+    args:
+      - "-jar"
+      - "/src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar"
+      - "--help=StrategyDiscoveryPipelineOptions"
+    expectedOutput:
+      - "kafkaBootstrapServers"
+      - "databaseUsername"
+      - "dryRun"
+
+  - name: "Strategy Discovery Pipeline Dry Run"
+    command: "java"
+    args:
+      - "-jar"
+      - "/src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar"
+      - "--dryRun=true"
+      - "--databaseUsername=test"
+      - "--databasePassword=test"
+      - "--influxDbToken=not-a-real-token"
+      - "--runner=DirectRunner"
+    exitCode: 0
+    expectedError:
+      - "Dry Run Sink: Would write strategy for symbol 'BTCUSDT'"

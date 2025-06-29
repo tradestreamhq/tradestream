@@ -1,0 +1,235 @@
+# @rules
+
+# =========================================
+# 1. High-Level Project Overview
+# =========================================
+# This is the TradeStream project, an algorithmic trading platform.
+# The core technologies are Java/Kotlin for backend services, Python for data services, Bazel for the build system, and Kubernetes/Helm for deployment.
+# The system relies heavily on real-time data processing using Apache Beam on Flink, with Kafka as the message broker.
+# Data persistence is handled by InfluxDB for time-series data and PostgreSQL for relational data. Redis is used for caching.
+
+# =========================================
+# 2. Build System: Bazel
+# =========================================
+# This project uses Bazel version 7.4.0. All builds, tests, and service execution must be done through Bazel.
+# - To build the entire project: `bazel build //...`
+# - To run all tests: `bazel test //...`
+# - To run unit tests with coverage: `bazel coverage //...` 
+# - To run a specific service, use `bazel run //path/to/service:target`
+# - We use BuildBuddy for remote caching and build analysis. Ensure your configuration in `.bazelrc` points to the correct backend.
+
+# =========================================
+# 3. Language-Specific Rules
+# =========================================
+
+# -----------------------------------------
+# 3.1. Java / Kotlin
+# -----------------------------------------
+# - The project uses Java 17  and Kotlin 1.9.
+# - All Java code MUST be formatted using `google-java-format`. A CI check enforces this in `format-java-code.yaml`.
+# - All Kotlin code MUST be formatted using `ktlint`. A CI check enforces this in `format-kotlin-code.yaml`.
+# - Dependency injection is managed via Guice. All major components (services, factories, etc.) should be bound in their respective Guice modules (e.g., `DiscoveryModule.kt` , `BacktestingModule.kt` ).
+# - For financial calculations and trading strategy implementation, use the `ta4j-core` library.
+# - The primary data processing framework is Apache Beam, running on the FlinkRunner.
+# - For logging, use `Flogger`.
+
+# -----------------------------------------
+# 3.2. Python
+# -----------------------------------------
+# - Python services use version 3.13.
+# - All Python code MUST be formatted with the `black` formatter.
+# - Python dependencies are managed via `pip-compile` from `requirements.in`. To update dependencies, run `bazel run //:requirements.update` , which will regenerate `requirements_lock.txt`.
+# - Key Python libraries include `ccxt` for cryptocurrency exchange interaction, `influxdb-client` for database access, and `redis` for caching.
+# - The `candle_ingestor` service is a key Python component responsible for fetching and storing OHLCV data.
+
+# -----------------------------------------
+# 3.3. Starlark (Bazel files)
+# -----------------------------------------
+# - All Bazel files (`BUILD`, `.bzl`, `WORKSPACE`, `MODULE.bazel`) MUST be formatted using `buildifier`.
+# - When adding new dependencies, update the `MODULE.bazel` file for both `bazel_dep` and `pip.parse` or `maven.install` sections.
+
+# -----------------------------------------
+# 3.4. YAML
+# -----------------------------------------
+# - All YAML files, primarily for GitHub Actions workflows and Helm charts, MUST be formatted with `prettier`.
+# - When adding a new service, ensure it is included in the `ci.yaml` workflow for build, image loading, and deployment testing.
+# - New container images for release should be added to the `release.yaml` workflow.
+
+# =========================================
+# 4. Data Serialization: Protocol Buffers
+# =========================================
+# - Data contracts between services are defined using Protocol Buffers (`.proto` files) located in the `/protos` directory.
+# - When adding or modifying `.proto` files, you must update the `protos/BUILD` file to include the necessary `proto_library`, `java_proto_library`, and `py_proto_library` targets.
+# - Strategy parameters are defined as individual messages and packed into a `google.protobuf.Any` field within the `Strategy` message. See `strategies.proto` for examples.
+
+# =========================================
+# 5. Deployment: Kubernetes & Helm
+# =========================================
+# - The entire application is deployed to Kubernetes using the Helm chart located in `/charts/tradestream`.
+# - Configuration for services is managed via `values.yaml`. When adding a new service, create a corresponding section in `values.yaml` and a template in `charts/tradestream/templates/`.
+# - The CI pipeline includes a job to test the Helm chart installation on a minikube cluster. Any changes must pass this check.
+
+# =========================================
+# 6. Coding Standards & Best Practices
+# =========================================
+# - Follow the existing formatting rules enforced by the CI pipelines for all languages.
+# - All new features should have corresponding unit tests. Refer to existing `*_test.py`, `*Test.java`, and `*Test.kt` files for examples.
+# - When creating new trading strategies, you must define a `StrategyFactory` and a `ParamConfig` and register them in `StrategySpecs.kt`.
+# - Avoid hardcoding configuration values. Use flags or environment variables, with defaults defined in the respective `main` files or Helm charts.
+# - Do not use deprecated libraries or patterns. For example, the `tiingo_client` has been replaced by the `ccxt_client` for candle data ingestion.
+
+# =========================================
+# 7. Trading Strategy Implementation (CRITICAL)
+# =========================================
+# Trading strategies follow a STRICT implementation pattern. Deviation from this pattern will cause build failures.
+
+# -----------------------------------------
+# 7.1. Strategy Implementation Checklist
+# -----------------------------------------
+# When implementing a new trading strategy, follow this EXACT sequence:
+
+# 1. **Identify Missing Strategy**:
+#    - Compare `protos/strategies.proto` enum values with `StrategySpecs.kt` implementations
+#    - Check existing directories in `src/main/java/com/verlumen/tradestream/strategies/` to avoid duplicates
+#    - Use StrategySpecsTest expected count to verify total implemented strategies
+
+# 2. **Create Directory Structure**:
+#    ```
+#    src/main/java/com/verlumen/tradestream/strategies/<strategyname>/
+#    ├── <StrategyName>ParamConfig.java
+#    ├── <StrategyName>StrategyFactory.java
+#    └── BUILD
+#    src/test/java/com/verlumen/tradestream/strategies/<strategyname>/
+#    ├── <StrategyName>ParamConfigTest.java
+#    ├── <StrategyName>StrategyFactoryTest.java
+#    └── BUILD
+#    ```
+
+# 3. **Implement ParamConfig** (implements `ParamConfig` interface):
+#    - Must have `getChromosomeSpecs()`, `createParameters()`, `initialChromosomes()` methods
+#    - Use `ChromosomeSpec.ofInteger(min, max)` for parameter ranges
+#    - Pack parameters into `Any.pack(ParametersProto.newBuilder()...build())`
+#    - Include error handling with default values in `createParameters()`
+
+# 4. **Implement StrategyFactory** (implements `StrategyFactory<ParametersProto>`):
+#    - Must have `getDefaultParameters()` and `createStrategy(BarSeries, ParametersProto)` methods
+#    - Use ta4j indicators and rules (CrossedUpIndicatorRule, OverIndicatorRule, etc.)
+#    - Return `new BaseStrategy(entryRule, exitRule)` or `new BaseStrategy(name, entryRule, exitRule, unstablePeriod)`
+#    - If ta4j doesn't have required indicators, create custom `CachedIndicator<Num>` subclasses
+
+# 5. **Create BUILD Files**:
+#    - Main BUILD: targets named `:param_config` and `:strategy_factory`
+#    - Test BUILD: targets named `:param_config_test` and `:strategy_factory_test`
+#    - Include `test_class` attribute in `java_test` rules to avoid "Class not found" errors
+#    - Use `//third_party/java:` dependencies, NOT `@maven:`
+
+# 6. **Register Strategy**:
+#    - Add imports to `StrategySpecs.kt`
+#    - Add entry to `strategySpecMap`
+#    - Add dependencies to main strategies BUILD file `strategy_specs` target
+
+# 7. **Run Tests and Formatting**:
+#    - Build: `bazel build //src/main/java/com/verlumen/tradestream/strategies/<strategyname>/...`
+#    - Test: `bazel test //src/test/java/com/verlumen/tradestream/strategies/<strategyname>/...`
+#    - Update StrategySpecsTest expected count (+1)
+#    - Run: `google-java-format --replace $(find . -name "*.java")`
+#    - Run: `ktlint --format`
+#    - Verify: `bazel test //src/test/java/com/verlumen/tradestream/strategies/...`
+
+# -----------------------------------------
+# 7.2. Strategy Implementation Requirements
+# -----------------------------------------
+# **ParamConfig Pattern**:
+# ```java
+# public final class XxxParamConfig implements ParamConfig {
+#   private static final ImmutableList<ChromosomeSpec<?>> SPECS = ImmutableList.of(
+#     ChromosomeSpec.ofInteger(min, max), ...);
+#   
+#   @Override public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() { return SPECS; }
+#   @Override public Any createParameters(ImmutableList<? extends NumericChromosome<?, ?>> chromosomes) { ... }
+#   @Override public ImmutableList<? extends NumericChromosome<?, ?>> initialChromosomes() { 
+#     return SPECS.stream().map(ChromosomeSpec::createChromosome).collect(ImmutableList.toImmutableList()); 
+#   }
+# }
+# ```
+
+# **StrategyFactory Pattern**:
+# ```java
+# public final class XxxStrategyFactory implements StrategyFactory<XxxParameters> {
+#   @Override public XxxParameters getDefaultParameters() { return XxxParameters.newBuilder()...build(); }
+#   @Override public Strategy createStrategy(BarSeries series, XxxParameters parameters) { ... }
+# }
+# ```
+
+# **BUILD File Pattern**:
+# ```starlark
+# java_library(
+#   name = "param_config",
+#   srcs = ["XxxParamConfig.java"],
+#   visibility = ["//visibility:public"],
+#   deps = ["//protos:strategies_java_proto", "//src/main/java/com/verlumen/tradestream/discovery:param_config", ...]
+# )
+# java_library(
+#   name = "strategy_factory", 
+#   srcs = ["XxxStrategyFactory.java"],
+#   visibility = ["//visibility:public"],
+#   deps = [":param_config", "//protos:strategies_java_proto", "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory", ...]
+# )
+# ```
+
+# -----------------------------------------
+# 7.3. Testing Requirements
+# -----------------------------------------
+# - Use JUnit 4 (`org.junit.Test`), NOT JUnit 5/Jupiter
+# - Static import Truth assertions: `import static com.google.common.truth.Truth.assertThat;`
+# - Test class must be `public final class` with correct package
+# - Test methods must handle `InvalidProtocolBufferException` where applicable
+# - ParamConfig tests: verify `getChromosomeSpecs().size()`, `initialChromosomes().size()`, `createParameters()` with valid/invalid inputs
+# - StrategyFactory tests: verify `getDefaultParameters()`, `createStrategy()` returns non-null Strategy with non-null entry/exit rules
+# - Use `BaseBarSeries` and `BaseBar` for test data, not mock frameworks
+
+# -----------------------------------------
+# 7.4. Proto Integration
+# -----------------------------------------
+# - Strategy parameters are auto-generated from `protos/strategies.proto`
+# - Use EXACT field names from proto (e.g., `getShortPeriod()`, not `getShort()`)
+# - Import from `com.verlumen.tradestream.strategies.XxxParameters`, NOT `com.verlumen.tradestream.protos.strategies.XxxParameters`
+# - All parameters must be packed into `Any.pack()` and unpacked with `.unpack(XxxParameters.class)`
+
+# -----------------------------------------
+# 7.5. Common Pitfalls (AVOID THESE)
+# -----------------------------------------
+# - DO NOT create new interfaces or deviate from existing patterns
+# - DO NOT use @maven dependencies in BUILD files (use //third_party/java:)
+# - DO NOT forget `visibility = ["//visibility:public"]` in main BUILD targets
+# - DO NOT use wrong import for Truth assertions (must be static import)
+# - DO NOT forget to update StrategySpecsTest expected count after adding strategy
+# - DO NOT implement strategies that already exist (check existing directories first)
+# - DO NOT use ta4j indicators that don't exist (create custom CachedIndicator instead)
+# - DO NOT forget `test_class` attribute in java_test rules
+# - DO NOT use incorrect proto field names (check generated classes)
+
+# =========================================
+# 8. Formatting and Code Quality (MANDATORY)
+# =========================================
+# After ANY code changes, you MUST run:
+# 1. `google-java-format --replace $(find . -name "*.java")` - formats all Java files
+# 2. `ktlint --format` - formats all Kotlin files  
+# 3. `buildifier` (if available) - formats all Bazel files
+# 4. Verify all tests pass: `bazel test //src/test/java/com/verlumen/tradestream/strategies/...`
+
+# These tools are available on the system PATH and MUST be used after implementation.
+# CI checks will fail if code is not properly formatted.
+
+# =========================================
+# 9. Error Resolution Patterns
+# =========================================
+# Common build errors and solutions:
+
+# **"Class not found" in tests**: Add `test_class` attribute to java_test rule
+# **"package does not exist"**: Check import statements match generated proto classes  
+# **"method not found" in proto**: Verify field names in .proto file match usage
+# **"visibility" errors**: Add `visibility = ["//visibility:public"]` to BUILD targets
+# **"ChromosomeSpec not found"**: Add `//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec` dependency
+# **"Strategy interface"**: Must implement `StrategyFactory<T>` with correct generic type
+# **"Truth assertions"**: Use `import static com.google.common.truth.Truth.assertThat;`

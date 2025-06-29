@@ -1,85 +1,46 @@
 load("@rules_java//java:defs.bzl", "java_test")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 
-java_test(
-    name = "OptimizeStrategiesTest",
-    srcs = ["OptimizeStrategiesTest.java"],
+kt_jvm_test(
+    name = "StrategySpecsTest",
+    srcs = ["StrategySpecsTest.kt"],
+    test_class = "com.verlumen.tradestream.strategies.StrategySpecsTest",
     deps = [
-        "//protos:backtesting_java_proto",
-        "//protos:marketdata_java_proto",
+        # The protobuf enum definition for StrategyType
         "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
-        "//src/main/java/com/verlumen/tradestream/strategies:optimize_strategies",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_record",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
-        "//src/main/java/com/verlumen/tradestream/ta4j:ta4j_module",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:beam_sdks_java_extensions_protobuf",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:guice_testlib",
-        "//third_party:junit",
-        "//third_party:mockito_core",
-        "//third_party:protobuf_java",
-        "//third_party:ta4j_core",
-        "//third_party:truth",
-    ],
-    runtime_deps = [
-        "//third_party:beam_runners_direct_java",
-        "//third_party:hamcrest",
+
+        # The library under test, which contains the .spec and .isSupported() extensions
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
+
+        # Testing libraries
+        "//third_party/java:junit",
+        "//third_party/java:test_parameter_injector",
+        "//third_party/java:truth",
+
+        # Renkochart tests
+        "//src/test/java/com/verlumen/tradestream/strategies/renkochart:param_config_test",
+        "//src/test/java/com/verlumen/tradestream/strategies/renkochart:strategy_factory_test",
+
+        # Gannswing tests
+        "//src/test/java/com/verlumen/tradestream/strategies/gannswing:param_config_test",
+        "//src/test/java/com/verlumen/tradestream/strategies/gannswing:strategy_factory_test",
+        # Sarmfi tests
+        "//src/test/java/com/verlumen/tradestream/strategies/sarmfi:param_config_test",
+        "//src/test/java/com/verlumen/tradestream/strategies/sarmfi:strategy_factory_test",
     ],
 )
 
-java_test(
-    name = "StrategyManagerImplTest",
-    srcs = ["StrategyManagerImplTest.java"],
+kt_jvm_test(
+    name = "StrategyParameterTypeRegistryTest",
+    srcs = ["StrategyParameterTypeRegistryTest.kt"],
+    test_class = "com.verlumen.tradestream.strategies.StrategyParameterTypeRegistryTest",
     deps = [
-        "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager_impl",
-        "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:guice_testlib",
-        "//third_party:protobuf_java",
-        "//third_party:junit",
-        "//third_party:mockito_core",
-        "//third_party:ta4j_core",
-        "//third_party:truth",
-    ],
-)
-
-java_test(
-    name = "StrategyFactoriesTest",
-    srcs = ["StrategyFactoriesTest.java"],
-    deps = [
-        "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_constants",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factories",
-        "//third_party:guava",
-        "//third_party:junit",
-        "//third_party:test_parameter_injector",
-        "//third_party:truth",
-    ],
-)
-
-java_test(
-    name = "StrategyStateFactoryImplTest",
-    srcs = ["StrategyStateFactoryImplTest.java"],
-    deps = [
-        "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_manager",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_state_factory_impl",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:guice_testlib",
-        "//third_party:protobuf_java",
-        "//third_party:junit",
-        "//third_party:mockito_core",
-        "//third_party:ta4j_core",
-        "//third_party:truth",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_parameter_type_registry",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
+        "//third_party/java:gson",
+        "//third_party/java:junit",
+        "//third_party/java:protobuf_java_util",
+        "//third_party/java:test_parameter_injector",
     ],
 )

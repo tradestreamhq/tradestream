@@ -1,70 +1,7 @@
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
-
-java_library(
-    name = "optimize_each_strategy_do_fn",
-    srcs = ["OptimizeEachStrategyDoFn.java"],
-    deps = [
-        ":strategy_processing_request",
-        ":strategy_state",
-        "//protos:backtesting_java_proto",
-        "//protos:marketdata_java_proto",
-        "//protos:strategies_java_proto",
-        "//src/main/java/com/verlumen/tradestream/backtesting:genetic_algorithm_orchestrator",
-        "//src/main/java/com/verlumen/tradestream/ta4j:bar_series_factory",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:flogger",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:ta4j_core",
-    ],
-)
-
-java_library(
-    name = "optimize_strategies",
-    srcs = ["OptimizeStrategies.java"],
-    deps = [
-        ":optimize_each_strategy_do_fn",
-        ":split_by_strategy_type",
-        ":strategy_processing_request",
-        ":strategy_state",
-        "//protos:marketdata_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:guava",
-        "//third_party:guice",
-    ],
-)
-
-java_library(
-    name = "split_by_strategy_type",
-    srcs = ["SplitByStrategyType.java"],
-    deps = [
-        ":strategy_constants",
-        ":strategy_processing_request",
-        "//protos:marketdata_java_proto",
-        "//protos:strategies_java_proto",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:guava",
-        "//third_party:guice",
-    ],
-)
-
-java_library(
-    name = "strategies_module",
-    srcs = ["StrategiesModule.java"],
-    deps = [
-        ":strategy_factories",
-        ":strategy_factory",
-        ":strategy_manager",
-        ":strategy_manager_impl",
-        ":strategy_state",
-        ":strategy_state_factory_impl",
-        "//third_party:guava",
-        "//third_party:guice",
-    ],
-)
 
 kt_jvm_library(
     name = "strategy_constants",
@@ -75,110 +12,161 @@ kt_jvm_library(
 )
 
 java_library(
-    name = "strategy_engine_pipeline",
-    srcs = ["StrategyEnginePipeline.java"],
-    deps = [
-        ":optimize_strategies",
-        "//protos:marketdata_java_proto",
-        "//protos:trade_signals_java_proto",
-        "//src/main/java/com/verlumen/tradestream/signals:generate_trade_signals",
-        "//src/main/java/com/verlumen/tradestream/signals:publish_trade_signals",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_state",
-        "//third_party:beam_sdks_java_core",
-        "//third_party:flogger",
-        "//third_party:guice",
-        "//third_party:guava",
-    ],
-)
-
-java_library(
-    name = "strategy_factories",
-    srcs = ["StrategyFactories.java"],
-    deps = [
-        ":strategy_factory",
-        "//src/main/java/com/verlumen/tradestream/strategies/movingaverages:movingaverages_lib",
-        "//src/main/java/com/verlumen/tradestream/strategies/momentumoscillators:oscillators_lib",
-        "//third_party:guava",
-    ],
-)
-
-java_library(
     name = "strategy_factory",
     srcs = ["StrategyFactory.java"],
     deps = [
         "//protos:strategies_java_proto",
-        "//third_party:protobuf_java",
-        "//third_party:ta4j_core",
-    ],
-)
-
-java_library(
-    name = "strategy_manager",
-    srcs = ["StrategyManager.java"],
-    deps = [
-        ":strategy_factory",
-        "//protos:strategies_java_proto",
-        "//third_party:guava",
-        "//third_party:protobuf_java",
-        "//third_party:ta4j_core",
-    ],
-)
-
-java_library(
-    name = "strategy_manager_impl",
-    srcs = ["StrategyManagerImpl.java"],
-    deps = [
-        ":strategy_factory",
-        ":strategy_manager",
-        "//protos:strategies_java_proto",
-        "//third_party:guava",
-        "//third_party:guice",
-        "//third_party:mug",
-        "//third_party:protobuf_java",
-        "//third_party:ta4j_core",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:ta4j_core",
     ],
 )
 
 kt_jvm_library(
-    name = "strategy_processing_request",
-    srcs = ["StrategyProcessingRequest.kt"],
+    name = "strategy_specs",
+    srcs = [
+        "StrategySpec.kt",
+        "StrategySpecs.kt",
+    ],
+    visibility = ["//visibility:public"],
     deps = [
-        "//protos:marketdata_java_proto",
+        # Core interfaces required by the spec definitions
+        ":strategy_factory",
         "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:ta4j_core",
+        # Implementations for each strategy included in the map
+        "//src/main/java/com/verlumen/tradestream/strategies/adxdmi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/adxdmi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/adxstochastic:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/atrcci:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/atrcci:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/atrtrailingstop:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/atrtrailingstop:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/bbandwr:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/bbandwr:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/chaikinoscillator:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/chaikinoscillator:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/cmfzeroline:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/cmfzeroline:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/cmomfi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/cmomfi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/donchianbreakout:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/donchianbreakout:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/doubleemacrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/doubleemacrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/doubletopbottom:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/doubletopbottom:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/fibonacciretracements:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/fibonacciretracements:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/pricegap:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/pricegap:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/emamacd:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/emamacd:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/elderrayma:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/elderrayma:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/frama:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/frama:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/heikenashi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/heikenashi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/ichimokucloud:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/ichimokucloud:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/kstoscillator:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/kstoscillator:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/linearregressionchannels:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/linearregressionchannels:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/macdcrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/macdcrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/massindex:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/massindex:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/momentumpinball:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/momentumpinball:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/momentumsmacrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/momentumsmacrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/parabolicsarr:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/parabolicsarr:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/pivot:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/pivot:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/rsiemacrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/rsiemacrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/rvi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/rvi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/smaemacrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/smaemacrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/smarsi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/smarsi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/stochasticsrsi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/stochasticsrsi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/stochasticema:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/stochasticema:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/tickvolumeanalysis:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/tickvolumeanalysis:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/tripleemacrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/tripleemacrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/volatilitystop:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/volatilitystop:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/volumeweightedmacd:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/volumeweightedmacd:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/vwapcrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/vwapcrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/vwapmeanreversion:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/vwapmeanreversion:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/obvema:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/obvema:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/klingervolume:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/klingervolume:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/volumebreakout:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/volumebreakout:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/pvt:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/pvt:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/vpt:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/vpt:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/volumespreadanalysis:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/volumespreadanalysis:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/trixsignalline:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/trixsignalline:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/dematemacrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/dematemacrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/aroonmfi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/aroonmfi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/awesomeoscillator:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/awesomeoscillator:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/rainbowoscillator:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/rainbowoscillator:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/regressionchannel:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/regressionchannel:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/rocma:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/rocma:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/priceoscillatorsignal:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/priceoscillatorsignal:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/renkochart:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/renkochart:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/rangebars:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/rangebars:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/gannswing:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/gannswing:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/sarmfi:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/sarmfi:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/dpocrossover:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/dpocrossover:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/variableperiodema:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/variableperiodema:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/volumeprofile:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/volumeprofile:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies/volumeprofiledeviations:param_config",
+        "//src/main/java/com/verlumen/tradestream/strategies/volumeprofiledeviations:strategy_factory",
     ],
 )
 
-java_library(
-    name = "strategy_record",
-    srcs = ["StrategyRecord.java"],
+kt_jvm_library(
+    name = "strategy_parameter_type_registry",
+    srcs = ["StrategyParameterTypeRegistry.kt"],
+    visibility = ["//visibility:public"],
     deps = [
         "//protos:strategies_java_proto",
-        "//third_party:guava",
-        "//third_party:protobuf_java",
-    ],
-)
-
-java_library(
-    name = "strategy_state",
-    srcs = ["StrategyState.java"],
-    deps = [
-        "//protos:strategies_java_proto",
-        "//third_party:protobuf_java",
-        "//third_party:ta4j_core",
-    ],
-)
-
-java_library(
-    name = "strategy_state_factory_impl",
-    srcs = ["StrategyStateFactoryImpl.java"],
-    deps = [
-        ":strategy_manager",
-        ":strategy_record",
-        ":strategy_state",
-        "//protos:strategies_java_proto",
-        "//third_party:guice",
-        "//third_party:guice_assistedinject",
-        "//third_party:protobuf_java",
-        "//third_party:ta4j_core",
+        "//third_party/java:flogger",
+        "//third_party/java:gson",
+        "//third_party/java:protobuf_java_util",
     ],
 )

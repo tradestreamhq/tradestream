@@ -1,0 +1,79 @@
+{{- if .Values.candleIngestor.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "tradestream.fullname" . }}-candle-ingestor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: candle-ingestor
+    release: {{ .Release.Name }}
+spec:
+  schedule: "{{ .Values.candleIngestor.schedule }}"
+  {{- if .Values.candleIngestor.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.candleIngestor.startingDeadlineSeconds }}
+  {{- end }}
+  concurrencyPolicy: "{{ .Values.candleIngestor.concurrencyPolicy }}"
+  failedJobsHistoryLimit: {{ .Values.candleIngestor.failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .Values.candleIngestor.successfulJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.candleIngestor.job.backoffLimit | default 2 }}
+      ttlSecondsAfterFinished: {{ .Values.candleIngestor.job.ttlSecondsAfterFinished | default 3600 }}
+      template:
+        metadata:
+          labels: # These labels apply to the Pods created by the Job
+            app: {{ include "tradestream.name" . }}
+            component: candle-ingestor
+            release: {{ .Release.Name }}
+        spec:
+          restartPolicy: {{ .Values.candleIngestor.job.restartPolicy | default "OnFailure" }}
+          containers:
+            - name: candle-ingestor
+              image: "{{ .Values.candleIngestor.image.repository }}:{{ .Values.candleIngestor.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.candleIngestor.image.pullPolicy }}
+              env:
+                - name: CANDLE_GRANULARITY_MINUTES
+                  value: "{{ .Values.candleIngestor.config.candleGranularityMinutes }}"
+                - name: INFLUXDB_URL
+                  value: "http://{{ include "tradestream.fullname" . }}-influxdb:80"
+                - name: INFLUXDB_BUCKET
+                  value: "{{ .Values.candleIngestor.config.influxDbBucket }}"
+                - name: INFLUXDB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.candleIngestor.secrets.influxDb.name }}
+                      key: {{ .Values.candleIngestor.secrets.influxDb.tokenKey }}
+                - name: INFLUXDB_ORG
+                  value: "{{ .Values.influxdb.adminUser.organization }}"
+                - name: REDIS_HOST
+                  value: {{ tpl .Values.candleIngestor.redis.host . | quote }}
+                - name: REDIS_PORT
+                  value: {{ .Values.candleIngestor.redis.port | quote }}
+                - name: REDIS_KEY_CRYPTO_SYMBOLS
+                  value: "{{ .Values.candleIngestor.config.redisKeyCryptoSymbols }}"
+                {{- if .Values.redis.auth.enabled }}
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ printf "%s-redis" (include "tradestream.fullname" .) }}
+                      key: redis-password
+                {{- else }}
+                - name: REDIS_PASSWORD
+                  value: ""
+                {{- end }}
+              args:
+                - "--run_mode={{ .Values.candleIngestor.runMode | default "wet" }}"
+                - "--backfill_start_date={{ .Values.candleIngestor.config.backfillStartDate | default "1_year_ago" }}"
+                - "--catch_up_initial_days={{ .Values.candleIngestor.config.catchUpInitialDays | default 7 }}"
+                - "--exchanges={{ join "," .Values.candleIngestor.config.exchanges }}"
+                - "--min_exchanges_required={{ .Values.candleIngestor.config.minExchangesRequired }}"
+                - "--api_call_delay_seconds={{ .Values.candleIngestor.config.apiCallDelaySeconds | default 2 }}"
+              resources:
+                requests:
+                  cpu: "{{ .Values.candleIngestor.resources.requests.cpu }}"
+                  memory: "{{ .Values.candleIngestor.resources.requests.memory }}"
+                limits:
+                  cpu: "{{ .Values.candleIngestor.resources.limits.cpu }}"
+                  memory: "{{ .Values.candleIngestor.resources.limits.memory }}"
+{{- end }}

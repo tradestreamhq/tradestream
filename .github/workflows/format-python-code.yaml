@@ -1,0 +1,32 @@
+name: "black-formatter"
+on:
+  pull_request:
+    paths: ["**/*.py"]
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  format:
+    name: runner / black
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check files using the black formatter
+        uses: psf/black@stable
+        with:
+          options: "--verbose"
+          src: "."
+          version: "25.1.0"
+      - name: Check if files were formatted
+        id: check_formatted
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "files_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "files_changed=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Annotate diff changes using reviewdog
+        if: steps.check_formatted.outputs.files_changed == 'true'
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: blackfmt
