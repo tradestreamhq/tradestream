@@ -344,3 +344,11 @@ java_library(
         "@tradestream_maven//:org_apache_commons_commons_csv",
     ],
 )
+
+java_library(
+    name = "org_json",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_json_json",
+    ],
+)
