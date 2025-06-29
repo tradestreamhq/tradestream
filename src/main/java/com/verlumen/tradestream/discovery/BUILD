@@ -430,7 +430,9 @@ kt_jvm_library(
 
 kt_jvm_library(
     name = "write_discovered_strategies_to_postgres_fn",
-    srcs = ["WriteDiscoveredStrategiesToPostgresFn.kt"],
+    srcs = [
+        "WriteDiscoveredStrategiesToPostgresFn.kt",
+    ],
     deps = [
         ":discovered_strategy_sink",
         "//protos:discovery_java_proto",
