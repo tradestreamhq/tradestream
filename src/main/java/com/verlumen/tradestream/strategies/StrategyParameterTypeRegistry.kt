@@ -68,6 +68,7 @@ import com.verlumen.tradestream.strategies.VwapCrossoverParameters
 import com.verlumen.tradestream.strategies.VwapMeanReversionParameters
 
 object StrategyParameterTypeRegistry {
+    // Trigger new build with JSON serialization fix
     private val logger = FluentLogger.forEnclosingClass()
 
     fun formatParametersToJson(any: Any): String =
