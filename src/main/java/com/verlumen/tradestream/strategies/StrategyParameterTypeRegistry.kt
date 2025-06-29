@@ -4,7 +4,8 @@ import com.google.common.flogger.FluentLogger
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.protobuf.Any
-import com.google.protobuf.TextFormat
+import com.google.protobuf.InvalidProtocolBufferException
+import com.google.protobuf.util.JsonFormat
 import com.verlumen.tradestream.strategies.AdxDmiParameters
 import com.verlumen.tradestream.strategies.AdxStochasticParameters
 import com.verlumen.tradestream.strategies.AroonMfiParameters
@@ -70,504 +71,265 @@ object StrategyParameterTypeRegistry {
     // Trigger new build with JSON serialization fix
     private val logger = FluentLogger.forEnclosingClass()
 
-    fun formatParametersToTextProto(any: Any): String {
+    fun formatParametersToJson(any: Any): String =
         try {
             if (any.typeUrl.isNullOrBlank() || any.value == com.google.protobuf.ByteString.EMPTY) {
                 return "error: \"empty parameters\""
             } else {
-                val textProtoString =
+                val jsonString =
                     when (any.typeUrl) {
-                        "type.googleapis.com/strategies.SmaRsiParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.SmaRsiParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(SmaRsiParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.EmaMacdParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.EmaMacdParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(EmaMacdParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.AdxStochasticParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.AdxStochasticParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(AdxStochasticParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.AroonMfiParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.AroonMfiParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(AroonMfiParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.IchimokuCloudParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.IchimokuCloudParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(IchimokuCloudParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.ParabolicSarParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.ParabolicSarParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(ParabolicSarParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.SmaEmaCrossoverParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.SmaEmaCrossoverParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(SmaEmaCrossoverParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.DoubleEmaCrossoverParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.DoubleEmaCrossoverParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(DoubleEmaCrossoverParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.TripleEmaCrossoverParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.TripleEmaCrossoverParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(TripleEmaCrossoverParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.MacdCrossoverParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.MacdCrossoverParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(MacdCrossoverParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.RsiEmaCrossoverParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.RsiEmaCrossoverParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RsiEmaCrossoverParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.StochasticEmaParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.StochasticEmaParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(StochasticEmaParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.StochasticRsiParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.StochasticRsiParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(StochasticRsiParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.VwapCrossoverParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.VwapCrossoverParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VwapCrossoverParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.VwapMeanReversionParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.VwapMeanReversionParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VwapMeanReversionParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.VolumeWeightedMacdParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.VolumeWeightedMacdParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VolumeWeightedMacdParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.ObvEmaParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.ObvEmaParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(ObvEmaParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.PvtParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.PvtParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(PvtParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.VptParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.VptParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VptParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.VolumeBreakoutParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.VolumeBreakoutParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VolumeBreakoutParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.VolumeSpreadAnalysisParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.VolumeSpreadAnalysisParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VolumeSpreadAnalysisParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.TrixSignalLineParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.TrixSignalLineParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(TrixSignalLineParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.DemaTemaCrossoverParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.DemaTemaCrossoverParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(DemaTemaCrossoverParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.AwesomeOscillatorParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.AwesomeOscillatorParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(AwesomeOscillatorParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.RainbowOscillatorParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.RainbowOscillatorParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RainbowOscillatorParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.RegressionChannelParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.RegressionChannelParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RegressionChannelParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.PriceOscillatorSignalParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.PriceOscillatorSignalParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(PriceOscillatorSignalParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.RenkoChartParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.RenkoChartParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RenkoChartParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.RangeBarsParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.RangeBarsParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RangeBarsParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.GannSwingParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.GannSwingParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(GannSwingParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.SarMfiParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.SarMfiParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(SarMfiParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.DpoCrossoverParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.DpoCrossoverParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(DpoCrossoverParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.VariablePeriodEmaParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.VariablePeriodEmaParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VariablePeriodEmaParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.VolumeProfileParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.VolumeProfileParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VolumeProfileParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.VolumeProfileDeviationsParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.VolumeProfileDeviationsParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VolumeProfileDeviationsParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.AdxDmiParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.AdxDmiParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(AdxDmiParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.AtrCciParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.AtrCciParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(AtrCciParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.AtrTrailingStopParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.AtrTrailingStopParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(AtrTrailingStopParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.BbandWRParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.BbandWRParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(BbandWRParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.ChaikinOscillatorParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.ChaikinOscillatorParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(ChaikinOscillatorParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.CmfZeroLineParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.CmfZeroLineParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(CmfZeroLineParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.DonchianBreakoutParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.DonchianBreakoutParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(DonchianBreakoutParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.DoubleTopBottomParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.DoubleTopBottomParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(DoubleTopBottomParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.FibonacciRetracementsParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.FibonacciRetracementsParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(FibonacciRetracementsParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.PriceGapParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.PriceGapParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(PriceGapParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.ElderRayMAParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.ElderRayMAParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(ElderRayMAParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.FramaParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.FramaParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(FramaParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.HeikenAshiParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.HeikenAshiParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(HeikenAshiParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.KstOscillatorParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.KstOscillatorParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(KstOscillatorParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.LinearRegressionChannelsParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.LinearRegressionChannelsParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(LinearRegressionChannelsParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.MassIndexParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.MassIndexParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(MassIndexParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.MomentumPinballParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.MomentumPinballParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(MomentumPinballParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.MomentumSmaCrossoverParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.MomentumSmaCrossoverParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(MomentumSmaCrossoverParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.PivotParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.PivotParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(PivotParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.RviParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.RviParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RviParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.KlingerVolumeParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.KlingerVolumeParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(KlingerVolumeParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.VolatilityStopParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.VolatilityStopParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(VolatilityStopParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.TickVolumeAnalysisParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.TickVolumeAnalysisParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(TickVolumeAnalysisParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.CmoMfiParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.CmoMfiParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(CmoMfiParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        "type.googleapis.com/strategies.RocMaCrossoverParameters" -> {
-                            val builder = StringBuilder()
-                            TextFormat.printer().print(
+                        "type.googleapis.com/strategies.RocMaCrossoverParameters" ->
+                            JsonFormat.printer().omittingInsignificantWhitespace().print(
                                 any.unpack(RocMaCrossoverParameters::class.java),
-                                builder,
                             )
-                            builder.toString()
-                        }
-                        else -> {
-                            // Unknown type fallback
-                            return "error: \"unknown type: ${any.typeUrl}\""
-                        }
+                        else ->
+                            createFallbackJson(any)
                     }
-                return textProtoString
+
+                validateAndReturnJson(jsonString, any.typeUrl)
             }
         } catch (e: Exception) {
-            return "error: \"invalid proto: ${e.message}\""
+            logger.atWarning().withCause(e).log(
+                "Failed to format parameters to JSON for type ${any.typeUrl}: ${e.message}",
+            )
+            createFallbackJson(any)
         }
-    }
 
     private fun createFallbackJson(any: Any): String {
         val jsonObject = JsonObject()

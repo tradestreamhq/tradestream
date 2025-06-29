@@ -238,3 +238,19 @@ kt_jvm_test(
         "//third_party/java:truth",
     ],
 )
+
+kt_jvm_test(
+    name = "PostgresStrategyRepositoryTest",
+    srcs = ["PostgresStrategyRepositoryTest.kt"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/discovery:strategy_repository",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:mockito_kotlin",
+        "//third_party/java:junit",
+    ],
+)

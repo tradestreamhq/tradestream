@@ -435,6 +435,7 @@ kt_jvm_library(
     ],
     deps = [
         ":discovered_strategy_sink",
+        ":strategy_repository",
         "//protos:discovery_java_proto",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
@@ -448,5 +449,26 @@ kt_jvm_library(
         "//third_party/java:guice_assistedinject",
         "//third_party/java:protobuf_java",
         "//third_party/java:protobuf_java_util",
+    ],
+)
+
+kt_jvm_library(
+    name = "strategy_repository",
+    srcs = [
+        "StrategyRepository.kt",
+        "PostgresStrategyRepository.kt",
+        "StrategyCsvUtil.kt",
+    ],
+    deps = [
+        "//protos:discovery_java_proto",
+        "//protos:strategies_java_proto",
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//src/main/java/com/verlumen/tradestream/sql:bulk_copier_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_parameter_type_registry",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:protobuf_java_util",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:org_json",
     ],
 )
