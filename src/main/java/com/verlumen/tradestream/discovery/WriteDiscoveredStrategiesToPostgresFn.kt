@@ -3,6 +3,7 @@ package com.verlumen.tradestream.discovery
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
+import java.io.Serializable
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
@@ -22,10 +23,11 @@ class WriteDiscoveredStrategiesToPostgresFn
     constructor(
         private val strategyRepositoryFactory: StrategyRepository.Factory,
         @Assisted private val dataSourceConfig: com.verlumen.tradestream.sql.DataSourceConfig,
-    ) : DiscoveredStrategySink() {
+    ) : DiscoveredStrategySink(), Serializable {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
             private const val BATCH_SIZE = 100
+            private const val serialVersionUID: Long = 1L
         }
 
         // Remove @Transient to prevent null after deserialization

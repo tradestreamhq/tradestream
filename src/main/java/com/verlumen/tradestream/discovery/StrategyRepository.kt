@@ -2,8 +2,9 @@ package com.verlumen.tradestream.discovery
 
 import com.verlumen.tradestream.discovery.DiscoveredStrategy
 import com.verlumen.tradestream.sql.DataSourceConfig
+import java.io.Serializable
 
-interface StrategyRepository {
+interface StrategyRepository : Serializable {
     fun save(strategy: DiscoveredStrategy)
 
     fun saveAll(strategies: List<DiscoveredStrategy>)
@@ -15,7 +16,7 @@ interface StrategyRepository {
     /**
      * Factory interface for assisted injection
      */
-    interface Factory {
+    interface Factory : Serializable {
         fun create(dataSourceConfig: DataSourceConfig): StrategyRepository
     }
 }
