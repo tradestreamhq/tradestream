@@ -3,7 +3,6 @@ package com.verlumen.tradestream.strategies
 import com.google.protobuf.Any
 import com.google.protobuf.ByteString
 import com.google.protobuf.Message
-import com.google.testing.junit.testparameterinjector.TestParameter
 import com.google.testing.junit.testparameterinjector.TestParameterInjector
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -138,8 +137,8 @@ class StrategyParameterTypeRegistryTest {
         val json = StrategyParameterTypeRegistry.formatParametersToJson(unknownAny)
 
         // For unknown types, expect error message
-        assert(json.contains("error:") && json.contains("unknown parameter type")) { 
-            "Error message should be complete for unknown parameter type" 
+        assert(json.contains("error:") && json.contains("unknown parameter type")) {
+            "Error message should be complete for unknown parameter type"
         }
     }
 

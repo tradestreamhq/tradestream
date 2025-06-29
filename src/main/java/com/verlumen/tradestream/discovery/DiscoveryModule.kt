@@ -34,13 +34,7 @@ class DiscoveryModule : AbstractModule() {
                     WriteDiscoveredStrategiesToPostgresFn::class.java,
                 ).build(DiscoveredStrategySinkFactory::class.java),
         )
-        install(
-            FactoryModuleBuilder()
-                .implement(
-                    StrategyRepository::class.java,
-                    PostgresStrategyRepository::class.java,
-                ).build(StrategyRepository.Factory::class.java),
-        )
+        bind(StrategyRepository.Factory::class.java).to(PostgresStrategyRepository.Factory::class.java)
     }
 }
 
@@ -61,5 +55,6 @@ class DryRunDiscoveryModule : AbstractModule() {
                     DryRunDiscoveredStrategySink::class.java,
                 ).build(DiscoveredStrategySinkFactory::class.java),
         )
+        bind(StrategyRepository.Factory::class.java).to(DryRunStrategyRepository.Factory::class.java)
     }
 }

@@ -2,7 +2,6 @@ package com.verlumen.tradestream.discovery
 
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
-import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.Any
 import com.google.protobuf.Timestamp
 import com.verlumen.tradestream.discovery.StrategyCsvUtil
@@ -21,7 +20,7 @@ class PostgresStrategyRepository
     constructor(
         private val bulkCopierFactory: BulkCopierFactory,
         private val dataSourceFactory: DataSourceFactory,
-        @Assisted private val dataSourceConfig: DataSourceConfig,
+        private val dataSourceConfig: DataSourceConfig,
     ) : StrategyRepository,
         Serializable {
         companion object {
@@ -34,13 +33,15 @@ class PostgresStrategyRepository
         /**
          * Factory implementation for PostgresStrategyRepository
          */
-        class Factory(
-            private val bulkCopierFactory: BulkCopierFactory,
-            private val dataSourceFactory: DataSourceFactory,
-        ) : StrategyRepository.Factory {
-            override fun create(dataSourceConfig: DataSourceConfig): StrategyRepository =
-                PostgresStrategyRepository(bulkCopierFactory, dataSourceFactory, dataSourceConfig)
-        }
+        class Factory
+            @Inject
+            constructor(
+                private val bulkCopierFactory: BulkCopierFactory,
+                private val dataSourceFactory: DataSourceFactory,
+            ) : StrategyRepository.Factory {
+                override fun create(dataSourceConfig: DataSourceConfig): StrategyRepository =
+                    PostgresStrategyRepository(bulkCopierFactory, dataSourceFactory, dataSourceConfig)
+            }
 
         override fun save(strategy: DiscoveredStrategy) {
             saveAll(listOf(strategy))
@@ -141,13 +142,8 @@ class PostgresStrategyRepository
             // Parse parameters JSON and decode base64
             val jsonObj = JSONObject(parametersJson)
             val base64 = jsonObj.getString("base64_data")
-            val bytes =
-                java.util.Base64
-                    .getDecoder()
-                    .decode(base64)
-            val parametersAny =
-                com.google.protobuf.Any
-                    .parseFrom(bytes)
+            val bytes = java.util.Base64.getDecoder().decode(base64)
+            val parametersAny = com.google.protobuf.Any.parseFrom(bytes)
 
             // Build Strategy proto
             val strategy =
