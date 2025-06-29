@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class WriteDiscoveredStrategiesToPostgresFn
     @Inject
     constructor(
-        private val strategyRepositoryFactory: StrategyRepository.Factory,
+        @Transient private val strategyRepositoryFactory: StrategyRepository.Factory,
         @Assisted private val dataSourceConfig: com.verlumen.tradestream.sql.DataSourceConfig,
     ) : DiscoveredStrategySink(), Serializable {
         companion object {
