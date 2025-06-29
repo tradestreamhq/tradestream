@@ -366,11 +366,14 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
     fun `test PostgreSQL COPY operation with valid JSON formats`() {
         // Create a strategy with valid parameters
         val validParameters =
-            Any
-                .newBuilder()
-                .setTypeUrl("type.googleapis.com/strategies.SmaRsiParameters")
-                .setValue(ByteString.copyFromUtf8("{\"shortPeriod\": 14, \"longPeriod\": 30}"))
-                .build()
+            Any.pack(
+                com.verlumen.tradestream.strategies.SmaRsiParameters.newBuilder()
+                    .setMovingAveragePeriod(14)
+                    .setRsiPeriod(14)
+                    .setOverboughtThreshold(70.0)
+                    .setOversoldThreshold(30.0)
+                    .build()
+            )
 
         val strategy =
             Strategy
