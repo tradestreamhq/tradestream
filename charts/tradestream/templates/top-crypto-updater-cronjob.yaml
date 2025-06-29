@@ -10,6 +10,9 @@ metadata:
     release: {{ .Release.Name }}
 spec:
   schedule: "{{ .Values.topCryptoUpdaterCronjob.schedule }}"
+  {{- if .Values.topCryptoUpdaterCronjob.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.topCryptoUpdaterCronjob.startingDeadlineSeconds }}
+  {{- end }}
   jobTemplate:
     spec:
       template:

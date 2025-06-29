@@ -10,6 +10,9 @@ metadata:
     release: {{ .Release.Name }}
 spec:
   schedule: "{{ .Values.candleIngestor.schedule }}"
+  {{- if .Values.candleIngestor.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.candleIngestor.startingDeadlineSeconds }}
+  {{- end }}
   concurrencyPolicy: "{{ .Values.candleIngestor.concurrencyPolicy }}"
   failedJobsHistoryLimit: {{ .Values.candleIngestor.failedJobsHistoryLimit }}
   successfulJobsHistoryLimit: {{ .Values.candleIngestor.successfulJobsHistoryLimit }}
@@ -30,16 +33,12 @@ spec:
               image: "{{ .Values.candleIngestor.image.repository }}:{{ .Values.candleIngestor.image.tag | default .Chart.AppVersion }}"
               imagePullPolicy: {{ .Values.candleIngestor.image.pullPolicy }}
               env:
-                - name: TOP_N_CRYPTOS
-                  value: "{{ .Values.candleIngestor.config.topNCryptos }}"
                 - name: CANDLE_GRANULARITY_MINUTES
                   value: "{{ .Values.candleIngestor.config.candleGranularityMinutes }}"
                 - name: INFLUXDB_URL
                   value: "http://{{ include "tradestream.fullname" . }}-influxdb:80"
                 - name: INFLUXDB_BUCKET
                   value: "{{ .Values.candleIngestor.config.influxDbBucket }}"
-                - name: DATA_SOURCES # This flag might need review in main.py if only Tiingo is used now
-                  value: "{{ .Values.candleIngestor.config.dataSources }}"
                 - name: INFLUXDB_TOKEN
                   valueFrom:
                     secretKeyRef:
@@ -51,6 +50,8 @@ spec:
                   value: {{ tpl .Values.candleIngestor.redis.host . | quote }}
                 - name: REDIS_PORT
                   value: {{ .Values.candleIngestor.redis.port | quote }}
+                - name: REDIS_KEY_CRYPTO_SYMBOLS
+                  value: "{{ .Values.candleIngestor.config.redisKeyCryptoSymbols }}"
                 {{- if .Values.redis.auth.enabled }}
                 - name: REDIS_PASSWORD
                   valueFrom:
@@ -67,4 +68,12 @@ spec:
                 - "--catch_up_initial_days={{ .Values.candleIngestor.config.catchUpInitialDays | default 7 }}"
                 - "--exchanges={{ join "," .Values.candleIngestor.config.exchanges }}"
                 - "--min_exchanges_required={{ .Values.candleIngestor.config.minExchangesRequired }}"
+                - "--api_call_delay_seconds={{ .Values.candleIngestor.config.apiCallDelaySeconds | default 2 }}"
+              resources:
+                requests:
+                  cpu: "{{ .Values.candleIngestor.resources.requests.cpu }}"
+                  memory: "{{ .Values.candleIngestor.resources.requests.memory }}"
+                limits:
+                  cpu: "{{ .Values.candleIngestor.resources.limits.cpu }}"
+                  memory: "{{ .Values.candleIngestor.resources.limits.memory }}"
 {{- end }}

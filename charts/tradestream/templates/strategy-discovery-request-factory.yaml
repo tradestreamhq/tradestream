@@ -10,6 +10,9 @@ metadata:
     release: {{ .Release.Name }}
 spec:
   schedule: "{{ .Values.strategyDiscoveryRequestFactory.schedule }}"
+  {{- if .Values.strategyDiscoveryRequestFactory.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.strategyDiscoveryRequestFactory.startingDeadlineSeconds }}
+  {{- end }}
   jobTemplate:
     spec:
       template:
