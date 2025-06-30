@@ -3,9 +3,8 @@ package com.verlumen.tradestream.discovery
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
-import org.apache.beam.sdk.transforms.DoFn
-import org.apache.beam.sdk.transforms.DoFn.ProcessElement
 import org.apache.beam.sdk.transforms.DoFn.Element
+import org.apache.beam.sdk.transforms.DoFn.ProcessElement
 import java.io.Serializable
 
 /**
@@ -36,8 +35,13 @@ class WriteDiscoveredStrategiesToKafkaFn
             try {
                 // For now, just log the strategies that would be written to Kafka
                 // In a full implementation, we would write to Kafka here
-                logger.atInfo().log("Would write strategy to Kafka topic '%s': symbol=%s, score=%f, type=%s", 
-                    topic, element.symbol, element.score, element.strategy.type)
+                logger.atInfo().log(
+                    "Would write strategy to Kafka topic '%s': symbol=%s, score=%f, type=%s",
+                    topic,
+                    element.symbol,
+                    element.score,
+                    element.strategy.type,
+                )
             } catch (e: Exception) {
                 logger.atSevere().withCause(e).log("Failed to process strategy for symbol '%s'", element.symbol)
                 throw e
@@ -49,5 +53,8 @@ class WriteDiscoveredStrategiesToKafkaFn
  * Factory for creating Kafka sink instances.
  */
 interface WriteDiscoveredStrategiesToKafkaFactory {
-    fun create(kafkaBootstrapServers: String, topic: String): WriteDiscoveredStrategiesToKafkaFn
+    fun create(
+        kafkaBootstrapServers: String,
+        topic: String,
+    ): WriteDiscoveredStrategiesToKafkaFn
 } 

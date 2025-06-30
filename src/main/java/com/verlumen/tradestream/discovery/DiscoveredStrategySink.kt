@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.discovery
 
 import com.verlumen.tradestream.discovery.DiscoveredStrategySinkParams
-import com.verlumen.tradestream.sql.DataSourceConfig
 import org.apache.beam.sdk.transforms.DoFn
 
 /**
@@ -13,7 +12,7 @@ abstract class DiscoveredStrategySink : DoFn<DiscoveredStrategy, Void>()
 
 /**
  * Factory for creating [DiscoveredStrategySink] instances.
- * 
+ *
  * This factory uses a unified parameter structure to create different types of sinks:
  * - Postgres sink: requires DataSourceConfig
  * - Kafka sink: requires bootstrap servers and topic
