@@ -28,18 +28,10 @@ class StrategyDiscoveryPipeline
         fun run(
             options: StrategyDiscoveryPipelineOptions,
             candleFetcher: CandleFetcher,
+            sinkParams: DiscoveredStrategySinkParams,
         ) {
             val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
             val runGaFn = runGADiscoveryFnFactory.create(candleFetcher)
-
-            // Create appropriate sink based on dry-run mode
-            val sinkParams =
-                if (options.dryRun) {
-                    DiscoveredStrategySinkParams.DryRun
-                } else {
-                    val kafkaTopic = "discovered-strategies"
-                    DiscoveredStrategySinkParams.Kafka(options.kafkaBootstrapServers, kafkaTopic)
-                }
             val sink = sinkFactory.create(sinkParams)
 
             val pipeline = Pipeline.create(options)
