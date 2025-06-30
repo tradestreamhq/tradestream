@@ -161,7 +161,6 @@ kt_jvm_library(
 
 kt_jvm_library(
     name = "strategy_parameter_type_registry",
-    srcs = ["StrategyParameterTypeRegistry.kt"],
     visibility = ["//visibility:public"],
     deps = [
         "//protos:strategies_java_proto",

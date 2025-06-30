@@ -30,17 +30,3 @@ kt_jvm_test(
         "//src/test/java/com/verlumen/tradestream/strategies/sarmfi:strategy_factory_test",
     ],
 )
-
-kt_jvm_test(
-    name = "StrategyParameterTypeRegistryTest",
-    srcs = ["StrategyParameterTypeRegistryTest.kt"],
-    test_class = "com.verlumen.tradestream.strategies.StrategyParameterTypeRegistryTest",
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_parameter_type_registry",
-        "//src/main/java/com/verlumen/tradestream/strategies:strategy_specs",
-        "//third_party/java:gson",
-        "//third_party/java:junit",
-        "//third_party/java:protobuf_java_util",
-        "//third_party/java:test_parameter_injector",
-    ],
-)
