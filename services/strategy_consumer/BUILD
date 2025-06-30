@@ -92,6 +92,7 @@ oci_image(
     entrypoint = ["/services/strategy_consumer/app"],
     tars = [":layers"],
     user = "nobody",
+    workdir = "/services/strategy_consumer",
 )
 
 oci_image_index(
