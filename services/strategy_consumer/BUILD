@@ -91,8 +91,8 @@ oci_image(
     base = "@python_3_13_slim",
     entrypoint = ["/services/strategy_consumer/app"],
     tars = [":layers"],
-    workdir = "/services/strategy_consumer",
     user = "nobody",
+    workdir = "/services/strategy_consumer",
 )
 
 oci_image_index(
@@ -113,4 +113,4 @@ container_structure_test(
     configs = ["container-structure-test.yaml"],
     image = ":image",
     tags = ["requires-docker"],
-) 
+)

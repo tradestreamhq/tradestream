@@ -8,4 +8,4 @@ fileExistenceTests:
   - name: "Strategy consumer binary exists"
     path: "/services/strategy_consumer/app"
     shouldExist: true
-    permissions: "-rwxr-xr-x" 
+    permissions: "-rwxr-xr-x"
