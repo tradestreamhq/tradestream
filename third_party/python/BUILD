@@ -72,3 +72,19 @@ py_library(
         requirement("tenacity"),
     ],
 )
+
+py_library(
+    name = "pytest",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("pytest"),
+    ],
+)
+
+py_library(
+    name = "pytest_asyncio",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("pytest-asyncio"),
+    ],
+)

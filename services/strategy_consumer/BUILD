@@ -43,6 +43,8 @@ py_test(
     srcs = ["postgres_client_test.py"],
     deps = [
         ":postgres_client_lib",
+        "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
     ],
 )
 
@@ -51,6 +53,8 @@ py_test(
     srcs = ["kafka_consumer_test.py"],
     deps = [
         ":kafka_consumer_lib",
+        "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
     ],
 )
 
@@ -71,6 +75,8 @@ py_test(
         ":kafka_consumer_lib",
         ":postgres_client_lib",
         "//third_party/python:absl_py",
+        "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
     ],
 )
 
@@ -85,6 +91,8 @@ oci_image(
     base = "@python_3_13_slim",
     entrypoint = ["/services/strategy_consumer/app"],
     tars = [":layers"],
+    workdir = "/services/strategy_consumer",
+    user = "nobody",
 )
 
 oci_image_index(
