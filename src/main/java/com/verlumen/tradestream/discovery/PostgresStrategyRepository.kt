@@ -142,8 +142,13 @@ class PostgresStrategyRepository
             // Parse parameters JSON and decode base64
             val jsonObj = JSONObject(parametersJson)
             val base64 = jsonObj.getString("base64_data")
-            val bytes = java.util.Base64.getDecoder().decode(base64)
-            val parametersAny = com.google.protobuf.Any.parseFrom(bytes)
+            val bytes =
+                java.util.Base64
+                    .getDecoder()
+                    .decode(base64)
+            val parametersAny =
+                com.google.protobuf.Any
+                    .parseFrom(bytes)
 
             // Build Strategy proto
             val strategy =
