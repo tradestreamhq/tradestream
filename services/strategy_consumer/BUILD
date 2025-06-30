@@ -113,4 +113,4 @@ container_structure_test(
     configs = ["container-structure-test.yaml"],
     image = ":image",
     tags = ["requires-docker"],
-) 
+)
