@@ -10,6 +10,14 @@ py_library(
 )
 
 py_library(
+    name = "asyncpg",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("asyncpg"),
+    ],
+)
+
+py_library(
     name = "ccxt",
     visibility = ["//visibility:public"],
     deps = [

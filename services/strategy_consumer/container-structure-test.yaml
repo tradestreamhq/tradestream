@@ -1,0 +1,50 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/strategy_consumer"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "Strategy consumer binary exists"
+    path: "/services/strategy_consumer/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
+
+  - name: "Python files exist"
+    path: "/services/strategy_consumer/main.py"
+    shouldExist: true
+    permissions: "-rw-r--r--"
+
+  - name: "PostgreSQL client exists"
+    path: "/services/strategy_consumer/postgres_client.py"
+    shouldExist: true
+    permissions: "-rw-r--r--"
+
+  - name: "Kafka consumer exists"
+    path: "/services/strategy_consumer/kafka_consumer.py"
+    shouldExist: true
+    permissions: "-rw-r--r--"
+
+commandTests:
+  - name: "Strategy consumer help"
+    command: "/services/strategy_consumer/app"
+    args: ["--help"]
+    expectedOutput: ["usage:"]
+    exitCode: 0
+
+  - name: "Strategy consumer version check"
+    command: "/services/strategy_consumer/app"
+    args: ["--version"]
+    exitCode: [0, 1]  # Either success or help output
+
+  - name: "Python import test"
+    command: "python3"
+    args: ["-c", "import services.strategy_consumer.main; print('Import successful')"]
+    expectedOutput: ["Import successful"]
+    exitCode: 0
+
+  - name: "Dependencies import test"
+    command: "python3"
+    args: ["-c", "import asyncpg, kafka, absl; print('All dependencies available')"]
+    expectedOutput: ["All dependencies available"]
+    exitCode: 0 

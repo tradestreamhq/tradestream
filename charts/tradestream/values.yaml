@@ -306,3 +306,51 @@ strategyDiscoveryRequestFactory:
     limits:
       cpu: "200m"
       memory: "512Mi"
+
+# Strategy Consumer CronJob configuration
+strategyConsumer:
+  enabled: true
+  schedule: "*/1 * * * *" # Run every 1 minute
+  startingDeadlineSeconds: 300 # Add deadline to prevent too many missed start times
+  image:
+    repository: "tradestreamhq/strategy-consumer"
+    pullPolicy: IfNotPresent
+    tag: "v2.45.55-develop"
+  concurrencyPolicy: "Allow" # Allow simultaneous instances as requested
+  failedJobsHistoryLimit: 2
+  successfulJobsHistoryLimit: 3
+  job:
+    backoffLimit: 2
+    ttlSecondsAfterFinished: 3600 # Cleans up finished jobs after 1 hour
+    restartPolicy: "OnFailure"
+  config:
+    # Kafka Configuration
+    kafkaBootstrapServers: '{{ include "tradestream.fullname" . }}-kafka:9092'
+    kafkaTopic: "discovered-strategies"
+    kafkaGroupId: "strategy_consumer_group"
+    kafkaAutoOffsetReset: "latest"
+    # Processing Configuration
+    batchSize: 100
+    pollTimeoutMs: 1000
+    idleTimeoutSeconds: 60
+    maxProcessingTimeSeconds: 300
+    # Connection Configuration
+    postgresMinConnections: 1
+    postgresMaxConnections: 10
+  # Database configuration - uses the PostgreSQL chart
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    # Reference the auto-generated PostgreSQL secret
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
