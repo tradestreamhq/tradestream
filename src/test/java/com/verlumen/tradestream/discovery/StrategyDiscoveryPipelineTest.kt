@@ -48,6 +48,12 @@ class StrategyDiscoveryPipelineTest {
     @Bind @Mock
     lateinit var mockDiscoveryRequestSourceFactory: DiscoveryRequestSourceFactory
 
+    @Bind @Mock
+    lateinit var mockWriteDiscoveredStrategiesToKafkaFactory: WriteDiscoveredStrategiesToKafkaFactory
+
+    @Bind @Mock
+    lateinit var mockStrategyRepositoryFactory: StrategyRepository.Factory
+
     // Additional mocks for testing
     @Mock
     lateinit var mockRunGAFn: RunGADiscoveryFn

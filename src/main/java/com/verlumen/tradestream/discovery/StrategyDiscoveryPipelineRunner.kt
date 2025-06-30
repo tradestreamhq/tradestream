@@ -43,6 +43,7 @@ class StrategyDiscoveryPipelineRunner {
             data class PipelineComponents(
                 val pipeline: StrategyDiscoveryPipeline,
                 val candleFetcher: CandleFetcher,
+                val sinkParams: DiscoveredStrategySinkParams,
             )
 
             /**
@@ -51,8 +52,9 @@ class StrategyDiscoveryPipelineRunner {
             fun create(options: StrategyDiscoveryPipelineOptions): PipelineComponents {
                 val pipeline = pipelineProvider.get()
                 val candleFetcher = createCandleFetcher(options)
+                val sinkParams = createSinkParams(options)
 
-                return PipelineComponents(pipeline, candleFetcher)
+                return PipelineComponents(pipeline, candleFetcher, sinkParams)
             }
 
             private fun createCandleFetcher(options: StrategyDiscoveryPipelineOptions): CandleFetcher {
@@ -71,6 +73,14 @@ class StrategyDiscoveryPipelineRunner {
                 val influxDbFactory = influxDbCandleFetcherFactoryProvider.get()
                 return influxDbFactory.create(influxDbConfig)
             }
+
+            private fun createSinkParams(options: StrategyDiscoveryPipelineOptions): DiscoveredStrategySinkParams =
+                if (options.dryRun) {
+                    DiscoveredStrategySinkParams.DryRun
+                } else {
+                    val kafkaTopic = "discovered-strategies"
+                    DiscoveredStrategySinkParams.Kafka(options.kafkaBootstrapServers, kafkaTopic)
+                }
         }
 
     companion object {
@@ -135,7 +145,7 @@ class StrategyDiscoveryPipelineRunner {
             val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
             val components = factory.create(options)
 
-            components.pipeline.run(options, components.candleFetcher)
+            components.pipeline.run(options, components.candleFetcher, components.sinkParams)
         }
     }
 }

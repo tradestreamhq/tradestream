@@ -73,21 +73,6 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
-    name = "discovered_strategy_sink_factory_impl",
-    srcs = ["DiscoveredStrategySinkFactoryImpl.kt"],
-    deps = [
-        ":discovered_strategy_sink",
-        ":discovered_strategy_sink_params",
-        ":dry_run_discovered_strategy_sink",
-        ":strategy_repository",
-        ":write_discovered_strategies_to_kafka_fn",
-        ":write_discovered_strategies_to_postgres_fn",
-        "//third_party/java:flogger",
-        "//third_party/java:guice",
-    ],
-)
-
-kt_jvm_library(
     name = "write_discovered_strategies_to_kafka_fn",
     srcs = ["WriteDiscoveredStrategiesToKafkaFn.kt"],
     deps = [
@@ -108,7 +93,6 @@ kt_jvm_library(
     srcs = ["DiscoveryModule.kt"],
     deps = [
         ":discovered_strategy_sink",
-        ":discovered_strategy_sink_factory_impl",
         ":discovered_strategy_sink_params",
         ":discovery_request_source",
         ":dry_run_candle_fetcher",
@@ -122,6 +106,7 @@ kt_jvm_library(
         ":genotype_converter_impl",
         ":kafka_discovery_request_source",
         ":run_ga_discovery_fn",
+        ":sink_resolver",
         ":strategy_discovery_pipeline",
         ":temporary_currency_pair_module",
         ":write_discovered_strategies_to_kafka_fn",
@@ -398,6 +383,21 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
+    name = "sink_resolver",
+    srcs = ["SinkResolver.kt"],
+    deps = [
+        ":discovered_strategy_sink",
+        ":discovered_strategy_sink_params", 
+        ":dry_run_discovered_strategy_sink",
+        ":strategy_repository",
+        ":write_discovered_strategies_to_kafka_fn",
+        ":write_discovered_strategies_to_postgres_fn",
+        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//third_party/java:guice",
+    ],
+)
+
+kt_jvm_library(
     name = "strategy_discovery_pipeline",
     srcs = [
         "StrategyDiscoveryPipeline.kt",
@@ -407,6 +407,7 @@ kt_jvm_library(
         ":discovery_request_source",
         ":extract_discovered_strategies_fn",
         ":run_ga_discovery_fn",
+        ":sink_resolver",
         ":strategy_discovery_pipeline_options",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",

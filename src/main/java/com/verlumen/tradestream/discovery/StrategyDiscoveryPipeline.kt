@@ -22,25 +22,17 @@ class StrategyDiscoveryPipeline
     constructor(
         private val runGADiscoveryFnFactory: RunGADiscoveryFnFactory,
         private val extractFn: ExtractDiscoveredStrategiesFn,
-        private val sinkFactory: DiscoveredStrategySinkFactory,
+        private val sinkResolver: SinkResolver,
         private val discoveryRequestSourceFactory: DiscoveryRequestSourceFactory,
     ) {
         fun run(
             options: StrategyDiscoveryPipelineOptions,
             candleFetcher: CandleFetcher,
+            sinkParams: DiscoveredStrategySinkParams,
         ) {
             val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
             val runGaFn = runGADiscoveryFnFactory.create(candleFetcher)
-
-            // Create appropriate sink based on dry-run mode
-            val sinkParams =
-                if (options.dryRun) {
-                    DiscoveredStrategySinkParams.DryRun
-                } else {
-                    val kafkaTopic = "discovered-strategies"
-                    DiscoveredStrategySinkParams.Kafka(options.kafkaBootstrapServers, kafkaTopic)
-                }
-            val sink = sinkFactory.create(sinkParams)
+            val sink = sinkResolver.resolve(sinkParams)
 
             val pipeline = Pipeline.create(options)
 
@@ -48,9 +40,8 @@ class StrategyDiscoveryPipeline
                 .apply("ReadDiscoveryRequests", discoveryRequestSource)
                 .apply("RunGAStrategyDiscovery", ParDo.of(runGaFn))
                 .apply("ExtractStrategies", ParDo.of(extractFn))
-                .apply("WriteToKafka", ParDo.of(sink))
+                .apply("WriteToSink", ParDo.of(sink))
 
-            // For detached execution, just run the pipeline without waiting
             pipeline.run()
         }
 

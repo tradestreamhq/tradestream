@@ -27,7 +27,13 @@ class DiscoveryModule : AbstractModule() {
                     KafkaDiscoveryRequestSource::class.java,
                 ).build(DiscoveryRequestSourceFactory::class.java),
         )
-        bind(DiscoveredStrategySinkFactory::class.java).to(DiscoveredStrategySinkFactoryImpl::class.java)
+        install(
+            FactoryModuleBuilder()
+                .implement(
+                    WriteDiscoveredStrategiesToKafkaFn::class.java,
+                    WriteDiscoveredStrategiesToKafkaFn::class.java,
+                ).build(WriteDiscoveredStrategiesToKafkaFactory::class.java),
+        )
         bind(StrategyRepository.Factory::class.java).to(PostgresStrategyRepository.Factory::class.java)
     }
 }
@@ -42,7 +48,6 @@ class DryRunDiscoveryModule : AbstractModule() {
                     DryRunDiscoveryRequestSource::class.java,
                 ).build(DiscoveryRequestSourceFactory::class.java),
         )
-        bind(DiscoveredStrategySinkFactory::class.java).to(DiscoveredStrategySinkFactoryImpl::class.java)
         bind(StrategyRepository.Factory::class.java).to(DryRunStrategyRepository.Factory::class.java)
     }
 }
