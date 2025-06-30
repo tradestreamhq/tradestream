@@ -3,7 +3,6 @@ package com.verlumen.tradestream.discovery
 import com.google.common.flogger.FluentLogger
 import com.google.inject.Inject
 import com.verlumen.tradestream.marketdata.CandleFetcher
-import com.verlumen.tradestream.sql.DataSourceConfig
 import org.apache.beam.sdk.Pipeline
 import org.apache.beam.sdk.transforms.ParDo
 
@@ -14,7 +13,7 @@ import org.apache.beam.sdk.transforms.ParDo
  * 1. Read discovery requests from source (e.g., Kafka)
  * 2. Run GA optimization for each request
  * 3. Extract discovered strategies
- * 4. Persist strategies to PostgreSQL
+ * 4. Write strategies to Kafka topic
  *
  * All transforms arrive through the factory pattern with Guice.
  */
@@ -30,25 +29,17 @@ class StrategyDiscoveryPipeline
             options: StrategyDiscoveryPipelineOptions,
             candleFetcher: CandleFetcher,
         ) {
-            val username = requireNotNull(options.databaseUsername) { "Database username is required." }
-            val password = requireNotNull(options.databasePassword) { "Database password is required." }
-
-            val dataSourceConfig =
-                DataSourceConfig(
-                    serverName = options.dbServerName,
-                    databaseName = options.dbDatabaseName,
-                    username = username,
-                    password = password,
-                    portNumber = options.dbPortNumber,
-                    applicationName = null,
-                    connectTimeout = null,
-                    socketTimeout = null,
-                    readOnly = null,
-                )
-
             val discoveryRequestSource = discoveryRequestSourceFactory.create(options)
             val runGaFn = runGADiscoveryFnFactory.create(candleFetcher)
-            val sink = sinkFactory.create(dataSourceConfig)
+            
+            // Create appropriate sink based on dry-run mode
+            val sinkParams = if (options.dryRun) {
+                DiscoveredStrategySinkParams.DryRun
+            } else {
+                val kafkaTopic = "discovered-strategies"
+                DiscoveredStrategySinkParams.Kafka(options.kafkaBootstrapServers, kafkaTopic)
+            }
+            val sink = sinkFactory.create(sinkParams)
 
             val pipeline = Pipeline.create(options)
 
@@ -56,7 +47,7 @@ class StrategyDiscoveryPipeline
                 .apply("ReadDiscoveryRequests", discoveryRequestSource)
                 .apply("RunGAStrategyDiscovery", ParDo.of(runGaFn))
                 .apply("ExtractStrategies", ParDo.of(extractFn))
-                .apply("WriteToSink", ParDo.of(sink))
+                .apply("WriteToKafka", ParDo.of(sink))
 
             // For detached execution, just run the pipeline without waiting
             pipeline.run()
