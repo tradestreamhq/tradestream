@@ -24,3 +24,7 @@ class DryRunDiscoveredStrategySink
             private val logger = FluentLogger.forEnclosingClass()
         }
     }
+
+interface DryRunDiscoveredStrategySinkFactory {
+    fun create(dataSourceConfig: DataSourceConfig): DryRunDiscoveredStrategySink
+}
