@@ -83,3 +83,10 @@ class WriteDiscoveredStrategiesToPostgresFn
             }
         }
     }
+
+/**
+ * Factory for creating PostgreSQL sink instances.
+ */
+interface WriteDiscoveredStrategiesToPostgresFactory {
+    fun create(dataSourceConfig: com.verlumen.tradestream.sql.DataSourceConfig): WriteDiscoveredStrategiesToPostgresFn
+}

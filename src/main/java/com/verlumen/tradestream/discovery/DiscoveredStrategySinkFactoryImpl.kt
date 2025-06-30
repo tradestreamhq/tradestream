@@ -15,6 +15,9 @@ class DiscoveredStrategySinkFactoryImpl
     @Inject
     constructor(
         private val strategyRepositoryFactory: StrategyRepository.Factory,
+        private val writeDiscoveredStrategiesToPostgresFactory: WriteDiscoveredStrategiesToPostgresFactory,
+        private val writeDiscoveredStrategiesToKafkaFactory: WriteDiscoveredStrategiesToKafkaFactory,
+        private val dryRunDiscoveredStrategySinkFactory: DryRunDiscoveredStrategySinkFactory,
     ) : DiscoveredStrategySinkFactory {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
@@ -24,11 +27,11 @@ class DiscoveredStrategySinkFactoryImpl
             when (params) {
                 is DiscoveredStrategySinkParams.Postgres -> {
                     logger.atInfo().log("Creating PostgreSQL sink")
-                    WriteDiscoveredStrategiesToPostgresFn(strategyRepositoryFactory, params.config)
+                    writeDiscoveredStrategiesToPostgresFactory.create(params.config)
                 }
                 is DiscoveredStrategySinkParams.Kafka -> {
                     logger.atInfo().log("Creating Kafka sink for topic: %s", params.topic)
-                    WriteDiscoveredStrategiesToKafkaFn(params.bootstrapServers, params.topic)
+                    writeDiscoveredStrategiesToKafkaFactory.create(params.bootstrapServers, params.topic)
                 }
                 is DiscoveredStrategySinkParams.DryRun -> {
                     logger.atInfo().log("Creating dry-run sink")
@@ -45,7 +48,7 @@ class DiscoveredStrategySinkFactoryImpl
                             socketTimeout = 60,
                             readOnly = false,
                         )
-                    DryRunDiscoveredStrategySink(dummyConfig)
+                    dryRunDiscoveredStrategySinkFactory.create(dummyConfig)
                 }
             }
-    } 
+    }

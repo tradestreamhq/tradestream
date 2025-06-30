@@ -57,4 +57,4 @@ interface WriteDiscoveredStrategiesToKafkaFactory {
         kafkaBootstrapServers: String,
         topic: String,
     ): WriteDiscoveredStrategiesToKafkaFn
-} 
+}

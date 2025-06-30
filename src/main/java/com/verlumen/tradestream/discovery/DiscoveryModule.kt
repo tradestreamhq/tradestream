@@ -14,6 +14,23 @@ internal class BaseModule : AbstractModule() {
                 .implement(RunGADiscoveryFn::class.java, RunGADiscoveryFn::class.java)
                 .build(RunGADiscoveryFnFactory::class.java),
         )
+
+        // Configure sink factories
+        install(
+            FactoryModuleBuilder()
+                .implement(WriteDiscoveredStrategiesToPostgresFn::class.java, WriteDiscoveredStrategiesToPostgresFn::class.java)
+                .build(WriteDiscoveredStrategiesToPostgresFactory::class.java),
+        )
+        install(
+            FactoryModuleBuilder()
+                .implement(WriteDiscoveredStrategiesToKafkaFn::class.java, WriteDiscoveredStrategiesToKafkaFn::class.java)
+                .build(WriteDiscoveredStrategiesToKafkaFactory::class.java),
+        )
+        install(
+            FactoryModuleBuilder()
+                .implement(DryRunDiscoveredStrategySink::class.java, DryRunDiscoveredStrategySink::class.java)
+                .build(DryRunDiscoveredStrategySinkFactory::class.java),
+        )
     }
 }
 
