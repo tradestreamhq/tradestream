@@ -227,16 +227,18 @@ class StrategyDiscoveryPipelineTest {
         val discoveryRequestSource = mockDiscoveryRequestSourceFactory.create(options)
         val strategySink =
             mockStrategySinkFactory.create(
-                DataSourceConfig(
-                    serverName = options.dbServerName,
-                    databaseName = options.dbDatabaseName,
-                    username = options.databaseUsername!!,
-                    password = options.databasePassword!!,
-                    portNumber = options.dbPortNumber,
-                    applicationName = null,
-                    connectTimeout = null,
-                    socketTimeout = null,
-                    readOnly = null,
+                DiscoveredStrategySinkParams.Postgres(
+                    DataSourceConfig(
+                        serverName = options.dbServerName,
+                        databaseName = options.dbDatabaseName,
+                        username = options.databaseUsername!!,
+                        password = options.databasePassword!!,
+                        portNumber = options.dbPortNumber,
+                        applicationName = null,
+                        connectTimeout = null,
+                        socketTimeout = null,
+                        readOnly = null,
+                    ),
                 ),
             )
 
@@ -253,16 +255,18 @@ class StrategyDiscoveryPipelineTest {
         val requestSource = mockDiscoveryRequestSourceFactory.create(options)
         val strategySink =
             mockStrategySinkFactory.create(
-                DataSourceConfig(
-                    serverName = options.dbServerName,
-                    databaseName = options.dbDatabaseName,
-                    username = options.databaseUsername!!,
-                    password = options.databasePassword!!,
-                    portNumber = options.dbPortNumber,
-                    applicationName = null,
-                    connectTimeout = null,
-                    socketTimeout = null,
-                    readOnly = null,
+                DiscoveredStrategySinkParams.Postgres(
+                    DataSourceConfig(
+                        serverName = options.dbServerName,
+                        databaseName = options.dbDatabaseName,
+                        username = options.databaseUsername!!,
+                        password = options.databasePassword!!,
+                        portNumber = options.dbPortNumber,
+                        applicationName = null,
+                        connectTimeout = null,
+                        socketTimeout = null,
+                        readOnly = null,
+                    ),
                 ),
             )
 
@@ -313,16 +317,18 @@ class StrategyDiscoveryPipelineTest {
         // Verify exception is propagated when factory is called
         try {
             mockStrategySinkFactory.create(
-                DataSourceConfig(
-                    serverName = "test",
-                    databaseName = "test",
-                    username = "test",
-                    password = "test",
-                    portNumber = 5432,
-                    applicationName = null,
-                    connectTimeout = null,
-                    socketTimeout = null,
-                    readOnly = null,
+                DiscoveredStrategySinkParams.Postgres(
+                    DataSourceConfig(
+                        serverName = "test",
+                        databaseName = "test",
+                        username = "test",
+                        password = "test",
+                        portNumber = 5432,
+                        applicationName = null,
+                        connectTimeout = null,
+                        socketTimeout = null,
+                        readOnly = null,
+                    ),
                 ),
             )
             fail("Should propagate write factory exceptions")
@@ -365,7 +371,7 @@ class StrategyDiscoveryPipelineTest {
 
         // Test factory calls
         val requestSource = mockDiscoveryRequestSourceFactory.create(realOptions)
-        val strategySink = mockStrategySinkFactory.create(dataSourceConfig)
+        val strategySink = mockStrategySinkFactory.create(DiscoveredStrategySinkParams.Postgres(dataSourceConfig))
 
         // Verify configuration and factory interactions
         assertThat(dataSourceConfig.serverName).isEqualTo("integration_host")
