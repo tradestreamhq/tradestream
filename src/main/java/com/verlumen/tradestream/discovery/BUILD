@@ -84,7 +84,7 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
-    name = "dry_run_sink_factory_impl", 
+    name = "dry_run_sink_factory_impl",
     srcs = ["DryRunSinkFactoryImpl.kt"],
     deps = [
         ":discovered_strategy_sink",
