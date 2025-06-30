@@ -91,7 +91,6 @@ oci_image(
     base = "@python_3_13_slim",
     entrypoint = ["/services/strategy_consumer/app"],
     tars = [":layers"],
-    workdir = "/services/strategy_consumer",
     user = "nobody",
 )
 
