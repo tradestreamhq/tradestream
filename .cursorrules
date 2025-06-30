@@ -29,6 +29,8 @@
 # - All Java code MUST be formatted using `google-java-format`. A CI check enforces this in `format-java-code.yaml`.
 # - All Kotlin code MUST be formatted using `ktlint`. A CI check enforces this in `format-kotlin-code.yaml`.
 # - Dependency injection is managed via Guice. All major components (services, factories, etc.) should be bound in their respective Guice modules (e.g., `DiscoveryModule.kt` , `BacktestingModule.kt` ).
+# - For Apache Beam pipelines, AVOID Guice assisted injection - use direct injection with serializable factories
+# - ALL classes used in Beam pipelines must implement Serializable and have serialization tests
 # - For financial calculations and trading strategy implementation, use the `ta4j-core` library.
 # - The primary data processing framework is Apache Beam, running on the FlinkRunner.
 # - For logging, use `Flogger`.
@@ -77,6 +79,9 @@
 # - When creating new trading strategies, you must define a `StrategyFactory` and a `ParamConfig` and register them in `StrategySpecs.kt`.
 # - Avoid hardcoding configuration values. Use flags or environment variables, with defaults defined in the respective `main` files or Helm charts.
 # - Do not use deprecated libraries or patterns. For example, the `tiingo_client` has been replaced by the `ccxt_client` for candle data ingestion.
+# - NEVER mix test-only constructors or methods in production classes
+# - Test doubles should be separate classes, not conditional logic in production code
+# - Production classes should have a single, clean constructor without nullable dependencies for testing
 
 # =========================================
 # 7. Trading Strategy Implementation (CRITICAL)
@@ -210,7 +215,56 @@
 # - DO NOT use incorrect proto field names (check generated classes)
 
 # =========================================
-# 8. Formatting and Code Quality (MANDATORY)
+# 8. Apache Beam & Distributed Processing (CRITICAL)
+# =========================================
+# All classes used in Apache Beam pipelines MUST be fully serializable for distributed processing on Flink.
+
+# -----------------------------------------
+# 8.1. Serialization Requirements
+# -----------------------------------------
+# - ALL DoFn classes, transforms, and their dependencies MUST implement `Serializable`
+# - ALL factory classes injected into Beam pipelines MUST implement `Serializable` 
+# - Add `private static final long serialVersionUID = 1L;` to all serializable classes
+# - NEVER use Guice's assisted injection (`@Assisted`, `FactoryModuleBuilder`) in Beam pipelines - Guice's `FactoryProvider2` is NOT serializable
+# - Use direct dependency injection with serializable factories instead
+
+# -----------------------------------------
+# 8.2. Mandatory Serialization Testing
+# -----------------------------------------
+# Create serialization tests for ALL Beam pipeline classes:
+# ```java
+# @Test
+# public void testClassIsSerializable() {
+#     MyBeamClass instance = new MyBeamClass(dependencies...);
+#     byte[] serialized = serialize(instance);
+#     MyBeamClass deserialized = deserialize(serialized);
+#     assertThat(deserialized).isNotNull();
+# }
+# ```
+
+# -----------------------------------------
+# 8.3. Correct Patterns for Beam Classes
+# -----------------------------------------
+# **WRONG - Assisted Injection (Not Serializable)**:
+# ```java
+# class MyDoFn(@Assisted config: Config, factory: SomeFactory) : DoFn<>(), Serializable
+# ```
+
+# **RIGHT - Direct Injection (Serializable)**:
+# ```java  
+# class MyDoFn(factory: SerializableFactory, config: Config) : DoFn<>(), Serializable
+# ```
+
+# **Factory Pattern for Beam**:
+# ```java
+# class SerializableFactory implements SomeFactory, Serializable {
+#     private static final long serialVersionUID = 1L;
+#     // All dependencies must also be serializable
+# }
+# ```
+
+# =========================================
+# 9. Formatting and Code Quality (MANDATORY)
 # =========================================
 # After ANY code changes, you MUST run:
 # 1. `google-java-format --replace $(find . -name "*.java")` - formats all Java files
@@ -222,7 +276,7 @@
 # CI checks will fail if code is not properly formatted.
 
 # =========================================
-# 9. Error Resolution Patterns
+# 10. Error Resolution Patterns
 # =========================================
 # Common build errors and solutions:
 
@@ -233,3 +287,10 @@
 # **"ChromosomeSpec not found"**: Add `//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec` dependency
 # **"Strategy interface"**: Must implement `StrategyFactory<T>` with correct generic type
 # **"Truth assertions"**: Use `import static com.google.common.truth.Truth.assertThat;`
+# **Serialization errors in Beam pipelines**: 
+#   - Check if using assisted injection (replace with direct injection)
+#   - Verify all injected dependencies implement Serializable
+#   - Add serialization tests to catch issues early
+#   - Use `serialVersionUID` in all serializable classes
+# **"FactoryProvider2 not serializable"**: Remove @Assisted and FactoryModuleBuilder, use direct binding
+# **Test mixing with production code**: Separate test doubles into their own classes, avoid test-only constructors

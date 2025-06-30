@@ -37,6 +37,7 @@ kt_jvm_library(
     srcs = ["PostgresModule.kt"],
     visibility = [
         "//src/main/java/com/verlumen/tradestream/discovery:__pkg__",
+        "//src/test/java/com/verlumen/tradestream/discovery:__pkg__",
     ],
     deps = [
         ":postgre_sql_bulk_copier_factory",

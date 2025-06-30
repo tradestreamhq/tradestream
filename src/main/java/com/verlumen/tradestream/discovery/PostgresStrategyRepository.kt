@@ -38,7 +38,11 @@ class PostgresStrategyRepository
             constructor(
                 private val bulkCopierFactory: BulkCopierFactory,
                 private val dataSourceFactory: DataSourceFactory,
-            ) : StrategyRepository.Factory {
+            ) : StrategyRepository.Factory, Serializable {
+                companion object {
+                    private const val serialVersionUID: Long = 1L
+                }
+                
                 override fun create(dataSourceConfig: DataSourceConfig): StrategyRepository =
                     PostgresStrategyRepository(bulkCopierFactory, dataSourceFactory, dataSourceConfig)
             }

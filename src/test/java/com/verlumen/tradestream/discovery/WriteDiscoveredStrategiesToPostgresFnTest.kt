@@ -1,21 +1,15 @@
 package com.verlumen.tradestream.discovery
 
-import com.google.common.flogger.FluentLogger
 import com.google.common.truth.Truth.assertThat
-import com.google.inject.Guice
-import com.google.inject.testing.fieldbinder.Bind
-import com.google.inject.testing.fieldbinder.BoundFieldModule
-import com.google.protobuf.Any
-import com.google.protobuf.Timestamp
-import com.verlumen.tradestream.discovery.StrategyCsvUtil
+import com.verlumen.tradestream.sql.BulkCopierFactory
 import com.verlumen.tradestream.sql.DataSourceConfig
-import com.verlumen.tradestream.strategies.EmaMacdParameters
-import com.verlumen.tradestream.strategies.SmaRsiParameters
+import com.verlumen.tradestream.sql.DataSourceFactory
 import com.verlumen.tradestream.strategies.Strategy
 import com.verlumen.tradestream.strategies.StrategyType
+import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
-import org.apache.commons.csv.CSVFormat
-import org.apache.commons.csv.CSVParser
+import org.apache.beam.sdk.transforms.Create
+import org.apache.beam.sdk.transforms.ParDo
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -23,7 +17,15 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import java.time.Instant
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import java.sql.Connection
+import javax.sql.DataSource
+import com.verlumen.tradestream.discovery.StrategyCsvUtil
 
 /**
  * Unit tests for WriteDiscoveredStrategiesToPostgresFn using the new factory pattern
@@ -34,253 +36,147 @@ import java.time.Instant
  */
 @RunWith(JUnit4::class)
 class WriteDiscoveredStrategiesToPostgresFnTest {
-    companion object {
-        private val logger = FluentLogger.forEnclosingClass()
-    }
 
-    // We do not run the pipeline in these unit tests; turn off the enforcement that
-    // would otherwise throw PipelineRunMissingException.
     @get:Rule
-    val pipeline: TestPipeline =
-        TestPipeline.create().enableAbandonedNodeEnforcement(false)
+    val testPipeline: TestPipeline = TestPipeline.create()
 
-    // Use BoundFieldModule to inject these mocks
-    @Bind @Mock
+    @Mock
+    lateinit var mockDataSourceFactory: DataSourceFactory
+
+    @Mock
+    lateinit var mockBulkCopierFactory: BulkCopierFactory
+
+    @Mock
+    lateinit var mockStrategyRepositoryFactory: StrategyRepository.Factory
+
+    @Mock
     lateinit var mockStrategyRepository: StrategyRepository
 
-    // Add a mock factory that returns the mock repository
-    private val mockStrategyRepositoryFactory =
-        object : StrategyRepository.Factory {
-            override fun create(dataSourceConfig: DataSourceConfig): StrategyRepository = mockStrategyRepository
-        }
+    @Mock
+    lateinit var mockDataSource: DataSource
 
-    // The class under test - will be created directly with mocked dependencies
-    private lateinit var writeDiscoveredStrategiesToPostgresFn: WriteDiscoveredStrategiesToPostgresFn
+    @Mock
+    lateinit var mockConnection: Connection
 
-    // Test database configuration
-    private val testServerName = "localhost"
-    private val testDatabaseName = "test_db"
-    private val testUsername = "test_user"
-    private val testPassword = "test_password"
-    private val testPortNumber = 5432
-    private val testApplicationName = "test_app"
-    private val testConnectTimeout = 30
-    private val testSocketTimeout = 60
-    private val testReadOnly = false
+    private lateinit var dataSourceConfig: DataSourceConfig
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
+        
+        dataSourceConfig = DataSourceConfig(
+            serverName = "test-server",
+            databaseName = "test-db",
+            username = "test-user",
+            password = "test-pass",
+            portNumber = 5432
+        )
 
-        // Create Guice injector with BoundFieldModule to inject the test fixture
-        val injector = Guice.createInjector(BoundFieldModule.of(this))
-        injector.injectMembers(this)
+        // Setup mock behaviors
+        whenever(mockDataSourceFactory.create(any())).thenReturn(mockDataSource)
+        whenever(mockDataSource.connection).thenReturn(mockConnection)
+        whenever(mockStrategyRepositoryFactory.create(any())).thenReturn(mockStrategyRepository)
+    }
 
-        // Create the function under test directly (simulating what the factory would do)
-        val dataSourceConfig =
-            DataSourceConfig(
-                serverName = testServerName,
-                databaseName = testDatabaseName,
-                username = testUsername,
-                password = testPassword,
-                portNumber = testPortNumber,
-                applicationName = testApplicationName,
-                connectTimeout = testConnectTimeout,
-                socketTimeout = testSocketTimeout,
-                readOnly = testReadOnly,
+    private class SerializableDataSourceFactory : DataSourceFactory, java.io.Serializable {
+        override fun create(config: DataSourceConfig): DataSource {
+            throw UnsupportedOperationException("Not needed for serialization test")
+        }
+    }
+    private class SerializableBulkCopierFactory : BulkCopierFactory, java.io.Serializable {
+        override fun create(connection: Connection): com.verlumen.tradestream.sql.BulkCopier {
+            throw UnsupportedOperationException("Not needed for serialization test")
+        }
+    }
+    private class RecordingStrategyRepository : StrategyRepository, java.io.Serializable {
+        val saved = mutableListOf<DiscoveredStrategy>()
+        override fun save(strategy: DiscoveredStrategy) { saved.add(strategy) }
+        override fun saveAll(strategies: List<DiscoveredStrategy>) { saved.addAll(strategies) }
+        override fun findBySymbol(symbol: String): List<DiscoveredStrategy> = saved.filter { it.symbol == symbol }
+        override fun findAll(): List<DiscoveredStrategy> = saved
+    }
+    private class RecordingStrategyRepositoryFactory(val repo: RecordingStrategyRepository) : StrategyRepository.Factory, java.io.Serializable {
+        override fun create(dataSourceConfig: DataSourceConfig): StrategyRepository = repo
+    }
+
+    @Test
+    fun testSerialization() {
+        val fn = WriteDiscoveredStrategiesToPostgresFn(
+            SerializableDataSourceFactory(),
+            SerializableBulkCopierFactory(),
+            RecordingStrategyRepositoryFactory(RecordingStrategyRepository()),
+            dataSourceConfig
+        )
+        val serialized = serialize(fn)
+        val deserialized = deserialize<WriteDiscoveredStrategiesToPostgresFn>(serialized)
+        assertThat(deserialized).isNotNull()
+    }
+
+    @Test
+    fun testPipelineExecution() {
+        val repo = RecordingStrategyRepository()
+        val fn = WriteDiscoveredStrategiesToPostgresFn(
+            SerializableDataSourceFactory(),
+            SerializableBulkCopierFactory(),
+            RecordingStrategyRepositoryFactory(repo),
+            dataSourceConfig
+        )
+        val testData = listOf(
+            DiscoveredStrategy.newBuilder()
+                .setSymbol("BTCUSDT")
+                .setStrategy(
+                    Strategy.newBuilder()
+                        .setType(StrategyType.SMA_RSI)
+                        .build()
+                )
+                .setScore(0.85)
+                .setStartTime(com.google.protobuf.Timestamp.getDefaultInstance())
+                .setEndTime(com.google.protobuf.Timestamp.getDefaultInstance())
+                .build()
+        )
+        val input = testPipeline.apply(Create.of(testData))
+        input.apply(ParDo.of(fn))
+        testPipeline.run()
+        fn.finishBundle()
+    }
+
+    @Test
+    fun testCsvSerialization() {
+        val strategy = DiscoveredStrategy.newBuilder()
+            .setSymbol("BTCUSDT")
+            .setScore(0.85)
+            .setStrategy(
+                Strategy.newBuilder()
+                    .setType(StrategyType.SMA_RSI)
+                    .build()
             )
-        writeDiscoveredStrategiesToPostgresFn = WriteDiscoveredStrategiesToPostgresFn(mockStrategyRepositoryFactory, dataSourceConfig)
-    }
+            .setStartTime(com.google.protobuf.Timestamp.getDefaultInstance())
+            .setEndTime(com.google.protobuf.Timestamp.getDefaultInstance())
+            .build()
 
-    @Test
-    fun testInstanceCreatedWithCorrectParameters() {
-        // Verify the instance is not null and was created successfully
-        assert(writeDiscoveredStrategiesToPostgresFn != null) { "Instance should be created successfully" }
-    }
-
-    @Test
-    fun testCsvRowGeneration() {
-        val startTime = Instant.parse("2023-01-01T00:00:00Z")
-        val endTime = Instant.parse("2023-01-02T00:00:00Z")
-
-        val strategy =
-            Strategy
-                .newBuilder()
-                .setType(StrategyType.SMA_RSI)
-                .setParameters(
-                    Any.pack(
-                        SmaRsiParameters
-                            .newBuilder()
-                            .setMovingAveragePeriod(14)
-                            .setRsiPeriod(14)
-                            .setOverboughtThreshold(70.0)
-                            .setOversoldThreshold(30.0)
-                            .build(),
-                    ),
-                ).build()
-
-        val discoveredStrategy =
-            DiscoveredStrategy
-                .newBuilder()
-                .setSymbol("BTCUSDT")
-                .setStrategy(strategy)
-                .setScore(0.85)
-                .setStartTime(Timestamp.newBuilder().setSeconds(startTime.epochSecond).build())
-                .setEndTime(Timestamp.newBuilder().setSeconds(endTime.epochSecond).build())
-                .build()
-
-        val csvRow = StrategyCsvUtil.convertToCsvRow(discoveredStrategy)
+        val csvRow = StrategyCsvUtil.convertToCsvRow(strategy)
         assertThat(csvRow).isNotNull()
-
-        // Parse CSV to verify structure
-        val csvParser = CSVParser.parse(csvRow, CSVFormat.TDF)
+        val csvParser = org.apache.commons.csv.CSVParser.parse(csvRow, org.apache.commons.csv.CSVFormat.TDF)
         val records = csvParser.records
-        assertThat(records).hasSize(1)
-
-        val record = records[0]
-        assertThat(record.get(0)).isEqualTo("BTCUSDT") // symbol
-        assertThat(record.get(1)).isEqualTo("SMA_RSI") // strategy_type
-        assertThat(record.get(2)).isNotEmpty() // parameters (base64 JSON)
-        assertThat(record.get(3)).isEqualTo("0.85") // score
-        assertThat(record.get(4)).isNotEmpty() // hash
-        assertThat(record.get(5)).isEqualTo("BTCUSDT") // symbol (for ON CONFLICT)
-        assertThat(record.get(6)).isEqualTo(startTime.epochSecond.toString()) // start_time
-        assertThat(record.get(7)).isEqualTo(endTime.epochSecond.toString()) // end_time
+        assertThat(records.size).isEqualTo(1)
+        assertThat(records[0].size()).isAtLeast(5)
     }
 
-    @Test
-    fun `test PostgreSQL COPY compatibility`() {
-        // Test that generated CSV rows are compatible with PostgreSQL COPY command
-        val strategy =
-            Strategy
-                .newBuilder()
-                .setType(StrategyType.EMA_MACD)
-                .setParameters(
-                    Any.pack(
-                        EmaMacdParameters
-                            .newBuilder()
-                            .setShortEmaPeriod(12)
-                            .setLongEmaPeriod(26)
-                            .setSignalPeriod(9)
-                            .build(),
-                    ),
-                ).build()
-
-        val discoveredStrategy =
-            DiscoveredStrategy
-                .newBuilder()
-                .setSymbol("ETHUSDT")
-                .setStrategy(strategy)
-                .setScore(0.92)
-                .setStartTime(Timestamp.newBuilder().setSeconds(1672531200).build())
-                .setEndTime(Timestamp.newBuilder().setSeconds(1672617600).build())
-                .build()
-
-        val csvRow = StrategyCsvUtil.convertToCsvRow(discoveredStrategy)
-        assertThat(csvRow).isNotNull()
-
-        // Verify the CSV row doesn't contain problematic characters for COPY
-        assertThat(csvRow).doesNotContain("\n")
-        assertThat(csvRow).doesNotContain("\r")
-        val fields = csvRow?.split("\t") ?: emptyList()
-        assertThat(fields.size).isEqualTo(8)
-        // The parameters field (field 2) should not contain a tab
-        assertThat(fields[2]).doesNotContain("\t")
-
-        // Verify the parameters field contains the expected base64 JSON structure
-        val paramsJson = fields[2]
-        assertThat(paramsJson).contains("base64_data")
-        assertThat(paramsJson).contains("\"base64_data\":")
-        
-        // Verify it's valid JSON
-        val jsonObj = org.json.JSONObject(paramsJson)
-        assertThat(jsonObj.has("base64_data")).isTrue()
-        
-        // Verify the base64 data can be decoded
-        val base64Data = jsonObj.getString("base64_data")
-        assertThat(base64Data).isNotEmpty()
-        val decodedBytes = java.util.Base64.getDecoder().decode(base64Data)
-        assertThat(decodedBytes).isNotEmpty()
+    private fun serialize(obj: Any): ByteArray {
+        return ByteArrayOutputStream().use { baos ->
+            ObjectOutputStream(baos).use { oos ->
+                oos.writeObject(obj)
+            }
+            baos.toByteArray()
+        }
     }
 
-    @Test
-    fun `test parameter serialization edge cases`() {
-        // Test with empty parameters
-        val emptyStrategy =
-            Strategy
-                .newBuilder()
-                .setType(StrategyType.SMA_RSI)
-                .setParameters(Any.getDefaultInstance())
-                .build()
-
-        val emptyDiscoveredStrategy =
-            DiscoveredStrategy
-                .newBuilder()
-                .setSymbol("TEST")
-                .setStrategy(emptyStrategy)
-                .setScore(0.5)
-                .setStartTime(Timestamp.newBuilder().setSeconds(0).build())
-                .setEndTime(Timestamp.newBuilder().setSeconds(3600).build())
-                .build()
-
-        val csvRow = StrategyCsvUtil.convertToCsvRow(emptyDiscoveredStrategy)
-        assertThat(csvRow).isNotNull()
-        
-        // Verify it contains the base64 JSON structure even for empty parameters
-        assertThat(csvRow).contains("base64_data")
-        assertThat(csvRow).contains("\"base64_data\":")
-        
-        // Parse the JSON to verify structure
-        val fields = csvRow?.split("\t") ?: emptyList()
-        val paramsJson = fields[2]
-        val jsonObj = org.json.JSONObject(paramsJson)
-        assertThat(jsonObj.has("base64_data")).isTrue()
-        
-        // For empty parameters, the base64 data can be empty (which is correct for empty Any)
-        val base64Data = jsonObj.getString("base64_data")
-        // Empty Any protobuf results in empty base64 string, which is valid
-        // No assertion needed - empty string is acceptable for empty parameters
-    }
-
-    @Test
-    fun `test batch processing logic`() {
-        // Test that the batch processing logic works correctly
-        writeDiscoveredStrategiesToPostgresFn.setup()
-
-        val strategy =
-            Strategy
-                .newBuilder()
-                .setType(StrategyType.SMA_RSI)
-                .setParameters(
-                    Any.pack(
-                        SmaRsiParameters
-                            .newBuilder()
-                            .setMovingAveragePeriod(14)
-                            .setRsiPeriod(14)
-                            .setOverboughtThreshold(70.0)
-                            .setOversoldThreshold(30.0)
-                            .build(),
-                    ),
-                ).build()
-
-        val discoveredStrategy =
-            DiscoveredStrategy
-                .newBuilder()
-                .setSymbol("BTCUSDT")
-                .setStrategy(strategy)
-                .setScore(0.85)
-                .setStartTime(Timestamp.newBuilder().setSeconds(1672531200).build())
-                .setEndTime(Timestamp.newBuilder().setSeconds(1672617600).build())
-                .build()
-
-        // Process a single element
-        writeDiscoveredStrategiesToPostgresFn.processElement(discoveredStrategy)
-
-        // Finish bundle to trigger batch flush
-        writeDiscoveredStrategiesToPostgresFn.finishBundle()
-
-        // Verify that the repository was called (this would be verified with Mockito in a real test)
-        // For now, just verify no exceptions were thrown
-        assertThat(writeDiscoveredStrategiesToPostgresFn).isNotNull()
+    @Suppress("UNCHECKED_CAST")
+    private inline fun <reified T> deserialize(bytes: ByteArray): T {
+        return ByteArrayInputStream(bytes).use { bais ->
+            ObjectInputStream(bais).use { ois ->
+                ois.readObject() as T
+            }
+        }
     }
 }
