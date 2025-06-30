@@ -22,9 +22,7 @@ from tenacity import (
 kafka_retry_params = dict(
     stop=stop_after_attempt(5),
     wait=wait_exponential(multiplier=1, min=2, max=30),
-    retry=retry_if_exception_type(
-        (KafkaError, NoBrokersAvailable, ConnectionError)
-    ),
+    retry=retry_if_exception_type((KafkaError, NoBrokersAvailable, ConnectionError)),
     reraise=True,
 )
 
@@ -55,17 +53,19 @@ class StrategyKafkaConsumer:
         self.heartbeat_interval_ms = heartbeat_interval_ms
         self.max_poll_records = max_poll_records
         self.max_poll_interval_ms = max_poll_interval_ms
-        
+
         self.consumer: Optional[KafkaConsumer] = None
         self.is_running = False
-        self.processor_callback: Optional[Callable[[List[dict]], Awaitable[None]]] = None
+        self.processor_callback: Optional[Callable[[List[dict]], Awaitable[None]]] = (
+            None
+        )
 
     @retry(**kafka_retry_params)
     def connect(self) -> None:
         """Establish connection to Kafka."""
         try:
             logging.info(f"Connecting to Kafka at {self.bootstrap_servers}")
-            
+
             self.consumer = KafkaConsumer(
                 self.topic,
                 bootstrap_servers=self.bootstrap_servers,
@@ -77,11 +77,11 @@ class StrategyKafkaConsumer:
                 heartbeat_interval_ms=self.heartbeat_interval_ms,
                 max_poll_records=self.max_poll_records,
                 max_poll_interval_ms=self.max_poll_interval_ms,
-                value_deserializer=lambda m: m.decode('utf-8') if m else None,
-                key_deserializer=lambda m: m.decode('utf-8') if m else None,
+                value_deserializer=lambda m: m.decode("utf-8") if m else None,
+                key_deserializer=lambda m: m.decode("utf-8") if m else None,
                 consumer_timeout_ms=1000,  # 1 second timeout for polling
             )
-            
+
             logging.info(f"Successfully connected to Kafka topic: {self.topic}")
         except Exception as e:
             logging.error(f"Failed to connect to Kafka: {e}")
@@ -94,62 +94,64 @@ class StrategyKafkaConsumer:
             self.consumer.close()
             logging.info("Kafka consumer closed")
 
-    def set_processor_callback(self, callback: Callable[[List[dict]], Awaitable[None]]) -> None:
+    def set_processor_callback(
+        self, callback: Callable[[List[dict]], Awaitable[None]]
+    ) -> None:
         """Set the callback function to process strategies."""
         self.processor_callback = callback
 
     def _parse_strategy_message(self, message: str) -> Optional[dict]:
         """
         Parse a strategy message from Kafka.
-        
+
         Args:
             message: JSON string containing strategy data
-            
+
         Returns:
             Parsed strategy dictionary or None if parsing fails
         """
         try:
             strategy_data = json.loads(message)
-            
+
             # Extract required fields
             strategy = {
-                'symbol': strategy_data.get('symbol', ''),
-                'strategy_type': strategy_data.get('strategy_type', ''),
-                'current_score': strategy_data.get('current_score', 0.0),
-                'strategy_hash': strategy_data.get('strategy_hash', ''),
-                'discovery_symbol': strategy_data.get('discovery_symbol', ''),
-                'discovery_start_time': strategy_data.get('discovery_start_time'),
-                'discovery_end_time': strategy_data.get('discovery_end_time'),
+                "symbol": strategy_data.get("symbol", ""),
+                "strategy_type": strategy_data.get("strategy_type", ""),
+                "current_score": strategy_data.get("current_score", 0.0),
+                "strategy_hash": strategy_data.get("strategy_hash", ""),
+                "discovery_symbol": strategy_data.get("discovery_symbol", ""),
+                "discovery_start_time": strategy_data.get("discovery_start_time"),
+                "discovery_end_time": strategy_data.get("discovery_end_time"),
             }
-            
+
             # Parse strategy parameters
-            if 'strategy' in strategy_data:
-                strategy_obj = strategy_data['strategy']
-                if 'parameters' in strategy_obj:
+            if "strategy" in strategy_data:
+                strategy_obj = strategy_data["strategy"]
+                if "parameters" in strategy_obj:
                     # Handle protobuf Any field
-                    parameters = strategy_obj['parameters']
-                    if 'type_url' in parameters and 'value' in parameters:
+                    parameters = strategy_obj["parameters"]
+                    if "type_url" in parameters and "value" in parameters:
                         # This is a protobuf Any field, extract the actual parameters
                         try:
                             # For now, we'll store the raw protobuf data
                             # In a real implementation, you'd unpack this based on type_url
-                            strategy['parameters'] = {
-                                'protobuf_type': parameters.get('type_url', ''),
-                                'protobuf_data': parameters.get('value', ''),
-                                'raw_parameters': parameters
+                            strategy["parameters"] = {
+                                "protobuf_type": parameters.get("type_url", ""),
+                                "protobuf_data": parameters.get("value", ""),
+                                "raw_parameters": parameters,
                             }
                         except Exception as e:
                             logging.warning(f"Failed to parse protobuf parameters: {e}")
-                            strategy['parameters'] = parameters
+                            strategy["parameters"] = parameters
                     else:
-                        strategy['parameters'] = parameters
+                        strategy["parameters"] = parameters
                 else:
-                    strategy['parameters'] = {}
+                    strategy["parameters"] = {}
             else:
-                strategy['parameters'] = {}
-            
+                strategy["parameters"] = {}
+
             return strategy
-            
+
         except json.JSONDecodeError as e:
             logging.error(f"Failed to parse JSON message: {e}")
             return None
@@ -168,10 +170,12 @@ class StrategyKafkaConsumer:
         except Exception as e:
             logging.error(f"Error processing messages: {e}")
 
-    async def consume_messages(self, batch_size: int = 100, timeout_ms: int = 1000) -> None:
+    async def consume_messages(
+        self, batch_size: int = 100, timeout_ms: int = 1000
+    ) -> None:
         """
         Consume messages from Kafka in batches.
-        
+
         Args:
             batch_size: Maximum number of messages to process in a batch
             timeout_ms: Timeout for polling messages
@@ -186,13 +190,13 @@ class StrategyKafkaConsumer:
             while self.is_running:
                 # Poll for messages
                 message_batch = self.consumer.poll(timeout_ms=timeout_ms)
-                
+
                 if not message_batch:
                     # No messages available, continue polling
                     continue
 
                 strategies = []
-                
+
                 # Process messages from all partitions
                 for tp, messages in message_batch.items():
                     for message in messages:
@@ -201,12 +205,12 @@ class StrategyKafkaConsumer:
                                 strategy = self._parse_strategy_message(message.value)
                                 if strategy:
                                     strategies.append(strategy)
-                                    
+
                                     if len(strategies) >= batch_size:
                                         # Process batch and continue
                                         await self._process_messages(strategies)
                                         strategies = []
-                                        
+
                         except Exception as e:
                             logging.error(f"Error processing message: {e}")
                             continue
@@ -235,20 +239,17 @@ class StrategyKafkaConsumer:
         try:
             # Get topic partitions
             partitions = self.consumer.partitions_for_topic(self.topic)
-            
+
             # Get beginning and end offsets for each partition
             topic_info = {
-                'topic': self.topic,
-                'partitions': len(partitions) if partitions else 0,
-                'group_id': self.group_id,
-                'consumer_id': self.consumer.config.get('client_id', 'unknown'),
+                "topic": self.topic,
+                "partitions": len(partitions) if partitions else 0,
+                "group_id": self.group_id,
+                "consumer_id": self.consumer.config.get("client_id", "unknown"),
             }
-            
+
             return topic_info
-            
+
         except Exception as e:
             logging.error(f"Failed to get topic info: {e}")
-            return {
-                'topic': self.topic,
-                'error': str(e)
-            } 
+            return {"topic": self.topic, "error": str(e)}

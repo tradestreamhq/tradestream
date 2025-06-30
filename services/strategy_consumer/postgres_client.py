@@ -63,7 +63,7 @@ class PostgresClient:
             logging.info(
                 f"Connecting to PostgreSQL at {self.host}:{self.port}/{self.database}"
             )
-            
+
             self.pool = await asyncpg.create_pool(
                 host=self.host,
                 port=self.port,
@@ -74,14 +74,14 @@ class PostgresClient:
                 max_size=self.max_connections,
                 command_timeout=60,
                 server_settings={
-                    'application_name': 'strategy_consumer',
-                }
+                    "application_name": "strategy_consumer",
+                },
             )
-            
+
             # Test the connection
             async with self.pool.acquire() as conn:
                 await conn.execute("SELECT 1")
-            
+
             logging.info("Successfully connected to PostgreSQL")
         except Exception as e:
             logging.error(f"Failed to connect to PostgreSQL: {e}")
@@ -133,10 +133,10 @@ class PostgresClient:
     async def insert_strategies(self, strategies: List[dict]) -> int:
         """
         Insert or update strategies in the database.
-        
+
         Args:
             strategies: List of strategy dictionaries
-            
+
         Returns:
             Number of strategies processed
         """
@@ -159,31 +159,31 @@ class PostgresClient:
         """
 
         processed_count = 0
-        
+
         async with self.pool.acquire() as conn:
             async with conn.transaction():
                 for strategy in strategies:
                     try:
                         # Extract values from strategy dict
-                        symbol = strategy.get('symbol', '')
-                        strategy_type = strategy.get('strategy_type', '')
-                        parameters = strategy.get('parameters', {})
-                        current_score = strategy.get('current_score', 0.0)
-                        strategy_hash = strategy.get('strategy_hash', '')
-                        discovery_symbol = strategy.get('discovery_symbol', '')
-                        
+                        symbol = strategy.get("symbol", "")
+                        strategy_type = strategy.get("strategy_type", "")
+                        parameters = strategy.get("parameters", {})
+                        current_score = strategy.get("current_score", 0.0)
+                        strategy_hash = strategy.get("strategy_hash", "")
+                        discovery_symbol = strategy.get("discovery_symbol", "")
+
                         # Parse timestamps
                         discovery_start_time = None
                         discovery_end_time = None
-                        
-                        if strategy.get('discovery_start_time'):
+
+                        if strategy.get("discovery_start_time"):
                             discovery_start_time = datetime.fromisoformat(
-                                strategy['discovery_start_time'].replace('Z', '+00:00')
+                                strategy["discovery_start_time"].replace("Z", "+00:00")
                             )
-                        
-                        if strategy.get('discovery_end_time'):
+
+                        if strategy.get("discovery_end_time"):
                             discovery_end_time = datetime.fromisoformat(
-                                strategy['discovery_end_time'].replace('Z', '+00:00')
+                                strategy["discovery_end_time"].replace("Z", "+00:00")
                             )
 
                         # Execute the upsert
@@ -198,11 +198,13 @@ class PostgresClient:
                             discovery_start_time,
                             discovery_end_time,
                         )
-                        
+
                         processed_count += 1
-                        
+
                     except Exception as e:
-                        logging.error(f"Failed to insert strategy {strategy.get('symbol', 'unknown')}: {e}")
+                        logging.error(
+                            f"Failed to insert strategy {strategy.get('symbol', 'unknown')}: {e}"
+                        )
                         # Continue with other strategies instead of failing the entire batch
                         continue
 
@@ -234,21 +236,39 @@ class PostgresClient:
 
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(query, symbol)
-            
+
             strategies = []
             for row in rows:
                 strategy = {
-                    'symbol': row['symbol'],
-                    'strategy_type': row['strategy_type'],
-                    'parameters': json.loads(row['parameters']) if row['parameters'] else {},
-                    'current_score': row['current_score'],
-                    'strategy_hash': row['strategy_hash'],
-                    'discovery_symbol': row['discovery_symbol'],
-                    'discovery_start_time': row['discovery_start_time'].isoformat() if row['discovery_start_time'] else None,
-                    'discovery_end_time': row['discovery_end_time'].isoformat() if row['discovery_end_time'] else None,
-                    'first_discovered_at': row['first_discovered_at'].isoformat() if row['first_discovered_at'] else None,
-                    'last_evaluated_at': row['last_evaluated_at'].isoformat() if row['last_evaluated_at'] else None,
+                    "symbol": row["symbol"],
+                    "strategy_type": row["strategy_type"],
+                    "parameters": (
+                        json.loads(row["parameters"]) if row["parameters"] else {}
+                    ),
+                    "current_score": row["current_score"],
+                    "strategy_hash": row["strategy_hash"],
+                    "discovery_symbol": row["discovery_symbol"],
+                    "discovery_start_time": (
+                        row["discovery_start_time"].isoformat()
+                        if row["discovery_start_time"]
+                        else None
+                    ),
+                    "discovery_end_time": (
+                        row["discovery_end_time"].isoformat()
+                        if row["discovery_end_time"]
+                        else None
+                    ),
+                    "first_discovered_at": (
+                        row["first_discovered_at"].isoformat()
+                        if row["first_discovered_at"]
+                        else None
+                    ),
+                    "last_evaluated_at": (
+                        row["last_evaluated_at"].isoformat()
+                        if row["last_evaluated_at"]
+                        else None
+                    ),
                 }
                 strategies.append(strategy)
-            
-            return strategies 
+
+            return strategies

@@ -160,9 +160,11 @@ class StrategyConsumerService:
         try:
             processed_count = await self.postgres_client.insert_strategies(strategies)
             self.processed_count += processed_count
-            
-            logging.info(f"Processed {processed_count} strategies (total: {self.processed_count})")
-            
+
+            logging.info(
+                f"Processed {processed_count} strategies (total: {self.processed_count})"
+            )
+
         except Exception as e:
             logging.error(f"Failed to process strategies: {e}")
 
@@ -173,17 +175,18 @@ class StrategyConsumerService:
 
         self.is_running = True
         self.start_time = time.time()
-        
+
         logging.info("Starting strategy consumer service")
-        logging.info(f"Configuration: batch_size={FLAGS.batch_size}, "
-                    f"poll_timeout={FLAGS.poll_timeout_ms}ms, "
-                    f"idle_timeout={FLAGS.idle_timeout_seconds}s")
+        logging.info(
+            f"Configuration: batch_size={FLAGS.batch_size}, "
+            f"poll_timeout={FLAGS.poll_timeout_ms}ms, "
+            f"idle_timeout={FLAGS.idle_timeout_seconds}s"
+        )
 
         try:
             # Start consuming messages
             await self.kafka_consumer.consume_messages(
-                batch_size=FLAGS.batch_size,
-                timeout_ms=FLAGS.poll_timeout_ms
+                batch_size=FLAGS.batch_size, timeout_ms=FLAGS.poll_timeout_ms
             )
 
         except KeyboardInterrupt:
@@ -197,16 +200,16 @@ class StrategyConsumerService:
     async def cleanup(self) -> None:
         """Clean up resources."""
         self.is_running = False
-        
+
         logging.info("Cleaning up resources")
-        
+
         if self.kafka_consumer:
             self.kafka_consumer.stop()
             self.kafka_consumer.close()
-            
+
         if self.postgres_client:
             await self.postgres_client.close()
-            
+
         if self.start_time:
             runtime = time.time() - self.start_time
             logging.info(f"Service runtime: {runtime:.2f} seconds")
@@ -228,7 +231,7 @@ async def main_async() -> None:
 
     # Create and run the service
     service = StrategyConsumerService()
-    
+
     # Set up signal handlers for graceful shutdown
     def signal_handler(signum, frame):
         logging.info(f"Received signal {signum}, shutting down gracefully")
@@ -249,13 +252,13 @@ def main(argv):
     """Main function."""
     # Parse command line arguments
     app.parse_flags_with_usage(argv)
-    
+
     # Set up logging
     logging.set_verbosity(logging.INFO)
-    
+
     # Run the async main function
     asyncio.run(main_async())
 
 
 if __name__ == "__main__":
-    app.run(main) 
+    app.run(main)
