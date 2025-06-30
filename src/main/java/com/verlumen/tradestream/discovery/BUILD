@@ -73,24 +73,16 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
-    name = "kafka_sink_factory_impl",
-    srcs = ["KafkaSinkFactoryImpl.kt"],
-    deps = [
-        ":discovered_strategy_sink",
-        ":discovered_strategy_sink_params",
-        ":write_discovered_strategies_to_kafka_fn",
-        "//third_party/java:guice",
-    ],
-)
-
-kt_jvm_library(
-    name = "dry_run_sink_factory_impl",
-    srcs = ["DryRunSinkFactoryImpl.kt"],
+    name = "discovered_strategy_sink_factory_impl",
+    srcs = ["DiscoveredStrategySinkFactoryImpl.kt"],
     deps = [
         ":discovered_strategy_sink",
         ":discovered_strategy_sink_params",
         ":dry_run_discovered_strategy_sink",
-        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        ":strategy_repository",
+        ":write_discovered_strategies_to_kafka_fn",
+        ":write_discovered_strategies_to_postgres_fn",
+        "//third_party/java:flogger",
         "//third_party/java:guice",
     ],
 )
@@ -116,12 +108,12 @@ kt_jvm_library(
     srcs = ["DiscoveryModule.kt"],
     deps = [
         ":discovered_strategy_sink",
+        ":discovered_strategy_sink_factory_impl",
         ":discovered_strategy_sink_params",
         ":discovery_request_source",
         ":dry_run_candle_fetcher",
         ":dry_run_discovered_strategy_sink",
         ":dry_run_discovery_request_source",
-        ":dry_run_sink_factory_impl",
         ":fitness_function_factory",
         ":fitness_function_factory_impl",
         ":ga_engine_factory",
@@ -129,7 +121,6 @@ kt_jvm_library(
         ":genotype_converter",
         ":genotype_converter_impl",
         ":kafka_discovery_request_source",
-        ":kafka_sink_factory_impl",
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline",
         ":temporary_currency_pair_module",
