@@ -88,7 +88,7 @@ kt_jvm_library(
     srcs = ["DryRunSinkFactoryImpl.kt"],
     deps = [
         ":discovered_strategy_sink",
-        ":discovered_strategy_sink_params", 
+        ":discovered_strategy_sink_params",
         ":dry_run_discovered_strategy_sink",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
         "//third_party/java:guice",
