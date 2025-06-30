@@ -46,7 +46,7 @@ class WriteDiscoveredStrategiesToKafkaFn
                     put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer::class.java.name)
 
                     // Reliability settings
-                    put(ProducerConfig.ACKS_CONFIG, "1") // Wait for leader acknowledgment
+                    put(ProducerConfig.ACKS_CONFIG, "all") // Wait for all in-sync replicas acknowledgment
                     put(ProducerConfig.RETRIES_CONFIG, 3)
                     put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true)
 
