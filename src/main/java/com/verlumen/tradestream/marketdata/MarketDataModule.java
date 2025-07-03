@@ -11,11 +11,6 @@ public class MarketDataModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    install(new FactoryModuleBuilder().build(FillForwardCandlesFn.Factory.class));
-    install(
-        new FactoryModuleBuilder()
-            .implement(FillForwardCandles.class, FillForwardCandles.class)
-            .build(FillForwardCandles.Factory.class));
     install(
         new FactoryModuleBuilder()
             .implement(InfluxDbCandleFetcher.class, InfluxDbCandleFetcher.class)
