@@ -36,6 +36,7 @@ java_library(
     srcs = ["MarketDataModule.java"],
     deps = [
         ":candle_fetcher",
+        ":influxdb_candle_fetcher",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party/java:auto_value",
