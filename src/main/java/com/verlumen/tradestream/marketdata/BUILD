@@ -62,19 +62,6 @@ java_library(
     ],
 )
 
-# Trade source for dry runs
-java_library(
-    name = "dry_run_trade_source",
-    srcs = ["DryRunTradeSource.java"],
-    deps = [
-        ":trade_source",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:auto_value",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:guava",
-    ],
-)
-
 # Abstract base class for exchange client unbounded sources
 kt_jvm_library(
     name = "exchange_client_unbounded_source",
@@ -164,7 +151,6 @@ java_library(
     deps = [
         ":candle_fetcher",
         ":candle_source",
-        ":dry_run_trade_source",
         ":exchange_streaming_client",
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
@@ -252,12 +238,18 @@ kt_jvm_library(
     ],
 )
 
-# Abstract base class for trade sources
-java_library(
-    name = "trade_source",
-    srcs = ["TradeSource.java"],
+# PTransform to convert Trades to Candles (now uses ParDo with CandleCreatorFn)
+kt_jvm_library(
+    name = "trade_to_candle",
+    srcs = ["TradeToCandle.kt"],
     deps = [
+        ":candle_combine_fn",
         "//protos:marketdata_java_proto",
         "//third_party/java:beam_sdks_java_core",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+        "//third_party/java:guice_assistedinject",
+        "//third_party/java:joda_time",
+        "//third_party/java:protobuf_java",
     ],
 )
