@@ -195,7 +195,9 @@ class StrategyKafkaConsumer:
         last_message_time = start_time
         
         logging.info(f"Starting to consume messages from topic: {self.topic}")
-        logging.info(f"Will exit after {idle_timeout_seconds}s of no messages or {max_processing_time_seconds}s total")
+        logging.info(
+            f"Will exit after {idle_timeout_seconds}s of no messages or {max_processing_time_seconds}s total"
+        )
 
         try:
             while self.is_running:
