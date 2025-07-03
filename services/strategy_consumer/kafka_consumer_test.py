@@ -81,21 +81,23 @@ class TestStrategyKafkaConsumer:
         # Create a test DiscoveredStrategy protobuf message
         strategy = Strategy()
         strategy.type = StrategyType.MACD_CROSSOVER
-        
+
         # Create parameters as Any field
         parameters = any_pb2.Any()
         parameters.type_url = "type.googleapis.com/com.verlumen.tradestream.strategies.MacdCrossoverParameters"
         parameters.value = b"test_parameters_data"
         strategy.parameters.CopyFrom(parameters)
-        
+
         discovered_strategy = DiscoveredStrategy()
         discovered_strategy.strategy.CopyFrom(strategy)
         discovered_strategy.symbol = "BTC/USD"
         discovered_strategy.score = 0.85
-        
+
         # Set timestamps
         start_time = timestamp_pb2.Timestamp()
-        start_time.FromDatetime(datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc))
+        start_time.FromDatetime(
+            datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
+        )
         discovered_strategy.start_time.CopyFrom(start_time)
         end_time = timestamp_pb2.Timestamp()
         end_time.FromDatetime(
@@ -177,26 +179,30 @@ class TestStrategyKafkaConsumer:
         strategy = Strategy()
         # Set the enum value as an integer (this is what happens in real protobuf deserialization)
         strategy.type = 1  # MACD_CROSSOVER enum value
-        
+
         # Create parameters as Any field
         parameters = any_pb2.Any()
         parameters.type_url = "type.googleapis.com/com.verlumen.tradestream.strategies.MacdCrossoverParameters"
         parameters.value = b"test_parameters_data"
         strategy.parameters.CopyFrom(parameters)
-        
+
         discovered_strategy = DiscoveredStrategy()
         discovered_strategy.strategy.CopyFrom(strategy)
         discovered_strategy.symbol = "BTC/USD"
         discovered_strategy.score = 0.85
-        
+
         # Set timestamps
         start_time = timestamp_pb2.Timestamp()
-        start_time.FromDatetime(datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc))
+        start_time.FromDatetime(
+            datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
+        )
         discovered_strategy.start_time.CopyFrom(start_time)
         end_time = timestamp_pb2.Timestamp()
-        end_time.FromDatetime(datetime.datetime(2024, 1, 1, 1, 0, 0, tzinfo=datetime.timezone.utc))
+        end_time.FromDatetime(
+            datetime.datetime(2024, 1, 1, 1, 0, 0, tzinfo=datetime.timezone.utc)
+        )
         discovered_strategy.end_time.CopyFrom(end_time)
-        
+
         # Serialize to bytes
         message_bytes = discovered_strategy.SerializeToString()
 
@@ -204,7 +210,9 @@ class TestStrategyKafkaConsumer:
 
         assert result is not None
         assert result["symbol"] == "BTC/USD"
-        assert result["strategy_type"] == "MACD_CROSSOVER"  # Should convert integer to string
+        assert (
+            result["strategy_type"] == "MACD_CROSSOVER"
+        )  # Should convert integer to string
         assert result["current_score"] == 0.85
         assert result["strategy_hash"] != ""
         assert result["discovery_symbol"] == "BTC/USD"
