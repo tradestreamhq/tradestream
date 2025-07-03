@@ -262,20 +262,21 @@ class StrategyKafkaConsumer:
                             logging.info(f"Message value type: {type(message.value)}")
                             logging.info(f"Message value length: {len(message.value) if message.value else 0}")
                             
-                            if message.value:
-                                # message.value is now bytes (binary data)
-                                strategy = self._parse_strategy_message(message.value)
-                                if strategy:
-                                    strategies.append(strategy)
-                                    logging.info(f"Successfully parsed strategy: {strategy.get('symbol', 'unknown')}")
-
-                                    if len(strategies) >= batch_size:
-                                        # Process batch and continue
-                                        logging.info(f"Processing batch of {len(strategies)} strategies")
-                                        await self._process_messages(strategies)
-                                        strategies = []
-                            else:
+                            if not message.value:
                                 logging.warning("Received message with empty/null value")
+                                continue
+
+                            # message.value is now bytes (binary data)
+                            strategy = self._parse_strategy_message(message.value)
+                            if strategy:
+                                strategies.append(strategy)
+                                logging.info(f"Successfully parsed strategy: {strategy.get('symbol', 'unknown')}")
+
+                                if len(strategies) >= batch_size:
+                                    # Process batch and continue
+                                    logging.info(f"Processing batch of {len(strategies)} strategies")
+                                    await self._process_messages(strategies)
+                                    strategies = []
 
                         except Exception as e:
                             logging.error(f"Error processing message: {e}")
