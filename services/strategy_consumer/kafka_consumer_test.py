@@ -171,6 +171,48 @@ class TestStrategyKafkaConsumer:
             == "type.googleapis.com/com.verlumen.tradestream.strategies.MacdCrossoverParameters"
         )
 
+    def test_parse_strategy_message_enum_as_integer(self, kafka_consumer):
+        """Test parsing a message where the enum value is an integer (real-world scenario)."""
+        # Create a test DiscoveredStrategy protobuf message
+        strategy = Strategy()
+        # Set the enum value as an integer (this is what happens in real protobuf deserialization)
+        strategy.type = 1  # MACD_CROSSOVER enum value
+        
+        # Create parameters as Any field
+        parameters = any_pb2.Any()
+        parameters.type_url = "type.googleapis.com/com.verlumen.tradestream.strategies.MacdCrossoverParameters"
+        parameters.value = b"test_parameters_data"
+        strategy.parameters.CopyFrom(parameters)
+        
+        discovered_strategy = DiscoveredStrategy()
+        discovered_strategy.strategy.CopyFrom(strategy)
+        discovered_strategy.symbol = "BTC/USD"
+        discovered_strategy.score = 0.85
+        
+        # Set timestamps
+        start_time = timestamp_pb2.Timestamp()
+        start_time.FromDatetime(datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc))
+        discovered_strategy.start_time.CopyFrom(start_time)
+        end_time = timestamp_pb2.Timestamp()
+        end_time.FromDatetime(datetime.datetime(2024, 1, 1, 1, 0, 0, tzinfo=datetime.timezone.utc))
+        discovered_strategy.end_time.CopyFrom(end_time)
+        
+        # Serialize to bytes
+        message_bytes = discovered_strategy.SerializeToString()
+
+        result = kafka_consumer._parse_strategy_message(message_bytes)
+
+        assert result is not None
+        assert result["symbol"] == "BTC/USD"
+        assert result["strategy_type"] == "MACD_CROSSOVER"  # Should convert integer to string
+        assert result["current_score"] == 0.85
+        assert result["strategy_hash"] != ""
+        assert result["discovery_symbol"] == "BTC/USD"
+        assert result["discovery_start_time"] == "2024-01-01T00:00:00+00:00"
+        assert result["discovery_end_time"] == "2024-01-01T01:00:00+00:00"
+        assert "protobuf_type" in result["parameters"]
+        assert "protobuf_data" in result["parameters"]
+
     def test_stop(self, kafka_consumer):
         """Test stopping the consumer."""
         kafka_consumer.is_running = True
