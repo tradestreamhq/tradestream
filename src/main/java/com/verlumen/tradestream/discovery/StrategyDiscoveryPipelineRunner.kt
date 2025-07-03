@@ -5,7 +5,6 @@ import com.google.inject.Inject
 import com.google.inject.Module
 import com.google.inject.Provider
 import com.verlumen.tradestream.backtesting.BacktestingModule
-import com.verlumen.tradestream.http.HttpModule
 import com.verlumen.tradestream.influxdb.InfluxDbConfig
 import com.verlumen.tradestream.influxdb.InfluxDbModule
 import com.verlumen.tradestream.marketdata.CandleFetcher
