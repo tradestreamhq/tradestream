@@ -164,7 +164,6 @@ java_library(
     deps = [
         ":candle_fetcher",
         ":candle_source",
-        ":dry_run_trade_source",
         ":exchange_streaming_client",
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
@@ -172,7 +171,6 @@ java_library(
         ":tiingo_crypto_candle_source",
         ":tiingo_crypto_candle_transform",
         ":tiingo_crypto_fetcher_fn",
-        ":trade_source",
         ":trade_to_candle",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
