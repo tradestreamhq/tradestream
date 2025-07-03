@@ -236,19 +236,3 @@ kt_jvm_library(
         "//third_party/java:joda_time",
     ],
 )
-
-# PTransform to convert Trades to Candles (now uses ParDo with CandleCreatorFn)
-kt_jvm_library(
-    name = "trade_to_candle",
-    srcs = ["TradeToCandle.kt"],
-    deps = [
-        ":candle_combine_fn",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:flogger",
-        "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
-        "//third_party/java:joda_time",
-        "//third_party/java:protobuf_java",
-    ],
-)
