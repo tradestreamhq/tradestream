@@ -1,18 +1,14 @@
-package com.verlumen.tradestream.marketdata;
+package com.verlumen.tradestream.marketdata
 
-import com.google.inject.AbstractModule;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.AbstractModule
+import com.google.inject.assistedinject.FactoryModuleBuilder
 
-public class MarketDataModule extends AbstractModule {
-  public static MarketDataModule create() {
-    return new MarketDataModule();
-  }
-
-  @Override
-  protected void configure() {
-    install(
-        new FactoryModuleBuilder()
-            .implement(InfluxDbCandleFetcher.class, InfluxDbCandleFetcher.class)
-            .build(InfluxDbCandleFetcher.Factory.class));
-  }
+class MarketDataModule : AbstractModule() {
+    override fun configure() {
+        install(
+            FactoryModuleBuilder()
+                .implement(InfluxDbCandleFetcher::class.java, InfluxDbCandleFetcher::class.java)
+                .build(InfluxDbCandleFetcher.Factory::class.java)
+        )
+    }
 }
