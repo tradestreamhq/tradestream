@@ -84,6 +84,18 @@ py_test(
     ],
 )
 
+py_test(
+    name = "postgres_client_integration_test",
+    srcs = ["postgres_client_integration_test.py"],
+    deps = [
+        ":postgres_client_lib",
+        "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
+        "//third_party/python:testing_postgresql",
+    ],
+    tags = ["requires-postgresql"],
+)
+
 # --- OCI Image Rules ---
 py_image_layer(
     name = "layers",
