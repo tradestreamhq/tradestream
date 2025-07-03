@@ -124,12 +124,10 @@ class StrategyDiscoveryPipelineRunner {
                 Guice.createInjector(
                     BacktestingModule(),
                     getDiscoveryModule(options),
-                    HttpModule.create(), // Remove when nothing depends on it
                     InfluxDbModule(),
                     MarketDataModule.create(),
                     PostgresModule(),
                     Ta4jModule.create(),
-                    TemporaryCurrencyPairModule(), // Remove when nothing depends on it
                 )
 
             val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
