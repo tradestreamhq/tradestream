@@ -156,7 +156,6 @@ class TestStrategyKafkaConsumer:
         parameters.type_url = "type.googleapis.com/com.verlumen.tradestream.strategies.MacdCrossoverParameters"
         parameters.value = b"test_parameters_data"
         strategy.parameters.CopyFrom(parameters)
-        
         discovered_strategy = DiscoveredStrategy()
         discovered_strategy.strategy.CopyFrom(strategy)
         discovered_strategy.symbol = "BTC/USD"
