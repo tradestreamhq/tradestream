@@ -146,6 +146,7 @@ class StrategyKafkaConsumer:
         try:
             # Use the serialized parameters as the basis for the hash
             import hashlib
+
             parameters_bytes = strategy_proto.parameters.SerializeToString()
             return hashlib.sha256(parameters_bytes).hexdigest()
         except Exception as e:
