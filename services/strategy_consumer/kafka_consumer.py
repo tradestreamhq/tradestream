@@ -263,7 +263,9 @@ class StrategyKafkaConsumer:
                             logging.info(f"Message value length: {len(message.value) if message.value else 0}")
                             
                             if not message.value:
-                                logging.warning("Received message with empty/null value")
+                                logging.warning(
+                                    "Received message with empty/null value"
+                                )
                                 continue
 
                             # message.value is now bytes (binary data)
