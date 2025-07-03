@@ -138,6 +138,7 @@ class StrategyKafkaConsumer:
 
         except Exception as e:
             logging.error(f"Failed to parse Protocol Buffer message: {e}")
+            logging.error(f"Raw message bytes (hex): {message_bytes.hex()}")
             return None
 
     def _generate_strategy_hash(self, strategy_proto) -> str:
@@ -239,30 +240,42 @@ class StrategyKafkaConsumer:
                     break
 
                 # Poll for messages
+                logging.debug(f"Polling for messages with timeout {timeout_ms}ms")
                 message_batch = self.consumer.poll(timeout_ms=timeout_ms)
 
                 if not message_batch:
                     # No messages available, continue polling
+                    logging.debug("No messages in poll response, continuing")
                     continue
 
                 # Update last message time
                 last_message_time = time.time()
+                logging.info(f"Received message batch with {len(message_batch)} partitions")
                 strategies = []
 
                 # Process messages from all partitions
                 for tp, messages in message_batch.items():
+                    logging.info(f"Processing {len(messages)} messages from partition {tp.partition}")
                     for message in messages:
                         try:
+                            logging.info(f"Received message from partition {tp.partition}, offset {message.offset}")
+                            logging.info(f"Message value type: {type(message.value)}")
+                            logging.info(f"Message value length: {len(message.value) if message.value else 0}")
+                            
                             if message.value:
                                 # message.value is now bytes (binary data)
                                 strategy = self._parse_strategy_message(message.value)
                                 if strategy:
                                     strategies.append(strategy)
+                                    logging.info(f"Successfully parsed strategy: {strategy.get('symbol', 'unknown')}")
 
                                     if len(strategies) >= batch_size:
                                         # Process batch and continue
+                                        logging.info(f"Processing batch of {len(strategies)} strategies")
                                         await self._process_messages(strategies)
                                         strategies = []
+                            else:
+                                logging.warning("Received message with empty/null value")
 
                         except Exception as e:
                             logging.error(f"Error processing message: {e}")
@@ -270,6 +283,7 @@ class StrategyKafkaConsumer:
 
                 # Process remaining strategies in the batch
                 if strategies:
+                    logging.info(f"Processing final batch of {len(strategies)} strategies")
                     await self._process_messages(strategies)
 
         except Exception as e:
