@@ -101,7 +101,6 @@ class TestStrategyKafkaConsumer:
         end_time = timestamp_pb2.Timestamp()
         end_time.FromDatetime(datetime.datetime(2024, 1, 1, 1, 0, 0, tzinfo=datetime.timezone.utc))
         discovered_strategy.end_time.CopyFrom(end_time)
-        
         # Serialize to bytes
         message_bytes = discovered_strategy.SerializeToString()
 
