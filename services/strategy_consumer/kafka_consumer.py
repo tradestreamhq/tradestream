@@ -172,8 +172,11 @@ class StrategyKafkaConsumer:
             logging.error(f"Error processing messages: {e}")
 
     async def consume_messages(
-        self, batch_size: int = 100, timeout_ms: int = 1000, 
-        idle_timeout_seconds: int = 60, max_processing_time_seconds: int = 300
+        self,
+        batch_size: int = 100,
+        timeout_ms: int = 1000,
+        idle_timeout_seconds: int = 60,
+        max_processing_time_seconds: int = 300,
     ) -> None:
         """
         Consume messages from Kafka in batches.
