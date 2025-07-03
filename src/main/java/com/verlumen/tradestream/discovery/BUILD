@@ -123,7 +123,6 @@ kt_jvm_library(
         ":kafka_discovery_request_source",
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline",
-        ":temporary_currency_pair_module",
         ":write_discovered_strategies_to_kafka_fn",
         ":write_discovered_strategies_to_postgres_fn",
         "//protos:discovery_java_proto",
@@ -445,7 +444,6 @@ kt_jvm_library(
         ":strategy_discovery_pipeline",
         ":strategy_discovery_pipeline_options",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
-        "//src/main/java/com/verlumen/tradestream/http:http_module",
         "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",
         "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_module",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
@@ -458,16 +456,6 @@ kt_jvm_library(
         "//third_party/java:guava",
         "//third_party/java:guice",
         "//third_party/java:protobuf_java_util",
-    ],
-)
-
-kt_jvm_library(
-    name = "temporary_currency_pair_module",
-    srcs = ["TemporaryCurrencyPairModule.kt"],
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
     ],
 )
 
