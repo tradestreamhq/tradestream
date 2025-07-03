@@ -126,7 +126,7 @@ class StrategyDiscoveryPipelineRunner {
                     getDiscoveryModule(options),
                     HttpModule.create(), // Remove when nothing depends on it
                     InfluxDbModule(),
-                    MarketDataModule.create(),
+                    MarketDataModule(),
                     PostgresModule(),
                     Ta4jModule.create(),
                     TemporaryCurrencyPairModule(), // Remove when nothing depends on it
