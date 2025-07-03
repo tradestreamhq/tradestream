@@ -14,19 +14,6 @@ kt_jvm_library(
     ],
 )
 
-kt_jvm_library(
-    name = "candle_lookback_do_fn",
-    srcs = ["CandleLookbackDoFn.kt"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",  # For ProtoCoder
-        "//third_party/java:flogger",
-        "//third_party/java:guava",  # For ImmutableList
-        "//third_party/java:joda_time",  # For Instant
-    ],
-)
-
 java_library(
     name = "candle_source",
     srcs = ["CandleSource.java"],
