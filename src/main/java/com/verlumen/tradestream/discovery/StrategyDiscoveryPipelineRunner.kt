@@ -5,7 +5,6 @@ import com.google.inject.Inject
 import com.google.inject.Module
 import com.google.inject.Provider
 import com.verlumen.tradestream.backtesting.BacktestingModule
-import com.verlumen.tradestream.http.HttpModule
 import com.verlumen.tradestream.influxdb.InfluxDbConfig
 import com.verlumen.tradestream.influxdb.InfluxDbModule
 import com.verlumen.tradestream.marketdata.CandleFetcher
@@ -124,12 +123,10 @@ class StrategyDiscoveryPipelineRunner {
                 Guice.createInjector(
                     BacktestingModule(),
                     getDiscoveryModule(options),
-                    HttpModule.create(), // Remove when nothing depends on it
                     InfluxDbModule(),
                     MarketDataModule(),
                     PostgresModule(),
                     Ta4jModule.create(),
-                    TemporaryCurrencyPairModule(), // Remove when nothing depends on it
                 )
 
             val factory = injector.getInstance(StrategyDiscoveryPipelineFactory::class.java)
