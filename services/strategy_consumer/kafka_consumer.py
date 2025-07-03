@@ -260,8 +260,10 @@ class StrategyKafkaConsumer:
                         try:
                             logging.info(f"Received message from partition {tp.partition}, offset {message.offset}")
                             logging.info(f"Message value type: {type(message.value)}")
-                            logging.info(f"Message value length: {len(message.value) if message.value else 0}")
-                            
+                            logging.info(
+                                f"Message value length: {len(message.value) if message.value else 0}"
+                            )
+
                             if not message.value:
                                 logging.warning(
                                     "Received message with empty/null value"
