@@ -309,13 +309,13 @@ strategyDiscoveryRequestFactory:
 # Strategy Consumer CronJob configuration
 strategyConsumer:
   enabled: true
-  schedule: "*/1 * * * *" # Run every 1 minute
+  schedule: "*/5 * * * *" # Run every 5 minutes
   startingDeadlineSeconds: 300 # Add deadline to prevent too many missed start times
   image:
     repository: "tradestreamhq/strategy-consumer"
     pullPolicy: IfNotPresent
     tag: "v2.45.58-develop"
-  concurrencyPolicy: "Allow" # Allow simultaneous instances as requested
+  concurrencyPolicy: "Forbid" # Prevent multiple instances from running simultaneously
   failedJobsHistoryLimit: 2
   successfulJobsHistoryLimit: 3
   job:

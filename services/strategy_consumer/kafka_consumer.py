@@ -6,6 +6,7 @@ Reads discovered strategies from the Kafka topic and processes them.
 import asyncio
 import json
 import logging
+import time
 from typing import List, Optional, Callable, Awaitable
 
 from kafka import KafkaConsumer
@@ -171,7 +172,8 @@ class StrategyKafkaConsumer:
             logging.error(f"Error processing messages: {e}")
 
     async def consume_messages(
-        self, batch_size: int = 100, timeout_ms: int = 1000
+        self, batch_size: int = 100, timeout_ms: int = 1000, 
+        idle_timeout_seconds: int = 60, max_processing_time_seconds: int = 300
     ) -> None:
         """
         Consume messages from Kafka in batches.
@@ -179,15 +181,32 @@ class StrategyKafkaConsumer:
         Args:
             batch_size: Maximum number of messages to process in a batch
             timeout_ms: Timeout for polling messages
+            idle_timeout_seconds: Time to wait for messages before exiting
+            max_processing_time_seconds: Maximum time to run before exiting
         """
         if not self.consumer:
             raise RuntimeError("Kafka consumer not connected")
 
         self.is_running = True
+        start_time = time.time()
+        last_message_time = start_time
+        
         logging.info(f"Starting to consume messages from topic: {self.topic}")
+        logging.info(f"Will exit after {idle_timeout_seconds}s of no messages or {max_processing_time_seconds}s total")
 
         try:
             while self.is_running:
+                # Check if we've exceeded max processing time
+                current_time = time.time()
+                if current_time - start_time > max_processing_time_seconds:
+                    logging.info(f"Reached max processing time of {max_processing_time_seconds}s, exiting")
+                    break
+
+                # Check if we've been idle too long
+                if current_time - last_message_time > idle_timeout_seconds:
+                    logging.info(f"No messages for {idle_timeout_seconds}s, exiting")
+                    break
+
                 # Poll for messages
                 message_batch = self.consumer.poll(timeout_ms=timeout_ms)
 
@@ -195,6 +214,8 @@ class StrategyKafkaConsumer:
                     # No messages available, continue polling
                     continue
 
+                # Update last message time
+                last_message_time = time.time()
                 strategies = []
 
                 # Process messages from all partitions
