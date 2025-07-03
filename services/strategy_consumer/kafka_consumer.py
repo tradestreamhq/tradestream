@@ -123,7 +123,7 @@ class StrategyKafkaConsumer:
             # Extract basic fields
             strategy = {
                 "symbol": discovered_strategy.symbol,
-                "strategy_type": discovered_strategy.strategy.type.name,
+                "strategy_type": StrategyType.Name(discovered_strategy.strategy.type),
                 "current_score": discovered_strategy.score,
                 "strategy_hash": self._generate_strategy_hash(discovered_strategy.strategy),
                 "discovery_symbol": discovered_strategy.symbol,
