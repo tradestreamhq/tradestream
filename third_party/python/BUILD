@@ -10,6 +10,14 @@ py_library(
 )
 
 py_library(
+    name = "asyncpg",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("asyncpg"),
+    ],
+)
+
+py_library(
     name = "ccxt",
     visibility = ["//visibility:public"],
     deps = [
@@ -62,5 +70,21 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         requirement("tenacity"),
+    ],
+)
+
+py_library(
+    name = "pytest",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("pytest"),
+    ],
+)
+
+py_library(
+    name = "pytest_asyncio",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("pytest-asyncio"),
     ],
 )

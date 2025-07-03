@@ -29,7 +29,7 @@ spec:
             - name: KAFKA_CLUSTERS_0_NAME
               value: "local"
             - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
-              value: "{{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+              value: "{{ include "tradestream.fullname" . }}-kafka:9092"
 
 ---
 apiVersion: v1

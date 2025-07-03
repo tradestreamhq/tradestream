@@ -124,7 +124,7 @@ strategyDiscoveryPipeline:
   enabled: true
   image:
     repository: tradestreamhq/strategy-discovery-pipeline
-    tag: v1.0.2-main
+    tag: v2.45.75-develop
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -172,7 +172,7 @@ candleIngestor:
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
-    tag: "v1.0.2-main"
+    tag: "v2.45.75-develop"
   config:
     # CCXT Exchange Configuration
     exchanges:
@@ -246,7 +246,7 @@ topCryptoUpdaterCronjob:
   image:
     repository: "tradestreamhq/top-crypto-updater"
     pullPolicy: IfNotPresent
-    tag: "v1.0.2-main"
+    tag: "v2.45.75-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
@@ -270,7 +270,7 @@ strategyDiscoveryRequestFactory:
   image:
     repository: "tradestreamhq/strategy-discovery-request-factory"
     pullPolicy: IfNotPresent
-    tag: "v1.0.2-main"
+    tag: "v2.45.75-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
@@ -306,3 +306,50 @@ strategyDiscoveryRequestFactory:
     limits:
       cpu: "200m"
       memory: "512Mi"
+# Strategy Consumer CronJob configuration
+strategyConsumer:
+  enabled: true
+  schedule: "*/5 * * * *" # Run every 5 minutes
+  startingDeadlineSeconds: 300 # Add deadline to prevent too many missed start times
+  image:
+    repository: "tradestreamhq/strategy-consumer"
+    pullPolicy: IfNotPresent
+    tag: "v2.45.75-develop"
+  concurrencyPolicy: "Forbid" # Prevent multiple instances from running simultaneously
+  failedJobsHistoryLimit: 2
+  successfulJobsHistoryLimit: 3
+  job:
+    backoffLimit: 2
+    ttlSecondsAfterFinished: 3600 # Cleans up finished jobs after 1 hour
+    restartPolicy: "OnFailure"
+  config:
+    # Kafka Configuration
+    kafkaBootstrapServers: '{{ include "tradestream.fullname" . }}-kafka:9092'
+    kafkaTopic: "discovered-strategies"
+    kafkaGroupId: "strategy_consumer_group"
+    kafkaAutoOffsetReset: "latest"
+    # Processing Configuration
+    batchSize: 100
+    pollTimeoutMs: 1000
+    idleTimeoutSeconds: 60
+    maxProcessingTimeSeconds: 300
+    # Connection Configuration
+    postgresMinConnections: 1
+    postgresMaxConnections: 10
+  # Database configuration - uses the PostgreSQL chart
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    # Reference the auto-generated PostgreSQL secret
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"

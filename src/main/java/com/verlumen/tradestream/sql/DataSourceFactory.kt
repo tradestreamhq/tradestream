@@ -31,6 +31,10 @@ data class DataSourceConfig(
     val socketTimeout: Int? = null,
     val readOnly: Boolean? = null,
 ) : Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1L
+    }
+
     init {
         require(serverName.isNotBlank()) { "Server name cannot be blank" }
         require(databaseName.isNotBlank()) { "Database name cannot be blank" }

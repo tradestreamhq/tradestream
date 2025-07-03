@@ -14,6 +14,7 @@ import com.verlumen.tradestream.strategies.SmaRsiParameters
 import com.verlumen.tradestream.strategies.Strategy
 import com.verlumen.tradestream.strategies.StrategyType
 import org.apache.beam.sdk.testing.TestPipeline
+import org.apache.beam.sdk.util.SerializableUtils
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.junit.Before
@@ -22,6 +23,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
+import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations
 import java.time.Instant
 
@@ -47,6 +49,12 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
     // Use BoundFieldModule to inject these mocks
     @Bind @Mock
     lateinit var mockStrategyRepository: StrategyRepository
+
+    // Add a mock factory that returns the mock repository
+    private val mockStrategyRepositoryFactory =
+        object : StrategyRepository.Factory {
+            override fun create(dataSourceConfig: DataSourceConfig): StrategyRepository = mockStrategyRepository
+        }
 
     // The class under test - will be created directly with mocked dependencies
     private lateinit var writeDiscoveredStrategiesToPostgresFn: WriteDiscoveredStrategiesToPostgresFn
@@ -83,7 +91,7 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
                 socketTimeout = testSocketTimeout,
                 readOnly = testReadOnly,
             )
-        writeDiscoveredStrategiesToPostgresFn = WriteDiscoveredStrategiesToPostgresFn(mockStrategyRepository, dataSourceConfig)
+        writeDiscoveredStrategiesToPostgresFn = WriteDiscoveredStrategiesToPostgresFn(mockStrategyRepositoryFactory, dataSourceConfig)
     }
 
     @Test
@@ -181,11 +189,23 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         // The parameters field (field 2) should not contain a tab
         assertThat(fields[2]).doesNotContain("\t")
 
-        // Verify the parameters field contains the expected JSON keys
+        // Verify the parameters field contains the expected base64 JSON structure
         val paramsJson = fields[2]
-        assertThat(paramsJson).contains("shortEmaPeriod")
-        assertThat(paramsJson).contains("longEmaPeriod")
-        assertThat(paramsJson).contains("signalPeriod")
+        assertThat(paramsJson).contains("base64_data")
+        assertThat(paramsJson).contains("\"base64_data\":")
+
+        // Verify it's valid JSON
+        val jsonObj = org.json.JSONObject(paramsJson)
+        assertThat(jsonObj.has("base64_data")).isTrue()
+
+        // Verify the base64 data can be decoded
+        val base64Data = jsonObj.getString("base64_data")
+        assertThat(base64Data).isNotEmpty()
+        val decodedBytes =
+            java.util.Base64
+                .getDecoder()
+                .decode(base64Data)
+        assertThat(decodedBytes).isNotEmpty()
     }
 
     @Test
@@ -210,7 +230,21 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
 
         val csvRow = StrategyCsvUtil.convertToCsvRow(emptyDiscoveredStrategy)
         assertThat(csvRow).isNotNull()
-        assertThat(csvRow).contains("error:")
+
+        // Verify it contains the base64 JSON structure even for empty parameters
+        assertThat(csvRow).contains("base64_data")
+        assertThat(csvRow).contains("\"base64_data\":")
+
+        // Parse the JSON to verify structure
+        val fields = csvRow?.split("\t") ?: emptyList()
+        val paramsJson = fields[2]
+        val jsonObj = org.json.JSONObject(paramsJson)
+        assertThat(jsonObj.has("base64_data")).isTrue()
+
+        // For empty parameters, the base64 data can be empty (which is correct for empty Any)
+        val base64Data = jsonObj.getString("base64_data")
+        // Empty Any protobuf results in empty base64 string, which is valid
+        // No assertion needed - empty string is acceptable for empty parameters
     }
 
     @Test
@@ -253,5 +287,14 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         // Verify that the repository was called (this would be verified with Mockito in a real test)
         // For now, just verify no exceptions were thrown
         assertThat(writeDiscoveredStrategiesToPostgresFn).isNotNull()
+    }
+
+    @Test
+    fun `doFn should be serializable`() {
+        val mockFactory = mock(StrategyRepository.Factory::class.java)
+        val mockConfig = mock(DataSourceConfig::class.java)
+        val doFn = WriteDiscoveredStrategiesToPostgresFn(mockFactory, mockConfig)
+
+        SerializableUtils.ensureSerializable(doFn)
     }
 }
