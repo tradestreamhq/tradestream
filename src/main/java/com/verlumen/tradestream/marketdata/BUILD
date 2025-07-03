@@ -26,17 +26,6 @@ kt_jvm_library(
     ],
 )
 
-# Interface for exchange streaming clients
-java_library(
-    name = "exchange_streaming_client",
-    srcs = ["ExchangeStreamingClient.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party/java:guava",
-    ],
-)
-
 # Stateful DoFn for filling forward candle gaps
 kt_jvm_library(
     name = "fill_forward_candles_fn",
@@ -102,7 +91,6 @@ java_library(
     srcs = ["MarketDataModule.java"],
     deps = [
         ":candle_fetcher",
-        ":exchange_streaming_client",
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
         ":influxdb_candle_fetcher",
