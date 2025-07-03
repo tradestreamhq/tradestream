@@ -250,7 +250,9 @@ class StrategyKafkaConsumer:
 
                 # Update last message time
                 last_message_time = time.time()
-                logging.info(f"Received message batch with {len(message_batch)} partitions")
+                logging.info(
+                    f"Received message batch with {len(message_batch)} partitions"
+                )
                 strategies = []
 
                 # Process messages from all partitions
