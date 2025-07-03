@@ -19,6 +19,8 @@ py_library(
     name = "kafka_consumer_lib",
     srcs = ["kafka_consumer.py"],
     deps = [
+        "//protos:discovery_py_proto",
+        "//protos:strategies_py_proto",
         "//third_party/python:absl_py",
         "//third_party/python:kafka_python",
         "//third_party/python:protobuf",
@@ -53,6 +55,8 @@ py_test(
     srcs = ["kafka_consumer_test.py"],
     deps = [
         ":kafka_consumer_lib",
+        "//protos:discovery_py_proto",
+        "//protos:strategies_py_proto",
         "//third_party/python:pytest",
         "//third_party/python:pytest_asyncio",
     ],
