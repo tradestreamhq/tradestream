@@ -14,20 +14,6 @@ kt_jvm_library(
     ],
 )
 
-# Generates default/dummy trades
-java_library(
-    name = "default_trade_generator",
-    srcs = ["DefaultTradeGenerator.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:joda_time",
-        "//third_party/java:protobuf_java",
-        "//third_party/java:protobuf_java_util",
-    ],
-)
-
 # Abstract base class for exchange client unbounded sources
 kt_jvm_library(
     name = "exchange_client_unbounded_source",
