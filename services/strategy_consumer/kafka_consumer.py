@@ -255,7 +255,9 @@ class StrategyKafkaConsumer:
 
                 # Process messages from all partitions
                 for tp, messages in message_batch.items():
-                    logging.info(f"Processing {len(messages)} messages from partition {tp.partition}")
+                    logging.info(
+                        f"Processing {len(messages)} messages from partition {tp.partition}"
+                    )
                     for message in messages:
                         try:
                             logging.info(
