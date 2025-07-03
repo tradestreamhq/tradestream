@@ -14,15 +14,6 @@ kt_jvm_library(
     ],
 )
 
-java_library(
-    name = "candle_source",
-    srcs = ["CandleSource.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-    ],
-)
-
 # Generates default/dummy trades
 java_library(
     name = "default_trade_generator",
@@ -125,12 +116,10 @@ java_library(
     srcs = ["MarketDataModule.java"],
     deps = [
         ":candle_fetcher",
-        ":candle_source",
         ":exchange_streaming_client",
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
         ":influxdb_candle_fetcher",
-        ":tiingo_crypto_candle_source",
         ":tiingo_crypto_candle_transform",
         ":tiingo_crypto_fetcher_fn",
         "//protos:marketdata_java_proto",
@@ -141,19 +130,6 @@ java_library(
         "//third_party/java:guice_assistedinject",
         "//third_party/java:joda_time",
         "//third_party/java:protobuf_java_util",
-    ],
-)
-
-kt_jvm_library(
-    name = "tiingo_crypto_candle_source",
-    srcs = ["TiingoCryptoCandleSource.kt"],
-    deps = [
-        ":candle_source",
-        ":tiingo_crypto_candle_transform",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
     ],
 )
 

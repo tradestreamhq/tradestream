@@ -22,10 +22,6 @@ public class MarketDataModule extends AbstractModule {
             .build(InfluxDbCandleFetcher.Factory.class));
     install(
         new FactoryModuleBuilder()
-            .implement(TiingoCryptoCandleSource.class, TiingoCryptoCandleSource.class)
-            .build(TiingoCryptoCandleSource.Factory.class));
-    install(
-        new FactoryModuleBuilder()
             .implement(TiingoCryptoCandleTransform.class, TiingoCryptoCandleTransform.class)
             .build(TiingoCryptoCandleTransform.Factory.class));
     install(new FactoryModuleBuilder().build(TiingoCryptoFetcherFn.Factory.class));
