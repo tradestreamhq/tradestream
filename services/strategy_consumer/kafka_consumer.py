@@ -202,7 +202,9 @@ class StrategyKafkaConsumer:
                 # Check if we've exceeded max processing time
                 current_time = time.time()
                 if current_time - start_time > max_processing_time_seconds:
-                    logging.info(f"Reached max processing time of {max_processing_time_seconds}s, exiting")
+                    logging.info(
+                        f"Reached max processing time of {max_processing_time_seconds}s, exiting"
+                    )
                     break
 
                 # Check if we've been idle too long
