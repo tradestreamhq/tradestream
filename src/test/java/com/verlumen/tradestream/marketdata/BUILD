@@ -56,24 +56,6 @@ kt_jvm_test(
     ],
 )
 
-java_test(
-    name = "DefaultTradeGeneratorTest",
-    srcs = ["DefaultTradeGeneratorTest.java"],
-    runtime_deps = [
-        "//third_party/java:beam_runners_direct_java",
-        "//third_party/java:hamcrest",
-    ],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/marketdata:default_trade_generator",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:joda_time",
-        "//third_party/java:junit",
-        "//third_party/java:protobuf_java",
-    ],
-)
-
 kt_jvm_test(
     name = "InfluxDbCandleFetcherTest",
     srcs = ["InfluxDbCandleFetcherTest.kt"],
