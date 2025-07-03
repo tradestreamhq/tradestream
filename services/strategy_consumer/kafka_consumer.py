@@ -284,7 +284,9 @@ class StrategyKafkaConsumer:
 
                 # Process remaining strategies in the batch
                 if strategies:
-                    logging.info(f"Processing final batch of {len(strategies)} strategies")
+                    logging.info(
+                        f"Processing final batch of {len(strategies)} strategies"
+                    )
                     await self._process_messages(strategies)
 
         except Exception as e:
