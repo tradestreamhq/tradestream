@@ -57,49 +57,9 @@ kt_jvm_library(
     name = "discovered_strategy_sink",
     srcs = ["DiscoveredStrategySink.kt"],
     deps = [
-        ":discovered_strategy_sink_params",
         "//protos:discovery_java_proto",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
         "//third_party/java:beam_sdks_java_core",
-    ],
-)
-
-kt_jvm_library(
-    name = "discovered_strategy_sink_params",
-    srcs = ["DiscoveredStrategySinkParams.kt"],
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
-    ],
-)
-
-kt_jvm_library(
-    name = "discovered_strategy_sink_factory_impl",
-    srcs = ["DiscoveredStrategySinkFactoryImpl.kt"],
-    deps = [
-        ":discovered_strategy_sink",
-        ":discovered_strategy_sink_params",
-        ":dry_run_discovered_strategy_sink",
-        ":strategy_repository",
-        ":write_discovered_strategies_to_kafka_fn",
-        ":write_discovered_strategies_to_postgres_fn",
-        "//third_party/java:flogger",
-        "//third_party/java:guice",
-    ],
-)
-
-kt_jvm_library(
-    name = "write_discovered_strategies_to_kafka_fn",
-    srcs = ["WriteDiscoveredStrategiesToKafkaFn.kt"],
-    deps = [
-        ":discovered_strategy_sink",
-        "//protos:discovery_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_io_kafka",
-        "//third_party/java:flogger",
-        "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
-        "//third_party/java:kafka_clients",
-        "//third_party/java:protobuf_java",
     ],
 )
 
@@ -108,8 +68,6 @@ kt_jvm_library(
     srcs = ["DiscoveryModule.kt"],
     deps = [
         ":discovered_strategy_sink",
-        ":discovered_strategy_sink_factory_impl",
-        ":discovered_strategy_sink_params",
         ":discovery_request_source",
         ":dry_run_candle_fetcher",
         ":dry_run_discovered_strategy_sink",
@@ -124,7 +82,6 @@ kt_jvm_library(
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline",
         ":temporary_currency_pair_module",
-        ":write_discovered_strategies_to_kafka_fn",
         ":write_discovered_strategies_to_postgres_fn",
         "//protos:discovery_java_proto",
         "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
@@ -484,6 +441,7 @@ kt_jvm_library(
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
         "//src/main/java/com/verlumen/tradestream/sql:bulk_copier_factory",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_parameter_type_registry",
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:flogger",
         "//third_party/java:gson",
@@ -497,7 +455,6 @@ kt_jvm_library(
 kt_jvm_library(
     name = "strategy_repository",
     srcs = [
-        "DryRunStrategyRepository.kt",
         "PostgresStrategyRepository.kt",
         "StrategyCsvUtil.kt",
         "StrategyRepository.kt",
@@ -507,9 +464,9 @@ kt_jvm_library(
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/sql:bulk_copier_factory",
         "//src/main/java/com/verlumen/tradestream/sql:data_source_factory",
+        "//src/main/java/com/verlumen/tradestream/strategies:strategy_parameter_type_registry",
         "//third_party/java:flogger",
         "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
         "//third_party/java:org_json",
         "//third_party/java:protobuf_java",
         "//third_party/java:protobuf_java_util",

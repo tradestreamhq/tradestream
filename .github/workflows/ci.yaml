@@ -87,12 +87,6 @@ jobs:
             --repository localhost:5000/strategy-discovery-pipeline \
             --tag "latest"
 
-          # Build and push strategy-consumer image
-          bazel run //services/strategy_consumer:push_strategy_consumer_image \
-            -- \
-            --repository localhost:5000/strategy-consumer \
-            --tag "latest"
-
           # Load images into minikube
           docker pull localhost:5000/candle-ingestor:latest
           docker tag localhost:5000/candle-ingestor:latest candle-ingestor:latest
@@ -106,9 +100,6 @@ jobs:
           docker pull localhost:5000/strategy-discovery-pipeline:latest
           docker tag localhost:5000/strategy-discovery-pipeline:latest strategy-discovery-pipeline:latest
           minikube image load strategy-discovery-pipeline:latest
-          docker pull localhost:5000/strategy-consumer:latest
-          docker tag localhost:5000/strategy-consumer:latest strategy-consumer:latest
-          minikube image load strategy-consumer:latest
 
       - name: Install Cert Manager
         run: |
@@ -132,13 +123,10 @@ jobs:
             --set strategyDiscoveryRequestFactory.image.tag=latest \
             --set strategyDiscoveryPipeline.image.repository=strategy-discovery-pipeline \
             --set strategyDiscoveryPipeline.image.tag=latest \
-            --set strategyConsumer.image.repository=strategy-consumer \
-            --set strategyConsumer.image.tag=latest \
             --set redis.enabled=true \
             --set postgresql.enabled=true \
             --set topCryptoUpdaterCronjob.enabled=true \
             --set strategyDiscoveryRequestFactory.enabled=true \
-            --set strategyConsumer.enabled=true \
             --set influxdb.enabled=true
 
       - name: Monitor Deployment
@@ -148,12 +136,10 @@ jobs:
           echo "Checking if CronJob exists..."
           kubectl get cronjob my-tradestream-top-crypto-updater -n tradestream-namespace
           kubectl get cronjob my-tradestream-strategy-discovery-request-factory -n tradestream-namespace
-          kubectl get cronjob my-tradestream-strategy-consumer -n tradestream-namespace
           # Check CronJob status and configuration
           echo "CronJob details:"
           kubectl describe cronjob my-tradestream-top-crypto-updater -n tradestream-namespace
           kubectl describe cronjob my-tradestream-strategy-discovery-request-factory -n tradestream-namespace
-          kubectl describe cronjob my-tradestream-strategy-consumer -n tradestream-namespace
           # Verify CronJob is not suspended
           if kubectl get cronjob my-tradestream-top-crypto-updater -n tradestream-namespace -o jsonpath='{.spec.suspend}' | grep -q true; then
             echo "ERROR: CronJob my-tradestream-top-crypto-updater is suspended"
@@ -166,12 +152,6 @@ jobs:
             exit 1
           else
             echo "CronJob my-tradestream-strategy-discovery-request-factory is active and ready to run on schedule"
-          fi
-          if kubectl get cronjob my-tradestream-strategy-consumer -n tradestream-namespace -o jsonpath='{.spec.suspend}' | grep -q true; then
-            echo "ERROR: CronJob my-tradestream-strategy-consumer is suspended"
-            exit 1
-          else
-            echo "CronJob my-tradestream-strategy-consumer is active and ready to run on schedule"
           fi
 
       - name: Diagnostics

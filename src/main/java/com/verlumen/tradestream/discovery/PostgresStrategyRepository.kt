@@ -10,7 +10,6 @@ import com.verlumen.tradestream.sql.DataSourceConfig
 import com.verlumen.tradestream.sql.DataSourceFactory
 import com.verlumen.tradestream.strategies.Strategy
 import org.json.JSONObject
-import java.io.Serializable
 import java.io.StringReader
 import java.sql.ResultSet
 import javax.sql.DataSource
@@ -21,27 +20,12 @@ class PostgresStrategyRepository
         private val bulkCopierFactory: BulkCopierFactory,
         private val dataSourceFactory: DataSourceFactory,
         private val dataSourceConfig: DataSourceConfig,
-    ) : StrategyRepository,
-        Serializable {
+    ) : StrategyRepository {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
-            private const val serialVersionUID: Long = 1L
         }
 
         private val dataSource: DataSource by lazy { dataSourceFactory.create(dataSourceConfig) }
-
-        /**
-         * Factory implementation for PostgresStrategyRepository
-         */
-        class Factory
-            @Inject
-            constructor(
-                private val bulkCopierFactory: BulkCopierFactory,
-                private val dataSourceFactory: DataSourceFactory,
-            ) : StrategyRepository.Factory {
-                override fun create(dataSourceConfig: DataSourceConfig): StrategyRepository =
-                    PostgresStrategyRepository(bulkCopierFactory, dataSourceFactory, dataSourceConfig)
-            }
 
         override fun save(strategy: DiscoveredStrategy) {
             saveAll(listOf(strategy))
