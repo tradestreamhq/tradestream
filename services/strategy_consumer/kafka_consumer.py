@@ -274,7 +274,9 @@ class StrategyKafkaConsumer:
 
                                 if len(strategies) >= batch_size:
                                     # Process batch and continue
-                                    logging.info(f"Processing batch of {len(strategies)} strategies")
+                                    logging.info(
+                                        f"Processing batch of {len(strategies)} strategies"
+                                    )
                                     await self._process_messages(strategies)
                                     strategies = []
 
