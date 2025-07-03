@@ -169,7 +169,6 @@ java_library(
         ":fill_forward_candles",
         ":fill_forward_candles_fn",
         ":influxdb_candle_fetcher",
-        ":sliding_candle_aggregator",
         ":tiingo_crypto_candle_source",
         ":tiingo_crypto_candle_transform",
         ":tiingo_crypto_fetcher_fn",
@@ -183,21 +182,6 @@ java_library(
         "//third_party/java:guice_assistedinject",
         "//third_party/java:joda_time",
         "//third_party/java:protobuf_java_util",
-    ],
-)
-
-# PTransform for aggregating trades using sliding windows (contains CandleCombineFn)
-java_library(
-    name = "sliding_candle_aggregator",
-    srcs = ["SlidingCandleAggregator.java"],
-    deps = [
-        ":candle_combine_fn",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:flogger",
-        "//third_party/java:joda_time",
-        "//third_party/java:protobuf_java",
     ],
 )
 

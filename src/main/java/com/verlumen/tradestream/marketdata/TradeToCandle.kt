@@ -29,7 +29,6 @@ class TradeToCandle
     constructor(
         @Assisted private val windowDuration: Duration,
         // CandleCombineFn needs to be injectable or accessible
-        // Assuming SlidingCandleAggregator.CandleCombineFn is accessible/injectable
         private val candleCombineFn: CandleCombineFn,
     ) : PTransform<PCollection<Trade>, PCollection<KV<String, Candle>>>(),
         Serializable {
