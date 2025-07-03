@@ -160,7 +160,7 @@ class StrategyKafkaConsumer:
                 import datetime
                 dt = datetime.datetime.fromtimestamp(
                     timestamp_proto.seconds + timestamp_proto.nanos / 1e9,
-                    tz=datetime.timezone.utc
+                    tz=datetime.timezone.utc,
                 )
                 return dt.isoformat()
             return None
