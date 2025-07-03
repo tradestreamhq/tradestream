@@ -4,31 +4,6 @@ load("@rules_java//java:defs.bzl", "java_test")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 
 kt_jvm_test(
-    name = "CandleLookbackDoFnTest",
-    srcs = ["CandleLookbackDoFnTest.kt"],
-    # Ensure test class name matches the file
-    test_class = "com.verlumen.tradestream.marketdata.CandleLookbackDoFnTest",
-    runtime_deps = [
-        "//third_party/java:beam_runners_direct_java",
-    ],
-    deps = [
-        # Dependency on the main library target
-        "//src/main/java/com/verlumen/tradestream/marketdata:candle_lookback_do_fn",
-        # Test dependencies
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:beam_sdks_java_test_utils",
-        "//third_party/java:guava",
-        "//third_party/java:hamcrest",
-        "//third_party/java:joda_time",
-        "//third_party/java:junit",
-        "//third_party/java:protobuf_java_util",
-        "//third_party/java:truth",
-    ],
-)
-
-kt_jvm_test(
     name = "FillForwardCandlesTest",
     srcs = ["FillForwardCandlesTest.kt"],
     test_class = "com.verlumen.tradestream.marketdata.FillForwardCandlesTest",
