@@ -123,7 +123,6 @@ kt_jvm_library(
         ":kafka_discovery_request_source",
         ":run_ga_discovery_fn",
         ":strategy_discovery_pipeline",
-        ":temporary_currency_pair_module",
         ":write_discovered_strategies_to_kafka_fn",
         ":write_discovered_strategies_to_postgres_fn",
         "//protos:discovery_java_proto",
