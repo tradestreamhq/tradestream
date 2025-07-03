@@ -37,36 +37,6 @@ java_library(
     ],
 )
 
-# Stateful DoFn for filling forward candle gaps
-kt_jvm_library(
-    name = "fill_forward_candles_fn",
-    srcs = ["FillForwardCandlesFn.kt"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:flogger",
-        "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
-        "//third_party/java:joda_time",
-        "//third_party/java:protobuf_java_util",
-    ],
-)
-
-# PTransform wrapping the FillForwardCandlesFn
-kt_jvm_library(
-    name = "fill_forward_candles",
-    srcs = ["FillForwardCandles.kt"],
-    deps = [
-        ":fill_forward_candles_fn",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
-        "//third_party/java:joda_time",
-    ],
-)
-
 kt_jvm_library(
     name = "influxdb_candle_fetcher",
     srcs = ["InfluxDbCandleFetcher.kt"],
@@ -103,8 +73,6 @@ java_library(
     deps = [
         ":candle_fetcher",
         ":exchange_streaming_client",
-        ":fill_forward_candles",
-        ":fill_forward_candles_fn",
         ":influxdb_candle_fetcher",
         ":tiingo_crypto_candle_transform",
         ":tiingo_crypto_fetcher_fn",
