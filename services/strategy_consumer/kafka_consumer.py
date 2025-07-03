@@ -125,14 +125,22 @@ class StrategyKafkaConsumer:
                 "symbol": discovered_strategy.symbol,
                 "strategy_type": discovered_strategy.strategy.type.name,
                 "current_score": discovered_strategy.score,
-                "strategy_hash": self._generate_strategy_hash(discovered_strategy.strategy),
+                "strategy_hash": self._generate_strategy_hash(
+                    discovered_strategy.strategy
+                ),
                 "discovery_symbol": discovered_strategy.symbol,
-                "discovery_start_time": self._timestamp_to_iso(discovered_strategy.start_time),
-                "discovery_end_time": self._timestamp_to_iso(discovered_strategy.end_time),
+                "discovery_start_time": self._timestamp_to_iso(
+                    discovered_strategy.start_time
+                ),
+                "discovery_end_time": self._timestamp_to_iso(
+                    discovered_strategy.end_time
+                ),
             }
 
             # Parse strategy parameters from the protobuf Any field
-            strategy["parameters"] = self._extract_strategy_parameters(discovered_strategy.strategy.parameters)
+            strategy["parameters"] = self._extract_strategy_parameters(
+                discovered_strategy.strategy.parameters
+            )
 
             return strategy
 

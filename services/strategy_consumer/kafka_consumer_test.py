@@ -81,21 +81,23 @@ class TestStrategyKafkaConsumer:
         # Create a test DiscoveredStrategy protobuf message
         strategy = Strategy()
         strategy.type = StrategyType.MACD_CROSSOVER
-        
+
         # Create parameters as Any field
         parameters = any_pb2.Any()
         parameters.type_url = "type.googleapis.com/com.verlumen.tradestream.strategies.MacdCrossoverParameters"
         parameters.value = b"test_parameters_data"
         strategy.parameters.CopyFrom(parameters)
-        
+
         discovered_strategy = DiscoveredStrategy()
         discovered_strategy.strategy.CopyFrom(strategy)
         discovered_strategy.symbol = "BTC/USD"
         discovered_strategy.score = 0.85
-        
+
         # Set timestamps
         start_time = timestamp_pb2.Timestamp()
-        start_time.FromDatetime(datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc))
+        start_time.FromDatetime(
+            datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
+        )
         discovered_strategy.start_time.CopyFrom(start_time)
         end_time = timestamp_pb2.Timestamp()
         end_time.FromDatetime(
