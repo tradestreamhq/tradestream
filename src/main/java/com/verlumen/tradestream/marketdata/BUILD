@@ -62,19 +62,6 @@ java_library(
     ],
 )
 
-# Trade source for dry runs
-java_library(
-    name = "dry_run_trade_source",
-    srcs = ["DryRunTradeSource.java"],
-    deps = [
-        ":trade_source",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:auto_value",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:guava",
-    ],
-)
-
 # Abstract base class for exchange client unbounded sources
 kt_jvm_library(
     name = "exchange_client_unbounded_source",
@@ -248,16 +235,6 @@ kt_jvm_library(
     deps = [
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:joda_time",
-    ],
-)
-
-# Abstract base class for trade sources
-java_library(
-    name = "trade_source",
-    srcs = ["TradeSource.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
     ],
 )
 
