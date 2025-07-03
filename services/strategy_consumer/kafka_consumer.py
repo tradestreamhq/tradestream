@@ -270,7 +270,9 @@ class StrategyKafkaConsumer:
                             strategy = self._parse_strategy_message(message.value)
                             if strategy:
                                 strategies.append(strategy)
-                                logging.info(f"Successfully parsed strategy: {strategy.get('symbol', 'unknown')}")
+                                logging.info(
+                                    f"Successfully parsed strategy: {strategy.get('symbol', 'unknown')}"
+                                )
 
                                 if len(strategies) >= batch_size:
                                     # Process batch and continue
