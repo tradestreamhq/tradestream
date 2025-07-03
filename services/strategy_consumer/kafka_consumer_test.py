@@ -97,7 +97,6 @@ class TestStrategyKafkaConsumer:
         start_time = timestamp_pb2.Timestamp()
         start_time.FromDatetime(datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc))
         discovered_strategy.start_time.CopyFrom(start_time)
-        
         end_time = timestamp_pb2.Timestamp()
         end_time.FromDatetime(
             datetime.datetime(2024, 1, 1, 1, 0, 0, tzinfo=datetime.timezone.utc)
