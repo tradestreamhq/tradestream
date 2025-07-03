@@ -186,7 +186,10 @@ class StrategyConsumerService:
         try:
             # Start consuming messages
             await self.kafka_consumer.consume_messages(
-                batch_size=FLAGS.batch_size, timeout_ms=FLAGS.poll_timeout_ms
+                batch_size=FLAGS.batch_size,
+                timeout_ms=FLAGS.poll_timeout_ms,
+                idle_timeout_seconds=FLAGS.idle_timeout_seconds,
+                max_processing_time_seconds=FLAGS.max_processing_time_seconds,
             )
 
         except KeyboardInterrupt:
