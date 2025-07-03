@@ -173,7 +173,6 @@ java_library(
         ":tiingo_crypto_candle_source",
         ":tiingo_crypto_candle_transform",
         ":tiingo_crypto_fetcher_fn",
-        ":trade_backed_candle_source",
         ":trade_source",
         ":trade_to_candle",
         "//protos:marketdata_java_proto",
@@ -256,21 +255,6 @@ kt_jvm_library(
         "//protos:marketdata_java_proto",
         "//third_party/java:gson",
         "//third_party/java:protobuf_java",
-        "//third_party/java:protobuf_java_util",
-    ],
-)
-
-java_library(
-    name = "trade_backed_candle_source",
-    srcs = ["TradeBackedCandleSource.java"],
-    deps = [
-        ":candle_source",
-        ":trade_source",
-        ":trade_to_candle",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:guice",
-        "//third_party/java:joda_time",
         "//third_party/java:protobuf_java_util",
     ],
 )
