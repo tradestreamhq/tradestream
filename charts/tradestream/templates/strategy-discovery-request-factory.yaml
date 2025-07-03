@@ -35,7 +35,7 @@ spec:
                 - name: INFLUXDB_BUCKET_TRACKER
                   value: "{{ .Values.strategyDiscoveryRequestFactory.config.influxDbBucketTracker | default .Values.influxdb.adminUser.bucket }}"
                 - name: KAFKA_BOOTSTRAP_SERVERS
-                  value: "{{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+                  value: "{{ include "tradestream.fullname" . }}-kafka:9092"
                 - name: KAFKA_TOPIC
                   value: "{{ .Values.strategyDiscoveryRequestFactory.config.kafkaTopic }}"
                 - name: TRACKER_SERVICE_NAME

@@ -28,7 +28,7 @@ spec:
     entryClass: {{ .Values.strategyDiscoveryPipeline.job.entryClass }}
     jarURI: {{ .Values.strategyDiscoveryPipeline.job.jarURI }}
     args:
-      - "--kafkaBootstrapServers={{ include "tradestream.fullname" . }}-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+                      - "--kafkaBootstrapServers={{ include "tradestream.fullname" . }}-kafka:9092"
       - "--runner=FlinkRunner"
       - "--streaming=true"
       - "--dbServerName={{ tpl .Values.strategyDiscoveryPipeline.database.host . }}"
