@@ -29,9 +29,5 @@ public class MarketDataModule extends AbstractModule {
             .implement(TiingoCryptoCandleTransform.class, TiingoCryptoCandleTransform.class)
             .build(TiingoCryptoCandleTransform.Factory.class));
     install(new FactoryModuleBuilder().build(TiingoCryptoFetcherFn.Factory.class));
-    install(
-        new FactoryModuleBuilder()
-            .implement(TradeToCandle.class, TradeToCandle.class)
-            .build(TradeToCandle.Factory.class));
   }
 }

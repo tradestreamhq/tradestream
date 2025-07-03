@@ -158,7 +158,6 @@ java_library(
         ":tiingo_crypto_candle_source",
         ":tiingo_crypto_candle_transform",
         ":tiingo_crypto_fetcher_fn",
-        ":trade_to_candle",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party/java:auto_value",
@@ -235,21 +234,5 @@ kt_jvm_library(
     deps = [
         "//third_party/java:beam_sdks_java_core",
         "//third_party/java:joda_time",
-    ],
-)
-
-# PTransform to convert Trades to Candles (now uses ParDo with CandleCreatorFn)
-kt_jvm_library(
-    name = "trade_to_candle",
-    srcs = ["TradeToCandle.kt"],
-    deps = [
-        ":candle_combine_fn",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:flogger",
-        "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
-        "//third_party/java:joda_time",
-        "//third_party/java:protobuf_java",
     ],
 )

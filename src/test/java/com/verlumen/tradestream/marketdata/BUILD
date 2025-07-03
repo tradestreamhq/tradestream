@@ -182,34 +182,3 @@ kt_jvm_test(
         "//third_party/java:truth",
     ],
 )
-
-kt_jvm_test(
-    name = "TradeToCandleTest",
-    srcs = ["TradeToCandleTest.kt"],
-    test_class = "com.verlumen.tradestream.marketdata.TradeToCandleTest",
-    runtime_deps = [
-        "//third_party/java:beam_runners_direct_java",
-    ],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//src/main/java/com/verlumen/tradestream/marketdata:candle_combine_fn",
-        "//src/main/java/com/verlumen/tradestream/marketdata:market_data_module",
-        "//src/main/java/com/verlumen/tradestream/marketdata:trade_to_candle",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:beam_sdks_java_test_utils",
-        "//third_party/java:flogger",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
-        "//third_party/java:guice_testlib",
-        "//third_party/java:hamcrest",
-        "//third_party/java:joda_time",
-        "//third_party/java:junit",
-        "//third_party/java:mockito_core",
-        "//third_party/java:protobuf_java",
-        "//third_party/java:protobuf_java_util",
-        "//third_party/java:truth",
-    ],
-)
