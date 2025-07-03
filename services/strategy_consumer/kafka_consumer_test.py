@@ -161,7 +161,6 @@ class TestStrategyKafkaConsumer:
         discovered_strategy.strategy.CopyFrom(strategy)
         discovered_strategy.symbol = "BTC/USD"
         discovered_strategy.score = 0.85
-        
         # Serialize to bytes
         message_bytes = discovered_strategy.SerializeToString()
 
