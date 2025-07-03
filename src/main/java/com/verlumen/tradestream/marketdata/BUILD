@@ -42,19 +42,6 @@ kt_jvm_library(
     ],
 )
 
-# DoFn for buffering the last N candles
-java_library(
-    name = "last_candles_fn",
-    srcs = ["LastCandlesFn.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:flogger",
-        "//third_party/java:guava",
-    ],
-)
-
 # Guice module for market data components
 java_library(
     name = "market_data_module",
