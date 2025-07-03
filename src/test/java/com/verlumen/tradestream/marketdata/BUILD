@@ -1,6 +1,5 @@
 """Build rules for marketdata tests."""
 
-load("@rules_java//java:defs.bzl", "java_test")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 
 kt_jvm_test(
@@ -17,75 +16,6 @@ kt_jvm_test(
         "//third_party/java:influxdb_client_java",
         "//third_party/java:junit",
         "//third_party/java:mockito_core",
-        "//third_party/java:protobuf_java",
-        "//third_party/java:protobuf_java_util",
-        "//third_party/java:truth",
-    ],
-)
-
-kt_jvm_test(
-    name = "TiingoCryptoCandleTransformTest",
-    srcs = ["TiingoCryptoCandleTransformTest.kt"],
-    test_class = "com.verlumen.tradestream.marketdata.TiingoCryptoCandleTransformTest",
-    runtime_deps = [
-        "//third_party/java:beam_runners_direct_java",
-        "//third_party/java:hamcrest",
-    ],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/http:http_client",
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_crypto_candle_transform",
-        "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_crypto_fetcher_fn",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_test_utils",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:guice_testlib",
-        "//third_party/java:joda_time",
-        "//third_party/java:junit",
-        "//third_party/java:mockito_core",
-        "//third_party/java:mockito_kotlin",
-        "//third_party/java:protobuf_java_util",
-        "//third_party/java:truth",
-    ],
-)
-
-kt_jvm_test(
-    name = "TiingoCryptoFetcherFnTest",
-    srcs = ["TiingoCryptoFetcherFnTest.kt"],
-    test_class = "com.verlumen.tradestream.marketdata.TiingoCryptoFetcherFnTest",
-    runtime_deps = [
-        "//third_party/java:beam_runners_direct_java",
-        "//third_party/java:hamcrest",
-    ],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/http:http_client",
-        "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_crypto_fetcher_fn",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_test_utils",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
-        "//third_party/java:joda_time",
-        "//third_party/java:junit",
-        "//third_party/java:mockito_core",
-        "//third_party/java:mockito_kotlin",
-        "//third_party/java:protobuf_java_util",
-        "//third_party/java:truth",
-    ],
-)
-
-kt_jvm_test(
-    name = "TiingoResponseParserTest",
-    srcs = ["TiingoResponseParserTest.kt"],
-    test_class = "com.verlumen.tradestream.marketdata.TiingoResponseParserTest",
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/marketdata:tiingo_response_parser",
-        "//third_party/java:gson",
-        "//third_party/java:junit",
         "//third_party/java:protobuf_java",
         "//third_party/java:protobuf_java_util",
         "//third_party/java:truth",

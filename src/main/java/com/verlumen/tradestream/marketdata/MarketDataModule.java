@@ -4,7 +4,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 public class MarketDataModule extends AbstractModule {
-
   public static MarketDataModule create() {
     return new MarketDataModule();
   }
@@ -15,10 +14,5 @@ public class MarketDataModule extends AbstractModule {
         new FactoryModuleBuilder()
             .implement(InfluxDbCandleFetcher.class, InfluxDbCandleFetcher.class)
             .build(InfluxDbCandleFetcher.Factory.class));
-    install(
-        new FactoryModuleBuilder()
-            .implement(TiingoCryptoCandleTransform.class, TiingoCryptoCandleTransform.class)
-            .build(TiingoCryptoCandleTransform.Factory.class));
-    install(new FactoryModuleBuilder().build(TiingoCryptoFetcherFn.Factory.class));
   }
 }
