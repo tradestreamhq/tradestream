@@ -5,18 +5,6 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
 
 package(default_visibility = ["//visibility:public"])
 
-java_library(
-    name = "candle_combine_fn",
-    srcs = ["CandleCombineFn.java"],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:flogger",
-        "//third_party/java:protobuf_java",
-    ],
-)
-
 kt_jvm_library(
     name = "candle_fetcher",
     srcs = ["CandleFetcher.kt"],
