@@ -158,6 +158,7 @@ class StrategyKafkaConsumer:
             if timestamp_proto:
                 # Convert seconds and nanos to datetime
                 import datetime
+
                 dt = datetime.datetime.fromtimestamp(
                     timestamp_proto.seconds + timestamp_proto.nanos / 1e9,
                     tz=datetime.timezone.utc,
