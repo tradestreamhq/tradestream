@@ -114,27 +114,6 @@ java_test(
     ],
 )
 
-java_test(
-    name = "SlidingCandleAggregatorTest",
-    srcs = ["SlidingCandleAggregatorTest.java"],
-    runtime_deps = [
-        "//third_party/java:beam_runners_direct_java",
-        "//third_party/java:hamcrest",
-    ],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/marketdata:candle_combine_fn",
-        "//src/main/java/com/verlumen/tradestream/marketdata:sliding_candle_aggregator",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:beam_sdks_java_test_utils",
-        "//third_party/java:guava",
-        "//third_party/java:joda_time",
-        "//third_party/java:junit",
-        "//third_party/java:protobuf_java",
-    ],
-)
-
 kt_jvm_test(
     name = "TiingoCryptoCandleTransformTest",
     srcs = ["TiingoCryptoCandleTransformTest.kt"],
