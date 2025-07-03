@@ -158,7 +158,6 @@ java_library(
         ":tiingo_crypto_candle_source",
         ":tiingo_crypto_candle_transform",
         ":tiingo_crypto_fetcher_fn",
-        ":trade_source",
         "//protos:marketdata_java_proto",
         "//src/main/java/com/verlumen/tradestream/execution:run_mode",
         "//third_party/java:auto_value",
