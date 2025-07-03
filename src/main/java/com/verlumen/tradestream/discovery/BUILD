@@ -445,7 +445,6 @@ kt_jvm_library(
         ":strategy_discovery_pipeline",
         ":strategy_discovery_pipeline_options",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtesting_module",
-        "//src/main/java/com/verlumen/tradestream/http:http_module",
         "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_config",
         "//src/main/java/com/verlumen/tradestream/influxdb:influx_db_module",
         "//src/main/java/com/verlumen/tradestream/marketdata:candle_fetcher",
