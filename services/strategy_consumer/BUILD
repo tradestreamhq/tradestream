@@ -39,6 +39,16 @@ py_binary(
     ],
 )
 
+py_binary(
+    name = "strategy_inspector",
+    srcs = ["strategy_inspector.py"],
+    deps = [
+        "//third_party/python:asyncpg",
+        "//third_party/python:protobuf",
+        "//protos:strategies_py_proto",
+    ],
+)
+
 # --- Test Targets ---
 py_test(
     name = "postgres_client_test",
@@ -89,11 +99,11 @@ py_test(
     srcs = ["postgres_client_integration_test.py"],
     deps = [
         ":postgres_client_lib",
+        "//third_party/python:asyncpg",
         "//third_party/python:pytest",
         "//third_party/python:pytest_asyncio",
         "//third_party/python:testing_postgresql",
     ],
-    tags = ["requires-postgresql"],
 )
 
 # --- OCI Image Rules ---
