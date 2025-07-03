@@ -19,4 +19,4 @@ sealed class DiscoveredStrategySinkParams {
     ) : DiscoveredStrategySinkParams()
 
     object DryRun : DiscoveredStrategySinkParams()
-} 
+}
