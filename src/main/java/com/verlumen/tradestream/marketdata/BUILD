@@ -94,13 +94,3 @@ kt_jvm_library(
         "//third_party/java:protobuf_java_util",
     ],
 )
-
-# Checkpoint mark for the unbounded source
-kt_jvm_library(
-    name = "trade_checkpoint_mark",
-    srcs = ["TradeCheckpointMark.kt"],
-    deps = [
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:joda_time",
-    ],
-)
