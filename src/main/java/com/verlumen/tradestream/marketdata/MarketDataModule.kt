@@ -8,7 +8,7 @@ class MarketDataModule : AbstractModule() {
         install(
             FactoryModuleBuilder()
                 .implement(InfluxDbCandleFetcher::class.java, InfluxDbCandleFetcher::class.java)
-                .build(InfluxDbCandleFetcher.Factory::class.java)
+                .build(InfluxDbCandleFetcher.Factory::class.java),
         )
     }
 }
