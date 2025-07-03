@@ -180,11 +180,17 @@ class PostgresClient:
                             discovery_start_time = datetime.fromisoformat(
                                 strategy["discovery_start_time"].replace("Z", "+00:00")
                             )
+                            # Convert to timezone-naive datetime for PostgreSQL
+                            if discovery_start_time.tzinfo is not None:
+                                discovery_start_time = discovery_start_time.replace(tzinfo=None)
 
                         if strategy.get("discovery_end_time"):
                             discovery_end_time = datetime.fromisoformat(
                                 strategy["discovery_end_time"].replace("Z", "+00:00")
                             )
+                            # Convert to timezone-naive datetime for PostgreSQL
+                            if discovery_end_time.tzinfo is not None:
+                                discovery_end_time = discovery_end_time.replace(tzinfo=None)
 
                         # Execute the upsert
                         await conn.execute(
