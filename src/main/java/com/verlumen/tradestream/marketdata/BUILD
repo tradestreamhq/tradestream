@@ -1,7 +1,6 @@
 """Build rules for marketdata components."""
 
-load("@rules_java//java:defs.bzl", "java_library", "java_test")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -31,9 +30,9 @@ kt_jvm_library(
 )
 
 # Guice module for market data components
-java_library(
+kt_jvm_library(
     name = "market_data_module",
-    srcs = ["MarketDataModule.java"],
+    srcs = ["MarketDataModule.kt"],
     deps = [
         ":candle_fetcher",
         ":influxdb_candle_fetcher",
