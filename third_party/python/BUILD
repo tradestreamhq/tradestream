@@ -88,3 +88,11 @@ py_library(
         requirement("pytest-asyncio"),
     ],
 )
+
+py_library(
+    name = "testing_postgresql",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("testing.postgresql"),
+    ],
+)
