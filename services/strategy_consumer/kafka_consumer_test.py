@@ -150,7 +150,6 @@ class TestStrategyKafkaConsumer:
         # Create a test DiscoveredStrategy with specific parameters
         strategy = Strategy()
         strategy.type = StrategyType.MACD_CROSSOVER
-        
         # Create parameters as Any field
         parameters = any_pb2.Any()
         parameters.type_url = "type.googleapis.com/com.verlumen.tradestream.strategies.MacdCrossoverParameters"
