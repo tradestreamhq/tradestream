@@ -14,18 +14,6 @@ kt_jvm_library(
     ],
 )
 
-# Abstract base class for exchange client unbounded sources
-kt_jvm_library(
-    name = "exchange_client_unbounded_source",
-    srcs = ["ExchangeClientUnboundedSource.kt"],
-    deps = [
-        ":trade_checkpoint_mark",
-        "//protos:marketdata_java_proto",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-    ],
-)
-
 kt_jvm_library(
     name = "influxdb_candle_fetcher",
     srcs = ["InfluxDbCandleFetcher.kt"],
