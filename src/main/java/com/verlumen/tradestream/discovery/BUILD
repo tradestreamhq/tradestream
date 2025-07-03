@@ -461,16 +461,6 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
-    name = "temporary_currency_pair_module",
-    srcs = ["TemporaryCurrencyPairModule.kt"],
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/instruments:currency_pair",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-    ],
-)
-
-kt_jvm_library(
     name = "write_discovered_strategies_to_postgres_fn",
     srcs = [
         "WriteDiscoveredStrategiesToPostgresFn.kt",
