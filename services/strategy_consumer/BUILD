@@ -23,6 +23,8 @@ py_library(
         "//third_party/python:kafka_python",
         "//third_party/python:protobuf",
         "//third_party/python:tenacity",
+        "//protos:discovery_py_proto",
+        "//protos:strategies_py_proto",
     ],
 )
 
@@ -55,6 +57,8 @@ py_test(
         ":kafka_consumer_lib",
         "//third_party/python:pytest",
         "//third_party/python:pytest_asyncio",
+        "//protos:discovery_py_proto",
+        "//protos:strategies_py_proto",
     ],
 )
 

@@ -19,6 +19,12 @@ from tenacity import (
     retry_if_exception_type,
 )
 
+# Import Protocol Buffer generated classes
+from protos.discovery_pb2 import DiscoveredStrategy
+from protos.strategies_pb2 import StrategyType
+from google.protobuf import any_pb2
+from google.protobuf import timestamp_pb2
+
 # Define retry parameters for Kafka operations
 kafka_retry_params = dict(
     stop=stop_after_attempt(5),
@@ -78,8 +84,7 @@ class StrategyKafkaConsumer:
                 heartbeat_interval_ms=self.heartbeat_interval_ms,
                 max_poll_records=self.max_poll_records,
                 max_poll_interval_ms=self.max_poll_interval_ms,
-                value_deserializer=lambda m: m.decode("utf-8") if m else None,
-                key_deserializer=lambda m: m.decode("utf-8") if m else None,
+                # Remove UTF-8 deserializers - we'll handle binary data directly
                 consumer_timeout_ms=1000,  # 1 second timeout for polling
             )
 
@@ -101,64 +106,83 @@ class StrategyKafkaConsumer:
         """Set the callback function to process strategies."""
         self.processor_callback = callback
 
-    def _parse_strategy_message(self, message: str) -> Optional[dict]:
+    def _parse_strategy_message(self, message_bytes: bytes) -> Optional[dict]:
         """
-        Parse a strategy message from Kafka.
+        Parse a strategy message from Kafka binary Protocol Buffer data.
 
         Args:
-            message: JSON string containing strategy data
+            message_bytes: Binary Protocol Buffer data containing DiscoveredStrategy
 
         Returns:
             Parsed strategy dictionary or None if parsing fails
         """
         try:
-            strategy_data = json.loads(message)
+            # Deserialize the Protocol Buffer message
+            discovered_strategy = DiscoveredStrategy.FromString(message_bytes)
 
-            # Extract required fields
+            # Extract basic fields
             strategy = {
-                "symbol": strategy_data.get("symbol", ""),
-                "strategy_type": strategy_data.get("strategy_type", ""),
-                "current_score": strategy_data.get("current_score", 0.0),
-                "strategy_hash": strategy_data.get("strategy_hash", ""),
-                "discovery_symbol": strategy_data.get("discovery_symbol", ""),
-                "discovery_start_time": strategy_data.get("discovery_start_time"),
-                "discovery_end_time": strategy_data.get("discovery_end_time"),
+                "symbol": discovered_strategy.symbol,
+                "strategy_type": discovered_strategy.strategy.type.name,
+                "current_score": discovered_strategy.score,
+                "strategy_hash": self._generate_strategy_hash(discovered_strategy.strategy),
+                "discovery_symbol": discovered_strategy.symbol,
+                "discovery_start_time": self._timestamp_to_iso(discovered_strategy.start_time),
+                "discovery_end_time": self._timestamp_to_iso(discovered_strategy.end_time),
             }
 
-            # Parse strategy parameters
-            if "strategy" in strategy_data:
-                strategy_obj = strategy_data["strategy"]
-                if "parameters" in strategy_obj:
-                    # Handle protobuf Any field
-                    parameters = strategy_obj["parameters"]
-                    if "type_url" in parameters and "value" in parameters:
-                        # This is a protobuf Any field, extract the actual parameters
-                        try:
-                            # For now, we'll store the raw protobuf data
-                            # In a real implementation, you'd unpack this based on type_url
-                            strategy["parameters"] = {
-                                "protobuf_type": parameters.get("type_url", ""),
-                                "protobuf_data": parameters.get("value", ""),
-                                "raw_parameters": parameters,
-                            }
-                        except Exception as e:
-                            logging.warning(f"Failed to parse protobuf parameters: {e}")
-                            strategy["parameters"] = parameters
-                    else:
-                        strategy["parameters"] = parameters
-                else:
-                    strategy["parameters"] = {}
-            else:
-                strategy["parameters"] = {}
+            # Parse strategy parameters from the protobuf Any field
+            strategy["parameters"] = self._extract_strategy_parameters(discovered_strategy.strategy.parameters)
 
             return strategy
 
-        except json.JSONDecodeError as e:
-            logging.error(f"Failed to parse JSON message: {e}")
+        except Exception as e:
+            logging.error(f"Failed to parse Protocol Buffer message: {e}")
+            return None
+
+    def _generate_strategy_hash(self, strategy_proto) -> str:
+        """Generate a hash for the strategy based on its parameters."""
+        try:
+            # Use the serialized parameters as the basis for the hash
+            import hashlib
+            parameters_bytes = strategy_proto.parameters.SerializeToString()
+            return hashlib.sha256(parameters_bytes).hexdigest()
+        except Exception as e:
+            logging.warning(f"Failed to generate strategy hash: {e}")
+            return ""
+
+    def _timestamp_to_iso(self, timestamp_proto) -> Optional[str]:
+        """Convert protobuf timestamp to ISO format string."""
+        try:
+            if timestamp_proto:
+                # Convert seconds and nanos to datetime
+                import datetime
+                dt = datetime.datetime.fromtimestamp(
+                    timestamp_proto.seconds + timestamp_proto.nanos / 1e9,
+                    tz=datetime.timezone.utc
+                )
+                return dt.isoformat()
             return None
         except Exception as e:
-            logging.error(f"Failed to parse strategy message: {e}")
+            logging.warning(f"Failed to convert timestamp: {e}")
             return None
+
+    def _extract_strategy_parameters(self, parameters_any) -> dict:
+        """Extract strategy parameters from protobuf Any field."""
+        try:
+            # For now, we'll store the raw protobuf data
+            # In a real implementation, you'd unpack this based on type_url
+            return {
+                "protobuf_type": parameters_any.type_url,
+                "protobuf_data": parameters_any.value.hex(),  # Store as hex string
+                "raw_parameters": {
+                    "type_url": parameters_any.type_url,
+                    "value": parameters_any.value.hex(),
+                },
+            }
+        except Exception as e:
+            logging.warning(f"Failed to extract strategy parameters: {e}")
+            return {}
 
     async def _process_messages(self, messages: List[dict]) -> None:
         """Process a batch of strategy messages."""
@@ -230,6 +254,7 @@ class StrategyKafkaConsumer:
                     for message in messages:
                         try:
                             if message.value:
+                                # message.value is now bytes (binary data)
                                 strategy = self._parse_strategy_message(message.value)
                                 if strategy:
                                     strategies.append(strategy)
