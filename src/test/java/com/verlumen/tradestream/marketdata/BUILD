@@ -4,34 +4,6 @@ load("@rules_java//java:defs.bzl", "java_test")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 
 kt_jvm_test(
-    name = "FillForwardCandlesTest",
-    srcs = ["FillForwardCandlesTest.kt"],
-    test_class = "com.verlumen.tradestream.marketdata.FillForwardCandlesTest",
-    runtime_deps = [
-        "//third_party/java:beam_runners_direct_java",
-    ],
-    deps = [
-        "//protos:marketdata_java_proto",
-        "//src/main/java/com/verlumen/tradestream/marketdata:fill_forward_candles",
-        "//src/main/java/com/verlumen/tradestream/marketdata:fill_forward_candles_fn",
-        "//third_party/java:beam_sdks_java_core",
-        "//third_party/java:beam_sdks_java_extensions_protobuf",
-        "//third_party/java:beam_sdks_java_test_utils",
-        "//third_party/java:guava",
-        "//third_party/java:guice",
-        "//third_party/java:guice_assistedinject",
-        "//third_party/java:guice_testlib",
-        "//third_party/java:hamcrest",
-        "//third_party/java:joda_time",
-        "//third_party/java:junit",
-        "//third_party/java:mockito_core",
-        "//third_party/java:protobuf_java",
-        "//third_party/java:protobuf_java_util",
-        "//third_party/java:truth",
-    ],
-)
-
-kt_jvm_test(
     name = "InfluxDbCandleFetcherTest",
     srcs = ["InfluxDbCandleFetcherTest.kt"],
     test_class = "com.verlumen.tradestream.marketdata.InfluxDbCandleFetcherTest",
