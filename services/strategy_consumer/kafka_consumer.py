@@ -258,7 +258,9 @@ class StrategyKafkaConsumer:
                     logging.info(f"Processing {len(messages)} messages from partition {tp.partition}")
                     for message in messages:
                         try:
-                            logging.info(f"Received message from partition {tp.partition}, offset {message.offset}")
+                            logging.info(
+                                f"Received message from partition {tp.partition}, offset {message.offset}"
+                            )
                             logging.info(f"Message value type: {type(message.value)}")
                             logging.info(
                                 f"Message value length: {len(message.value) if message.value else 0}"
