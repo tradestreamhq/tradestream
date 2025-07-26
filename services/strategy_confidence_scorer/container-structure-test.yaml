@@ -1,0 +1,35 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/strategy_confidence_scorer"
+
+fileExistenceTests:
+  - name: "Python executable exists"
+    path: "/services/strategy_confidence_scorer/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
+
+  - name: "Main script exists"
+    path: "/services/strategy_confidence_scorer/main.py"
+    shouldExist: true
+    permissions: "-rw-r--r--"
+
+commandTests:
+  - name: "Python version check"
+    command: "python3"
+    args: ["--version"]
+    expectedOutput: ["Python 3.13"]
+
+  - name: "Script can be imported"
+    command: "python3"
+    args: ["-c", "import main; print('Import successful')"]
+    expectedOutput: ["Import successful"]
+
+  - name: "Help flag works"
+    command: "/services/strategy_confidence_scorer/app"
+    args: ["--help"]
+    expectedOutput: ["usage:"]
+
+licenseTests:
+  - debian: true
+  - cve: true 

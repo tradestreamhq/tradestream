@@ -1,0 +1,4 @@
+flask>=2.3.0
+flask-cors>=4.0.0
+asyncpg>=0.28.0
+absl-py>=1.4.0
