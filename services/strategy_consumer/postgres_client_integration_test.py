@@ -47,7 +47,9 @@ class TestPostgresClientIntegration:
             assert result == 1
 
     @pytest.mark.asyncio
-    async def test_insert_strategies_with_timezone_aware_datetimes(self, postgres_client):
+    async def test_insert_strategies_with_timezone_aware_datetimes(
+        self, postgres_client
+    ):
         """Test inserting strategies with timezone-aware datetime strings."""
         await postgres_client.connect()
         await postgres_client.ensure_table_exists()
@@ -62,7 +64,7 @@ class TestPostgresClientIntegration:
                 "strategy_hash": "hash123",
                 "discovery_symbol": "BTC/USD",
                 "discovery_start_time": "2024-01-01T00:00:00+00:00",  # Timezone-aware
-                "discovery_end_time": "2024-01-01T01:00:00+00:00",    # Timezone-aware
+                "discovery_end_time": "2024-01-01T01:00:00+00:00",  # Timezone-aware
             },
             {
                 "symbol": "ETH/USD",
@@ -72,7 +74,7 @@ class TestPostgresClientIntegration:
                 "strategy_hash": "hash456",
                 "discovery_symbol": "ETH/USD",
                 "discovery_start_time": "2024-01-01T02:00:00Z",  # Z format
-                "discovery_end_time": "2024-01-01T03:00:00Z",    # Z format
+                "discovery_end_time": "2024-01-01T03:00:00Z",  # Z format
             },
         ]
 
@@ -92,7 +94,7 @@ class TestPostgresClientIntegration:
             assert btc_row["current_score"] == 0.85
             assert btc_row["strategy_hash"] == "hash123"
             assert btc_row["discovery_symbol"] == "BTC/USD"
-            
+
             # Check that timestamps were stored correctly (timezone-naive)
             assert btc_row["discovery_start_time"] is not None
             assert btc_row["discovery_end_time"] is not None
@@ -122,7 +124,7 @@ class TestPostgresClientIntegration:
                 "strategy_hash": "hash789",
                 "discovery_symbol": "SOL/USD",
                 "discovery_start_time": None,  # Null timestamp
-                "discovery_end_time": None,    # Null timestamp
+                "discovery_end_time": None,  # Null timestamp
             }
         ]
 
@@ -131,7 +133,9 @@ class TestPostgresClientIntegration:
 
         # Verify the strategy was inserted correctly
         async with postgres_client.pool.acquire() as conn:
-            row = await conn.fetchrow("SELECT * FROM strategies WHERE symbol = 'SOL/USD'")
+            row = await conn.fetchrow(
+                "SELECT * FROM strategies WHERE symbol = 'SOL/USD'"
+            )
             assert row is not None
             assert row["symbol"] == "SOL/USD"
             assert row["discovery_start_time"] is None
@@ -175,10 +179,14 @@ class TestPostgresClientIntegration:
 
         # Verify only one record exists with updated score
         async with postgres_client.pool.acquire() as conn:
-            count = await conn.fetchval("SELECT COUNT(*) FROM strategies WHERE strategy_hash = 'hash_upsert_test'")
+            count = await conn.fetchval(
+                "SELECT COUNT(*) FROM strategies WHERE strategy_hash = 'hash_upsert_test'"
+            )
             assert count == 1
 
-            row = await conn.fetchrow("SELECT * FROM strategies WHERE strategy_hash = 'hash_upsert_test'")
+            row = await conn.fetchrow(
+                "SELECT * FROM strategies WHERE strategy_hash = 'hash_upsert_test'"
+            )
             assert row["current_score"] == 0.90  # Should have updated score
 
     @pytest.mark.asyncio
@@ -239,10 +247,12 @@ class TestPostgresClientIntegration:
 
         await postgres_client.insert_strategies(strategies)
         link_strategies = await postgres_client.get_strategies_by_symbol("LINK/USD")
-        
+
         assert len(link_strategies) == 2
         assert all(s["symbol"] == "LINK/USD" for s in link_strategies)
-        assert link_strategies[0]["current_score"] == 0.88  # Should be sorted by score DESC
+        assert (
+            link_strategies[0]["current_score"] == 0.88
+        )  # Should be sorted by score DESC
         assert link_strategies[1]["current_score"] == 0.85
 
     @pytest.mark.asyncio
@@ -288,5 +298,7 @@ class TestPostgresClientIntegration:
 
         # Verify no invalid data was inserted
         async with postgres_client.pool.acquire() as conn:
-            count = await conn.fetchval("SELECT COUNT(*) FROM strategies WHERE symbol = 'INVALID/USD'")
-            assert count == 0 
+            count = await conn.fetchval(
+                "SELECT COUNT(*) FROM strategies WHERE symbol = 'INVALID/USD'"
+            )
+            assert count == 0

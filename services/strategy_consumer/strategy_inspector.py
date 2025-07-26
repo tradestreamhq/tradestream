@@ -21,21 +21,23 @@ from protos import strategies_pb2
 
 class StrategyInspector:
     """Utility class to inspect strategies from the database."""
-    
+
     def __init__(self, db_config: dict):
         self.db_config = db_config
         self.pool = None
-    
+
     async def connect(self):
         """Connect to the database."""
         self.pool = await asyncpg.create_pool(**self.db_config)
-    
+
     async def close(self):
         """Close the database connection."""
         if self.pool:
             await self.pool.close()
-    
-    def decode_protobuf_parameters(self, protobuf_data: str, protobuf_type: str) -> dict:
+
+    def decode_protobuf_parameters(
+        self, protobuf_data: str, protobuf_type: str
+    ) -> dict:
         """Decode protobuf parameters to a readable format."""
         try:
             # Map protobuf types to their corresponding classes
@@ -109,7 +111,9 @@ class StrategyInspector:
                 for field in param_class.DESCRIPTOR.fields:
                     value = getattr(param_class, field.name)
                     if field.type == field.TYPE_ENUM:
-                        result[field.name] = field.enum_type.values_by_number[value].name
+                        result[field.name] = field.enum_type.values_by_number[
+                            value
+                        ].name
                     else:
                         result[field.name] = value
                 return result
@@ -117,8 +121,10 @@ class StrategyInspector:
                 return {"error": f"Unknown protobuf type: {protobuf_type}"}
         except Exception as e:
             return {"error": f"Failed to decode protobuf: {str(e)}"}
-    
-    async def get_strategies(self, symbol: str, limit: int = 10, min_score: Optional[float] = None) -> List[dict]:
+
+    async def get_strategies(
+        self, symbol: str, limit: int = 10, min_score: Optional[float] = None
+    ) -> List[dict]:
         """Get strategies for a given symbol, sorted by score descending."""
         if min_score is not None:
             query = """
@@ -152,43 +158,46 @@ class StrategyInspector:
                 ORDER BY current_score DESC LIMIT $2
             """
             params = [symbol, limit]
-        
+
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(query, *params)
-            
+
             strategies = []
             for row in rows:
                 strategy = dict(row)
-                
+
                 # Parse parameters if it's a string
-                params_field = strategy['parameters']
+                params_field = strategy["parameters"]
                 if isinstance(params_field, str):
                     try:
                         params_field = json.loads(params_field)
                     except Exception:
                         params_field = None
-                
+
                 # Decode the parameters
-                if params_field and isinstance(params_field, dict) and 'protobuf_data' in params_field:
+                if (
+                    params_field
+                    and isinstance(params_field, dict)
+                    and "protobuf_data" in params_field
+                ):
                     decoded_params = self.decode_protobuf_parameters(
-                        params_field['protobuf_data'],
-                        params_field['protobuf_type']
+                        params_field["protobuf_data"], params_field["protobuf_type"]
                     )
-                    strategy['decoded_parameters'] = decoded_params
-                
+                    strategy["decoded_parameters"] = decoded_params
+
                 strategies.append(strategy)
-            
+
             return strategies
-    
+
     def print_strategies(self, strategies: List[dict], show_parameters: bool = True):
         """Print strategies in a formatted way."""
         if not strategies:
             print(f"No strategies found.")
             return
-        
+
         print(f"\nFound {len(strategies)} strategies:")
         print("=" * 80)
-        
+
         for i, strategy in enumerate(strategies, 1):
             print(f"\n{i}. Strategy ID: {strategy['strategy_id']}")
             print(f"   Symbol: {strategy['symbol']}")
@@ -197,30 +206,51 @@ class StrategyInspector:
             print(f"   Active: {strategy['is_active']}")
             print(f"   Created: {strategy['created_at']}")
             print(f"   Last Evaluated: {strategy['last_evaluated_at']}")
-            
-            if show_parameters and 'decoded_parameters' in strategy:
+
+            if show_parameters and "decoded_parameters" in strategy:
                 print(f"   Parameters:")
-                for key, value in strategy['decoded_parameters'].items():
+                for key, value in strategy["decoded_parameters"].items():
                     print(f"     {key}: {value}")
-            
+
             print("-" * 40)
 
 
 async def main():
     """Main function."""
     parser = argparse.ArgumentParser(description="Inspect strategies from the database")
-    parser.add_argument("--symbol", default="BTC/USD", help="Symbol to query (default: BTC/USD)")
-    parser.add_argument("--limit", type=int, default=10, help="Number of strategies to retrieve (default: 10)")
+    parser.add_argument(
+        "--symbol", default="BTC/USD", help="Symbol to query (default: BTC/USD)"
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=10,
+        help="Number of strategies to retrieve (default: 10)",
+    )
     parser.add_argument("--min-score", type=float, help="Minimum score threshold")
-    parser.add_argument("--host", default="localhost", help="Database host (default: localhost)")
-    parser.add_argument("--port", type=int, default=5432, help="Database port (default: 5432)")
-    parser.add_argument("--database", default="tradestream", help="Database name (default: tradestream)")
-    parser.add_argument("--username", default="postgres", help="Database username (default: postgres)")
-    parser.add_argument("--password", default="tradestream123", help="Database password (default: tradestream123)")
-    parser.add_argument("--no-parameters", action="store_true", help="Hide parameter details")
-    
+    parser.add_argument(
+        "--host", default="localhost", help="Database host (default: localhost)"
+    )
+    parser.add_argument(
+        "--port", type=int, default=5432, help="Database port (default: 5432)"
+    )
+    parser.add_argument(
+        "--database", default="tradestream", help="Database name (default: tradestream)"
+    )
+    parser.add_argument(
+        "--username", default="postgres", help="Database username (default: postgres)"
+    )
+    parser.add_argument(
+        "--password",
+        default="tradestream123",
+        help="Database password (default: tradestream123)",
+    )
+    parser.add_argument(
+        "--no-parameters", action="store_true", help="Hide parameter details"
+    )
+
     args = parser.parse_args()
-    
+
     # Database configuration
     db_config = {
         "host": args.host,
@@ -229,21 +259,19 @@ async def main():
         "user": args.username,
         "password": args.password,
     }
-    
+
     inspector = StrategyInspector(db_config)
-    
+
     try:
         await inspector.connect()
         print(f"Querying strategies for {args.symbol}...")
-        
+
         strategies = await inspector.get_strategies(
-            symbol=args.symbol,
-            limit=args.limit,
-            min_score=args.min_score
+            symbol=args.symbol, limit=args.limit, min_score=args.min_score
         )
-        
+
         inspector.print_strategies(strategies, show_parameters=not args.no_parameters)
-        
+
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
