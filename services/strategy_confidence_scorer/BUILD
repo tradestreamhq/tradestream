@@ -31,6 +31,7 @@ py_test(
     deps = [
         ":strategy_confidence_scorer_lib",
         "//third_party/python:absl_py",
+        "//third_party/python:pytest",
     ],
 )
 

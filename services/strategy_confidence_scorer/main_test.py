@@ -5,6 +5,12 @@ Tests for Strategy Confidence Scorer.
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock
+import sys
+import os
+
+# Add the current directory to the Python path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from main import StrategyConfidenceScorer, StrategyConfidenceScore
 
 
