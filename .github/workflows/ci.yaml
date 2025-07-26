@@ -93,6 +93,12 @@ jobs:
             --repository localhost:5000/strategy-consumer \
             --tag "latest"
 
+          # Build and push strategy-monitor-api image
+          bazel run //services/strategy_monitor_api:push_strategy_monitor_api_image \
+            -- \
+            --repository localhost:5000/strategy-monitor-api \
+            --tag "latest"
+
           # Load images into minikube
           docker pull localhost:5000/candle-ingestor:latest
           docker tag localhost:5000/candle-ingestor:latest candle-ingestor:latest
@@ -109,6 +115,9 @@ jobs:
           docker pull localhost:5000/strategy-consumer:latest
           docker tag localhost:5000/strategy-consumer:latest strategy-consumer:latest
           minikube image load strategy-consumer:latest
+          docker pull localhost:5000/strategy-monitor-api:latest
+          docker tag localhost:5000/strategy-monitor-api:latest strategy-monitor-api:latest
+          minikube image load strategy-monitor-api:latest
 
       - name: Install Cert Manager
         run: |
@@ -134,11 +143,14 @@ jobs:
             --set strategyDiscoveryPipeline.image.tag=latest \
             --set strategyConsumer.image.repository=strategy-consumer \
             --set strategyConsumer.image.tag=latest \
+            --set strategyMonitorApi.image.repository=strategy-monitor-api \
+            --set strategyMonitorApi.image.tag=latest \
             --set redis.enabled=true \
             --set postgresql.enabled=true \
             --set topCryptoUpdaterCronjob.enabled=true \
             --set strategyDiscoveryRequestFactory.enabled=true \
             --set strategyConsumer.enabled=true \
+            --set strategyMonitorApi.enabled=true \
             --set influxdb.enabled=true
 
       - name: Monitor Deployment

@@ -14,9 +14,9 @@
 
         body {
             font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
-            color: white;
+            color: #ffffff;
         }
 
         .container {
@@ -28,18 +28,20 @@
         .header {
             text-align: center;
             margin-bottom: 40px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: fadeInScale 0.8s ease-out;
         }
 
         .header h1 {
             font-size: 3rem;
             font-weight: 700;
             margin-bottom: 10px;
-            background: linear-gradient(45deg, #fff, #f0f0f0);
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -47,7 +49,23 @@
 
         .header p {
             font-size: 1.2rem;
-            opacity: 0.9;
+            opacity: 0.8;
+            color: #b0b0b0;
+            margin-bottom: 10px;
+        }
+
+        .header .info-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            border-left: 4px solid #4facfe;
+            backdrop-filter: blur(10px);
+        }
+
+        .header .info-box strong {
+            color: #4facfe;
         }
 
         .dashboard {
@@ -55,6 +73,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 30px;
             margin-bottom: 30px;
+            animation: slideInUp 0.6s ease-out 0.4s both;
         }
 
         .panel {
@@ -64,12 +83,14 @@
             backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInScale 0.6s ease-out;
         }
 
         .panel:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            animation: glow 2s infinite;
         }
 
         .panel h2 {
@@ -149,6 +170,7 @@
 
         .metrics-panel {
             grid-column: 1 / -1;
+            animation: slideInUp 0.6s ease-out 0.6s both;
         }
 
         .metrics-grid {
@@ -186,6 +208,7 @@
             gap: 20px;
             margin-bottom: 30px;
             flex-wrap: wrap;
+            animation: slideInUp 0.6s ease-out 0.2s both;
         }
 
         .btn {
@@ -196,20 +219,42 @@
             color: white;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         .btn:hover {
             background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
 
         .btn.active {
             background: linear-gradient(45deg, #4facfe, #00f2fe);
             border: 1px solid #4facfe;
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn.active:hover {
+            box-shadow: 0 12px 35px rgba(79, 172, 254, 0.6);
         }
 
         .loading {
@@ -233,20 +278,85 @@
             50% { opacity: 0.7; }
         }
 
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+            50% { box-shadow: 0 8px 32px rgba(79, 172, 254, 0.4); }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
         .pulse {
             animation: pulse 2s infinite;
         }
 
         .strategy-tooltip {
             position: absolute;
-            background: rgba(0, 0, 0, 0.9);
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.95), rgba(30, 30, 30, 0.95));
             color: white;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.8rem;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 0.85rem;
             pointer-events: none;
             z-index: 1000;
-            max-width: 200px;
+            max-width: 250px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            transform: translateY(-10px);
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        #visualization {
+            position: relative;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Connection status indicator animations */
+        #connection-status {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #connection-status::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.8s;
+        }
+
+        #connection-status:hover::before {
+            left: 100%;
         }
 
         @media (max-width: 768px) {
@@ -268,27 +378,47 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>TradeStream Strategy Monitor</h1>
-            <p>Real-time strategy performance visualization and monitoring</p>
+            <h1>📊 Trading Strategy Dashboard</h1>
+            <p>See how our automated trading strategies are performing in real-time</p>
+            <div class="info-box">
+                <strong>💡 What you're seeing:</strong> This dashboard shows automated trading strategies that analyze market patterns to find profitable opportunities. Each strategy has been tested on historical data and is currently being monitored for performance.
+                <br><br>
+                <strong>📊 About Testing Periods:</strong> Strategies are tested across different time windows (1 day to 84 days) to find the best performers. Longer testing periods generally provide more reliable results.
+            </div>
         </div>
 
         <div class="controls">
-            <button class="btn active" onclick="setView('cloud')">Strategy Cloud</button>
-            <button class="btn" onclick="setView('snowflake')">Snowflake View</button>
-            <button class="btn" onclick="refreshData()">🔄 Refresh</button>
-            <button class="btn" onclick="toggleAutoRefresh()">⏱️ Auto Refresh</button>
+            <button class="btn active" onclick="setView('cloud')" title="Interactive bubble chart showing all strategies">🌌 Strategy Overview</button>
+            <button class="btn" onclick="setView('snowflake')" title="Grid view of top-performing strategies">📈 Performance Grid</button>
+            <button class="btn" onclick="setView('network')" title="Network diagram showing strategy relationships">🔗 Strategy Connections</button>
+            <button class="btn" onclick="setView('matrix')" title="Heatmap showing strategy performance by trading pair">📊 Performance Matrix</button>
+            <button class="btn" onclick="refreshData()" title="Get the latest data from the trading system">🔄 Refresh Data</button>
+            <button class="btn" onclick="toggleAutoRefresh()" title="Automatically update data every 30 seconds">⏱️ Auto Update</button>
+            <span id="connection-status" style="margin-left: 20px; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;" title="Shows if we're connected to the trading data">
+                🔌 Connecting...
+            </span>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; border-left: 4px solid #4facfe;">
+            <strong>🔒 Stablecoin Filter:</strong> USD-pegged stablecoins (USDT, USDC, BUSD, etc.) are automatically filtered out since they're designed to maintain a stable value and don't provide meaningful trading opportunities.
         </div>
 
         <div class="dashboard">
             <div class="panel">
-                <h2 id="view-title">Strategy Performance Cloud</h2>
+                <h2 id="view-title">🌌 Strategy Overview - Interactive Performance Chart</h2>
+                <p style="text-align: center; margin-bottom: 15px; opacity: 0.8; font-size: 0.9rem;">
+                    Each bubble represents a trading strategy. Larger bubbles = better performance. Click any bubble for details.
+                </p>
                 <div id="visualization">
                     <div class="loading pulse">Loading strategies...</div>
                 </div>
             </div>
 
             <div class="panel">
-                <h2>Top Performing Strategies</h2>
+                <h2>🏆 Top Performing Strategies</h2>
+                <p style="text-align: center; margin-bottom: 15px; opacity: 0.8; font-size: 0.9rem;">
+                    These are our best-performing strategies based on recent market analysis
+                </p>
                 <div id="top-strategies">
                     <div class="loading pulse">Analyzing performance...</div>
                 </div>
@@ -296,7 +426,10 @@
         </div>
 
         <div class="panel metrics-panel">
-            <h2>System Metrics</h2>
+            <h2>📈 System Overview</h2>
+            <p style="text-align: center; margin-bottom: 20px; opacity: 0.8; font-size: 0.9rem;">
+                Key metrics showing how our trading system is performing overall
+            </p>
             <div class="metrics-grid" id="metrics">
                 <div class="loading pulse">Loading metrics...</div>
             </div>
@@ -346,127 +479,718 @@
                 .style('opacity', 0);
         }
 
-        // Strategy cloud visualization using D3
+        // Dynamic Strategy Galaxy Visualization
         function renderStrategyCloud(strategies) {
             const container = d3.select('#visualization');
             container.selectAll('*').remove();
 
-            const width = 500;
+            const containerRect = container.node().getBoundingClientRect();
+            const width = Math.max(containerRect.width || 500, 500);
             const height = 400;
+            const centerX = width / 2;
+            const centerY = height / 2;
 
+            // Create SVG with zoom behavior
             const svg = container.append('svg')
                 .attr('width', '100%')
                 .attr('height', height)
-                .attr('viewBox', `0 0 ${width} ${height}`);
+                .style('border-radius', '15px')
+                .style('background', 'radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)');
 
-            // Group strategies by type and calculate sizes
+            // Add zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.5, 3])
+                .on('zoom', (event) => {
+                    g.attr('transform', event.transform);
+                });
+
+            svg.call(zoom);
+
+            // Main container group
+            const g = svg.append('g');
+
+            // Add background effects
+            const defs = svg.append('defs');
+            
+            // Glow filter
+            const glow = defs.append('filter')
+                .attr('id', 'glow')
+                .attr('x', '-50%')
+                .attr('y', '-50%')
+                .attr('width', '200%')
+                .attr('height', '200%');
+            
+            glow.append('feGaussianBlur')
+                .attr('stdDeviation', '3')
+                .attr('result', 'coloredBlur');
+                
+            const feMerge = glow.append('feMerge');
+            feMerge.append('feMergeNode').attr('in', 'coloredBlur');
+            feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
+
+            // Process strategy data
             const strategyGroups = d3.group(strategies, d => d.strategy_type);
             const strategyData = Array.from(strategyGroups, ([key, values]) => ({
                 strategy_type: key,
                 count: values.length,
                 avg_score: d3.mean(values, d => d.current_score),
-                strategies: values
+                max_score: d3.max(values, d => d.current_score),
+                min_score: d3.min(values, d => d.current_score),
+                strategies: values,
+                id: key.replace(/[^a-zA-Z0-9]/g, '')
             }));
 
-            // Create scale for circle sizes
-            const sizeScale = d3.scaleLinear()
-                .domain(d3.extent(strategyData, d => d.count))
-                .range([20, 80]);
+            // Enhanced scaling
+            const maxCount = d3.max(strategyData, d => d.count);
+            const minCount = d3.min(strategyData, d => d.count);
+            
+            const sizeScale = d3.scaleSqrt()
+                .domain([minCount, maxCount])
+                .range([25, Math.min(width, height) * 0.12]);
 
-            const colorScale = d3.scaleSequential(d3.interpolateViridis)
-                .domain(d3.extent(strategyData, d => d.avg_score));
+            // Dynamic color scale with better colors
+            const colorScale = d3.scaleSequential()
+                .domain(d3.extent(strategyData, d => d.avg_score))
+                .interpolator(d3.interpolateRdYlBu);
 
-            // Force simulation
+            // Add some initial positions to prevent overlap
+            strategyData.forEach((d, i) => {
+                const angle = (i / strategyData.length) * 2 * Math.PI;
+                const radius = Math.min(width, height) * 0.2;
+                d.x = centerX + Math.cos(angle) * radius;
+                d.y = centerY + Math.sin(angle) * radius;
+            });
+
+            // Enhanced force simulation
             const simulation = d3.forceSimulation(strategyData)
-                .force('charge', d3.forceManyBody().strength(-300))
-                .force('center', d3.forceCenter(width / 2, height / 2))
-                .force('collision', d3.forceCollide().radius(d => sizeScale(d.count) + 5));
+                .force('charge', d3.forceManyBody()
+                    .strength(d => -Math.pow(sizeScale(d.count), 2) * 0.3)
+                    .distanceMax(Math.min(width, height) * 0.8))
+                .force('center', d3.forceCenter(centerX, centerY))
+                .force('collision', d3.forceCollide()
+                    .radius(d => sizeScale(d.count) + 8)
+                    .strength(0.8))
+                .force('bounds', () => {
+                    strategyData.forEach(d => {
+                        const radius = sizeScale(d.count);
+                        d.x = Math.max(radius, Math.min(width - radius, d.x));
+                        d.y = Math.max(radius, Math.min(height - radius, d.y));
+                    });
+                })
+                .alpha(1)
+                .alphaDecay(0.02);
 
-            const nodes = svg.selectAll('.strategy-node')
+            // Create strategy nodes with entrance animation
+            const nodes = g.selectAll('.strategy-node')
                 .data(strategyData)
                 .enter().append('g')
                 .attr('class', 'strategy-node')
-                .style('cursor', 'pointer');
+                .style('cursor', 'pointer')
+                .style('opacity', 0);
 
-            nodes.append('circle')
-                .attr('r', d => sizeScale(d.count))
-                .attr('fill', d => colorScale(d.avg_score))
-                .attr('stroke', 'white')
+            // Add circles with gradients
+            nodes.each(function(d) {
+                const node = d3.select(this);
+                const gradientId = `gradient-${d.id}`;
+                
+                // Create gradient for this node
+                const gradient = defs.append('radialGradient')
+                    .attr('id', gradientId)
+                    .attr('cx', '30%')
+                    .attr('cy', '30%');
+                
+                gradient.append('stop')
+                    .attr('offset', '0%')
+                    .attr('stop-color', d3.color(colorScale(d.avg_score)).brighter(0.8));
+                
+                gradient.append('stop')
+                    .attr('offset', '100%')
+                    .attr('stop-color', colorScale(d.avg_score));
+            });
+
+            const circles = nodes.append('circle')
+                .attr('r', 0)
+                .attr('fill', d => `url(#gradient-${d.id})`)
+                .attr('stroke', 'rgba(255, 255, 255, 0.6)')
                 .attr('stroke-width', 2)
-                .style('opacity', 0.8);
+                .attr('filter', 'url(#glow)')
+                .style('transition', 'all 0.3s ease');
 
-            nodes.append('text')
+            // Add strategy type labels
+            const labels = nodes.append('text')
                 .attr('text-anchor', 'middle')
                 .attr('dy', '0.35em')
                 .attr('fill', 'white')
                 .attr('font-weight', 'bold')
-                .attr('font-size', d => Math.min(sizeScale(d.count) / 3, 14))
-                .text(d => d.strategy_type);
-
-            // Tooltip interactions
-            nodes
-                .on('mouseover', function(event, d) {
-                    tooltip.transition().duration(200).style('opacity', .9);
-                    tooltip.html(`
-                        <strong>${d.strategy_type}</strong><br/>
-                        Count: ${d.count}<br/>
-                        Avg Score: ${d.avg_score.toFixed(1)}<br/>
-                        Best Score: ${d3.max(d.strategies, s => s.current_score).toFixed(1)}
-                    `)
-                    .style('left', (event.pageX + 10) + 'px')
-                    .style('top', (event.pageY - 28) + 'px');
-                })
-                .on('mouseout', function(d) {
-                    tooltip.transition().duration(500).style('opacity', 0);
+                .attr('font-size', d => Math.max(8, Math.min(sizeScale(d.count) / 4, 12)))
+                .style('text-shadow', '1px 1px 2px rgba(0,0,0,0.8)')
+                .style('pointer-events', 'none')
+                .text(d => {
+                    const words = d.strategy_type.split('_');
+                    return words.length > 2 ? words.slice(0, 2).join(' ') : words.join(' ');
                 });
 
+            // Add count indicators
+            nodes.append('circle')
+                .attr('r', d => Math.max(6, sizeScale(d.count) * 0.3))
+                .attr('cx', d => sizeScale(d.count) * 0.6)
+                .attr('cy', d => -sizeScale(d.count) * 0.6)
+                .attr('fill', 'rgba(255, 255, 255, 0.9)')
+                .attr('stroke', 'rgba(0, 0, 0, 0.3)')
+                .attr('stroke-width', 1);
+
+            nodes.append('text')
+                .attr('x', d => sizeScale(d.count) * 0.6)
+                .attr('y', d => -sizeScale(d.count) * 0.6)
+                .attr('text-anchor', 'middle')
+                .attr('dy', '0.35em')
+                .attr('fill', 'black')
+                .attr('font-size', '10px')
+                .attr('font-weight', 'bold')
+                .style('pointer-events', 'none')
+                .text(d => d.count);
+
+            // Enhanced interactions
+            nodes
+                .on('mouseover', function(event, d) {
+                    // Highlight effect
+                    d3.select(this).select('circle')
+                        .transition().duration(200)
+                        .attr('stroke-width', 4)
+                        .attr('stroke', '#ffff00');
+                    
+                    // Show tooltip
+                    tooltip.transition().duration(200).style('opacity', .95);
+                    tooltip.html(`
+                        <div style="text-align: center;">
+                            <strong style="font-size: 14px; color: #4facfe;">${d.strategy_type}</strong><br/>
+                            <div style="margin: 8px 0; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                                <div>Count: <strong>${d.count}</strong></div>
+                                <div>Avg Score: <strong>${d.avg_score.toFixed(2)}</strong></div>
+                                <div>Best: <strong>${d.max_score.toFixed(2)}</strong></div>
+                                <div>Range: ${d.min_score.toFixed(2)} - ${d.max_score.toFixed(2)}</div>
+                            </div>
+                            <small>Click for details</small>
+                        </div>
+                    `)
+                    .style('left', (event.pageX + 15) + 'px')
+                    .style('top', (event.pageY - 50) + 'px');
+                })
+                .on('mouseout', function(event, d) {
+                    d3.select(this).select('circle')
+                        .transition().duration(300)
+                        .attr('stroke-width', 2)
+                        .attr('stroke', 'rgba(255, 255, 255, 0.6)');
+                    
+                    tooltip.transition().duration(300).style('opacity', 0);
+                })
+                .on('click', function(event, d) {
+                    // Show detailed strategy list
+                    showStrategyTypeDetails(d);
+                });
+
+            // Animate entrance
+            nodes.transition()
+                .duration(1000)
+                .delay((d, i) => i * 100)
+                .style('opacity', 1);
+
+            circles.transition()
+                .duration(1500)
+                .delay((d, i) => i * 100)
+                .attr('r', d => sizeScale(d.count));
+
+            // Update positions on simulation tick
             simulation.on('tick', () => {
                 nodes.attr('transform', d => `translate(${d.x},${d.y})`);
             });
+
+            // Auto-fit view after simulation settles
+            setTimeout(() => {
+                const bounds = g.node().getBBox();
+                const scale = 0.8 * Math.min(width / bounds.width, height / bounds.height);
+                const translate = [
+                    (width - bounds.width * scale) / 2 - bounds.x * scale,
+                    (height - bounds.height * scale) / 2 - bounds.y * scale
+                ];
+                
+                svg.transition()
+                    .duration(1500)
+                    .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(Math.min(scale, 1)));
+            }, 3000);
+
+            // Add control buttons
+            const controls = container.append('div')
+                .style('position', 'absolute')
+                .style('top', '10px')
+                .style('right', '10px')
+                .style('display', 'flex')
+                .style('gap', '5px');
+
+            controls.append('button')
+                .style('padding', '5px 10px')
+                .style('border', 'none')
+                .style('border-radius', '5px')
+                .style('background', 'rgba(255,255,255,0.2)')
+                .style('color', 'white')
+                .style('cursor', 'pointer')
+                .text('Reset View')
+                .on('click', () => {
+                    svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
+                });
+
+            controls.append('button')
+                .style('padding', '5px 10px')
+                .style('border', 'none')
+                .style('border-radius', '5px')
+                .style('background', 'rgba(255,255,255,0.2)')
+                .style('color', 'white')
+                .style('cursor', 'pointer')
+                .text('Auto Fit')
+                .on('click', () => {
+                    const bounds = g.node().getBBox();
+                    const scale = 0.8 * Math.min(width / bounds.width, height / bounds.height);
+                    const translate = [
+                        (width - bounds.width * scale) / 2 - bounds.x * scale,
+                        (height - bounds.height * scale) / 2 - bounds.y * scale
+                    ];
+                    
+                    svg.transition()
+                        .duration(1000)
+                        .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(Math.min(scale, 1)));
+                });
         }
 
-        // Snowflake grid visualization
+        // Enhanced Snowflake Grid with Dynamic Animations
         function renderSnowflakeGrid(strategies) {
             const container = d3.select('#visualization');
             container.selectAll('*').remove();
 
             const gridContainer = container.append('div')
-                .attr('class', 'snowflake-grid');
+                .attr('class', 'snowflake-grid')
+                .style('position', 'relative');
 
             const sortedStrategies = strategies
                 .sort((a, b) => b.current_score - a.current_score)
-                .slice(0, 24); // Limit to top 24 for clean grid
+                .slice(0, 24);
 
             const cards = gridContainer.selectAll('.strategy-card')
                 .data(sortedStrategies)
                 .enter().append('div')
                 .attr('class', 'strategy-card')
                 .style('opacity', 0)
-                .style('transform', 'translateY(20px)');
+                .style('transform', 'scale(0.8) translateY(20px)')
+                .style('position', 'relative')
+                .style('overflow', 'hidden');
 
+            // Add performance bar background
             cards.append('div')
+                .style('position', 'absolute')
+                .style('bottom', '0')
+                .style('left', '0')
+                .style('width', d => `${(d.current_score / Math.max(...strategies.map(s => s.current_score))) * 100}%`)
+                .style('height', '3px')
+                .style('background', 'linear-gradient(90deg, #4facfe, #00f2fe)')
+                .style('transition', 'width 1s ease');
+
+            // Strategy type with icon
+            const headers = cards.append('div')
+                .style('display', 'flex')
+                .style('align-items', 'center')
+                .style('margin-bottom', '8px');
+
+            headers.append('div')
+                .style('width', '20px')
+                .style('height', '20px')
+                .style('border-radius', '50%')
+                .style('background', d => {
+                    const hue = Math.abs(d.strategy_type.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % 360;
+                    return `hsl(${hue}, 70%, 60%)`;
+                })
+                .style('margin-right', '8px')
+                .style('flex-shrink', '0');
+
+            headers.append('div')
                 .attr('class', 'strategy-name')
-                .text(d => d.strategy_type);
+                .style('font-size', '0.85rem')
+                .text(d => d.strategy_type.replace(/_/g, ' '));
 
             cards.append('div')
                 .attr('class', 'strategy-symbol')
+                .style('color', 'rgba(255,255,255,0.7)')
                 .text(d => d.symbol);
 
-            cards.append('div')
+            const scoreContainer = cards.append('div')
+                .style('display', 'flex')
+                .style('justify-content', 'space-between')
+                .style('align-items', 'center')
+                .style('margin-top', '8px');
+
+            scoreContainer.append('div')
                 .attr('class', 'strategy-score')
-                .text(d => d.current_score.toFixed(1));
+                .style('font-size', '1rem')
+                .text(d => d.current_score.toFixed(2));
 
-            // Animate in
+            // Add rank badge
+            scoreContainer.append('div')
+                .style('font-size', '0.7rem')
+                .style('background', 'rgba(255,255,255,0.2)')
+                .style('padding', '2px 6px')
+                .style('border-radius', '10px')
+                .text((d, i) => `#${i + 1}`);
+
+            // Animate cards in with stagger
             cards.transition()
-                .duration(500)
-                .delay((d, i) => i * 50)
+                .duration(600)
+                .delay((d, i) => i * 80)
                 .style('opacity', 1)
-                .style('transform', 'translateY(0px)');
+                .style('transform', 'scale(1) translateY(0px)');
 
-            // Add click interactions
-            cards.on('click', function(event, d) {
-                showStrategyDetails(d);
+            // Add hover effects
+            cards
+                .on('mouseover', function(event, d) {
+                    d3.select(this)
+                        .transition().duration(200)
+                        .style('transform', 'scale(1.05) translateY(-5px)')
+                        .style('box-shadow', '0 10px 30px rgba(0,0,0,0.4)');
+                })
+                .on('mouseout', function() {
+                    d3.select(this)
+                        .transition().duration(300)
+                        .style('transform', 'scale(1) translateY(0px)')
+                        .style('box-shadow', '0 5px 20px rgba(0,0,0,0.3)');
+                })
+                .on('click', function(event, d) {
+                    showStrategyDetails(d);
+                });
+        }
+
+        // New Strategy Network Visualization
+        function renderStrategyNetwork(strategies) {
+            const container = d3.select('#visualization');
+            container.selectAll('*').remove();
+
+            const width = container.node().getBoundingClientRect().width || 500;
+            const height = 400;
+
+            const svg = container.append('svg')
+                .attr('width', '100%')
+                .attr('height', height)
+                .style('border-radius', '15px');
+
+            // Group strategies by symbol and type
+            const symbolGroups = d3.group(strategies, d => d.symbol);
+            const typeGroups = d3.group(strategies, d => d.strategy_type);
+
+            // Create nodes for symbols and strategy types
+            const nodes = [];
+            const links = [];
+
+            // Add symbol nodes (larger central nodes)
+            Array.from(symbolGroups.entries()).forEach(([symbol, strategies]) => {
+                nodes.push({
+                    id: `symbol-${symbol}`,
+                    type: 'symbol',
+                    label: symbol,
+                    value: strategies.length,
+                    avg_score: d3.mean(strategies, d => d.current_score),
+                    strategies: strategies
+                });
             });
+
+            // Add strategy type nodes
+            Array.from(typeGroups.entries()).forEach(([strategyType, strategies]) => {
+                nodes.push({
+                    id: `type-${strategyType}`,
+                    type: 'strategy',
+                    label: strategyType,
+                    value: strategies.length,
+                    avg_score: d3.mean(strategies, d => d.current_score),
+                    strategies: strategies
+                });
+
+                // Create links between strategy types and symbols
+                const symbolsForType = new Set(strategies.map(s => s.symbol));
+                symbolsForType.forEach(symbol => {
+                    const strategiesForSymbolType = strategies.filter(s => s.symbol === symbol);
+                    links.push({
+                        source: `symbol-${symbol}`,
+                        target: `type-${strategyType}`,
+                        value: strategiesForSymbolType.length,
+                        avg_score: d3.mean(strategiesForSymbolType, d => d.current_score)
+                    });
+                });
+            });
+
+            // Scales
+            const sizeScale = d3.scaleSqrt()
+                .domain(d3.extent(nodes, d => d.value))
+                .range([8, 40]);
+
+            const linkWidthScale = d3.scaleLinear()
+                .domain(d3.extent(links, d => d.value))
+                .range([1, 8]);
+
+            // Force simulation
+            const simulation = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(100))
+                .force('charge', d3.forceManyBody().strength(-500))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(d => sizeScale(d.value) + 5));
+
+            // Draw links
+            const link = svg.append('g')
+                .selectAll('line')
+                .data(links)
+                .enter().append('line')
+                .attr('stroke', 'rgba(255,255,255,0.3)')
+                .attr('stroke-width', d => linkWidthScale(d.value))
+                .style('opacity', 0);
+
+            // Draw nodes
+            const node = svg.append('g')
+                .selectAll('g')
+                .data(nodes)
+                .enter().append('g')
+                .style('cursor', 'pointer')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+
+            node.append('circle')
+                .attr('r', d => sizeScale(d.value))
+                .attr('fill', d => {
+                    if (d.type === 'symbol') {
+                        return `hsl(${200}, 70%, 60%)`;
+                    } else {
+                        const hue = Math.abs(d.label.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % 360;
+                        return `hsl(${hue}, 70%, 60%)`;
+                    }
+                })
+                .attr('stroke', 'white')
+                .attr('stroke-width', 2)
+                .style('opacity', 0);
+
+            node.append('text')
+                .attr('text-anchor', 'middle')
+                .attr('dy', '0.35em')
+                .attr('fill', 'white')
+                .attr('font-size', d => Math.max(8, sizeScale(d.value) / 3))
+                .attr('font-weight', 'bold')
+                .style('text-shadow', '1px 1px 2px rgba(0,0,0,0.8)')
+                .style('pointer-events', 'none')
+                .text(d => {
+                    if (d.type === 'symbol') return d.label;
+                    return d.label.split('_')[0];
+                })
+                .style('opacity', 0);
+
+            // Animate entrance
+            node.selectAll('circle')
+                .transition()
+                .duration(1000)
+                .delay((d, i) => i * 50)
+                .style('opacity', 0.8);
+
+            node.selectAll('text')
+                .transition()
+                .duration(1000)
+                .delay((d, i) => i * 50)
+                .style('opacity', 1);
+
+            link.transition()
+                .duration(1500)
+                .delay(500)
+                .style('opacity', 0.6);
+
+            // Interactions
+            node
+                .on('mouseover', function(event, d) {
+                    d3.select(this).select('circle')
+                        .transition().duration(200)
+                        .attr('stroke-width', 4)
+                        .style('opacity', 1);
+
+                    tooltip.transition().duration(200).style('opacity', .9);
+                    tooltip.html(`
+                        <strong>${d.label}</strong><br/>
+                        Type: ${d.type}<br/>
+                        Strategies: ${d.value}<br/>
+                        Avg Score: ${d.avg_score.toFixed(2)}
+                    `)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 28) + 'px');
+                })
+                .on('mouseout', function(event, d) {
+                    d3.select(this).select('circle')
+                        .transition().duration(300)
+                        .attr('stroke-width', 2)
+                        .style('opacity', 0.8);
+                    
+                    tooltip.transition().duration(300).style('opacity', 0);
+                });
+
+            // Update positions
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+        }
+
+        // Performance Matrix Visualization
+        function renderPerformanceMatrix(strategies) {
+            const container = d3.select('#visualization');
+            container.selectAll('*').remove();
+
+            const margin = {top: 20, right: 20, bottom: 60, left: 80};
+            const width = (container.node().getBoundingClientRect().width || 500) - margin.left - margin.right;
+            const height = 400 - margin.top - margin.bottom;
+
+            const svg = container.append('svg')
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom)
+                .style('border-radius', '15px');
+
+            const g = svg.append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            // Process data for matrix
+            const symbols = Array.from(new Set(strategies.map(d => d.symbol))).sort();
+            const strategyTypes = Array.from(new Set(strategies.map(d => d.strategy_type))).sort();
+
+            const matrixData = [];
+            symbols.forEach(symbol => {
+                strategyTypes.forEach(strategyType => {
+                    const matching = strategies.filter(s => s.symbol === symbol && s.strategy_type === strategyType);
+                    if (matching.length > 0) {
+                        matrixData.push({
+                            symbol: symbol,
+                            strategy_type: strategyType,
+                            count: matching.length,
+                            avg_score: d3.mean(matching, d => d.current_score),
+                            max_score: d3.max(matching, d => d.current_score),
+                            strategies: matching
+                        });
+                    }
+                });
+            });
+
+            // Scales
+            const x = d3.scaleBand()
+                .domain(strategyTypes)
+                .range([0, width])
+                .padding(0.1);
+
+            const y = d3.scaleBand()
+                .domain(symbols)
+                .range([0, height])
+                .padding(0.1);
+
+            const color = d3.scaleSequential(d3.interpolateRdYlBu)
+                .domain(d3.extent(matrixData, d => d.avg_score));
+
+            const size = d3.scaleSqrt()
+                .domain(d3.extent(matrixData, d => d.count))
+                .range([2, Math.min(x.bandwidth(), y.bandwidth()) / 2]);
+
+            // Add axes
+            g.append('g')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x))
+                .selectAll('text')
+                .attr('transform', 'rotate(-45)')
+                .style('text-anchor', 'end')
+                .style('fill', 'white')
+                .style('font-size', '10px');
+
+            g.append('g')
+                .call(d3.axisLeft(y))
+                .selectAll('text')
+                .style('fill', 'white')
+                .style('font-size', '12px');
+
+            // Add cells
+            const cells = g.selectAll('.cell')
+                .data(matrixData)
+                .enter().append('g')
+                .attr('class', 'cell')
+                .style('cursor', 'pointer');
+
+            cells.append('rect')
+                .attr('x', d => x(d.strategy_type))
+                .attr('y', d => y(d.symbol))
+                .attr('width', x.bandwidth())
+                .attr('height', y.bandwidth())
+                .attr('fill', 'rgba(255,255,255,0.1)')
+                .attr('stroke', 'rgba(255,255,255,0.2)')
+                .attr('stroke-width', 1);
+
+            cells.append('circle')
+                .attr('cx', d => x(d.strategy_type) + x.bandwidth() / 2)
+                .attr('cy', d => y(d.symbol) + y.bandwidth() / 2)
+                .attr('r', 0)
+                .attr('fill', d => color(d.avg_score))
+                .attr('stroke', 'white')
+                .attr('stroke-width', 1);
+
+            // Animate circles
+            cells.selectAll('circle')
+                .transition()
+                .duration(1000)
+                .delay((d, i) => i * 20)
+                .attr('r', d => size(d.count));
+
+            // Interactions
+            cells
+                .on('mouseover', function(event, d) {
+                    d3.select(this).select('circle')
+                        .transition().duration(200)
+                        .attr('stroke-width', 3);
+
+                    tooltip.transition().duration(200).style('opacity', .9);
+                    tooltip.html(`
+                        <strong>${d.strategy_type}</strong><br/>
+                        Symbol: ${d.symbol}<br/>
+                        Count: ${d.count}<br/>
+                        Avg Score: ${d.avg_score.toFixed(2)}<br/>
+                        Max Score: ${d.max_score.toFixed(2)}
+                    `)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 28) + 'px');
+                })
+                .on('mouseout', function() {
+                    d3.select(this).select('circle')
+                        .transition().duration(300)
+                        .attr('stroke-width', 1);
+                    
+                    tooltip.transition().duration(300).style('opacity', 0);
+                })
+                .on('click', function(event, d) {
+                    showStrategyDetails(d.strategies[0]);
+                });
         }
 
         // Render top strategies list
@@ -491,12 +1215,25 @@
             list.append('div')
                 .style('font-weight', 'bold')
                 .style('margin-bottom', '5px')
-                .text(d => `${d.strategy_type} (${d.symbol})`);
+                .text(d => `🎯 ${d.strategy_type} on ${d.symbol}`);
 
             list.append('div')
                 .style('font-size', '0.9rem')
                 .style('opacity', '0.8')
-                .text(d => `Score: ${d.current_score.toFixed(1)} | Period: ${d.parameters.period || 'N/A'}`);
+                .text(d => {
+                    const period = d.backtest_period_days;
+                    let periodText = 'N/A';
+                    if (period) {
+                        if (period < 7) {
+                            periodText = `${period} days (short test)`;
+                        } else if (period < 30) {
+                            periodText = `${period} days`;
+                        } else {
+                            periodText = `${period} days (extended test)`;
+                        }
+                    }
+                    return `⭐ Score: ${d.current_score.toFixed(1)} | 📈 ${periodText}`;
+                });
 
             list.transition()
                 .duration(300)
@@ -531,11 +1268,11 @@
                 const strategyTypes = new Set(strategies.map(d => d.strategy_type)).size;
 
                 metrics = [
-                    { label: 'Total Strategies', value: totalStrategies },
-                    { label: 'Avg Score', value: avgScore?.toFixed(1) || '0' },
-                    { label: 'Top Score', value: topScore?.toFixed(1) || '0' },
-                    { label: 'Active Symbols', value: activeSymbols },
-                    { label: 'Strategy Types', value: strategyTypes }
+                    { label: '📊 Total Trading Strategies', value: totalStrategies },
+                    { label: '📈 Average Performance', value: avgScore?.toFixed(1) || '0' },
+                    { label: '🏆 Best Performance', value: topScore?.toFixed(1) || '0' },
+                    { label: '💰 Trading Pairs', value: activeSymbols },
+                    { label: '🎯 Strategy Types', value: strategyTypes }
                 ];
             }
 
@@ -559,54 +1296,251 @@
                 .style('opacity', 1);
         }
 
-        // Show strategy details (placeholder)
-        function showStrategyDetails(strategy) {
-            alert(`Strategy Details:\n\nType: ${strategy.strategy_type}\nSymbol: ${strategy.symbol}\nScore: ${strategy.current_score.toFixed(2)}\nParameters: ${JSON.stringify(strategy.parameters, null, 2)}`);
+        // Format strategy parameters for display
+        function formatStrategyParameters(parameters) {
+            if (!parameters || typeof parameters !== 'object') {
+                return 'No parameters available';
+            }
+            
+            // If it's already a readable format (has readable keys)
+            if (parameters.strategy_type || Object.keys(parameters).some(key => key.includes(' '))) {
+                const lines = [];
+                for (const [key, value] of Object.entries(parameters)) {
+                    if (key !== 'strategy_type' && key !== 'raw_hex' && key !== 'raw_base64' && key !== 'decoded' && key !== 'size_bytes' && key !== 'protobuf_type') {
+                        lines.push(`${key}: ${value}`);
+                    }
+                }
+                return lines.length > 0 ? lines.join('\\n') : 'Basic parameters only';
+            }
+            
+            // If it's raw hex/base64 data
+            if (parameters.raw_hex || parameters.raw_base64) {
+                return `Raw data: ${parameters.raw_hex || parameters.raw_base64}`;
+            }
+            
+            // Fallback to JSON
+            return JSON.stringify(parameters, null, 2);
         }
 
-        // Set visualization view
+        // Show strategy details (enhanced)
+        function showStrategyDetails(strategy) {
+            const details = `
+🎯 Trading Strategy Details
+
+📊 Strategy Type: ${strategy.strategy_type}
+💰 Trading Pair: ${strategy.symbol}
+⭐ Performance Score: ${strategy.current_score.toFixed(3)}/100
+
+📈 Testing Period:
+- Duration: ${strategy.backtest_period_days ? strategy.backtest_period_days + ' days' : 'N/A'}${strategy.backtest_period_days && strategy.backtest_period_days < 7 ? ' (Note: Short testing period - results may be less reliable)' : ''}
+- Test Start: ${strategy.discovery_start_time ? new Date(strategy.discovery_start_time).toLocaleString() : 'N/A'}
+- Test End: ${strategy.discovery_end_time ? new Date(strategy.discovery_end_time).toLocaleString() : 'N/A'}
+
+🔍 Discovery Info:
+- Original Pair: ${strategy.discovery_symbol || 'N/A'}
+
+⏰ Timeline:
+- First Found: ${strategy.first_discovered_at ? new Date(strategy.first_discovered_at).toLocaleString() : 'N/A'}
+- Last Checked: ${strategy.last_evaluated_at ? new Date(strategy.last_evaluated_at).toLocaleString() : 'N/A'}
+
+⚙️ Strategy Settings:
+${formatStrategyParameters(strategy.parameters)}
+            `.trim();
+            
+            alert(details);
+        }
+
+        // Show strategy type details (new function)
+        function showStrategyTypeDetails(strategyGroup) {
+            const strategies = strategyGroup.strategies;
+            const topStrategies = strategies
+                .sort((a, b) => b.current_score - a.current_score)
+                .slice(0, 5);
+            
+            let details = `
+${strategyGroup.strategy_type} Strategy Details:
+
+Total Count: ${strategyGroup.count}
+Average Score: ${strategyGroup.avg_score.toFixed(3)}
+Best Score: ${strategyGroup.max_score.toFixed(3)}
+Score Range: ${strategyGroup.min_score.toFixed(3)} - ${strategyGroup.max_score.toFixed(3)}
+
+Top 5 Performing Strategies:
+`;
+            
+            topStrategies.forEach((strategy, i) => {
+                details += `${i + 1}. ${strategy.symbol} - Score: ${strategy.current_score.toFixed(3)}\n`;
+            });
+            
+            alert(details);
+        }
+
+        // Enhanced view switching with smooth transitions
         function setView(view) {
+            if (currentView === view) return; // No change needed
+            
             currentView = view;
             
-            // Update button states
-            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+            // Update button states with smooth transitions
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.transform = 'scale(1)';
+            });
+            
             event.target.classList.add('active');
+            event.target.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                event.target.style.transform = 'scale(1)';
+            }, 150);
 
-            // Update title and render
-            const title = view === 'cloud' ? 'Strategy Performance Cloud' : 'Strategy Snowflake Grid';
-            document.getElementById('view-title').textContent = title;
+            // Update title with animation
+            const titleElement = document.getElementById('view-title');
+            titleElement.style.opacity = '0.5';
+            
+            setTimeout(() => {
+                let title;
+                switch(view) {
+                    case 'cloud':
+                        title = '🌌 Strategy Overview - Interactive Performance Chart';
+                        break;
+                    case 'snowflake':
+                        title = '📈 Performance Grid - Top Strategy Rankings';
+                        break;
+                    case 'network':
+                        title = '🔗 Strategy Connections - Symbol-Strategy Relationships';
+                        break;
+                    case 'matrix':
+                        title = '📊 Performance Matrix - Strategy×Symbol Heatmap';
+                        break;
+                    default:
+                        title = 'Strategy Visualization';
+                }
+                titleElement.textContent = title;
+                titleElement.style.opacity = '1';
+            }, 200);
 
-            if (view === 'cloud') {
-                renderStrategyCloud(strategies);
-            } else {
-                renderSnowflakeGrid(strategies);
-            }
+            // Add loading state
+            const visualization = document.getElementById('visualization');
+            visualization.style.opacity = '0.3';
+            
+            // Render appropriate visualization with delay for smooth transition
+            setTimeout(() => {
+                switch(view) {
+                    case 'cloud':
+                        renderStrategyCloud(strategies);
+                        break;
+                    case 'snowflake':
+                        renderSnowflakeGrid(strategies);
+                        break;
+                    case 'network':
+                        renderStrategyNetwork(strategies);
+                        break;
+                    case 'matrix':
+                        renderPerformanceMatrix(strategies);
+                        break;
+                }
+                
+                visualization.style.opacity = '1';
+            }, 300);
         }
 
-        // Refresh data
+        // Enhanced refresh with better handling of all views
         async function refreshData() {
-            document.querySelector('#visualization .loading')?.classList.add('pulse');
+            const loadingIndicator = document.querySelector('#visualization .loading');
+            if (loadingIndicator) {
+                loadingIndicator.classList.add('pulse');
+            }
+            
+            // Add loading overlay
+            const visualization = document.getElementById('visualization');
+            if (!visualization.querySelector('.loading-overlay')) {
+                const overlay = document.createElement('div');
+                overlay.className = 'loading-overlay';
+                overlay.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0,0,0,0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 15px;
+                    z-index: 1000;
+                    backdrop-filter: blur(2px);
+                `;
+                overlay.innerHTML = '<div style="color: white; font-size: 1.2rem;">🔄 Refreshing...</div>';
+                visualization.style.position = 'relative';
+                visualization.appendChild(overlay);
+            }
             
             try {
                 // Fetch strategies from API or generate mock data
                 strategies = await fetchRealData();
                 
-                // Render all components
-                if (currentView === 'cloud') {
-                    renderStrategyCloud(strategies);
-                } else {
-                    renderSnowflakeGrid(strategies);
+                // Remove loading overlay
+                const overlay = visualization.querySelector('.loading-overlay');
+                if (overlay) {
+                    overlay.remove();
                 }
                 
+                // Render current view with smooth transition
+                visualization.style.opacity = '0.7';
+                
+                setTimeout(() => {
+                    switch(currentView) {
+                        case 'cloud':
+                            renderStrategyCloud(strategies);
+                            break;
+                        case 'snowflake':
+                            renderSnowflakeGrid(strategies);
+                            break;
+                        case 'network':
+                            renderStrategyNetwork(strategies);
+                            break;
+                        case 'matrix':
+                            renderPerformanceMatrix(strategies);
+                            break;
+                        default:
+                            renderStrategyCloud(strategies);
+                    }
+                    
+                    visualization.style.opacity = '1';
+                }, 100);
+                
                 renderTopStrategies(strategies);
-                await renderMetrics(strategies); // Now async
+                await renderMetrics(strategies);
                 
             } catch (error) {
                 console.error('Failed to refresh data:', error);
+                
+                // Remove loading overlay
+                const overlay = visualization.querySelector('.loading-overlay');
+                if (overlay) {
+                    overlay.remove();
+                }
+                
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'error';
-                errorDiv.textContent = 'Failed to load strategy data. Using mock data.';
-                document.getElementById('visualization').appendChild(errorDiv);
+                errorDiv.style.cssText = `
+                    text-align: center;
+                    padding: 20px;
+                    margin: 20px;
+                    background: rgba(255, 0, 0, 0.2);
+                    border: 1px solid rgba(255, 0, 0, 0.5);
+                    border-radius: 10px;
+                    animation: shake 0.5s ease-in-out;
+                `;
+                errorDiv.textContent = 'Failed to load strategy data. Using cached data.';
+                visualization.appendChild(errorDiv);
+                
+                // Remove error after 3 seconds
+                setTimeout(() => {
+                    if (errorDiv.parentNode) {
+                        errorDiv.remove();
+                    }
+                }, 3000);
             }
         }
 
@@ -626,32 +1560,69 @@
             }
         }
 
+        // Update connection status indicator
+        function updateConnectionStatus(isConnected, isLive = false) {
+            const statusElement = document.getElementById('connection-status');
+            if (isConnected && isLive) {
+                statusElement.textContent = '🟢 Live Trading Data';
+                statusElement.title = 'Connected to real trading data - showing live strategy performance';
+                statusElement.style.background = 'rgba(0, 255, 0, 0.2)';
+                statusElement.style.border = '1px solid rgba(0, 255, 0, 0.5)';
+            } else if (isConnected) {
+                statusElement.textContent = '🟡 Connected to Database';
+                statusElement.title = 'Connected to strategy database - showing historical data';
+                statusElement.style.background = 'rgba(255, 255, 0, 0.2)';
+                statusElement.style.border = '1px solid rgba(255, 255, 0, 0.5)';
+            } else {
+                statusElement.textContent = '🔴 Demo Mode';
+                statusElement.title = 'Showing sample data for demonstration purposes';
+                statusElement.style.background = 'rgba(255, 0, 0, 0.2)';
+                statusElement.style.border = '1px solid rgba(255, 0, 0, 0.5)';
+            }
+        }
+
         // Try to fetch real data from the API
         async function fetchRealData() {
             try {
+                console.log('🔌 Attempting to fetch from API...');
                 // Try to fetch from the strategy monitor API
-                const response = await fetch('http://localhost:8080/api/strategies');
+                const response = await fetch('http://localhost:8080/api/strategies?limit=50');
+                console.log('📡 API Response status:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('✅ API data received:', data.count, 'strategies');
+                    updateConnectionStatus(true, true);
                     return data.strategies || [];
+                } else {
+                    console.log('❌ API response not OK:', response.status, response.statusText);
+                    updateConnectionStatus(false);
                 }
             } catch (error) {
-                console.log('No real API available, using mock data:', error);
+                console.log('🚫 API fetch failed, using mock data:', error);
+                updateConnectionStatus(false);
             }
             
+            console.log('🎭 Using mock data fallback');
             return generateMockStrategies();
         }
 
         // Fetch metrics from API
         async function fetchMetrics() {
             try {
+                console.log('📊 Fetching metrics from API...');
                 const response = await fetch('http://localhost:8080/api/metrics');
+                console.log('📊 Metrics response status:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('✅ Metrics received:', data.metrics);
                     return data.metrics;
+                } else {
+                    console.log('❌ Metrics response not OK:', response.status);
                 }
             } catch (error) {
-                console.log('Could not fetch metrics from API:', error);
+                console.log('🚫 Metrics fetch failed:', error);
             }
             return null;
         }

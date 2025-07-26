@@ -61,11 +61,6 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
-if ! python3 -c "import psycopg2, flask, flask_cors" 2>/dev/null; then
-    echo -e "${YELLOW}⚠ Installing required Python packages...${NC}"
-    pip3 install psycopg2-binary flask flask-cors
-fi
-
 echo -e "${GREEN}✓ Prerequisites OK${NC}"
 
 # Step 2: Set up port forwards
@@ -104,7 +99,7 @@ if check_port 8080; then
 fi
 
 cd services/strategy_monitor_api
-python3 main.py --postgres_password="$DB_PASSWORD" --api_port=8080 --api_host=0.0.0.0 &
+/usr/bin/python3 main.py --postgres_password="$DB_PASSWORD" --api_port=8080 --api_host=0.0.0.0 &
 API_PID=$!
 echo "API server PID: $API_PID"
 
@@ -119,19 +114,19 @@ fi
 # Step 5: Start UI server
 echo -e "${BLUE}🎨 Starting UI server...${NC}"
 
-if check_port 3000; then
-    echo -e "${YELLOW}⚠ Port 3000 already in use, stopping existing service...${NC}"
-    pkill -f "python3.*http.server.*3000" || true
+if check_port 3001; then
+    echo -e "${YELLOW}⚠ Port 3001 already in use, stopping existing service...${NC}"
+    pkill -f "python3.*http.server.*3001" || true
     sleep 2
 fi
 
 cd ../ui/strategy-monitor
-python3 -m http.server 3000 &
+python3 -m http.server 3001 &
 UI_PID=$!
 echo "UI server PID: $UI_PID"
 
 # Wait for UI to be ready
-if wait_for_service "http://localhost:3000" "UI server"; then
+if wait_for_service "http://localhost:3001" "UI server"; then
     echo -e "${GREEN}✓ UI server started successfully${NC}"
 else
     echo -e "${RED}✗ UI server failed to start${NC}"
@@ -142,7 +137,7 @@ fi
 echo
 echo -e "${GREEN}🎉 Strategy Monitor is now running!${NC}"
 echo
-echo -e "${BLUE}📊 Dashboard URL:${NC} http://localhost:3000"
+echo -e "${BLUE}📊 Dashboard URL:${NC} http://localhost:3001"
 echo -e "${BLUE}🔧 API URL:${NC}     http://localhost:8080"
 echo
 echo -e "${BLUE}📈 Quick API Tests:${NC}"

@@ -13,11 +13,13 @@ jobs:
       STRATEGY_DISCOVERY_REQUEST_FACTORY_REPO: tradestreamhq/strategy-discovery-request-factory
       STRATEGY_DISCOVERY_PIPELINE_REPO: tradestreamhq/strategy-discovery-pipeline
       STRATEGY_CONSUMER_REPO: tradestreamhq/strategy-consumer
+      STRATEGY_MONITOR_API_REPO: tradestreamhq/strategy-monitor-api
       CANDLE_INGESTOR_SECTION_KEY: candleIngestor
       TOP_CRYPTO_UPDATER_SECTION_KEY: topCryptoUpdaterCronjob
       STRATEGY_DISCOVERY_REQUEST_FACTORY_SECTION_KEY: strategyDiscoveryRequestFactory
       STRATEGY_DISCOVERY_PIPELINE_SECTION_KEY: strategyDiscoveryPipeline
       STRATEGY_CONSUMER_SECTION_KEY: strategyConsumer
+      STRATEGY_MONITOR_API_SECTION_KEY: strategyMonitorApi
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -89,6 +91,11 @@ jobs:
           bazel run //services/strategy_consumer:push_strategy_consumer_image \
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
+      - name: Push the Strategy Monitor API image
+        run: |
+          bazel run //services/strategy_monitor_api:push_strategy_monitor_api_image \
+            -- \
+            --tag ${{ steps.version.outputs.version_tag }}
 
       - name: Install yq
         run: |
@@ -108,7 +115,9 @@ jobs:
             .["${{ env.STRATEGY_DISCOVERY_PIPELINE_SECTION_KEY }}"].image.repository = "${{ env.STRATEGY_DISCOVERY_PIPELINE_REPO }}" |
             .["${{ env.STRATEGY_DISCOVERY_PIPELINE_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
             .["${{ env.STRATEGY_CONSUMER_SECTION_KEY }}"].image.repository = "${{ env.STRATEGY_CONSUMER_REPO }}" |
-            .["${{ env.STRATEGY_CONSUMER_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}"
+            .["${{ env.STRATEGY_CONSUMER_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
+            .["${{ env.STRATEGY_MONITOR_API_SECTION_KEY }}"].image.repository = "${{ env.STRATEGY_MONITOR_API_REPO }}" |
+            .["${{ env.STRATEGY_MONITOR_API_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}"
           ' charts/tradestream/values.yaml > charts/tradestream/values.yaml.tmp
           mv charts/tradestream/values.yaml.tmp charts/tradestream/values.yaml
 
