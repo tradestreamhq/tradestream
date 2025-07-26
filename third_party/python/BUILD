@@ -10,6 +10,30 @@ py_library(
 )
 
 py_library(
+    name = "flask",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("flask"),
+    ],
+)
+
+py_library(
+    name = "flask_cors",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("flask-cors"),
+    ],
+)
+
+py_library(
+    name = "psycopg2_binary",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("psycopg2-binary"),
+    ],
+)
+
+py_library(
     name = "asyncpg",
     visibility = ["//visibility:public"],
     deps = [

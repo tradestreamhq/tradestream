@@ -1,0 +1,29 @@
+schemaVersion: 2.0.0
+
+# metadataTest:
+#   workdir: "/services/strategy_confidence_scorer"
+
+fileExistenceTests:
+  - name: "Python executable exists"
+    path: "/services/strategy_confidence_scorer/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
+
+  - name: "Main script exists"
+    path: "/services/strategy_confidence_scorer/main.py"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
+
+commandTests:
+  - name: "Python version check"
+    command: "python3"
+    args: ["--version"]
+    expectedOutput: ["Python 3.13"]
+
+  - name: "Binary exists and is executable"
+    command: "ls"
+    args: ["-la", "/services/strategy_confidence_scorer/app"]
+    expectedOutput: ["-rwxr-xr-x"]
+
+licenseTests:
+  - debian: true 

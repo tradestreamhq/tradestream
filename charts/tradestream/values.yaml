@@ -353,3 +353,53 @@ strategyConsumer:
     limits:
       cpu: "500m"
       memory: "1Gi"
+
+# Strategy Monitor API configuration
+strategyMonitorApi:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: "tradestreamhq/strategy-monitor-api"
+    pullPolicy: IfNotPresent
+    tag: "v1.0.4-main"
+  service:
+    type: ClusterIP
+    port: 8080
+    host: "0.0.0.0"
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  # Database configuration - uses the PostgreSQL chart
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    # Reference the auto-generated PostgreSQL secret
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+
+# Strategy Monitor UI configuration
+strategyMonitorUi:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: "tradestreamhq/strategy-monitor-ui"
+    pullPolicy: IfNotPresent
+    tag: "v1.0.4-main"
+  service:
+    type: ClusterIP
+    port: 8080
+  apiBaseUrl: "http://{{ include \"tradestream.fullname\" . }}-strategy-monitor-api:8080"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
