@@ -383,3 +383,23 @@ strategyMonitorApi:
     passwordSecret:
       name: '{{ include "tradestream.fullname" . }}-postgresql'
       key: "postgres-password"
+
+# Strategy Monitor UI configuration
+strategyMonitorUi:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: "tradestreamhq/strategy-monitor-ui"
+    pullPolicy: IfNotPresent
+    tag: "v1.0.4-main"
+  service:
+    type: ClusterIP
+    port: 8080
+  apiBaseUrl: "http://{{ include \"tradestream.fullname\" . }}-strategy-monitor-api:8080"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"

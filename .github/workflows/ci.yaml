@@ -98,6 +98,12 @@ jobs:
             -- \
             --repository localhost:5000/strategy-monitor-api \
             --tag "latest"
+          
+          # Build and push strategy-monitor-ui image
+          bazel run //ui/strategy-monitor:push_strategy_monitor_ui_image \
+            -- \
+            --repository localhost:5000/strategy-monitor-ui \
+            --tag "latest"
 
           # Load images into minikube
           docker pull localhost:5000/candle-ingestor:latest
@@ -115,9 +121,12 @@ jobs:
           docker pull localhost:5000/strategy-consumer:latest
           docker tag localhost:5000/strategy-consumer:latest strategy-consumer:latest
           minikube image load strategy-consumer:latest
-          docker pull localhost:5000/strategy-monitor-api:latest
-          docker tag localhost:5000/strategy-monitor-api:latest strategy-monitor-api:latest
-          minikube image load strategy-monitor-api:latest
+                                   docker pull localhost:5000/strategy-monitor-api:latest
+                         docker tag localhost:5000/strategy-monitor-api:latest strategy-monitor-api:latest
+                         minikube image load strategy-monitor-api:latest
+                         docker pull localhost:5000/strategy-monitor-ui:latest
+                         docker tag localhost:5000/strategy-monitor-ui:latest strategy-monitor-ui:latest
+                         minikube image load strategy-monitor-ui:latest
 
       - name: Install Cert Manager
         run: |
@@ -143,14 +152,17 @@ jobs:
             --set strategyDiscoveryPipeline.image.tag=latest \
             --set strategyConsumer.image.repository=strategy-consumer \
             --set strategyConsumer.image.tag=latest \
-            --set strategyMonitorApi.image.repository=strategy-monitor-api \
-            --set strategyMonitorApi.image.tag=latest \
+                                       --set strategyMonitorApi.image.repository=strategy-monitor-api \
+                           --set strategyMonitorApi.image.tag=latest \
+                           --set strategyMonitorUi.image.repository=strategy-monitor-ui \
+                           --set strategyMonitorUi.image.tag=latest \
             --set redis.enabled=true \
             --set postgresql.enabled=true \
             --set topCryptoUpdaterCronjob.enabled=true \
             --set strategyDiscoveryRequestFactory.enabled=true \
             --set strategyConsumer.enabled=true \
-            --set strategyMonitorApi.enabled=true \
+                                       --set strategyMonitorApi.enabled=true \
+                           --set strategyMonitorUi.enabled=true \
             --set influxdb.enabled=true
 
       - name: Monitor Deployment
