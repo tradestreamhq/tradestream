@@ -19,26 +19,26 @@ graph TB
         BEAM[Apache Beam<br/>Stream Processing]
         FLINK[Flink Runner<br/>Distributed Processing]
     end
-    
+
     subgraph "Trading Engine"
         STRATEGIES[Trading Strategies<br/>60+ Types]
         TA4J[TA4J Library<br/>Technical Analysis]
         JENETICS[Jenetics<br/>Genetic Algorithm]
         DISCOVERY[Strategy Discovery<br/>Pipeline]
     end
-    
+
     subgraph "Data Management"
         INSTRUMENTS[Financial Instruments<br/>Symbol Management]
         MARKETDATA[Market Data<br/>Processing]
         BACKTESTING[Backtesting<br/>Engine]
     end
-    
+
     subgraph "Infrastructure"
         HTTP[HTTP Clients<br/>External APIs]
         EXECUTION[Execution Engine<br/>Guice DI]
         KAFKA_UTILS[Kafka Utilities<br/>Message Handling]
     end
-    
+
     KAFKA --> BEAM
     BEAM --> FLINK
     FLINK --> DISCOVERY
@@ -50,7 +50,7 @@ graph TB
     HTTP --> MARKETDATA
     EXECUTION --> STRATEGIES
     KAFKA_UTILS --> KAFKA
-    
+
     style KAFKA fill:#e3f2fd
     style BEAM fill:#e3f2fd
     style FLINK fill:#e3f2fd
@@ -74,19 +74,19 @@ graph LR
         REQUESTS[Strategy Discovery<br/>Requests]
         MARKET_DATA[Market Data<br/>Streams]
     end
-    
+
     subgraph "Processing"
         GA[Genetic Algorithm<br/>Jenetics]
         EVALUATION[Strategy Evaluation<br/>TA4J]
         OPTIMIZATION[Parameter Optimization<br/>Real-time]
     end
-    
+
     subgraph "Output"
         DISCOVERED[Discovered Strategies<br/>Results]
         SCORES[Performance Scores<br/>Metrics]
         PARAMETERS[Optimized Parameters<br/>JSON]
     end
-    
+
     REQUESTS --> GA
     MARKET_DATA --> EVALUATION
     GA --> EVALUATION
@@ -94,7 +94,7 @@ graph LR
     OPTIMIZATION --> DISCOVERED
     OPTIMIZATION --> SCORES
     OPTIMIZATION --> PARAMETERS
-    
+
     style REQUESTS fill:#e1f5fe
     style MARKET_DATA fill:#e1f5fe
     style GA fill:#e8f5e8
@@ -110,6 +110,7 @@ graph LR
 The source code implements a hybrid Python + Java architecture where Java handles the high-performance core processing:
 
 ### Core Trading Components (✅ Production)
+
 - **strategies/**: Trading strategy implementations using TA4J library
   - **Scale**: 60 different technical analysis strategies implemented
   - **Technology**: TA4J indicators and rules (CrossedUpIndicatorRule, OverIndicatorRule, etc.)
@@ -124,6 +125,7 @@ The source code implements a hybrid Python + Java architecture where Java handle
   - **Status**: 🔄 **IN DEVELOPMENT** - Java execution engine targeting Knowm XChange library
 
 ### Data Management (✅ Production)
+
 - **marketdata/**: Market data fetching and processing
   - **Integration**: InfluxDB time-series data queries
   - **Status**: ✅ **PRODUCTION** - Market data access operational
@@ -138,6 +140,7 @@ The source code implements a hybrid Python + Java architecture where Java handle
   - **Status**: ✅ **PRODUCTION** - 3-node cluster with KRaft mode
 
 ### Infrastructure (✅ Production)
+
 - **http/**: HTTP client utilities
 - **signals/**: Trade signal generation and publishing
 - **instruments/**: Financial instrument definitions and management
@@ -167,22 +170,23 @@ The core genetic algorithm optimization system processes 40M+ requests:
 Pipeline pipeline = Pipeline.create(options);
 
 pipeline
-  .apply("ReadDiscoveryRequests", 
+  .apply("ReadDiscoveryRequests",
     KafkaIO.<String, StrategyDiscoveryRequest>read()
       .withBootstrapServers(kafkaBootstrapServers)
       .withTopic("strategy-discovery-requests"))
-  .apply("DeserializeRequests", 
+  .apply("DeserializeRequests",
     ParDo.of(new DeserializeStrategyDiscoveryRequest()))
-  .apply("RunGADiscovery", 
+  .apply("RunGADiscovery",
     ParDo.of(new RunGADiscovery()))  // Jenetics genetic algorithm
-  .apply("ExtractStrategies", 
+  .apply("ExtractStrategies",
     ParDo.of(new ExtractDiscoveredStrategies()))
-  .apply("WriteToKafka", 
+  .apply("WriteToKafka",
     KafkaIO.<String, DiscoveredStrategy>write()
       .withTopic("discovered-strategies"));
 ```
 
 **Production Characteristics**:
+
 - **Input**: Kafka topic `strategy-discovery-requests`
 - **Output**: Kafka topic `discovered-strategies`
 - **Checkpointing**: Automatic state management with Flink
@@ -230,6 +234,7 @@ src/
 ## Development
 
 ### Building the Project
+
 ```bash
 # Build all Java/Kotlin code
 bazel build //src/...
@@ -239,6 +244,7 @@ bazel build //src/main/java/com/verlumen/tradestream/strategies:all
 ```
 
 ### Running Tests
+
 ```bash
 # Run all tests
 bazel test //src/...
@@ -248,6 +254,7 @@ bazel test //src/test/java/com/verlumen/tradestream/strategies:all
 ```
 
 ### Code Formatting
+
 ```bash
 # Format Java code
 google-java-format --replace $(find . -name "*.java")
@@ -259,14 +266,18 @@ ktlint --format
 ## Key Components
 
 ### Strategies Module (✅ Production)
+
 Contains all trading strategy implementations. Each strategy follows a strict pattern:
+
 - `ParamConfig`: Defines strategy parameters and genetic algorithm chromosomes
 - `StrategyFactory`: Creates strategy instances with TA4J indicators and rules
 - **Scale**: 60 different technical analysis strategies implemented and optimized
 - **Technology**: TA4J indicators and rules for real-time strategy evaluation
 
 ### Discovery Module (✅ Production)
+
 Implements genetic algorithm-based strategy discovery:
+
 - `StrategyDiscoveryPipeline`: Main pipeline for strategy discovery (40M+ requests processed)
 - `GAEngineFactory`: Genetic algorithm engine configuration using Jenetics
 - `FitnessFunction`: Strategy performance evaluation
@@ -274,13 +285,16 @@ Implements genetic algorithm-based strategy discovery:
 - **Performance**: Multi-threaded evaluation of strategy candidates
 
 ### Backtesting Module (✅ Production)
+
 Provides historical strategy testing capabilities:
+
 - `BacktestRequestFactory`: Creates backtesting requests
 - `BacktestingModule`: Dependency injection configuration
 
 ## Production Performance Metrics
 
 **Strategy Discovery System** (Verified Production Metrics):
+
 - **Strategy Discoveries**: 40+ million requests processed successfully
 - **System Uptime**: 240+ days continuous operation with automatic recovery
 - **Genetic Algorithm**: Real-time optimization with Jenetics library
@@ -289,6 +303,7 @@ Provides historical strategy testing capabilities:
 - **Throughput**: Real-time processing with Apache Beam on Flink
 
 **Infrastructure Performance** (Production Verified):
+
 - **Kafka Integration**: 40M+ messages successfully processed
 - **Database Performance**: Sub-second strategy queries and inserts
 - **TA4J Performance**: High-performance technical analysis calculations
@@ -297,18 +312,21 @@ Provides historical strategy testing capabilities:
 ## Coding Standards
 
 ### Java Code
+
 - Use Google Java Format for code formatting
 - Follow Google Java Style Guide
 - Use JUnit 4 for testing
 - Use Truth assertions: `import static com.google.common.truth.Truth.assertThat;`
 
 ### Kotlin Code
+
 - Use ktlint for code formatting
 - Follow Kotlin coding conventions
 - Use JUnit 4 for testing
 - Prefer immutable data structures
 
 ### Dependencies
+
 - Use `//third_party/java:` dependencies in BUILD files
 - Avoid `@maven:` dependencies
 - All major components should be bound in Guice modules
@@ -316,12 +334,14 @@ Provides historical strategy testing capabilities:
 ## Testing
 
 ### Test Structure
+
 - Unit tests in `src/test/java/` mirroring main structure
 - Use JUnit 4 (`org.junit.Test`)
 - Static import Truth assertions
 - Test classes must be `public final class`
 
 ### Test Patterns
+
 ```java
 public final class ExampleTest {
   @Test
@@ -347,6 +367,7 @@ When implementing new trading strategies:
 ## Data Contracts
 
 All inter-service communication uses Protocol Buffers:
+
 - `.proto` files in `/protos` directory
 - Auto-generated Java classes
 - Strategy parameters packed in `google.protobuf.Any`
@@ -376,4 +397,4 @@ All inter-service communication uses Protocol Buffers:
 
 ## License
 
-This project is part of the TradeStream platform. See the root LICENSE file for details. 
+This project is part of the TradeStream platform. See the root LICENSE file for details.

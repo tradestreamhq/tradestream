@@ -34,27 +34,32 @@ A real-time visualization dashboard for monitoring trading strategies in the Tra
 ### Setup
 
 1. **Start port forwards to access services:**
+
    ```bash
    kubectl port-forward -n tradestream-dev svc/tradestream-dev-postgresql 5432:5432 &
    ```
 
 2. **Install Python dependencies:**
+
    ```bash
    pip3 install psycopg2-binary flask flask-cors
    ```
 
 3. **Get database password:**
+
    ```bash
    DB_PASSWORD=$(kubectl get secret -n tradestream-dev tradestream-dev-postgresql -o jsonpath='{.data.postgres-password}' | base64 -d)
    ```
 
 4. **Start the API server:**
+
    ```bash
    cd services/strategy_monitor_api
    python3 main.py --postgres_password=$DB_PASSWORD --api_port=8080 &
    ```
 
 5. **Start the UI server:**
+
    ```bash
    cd ui/strategy-monitor
    python3 -m http.server 3000 &
@@ -68,9 +73,11 @@ A real-time visualization dashboard for monitoring trading strategies in the Tra
 ## API Endpoints
 
 ### Health Check
+
 - `GET /api/health` - Service health status
 
 ### Strategies
+
 - `GET /api/strategies` - Get all strategies (with optional filters)
 - `GET /api/strategies?limit=10` - Limit results
 - `GET /api/strategies?symbol=BTC/USD` - Filter by symbol
@@ -79,6 +86,7 @@ A real-time visualization dashboard for monitoring trading strategies in the Tra
 - `GET /api/strategies/{id}` - Get specific strategy
 
 ### Metadata
+
 - `GET /api/metrics` - Aggregated system metrics
 - `GET /api/symbols` - List all trading symbols
 - `GET /api/strategy-types` - List all strategy types
@@ -113,11 +121,12 @@ The UI uses D3.js for visualizations. Key functions to modify:
 ## Data Schema
 
 ### Strategy Object
+
 ```json
 {
   "strategy_id": "uuid",
   "symbol": "BTC/USD",
-  "strategy_type": "SMA_RSI", 
+  "strategy_type": "SMA_RSI",
   "parameters": {...},
   "current_score": 0.95,
   "strategy_hash": "...",
@@ -132,6 +141,7 @@ The UI uses D3.js for visualizations. Key functions to modify:
 ```
 
 ### Metrics Object
+
 ```json
 {
   "total_strategies": 5051,
@@ -182,9 +192,9 @@ SELECT strategy_type, COUNT(*) FROM strategies WHERE is_active = TRUE GROUP BY s
 SELECT * FROM strategies WHERE created_at > NOW() - INTERVAL '1 day' ORDER BY created_at DESC LIMIT 10;
 
 -- Check score distribution
-SELECT 
+SELECT
   MIN(current_score) as min_score,
-  AVG(current_score) as avg_score, 
+  AVG(current_score) as avg_score,
   MAX(current_score) as max_score
 FROM strategies WHERE is_active = TRUE;
 ```

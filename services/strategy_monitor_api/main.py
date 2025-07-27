@@ -25,6 +25,9 @@ CORS(app)  # Enable CORS for frontend access
 
 FLAGS = flags.FLAGS
 
+# Global database configuration
+DB_CONFIG = {}
+
 
 def decode_base64_parameters(base64_data: str) -> Dict:
     """Decode base64-encoded protobuf parameters."""
@@ -953,20 +956,35 @@ def is_stablecoin(symbol: str) -> bool:
     # Convert to uppercase for comparison
     upper_symbol = symbol.upper()
 
+    # First, explicitly check for crypto pairs that are NOT stablecoins
+    crypto_pairs = {"BTC/USD", "ETH/USD", "BTC/USDT", "ETH/USDT", "ADA/BTC", "DOT/ETH"}
+    if upper_symbol in crypto_pairs:
+        return False
+
     # Check if the exact symbol is in our stablecoin list
     if upper_symbol in STABLECOINS:
         return True
 
-    # Also check common patterns
-    clean_symbol = upper_symbol.replace("/", "").replace("-", "")
-    if clean_symbol.endswith("USD") and len(clean_symbol) <= 6:
-        return True
+    # Check if it's a stablecoin pair (e.g., USDT/USD, USDC/USDT)
+    if "/" in upper_symbol:
+        base, quote = upper_symbol.split("/", 1)
+        # Only consider it a stablecoin if BOTH parts are stablecoins
+        if base in STABLECOINS and quote in STABLECOINS:
+            return True
+        # Or if it's a direct USD pair of a stablecoin
+        if base in STABLECOINS and quote == "USD":
+            return True
+        if quote in STABLECOINS and base == "USD":
+            return True
 
     return False
 
 
 def get_db_connection():
     """Get a database connection."""
+    if not DB_CONFIG:
+        raise Exception("Database configuration not initialized")
+
     return psycopg2.connect(
         host=DB_CONFIG["host"],
         port=DB_CONFIG["port"],
@@ -1137,7 +1155,10 @@ def fetch_strategy_metrics() -> Dict:
             symbol_params,
         )
         score_stats = cursor.fetchone()
-        avg_score, max_score, min_score = score_stats
+        if score_stats and score_stats[0] is not None:
+            avg_score, max_score, min_score = score_stats
+        else:
+            avg_score, max_score, min_score = 0.0, 0.0, 0.0
 
         # Recent strategies (last 24 hours, excluding stablecoins)
         yesterday = datetime.now() - timedelta(days=1)

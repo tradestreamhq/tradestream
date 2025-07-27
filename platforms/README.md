@@ -15,6 +15,7 @@ The platforms module supports the production deployment:
 ## Overview
 
 The platforms module provides:
+
 - **Docker platform configurations** for multi-architecture container builds
 - **Bazel transition rules** for platform-specific build configurations
 - **Cross-platform support** for different operating systems and architectures
@@ -91,7 +92,7 @@ The `transition.bzl` file defines Bazel transition rules for platform-specific b
 # Platform transition rules
 def _platform_transition_impl(settings, attr):
     platform = settings["//command_line_option:platforms"]
-    
+
     # Apply platform-specific settings
     if "arm64" in str(platform):
         return {
@@ -127,7 +128,7 @@ def cross_platform_binary(name, srcs, deps = [], **kwargs):
         deps = deps,
         **kwargs
     )
-    
+
     # Create platform-specific variants
     for platform in ["linux_amd64", "linux_arm64"]:
         native.cc_binary(
@@ -229,7 +230,7 @@ def get_platform_dependencies(platform):
         "//third_party/python:numpy",
         "//third_party/python:pandas",
     ]
-    
+
     if platform == "linux/amd64":
         return base_deps + [
             "//third_party/python:scipy",
@@ -259,7 +260,7 @@ def platform_aware_binary(name, srcs, deps = [], **kwargs):
             target_compatible_with = ["@platforms//os:linux"],
             **kwargs
         )
-    
+
     # Create default target
     native.py_binary(
         name = name,
@@ -276,10 +277,10 @@ def platform_aware_binary(name, srcs, deps = [], **kwargs):
 def detect_platform():
     """Detect the current platform."""
     import platform
-    
+
     system = platform.system().lower()
     machine = platform.machine().lower()
-    
+
     if system == "linux":
         if machine in ["x86_64", "amd64"]:
             return "linux/amd64"
@@ -287,7 +288,7 @@ def detect_platform():
             return "linux/arm64"
         elif machine.startswith("arm"):
             return "linux/arm/v7"
-    
+
     return "linux/amd64"  # Default fallback
 ```
 
@@ -344,22 +345,22 @@ spec:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              - key: kubernetes.io/arch
-                operator: In
-                values:
-                - amd64
-                - arm64
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
+                      - arm64
       containers:
-      - name: candle-ingestor
-        image: tradestreamhq/candle-ingestor:latest
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
+        - name: candle-ingestor
+          image: tradestreamhq/candle-ingestor:latest
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
 ```
 
 ### Platform-Specific Resource Limits
@@ -450,7 +451,7 @@ def get_memory_config(platform):
 def collect_platform_metrics():
     import psutil
     import platform
-    
+
     return {
         "platform": platform.platform(),
         "architecture": platform.machine(),
@@ -468,11 +469,11 @@ class PlatformMonitor:
     def __init__(self):
         self.platform = detect_platform()
         self.metrics = {}
-    
+
     def collect_metrics(self):
         self.metrics.update(collect_platform_metrics())
         return self.metrics
-    
+
     def get_platform_specific_thresholds(self):
         if self.platform == "linux/amd64":
             return {
@@ -493,6 +494,7 @@ class PlatformMonitor:
 ### Platform-Specific Issues
 
 #### ARM64 Compatibility
+
 ```bash
 # Check ARM64 compatibility
 docker run --rm --platform linux/arm64 tradestreamhq/candle-ingestor:latest \
@@ -503,6 +505,7 @@ docker run --rm --platform linux/arm64 -it tradestreamhq/candle-ingestor:latest 
 ```
 
 #### Cross-Platform Build Issues
+
 ```bash
 # Check platform support
 bazel query --output=location //platforms:all
@@ -536,4 +539,4 @@ When contributing to platform configurations:
 
 ## License
 
-This project is part of the TradeStream platform. See the root LICENSE file for details. 
+This project is part of the TradeStream platform. See the root LICENSE file for details.

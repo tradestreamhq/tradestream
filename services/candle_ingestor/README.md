@@ -18,17 +18,20 @@ The Candle Ingestor supports both single-exchange and multi-exchange modes with 
 ## Quick Start
 
 ### Basic Single Exchange
+
 ```bash
 ./candle_ingestor --exchanges=binance --run_mode=wet
 ```
 
 ### Multi-Exchange with Auto-Detection
+
 ```bash
 # Automatically requires all 3 exchanges
 ./candle_ingestor --exchanges=binance,coinbasepro,kraken --run_mode=wet
 ```
 
 ### Custom Exchange Requirements
+
 ```bash
 # Allow aggregation with 2+ out of 3 exchanges
 ./candle_ingestor --exchanges=binance,coinbasepro,kraken --min_exchanges_required=2 --run_mode=wet
@@ -66,25 +69,26 @@ docker run tradestreamhq/candle-ingestor:latest \
 
 ### Exchange Configuration
 
-| Strategy | Command | Behavior |
-|----------|---------|-----------|
-| **Single Exchange** | `--exchanges=binance` | Uses only Binance data |
-| **Conservative Multi** | `--exchanges=binance,coinbase,kraken` | Requires all 3 exchanges (auto-detected) |
-| **Flexible Multi** | `--exchanges=binance,coinbase,kraken --min_exchanges_required=2` | Aggregates with 2+ exchanges |
+| Strategy               | Command                                                          | Behavior                                 |
+| ---------------------- | ---------------------------------------------------------------- | ---------------------------------------- |
+| **Single Exchange**    | `--exchanges=binance`                                            | Uses only Binance data                   |
+| **Conservative Multi** | `--exchanges=binance,coinbase,kraken`                            | Requires all 3 exchanges (auto-detected) |
+| **Flexible Multi**     | `--exchanges=binance,coinbase,kraken --min_exchanges_required=2` | Aggregates with 2+ exchanges             |
 
 ### Key Flags
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--exchanges` | `binance,coinbasepro,kraken` | Comma-separated list of exchanges |
-| `--min_exchanges_required` | `0` (auto) | Minimum exchanges for aggregation (0 = auto-detect) |
-| `--candle_granularity_minutes` | `1` | Candle timeframe in minutes |
-| `--backfill_start_date` | `1_year_ago` | Historical data start point |
-| `--run_mode` | `wet` | `wet` (live) or `dry` (simulation) |
+| Flag                           | Default                      | Description                                         |
+| ------------------------------ | ---------------------------- | --------------------------------------------------- |
+| `--exchanges`                  | `binance,coinbasepro,kraken` | Comma-separated list of exchanges                   |
+| `--min_exchanges_required`     | `0` (auto)                   | Minimum exchanges for aggregation (0 = auto-detect) |
+| `--candle_granularity_minutes` | `1`                          | Candle timeframe in minutes                         |
+| `--backfill_start_date`        | `1_year_ago`                 | Historical data start point                         |
+| `--run_mode`                   | `wet`                        | `wet` (live) or `dry` (simulation)                  |
 
 ### Auto-Detection Logic
 
 When `--min_exchanges_required=0` (default):
+
 - **1 exchange provided** → Single exchange mode
 - **N exchanges provided** → Multi-exchange mode requiring all N exchanges
 
@@ -105,18 +109,21 @@ This ensures data quality by default while allowing flexibility when needed.
 ### Production Scenarios
 
 #### High Quality (Conservative)
+
 ```bash
 # Requires all 3 exchanges for maximum data quality
 ./candle_ingestor --exchanges=binance,coinbasepro,kraken
 ```
 
 #### Balanced (Recommended)
+
 ```bash
 # Allows 2+ exchanges for better coverage
 ./candle_ingestor --exchanges=binance,coinbasepro,kraken --min_exchanges_required=2
 ```
 
 #### Maximum Coverage
+
 ```bash
 # Process symbols available on any 2+ exchanges
 ./candle_ingestor --exchanges=binance,coinbasepro,kraken,huobi,kucoin --min_exchanges_required=2
@@ -125,6 +132,7 @@ This ensures data quality by default while allowing flexibility when needed.
 ### Deployment
 
 #### Kubernetes CronJob
+
 ```yaml
 apiVersion: batch/v1
 kind: CronJob
@@ -135,15 +143,15 @@ spec:
       template:
         spec:
           containers:
-          - name: candle-ingestor
-            image: tradestreamhq/candle-ingestor:latest
-            args: ["--exchanges=binance,coinbasepro,kraken"]
-            env:
-            - name: INFLUXDB_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: influxdb-secret
-                  key: token
+            - name: candle-ingestor
+              image: tradestreamhq/candle-ingestor:latest
+              args: ["--exchanges=binance,coinbasepro,kraken"]
+              env:
+                - name: INFLUXDB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: influxdb-secret
+                      key: token
 ```
 
 ## Data Flow
@@ -166,10 +174,11 @@ When multiple exchanges are configured, the service:
 5. **Tracks source exchanges** in metadata
 
 ### Example Aggregation
+
 ```bash
 # Input from 3 exchanges at timestamp 1640995200000
 Binance:  Close=50100, Volume=120.5
-Coinbase: Close=50050, Volume=95.2  
+Coinbase: Close=50050, Volume=95.2
 Kraken:   Close=50075, Volume=67.8
 
 # Output: VWAP Close=50082.14, Total Volume=283.5
@@ -178,28 +187,33 @@ Kraken:   Close=50075, Volume=67.8
 ## State Management
 
 The service maintains processing state in InfluxDB to ensure:
+
 - **Idempotent execution** (safe to re-run)
 - **Resumable processing** after interruptions
 - **Efficient catch-up** with minimal API calls
 
 State is tracked separately for:
+
 - Backfill operations (`{ticker}-backfill`)
 - Catch-up operations (`{ticker}-catch_up`)
 
 ## Monitoring & Observability
 
 ### Log Levels
+
 - **INFO**: Normal operations, progress updates
 - **WARNING**: Recoverable issues, symbol validation failures
 - **ERROR**: Serious issues requiring attention
 
 ### Key Metrics to Monitor
+
 - Successful vs failed symbol processing
 - Exchange availability and response times
 - InfluxDB write success rates
 - Redis connectivity status
 
 ### Example Log Output
+
 ```
 INFO: Multi-exchange mode: using 3 exchanges with binance as primary
 INFO: Auto-detected min_exchanges_required: 3
@@ -212,24 +226,31 @@ INFO: Successfully processed 1,437 candles for BTC/USD
 ### Common Issues
 
 #### Symbol Validation Failures
+
 ```bash
 ERROR: No symbols meet the minimum exchange requirement of 3
 ```
+
 **Solution**: Lower `--min_exchanges_required` or check exchange connectivity
 
 #### Exchange API Errors
+
 ```bash
 WARNING: Failed to fetch from coinbasepro: Rate limit exceeded
 ```
+
 **Solution**: Increase `--api_call_delay_seconds` or check API status
 
 #### InfluxDB Connection Issues
+
 ```bash
 ERROR: Failed to connect to InfluxDB after retries
 ```
+
 **Solution**: Verify `--influxdb_url`, token, and organization settings
 
 ### Debug Mode
+
 ```bash
 # Enable verbose logging
 ./candle_ingestor --verbosity=1 --run_mode=dry
@@ -238,16 +259,19 @@ ERROR: Failed to connect to InfluxDB after retries
 ## Migration from Tiingo
 
 ### Before (Tiingo API)
+
 ```bash
 ./candle_ingestor --tiingo_api_key=$API_KEY
 ```
 
 ### After (CCXT Multi-Exchange)
+
 ```bash
 ./candle_ingestor --exchanges=binance,coinbasepro,kraken
 ```
 
 The CCXT implementation provides:
+
 - ✅ **Higher reliability** through multi-exchange redundancy
 - ✅ **Better data quality** via cross-exchange validation
 - ✅ **No API key costs** for most exchanges
@@ -256,6 +280,7 @@ The CCXT implementation provides:
 ## Technical Details
 
 ### Architecture
+
 - **Language**: Python 3.13
 - **Exchange Connectivity**: CCXT library
 - **Database**: InfluxDB 2.x for time-series storage
@@ -263,12 +288,14 @@ The CCXT implementation provides:
 - **Containerization**: OCI-compliant images
 
 ### Performance Considerations
+
 - Implements exponential backoff for API retries
 - Batches InfluxDB writes for efficiency
 - Uses connection pooling for database operations
 - Respects exchange rate limits automatically
 
 ### Dependencies
+
 - `ccxt`: Cryptocurrency exchange connectivity
 - `influxdb-client`: InfluxDB Python client
 - `redis`: Redis connectivity
@@ -284,6 +311,7 @@ The CCXT implementation provides:
 5. **Submit** a pull request
 
 ### Development Setup
+
 ```bash
 # Run tests
 bazel test //services/candle_ingestor:all

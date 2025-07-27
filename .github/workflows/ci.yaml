@@ -158,7 +158,7 @@ jobs:
           ls -la images/ || echo "images directory not found"
           echo "Contents of current directory:"
           ls -la
-          
+
           echo "=== LOADING IMAGES ==="
           # Find all tar files in the images directory structure
           find images -name "*.tar" -type f | while read -r tar; do
@@ -177,7 +177,7 @@ jobs:
               exit 1
             fi
           done
-          
+
           # Verify images were loaded
           echo "=== VERIFYING LOADED IMAGES ==="
           docker images | grep -E "(candle-ingestor|top-crypto-updater|strategy-discovery|strategy-consumer|strategy-monitor)"
@@ -247,7 +247,7 @@ jobs:
         run: |
           set -eo pipefail
           echo "=== MONITORING CRONJOBS ==="
-          
+
           # Check each CronJob
           for cronjob in my-tradestream-top-crypto-updater my-tradestream-strategy-discovery-request-factory my-tradestream-strategy-consumer; do
             echo "Checking CronJob: $cronjob"

@@ -4,7 +4,7 @@ module(
     compatibility_level = 1,
 )
 
-bazel_dep(name = "aspect_bazel_lib", version = "2.8.1")
+bazel_dep(name = "aspect_bazel_lib", version = "2.7.2")
 bazel_dep(name = "aspect_rules_py", version = "1.4.0")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "container_structure_test", version = "1.16.0")
@@ -43,15 +43,6 @@ pip.parse(
 use_repo(pip, "pypi")
 
 JAVA_LANGUAGE_LEVEL = "17"
-
-java = use_extension("@rules_java//java:extensions.bzl", "java")
-java.toolchain(
-    name = "java",
-    java_runtime = "@rules_java//toolchains:remotejdk_17",
-    source_version = JAVA_LANGUAGE_LEVEL,
-    target_version = JAVA_LANGUAGE_LEVEL,
-)
-use_repo(java, "java_tools")
 
 register_toolchains(
     "@rules_java//toolchains:all",
@@ -154,9 +145,27 @@ oci.pull(
         "linux/arm64/v8",
     ],
 )
+oci.pull(
+    name = "nginx_alpine",
+    digest = "sha256:d67ea0d64d518b1bb04acde3b00f722ac3e9764b3209a9b0a98924ba35e4b779",
+    image = "docker.io/library/nginx:alpine",
+    platforms = [
+        "linux/amd64",
+        "linux/arm64/v8",
+    ],
+)
 use_repo(
     oci,
+    "flink_java17_linux_amd64",
+    "flink_java17_linux_arm64_v8",
+    "nginx_alpine",
+    "nginx_alpine_linux_amd64",
+    "nginx_alpine_linux_arm64_v8",
+    "openjdk_java_linux_amd64",
+    "openjdk_java_linux_arm64_v8",
     "python_3_13_slim",
+    "python_3_13_slim_linux_amd64",
+    "python_3_13_slim_linux_arm64_v8",
 )
 
 bazel_lib = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")

@@ -15,6 +15,7 @@ The Strategy Discovery system has achieved significant production scale:
 ## Overview
 
 The Strategy Discovery system:
+
 - **Generates strategy requests** for genetic algorithm optimization
 - **Runs genetic algorithms** to optimize strategy parameters using Jenetics library
 - **Evaluates strategies** using historical backtesting with TA4J
@@ -49,29 +50,30 @@ class StrategyDiscoveryPipeline(
 ) {
     fun run() {
         val pipeline = Pipeline.create(options)
-        
+
         // Read discovery requests from Kafka
-        val requests = pipeline.apply("ReadRequests", 
+        val requests = pipeline.apply("ReadRequests",
             KafkaIO.<String, StrategyDiscoveryRequest>read()
                 .withBootstrapServers(options.kafkaBootstrapServers)
                 .withTopic(options.requestTopic))
-        
+
         // Run genetic algorithm with Jenetics
-        val discoveredStrategies = requests.apply("RunGA", 
+        val discoveredStrategies = requests.apply("RunGA",
             ParDo.of(RunGADiscoveryFn()))  // Jenetics genetic algorithm
-        
+
         // Write results to Kafka
-        discoveredStrategies.apply("WriteResults", 
+        discoveredStrategies.apply("WriteResults",
             KafkaIO.<String, DiscoveredStrategy>write()
                 .withBootstrapServers(options.kafkaBootstrapServers)
                 .withTopic(options.strategiesTopic))
-        
+
         pipeline.run()
     }
 }
 ```
 
 **Production Characteristics**:
+
 - **Input**: Kafka topic `strategy-discovery-requests`
 - **Output**: Kafka topic `discovered-strategies`
 - **Checkpointing**: Automatic state management with Flink
@@ -98,6 +100,7 @@ public class GAEngineFactoryImpl implements GAEngineFactory {
 ```
 
 **Jenetics Implementation**:
+
 - **Library**: Jenetics for high-performance genetic algorithm optimization
 - **Strategy Types**: 60 different technical analysis strategies using Ta4j
 - **Optimization**: Real-time parameter optimization for market conditions
@@ -113,7 +116,7 @@ class FitnessFunctionFactoryImpl : FitnessFunctionFactory {
         return FitnessFunction { strategy ->
             // Run backtest with TA4J
             val backtestResult = runBacktest(strategy)
-            
+
             // Calculate fitness score
             calculateFitnessScore(backtestResult)
         }
@@ -129,19 +132,19 @@ class FitnessFunctionFactoryImpl : FitnessFunctionFactory {
 interface StrategyDiscoveryPipelineOptions : PipelineOptions {
     @get:Description("Kafka bootstrap servers")
     var kafkaBootstrapServers: String
-    
+
     @get:Description("Strategy discovery request topic")
     var requestTopic: String
-    
+
     @get:Description("Discovered strategies topic")
     var strategiesTopic: String
-    
+
     @get:Description("PostgreSQL connection string")
     var postgresConnectionString: String
-    
+
     @get:Description("Genetic algorithm population size")
     var populationSize: Int
-    
+
     @get:Description("Genetic algorithm generations")
     var generations: Int
 }
@@ -162,6 +165,7 @@ data class GAEngineParams(
 ## Production Performance Metrics
 
 **Strategy Discovery System** (Verified Production Metrics):
+
 - **Strategy Discoveries**: 40+ million requests processed successfully
 - **System Uptime**: 240+ days continuous operation with automatic recovery
 - **Genetic Algorithm**: Real-time optimization with Jenetics library
@@ -170,6 +174,7 @@ data class GAEngineParams(
 - **Throughput**: Real-time processing with Apache Beam on Flink
 
 **Infrastructure Performance** (Production Verified):
+
 - **Kafka Integration**: 40M+ messages successfully processed
 - **Database Performance**: Sub-second strategy queries and inserts
 - **TA4J Performance**: High-performance technical analysis calculations
@@ -221,12 +226,12 @@ kafkaProducer.send("strategy-discovery-requests", request.toByteArray())
 public class IntegerChromosomeSpec implements ChromosomeSpec<Integer> {
     private final int minValue;
     private final int maxValue;
-    
+
     public IntegerChromosomeSpec(int minValue, int maxValue) {
         this.minValue = minValue;
         this.maxValue = maxValue;
     }
-    
+
     @Override
     public IntegerChromosome createChromosome() {
         return new IntegerChromosome(minValue, maxValue);
@@ -242,7 +247,7 @@ public class GenotypeConverterImpl implements GenotypeConverter {
     public Genotype crossover(Genotype parent1, Genotype parent2) {
         // Single-point crossover
         int crossoverPoint = random.nextInt(parent1.getLength());
-        
+
         Genotype child = new Genotype(parent1.getLength());
         for (int i = 0; i < parent1.getLength(); i++) {
             if (i < crossoverPoint) {
@@ -251,7 +256,7 @@ public class GenotypeConverterImpl implements GenotypeConverter {
                 child.setGene(i, parent2.getGene(i));
             }
         }
-        
+
         return child;
     }
 }
@@ -288,20 +293,20 @@ class FitnessFunctionFactoryImpl : FitnessFunctionFactory {
                 .setStartDate("2023-01-01")
                 .setEndDate("2023-12-31")
                 .build()
-            
+
             // Run backtest with TA4J
             val backtestResult = backtestService.runBacktest(backtestRequest)
-            
+
             // Calculate fitness score
             calculateFitnessScore(backtestResult)
         }
     }
-    
+
     private fun calculateFitnessScore(result: BacktestResult): Double {
         val sharpeRatio = result.sharpeRatio
         val totalReturn = result.totalReturn
         val maxDrawdown = result.maxDrawdown
-        
+
         // Multi-objective fitness function
         return sharpeRatio * 0.4 + totalReturn * 0.4 - maxDrawdown * 0.2
     }
@@ -335,10 +340,10 @@ class RunGADiscoveryFn : DoFn<StrategyDiscoveryRequest, DiscoveredStrategy>() {
     fun processElement(@Element request: StrategyDiscoveryRequest, out: OutputReceiver<DiscoveredStrategy>) {
         // Create GA engine with Jenetics
         val gaEngine = gaEngineFactory.createEngine(createGAEngineParams(request))
-        
+
         // Run genetic algorithm
         val bestIndividual = gaEngine.run()
-        
+
         // Convert to discovered strategy
         val discoveredStrategy = convertToDiscoveredStrategy(bestIndividual, request)
         out.output(discoveredStrategy)
@@ -370,7 +375,7 @@ class PostgresStrategyRepository : StrategyRepository {
     override fun saveDiscoveredStrategy(strategy: DiscoveredStrategy) {
         val sql = """
             INSERT INTO discovered_strategies (
-                strategy_id, strategy_type, parameters, 
+                strategy_id, strategy_type, parameters,
                 fitness_score, performance_metrics, created_at
             ) VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT (strategy_id) DO UPDATE SET
@@ -379,8 +384,8 @@ class PostgresStrategyRepository : StrategyRepository {
                 performance_metrics = EXCLUDED.performance_metrics,
                 updated_at = CURRENT_TIMESTAMP
         """.trimIndent()
-        
-        jdbcTemplate.update(sql, 
+
+        jdbcTemplate.update(sql,
             strategy.strategyId,
             strategy.strategyType.name,
             strategy.parameters.toByteArray(),
@@ -416,9 +421,9 @@ class RunGADiscoveryFn {
             "population_size" to request.populationSize,
             "generations" to request.generations
         ))
-        
+
         // ... discovery logic ...
-        
+
         logger.info("Strategy discovery completed", extra = mapOf(
             "strategy_id" to discoveredStrategy.strategyId,
             "fitness_score" to discoveredStrategy.fitnessScore,
@@ -490,9 +495,9 @@ class GAEngineFactoryTest {
             mutationRate = 0.1,
             crossoverRate = 0.8
         )
-        
+
         val engine = factory.createEngine(params)
-        
+
         assertThat(engine).isNotNull()
         assertThat(engine.populationSize).isEqualTo(100)
         assertThat(engine.generations).isEqualTo(50)
@@ -520,20 +525,20 @@ spec:
         app: strategy-discovery
     spec:
       containers:
-      - name: strategy-discovery
-        image: tradestreamhq/strategy-discovery:latest
-        env:
-        - name: KAFKA_BOOTSTRAP_SERVERS
-          value: "kafka:9092"
-        - name: POSTGRES_CONNECTION_STRING
-          value: "postgresql://localhost:5432/tradestream"
-        resources:
-          requests:
-            memory: "2Gi"
-            cpu: "1000m"
-          limits:
-            memory: "4Gi"
-            cpu: "2000m"
+        - name: strategy-discovery
+          image: tradestreamhq/strategy-discovery:latest
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
+            - name: POSTGRES_CONNECTION_STRING
+              value: "postgresql://localhost:5432/tradestream"
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1000m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
 ```
 
 ### Flink Job Submission
@@ -552,6 +557,7 @@ flink run -c com.verlumen.tradestream.discovery.StrategyDiscoveryPipelineRunner 
 ### Common Issues
 
 #### Pipeline Failures
+
 ```bash
 # Check Flink job status
 flink list
@@ -564,6 +570,7 @@ flink cancel <job_id> && flink run <job_jar>
 ```
 
 #### Genetic Algorithm Convergence
+
 ```bash
 # Monitor GA convergence
 kubectl logs deployment/strategy-discovery -f | grep "GA"
@@ -601,4 +608,4 @@ When contributing to the Discovery module:
 
 ## License
 
-This project is part of the TradeStream platform. See the root LICENSE file for details. 
+This project is part of the TradeStream platform. See the root LICENSE file for details.

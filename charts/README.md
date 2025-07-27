@@ -21,26 +21,26 @@ graph TB
             INFLUX[InfluxDB StatefulSet<br/>1 Replica]
             REDIS[Redis StatefulSet<br/>1 Replica]
         end
-        
+
         subgraph "Application Layer"
             CI[Candle Ingestor<br/>Deployment]
             SC[Strategy Consumer<br/>Deployment]
             BC[Backtest Consumer<br/>Deployment]
             SMA[Strategy Monitor API<br/>Deployment]
         end
-        
+
         subgraph "Monitoring"
             PROM[Prometheus<br/>Deployment]
             GRAFANA[Grafana<br/>Deployment]
             JAEGER[Jaeger<br/>Deployment]
         end
     end
-    
+
     subgraph "External"
         EXCHANGE[Coinbase Exchange]
         CMC[CoinMarketCap API]
     end
-    
+
     EXCHANGE --> CI
     CMC --> CI
     CI --> KAFKA
@@ -52,7 +52,7 @@ graph TB
     SMA --> REDIS
     PROM --> GRAFANA
     JAEGER --> GRAFANA
-    
+
     style KAFKA fill:#e3f2fd
     style POSTGRES fill:#e3f2fd
     style INFLUX fill:#e3f2fd
@@ -73,28 +73,28 @@ graph LR
     subgraph "Ingress Layer"
         INGRESS[Ingress Controller<br/>NGINX]
     end
-    
+
     subgraph "Services"
         SMA_SVC[Strategy Monitor API<br/>Service]
         CI_SVC[Candle Ingestor<br/>Service]
         SC_SVC[Strategy Consumer<br/>Service]
         BC_SVC[Backtest Consumer<br/>Service]
     end
-    
+
     subgraph "Databases"
         POSTGRES_SVC[PostgreSQL<br/>Service]
         INFLUX_SVC[InfluxDB<br/>Service]
         REDIS_SVC[Redis<br/>Service]
         KAFKA_SVC[Kafka<br/>Service]
     end
-    
+
     INGRESS --> SMA_SVC
     CI_SVC --> KAFKA_SVC
     SC_SVC --> POSTGRES_SVC
     BC_SVC --> POSTGRES_SVC
     SMA_SVC --> POSTGRES_SVC
     SMA_SVC --> REDIS_SVC
-    
+
     style INGRESS fill:#ffcdd2
     style SMA_SVC fill:#e8f5e8
     style CI_SVC fill:#e8f5e8
@@ -109,6 +109,7 @@ graph LR
 ## Overview
 
 The TradeStream platform is deployed using Kubernetes with Helm charts that provide:
+
 - **Service Deployment**: All microservices with proper configuration
 - **Infrastructure**: Databases, message brokers, and monitoring
 - **Configuration Management**: Environment-specific configurations
@@ -133,25 +134,29 @@ charts/
 ## Architecture
 
 ### Service Deployment (✅ Production)
+
 Each service in the TradeStream platform has its own deployment configuration:
-- **candle_ingestor**: ✅ **PRODUCTION** - OHLCV data ingestion service (CronJob */1 min)
-- **strategy_consumer**: ✅ **PRODUCTION** - Strategy consumption and storage (CronJob */5 min)
-- **strategy_discovery_request_factory**: ✅ **PRODUCTION** - GA request generation (CronJob */5 min)
+
+- **candle_ingestor**: ✅ **PRODUCTION** - OHLCV data ingestion service (CronJob \*/1 min)
+- **strategy_consumer**: ✅ **PRODUCTION** - Strategy consumption and storage (CronJob \*/5 min)
+- **strategy_discovery_request_factory**: ✅ **PRODUCTION** - GA request generation (CronJob \*/5 min)
 - **strategy_confidence_scorer**: 📝 **READY** - Strategy performance scoring (ready for deployment)
 - **strategy_ensemble**: 📋 **PLANNED** - Strategy combination logic
 - **strategy_rotation**: 📋 **PLANNED** - Strategy rotation management
 - **strategy_time_filter**: ❌ **SKIPPED** - Time-based strategy filtering
 - **risk_adjusted_sizing**: 📝 **READY** - Risk management calculations (ready for deployment)
 - **strategy_monitor_api**: 🔄 **DEV** - Monitoring REST API (in development)
-- **top_crypto_updater**: ✅ **PRODUCTION** - Cryptocurrency list updates (CronJob */15 min)
+- **top_crypto_updater**: ✅ **PRODUCTION** - Cryptocurrency list updates (CronJob \*/15 min)
 
 ### Infrastructure Components (✅ Production)
+
 - **PostgreSQL**: ✅ **PRODUCTION** - Relational database for strategy storage
 - **InfluxDB**: ✅ **PRODUCTION** - Time-series database for market data (365-day retention)
 - **Redis**: ✅ **PRODUCTION** - Caching and session storage
 - **Kafka**: ✅ **PRODUCTION** - 3-node cluster with KRaft mode for inter-service communication
 
 ### Monitoring & Observability
+
 - **Prometheus**: Metrics collection and storage
 - **Grafana**: Visualization and dashboards
 - **Jaeger**: Distributed tracing
@@ -199,6 +204,7 @@ monitoring:
 ### Environment-Specific Configuration
 
 Create environment-specific values files:
+
 - `values-dev.yaml`: Development environment
 - `values-staging.yaml`: Staging environment
 - `values-prod.yaml`: Production environment
@@ -208,6 +214,7 @@ Create environment-specific values files:
 ### Current Production Deployment
 
 **Complete TradeStream Stack Deployment**:
+
 ```bash
 # Deploy complete TradeStream infrastructure and services
 helm install tradestream-dev charts/tradestream \
@@ -225,18 +232,20 @@ kubectl get deployments -n tradestream-dev
 ### Production Service Categories
 
 **StatefulSets** (Data Infrastructure):
+
 ```bash
 # Core data infrastructure with persistent storage
 kubectl get statefulsets -n tradestream-dev
 
 # Expected output:
 # tradestream-dev-kafka-controller    3/3     60d   # 3-node Kafka cluster
-# tradestream-dev-influxdb           1/1     60d   # Time-series database  
+# tradestream-dev-influxdb           1/1     60d   # Time-series database
 # tradestream-dev-postgresql         1/1     60d   # Relational database
 # tradestream-dev-redis-master       1/1     60d   # Cache and state
 ```
 
 **Deployments** (Real-Time Services):
+
 ```bash
 # 24/7 streaming and processing services
 kubectl get deployments -n tradestream-dev
@@ -247,6 +256,7 @@ kubectl get deployments -n tradestream-dev
 ```
 
 **CronJobs** (Batch Processing):
+
 ```bash
 # Scheduled data processing and ETL services
 kubectl get cronjobs -n tradestream-dev
@@ -261,6 +271,7 @@ kubectl get cronjobs -n tradestream-dev
 ### Portfolio Management Service Deployment
 
 **Deploy Risk Manager** (Ready to execute):
+
 ```bash
 # Deploy risk management service
 helm upgrade tradestream-dev charts/tradestream \
@@ -272,8 +283,9 @@ kubectl get cronjobs -n tradestream-dev | grep risk-manager
 ```
 
 **Deploy Position Sizer** (Ready to execute):
+
 ```bash
-# Deploy position sizing service  
+# Deploy position sizing service
 helm upgrade tradestream-dev charts/tradestream \
   --namespace tradestream-dev \
   --set portfolio.positionSizer.enabled=true
@@ -283,6 +295,7 @@ kubectl get cronjobs -n tradestream-dev | grep position-sizer
 ```
 
 **Deploy Strategy Selector** (Ready to execute):
+
 ```bash
 # Deploy strategy selection service
 helm upgrade tradestream-dev charts/tradestream \
@@ -359,12 +372,12 @@ Sensitive configuration is managed through Kubernetes secrets:
 ```yaml
 # Create secrets
 kubectl create secret generic influxdb-secret \
-  --from-literal=token=your-token \
-  --namespace tradestream
+--from-literal=token=your-token \
+--namespace tradestream
 
 kubectl create secret generic postgres-secret \
-  --from-literal=password=your-password \
-  --namespace tradestream
+--from-literal=password=your-password \
+--namespace tradestream
 ```
 
 ### ConfigMaps
@@ -615,6 +628,7 @@ securityContext:
 ### Common Issues
 
 #### Pod Startup Failures
+
 ```bash
 # Check pod status
 kubectl get pods -n tradestream
@@ -627,6 +641,7 @@ kubectl get events -n tradestream --sort-by='.lastTimestamp'
 ```
 
 #### Database Connection Issues
+
 ```bash
 # Check database connectivity
 kubectl exec -it deployment/candle-ingestor -n tradestream -- \
@@ -637,6 +652,7 @@ kubectl logs deployment/postgresql -n tradestream
 ```
 
 #### Kafka Connectivity
+
 ```bash
 # Check Kafka connectivity
 kubectl exec -it deployment/strategy-consumer -n tradestream -- \
@@ -704,4 +720,4 @@ When contributing to Helm charts:
 
 ## License
 
-This project is part of the TradeStream platform. See the root LICENSE file for details. 
+This project is part of the TradeStream platform. See the root LICENSE file for details.
