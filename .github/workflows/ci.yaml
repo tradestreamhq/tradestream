@@ -7,7 +7,51 @@ on:
       - develop
 
 jobs:
+  validate-helm-chart:
+    name: Validate Helm Chart
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Lint and Template Helm Chart
+        run: |
+          set -eo pipefail
+          echo "Linting Helm chart..."
+          helm lint charts/tradestream
+
+          echo "Rendering Helm templates..."
+          helm template my-tradestream charts/tradestream \
+            --namespace tradestream-namespace \
+            --set candleIngestor.image.repository=candle-ingestor \
+            --set candleIngestor.image.tag=latest \
+            --set topCryptoUpdaterCronjob.image.repository=top-crypto-updater \
+            --set topCryptoUpdaterCronjob.image.tag=latest \
+            --set strategyDiscoveryRequestFactory.image.repository=strategy-discovery-request-factory \
+            --set strategyDiscoveryRequestFactory.image.tag=latest \
+            --set strategyDiscoveryPipeline.image.repository=strategy-discovery-pipeline \
+            --set strategyDiscoveryPipeline.image.tag=latest \
+            --set strategyConsumer.image.repository=strategy-consumer \
+            --set strategyConsumer.image.tag=latest \
+            --set strategyMonitorApi.image.repository=strategy-monitor-api \
+            --set strategyMonitorApi.image.tag=latest \
+            --set strategyMonitorUi.image.repository=strategy-monitor-ui \
+            --set strategyMonitorUi.image.tag=latest \
+            --set redis.enabled=true \
+            --set postgresql.enabled=true \
+            --set topCryptoUpdaterCronjob.enabled=true \
+            --set strategyDiscoveryRequestFactory.enabled=true \
+            --set strategyConsumer.enabled=true \
+            --set strategyMonitorApi.enabled=true \
+            --set strategyMonitorUi.enabled=true \
+            --set influxdb.enabled=true
+
   install-helm-charts:
+    name: Test Kubernetes / Helm Install
+    needs: validate-helm-chart
     runs-on: ubuntu-latest
     services:
       registry:
@@ -37,7 +81,6 @@ jobs:
           kubectl create secret generic tiingo \
             --from-literal=apiKey=FAKE_API_KEY \
             --namespace=tradestream-namespace --dry-run=client -o yaml | kubectl apply -f -
-          # Create admin secret for InfluxDB
           kubectl create secret generic influxdb-admin-secret \
             --from-literal=admin-username="admin" \
             --from-literal=admin-password="$(openssl rand -base64 12)" \
@@ -50,83 +93,64 @@ jobs:
 
       - uses: bazel-contrib/setup-bazel@0.14.0
         with:
-          # Avoid downloading Bazel every time.
           bazelisk-cache: true
           bazelrc: |
             build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
-          # Store build cache per workflow.
           disk-cache: ${{ github.workflow }}
-          # Share repository cache between workflows.
           repository-cache: true
 
       - name: Build and Load Images
         run: |
           set -eo pipefail
-            
-          # Build and push candle ingestor image
+
           bazel run //services/candle_ingestor:push_candle_ingestor_image \
-            -- \
-            --repository localhost:5000/candle-ingestor \
-            --tag "latest"
+            -- --repository localhost:5000/candle-ingestor --tag "latest"
 
-          # Build and push top-crypto-updater image
           bazel run //services/top_crypto_updater:push_top_crypto_updater_image \
-            -- \
-            --repository localhost:5000/top-crypto-updater \
-            --tag "latest"
+            -- --repository localhost:5000/top-crypto-updater --tag "latest"
 
-          # Build and push strategy-discovery-request-factory image
           bazel run //services/strategy_discovery_request_factory:push_strategy_discovery_request_factory_image \
-            -- \
-            --repository localhost:5000/strategy-discovery-request-factory \
-            --tag "latest"
+            -- --repository localhost:5000/strategy-discovery-request-factory --tag "latest"
 
-          # Build and push strategy-discovery-pipeline image
           bazel run //src/main/java/com/verlumen/tradestream/discovery:push_image \
-            -- \
-            --repository localhost:5000/strategy-discovery-pipeline \
-            --tag "latest"
+            -- --repository localhost:5000/strategy-discovery-pipeline --tag "latest"
 
-          # Build and push strategy-consumer image
           bazel run //services/strategy_consumer:push_strategy_consumer_image \
-            -- \
-            --repository localhost:5000/strategy-consumer \
-            --tag "latest"
+            -- --repository localhost:5000/strategy-consumer --tag "latest"
 
-          # Build and push strategy-monitor-api image
           bazel run //services/strategy_monitor_api:push_strategy_monitor_api_image \
-            -- \
-            --repository localhost:5000/strategy-monitor-api \
-            --tag "latest"
-          
-          # Build and push strategy-monitor-ui image
-          bazel run //ui/strategy-monitor:push_strategy_monitor_ui_image \
-            -- \
-            --repository localhost:5000/strategy-monitor-ui \
-            --tag "latest"
+            -- --repository localhost:5000/strategy-monitor-api --tag "latest"
 
-          # Load images into minikube
+          bazel run //ui/strategy-monitor:push_strategy_monitor_ui_image \
+            -- --repository localhost:5000/strategy-monitor-ui --tag "latest"
+
           docker pull localhost:5000/candle-ingestor:latest
           docker tag localhost:5000/candle-ingestor:latest candle-ingestor:latest
           minikube image load candle-ingestor:latest
+
           docker pull localhost:5000/top-crypto-updater:latest
           docker tag localhost:5000/top-crypto-updater:latest top-crypto-updater:latest
           minikube image load top-crypto-updater:latest
+
           docker pull localhost:5000/strategy-discovery-request-factory:latest
           docker tag localhost:5000/strategy-discovery-request-factory:latest strategy-discovery-request-factory:latest
           minikube image load strategy-discovery-request-factory:latest
+
           docker pull localhost:5000/strategy-discovery-pipeline:latest
           docker tag localhost:5000/strategy-discovery-pipeline:latest strategy-discovery-pipeline:latest
           minikube image load strategy-discovery-pipeline:latest
+
           docker pull localhost:5000/strategy-consumer:latest
           docker tag localhost:5000/strategy-consumer:latest strategy-consumer:latest
           minikube image load strategy-consumer:latest
-                                   docker pull localhost:5000/strategy-monitor-api:latest
-                         docker tag localhost:5000/strategy-monitor-api:latest strategy-monitor-api:latest
-                         minikube image load strategy-monitor-api:latest
-                         docker pull localhost:5000/strategy-monitor-ui:latest
-                         docker tag localhost:5000/strategy-monitor-ui:latest strategy-monitor-ui:latest
-                         minikube image load strategy-monitor-ui:latest
+
+          docker pull localhost:5000/strategy-monitor-api:latest
+          docker tag localhost:5000/strategy-monitor-api:latest strategy-monitor-api:latest
+          minikube image load strategy-monitor-api:latest
+
+          docker pull localhost:5000/strategy-monitor-ui:latest
+          docker tag localhost:5000/strategy-monitor-ui:latest strategy-monitor-ui:latest
+          minikube image load strategy-monitor-ui:latest
 
       - name: Install Cert Manager
         run: |
@@ -152,50 +176,43 @@ jobs:
             --set strategyDiscoveryPipeline.image.tag=latest \
             --set strategyConsumer.image.repository=strategy-consumer \
             --set strategyConsumer.image.tag=latest \
-                                       --set strategyMonitorApi.image.repository=strategy-monitor-api \
-                           --set strategyMonitorApi.image.tag=latest \
-                           --set strategyMonitorUi.image.repository=strategy-monitor-ui \
-                           --set strategyMonitorUi.image.tag=latest \
+            --set strategyMonitorApi.image.repository=strategy-monitor-api \
+            --set strategyMonitorApi.image.tag=latest \
+            --set strategyMonitorUi.image.repository=strategy-monitor-ui \
+            --set strategyMonitorUi.image.tag=latest \
             --set redis.enabled=true \
             --set postgresql.enabled=true \
             --set topCryptoUpdaterCronjob.enabled=true \
             --set strategyDiscoveryRequestFactory.enabled=true \
             --set strategyConsumer.enabled=true \
-                                       --set strategyMonitorApi.enabled=true \
-                           --set strategyMonitorUi.enabled=true \
+            --set strategyMonitorApi.enabled=true \
+            --set strategyMonitorUi.enabled=true \
             --set influxdb.enabled=true
 
       - name: Monitor Deployment
         run: |
           kubectl wait --for=condition=Ready -n tradestream-namespace pod --all --timeout=300s
-          # Verify CronJob was created successfully (CronJobs don't have Ready/Established conditions)
           echo "Checking if CronJob exists..."
           kubectl get cronjob my-tradestream-top-crypto-updater -n tradestream-namespace
           kubectl get cronjob my-tradestream-strategy-discovery-request-factory -n tradestream-namespace
           kubectl get cronjob my-tradestream-strategy-consumer -n tradestream-namespace
-          # Check CronJob status and configuration
+
           echo "CronJob details:"
           kubectl describe cronjob my-tradestream-top-crypto-updater -n tradestream-namespace
           kubectl describe cronjob my-tradestream-strategy-discovery-request-factory -n tradestream-namespace
           kubectl describe cronjob my-tradestream-strategy-consumer -n tradestream-namespace
-          # Verify CronJob is not suspended
+
           if kubectl get cronjob my-tradestream-top-crypto-updater -n tradestream-namespace -o jsonpath='{.spec.suspend}' | grep -q true; then
             echo "ERROR: CronJob my-tradestream-top-crypto-updater is suspended"
             exit 1
-          else
-            echo "CronJob my-tradestream-top-crypto-updater is active and ready to run on schedule"
           fi
           if kubectl get cronjob my-tradestream-strategy-discovery-request-factory -n tradestream-namespace -o jsonpath='{.spec.suspend}' | grep -q true; then
             echo "ERROR: CronJob my-tradestream-strategy-discovery-request-factory is suspended"
             exit 1
-          else
-            echo "CronJob my-tradestream-strategy-discovery-request-factory is active and ready to run on schedule"
           fi
           if kubectl get cronjob my-tradestream-strategy-consumer -n tradestream-namespace -o jsonpath='{.spec.suspend}' | grep -q true; then
             echo "ERROR: CronJob my-tradestream-strategy-consumer is suspended"
             exit 1
-          else
-            echo "CronJob my-tradestream-strategy-consumer is active and ready to run on schedule"
           fi
 
       - name: Diagnostics
