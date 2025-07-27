@@ -264,6 +264,7 @@ jobs:
           done
 
       - name: Final Diagnostic Snapshot
+        if: always()
         run: |
           set -eo pipefail
           echo "=== FINAL DIAGNOSTIC SNAPSHOT ==="
