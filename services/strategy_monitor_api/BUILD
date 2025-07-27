@@ -2,6 +2,7 @@ load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
+load("@container_structure_test//:defs.bzl", "container_structure_test")
 
 py_library(
     name = "strategy_monitor_api_lib",

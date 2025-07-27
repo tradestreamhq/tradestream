@@ -1,8 +1,9 @@
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
-load("@aspect_bazel_lib//lib:tar.bzl", "tar")
-load("@rules_python//python:defs.bzl", "py_test")
+load("@aspect_bazel_lib//lib:tar.bzl", "tar", "mtree_mutate")
+load("@rules_python//python:defs.bzl", "py_test", "py_binary")
+load("@container_structure_test//:defs.bzl", "container_structure_test")
 
-# Package the UI files
+# Package the UI files with a different structure
 filegroup(
     name = "ui_files",
     srcs = glob([
@@ -12,13 +13,23 @@ filegroup(
         "*.md",
         "*.sh",
     ]),
+    visibility = ["//visibility:public"],
 )
 
 # Create a tar of the UI files
 tar(
     name = "ui_tar",
     srcs = [":ui_files"],
+    mtree = "auto",
     out = "strategy_monitor_ui.tar",
+)
+
+# Create a simple HTTP server script
+py_binary(
+    name = "http_server",
+    srcs = ["http_server.py"],
+    data = [":ui_files"],
+    deps = [],
 )
 
 # UI tests
@@ -37,14 +48,7 @@ py_test(
 oci_image(
     name = "strategy_monitor_ui",
     base = "@python_3_13_slim",
-    entrypoint = [
-        "/usr/bin/python3",
-        "-m",
-        "http.server",
-        "8080",
-        "--directory",
-        "/app",
-    ],
+    entrypoint = ["/usr/bin/python3", "-m", "http.server", "8080"],
     tars = [":ui_tar"],
     user = "nobody",
     workdir = "/app",

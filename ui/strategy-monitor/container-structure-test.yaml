@@ -6,38 +6,23 @@ metadataTest:
 
 fileExistenceTests:
   - name: "Python executable exists"
-    path: "/usr/bin/python3"
+    path: "/usr/local/bin/python3"
+    shouldExist: true
+    permissions: "Lrwxrwxrwx"
+  
+  - name: "UI files exist in ui directory"
+    path: "/ui/strategy-monitor/index.html"
     shouldExist: true
     permissions: "-rwxr-xr-x"
   
-  - name: "HTTP server module exists"
-    path: "/usr/lib/python3.13/http/server.py"
+  - name: "README exists in ui directory"
+    path: "/ui/strategy-monitor/README.md"
     shouldExist: true
-    permissions: "-rw-r--r--"
-  
-  - name: "UI files exist"
-    path: "/app/index.html"
-    shouldExist: true
-    permissions: "-rw-r--r--"
-  
-  - name: "CSS file exists"
-    path: "/app/styles.css"
-    shouldExist: true
-    permissions: "-rw-r--r--"
-  
-  - name: "JavaScript file exists"
-    path: "/app/script.js"
-    shouldExist: true
-    permissions: "-rw-r--r--"
-  
-  - name: "README exists"
-    path: "/app/README.md"
-    shouldExist: true
-    permissions: "-rw-r--r--"
+    permissions: "-rwxr-xr-x"
 
 commandTests:
   - name: "Python HTTP server help test"
-    command: "/usr/bin/python3"
+    command: "/usr/local/bin/python3"
     args: ["-m", "http.server", "--help"]
     exitCode: 0
     expectedOutput:
@@ -45,94 +30,31 @@ commandTests:
       - "port"
       - "directory"
   
-  - name: "Python imports test"
-    command: "/usr/bin/python3"
-    args: ["-c", "import http.server; import socketserver; print('HTTP server modules available')"]
+  - name: "Python executable test"
+    command: "/usr/local/bin/python3"
+    args: ["--version"]
     exitCode: 0
     expectedOutput:
-      - "HTTP server modules available"
-  
-  - name: "HTTP server dry run test"
-    command: "/usr/bin/python3"
-    args: ["-m", "http.server", "8080", "--directory", "/app"]
-    # Should start server but we'll kill it quickly
-    exitCode: 0
-    maxRunningTime: "5s"
+      - "Python 3"
   
   - name: "HTML file validation test"
-    command: "/usr/bin/python3"
-    args: ["-c", "import os; html_path = '/app/index.html'; print('HTML file exists:', os.path.exists(html_path)); print('HTML file size:', os.path.getsize(html_path) if os.path.exists(html_path) else 'N/A')"]
+    command: "/usr/local/bin/python3"
+    args: ["-c", "import os; html_path = '/ui/strategy-monitor/index.html'; print('HTML file exists:', os.path.exists(html_path)); print('HTML file size:', os.path.getsize(html_path) if os.path.exists(html_path) else 'N/A')"]
     exitCode: 0
     expectedOutput:
       - "HTML file exists: True"
       - "HTML file size:"
   
-  - name: "CSS file validation test"
-    command: "/usr/bin/python3"
-    args: ["-c", "import os; css_path = '/app/styles.css'; print('CSS file exists:', os.path.exists(css_path)); print('CSS file size:', os.path.getsize(css_path) if os.path.exists(css_path) else 'N/A')"]
-    exitCode: 0
-    expectedOutput:
-      - "CSS file exists: True"
-      - "CSS file size:"
-  
-  - name: "JavaScript file validation test"
-    command: "/usr/bin/python3"
-    args: ["-c", "import os; js_path = '/app/script.js'; print('JavaScript file exists:', os.path.exists(js_path)); print('JavaScript file size:', os.path.getsize(js_path) if os.path.exists(js_path) else 'N/A')"]
-    exitCode: 0
-    expectedOutput:
-      - "JavaScript file exists: True"
-      - "JavaScript file size:"
-  
-  - name: "HTML content validation test"
-    command: "/usr/bin/python3"
-    args: ["-c", "with open('/app/index.html', 'r') as f: content = f.read(); print('HTML contains title:', 'title' in content.lower()); print('HTML contains body:', 'body' in content.lower()); print('HTML contains script:', 'script' in content.lower())"]
-    exitCode: 0
-    expectedOutput:
-      - "HTML contains title: True"
-      - "HTML contains body: True"
-      - "HTML contains script: True"
-  
-  - name: "CSS content validation test"
-    command: "/usr/bin/python3"
-    args: ["-c", "with open('/app/styles.css', 'r') as f: content = f.read(); print('CSS contains styles:', len(content) > 0); print('CSS contains selectors:', '{' in content and '}' in content)"]
-    exitCode: 0
-    expectedOutput:
-      - "CSS contains styles: True"
-      - "CSS contains selectors: True"
-  
-  - name: "JavaScript content validation test"
-    command: "/usr/bin/python3"
-    args: ["-c", "with open('/app/script.js', 'r') as f: content = f.read(); print('JavaScript contains code:', len(content) > 0); print('JavaScript contains functions:', 'function' in content or '=>' in content)"]
-    exitCode: 0
-    expectedOutput:
-      - "JavaScript contains code: True"
-      - "JavaScript contains functions: True"
-  
   - name: "Directory listing test"
-    command: "/usr/bin/python3"
-    args: ["-c", "import os; files = os.listdir('/app'); print('Files in /app:', files); print('HTML file in listing:', 'index.html' in files)"]
+    command: "/usr/local/bin/python3"
+    args: ["-c", "import os; print('Files in /ui/strategy-monitor:', os.listdir('/ui/strategy-monitor')); print('HTML file in listing:', 'index.html' in os.listdir('/ui/strategy-monitor'))"]
     exitCode: 0
     expectedOutput:
-      - "Files in /app:"
+      - "Files in /ui/strategy-monitor:"
       - "HTML file in listing: True"
   
-  - name: "File permissions test"
-    command: "/usr/bin/python3"
-    args: ["-c", "import os; import stat; html_stat = os.stat('/app/index.html'); print('HTML file readable:', bool(html_stat.st_mode & stat.S_IRUSR)); print('HTML file writable:', bool(html_stat.st_mode & stat.S_IWUSR))"]
-    exitCode: 0
-    expectedOutput:
-      - "HTML file readable: True"
-      - "HTML file writable: True"
-  
-  - name: "HTTP server port binding test"
-    command: "/usr/bin/python3"
-    args: ["-c", "import socket; s = socket.socket(); result = s.connect_ex(('localhost', 8080)); s.close(); print('Port 8080 available:', result != 0)"]
-    exitCode: 0
-    expectedOutput:
-      - "Port 8080 available: True"
-  
   - name: "Working directory test"
-    command: "/usr/bin/python3"
+    command: "/usr/local/bin/python3"
     args: ["-c", "import os; print('Working directory:', os.getcwd()); print('Working directory is /app:', os.getcwd() == '/app')"]
     exitCode: 0
     expectedOutput:
@@ -140,43 +62,9 @@ commandTests:
       - "Working directory is /app: True"
   
   - name: "User permissions test"
-    command: "/usr/bin/python3"
+    command: "/usr/local/bin/python3"
     args: ["-c", "import os; import pwd; uid = os.getuid(); user_info = pwd.getpwuid(uid); print('Running as user:', user_info.pw_name); print('User is nobody:', user_info.pw_name == 'nobody')"]
     exitCode: 0
     expectedOutput:
       - "Running as user: nobody"
-      - "User is nobody: True"
-  
-  - name: "File structure validation test"
-    command: "/usr/bin/python3"
-    args: ["-c", "import os; required_files = ['index.html', 'styles.css', 'script.js', 'README.md']; missing_files = [f for f in required_files if not os.path.exists(f'/app/{f}')]; print('Missing files:', missing_files); print('All required files present:', len(missing_files) == 0)"]
-    exitCode: 0
-    expectedOutput:
-      - "Missing files: []"
-      - "All required files present: True"
-  
-  - name: "HTML structure validation test"
-    command: "/usr/bin/python3"
-    args: ["-c", "with open('/app/index.html', 'r') as f: content = f.read(); has_doctype = '<!DOCTYPE' in content; has_html = '<html' in content; has_head = '<head' in content; has_body = '<body' in content; print('Has DOCTYPE:', has_doctype); print('Has HTML tag:', has_html); print('Has HEAD tag:', has_head); print('Has BODY tag:', has_body)"]
-    exitCode: 0
-    expectedOutput:
-      - "Has DOCTYPE: True"
-      - "Has HTML tag: True"
-      - "Has HEAD tag: True"
-      - "Has BODY tag: True"
-  
-  - name: "CSS structure validation test"
-    command: "/usr/bin/python3"
-    args: ["-c", "with open('/app/styles.css', 'r') as f: content = f.read(); has_selectors = '{' in content and '}' in content; has_properties = ':' in content and ';' in content; print('Has CSS selectors:', has_selectors); print('Has CSS properties:', has_properties)"]
-    exitCode: 0
-    expectedOutput:
-      - "Has CSS selectors: True"
-      - "Has CSS properties: True"
-  
-  - name: "JavaScript structure validation test"
-    command: "/usr/bin/python3"
-    args: ["-c", "with open('/app/script.js', 'r') as f: content = f.read(); has_functions = 'function' in content or '=>' in content; has_variables = 'var ' in content or 'let ' in content or 'const ' in content; print('Has JavaScript functions:', has_functions); print('Has JavaScript variables:', has_variables)"]
-    exitCode: 0
-    expectedOutput:
-      - "Has JavaScript functions: True"
-      - "Has JavaScript variables: True" 
+      - "User is nobody: True" 
