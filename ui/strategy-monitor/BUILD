@@ -11,6 +11,7 @@ filegroup(
         "*.js", 
         "*.css",
         "*.md",
+        "*.sh",
     ]),
 )
 
