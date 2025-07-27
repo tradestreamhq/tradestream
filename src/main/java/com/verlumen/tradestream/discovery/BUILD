@@ -2,7 +2,7 @@ load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push", "oci_load")
 load("//platforms:transition.bzl", "multi_arch")
 
 package(default_visibility = [
@@ -375,6 +375,18 @@ oci_push(
     name = "push_image",
     image = ":index",
     repository = "tradestreamhq/strategy-discovery-pipeline",
+)
+
+filegroup(
+    name = "strategy_discovery_pipeline_tarball",
+    srcs = [":load_image"],
+    output_group = "tarball",
+)
+
+oci_load(
+    name = "load_image",
+    image = ":image",
+    repo_tags = ["strategy-discovery-pipeline:latest"],
 )
 
 kt_jvm_library(

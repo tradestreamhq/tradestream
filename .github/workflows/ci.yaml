@@ -54,38 +54,33 @@ jobs:
             --set strategyMonitorUi.enabled=true \
             --set influxdb.enabled=true
 
-  build-images:
+  build-and-export-images:
     name: Build & Export Images
     needs: validate-helm-chart
     runs-on: ubuntu-latest
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
     strategy:
       matrix:
         include:
           - name: candle-ingestor
-            target: "//services/candle_ingestor:push_candle_ingestor_image"
+            target: "//services/candle_ingestor:candle_ingestor_tarball"
             repo: candle-ingestor
           - name: top-crypto-updater
-            target: "//services/top_crypto_updater:push_top_crypto_updater_image"
+            target: "//services/top_crypto_updater:top_crypto_updater_tarball"
             repo: top-crypto-updater
           - name: strategy-discovery-request-factory
-            target: "//services/strategy_discovery_request_factory:push_strategy_discovery_request_factory_image"
+            target: "//services/strategy_discovery_request_factory:strategy_discovery_request_factory_tarball"
             repo: strategy-discovery-request-factory
           - name: strategy-discovery-pipeline
-            target: "//src/main/java/com/verlumen/tradestream/discovery:push_image"
+            target: "//src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_pipeline_tarball"
             repo: strategy-discovery-pipeline
           - name: strategy-consumer
-            target: "//services/strategy_consumer:push_strategy_consumer_image"
+            target: "//services/strategy_consumer:strategy_consumer_tarball"
             repo: strategy-consumer
           - name: strategy-monitor-api
-            target: "//services/strategy_monitor_api:push_strategy_monitor_api_image"
+            target: "//services/strategy_monitor_api:strategy_monitor_api_tarball"
             repo: strategy-monitor-api
           - name: strategy-monitor-ui
-            target: "//ui/strategy-monitor:push_strategy_monitor_ui_image"
+            target: "//ui/strategy-monitor:strategy_monitor_ui_tarball"
             repo: strategy-monitor-ui
 
     steps:
@@ -104,21 +99,44 @@ jobs:
           disk-cache: ${{ github.workflow }}
           repository-cache: true
 
-      - name: Build & Push ${{ matrix.name }}
+      - name: Build ${{ matrix.name }} tarball
         run: |
           set -eo pipefail
-          bazel run ${{ matrix.target }} \
-            -- \
-            --repository localhost:5000/${{ matrix.repo }} \
-            --tag latest
+          echo "=== BUILDING ${{ matrix.name }} TARBALL ==="
+          bazel build ${{ matrix.target }} --output_groups=+tarball
 
-      - name: Retag & Save ${{ matrix.repo }} to tar
+      - name: Copy tarball to workspace
         run: |
           set -eo pipefail
           mkdir -p images
-          docker pull localhost:5000/${{ matrix.repo }}:latest
-          docker tag localhost:5000/${{ matrix.repo }}:latest ${{ matrix.repo }}:latest
-          docker save ${{ matrix.repo }}:latest -o images/${{ matrix.repo }}.tar
+          # Copy the tarball based on the matrix name
+          case "${{ matrix.name }}" in
+            "candle-ingestor")
+              cp bazel-bin/services/candle_ingestor/load_candle_ingestor_image/tarball.tar images/candle-ingestor.tar
+              ;;
+            "top-crypto-updater")
+              cp bazel-bin/services/top_crypto_updater/load_top_crypto_updater_image/tarball.tar images/top-crypto-updater.tar
+              ;;
+            "strategy-discovery-request-factory")
+              cp bazel-bin/services/strategy_discovery_request_factory/load_strategy_discovery_request_factory_image/tarball.tar images/strategy-discovery-request-factory.tar
+              ;;
+            "strategy-discovery-pipeline")
+              cp bazel-bin/src/main/java/com/verlumen/tradestream/discovery/load_image/tarball.tar images/strategy-discovery-pipeline.tar
+              ;;
+            "strategy-consumer")
+              cp bazel-bin/services/strategy_consumer/load_strategy_consumer_image/tarball.tar images/strategy-consumer.tar
+              ;;
+            "strategy-monitor-api")
+              cp bazel-bin/services/strategy_monitor_api/load_strategy_monitor_api_image/tarball.tar images/strategy-monitor-api.tar
+              ;;
+            "strategy-monitor-ui")
+              cp bazel-bin/ui/strategy-monitor/load_strategy_monitor_ui_image/tarball.tar images/strategy-monitor-ui.tar
+              ;;
+            *)
+              echo "❌ Unknown matrix name: ${{ matrix.name }}"
+              exit 1
+              ;;
+          esac
 
       - name: Upload ${{ matrix.repo }} artifact
         uses: actions/upload-artifact@v4
@@ -128,7 +146,7 @@ jobs:
 
   deploy-and-test:
     name: Deploy and Test
-    needs: build-images
+    needs: build-and-export-images
     runs-on: ubuntu-latest
 
     steps:
@@ -152,14 +170,8 @@ jobs:
       - name: Load images into minikube
         run: |
           set -eo pipefail
-          echo "=== DEBUGGING ARTIFACT DOWNLOAD ==="
-          echo "Current directory: $(pwd)"
-          echo "Contents of images directory:"
-          ls -la images/ || echo "images directory not found"
-          echo "Contents of current directory:"
-          ls -la
-
-          echo "=== LOADING IMAGES ==="
+          echo "=== LOADING IMAGES INTO MINIKUBE ==="
+          
           # Find all tar files in the images directory structure
           find images -name "*.tar" -type f | while read -r tar; do
             echo "Processing: $tar"
@@ -180,7 +192,7 @@ jobs:
 
           # Verify images were loaded
           echo "=== VERIFYING LOADED IMAGES ==="
-          docker images | grep -E "(candle-ingestor|top-crypto-updater|strategy-discovery|strategy-consumer|strategy-monitor)"
+          minikube image ls | grep -E "(candle-ingestor|top-crypto-updater|strategy-discovery|strategy-consumer|strategy-monitor)"
 
       - name: Create Namespace and Secrets
         run: |

@@ -1,6 +1,6 @@
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push", "oci_load")
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 
 # Static content files
@@ -72,6 +72,19 @@ oci_push(
     name = "push_strategy_monitor_ui_image",
     image = ":strategy_monitor_ui_images",
     repository = "tradestreamhq/strategy-monitor-ui",
+)
+
+# Load target for the UI image
+oci_load(
+    name = "load_strategy_monitor_ui_image",
+    image = ":strategy_monitor_ui",
+    repo_tags = ["strategy-monitor-ui:latest"],
+)
+
+filegroup(
+    name = "strategy_monitor_ui_tarball",
+    srcs = [":load_strategy_monitor_ui_image"],
+    output_group = "tarball",
 )
 
 # Container structure test

@@ -1,7 +1,7 @@
 # --- OCI Image Rules ---
 load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push", "oci_load")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 
 package(default_visibility = ["//visibility:public"])
@@ -138,6 +138,18 @@ oci_push(
     name = "push_strategy_discovery_request_factory_image",
     image = ":images",
     repository = "tradestreamhq/strategy-discovery-request-factory",
+)
+
+oci_load(
+    name = "load_strategy_discovery_request_factory_image",
+    image = ":image",
+    repo_tags = ["strategy-discovery-request-factory:latest"],
+)
+
+filegroup(
+    name = "strategy_discovery_request_factory_tarball",
+    srcs = [":load_strategy_discovery_request_factory_image"],
+    output_group = "tarball",
 )
 
 container_structure_test(
