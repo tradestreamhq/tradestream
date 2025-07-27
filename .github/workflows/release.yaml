@@ -58,7 +58,6 @@ jobs:
           bazel run //services/candle_ingestor:push_candle_ingestor_image \
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
-      
       - name: Push the Top Crypto Updater image
         run: |
           bazel run //services/top_crypto_updater:push_top_crypto_updater_image \
