@@ -1,28 +1,29 @@
-load("@aspect_bazel_lib//lib:tar.bzl", "mtree_mutate", "tar")
+load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 
-# Package the UI files and nginx config
+# Static content files
 filegroup(
-    name = "ui_files",
+    name = "static_files",
     srcs = glob([
         "*.html",
-        "*.js",
+        "*.js", 
         "*.css",
         "*.md",
-        "*.sh",
-        "*.conf",
     ]),
-    visibility = ["//visibility:public"],
 )
 
-# Package the UI files and nginx config
+# Package static files for nginx html directory
 tar(
-    name = "ui_tar",
-    srcs = [":ui_files"],
-    out = "strategy_monitor_ui.tar",
-    mtree = "auto",
+    name = "static_tar",
+    srcs = [":static_files"],
+)
+
+# Custom nginx configuration
+tar(
+    name = "nginx_config_tar", 
+    srcs = ["nginx.conf"],
 )
 
 # Create a simple HTTP server script (for development/testing only)
@@ -49,11 +50,12 @@ py_test(
 oci_image(
     name = "strategy_monitor_ui",
     base = "@nginx_alpine",
-    entrypoint = ["/bin/sh"],
-    cmd = ["-c", "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"],
-    tars = [":ui_tar"],
-    user = "root",
+    tars = [
+        ":static_tar",
+        ":nginx_config_tar",
+    ],
     workdir = "/usr/share/nginx/html",
+    # Use nginx base image's default entrypoint and cmd
 )
 
 # OCI image index for multi-platform support
