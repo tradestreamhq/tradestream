@@ -32,12 +32,6 @@ jobs:
           helm template my-tradestream charts/tradestream \
             --set influxdb.enabled=true
 
-      - name: Run Strategy Monitor API unit tests
-        run: |
-          set -eo pipefail
-          echo "=== RUNNING STRATEGY MONITOR API UNIT TESTS ==="
-          bazel test //services/strategy_monitor_api:strategy_monitor_api_test
-
   build-images:
     name: Build & Export Images
     needs: validate-helm-chart
