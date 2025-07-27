@@ -2,7 +2,7 @@ schemaVersion: "2.0.0"
 
 metadataTest:
   workdir: "/usr/share/nginx/html"
-  user: "nginx"
+  user: "root"
 
 fileExistenceTests:
   - name: "Nginx executable exists"
@@ -48,12 +48,12 @@ commandTests:
     args:
       [
         "-c",
-        "echo 'Files in /ui/strategy-monitor:'; ls -la /ui/strategy-monitor; echo 'HTML file in listing:' $(ls /ui/strategy-monitor/index.html >/dev/null 2>&1 && echo 'True' || echo 'False')",
+        "echo 'Files in /ui/strategy-monitor:'; ls -la /ui/strategy-monitor; echo 'HTML file exists:' $(ls /ui/strategy-monitor/index.html >/dev/null 2>&1 && echo 'True' || echo 'False')",
       ]
     exitCode: 0
     expectedOutput:
       - "Files in /ui/strategy-monitor:"
-      - "HTML file in listing: True"
+      - "HTML file exists: True"
 
   - name: "Working directory test"
     command: "/bin/sh"
@@ -72,12 +72,12 @@ commandTests:
     args:
       [
         "-c",
-        "echo 'Running as user:' $(whoami); echo 'User is nginx:' $(test $(whoami) = 'nginx' && echo 'True' || echo 'False')",
+        "echo 'Running as user:' $(whoami); echo 'User is root:' $(test $(whoami) = 'root' && echo 'True' || echo 'False')",
       ]
     exitCode: 0
     expectedOutput:
-      - "Running as user: nginx"
-      - "User is nginx: True"
+      - "Running as user: root"
+      - "User is root: True"
 
   - name: "Nginx process test"
     command: "/bin/sh"
@@ -91,7 +91,7 @@ commandTests:
     args:
       [
         "-c", 
-        "mkdir -p /tmp/client_temp /tmp/proxy_temp /tmp/fastcgi_temp /tmp/uwsgi_temp /tmp/scgi_temp && cp /ui/strategy-monitor/nginx.conf /tmp/nginx.conf && nginx -g 'daemon off;' -c /tmp/nginx.conf & sleep 3 && curl -f http://localhost:80/ >/dev/null 2>&1 && echo 'Web server is accessible' || echo 'Web server test failed'"
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -f http://localhost:80/ >/dev/null 2>&1 && echo 'Web server is accessible' || echo 'Web server test failed'"
       ]
     exitCode: 0
     expectedOutput:

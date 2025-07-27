@@ -12,19 +12,15 @@ filegroup(
         "*.css",
         "*.md",
         "*.sh",
+        "*.conf",
     ]),
     visibility = ["//visibility:public"],
 )
 
-filegroup(
-    name = "nginx_config",
-    srcs = ["nginx.conf"],
-)
-
-# Create a tar of the UI files and nginx config
+# Package the UI files and nginx config
 tar(
     name = "ui_tar",
-    srcs = [":ui_files", ":nginx_config"],
+    srcs = [":ui_files"],
     out = "strategy_monitor_ui.tar",
     mtree = "auto",
 )
@@ -54,9 +50,9 @@ oci_image(
     name = "strategy_monitor_ui",
     base = "@nginx_alpine",
     entrypoint = ["/bin/sh"],
-    cmd = ["-c", "mkdir -p /tmp/client_temp /tmp/proxy_temp /tmp/fastcgi_temp /tmp/uwsgi_temp /tmp/scgi_temp && cp /ui/strategy-monitor/nginx.conf /tmp/nginx.conf && exec nginx -g 'daemon off;' -c /tmp/nginx.conf"],
+    cmd = ["-c", "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"],
     tars = [":ui_tar"],
-    user = "nginx",
+    user = "root",
     workdir = "/usr/share/nginx/html",
 )
 
