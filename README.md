@@ -97,3 +97,4 @@ Planned enhancements include:
 
 For more information, questions, or contributions, please open an issue or pull request on GitHub.
 # Trigger release workflow for v2.45.98-develop
+# Test ArgoCD Image Updater with new version (PATCH)
