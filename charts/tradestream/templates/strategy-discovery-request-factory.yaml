@@ -20,7 +20,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: strategy-discovery-request-factory
-              image: "{{ .Values.strategyDiscoveryRequestFactory.image.repository }}:{{ .Values.strategyDiscoveryRequestFactory.image.tag | default .Values.global.imageTag | default .Chart.AppVersion }}"
+              image: "{{ .Values.strategyDiscoveryRequestFactory.image.repository }}:{{ .Values.strategyDiscoveryRequestFactory.image.tag | default .Chart.AppVersion }}"
               imagePullPolicy: {{ .Values.strategyDiscoveryRequestFactory.image.pullPolicy }}
               env:
                 - name: INFLUXDB_URL
