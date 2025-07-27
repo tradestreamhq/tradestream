@@ -356,7 +356,7 @@ strategyConsumer:
 
 # Strategy Monitor API configuration
 strategyMonitorApi:
-  enabled: true
+  enabled: false  # TEMPORARILY DISABLED - YAML syntax issues in templates
   replicaCount: 1
   image:
     repository: "tradestreamhq/strategy-monitor-api"
@@ -386,7 +386,7 @@ strategyMonitorApi:
 
 # Strategy Monitor UI configuration
 strategyMonitorUi:
-  enabled: true
+  enabled: false  # TEMPORARILY DISABLED - YAML syntax issues in templates
   replicaCount: 1
   image:
     repository: "tradestreamhq/strategy-monitor-ui"
