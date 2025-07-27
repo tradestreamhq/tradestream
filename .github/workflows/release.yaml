@@ -1,4 +1,4 @@
-name: Release Tradestream Artifacts
+name: Release Tradestream Artifacts (Simplified)
 on:
   push:
     branches:
@@ -7,22 +7,6 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    env:
-      CANDLE_INGESTOR_REPO: tradestreamhq/candle-ingestor
-      TOP_CRYPTO_UPDATER_REPO: tradestreamhq/top-crypto-updater
-      STRATEGY_DISCOVERY_REQUEST_FACTORY_REPO: tradestreamhq/strategy-discovery-request-factory
-      STRATEGY_DISCOVERY_PIPELINE_REPO: tradestreamhq/strategy-discovery-pipeline
-      STRATEGY_CONSUMER_REPO: tradestreamhq/strategy-consumer
-      STRATEGY_MONITOR_API_REPO: tradestreamhq/strategy-monitor-api
-      STRATEGY_MONITOR_UI_REPO: tradestreamhq/strategy-monitor-ui
-
-      CANDLE_INGESTOR_SECTION_KEY: candleIngestor
-      TOP_CRYPTO_UPDATER_SECTION_KEY: topCryptoUpdaterCronjob
-      STRATEGY_DISCOVERY_REQUEST_FACTORY_SECTION_KEY: strategyDiscoveryRequestFactory
-      STRATEGY_DISCOVERY_PIPELINE_SECTION_KEY: strategyDiscoveryPipeline
-      STRATEGY_CONSUMER_SECTION_KEY: strategyConsumer
-      STRATEGY_MONITOR_API_SECTION_KEY: strategyMonitorApi
-      STRATEGY_MONITOR_UI_SECTION_KEY: strategyMonitorUi
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -64,11 +48,11 @@ jobs:
 
       - uses: bazel-contrib/setup-bazel@0.14.0
         with:
-          # Avoid downloading Bazel every time
           bazelisk-cache: true
           bazelrc: |
             build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
 
+      # Build and push all images with the new tag
       - name: Push the Candle Ingestor image
         run: |
           bazel run //services/candle_ingestor:push_candle_ingestor_image \
@@ -105,43 +89,9 @@ jobs:
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
 
-      - name: Install yq
+      # Optional: Add a comment about ArgoCD handling the deployment
+      - name: Notify ArgoCD Deployment
         run: |
-          sudo wget -O /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64
-          sudo chmod +x /usr/bin/yq
-
-      - name: Update values.yaml with new image tags
-        run: |
-          yq eval-all '
-            . as $item ireduce ({}; . * $item ) |
-            .["${{ env.CANDLE_INGESTOR_SECTION_KEY }}"].image.repository = "${{ env.CANDLE_INGESTOR_REPO }}" |
-            .["${{ env.CANDLE_INGESTOR_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
-            .["${{ env.TOP_CRYPTO_UPDATER_SECTION_KEY }}"].image.repository = "${{ env.TOP_CRYPTO_UPDATER_REPO }}" |
-            .["${{ env.TOP_CRYPTO_UPDATER_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
-            .["${{ env.STRATEGY_DISCOVERY_REQUEST_FACTORY_SECTION_KEY }}"].image.repository = "${{ env.STRATEGY_DISCOVERY_REQUEST_FACTORY_REPO }}" |
-            .["${{ env.STRATEGY_DISCOVERY_REQUEST_FACTORY_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
-            .["${{ env.STRATEGY_DISCOVERY_PIPELINE_SECTION_KEY }}"].image.repository = "${{ env.STRATEGY_DISCOVERY_PIPELINE_REPO }}" |
-            .["${{ env.STRATEGY_DISCOVERY_PIPELINE_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
-            .["${{ env.STRATEGY_CONSUMER_SECTION_KEY }}"].image.repository = "${{ env.STRATEGY_CONSUMER_REPO }}" |
-            .["${{ env.STRATEGY_CONSUMER_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
-            .["${{ env.STRATEGY_MONITOR_API_SECTION_KEY }}"].image.repository = "${{ env.STRATEGY_MONITOR_API_REPO }}" |
-            .["${{ env.STRATEGY_MONITOR_API_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}" |
-            .["${{ env.STRATEGY_MONITOR_UI_SECTION_KEY }}"].image.repository = "${{ env.STRATEGY_MONITOR_UI_REPO }}" |
-            .["${{ env.STRATEGY_MONITOR_UI_SECTION_KEY }}"].image.tag = "${{ steps.version.outputs.version_tag }}"
-          ' charts/tradestream/values.yaml > charts/tradestream/values.yaml.tmp
-          mv charts/tradestream/values.yaml.tmp charts/tradestream/values.yaml
-
-      - name: Update MODULE.bazel version
-        run: |
-          echo "Updating MODULE.bazel to version ${{ steps.version.outputs.version_tag }}"
-          # Only replace "version" within the module(...) block
-          sed -i.bak '/^module(/,/^)/ s/\(version\s*=\s*"\)[^"]\+"/\1'"${{ steps.version.outputs.version_tag }}"'"/' MODULE.bazel
-        shell: bash
-
-      - name: Commit and Push All Changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
-        run: |
-          git add charts/tradestream/values.yaml MODULE.bazel
-          git commit -m "Bump version to ${{ steps.version.outputs.version_tag }}" || echo "No changes to commit"
-          git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
+          echo "✅ Images pushed with tag: ${{ steps.version.outputs.version_tag }}"
+          echo "🔄 ArgoCD Image Updater will automatically detect and deploy the new images within 2-5 minutes"
+          echo "📊 Monitor deployment: kubectl get application tradestream-dev -n argocd"
