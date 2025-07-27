@@ -1,6 +1,7 @@
-load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 
 py_library(
     name = "strategy_monitor_api_lib",
@@ -8,6 +9,8 @@ py_library(
     deps = [
         "//third_party/python:psycopg2_binary",
         "//third_party/python:absl_py",
+        "//third_party/python:flask",
+        "//third_party/python:flask_cors",
     ],
 )
 
@@ -16,6 +19,28 @@ py_binary(
     srcs = ["main.py"],
     main = "main.py",
     deps = [":strategy_monitor_api_lib"],
+)
+
+py_test(
+    name = "strategy_monitor_api_test",
+    srcs = ["main_test.py"],
+    main = "main_test.py",
+    deps = [
+        ":strategy_monitor_api_lib",
+        "//third_party/python:psycopg2_binary",
+        "//third_party/python:absl_py",
+        "//third_party/python:flask",
+        "//third_party/python:flask_cors",
+    ],
+    python_version = "PY3",
+    size = "medium",
+    timeout = "short",
+)
+
+# Container structure test
+filegroup(
+    name = "container_structure_test_files",
+    srcs = ["container-structure-test.yaml"],
 )
 
 # --- OCI Image Rules ---

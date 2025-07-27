@@ -1,5 +1,6 @@
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
+load("@rules_python//python:defs.bzl", "py_test")
 
 # Package the UI files
 filegroup(
@@ -18,6 +19,24 @@ tar(
     name = "ui_tar",
     srcs = [":ui_files"],
     out = "strategy_monitor_ui.tar",
+)
+
+# UI tests
+py_test(
+    name = "strategy_monitor_ui_test",
+    srcs = ["ui_test.py"],
+    main = "ui_test.py",
+    data = [":ui_files"],
+    deps = [],
+    python_version = "PY3",
+    size = "medium",
+    timeout = "short",
+)
+
+# Container structure test
+filegroup(
+    name = "container_structure_test_files",
+    srcs = ["container-structure-test.yaml"],
 )
 
 # Static web server for the Strategy Monitor UI
