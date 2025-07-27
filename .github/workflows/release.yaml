@@ -63,7 +63,6 @@ jobs:
           bazel run //services/top_crypto_updater:push_top_crypto_updater_image \
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
-      
       - name: Push the Strategy Discovery Request Factory image
         run: |
           bazel run //services/strategy_discovery_request_factory:push_strategy_discovery_request_factory_image \
