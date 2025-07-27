@@ -71,11 +71,11 @@ jobs:
           docker tag localhost:5000/${{ matrix.repo }}:latest ${{ matrix.repo }}:latest
           docker save ${{ matrix.repo }}:latest -o images/${{ matrix.repo }}.tar
 
-      - name: Upload images artifact
+      - name: Upload ${{ matrix.repo }} artifact
         uses: actions/upload-artifact@v4
         with:
-          name: images
-          path: images/*.tar
+          name: images-${{ matrix.repo }}
+          path: images/${{ matrix.repo }}.tar
 
   deploy:
     name: Start Cluster & Deploy
@@ -95,10 +95,9 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4.2.0
 
-      - name: Download images artifact
+      - name: Download all images artifacts
         uses: actions/download-artifact@v4
         with:
-          name: images
           path: images
 
       - name: Load images into minikube
