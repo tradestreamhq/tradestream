@@ -385,8 +385,14 @@ oci_load(
 
 filegroup(
     name = "strategy_discovery_pipeline_tarball",
-    srcs = [":load_image"],
+    srcs = [":load_image_single"],
     output_group = "tarball",
+)
+
+oci_load(
+    name = "load_image_single",
+    image = ":image",
+    repo_tags = ["strategy-discovery-pipeline:latest"],
 )
 
 kt_jvm_library(
