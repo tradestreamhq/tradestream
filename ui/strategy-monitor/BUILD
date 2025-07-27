@@ -1,7 +1,7 @@
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
-load("@aspect_bazel_lib//lib:tar.bzl", "tar", "mtree_mutate")
-load("@rules_python//python:defs.bzl", "py_test", "py_binary")
+load("@aspect_bazel_lib//lib:tar.bzl", "mtree_mutate", "tar")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 
 # Package the UI files
 filegroup(
@@ -20,8 +20,8 @@ filegroup(
 tar(
     name = "ui_tar",
     srcs = [":ui_files"],
-    mtree = "auto",
     out = "strategy_monitor_ui.tar",
+    mtree = "auto",
 )
 
 # Create a simple HTTP server script (for development/testing only)
@@ -35,13 +35,13 @@ py_binary(
 # UI tests
 py_test(
     name = "strategy_monitor_ui_test",
-    srcs = ["ui_test.py"],
-    main = "ui_test.py",
-    data = [":ui_files"],
-    deps = [],
-    python_version = "PY3",
     size = "medium",
     timeout = "short",
+    srcs = ["ui_test.py"],
+    data = [":ui_files"],
+    main = "ui_test.py",
+    python_version = "PY3",
+    deps = [],
 )
 
 # Static web server for the Strategy Monitor UI using nginx
@@ -77,6 +77,6 @@ filegroup(
 
 container_structure_test(
     name = "container_test",
-    image = ":strategy_monitor_ui",
     configs = [":container_structure_test_files"],
-) 
+    image = ":strategy_monitor_ui",
+)

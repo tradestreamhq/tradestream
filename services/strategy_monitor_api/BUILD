@@ -1,17 +1,17 @@
-load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
-load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
+load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 
 py_library(
     name = "strategy_monitor_api_lib",
     srcs = ["main.py"],
     deps = [
-        "//third_party/python:psycopg2_binary",
         "//third_party/python:absl_py",
         "//third_party/python:flask",
         "//third_party/python:flask_cors",
+        "//third_party/python:psycopg2_binary",
     ],
 )
 
@@ -24,18 +24,18 @@ py_binary(
 
 py_test(
     name = "strategy_monitor_api_test",
+    size = "medium",
+    timeout = "short",
     srcs = ["main_test.py"],
     main = "main_test.py",
+    python_version = "PY3",
     deps = [
         ":strategy_monitor_api_lib",
-        "//third_party/python:psycopg2_binary",
         "//third_party/python:absl_py",
         "//third_party/python:flask",
         "//third_party/python:flask_cors",
+        "//third_party/python:psycopg2_binary",
     ],
-    python_version = "PY3",
-    size = "medium",
-    timeout = "short",
 )
 
 # --- OCI Image Rules ---

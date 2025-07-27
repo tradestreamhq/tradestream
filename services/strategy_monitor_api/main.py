@@ -984,7 +984,7 @@ def get_db_connection():
     """Get a database connection."""
     if not DB_CONFIG:
         raise Exception("Database configuration not initialized")
-    
+
     return psycopg2.connect(
         host=DB_CONFIG["host"],
         port=DB_CONFIG["port"],
