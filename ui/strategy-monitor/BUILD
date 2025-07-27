@@ -48,8 +48,8 @@ py_test(
 oci_image(
     name = "strategy_monitor_ui",
     base = "@nginx_alpine",
-    entrypoint = ["/usr/sbin/nginx"],
-    cmd = ["-g", "daemon off;"],
+    entrypoint = ["/bin/sh"],
+    cmd = ["-c", "mkdir -p /tmp/client_temp /tmp/proxy_temp /tmp/fastcgi_temp /tmp/uwsgi_temp /tmp/scgi_temp && echo 'worker_processes 1; pid /tmp/nginx.pid; error_log /tmp/error.log; events { worker_connections 1024; } http { include /etc/nginx/mime.types; default_type application/octet-stream; client_body_temp_path /tmp/client_temp; proxy_temp_path /tmp/proxy_temp; fastcgi_temp_path /tmp/fastcgi_temp; uwsgi_temp_path /tmp/uwsgi_temp; scgi_temp_path /tmp/scgi_temp; access_log /tmp/access.log; sendfile on; keepalive_timeout 65; server { listen 80; server_name localhost; root /usr/share/nginx/html; index index.html; location / { try_files $$uri $$uri/ =404; } location ~* \\.(js|css|png|jpg|jpeg|gif|ico|svg)$$ { expires 1y; add_header Cache-Control \"public, immutable\"; } } }' > /tmp/nginx.conf && exec nginx -g 'daemon off;' -c /tmp/nginx.conf"],
     tars = [":ui_tar"],
     user = "nginx",
     workdir = "/usr/share/nginx/html",
