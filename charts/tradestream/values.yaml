@@ -1,6 +1,6 @@
 # Global configuration for all services
 global:
-  imageTag: "v1.0.4-main" # Default tag, can be overridden by ArgoCD
+  imageTag: "v2.45.97-develop" # Default tag, can be overridden by ArgoCD
 
 influxdb:
   enabled: true
