@@ -17,6 +17,14 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4.2.0
 
+      - name: Build Helm Dependencies
+        run: |
+          set -eo pipefail
+          echo "Building Helm chart dependencies..."
+          cd charts/tradestream
+          helm dependency build
+          cd ../..
+
       - name: Lint and Template Helm Chart
         run: |
           set -eo pipefail
