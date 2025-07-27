@@ -377,20 +377,14 @@ oci_push(
     repository = "tradestreamhq/strategy-discovery-pipeline",
 )
 
-oci_load(
-    name = "load_image",
-    image = ":images",
-    repo_tags = ["strategy-discovery-pipeline:latest"],
-)
-
 filegroup(
     name = "strategy_discovery_pipeline_tarball",
-    srcs = [":load_image_single"],
+    srcs = [":load_image"],
     output_group = "tarball",
 )
 
 oci_load(
-    name = "load_image_single",
+    name = "load_image",
     image = ":image",
     repo_tags = ["strategy-discovery-pipeline:latest"],
 )
