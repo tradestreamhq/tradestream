@@ -87,7 +87,6 @@ jobs:
           bazel run //services/strategy_monitor_api:push_strategy_monitor_api_image \
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
-      
       - name: Push the Strategy Monitor UI image
         run: |
           bazel run //ui/strategy-monitor:push_strategy_monitor_ui_image \
