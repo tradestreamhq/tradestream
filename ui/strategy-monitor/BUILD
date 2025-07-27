@@ -35,6 +35,15 @@ py_binary(
     deps = [],
 )
 
+# Executable target for running the UI locally
+py_binary(
+    name = "app",
+    srcs = ["http_server.py"],
+    main = "http_server.py",
+    data = [":static_files"],
+    deps = [],
+)
+
 # UI tests
 py_test(
     name = "strategy_monitor_ui_test",
@@ -56,7 +65,8 @@ oci_image(
         ":nginx_config_tar",
     ],
     workdir = "/usr/share/nginx/html",
-    # Use nginx base image's default entrypoint and cmd
+    entrypoint = ["/bin/sh", "-c"],
+    cmd = ["cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && cp /ui/strategy-monitor/* /usr/share/nginx/html/ && nginx -g 'daemon off;'"],
 )
 
 # OCI image index for multi-platform support
