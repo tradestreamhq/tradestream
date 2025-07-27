@@ -8,6 +8,8 @@ py_library(
     deps = [
         "//third_party/python:psycopg2_binary",
         "//third_party/python:absl_py",
+        "//third_party/python:flask",
+        "//third_party/python:flask_cors",
     ],
 )
 

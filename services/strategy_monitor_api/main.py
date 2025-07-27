@@ -16,6 +16,8 @@ import json
 import urllib.parse
 from absl import flags
 from absl import app as absl_app
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 # Flask configuration
 app = Flask(__name__)
