@@ -15,6 +15,7 @@ The shared libraries support the production platform:
 ## Overview
 
 The shared libraries are designed to be:
+
 - **Language-agnostic**: Available for both Java/Kotlin and Python services
 - **Well-tested**: Comprehensive test coverage for reliability
 - **Documented**: Clear APIs and usage examples
@@ -35,6 +36,7 @@ shared/
 The `cryptoclient` module provides utilities for interacting with cryptocurrency APIs and data sources.
 
 #### Features
+
 - **CoinMarketCap Integration**: Client for CoinMarketCap API
 - **Symbol Management**: Utilities for handling cryptocurrency symbols
 - **Rate Limiting**: Built-in rate limiting for API calls
@@ -55,12 +57,14 @@ top_crypto = client.get_top_cryptocurrencies(limit=100)
 ```
 
 **Production Integration**:
-- **Service**: `top_crypto_updater` (CronJob */15 minutes)
+
+- **Service**: `top_crypto_updater` (CronJob \*/15 minutes)
 - **API**: CoinMarketCap API for real-time rankings
 - **Output**: Redis key `top_cryptocurrencies` for symbol management
 - **Scale**: 20 symbols updated per execution from CMC API rankings
 
 #### Testing
+
 ```bash
 bazel test //shared/cryptoclient:all
 ```
@@ -70,6 +74,7 @@ bazel test //shared/cryptoclient:all
 The `persistence` module provides utilities for database operations and state management.
 
 #### Features
+
 - **InfluxDB Integration**: Time-series data persistence utilities
 - **State Tracking**: Last processed timestamp tracking
 - **Bulk Operations**: Efficient bulk data operations
@@ -97,12 +102,14 @@ tracker.update_last_processed_timestamp("BTC/USD", timestamp)
 ```
 
 **Production Integration**:
-- **Service**: `candle_ingestor` (CronJob */1 minute)
+
+- **Service**: `candle_ingestor` (CronJob \*/1 minute)
 - **Database**: InfluxDB time-series database
 - **Scale**: 1000+ candle writes per minute, 365-day retention
 - **State**: Automatic catch-up processing for missed data
 
 #### Testing
+
 ```bash
 bazel test //shared/persistence:all
 ```
@@ -110,6 +117,7 @@ bazel test //shared/persistence:all
 ## Development
 
 ### Building Shared Libraries
+
 ```bash
 # Build all shared libraries
 bazel build //shared/...
@@ -119,6 +127,7 @@ bazel build //shared/cryptoclient:all
 ```
 
 ### Running Tests
+
 ```bash
 # Test all shared libraries
 bazel test //shared/...
@@ -130,6 +139,7 @@ bazel test //shared/cryptoclient:all
 ## Integration
 
 ### Java/Kotlin Services
+
 Shared libraries are available to Java/Kotlin services through Bazel dependencies:
 
 ```python
@@ -145,6 +155,7 @@ java_library(
 ```
 
 ### Python Services
+
 Python services can import shared libraries directly:
 
 ```python
@@ -155,6 +166,7 @@ from shared.persistence.influxdb_last_processed_tracker import InfluxDBLastProce
 ## Production Performance Metrics
 
 **Shared Libraries System** (Verified Production Metrics):
+
 - **API Integration**: CoinMarketCap API integration for cryptocurrency data
 - **Database Performance**: Efficient InfluxDB and PostgreSQL operations
 - **State Management**: Reliable state tracking for data processing
@@ -162,6 +174,7 @@ from shared.persistence.influxdb_last_processed_tracker import InfluxDBLastProce
 - **Scalability**: Support for high-volume data processing
 
 **Infrastructure Performance** (Production Verified):
+
 - **InfluxDB Integration**: 1000+ candle writes per minute with state tracking
 - **API Performance**: Efficient CoinMarketCap API integration with rate limiting
 - **Memory Usage**: Efficient connection pooling and resource management
@@ -187,6 +200,7 @@ from shared.persistence.influxdb_last_processed_tracker import InfluxDBLastProce
 ### Error Handling
 
 All shared libraries should implement:
+
 - Graceful error handling
 - Retry logic where appropriate
 - Meaningful error messages
@@ -202,6 +216,7 @@ All shared libraries should implement:
 ## Configuration
 
 Shared libraries can be configured through:
+
 - Environment variables
 - Configuration files
 - Dependency injection (Guice for Java/Kotlin)
@@ -210,6 +225,7 @@ Shared libraries can be configured through:
 ## Monitoring
 
 Shared libraries should:
+
 - Log important operations
 - Expose metrics for monitoring
 - Handle errors gracefully
@@ -218,12 +234,14 @@ Shared libraries should:
 ## Testing Strategy
 
 ### Unit Tests
+
 - Test individual functions and classes
 - Mock external dependencies
 - Test error conditions
 - Verify expected behavior
 
 ### Integration Tests
+
 - Test with real external services
 - Verify end-to-end functionality
 - Test configuration scenarios
@@ -252,16 +270,18 @@ When contributing to shared libraries:
 ## Dependencies
 
 ### External Dependencies
+
 - `ccxt`: Cryptocurrency exchange connectivity
 - `influxdb-client`: InfluxDB Python client
 - `requests`: HTTP client library
 - `tenacity`: Retry mechanisms
 
 ### Internal Dependencies
+
 - Protocol Buffers for data contracts
 - Bazel for build management
 - Testing frameworks (pytest, JUnit)
 
 ## License
 
-This project is part of the TradeStream platform. See the root LICENSE file for details. 
+This project is part of the TradeStream platform. See the root LICENSE file for details.

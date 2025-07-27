@@ -96,6 +96,7 @@ strategies/
 ## Production Performance Metrics
 
 **Strategy Implementation System** (Verified Production Metrics):
+
 - **Strategy Types**: 60 different technical analysis strategies implemented
 - **TA4J Integration**: High-performance technical analysis calculations
 - **Genetic Algorithm**: Real-time parameter optimization for market conditions
@@ -103,6 +104,7 @@ strategies/
 - **Reliability**: All strategies operational in genetic algorithm optimization
 
 **Infrastructure Performance** (Production Verified):
+
 - **TA4J Performance**: High-performance technical analysis calculations
 - **Memory Usage**: Efficient genetic algorithm processing with minimal memory footprint
 - **Strategy Evaluation**: Real-time strategy evaluation with TA4J indicators
@@ -121,13 +123,13 @@ public final class ExampleParamConfig implements ParamConfig {
     ChromosomeSpec.ofInteger(10, 100),  // Long period
     ChromosomeSpec.ofInteger(14, 30)    // Signal period
   );
-  
-  @Override 
-  public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() { 
-    return SPECS; 
+
+  @Override
+  public ImmutableList<ChromosomeSpec<?>> getChromosomeSpecs() {
+    return SPECS;
   }
-  
-  @Override 
+
+  @Override
   public Any createParameters(ImmutableList<? extends NumericChromosome<?, ?>> chromosomes) {
     // Pack parameters into Any message
     return Any.pack(ExampleParameters.newBuilder()
@@ -136,12 +138,12 @@ public final class ExampleParamConfig implements ParamConfig {
       .setSignalPeriod(((IntegerChromosome) chromosomes.get(2)).getValue())
       .build());
   }
-  
-  @Override 
-  public ImmutableList<? extends NumericChromosome<?, ?>> initialChromosomes() { 
+
+  @Override
+  public ImmutableList<? extends NumericChromosome<?, ?>> initialChromosomes() {
     return SPECS.stream()
       .map(ChromosomeSpec::createChromosome)
-      .collect(ImmutableList.toImmutableList()); 
+      .collect(ImmutableList.toImmutableList());
   }
 }
 ```
@@ -152,25 +154,25 @@ Each strategy must implement a `StrategyFactory` class:
 
 ```java
 public final class ExampleStrategyFactory implements StrategyFactory<ExampleParameters> {
-  @Override 
-  public ExampleParameters getDefaultParameters() { 
+  @Override
+  public ExampleParameters getDefaultParameters() {
     return ExampleParameters.newBuilder()
       .setShortPeriod(12)
       .setLongPeriod(26)
       .setSignalPeriod(9)
-      .build(); 
+      .build();
   }
-  
-  @Override 
+
+  @Override
   public Strategy createStrategy(BarSeries series, ExampleParameters parameters) {
     // Create TA4J indicators
     EMAIndicator shortEma = new EMAIndicator(new ClosePriceIndicator(series), parameters.getShortPeriod());
     EMAIndicator longEma = new EMAIndicator(new ClosePriceIndicator(series), parameters.getLongPeriod());
-    
+
     // Create entry and exit rules
     Rule entryRule = new CrossedUpIndicatorRule(shortEma, longEma);
     Rule exitRule = new CrossedDownIndicatorRule(shortEma, longEma);
-    
+
     return new BaseStrategy("Example Strategy", entryRule, exitRule);
   }
 }
@@ -259,19 +261,19 @@ public final class ExampleParamConfigTest {
   public void testGetChromosomeSpecs() {
     ExampleParamConfig config = new ExampleParamConfig();
     ImmutableList<ChromosomeSpec<?>> specs = config.getChromosomeSpecs();
-    
+
     assertThat(specs).hasSize(3);
     assertThat(specs.get(0)).isInstanceOf(IntegerChromosomeSpec.class);
   }
-  
+
   @Test
   public void testCreateParameters() throws InvalidProtocolBufferException {
     ExampleParamConfig config = new ExampleParamConfig();
     ImmutableList<NumericChromosome<?, ?>> chromosomes = config.initialChromosomes();
-    
+
     Any parameters = config.createParameters(chromosomes);
     ExampleParameters unpacked = parameters.unpack(ExampleParameters.class);
-    
+
     assertThat(unpacked.getShortPeriod()).isGreaterThan(0);
     assertThat(unpacked.getLongPeriod()).isGreaterThan(0);
   }
@@ -286,19 +288,19 @@ public final class ExampleStrategyFactoryTest {
   public void testGetDefaultParameters() {
     ExampleStrategyFactory factory = new ExampleStrategyFactory();
     ExampleParameters params = factory.getDefaultParameters();
-    
+
     assertThat(params.getShortPeriod()).isEqualTo(12);
     assertThat(params.getLongPeriod()).isEqualTo(26);
   }
-  
+
   @Test
   public void testCreateStrategy() {
     ExampleStrategyFactory factory = new ExampleStrategyFactory();
     BarSeries series = new BaseBarSeries();
     ExampleParameters params = factory.getDefaultParameters();
-    
+
     Strategy strategy = factory.createStrategy(series, params);
-    
+
     assertThat(strategy).isNotNull();
     assertThat(strategy.getEntryRule()).isNotNull();
     assertThat(strategy.getExitRule()).isNotNull();
@@ -391,18 +393,22 @@ Rule entryRule = new OverIndicatorRule(volume, volumeEma);
 ### Common Issues
 
 #### "Class not found" in tests
+
 - Add `test_class` attribute to `java_test` rule
 - Ensure test class name matches file name
 
 #### "package does not exist"
+
 - Check import statements match generated proto classes
 - Verify proto field names in usage
 
 #### "method not found" in proto
+
 - Verify field names in .proto file match usage
 - Check generated class field names
 
 #### "visibility" errors
+
 - Add `visibility = ["//visibility:public"]` to BUILD targets
 
 ## Contributing
@@ -417,4 +423,4 @@ When contributing new strategies:
 
 ## License
 
-This project is part of the TradeStream platform. See the root LICENSE file for details. 
+This project is part of the TradeStream platform. See the root LICENSE file for details.

@@ -9,7 +9,7 @@ fileExistenceTests:
     path: "/usr/sbin/nginx"
     shouldExist: true
     permissions: "-rwxr-xr-x"
-  
+
   - name: "UI files exist in ui directory"
     path: "/ui/strategy-monitor/index.html"
     shouldExist: true
@@ -23,40 +23,57 @@ commandTests:
     expectedError:
       - "nginx version:"
       - "Usage:"
-  
+
   - name: "Nginx configuration test"
     command: "/bin/sh"
-    args: ["-c", "echo 'Nginx configuration test skipped due to permission issues'"]
+    args:
+      ["-c", "echo 'Nginx configuration test skipped due to permission issues'"]
     exitCode: 0
     expectedOutput:
       - "Nginx configuration test skipped due to permission issues"
-  
+
   - name: "HTML file validation test"
     command: "/bin/sh"
-    args: ["-c", "echo 'HTML file validation test skipped - files verified by directory listing test'"]
+    args:
+      [
+        "-c",
+        "echo 'HTML file validation test skipped - files verified by directory listing test'",
+      ]
     exitCode: 0
     expectedOutput:
       - "HTML file validation test skipped - files verified by directory listing test"
-  
+
   - name: "Directory listing test"
     command: "/bin/sh"
-    args: ["-c", "echo 'Files in /ui/strategy-monitor:'; ls -la /ui/strategy-monitor; echo 'HTML file in listing:' $(ls /ui/strategy-monitor/index.html >/dev/null 2>&1 && echo 'True' || echo 'False')"]
+    args:
+      [
+        "-c",
+        "echo 'Files in /ui/strategy-monitor:'; ls -la /ui/strategy-monitor; echo 'HTML file in listing:' $(ls /ui/strategy-monitor/index.html >/dev/null 2>&1 && echo 'True' || echo 'False')",
+      ]
     exitCode: 0
     expectedOutput:
       - "Files in /ui/strategy-monitor:"
       - "HTML file in listing: True"
-  
+
   - name: "Working directory test"
     command: "/bin/sh"
-    args: ["-c", "echo 'Working directory:' $(pwd); echo 'Working directory is /usr/share/nginx/html:' $(test $(pwd) = '/usr/share/nginx/html' && echo 'True' || echo 'False')"]
+    args:
+      [
+        "-c",
+        "echo 'Working directory:' $(pwd); echo 'Working directory is /usr/share/nginx/html:' $(test $(pwd) = '/usr/share/nginx/html' && echo 'True' || echo 'False')",
+      ]
     exitCode: 0
     expectedOutput:
       - "Working directory: /usr/share/nginx/html"
       - "Working directory is /usr/share/nginx/html: True"
-  
+
   - name: "User permissions test"
     command: "/bin/sh"
-    args: ["-c", "echo 'Running as user:' $(whoami); echo 'User is nginx:' $(test $(whoami) = 'nginx' && echo 'True' || echo 'False')"]
+    args:
+      [
+        "-c",
+        "echo 'Running as user:' $(whoami); echo 'User is nginx:' $(test $(whoami) = 'nginx' && echo 'True' || echo 'False')",
+      ]
     exitCode: 0
     expectedOutput:
       - "Running as user: nginx"
@@ -71,7 +88,11 @@ commandTests:
 
   - name: "HTTP server accessibility test"
     command: "/bin/sh"
-    args: ["-c", "echo 'HTTP server accessibility test skipped due to permission issues'"]
+    args:
+      [
+        "-c",
+        "echo 'HTTP server accessibility test skipped due to permission issues'",
+      ]
     exitCode: 0
     expectedOutput:
-      - "HTTP server accessibility test skipped due to permission issues" 
+      - "HTTP server accessibility test skipped due to permission issues"

@@ -45,6 +45,7 @@ To deploy TradeStream locally:
 1. Install `kubectl` and `helm`
 2. Set up a Kubernetes cluster (e.g., Minikube)
 3. Run:
+
 ```bash
 helm install my-tradestream charts/tradestream --namespace tradestream-namespace --create-namespace
 ```
@@ -53,9 +54,9 @@ helm install my-tradestream charts/tradestream --namespace tradestream-namespace
 
 Key configuration parameters in `values.yaml`:
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `kafka.replicaCount` | Number of Kafka brokers | 3 |
+| Parameter            | Description             | Default |
+| -------------------- | ----------------------- | ------- |
+| `kafka.replicaCount` | Number of Kafka brokers | 3       |
 
 ## Project Structure
 

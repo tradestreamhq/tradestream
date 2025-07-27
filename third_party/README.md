@@ -15,6 +15,7 @@ The third-party dependencies support the production platform:
 ## Overview
 
 The third-party dependencies are organized by language and include:
+
 - **Java Dependencies**: Maven artifacts for Java/Kotlin services
 - **Python Dependencies**: pip packages for Python services
 - **Build Dependencies**: Tools and utilities for the build system
@@ -34,6 +35,7 @@ The `java/` directory contains Maven artifacts used by Java and Kotlin services.
 ### Key Dependencies
 
 #### Core Libraries (✅ Production)
+
 - **TA4J**: Technical analysis library for trading strategies (60 strategy types)
 - **Apache Beam**: Data processing framework (Flink GA optimization)
 - **Jenetics**: Genetic algorithm library (real-time optimization)
@@ -41,12 +43,14 @@ The `java/` directory contains Maven artifacts used by Java and Kotlin services.
 - **Flogger**: Structured logging library
 
 #### Database & Messaging (✅ Production)
+
 - **InfluxDB Client**: Time-series database client (1000+ candles/minute)
 - **PostgreSQL JDBC**: Relational database driver (strategy storage)
 - **Kafka Client**: Message broker client (40M+ messages processed)
 - **Redis Client**: Caching and session storage (symbol management)
 
 #### Testing & Utilities
+
 - **JUnit 4**: Unit testing framework
 - **Truth**: Assertion library
 - **Google Java Format**: Code formatting tool
@@ -74,16 +78,19 @@ The `python/` directory contains pip packages used by Python services.
 ### Key Dependencies
 
 #### Cryptocurrency & Trading (✅ Production)
+
 - **ccxt**: Cryptocurrency exchange connectivity (Coinbase WebSocket)
 - **pandas**: Data manipulation and analysis
 - **numpy**: Numerical computing
 
 #### Database & Storage (✅ Production)
+
 - **influxdb-client**: InfluxDB Python client (time-series data)
 - **psycopg2-binary**: PostgreSQL adapter (strategy metadata)
 - **redis**: Redis Python client (symbol management)
 
 #### Utilities & Testing
+
 - **absl-py**: Application framework
 - **tenacity**: Retry mechanisms
 - **pytest**: Testing framework
@@ -109,6 +116,7 @@ py_binary(
 ### Core Production Libraries
 
 **Java/Kotlin Production Stack**:
+
 - **TA4J**: 60 different technical analysis strategies
 - **Apache Beam**: Real-time genetic algorithm optimization
 - **Jenetics**: High-performance genetic algorithm optimization
@@ -116,6 +124,7 @@ py_binary(
 - **Kafka Client**: 40M+ messages processed successfully
 
 **Python Production Stack**:
+
 - **ccxt**: Coinbase WebSocket API integration
 - **influxdb-client**: Time-series data with 365-day retention
 - **redis**: Symbol management and processing state
@@ -124,6 +133,7 @@ py_binary(
 ### Build System Dependencies
 
 **Bazel Configuration**:
+
 - **Bazel 7.4.0**: Build system with BuildBuddy remote caching
 - **BuildBuddy**: Remote caching and build analysis
 - **Docker**: Multi-architecture container builds
@@ -134,12 +144,14 @@ py_binary(
 ### Adding New Dependencies
 
 #### Java Dependencies
+
 1. Add to `MODULE.bazel` in the `maven.install` section
 2. Update `third_party/java/BUILD` with new targets
 3. Run `bazel sync --configure` to download dependencies
 4. Update any affected BUILD files
 
 #### Python Dependencies
+
 1. Add to `requirements.in` file
 2. Run `bazel run //:requirements.update` to regenerate lock file
 3. Update `third_party/python/BUILD` if needed
@@ -193,11 +205,13 @@ py_library(
 ## Build Configuration
 
 ### Bazel Configuration
+
 - **Remote Caching**: Configured for BuildBuddy
 - **Dependency Resolution**: Automatic through Bazel
 - **Version Conflicts**: Resolved by Bazel's dependency resolver
 
 ### Security Considerations
+
 - **Vulnerability Scanning**: Regular security audits
 - **License Compliance**: Verify licenses are compatible
 - **Source Verification**: Verify sources and checksums
@@ -205,6 +219,7 @@ py_library(
 ## Development Workflow
 
 ### Adding Dependencies
+
 1. **Identify Need**: Determine if new dependency is required
 2. **Research**: Find appropriate library and version
 3. **Add**: Follow the process above
@@ -212,6 +227,7 @@ py_library(
 5. **Document**: Update relevant documentation
 
 ### Updating Dependencies
+
 1. **Check Updates**: Review available updates
 2. **Test Compatibility**: Run full test suite
 3. **Update**: Follow dependency-specific process
@@ -219,6 +235,7 @@ py_library(
 5. **Deploy**: Deploy with proper testing
 
 ### Removing Dependencies
+
 1. **Identify Usage**: Find all usages of dependency
 2. **Remove**: Remove from BUILD files and MODULE.bazel
 3. **Test**: Verify no regressions
@@ -227,6 +244,7 @@ py_library(
 ## Production Performance Metrics
 
 **Dependency System** (Verified Production Metrics):
+
 - **Build Performance**: Bazel 7.4.0 with BuildBuddy remote caching
 - **Library Integration**: 60 TA4J strategies, Apache Beam Flink optimization
 - **Database Performance**: InfluxDB and PostgreSQL client libraries
@@ -234,6 +252,7 @@ py_library(
 - **API Integration**: ccxt library for cryptocurrency exchange connectivity
 
 **Infrastructure Performance** (Production Verified):
+
 - **Build Speed**: Efficient dependency resolution and caching
 - **Memory Usage**: Optimized library loading and usage
 - **Network Performance**: Efficient API client libraries
@@ -244,6 +263,7 @@ py_library(
 ### Common Issues
 
 #### Build Failures
+
 ```bash
 # Clean and rebuild
 bazel clean --expunge
@@ -254,11 +274,13 @@ bazel sync --configure
 ```
 
 #### Version Conflicts
+
 - Check `bazel query` for dependency conflicts
 - Review dependency tree with `bazel query --output=graph`
 - Resolve conflicts in MODULE.bazel
 
 #### Missing Dependencies
+
 - Verify dependency is in MODULE.bazel
 - Check BUILD file targets
 - Run `bazel sync --configure`
@@ -279,18 +301,21 @@ bazel query --output=build //path/to/target
 ## Best Practices
 
 ### Dependency Selection
+
 - **Stability**: Prefer stable, well-maintained libraries
 - **License**: Ensure license compatibility
 - **Performance**: Consider performance impact
 - **Security**: Regular security reviews
 
 ### Version Management
+
 - **Lock Versions**: Use specific versions, not ranges
 - **Regular Updates**: Schedule regular dependency updates
 - **Breaking Changes**: Test thoroughly before upgrading
 - **Documentation**: Document version changes
 
 ### Security
+
 - **Vulnerability Scanning**: Regular security audits
 - **Source Verification**: Verify sources and checksums
 - **License Compliance**: Ensure license compatibility
@@ -299,12 +324,14 @@ bazel query --output=build //path/to/target
 ## Monitoring
 
 ### Dependency Health
+
 - **Update Frequency**: Track how often dependencies are updated
 - **Security Issues**: Monitor for security vulnerabilities
 - **License Compliance**: Ensure license compliance
 - **Performance Impact**: Monitor performance impact
 
 ### Metrics
+
 - **Build Time**: Track build time impact
 - **Binary Size**: Monitor binary size changes
 - **Test Coverage**: Ensure tests cover dependency usage
@@ -324,4 +351,4 @@ When working with third-party dependencies:
 
 This project is part of the TradeStream platform. See the root LICENSE file for details.
 
-**Note**: Third-party dependencies have their own licenses. Review individual dependency licenses for compliance. 
+**Note**: Third-party dependencies have their own licenses. Review individual dependency licenses for compliance.

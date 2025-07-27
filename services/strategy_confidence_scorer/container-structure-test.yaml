@@ -26,4 +26,4 @@ commandTests:
     expectedOutput: ["-rwxr-xr-x"]
 
 licenseTests:
-  - debian: true 
+  - debian: true

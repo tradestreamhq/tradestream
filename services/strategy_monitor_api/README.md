@@ -15,6 +15,7 @@ The Strategy Monitor API is currently in development:
 ## Overview
 
 The Strategy Monitor API provides:
+
 - **Strategy Management**: CRUD operations for trading strategies
 - **Performance Analytics**: Real-time and historical performance metrics
 - **Strategy Monitoring**: Live monitoring of active strategies
@@ -48,11 +49,13 @@ Strategy Monitor API
 ### Strategy Management
 
 #### Get All Strategies
+
 ```http
 GET /api/v1/strategies
 ```
 
 **Response:**
+
 ```json
 {
   "strategies": [
@@ -78,11 +81,13 @@ GET /api/v1/strategies
 ```
 
 #### Get Strategy by ID
+
 ```http
 GET /api/v1/strategies/{strategy_id}
 ```
 
 #### Create Strategy
+
 ```http
 POST /api/v1/strategies
 Content-Type: application/json
@@ -100,6 +105,7 @@ Content-Type: application/json
 ```
 
 #### Update Strategy
+
 ```http
 PUT /api/v1/strategies/{strategy_id}
 Content-Type: application/json
@@ -115,6 +121,7 @@ Content-Type: application/json
 ```
 
 #### Delete Strategy
+
 ```http
 DELETE /api/v1/strategies/{strategy_id}
 ```
@@ -122,11 +129,13 @@ DELETE /api/v1/strategies/{strategy_id}
 ### Performance Analytics
 
 #### Get Strategy Performance
+
 ```http
 GET /api/v1/strategies/{strategy_id}/performance
 ```
 
 **Response:**
+
 ```json
 {
   "strategy_id": "strategy_123",
@@ -149,12 +158,14 @@ GET /api/v1/strategies/{strategy_id}/performance
 ```
 
 #### Get Performance History
+
 ```http
 GET /api/v1/strategies/{strategy_id}/performance/history
 ?start_date=2023-01-01&end_date=2023-12-31&granularity=daily
 ```
 
 #### Get Real-time Performance
+
 ```http
 GET /api/v1/strategies/{strategy_id}/performance/realtime
 ```
@@ -162,11 +173,13 @@ GET /api/v1/strategies/{strategy_id}/performance/realtime
 ### Alert Management
 
 #### Get Alerts
+
 ```http
 GET /api/v1/alerts
 ```
 
 **Response:**
+
 ```json
 {
   "alerts": [
@@ -186,6 +199,7 @@ GET /api/v1/alerts
 ```
 
 #### Create Alert
+
 ```http
 POST /api/v1/alerts
 Content-Type: application/json
@@ -200,6 +214,7 @@ Content-Type: application/json
 ```
 
 #### Update Alert
+
 ```http
 PUT /api/v1/alerts/{alert_id}
 Content-Type: application/json
@@ -213,11 +228,13 @@ Content-Type: application/json
 ### Configuration Management
 
 #### Get Strategy Configuration
+
 ```http
 GET /api/v1/strategies/{strategy_id}/config
 ```
 
 #### Update Strategy Configuration
+
 ```http
 PUT /api/v1/strategies/{strategy_id}/config
 Content-Type: application/json
@@ -238,12 +255,14 @@ Content-Type: application/json
 ### Reporting
 
 #### Get Performance Report
+
 ```http
 GET /api/v1/reports/performance
 ?start_date=2023-01-01&end_date=2023-12-31&group_by=month
 ```
 
 #### Get Strategy Comparison
+
 ```http
 GET /api/v1/reports/comparison
 ?strategy_ids=strategy_123,strategy_456&period=1y
@@ -262,6 +281,7 @@ Authorization: Bearer <jwt_token>
 ### Token Endpoints
 
 #### Login
+
 ```http
 POST /api/v1/auth/login
 Content-Type: application/json
@@ -273,6 +293,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -282,6 +303,7 @@ Content-Type: application/json
 ```
 
 #### Refresh Token
+
 ```http
 POST /api/v1/auth/refresh
 Authorization: Bearer <refresh_token>
@@ -338,15 +360,15 @@ X-RateLimit-Reset: 1640995200
 
 ```javascript
 // Connect to WebSocket
-const ws = new WebSocket('ws://localhost:8080/ws/strategies');
+const ws = new WebSocket("ws://localhost:8080/ws/strategies");
 
 // Listen for real-time updates
-ws.onmessage = function(event) {
+ws.onmessage = function (event) {
   const data = JSON.parse(event.data);
-  
-  if (data.type === 'performance_update') {
+
+  if (data.type === "performance_update") {
     updatePerformanceChart(data.strategy_id, data.performance);
-  } else if (data.type === 'alert') {
+  } else if (data.type === "alert") {
     showAlert(data.alert);
   }
 };
@@ -527,42 +549,42 @@ spec:
         app: strategy-monitor-api
     spec:
       containers:
-      - name: strategy-monitor-api
-        image: tradestreamhq/strategy-monitor-api:latest
-        ports:
-        - containerPort: 8080
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: database-secret
-              key: url
-        - name: REDIS_URL
-          value: "redis://redis:6379"
-        - name: JWT_SECRET_KEY
-          valueFrom:
-            secretKeyRef:
-              name: jwt-secret
-              key: secret
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: strategy-monitor-api
+          image: tradestreamhq/strategy-monitor-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: url
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: secret
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
 ```
 
 ## Monitoring
@@ -574,6 +596,7 @@ GET /health
 ```
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -630,14 +653,14 @@ app = FastAPI(
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
-    
+
     openapi_schema = get_openapi(
         title="Strategy Monitor API",
         version="1.0.0",
         description="API for monitoring and managing trading strategies",
         routes=app.routes,
     )
-    
+
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
@@ -662,14 +685,14 @@ graph TB
         TED[Trade Execution<br/>Dashboard]
         MOB[Mobile<br/>Applications]
     end
-    
+
     AGW[API Gateway]
-    
+
     SMD --> AGW
     PMD --> AGW
     TED --> AGW
     MOB --> AGW
-    
+
     style SMD fill:#e1f5fe
     style PMD fill:#f3e5f5
     style TED fill:#fff3e0
@@ -687,14 +710,14 @@ graph TB
         RATE[Rate Limiting<br/>API Quotas]
         LOG[API Logging<br/>Audit & Analytics]
     end
-    
+
     subgraph "Backend Services"
         SMA[Strategy Monitor API]
         PMA[Portfolio Management API]
         TEA[Trade Execution API]
         WS[WebSocket Services<br/>Real-time Updates]
     end
-    
+
     AGW --> AUTH
     AGW --> RATE
     AGW --> LOG
@@ -702,7 +725,7 @@ graph TB
     AGW --> PMA
     AGW --> TEA
     AGW --> WS
-    
+
     style AGW fill:#ffcdd2
     style AUTH fill:#ffcdd2
     style RATE fill:#ffcdd2
@@ -716,22 +739,22 @@ graph LR
     subgraph "Frontend"
         UI[Web Applications]
     end
-    
+
     subgraph "Gateway"
         AGW[API Gateway]
     end
-    
+
     subgraph "Services"
         SMA[Strategy Monitor API]
         PMA[Portfolio Management API]
         TEA[Trade Execution API]
     end
-    
+
     subgraph "Real-time"
         WS[WebSocket Services]
         KAFKA[Kafka Topics]
     end
-    
+
     UI --> AGW
     AGW --> SMA
     AGW --> PMA
@@ -740,7 +763,7 @@ graph LR
     PMA --> WS
     TEA --> WS
     WS --> KAFKA
-    
+
     style UI fill:#e1f5fe
     style AGW fill:#ffcdd2
     style SMA fill:#f3e5f5
@@ -754,6 +777,7 @@ graph LR
 ### Common Issues
 
 #### Database Connection Issues
+
 ```bash
 # Check database connectivity
 kubectl exec -it deployment/strategy-monitor-api -- nc -zv postgresql 5432
@@ -763,6 +787,7 @@ kubectl logs deployment/postgresql
 ```
 
 #### Redis Connection Issues
+
 ```bash
 # Check Redis connectivity
 kubectl exec -it deployment/strategy-monitor-api -- nc -zv redis 6379
@@ -772,6 +797,7 @@ kubectl logs deployment/redis
 ```
 
 #### High Memory Usage
+
 ```bash
 # Check memory usage
 kubectl top pod -l app=strategy-monitor-api
@@ -808,4 +834,4 @@ When contributing to the Strategy Monitor API:
 
 ## License
 
-This project is part of the TradeStream platform. See the root LICENSE file for details. 
+This project is part of the TradeStream platform. See the root LICENSE file for details.

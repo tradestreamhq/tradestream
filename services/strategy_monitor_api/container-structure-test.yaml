@@ -9,12 +9,12 @@ fileExistenceTests:
     path: "/usr/local/bin/python3"
     shouldExist: true
     permissions: "Lrwxrwxrwx"
-  
+
   - name: "Strategy Monitor API script exists"
     path: "/services/strategy_monitor_api/strategy_monitor_api"
     shouldExist: true
     permissions: "-rwxr-xr-x"
-  
+
   - name: "Main application file exists"
     path: "/services/strategy_monitor_api/main.py"
     shouldExist: true
@@ -33,7 +33,7 @@ commandTests:
       - "postgres_password"
       - "api_port"
       - "api_host"
-  
+
   - name: "Strategy Monitor API Dry Run Test"
     command: "/services/strategy_monitor_api/strategy_monitor_api"
     args:
@@ -44,7 +44,7 @@ commandTests:
         "--postgres_username=test",
         "--postgres_password=test",
         "--api_port=8080",
-        "--api_host=0.0.0.0"
+        "--api_host=0.0.0.0",
       ]
     # Should fail due to database connection, but should start Flask app
     exitCode: 1
@@ -60,8 +60,12 @@ commandTests:
 
   - name: "File content validation test"
     command: "/usr/local/bin/python3"
-    args: ["-c", "import os; main_path = '/services/strategy_monitor_api/main.py'; print('Main file exists:', os.path.exists(main_path)); print('Main file size:', os.path.getsize(main_path) if os.path.exists(main_path) else 'N/A')"]
+    args:
+      [
+        "-c",
+        "import os; main_path = '/services/strategy_monitor_api/main.py'; print('Main file exists:', os.path.exists(main_path)); print('Main file size:', os.path.getsize(main_path) if os.path.exists(main_path) else 'N/A')",
+      ]
     exitCode: 0
     expectedOutput:
       - "Main file exists: True"
-      - "Main file size:" 
+      - "Main file size:"

@@ -15,6 +15,7 @@ The TradeStream UI components are currently in development:
 ## Overview
 
 The TradeStream UI components provide:
+
 - **Strategy Monitoring**: Real-time monitoring of trading strategies
 - **Performance Analytics**: Visualization of strategy performance
 - **Configuration Management**: Web-based configuration interfaces
@@ -39,6 +40,7 @@ ui/
 The `strategy-monitor` application provides a web-based interface for monitoring trading strategies in real-time.
 
 #### Features
+
 - **Real-time Dashboard**: Live monitoring of strategy performance
 - **Performance Charts**: Interactive charts showing strategy metrics
 - **Alert Management**: View and manage trading alerts
@@ -46,6 +48,7 @@ The `strategy-monitor` application provides a web-based interface for monitoring
 - **Historical Analysis**: Historical performance analysis tools
 
 #### Technology Stack
+
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
 - **Charts**: Chart.js for data visualization
 - **Styling**: Modern CSS with responsive design
@@ -70,7 +73,7 @@ The strategy monitor integrates with the `strategy_monitor_api` service:
 
 ```javascript
 // Example API integration
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = "http://localhost:8080/api";
 
 async function fetchStrategies() {
   const response = await fetch(`${API_BASE_URL}/strategies`);
@@ -79,7 +82,9 @@ async function fetchStrategies() {
 }
 
 async function fetchStrategyPerformance(strategyId) {
-  const response = await fetch(`${API_BASE_URL}/strategies/${strategyId}/performance`);
+  const response = await fetch(
+    `${API_BASE_URL}/strategies/${strategyId}/performance`,
+  );
   const performance = await response.json();
   return performance;
 }
@@ -103,14 +108,14 @@ graph TB
         TED[Trade Execution<br/>Dashboard]
         MOB[Mobile<br/>Applications]
     end
-    
+
     AGW[API Gateway]
-    
+
     SMD --> AGW
     PMD --> AGW
     TED --> AGW
     MOB --> AGW
-    
+
     style SMD fill:#e1f5fe
     style PMD fill:#f3e5f5
     style TED fill:#fff3e0
@@ -128,14 +133,14 @@ graph TB
         RATE[Rate Limiting<br/>API Quotas]
         LOG[API Logging<br/>Audit & Analytics]
     end
-    
+
     subgraph "Backend Services"
         SMA[Strategy Monitor API]
         PMA[Portfolio Management API]
         TEA[Trade Execution API]
         WS[WebSocket Services<br/>Real-time Updates]
     end
-    
+
     AGW --> AUTH
     AGW --> RATE
     AGW --> LOG
@@ -143,7 +148,7 @@ graph TB
     AGW --> PMA
     AGW --> TEA
     AGW --> WS
-    
+
     style AGW fill:#ffcdd2
     style AUTH fill:#ffcdd2
     style RATE fill:#ffcdd2
@@ -157,22 +162,22 @@ graph LR
     subgraph "Frontend"
         UI[Web Applications]
     end
-    
+
     subgraph "Gateway"
         AGW[API Gateway]
     end
-    
+
     subgraph "Services"
         SMA[Strategy Monitor API]
         PMA[Portfolio Management API]
         TEA[Trade Execution API]
     end
-    
+
     subgraph "Real-time"
         WS[WebSocket Services]
         KAFKA[Kafka Topics]
     end
-    
+
     UI --> AGW
     AGW --> SMA
     AGW --> PMA
@@ -181,7 +186,7 @@ graph LR
     PMA --> WS
     TEA --> WS
     WS --> KAFKA
-    
+
     style UI fill:#e1f5fe
     style AGW fill:#ffcdd2
     style SMA fill:#f3e5f5
@@ -287,9 +292,9 @@ The UI uses a consistent design system:
 
 ```javascript
 // app.js - Main application
-import { API } from './api.js';
-import { ChartManager } from './charts.js';
-import { AlertManager } from './alerts.js';
+import { API } from "./api.js";
+import { ChartManager } from "./charts.js";
+import { AlertManager } from "./alerts.js";
 
 class StrategyMonitor {
   constructor() {
@@ -311,7 +316,7 @@ class StrategyMonitor {
 ```javascript
 // api.js - API client
 export class API {
-  constructor(baseURL = '/api') {
+  constructor(baseURL = "/api") {
     this.baseURL = baseURL;
   }
 
@@ -319,7 +324,7 @@ export class API {
     const url = `${this.baseURL}${endpoint}`;
     const response = await fetch(url, {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options.headers,
       },
       ...options,
@@ -333,7 +338,7 @@ export class API {
   }
 
   async getStrategies() {
-    return this.request('/strategies');
+    return this.request("/strategies");
   }
 
   async getStrategyPerformance(strategyId) {
@@ -356,17 +361,19 @@ export class ChartManager {
   }
 
   createPerformanceChart(containerId, data) {
-    const ctx = document.getElementById(containerId).getContext('2d');
+    const ctx = document.getElementById(containerId).getContext("2d");
     const chart = new Chart(ctx, {
-      type: 'line',
+      type: "line",
       data: {
         labels: data.labels,
-        datasets: [{
-          label: 'Performance',
-          data: data.values,
-          borderColor: '#4CAF50',
-          backgroundColor: 'rgba(76, 175, 80, 0.1)',
-        }],
+        datasets: [
+          {
+            label: "Performance",
+            data: data.values,
+            borderColor: "#4CAF50",
+            backgroundColor: "rgba(76, 175, 80, 0.1)",
+          },
+        ],
       },
       options: {
         responsive: true,
@@ -422,13 +429,13 @@ The UI is designed with mobile-first responsive design:
 
 ```javascript
 // Lazy load non-critical components
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   // Load critical components immediately
   initializeCoreComponents();
 
   // Lazy load additional features
-  if (document.querySelector('.advanced-charts')) {
-    import('./advanced-charts.js').then(module => {
+  if (document.querySelector(".advanced-charts")) {
+    import("./advanced-charts.js").then((module) => {
       module.initializeAdvancedCharts();
     });
   }
@@ -450,8 +457,8 @@ The UI includes comprehensive testing:
 
 ```javascript
 // Example unit test
-describe('StrategyMonitor', () => {
-  test('should load strategies on initialization', async () => {
+describe("StrategyMonitor", () => {
+  test("should load strategies on initialization", async () => {
     const monitor = new StrategyMonitor();
     const mockApi = { getStrategies: jest.fn() };
     monitor.api = mockApi;
@@ -500,8 +507,8 @@ The UI includes analytics for user behavior:
 
 ```javascript
 // Error tracking integration
-window.addEventListener('error', (event) => {
-  console.error('Application Error:', event.error);
+window.addEventListener("error", (event) => {
+  console.error("Application Error:", event.error);
   // Send to error tracking service
   trackError(event.error);
 });
@@ -520,10 +527,12 @@ window.addEventListener('error', (event) => {
 
 ```html
 <!-- Example security headers -->
-<meta http-equiv="Content-Security-Policy" 
-      content="default-src 'self'; script-src 'self' 'unsafe-inline';">
-<meta http-equiv="X-Frame-Options" content="DENY">
-<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta
+  http-equiv="Content-Security-Policy"
+  content="default-src 'self'; script-src 'self' 'unsafe-inline';"
+/>
+<meta http-equiv="X-Frame-Options" content="DENY" />
+<meta http-equiv="X-Content-Type-Options" content="nosniff" />
 ```
 
 ## Contributing
@@ -538,4 +547,4 @@ When contributing to UI components:
 
 ## License
 
-This project is part of the TradeStream platform. See the root LICENSE file for details. 
+This project is part of the TradeStream platform. See the root LICENSE file for details.

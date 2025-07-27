@@ -18,25 +18,25 @@ graph TB
         CI[Candle Ingestor<br/>PRODUCTION]
         MD[Market Data Service<br/>PRODUCTION]
     end
-    
+
     subgraph "Core Services"
         SC[Strategy Consumer<br/>PRODUCTION]
         SMA[Strategy Monitor API<br/>IN DEVELOPMENT]
         BC[Backtest Consumer<br/>PRODUCTION]
     end
-    
+
     subgraph "Infrastructure"
         KAFKA[Kafka Cluster<br/>3 Nodes]
         POSTGRES[PostgreSQL<br/>Primary DB]
         INFLUX[InfluxDB<br/>Time Series]
         REDIS[Redis<br/>Cache]
     end
-    
+
     subgraph "External"
         EXCHANGE[Coinbase Exchange]
         CMC[CoinMarketCap API]
     end
-    
+
     EXCHANGE --> CI
     CMC --> CI
     CI --> KAFKA
@@ -47,7 +47,7 @@ graph TB
     SMA --> POSTGRES
     SMA --> REDIS
     MD --> INFLUX
-    
+
     style CI fill:#e8f5e8
     style SC fill:#e8f5e8
     style BC fill:#e8f5e8
@@ -66,24 +66,24 @@ graph LR
         CB[Coinbase WebSocket]
         CMC[CoinMarketCap API]
     end
-    
+
     subgraph "Ingestion"
         CI[Candle Ingestor]
         MD[Market Data Service]
     end
-    
+
     subgraph "Processing"
         KAFKA[Kafka Topics]
         SC[Strategy Consumer]
         BC[Backtest Consumer]
     end
-    
+
     subgraph "Storage"
         INFLUX[InfluxDB<br/>Time Series]
         POSTGRES[PostgreSQL<br/>Relational]
         REDIS[Redis<br/>Cache]
     end
-    
+
     CB --> CI
     CMC --> MD
     CI --> KAFKA
@@ -92,7 +92,7 @@ graph LR
     KAFKA --> BC
     SC --> POSTGRES
     BC --> POSTGRES
-    
+
     style CB fill:#f3e5f5
     style CMC fill:#f3e5f5
     style CI fill:#e8f5e8
@@ -110,33 +110,36 @@ graph LR
 The TradeStream platform follows a hybrid Python + Java microservices architecture with the following key components:
 
 ### Data Ingestion Services (✅ Production)
+
 - **candle_ingestor**: Real-time market data ingestion from Coinbase WebSocket API
   - **Scale**: 1000+ candles per minute across 20 cryptocurrency symbols
-  - **Deployment**: Kubernetes CronJob (*/1 minute)
+  - **Deployment**: Kubernetes CronJob (\*/1 minute)
   - **Status**: ✅ **PRODUCTION** - Processing with automatic catch-up processing
 - **top_crypto_updater**: Maintains list of actively traded cryptocurrency symbols
   - **Integration**: CoinMarketCap API for real-time rankings
-  - **Deployment**: Kubernetes CronJob (*/15 minutes)
+  - **Deployment**: Kubernetes CronJob (\*/15 minutes)
   - **Status**: ✅ **PRODUCTION** - Managing 20 active symbols via Redis
 
 ### Strategy Discovery Services (✅ Production)
+
 - **strategy_discovery_request_factory**: Generates strategy discovery requests for Flink GA pipeline
   - **Scale**: 9,600 requests per execution, 40M+ total requests processed
-  - **Deployment**: Kubernetes CronJob (*/5 minutes)
+  - **Deployment**: Kubernetes CronJob (\*/5 minutes)
   - **Status**: ✅ **PRODUCTION** - Successfully feeding real-time genetic algorithm optimization
 - **strategy_consumer**: Stores discovered strategies from Flink pipeline in PostgreSQL
   - **Scale**: Processing all strategies discovered by genetic algorithm optimization
-  - **Deployment**: Kubernetes CronJob (*/5 minutes)
+  - **Deployment**: Kubernetes CronJob (\*/5 minutes)
   - **Status**: ✅ **PRODUCTION** - Complete strategy metadata storage
 
 ### Portfolio Management Services (🔄 Ready for Deployment)
+
 - **risk_adjusted_sizing**: Portfolio risk controls and position limits
   - **Features**: Maximum 2% portfolio risk per position, symbol exposure limits
-  - **Deployment**: Kubernetes CronJob (*/1 minute) - recommended pattern
+  - **Deployment**: Kubernetes CronJob (\*/1 minute) - recommended pattern
   - **Status**: 📝 **CODE COMPLETE** - Ready for deployment
 - **strategy_confidence_scorer**: Basic confidence scoring and strategy selection
   - **Features**: Performance, frequency, and recency-based scoring
-  - **Deployment**: Kubernetes CronJob (*/5 minutes)
+  - **Deployment**: Kubernetes CronJob (\*/5 minutes)
   - **Status**: 📝 **CODE COMPLETE** - Ready for deployment
 - **strategy_ensemble**: Strategy combination and diversification
   - **Status**: 📋 **PLANNED** - Future enhancement
@@ -146,6 +149,7 @@ The TradeStream platform follows a hybrid Python + Java microservices architectu
   - **Status**: ❌ **SKIPPED** - Redundant with real-time GA optimization
 
 ### Monitoring & API Services (🔄 In Development)
+
 - **strategy_monitor_api**: REST API for monitoring and managing trading strategies
   - **Technology**: FastAPI with JWT authentication
   - **Features**: Strategy data endpoints, real-time monitoring
@@ -157,7 +161,7 @@ The TradeStream platform follows a hybrid Python + Java microservices architectu
 - **Build System**: Bazel 7.4.0
 - **Containerization**: Docker with OCI-compliant images
 - **Message Broker**: Apache Kafka (3-node cluster with KRaft mode)
-- **Databases**: 
+- **Databases**:
   - PostgreSQL (strategy metadata and portfolio data)
   - InfluxDB (time-series market data with 365-day retention)
   - Redis (symbol management and processing state)
@@ -167,28 +171,32 @@ The TradeStream platform follows a hybrid Python + Java microservices architectu
 ## Production Data Flow
 
 1. **Market Data Ingestion**: Coinbase WebSocket → `candle_ingestor` → InfluxDB + Kafka events
-2. **Strategy Discovery**: `strategy_discovery_request_factory` → Kafka → Flink GA Pipeline → Discovered Strategies  
+2. **Strategy Discovery**: `strategy_discovery_request_factory` → Kafka → Flink GA Pipeline → Discovered Strategies
 3. **Portfolio Management**: Risk Manager → Position Sizer → Strategy Selector → Trade Signals
 4. **Trade Execution**: Trade Executor → Exchange APIs → Order Management
 
 ## Development
 
 ### Building All Services
+
 ```bash
 bazel build //services/...
 ```
 
 ### Running Tests
+
 ```bash
 bazel test //services/...
 ```
 
 ### Building Individual Service
+
 ```bash
 bazel build //services/candle_ingestor:all
 ```
 
 ### Running Service Locally
+
 ```bash
 bazel run //services/candle_ingestor:main
 ```
@@ -200,6 +208,7 @@ All services are deployed to Kubernetes using Helm charts located in `charts/tra
 ### Service Configuration
 
 Each service can be configured via:
+
 - Environment variables
 - Command-line flags
 - Kubernetes ConfigMaps/Secrets
@@ -208,12 +217,14 @@ Each service can be configured via:
 ### Production Deployment Status
 
 **✅ Deployed & Operating**:
+
 - `candle_ingestor`: Processing 1000+ candles/minute across 20 cryptocurrency symbols
 - `strategy_consumer`: Storing all discovered strategies in PostgreSQL with full metadata
 - `strategy_discovery_request_factory`: Generated 40M+ optimization requests to Flink pipeline
 - `top_crypto_updater`: Managing 20 active cryptocurrency symbols via Redis using CoinMarketCap API
 
 **🔄 Ready for Deployment**:
+
 - `risk_adjusted_sizing`: Portfolio risk controls and position limits
 - `strategy_confidence_scorer`: Basic confidence scoring and strategy selection
 - `strategy_monitor_api`: REST API for strategy data access and visualization
@@ -221,6 +232,7 @@ Each service can be configured via:
 ### Monitoring
 
 Services expose metrics and health checks for monitoring:
+
 - Prometheus metrics endpoints
 - Kubernetes liveness/readiness probes
 - Structured logging with correlation IDs
@@ -229,6 +241,7 @@ Services expose metrics and health checks for monitoring:
 ## Service Communication
 
 Services communicate through:
+
 - **Kafka**: Asynchronous messaging for strategy discovery and execution
   - Topics: `strategy-discovery-requests`, `discovered-strategies`, `risk-approved-strategies`, `sized-positions`, `trade-signals`
 - **HTTP/REST**: Synchronous communication for API calls
@@ -253,6 +266,7 @@ services/
 ## Production Performance Metrics
 
 **Strategy Discovery System** (Verified Production Metrics):
+
 - **Strategy Discoveries**: 40+ million requests processed successfully
 - **System Uptime**: 240+ days continuous operation with automatic recovery
 - **Market Data Processing**: 1000+ candles per minute ingestion rate
@@ -261,6 +275,7 @@ services/
 - **Throughput**: 9,600 discovery requests per 5-minute execution cycle
 
 **Infrastructure Performance** (Production Verified):
+
 - **Kafka Throughput**: 40M+ messages successfully processed
 - **Database Performance**: Sub-second strategy queries and inserts
 - **Storage Efficiency**: Compressed time-series data with 365-day retention
@@ -281,16 +296,18 @@ When adding a new service:
 ## Testing
 
 Each service includes:
+
 - Unit tests
 - Integration tests
 - Container structure tests
 - End-to-end tests where applicable
 
 Run tests for all services:
+
 ```bash
 bazel test //services/...
 ```
 
 ## License
 
-This project is part of the TradeStream platform. See the root LICENSE file for details. 
+This project is part of the TradeStream platform. See the root LICENSE file for details.

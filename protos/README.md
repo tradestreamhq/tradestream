@@ -22,26 +22,26 @@ graph TB
         DISCOVERY[discovery.proto<br/>Strategy Discovery]
         PORTFOLIO[portfolio.proto<br/>Portfolio Management]
     end
-    
+
     subgraph "Generated Code"
         JAVA[Java Classes<br/>Generated]
         PYTHON[Python Classes<br/>Generated]
         KOTLIN[Kotlin Classes<br/>Generated]
     end
-    
+
     subgraph "Services"
         SC[Strategy Consumer<br/>Java]
         SMA[Strategy Monitor API<br/>Python]
         CI[Candle Ingestor<br/>Python]
         BC[Backtest Consumer<br/>Java]
     end
-    
+
     subgraph "Storage"
         KAFKA[Kafka Topics<br/>Serialized Messages]
         POSTGRES[PostgreSQL<br/>JSONB Storage]
         INFLUX[InfluxDB<br/>Time Series]
     end
-    
+
     STRATEGIES --> JAVA
     STRATEGIES --> PYTHON
     STRATEGIES --> KOTLIN
@@ -51,12 +51,12 @@ graph TB
     DISCOVERY --> PYTHON
     PORTFOLIO --> JAVA
     PORTFOLIO --> PYTHON
-    
+
     SC --> KAFKA
     SMA --> POSTGRES
     CI --> INFLUX
     BC --> POSTGRES
-    
+
     style STRATEGIES fill:#e1f5fe
     style MARKETDATA fill:#e1f5fe
     style DISCOVERY fill:#e1f5fe
@@ -82,22 +82,22 @@ graph LR
         SC[Strategy Consumer]
         BC[Backtest Consumer]
     end
-    
+
     subgraph "Protocol Buffers"
         SERIALIZE[Serialize to<br/>Protobuf]
         DESERIALIZE[Deserialize from<br/>Protobuf]
     end
-    
+
     subgraph "Transport"
         KAFKA[Kafka Topics]
         HTTP[HTTP APIs]
     end
-    
+
     subgraph "Storage"
         POSTGRES[PostgreSQL<br/>JSONB]
         INFLUX[InfluxDB<br/>Time Series]
     end
-    
+
     CI --> SERIALIZE
     SC --> SERIALIZE
     BC --> SERIALIZE
@@ -106,7 +106,7 @@ graph LR
     DESERIALIZE --> HTTP
     HTTP --> POSTGRES
     HTTP --> INFLUX
-    
+
     style CI fill:#e8f5e8
     style SC fill:#e8f5e8
     style BC fill:#e8f5e8
@@ -121,6 +121,7 @@ graph LR
 ## Overview
 
 The Protocol Buffers in this directory define:
+
 - **Strategy definitions**: Trading strategy parameters and configurations
 - **Discovery contracts**: Genetic algorithm discovery requests and results
 - **Backtesting contracts**: Historical backtesting requests and results
@@ -400,7 +401,7 @@ Strategy strategy = Strategy.newBuilder()
     .build();
 
 // Unpack parameters
-MacdCrossoverParameters unpackedParams = 
+MacdCrossoverParameters unpackedParams =
     strategy.getParameters().unpack(MacdCrossoverParameters.class);
 ```
 
@@ -457,6 +458,7 @@ kafkaProducer.send("strategy-discovery-requests", request.toByteArray())
 ## Production Performance Metrics
 
 **Protocol Buffer System** (Verified Production Metrics):
+
 - **Message Serialization**: 40M+ messages processed with protobuf serialization
 - **Language Support**: Java, Python, and Kotlin code generation
 - **Performance**: High-performance binary serialization
@@ -464,6 +466,7 @@ kafkaProducer.send("strategy-discovery-requests", request.toByteArray())
 - **Integration**: Kafka message serialization, database storage, API communication
 
 **Infrastructure Performance** (Production Verified):
+
 - **Serialization Performance**: Efficient binary serialization for Kafka messages
 - **Database Storage**: Protobuf serialization for PostgreSQL storage
 - **API Communication**: JSON serialization for REST API endpoints
@@ -634,19 +637,19 @@ public class StrategiesProtoTest {
             .setLongPeriod(26)
             .setSignalPeriod(9)
             .build();
-        
+
         assertThat(params.getShortPeriod()).isEqualTo(12);
         assertThat(params.getLongPeriod()).isEqualTo(26);
         assertThat(params.getSignalPeriod()).isEqualTo(9);
     }
-    
+
     @Test
     public void testStrategySerialization() {
         Strategy strategy = createTestStrategy();
-        
+
         byte[] bytes = strategy.toByteArray();
         Strategy parsed = Strategy.parseFrom(bytes);
-        
+
         assertThat(parsed).isEqualTo(strategy);
     }
 }
@@ -668,12 +671,12 @@ message Strategy {
   // Required fields first
   StrategyType type = 1;
   google.protobuf.Any parameters = 2;
-  
+
   // Optional fields
   string symbol = 3;
   string timeframe = 4;
   string description = 5;
-  
+
   // Metadata fields last
   map<string, string> metadata = 6;
   google.protobuf.Timestamp created_at = 7;
@@ -687,13 +690,13 @@ message Strategy {
 message Strategy {
   // Type of the trading strategy
   StrategyType type = 1;
-  
+
   // Strategy-specific parameters packed in Any message
   google.protobuf.Any parameters = 2;
-  
+
   // Trading symbol (e.g., "BTC/USD")
   string symbol = 3;
-  
+
   // Timeframe for the strategy (e.g., "1h", "4h", "1d")
   string timeframe = 4;
 }
@@ -711,4 +714,4 @@ When adding new protobuf definitions:
 
 ## License
 
-This project is part of the TradeStream platform. See the root LICENSE file for details. 
+This project is part of the TradeStream platform. See the root LICENSE file for details.
