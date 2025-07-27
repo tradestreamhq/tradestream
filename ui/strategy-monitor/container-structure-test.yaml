@@ -13,6 +13,11 @@ fileExistenceTests:
     path: "/usr/share/nginx/html/index.html"
     shouldExist: true
 
+  - name: "Nginx configuration exists"
+    path: "/ui/strategy-monitor/nginx.conf"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
+
 commandTests:
   - name: "Nginx help test"
     command: "/usr/sbin/nginx"
@@ -25,21 +30,21 @@ commandTests:
   - name: "Nginx configuration test"
     command: "/bin/sh"
     args:
-      ["-c", "echo 'Nginx configuration test skipped due to permission issues'"]
+      ["-c", "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -t 2>&1"]
     exitCode: 0
     expectedOutput:
-      - "Nginx configuration test skipped due to permission issues"
+      - "nginx: configuration file /etc/nginx/nginx.conf test is successful"
 
   - name: "HTML file validation test"
     command: "/bin/sh"
     args:
       [
         "-c",
-        "echo 'HTML file validation test skipped - files verified by directory listing test'",
+        "if [ -f /ui/strategy-monitor/index.html ]; then echo 'HTML file exists and is readable'; else echo 'HTML file missing'; fi",
       ]
     exitCode: 0
     expectedOutput:
-      - "HTML file validation test skipped - files verified by directory listing test"
+      - "HTML file exists and is readable"
 
   - name: "Directory listing test"
     command: "/bin/sh"
@@ -79,10 +84,14 @@ commandTests:
 
   - name: "Nginx process test"
     command: "/bin/sh"
-    args: ["-c", "echo 'Nginx process test skipped due to permission issues'"]
+    args: 
+      [
+        "-c", 
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 2 && if pgrep nginx >/dev/null; then echo 'Nginx process is running'; else echo 'Nginx process not found'; fi"
+      ]
     exitCode: 0
     expectedOutput:
-      - "Nginx process test skipped due to permission issues"
+      - "Nginx process is running"
 
   - name: "HTTP server accessibility test"
     command: "/bin/sh"
@@ -94,3 +103,47 @@ commandTests:
     exitCode: 0
     expectedOutput:
       - "Web server is accessible"
+
+  - name: "HTML content validation test"
+    command: "/bin/sh"
+    args:
+      [
+        "-c",
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s http://localhost:80/ | grep -q '<html' && echo 'HTML content is valid' || echo 'HTML content validation failed'"
+      ]
+    exitCode: 0
+    expectedOutput:
+      - "HTML content is valid"
+
+  - name: "HTTP response headers test"
+    command: "/bin/sh"
+    args:
+      [
+        "-c",
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -I http://localhost:80/ | grep -q 'HTTP/1.1 200' && echo 'HTTP response headers are correct' || echo 'HTTP response headers test failed'"
+      ]
+    exitCode: 0
+    expectedOutput:
+      - "HTTP response headers are correct"
+
+  - name: "Static file serving test"
+    command: "/bin/sh"
+    args:
+      [
+        "-c",
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s http://localhost:80/index.html | grep -q '<html' && echo 'Static file serving works' || echo 'Static file serving test failed'"
+      ]
+    exitCode: 0
+    expectedOutput:
+      - "Static file serving works"
+
+  - name: "404 error handling test"
+    command: "/bin/sh"
+    args:
+      [
+        "-c",
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s -w '%{http_code}' http://localhost:80/nonexistent.html | grep -q '404' && echo '404 error handling works' || echo '404 error handling test failed'"
+      ]
+    exitCode: 0
+    expectedOutput:
+      - "404 error handling works"
