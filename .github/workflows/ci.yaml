@@ -67,7 +67,6 @@ jobs:
         run: |
           set -eo pipefail
           mkdir -p images
-          # pull from local registry, retag to short name, then save
           docker pull localhost:5000/${{ matrix.repo }}:latest
           docker tag localhost:5000/${{ matrix.repo }}:latest ${{ matrix.repo }}:latest
           docker save ${{ matrix.repo }}:latest -o images/${{ matrix.repo }}.tar
@@ -108,7 +107,6 @@ jobs:
           for tar in images/*.tar; do
             repo=$(basename "$tar" .tar)
             docker load -i "$tar"
-            # now minikube will see candle‑ingestor:latest, top‑crypto‑updater:latest, etc.
             minikube image load "${repo}:latest"
           done
 
@@ -143,7 +141,6 @@ jobs:
         run: |
           set -eo pipefail
           helm dependency update charts/tradestream
-
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
             --set candleIngestor.image.repository=candle-ingestor \
@@ -169,31 +166,57 @@ jobs:
             --set strategyMonitorUi.enabled=true \
             --set influxdb.enabled=true
 
-      - name: Monitor Deployment
+  monitor-cronjobs:
+    name: Monitor CronJobs
+    needs: deploy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cronjob:
+          - my-tradestream-top-crypto-updater
+          - my-tradestream-strategy-discovery-request-factory
+          - my-tradestream-strategy-consumer
+
+    steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
+
+      - name: Monitor ${{ matrix.cronjob }}
         run: |
           set -eo pipefail
-          kubectl wait --for=condition=Ready -n tradestream-namespace pod --all --timeout=300s
+          kubectl get cronjob ${{ matrix.cronjob }} -n tradestream-namespace
+          if kubectl get cronjob ${{ matrix.cronjob }} -n tradestream-namespace -o jsonpath='{.spec.suspend}' | grep -q true; then
+            echo "❌ CronJob ${{ matrix.cronjob }} is suspended"
+            exit 1
+          else
+            echo "✅ CronJob ${{ matrix.cronjob }} is active"
+          fi
 
-          echo "Checking if CronJob exists..."
-          kubectl get cronjob my-tradestream-top-crypto-updater -n tradestream-namespace
-          kubectl get cronjob my-tradestream-strategy-discovery-request-factory -n tradestream-namespace
-          kubectl get cronjob my-tradestream-strategy-consumer -n tradestream-namespace
+  diagnostics:
+    name: Final Diagnostics Snapshot
+    needs: [deploy, monitor-cronjobs]
+    runs-on: ubuntu-latest
 
-          for cj in \
-            my-tradestream-top-crypto-updater \
-            my-tradestream-strategy-discovery-request-factory \
-            my-tradestream-strategy-consumer; do
+    steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
 
-            if kubectl get cronjob $cj -n tradestream-namespace -o jsonpath='{.spec.suspend}' | grep -q true; then
-              echo "ERROR: CronJob $cj is suspended"
-              exit 1
-            else
-              echo "CronJob $cj is active"
-            fi
-          done
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Diagnostics
-        if: always()
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Final Diagnostic Snapshot
         run: |
           echo "=== FINAL DIAGNOSTIC SNAPSHOT ==="
           kubectl get all -n tradestream-namespace -o wide
