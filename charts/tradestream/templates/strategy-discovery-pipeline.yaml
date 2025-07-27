@@ -9,7 +9,7 @@ metadata:
     component: strategy-discovery-pipeline
     release: {{ .Release.Name }}
 spec:
-  image: {{ .Values.strategyDiscoveryPipeline.image.repository }}:{{ .Values.strategyDiscoveryPipeline.image.tag }}
+  image: {{ .Values.strategyDiscoveryPipeline.image.repository }}:{{ .Values.strategyDiscoveryPipeline.image.tag | default .Values.global.imageTag }}
   imagePullPolicy: {{ default "IfNotPresent" .Values.strategyDiscoveryPipeline.image.pullPolicy }}
   flinkVersion: {{ .Values.strategyDiscoveryPipeline.version }}
   flinkConfiguration:

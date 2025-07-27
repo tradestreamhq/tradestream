@@ -30,7 +30,7 @@ spec:
           restartPolicy: {{ .Values.strategyConsumer.job.restartPolicy | default "OnFailure" }}
           containers:
             - name: strategy-consumer
-              image: "{{ .Values.strategyConsumer.image.repository }}:{{ .Values.strategyConsumer.image.tag | default .Chart.AppVersion }}"
+              image: "{{ .Values.strategyConsumer.image.repository }}:{{ .Values.strategyConsumer.image.tag | default .Values.global.imageTag | default .Chart.AppVersion }}"
               imagePullPolicy: {{ .Values.strategyConsumer.image.pullPolicy }}
               env:
                 # Kafka Configuration

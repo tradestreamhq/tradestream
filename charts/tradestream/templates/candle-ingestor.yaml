@@ -30,7 +30,7 @@ spec:
           restartPolicy: {{ .Values.candleIngestor.job.restartPolicy | default "OnFailure" }}
           containers:
             - name: candle-ingestor
-              image: "{{ .Values.candleIngestor.image.repository }}:{{ .Values.candleIngestor.image.tag | default .Chart.AppVersion }}"
+              image: "{{ .Values.candleIngestor.image.repository }}:{{ .Values.candleIngestor.image.tag | default .Values.global.imageTag | default .Chart.AppVersion }}"
               imagePullPolicy: {{ .Values.candleIngestor.image.pullPolicy }}
               env:
                 - name: CANDLE_GRANULARITY_MINUTES
