@@ -24,17 +24,7 @@ jobs:
           minor_pattern: "(MINOR)"
           version_format: "${major}.${minor}.${patch}"
 
-      - name: Set up Git
-        run: |
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
 
-      - name: Push Tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
-        run: |
-          git tag ${{ steps.version.outputs.version_tag }}
-          git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} --tags
 
   build-and-push:
     needs: prepare-release
@@ -84,8 +74,26 @@ jobs:
     needs: [prepare-release, build-and-push]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+
+      - name: Push Tag After Successful Deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        run: |
+          git tag ${{ needs.prepare-release.outputs.version }}
+          git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} --tags
+
       - name: Notify ArgoCD Deployment
         run: |
           echo "✅ All images pushed successfully with tag: ${{ needs.prepare-release.outputs.version }}"
+          echo "🏷️ Git tag ${{ needs.prepare-release.outputs.version }} created after successful deployment"
           echo "🔄 ArgoCD Image Updater will automatically detect and deploy the new images within 2-5 minutes"
           echo "📊 Monitor deployment: kubectl get application tradestream-dev -n argocd"
