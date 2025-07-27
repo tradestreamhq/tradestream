@@ -4,9 +4,12 @@ on:
     branches:
       - main
       - develop
+
 jobs:
-  release:
+  build-images:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,46 +49,216 @@ jobs:
           bazelrc: |
             build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
 
-      # Build and push all images with the new tag
-      - name: Push the Candle Ingestor image
+      # Build all images together
+      - name: Build All Images
         run: |
-          bazel run //services/candle_ingestor:push_candle_ingestor_image \
-            -- \
-            --tag ${{ steps.version.outputs.version_tag }}
-      - name: Push the Top Crypto Updater image
-        run: |
-          bazel run //services/top_crypto_updater:push_top_crypto_updater_image \
-            -- \
-            --tag ${{ steps.version.outputs.version_tag }}
-      - name: Push the Strategy Discovery Request Factory image
-        run: |
-          bazel run //services/strategy_discovery_request_factory:push_strategy_discovery_request_factory_image \
-            -- \
-            --tag ${{ steps.version.outputs.version_tag }}
-      - name: Push the Strategy Discovery Pipeline image
-        run: |
-          bazel run //src/main/java/com/verlumen/tradestream/discovery:push_image \
-            -- \
-            --tag ${{ steps.version.outputs.version_tag }}
-      - name: Push the Strategy Consumer image
-        run: |
-          bazel run //services/strategy_consumer:push_strategy_consumer_image \
-            -- \
-            --tag ${{ steps.version.outputs.version_tag }}
-      - name: Push the Strategy Monitor API image
-        run: |
-          bazel run //services/strategy_monitor_api:push_strategy_monitor_api_image \
-            -- \
-            --tag ${{ steps.version.outputs.version_tag }}
-      - name: Push the Strategy Monitor UI image
-        run: |
-          bazel run //ui/strategy-monitor:push_strategy_monitor_ui_image \
-            -- \
-            --tag ${{ steps.version.outputs.version_tag }}
+          bazel build \
+            //services/candle_ingestor:push_candle_ingestor_image \
+            //services/top_crypto_updater:push_top_crypto_updater_image \
+            //services/strategy_discovery_request_factory:push_strategy_discovery_request_factory_image \
+            //src/main/java/com/verlumen/tradestream/discovery:push_image \
+            //services/strategy_consumer:push_strategy_consumer_image \
+            //services/strategy_monitor_api:push_strategy_monitor_api_image \
+            //ui/strategy-monitor:push_strategy_monitor_ui_image \
+            //services/strategy_confidence_scorer:push_strategy_confidence_scorer_image
 
-      # Optional: Add a comment about ArgoCD handling the deployment
+      # Upload built images as artifacts for parallel jobs
+      - name: Upload Built Images
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-images
+          path: |
+            bazel-bin/services/candle_ingestor/push_candle_ingestor_image
+            bazel-bin/services/top_crypto_updater/push_top_crypto_updater_image
+            bazel-bin/services/strategy_discovery_request_factory/push_strategy_discovery_request_factory_image
+            bazel-bin/src/main/java/com/verlumen/tradestream/discovery/push_image
+            bazel-bin/services/strategy_consumer/push_strategy_consumer_image
+            bazel-bin/services/strategy_monitor_api/push_strategy_monitor_api_image
+            bazel-bin/ui/strategy-monitor/push_strategy_monitor_ui_image
+            bazel-bin/services/strategy_confidence_scorer/push_strategy_confidence_scorer_image
+
+  push-candle-ingestor:
+    needs: build-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Built Images
+        uses: actions/download-artifact@v4
+        with:
+          name: built-images
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Candle Ingestor Image
+        run: |
+          ./bazel-bin/services/candle_ingestor/push_candle_ingestor_image --tag ${{ needs.build-images.outputs.version }}
+
+  push-top-crypto-updater:
+    needs: build-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Built Images
+        uses: actions/download-artifact@v4
+        with:
+          name: built-images
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Top Crypto Updater Image
+        run: |
+          ./bazel-bin/services/top_crypto_updater/push_top_crypto_updater_image --tag ${{ needs.build-images.outputs.version }}
+
+  push-strategy-discovery-request-factory:
+    needs: build-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Built Images
+        uses: actions/download-artifact@v4
+        with:
+          name: built-images
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Strategy Discovery Request Factory Image
+        run: |
+          ./bazel-bin/services/strategy_discovery_request_factory/push_strategy_discovery_request_factory_image --tag ${{ needs.build-images.outputs.version }}
+
+  push-strategy-discovery-pipeline:
+    needs: build-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Built Images
+        uses: actions/download-artifact@v4
+        with:
+          name: built-images
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Strategy Discovery Pipeline Image
+        run: |
+          ./bazel-bin/src/main/java/com/verlumen/tradestream/discovery/push_image --tag ${{ needs.build-images.outputs.version }}
+
+  push-strategy-consumer:
+    needs: build-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Built Images
+        uses: actions/download-artifact@v4
+        with:
+          name: built-images
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Strategy Consumer Image
+        run: |
+          ./bazel-bin/services/strategy_consumer/push_strategy_consumer_image --tag ${{ needs.build-images.outputs.version }}
+
+  push-strategy-monitor-api:
+    needs: build-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Built Images
+        uses: actions/download-artifact@v4
+        with:
+          name: built-images
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Strategy Monitor API Image
+        run: |
+          ./bazel-bin/services/strategy_monitor_api/push_strategy_monitor_api_image --tag ${{ needs.build-images.outputs.version }}
+
+  push-strategy-monitor-ui:
+    needs: build-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Built Images
+        uses: actions/download-artifact@v4
+        with:
+          name: built-images
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Strategy Monitor UI Image
+        run: |
+          ./bazel-bin/ui/strategy-monitor/push_strategy_monitor_ui_image --tag ${{ needs.build-images.outputs.version }}
+
+  push-strategy-confidence-scorer:
+    needs: build-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Built Images
+        uses: actions/download-artifact@v4
+        with:
+          name: built-images
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Strategy Confidence Scorer Image
+        run: |
+          ./bazel-bin/services/strategy_confidence_scorer/push_strategy_confidence_scorer_image --tag ${{ needs.build-images.outputs.version }}
+
+  notify-deployment:
+    needs: [push-candle-ingestor, push-top-crypto-updater, push-strategy-discovery-request-factory, push-strategy-discovery-pipeline, push-strategy-consumer, push-strategy-monitor-api, push-strategy-monitor-ui, push-strategy-confidence-scorer]
+    runs-on: ubuntu-latest
+    steps:
       - name: Notify ArgoCD Deployment
         run: |
-          echo "✅ Images pushed with tag: ${{ steps.version.outputs.version_tag }}"
+          echo "✅ All images pushed successfully!"
           echo "🔄 ArgoCD Image Updater will automatically detect and deploy the new images within 2-5 minutes"
           echo "📊 Monitor deployment: kubectl get application tradestream-dev -n argocd"
