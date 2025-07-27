@@ -254,7 +254,17 @@ jobs:
           ./bazel-bin/services/strategy_confidence_scorer/push_strategy_confidence_scorer_image --tag ${{ needs.build-images.outputs.version }}
 
   notify-deployment:
-    needs: [push-candle-ingestor, push-top-crypto-updater, push-strategy-discovery-request-factory, push-strategy-discovery-pipeline, push-strategy-consumer, push-strategy-monitor-api, push-strategy-monitor-ui, push-strategy-confidence-scorer]
+    needs:
+      [
+        push-candle-ingestor,
+        push-top-crypto-updater,
+        push-strategy-discovery-request-factory,
+        push-strategy-discovery-pipeline,
+        push-strategy-consumer,
+        push-strategy-monitor-api,
+        push-strategy-monitor-ui,
+        push-strategy-confidence-scorer,
+      ]
     runs-on: ubuntu-latest
     steps:
       - name: Notify ArgoCD Deployment
