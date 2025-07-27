@@ -16,15 +16,6 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4.2.0
 
-      - name: Add Helm Repositories
-        run: |
-          set -eo pipefail
-          echo "Adding required Helm repositories..."
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo add influxdata https://helm.influxdata.com/
-          helm repo add apache-flink https://downloads.apache.org/flink/flink-kubernetes-operator-1.10.0/
-          helm repo update
-
       - name: Build Helm Dependencies
         run: |
           set -eo pipefail
@@ -217,15 +208,6 @@ jobs:
           kubectl create namespace cert-manager --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
           kubectl wait --for=condition=Available -n cert-manager deployment/cert-manager-webhook --timeout=120s
-
-      - name: Add Helm Repositories
-        run: |
-          set -eo pipefail
-          echo "Adding required Helm repositories..."
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo add influxdata https://helm.influxdata.com/
-          helm repo add apache-flink https://downloads.apache.org/flink/flink-kubernetes-operator-1.10.0/
-          helm repo update
 
       - name: Install TradeStream Helm Chart
         run: |
