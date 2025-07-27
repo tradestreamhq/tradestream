@@ -27,13 +27,6 @@ jobs:
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
 
-      - name: Push Tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
-        run: |
-          git tag ${{ steps.version.outputs.version_tag }}
-          git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} --tags
-
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -82,10 +75,9 @@ jobs:
           bazel run //ui/strategy-monitor:push_strategy_monitor_ui_image \
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
-
-      # Optional: Add a comment about ArgoCD handling the deployment
-      - name: Notify ArgoCD Deployment
+      - name: Push Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         run: |
-          echo "✅ Images pushed with tag: ${{ steps.version.outputs.version_tag }}"
-          echo "🔄 ArgoCD Image Updater will automatically detect and deploy the new images within 2-5 minutes"
-          echo "📊 Monitor deployment: kubectl get application tradestream-dev -n argocd"
+          git tag ${{ steps.version.outputs.version_tag }}
+          git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} --tags
