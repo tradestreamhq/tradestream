@@ -1,0 +1,83 @@
+{{- if .Values.strategyMonitorApi.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-monitor-api
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-monitor-api
+spec:
+  replicas: {{ .Values.strategyMonitorApi.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: strategy-monitor-api
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: strategy-monitor-api
+    spec:
+      containers:
+        - name: strategy-monitor-api
+                        image: "{{ .Values.strategyMonitorApi.image.repository }}:{{ .Values.strategyMonitorApi.image.tag }}"
+          imagePullPolicy: {{ .Values.strategyMonitorApi.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.strategyMonitorApi.service.port | default 8080 }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_HOST
+              value: {{ .Values.strategyMonitorApi.database.host | default (printf "%s-postgresql" (include "tradestream.fullname" .)) }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.strategyMonitorApi.database.port | default "5432" | quote }}
+            - name: POSTGRES_DATABASE
+              value: {{ .Values.strategyMonitorApi.database.database | default "tradestream" }}
+            - name: POSTGRES_USERNAME
+              value: {{ .Values.strategyMonitorApi.database.username | default "postgres" }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.strategyMonitorApi.database.passwordSecret.name | default (printf "%s-postgresql" (include "tradestream.fullname" .)) }}
+                  key: {{ .Values.strategyMonitorApi.database.passwordSecret.key | default "postgres-password" }}
+            - name: API_PORT
+              value: {{ .Values.strategyMonitorApi.service.port | default 8080 | quote }}
+            - name: API_HOST
+              value: {{ .Values.strategyMonitorApi.service.host | default "0.0.0.0" }}
+          resources:
+            {{- toYaml .Values.strategyMonitorApi.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-monitor-api
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-monitor-api
+spec:
+  type: {{ .Values.strategyMonitorApi.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.strategyMonitorApi.service.port | default 8080 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-monitor-api
+{{- end }} 
