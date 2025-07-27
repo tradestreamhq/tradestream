@@ -37,12 +37,6 @@ py_test(
     timeout = "short",
 )
 
-# Container structure test
-filegroup(
-    name = "container_structure_test_files",
-    srcs = ["container-structure-test.yaml"],
-)
-
 # --- OCI Image Rules ---
 py_image_layer(
     name = "layers",
@@ -69,4 +63,11 @@ oci_push(
     name = "push_strategy_monitor_api_image",
     image = ":images",
     repository = "tradestreamhq/strategy-monitor-api",
+)
+
+container_structure_test(
+    name = "container_test",
+    configs = ["container-structure-test.yaml"],
+    image = ":image",
+    tags = ["requires-docker"],
 )

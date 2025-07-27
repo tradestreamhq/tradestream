@@ -33,12 +33,6 @@ py_test(
     timeout = "short",
 )
 
-# Container structure test
-filegroup(
-    name = "container_structure_test_files",
-    srcs = ["container-structure-test.yaml"],
-)
-
 # Static web server for the Strategy Monitor UI
 oci_image(
     name = "strategy_monitor_ui",
@@ -69,4 +63,11 @@ oci_push(
     name = "push_strategy_monitor_ui_image",
     image = ":strategy_monitor_ui_images",
     repository = "tradestreamhq/strategy-monitor-ui",
+)
+
+container_structure_test(
+    name = "container_test",
+    configs = ["container-structure-test.yaml"],
+    image = ":strategy_monitor_ui",
+    tags = ["requires-docker"],
 ) 
