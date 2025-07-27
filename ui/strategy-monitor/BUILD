@@ -49,6 +49,7 @@ oci_image(
     name = "strategy_monitor_ui",
     base = "@nginx_alpine",
     entrypoint = ["/usr/sbin/nginx"],
+    cmd = ["-g", "daemon off;"],
     tars = [":ui_tar"],
     user = "nginx",
     workdir = "/usr/share/nginx/html",

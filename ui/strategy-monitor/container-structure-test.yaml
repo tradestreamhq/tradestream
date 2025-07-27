@@ -91,8 +91,8 @@ commandTests:
     args:
       [
         "-c",
-        "echo 'HTTP server accessibility test skipped due to permission issues'",
+        "nginx -g 'daemon off;' & sleep 3 && curl -f http://localhost:80/ && echo 'Web server is accessible' || echo 'Web server test failed'",
       ]
     exitCode: 0
     expectedOutput:
-      - "HTTP server accessibility test skipped due to permission issues"
+      - "Web server is accessible"
