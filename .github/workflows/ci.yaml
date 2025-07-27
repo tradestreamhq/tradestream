@@ -154,11 +154,35 @@ jobs:
       - name: Load images into minikube
         run: |
           set -eo pipefail
-          for tar in images/*.tar; do
+          echo "=== DEBUGGING ARTIFACT DOWNLOAD ==="
+          echo "Current directory: $(pwd)"
+          echo "Contents of images directory:"
+          ls -la images/ || echo "images directory not found"
+          echo "Contents of current directory:"
+          ls -la
+          
+          echo "=== LOADING IMAGES ==="
+          # Find all tar files in the images directory structure
+          find images -name "*.tar" -type f | while read -r tar; do
+            echo "Processing: $tar"
             repo=$(basename "$tar" .tar)
-            docker load -i "$tar"
-            minikube image load "${repo}:latest"
+            echo "Repository name: $repo"
+            
+            if [ -f "$tar" ]; then
+              echo "Loading $tar into Docker..."
+              docker load -i "$tar"
+              echo "Loading $repo:latest into minikube..."
+              minikube image load "${repo}:latest"
+              echo "✅ Successfully loaded $repo"
+            else
+              echo "❌ File $tar not found"
+              exit 1
+            fi
           done
+          
+          # Verify images were loaded
+          echo "=== VERIFYING LOADED IMAGES ==="
+          docker images | grep -E "(candle-ingestor|top-crypto-updater|strategy-discovery|strategy-consumer|strategy-monitor)"
 
       - name: Create Namespace and Secrets
         run: |
