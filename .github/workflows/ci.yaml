@@ -56,6 +56,18 @@ jobs:
             --set strategyMonitorUi.enabled=true \
             --set influxdb.enabled=true
 
+      - name: Test Strategy Monitor API imports
+        run: |
+          set -eo pipefail
+          echo "=== TESTING STRATEGY MONITOR API IMPORTS ==="
+          bazel run //services/strategy_monitor_api:import_test
+          
+      - name: Run Strategy Monitor API unit tests
+        run: |
+          set -eo pipefail
+          echo "=== RUNNING STRATEGY MONITOR API UNIT TESTS ==="
+          bazel test //services/strategy_monitor_api:strategy_monitor_api_test
+
   build-images:
     name: Build & Export Images
     needs: validate-helm-chart

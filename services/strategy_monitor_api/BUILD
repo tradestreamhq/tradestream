@@ -20,6 +20,26 @@ py_binary(
     deps = [":strategy_monitor_api_lib"],
 )
 
+py_binary(
+    name = "import_test",
+    srcs = ["import_test.py"],
+    main = "import_test.py",
+    deps = [":strategy_monitor_api_lib"],
+)
+
+py_test(
+    name = "strategy_monitor_api_test",
+    srcs = ["main_test.py"],
+    deps = [
+        ":strategy_monitor_api_lib",
+        "//third_party/python:psycopg2_binary",
+        "//third_party/python:absl_py",
+        "//third_party/python:flask",
+        "//third_party/python:flask_cors",
+    ],
+    python_version = "PY3",
+)
+
 # --- OCI Image Rules ---
 py_image_layer(
     name = "layers",
