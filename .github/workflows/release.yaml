@@ -110,10 +110,3 @@ jobs:
           git add MODULE.bazel
           git commit -m "Bump version to ${{ steps.version.outputs.version_tag }}" || echo "No changes to commit"
           git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
-
-      # Optional: Add a comment about ArgoCD handling the deployment
-      - name: Notify ArgoCD Deployment
-        run: |
-          echo "✅ Images pushed with tag: ${{ steps.version.outputs.version_tag }}"
-          echo "🔄 ArgoCD Image Updater will automatically detect and deploy the new images within 2-5 minutes"
-          echo "📊 Monitor deployment: kubectl get application tradestream-dev -n argocd" 
