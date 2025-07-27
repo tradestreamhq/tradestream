@@ -124,7 +124,7 @@ strategyDiscoveryPipeline:
   enabled: true
   image:
     repository: tradestreamhq/strategy-discovery-pipeline
-    tag: v2.45.97-develop
+    tag: v1.0.11
     pullPolicy: IfNotPresent
   version: v1_18
   configuration:
@@ -172,7 +172,7 @@ candleIngestor:
   image:
     repository: "tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
-    tag: "v2.45.97-develop"
+    tag: "v1.0.11"
   config:
     # CCXT Exchange Configuration
     exchanges:
@@ -246,7 +246,7 @@ topCryptoUpdaterCronjob:
   image:
     repository: "tradestreamhq/top-crypto-updater"
     pullPolicy: IfNotPresent
-    tag: "v2.45.97-develop"
+    tag: "v1.0.11"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
@@ -270,7 +270,7 @@ strategyDiscoveryRequestFactory:
   image:
     repository: "tradestreamhq/strategy-discovery-request-factory"
     pullPolicy: IfNotPresent
-    tag: "v2.45.97-develop"
+    tag: "v1.0.11"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
@@ -314,7 +314,7 @@ strategyConsumer:
   image:
     repository: "tradestreamhq/strategy-consumer"
     pullPolicy: IfNotPresent
-    tag: "v2.45.97-develop"
+    tag: "v1.0.11"
   concurrencyPolicy: "Forbid" # Prevent multiple instances from running simultaneously
   failedJobsHistoryLimit: 2
   successfulJobsHistoryLimit: 3
@@ -361,7 +361,7 @@ strategyMonitorApi:
   image:
     repository: "tradestreamhq/strategy-monitor-api"
     pullPolicy: IfNotPresent
-    tag: "v2.45.97-develop"
+    tag: "v1.0.11"
   service:
     type: ClusterIP
     port: 8080
@@ -391,7 +391,7 @@ strategyMonitorUi:
   image:
     repository: "tradestreamhq/strategy-monitor-ui"
     pullPolicy: IfNotPresent
-    tag: "v2.45.97-develop"
+    tag: "v1.0.11"
   service:
     type: ClusterIP
     port: 8080
