@@ -6,8 +6,59 @@ on:
       - main
 
 jobs:
+  validate-helm-chart:
+    name: Validate Helm Chart
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Build Helm Dependencies
+        run: |
+          set -eo pipefail
+          echo "Building Helm chart dependencies..."
+          cd charts/tradestream
+          helm dependency build
+          cd ../..
+
+      - name: Lint and Template Helm Chart
+        run: |
+          set -eo pipefail
+          echo "Linting Helm chart..."
+          helm lint charts/tradestream
+
+          echo "Rendering Helm templates..."
+          helm template my-tradestream charts/tradestream \
+            --namespace tradestream-namespace \
+            --set candleIngestor.image.repository=candle-ingestor \
+            --set candleIngestor.image.tag=latest \
+            --set topCryptoUpdaterCronjob.image.repository=top-crypto-updater \
+            --set topCryptoUpdaterCronjob.image.tag=latest \
+            --set strategyDiscoveryRequestFactory.image.repository=strategy-discovery-request-factory \
+            --set strategyDiscoveryRequestFactory.image.tag=latest \
+            --set strategyDiscoveryPipeline.image.repository=strategy-discovery-pipeline \
+            --set strategyDiscoveryPipeline.image.tag=latest \
+            --set strategyConsumer.image.repository=strategy-consumer \
+            --set strategyConsumer.image.tag=latest \
+            --set strategyMonitorApi.image.repository=strategy-monitor-api \
+            --set strategyMonitorApi.image.tag=latest \
+            --set strategyMonitorUi.image.repository=strategy-monitor-ui \
+            --set strategyMonitorUi.image.tag=latest \
+            --set redis.enabled=true \
+            --set postgresql.enabled=true \
+            --set topCryptoUpdaterCronjob.enabled=true \
+            --set strategyDiscoveryRequestFactory.enabled=true \
+            --set strategyConsumer.enabled=true \
+            --set strategyMonitorApi.enabled=true \
+            --set strategyMonitorUi.enabled=true \
+            --set influxdb.enabled=true
+
   build-images:
     name: Build & Export Images
+    needs: validate-helm-chart
     runs-on: ubuntu-latest
     services:
       registry:
