@@ -58,7 +58,6 @@ jobs:
             target: "//ui/strategy-monitor:push_strategy_monitor_ui_image"
           - name: "Strategy Confidence Scorer"
             target: "//services/strategy_confidence_scorer:push_strategy_confidence_scorer_image"
-    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
