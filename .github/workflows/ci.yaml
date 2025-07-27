@@ -19,25 +19,25 @@ jobs:
         include:
           - name: candle-ingestor
             target: "//services/candle_ingestor:push_candle_ingestor_image"
-            repository: candle-ingestor
+            repo: candle-ingestor
           - name: top-crypto-updater
             target: "//services/top_crypto_updater:push_top_crypto_updater_image"
-            repository: top-crypto-updater
+            repo: top-crypto-updater
           - name: strategy-discovery-request-factory
             target: "//services/strategy_discovery_request_factory:push_strategy_discovery_request_factory_image"
-            repository: strategy-discovery-request-factory
+            repo: strategy-discovery-request-factory
           - name: strategy-discovery-pipeline
             target: "//src/main/java/com/verlumen/tradestream/discovery:push_image"
-            repository: strategy-discovery-pipeline
+            repo: strategy-discovery-pipeline
           - name: strategy-consumer
             target: "//services/strategy_consumer:push_strategy_consumer_image"
-            repository: strategy-consumer
+            repo: strategy-consumer
           - name: strategy-monitor-api
             target: "//services/strategy_monitor_api:push_strategy_monitor_api_image"
-            repository: strategy-monitor-api
+            repo: strategy-monitor-api
           - name: strategy-monitor-ui
             target: "//ui/strategy-monitor:push_strategy_monitor_ui_image"
-            repository: strategy-monitor-ui
+            repo: strategy-monitor-ui
 
     steps:
       - name: Delete huge unnecessary tools folder
@@ -58,22 +58,22 @@ jobs:
       - name: Build & Push ${{ matrix.name }}
         run: |
           set -eo pipefail
-          # push to local registry
           bazel run ${{ matrix.target }} \
             -- \
-            --repository localhost:5000/${{ matrix.repository }} \
+            --repository localhost:5000/${{ matrix.repo }} \
             --tag latest
 
-      - name: Save ${{ matrix.name }} image to tar
+      - name: Retag & Save ${{ matrix.repo }} to tar
         run: |
           set -eo pipefail
           mkdir -p images
-          docker pull localhost:5000/${{ matrix.repository }}:latest
-          docker save localhost:5000/${{ matrix.repository }}:latest \
-            -o images/${{ matrix.repository }}.tar
+          # pull from local registry, retag to short name, then save
+          docker pull localhost:5000/${{ matrix.repo }}:latest
+          docker tag localhost:5000/${{ matrix.repo }}:latest ${{ matrix.repo }}:latest
+          docker save ${{ matrix.repo }}:latest -o images/${{ matrix.repo }}.tar
 
       - name: Upload images artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: images
           path: images/*.tar
@@ -97,7 +97,7 @@ jobs:
         uses: azure/setup-helm@v4.2.0
 
       - name: Download images artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: images
           path: images
@@ -106,10 +106,10 @@ jobs:
         run: |
           set -eo pipefail
           for tar in images/*.tar; do
-            docker load -i $tar
-            # extracts repo name from filename
-            repo=$(basename $tar .tar)
-            minikube image load $repo:latest
+            repo=$(basename "$tar" .tar)
+            docker load -i "$tar"
+            # now minikube will see candle‑ingestor:latest, top‑crypto‑updater:latest, etc.
+            minikube image load "${repo}:latest"
           done
 
       - name: Create Namespace and Secrets
