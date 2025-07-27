@@ -30,7 +30,7 @@ tar(
 py_binary(
     name = "http_server",
     srcs = ["http_server.py"],
-    data = [":ui_files"],
+    data = [":static_files"],
     deps = [],
 )
 
@@ -40,7 +40,7 @@ py_test(
     size = "medium",
     timeout = "short",
     srcs = ["ui_test.py"],
-    data = [":ui_files"],
+    data = [":static_files"],
     main = "ui_test.py",
     python_version = "PY3",
     deps = [],
