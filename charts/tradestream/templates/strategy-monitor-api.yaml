@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: strategy-monitor-api
-                        image: "{{ .Values.strategyMonitorApi.image.repository }}:{{ .Values.strategyMonitorApi.image.tag }}"
+          image: "{{ .Values.strategyMonitorApi.image.repository }}:{{ .Values.strategyMonitorApi.image.tag }}"
           imagePullPolicy: {{ .Values.strategyMonitorApi.image.pullPolicy | default "IfNotPresent" }}
           ports:
             - name: http
@@ -28,22 +28,22 @@ spec:
               protocol: TCP
           env:
             - name: POSTGRES_HOST
-              value: {{ .Values.strategyMonitorApi.database.host | default (printf "%s-postgresql" (include "tradestream.fullname" .)) }}
+              value: "{{ include "tradestream.fullname" . }}-postgresql"
             - name: POSTGRES_PORT
-              value: {{ .Values.strategyMonitorApi.database.port | default "5432" | quote }}
+              value: "5432"
             - name: POSTGRES_DATABASE
-              value: {{ .Values.strategyMonitorApi.database.database | default "tradestream" }}
+              value: "tradestream"
             - name: POSTGRES_USERNAME
-              value: {{ .Values.strategyMonitorApi.database.username | default "postgres" }}
+              value: "postgres"
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.strategyMonitorApi.database.passwordSecret.name | default (printf "%s-postgresql" (include "tradestream.fullname" .)) }}
-                  key: {{ .Values.strategyMonitorApi.database.passwordSecret.key | default "postgres-password" }}
+                  name: "{{ include "tradestream.fullname" . }}-postgresql"
+                  key: "postgres-password"
             - name: API_PORT
-              value: {{ .Values.strategyMonitorApi.service.port | default 8080 | quote }}
+              value: "{{ .Values.strategyMonitorApi.service.port | default 8080 }}"
             - name: API_HOST
-              value: {{ .Values.strategyMonitorApi.service.host | default "0.0.0.0" }}
+              value: "{{ .Values.strategyMonitorApi.service.host | default "0.0.0.0" }}"
           resources:
             {{- toYaml .Values.strategyMonitorApi.resources | nindent 12 }}
           livenessProbe:
