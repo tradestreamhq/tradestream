@@ -23,6 +23,7 @@ py_binary(
 py_test(
     name = "strategy_monitor_api_test",
     srcs = ["main_test.py"],
+    main = "main_test.py",
     deps = [
         ":strategy_monitor_api_lib",
         "//third_party/python:psycopg2_binary",

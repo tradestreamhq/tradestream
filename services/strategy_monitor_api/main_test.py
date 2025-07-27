@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     from main import app, FLAGS
     IMPORT_SUCCESS = True
+    IMPORT_ERROR = None
 except ImportError as e:
     IMPORT_SUCCESS = False
     IMPORT_ERROR = str(e)
@@ -57,7 +58,7 @@ class TestStrategyMonitorAPIEndpoints(unittest.TestCase):
     
     def test_health_endpoint(self):
         """Test the health check endpoint."""
-        response = self.client.get('/health')
+        response = self.client.get('/api/health')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertIn('status', data)
@@ -65,63 +66,119 @@ class TestStrategyMonitorAPIEndpoints(unittest.TestCase):
     
     def test_strategies_endpoint(self):
         """Test the strategies endpoint."""
-        with patch('main.psycopg2.connect') as mock_connect:
-            # Mock database connection and cursor
-            mock_cursor = MagicMock()
-            mock_cursor.fetchall.return_value = [
-                ('strategy1', 'active', '2024-01-01', 0.85),
-                ('strategy2', 'inactive', '2024-01-02', 0.72)
+        with patch('main.fetch_all_strategies') as mock_fetch:
+            # Mock the database function
+            mock_fetch.return_value = [
+                {
+                    'strategy_id': '1',
+                    'symbol': 'BTC/USD',
+                    'strategy_type': 'SMA_EMA_CROSSOVER',
+                    'current_score': 0.85,
+                    'parameters': {'SMA Period': 20, 'EMA Period': 50}
+                },
+                {
+                    'strategy_id': '2',
+                    'symbol': 'ETH/USD',
+                    'strategy_type': 'RSI_EMA_CROSSOVER',
+                    'current_score': 0.72,
+                    'parameters': {'RSI Period': 14, 'EMA Period': 20}
+                }
             ]
-            mock_connection = MagicMock()
-            mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
-            mock_connect.return_value.__enter__.return_value = mock_connection
             
-            response = self.client.get('/strategies')
+            response = self.client.get('/api/strategies')
             self.assertEqual(response.status_code, 200)
             data = json.loads(response.data)
-            self.assertIsInstance(data, list)
-            self.assertEqual(len(data), 2)
+            self.assertIn('strategies', data)
+            self.assertEqual(len(data['strategies']), 2)
     
     def test_strategies_endpoint_database_error(self):
         """Test the strategies endpoint with database error."""
-        with patch('main.psycopg2.connect') as mock_connect:
-            mock_connect.side_effect = Exception("Database connection failed")
+        with patch('main.fetch_all_strategies') as mock_fetch:
+            mock_fetch.side_effect = Exception("Database connection failed")
             
-            response = self.client.get('/strategies')
+            response = self.client.get('/api/strategies')
             self.assertEqual(response.status_code, 500)
             data = json.loads(response.data)
             self.assertIn('error', data)
     
     def test_strategy_details_endpoint(self):
         """Test the strategy details endpoint."""
-        with patch('main.psycopg2.connect') as mock_connect:
-            # Mock database connection and cursor
-            mock_cursor = MagicMock()
-            mock_cursor.fetchone.return_value = ('strategy1', 'active', '2024-01-01', 0.85)
-            mock_connection = MagicMock()
-            mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
-            mock_connect.return_value.__enter__.return_value = mock_connection
+        with patch('main.fetch_all_strategies') as mock_fetch:
+            # Mock the database function
+            mock_fetch.return_value = [
+                {
+                    'strategy_id': '1',
+                    'symbol': 'BTC/USD',
+                    'strategy_type': 'SMA_EMA_CROSSOVER',
+                    'current_score': 0.85,
+                    'parameters': {'SMA Period': 20, 'EMA Period': 50}
+                }
+            ]
             
-            response = self.client.get('/strategies/strategy1')
+            response = self.client.get('/api/strategies/1')
             self.assertEqual(response.status_code, 200)
             data = json.loads(response.data)
-            self.assertIn('name', data)
-            self.assertEqual(data['name'], 'strategy1')
+            self.assertIn('strategy_id', data)
+            self.assertEqual(data['strategy_id'], '1')
     
     def test_strategy_details_not_found(self):
         """Test the strategy details endpoint with non-existent strategy."""
-        with patch('main.psycopg2.connect') as mock_connect:
-            # Mock database connection and cursor
-            mock_cursor = MagicMock()
-            mock_cursor.fetchone.return_value = None
-            mock_connection = MagicMock()
-            mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
-            mock_connect.return_value.__enter__.return_value = mock_connection
+        with patch('main.fetch_all_strategies') as mock_fetch:
+            # Mock the database function
+            mock_fetch.return_value = []
             
-            response = self.client.get('/strategies/nonexistent')
+            response = self.client.get('/api/strategies/nonexistent')
             self.assertEqual(response.status_code, 404)
             data = json.loads(response.data)
             self.assertIn('error', data)
+    
+    def test_metrics_endpoint(self):
+        """Test the metrics endpoint."""
+        with patch('main.fetch_strategy_metrics') as mock_fetch:
+            # Mock the database function
+            mock_fetch.return_value = {
+                'total_strategies': 10,
+                'total_symbols': 5,
+                'avg_score': 0.75
+            }
+            
+            response = self.client.get('/api/metrics')
+            self.assertEqual(response.status_code, 200)
+            data = json.loads(response.data)
+            self.assertIn('metrics', data)
+            self.assertIn('total_strategies', data['metrics'])
+    
+    def test_symbols_endpoint(self):
+        """Test the symbols endpoint."""
+        with patch('main.fetch_all_strategies') as mock_fetch:
+            # Mock the database function
+            mock_fetch.return_value = [
+                {'symbol': 'BTC/USD'},
+                {'symbol': 'ETH/USD'},
+                {'symbol': 'BTC/USD'}  # Duplicate to test deduplication
+            ]
+            
+            response = self.client.get('/api/symbols')
+            self.assertEqual(response.status_code, 200)
+            data = json.loads(response.data)
+            self.assertIn('symbols', data)
+            self.assertEqual(len(data['symbols']), 2)  # Should be deduplicated
+    
+    def test_strategy_types_endpoint(self):
+        """Test the strategy types endpoint."""
+        with patch('main.fetch_all_strategies') as mock_fetch:
+            # Mock the database function
+            mock_fetch.return_value = [
+                {'strategy_type': 'SMA_EMA_CROSSOVER'},
+                {'strategy_type': 'RSI_EMA_CROSSOVER'},
+                {'strategy_type': 'SMA_EMA_CROSSOVER'}  # Duplicate to test deduplication
+            ]
+            
+            response = self.client.get('/api/strategy-types')
+            self.assertEqual(response.status_code, 200)
+            data = json.loads(response.data)
+            self.assertIn('strategy_types', data)
+            self.assertEqual(len(data['strategy_types']), 2)  # Should be deduplicated
 
 
 class TestStrategyMonitorAPIConfiguration(unittest.TestCase):
