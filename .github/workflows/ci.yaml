@@ -128,8 +128,8 @@ jobs:
           name: images-${{ matrix.repo }}
           path: images/${{ matrix.repo }}.tar
 
-  deploy:
-    name: Start Cluster & Deploy
+  deploy-and-test:
+    name: Deploy and Test
     needs: build-images
     runs-on: ubuntu-latest
 
@@ -216,58 +216,32 @@ jobs:
             --set strategyMonitorUi.enabled=true \
             --set influxdb.enabled=true
 
-  monitor-cronjobs:
-    name: Monitor CronJobs
-    needs: deploy
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        cronjob:
-          - my-tradestream-top-crypto-updater
-          - my-tradestream-strategy-discovery-request-factory
-          - my-tradestream-strategy-consumer
-
-    steps:
-      - name: Delete huge unnecessary tools folder
-        run: rm -rf /opt/hostedtoolcache
-
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Start minikube
-        uses: medyagh/setup-minikube@latest
-
-      - name: Monitor ${{ matrix.cronjob }}
+      - name: Wait for Deployment
         run: |
           set -eo pipefail
-          kubectl get cronjob ${{ matrix.cronjob }} -n tradestream-namespace
-          if kubectl get cronjob ${{ matrix.cronjob }} -n tradestream-namespace -o jsonpath='{.spec.suspend}' | grep -q true; then
-            echo "❌ CronJob ${{ matrix.cronjob }} is suspended"
-            exit 1
-          else
-            echo "✅ CronJob ${{ matrix.cronjob }} is active"
-          fi
+          kubectl wait --for=condition=Ready -n tradestream-namespace pod --all --timeout=300s
 
-  diagnostics:
-    name: Final Diagnostics Snapshot
-    needs: [deploy, monitor-cronjobs]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Delete huge unnecessary tools folder
-        run: rm -rf /opt/hostedtoolcache
-
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Start minikube
-        uses: medyagh/setup-minikube@latest
-
-      - name: Install Helm
-        uses: azure/setup-helm@v4.2.0
+      - name: Monitor CronJobs
+        run: |
+          set -eo pipefail
+          echo "=== MONITORING CRONJOBS ==="
+          
+          # Check each CronJob
+          for cronjob in my-tradestream-top-crypto-updater my-tradestream-strategy-discovery-request-factory my-tradestream-strategy-consumer; do
+            echo "Checking CronJob: $cronjob"
+            kubectl get cronjob $cronjob -n tradestream-namespace
+            
+            if kubectl get cronjob $cronjob -n tradestream-namespace -o jsonpath='{.spec.suspend}' | grep -q true; then
+              echo "❌ CronJob $cronjob is suspended"
+              exit 1
+            else
+              echo "✅ CronJob $cronjob is active"
+            fi
+          done
 
       - name: Final Diagnostic Snapshot
         run: |
+          set -eo pipefail
           echo "=== FINAL DIAGNOSTIC SNAPSHOT ==="
           kubectl get all -n tradestream-namespace -o wide
           kubectl get cronjobs -n tradestream-namespace -o yaml
