@@ -95,18 +95,9 @@ jobs:
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
 
-      # Update MODULE.bazel version (keeping this as it's still needed)
-      - name: Update MODULE.bazel version
+      # Optional: Add a comment about ArgoCD handling the deployment
+      - name: Notify ArgoCD Deployment
         run: |
-          echo "Updating MODULE.bazel to version ${{ steps.version.outputs.version_tag }}"
-          sed -i.bak '/^module(/,/^)/ s/\(version\s*=\s*"\)[^"]\+"/\1'"${{ steps.version.outputs.version_tag }}"'"/' MODULE.bazel
-        shell: bash
-
-      # Commit and push MODULE.bazel changes only
-      - name: Commit and Push MODULE.bazel Changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
-        run: |
-          git add MODULE.bazel
-          git commit -m "Bump version to ${{ steps.version.outputs.version_tag }}" || echo "No changes to commit"
-          git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
+          echo "✅ Images pushed with tag: ${{ steps.version.outputs.version_tag }}"
+          echo "🔄 ArgoCD Image Updater will automatically detect and deploy the new images within 2-5 minutes"
+          echo "📊 Monitor deployment: kubectl get application tradestream-dev -n argocd"
