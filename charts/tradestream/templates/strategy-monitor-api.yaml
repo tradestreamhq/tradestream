@@ -21,29 +21,29 @@ spec:
       containers:
         - name: strategy-monitor-api
           image: "{{ .Values.strategyMonitorApi.image.repository }}:{{ .Values.strategyMonitorApi.image.tag }}"
-          imagePullPolicy: {{ .Values.strategyMonitorApi.image.pullPolicy | default "IfNotPresent" }}
+          imagePullPolicy: "{{ .Values.strategyMonitorApi.image.pullPolicy | default "IfNotPresent" }}"
           ports:
             - name: http
               containerPort: {{ .Values.strategyMonitorApi.service.port | default 8080 }}
               protocol: TCP
           env:
             - name: POSTGRES_HOST
-              value: {{ .Values.strategyMonitorApi.database.host | default (printf "%s-postgresql" (include "tradestream.fullname" .)) }}
+              value: "{{ .Values.strategyMonitorApi.database.host | default (printf "%s-postgresql" (include "tradestream.fullname" .)) }}"
             - name: POSTGRES_PORT
-              value: {{ .Values.strategyMonitorApi.database.port | default "5432" | quote }}
+              value: "{{ .Values.strategyMonitorApi.database.port | default "5432" }}"
             - name: POSTGRES_DATABASE
-              value: {{ .Values.strategyMonitorApi.database.database | default "tradestream" }}
+              value: "{{ .Values.strategyMonitorApi.database.database | default "tradestream" }}"
             - name: POSTGRES_USERNAME
-              value: {{ .Values.strategyMonitorApi.database.username | default "postgres" }}
+              value: "{{ .Values.strategyMonitorApi.database.username | default "postgres" }}"
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.strategyMonitorApi.database.passwordSecret.name | default (printf "%s-postgresql" (include "tradestream.fullname" .)) }}
-                  key: {{ .Values.strategyMonitorApi.database.passwordSecret.key | default "postgres-password" }}
+                  name: "{{ .Values.strategyMonitorApi.database.passwordSecret.name | default (printf "%s-postgresql" (include "tradestream.fullname" .)) }}"
+                  key: "{{ .Values.strategyMonitorApi.database.passwordSecret.key | default "postgres-password" }}"
             - name: API_PORT
-              value: {{ .Values.strategyMonitorApi.service.port | default 8080 | quote }}
+              value: "{{ .Values.strategyMonitorApi.service.port | default 8080 }}"
             - name: API_HOST
-              value: {{ .Values.strategyMonitorApi.service.host | default "0.0.0.0" }}
+              value: "{{ .Values.strategyMonitorApi.service.host | default "0.0.0.0" }}"
           resources:
             {{- toYaml .Values.strategyMonitorApi.resources | nindent 12 }}
           livenessProbe:
@@ -80,4 +80,4 @@ spec:
   selector:
     {{- include "tradestream.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: strategy-monitor-api
-{{- end }} 
+{{- end }}
