@@ -75,7 +75,6 @@ jobs:
           bazel run //src/main/java/com/verlumen/tradestream/discovery:push_image \
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
-      
       - name: Push the Strategy Consumer image
         run: |
           bazel run //services/strategy_consumer:push_strategy_consumer_image \
