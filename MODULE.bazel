@@ -143,6 +143,15 @@ oci.pull(
         "linux/arm64/v8",
     ],
 )
+oci.pull(
+    name = "nginx_alpine",
+    digest = "sha256:d67ea0d64d518b1bb04acde3b00f722ac3e9764b3209a9b0a98924ba35e4b779",
+    image = "docker.io/library/nginx:alpine",
+    platforms = [
+        "linux/amd64",
+        "linux/arm64/v8",
+    ],
+)
 use_repo(
     oci,
     "flink_java17_linux_amd64",
@@ -152,6 +161,9 @@ use_repo(
     "python_3_13_slim",
     "python_3_13_slim_linux_amd64",
     "python_3_13_slim_linux_arm64_v8",
+    "nginx_alpine",
+    "nginx_alpine_linux_amd64",
+    "nginx_alpine_linux_arm64_v8",
 )
 
 bazel_lib = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")

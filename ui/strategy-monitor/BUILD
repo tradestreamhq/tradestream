@@ -3,7 +3,7 @@ load("@aspect_bazel_lib//lib:tar.bzl", "tar", "mtree_mutate")
 load("@rules_python//python:defs.bzl", "py_test", "py_binary")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
 
-# Package the UI files with a different structure
+# Package the UI files
 filegroup(
     name = "ui_files",
     srcs = glob([
@@ -24,7 +24,7 @@ tar(
     out = "strategy_monitor_ui.tar",
 )
 
-# Create a simple HTTP server script
+# Create a simple HTTP server script (for development/testing only)
 py_binary(
     name = "http_server",
     srcs = ["http_server.py"],
@@ -44,14 +44,14 @@ py_test(
     timeout = "short",
 )
 
-# Static web server for the Strategy Monitor UI
+# Static web server for the Strategy Monitor UI using nginx
 oci_image(
     name = "strategy_monitor_ui",
-    base = "@python_3_13_slim",
-    entrypoint = ["/usr/bin/python3", "-m", "http.server", "8080"],
+    base = "@nginx_alpine",
+    entrypoint = ["/usr/sbin/nginx"],
     tars = [":ui_tar"],
-    user = "nobody",
-    workdir = "/app",
+    user = "nginx",
+    workdir = "/usr/share/nginx/html",
 )
 
 # OCI image index for multi-platform support
@@ -69,9 +69,14 @@ oci_push(
     repository = "tradestreamhq/strategy-monitor-ui",
 )
 
+# Container structure test
+filegroup(
+    name = "container_structure_test_files",
+    srcs = ["container-structure-test.yaml"],
+)
+
 container_structure_test(
     name = "container_test",
-    configs = ["container-structure-test.yaml"],
     image = ":strategy_monitor_ui",
-    tags = ["requires-docker"],
+    configs = [":container_structure_test_files"],
 ) 
