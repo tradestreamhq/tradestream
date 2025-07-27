@@ -8,6 +8,8 @@ py_library(
     deps = [
         "//third_party/python:psycopg2_binary",
         "//third_party/python:absl_py",
+        "//third_party/python:flask",
+        "//third_party/python:flask_cors",
     ],
 )
 
@@ -16,6 +18,20 @@ py_binary(
     srcs = ["main.py"],
     main = "main.py",
     deps = [":strategy_monitor_api_lib"],
+)
+
+py_test(
+    name = "strategy_monitor_api_test",
+    srcs = ["main_test.py"],
+    main = "main_test.py",
+    deps = [
+        ":strategy_monitor_api_lib",
+        "//third_party/python:psycopg2_binary",
+        "//third_party/python:absl_py",
+        "//third_party/python:flask",
+        "//third_party/python:flask_cors",
+    ],
+    python_version = "PY3",
 )
 
 # --- OCI Image Rules ---
