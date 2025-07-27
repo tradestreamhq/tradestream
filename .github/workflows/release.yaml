@@ -69,7 +69,6 @@ jobs:
           bazel run //services/strategy_discovery_request_factory:push_strategy_discovery_request_factory_image \
             -- \
             --tag ${{ steps.version.outputs.version_tag }}
-      
       - name: Push the Strategy Discovery Pipeline image
         run: |
           bazel run //src/main/java/com/verlumen/tradestream/discovery:push_image \
