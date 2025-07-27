@@ -21,14 +21,14 @@ spec:
       containers:
         - name: strategy-monitor-ui
           image: "{{ .Values.strategyMonitorUi.image.repository }}:{{ .Values.strategyMonitorUi.image.tag }}"
-          imagePullPolicy: {{ .Values.strategyMonitorUi.image.pullPolicy | default "IfNotPresent" }}
+          imagePullPolicy: "{{ .Values.strategyMonitorUi.image.pullPolicy | default "IfNotPresent" }}"
           ports:
             - name: http
               containerPort: {{ .Values.strategyMonitorUi.service.port | default 8080 }}
               protocol: TCP
           env:
             - name: API_BASE_URL
-              value: {{ .Values.strategyMonitorUi.apiBaseUrl | default (printf "http://%s-strategy-monitor-api:%d" (include "tradestream.fullname" .) (.Values.strategyMonitorApi.service.port | default 8080)) }}
+              value: "{{ .Values.strategyMonitorUi.apiBaseUrl | default (printf "http://%s-strategy-monitor-api:%d" (include "tradestream.fullname" .) (.Values.strategyMonitorApi.service.port | default 8080)) }}"
           resources:
             {{- toYaml .Values.strategyMonitorUi.resources | nindent 12 }}
           livenessProbe:
@@ -65,4 +65,4 @@ spec:
   selector:
     {{- include "tradestream.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: strategy-monitor-ui
-{{- end }} 
+{{- end }}
