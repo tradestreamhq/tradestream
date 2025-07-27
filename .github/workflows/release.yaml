@@ -1,11 +1,14 @@
-name: Release Tradestream Artifacts (Simplified)
+name: Release Tradestream Artifacts (Parallel)
 on:
   push:
     branches:
       - main
+
 jobs:
-  release:
+  prepare-release:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,6 +29,40 @@ jobs:
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
 
+      - name: Push Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        run: |
+          git tag ${{ steps.version.outputs.version_tag }}
+          git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} --tags
+
+  build-and-push:
+    needs: prepare-release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - name: "Candle Ingestor"
+            target: "//services/candle_ingestor:push_candle_ingestor_image"
+          - name: "Top Crypto Updater"
+            target: "//services/top_crypto_updater:push_top_crypto_updater_image"
+          - name: "Strategy Discovery Request Factory"
+            target: "//services/strategy_discovery_request_factory:push_strategy_discovery_request_factory_image"
+          - name: "Strategy Discovery Pipeline"
+            target: "//src/main/java/com/verlumen/tradestream/discovery:push_image"
+          - name: "Strategy Consumer"
+            target: "//services/strategy_consumer:push_strategy_consumer_image"
+          - name: "Strategy Monitor API"
+            target: "//services/strategy_monitor_api:push_strategy_monitor_api_image"
+          - name: "Strategy Monitor UI"
+            target: "//ui/strategy-monitor:push_strategy_monitor_ui_image"
+          - name: "Strategy Confidence Scorer"
+            target: "//services/strategy_confidence_scorer:push_strategy_confidence_scorer_image"
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -38,45 +75,18 @@ jobs:
           bazelrc: |
             build --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
 
-      # Build and push all images with the new tag
-      - name: Push the Candle Ingestor image
+      - name: Build and Push ${{ matrix.service.name }}
         run: |
-          bazel run //services/candle_ingestor:push_candle_ingestor_image \
+          bazel run ${{ matrix.service.target }} \
             -- \
-            --tag ${{ steps.version.outputs.version_tag }}
-      - name: Push the Top Crypto Updater image
+            --tag ${{ needs.prepare-release.outputs.version }}
+
+  notify-deployment:
+    needs: [prepare-release, build-and-push]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify ArgoCD Deployment
         run: |
-          bazel run //services/top_crypto_updater:push_top_crypto_updater_image \
-            -- \
-            --tag ${{ steps.version.outputs.version_tag }}
-      - name: Push the Strategy Discovery Request Factory image
-        run: |
-          bazel run //services/strategy_discovery_request_factory:push_strategy_discovery_request_factory_image \
-            -- \
-            --tag ${{ steps.version.outputs.version_tag }}
-      - name: Push the Strategy Discovery Pipeline image
-        run: |
-          bazel run //src/main/java/com/verlumen/tradestream/discovery:push_image \
-            -- \
-            --tag ${{ steps.version.outputs.version_tag }}
-      - name: Push the Strategy Consumer image
-        run: |
-          bazel run //services/strategy_consumer:push_strategy_consumer_image \
-            -- \
-            --tag ${{ steps.version.outputs.version_tag }}
-      - name: Push the Strategy Monitor API image
-        run: |
-          bazel run //services/strategy_monitor_api:push_strategy_monitor_api_image \
-            -- \
-            --tag ${{ steps.version.outputs.version_tag }}
-      - name: Push the Strategy Monitor UI image
-        run: |
-          bazel run //ui/strategy-monitor:push_strategy_monitor_ui_image \
-            -- \
-            --tag ${{ steps.version.outputs.version_tag }}
-      - name: Push Tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
-        run: |
-          git tag ${{ steps.version.outputs.version_tag }}
-          git push https://$GITHUB_ACTOR:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }} --tags
+          echo "✅ All images pushed successfully with tag: ${{ needs.prepare-release.outputs.version }}"
+          echo "🔄 ArgoCD Image Updater will automatically detect and deploy the new images within 2-5 minutes"
+          echo "📊 Monitor deployment: kubectl get application tradestream-dev -n argocd"
