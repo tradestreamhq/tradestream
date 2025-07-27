@@ -1,6 +1,6 @@
 load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push", "oci_load")
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
@@ -148,6 +148,18 @@ oci_push(
     name = "push_candle_ingestor_image",
     image = ":images",
     repository = "tradestreamhq/candle-ingestor",
+)
+
+oci_load(
+    name = "load_candle_ingestor_image",
+    image = ":image",
+    repo_tags = ["candle-ingestor:latest"],
+)
+
+filegroup(
+    name = "candle_ingestor_tarball",
+    srcs = [":load_candle_ingestor_image"],
+    output_group = "tarball",
 )
 
 container_structure_test(

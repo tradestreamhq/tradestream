@@ -1,6 +1,6 @@
 load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push", "oci_load")
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
@@ -80,6 +80,18 @@ oci_push(
     name = "push_top_crypto_updater_image",
     image = ":images",
     repository = "tradestreamhq/top-crypto-updater",
+)
+
+oci_load(
+    name = "load_top_crypto_updater_image",
+    image = ":image",
+    repo_tags = ["top-crypto-updater:latest"],
+)
+
+filegroup(
+    name = "top_crypto_updater_tarball",
+    srcs = [":load_top_crypto_updater_image"],
+    output_group = "tarball",
 )
 
 container_structure_test(
