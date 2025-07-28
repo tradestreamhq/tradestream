@@ -224,6 +224,9 @@ jobs:
           helm dependency update charts/tradestream
           # Test with minimal services first to isolate issues
           # TODO: Consider adding a dry-run mode or testing individual services
+          # TODO: For resource-constrained environments, consider disabling some services:
+          # --set strategyDiscoveryPipeline.enabled=false \
+          # --set influxdb.enabled=false \
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
             --set candleIngestor.image.repository=candle-ingestor \
@@ -257,16 +260,20 @@ jobs:
           kubectl describe pods --all-namespaces
           echo "=== Events ==="
           kubectl get events --sort-by='.lastTimestamp'
+          echo "=== UI Container Logs ==="
+          kubectl logs -n tradestream-namespace deployment/my-tradestream-strategy-monitor-ui --tail=50 || echo "No logs available yet"
         
       - name: Wait for Deployment
         run: |
           echo "=== Waiting for pods to be ready ==="
-          # Wait for pods with more detailed output
-          kubectl wait --for=condition=ready pod --all --timeout=300s --verbose || {
-            echo "=== Pods not ready after 300s, showing detailed status ==="
+          # Wait for pods with more detailed output and longer timeout
+          kubectl wait --for=condition=ready pod --all --timeout=600s --verbose || {
+            echo "=== Pods not ready after 600s, showing detailed status ==="
             kubectl get pods -A -o wide
             kubectl describe pods --all-namespaces
             kubectl get events --all-namespaces --sort-by='.lastTimestamp' | tail -20
+            echo "=== UI Container Logs ==="
+            kubectl logs -n tradestream-namespace deployment/my-tradestream-strategy-monitor-ui --tail=50 || echo "No logs available"
             exit 1
           }
 
