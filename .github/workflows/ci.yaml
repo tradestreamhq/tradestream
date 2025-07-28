@@ -154,7 +154,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Start minikube
-        uses: medyagh/setup-minikube@latest
+        run: |
+          set -eo pipefail
+          # Start minikube with optimized resources for CI
+          minikube start --driver=docker --cpus=4 --memory=8192 --disk-size=20g --extra-config=kubelet.housekeeping-interval=10s
+          
+          # Verify minikube is running
+          minikube status
+          
+          # Show available resources
+          echo "=== Available Resources ==="
+          kubectl describe nodes
 
       - name: Install Helm
         uses: azure/setup-helm@v4.2.0
@@ -222,6 +232,13 @@ jobs:
         run: |
           set -eo pipefail
           helm dependency update charts/tradestream
+          # Test with minimal services first to isolate issues
+          # TODO: Consider adding a dry-run mode or testing individual services
+          # TODO: For resource-constrained environments, consider disabling some services:
+          # --set strategyDiscoveryPipeline.enabled=false \
+          # --set influxdb.enabled=false \
+          
+          # Install with CI-optimized resources
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
             --set candleIngestor.image.repository=candle-ingestor \
@@ -245,12 +262,67 @@ jobs:
             --set strategyConsumer.enabled=true \
             --set strategyMonitorApi.enabled=true \
             --set strategyMonitorUi.enabled=true \
-            --set influxdb.enabled=true
+            --set influxdb.enabled=true \
+            # CI-optimized resource settings
+            --set postgresql.resources.requests.cpu=200m \
+            --set postgresql.resources.requests.memory=512Mi \
+            --set postgresql.resources.limits.cpu=500m \
+            --set postgresql.resources.limits.memory=1Gi \
+            --set kafka.replicaCount=1 \
+            --set kafka.resources.requests.cpu=200m \
+            --set kafka.resources.requests.memory=512Mi \
+            --set kafka.resources.limits.cpu=500m \
+            --set kafka.resources.limits.memory=1Gi \
+            --set redis.resources.requests.cpu=50m \
+            --set redis.resources.requests.memory=64Mi \
+            --set redis.resources.limits.cpu=100m \
+            --set redis.resources.limits.memory=128Mi \
+            --set influxdb.persistence.size=5Gi \
+            --set influxdb.resources.requests.cpu=100m \
+            --set influxdb.resources.requests.memory=256Mi \
+            --set influxdb.resources.limits.cpu=250m \
+            --set influxdb.resources.limits.memory=512Mi
 
       - name: Wait for Deployment
         run: |
-          set -eo pipefail
-          kubectl wait --for=condition=Ready -n tradestream-namespace pod --all --timeout=300s
+          echo "=== Progressive Deployment - Infrastructure First ==="
+          
+          # Wait for critical infrastructure (3 minutes each)
+          echo "Waiting for PostgreSQL..."
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgresql --timeout=180s
+          
+          echo "Waiting for Redis..."
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=redis --timeout=180s
+          
+          echo "Waiting for InfluxDB..."
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=influxdb --timeout=180s
+          
+          echo "Waiting for Kafka..."
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=kafka --timeout=180s
+          
+          echo "=== Progressive Deployment - Applications ==="
+          
+          # Wait for application pods (2 minutes each)
+          echo "Waiting for Strategy Monitor API..."
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=strategy-monitor-api --timeout=120s
+          
+          echo "Waiting for Strategy Monitor UI..."
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=strategy-monitor-ui --timeout=120s
+          
+          echo "=== Final Readiness Check ==="
+          
+          # Final check for remaining pods (1 minute)
+          kubectl wait --for=condition=ready pod --all --timeout=60s || {
+            echo "=== Deployment Timeout - Detailed Diagnostics ==="
+            kubectl get pods -A -o wide
+            kubectl describe pods --all-namespaces
+            kubectl get events --all-namespaces --sort-by='.lastTimestamp' | tail -30
+            echo "=== UI Container Logs ==="
+            kubectl logs -n tradestream-namespace deployment/my-tradestream-strategy-monitor-ui --tail=50 || echo "No UI logs available"
+            echo "=== API Container Logs ==="
+            kubectl logs -n tradestream-namespace deployment/my-tradestream-strategy-monitor-api --tail=50 || echo "No API logs available"
+            exit 1
+          }
 
       - name: Monitor CronJobs
         run: |
