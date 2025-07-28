@@ -3,9 +3,19 @@ load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push", "oci_load")
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 
-# Static content files
+# Static content files (only web assets)
 filegroup(
     name = "static_files",
+    srcs = glob([
+        "*.html",
+        "*.js", 
+        "*.css",
+    ]),
+)
+
+# All files needed for development and testing
+filegroup(
+    name = "dev_files",
     srcs = glob([
         "*.html",
         "*.js", 
@@ -31,7 +41,7 @@ tar(
 py_binary(
     name = "http_server",
     srcs = ["http_server.py"],
-    data = [":static_files"],
+    data = [":dev_files"],
     deps = [],
 )
 
@@ -40,7 +50,7 @@ py_binary(
     name = "app",
     srcs = ["http_server.py"],
     main = "http_server.py",
-    data = [":static_files"],
+    data = [":dev_files"],
     deps = [],
 )
 
@@ -50,7 +60,7 @@ py_test(
     size = "medium",
     timeout = "short",
     srcs = ["ui_test.py"],
-    data = [":static_files"],
+    data = [":dev_files"],
     main = "ui_test.py",
     python_version = "PY3",
     deps = [],
@@ -66,7 +76,7 @@ oci_image(
     ],
     workdir = "/usr/share/nginx/html",
     entrypoint = ["/bin/sh", "-c"],
-    cmd = ["cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && cp /ui/strategy-monitor/* /usr/share/nginx/html/ && nginx -g 'daemon off;'"],
+    cmd = ["cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && cp /ui/strategy-monitor/*.html /usr/share/nginx/html/ && nginx -g 'daemon off;'"],
 )
 
 # OCI image index for multi-platform support
