@@ -1585,8 +1585,8 @@ Top 5 Performing Strategies:
         async function fetchRealData() {
             try {
                 console.log('🔌 Attempting to fetch from API...');
-                // Try to fetch from the strategy monitor API
-                const response = await fetch('http://localhost:8080/api/strategies?limit=50');
+                // Use relative URL - nginx will proxy to the backend service
+                const response = await fetch('/api/strategies?limit=50');
                 console.log('📡 API Response status:', response.status);
                 
                 if (response.ok) {
@@ -1611,7 +1611,8 @@ Top 5 Performing Strategies:
         async function fetchMetrics() {
             try {
                 console.log('📊 Fetching metrics from API...');
-                const response = await fetch('http://localhost:8080/api/metrics');
+                // Use relative URL - nginx will proxy to the backend service  
+                const response = await fetch('/api/metrics');
                 console.log('📊 Metrics response status:', response.status);
                 
                 if (response.ok) {
