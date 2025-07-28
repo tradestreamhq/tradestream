@@ -98,7 +98,7 @@ commandTests:
     args:
       [
         "-c", 
-        "nginx -g 'daemon off;' & sleep 3 && curl -f http://localhost:80/ >/dev/null 2>&1 && echo 'Web server is accessible' || echo 'Web server test failed'"
+        "nginx -g 'daemon off;' & sleep 3 && curl -f http://localhost:8080/ >/dev/null 2>&1 && echo 'Web server is accessible' || echo 'Web server test failed'"
       ]
     exitCode: 0
     expectedOutput:
@@ -109,7 +109,7 @@ commandTests:
     args:
       [
         "-c",
-        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s http://localhost:80/ | grep -q '<html' && echo 'HTML content is valid' || echo 'HTML content validation failed'"
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s http://localhost:8080/ | grep -q '<html' && echo 'HTML content is valid' || echo 'HTML content validation failed'"
       ]
     exitCode: 0
     expectedOutput:
@@ -120,7 +120,7 @@ commandTests:
     args:
       [
         "-c",
-        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -I http://localhost:80/ | grep -q 'HTTP/1.1 200' && echo 'HTTP response headers are correct' || echo 'HTTP response headers test failed'"
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -I http://localhost:8080/ | grep -q 'HTTP/1.1 200' && echo 'HTTP response headers are correct' || echo 'HTTP response headers test failed'"
       ]
     exitCode: 0
     expectedOutput:
@@ -131,7 +131,7 @@ commandTests:
     args:
       [
         "-c",
-        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s http://localhost:80/index.html | grep -q '<html' && echo 'Static file serving works' || echo 'Static file serving test failed'"
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s http://localhost:8080/index.html | grep -q '<html' && echo 'Static file serving works' || echo 'Static file serving test failed'"
       ]
     exitCode: 0
     expectedOutput:
@@ -142,7 +142,7 @@ commandTests:
     args:
       [
         "-c",
-        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s -w '%{http_code}' http://localhost:80/nonexistent.html | grep -q '404' && echo '404 error handling works' || echo '404 error handling test failed'"
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s -w '%{http_code}' http://localhost:8080/nonexistent.html | grep -q '404' && echo '404 error handling works' || echo '404 error handling test failed'"
       ]
     exitCode: 0
     expectedOutput:
