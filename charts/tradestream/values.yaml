@@ -403,3 +403,46 @@ strategyMonitorUi:
     limits:
       cpu: "200m"
       memory: "256Mi"
+
+# CI-specific resource configurations for GitHub runners
+# These are optimized for limited resources in CI environment
+ciResources:
+  # Reduced resource requirements for CI environment
+  postgresql:
+    resources:
+      requests:
+        cpu: "200m"      # Reduced from 500m
+        memory: "512Mi"  # Reduced from 1Gi
+      limits:
+        cpu: "500m"      # Reduced from 1
+        memory: "1Gi"    # Reduced from 2Gi
+  
+  kafka:
+    replicaCount: 1      # Reduced from 3 for CI
+    resources:
+      requests:
+        cpu: "200m"
+        memory: "512Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+  
+  redis:
+    resources:
+      requests:
+        cpu: "50m"       # Reduced from 100m
+        memory: "64Mi"   # Reduced from 128Mi
+      limits:
+        cpu: "100m"      # Reduced from 150m
+        memory: "128Mi"  # Reduced from 192Mi
+  
+  influxdb:
+    persistence:
+      size: 5Gi          # Reduced from 20Gi for CI
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "250m"
+        memory: "512Mi"
