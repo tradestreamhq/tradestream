@@ -30,7 +30,10 @@ commandTests:
   - name: "Nginx configuration test"
     command: "/bin/sh"
     args:
-      ["-c", "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -t 2>&1"]
+      [
+        "-c",
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -t 2>&1",
+      ]
     exitCode: 0
     expectedOutput:
       - "nginx: configuration file /etc/nginx/nginx.conf test is successful"
@@ -72,11 +75,7 @@ commandTests:
 
   - name: "User permissions test"
     command: "/bin/sh"
-    args:
-      [
-        "-c",
-        "echo 'Running as user:' $(whoami); echo 'User ID:' $(id -u)",
-      ]
+    args: ["-c", "echo 'Running as user:' $(whoami); echo 'User ID:' $(id -u)"]
     exitCode: 0
     expectedOutput:
       - "Running as user:"
@@ -84,10 +83,10 @@ commandTests:
 
   - name: "Nginx process test"
     command: "/bin/sh"
-    args: 
+    args:
       [
-        "-c", 
-        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 2 && if pgrep nginx >/dev/null; then echo 'Nginx process is running'; else echo 'Nginx process not found'; fi"
+        "-c",
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 2 && if pgrep nginx >/dev/null; then echo 'Nginx process is running'; else echo 'Nginx process not found'; fi",
       ]
     exitCode: 0
     expectedOutput:
@@ -97,8 +96,8 @@ commandTests:
     command: "/bin/sh"
     args:
       [
-        "-c", 
-        "nginx -g 'daemon off;' & sleep 3 && curl -f http://localhost:80/ >/dev/null 2>&1 && echo 'Web server is accessible' || echo 'Web server test failed'"
+        "-c",
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -f http://localhost:8080/ >/dev/null 2>&1 && echo 'Web server is accessible' || echo 'Web server test failed'",
       ]
     exitCode: 0
     expectedOutput:
@@ -109,7 +108,7 @@ commandTests:
     args:
       [
         "-c",
-        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s http://localhost:80/ | grep -q '<html' && echo 'HTML content is valid' || echo 'HTML content validation failed'"
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s http://localhost:8080/ | grep -q '<html' && echo 'HTML content is valid' || echo 'HTML content validation failed'",
       ]
     exitCode: 0
     expectedOutput:
@@ -120,7 +119,7 @@ commandTests:
     args:
       [
         "-c",
-        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -I http://localhost:80/ | grep -q 'HTTP/1.1 200' && echo 'HTTP response headers are correct' || echo 'HTTP response headers test failed'"
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -I http://localhost:8080/ | grep -q 'HTTP/1.1 200' && echo 'HTTP response headers are correct' || echo 'HTTP response headers test failed'",
       ]
     exitCode: 0
     expectedOutput:
@@ -131,7 +130,7 @@ commandTests:
     args:
       [
         "-c",
-        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s http://localhost:80/index.html | grep -q '<html' && echo 'Static file serving works' || echo 'Static file serving test failed'"
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s http://localhost:8080/index.html | grep -q '<html' && echo 'Static file serving works' || echo 'Static file serving test failed'",
       ]
     exitCode: 0
     expectedOutput:
@@ -142,7 +141,7 @@ commandTests:
     args:
       [
         "-c",
-        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s -w '%{http_code}' http://localhost:80/nonexistent.html | grep -q '404' && echo '404 error handling works' || echo '404 error handling test failed'"
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -s -w '%{http_code}' http://localhost:8080/nonexistent.html | grep -q '404' && echo '404 error handling works' || echo '404 error handling test failed'",
       ]
     exitCode: 0
     expectedOutput:
