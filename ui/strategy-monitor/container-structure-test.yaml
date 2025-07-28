@@ -97,7 +97,7 @@ commandTests:
     args:
       [
         "-c",
-        "nginx -g 'daemon off;' & sleep 3 && curl -f http://localhost:8080/ >/dev/null 2>&1 && echo 'Web server is accessible' || echo 'Web server test failed'",
+        "cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && nginx -g 'daemon off;' & sleep 3 && curl -f http://localhost:8080/ >/dev/null 2>&1 && echo 'Web server is accessible' || echo 'Web server test failed'",
       ]
     exitCode: 0
     expectedOutput:
