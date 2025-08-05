@@ -222,6 +222,8 @@ jobs:
         run: |
           set -eo pipefail
           helm dependency update charts/tradestream
+          # Test with minimal services first to isolate issues
+          # TODO: Consider adding a dry-run mode or testing individual services
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
             --set candleIngestor.image.repository=candle-ingestor \
@@ -247,10 +249,26 @@ jobs:
             --set strategyMonitorUi.enabled=true \
             --set influxdb.enabled=true
 
+      - name: Debug - Check pod status
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -A
+          echo "=== Pod Details ==="
+          kubectl describe pods --all-namespaces
+          echo "=== Events ==="
+          kubectl get events --sort-by='.lastTimestamp'
+        
       - name: Wait for Deployment
         run: |
-          set -eo pipefail
-          kubectl wait --for=condition=Ready -n tradestream-namespace pod --all --timeout=300s
+          echo "=== Waiting for pods to be ready ==="
+          # Wait for pods with more detailed output
+          kubectl wait --for=condition=ready pod --all --timeout=300s --verbose || {
+            echo "=== Pods not ready after 300s, showing detailed status ==="
+            kubectl get pods -A -o wide
+            kubectl describe pods --all-namespaces
+            kubectl get events --all-namespaces --sort-by='.lastTimestamp' | tail -20
+            exit 1
+          }
 
       - name: Monitor CronJobs
         run: |
