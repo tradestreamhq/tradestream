@@ -6,6 +6,9 @@ build --java_language_version=17
 build --tool_java_runtime_version=remotejdk_17
 build --tool_java_language_version=17
 
+build --experimental_disk_cache_gc_max_size=32G
+build --experimental_disk_cache_gc_max_age=14d
+
 # Enable platform-based toolchain resolution
 build --incompatible_enable_cc_toolchain_resolution
 
