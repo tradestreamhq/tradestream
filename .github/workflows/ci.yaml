@@ -168,7 +168,7 @@ jobs:
         run: |
           set -eo pipefail
           echo "=== LOADING IMAGES INTO MINIKUBE ==="
-          
+
           # Find all tar files in the images directory structure
           find images -name "*.tar" -type f | while read -r tar; do
             echo "Processing: $tar"

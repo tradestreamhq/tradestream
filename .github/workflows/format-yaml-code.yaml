@@ -36,3 +36,9 @@ jobs:
         uses: reviewdog/action-suggester@v1
         with:
           tool_name: prettier
+      - name: Fail if formatting issues found
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        run: |
+          echo "::error::YAML formatting issues detected. Please apply the suggested changes."
+          git diff --stat
+          exit 1
