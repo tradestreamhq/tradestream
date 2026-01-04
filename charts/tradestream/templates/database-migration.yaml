@@ -1,0 +1,80 @@
+{{- if .Values.databaseMigration.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "tradestream.fullname" . }}-db-migration
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: database-migration
+    release: {{ .Release.Name }}
+  annotations:
+    # Run before other workloads
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: {{ .Values.databaseMigration.ttlSecondsAfterFinished | default 300 }}
+  backoffLimit: {{ .Values.databaseMigration.backoffLimit | default 3 }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "tradestream.name" . }}
+        component: database-migration
+        release: {{ .Release.Name }}
+    spec:
+      restartPolicy: OnFailure
+      {{- if .Values.databaseMigration.initContainers }}
+      initContainers:
+        # Wait for PostgreSQL to be ready
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command: ['sh', '-c']
+          args:
+            - |
+              echo "Waiting for PostgreSQL at {{ tpl .Values.databaseMigration.database.host . }}:{{ .Values.databaseMigration.database.port }}..."
+              until nc -z {{ tpl .Values.databaseMigration.database.host . }} {{ .Values.databaseMigration.database.port }}; do
+                echo "PostgreSQL is unavailable - sleeping"
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+      {{- end }}
+      containers:
+        - name: flyway
+          image: "{{ .Values.databaseMigration.image.repository }}:{{ .Values.databaseMigration.image.tag }}"
+          imagePullPolicy: {{ .Values.databaseMigration.image.pullPolicy | default "IfNotPresent" }}
+          args:
+            - migrate
+          env:
+            - name: FLYWAY_URL
+              value: "jdbc:postgresql://{{ tpl .Values.databaseMigration.database.host . }}:{{ .Values.databaseMigration.database.port }}/{{ .Values.databaseMigration.database.database }}"
+            - name: FLYWAY_USER
+              value: "{{ .Values.databaseMigration.database.username }}"
+            - name: FLYWAY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.databaseMigration.database.passwordSecret.name . }}
+                  key: {{ .Values.databaseMigration.database.passwordSecret.key }}
+            - name: FLYWAY_BASELINE_ON_MIGRATE
+              value: "{{ .Values.databaseMigration.baselineOnMigrate | default "true" }}"
+            - name: FLYWAY_BASELINE_VERSION
+              value: "{{ .Values.databaseMigration.baselineVersion | default "0" }}"
+            - name: FLYWAY_LOCATIONS
+              value: "filesystem:/flyway/sql"
+            - name: FLYWAY_CONNECT_RETRIES
+              value: "{{ .Values.databaseMigration.connectRetries | default 60 }}"
+            {{- if .Values.databaseMigration.outOfOrder }}
+            - name: FLYWAY_OUT_OF_ORDER
+              value: "true"
+            {{- end }}
+          volumeMounts:
+            - name: migrations
+              mountPath: /flyway/sql
+              readOnly: true
+          resources:
+            {{- toYaml .Values.databaseMigration.resources | nindent 12 }}
+      volumes:
+        - name: migrations
+          configMap:
+            name: {{ include "tradestream.fullname" . }}-db-migrations
+{{- end }}

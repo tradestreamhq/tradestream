@@ -238,6 +238,42 @@ postgresql:
       limits:
         cpu: "1"
         memory: "2Gi"
+
+# Database Migration configuration (Flyway)
+databaseMigration:
+  enabled: true
+  image:
+    repository: "flyway/flyway"
+    tag: "10.22-alpine"
+    pullPolicy: IfNotPresent
+  # Wait for PostgreSQL before running migrations
+  initContainers: true
+  # Flyway configuration
+  baselineOnMigrate: "true"
+  baselineVersion: "0"
+  connectRetries: 60
+  outOfOrder: false
+  # Database connection (reuses PostgreSQL config)
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  # Resource limits
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+  # Job configuration
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+
 # Top Crypto Updater CronJob configuration
 topCryptoUpdaterCronjob:
   enabled: true
