@@ -30,3 +30,9 @@ jobs:
         uses: reviewdog/action-suggester@v1
         with:
           tool_name: blackfmt
+      - name: Fail if formatting issues found
+        if: steps.check_formatted.outputs.files_changed == 'true'
+        run: |
+          echo "::error::Python formatting issues detected. Please apply the suggested changes."
+          git diff --stat
+          exit 1
