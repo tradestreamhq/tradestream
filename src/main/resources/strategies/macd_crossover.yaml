@@ -1,0 +1,47 @@
+name: MACD_CROSSOVER
+description: MACD crosses Signal Line
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.macdcrossover.MacdCrossoverStrategyFactory
+
+indicators:
+  - id: macd
+    type: MACD
+    input: close
+    params:
+      shortPeriod: "${shortEmaPeriod}"
+      longPeriod: "${longEmaPeriod}"
+  - id: signal
+    type: EMA
+    input: macd
+    params:
+      period: "${signalPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: macd
+    params:
+      crosses: signal
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: macd
+    params:
+      crosses: signal
+
+parameters:
+  - name: shortEmaPeriod
+    type: INTEGER
+    min: 8
+    max: 16
+    defaultValue: 12
+  - name: longEmaPeriod
+    type: INTEGER
+    min: 20
+    max: 32
+    defaultValue: 26
+  - name: signalPeriod
+    type: INTEGER
+    min: 5
+    max: 12
+    defaultValue: 9

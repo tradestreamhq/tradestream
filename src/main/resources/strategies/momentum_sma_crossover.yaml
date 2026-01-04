@@ -1,0 +1,41 @@
+name: MOMENTUM_SMA_CROSSOVER
+description: Momentum crosses its SMA
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.momentumsmacrossover.MomentumSmaCrossoverStrategyFactory
+
+indicators:
+  - id: momentum
+    type: ROC
+    input: close
+    params:
+      period: "${momentumPeriod}"
+  - id: momentumSma
+    type: SMA
+    input: momentum
+    params:
+      period: "${smaPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: momentum
+    params:
+      crosses: momentumSma
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: momentum
+    params:
+      crosses: momentumSma
+
+parameters:
+  - name: momentumPeriod
+    type: INTEGER
+    min: 5
+    max: 20
+    defaultValue: 10
+  - name: smaPeriod
+    type: INTEGER
+    min: 5
+    max: 30
+    defaultValue: 14

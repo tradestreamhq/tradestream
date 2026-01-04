@@ -1238,3 +1238,12 @@ message VariablePeriodEmaParameters {
   int32 minPeriod = 1;
   int32 maxPeriod = 2;
 }
+
+// Generic strategy parameters for configurable strategies.
+// Allows dynamic parameter passing from config-based strategies.
+message ConfigurableStrategyParameters {
+  // Map of parameter name to integer value
+  map<string, int32> intValues = 1;
+  // Map of parameter name to double value
+  map<string, double> doubleValues = 2;
+}

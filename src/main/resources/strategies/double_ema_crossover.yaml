@@ -1,0 +1,41 @@
+name: DOUBLE_EMA_CROSSOVER
+description: Short EMA crosses Long EMA
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.doubleemacrossover.DoubleEmaCrossoverStrategyFactory
+
+indicators:
+  - id: shortEma
+    type: EMA
+    input: close
+    params:
+      period: "${shortEmaPeriod}"
+  - id: longEma
+    type: EMA
+    input: close
+    params:
+      period: "${longEmaPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: shortEma
+    params:
+      crosses: longEma
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: shortEma
+    params:
+      crosses: longEma
+
+parameters:
+  - name: shortEmaPeriod
+    type: INTEGER
+    min: 5
+    max: 20
+    defaultValue: 10
+  - name: longEmaPeriod
+    type: INTEGER
+    min: 20
+    max: 50
+    defaultValue: 30

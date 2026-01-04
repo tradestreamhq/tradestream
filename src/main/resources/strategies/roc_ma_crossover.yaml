@@ -1,0 +1,41 @@
+name: ROC_MA_CROSSOVER
+description: Rate of Change crosses its Moving Average
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.rocma.RocMaCrossoverStrategyFactory
+
+indicators:
+  - id: roc
+    type: ROC
+    input: close
+    params:
+      period: "${rocPeriod}"
+  - id: rocMa
+    type: SMA
+    input: roc
+    params:
+      period: "${maPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: roc
+    params:
+      crosses: rocMa
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: roc
+    params:
+      crosses: rocMa
+
+parameters:
+  - name: rocPeriod
+    type: INTEGER
+    min: 5
+    max: 20
+    defaultValue: 10
+  - name: maPeriod
+    type: INTEGER
+    min: 5
+    max: 30
+    defaultValue: 14
