@@ -1,0 +1,57 @@
+name: RSI_EMA_CROSSOVER
+description: RSI crosses its EMA with overbought/oversold filters
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverStrategyFactory
+
+indicators:
+  - id: rsi
+    type: RSI
+    input: close
+    params:
+      period: "${rsiPeriod}"
+  - id: rsiEma
+    type: EMA
+    input: rsi
+    params:
+      period: "${emaPeriod}"
+  - id: overboughtLevel
+    type: CONSTANT
+    params:
+      value: 70
+  - id: oversoldLevel
+    type: CONSTANT
+    params:
+      value: 30
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: rsi
+    params:
+      crosses: rsiEma
+  - type: UNDER
+    indicator: rsi
+    params:
+      value: 70
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: rsi
+    params:
+      crosses: rsiEma
+  - type: OVER
+    indicator: rsi
+    params:
+      value: 30
+
+parameters:
+  - name: rsiPeriod
+    type: INTEGER
+    min: 7
+    max: 21
+    defaultValue: 14
+  - name: emaPeriod
+    type: INTEGER
+    min: 5
+    max: 20
+    defaultValue: 10

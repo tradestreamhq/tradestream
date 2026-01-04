@@ -1,0 +1,41 @@
+name: SMA_EMA_CROSSOVER
+description: Simple Moving Average crosses Exponential Moving Average
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.smaemacrossover.SmaEmaCrossoverStrategyFactory
+
+indicators:
+  - id: sma
+    type: SMA
+    input: close
+    params:
+      period: "${smaPeriod}"
+  - id: ema
+    type: EMA
+    input: close
+    params:
+      period: "${emaPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: sma
+    params:
+      crosses: ema
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: sma
+    params:
+      crosses: ema
+
+parameters:
+  - name: smaPeriod
+    type: INTEGER
+    min: 5
+    max: 50
+    defaultValue: 20
+  - name: emaPeriod
+    type: INTEGER
+    min: 5
+    max: 50
+    defaultValue: 50

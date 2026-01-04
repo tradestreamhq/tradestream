@@ -1,0 +1,59 @@
+name: TRIPLE_EMA_CROSSOVER
+description: Triple EMA crossover strategy using short, medium, and long periods
+complexity: MEDIUM
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.tripleemacrossover.TripleEmaCrossoverStrategyFactory
+
+indicators:
+  - id: shortEma
+    type: EMA
+    input: close
+    params:
+      period: "${shortEmaPeriod}"
+  - id: mediumEma
+    type: EMA
+    input: close
+    params:
+      period: "${mediumEmaPeriod}"
+  - id: longEma
+    type: EMA
+    input: close
+    params:
+      period: "${longEmaPeriod}"
+
+entryConditions:
+  - type: ABOVE
+    indicator: shortEma
+    params:
+      other: mediumEma
+  - type: ABOVE
+    indicator: mediumEma
+    params:
+      other: longEma
+
+exitConditions:
+  - type: BELOW
+    indicator: shortEma
+    params:
+      other: mediumEma
+  - type: BELOW
+    indicator: mediumEma
+    params:
+      other: longEma
+
+parameters:
+  - name: shortEmaPeriod
+    type: INTEGER
+    min: 5
+    max: 15
+    defaultValue: 8
+  - name: mediumEmaPeriod
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 21
+  - name: longEmaPeriod
+    type: INTEGER
+    min: 30
+    max: 60
+    defaultValue: 55

@@ -1,0 +1,41 @@
+name: CHAIKIN_OSCILLATOR
+description: Chaikin Oscillator crosses zero line
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.chaikinoscillator.ChaikinOscillatorStrategyFactory
+
+indicators:
+  - id: chaikin
+    type: CHAIKIN_OSCILLATOR
+    input: close
+    params:
+      shortPeriod: "${fastPeriod}"
+      longPeriod: "${slowPeriod}"
+  - id: zeroLine
+    type: CONSTANT
+    params:
+      value: 0
+
+entryConditions:
+  - type: CROSSES_ABOVE
+    indicator: chaikin
+    params:
+      value: 0
+
+exitConditions:
+  - type: CROSSES_BELOW
+    indicator: chaikin
+    params:
+      value: 0
+
+parameters:
+  - name: fastPeriod
+    type: INTEGER
+    min: 2
+    max: 5
+    defaultValue: 3
+  - name: slowPeriod
+    type: INTEGER
+    min: 8
+    max: 14
+    defaultValue: 10

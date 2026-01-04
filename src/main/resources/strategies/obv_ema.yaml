@@ -1,0 +1,35 @@
+name: OBV_EMA
+description: On Balance Volume crosses its EMA
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.obvema.ObvEmaStrategyFactory
+
+indicators:
+  - id: obv
+    type: OBV
+    input: close
+    params: {}
+  - id: obvEma
+    type: EMA
+    input: obv
+    params:
+      period: "${emaPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: obv
+    params:
+      crosses: obvEma
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: obv
+    params:
+      crosses: obvEma
+
+parameters:
+  - name: emaPeriod
+    type: INTEGER
+    min: 5
+    max: 30
+    defaultValue: 20
