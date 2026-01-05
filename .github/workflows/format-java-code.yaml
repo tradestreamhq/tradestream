@@ -11,12 +11,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Get changed Java files
+        id: changed-files
+        run: |
+          # Get list of changed Java files in this PR
+          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRT origin/main...HEAD | grep '\.java$' || true)
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "files=" >> $GITHUB_OUTPUT
+            echo "has_java_files=false" >> $GITHUB_OUTPUT
+          else
+            # Convert to space-separated list for the action
+            echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+            echo "has_java_files=true" >> $GITHUB_OUTPUT
+          fi
       - name: Format files using google-java-format
+        if: steps.changed-files.outputs.has_java_files == 'true'
         uses: axel-op/googlejavaformat-action@v4
         with:
           args: "--replace"
           skip-commit: true
+          files: ${{ steps.changed-files.outputs.files }}
       - name: Check for changes
+        if: steps.changed-files.outputs.has_java_files == 'true'
         id: verify-changed-files
         run: |
           if [ -n "$(git status --porcelain)" ]; then
@@ -25,12 +43,12 @@ jobs:
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
       - name: Annotate diff changes using reviewdog
-        if: steps.verify-changed-files.outputs.changed == 'true'
+        if: steps.changed-files.outputs.has_java_files == 'true' && steps.verify-changed-files.outputs.changed == 'true'
         uses: reviewdog/action-suggester@v1
         with:
           tool_name: google-java-format
       - name: Fail if formatting issues found
-        if: steps.verify-changed-files.outputs.changed == 'true'
+        if: steps.changed-files.outputs.has_java_files == 'true' && steps.verify-changed-files.outputs.changed == 'true'
         run: |
           echo "::error::Java formatting issues detected. Please apply the suggested changes."
           git diff --stat
