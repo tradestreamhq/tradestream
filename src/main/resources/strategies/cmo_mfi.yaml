@@ -1,0 +1,47 @@
+name: CMO_MFI
+description: Chande Momentum Oscillator with Money Flow Index - momentum and volume confirmation
+complexity: MEDIUM
+source: MIGRATED
+sourceStrategy: com.verlumen.tradestream.strategies.cmomfi.CmoMfiStrategyFactory
+
+indicators:
+  - id: cmo
+    type: CMO
+    params:
+      period: "${cmoPeriod}"
+  - id: mfi
+    type: MFI
+    params:
+      period: "${mfiPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP_CONSTANT
+    indicator: cmo
+    params:
+      threshold: 0
+  - type: UNDER_CONSTANT
+    indicator: mfi
+    params:
+      threshold: 20
+
+exitConditions:
+  - type: CROSSED_DOWN_CONSTANT
+    indicator: cmo
+    params:
+      threshold: 0
+  - type: OVER_CONSTANT
+    indicator: mfi
+    params:
+      threshold: 80
+
+parameters:
+  - name: cmoPeriod
+    type: INTEGER
+    min: 7
+    max: 21
+    defaultValue: 14
+  - name: mfiPeriod
+    type: INTEGER
+    min: 7
+    max: 21
+    defaultValue: 14

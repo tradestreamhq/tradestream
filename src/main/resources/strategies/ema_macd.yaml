@@ -1,0 +1,46 @@
+name: EMA_MACD
+description: EMA-based MACD - enters when MACD crosses above signal line
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlumen.tradestream.strategies.emamacd.EmaMacdStrategyFactory
+
+indicators:
+  - id: macd
+    type: MACD
+    params:
+      shortPeriod: "${shortEmaPeriod}"
+      longPeriod: "${longEmaPeriod}"
+  - id: signalLine
+    type: EMA
+    input: macd
+    params:
+      period: "${signalPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: macd
+    params:
+      crosses: signalLine
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: macd
+    params:
+      crosses: signalLine
+
+parameters:
+  - name: shortEmaPeriod
+    type: INTEGER
+    min: 8
+    max: 16
+    defaultValue: 12
+  - name: longEmaPeriod
+    type: INTEGER
+    min: 20
+    max: 32
+    defaultValue: 26
+  - name: signalPeriod
+    type: INTEGER
+    min: 6
+    max: 12
+    defaultValue: 9

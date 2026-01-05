@@ -1,0 +1,36 @@
+name: AWESOME_OSCILLATOR
+description: Awesome Oscillator zero-line crossover - enters when AO crosses above zero
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.awesomeoscillator.AwesomeOscillatorStrategyFactory
+
+indicators:
+  - id: ao
+    type: AWESOME_OSCILLATOR
+    params:
+      shortPeriod: "${shortPeriod}"
+      longPeriod: "${longPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP_CONSTANT
+    indicator: ao
+    params:
+      threshold: 0
+
+exitConditions:
+  - type: CROSSED_DOWN_CONSTANT
+    indicator: ao
+    params:
+      threshold: 0
+
+parameters:
+  - name: shortPeriod
+    type: INTEGER
+    min: 3
+    max: 10
+    defaultValue: 5
+  - name: longPeriod
+    type: INTEGER
+    min: 20
+    max: 50
+    defaultValue: 34

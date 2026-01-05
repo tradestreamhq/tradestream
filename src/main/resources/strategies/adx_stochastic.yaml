@@ -1,0 +1,57 @@
+name: ADX_STOCHASTIC
+description: ADX trend filter with Stochastic Oscillator - enters on strong trends when oversold
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.adxstochastic.AdxStochasticStrategyFactory
+
+indicators:
+  - id: adx
+    type: ADX
+    params:
+      period: "${adxPeriod}"
+  - id: stochasticK
+    type: STOCHASTIC_K
+    params:
+      period: "${stochasticKPeriod}"
+
+entryConditions:
+  - type: OVER_CONSTANT
+    indicator: adx
+    params:
+      threshold: 20
+  - type: UNDER_CONSTANT
+    indicator: stochasticK
+    params:
+      threshold: "${oversoldThreshold}"
+
+exitConditions:
+  - type: UNDER_CONSTANT
+    indicator: adx
+    params:
+      threshold: 20
+  - type: OVER_CONSTANT
+    indicator: stochasticK
+    params:
+      threshold: "${overboughtThreshold}"
+
+parameters:
+  - name: adxPeriod
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 14
+  - name: stochasticKPeriod
+    type: INTEGER
+    min: 5
+    max: 21
+    defaultValue: 14
+  - name: overboughtThreshold
+    type: INTEGER
+    min: 70
+    max: 90
+    defaultValue: 80
+  - name: oversoldThreshold
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20

@@ -1,0 +1,30 @@
+name: CMF_ZERO_LINE
+description: Chaikin Money Flow zero-line crossover - enters when CMF crosses above zero
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.cmfzeroline.CmfZeroLineStrategyFactory
+
+indicators:
+  - id: cmf
+    type: CMF
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP_CONSTANT
+    indicator: cmf
+    params:
+      threshold: 0
+
+exitConditions:
+  - type: CROSSED_DOWN_CONSTANT
+    indicator: cmf
+    params:
+      threshold: 0
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20

@@ -1,0 +1,47 @@
+name: ADX_DMI
+description: ADX with Directional Movement Index - trades strong trends when +DI crosses -DI
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.adxdmi.AdxDmiStrategyFactory
+
+indicators:
+  - id: adx
+    type: ADX
+    params:
+      period: "${adxPeriod}"
+  - id: plusDI
+    type: PLUS_DI
+    params:
+      period: "${diPeriod}"
+  - id: minusDI
+    type: MINUS_DI
+    params:
+      period: "${diPeriod}"
+
+entryConditions:
+  - type: OVER_CONSTANT
+    indicator: adx
+    params:
+      threshold: 25
+  - type: CROSSED_UP
+    indicator: plusDI
+    params:
+      crosses: minusDI
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: plusDI
+    params:
+      crosses: minusDI
+
+parameters:
+  - name: adxPeriod
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 14
+  - name: diPeriod
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 14

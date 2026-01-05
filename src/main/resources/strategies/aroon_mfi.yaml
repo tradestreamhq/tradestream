@@ -1,0 +1,61 @@
+name: AROON_MFI
+description: Aroon with Money Flow Index - enters on Aroon Up crossing Down when oversold
+complexity: MEDIUM
+source: MIGRATED
+sourceStrategy: com.verlumen.tradestream.strategies.aroonmfi.AroonMfiStrategyFactory
+
+indicators:
+  - id: aroonUp
+    type: AROON_UP
+    params:
+      period: "${aroonPeriod}"
+  - id: aroonDown
+    type: AROON_DOWN
+    params:
+      period: "${aroonPeriod}"
+  - id: mfi
+    type: MFI
+    params:
+      period: "${mfiPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: aroonUp
+    params:
+      crosses: aroonDown
+  - type: UNDER_CONSTANT
+    indicator: mfi
+    params:
+      threshold: "${oversoldThreshold}"
+
+exitConditions:
+  - type: OVER_INDICATOR
+    indicator: aroonUp
+    params:
+      other: aroonDown
+  - type: OVER_CONSTANT
+    indicator: mfi
+    params:
+      threshold: "${overboughtThreshold}"
+
+parameters:
+  - name: aroonPeriod
+    type: INTEGER
+    min: 15
+    max: 35
+    defaultValue: 25
+  - name: mfiPeriod
+    type: INTEGER
+    min: 7
+    max: 21
+    defaultValue: 14
+  - name: overboughtThreshold
+    type: INTEGER
+    min: 70
+    max: 90
+    defaultValue: 80
+  - name: oversoldThreshold
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20

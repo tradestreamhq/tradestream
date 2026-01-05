@@ -1,0 +1,36 @@
+name: DONCHIAN_BREAKOUT
+description: Donchian Channel breakout - enters when price breaks above highest high
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.donchianbreakout.DonchianBreakoutStrategyFactory
+
+indicators:
+  - id: closePrice
+    type: CLOSE_PRICE
+  - id: upperChannel
+    type: HIGHEST_HIGH
+    params:
+      period: "${donchianPeriod}"
+  - id: lowerChannel
+    type: LOWEST_LOW
+    params:
+      period: "${donchianPeriod}"
+
+entryConditions:
+  - type: OVER_INDICATOR
+    indicator: closePrice
+    params:
+      other: upperChannel
+
+exitConditions:
+  - type: UNDER_INDICATOR
+    indicator: closePrice
+    params:
+      other: lowerChannel
+
+parameters:
+  - name: donchianPeriod
+    type: INTEGER
+    min: 10
+    max: 50
+    defaultValue: 20

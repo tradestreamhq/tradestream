@@ -1,0 +1,32 @@
+name: PRICE_GAP
+description: Price Gap with EMA - enters when price crosses above EMA
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlumen.tradestream.strategies.pricegap.PriceGapStrategyFactory
+
+indicators:
+  - id: closePrice
+    type: CLOSE_PRICE
+  - id: ema
+    type: EMA
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: closePrice
+    params:
+      crosses: ema
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: closePrice
+    params:
+      crosses: ema
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 5
+    max: 20
+    defaultValue: 10

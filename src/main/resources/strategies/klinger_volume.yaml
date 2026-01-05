@@ -1,0 +1,46 @@
+name: KLINGER_VOLUME
+description: Klinger Volume Oscillator with signal line - volume-based trend indicator
+complexity: MEDIUM
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.klingervolume.KlingerVolumeStrategyFactory
+
+indicators:
+  - id: kvo
+    type: KLINGER_VOLUME_OSCILLATOR
+    params:
+      shortPeriod: "${shortPeriod}"
+      longPeriod: "${longPeriod}"
+  - id: signalLine
+    type: EMA
+    input: kvo
+    params:
+      period: "${signalPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: kvo
+    params:
+      crosses: signalLine
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: kvo
+    params:
+      crosses: signalLine
+
+parameters:
+  - name: shortPeriod
+    type: INTEGER
+    min: 5
+    max: 20
+    defaultValue: 10
+  - name: longPeriod
+    type: INTEGER
+    min: 20
+    max: 50
+    defaultValue: 35
+  - name: signalPeriod
+    type: INTEGER
+    min: 5
+    max: 15
+    defaultValue: 10

@@ -1,0 +1,40 @@
+name: MASS_INDEX
+description: Mass Index reversal bulge strategy - identifies trend reversals via range expansion
+complexity: MEDIUM
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.massindex.MassIndexStrategyFactory
+
+indicators:
+  - id: massIndex
+    type: MASS_INDEX
+    params:
+      emaPeriod: "${emaPeriod}"
+      sumPeriod: "${sumPeriod}"
+
+entryConditions:
+  - type: CROSSED_DOWN_CONSTANT
+    indicator: massIndex
+    params:
+      threshold: 26.5
+
+exitConditions:
+  - type: CROSSED_UP_CONSTANT
+    indicator: massIndex
+    params:
+      threshold: 27
+  - type: CROSSED_DOWN_CONSTANT
+    indicator: massIndex
+    params:
+      threshold: 25
+
+parameters:
+  - name: emaPeriod
+    type: INTEGER
+    min: 5
+    max: 15
+    defaultValue: 9
+  - name: sumPeriod
+    type: INTEGER
+    min: 15
+    max: 35
+    defaultValue: 25
