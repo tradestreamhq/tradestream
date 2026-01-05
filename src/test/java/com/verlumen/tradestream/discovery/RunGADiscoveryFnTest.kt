@@ -91,7 +91,7 @@ private class StubGenotypeConverter :
 
     override fun convertToParameters(
         genotype: Genotype<*>,
-        strategyType: StrategyType,
+        strategyName: String,
     ): Any =
         Any.pack(
             SmaRsiParameters

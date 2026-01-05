@@ -28,10 +28,9 @@ class FitnessFunctionFactoryImpl
         ): FitnessFunction =
             Function { genotype ->
                 try {
-                    // Convert string to StrategyType for genotypeConverter (until #1511 is done)
-                    val strategyType = StrategyType.valueOf(strategyName)
-                    val params: Any = genotypeConverter.convertToParameters(genotype, strategyType)
-                    val backtestRequest: BacktestRequest = createBacktestRequest(strategyName, strategyType, candles, params)
+                    // Convert genotype to strategy parameters using string-based lookup
+                    val params: Any = genotypeConverter.convertToParameters(genotype, strategyName)
+                    val backtestRequest: BacktestRequest = createBacktestRequest(strategyName, candles, params)
                     val result: BacktestResult = backtestRunner.runBacktest(backtestRequest)
                     result.strategyScore
                 } catch (e: Exception) {
@@ -43,11 +42,12 @@ class FitnessFunctionFactoryImpl
 
         private fun createBacktestRequest(
             strategyName: String,
-            strategyType: StrategyType,
             candles: List<Candle>,
             params: Any,
-        ): BacktestRequest =
-            backtestRequestFactory.create(
+        ): BacktestRequest {
+            // Convert string to StrategyType for backwards compatibility in Strategy proto
+            val strategyType = StrategyType.valueOf(strategyName)
+            return backtestRequestFactory.create(
                 candles,
                 Strategy
                     .newBuilder()
@@ -56,4 +56,5 @@ class FitnessFunctionFactoryImpl
                     .setParameters(params)
                     .build(),
             )
+        }
     }
