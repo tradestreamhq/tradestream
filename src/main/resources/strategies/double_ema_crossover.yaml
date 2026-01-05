@@ -3,6 +3,7 @@ description: Short EMA crosses Long EMA
 complexity: SIMPLE
 source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.doubleemacrossover.DoubleEmaCrossoverStrategyFactory
+parameterMessageType: com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters
 
 indicators:
   - id: shortEma

@@ -15,6 +15,8 @@ public class StrategyConfigLoaderTest {
           + "source: MIGRATED\n"
           + "sourceStrategy:"
           + " com.verlum.tradestream.strategies.smaemacrossover.SmaEmaCrossoverStrategyFactory\n"
+          + "parameterMessageType:"
+          + " com.verlumen.tradestream.strategies.SmaEmaCrossoverParameters\n"
           + "\n"
           + "indicators:\n"
           + "  - id: sma\n"
@@ -62,6 +64,9 @@ public class StrategyConfigLoaderTest {
         "Simple Moving Average crosses Exponential Moving Average", config.getDescription());
     assertEquals("SIMPLE", config.getComplexity());
     assertEquals("MIGRATED", config.getSource());
+    assertEquals(
+        "com.verlumen.tradestream.strategies.SmaEmaCrossoverParameters",
+        config.getParameterMessageType());
   }
 
   @Test
@@ -164,6 +169,7 @@ public class StrategyConfigLoaderTest {
     assertEquals(original.getDescription(), restored.getDescription());
     assertEquals(original.getComplexity(), restored.getComplexity());
     assertEquals(original.getSource(), restored.getSource());
+    assertEquals(original.getParameterMessageType(), restored.getParameterMessageType());
     assertEquals(original.getIndicators().size(), restored.getIndicators().size());
     assertEquals(original.getEntryConditions().size(), restored.getEntryConditions().size());
     assertEquals(original.getExitConditions().size(), restored.getExitConditions().size());

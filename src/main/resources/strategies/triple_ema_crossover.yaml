@@ -3,6 +3,7 @@ description: Triple EMA crossover strategy using short, medium, and long periods
 complexity: MEDIUM
 source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.tripleemacrossover.TripleEmaCrossoverStrategyFactory
+parameterMessageType: com.verlumen.tradestream.strategies.TripleEmaCrossoverParameters
 
 indicators:
   - id: shortEma
