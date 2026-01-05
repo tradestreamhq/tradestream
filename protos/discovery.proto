@@ -19,7 +19,8 @@ message StrategyDiscoveryRequest {
   string symbol = 1;                            // Trading symbol (e.g., "BTCUSDT", "AAPL")
   google.protobuf.Timestamp start_time = 2;     // Inclusive start time for market data
   google.protobuf.Timestamp end_time = 3;       // Exclusive end time for market data
-  strategies.StrategyType strategy_type = 4;    // Specifies the primary type of strategy to discover
+  // Deprecated: Use strategy_name instead for new code.
+  strategies.StrategyType strategy_type = 4 [deprecated = true];
   int32 top_n = 5;                              // Number of top strategies to return
 
   // Configuration for the optimization algorithm.
@@ -27,6 +28,10 @@ message StrategyDiscoveryRequest {
     GAConfig ga_config = 6; // Configuration if using Genetic Algorithm
     // Example: OtherOptimizerConfig another_optimizer_config = 7;
   }
+
+  // String-based strategy name identifier (e.g., "MACD_CROSSOVER", "SMA_RSI").
+  // During migration, set both strategy_type and strategy_name for compatibility.
+  string strategy_name = 8;
 }
 
 // Represents a discovered strategy, including its full definition, achieved score,

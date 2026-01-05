@@ -14,6 +14,10 @@ from protos.discovery_pb2 import StrategyDiscoveryRequest, GAConfig
 from protos.strategies_pb2 import StrategyType
 from google.protobuf.timestamp_pb2 import Timestamp
 
+from services.strategy_discovery_request_factory.strategy_registry import (
+    get_supported_strategy_names,
+)
+
 
 class StrategyDiscoveryProcessor:
     """
@@ -81,15 +85,17 @@ class StrategyDiscoveryProcessor:
             start_time_proto = Timestamp()
             start_time_proto.FromDatetime(start_datetime_utc)
 
-            strategy_types = [
-                st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED
-            ]
-            for strategy_type in strategy_types:
+            # Get strategy names from configuration registry
+            strategy_names = get_supported_strategy_names()
+            for strategy_name in strategy_names:
+                # Set both strategy_type (deprecated) and strategy_name for backwards compatibility
+                strategy_type = StrategyType.Value(strategy_name)
                 request = StrategyDiscoveryRequest(
                     symbol=currency_pair,
                     start_time=start_time_proto,
                     end_time=end_time_proto,
-                    strategy_type=strategy_type,
+                    strategy_type=strategy_type,  # Deprecated, kept for migration
+                    strategy_name=strategy_name,  # New string-based identifier
                     top_n=self.default_top_n,
                     ga_config=GAConfig(
                         max_generations=self.default_max_generations,

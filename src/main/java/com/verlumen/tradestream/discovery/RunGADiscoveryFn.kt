@@ -46,10 +46,17 @@ class RunGADiscoveryFn :
     @ProcessElement
     fun processElement(context: ProcessContext) {
         val discoveryRequest = context.element()
+        // Prefer strategy_name if set, fallback to strategyType.name for backwards compatibility
+        val strategyName =
+            if (discoveryRequest.strategyName.isNotEmpty()) {
+                discoveryRequest.strategyName
+            } else {
+                discoveryRequest.strategyType.name
+            }
         logger.atInfo().log(
-            "Processing StrategyDiscoveryRequest for symbol: %s, type: %s",
+            "Processing StrategyDiscoveryRequest for symbol: %s, strategy: %s",
             discoveryRequest.symbol,
-            discoveryRequest.strategyType,
+            strategyName,
         )
 
         // 1) Fetch candles
@@ -68,7 +75,7 @@ class RunGADiscoveryFn :
         // 2) Build GAEngineParams using string-based strategy name
         val engineParams =
             GAEngineParams(
-                strategyName = discoveryRequest.strategyType.name,
+                strategyName = strategyName,
                 candlesList = candles,
                 populationSize = discoveryRequest.gaConfig.populationSize,
             )
@@ -129,7 +136,7 @@ class RunGADiscoveryFn :
                 try {
                     genotypeConverter.convertToParameters(
                         bestGenotype, // Pass Genotype<*>
-                        discoveryRequest.strategyType,
+                        strategyName, // Use string-based API
                     )
                 } catch (e: Exception) {
                     logger.atWarning().withCause(e).log("Failed to convert genotype to parameters for %s", discoveryRequest.symbol)
@@ -139,7 +146,8 @@ class RunGADiscoveryFn :
             val strategyProto =
                 Strategy
                     .newBuilder()
-                    .setType(discoveryRequest.strategyType)
+                    .setType(discoveryRequest.strategyType) // Keep for backwards compatibility
+                    .setStrategyName(strategyName) // Set new string-based field
                     .setParameters(strategyParamsAny)
                     .build()
 
