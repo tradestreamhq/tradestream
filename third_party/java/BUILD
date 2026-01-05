@@ -352,3 +352,11 @@ java_library(
         "@tradestream_maven//:org_json_json",
     ],
 )
+
+java_library(
+    name = "snakeyaml",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:org_yaml_snakeyaml",
+    ],
+)

@@ -94,6 +94,7 @@ maven.install(
         "org.knowm.xchange:xchange-stream-coinbasepro:5.2.0",
         "org.postgresql:postgresql:42.7.6",
         "org.ta4j:ta4j-core:0.17",
+        "org.yaml:snakeyaml:2.2",
 
         # Test Dependencies
         "com.google.inject.extensions:guice-testlib:7.0.0",
