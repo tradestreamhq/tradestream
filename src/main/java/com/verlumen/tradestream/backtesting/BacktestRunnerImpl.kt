@@ -2,8 +2,7 @@ package com.verlumen.tradestream.backtesting
 
 import com.google.inject.Inject
 import com.google.protobuf.InvalidProtocolBufferException
-import com.verlumen.tradestream.strategies.createStrategy
-import com.verlumen.tradestream.strategies.isSupported
+import com.verlumen.tradestream.strategies.StrategySpecs
 import com.verlumen.tradestream.ta4j.BarSeriesFactory
 import org.ta4j.core.AnalysisCriterion
 import org.ta4j.core.BarSeries
@@ -28,17 +27,25 @@ class BacktestRunnerImpl
         @Throws(InvalidProtocolBufferException::class)
         override fun runBacktest(request: BacktestRequest): BacktestResult {
             require(request.candlesList.isNotEmpty()) { "Bar series cannot be empty" }
-            require(request.strategy.type.isSupported()) { "Strategy type ${request.strategy.type} is not supported" }
+
+            // Extract strategy name, preferring strategyName field with fallback to type.name for backwards compatibility
+            val strategyName = request.strategy.strategyName.ifEmpty { request.strategy.type.name }
+
+            require(StrategySpecs.isSupported(strategyName)) { "Strategy type $strategyName is not supported" }
             require(
                 request.strategy.hasParameters() &&
                     !request.strategy.parameters.typeUrl
                         .isEmpty(),
             ) {
-                "Strategy must have valid parameters. Use getDefaultParameters(strategyType) to get defaults for ${request.strategy.type}"
+                "Strategy must have valid parameters. Use getDefaultParameters(strategyType) to get defaults for $strategyName"
             }
 
             val series = barSeriesFactory.createBarSeries(request.candlesList)
-            val strategy = request.strategy.type.createStrategy(series, request.strategy.parameters)
+            val strategy =
+                StrategySpecs
+                    .getSpec(strategyName)
+                    .strategyFactory
+                    .createStrategy(series, request.strategy.parameters)
 
             // Run the strategy
             val tradingRecord = runStrategy(series, strategy)

@@ -1,18 +1,18 @@
 package com.verlumen.tradestream.backtesting;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.verlumen.tradestream.strategies.StrategySpecsKt.getDefaultParameters;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.Timestamps;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.Strategy;
-import com.verlumen.tradestream.strategies.StrategyType;
+import com.verlumen.tradestream.strategies.StrategySpecs;
 import com.verlumen.tradestream.ta4j.Ta4jModule;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ public class BacktestRunnerImplTest {
     BacktestRequest request =
         BacktestRequest.newBuilder()
             .addAllCandles(ImmutableList.of()) // Empty candles list
-            .setStrategy(createStrategyWithDefaults(StrategyType.SMA_RSI))
+            .setStrategy(createStrategyWithDefaults("SMA_RSI"))
             .build();
 
     // Act & Assert
@@ -70,7 +70,7 @@ public class BacktestRunnerImplTest {
     BacktestRequest request =
         BacktestRequest.newBuilder()
             .addAllCandles(candlesList)
-            .setStrategy(createStrategyWithDefaults(StrategyType.SMA_RSI))
+            .setStrategy(createStrategyWithDefaults("SMA_RSI"))
             .build();
 
     // Act
@@ -98,7 +98,7 @@ public class BacktestRunnerImplTest {
     BacktestRequest request =
         BacktestRequest.newBuilder()
             .addAllCandles(candlesList)
-            .setStrategy(createStrategyWithDefaults(StrategyType.SMA_RSI))
+            .setStrategy(createStrategyWithDefaults("SMA_RSI"))
             .build();
 
     // Act
@@ -124,7 +124,7 @@ public class BacktestRunnerImplTest {
     BacktestRequest request =
         BacktestRequest.newBuilder()
             .addAllCandles(candlesList)
-            .setStrategy(createStrategyWithDefaults(StrategyType.SMA_RSI))
+            .setStrategy(createStrategyWithDefaults("SMA_RSI"))
             .build();
 
     // Act
@@ -145,7 +145,7 @@ public class BacktestRunnerImplTest {
     BacktestRequest request =
         BacktestRequest.newBuilder()
             .addAllCandles(candlesList)
-            .setStrategy(createStrategyWithDefaults(StrategyType.SMA_RSI))
+            .setStrategy(createStrategyWithDefaults("SMA_RSI"))
             .build();
 
     // Act
@@ -164,7 +164,7 @@ public class BacktestRunnerImplTest {
     addTestBarsForOversoldRecovery();
 
     // Create strategy without parameters (like the original failing tests)
-    Strategy strategyWithoutParams = Strategy.newBuilder().setType(StrategyType.SMA_RSI).build();
+    Strategy strategyWithoutParams = Strategy.newBuilder().setStrategyName("SMA_RSI").build();
 
     BacktestRequest request =
         BacktestRequest.newBuilder()
@@ -181,12 +181,13 @@ public class BacktestRunnerImplTest {
     assertThat(thrown).hasMessageThat().contains("SMA_RSI");
   }
 
-  // Helper method to create properly configured strategies
-  private Strategy createStrategyWithDefaults(StrategyType strategyType) {
+  // Helper method to create properly configured strategies using string-based names
+  private Strategy createStrategyWithDefaults(String strategyName) {
     return Strategy.newBuilder()
-        .setType(strategyType)
+        .setStrategyName(strategyName)
         .setParameters(
-            getDefaultParameters(strategyType)) // Kotlin extension function called from Java
+            Any.pack(
+                StrategySpecs.getSpec(strategyName).getStrategyFactory().getDefaultParameters()))
         .build();
   }
 
