@@ -2,7 +2,7 @@ package com.verlumen.tradestream.discovery;
 
 import com.google.inject.Inject;
 import com.verlumen.tradestream.strategies.StrategySpec;
-import com.verlumen.tradestream.strategies.StrategySpecsKt;
+import com.verlumen.tradestream.strategies.StrategySpecs;
 import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.Genotype;
@@ -33,7 +33,7 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
 
     // Build and return the GA engine with the specified settings
     return Engine.builder(
-            fitnessFunctionFactory.create(params.getStrategyType(), params.getCandlesList()), gtf)
+            fitnessFunctionFactory.create(params.getStrategyName(), params.getCandlesList()), gtf)
         .populationSize(getPopulationSize(params))
         .selector(new TournamentSelector<>(GAConstants.TOURNAMENT_SIZE))
         .alterers(
@@ -50,14 +50,14 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
    */
   private Genotype<?> createGenotype(GAEngineParams params) {
     try {
-      StrategySpec spec = StrategySpecsKt.getSpec(params.getStrategyType());
+      StrategySpec spec = StrategySpecs.getSpec(params.getStrategyName());
       ParamConfig config = spec.getParamConfig();
 
       // Get the chromosomes from the parameter configuration
       List<? extends NumericChromosome<?, ?>> numericChromosomes = config.initialChromosomes();
 
       if (numericChromosomes.isEmpty()) {
-        logger.warning("No chromosomes defined for strategy type: " + params.getStrategyType());
+        logger.warning("No chromosomes defined for strategy: " + params.getStrategyName());
         return Genotype.of(DoubleChromosome.of(0.0, 1.0));
       }
 
@@ -102,8 +102,8 @@ final class GAEngineFactoryImpl implements GAEngineFactory {
       }
     } catch (Exception e) {
       logger.warning(
-          "Error creating genotype for strategy type "
-              + params.getStrategyType()
+          "Error creating genotype for strategy "
+              + params.getStrategyName()
               + ": "
               + e.getMessage());
       // Fallback to a simple genotype with a single chromosome

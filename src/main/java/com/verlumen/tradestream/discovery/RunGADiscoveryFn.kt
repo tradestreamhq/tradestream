@@ -65,10 +65,10 @@ class RunGADiscoveryFn :
             return
         }
 
-        // 2) Build GAEngineParams
+        // 2) Build GAEngineParams using string-based strategy name
         val engineParams =
             GAEngineParams(
-                strategyType = discoveryRequest.strategyType,
+                strategyName = discoveryRequest.strategyType.name,
                 candlesList = candles,
                 populationSize = discoveryRequest.gaConfig.populationSize,
             )
