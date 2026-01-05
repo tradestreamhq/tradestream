@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.verlumen.tradestream.strategies
 
 import com.google.protobuf.Any
@@ -435,20 +437,100 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
     )
 
 /**
+ * Central registry for strategy specifications.
+ *
+ * Provides string-based lookup using the legacy strategySpecMap.
+ * Future phases will integrate with StrategyRegistry for YAML-based strategies.
+ *
+ * New code should use [StrategySpecs.getSpec] with string names.
+ * The [StrategyType] extension functions are deprecated.
+ */
+object StrategySpecs {
+    /**
+     * Gets the StrategySpec for the given strategy name.
+     *
+     * @param strategyName The name of the strategy (e.g., "MACD_CROSSOVER")
+     * @return The StrategySpec for the strategy
+     * @throws NoSuchElementException if the strategy is not found
+     */
+    @JvmStatic
+    fun getSpec(strategyName: String): StrategySpec {
+        val strategyType =
+            try {
+                StrategyType.valueOf(strategyName)
+            } catch (e: IllegalArgumentException) {
+                throw NoSuchElementException("Strategy not found: $strategyName")
+            }
+
+        return strategySpecMap[strategyType]
+            ?: throw NoSuchElementException("Strategy not found: $strategyName")
+    }
+
+    /**
+     * Gets the StrategySpec for the given strategy name, or null if not found.
+     *
+     * @param strategyName The name of the strategy
+     * @return The StrategySpec, or null if not found
+     */
+    @JvmStatic
+    fun getSpecOrNull(strategyName: String): StrategySpec? {
+        val strategyType =
+            try {
+                StrategyType.valueOf(strategyName)
+            } catch (e: IllegalArgumentException) {
+                return null
+            }
+
+        return strategySpecMap[strategyType]
+    }
+
+    /**
+     * Checks if a strategy with the given name is supported.
+     *
+     * @param strategyName The name of the strategy
+     * @return true if the strategy is available
+     */
+    @JvmStatic
+    fun isSupported(strategyName: String): Boolean = getSpecOrNull(strategyName) != null
+
+    /**
+     * Returns a list of all supported strategy names.
+     *
+     * @return List of strategy names, sorted alphabetically
+     */
+    @JvmStatic
+    fun getSupportedStrategyNames(): List<String> = strategySpecMap.keys.map { it.name }.sorted()
+
+    /**
+     * Returns the number of supported strategies.
+     *
+     * @return The count of all available strategies
+     */
+    @JvmStatic
+    fun size(): Int = strategySpecMap.size
+}
+
+/**
  * An extension property that retrieves the corresponding [StrategySpec] from the central map.
  *
  * @throws NotImplementedError if no spec is defined for the given strategy type.
  */
+@Deprecated(
+    message = "Use StrategySpecs.getSpec(strategyName) instead",
+    replaceWith = ReplaceWith("StrategySpecs.getSpec(this.name)"),
+)
 val StrategyType.spec: StrategySpec
-    get() =
-        strategySpecMap[this]
-            ?: throw NotImplementedError("No StrategySpec defined for strategy type: $this")
+    get() = StrategySpecs.getSpec(this.name)
 
 /**
  * An extension function that returns `true` if a [StrategySpec] has been
  * implemented for this [StrategyType] by checking for its key in the central map.
  */
-fun StrategyType.isSupported(): Boolean = strategySpecMap.containsKey(this)
+@Deprecated(
+    message = "Use StrategySpecs.isSupported(strategyName) instead",
+    replaceWith = ReplaceWith("StrategySpecs.isSupported(this.name)"),
+)
+fun StrategyType.isSupported(): Boolean = StrategySpecs.isSupported(this.name)
 
 /**
  * Extension function to create a new Ta4j Strategy instance using default parameters.
@@ -457,6 +539,14 @@ fun StrategyType.isSupported(): Boolean = strategySpecMap.containsKey(this)
  * @return a new instance of a Ta4j Strategy configured with the default parameters
  * @throws InvalidProtocolBufferException if there is an error unpacking the default parameters
  */
+@Deprecated(
+    message = "Use StrategySpecs.getSpec(strategyName).strategyFactory.createStrategy() instead",
+    replaceWith =
+        ReplaceWith(
+            "StrategySpecs.getSpec(this.name).strategyFactory.createStrategy(barSeries, " +
+                "Any.pack(StrategySpecs.getSpec(this.name).strategyFactory.getDefaultParameters()))",
+        ),
+)
 @Throws(InvalidProtocolBufferException::class)
 fun StrategyType.createStrategy(barSeries: BarSeries): Strategy = createStrategy(barSeries, getDefaultParameters())
 
@@ -468,11 +558,18 @@ fun StrategyType.createStrategy(barSeries: BarSeries): Strategy = createStrategy
  * @return a new instance of a Ta4j Strategy configured with the provided parameters
  * @throws InvalidProtocolBufferException if there is an error unpacking the parameters
  */
+@Deprecated(
+    message = "Use StrategySpecs.getSpec(strategyName).strategyFactory.createStrategy() instead",
+    replaceWith =
+        ReplaceWith(
+            "StrategySpecs.getSpec(this.name).strategyFactory.createStrategy(barSeries, parameters)",
+        ),
+)
 @Throws(InvalidProtocolBufferException::class)
 fun StrategyType.createStrategy(
     barSeries: BarSeries,
     parameters: Any,
-): Strategy = getStrategyFactory().createStrategy(barSeries, parameters)
+): Strategy = StrategySpecs.getSpec(this.name).strategyFactory.createStrategy(barSeries, parameters)
 
 /**
  * Extension function to retrieve the default configuration parameters for this strategy type.
@@ -482,7 +579,14 @@ fun StrategyType.createStrategy(
  *
  * @return an Any message containing the default parameters for this strategy type
  */
-fun StrategyType.getDefaultParameters(): Any = Any.pack(getStrategyFactory().getDefaultParameters())
+@Deprecated(
+    message = "Use StrategySpecs.getSpec(strategyName).strategyFactory.getDefaultParameters() instead",
+    replaceWith =
+        ReplaceWith(
+            "Any.pack(StrategySpecs.getSpec(this.name).strategyFactory.getDefaultParameters())",
+        ),
+)
+fun StrategyType.getDefaultParameters(): Any = Any.pack(StrategySpecs.getSpec(this.name).strategyFactory.getDefaultParameters())
 
 /**
  * Extension function to retrieve the StrategyFactory corresponding to this strategy type.
@@ -492,7 +596,11 @@ fun StrategyType.getDefaultParameters(): Any = Any.pack(getStrategyFactory().get
  *
  * @return the StrategyFactory associated with this strategy type
  */
-fun StrategyType.getStrategyFactory(): StrategyFactory<*> = this.spec.strategyFactory
+@Deprecated(
+    message = "Use StrategySpecs.getSpec(strategyName).strategyFactory instead",
+    replaceWith = ReplaceWith("StrategySpecs.getSpec(this.name).strategyFactory"),
+)
+fun StrategyType.getStrategyFactory(): StrategyFactory<*> = StrategySpecs.getSpec(this.name).strategyFactory
 
 /**
  * Returns a list of all supported strategy types.
@@ -502,4 +610,8 @@ fun StrategyType.getStrategyFactory(): StrategyFactory<*> = this.spec.strategyFa
  *
  * @return a list of supported StrategyType instances
  */
+@Deprecated(
+    message = "Use StrategySpecs.getSupportedStrategyNames() instead for string-based lookup",
+    replaceWith = ReplaceWith("StrategySpecs.getSupportedStrategyNames()"),
+)
 fun getSupportedStrategyTypes(): List<StrategyType> = strategySpecMap.keys.toList()
