@@ -13,9 +13,16 @@ py_library(
 )
 
 py_library(
+    name = "strategy_registry_lib",
+    srcs = ["strategy_registry.py"],
+    deps = [],
+)
+
+py_library(
     name = "strategy_discovery_processor_lib",
     srcs = ["strategy_discovery_processor.py"],
     deps = [
+        ":strategy_registry_lib",
         "//protos:discovery_py_proto",
         "//protos:strategies_py_proto",
         "//third_party/python:absl_py",
@@ -55,6 +62,14 @@ py_test(
     srcs = ["config_test.py"],
     deps = [
         ":config_lib",
+    ],
+)
+
+py_test(
+    name = "strategy_registry_test",
+    srcs = ["strategy_registry_test.py"],
+    deps = [
+        ":strategy_registry_lib",
     ],
 )
 

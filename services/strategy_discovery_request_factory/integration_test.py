@@ -16,6 +16,10 @@ from shared.persistence.influxdb_last_processed_tracker import (
 )
 
 
+# Test strategy names that match StrategyType enum values
+TEST_STRATEGY_NAMES = ["MACD_CROSSOVER", "SMA_RSI"]
+
+
 class StatelessIntegrationTest(unittest.TestCase):
     """Integration tests for stateless component interactions."""
 
@@ -30,6 +34,13 @@ class StatelessIntegrationTest(unittest.TestCase):
         self.mock_tracker_class = patch(
             "shared.persistence.influxdb_last_processed_tracker.InfluxDBLastProcessedTracker"
         ).start()
+
+        # Mock strategy registry to use test strategy names
+        self.mock_strategy_registry = patch(
+            "services.strategy_discovery_request_factory.strategy_discovery_processor."
+            "get_supported_strategy_names"
+        ).start()
+        self.mock_strategy_registry.return_value = TEST_STRATEGY_NAMES
 
         # Set up mock instances
         self.mock_producer_instance = Mock()
@@ -70,10 +81,7 @@ class StatelessIntegrationTest(unittest.TestCase):
         )
 
         # Verify requests were generated
-        expected_strategy_types = [
-            st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED
-        ]
-        expected_request_count = len(fibonacci_windows) * len(expected_strategy_types)
+        expected_request_count = len(fibonacci_windows) * len(TEST_STRATEGY_NAMES)
         self.assertEqual(len(discovery_requests), expected_request_count)
 
         # Publish all requests

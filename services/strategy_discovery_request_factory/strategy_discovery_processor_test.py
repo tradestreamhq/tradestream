@@ -2,6 +2,7 @@
 
 import unittest
 from datetime import datetime, timezone, timedelta
+from unittest import mock
 
 from protos.discovery_pb2 import StrategyDiscoveryRequest
 from protos.strategies_pb2 import StrategyType
@@ -9,6 +10,10 @@ from protos.strategies_pb2 import StrategyType
 from services.strategy_discovery_request_factory.strategy_discovery_processor import (
     StrategyDiscoveryProcessor,
 )
+
+
+# Test strategy names that match StrategyType enum values
+TEST_STRATEGY_NAMES = ["MACD_CROSSOVER", "SMA_RSI"]
 
 
 class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
@@ -51,8 +56,14 @@ class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
 
         self.assertEqual(actual_ms, expected_ms)
 
-    def test_generate_requests_empty_windows(self):
+    @mock.patch(
+        "services.strategy_discovery_request_factory.strategy_discovery_processor."
+        "get_supported_strategy_names"
+    )
+    def test_generate_requests_empty_windows(self, mock_get_strategies):
         """Test generating requests with empty fibonacci windows."""
+        mock_get_strategies.return_value = TEST_STRATEGY_NAMES
+
         processor = StrategyDiscoveryProcessor(
             default_top_n=5,
             default_max_generations=30,
@@ -68,8 +79,14 @@ class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
 
         self.assertEqual(len(requests), 0)
 
-    def test_generate_requests_single_window(self):
+    @mock.patch(
+        "services.strategy_discovery_request_factory.strategy_discovery_processor."
+        "get_supported_strategy_names"
+    )
+    def test_generate_requests_single_window(self, mock_get_strategies):
         """Test generating requests for a single window."""
+        mock_get_strategies.return_value = TEST_STRATEGY_NAMES
+
         processor = StrategyDiscoveryProcessor(
             default_top_n=5,
             default_max_generations=30,
@@ -85,25 +102,28 @@ class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
             fibonacci_windows_minutes=fibonacci_windows,
         )
 
-        # Number of strategy types (excluding UNSPECIFIED)
-        expected_strategy_types = [
-            st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED
-        ]
-        expected_count = len(expected_strategy_types)
-
+        # Number of requests = windows * strategy names
+        expected_count = len(fibonacci_windows) * len(TEST_STRATEGY_NAMES)
         self.assertEqual(len(requests), expected_count)
 
         # Verify request structure
         for request in requests:
             self.assertEqual(request.symbol, "BTC/USD")
             self.assertNotEqual(request.strategy_type, StrategyType.UNSPECIFIED)
+            self.assertIn(request.strategy_name, TEST_STRATEGY_NAMES)
             self.assertGreater(request.end_time.seconds, request.start_time.seconds)
             self.assertEqual(request.top_n, 5)
             self.assertEqual(request.ga_config.max_generations, 30)
             self.assertEqual(request.ga_config.population_size, 50)
 
-    def test_generate_requests_multiple_windows(self):
+    @mock.patch(
+        "services.strategy_discovery_request_factory.strategy_discovery_processor."
+        "get_supported_strategy_names"
+    )
+    def test_generate_requests_multiple_windows(self, mock_get_strategies):
         """Test generating requests for multiple windows."""
+        mock_get_strategies.return_value = TEST_STRATEGY_NAMES
+
         processor = StrategyDiscoveryProcessor(
             default_top_n=3,
             default_max_generations=20,
@@ -119,11 +139,7 @@ class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
             fibonacci_windows_minutes=fibonacci_windows,
         )
 
-        expected_strategy_types = [
-            st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED
-        ]
-        expected_count = len(fibonacci_windows) * len(expected_strategy_types)
-
+        expected_count = len(fibonacci_windows) * len(TEST_STRATEGY_NAMES)
         self.assertEqual(len(requests), expected_count)
 
         # Verify we have requests for all windows
@@ -136,8 +152,14 @@ class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
 
         self.assertEqual(sorted(unique_durations), sorted(fibonacci_windows))
 
-    def test_generate_requests_time_windows_accurate(self):
+    @mock.patch(
+        "services.strategy_discovery_request_factory.strategy_discovery_processor."
+        "get_supported_strategy_names"
+    )
+    def test_generate_requests_time_windows_accurate(self, mock_get_strategies):
         """Test that time windows are calculated accurately."""
+        mock_get_strategies.return_value = TEST_STRATEGY_NAMES
+
         processor = StrategyDiscoveryProcessor(
             default_top_n=1,
             default_max_generations=10,
@@ -168,8 +190,14 @@ class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
         expected_start_ms = int(expected_start_time.timestamp() * 1000)
         self.assertEqual(request.start_time.ToMilliseconds(), expected_start_ms)
 
-    def test_generate_requests_unsorted_windows(self):
+    @mock.patch(
+        "services.strategy_discovery_request_factory.strategy_discovery_processor."
+        "get_supported_strategy_names"
+    )
+    def test_generate_requests_unsorted_windows(self, mock_get_strategies):
         """Test that unsorted fibonacci windows are handled correctly."""
+        mock_get_strategies.return_value = TEST_STRATEGY_NAMES
+
         processor = StrategyDiscoveryProcessor(
             default_top_n=2,
             default_max_generations=15,
@@ -187,15 +215,17 @@ class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
         )
 
         # Should still generate requests for all windows
-        expected_strategy_types = [
-            st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED
-        ]
-        expected_count = len(fibonacci_windows) * len(expected_strategy_types)
-
+        expected_count = len(fibonacci_windows) * len(TEST_STRATEGY_NAMES)
         self.assertEqual(len(requests), expected_count)
 
-    def test_generate_requests_different_currency_pairs(self):
+    @mock.patch(
+        "services.strategy_discovery_request_factory.strategy_discovery_processor."
+        "get_supported_strategy_names"
+    )
+    def test_generate_requests_different_currency_pairs(self, mock_get_strategies):
         """Test generating requests for different currency pairs."""
+        mock_get_strategies.return_value = TEST_STRATEGY_NAMES
+
         processor = StrategyDiscoveryProcessor(
             default_top_n=1,
             default_max_generations=5,
@@ -221,8 +251,14 @@ class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
                 for request in requests:
                     self.assertEqual(request.symbol, pair)
 
-    def test_generate_requests_ga_config_values(self):
+    @mock.patch(
+        "services.strategy_discovery_request_factory.strategy_discovery_processor."
+        "get_supported_strategy_names"
+    )
+    def test_generate_requests_ga_config_values(self, mock_get_strategies):
         """Test that GA configuration values are correctly set."""
+        mock_get_strategies.return_value = TEST_STRATEGY_NAMES
+
         top_n = 7
         max_generations = 25
         population_size = 75
@@ -250,8 +286,14 @@ class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
             self.assertEqual(request.ga_config.max_generations, max_generations)
             self.assertEqual(request.ga_config.population_size, population_size)
 
-    def test_all_strategy_types_included(self):
-        """Test that all strategy types (except UNSPECIFIED) are included."""
+    @mock.patch(
+        "services.strategy_discovery_request_factory.strategy_discovery_processor."
+        "get_supported_strategy_names"
+    )
+    def test_all_configured_strategies_included(self, mock_get_strategies):
+        """Test that all configured strategy names are included in requests."""
+        mock_get_strategies.return_value = TEST_STRATEGY_NAMES
+
         processor = StrategyDiscoveryProcessor(
             default_top_n=1,
             default_max_generations=10,
@@ -267,19 +309,45 @@ class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
             fibonacci_windows_minutes=fibonacci_windows,
         )
 
-        # Get all strategy types from requests
-        request_strategy_types = {request.strategy_type for request in requests}
+        # Get all strategy names from requests
+        request_strategy_names = {request.strategy_name for request in requests}
 
-        # Get expected strategy types
-        expected_strategy_types = {
-            st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED
-        }
+        # Verify all configured strategies are included
+        self.assertEqual(request_strategy_names, set(TEST_STRATEGY_NAMES))
 
-        self.assertEqual(request_strategy_types, expected_strategy_types)
-
-        # Ensure UNSPECIFIED is not included
+        # Verify strategy_type matches strategy_name
         for request in requests:
-            self.assertNotEqual(request.strategy_type, StrategyType.UNSPECIFIED)
+            expected_type = StrategyType.Value(request.strategy_name)
+            self.assertEqual(request.strategy_type, expected_type)
+
+    @mock.patch(
+        "services.strategy_discovery_request_factory.strategy_discovery_processor."
+        "get_supported_strategy_names"
+    )
+    def test_strategy_name_field_is_set(self, mock_get_strategies):
+        """Test that the strategy_name field is set in generated requests."""
+        mock_get_strategies.return_value = ["MACD_CROSSOVER"]
+
+        processor = StrategyDiscoveryProcessor(
+            default_top_n=1,
+            default_max_generations=10,
+            default_population_size=20,
+        )
+
+        end_time = datetime.now(timezone.utc)
+        fibonacci_windows = [60]
+
+        requests = processor.generate_requests_for_timepoint(
+            currency_pair="BTC/USD",
+            window_end_time_utc=end_time,
+            fibonacci_windows_minutes=fibonacci_windows,
+        )
+
+        self.assertEqual(len(requests), 1)
+        self.assertEqual(requests[0].strategy_name, "MACD_CROSSOVER")
+        self.assertEqual(
+            requests[0].strategy_type, StrategyType.Value("MACD_CROSSOVER")
+        )
 
 
 if __name__ == "__main__":
