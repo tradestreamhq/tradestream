@@ -9,7 +9,7 @@ dependencies:
     repository: "https://downloads.apache.org/flink/flink-kubernetes-operator-1.10.0/"
     condition: flink-kubernetes-operator.enabled
   - name: kafka
-    version: 30.1.8
+    version: 32.4.3
     repository: https://charts.bitnami.com/bitnami
   - name: influxdb2
     version: 2.1.2
@@ -17,10 +17,10 @@ dependencies:
     alias: influxdb
     condition: influxdb.enabled
   - name: redis
-    version: "21.1.6"
+    version: "24.1.0"
     repository: "oci://registry-1.docker.io/bitnamicharts"
     condition: redis.enabled
   - name: postgresql
-    version: "16.4.2"
+    version: "18.2.0"
     repository: "https://charts.bitnami.com/bitnami"
     condition: postgresql.enabled
