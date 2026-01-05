@@ -265,8 +265,10 @@ jobs:
           set -eo pipefail
           helm dependency update charts/tradestream
           # Skip Flink operator since we installed it separately
+          # Use longer timeout for db migration and other post-install hooks
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
+            --timeout 10m \
             --set flink-kubernetes-operator.enabled=false \
             --set candleIngestor.image.repository=candle-ingestor \
             --set candleIngestor.image.tag=latest \
