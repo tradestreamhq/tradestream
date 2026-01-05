@@ -28,7 +28,7 @@ interface FitnessFunctionFactory : Serializable {
      */
     @Deprecated(
         message = "Use create(strategyName: String, candles) instead",
-        replaceWith = ReplaceWith("create(strategyType.name, candles)")
+        replaceWith = ReplaceWith("create(strategyType.name, candles)"),
     )
     fun create(
         strategyType: StrategyType,

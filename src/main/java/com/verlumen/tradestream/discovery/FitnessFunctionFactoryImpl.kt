@@ -51,8 +51,8 @@ class FitnessFunctionFactoryImpl
                 candles,
                 Strategy
                     .newBuilder()
-                    .setType(strategyType)  // Keep for backwards compatibility
-                    .setStrategyName(strategyName)  // New string-based identifier
+                    .setType(strategyType) // Keep for backwards compatibility
+                    .setStrategyName(strategyName) // New string-based identifier
                     .setParameters(params)
                     .build(),
             )
