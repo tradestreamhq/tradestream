@@ -38,7 +38,7 @@ java_library(
 container_structure_test(
     name = "container_test",
     configs = ["container-structure-test.yaml"],
-    image = ":strategy_discovery_pipeline_tarball",
+    image = ":image",
     tags = [
         "no-coverage",
         "requires-docker",
@@ -353,6 +353,16 @@ kt_jvm_library(
 tar(
     name = "layer",
     srcs = [":app_deploy.jar"],
+    mtree = [
+        "src type=dir",
+        "src/main type=dir",
+        "src/main/java type=dir",
+        "src/main/java/com type=dir",
+        "src/main/java/com/verlumen type=dir",
+        "src/main/java/com/verlumen/tradestream type=dir",
+        "src/main/java/com/verlumen/tradestream/discovery type=dir",
+        "src/main/java/com/verlumen/tradestream/discovery/app_deploy.jar type=file content=$(location :app_deploy.jar)",
+    ],
 )
 
 java_library(
