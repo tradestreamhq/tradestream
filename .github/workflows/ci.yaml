@@ -218,12 +218,58 @@ jobs:
           kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
           kubectl wait --for=condition=Available -n cert-manager deployment/cert-manager-webhook --timeout=120s
 
+      - name: Install Flink Operator First
+        run: |
+          set -eo pipefail
+          echo "=== INSTALLING FLINK OPERATOR SEPARATELY ==="
+          # Add the Flink Helm repo
+          helm repo add flink-operator https://downloads.apache.org/flink/flink-kubernetes-operator-1.10.0/
+          helm repo update
+
+          # Install Flink operator first
+          helm install flink-kubernetes-operator flink-operator/flink-kubernetes-operator \
+            --namespace tradestream-namespace \
+            --wait \
+            --timeout 300s
+
+          echo "✅ Flink operator installed"
+
+      - name: Wait for Flink Webhook
+        run: |
+          set -eo pipefail
+          echo "=== WAITING FOR FLINK WEBHOOK ==="
+
+          # Wait for webhook deployment to be ready
+          kubectl wait --for=condition=Available \
+            -n tradestream-namespace \
+            deployment/flink-kubernetes-operator \
+            --timeout=120s
+
+          # Wait for webhook endpoint to be ready
+          echo "Waiting for webhook endpoint to be available..."
+          for i in {1..30}; do
+            if kubectl get endpoints -n tradestream-namespace flink-operator-webhook-service -o jsonpath='{.subsets[*].addresses[*].ip}' | grep -q .; then
+              echo "✅ Webhook endpoint is ready"
+              break
+            fi
+            echo "Waiting for webhook endpoint... ($i/30)"
+            sleep 5
+          done
+
+          # Give it a few extra seconds to be fully operational
+          sleep 10
+          echo "✅ Flink webhook should now be ready"
+
       - name: Install TradeStream Helm Chart
         run: |
           set -eo pipefail
           helm dependency update charts/tradestream
+          # Skip Flink operator since we installed it separately
+          # Use longer timeout for db migration and other post-install hooks
           helm install my-tradestream charts/tradestream \
             --namespace tradestream-namespace \
+            --timeout 10m \
+            --set flink-kubernetes-operator.enabled=false \
             --set candleIngestor.image.repository=candle-ingestor \
             --set candleIngestor.image.tag=latest \
             --set topCryptoUpdaterCronjob.image.repository=top-crypto-updater \
