@@ -38,8 +38,11 @@ java_library(
 container_structure_test(
     name = "container_test",
     configs = ["container-structure-test.yaml"],
-    image = ":image",
-    tags = ["requires-docker"],
+    image = ":strategy_discovery_pipeline_tarball",
+    tags = [
+        "no-coverage",
+        "requires-docker",
+    ],
 )
 
 kt_jvm_library(
