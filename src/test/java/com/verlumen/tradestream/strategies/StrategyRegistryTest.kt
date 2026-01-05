@@ -9,7 +9,6 @@ import org.junit.runners.JUnit4
 /** Tests for StrategyRegistry. */
 @RunWith(JUnit4::class)
 class StrategyRegistryTest {
-
     @Test
     fun fromConfigs_createsRegistryWithStrategies() {
         val config1 = createTestConfig("STRATEGY_A")
@@ -119,8 +118,9 @@ class StrategyRegistryTest {
     }
 
     /** Creates a minimal test StrategyConfig. */
-    private fun createTestConfig(name: String): StrategyConfig {
-        return StrategyConfig.builder()
+    private fun createTestConfig(name: String): StrategyConfig =
+        StrategyConfig
+            .builder()
             .name(name)
             .description("Test strategy $name")
             .complexity("SIMPLE")
@@ -130,5 +130,4 @@ class StrategyRegistryTest {
             .exitConditions(emptyList())
             .parameters(emptyList())
             .build()
-    }
 }

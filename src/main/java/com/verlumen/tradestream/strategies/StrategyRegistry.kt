@@ -6,7 +6,6 @@ import com.verlumen.tradestream.strategies.configurable.StrategyConfigLoader
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.logging.Level
 import java.util.logging.Logger
 
 /**
@@ -18,7 +17,7 @@ import java.util.logging.Logger
  * @property strategies The map of strategy names to their specifications
  */
 class StrategyRegistry private constructor(
-    private val strategies: Map<String, StrategySpec>
+    private val strategies: Map<String, StrategySpec>,
 ) {
     companion object {
         private val logger = Logger.getLogger(StrategyRegistry::class.java.name)
@@ -43,7 +42,8 @@ class StrategyRegistry private constructor(
                 throw IOException("Not a directory: $directoryPath")
             }
 
-            Files.list(path)
+            Files
+                .list(path)
                 .filter { Files.isRegularFile(it) }
                 .filter { it.fileName.toString().endsWith(".yaml") || it.fileName.toString().endsWith(".yml") }
                 .forEach { filePath ->
@@ -59,7 +59,7 @@ class StrategyRegistry private constructor(
 
                         if (strategies.containsKey(strategyName)) {
                             throw IllegalStateException(
-                                "Duplicate strategy name '$strategyName' found in ${filePath.fileName}"
+                                "Duplicate strategy name '$strategyName' found in ${filePath.fileName}",
                             )
                         }
 
@@ -67,7 +67,8 @@ class StrategyRegistry private constructor(
                         logger.info("Loaded strategy: $strategyName from ${filePath.fileName}")
                     } catch (e: Exception) {
                         throw IllegalStateException(
-                            "Failed to load strategy from ${filePath.fileName}: ${e.message}", e
+                            "Failed to load strategy from ${filePath.fileName}: ${e.message}",
+                            e,
                         )
                     }
                 }
@@ -93,8 +94,9 @@ class StrategyRegistry private constructor(
             val classLoader = StrategyRegistry::class.java.classLoader
 
             // Get resource URL to find all files in the directory
-            val resourceUrl = classLoader.getResource(resourcePath.removePrefix("/"))
-                ?: throw IllegalStateException("Resource path not found: $resourcePath")
+            val resourceUrl =
+                classLoader.getResource(resourcePath.removePrefix("/"))
+                    ?: throw IllegalStateException("Resource path not found: $resourcePath")
 
             val resourceDir = Path.of(resourceUrl.toURI())
 
@@ -102,7 +104,8 @@ class StrategyRegistry private constructor(
                 throw IllegalStateException("Resource path is not a directory: $resourcePath")
             }
 
-            Files.list(resourceDir)
+            Files
+                .list(resourceDir)
                 .filter { Files.isRegularFile(it) }
                 .filter { it.fileName.toString().endsWith(".yaml") || it.fileName.toString().endsWith(".yml") }
                 .forEach { filePath ->
@@ -119,7 +122,7 @@ class StrategyRegistry private constructor(
 
                         if (strategies.containsKey(strategyName)) {
                             throw IllegalStateException(
-                                "Duplicate strategy name '$strategyName' found in ${filePath.fileName}"
+                                "Duplicate strategy name '$strategyName' found in ${filePath.fileName}",
                             )
                         }
 
@@ -127,7 +130,8 @@ class StrategyRegistry private constructor(
                         logger.info("Loaded strategy: $strategyName from classpath ${filePath.fileName}")
                     } catch (e: Exception) {
                         throw IllegalStateException(
-                            "Failed to load strategy from ${filePath.fileName}: ${e.message}", e
+                            "Failed to load strategy from ${filePath.fileName}: ${e.message}",
+                            e,
                         )
                     }
                 }
@@ -156,8 +160,9 @@ class StrategyRegistry private constructor(
             val strategies = mutableMapOf<String, StrategySpec>()
 
             for (config in configs) {
-                val strategyName = config.name
-                    ?: throw IllegalStateException("Strategy config has no name")
+                val strategyName =
+                    config.name
+                        ?: throw IllegalStateException("Strategy config has no name")
 
                 if (strategies.containsKey(strategyName)) {
                     throw IllegalStateException("Duplicate strategy name: $strategyName")
@@ -188,10 +193,9 @@ class StrategyRegistry private constructor(
      * @return The StrategySpec for the strategy
      * @throws NoSuchElementException if the strategy is not found
      */
-    fun getSpec(strategyName: String): StrategySpec {
-        return strategies[strategyName]
+    fun getSpec(strategyName: String): StrategySpec =
+        strategies[strategyName]
             ?: throw NoSuchElementException("Strategy not found: $strategyName")
-    }
 
     /**
      * Gets the StrategySpec for the given strategy name, or null if not found.
