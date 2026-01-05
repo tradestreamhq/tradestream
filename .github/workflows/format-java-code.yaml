@@ -13,26 +13,44 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+      - name: Download google-java-format
+        run: |
+          wget -q https://github.com/google/google-java-format/releases/download/v1.24.0/google-java-format-1.24.0-all-deps.jar \
+            -O /tmp/google-java-format.jar
       - name: Get changed Java files
         id: changed-files
         run: |
-          # Get list of changed Java files in this PR (space-separated, single line)
-          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRT origin/main...HEAD | grep '\.java$' | tr '\n' ' ' | sed 's/ $//' || true)
+          # Get list of changed Java files in this PR
+          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRT origin/main...HEAD | grep '\.java$' || true)
           if [ -z "$CHANGED_FILES" ]; then
-            echo "files=" >> $GITHUB_OUTPUT
             echo "has_java_files=false" >> $GITHUB_OUTPUT
           else
-            # Output space-separated list for the action
-            echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
             echo "has_java_files=true" >> $GITHUB_OUTPUT
+            # Save files to a temp file for later use
+            echo "$CHANGED_FILES" > /tmp/changed_java_files.txt
+            echo "Found changed Java files:"
+            cat /tmp/changed_java_files.txt
           fi
-      - name: Format files using google-java-format
+      - name: Format changed Java files
         if: steps.changed-files.outputs.has_java_files == 'true'
-        uses: axel-op/googlejavaformat-action@v4
-        with:
-          args: "--replace"
-          skip-commit: true
-          files: ${{ steps.changed-files.outputs.files }}
+        run: |
+          # Format each changed file
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              echo "Formatting: $file"
+              java --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
+                   --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
+                   --add-exports jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
+                   --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
+                   --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
+                   -jar /tmp/google-java-format.jar --replace "$file"
+            fi
+          done < /tmp/changed_java_files.txt
       - name: Check for changes
         if: steps.changed-files.outputs.has_java_files == 'true'
         id: verify-changed-files
