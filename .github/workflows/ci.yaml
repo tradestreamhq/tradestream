@@ -270,6 +270,7 @@ jobs:
             --namespace tradestream-namespace \
             --timeout 10m \
             --set flink-kubernetes-operator.enabled=false \
+            --set databaseMigration.enabled=false \
             --set candleIngestor.image.repository=candle-ingestor \
             --set candleIngestor.image.tag=latest \
             --set topCryptoUpdaterCronjob.image.repository=top-crypto-updater \
