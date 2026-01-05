@@ -1,3 +1,8 @@
+# Flink Kubernetes Operator - controls whether to install the operator as a dependency
+# Set to false if installing the operator separately (e.g., for webhook timing issues)
+flink-kubernetes-operator:
+  enabled: true
+
 influxdb:
   enabled: true
   # Authentication configuration
