@@ -1,6 +1,6 @@
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push", "oci_load")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_load", "oci_push")
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 
 # Static content files (only web assets)
@@ -8,7 +8,7 @@ filegroup(
     name = "static_files",
     srcs = glob([
         "*.html",
-        "*.js", 
+        "*.js",
         "*.css",
     ]),
 )
@@ -18,7 +18,7 @@ filegroup(
     name = "dev_files",
     srcs = glob([
         "*.html",
-        "*.js", 
+        "*.js",
         "*.css",
         "*.md",
         "*.sh",
@@ -33,7 +33,7 @@ tar(
 
 # Custom nginx configuration
 tar(
-    name = "nginx_config_tar", 
+    name = "nginx_config_tar",
     srcs = ["nginx.conf"],
 )
 
@@ -49,8 +49,8 @@ py_binary(
 py_binary(
     name = "app",
     srcs = ["http_server.py"],
-    main = "http_server.py",
     data = [":dev_files"],
+    main = "http_server.py",
     deps = [],
 )
 
@@ -70,13 +70,16 @@ py_test(
 oci_image(
     name = "strategy_monitor_ui",
     base = "@nginx_alpine",
+    cmd = ["cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && cp /ui/strategy-monitor/*.html /usr/share/nginx/html/ && nginx -g 'daemon off;'"],
+    entrypoint = [
+        "/bin/sh",
+        "-c",
+    ],
     tars = [
         ":static_tar",
         ":nginx_config_tar",
     ],
     workdir = "/usr/share/nginx/html",
-    entrypoint = ["/bin/sh", "-c"],
-    cmd = ["cp /ui/strategy-monitor/nginx.conf /etc/nginx/nginx.conf && cp /ui/strategy-monitor/*.html /usr/share/nginx/html/ && nginx -g 'daemon off;'"],
 )
 
 # OCI image index for multi-platform support

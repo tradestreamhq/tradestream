@@ -25,6 +25,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup buildifier
         uses: jbajic/setup-buildifier@v1
+        with:
+          buildifier-version: 8.2.1
       - name: Format files using buildifier
         run: buildifier --mode=fix -r .
       - name: Check for changes
