@@ -23,6 +23,11 @@ influxdb:
     enabled: true
     size: 20Gi
 kafka:
+  # Use bitnamilegacy repository since bitnami moved images there
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/kafka
+    tag: 4.0.0-debian-12-r10
   replicaCount: 3
   persistence:
     enabled: true
@@ -218,6 +223,11 @@ candleIngestor:
 # Redis configuration
 redis:
   enabled: true # Set to true to deploy Redis
+  # Use bitnamilegacy repository since bitnami moved images there
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/redis
+    tag: 8.2.1-debian-12-r0
   architecture: standalone # Use standalone for simplicity, can be changed to replication or sentinel
   auth:
     enabled: false # Disable password for simplicity, enable in production
@@ -227,9 +237,11 @@ redis:
 # PostgreSQL configuration
 postgresql:
   enabled: true
+  # Use bitnamilegacy repository since bitnami moved images there
   image:
-    # Pin to PostgreSQL 17 - the free Bitnami catalog only includes version 17
-    tag: "17"
+    registry: docker.io
+    repository: bitnamilegacy/postgresql
+    tag: 17.6.0-debian-12-r4
   auth:
     postgresPassword: "tradestream123" # Change this for production
     username: "postgres"
