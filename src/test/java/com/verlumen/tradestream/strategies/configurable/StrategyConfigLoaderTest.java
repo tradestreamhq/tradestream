@@ -12,9 +12,6 @@ public class StrategyConfigLoaderTest {
       "name: SMA_EMA_CROSSOVER\n"
           + "description: Simple Moving Average crosses Exponential Moving Average\n"
           + "complexity: SIMPLE\n"
-          + "source: MIGRATED\n"
-          + "sourceStrategy:"
-          + " com.verlum.tradestream.strategies.smaemacrossover.SmaEmaCrossoverStrategyFactory\n"
           + "parameterMessageType:"
           + " com.verlumen.tradestream.strategies.SmaEmaCrossoverParameters\n"
           + "\n"
@@ -63,7 +60,6 @@ public class StrategyConfigLoaderTest {
     assertEquals(
         "Simple Moving Average crosses Exponential Moving Average", config.getDescription());
     assertEquals("SIMPLE", config.getComplexity());
-    assertEquals("MIGRATED", config.getSource());
     assertEquals(
         "com.verlumen.tradestream.strategies.SmaEmaCrossoverParameters",
         config.getParameterMessageType());
@@ -143,8 +139,7 @@ public class StrategyConfigLoaderTest {
         "{"
             + "\"name\": \"SMA_EMA_CROSSOVER\","
             + "\"description\": \"Simple Moving Average crosses Exponential Moving Average\","
-            + "\"complexity\": \"SIMPLE\","
-            + "\"source\": \"MIGRATED\""
+            + "\"complexity\": \"SIMPLE\""
             + "}";
 
     StrategyConfig config = StrategyConfigLoader.parseJson(jsonContent);
@@ -154,7 +149,6 @@ public class StrategyConfigLoaderTest {
     assertEquals(
         "Simple Moving Average crosses Exponential Moving Average", config.getDescription());
     assertEquals("SIMPLE", config.getComplexity());
-    assertEquals("MIGRATED", config.getSource());
   }
 
   @Test
@@ -168,7 +162,6 @@ public class StrategyConfigLoaderTest {
     assertEquals(original.getName(), restored.getName());
     assertEquals(original.getDescription(), restored.getDescription());
     assertEquals(original.getComplexity(), restored.getComplexity());
-    assertEquals(original.getSource(), restored.getSource());
     assertEquals(original.getParameterMessageType(), restored.getParameterMessageType());
     assertEquals(original.getIndicators().size(), restored.getIndicators().size());
     assertEquals(original.getEntryConditions().size(), restored.getEntryConditions().size());
