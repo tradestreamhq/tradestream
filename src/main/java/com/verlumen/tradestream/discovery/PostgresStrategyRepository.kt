@@ -150,15 +150,12 @@ class PostgresStrategyRepository
                 com.google.protobuf.Any
                     .parseFrom(bytes)
 
-            // Build Strategy proto
+            // Build Strategy proto using string-based strategy name
             val strategy =
                 com.verlumen.tradestream.strategies.Strategy
                     .newBuilder()
-                    .setTypeValue(
-                        com.verlumen.tradestream.strategies.StrategyType
-                            .valueOf(strategyType)
-                            .number,
-                    ).setParameters(parametersAny)
+                    .setStrategyName(strategyType)
+                    .setParameters(parametersAny)
                     .build()
 
             // Build DiscoveredStrategy proto
