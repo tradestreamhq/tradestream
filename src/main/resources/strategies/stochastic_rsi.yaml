@@ -1,0 +1,54 @@
+name: STOCHASTIC_RSI
+description: Stochastic RSI - enters when oversold, exits when overbought
+complexity: MEDIUM
+source: MIGRATED
+sourceStrategy: com.verlumen.tradestream.strategies.stochasticsrsi.StochasticRsiStrategyFactory
+
+indicators:
+  - id: rsi
+    type: RSI
+    params:
+      period: "${rsiPeriod}"
+  - id: stochasticK
+    type: STOCHASTIC_K
+    params:
+      period: "${stochasticKPeriod}"
+
+entryConditions:
+  - type: OVER_CONSTANT
+    indicator: stochasticK
+    params:
+      threshold: "${oversoldThreshold}"
+
+exitConditions:
+  - type: UNDER_CONSTANT
+    indicator: stochasticK
+    params:
+      threshold: "${overboughtThreshold}"
+
+parameters:
+  - name: rsiPeriod
+    type: INTEGER
+    min: 7
+    max: 21
+    defaultValue: 14
+  - name: stochasticKPeriod
+    type: INTEGER
+    min: 7
+    max: 21
+    defaultValue: 14
+  - name: stochasticDPeriod
+    type: INTEGER
+    min: 2
+    max: 5
+    defaultValue: 3
+  - name: overboughtThreshold
+    type: INTEGER
+    min: 70
+    max: 90
+    defaultValue: 80
+  - name: oversoldThreshold
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20

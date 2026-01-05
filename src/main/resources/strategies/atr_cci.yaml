@@ -1,0 +1,52 @@
+name: ATR_CCI
+description: ATR volatility filter with CCI momentum - enters when CCI oversold and volatility rising
+complexity: SIMPLE
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.atrcci.AtrCciStrategyFactory
+
+indicators:
+  - id: atr
+    type: ATR
+    params:
+      period: "${atrPeriod}"
+  - id: cci
+    type: CCI
+    params:
+      period: "${cciPeriod}"
+  - id: previousAtr
+    type: PREVIOUS
+    params:
+      indicator: atr
+      n: 1
+
+entryConditions:
+  - type: OVER_CONSTANT
+    indicator: cci
+    params:
+      threshold: -100
+  - type: OVER_INDICATOR
+    indicator: atr
+    params:
+      other: previousAtr
+
+exitConditions:
+  - type: UNDER_CONSTANT
+    indicator: cci
+    params:
+      threshold: 100
+  - type: UNDER_INDICATOR
+    indicator: atr
+    params:
+      other: previousAtr
+
+parameters:
+  - name: atrPeriod
+    type: INTEGER
+    min: 7
+    max: 21
+    defaultValue: 14
+  - name: cciPeriod
+    type: INTEGER
+    min: 14
+    max: 28
+    defaultValue: 20

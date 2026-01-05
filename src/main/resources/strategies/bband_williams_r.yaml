@@ -1,0 +1,60 @@
+name: BBAND_WILLIAMS_R
+description: Bollinger Bands with Williams %R - enters at lower band when oversold
+complexity: MEDIUM
+source: MIGRATED
+sourceStrategy: com.verlum.tradestream.strategies.bbandwr.BbandWRStrategyFactory
+
+indicators:
+  - id: closePrice
+    type: CLOSE_PRICE
+  - id: bbUpper
+    type: BOLLINGER_UPPER
+    params:
+      period: "${bbandsPeriod}"
+      k: "${stdDevMultiplier}"
+  - id: bbLower
+    type: BOLLINGER_LOWER
+    params:
+      period: "${bbandsPeriod}"
+      k: "${stdDevMultiplier}"
+  - id: williamsR
+    type: WILLIAMS_R
+    params:
+      period: "${wrPeriod}"
+
+entryConditions:
+  - type: UNDER_INDICATOR
+    indicator: closePrice
+    params:
+      other: bbLower
+  - type: UNDER_CONSTANT
+    indicator: williamsR
+    params:
+      threshold: -80
+
+exitConditions:
+  - type: OVER_INDICATOR
+    indicator: closePrice
+    params:
+      other: bbUpper
+  - type: OVER_CONSTANT
+    indicator: williamsR
+    params:
+      threshold: -20
+
+parameters:
+  - name: bbandsPeriod
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20
+  - name: wrPeriod
+    type: INTEGER
+    min: 7
+    max: 21
+    defaultValue: 14
+  - name: stdDevMultiplier
+    type: DOUBLE
+    min: 1.5
+    max: 3.0
+    defaultValue: 2.0
