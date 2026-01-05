@@ -242,13 +242,26 @@ jobs:
             fi
           done
 
-          # Install Flink operator first
-          helm install flink-kubernetes-operator flink-operator/flink-kubernetes-operator \
-            --namespace tradestream-namespace \
-            --wait \
-            --timeout 300s
-
-          echo "✅ Flink operator installed"
+          # Install Flink operator with retry logic (Apache servers can be slow to serve charts)
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt $i/$MAX_RETRIES: Installing Flink operator..."
+            if helm install flink-kubernetes-operator flink-operator/flink-kubernetes-operator \
+              --namespace tradestream-namespace \
+              --wait \
+              --timeout 300s; then
+              echo "✅ Flink operator installed"
+              break
+            else
+              echo "⚠️ Helm install failed, attempt $i/$MAX_RETRIES"
+              if [ $i -eq $MAX_RETRIES ]; then
+                echo "❌ All retries exhausted for helm install"
+                exit 1
+              fi
+              # Clean up failed install before retry
+              helm uninstall flink-kubernetes-operator --namespace tradestream-namespace 2>/dev/null || true
+              sleep 30
+            fi
+          done
 
       - name: Wait for Flink Webhook
         run: |
