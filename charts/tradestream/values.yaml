@@ -1,3 +1,10 @@
+# Global settings - required for using bitnamilegacy images
+global:
+  security:
+    # Allow using bitnamilegacy images (Bitnami moved free images there)
+    # See: https://github.com/bitnami/charts/issues/30850
+    allowInsecureImages: true
+
 # Flink Kubernetes Operator - controls whether to install the operator as a dependency
 # Set to false if installing the operator separately (e.g., for webhook timing issues)
 flink-kubernetes-operator:
