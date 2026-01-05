@@ -46,7 +46,6 @@ public class ConfigurableStrategyFactoryTest {
             .name("SMA_EMA_CROSSOVER_CONFIG")
             .description("SMA crosses EMA - config based")
             .complexity("SIMPLE")
-            .source("CONFIG")
             .indicators(
                 List.of(
                     IndicatorConfig.builder()
@@ -121,7 +120,6 @@ public class ConfigurableStrategyFactoryTest {
             .name("RSI_OVERSOLD_OVERBOUGHT")
             .description("Buy when RSI oversold, sell when overbought")
             .complexity("SIMPLE")
-            .source("CONFIG")
             .indicators(
                 List.of(
                     IndicatorConfig.builder()
@@ -171,7 +169,6 @@ public class ConfigurableStrategyFactoryTest {
             .name("MACD_CROSSOVER_CONFIG")
             .description("MACD crosses signal line")
             .complexity("MEDIUM")
-            .source("CONFIG")
             .indicators(
                 List.of(
                     IndicatorConfig.builder()
@@ -243,7 +240,6 @@ public class ConfigurableStrategyFactoryTest {
             .name("CUSTOM_PARAM_TEST")
             .description("Test custom parameters")
             .complexity("SIMPLE")
-            .source("CONFIG")
             .indicators(
                 List.of(
                     IndicatorConfig.builder()

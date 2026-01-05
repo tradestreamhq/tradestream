@@ -65,7 +65,6 @@ public class ConfigBasedVsHardcodedValidationTest {
             .name("SMA_EMA_CROSSOVER_CONFIG")
             .description("Config-based SMA/EMA crossover for validation")
             .complexity("SIMPLE")
-            .source("CONFIG")
             .indicators(
                 List.of(
                     IndicatorConfig.builder()
@@ -168,7 +167,6 @@ public class ConfigBasedVsHardcodedValidationTest {
         "name: SMA_EMA_CROSSOVER\n"
             + "description: SMA crosses EMA\n"
             + "complexity: SIMPLE\n"
-            + "source: MIGRATED\n"
             + "\n"
             + "indicators:\n"
             + "  - id: sma\n"

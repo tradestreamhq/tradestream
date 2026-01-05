@@ -124,7 +124,6 @@ class StrategyRegistryTest {
             .name(name)
             .description("Test strategy $name")
             .complexity("SIMPLE")
-            .source("TEST")
             .indicators(emptyList())
             .entryConditions(emptyList())
             .exitConditions(emptyList())
