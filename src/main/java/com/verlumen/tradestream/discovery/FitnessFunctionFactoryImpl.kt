@@ -23,13 +23,15 @@ class FitnessFunctionFactoryImpl
         private val genotypeConverter: GenotypeConverter,
     ) : FitnessFunctionFactory {
         override fun create(
-            strategyType: StrategyType,
+            strategyName: String,
             candles: List<Candle>,
         ): FitnessFunction =
             Function { genotype ->
                 try {
+                    // Convert string to StrategyType for genotypeConverter (until #1511 is done)
+                    val strategyType = StrategyType.valueOf(strategyName)
                     val params: Any = genotypeConverter.convertToParameters(genotype, strategyType)
-                    val backtestRequest: BacktestRequest = createBacktestRequest(strategyType, candles, params)
+                    val backtestRequest: BacktestRequest = createBacktestRequest(strategyName, strategyType, candles, params)
                     val result: BacktestResult = backtestRunner.runBacktest(backtestRequest)
                     result.strategyScore
                 } catch (e: Exception) {
@@ -40,6 +42,7 @@ class FitnessFunctionFactoryImpl
             }
 
         private fun createBacktestRequest(
+            strategyName: String,
             strategyType: StrategyType,
             candles: List<Candle>,
             params: Any,
@@ -48,7 +51,8 @@ class FitnessFunctionFactoryImpl
                 candles,
                 Strategy
                     .newBuilder()
-                    .setType(strategyType)
+                    .setType(strategyType) // Keep for backwards compatibility
+                    .setStrategyName(strategyName) // New string-based identifier
                     .setParameters(params)
                     .build(),
             )

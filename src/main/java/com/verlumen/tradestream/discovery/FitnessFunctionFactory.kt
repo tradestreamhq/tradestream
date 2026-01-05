@@ -9,12 +9,29 @@ interface FitnessFunctionFactory : Serializable {
     /**
      * Creates a fitness function for the genetic algorithm.
      *
-     * @param strategyType the type of strategy to create a fitness function for
+     * @param strategyName the string name of the strategy (e.g., "MACD_CROSSOVER")
      * @param candles the list of candles (market data) to be used for fitness calculation
      * @return a function that evaluates the fitness of a genotype, returning a Double
      */
     fun create(
-        strategyType: StrategyType,
+        strategyName: String,
         candles: List<Candle>,
     ): FitnessFunction
+
+    /**
+     * Creates a fitness function for the genetic algorithm.
+     *
+     * @param strategyType the type of strategy to create a fitness function for
+     * @param candles the list of candles (market data) to be used for fitness calculation
+     * @return a function that evaluates the fitness of a genotype, returning a Double
+     * @deprecated Use create(strategyName: String, candles) instead
+     */
+    @Deprecated(
+        message = "Use create(strategyName: String, candles) instead",
+        replaceWith = ReplaceWith("create(strategyType.name, candles)"),
+    )
+    fun create(
+        strategyType: StrategyType,
+        candles: List<Candle>,
+    ): FitnessFunction = create(strategyType.name, candles)
 }
