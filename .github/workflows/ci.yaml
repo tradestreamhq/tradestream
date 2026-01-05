@@ -222,9 +222,25 @@ jobs:
         run: |
           set -eo pipefail
           echo "=== INSTALLING FLINK OPERATOR SEPARATELY ==="
-          # Add the Flink Helm repo
-          helm repo add flink-operator https://downloads.apache.org/flink/flink-kubernetes-operator-1.10.0/
-          helm repo update
+
+          # Add the Flink Helm repo with retry logic (Apache servers can be slow)
+          MAX_RETRIES=3
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt $i/$MAX_RETRIES: Adding Flink Helm repo..."
+            helm repo add flink-operator https://downloads.apache.org/flink/flink-kubernetes-operator-1.10.0/ || true
+            if helm repo update 2>&1 | tee /tmp/helm-update.log; then
+              echo "✅ Helm repo update succeeded"
+              break
+            else
+              echo "⚠️ Helm repo update failed, attempt $i/$MAX_RETRIES"
+              if [ $i -eq $MAX_RETRIES ]; then
+                echo "❌ All retries exhausted"
+                cat /tmp/helm-update.log
+                exit 1
+              fi
+              sleep 30
+            fi
+          done
 
           # Install Flink operator first
           helm install flink-kubernetes-operator flink-operator/flink-kubernetes-operator \
