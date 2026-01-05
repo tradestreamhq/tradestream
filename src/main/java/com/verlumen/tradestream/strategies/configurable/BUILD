@@ -72,6 +72,7 @@ java_library(
     deps = [
         ":config_pojos",
         "//third_party/java:gson",
+        "//third_party/java:snakeyaml",
     ],
 )
 

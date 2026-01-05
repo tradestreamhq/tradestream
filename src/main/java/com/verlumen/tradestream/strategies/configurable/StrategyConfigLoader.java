@@ -11,8 +11,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import org.yaml.snakeyaml.Yaml;
 
-/** Utility class for loading strategy configurations from JSON files. */
+/** Utility class for loading strategy configurations from JSON and YAML files. */
 public final class StrategyConfigLoader {
 
   private static final Gson GSON =
@@ -20,6 +22,8 @@ public final class StrategyConfigLoader {
           .registerTypeAdapter(ParameterType.class, new ParameterTypeAdapter())
           .setPrettyPrinting()
           .create();
+
+  private static final Yaml YAML = new Yaml();
 
   private StrategyConfigLoader() {}
 
@@ -39,6 +43,39 @@ public final class StrategyConfigLoader {
   }
 
   /**
+   * Loads a strategy configuration from a YAML file.
+   *
+   * @param path The path to the YAML file
+   * @return The loaded strategy configuration
+   */
+  public static StrategyConfig loadYaml(String path) {
+    try {
+      String content = Files.readString(Path.of(path), StandardCharsets.UTF_8);
+      return parseYaml(content);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to load YAML config from: " + path, e);
+    }
+  }
+
+  /**
+   * Loads a strategy configuration from a file, auto-detecting format based on extension.
+   *
+   * @param path The path to the config file (.json or .yaml/.yml)
+   * @return The loaded strategy configuration
+   */
+  public static StrategyConfig load(String path) {
+    String lowerPath = path.toLowerCase();
+    if (lowerPath.endsWith(".yaml") || lowerPath.endsWith(".yml")) {
+      return loadYaml(path);
+    } else if (lowerPath.endsWith(".json")) {
+      return loadJson(path);
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported file format. Use .json, .yaml, or .yml: " + path);
+    }
+  }
+
+  /**
    * Loads a strategy configuration from a JSON resource on the classpath.
    *
    * @param resourcePath The classpath resource path
@@ -54,6 +91,43 @@ public final class StrategyConfigLoader {
   }
 
   /**
+   * Loads a strategy configuration from a YAML resource on the classpath.
+   *
+   * @param resourcePath The classpath resource path
+   * @return The loaded strategy configuration
+   */
+  public static StrategyConfig loadYamlResource(String resourcePath) {
+    try (InputStream is = StrategyConfigLoader.class.getResourceAsStream(resourcePath)) {
+      if (is == null) {
+        throw new RuntimeException("Resource not found: " + resourcePath);
+      }
+      Map<String, Object> yamlMap = YAML.load(is);
+      String json = GSON.toJson(yamlMap);
+      return GSON.fromJson(json, StrategyConfig.class);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to load YAML config from resource: " + resourcePath, e);
+    }
+  }
+
+  /**
+   * Loads a strategy configuration from a resource, auto-detecting format based on extension.
+   *
+   * @param resourcePath The classpath resource path (.json or .yaml/.yml)
+   * @return The loaded strategy configuration
+   */
+  public static StrategyConfig loadResource(String resourcePath) {
+    String lowerPath = resourcePath.toLowerCase();
+    if (lowerPath.endsWith(".yaml") || lowerPath.endsWith(".yml")) {
+      return loadYamlResource(resourcePath);
+    } else if (lowerPath.endsWith(".json")) {
+      return loadJsonResource(resourcePath);
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported file format. Use .json, .yaml, or .yml: " + resourcePath);
+    }
+  }
+
+  /**
    * Parses a strategy configuration from a JSON string.
    *
    * @param jsonContent The JSON content
@@ -64,7 +138,19 @@ public final class StrategyConfigLoader {
   }
 
   /**
-   * Loads all strategy configurations from a directory (JSON files only).
+   * Parses a strategy configuration from a YAML string.
+   *
+   * @param yamlContent The YAML content
+   * @return The parsed strategy configuration
+   */
+  public static StrategyConfig parseYaml(String yamlContent) {
+    Map<String, Object> yamlMap = YAML.load(yamlContent);
+    String json = GSON.toJson(yamlMap);
+    return GSON.fromJson(json, StrategyConfig.class);
+  }
+
+  /**
+   * Loads all strategy configurations from a directory (JSON and YAML files).
    *
    * @param directoryPath The path to the directory
    * @return List of loaded strategy configurations
@@ -80,6 +166,8 @@ public final class StrategyConfigLoader {
                 String fileName = path.getFileName().toString().toLowerCase();
                 if (fileName.endsWith(".json")) {
                   configs.add(loadJson(path.toString()));
+                } else if (fileName.endsWith(".yaml") || fileName.endsWith(".yml")) {
+                  configs.add(loadYaml(path.toString()));
                 }
               });
     } catch (IOException e) {
