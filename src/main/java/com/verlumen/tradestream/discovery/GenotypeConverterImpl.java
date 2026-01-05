@@ -4,8 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.protobuf.Any;
 import com.verlumen.tradestream.strategies.StrategySpec;
-import com.verlumen.tradestream.strategies.StrategySpecsKt;
-import com.verlumen.tradestream.strategies.StrategyType;
+import com.verlumen.tradestream.strategies.StrategySpecs;
 import io.jenetics.Chromosome;
 import io.jenetics.Genotype;
 import io.jenetics.NumericChromosome;
@@ -25,19 +24,19 @@ final class GenotypeConverterImpl implements GenotypeConverter {
    * Converts the genotype from the genetic algorithm into strategy parameters.
    *
    * @param genotype the genotype resulting from the GA optimization
-   * @param type the type of trading strategy being optimized
+   * @param strategyName the name of the trading strategy being optimized (e.g., "MACD_CROSSOVER")
    * @return an Any instance containing the strategy parameters
-   * @throws NullPointerException if genotype or type is null
+   * @throws NullPointerException if genotype or strategyName is null
    * @throws IllegalArgumentException if the chromosome types are invalid
    */
   @Override
-  public Any convertToParameters(Genotype<?> genotype, StrategyType type) {
-    // Ensure genotype and type are not null
+  public Any convertToParameters(Genotype<?> genotype, String strategyName) {
+    // Ensure genotype and strategyName are not null
     Objects.requireNonNull(genotype, "Genotype cannot be null");
-    Objects.requireNonNull(type, "Strategy type cannot be null");
+    Objects.requireNonNull(strategyName, "Strategy name cannot be null");
 
-    // Get the parameter configuration for the strategy
-    StrategySpec spec = StrategySpecsKt.getSpec(type);
+    // Get the parameter configuration for the strategy using string-based lookup
+    StrategySpec spec = StrategySpecs.getSpec(strategyName);
     ParamConfig config = spec.getParamConfig();
 
     // Extract chromosomes from the genotype

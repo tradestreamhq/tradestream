@@ -14,8 +14,21 @@ public interface GenotypeConverter extends Serializable {
    * Converts the genotype from the genetic algorithm into strategy parameters.
    *
    * @param genotype the genotype resulting from the GA optimization
-   * @param type the type of trading strategy being optimized
+   * @param strategyName the name of the trading strategy being optimized (e.g., "MACD_CROSSOVER")
    * @return an Any instance containing the strategy parameters
    */
-  Any convertToParameters(Genotype<?> genotype, StrategyType type);
+  Any convertToParameters(Genotype<?> genotype, String strategyName);
+
+  /**
+   * Converts the genotype from the genetic algorithm into strategy parameters.
+   *
+   * @param genotype the genotype resulting from the GA optimization
+   * @param type the type of trading strategy being optimized
+   * @return an Any instance containing the strategy parameters
+   * @deprecated Use {@link #convertToParameters(Genotype, String)} instead
+   */
+  @Deprecated
+  default Any convertToParameters(Genotype<?> genotype, StrategyType type) {
+    return convertToParameters(genotype, type.name());
+  }
 }

@@ -62,7 +62,7 @@ public class FitnessFunctionFactoryImplTest {
     BacktestResult mockBacktestResult =
         BacktestResult.newBuilder().setStrategyScore(expectedScore).build();
     when(mockBacktestRunner.runBacktest(any(BacktestRequest.class))).thenReturn(mockBacktestResult);
-    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
+    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(String.class)))
         .thenReturn(Any.getDefaultInstance()); // Return a dummy Any
 
     // Act: Create the fitness function using string-based API
@@ -79,7 +79,7 @@ public class FitnessFunctionFactoryImplTest {
     // Arrange: Configure the mock to throw an exception
     when(mockBacktestRunner.runBacktest(any(BacktestRequest.class)))
         .thenThrow(new RuntimeException("Simulated error"));
-    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
+    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(String.class)))
         .thenReturn(Any.getDefaultInstance());
 
     // Act: Create the fitness function using string-based API
@@ -94,7 +94,7 @@ public class FitnessFunctionFactoryImplTest {
   public void create_withStrategyName_genotypeConverterThrowsException_returnsNegativeInfinity()
       throws Exception {
     // Arrange: Configure the mock to throw an exception
-    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
+    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(String.class)))
         .thenThrow(new RuntimeException("Simulated conversion error"));
 
     // Act: Create the fitness function using string-based API
@@ -124,7 +124,7 @@ public class FitnessFunctionFactoryImplTest {
     BacktestResult mockBacktestResult =
         BacktestResult.newBuilder().setStrategyScore(expectedScore).build();
     when(mockBacktestRunner.runBacktest(any(BacktestRequest.class))).thenReturn(mockBacktestResult);
-    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
+    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(String.class)))
         .thenReturn(Any.getDefaultInstance()); // Return a dummy Any
 
     // Act: Create the fitness function using deprecated enum-based API
@@ -142,7 +142,7 @@ public class FitnessFunctionFactoryImplTest {
     // Arrange: Configure the mock to throw an exception
     when(mockBacktestRunner.runBacktest(any(BacktestRequest.class)))
         .thenThrow(new RuntimeException("Simulated error"));
-    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
+    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(String.class)))
         .thenReturn(Any.getDefaultInstance());
 
     // Act: Create the fitness function using deprecated enum-based API
@@ -158,7 +158,7 @@ public class FitnessFunctionFactoryImplTest {
   public void create_withStrategyType_genotypeConverterThrowsException_returnsNegativeInfinity()
       throws Exception {
     // Arrange: Configure the mock to throw an exception
-    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
+    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(String.class)))
         .thenThrow(new RuntimeException("Simulated conversion error"));
 
     // Act: Create the fitness function using deprecated enum-based API
@@ -173,7 +173,7 @@ public class FitnessFunctionFactoryImplTest {
   @Test
   public void create_emptyCandles_returnsNegativeInfinity() throws Exception {
     // Arrange: Setup mock behavior
-    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(StrategyType.class)))
+    when(mockGenotypeConverter.convertToParameters(any(Genotype.class), any(String.class)))
         .thenReturn(Any.getDefaultInstance());
 
     // Use a default return (e.g., throwing exception) for the backtestRunner.
