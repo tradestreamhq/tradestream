@@ -18,9 +18,13 @@ object StrategyCsvUtil {
                     "SHA-256",
                 ).digest(parametersAny.toByteArray())
                 .joinToString("") { "%02x".format(it) }
+
+        // Prefer strategyName if set, fall back to type.name for backwards compatibility
+        val strategyName = element.strategy.strategyName.ifEmpty { element.strategy.type.name }
+
         return listOf(
             element.symbol,
-            element.strategy.type.name,
+            strategyName,
             wrappedJson,
             element.score.toString(),
             hash,

@@ -7,7 +7,6 @@ import com.verlumen.tradestream.sql.BulkCopierFactory
 import com.verlumen.tradestream.sql.DataSourceConfig
 import com.verlumen.tradestream.sql.DataSourceFactory
 import com.verlumen.tradestream.strategies.Strategy
-import com.verlumen.tradestream.strategies.StrategyType
 import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.doNothing
@@ -64,7 +63,7 @@ class PostgresStrategyRepositoryTest {
         val strategy =
             Strategy
                 .newBuilder()
-                .setType(StrategyType.SMA_RSI)
+                .setStrategyName("SMA_RSI")
                 .setParameters(Any.getDefaultInstance())
                 .build()
         val discovered =
