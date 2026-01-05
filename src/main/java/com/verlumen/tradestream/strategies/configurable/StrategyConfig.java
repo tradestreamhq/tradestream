@@ -16,6 +16,7 @@ public final class StrategyConfig implements Serializable {
   private String complexity;
   private String source;
   private String sourceStrategy;
+  private String parameterMessageType;
 
   private List<IndicatorConfig> indicators;
   private List<ConditionConfig> entryConditions;
@@ -30,6 +31,7 @@ public final class StrategyConfig implements Serializable {
       String complexity,
       String source,
       String sourceStrategy,
+      String parameterMessageType,
       List<IndicatorConfig> indicators,
       List<ConditionConfig> entryConditions,
       List<ConditionConfig> exitConditions,
@@ -39,6 +41,7 @@ public final class StrategyConfig implements Serializable {
     this.complexity = complexity;
     this.source = source;
     this.sourceStrategy = sourceStrategy;
+    this.parameterMessageType = parameterMessageType;
     this.indicators = indicators;
     this.entryConditions = entryConditions;
     this.exitConditions = exitConditions;
@@ -85,6 +88,14 @@ public final class StrategyConfig implements Serializable {
     this.sourceStrategy = sourceStrategy;
   }
 
+  public String getParameterMessageType() {
+    return parameterMessageType;
+  }
+
+  public void setParameterMessageType(String parameterMessageType) {
+    this.parameterMessageType = parameterMessageType;
+  }
+
   public List<IndicatorConfig> getIndicators() {
     return indicators;
   }
@@ -127,6 +138,7 @@ public final class StrategyConfig implements Serializable {
         && Objects.equals(complexity, that.complexity)
         && Objects.equals(source, that.source)
         && Objects.equals(sourceStrategy, that.sourceStrategy)
+        && Objects.equals(parameterMessageType, that.parameterMessageType)
         && Objects.equals(indicators, that.indicators)
         && Objects.equals(entryConditions, that.entryConditions)
         && Objects.equals(exitConditions, that.exitConditions)
@@ -141,6 +153,7 @@ public final class StrategyConfig implements Serializable {
         complexity,
         source,
         sourceStrategy,
+        parameterMessageType,
         indicators,
         entryConditions,
         exitConditions,
@@ -165,6 +178,9 @@ public final class StrategyConfig implements Serializable {
         + ", sourceStrategy='"
         + sourceStrategy
         + '\''
+        + ", parameterMessageType='"
+        + parameterMessageType
+        + '\''
         + ", indicators="
         + indicators
         + ", entryConditions="
@@ -186,6 +202,7 @@ public final class StrategyConfig implements Serializable {
     private String complexity;
     private String source;
     private String sourceStrategy;
+    private String parameterMessageType;
     private List<IndicatorConfig> indicators;
     private List<ConditionConfig> entryConditions;
     private List<ConditionConfig> exitConditions;
@@ -218,6 +235,11 @@ public final class StrategyConfig implements Serializable {
       return this;
     }
 
+    public Builder parameterMessageType(String parameterMessageType) {
+      this.parameterMessageType = parameterMessageType;
+      return this;
+    }
+
     public Builder indicators(List<IndicatorConfig> indicators) {
       this.indicators = indicators;
       return this;
@@ -245,6 +267,7 @@ public final class StrategyConfig implements Serializable {
           complexity,
           source,
           sourceStrategy,
+          parameterMessageType,
           indicators,
           entryConditions,
           exitConditions,

@@ -3,6 +3,7 @@ description: Rate of Change crosses its Moving Average
 complexity: SIMPLE
 source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.rocma.RocMaCrossoverStrategyFactory
+parameterMessageType: com.verlumen.tradestream.strategies.RocMaCrossoverParameters
 
 indicators:
   - id: roc

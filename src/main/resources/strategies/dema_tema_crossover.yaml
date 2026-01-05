@@ -3,6 +3,7 @@ description: Double EMA crosses Triple EMA
 complexity: SIMPLE
 source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.dematemacrossover.DemaTemaCrossoverStrategyFactory
+parameterMessageType: com.verlumen.tradestream.strategies.DemaTemaCrossoverParameters
 
 indicators:
   - id: dema
