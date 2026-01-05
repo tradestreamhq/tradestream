@@ -107,9 +107,8 @@ kafka:
       limits:
         cpu: "1"
         memory: "2Gi"
-    extraEnvVars:
-      - name: KAFKA_HEAP_OPTS
-        value: "-Xmx1g -Xms1g"
+    # Use heapOpts instead of extraEnvVars to avoid duplicate KAFKA_HEAP_OPTS
+    heapOpts: "-Xmx1g -Xms1g"
 kafkaUi:
   replicaCount: 1
   image:
@@ -223,6 +222,9 @@ redis:
 # PostgreSQL configuration
 postgresql:
   enabled: true
+  image:
+    # Pin to PostgreSQL 17 - the free Bitnami catalog only includes version 17
+    tag: "17"
   auth:
     postgresPassword: "tradestream123" # Change this for production
     username: "postgres"
