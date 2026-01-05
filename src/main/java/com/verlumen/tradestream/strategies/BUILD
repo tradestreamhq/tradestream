@@ -22,6 +22,18 @@ java_library(
 )
 
 kt_jvm_library(
+    name = "strategy_registry",
+    srcs = ["StrategyRegistry.kt"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":strategy_specs",
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:configurable_strategy_spec",
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:strategy_config_loader",
+    ],
+)
+
+kt_jvm_library(
     name = "strategy_specs",
     srcs = [
         "StrategySpec.kt",
