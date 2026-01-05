@@ -16,13 +16,13 @@ jobs:
       - name: Get changed Java files
         id: changed-files
         run: |
-          # Get list of changed Java files in this PR
-          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRT origin/main...HEAD | grep '\.java$' || true)
+          # Get list of changed Java files in this PR (space-separated, single line)
+          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRT origin/main...HEAD | grep '\.java$' | tr '\n' ' ' | sed 's/ $//' || true)
           if [ -z "$CHANGED_FILES" ]; then
             echo "files=" >> $GITHUB_OUTPUT
             echo "has_java_files=false" >> $GITHUB_OUTPUT
           else
-            # Convert to space-separated list for the action
+            # Output space-separated list for the action
             echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
             echo "has_java_files=true" >> $GITHUB_OUTPUT
           fi
