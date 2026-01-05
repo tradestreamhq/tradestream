@@ -8,8 +8,17 @@ option java_package = "com.verlumen.tradestream.strategies";
 import "google/protobuf/any.proto";
 
 message Strategy {
-  StrategyType type = 1;
+  // Deprecated: Use strategy_name instead for new code.
+  // Kept for backwards compatibility during migration.
+  StrategyType type = 1 [deprecated = true];
+
+  // Parameters for the strategy, type depends on strategy_name/type.
   google.protobuf.Any parameters = 2;
+
+  // String-based strategy identifier (e.g., "MACD_CROSSOVER").
+  // New code should use this field instead of the deprecated type enum.
+  // During migration, set both type and strategy_name for compatibility.
+  string strategy_name = 3;
 }
 
 enum StrategyType {
