@@ -11,7 +11,6 @@ import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.marketdata.Candle;
-import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Genotype;
 import io.jenetics.engine.Engine;
 import java.util.List;
@@ -38,10 +37,10 @@ public class GAEngineFactoryImplTest {
 
   @Before
   public void setUp() {
-    // Setup a basic test request using GAEngineParams
+    // Setup a basic test request using GAEngineParams with string-based strategy name
     testParams =
         new GAEngineParams(
-            StrategyType.SMA_RSI,
+            "SMA_RSI",
             ImmutableList.of(Candle.newBuilder().build()), // Add a dummy candle list
             20);
 
@@ -52,7 +51,7 @@ public class GAEngineFactoryImplTest {
     // This is critical - create should never return null
     Function<Genotype<?>, Double> dummyFunction =
         genotype -> 1.0; // Just return a constant value for testing
-    when(mockFitnessFunctionFactory.create(any(StrategyType.class), any(List.class)))
+    when(mockFitnessFunctionFactory.create(any(String.class), any(List.class)))
         .thenReturn(dummyFunction);
 
     // Inject dependencies
@@ -75,7 +74,7 @@ public class GAEngineFactoryImplTest {
     // Arrange
     int customSize = 42;
     GAEngineParams customParams =
-        new GAEngineParams(testParams.getStrategyType(), testParams.getCandlesList(), customSize);
+        new GAEngineParams(testParams.getStrategyName(), testParams.getCandlesList(), customSize);
 
     // Act
     Engine<?, Double> engine = engineFactory.createEngine(customParams);
@@ -90,7 +89,7 @@ public class GAEngineFactoryImplTest {
   public void createEngine_withZeroPopulationSize_usesDefaultSize() {
     // Arrange
     GAEngineParams zeroSizeParams =
-        new GAEngineParams(testParams.getStrategyType(), testParams.getCandlesList(), 0);
+        new GAEngineParams(testParams.getStrategyName(), testParams.getCandlesList(), 0);
 
     // Act
     Engine<?, Double> engine = engineFactory.createEngine(zeroSizeParams);
