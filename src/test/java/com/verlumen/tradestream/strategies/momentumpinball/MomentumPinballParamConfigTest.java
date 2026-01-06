@@ -5,18 +5,12 @@ import static org.junit.Assert.assertNotNull;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.junit.Test;
 
 /** Tests for {@link MomentumPinballParamConfig}. */
 public class MomentumPinballParamConfigTest {
 
   private final MomentumPinballParamConfig paramConfig = new MomentumPinballParamConfig();
-
-  @Test
-  public void testGetStrategyType() {
-    assertEquals(StrategyType.MOMENTUM_PINBALL, paramConfig.getStrategyType());
-  }
 
   @Test
   public void testGetDefaultParameters() throws InvalidProtocolBufferException {

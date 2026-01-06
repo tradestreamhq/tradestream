@@ -1,9 +1,5 @@
-@file:Suppress("DEPRECATION")
-
 package com.verlumen.tradestream.strategies
 
-import com.google.protobuf.Any
-import com.google.protobuf.InvalidProtocolBufferException
 import com.verlumen.tradestream.strategies.adxdmi.AdxDmiParamConfig
 import com.verlumen.tradestream.strategies.adxdmi.AdxDmiStrategyFactory
 import com.verlumen.tradestream.strategies.adxstochastic.AdxStochasticParamConfig
@@ -124,311 +120,309 @@ import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverParamConfi
 import com.verlumen.tradestream.strategies.vwapcrossover.VwapCrossoverStrategyFactory
 import com.verlumen.tradestream.strategies.vwapmeanreversion.VwapMeanReversionParamConfig
 import com.verlumen.tradestream.strategies.vwapmeanreversion.VwapMeanReversionStrategyFactory
-import org.ta4j.core.BarSeries
-import org.ta4j.core.Strategy
 
 /**
  * The single source of truth for all implemented strategy specifications.
- * The map's keys define which strategies are considered "supported".
+ * Uses string-based strategy names (e.g., "MACD_CROSSOVER") as keys.
  */
-private val strategySpecMap: Map<StrategyType, StrategySpec> =
+private val strategySpecMap: Map<String, StrategySpec> =
     mapOf(
-        StrategyType.ADX_STOCHASTIC to
+        "ADX_STOCHASTIC" to
             StrategySpec(
                 paramConfig = AdxStochasticParamConfig(),
                 strategyFactory = AdxStochasticStrategyFactory(),
             ),
-        StrategyType.SMA_RSI to
+        "SMA_RSI" to
             StrategySpec(
                 paramConfig = SmaRsiParamConfig(),
                 strategyFactory = SmaRsiStrategyFactory(),
             ),
-        StrategyType.EMA_MACD to
+        "EMA_MACD" to
             StrategySpec(
                 paramConfig = EmaMacdParamConfig(),
                 strategyFactory = EmaMacdStrategyFactory(),
             ),
-        StrategyType.ATR_CCI to
+        "ATR_CCI" to
             StrategySpec(
                 paramConfig = AtrCciParamConfig(),
                 strategyFactory = AtrCciStrategyFactory(),
             ),
-        StrategyType.ATR_TRAILING_STOP to
+        "ATR_TRAILING_STOP" to
             StrategySpec(
                 paramConfig = AtrTrailingStopParamConfig(),
                 strategyFactory = AtrTrailingStopStrategyFactory(),
             ),
-        StrategyType.BBAND_W_R to
+        "BBAND_W_R" to
             StrategySpec(
                 paramConfig = BbandWRParamConfig(),
                 strategyFactory = BbandWRStrategyFactory(),
             ),
-        StrategyType.CHAIKIN_OSCILLATOR to
+        "CHAIKIN_OSCILLATOR" to
             StrategySpec(
                 paramConfig = ChaikinOscillatorParamConfig(),
                 strategyFactory = ChaikinOscillatorStrategyFactory(),
             ),
-        StrategyType.CMF_ZERO_LINE to
+        "CMF_ZERO_LINE" to
             StrategySpec(
                 paramConfig = CmfZeroLineParamConfig(),
                 strategyFactory = CmfZeroLineStrategyFactory(),
             ),
-        StrategyType.CMO_MFI to
+        "CMO_MFI" to
             StrategySpec(
                 paramConfig = CmoMfiParamConfig(),
                 strategyFactory = CmoMfiStrategyFactory(),
             ),
-        StrategyType.DONCHIAN_BREAKOUT to
+        "DONCHIAN_BREAKOUT" to
             StrategySpec(
                 paramConfig = DonchianBreakoutParamConfig(),
                 strategyFactory = DonchianBreakoutStrategyFactory(),
             ),
-        StrategyType.DOUBLE_EMA_CROSSOVER to
+        "DOUBLE_EMA_CROSSOVER" to
             StrategySpec(
                 paramConfig = DoubleEmaCrossoverParamConfig(),
                 strategyFactory = DoubleEmaCrossoverStrategyFactory(),
             ),
-        StrategyType.HEIKEN_ASHI to
+        "HEIKEN_ASHI" to
             StrategySpec(
                 paramConfig = HeikenAshiParamConfig(),
                 strategyFactory = HeikenAshiStrategyFactory(),
             ),
-        StrategyType.ICHIMOKU_CLOUD to
+        "ICHIMOKU_CLOUD" to
             StrategySpec(
                 paramConfig = IchimokuCloudParamConfig(),
                 strategyFactory = IchimokuCloudStrategyFactory(),
             ),
-        StrategyType.MACD_CROSSOVER to
+        "MACD_CROSSOVER" to
             StrategySpec(
                 paramConfig = MacdCrossoverParamConfig(),
                 strategyFactory = MacdCrossoverStrategyFactory(),
             ),
-        StrategyType.MOMENTUM_PINBALL to
+        "MOMENTUM_PINBALL" to
             StrategySpec(
                 paramConfig = MomentumPinballParamConfig(),
                 strategyFactory = MomentumPinballStrategyFactory(),
             ),
-        StrategyType.MOMENTUM_SMA_CROSSOVER to
+        "MOMENTUM_SMA_CROSSOVER" to
             StrategySpec(
                 paramConfig = MomentumSmaCrossoverParamConfig(),
                 strategyFactory = MomentumSmaCrossoverStrategyFactory(),
             ),
-        StrategyType.PARABOLIC_SAR to
+        "PARABOLIC_SAR" to
             StrategySpec(
                 paramConfig = ParabolicSarParamConfig(),
                 strategyFactory = ParabolicSarStrategyFactory(),
             ),
-        StrategyType.RSI_EMA_CROSSOVER to
+        "RSI_EMA_CROSSOVER" to
             StrategySpec(
                 paramConfig = RsiEmaCrossoverParamConfig(),
                 strategyFactory = RsiEmaCrossoverStrategyFactory(),
             ),
-        StrategyType.RVI to
+        "RVI" to
             StrategySpec(
                 paramConfig = RviParamConfig(),
                 strategyFactory = RviStrategyFactory(),
             ),
-        StrategyType.SMA_EMA_CROSSOVER to
+        "SMA_EMA_CROSSOVER" to
             StrategySpec(
                 paramConfig = SmaEmaCrossoverParamConfig(),
                 strategyFactory = SmaEmaCrossoverStrategyFactory(),
             ),
-        StrategyType.STOCHASTIC_RSI to
+        "STOCHASTIC_RSI" to
             StrategySpec(
                 paramConfig = StochasticRsiParamConfig(),
                 strategyFactory = StochasticRsiStrategyFactory(),
             ),
-        StrategyType.TICK_VOLUME_ANALYSIS to
+        "TICK_VOLUME_ANALYSIS" to
             StrategySpec(
                 paramConfig = TickVolumeAnalysisParamConfig(),
                 strategyFactory = TickVolumeAnalysisStrategyFactory(),
             ),
-        StrategyType.TRIPLE_EMA_CROSSOVER to
+        "TRIPLE_EMA_CROSSOVER" to
             StrategySpec(
                 paramConfig = TripleEmaCrossoverParamConfig(),
                 strategyFactory = TripleEmaCrossoverStrategyFactory(),
             ),
-        StrategyType.VOLATILITY_STOP to
+        "VOLATILITY_STOP" to
             StrategySpec(
                 paramConfig = VolatilityStopParamConfig(),
                 strategyFactory = VolatilityStopStrategyFactory(),
             ),
-        StrategyType.VOLUME_WEIGHTED_MACD to
+        "VOLUME_WEIGHTED_MACD" to
             StrategySpec(
                 paramConfig = VolumeWeightedMacdParamConfig(),
                 strategyFactory = VolumeWeightedMacdStrategyFactory(),
             ),
-        StrategyType.VWAP_CROSSOVER to
+        "VWAP_CROSSOVER" to
             StrategySpec(
                 paramConfig = VwapCrossoverParamConfig(),
                 strategyFactory = VwapCrossoverStrategyFactory(),
             ),
-        StrategyType.KST_OSCILLATOR to
+        "KST_OSCILLATOR" to
             StrategySpec(
                 paramConfig = KstOscillatorParamConfig(),
                 strategyFactory = KstOscillatorStrategyFactory(),
             ),
-        StrategyType.MASS_INDEX to
+        "MASS_INDEX" to
             StrategySpec(
                 paramConfig = MassIndexParamConfig(),
                 strategyFactory = MassIndexStrategyFactory(),
             ),
-        StrategyType.ADX_DMI to
+        "ADX_DMI" to
             StrategySpec(
                 paramConfig = AdxDmiParamConfig(),
                 strategyFactory = AdxDmiStrategyFactory(),
             ),
-        StrategyType.LINEAR_REGRESSION_CHANNELS to
+        "LINEAR_REGRESSION_CHANNELS" to
             StrategySpec(
                 paramConfig = LinearRegressionChannelsParamConfig(),
                 strategyFactory = LinearRegressionChannelsStrategyFactory(),
             ),
-        StrategyType.VWAP_MEAN_REVERSION to
+        "VWAP_MEAN_REVERSION" to
             StrategySpec(
                 paramConfig = VwapMeanReversionParamConfig(),
                 strategyFactory = VwapMeanReversionStrategyFactory(),
             ),
-        StrategyType.STOCHASTIC_EMA to
+        "STOCHASTIC_EMA" to
             StrategySpec(
                 paramConfig = StochasticEmaParamConfig(),
                 strategyFactory = StochasticEmaStrategyFactory(),
             ),
-        StrategyType.OBV_EMA to
+        "OBV_EMA" to
             StrategySpec(
                 paramConfig = ObvEmaParamConfig(),
                 strategyFactory = ObvEmaStrategyFactory(),
             ),
-        StrategyType.KLINGER_VOLUME to
+        "KLINGER_VOLUME" to
             StrategySpec(
                 paramConfig = KlingerVolumeParamConfig(),
                 strategyFactory = KlingerVolumeStrategyFactory(),
             ),
-        StrategyType.VOLUME_BREAKOUT to
+        "VOLUME_BREAKOUT" to
             StrategySpec(
                 paramConfig = VolumeBreakoutParamConfig(),
                 strategyFactory = VolumeBreakoutStrategyFactory(),
             ),
-        StrategyType.PVT to
+        "PVT" to
             StrategySpec(
                 paramConfig = PvtParamConfig(),
                 strategyFactory = PvtStrategyFactory(),
             ),
-        StrategyType.VPT to
+        "VPT" to
             StrategySpec(
                 paramConfig = VptParamConfig(),
                 strategyFactory = VptStrategyFactory(),
             ),
-        StrategyType.VOLUME_SPREAD_ANALYSIS to
+        "VOLUME_SPREAD_ANALYSIS" to
             StrategySpec(
                 paramConfig = VolumeSpreadAnalysisParamConfig(),
                 strategyFactory = VolumeSpreadAnalysisStrategyFactory(),
             ),
-        StrategyType.TRIX_SIGNAL_LINE to
+        "TRIX_SIGNAL_LINE" to
             StrategySpec(
                 paramConfig = TrixSignalLineParamConfig(),
                 strategyFactory = TrixSignalLineStrategyFactory(),
             ),
-        StrategyType.AROON_MFI to
+        "AROON_MFI" to
             StrategySpec(
                 paramConfig = AroonMfiParamConfig(),
                 strategyFactory = AroonMfiStrategyFactory(),
             ),
-        StrategyType.AWESOME_OSCILLATOR to
+        "AWESOME_OSCILLATOR" to
             StrategySpec(
                 paramConfig = AwesomeOscillatorParamConfig(),
                 strategyFactory = AwesomeOscillatorStrategyFactory(),
             ),
-        StrategyType.DEMA_TEMA_CROSSOVER to
+        "DEMA_TEMA_CROSSOVER" to
             StrategySpec(
                 paramConfig = DemaTemaCrossoverParamConfig(),
                 strategyFactory = DemaTemaCrossoverStrategyFactory(),
             ),
-        StrategyType.ELDER_RAY_MA to
+        "ELDER_RAY_MA" to
             StrategySpec(
                 paramConfig = ElderRayMAParamConfig(),
                 strategyFactory = ElderRayMAStrategyFactory(),
             ),
-        StrategyType.FRAMA to
+        "FRAMA" to
             StrategySpec(
                 paramConfig = FramaParamConfig(),
                 strategyFactory = FramaStrategyFactory(),
             ),
-        StrategyType.RAINBOW_OSCILLATOR to
+        "RAINBOW_OSCILLATOR" to
             StrategySpec(
                 paramConfig = RainbowOscillatorParamConfig(),
                 strategyFactory = RainbowOscillatorStrategyFactory(),
             ),
-        StrategyType.PRICE_OSCILLATOR_SIGNAL to
+        "PRICE_OSCILLATOR_SIGNAL" to
             StrategySpec(
                 paramConfig = PriceOscillatorSignalParamConfig(),
                 strategyFactory = PriceOscillatorSignalStrategyFactory(),
             ),
-        StrategyType.ROC_MA_CROSSOVER to
+        "ROC_MA_CROSSOVER" to
             StrategySpec(
                 paramConfig = RocMaCrossoverParamConfig(),
                 strategyFactory = RocMaCrossoverStrategyFactory(),
             ),
-        StrategyType.REGRESSION_CHANNEL to
+        "REGRESSION_CHANNEL" to
             StrategySpec(
                 paramConfig = RegressionChannelParamConfig(),
                 strategyFactory = RegressionChannelStrategyFactory(),
             ),
-        StrategyType.PIVOT to
+        "PIVOT" to
             StrategySpec(
                 paramConfig = PivotParamConfig(),
                 strategyFactory = PivotStrategyFactory(),
             ),
-        StrategyType.DOUBLE_TOP_BOTTOM to
+        "DOUBLE_TOP_BOTTOM" to
             StrategySpec(
                 paramConfig = DoubleTopBottomParamConfig(),
                 strategyFactory = DoubleTopBottomStrategyFactory(),
             ),
-        StrategyType.FIBONACCI_RETRACEMENTS to
+        "FIBONACCI_RETRACEMENTS" to
             StrategySpec(
                 paramConfig = FibonacciRetracementsParamConfig(),
                 strategyFactory = FibonacciRetracementsStrategyFactory(),
             ),
-        StrategyType.PRICE_GAP to
+        "PRICE_GAP" to
             StrategySpec(
                 paramConfig = PriceGapParamConfig(),
                 strategyFactory = PriceGapStrategyFactory(),
             ),
-        StrategyType.RENKO_CHART to
+        "RENKO_CHART" to
             StrategySpec(
                 RenkoChartParamConfig(),
                 RenkoChartStrategyFactory(),
             ),
-        StrategyType.RANGE_BARS to
+        "RANGE_BARS" to
             StrategySpec(
                 paramConfig = RangeBarsParamConfig(),
                 strategyFactory = RangeBarsStrategyFactory(),
             ),
-        StrategyType.GANN_SWING to
+        "GANN_SWING" to
             StrategySpec(
                 paramConfig = GannSwingParamConfig(),
                 strategyFactory = GannSwingStrategyFactory(),
             ),
-        StrategyType.SAR_MFI to
+        "SAR_MFI" to
             StrategySpec(
                 paramConfig = SarMfiParamConfig(),
                 strategyFactory = SarMfiStrategyFactory(),
             ),
-        StrategyType.DPO_CROSSOVER to
+        "DPO_CROSSOVER" to
             StrategySpec(
                 paramConfig = DpoCrossoverParamConfig(),
                 strategyFactory = DpoCrossoverStrategyFactory(),
             ),
-        StrategyType.VARIABLE_PERIOD_EMA to
+        "VARIABLE_PERIOD_EMA" to
             StrategySpec(
                 paramConfig = VariablePeriodEmaParamConfig(),
                 strategyFactory = VariablePeriodEmaStrategyFactory(),
             ),
-        StrategyType.VOLUME_PROFILE to
+        "VOLUME_PROFILE" to
             StrategySpec(
                 paramConfig = VolumeProfileParamConfig(),
                 strategyFactory = VolumeProfileStrategyFactory(),
             ),
-        StrategyType.VOLUME_PROFILE_DEVIATIONS to
+        "VOLUME_PROFILE_DEVIATIONS" to
             StrategySpec(
                 paramConfig = VolumeProfileDeviationsParamConfig(),
                 strategyFactory = VolumeProfileDeviationsStrategyFactory(),
@@ -439,11 +433,8 @@ private val strategySpecMap: Map<StrategyType, StrategySpec> =
 /**
  * Central registry for strategy specifications.
  *
- * Provides string-based lookup using the legacy strategySpecMap.
- * Future phases will integrate with StrategyRegistry for YAML-based strategies.
- *
- * New code should use [StrategySpecs.getSpec] with string names.
- * The [StrategyType] extension functions are deprecated.
+ * Provides string-based lookup using the strategySpecMap.
+ * All code should use [StrategySpecs.getSpec] with string strategy names.
  */
 object StrategySpecs {
     /**
@@ -454,17 +445,9 @@ object StrategySpecs {
      * @throws NoSuchElementException if the strategy is not found
      */
     @JvmStatic
-    fun getSpec(strategyName: String): StrategySpec {
-        val strategyType =
-            try {
-                StrategyType.valueOf(strategyName)
-            } catch (e: IllegalArgumentException) {
-                throw NoSuchElementException("Strategy not found: $strategyName")
-            }
-
-        return strategySpecMap[strategyType]
+    fun getSpec(strategyName: String): StrategySpec =
+        strategySpecMap[strategyName]
             ?: throw NoSuchElementException("Strategy not found: $strategyName")
-    }
 
     /**
      * Gets the StrategySpec for the given strategy name, or null if not found.
@@ -473,16 +456,7 @@ object StrategySpecs {
      * @return The StrategySpec, or null if not found
      */
     @JvmStatic
-    fun getSpecOrNull(strategyName: String): StrategySpec? {
-        val strategyType =
-            try {
-                StrategyType.valueOf(strategyName)
-            } catch (e: IllegalArgumentException) {
-                return null
-            }
-
-        return strategySpecMap[strategyType]
-    }
+    fun getSpecOrNull(strategyName: String): StrategySpec? = strategySpecMap[strategyName]
 
     /**
      * Checks if a strategy with the given name is supported.
@@ -491,7 +465,7 @@ object StrategySpecs {
      * @return true if the strategy is available
      */
     @JvmStatic
-    fun isSupported(strategyName: String): Boolean = getSpecOrNull(strategyName) != null
+    fun isSupported(strategyName: String): Boolean = strategySpecMap.containsKey(strategyName)
 
     /**
      * Returns a list of all supported strategy names.
@@ -499,7 +473,7 @@ object StrategySpecs {
      * @return List of strategy names, sorted alphabetically
      */
     @JvmStatic
-    fun getSupportedStrategyNames(): List<String> = strategySpecMap.keys.map { it.name }.sorted()
+    fun getSupportedStrategyNames(): List<String> = strategySpecMap.keys.sorted()
 
     /**
      * Returns the number of supported strategies.
@@ -509,109 +483,3 @@ object StrategySpecs {
     @JvmStatic
     fun size(): Int = strategySpecMap.size
 }
-
-/**
- * An extension property that retrieves the corresponding [StrategySpec] from the central map.
- *
- * @throws NotImplementedError if no spec is defined for the given strategy type.
- */
-@Deprecated(
-    message = "Use StrategySpecs.getSpec(strategyName) instead",
-    replaceWith = ReplaceWith("StrategySpecs.getSpec(this.name)"),
-)
-val StrategyType.spec: StrategySpec
-    get() = StrategySpecs.getSpec(this.name)
-
-/**
- * An extension function that returns `true` if a [StrategySpec] has been
- * implemented for this [StrategyType] by checking for its key in the central map.
- */
-@Deprecated(
-    message = "Use StrategySpecs.isSupported(strategyName) instead",
-    replaceWith = ReplaceWith("StrategySpecs.isSupported(this.name)"),
-)
-fun StrategyType.isSupported(): Boolean = StrategySpecs.isSupported(this.name)
-
-/**
- * Extension function to create a new Ta4j Strategy instance using default parameters.
- *
- * @param barSeries the bar series to associate with the strategy
- * @return a new instance of a Ta4j Strategy configured with the default parameters
- * @throws InvalidProtocolBufferException if there is an error unpacking the default parameters
- */
-@Deprecated(
-    message = "Use StrategySpecs.getSpec(strategyName).strategyFactory.createStrategy() instead",
-    replaceWith =
-        ReplaceWith(
-            "StrategySpecs.getSpec(this.name).strategyFactory.createStrategy(barSeries, " +
-                "Any.pack(StrategySpecs.getSpec(this.name).strategyFactory.getDefaultParameters()))",
-        ),
-)
-@Throws(InvalidProtocolBufferException::class)
-fun StrategyType.createStrategy(barSeries: BarSeries): Strategy = createStrategy(barSeries, getDefaultParameters())
-
-/**
- * Extension function to create a new Ta4j Strategy instance using provided parameters.
- *
- * @param barSeries the bar series to associate with the strategy
- * @param parameters the configuration parameters for the strategy, wrapped in an Any message
- * @return a new instance of a Ta4j Strategy configured with the provided parameters
- * @throws InvalidProtocolBufferException if there is an error unpacking the parameters
- */
-@Deprecated(
-    message = "Use StrategySpecs.getSpec(strategyName).strategyFactory.createStrategy() instead",
-    replaceWith =
-        ReplaceWith(
-            "StrategySpecs.getSpec(this.name).strategyFactory.createStrategy(barSeries, parameters)",
-        ),
-)
-@Throws(InvalidProtocolBufferException::class)
-fun StrategyType.createStrategy(
-    barSeries: BarSeries,
-    parameters: Any,
-): Strategy = StrategySpecs.getSpec(this.name).strategyFactory.createStrategy(barSeries, parameters)
-
-/**
- * Extension function to retrieve the default configuration parameters for this strategy type.
- *
- * This method obtains the default parameters from the associated StrategyFactory and
- * packs them into a protocol buffers Any message.
- *
- * @return an Any message containing the default parameters for this strategy type
- */
-@Deprecated(
-    message = "Use StrategySpecs.getSpec(strategyName).strategyFactory.getDefaultParameters() instead",
-    replaceWith =
-        ReplaceWith(
-            "Any.pack(StrategySpecs.getSpec(this.name).strategyFactory.getDefaultParameters())",
-        ),
-)
-fun StrategyType.getDefaultParameters(): Any = Any.pack(StrategySpecs.getSpec(this.name).strategyFactory.getDefaultParameters())
-
-/**
- * Extension function to retrieve the StrategyFactory corresponding to this strategy type.
- *
- * The returned factory is responsible for creating instances of the strategy as well as
- * providing its default configuration parameters.
- *
- * @return the StrategyFactory associated with this strategy type
- */
-@Deprecated(
-    message = "Use StrategySpecs.getSpec(strategyName).strategyFactory instead",
-    replaceWith = ReplaceWith("StrategySpecs.getSpec(this.name).strategyFactory"),
-)
-fun StrategyType.getStrategyFactory(): StrategyFactory<*> = StrategySpecs.getSpec(this.name).strategyFactory
-
-/**
- * Returns a list of all supported strategy types.
- *
- * This list includes every available StrategyType that can be used to create and
- * configure trading strategies.
- *
- * @return a list of supported StrategyType instances
- */
-@Deprecated(
-    message = "Use StrategySpecs.getSupportedStrategyNames() instead for string-based lookup",
-    replaceWith = ReplaceWith("StrategySpecs.getSupportedStrategyNames()"),
-)
-fun getSupportedStrategyTypes(): List<StrategyType> = strategySpecMap.keys.toList()

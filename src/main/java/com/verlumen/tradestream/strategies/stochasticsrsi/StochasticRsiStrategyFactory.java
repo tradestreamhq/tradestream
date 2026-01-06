@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.StochasticRsiParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -46,9 +45,7 @@ public final class StochasticRsiStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (RSI: %d, StochK: %d)",
-            StrategyType.STOCHASTIC_RSI.name(),
-            params.getRsiPeriod(),
-            params.getStochasticKPeriod()),
+            "STOCHASTIC_RSI", params.getRsiPeriod(), params.getStochasticKPeriod()),
         entryRule,
         exitRule,
         Math.max(params.getRsiPeriod(), params.getStochasticKPeriod()));

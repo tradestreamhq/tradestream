@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.CmfZeroLineParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -32,7 +31,7 @@ public class CmfZeroLineStrategyFactory implements StrategyFactory<CmfZeroLinePa
     Rule exitRule = new CrossedDownIndicatorRule(cmf, series.numOf(0));
 
     return new BaseStrategy(
-        String.format("%s (Period: %d)", StrategyType.CMF_ZERO_LINE.name(), params.getPeriod()),
+        String.format("%s (Period: %d)", "CMF_ZERO_LINE", params.getPeriod()),
         entryRule,
         exitRule,
         params.getPeriod());

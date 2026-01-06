@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.AtrTrailingStopParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -69,7 +68,7 @@ public final class AtrTrailingStopStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (ATR: %d, Mult: %.2f)",
-            StrategyType.ATR_TRAILING_STOP.name(), params.getAtrPeriod(), params.getMultiplier()),
+            "ATR_TRAILING_STOP", params.getAtrPeriod(), params.getMultiplier()),
         entryRule,
         exitRule,
         params.getAtrPeriod());

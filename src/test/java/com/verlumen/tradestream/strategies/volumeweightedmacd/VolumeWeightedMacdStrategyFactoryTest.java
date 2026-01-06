@@ -1,11 +1,9 @@
 package com.verlumen.tradestream.strategies.volumeweightedmacd;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.strategies.StrategyType;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import org.junit.Test;
@@ -18,11 +16,6 @@ import org.ta4j.core.Strategy;
 public class VolumeWeightedMacdStrategyFactoryTest {
 
   private final VolumeWeightedMacdStrategyFactory factory = new VolumeWeightedMacdStrategyFactory();
-
-  @Test
-  public void testGetStrategyType() {
-    assertEquals(StrategyType.VOLUME_WEIGHTED_MACD, factory.getStrategyType());
-  }
 
   @Test
   public void testCreateStrategyWithCustomParameters() throws InvalidProtocolBufferException {

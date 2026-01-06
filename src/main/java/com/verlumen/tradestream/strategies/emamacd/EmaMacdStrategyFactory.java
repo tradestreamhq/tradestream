@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.EmaMacdParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -41,7 +40,7 @@ public final class EmaMacdStrategyFactory implements StrategyFactory<EmaMacdPara
     String strategyName =
         String.format(
             "%s (Short EMA: %d, Long EMA: %d, Signal: %d)",
-            StrategyType.EMA_MACD.name(),
+            "EMA_MACD",
             params.getShortEmaPeriod(),
             params.getLongEmaPeriod(),
             params.getSignalPeriod());

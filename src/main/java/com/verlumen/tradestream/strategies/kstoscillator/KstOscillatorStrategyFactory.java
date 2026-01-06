@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.KstOscillatorParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -54,7 +53,7 @@ public final class KstOscillatorStrategyFactory
     String strategyName =
         String.format(
             "%s (RMA1-%d RMA2-%d RMA3-%d RMA4-%d Signal-%d)",
-            StrategyType.KST_OSCILLATOR.name(),
+            "KST_OSCILLATOR",
             parameters.getRma1Period(),
             parameters.getRma2Period(),
             parameters.getRma3Period(),

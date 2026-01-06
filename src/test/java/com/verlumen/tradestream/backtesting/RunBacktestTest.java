@@ -1,6 +1,5 @@
 package com.verlumen.tradestream.backtesting;
 
-import static com.verlumen.tradestream.strategies.StrategySpecsKt.getDefaultParameters;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 
@@ -8,9 +7,10 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.google.protobuf.Any;
 import com.verlumen.tradestream.marketdata.Candle;
 import com.verlumen.tradestream.strategies.Strategy;
-import com.verlumen.tradestream.strategies.StrategyType;
+import com.verlumen.tradestream.strategies.StrategySpecs;
 import java.util.Arrays;
 import java.util.List;
 import org.apache.beam.sdk.Pipeline.PipelineExecutionException;
@@ -132,8 +132,12 @@ public class RunBacktestTest {
                 .build())
         .setStrategy(
             Strategy.newBuilder()
-                .setType(StrategyType.SMA_RSI)
-                .setParameters(getDefaultParameters(StrategyType.SMA_RSI)) // Add proper parameters
+                .setStrategyName("SMA_RSI")
+                .setParameters(
+                    Any.pack(
+                        StrategySpecs.getSpec("SMA_RSI")
+                            .getStrategyFactory()
+                            .getDefaultParameters()))
                 .build())
         .build();
   }

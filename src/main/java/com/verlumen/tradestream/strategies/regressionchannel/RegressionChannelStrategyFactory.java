@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.RegressionChannelParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -31,8 +30,7 @@ public final class RegressionChannelStrategyFactory
     Rule entryRule = new CrossedUpIndicatorRule(closePrice, regression);
     Rule exitRule = new CrossedDownIndicatorRule(closePrice, regression);
     return new BaseStrategy(
-        String.format(
-            "%s (Period: %d)", StrategyType.REGRESSION_CHANNEL.name(), params.getPeriod()),
+        String.format("%s (Period: %d)", "REGRESSION_CHANNEL", params.getPeriod()),
         entryRule,
         exitRule,
         params.getPeriod());

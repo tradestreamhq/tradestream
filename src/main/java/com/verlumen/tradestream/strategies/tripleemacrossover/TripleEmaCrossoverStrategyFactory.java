@@ -3,7 +3,6 @@ package com.verlumen.tradestream.strategies.tripleemacrossover;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.TripleEmaCrossoverParameters;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
@@ -44,7 +43,7 @@ public class TripleEmaCrossoverStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (%d, %d, %d)",
-            StrategyType.TRIPLE_EMA_CROSSOVER.name(),
+            "TRIPLE_EMA_CROSSOVER",
             params.getShortEmaPeriod(),
             params.getMediumEmaPeriod(),
             params.getLongEmaPeriod()),

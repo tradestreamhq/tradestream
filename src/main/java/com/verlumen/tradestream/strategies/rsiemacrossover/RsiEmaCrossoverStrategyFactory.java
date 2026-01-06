@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.RsiEmaCrossoverParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -39,7 +38,7 @@ public final class RsiEmaCrossoverStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (RSI: %d, EMA: %d)",
-            StrategyType.RSI_EMA_CROSSOVER.name(), params.getRsiPeriod(), params.getEmaPeriod()),
+            "RSI_EMA_CROSSOVER", params.getRsiPeriod(), params.getEmaPeriod()),
         entryRule,
         exitRule,
         Math.max(params.getRsiPeriod(), params.getEmaPeriod()));

@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.VariablePeriodEmaParameters;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
@@ -40,10 +39,7 @@ public final class VariablePeriodEmaStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (%d-%d, avg=%d)",
-            StrategyType.VARIABLE_PERIOD_EMA.name(),
-            params.getMinPeriod(),
-            params.getMaxPeriod(),
-            emaPeriod),
+            "VARIABLE_PERIOD_EMA", params.getMinPeriod(), params.getMaxPeriod(), emaPeriod),
         entryRule,
         exitRule,
         emaPeriod);

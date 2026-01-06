@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.IchimokuCloudParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -49,7 +48,7 @@ public final class IchimokuCloudStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (Tenkan: %d, Kijun: %d, SenkouB: %d, Chikou: %d)",
-            StrategyType.ICHIMOKU_CLOUD.name(),
+            "ICHIMOKU_CLOUD",
             params.getTenkanSenPeriod(),
             params.getKijunSenPeriod(),
             params.getSenkouSpanBPeriod(),

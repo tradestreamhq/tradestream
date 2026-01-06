@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.ParabolicSarParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -45,7 +44,7 @@ public final class ParabolicSarStrategyFactory implements StrategyFactory<Parabo
     return new BaseStrategy(
         String.format(
             "%s (AF: %.3f-%.3f, Inc: %.3f)",
-            StrategyType.PARABOLIC_SAR.name(),
+            "PARABOLIC_SAR",
             params.getAccelerationFactorStart(),
             params.getAccelerationFactorMax(),
             params.getAccelerationFactorIncrement()),

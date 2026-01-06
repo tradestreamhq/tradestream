@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -41,7 +40,7 @@ public final class SmaRsiStrategyFactory implements StrategyFactory<SmaRsiParame
     String strategyName =
         String.format(
             "%s (RSI-%d SMA-%d)",
-            StrategyType.SMA_RSI.name(), params.getRsiPeriod(), params.getMovingAveragePeriod());
+            "SMA_RSI", params.getRsiPeriod(), params.getMovingAveragePeriod());
     return new BaseStrategy(strategyName, entryRule, exitRule, params.getRsiPeriod());
   }
 

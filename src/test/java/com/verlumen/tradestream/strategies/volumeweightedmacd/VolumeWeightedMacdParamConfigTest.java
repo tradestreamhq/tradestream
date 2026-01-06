@@ -5,18 +5,12 @@ import static org.junit.Assert.assertNotNull;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.junit.Test;
 
 /** Tests for {@link VolumeWeightedMacdParamConfig}. */
 public class VolumeWeightedMacdParamConfigTest {
 
   private final VolumeWeightedMacdParamConfig paramConfig = new VolumeWeightedMacdParamConfig();
-
-  @Test
-  public void testGetStrategyType() {
-    assertEquals(StrategyType.VOLUME_WEIGHTED_MACD, paramConfig.getStrategyType());
-  }
 
   @Test
   public void testGetDefaultParameters() throws InvalidProtocolBufferException {

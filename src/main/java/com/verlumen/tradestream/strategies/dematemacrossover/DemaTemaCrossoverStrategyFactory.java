@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.DemaTemaCrossoverParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -43,10 +42,7 @@ public final class DemaTemaCrossoverStrategyFactory
     // Create strategy using the constructor that takes unstable period directly
     return new BaseStrategy(
         String.format(
-            "%s (%d, %d)",
-            StrategyType.DEMA_TEMA_CROSSOVER.name(),
-            params.getDemaPeriod(),
-            params.getTemaPeriod()),
+            "%s (%d, %d)", "DEMA_TEMA_CROSSOVER", params.getDemaPeriod(), params.getTemaPeriod()),
         entryRule,
         exitRule,
         Math.max(params.getDemaPeriod(), params.getTemaPeriod()));
