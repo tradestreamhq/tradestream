@@ -3,6 +3,7 @@ description: Price Gap with EMA - enters when price crosses above EMA
 complexity: SIMPLE
 source: MIGRATED
 sourceStrategy: com.verlumen.tradestream.strategies.pricegap.PriceGapStrategyFactory
+parameterMessageType: com.verlumen.tradestream.strategies.PriceGapParameters
 
 indicators:
   - id: closePrice

@@ -3,6 +3,7 @@ description: ADX trend filter with Stochastic Oscillator - enters on strong tren
 complexity: SIMPLE
 source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.adxstochastic.AdxStochasticStrategyFactory
+parameterMessageType: com.verlumen.tradestream.strategies.AdxStochasticParameters
 
 indicators:
   - id: adx

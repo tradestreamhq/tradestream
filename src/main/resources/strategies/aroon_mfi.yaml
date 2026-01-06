@@ -3,6 +3,7 @@ description: Aroon with Money Flow Index - enters on Aroon Up crossing Down when
 complexity: MEDIUM
 source: MIGRATED
 sourceStrategy: com.verlumen.tradestream.strategies.aroonmfi.AroonMfiStrategyFactory
+parameterMessageType: com.verlumen.tradestream.strategies.AroonMfiParameters
 
 indicators:
   - id: aroonUp
