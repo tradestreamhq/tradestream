@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" width="400" height="100">
+  <defs>
+    <linearGradient id="streamGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1a73e8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#34a853;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="chartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#34a853;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#34a853;stop-opacity:0.8" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="100" fill="transparent"/>
+
+  <!-- Logo Icon - Stylized chart with streaming waves -->
+  <g transform="translate(10, 15)">
+    <!-- Chart candlesticks -->
+    <rect x="5" y="35" width="6" height="25" fill="#1a73e8" rx="1"/>
+    <rect x="7" y="30" width="2" height="40" fill="#1a73e8"/>
+
+    <rect x="18" y="20" width="6" height="35" fill="#34a853" rx="1"/>
+    <rect x="20" y="15" width="2" height="50" fill="#34a853"/>
+
+    <rect x="31" y="25" width="6" height="30" fill="#1a73e8" rx="1"/>
+    <rect x="33" y="20" width="2" height="45" fill="#1a73e8"/>
+
+    <rect x="44" y="15" width="6" height="40" fill="#34a853" rx="1"/>
+    <rect x="46" y="10" width="2" height="55" fill="#34a853"/>
+
+    <rect x="57" y="22" width="6" height="28" fill="#34a853" rx="1"/>
+    <rect x="59" y="18" width="2" height="40" fill="#34a853"/>
+
+    <!-- Streaming wave overlay -->
+    <path d="M 0 45 Q 17 35, 35 42 T 70 38"
+          stroke="url(#streamGradient)"
+          stroke-width="3"
+          fill="none"
+          stroke-linecap="round"/>
+    <path d="M 0 55 Q 17 48, 35 52 T 70 48"
+          stroke="url(#streamGradient)"
+          stroke-width="2"
+          fill="none"
+          stroke-linecap="round"
+          opacity="0.6"/>
+  </g>
+
+  <!-- Text -->
+  <g transform="translate(95, 60)">
+    <text font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+          font-size="38"
+          font-weight="700"
+          fill="#1a1a1a">
+      <tspan fill="#1a73e8">Trade</tspan><tspan fill="#34a853">Stream</tspan>
+    </text>
+  </g>
+
+  <!-- Tagline -->
+  <text x="95" y="82"
+        font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+        font-size="12"
+        fill="#666666"
+        letter-spacing="0.5">
+    Algorithmic Trading Platform
+  </text>
+</svg>
