@@ -3,6 +3,7 @@ description: Donchian Channel breakout - enters when price breaks above highest 
 complexity: SIMPLE
 source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.donchianbreakout.DonchianBreakoutStrategyFactory
+parameterMessageType: com.verlumen.tradestream.strategies.DonchianBreakoutParameters
 
 indicators:
   - id: closePrice

@@ -3,6 +3,7 @@ description: Elder Ray with EMA - enters when Bull Power crosses above zero
 complexity: SIMPLE
 source: MIGRATED
 sourceStrategy: com.verlumen.tradestream.strategies.elderrayma.ElderRayMAStrategyFactory
+parameterMessageType: com.verlumen.tradestream.strategies.ElderRayMAParameters
 
 indicators:
   - id: closePrice

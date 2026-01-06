@@ -3,6 +3,7 @@ description: Awesome Oscillator zero-line crossover - enters when AO crosses abo
 complexity: SIMPLE
 source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.awesomeoscillator.AwesomeOscillatorStrategyFactory
+parameterMessageType: com.verlumen.tradestream.strategies.AwesomeOscillatorParameters
 
 indicators:
   - id: ao

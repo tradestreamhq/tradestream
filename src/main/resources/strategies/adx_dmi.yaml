@@ -3,6 +3,7 @@ description: ADX with Directional Movement Index - trades strong trends when +DI
 complexity: SIMPLE
 source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.adxdmi.AdxDmiStrategyFactory
+parameterMessageType: com.verlumen.tradestream.strategies.AdxDmiParameters
 
 indicators:
   - id: adx

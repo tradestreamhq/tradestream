@@ -3,6 +3,7 @@ description: Klinger Volume Oscillator with signal line - volume-based trend ind
 complexity: MEDIUM
 source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.klingervolume.KlingerVolumeStrategyFactory
+parameterMessageType: com.verlumen.tradestream.strategies.KlingerVolumeParameters
 
 indicators:
   - id: kvo
