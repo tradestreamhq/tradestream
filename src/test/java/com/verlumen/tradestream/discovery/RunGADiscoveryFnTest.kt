@@ -7,7 +7,6 @@ import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.marketdata.Candle
 import com.verlumen.tradestream.marketdata.CandleFetcher
 import com.verlumen.tradestream.strategies.SmaRsiParameters
-import com.verlumen.tradestream.strategies.StrategyType
 import io.jenetics.DoubleChromosome
 import io.jenetics.DoubleGene
 import io.jenetics.Genotype
@@ -120,7 +119,7 @@ class RunGADiscoveryFnTest {
             .setSymbol("BTC/USD")
             .setStartTime(Timestamps.fromMillis(now - 200_000))
             .setEndTime(Timestamps.fromMillis(now - 100_000))
-            .setStrategyType(StrategyType.SMA_RSI)
+            .setStrategyName("SMA_RSI")
             .setTopN(topN)
             .setGaConfig(
                 GAConfig
@@ -154,7 +153,7 @@ class RunGADiscoveryFnTest {
             check(results.size == 1) { "Expected 1 result, got ${results.size}" }
             val discovered = results[0].getTopStrategies(0)
             check(discovered.symbol == "BTC/USD")
-            check(discovered.strategy.type == StrategyType.SMA_RSI)
+            check(discovered.strategy.strategyName == "SMA_RSI")
             check(discovered.score >= 0)
             null
         }

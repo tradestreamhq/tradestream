@@ -7,7 +7,6 @@ import com.google.protobuf.Any
 import com.google.protobuf.util.Timestamps
 import com.verlumen.tradestream.strategies.SmaRsiParameters
 import com.verlumen.tradestream.strategies.Strategy
-import com.verlumen.tradestream.strategies.StrategyType
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
@@ -43,8 +42,13 @@ class ExtractDiscoveredStrategiesFnTest {
         val strategy1 =
             DiscoveredStrategy
                 .newBuilder()
-                .setStrategy(Strategy.newBuilder().setType(StrategyType.SMA_RSI).setParameters(Any.pack(params1)))
-                .setScore(0.5)
+                .setStrategy(
+                    Strategy
+                        .newBuilder()
+                        .setStrategyName("SMA_RSI")
+                        .setParameters(Any.pack(params1))
+                        .build(),
+                ).setScore(0.5)
                 .setSymbol("BTC/USD")
                 .setStartTime(Timestamps.fromMillis(1000L))
                 .setEndTime(Timestamps.fromMillis(2000L))
@@ -54,8 +58,13 @@ class ExtractDiscoveredStrategiesFnTest {
         val strategy2 =
             DiscoveredStrategy
                 .newBuilder()
-                .setStrategy(Strategy.newBuilder().setType(StrategyType.EMA_MACD).setParameters(Any.pack(params2)))
-                .setScore(0.8)
+                .setStrategy(
+                    Strategy
+                        .newBuilder()
+                        .setStrategyName("EMA_MACD")
+                        .setParameters(Any.pack(params2))
+                        .build(),
+                ).setScore(0.8)
                 .setSymbol("ETH/USD")
                 .setStartTime(Timestamps.fromMillis(3000L))
                 .setEndTime(Timestamps.fromMillis(4000L))
@@ -81,8 +90,13 @@ class ExtractDiscoveredStrategiesFnTest {
         val strategy1 =
             DiscoveredStrategy
                 .newBuilder()
-                .setStrategy(Strategy.newBuilder().setType(StrategyType.SMA_RSI).setParameters(Any.pack(params1)))
-                .setScore(0.5)
+                .setStrategy(
+                    Strategy
+                        .newBuilder()
+                        .setStrategyName("SMA_RSI")
+                        .setParameters(Any.pack(params1))
+                        .build(),
+                ).setScore(0.5)
                 .build()
 
         val discoveryResult =

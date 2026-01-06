@@ -19,8 +19,7 @@ object StrategyCsvUtil {
                 ).digest(parametersAny.toByteArray())
                 .joinToString("") { "%02x".format(it) }
 
-        // Prefer strategyName if set, fall back to type.name for backwards compatibility
-        val strategyName = element.strategy.strategyName.ifEmpty { element.strategy.type.name }
+        val strategyName = element.strategy.strategyName
 
         return listOf(
             element.symbol,

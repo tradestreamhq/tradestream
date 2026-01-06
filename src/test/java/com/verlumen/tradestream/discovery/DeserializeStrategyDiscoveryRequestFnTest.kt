@@ -4,7 +4,6 @@ import com.google.inject.Guice
 import com.google.inject.Inject
 import com.google.inject.testing.fieldbinder.BoundFieldModule
 import com.google.protobuf.util.Timestamps
-import com.verlumen.tradestream.strategies.StrategyType
 import org.apache.beam.sdk.testing.PAssert
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.transforms.Create
@@ -47,7 +46,7 @@ class DeserializeStrategyDiscoveryRequestFnTest {
                 .setSymbol("BTC/USD")
                 .setStartTime(startTime)
                 .setEndTime(endTime)
-                .setStrategyType(StrategyType.SMA_RSI)
+                .setStrategyName("SMA_RSI")
                 .setTopN(10)
                 .setGaConfig(
                     GAConfig

@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch
 import kafka.errors
 
 from protos.discovery_pb2 import StrategyDiscoveryRequest, GAConfig
-from protos.strategies_pb2 import StrategyType
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from services.strategy_discovery_request_factory.kafka_publisher import KafkaPublisher
@@ -45,7 +44,7 @@ class KafkaPublisherTest(unittest.TestCase):
     def _create_test_strategy_discovery_request(
         self,
         symbol: str = "BTC/USD",
-        strategy_type: StrategyType = StrategyType.SMA_RSI,
+        strategy_name: str = "SMA_RSI",
         top_n: int = 5,
     ) -> StrategyDiscoveryRequest:
         """Create a test strategy discovery request."""
@@ -61,7 +60,7 @@ class KafkaPublisherTest(unittest.TestCase):
             symbol=symbol,
             start_time=start_time,
             end_time=end_time,
-            strategy_type=strategy_type,
+            strategy_name=strategy_name,
             top_n=top_n,
             ga_config=ga_config,
         )
@@ -289,30 +288,20 @@ class KafkaPublisherTest(unittest.TestCase):
         self.mock_producer.flush.assert_called_with(timeout=10)
         self.mock_producer.close.assert_called_with(timeout=10)
 
-    def test_different_strategy_types(self):
-        """Test publishing requests with different strategy types."""
-        # Get available strategy types dynamically instead of hardcoding
-        available_strategy_types = [
-            st for st in StrategyType.values() if st != StrategyType.UNSPECIFIED
-        ]
+    def test_different_strategy_names(self):
+        """Test publishing requests with different strategy names."""
+        strategy_names_to_test = ["SMA_RSI", "MACD_CROSSOVER", "EMA_MACD"]
 
-        # Take first 3 available types for testing, or all if less than 3
-        strategy_types_to_test = available_strategy_types[:3]
-
-        # Skip test if no strategy types available
-        if not strategy_types_to_test:
-            self.skipTest("No strategy types available for testing")
-
-        for strategy_type in strategy_types_to_test:
-            with self.subTest(strategy_type=strategy_type):
+        for strategy_name in strategy_names_to_test:
+            with self.subTest(strategy_name=strategy_name):
                 request = self._create_test_strategy_discovery_request(
-                    strategy_type=strategy_type
+                    strategy_name=strategy_name
                 )
                 self.publisher.publish_request(request, "BTC/USD")
 
         # Should have published all requests
         self.assertEqual(
-            self.mock_producer.send.call_count, len(strategy_types_to_test)
+            self.mock_producer.send.call_count, len(strategy_names_to_test)
         )
 
     def test_different_symbols(self):

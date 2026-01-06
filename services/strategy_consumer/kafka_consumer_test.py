@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 # Import Protocol Buffer classes for testing
 from protos.discovery_pb2 import DiscoveredStrategy
-from protos.strategies_pb2 import Strategy, StrategyType
+from protos.strategies_pb2 import Strategy
 from google.protobuf import any_pb2
 from google.protobuf import timestamp_pb2
 import datetime
@@ -80,7 +80,7 @@ class TestStrategyKafkaConsumer:
         """Test parsing a valid strategy message."""
         # Create a test DiscoveredStrategy protobuf message
         strategy = Strategy()
-        strategy.type = StrategyType.MACD_CROSSOVER
+        strategy.strategy_name = "MACD_CROSSOVER"
 
         # Create parameters as Any field
         parameters = any_pb2.Any()
@@ -141,7 +141,7 @@ class TestStrategyKafkaConsumer:
 
         assert result is not None
         assert result["symbol"] == "BTC/USD"
-        assert result["strategy_type"] == "UNSPECIFIED"  # Default enum value
+        assert result["strategy_type"] == ""  # Default empty string for strategy_name
         assert result["current_score"] == 0.0
         assert result["strategy_hash"] != ""
         assert result["discovery_symbol"] == "BTC/USD"
@@ -150,7 +150,7 @@ class TestStrategyKafkaConsumer:
         """Test parsing a message with protobuf parameters."""
         # Create a test DiscoveredStrategy with specific parameters
         strategy = Strategy()
-        strategy.type = StrategyType.MACD_CROSSOVER
+        strategy.strategy_name = "MACD_CROSSOVER"
         # Create parameters as Any field
         parameters = any_pb2.Any()
         parameters.type_url = "type.googleapis.com/com.verlumen.tradestream.strategies.MacdCrossoverParameters"
@@ -173,12 +173,11 @@ class TestStrategyKafkaConsumer:
             == "type.googleapis.com/com.verlumen.tradestream.strategies.MacdCrossoverParameters"
         )
 
-    def test_parse_strategy_message_enum_as_integer(self, kafka_consumer):
-        """Test parsing a message where the enum value is an integer (real-world scenario)."""
+    def test_parse_strategy_message_with_strategy_name(self, kafka_consumer):
+        """Test parsing a message with string strategy_name."""
         # Create a test DiscoveredStrategy protobuf message
         strategy = Strategy()
-        # Set the enum value as an integer (this is what happens in real protobuf deserialization)
-        strategy.type = 1  # MACD_CROSSOVER enum value
+        strategy.strategy_name = "MACD_CROSSOVER"
 
         # Create parameters as Any field
         parameters = any_pb2.Any()
@@ -210,9 +209,7 @@ class TestStrategyKafkaConsumer:
 
         assert result is not None
         assert result["symbol"] == "BTC/USD"
-        assert (
-            result["strategy_type"] == "MACD_CROSSOVER"
-        )  # Should convert integer to string
+        assert result["strategy_type"] == "MACD_CROSSOVER"
         assert result["current_score"] == 0.85
         assert result["strategy_hash"] != ""
         assert result["discovery_symbol"] == "BTC/USD"

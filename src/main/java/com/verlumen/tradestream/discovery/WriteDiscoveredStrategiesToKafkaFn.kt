@@ -87,13 +87,13 @@ class WriteDiscoveredStrategiesToKafkaFn
                 val metadata = future.get() // This blocks until completion
 
                 logger.atInfo().log(
-                    "Successfully wrote strategy to Kafka topic '%s', partition %d, offset %d: symbol=%s, score=%f, type=%s",
+                    "Successfully wrote strategy to Kafka topic '%s', partition %d, offset %d: symbol=%s, score=%f, strategy=%s",
                     metadata.topic(),
                     metadata.partition(),
                     metadata.offset(),
                     element.symbol,
                     element.score,
-                    element.strategy.type,
+                    element.strategy.strategyName,
                 )
             } catch (e: Exception) {
                 logger.atSevere().withCause(e).log(
