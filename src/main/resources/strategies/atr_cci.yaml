@@ -1,7 +1,6 @@
 name: ATR_CCI
 description: ATR volatility filter with CCI momentum - enters when CCI oversold and volatility rising
 complexity: SIMPLE
-source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.atrcci.AtrCciStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.AtrCciParameters
 

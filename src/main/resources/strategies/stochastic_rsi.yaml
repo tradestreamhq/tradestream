@@ -1,7 +1,6 @@
 name: STOCHASTIC_RSI
 description: Stochastic RSI - enters when oversold, exits when overbought
 complexity: MEDIUM
-source: MIGRATED
 sourceStrategy: com.verlumen.tradestream.strategies.stochasticsrsi.StochasticRsiStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.StochasticRsiParameters
 

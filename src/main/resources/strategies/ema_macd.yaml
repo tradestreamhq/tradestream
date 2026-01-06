@@ -1,7 +1,6 @@
 name: EMA_MACD
 description: EMA-based MACD - enters when MACD crosses above signal line
 complexity: SIMPLE
-source: MIGRATED
 sourceStrategy: com.verlumen.tradestream.strategies.emamacd.EmaMacdStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.EmaMacdParameters
 

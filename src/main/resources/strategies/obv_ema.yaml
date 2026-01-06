@@ -1,7 +1,6 @@
 name: OBV_EMA
 description: On Balance Volume crosses its EMA
 complexity: SIMPLE
-source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.obvema.ObvEmaStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.ObvEmaParameters
 

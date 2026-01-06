@@ -1,7 +1,6 @@
 name: MASS_INDEX
 description: Mass Index reversal bulge strategy - identifies trend reversals via range expansion
 complexity: MEDIUM
-source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.massindex.MassIndexStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.MassIndexParameters
 

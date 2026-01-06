@@ -1,7 +1,6 @@
 name: MOMENTUM_SMA_CROSSOVER
 description: Momentum crosses its SMA
 complexity: SIMPLE
-source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.momentumsmacrossover.MomentumSmaCrossoverStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.MomentumSmaCrossoverParameters
 
