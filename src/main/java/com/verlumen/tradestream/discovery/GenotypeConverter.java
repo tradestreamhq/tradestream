@@ -1,7 +1,6 @@
 package com.verlumen.tradestream.discovery;
 
 import com.google.protobuf.Any;
-import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Genotype;
 import java.io.Serializable;
 
@@ -18,17 +17,4 @@ public interface GenotypeConverter extends Serializable {
    * @return an Any instance containing the strategy parameters
    */
   Any convertToParameters(Genotype<?> genotype, String strategyName);
-
-  /**
-   * Converts the genotype from the genetic algorithm into strategy parameters.
-   *
-   * @param genotype the genotype resulting from the GA optimization
-   * @param type the type of trading strategy being optimized
-   * @return an Any instance containing the strategy parameters
-   * @deprecated Use {@link #convertToParameters(Genotype, String)} instead
-   */
-  @Deprecated
-  default Any convertToParameters(Genotype<?> genotype, StrategyType type) {
-    return convertToParameters(genotype, type.name());
-  }
 }

@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.BbandWRParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -58,7 +57,7 @@ public final class BbandWRStrategyFactory implements StrategyFactory<BbandWRPara
     return new BaseStrategy(
         String.format(
             "%s (BB: %d, WR: %d, StdDev: %.1f)",
-            StrategyType.BBAND_W_R.name(),
+            "BBAND_W_R",
             params.getBbandsPeriod(),
             params.getWrPeriod(),
             params.getStdDevMultiplier()),

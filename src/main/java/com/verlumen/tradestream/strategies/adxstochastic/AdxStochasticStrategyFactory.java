@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.AdxStochasticParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -45,9 +44,7 @@ public final class AdxStochasticStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (ADX-%d, StochasticK-%d)",
-            StrategyType.ADX_STOCHASTIC.name(),
-            params.getAdxPeriod(),
-            params.getStochasticKPeriod()),
+            "ADX_STOCHASTIC", params.getAdxPeriod(), params.getStochasticKPeriod()),
         entryRule,
         exitRule,
         params.getAdxPeriod()); // Unstable period is ADX period

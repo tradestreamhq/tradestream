@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.MomentumSmaCrossoverParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.ta4j.MomentumIndicator;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
@@ -43,9 +42,7 @@ public final class MomentumSmaCrossoverStrategyFactory
     String strategyName =
         String.format(
             "%s (MOM-%d/SMA-%d)",
-            StrategyType.MOMENTUM_SMA_CROSSOVER.name(),
-            params.getMomentumPeriod(),
-            params.getSmaPeriod());
+            "MOMENTUM_SMA_CROSSOVER", params.getMomentumPeriod(), params.getSmaPeriod());
 
     return new BaseStrategy(
         strategyName,

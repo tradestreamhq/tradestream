@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.HeikenAshiParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -28,7 +27,7 @@ public final class HeikenAshiStrategyFactory implements StrategyFactory<HeikenAs
     Rule exitRule = new CrossedDownIndicatorRule(heikenAshi.getClose(), heikenAshi.getOpen());
 
     return new BaseStrategy(
-        String.format("%s (Period: %d)", StrategyType.HEIKEN_ASHI.name(), params.getPeriod()),
+        String.format("%s (Period: %d)", "HEIKEN_ASHI", params.getPeriod()),
         entryRule,
         exitRule,
         params.getPeriod());

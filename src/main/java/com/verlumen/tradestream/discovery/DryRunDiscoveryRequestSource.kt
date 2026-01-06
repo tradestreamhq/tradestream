@@ -3,7 +3,6 @@ package com.verlumen.tradestream.discovery
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import com.google.protobuf.Timestamp
-import com.verlumen.tradestream.strategies.StrategyType
 import org.apache.beam.sdk.transforms.Create
 import org.apache.beam.sdk.transforms.ParDo
 import org.apache.beam.sdk.values.KV
@@ -46,14 +45,14 @@ class DryRunDiscoveryRequestSource
             val endTime = now
 
             return listOf(
-                KV.of("request-1", createSampleRequestBytes("BTCUSDT", StrategyType.SMA_RSI, startTime, endTime, 5)),
-                KV.of("request-2", createSampleRequestBytes("ETHUSDT", StrategyType.EMA_MACD, startTime, endTime, 3)),
-                KV.of("request-3", createSampleRequestBytes("AAPL", StrategyType.MACD_CROSSOVER, startTime, endTime, 10)),
-                KV.of("request-4", createSampleRequestBytes("TSLA", StrategyType.DOUBLE_EMA_CROSSOVER, startTime, endTime, 7)),
-                KV.of("request-5", createSampleRequestBytes("GOOGL", StrategyType.VWAP_CROSSOVER, startTime, endTime, 5)),
-                KV.of("request-6", createSampleRequestBytes("ADAUSDT", StrategyType.PARABOLIC_SAR, startTime, endTime, 8)),
-                KV.of("request-7", createSampleRequestBytes("SPY", StrategyType.BBAND_W_R, startTime, endTime, 6)),
-                KV.of("request-8", createSampleRequestBytes("QQQ", StrategyType.RSI_EMA_CROSSOVER, startTime, endTime, 4)),
+                KV.of("request-1", createSampleRequestBytes("BTCUSDT", "SMA_RSI", startTime, endTime, 5)),
+                KV.of("request-2", createSampleRequestBytes("ETHUSDT", "EMA_MACD", startTime, endTime, 3)),
+                KV.of("request-3", createSampleRequestBytes("AAPL", "MACD_CROSSOVER", startTime, endTime, 10)),
+                KV.of("request-4", createSampleRequestBytes("TSLA", "DOUBLE_EMA_CROSSOVER", startTime, endTime, 7)),
+                KV.of("request-5", createSampleRequestBytes("GOOGL", "VWAP_CROSSOVER", startTime, endTime, 5)),
+                KV.of("request-6", createSampleRequestBytes("ADAUSDT", "PARABOLIC_SAR", startTime, endTime, 8)),
+                KV.of("request-7", createSampleRequestBytes("SPY", "BBAND_W_R", startTime, endTime, 6)),
+                KV.of("request-8", createSampleRequestBytes("QQQ", "RSI_EMA_CROSSOVER", startTime, endTime, 4)),
             )
         }
 
@@ -63,7 +62,7 @@ class DryRunDiscoveryRequestSource
          */
         private fun createSampleRequestBytes(
             symbol: String,
-            strategyType: StrategyType,
+            strategyName: String,
             startTime: Instant,
             endTime: Instant,
             topN: Int,
@@ -95,7 +94,7 @@ class DryRunDiscoveryRequestSource
                     .setSymbol(symbol)
                     .setStartTime(startTimestamp)
                     .setEndTime(endTimestamp)
-                    .setStrategyType(strategyType)
+                    .setStrategyName(strategyName)
                     .setTopN(topN)
                     .setGaConfig(gaConfig)
                     .build()

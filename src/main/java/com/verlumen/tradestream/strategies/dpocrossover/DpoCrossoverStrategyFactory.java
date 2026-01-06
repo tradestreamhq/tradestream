@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.DpoCrossoverParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -31,9 +30,7 @@ public final class DpoCrossoverStrategyFactory implements StrategyFactory<DpoCro
     Rule exitRule = new CrossedDownIndicatorRule(dpo, ma);
 
     return new BaseStrategy(
-        String.format(
-            "%s (%d, %d)",
-            StrategyType.DPO_CROSSOVER.name(), params.getDpoPeriod(), params.getMaPeriod()),
+        String.format("%s (%d, %d)", "DPO_CROSSOVER", params.getDpoPeriod(), params.getMaPeriod()),
         entryRule,
         exitRule,
         Math.max(params.getDpoPeriod(), params.getMaPeriod()));

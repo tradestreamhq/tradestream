@@ -5,7 +5,6 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.discovery.ParamConfig;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.VolumeWeightedMacdParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
@@ -33,10 +32,6 @@ public class VolumeWeightedMacdParamConfig implements ParamConfig {
           ChromosomeSpec.ofInteger(15, 50), // Long Period
           ChromosomeSpec.ofInteger(5, 15) // Signal Period
           );
-
-  public StrategyType getStrategyType() {
-    return StrategyType.VOLUME_WEIGHTED_MACD;
-  }
 
   public Any getDefaultParameters() {
     return Any.pack(

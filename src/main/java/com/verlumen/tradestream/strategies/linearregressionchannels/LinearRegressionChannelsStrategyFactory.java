@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.LinearRegressionChannelsParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -36,9 +35,7 @@ public final class LinearRegressionChannelsStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (Period: %d, Multiplier: %.2f)",
-            StrategyType.LINEAR_REGRESSION_CHANNELS.name(),
-            params.getPeriod(),
-            params.getMultiplier()),
+            "LINEAR_REGRESSION_CHANNELS", params.getPeriod(), params.getMultiplier()),
         entryRule,
         exitRule,
         params.getPeriod());

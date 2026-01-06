@@ -3,7 +3,6 @@ package com.verlumen.tradestream.strategies.volatilitystop;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.VolatilityStopParameters;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
@@ -71,7 +70,7 @@ public final class VolatilityStopStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (ATR: %d, Mult: %.2f)",
-            StrategyType.VOLATILITY_STOP.name(), params.getAtrPeriod(), params.getMultiplier()),
+            "VOLATILITY_STOP", params.getAtrPeriod(), params.getMultiplier()),
         entryRule,
         exitRule,
         params.getAtrPeriod());

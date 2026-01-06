@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.RviParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.ta4j.RviIndicator;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
@@ -41,7 +40,7 @@ public final class RviStrategyFactory implements StrategyFactory<RviParameters> 
     Rule exitRule = new CrossedDownIndicatorRule(rvi, rviSignal);
 
     return new BaseStrategy(
-        String.format("%s (Period: %d)", StrategyType.RVI.name(), params.getPeriod()),
+        String.format("%s (Period: %d)", "RVI", params.getPeriod()),
         entryRule,
         exitRule,
         params.getPeriod());

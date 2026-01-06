@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.ChaikinOscillatorParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -40,7 +39,7 @@ public class ChaikinOscillatorStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (Fast: %d, Slow: %d)",
-            StrategyType.CHAIKIN_OSCILLATOR.name(), params.getFastPeriod(), params.getSlowPeriod()),
+            "CHAIKIN_OSCILLATOR", params.getFastPeriod(), params.getSlowPeriod()),
         entryRule,
         exitRule,
         params.getSlowPeriod());

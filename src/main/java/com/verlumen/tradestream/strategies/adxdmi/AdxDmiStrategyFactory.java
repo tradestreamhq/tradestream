@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.AdxDmiParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -36,8 +35,7 @@ public class AdxDmiStrategyFactory implements StrategyFactory<AdxDmiParameters> 
 
     return new BaseStrategy(
         String.format(
-            "%s (ADX: %d, DI: %d)",
-            StrategyType.ADX_DMI.name(), params.getAdxPeriod(), params.getDiPeriod()),
+            "%s (ADX: %d, DI: %d)", "ADX_DMI", params.getAdxPeriod(), params.getDiPeriod()),
         entryRule,
         exitRule,
         Math.max(params.getAdxPeriod(), params.getDiPeriod()));

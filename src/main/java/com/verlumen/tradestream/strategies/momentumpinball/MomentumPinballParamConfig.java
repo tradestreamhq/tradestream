@@ -6,7 +6,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.discovery.ChromosomeSpec;
 import com.verlumen.tradestream.discovery.ParamConfig;
 import com.verlumen.tradestream.strategies.MomentumPinballParameters;
-import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.util.logging.Logger;
@@ -30,10 +29,6 @@ public class MomentumPinballParamConfig implements ParamConfig {
           ChromosomeSpec.ofInteger(2, 30), // shortPeriod
           ChromosomeSpec.ofInteger(5, 60) // longPeriod
           );
-
-  public StrategyType getStrategyType() {
-    return StrategyType.MOMENTUM_PINBALL;
-  }
 
   public Any getDefaultParameters() {
     return Any.pack(

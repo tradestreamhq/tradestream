@@ -1,7 +1,7 @@
 package com.verlumen.tradestream.strategies
 
-object StrategyConstants {
-    @JvmField
-    val supportedStrategyTypes: Set<StrategyType> =
-        setOf()
-}
+/**
+ * Strategy-related constants.
+ * For supported strategy names, use [StrategySpecs.getSupportedStrategyNames].
+ */
+object StrategyConstants

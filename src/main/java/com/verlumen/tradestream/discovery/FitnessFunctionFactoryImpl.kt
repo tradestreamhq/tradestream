@@ -8,7 +8,6 @@ import com.verlumen.tradestream.backtesting.BacktestResult
 import com.verlumen.tradestream.backtesting.BacktestRunner
 import com.verlumen.tradestream.marketdata.Candle
 import com.verlumen.tradestream.strategies.Strategy
-import com.verlumen.tradestream.strategies.StrategyType
 import java.util.function.Function
 
 /**
@@ -44,17 +43,13 @@ class FitnessFunctionFactoryImpl
             strategyName: String,
             candles: List<Candle>,
             params: Any,
-        ): BacktestRequest {
-            // Convert string to StrategyType for backwards compatibility in Strategy proto
-            val strategyType = StrategyType.valueOf(strategyName)
-            return backtestRequestFactory.create(
+        ): BacktestRequest =
+            backtestRequestFactory.create(
                 candles,
                 Strategy
                     .newBuilder()
-                    .setType(strategyType) // Keep for backwards compatibility
-                    .setStrategyName(strategyName) // New string-based identifier
+                    .setStrategyName(strategyName)
                     .setParameters(params)
                     .build(),
             )
-        }
     }

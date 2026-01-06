@@ -11,6 +11,15 @@ import os
 # Add the current directory to the Python path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Initialize absl FLAGS before importing main
+from absl import flags
+
+FLAGS = flags.FLAGS
+
+# Parse FLAGS with default values for tests
+if not FLAGS.is_parsed():
+    FLAGS.mark_as_parsed()
+
 from main import StrategyConfidenceScorer, StrategyConfidenceScore
 
 
@@ -31,10 +40,16 @@ class TestStrategyConfidenceScorer:
 
     @pytest.fixture
     def mock_pool(self):
-        """Create a mock connection pool."""
-        pool = AsyncMock()
+        """Create a mock connection pool with proper async context manager."""
+        pool = MagicMock()
         conn = AsyncMock()
-        pool.acquire.return_value.__aenter__.return_value = conn
+
+        # Create a proper async context manager for pool.acquire()
+        async_cm = AsyncMock()
+        async_cm.__aenter__.return_value = conn
+        async_cm.__aexit__.return_value = None
+        pool.acquire.return_value = async_cm
+
         return pool, conn
 
     def test_calculate_confidence_score_performance_dominant(self, scorer):

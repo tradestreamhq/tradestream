@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.SmaEmaCrossoverParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -33,7 +32,7 @@ public final class SmaEmaCrossoverStrategyFactory
     String strategyName =
         String.format(
             "%s (SMA-%d EMA-%d)",
-            StrategyType.SMA_EMA_CROSSOVER.name(), params.getSmaPeriod(), params.getEmaPeriod());
+            "SMA_EMA_CROSSOVER", params.getSmaPeriod(), params.getEmaPeriod());
     return new BaseStrategy(strategyName, entryRule, exitRule, params.getEmaPeriod());
   }
 

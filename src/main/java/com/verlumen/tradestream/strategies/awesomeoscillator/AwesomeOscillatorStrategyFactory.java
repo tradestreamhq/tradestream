@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.AwesomeOscillatorParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -39,9 +38,7 @@ public class AwesomeOscillatorStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (Short: %d, Long: %d)",
-            StrategyType.AWESOME_OSCILLATOR.name(),
-            params.getShortPeriod(),
-            params.getLongPeriod()),
+            "AWESOME_OSCILLATOR", params.getShortPeriod(), params.getLongPeriod()),
         entryRule,
         exitRule,
         params.getLongPeriod());

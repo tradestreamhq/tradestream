@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.DonchianBreakoutParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -41,8 +40,7 @@ public final class DonchianBreakoutStrategyFactory
     Rule exitRule = new UnderIndicatorRule(closePrice, lowerChannel);
 
     return new BaseStrategy(
-        String.format(
-            "%s (Period: %d)", StrategyType.DONCHIAN_BREAKOUT.name(), params.getDonchianPeriod()),
+        String.format("%s (Period: %d)", "DONCHIAN_BREAKOUT", params.getDonchianPeriod()),
         entryRule,
         exitRule,
         params.getDonchianPeriod());

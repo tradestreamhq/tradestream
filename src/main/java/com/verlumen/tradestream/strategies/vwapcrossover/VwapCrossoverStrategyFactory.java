@@ -3,7 +3,6 @@ package com.verlumen.tradestream.strategies.vwapcrossover;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.strategies.VwapCrossoverParameters;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
@@ -35,9 +34,7 @@ public final class VwapCrossoverStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (VWAP: %d, MA: %d)",
-            StrategyType.VWAP_CROSSOVER.name(),
-            params.getVwapPeriod(),
-            params.getMovingAveragePeriod()),
+            "VWAP_CROSSOVER", params.getVwapPeriod(), params.getMovingAveragePeriod()),
         entryRule,
         exitRule,
         Math.max(params.getVwapPeriod(), params.getMovingAveragePeriod()));

@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.AroonMfiParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -44,8 +43,7 @@ public class AroonMfiStrategyFactory implements StrategyFactory<AroonMfiParamete
 
     return new BaseStrategy(
         String.format(
-            "%s (Aroon: %d, MFI: %d)",
-            StrategyType.AROON_MFI.name(), params.getAroonPeriod(), params.getMfiPeriod()),
+            "%s (Aroon: %d, MFI: %d)", "AROON_MFI", params.getAroonPeriod(), params.getMfiPeriod()),
         entryRule,
         exitRule,
         Math.max(params.getAroonPeriod(), params.getMfiPeriod()));

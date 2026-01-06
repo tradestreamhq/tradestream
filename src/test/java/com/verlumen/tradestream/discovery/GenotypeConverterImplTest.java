@@ -11,7 +11,6 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.SmaRsiParameters;
-import com.verlumen.tradestream.strategies.StrategyType;
 import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
 import io.jenetics.Genotype;
@@ -72,40 +71,6 @@ public class GenotypeConverterImplTest {
   }
 
   @Test
-  @SuppressWarnings("deprecation")
-  public void convertToParameters_validGenotypeWithStrategyType_returnsCorrectParameters()
-      throws InvalidProtocolBufferException {
-    // Arrange - test the deprecated method still works
-    StrategyType strategyType = StrategyType.SMA_RSI;
-
-    // Create the individual chromosomes with valid ranges where min < max.
-    IntegerChromosome maPeriodChromosome = IntegerChromosome.of(10, 11); // -> 10
-    IntegerChromosome rsiPeriodChromosome = IntegerChromosome.of(14, 15); // -> 14
-    DoubleChromosome overboughtChromosome = DoubleChromosome.of(70.0, 70.1); // -> 70.0
-    DoubleChromosome oversoldChromosome = DoubleChromosome.of(30.0, 30.1); // -> 30.0
-
-    // Use the more general Chromosome<?> type for the list.
-    List<Chromosome<?>> chromosomes =
-        List.of(maPeriodChromosome, rsiPeriodChromosome, overboughtChromosome, oversoldChromosome);
-
-    // Mock the Genotype to behave as if it contains our mixed list.
-    Genotype<?> mockGenotype = mock(Genotype.class);
-    doReturn(chromosomes.iterator()).when(mockGenotype).iterator();
-
-    // Act - use deprecated method
-    Any actualParameters = converter.convertToParameters(mockGenotype, strategyType);
-
-    // Assert
-    assertThat(actualParameters.is(SmaRsiParameters.class)).isTrue();
-
-    SmaRsiParameters unpackedParams = actualParameters.unpack(SmaRsiParameters.class);
-    assertThat(unpackedParams.getMovingAveragePeriod()).isEqualTo(10);
-    assertThat(unpackedParams.getRsiPeriod()).isEqualTo(14);
-    assertThat(unpackedParams.getOverboughtThreshold()).isWithin(0.1).of(70.0);
-    assertThat(unpackedParams.getOversoldThreshold()).isWithin(0.1).of(30.0);
-  }
-
-  @Test
   public void convertToParameters_nullGenotype_throwsNullPointerException() {
     // Arrange
     String strategyName = "SMA_RSI";
@@ -123,18 +88,6 @@ public class GenotypeConverterImplTest {
     // Act & Assert
     assertThrows(
         NullPointerException.class, () -> converter.convertToParameters(genotype, (String) null));
-  }
-
-  @Test
-  @SuppressWarnings("deprecation")
-  public void convertToParameters_nullStrategyType_throwsNullPointerException() {
-    // Arrange - test deprecated method with null
-    Genotype<?> genotype = Genotype.of(DoubleChromosome.of(0, 1));
-
-    // Act & Assert
-    assertThrows(
-        NullPointerException.class,
-        () -> converter.convertToParameters(genotype, (StrategyType) null));
   }
 
   @Test

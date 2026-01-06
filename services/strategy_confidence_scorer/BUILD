@@ -27,11 +27,15 @@ py_binary(
 # Unit Tests
 py_test(
     name = "main_test",
-    srcs = ["main_test.py"],
+    srcs = [
+        "conftest.py",
+        "main_test.py",
+    ],
     deps = [
         ":strategy_confidence_scorer_lib",
         "//third_party/python:absl_py",
         "//third_party/python:pytest",
+        "//third_party/python:pytest_asyncio",
     ],
 )
 

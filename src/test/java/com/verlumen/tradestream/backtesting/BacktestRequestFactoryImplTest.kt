@@ -1,11 +1,11 @@
 package com.verlumen.tradestream.backtesting
 
 import com.google.common.truth.Truth.assertThat
+import com.google.protobuf.Any
 import com.google.protobuf.Timestamp
 import com.verlumen.tradestream.marketdata.Candle
 import com.verlumen.tradestream.strategies.Strategy
-import com.verlumen.tradestream.strategies.StrategyType
-import com.verlumen.tradestream.strategies.getDefaultParameters
+import com.verlumen.tradestream.strategies.StrategySpecs
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -55,11 +55,12 @@ class BacktestRequestFactoryImplTest {
             )
 
         // Create a sample strategy with proper default parameters
+        val spec = StrategySpecs.getSpec("SMA_RSI")
         sampleStrategy =
             Strategy
                 .newBuilder()
-                .setType(StrategyType.SMA_RSI)
-                .setParameters(StrategyType.SMA_RSI.getDefaultParameters()) // Use actual defaults
+                .setStrategyName("SMA_RSI")
+                .setParameters(Any.pack(spec.strategyFactory.defaultParameters))
                 .build()
     }
 

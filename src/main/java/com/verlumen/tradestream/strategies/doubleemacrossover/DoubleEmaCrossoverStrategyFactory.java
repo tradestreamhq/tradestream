@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -40,9 +39,7 @@ public final class DoubleEmaCrossoverStrategyFactory
     return new BaseStrategy(
         String.format(
             "%s (%d, %d)",
-            StrategyType.DOUBLE_EMA_CROSSOVER.name(),
-            params.getShortEmaPeriod(),
-            params.getLongEmaPeriod()),
+            "DOUBLE_EMA_CROSSOVER", params.getShortEmaPeriod(), params.getLongEmaPeriod()),
         entryRule,
         exitRule,
         params.getLongEmaPeriod());

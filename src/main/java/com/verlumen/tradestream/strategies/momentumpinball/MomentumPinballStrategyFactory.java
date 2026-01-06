@@ -2,7 +2,6 @@ package com.verlumen.tradestream.strategies.momentumpinball;
 
 import com.verlumen.tradestream.strategies.MomentumPinballParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import com.verlumen.tradestream.ta4j.MomentumIndicator;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
@@ -25,10 +24,6 @@ public class MomentumPinballStrategyFactory implements StrategyFactory<MomentumP
 
   public MomentumPinballStrategyFactory() {
     this.paramConfig = new MomentumPinballParamConfig();
-  }
-
-  public StrategyType getStrategyType() {
-    return StrategyType.MOMENTUM_PINBALL;
   }
 
   @Override

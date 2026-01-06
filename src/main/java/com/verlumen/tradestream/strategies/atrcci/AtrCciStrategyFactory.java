@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.verlumen.tradestream.strategies.AtrCciParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
-import com.verlumen.tradestream.strategies.StrategyType;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -36,8 +35,7 @@ public final class AtrCciStrategyFactory implements StrategyFactory<AtrCciParame
 
     return new BaseStrategy(
         String.format(
-            "%s (ATR: %d, CCI: %d)",
-            StrategyType.ATR_CCI.name(), params.getAtrPeriod(), params.getCciPeriod()),
+            "%s (ATR: %d, CCI: %d)", "ATR_CCI", params.getAtrPeriod(), params.getCciPeriod()),
         entryRule,
         exitRule,
         Math.max(params.getAtrPeriod(), params.getCciPeriod()));
