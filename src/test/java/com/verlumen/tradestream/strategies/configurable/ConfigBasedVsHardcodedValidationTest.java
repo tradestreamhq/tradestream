@@ -15,7 +15,8 @@ import org.ta4j.core.Strategy;
 
 /**
  * Validation tests to ensure config-based strategies produce the same signals as their hardcoded
- * counterparts. This is critical for verifying the migration from Java classes to YAML configs.
+ * counterparts. These tests verify that YAML-defined strategies behave identically to the original
+ * Java implementations.
  */
 public class ConfigBasedVsHardcodedValidationTest {
 

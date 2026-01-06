@@ -10,7 +10,7 @@ The Strategy Discovery system has achieved significant production scale:
 - **240+ Days**: Production uptime with automatic recovery (attempt #1400+)
 - **Real-Time**: Genetic algorithm optimization with Apache Flink streaming
 - **Jenetics Library**: High-performance genetic algorithm optimization
-- **60 Strategy Types**: Technical analysis strategies using TA4J library
+- **55+ Strategy Types**: Technical analysis strategies using TA4J library (loaded from YAML config)
 
 ## Overview
 
@@ -102,7 +102,7 @@ public class GAEngineFactoryImpl implements GAEngineFactory {
 **Jenetics Implementation**:
 
 - **Library**: Jenetics for high-performance genetic algorithm optimization
-- **Strategy Types**: 60 different technical analysis strategies using Ta4j
+- **Strategy Types**: 55+ technical analysis strategies loaded from YAML config
 - **Optimization**: Real-time parameter optimization for market conditions
 - **Performance**: Multi-threaded evaluation of strategy candidates
 
@@ -169,7 +169,7 @@ data class GAEngineParams(
 - **Strategy Discoveries**: 40+ million requests processed successfully
 - **System Uptime**: 240+ days continuous operation with automatic recovery
 - **Genetic Algorithm**: Real-time optimization with Jenetics library
-- **Strategy Types**: 60 different technical analysis strategies
+- **Strategy Types**: 55+ technical analysis strategies (loaded from YAML config)
 - **Reliability**: Automatic restart and recovery (currently attempt #1400+)
 - **Throughput**: Real-time processing with Apache Beam on Flink
 
@@ -203,15 +203,17 @@ bazel run //src/main/java/com/verlumen/tradestream/discovery:strategy_discovery_
 ### Creating Discovery Requests
 
 ```kotlin
-// Create discovery request
+// Create discovery request using string-based strategy name
 val request = StrategyDiscoveryRequest.newBuilder()
-    .setStrategyType(Strategy.MACD_CROSSOVER)
+    .setStrategyName("MACD_CROSSOVER")  // String-based identifier
     .setSymbol("BTC/USD")
-    .setTimeframe("1h")
-    .setStartDate("2023-01-01")
-    .setEndDate("2023-12-31")
-    .setPopulationSize(100)
-    .setGenerations(50)
+    .setStartTime(startTimestamp)
+    .setEndTime(endTimestamp)
+    .setTopN(10)
+    .setGaConfig(GAConfig.newBuilder()
+        .setPopulationSize(100)
+        .setMaxGenerations(50)
+        .build())
     .build()
 
 // Send to Kafka
@@ -387,7 +389,7 @@ class PostgresStrategyRepository : StrategyRepository {
 
         jdbcTemplate.update(sql,
             strategy.strategyId,
-            strategy.strategyType.name,
+            strategy.strategy.strategyName,
             strategy.parameters.toByteArray(),
             strategy.fitnessScore,
             strategy.performanceMetrics.toByteArray(),
@@ -416,7 +418,7 @@ class RunGADiscoveryFn {
     @ProcessElement
     fun processElement(@Element request: StrategyDiscoveryRequest, out: OutputReceiver<DiscoveredStrategy>) {
         logger.info("Starting strategy discovery", extra = mapOf(
-            "strategy_type" to request.strategyType.name,
+            "strategy_name" to request.strategyName,
             "symbol" to request.symbol,
             "population_size" to request.populationSize,
             "generations" to request.generations

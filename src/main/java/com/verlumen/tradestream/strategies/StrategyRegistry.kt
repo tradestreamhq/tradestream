@@ -10,7 +10,7 @@ import java.util.logging.Logger
 
 /**
  * A registry that discovers and loads strategy configurations at runtime from YAML files.
- * This provides string-based strategy lookup as part of the migration from StrategyType enum.
+ * Provides string-based strategy lookup by strategy name.
  *
  * The registry is immutable after construction and thread-safe.
  *
