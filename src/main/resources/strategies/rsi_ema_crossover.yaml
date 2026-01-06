@@ -1,7 +1,6 @@
 name: RSI_EMA_CROSSOVER
 description: RSI crosses its EMA with overbought/oversold filters
 complexity: SIMPLE
-sourceStrategy: com.verlum.tradestream.strategies.rsiemacrossover.RsiEmaCrossoverStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.RsiEmaCrossoverParameters
 
 indicators:

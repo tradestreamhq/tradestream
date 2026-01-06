@@ -1,7 +1,6 @@
 name: PRICE_GAP
 description: Price Gap with EMA - enters when price crosses above EMA
 complexity: SIMPLE
-sourceStrategy: com.verlumen.tradestream.strategies.pricegap.PriceGapStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.PriceGapParameters
 
 indicators:
