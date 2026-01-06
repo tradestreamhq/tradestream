@@ -10,7 +10,6 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.verlumen.tradestream.strategies.Strategy;
-import com.verlumen.tradestream.strategies.StrategyType;
 import java.time.Duration;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -58,7 +57,7 @@ public class TradeSignalPublisherImplTest {
   }
 
   @Test
-  public void publish_usesStrategyTypeAsKey() {
+  public void publish_usesStrategyNameAsKey() {
     // Arrange
     ArgumentCaptor<ProducerRecord<String, byte[]>> recordCaptor =
         ArgumentCaptor.forClass(ProducerRecord.class);
@@ -70,7 +69,7 @@ public class TradeSignalPublisherImplTest {
     // Assert
     verify(mockProducer).send(recordCaptor.capture(), any());
     ProducerRecord<String, byte[]> record = recordCaptor.getValue();
-    assertThat(record.key()).isEqualTo(signal.getStrategy().getType().name());
+    assertThat(record.key()).isEqualTo(signal.getStrategy().getStrategyName());
   }
 
   @Test
@@ -88,7 +87,7 @@ public class TradeSignalPublisherImplTest {
         .setType(TradeSignal.TradeSignalType.BUY)
         .setTimestamp(System.currentTimeMillis())
         .setPrice(50000.0)
-        .setStrategy(Strategy.newBuilder().setType(StrategyType.SMA_RSI).build())
+        .setStrategy(Strategy.newBuilder().setStrategyName("SMA_RSI").build())
         .build();
   }
 }

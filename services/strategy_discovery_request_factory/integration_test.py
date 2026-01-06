@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timezone
 
 from protos.discovery_pb2 import StrategyDiscoveryRequest
-from protos.strategies_pb2 import StrategyType
 
 from services.strategy_discovery_request_factory.strategy_discovery_processor import (
     StrategyDiscoveryProcessor,
@@ -122,7 +121,7 @@ class StatelessIntegrationTest(unittest.TestCase):
         for request in all_requests:
             self.assertIsInstance(request, StrategyDiscoveryRequest)
             self.assertIn(request.symbol, currency_pairs)
-            self.assertNotEqual(request.strategy_type, StrategyType.UNSPECIFIED)
+            self.assertIn(request.strategy_name, TEST_STRATEGY_NAMES)
             self.assertGreater(request.end_time.seconds, request.start_time.seconds)
             self.assertEqual(request.top_n, 5)
             self.assertEqual(request.ga_config.max_generations, 30)

@@ -21,7 +21,6 @@ from tenacity import (
 
 # Import Protocol Buffer generated classes
 from protos.discovery_pb2 import DiscoveredStrategy
-from protos.strategies_pb2 import StrategyType
 from google.protobuf import any_pb2
 from google.protobuf import timestamp_pb2
 
@@ -123,7 +122,7 @@ class StrategyKafkaConsumer:
             # Extract basic fields
             strategy = {
                 "symbol": discovered_strategy.symbol,
-                "strategy_type": StrategyType.Name(discovered_strategy.strategy.type),
+                "strategy_type": discovered_strategy.strategy.strategy_name,
                 "current_score": discovered_strategy.score,
                 "strategy_hash": self._generate_strategy_hash(
                     discovered_strategy.strategy

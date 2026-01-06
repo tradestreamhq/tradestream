@@ -39,8 +39,8 @@ final class TradeSignalPublisherImpl implements TradeSignalPublisher {
     byte[] signalBytes = signal.toByteArray();
     logger.atFine().log("Serialized signal data size: %d bytes", signalBytes.length);
 
-    // Use the strategy type as the key for partitioning
-    String key = signal.getStrategy().getType().name();
+    // Use the strategy name as the key for partitioning
+    String key = signal.getStrategy().getStrategyName();
 
     ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, key, signalBytes);
 
@@ -52,7 +52,7 @@ final class TradeSignalPublisherImpl implements TradeSignalPublisher {
               if (exception != null) {
                 logger.atSevere().withCause(exception).log(
                     "Failed to publish trade signal for %s to topic %s",
-                    signal.getStrategy().getType(), topic);
+                    signal.getStrategy().getStrategyName(), topic);
               } else {
                 logger.atInfo().log(
                     "Successfully published signal: topic=%s, partition=%d, offset=%d,"

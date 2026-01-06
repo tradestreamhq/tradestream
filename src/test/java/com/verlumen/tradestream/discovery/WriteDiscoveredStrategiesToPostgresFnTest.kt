@@ -12,7 +12,6 @@ import com.verlumen.tradestream.sql.DataSourceConfig
 import com.verlumen.tradestream.strategies.EmaMacdParameters
 import com.verlumen.tradestream.strategies.SmaRsiParameters
 import com.verlumen.tradestream.strategies.Strategy
-import com.verlumen.tradestream.strategies.StrategyType
 import org.apache.beam.sdk.testing.TestPipeline
 import org.apache.beam.sdk.util.SerializableUtils
 import org.apache.commons.csv.CSVFormat
@@ -108,7 +107,7 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         val strategy =
             Strategy
                 .newBuilder()
-                .setType(StrategyType.SMA_RSI)
+                .setStrategyName("SMA_RSI")
                 .setParameters(
                     Any.pack(
                         SmaRsiParameters
@@ -125,7 +124,7 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
             DiscoveredStrategy
                 .newBuilder()
                 .setSymbol("BTCUSDT")
-                .setStrategy(strategy)
+                .setStrategy(strategy as Strategy)
                 .setScore(0.85)
                 .setStartTime(Timestamp.newBuilder().setSeconds(startTime.epochSecond).build())
                 .setEndTime(Timestamp.newBuilder().setSeconds(endTime.epochSecond).build())
@@ -156,7 +155,7 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         val strategy =
             Strategy
                 .newBuilder()
-                .setType(StrategyType.EMA_MACD)
+                .setStrategyName("EMA_MACD")
                 .setParameters(
                     Any.pack(
                         EmaMacdParameters
@@ -172,7 +171,7 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
             DiscoveredStrategy
                 .newBuilder()
                 .setSymbol("ETHUSDT")
-                .setStrategy(strategy)
+                .setStrategy(strategy as Strategy)
                 .setScore(0.92)
                 .setStartTime(Timestamp.newBuilder().setSeconds(1672531200).build())
                 .setEndTime(Timestamp.newBuilder().setSeconds(1672617600).build())
@@ -214,7 +213,7 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         val emptyStrategy =
             Strategy
                 .newBuilder()
-                .setType(StrategyType.SMA_RSI)
+                .setStrategyName("SMA_RSI")
                 .setParameters(Any.getDefaultInstance())
                 .build()
 
@@ -222,7 +221,7 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
             DiscoveredStrategy
                 .newBuilder()
                 .setSymbol("TEST")
-                .setStrategy(emptyStrategy)
+                .setStrategy(emptyStrategy as Strategy)
                 .setScore(0.5)
                 .setStartTime(Timestamp.newBuilder().setSeconds(0).build())
                 .setEndTime(Timestamp.newBuilder().setSeconds(3600).build())
@@ -255,7 +254,7 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
         val strategy =
             Strategy
                 .newBuilder()
-                .setType(StrategyType.SMA_RSI)
+                .setStrategyName("SMA_RSI")
                 .setParameters(
                     Any.pack(
                         SmaRsiParameters
@@ -272,7 +271,7 @@ class WriteDiscoveredStrategiesToPostgresFnTest {
             DiscoveredStrategy
                 .newBuilder()
                 .setSymbol("BTCUSDT")
-                .setStrategy(strategy)
+                .setStrategy(strategy as Strategy)
                 .setScore(0.85)
                 .setStartTime(Timestamp.newBuilder().setSeconds(1672531200).build())
                 .setEndTime(Timestamp.newBuilder().setSeconds(1672617600).build())

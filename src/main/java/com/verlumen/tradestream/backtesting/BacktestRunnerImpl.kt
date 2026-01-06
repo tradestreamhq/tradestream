@@ -28,8 +28,7 @@ class BacktestRunnerImpl
         override fun runBacktest(request: BacktestRequest): BacktestResult {
             require(request.candlesList.isNotEmpty()) { "Bar series cannot be empty" }
 
-            // Extract strategy name, preferring strategyName field with fallback to type.name for backwards compatibility
-            val strategyName = request.strategy.strategyName.ifEmpty { request.strategy.type.name }
+            val strategyName = request.strategy.strategyName
 
             require(StrategySpecs.isSupported(strategyName)) { "Strategy type $strategyName is not supported" }
             require(

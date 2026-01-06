@@ -5,7 +5,6 @@ from datetime import datetime, timezone, timedelta
 from unittest import mock
 
 from protos.discovery_pb2 import StrategyDiscoveryRequest
-from protos.strategies_pb2 import StrategyType
 
 from services.strategy_discovery_request_factory.strategy_discovery_processor import (
     StrategyDiscoveryProcessor,
@@ -109,7 +108,6 @@ class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
         # Verify request structure
         for request in requests:
             self.assertEqual(request.symbol, "BTC/USD")
-            self.assertNotEqual(request.strategy_type, StrategyType.UNSPECIFIED)
             self.assertIn(request.strategy_name, TEST_STRATEGY_NAMES)
             self.assertGreater(request.end_time.seconds, request.start_time.seconds)
             self.assertEqual(request.top_n, 5)
@@ -315,11 +313,6 @@ class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
         # Verify all configured strategies are included
         self.assertEqual(request_strategy_names, set(TEST_STRATEGY_NAMES))
 
-        # Verify strategy_type matches strategy_name
-        for request in requests:
-            expected_type = StrategyType.Value(request.strategy_name)
-            self.assertEqual(request.strategy_type, expected_type)
-
     @mock.patch(
         "services.strategy_discovery_request_factory.strategy_discovery_processor."
         "get_supported_strategy_names"
@@ -345,9 +338,6 @@ class StatelessStrategyDiscoveryProcessorTest(unittest.TestCase):
 
         self.assertEqual(len(requests), 1)
         self.assertEqual(requests[0].strategy_name, "MACD_CROSSOVER")
-        self.assertEqual(
-            requests[0].strategy_type, StrategyType.Value("MACD_CROSSOVER")
-        )
 
 
 if __name__ == "__main__":

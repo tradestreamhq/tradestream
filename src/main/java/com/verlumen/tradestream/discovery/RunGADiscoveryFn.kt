@@ -46,13 +46,7 @@ class RunGADiscoveryFn :
     @ProcessElement
     fun processElement(context: ProcessContext) {
         val discoveryRequest = context.element()
-        // Prefer strategy_name if set, fallback to strategyType.name for backwards compatibility
-        val strategyName =
-            if (discoveryRequest.strategyName.isNotEmpty()) {
-                discoveryRequest.strategyName
-            } else {
-                discoveryRequest.strategyType.name
-            }
+        val strategyName = discoveryRequest.strategyName
         logger.atInfo().log(
             "Processing StrategyDiscoveryRequest for symbol: %s, strategy: %s",
             discoveryRequest.symbol,
@@ -146,8 +140,7 @@ class RunGADiscoveryFn :
             val strategyProto =
                 Strategy
                     .newBuilder()
-                    .setType(discoveryRequest.strategyType) // Keep for backwards compatibility
-                    .setStrategyName(strategyName) // Set new string-based field
+                    .setStrategyName(strategyName)
                     .setParameters(strategyParamsAny)
                     .build()
 

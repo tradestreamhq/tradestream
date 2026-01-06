@@ -19,8 +19,10 @@ message StrategyDiscoveryRequest {
   string symbol = 1;                            // Trading symbol (e.g., "BTCUSDT", "AAPL")
   google.protobuf.Timestamp start_time = 2;     // Inclusive start time for market data
   google.protobuf.Timestamp end_time = 3;       // Exclusive end time for market data
-  // Deprecated: Use strategy_name instead for new code.
-  strategies.StrategyType strategy_type = 4 [deprecated = true];
+  // Field 4 was previously 'StrategyType strategy_type' (deprecated enum).
+  // Reserved to prevent reuse and maintain wire compatibility.
+  reserved 4;
+  reserved "strategy_type";
   int32 top_n = 5;                              // Number of top strategies to return
 
   // Configuration for the optimization algorithm.
@@ -30,7 +32,7 @@ message StrategyDiscoveryRequest {
   }
 
   // String-based strategy name identifier (e.g., "MACD_CROSSOVER", "SMA_RSI").
-  // During migration, set both strategy_type and strategy_name for compatibility.
+  // This is the primary field for identifying strategies.
   string strategy_name = 8;
 }
 
