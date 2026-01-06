@@ -1,7 +1,6 @@
 name: MACD_CROSSOVER
 description: MACD crosses Signal Line
 complexity: SIMPLE
-sourceStrategy: com.verlum.tradestream.strategies.macdcrossover.MacdCrossoverStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.MacdCrossoverParameters
 
 indicators:

@@ -1,7 +1,6 @@
 name: TRIPLE_EMA_CROSSOVER
 description: Triple EMA crossover strategy using short, medium, and long periods
 complexity: MEDIUM
-sourceStrategy: com.verlum.tradestream.strategies.tripleemacrossover.TripleEmaCrossoverStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.TripleEmaCrossoverParameters
 
 indicators:

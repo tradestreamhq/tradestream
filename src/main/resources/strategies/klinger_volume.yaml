@@ -1,7 +1,6 @@
 name: KLINGER_VOLUME
 description: Klinger Volume Oscillator with signal line - volume-based trend indicator
 complexity: MEDIUM
-sourceStrategy: com.verlum.tradestream.strategies.klingervolume.KlingerVolumeStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.KlingerVolumeParameters
 
 indicators:

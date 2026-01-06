@@ -1,7 +1,6 @@
 name: BBAND_WILLIAMS_R
 description: Bollinger Bands with Williams %R - enters at lower band when oversold
 complexity: MEDIUM
-sourceStrategy: com.verlum.tradestream.strategies.bbandwr.BbandWRStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.BbandWRParameters
 
 indicators:
