@@ -1,7 +1,6 @@
 name: CMO_MFI
 description: Chande Momentum Oscillator with Money Flow Index - momentum and volume confirmation
 complexity: MEDIUM
-source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.cmomfi.CmoMfiStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.CmoMfiParameters
 

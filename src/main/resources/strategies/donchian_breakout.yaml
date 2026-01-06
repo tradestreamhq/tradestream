@@ -1,7 +1,6 @@
 name: DONCHIAN_BREAKOUT
 description: Donchian Channel breakout - enters when price breaks above highest high
 complexity: SIMPLE
-source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.donchianbreakout.DonchianBreakoutStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.DonchianBreakoutParameters
 

@@ -1,7 +1,6 @@
 name: ADX_STOCHASTIC
 description: ADX trend filter with Stochastic Oscillator - enters on strong trends when oversold
 complexity: SIMPLE
-source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.adxstochastic.AdxStochasticStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.AdxStochasticParameters
 

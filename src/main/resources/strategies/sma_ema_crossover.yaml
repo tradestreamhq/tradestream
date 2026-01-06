@@ -1,7 +1,6 @@
 name: SMA_EMA_CROSSOVER
 description: Simple Moving Average crosses Exponential Moving Average
 complexity: SIMPLE
-source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.smaemacrossover.SmaEmaCrossoverStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.SmaEmaCrossoverParameters
 

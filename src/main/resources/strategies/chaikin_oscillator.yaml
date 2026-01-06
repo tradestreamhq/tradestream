@@ -1,7 +1,6 @@
 name: CHAIKIN_OSCILLATOR
 description: Chaikin Oscillator crosses zero line
 complexity: SIMPLE
-source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.chaikinoscillator.ChaikinOscillatorStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.ChaikinOscillatorParameters
 

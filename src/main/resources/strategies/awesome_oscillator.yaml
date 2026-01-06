@@ -1,7 +1,6 @@
 name: AWESOME_OSCILLATOR
 description: Awesome Oscillator zero-line crossover - enters when AO crosses above zero
 complexity: SIMPLE
-source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.awesomeoscillator.AwesomeOscillatorStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.AwesomeOscillatorParameters
 

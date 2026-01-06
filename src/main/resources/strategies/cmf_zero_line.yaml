@@ -1,7 +1,6 @@
 name: CMF_ZERO_LINE
 description: Chaikin Money Flow zero-line crossover - enters when CMF crosses above zero
 complexity: SIMPLE
-source: MIGRATED
 sourceStrategy: com.verlum.tradestream.strategies.cmfzeroline.CmfZeroLineStrategyFactory
 parameterMessageType: com.verlumen.tradestream.strategies.CmfZeroLineParameters
 
