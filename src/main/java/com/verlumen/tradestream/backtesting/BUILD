@@ -50,6 +50,19 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
+    name = "remote_backtest_runner",
+    srcs = ["RemoteBacktestRunner.kt"],
+    deps = [
+        ":backtest_runner",
+        "//protos:backtesting_java_grpc",
+        "//protos:backtesting_java_proto",
+        "//third_party/java:flogger",
+        "//third_party/java:grpc_stub",
+        "//third_party/java:guice",
+    ],
+)
+
+kt_jvm_library(
     name = "backtesting_module",
     srcs = ["BacktestingModule.kt"],
     deps = [

@@ -15,6 +15,7 @@ bazel_dep(name = "rules_jvm_external", version = "6.5")
 bazel_dep(name = "rules_kotlin", version = "2.1.3")
 bazel_dep(name = "rules_oci", version = "2.2.6")
 bazel_dep(name = "rules_python", version = "1.4.1")
+bazel_dep(name = "grpc-java", version = "1.75.0")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
@@ -95,6 +96,12 @@ maven.install(
         "org.postgresql:postgresql:42.7.6",
         "org.ta4j:ta4j-core:0.17",
         "org.yaml:snakeyaml:2.2",
+
+        # gRPC Dependencies
+        "io.grpc:grpc-netty-shaded:1.75.0",
+        "io.grpc:grpc-protobuf:1.75.0",
+        "io.grpc:grpc-stub:1.75.0",
+        "io.grpc:grpc-services:1.75.0",
 
         # Test Dependencies
         "com.google.inject.extensions:guice-testlib:7.0.0",

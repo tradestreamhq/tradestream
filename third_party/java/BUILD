@@ -360,3 +360,36 @@ java_library(
         "@tradestream_maven//:org_yaml_snakeyaml",
     ],
 )
+
+# gRPC Dependencies
+java_library(
+    name = "grpc_netty_shaded",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:io_grpc_grpc_netty_shaded",
+    ],
+)
+
+java_library(
+    name = "grpc_protobuf",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:io_grpc_grpc_protobuf",
+    ],
+)
+
+java_library(
+    name = "grpc_stub",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:io_grpc_grpc_stub",
+    ],
+)
+
+java_library(
+    name = "grpc_services",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@tradestream_maven//:io_grpc_grpc_services",
+    ],
+)

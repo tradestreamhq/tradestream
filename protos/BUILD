@@ -1,5 +1,6 @@
 load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@grpc-java//:java_grpc_library.bzl", "java_grpc_library")
 
 proto_library(
     name = "backtesting_proto",
@@ -15,6 +16,13 @@ java_proto_library(
     name = "backtesting_java_proto",
     visibility = ["//visibility:public"],
     deps = [":backtesting_proto"],
+)
+
+java_grpc_library(
+    name = "backtesting_java_grpc",
+    srcs = [":backtesting_proto"],
+    visibility = ["//visibility:public"],
+    deps = [":backtesting_java_proto"],
 )
 
 py_proto_library(
