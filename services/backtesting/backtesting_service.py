@@ -5,24 +5,27 @@ Provides the gRPC interface for the VectorBT backtesting engine.
 """
 
 import logging
-from typing import Dict, Any, List
 from concurrent import futures
-import pandas as pd
+from typing import Any, Dict, List
+
+import grpc
 import numpy as np
+import pandas as pd
 
-# Generated protobuf imports (to be generated from .proto files)
-# For now, we'll define a simple interface that can be adapted
+from protos import backtesting_pb2, marketdata_pb2, strategies_pb2
 from services.backtesting.vectorbt_runner import BacktestMetrics, VectorBTRunner
-
 
 logger = logging.getLogger(__name__)
 
+# Service name and method descriptors for generic handler
+SERVICE_NAME = "backtesting.BacktestingService"
 
-class BacktestingServiceImpl:
+
+class BacktestingServicer:
     """
-    Implementation of the Backtesting gRPC service.
+    gRPC Servicer for the Backtesting service.
 
-    This service accepts BacktestRequest messages and returns BacktestResult messages.
+    Implements RunBacktest and RunBatchBacktest RPCs.
     """
 
     def __init__(self):
@@ -33,7 +36,6 @@ class BacktestingServiceImpl:
         """Pre-warm Numba JIT compilation to avoid first-call latency."""
         logger.info("Warming up Numba JIT compilation...")
         try:
-            # Create small dummy dataset
             dummy_ohlcv = pd.DataFrame(
                 {
                     "open": np.random.randn(100) + 100,
@@ -43,7 +45,6 @@ class BacktestingServiceImpl:
                     "volume": np.random.randint(1000, 10000, 100).astype(float),
                 }
             )
-            # Run a simple backtest to trigger JIT
             entry = pd.Series([False] * 100)
             entry.iloc[10] = True
             exit_sig = pd.Series([False] * 100)
@@ -53,73 +54,80 @@ class BacktestingServiceImpl:
         except Exception as e:
             logger.warning(f"Numba warm-up failed: {e}")
 
-    def run_backtest(self, request_dict: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Run a backtest from a dictionary request (JSON-compatible).
-
-        Args:
-            request_dict: Dictionary containing:
-                - candles: List of candle dictionaries with timestamp, open, high, low, close, volume
-                - strategy: Dictionary with strategy_name and parameters
-
-        Returns:
-            Dictionary with backtest results
-        """
+    def RunBacktest(
+        self,
+        request: backtesting_pb2.BacktestRequest,
+        context: grpc.ServicerContext,
+    ) -> backtesting_pb2.BacktestResult:
+        """Run a single backtest."""
         try:
-            # Parse candles into DataFrame
-            candles = request_dict.get("candles", [])
-            if not candles:
-                raise ValueError("No candles provided")
+            ohlcv = self._candles_to_dataframe(request.candles)
+            strategy_name = request.strategy.strategy_name
+            parameters = self._extract_parameters(request.strategy)
 
-            ohlcv = self._candles_to_dataframe(candles)
-
-            # Extract strategy info
-            strategy = request_dict.get("strategy", {})
-            strategy_name = strategy.get(
-                "strategy_name", strategy.get("strategyName", "")
-            )
             if not strategy_name:
-                raise ValueError("No strategy name provided")
+                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                context.set_details("strategy_name is required")
+                return backtesting_pb2.BacktestResult()
 
-            # Extract parameters from Any field
-            parameters = self._extract_parameters(strategy)
-
-            # Run backtest
             metrics = self.runner.run_strategy(ohlcv, strategy_name, parameters)
+            return self._metrics_to_proto(metrics)
 
-            # Convert to response format
-            return self._metrics_to_dict(metrics)
+        except ValueError as e:
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details(str(e))
+            return backtesting_pb2.BacktestResult()
+        except Exception as e:
+            logger.exception("Backtest failed")
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(f"Backtest failed: {e}")
+            return backtesting_pb2.BacktestResult()
+
+    def RunBatchBacktest(
+        self,
+        request: backtesting_pb2.BatchBacktestRequest,
+        context: grpc.ServicerContext,
+    ) -> backtesting_pb2.BatchBacktestResult:
+        """Run multiple backtests with different parameter sets."""
+        try:
+            ohlcv = self._candles_to_dataframe(request.candles)
+            strategy_name = request.strategy_name
+
+            if not strategy_name:
+                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                context.set_details("strategy_name is required")
+                return backtesting_pb2.BatchBacktestResult()
+
+            parameter_sets = [
+                self._extract_parameters(strategy) for strategy in request.strategies
+            ]
+
+            results = self.runner.run_batch(ohlcv, strategy_name, parameter_sets)
+
+            response = backtesting_pb2.BatchBacktestResult()
+            for metrics in results:
+                response.results.append(self._metrics_to_proto(metrics))
+            return response
 
         except Exception as e:
-            logger.error(f"Backtest failed: {e}")
-            raise
+            logger.exception("Batch backtest failed")
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(f"Batch backtest failed: {e}")
+            return backtesting_pb2.BatchBacktestResult()
 
-    def run_batch_backtest(
-        self,
-        candles: List[Dict],
-        strategy_name: str,
-        parameter_sets: List[Dict[str, Any]],
-    ) -> List[Dict[str, Any]]:
-        """
-        Run multiple backtests with different parameter sets.
-
-        Optimized for GA optimization use case.
-        """
-        ohlcv = self._candles_to_dataframe(candles)
-        results = self.runner.run_batch(ohlcv, strategy_name, parameter_sets)
-        return [self._metrics_to_dict(m) for m in results]
-
-    def _candles_to_dataframe(self, candles: List[Dict]) -> pd.DataFrame:
-        """Convert candle list to pandas DataFrame."""
+    def _candles_to_dataframe(
+        self, candles: List[marketdata_pb2.Candle]
+    ) -> pd.DataFrame:
+        """Convert proto candles to pandas DataFrame."""
         data = []
         for candle in candles:
             data.append(
                 {
-                    "open": float(candle.get("open", 0)),
-                    "high": float(candle.get("high", 0)),
-                    "low": float(candle.get("low", 0)),
-                    "close": float(candle.get("close", 0)),
-                    "volume": float(candle.get("volume", 0)),
+                    "open": candle.open,
+                    "high": candle.high,
+                    "low": candle.low,
+                    "close": candle.close,
+                    "volume": candle.volume,
                 }
             )
 
@@ -127,68 +135,91 @@ class BacktestingServiceImpl:
         df.index = pd.date_range(start="2020-01-01", periods=len(df), freq="1min")
         return df
 
-    def _extract_parameters(self, strategy: Dict) -> Dict[str, Any]:
-        """Extract strategy parameters from the strategy dict."""
-        # Handle different parameter formats
-        params = strategy.get("parameters", {})
+    def _extract_parameters(self, strategy: strategies_pb2.Strategy) -> Dict[str, Any]:
+        """Extract parameters from Strategy proto."""
+        params = {}
 
-        # If parameters is an Any-like structure with typeUrl and value
-        if isinstance(params, dict) and "typeUrl" in params:
-            # Extract from the nested structure
-            # The actual values would be in a decoded protobuf, but for JSON
-            # interface we expect them directly
-            return params.get("value", {})
+        if strategy.HasField("parameters"):
+            any_params = strategy.parameters
 
-        # Direct parameter dict
-        if isinstance(params, dict):
-            return params
+            # Try to unpack common parameter types
+            param_types = [
+                strategies_pb2.SmaRsiParameters,
+                strategies_pb2.EmaMacdParameters,
+                strategies_pb2.MacdCrossoverParameters,
+                strategies_pb2.DoubleEmaCrossoverParameters,
+                strategies_pb2.TripleEmaCrossoverParameters,
+                strategies_pb2.AdxStochasticParameters,
+                strategies_pb2.SmaEmaCrossoverParameters,
+                strategies_pb2.RsiEmaCrossoverParameters,
+                strategies_pb2.ConfigurableStrategyParameters,
+            ]
 
-        return {}
+            for param_type in param_types:
+                if any_params.Is(param_type.DESCRIPTOR):
+                    param_msg = param_type()
+                    any_params.Unpack(param_msg)
+                    # Convert proto message to dict
+                    for field in param_msg.DESCRIPTOR.fields:
+                        value = getattr(param_msg, field.name)
+                        # Convert camelCase to snake_case for our internal API
+                        params[field.name] = value
+                    break
 
-    def _metrics_to_dict(self, metrics: BacktestMetrics) -> Dict[str, Any]:
-        """Convert BacktestMetrics to dictionary."""
-        return {
-            "cumulativeReturn": metrics.cumulative_return,
-            "annualizedReturn": metrics.annualized_return,
-            "sharpeRatio": metrics.sharpe_ratio,
-            "sortinoRatio": metrics.sortino_ratio,
-            "maxDrawdown": metrics.max_drawdown,
-            "volatility": metrics.volatility,
-            "winRate": metrics.win_rate,
-            "profitFactor": metrics.profit_factor,
-            "numberOfTrades": metrics.number_of_trades,
-            "averageTradeDuration": metrics.average_trade_duration,
-            "alpha": metrics.alpha,
-            "beta": metrics.beta,
-            "strategyScore": metrics.strategy_score,
+        return params
+
+    def _metrics_to_proto(
+        self, metrics: BacktestMetrics
+    ) -> backtesting_pb2.BacktestResult:
+        """Convert BacktestMetrics to proto message."""
+        return backtesting_pb2.BacktestResult(
+            cumulative_return=metrics.cumulative_return,
+            annualized_return=metrics.annualized_return,
+            sharpe_ratio=metrics.sharpe_ratio,
+            sortino_ratio=metrics.sortino_ratio,
+            max_drawdown=metrics.max_drawdown,
+            volatility=metrics.volatility,
+            win_rate=metrics.win_rate,
+            profit_factor=metrics.profit_factor,
+            number_of_trades=metrics.number_of_trades,
+            average_trade_duration=metrics.average_trade_duration,
+            alpha=metrics.alpha,
+            beta=metrics.beta,
+            strategy_score=metrics.strategy_score,
+        )
+
+
+class BacktestingServiceHandler(grpc.GenericRpcHandler):
+    """
+    Generic RPC handler for BacktestingService.
+
+    This allows us to implement the service without generated _pb2_grpc stubs.
+    """
+
+    def __init__(self, servicer: BacktestingServicer):
+        self.servicer = servicer
+        self._method_handlers = {
+            f"/{SERVICE_NAME}/RunBacktest": grpc.unary_unary_rpc_method_handler(
+                servicer.RunBacktest,
+                request_deserializer=backtesting_pb2.BacktestRequest.FromString,
+                response_serializer=backtesting_pb2.BacktestResult.SerializeToString,
+            ),
+            f"/{SERVICE_NAME}/RunBatchBacktest": grpc.unary_unary_rpc_method_handler(
+                servicer.RunBatchBacktest,
+                request_deserializer=backtesting_pb2.BatchBacktestRequest.FromString,
+                response_serializer=backtesting_pb2.BatchBacktestResult.SerializeToString,
+            ),
         }
 
+    def service(self, handler_call_details):
+        """Return the handler for the given method."""
+        return self._method_handlers.get(handler_call_details.method)
 
-# ============================================================================
-# gRPC Server Implementation (when protobuf stubs are generated)
-# ============================================================================
 
-
-def create_grpc_server(port: int = 50051):
-    """
-    Create and configure the gRPC server.
-
-    Note: This requires generated protobuf stubs. For initial testing,
-    use the REST/JSON interface via main.py
-    """
-    try:
-        import grpc
-
-        # Generated stubs would be imported here:
-        # from protos import backtesting_pb2, backtesting_pb2_grpc
-
-        server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-        # Add service implementation
-        # backtesting_pb2_grpc.add_BacktestServiceServicer_to_server(
-        #     BacktestingServiceImpl(), server
-        # )
-        server.add_insecure_port(f"[::]:{port}")
-        return server
-    except ImportError:
-        logger.warning("gRPC stubs not generated. Use REST interface instead.")
-        return None
+def create_grpc_server(port: int = 50051) -> grpc.Server:
+    """Create and configure the gRPC server."""
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    servicer = BacktestingServicer()
+    server.add_generic_rpc_handlers((BacktestingServiceHandler(servicer),))
+    server.add_insecure_port(f"[::]:{port}")
+    return server
