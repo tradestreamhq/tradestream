@@ -13,11 +13,32 @@ import "protos/strategies.proto";
 //       Backtest Service
 // =========================
 
+// gRPC service for running backtests
+service BacktestingService {
+  // Run a single backtest
+  rpc RunBacktest(BacktestRequest) returns (BacktestResult);
+
+  // Run multiple backtests with different parameter sets
+  rpc RunBatchBacktest(BatchBacktestRequest) returns (BatchBacktestResult);
+}
+
 // The universal backtest request: includes candle data, strategy type,
 // and an Any for the specific parameters (e.g. SmaRsiParameters).
 message BacktestRequest {
   repeated marketdata.Candle candles = 1;
   strategies.Strategy strategy = 2;
+}
+
+// Request for batch backtesting with multiple parameter sets
+message BatchBacktestRequest {
+  repeated marketdata.Candle candles = 1;
+  string strategy_name = 2;
+  repeated strategies.Strategy strategies = 3;
+}
+
+// Response containing multiple backtest results
+message BatchBacktestResult {
+  repeated BacktestResult results = 1;
 }
 
 // The final result from a single backtest

@@ -32,6 +32,9 @@ py_library(
     srcs = ["backtesting_service.py"],
     deps = [
         ":vectorbt_runner_lib",
+        "//protos:backtesting_py_proto",
+        "//protos:marketdata_py_proto",
+        "//protos:strategies_py_proto",
         "//third_party/python:grpcio",
         "//third_party/python:numpy",
         "//third_party/python:pandas",
