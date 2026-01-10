@@ -52,6 +52,32 @@ java_test(
     ],
 )
 
+kt_jvm_test(
+    name = "WalkForwardSplitterTest",
+    srcs = ["WalkForwardSplitterTest.kt"],
+    test_class = "com.verlumen.tradestream.backtesting.WalkForwardSplitterTest",
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:walk_forward_splitter",
+        "//third_party/java:junit",
+        "//third_party/java:protobuf_java",
+        "//third_party/java:truth",
+    ],
+)
+
+kt_jvm_test(
+    name = "StrategyValidatorTest",
+    srcs = ["StrategyValidatorTest.kt"],
+    test_class = "com.verlumen.tradestream.backtesting.StrategyValidatorTest",
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//src/main/java/com/verlumen/tradestream/backtesting:strategy_validator",
+        "//third_party/java:junit",
+        "//third_party/java:truth",
+    ],
+)
+
 java_test(
     name = "RunBacktestTest",
     size = "small",
