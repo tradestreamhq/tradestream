@@ -12,7 +12,7 @@ import sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from typing import Dict, Any
 
-from backtesting_service import BacktestingServiceImpl
+from services.backtesting.backtesting_service import BacktestingServiceImpl
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"

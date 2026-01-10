@@ -12,7 +12,7 @@ import numpy as np
 
 # Generated protobuf imports (to be generated from .proto files)
 # For now, we'll define a simple interface that can be adapted
-from vectorbt_runner import VectorBTRunner, BacktestMetrics
+from services.backtesting.vectorbt_runner import BacktestMetrics, VectorBTRunner
 
 
 logger = logging.getLogger(__name__)

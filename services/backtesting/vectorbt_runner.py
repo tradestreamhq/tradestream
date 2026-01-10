@@ -10,7 +10,10 @@ import vectorbt as vbt
 from dataclasses import dataclass
 from typing import List, Dict, Any, Tuple, Optional
 
-from indicator_registry import get_default_registry, IndicatorRegistry
+from services.backtesting.indicator_registry import (
+    IndicatorRegistry,
+    get_default_registry,
+)
 
 
 @dataclass

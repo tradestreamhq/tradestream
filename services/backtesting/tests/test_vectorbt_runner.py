@@ -2,16 +2,12 @@
 Tests for VectorBT Backtesting Runner.
 """
 
-import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pytest
 
-import sys
-
-sys.path.insert(0, "..")
-
-from vectorbt_runner import VectorBTRunner, BacktestMetrics
-from indicator_registry import get_default_registry
+from services.backtesting.indicator_registry import get_default_registry
+from services.backtesting.vectorbt_runner import BacktestMetrics, VectorBTRunner
 
 
 @pytest.fixture
