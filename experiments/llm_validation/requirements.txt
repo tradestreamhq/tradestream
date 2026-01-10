@@ -1,0 +1,5 @@
+# LLM Validation Experiment Dependencies
+anthropic>=0.34.0
+pyyaml>=6.0
+grpcio>=1.60.0
+grpcio-tools>=1.60.0

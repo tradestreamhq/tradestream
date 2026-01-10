@@ -152,3 +152,19 @@ py_library(
         requirement("testing.postgresql"),
     ],
 )
+
+py_library(
+    name = "pyyaml",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("pyyaml"),
+    ],
+)
+
+py_library(
+    name = "anthropic",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("anthropic"),
+    ],
+)
