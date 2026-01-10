@@ -178,6 +178,7 @@ def create_grpc_server(port: int = 50051):
     """
     try:
         import grpc
+
         # Generated stubs would be imported here:
         # from protos import backtesting_pb2, backtesting_pb2_grpc
 
