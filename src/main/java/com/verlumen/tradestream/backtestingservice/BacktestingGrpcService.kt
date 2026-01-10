@@ -8,6 +8,11 @@ import com.verlumen.tradestream.backtesting.BacktestRunner
 import com.verlumen.tradestream.backtesting.BacktestingServiceGrpc
 import com.verlumen.tradestream.backtesting.BatchBacktestRequest
 import com.verlumen.tradestream.backtesting.BatchBacktestResult
+import com.verlumen.tradestream.backtesting.StrategyValidator
+import com.verlumen.tradestream.backtesting.ValidationStatus
+import com.verlumen.tradestream.backtesting.WalkForwardRequest
+import com.verlumen.tradestream.backtesting.WalkForwardResult
+import com.verlumen.tradestream.backtesting.WalkForwardRunner
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import java.util.concurrent.Executors
@@ -24,6 +29,8 @@ class BacktestingGrpcService
     @Inject
     constructor(
         private val backtestRunner: BacktestRunner,
+        private val walkForwardRunner: WalkForwardRunner,
+        private val strategyValidator: StrategyValidator,
     ) : BacktestingServiceGrpc.BacktestingServiceImplBase() {
         companion object {
             private val logger = FluentLogger.forEnclosingClass()
@@ -140,6 +147,67 @@ class BacktestingGrpcService
                 responseObserver.onError(
                     Status.INTERNAL
                         .withDescription("Batch backtest failed: ${e.message}")
+                        .withCause(e)
+                        .asRuntimeException(),
+                )
+            }
+        }
+
+        /**
+         * Runs walk-forward validation to detect overfitting.
+         *
+         * Walk-forward validation splits data into rolling train/test windows,
+         * evaluates strategy performance on each, and aggregates results to
+         * determine if the strategy generalizes to unseen data.
+         */
+        override fun runWalkForwardValidation(
+            request: WalkForwardRequest,
+            responseObserver: StreamObserver<WalkForwardResult>,
+        ) {
+            try {
+                logger.atInfo().log(
+                    "Running walk-forward validation: strategy=%s, candles=%d",
+                    request.strategy.strategyName,
+                    request.candlesCount,
+                )
+
+                // Run walk-forward validation
+                val rawResult = walkForwardRunner.runWalkForwardValidation(request)
+
+                // Skip validation if insufficient data
+                val finalResult =
+                    if (rawResult.status == ValidationStatus.INSUFFICIENT_DATA) {
+                        rawResult
+                    } else {
+                        // Apply validation decision
+                        strategyValidator.applyValidation(rawResult)
+                    }
+
+                logger.atInfo().log(
+                    "Walk-forward validation completed: strategy=%s, status=%s, " +
+                        "windows=%d, OOS_Sharpe=%.4f, degradation=%.1f%%",
+                    request.strategy.strategyName,
+                    finalResult.status,
+                    finalResult.windowsCount,
+                    finalResult.outOfSampleSharpe,
+                    finalResult.sharpeDegradation * 100,
+                )
+
+                responseObserver.onNext(finalResult)
+                responseObserver.onCompleted()
+            } catch (e: IllegalArgumentException) {
+                logger.atWarning().withCause(e).log("Invalid walk-forward request")
+                responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                        .withDescription(e.message)
+                        .withCause(e)
+                        .asRuntimeException(),
+                )
+            } catch (e: Exception) {
+                logger.atSevere().withCause(e).log("Walk-forward validation failed")
+                responseObserver.onError(
+                    Status.INTERNAL
+                        .withDescription("Walk-forward validation failed: ${e.message}")
                         .withCause(e)
                         .asRuntimeException(),
                 )

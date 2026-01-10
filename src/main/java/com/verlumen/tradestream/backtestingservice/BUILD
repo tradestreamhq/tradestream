@@ -10,6 +10,8 @@ kt_jvm_library(
         "//protos:backtesting_java_grpc",
         "//protos:backtesting_java_proto",
         "//src/main/java/com/verlumen/tradestream/backtesting:backtest_runner",
+        "//src/main/java/com/verlumen/tradestream/backtesting:strategy_validator",
+        "//src/main/java/com/verlumen/tradestream/backtesting:walk_forward_runner",
         "//third_party/java:flogger",
         "//third_party/java:grpc_stub",
         "//third_party/java:guice",

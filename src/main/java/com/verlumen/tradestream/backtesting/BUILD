@@ -63,6 +63,36 @@ kt_jvm_library(
 )
 
 kt_jvm_library(
+    name = "walk_forward_splitter",
+    srcs = ["WalkForwardSplitter.kt"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//protos:marketdata_java_proto",
+    ],
+)
+
+kt_jvm_library(
+    name = "walk_forward_runner",
+    srcs = ["WalkForwardRunner.kt"],
+    deps = [
+        ":backtest_runner",
+        ":walk_forward_splitter",
+        "//protos:backtesting_java_proto",
+        "//third_party/java:flogger",
+        "//third_party/java:guice",
+    ],
+)
+
+kt_jvm_library(
+    name = "strategy_validator",
+    srcs = ["StrategyValidator.kt"],
+    deps = [
+        "//protos:backtesting_java_proto",
+        "//third_party/java:flogger",
+    ],
+)
+
+kt_jvm_library(
     name = "backtesting_module",
     srcs = ["BacktestingModule.kt"],
     deps = [
@@ -70,6 +100,8 @@ kt_jvm_library(
         ":backtest_request_factory_impl",
         ":backtest_runner",
         ":backtest_runner_impl",
+        ":strategy_validator",
+        ":walk_forward_runner",
         "//third_party/java:guava",
         "//third_party/java:guice",
     ],

@@ -20,6 +20,9 @@ service BacktestingService {
 
   // Run multiple backtests with different parameter sets
   rpc RunBatchBacktest(BatchBacktestRequest) returns (BatchBacktestResult);
+
+  // Run walk-forward validation to detect overfitting
+  rpc RunWalkForwardValidation(WalkForwardRequest) returns (WalkForwardResult);
 }
 
 // The universal backtest request: includes candle data, strategy type,
@@ -57,4 +60,112 @@ message BacktestResult {
   double alpha = 12;
   double beta = 13;
   double strategy_score = 14;
+}
+
+// =========================
+//    Walk-Forward Validation
+// =========================
+
+// Configuration for walk-forward optimization
+message WalkForwardConfig {
+  // Number of bars in each training window (e.g., 6480 = 9 months @ 1min)
+  int32 train_window_bars = 1;
+
+  // Number of bars in each test window (e.g., 2160 = 3 months @ 1min)
+  int32 test_window_bars = 2;
+
+  // Step size between windows in bars (e.g., 2160 = 3 months)
+  int32 step_bars = 3;
+
+  // Minimum number of windows required for valid walk-forward
+  int32 min_windows = 4;
+}
+
+// Request for walk-forward validation
+message WalkForwardRequest {
+  // Strategy to validate
+  strategies.Strategy strategy = 1;
+
+  // Full historical data to split into train/test windows
+  repeated marketdata.Candle candles = 2;
+
+  // Walk-forward configuration
+  WalkForwardConfig config = 3;
+}
+
+// Result from a single walk-forward window
+message WindowResult {
+  // Window index (0-based)
+  int32 window_index = 1;
+
+  // In-sample (training) metrics
+  BacktestResult in_sample_result = 2;
+
+  // Out-of-sample (test) metrics
+  BacktestResult out_of_sample_result = 3;
+
+  // Training window start bar index
+  int32 train_start_bar = 4;
+
+  // Training window end bar index
+  int32 train_end_bar = 5;
+
+  // Test window start bar index
+  int32 test_start_bar = 6;
+
+  // Test window end bar index
+  int32 test_end_bar = 7;
+}
+
+// Validation status for walk-forward results
+enum ValidationStatus {
+  VALIDATION_STATUS_UNSPECIFIED = 0;
+
+  // Strategy passed validation - suitable for live trading
+  APPROVED = 1;
+
+  // Strategy failed validation - likely overfit
+  REJECTED = 2;
+
+  // Insufficient data for validation
+  INSUFFICIENT_DATA = 3;
+
+  // Validation in progress
+  PENDING = 4;
+}
+
+// Full walk-forward validation result
+message WalkForwardResult {
+  // Overall validation status
+  ValidationStatus status = 1;
+
+  // Reason for rejection (if status is REJECTED)
+  string rejection_reason = 2;
+
+  // Number of walk-forward windows
+  int32 windows_count = 3;
+
+  // Aggregated in-sample Sharpe ratio (mean across windows)
+  double in_sample_sharpe = 4;
+
+  // Aggregated out-of-sample Sharpe ratio (mean across windows)
+  double out_of_sample_sharpe = 5;
+
+  // Sharpe degradation: 1 - (OOS Sharpe / IS Sharpe)
+  double sharpe_degradation = 6;
+
+  // Standard deviation of OOS Sharpe across windows (consistency metric)
+  double oos_sharpe_std_dev = 7;
+
+  // Results from each walk-forward window
+  repeated WindowResult window_results = 8;
+
+  // Aggregated in-sample return
+  double in_sample_return = 9;
+
+  // Aggregated out-of-sample return
+  double out_of_sample_return = 10;
+
+  // Return degradation: 1 - (OOS Return / IS Return)
+  double return_degradation = 11;
 }
