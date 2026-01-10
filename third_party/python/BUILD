@@ -98,10 +98,42 @@ py_library(
 )
 
 py_library(
+    name = "grpcio",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("grpcio"),
+    ],
+)
+
+py_library(
+    name = "numpy",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("numpy"),
+    ],
+)
+
+py_library(
+    name = "pandas",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("pandas"),
+    ],
+)
+
+py_library(
     name = "pytest",
     visibility = ["//visibility:public"],
     deps = [
         requirement("pytest"),
+    ],
+)
+
+py_library(
+    name = "vectorbt",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("vectorbt"),
     ],
 )
 
