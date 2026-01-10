@@ -1,5 +1,9 @@
 absl-py==2.2.2
 asyncpg==0.30.0
+grpcio>=1.60.0
+numpy>=1.26.0
+pandas>=2.0.0
+vectorbt>=0.26.0
 ccxt==4.4.86
 flask==3.0.0
 flask-cors==4.0.0

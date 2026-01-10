@@ -1,0 +1,10 @@
+# VectorBT Backtesting Microservice Dependencies
+vectorbt>=0.26.0
+grpcio>=1.60.0
+grpcio-tools>=1.60.0
+protobuf>=4.25.0
+pandas>=2.0.0
+numpy>=1.24.0
+numba>=0.57.0
+# Optional: TA-Lib for extended indicator support
+# ta-lib  # Requires system-level installation
