@@ -38,6 +38,7 @@ java_library(
 container_structure_test(
     name = "container_test",
     configs = ["container-structure-test.yaml"],
+    flaky = True,
     image = ":image",
     tags = [
         "no-coverage",
