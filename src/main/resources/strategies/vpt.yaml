@@ -1,0 +1,32 @@
+name: VPT
+description: Volume Price Trend strategy using NVI indicator with EMA signal crossover
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.VptParameters
+
+indicators:
+  - id: nvi
+    type: NVI
+  - id: nviSignal
+    type: EMA
+    input: nvi
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: nvi
+    params:
+      crosses: nviSignal
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: nvi
+    params:
+      crosses: nviSignal
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20
