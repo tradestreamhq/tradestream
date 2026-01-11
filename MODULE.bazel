@@ -17,6 +17,8 @@ bazel_dep(name = "rules_oci", version = "2.2.6")
 bazel_dep(name = "rules_python", version = "1.4.1")
 bazel_dep(name = "grpc-java", version = "1.75.0")
 
+# Note: RBE toolchain configuration moved to .bazelrc
+
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     # We can specify the exact version.
