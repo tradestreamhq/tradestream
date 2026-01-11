@@ -1,0 +1,37 @@
+name: HEIKEN_ASHI
+description: Heiken Ashi smoothed trend strategy using EMA-smoothed price action
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.HeikenAshiParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: smoothedClose
+    type: EMA
+    input: close
+    params:
+      period: "${period}"
+  - id: smoothedTrend
+    type: EMA
+    input: smoothedClose
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: smoothedClose
+    params:
+      crosses: smoothedTrend
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: smoothedClose
+    params:
+      crosses: smoothedTrend
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 5
+    max: 20
+    defaultValue: 10
