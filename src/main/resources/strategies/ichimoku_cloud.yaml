@@ -1,0 +1,61 @@
+name: ICHIMOKU_CLOUD
+description: Ichimoku Cloud strategy using multiple EMAs to simulate Tenkan-Sen and Kijun-Sen crossovers
+complexity: COMPLEX
+parameterMessageType: com.verlumen.tradestream.strategies.IchimokuCloudParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: tenkanSen
+    type: EMA
+    input: close
+    params:
+      period: "${tenkanSenPeriod}"
+  - id: kijunSen
+    type: EMA
+    input: close
+    params:
+      period: "${kijunSenPeriod}"
+  - id: senkouSpanB
+    type: EMA
+    input: close
+    params:
+      period: "${senkouSpanBPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: tenkanSen
+    params:
+      crosses: kijunSen
+  - type: OVER
+    indicator: close
+    params:
+      other: senkouSpanB
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: tenkanSen
+    params:
+      crosses: kijunSen
+
+parameters:
+  - name: tenkanSenPeriod
+    type: INTEGER
+    min: 7
+    max: 12
+    defaultValue: 9
+  - name: kijunSenPeriod
+    type: INTEGER
+    min: 20
+    max: 30
+    defaultValue: 26
+  - name: senkouSpanBPeriod
+    type: INTEGER
+    min: 45
+    max: 60
+    defaultValue: 52
+  - name: chikouSpanPeriod
+    type: INTEGER
+    min: 20
+    max: 30
+    defaultValue: 26
