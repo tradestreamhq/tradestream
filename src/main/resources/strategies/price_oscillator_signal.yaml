@@ -1,0 +1,48 @@
+name: PRICE_OSCILLATOR_SIGNAL
+description: Price oscillator with signal line crossover using MACD-style calculation
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.PriceOscillatorSignalParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: priceOsc
+    type: MACD
+    input: close
+    params:
+      shortPeriod: "${fastPeriod}"
+      longPeriod: "${slowPeriod}"
+  - id: signal
+    type: EMA
+    input: priceOsc
+    params:
+      period: "${signalPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: priceOsc
+    params:
+      crosses: signal
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: priceOsc
+    params:
+      crosses: signal
+
+parameters:
+  - name: fastPeriod
+    type: INTEGER
+    min: 8
+    max: 15
+    defaultValue: 12
+  - name: slowPeriod
+    type: INTEGER
+    min: 20
+    max: 30
+    defaultValue: 26
+  - name: signalPeriod
+    type: INTEGER
+    min: 5
+    max: 12
+    defaultValue: 9
