@@ -1,0 +1,43 @@
+name: VOLUME_BREAKOUT
+description: Volume breakout strategy detecting high volume moves with price confirmation
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.VolumeBreakoutParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: volume
+    type: VOLUME
+  - id: volumeSma
+    type: SMA
+    input: volume
+    params:
+      period: 20
+  - id: priceSma
+    type: SMA
+    input: close
+    params:
+      period: 20
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: priceSma
+  - type: IS_RISING
+    indicator: volume
+    params:
+      barCount: 2
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: priceSma
+
+parameters:
+  - name: volumeMultiplier
+    type: DOUBLE
+    min: 1.5
+    max: 3.0
+    defaultValue: 2.0
