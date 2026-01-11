@@ -1,0 +1,43 @@
+name: TICK_VOLUME_ANALYSIS
+description: Tick volume analysis strategy using volume indicators with EMA crossover
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.TickVolumeAnalysisParameters
+
+indicators:
+  - id: volume
+    type: VOLUME
+  - id: volumeEma
+    type: EMA
+    input: volume
+    params:
+      period: "${tickPeriod}"
+  - id: close
+    type: CLOSE
+  - id: priceEma
+    type: EMA
+    input: close
+    params:
+      period: "${tickPeriod}"
+
+entryConditions:
+  - type: OVER
+    indicator: volume
+    params:
+      other: volumeEma
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: priceEma
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: priceEma
+
+parameters:
+  - name: tickPeriod
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20
