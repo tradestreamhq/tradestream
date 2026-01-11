@@ -1,0 +1,37 @@
+name: DOUBLE_TOP_BOTTOM
+description: Pattern recognition strategy detecting double top and double bottom formations
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.DoubleTopBottomParameters
+
+indicators:
+  - id: high
+    type: HIGH
+  - id: low
+    type: LOW
+  - id: highestHigh
+    type: DONCHIAN_UPPER
+    params:
+      period: "${period}"
+  - id: lowestLow
+    type: DONCHIAN_LOWER
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: low
+    params:
+      crosses: lowestLow
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: high
+    params:
+      crosses: highestHigh
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 10
+    max: 50
+    defaultValue: 20
