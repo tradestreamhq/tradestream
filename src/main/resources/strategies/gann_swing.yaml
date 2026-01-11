@@ -1,0 +1,35 @@
+name: GANN_SWING
+description: Gann swing trading strategy using highest/lowest price channels
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.GannSwingParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: swingHigh
+    type: DONCHIAN_UPPER
+    params:
+      period: "${gannPeriod}"
+  - id: swingLow
+    type: DONCHIAN_LOWER
+    params:
+      period: "${gannPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: swingHigh
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: swingLow
+
+parameters:
+  - name: gannPeriod
+    type: INTEGER
+    min: 5
+    max: 30
+    defaultValue: 10
