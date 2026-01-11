@@ -1,0 +1,56 @@
+name: SMA_RSI
+description: SMA trend filter combined with RSI overbought/oversold signals
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.SmaRsiParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: sma
+    type: SMA
+    input: close
+    params:
+      period: "${movingAveragePeriod}"
+  - id: rsi
+    type: RSI
+    input: close
+    params:
+      period: "${rsiPeriod}"
+
+entryConditions:
+  - type: OVER
+    indicator: close
+    params:
+      other: sma
+  - type: UNDER
+    indicator: rsi
+    params:
+      value: "${oversoldThreshold}"
+
+exitConditions:
+  - type: OVER
+    indicator: rsi
+    params:
+      value: "${overboughtThreshold}"
+
+parameters:
+  - name: movingAveragePeriod
+    type: INTEGER
+    min: 10
+    max: 50
+    defaultValue: 20
+  - name: rsiPeriod
+    type: INTEGER
+    min: 7
+    max: 21
+    defaultValue: 14
+  - name: overboughtThreshold
+    type: DOUBLE
+    min: 70.0
+    max: 85.0
+    defaultValue: 70.0
+  - name: oversoldThreshold
+    type: DOUBLE
+    min: 15.0
+    max: 30.0
+    defaultValue: 30.0
