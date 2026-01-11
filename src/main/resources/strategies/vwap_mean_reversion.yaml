@@ -1,0 +1,61 @@
+name: VWAP_MEAN_REVERSION
+description: VWAP mean reversion strategy buying below VWAP and selling above for range trading
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.VwapMeanReversionParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: vwap
+    type: VWAP
+    params:
+      period: "${vwapPeriod}"
+  - id: upperBand
+    type: BOLLINGER_UPPER
+    input: close
+    params:
+      period: "${movingAveragePeriod}"
+      multiplier: "${deviationMultiplier}"
+  - id: lowerBand
+    type: BOLLINGER_LOWER
+    input: close
+    params:
+      period: "${movingAveragePeriod}"
+      multiplier: "${deviationMultiplier}"
+
+entryConditions:
+  - type: UNDER
+    indicator: close
+    params:
+      other: vwap
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: lowerBand
+
+exitConditions:
+  - type: OVER
+    indicator: close
+    params:
+      other: vwap
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: upperBand
+
+parameters:
+  - name: vwapPeriod
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20
+  - name: movingAveragePeriod
+    type: INTEGER
+    min: 15
+    max: 30
+    defaultValue: 20
+  - name: deviationMultiplier
+    type: DOUBLE
+    min: 1.5
+    max: 3.0
+    defaultValue: 2.0
