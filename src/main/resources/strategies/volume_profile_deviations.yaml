@@ -1,0 +1,50 @@
+name: VOLUME_PROFILE_DEVIATIONS
+description: Volume profile with standard deviation bands for mean reversion trading
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.VolumeProfileDeviationsParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: volume
+    type: VOLUME
+  - id: volumeSma
+    type: SMA
+    input: volume
+    params:
+      period: "${period}"
+  - id: upperBand
+    type: BOLLINGER_UPPER
+    input: close
+    params:
+      period: "${period}"
+      multiplier: 2.0
+  - id: lowerBand
+    type: BOLLINGER_LOWER
+    input: close
+    params:
+      period: "${period}"
+      multiplier: 2.0
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: lowerBand
+  - type: OVER
+    indicator: volume
+    params:
+      other: volumeSma
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: upperBand
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 15
+    max: 40
+    defaultValue: 20
