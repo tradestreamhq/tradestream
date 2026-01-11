@@ -1,0 +1,40 @@
+name: ATR_TRAILING_STOP
+description: ATR-based trailing stop strategy for trend following with volatility-adjusted exits
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.AtrTrailingStopParameters
+
+indicators:
+  - id: atr
+    type: ATR
+    params:
+      period: "${atrPeriod}"
+  - id: close
+    type: CLOSE
+  - id: ema
+    type: EMA
+    input: close
+    params:
+      period: "${atrPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: ema
+
+exitConditions:
+  - type: TRAILING_STOP_LOSS
+    params:
+      percentage: "${multiplier}"
+
+parameters:
+  - name: atrPeriod
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 14
+  - name: multiplier
+    type: DOUBLE
+    min: 1.5
+    max: 4.0
+    defaultValue: 2.0
