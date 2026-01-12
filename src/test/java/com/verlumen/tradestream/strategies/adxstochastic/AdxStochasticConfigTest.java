@@ -9,7 +9,7 @@ import com.verlumen.tradestream.strategies.ConfigurableStrategyParameters;
 import com.verlumen.tradestream.strategies.configurable.ConfigurableParamConfig;
 import com.verlumen.tradestream.strategies.configurable.ConfigurableStrategyFactory;
 import com.verlumen.tradestream.strategies.configurable.StrategyConfig;
-import com.verlumen.tradestream.strategies.configurable.StrategyConfigLoader;
+import com.verlumen.tradestream.strategies.configurable.StrategyConfigLoader.ConfigStrategy;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.time.Duration;
@@ -31,7 +31,7 @@ public class AdxStochasticConfigTest {
 
   @Before
   public void setUp() throws Exception {
-    config = StrategyConfigLoader.loadResource("strategies/adx_stochastic.yaml");
+    config = ConfigStrategy.ADX_STOCHASTIC.get();
     factory = new ConfigurableStrategyFactory(config);
     paramConfig = new ConfigurableParamConfig(config);
 

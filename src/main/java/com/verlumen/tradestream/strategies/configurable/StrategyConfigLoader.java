@@ -17,6 +17,62 @@ import org.yaml.snakeyaml.Yaml;
 /** Utility class for loading strategy configurations from JSON and YAML files. */
 public final class StrategyConfigLoader {
 
+  /**
+   * Enum representing all available strategy configurations. Each constant maps to a YAML resource
+   * file in the strategies directory.
+   */
+  public enum ConfigStrategy {
+    ADX_DMI("strategies/adx_dmi.yaml"),
+    ADX_STOCHASTIC("strategies/adx_stochastic.yaml"),
+    AROON_MFI("strategies/aroon_mfi.yaml"),
+    ATR_CCI("strategies/atr_cci.yaml"),
+    AWESOME_OSCILLATOR("strategies/awesome_oscillator.yaml"),
+    BBAND_WILLIAMS_R("strategies/bband_williams_r.yaml"),
+    CHAIKIN_OSCILLATOR("strategies/chaikin_oscillator.yaml"),
+    CMF_ZERO_LINE("strategies/cmf_zero_line.yaml"),
+    CMO_MFI("strategies/cmo_mfi.yaml"),
+    DEMA_TEMA_CROSSOVER("strategies/dema_tema_crossover.yaml"),
+    DONCHIAN_BREAKOUT("strategies/donchian_breakout.yaml"),
+    DOUBLE_EMA_CROSSOVER("strategies/double_ema_crossover.yaml"),
+    ELDER_RAY_MA("strategies/elder_ray_ma.yaml"),
+    EMA_MACD("strategies/ema_macd.yaml"),
+    KLINGER_VOLUME("strategies/klinger_volume.yaml"),
+    MACD_CROSSOVER("strategies/macd_crossover.yaml"),
+    MASS_INDEX("strategies/mass_index.yaml"),
+    MOMENTUM_SMA_CROSSOVER("strategies/momentum_sma_crossover.yaml"),
+    OBV_EMA("strategies/obv_ema.yaml"),
+    PRICE_GAP("strategies/price_gap.yaml"),
+    ROC_MA_CROSSOVER("strategies/roc_ma_crossover.yaml"),
+    RSI_EMA_CROSSOVER("strategies/rsi_ema_crossover.yaml"),
+    SMA_EMA_CROSSOVER("strategies/sma_ema_crossover.yaml"),
+    STOCHASTIC_RSI("strategies/stochastic_rsi.yaml"),
+    TRIPLE_EMA_CROSSOVER("strategies/triple_ema_crossover.yaml");
+
+    private final String resourcePath;
+
+    ConfigStrategy(String resourcePath) {
+      this.resourcePath = resourcePath;
+    }
+
+    /**
+     * Loads and returns the strategy configuration for this enum constant.
+     *
+     * @return The loaded StrategyConfig
+     */
+    public StrategyConfig get() {
+      return loadResource(resourcePath);
+    }
+
+    /**
+     * Returns the resource path for this strategy configuration.
+     *
+     * @return The classpath resource path
+     */
+    public String getResourcePath() {
+      return resourcePath;
+    }
+  }
+
   private static final Gson GSON =
       new GsonBuilder()
           .registerTypeAdapter(ParameterType.class, new ParameterTypeAdapter())
