@@ -1,0 +1,40 @@
+name: RENKO_CHART
+description: Renko chart style strategy using ATR-based volatility breakouts for trend following
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.RenkoChartParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: atr
+    type: ATR
+    params:
+      period: 14
+  - id: ema
+    type: EMA
+    input: close
+    params:
+      period: 20
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: ema
+  - type: IS_RISING
+    indicator: close
+    params:
+      barCount: 2
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: ema
+
+parameters:
+  - name: brickSize
+    type: DOUBLE
+    min: 0.5
+    max: 3.0
+    defaultValue: 1.0
