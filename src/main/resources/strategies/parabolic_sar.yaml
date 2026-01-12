@@ -1,0 +1,39 @@
+name: PARABOLIC_SAR
+description: Parabolic SAR trend-following strategy for stop and reverse signals
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.ParabolicSarParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: sar
+    type: PARABOLIC_SAR
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: sar
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: sar
+
+parameters:
+  - name: accelerationFactorStart
+    type: DOUBLE
+    min: 0.01
+    max: 0.03
+    defaultValue: 0.02
+  - name: accelerationFactorIncrement
+    type: DOUBLE
+    min: 0.01
+    max: 0.03
+    defaultValue: 0.02
+  - name: accelerationFactorMax
+    type: DOUBLE
+    min: 0.15
+    max: 0.25
+    defaultValue: 0.20
