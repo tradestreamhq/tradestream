@@ -76,9 +76,7 @@ public class CmoMfiConfigTest {
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(
-            IntegerChromosome.of(7, 21, 14),
-            IntegerChromosome.of(7, 21, 14));
+        ImmutableList.of(IntegerChromosome.of(7, 21, 14), IntegerChromosome.of(7, 21, 14));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
