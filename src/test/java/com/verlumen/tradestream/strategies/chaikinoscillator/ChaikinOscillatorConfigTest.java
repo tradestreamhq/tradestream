@@ -76,9 +76,7 @@ public class ChaikinOscillatorConfigTest {
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(
-            IntegerChromosome.of(2, 5, 3),
-            IntegerChromosome.of(8, 14, 10));
+        ImmutableList.of(IntegerChromosome.of(2, 5, 3), IntegerChromosome.of(8, 14, 10));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
