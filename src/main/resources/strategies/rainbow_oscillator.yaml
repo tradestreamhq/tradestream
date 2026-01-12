@@ -1,0 +1,41 @@
+name: RAINBOW_OSCILLATOR
+description: Rainbow oscillator strategy using multiple EMAs of different periods for trend confirmation
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.RainbowOscillatorParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: ema1
+    type: EMA
+    input: close
+    params:
+      period: 5
+  - id: ema2
+    type: EMA
+    input: close
+    params:
+      period: 10
+  - id: ema3
+    type: EMA
+    input: close
+    params:
+      period: 20
+
+entryConditions:
+  - type: OVER
+    indicator: ema1
+    params:
+      other: ema2
+  - type: OVER
+    indicator: ema2
+    params:
+      other: ema3
+
+exitConditions:
+  - type: UNDER
+    indicator: ema1
+    params:
+      other: ema2
+
+parameters: []
