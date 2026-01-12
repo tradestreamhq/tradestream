@@ -1,0 +1,40 @@
+name: VOLATILITY_STOP
+description: Volatility-based stop strategy using ATR for dynamic stop levels
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.VolatilityStopParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: atr
+    type: ATR
+    params:
+      period: "${atrPeriod}"
+  - id: ema
+    type: EMA
+    input: close
+    params:
+      period: "${atrPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: ema
+
+exitConditions:
+  - type: STOP_LOSS
+    params:
+      percentage: "${multiplier}"
+
+parameters:
+  - name: atrPeriod
+    type: INTEGER
+    min: 10
+    max: 25
+    defaultValue: 14
+  - name: multiplier
+    type: DOUBLE
+    min: 1.5
+    max: 4.0
+    defaultValue: 2.5
