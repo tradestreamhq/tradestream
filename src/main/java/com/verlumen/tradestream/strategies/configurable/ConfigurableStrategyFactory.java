@@ -48,10 +48,10 @@ public final class ConfigurableStrategyFactory
     Map<String, Indicator<Num>> indicators = buildIndicators(barSeries, parameters);
 
     // 2. Build entry rule from config
-    Rule entryRule = buildRule(config.getEntryConditions(), barSeries, indicators);
+    Rule entryRule = buildRule(config.getEntryConditions(), barSeries, indicators, parameters);
 
     // 3. Build exit rule from config
-    Rule exitRule = buildRule(config.getExitConditions(), barSeries, indicators);
+    Rule exitRule = buildRule(config.getExitConditions(), barSeries, indicators, parameters);
 
     // 4. Calculate unstable period
     int unstablePeriod = calculateUnstablePeriod();
@@ -221,7 +221,8 @@ public final class ConfigurableStrategyFactory
   private Rule buildRule(
       List<ConditionConfig> conditions,
       BarSeries barSeries,
-      Map<String, Indicator<Num>> indicators) {
+      Map<String, Indicator<Num>> indicators,
+      ConfigurableStrategyParameters strategyParams) {
 
     if (conditions == null || conditions.isEmpty()) {
       throw new IllegalArgumentException("Strategy must have at least one condition");
@@ -230,13 +231,11 @@ public final class ConfigurableStrategyFactory
     Rule combinedRule = null;
 
     for (ConditionConfig condition : conditions) {
-      ResolvedParams params = new ResolvedParams(condition.getParams());
+      // Resolve parameter references in condition params
+      ResolvedParams resolvedParams = resolveConditionParams(condition.getParams(), strategyParams);
 
       // Add the indicator reference to params if specified
-      Map<String, Object> augmentedParams = new HashMap<>();
-      if (condition.getParams() != null) {
-        augmentedParams.putAll(condition.getParams());
-      }
+      Map<String, Object> augmentedParams = new HashMap<>(resolvedParams.asMap());
       if (condition.getIndicator() != null) {
         augmentedParams.put("indicator", condition.getIndicator());
       }
@@ -249,6 +248,42 @@ public final class ConfigurableStrategyFactory
     }
 
     return combinedRule;
+  }
+
+  private ResolvedParams resolveConditionParams(
+      Map<String, Object> conditionParams, ConfigurableStrategyParameters strategyParams) {
+
+    if (conditionParams == null || conditionParams.isEmpty()) {
+      return new ResolvedParams(Map.of());
+    }
+
+    Map<String, Object> resolved = new HashMap<>();
+
+    for (Map.Entry<String, Object> entry : conditionParams.entrySet()) {
+      String key = entry.getKey();
+      Object value = entry.getValue();
+
+      if (value == null) {
+        continue;
+      }
+
+      String stringValue = value.toString();
+
+      // Check if value is a parameter reference like ${paramName}
+      Matcher matcher = PARAM_REFERENCE_PATTERN.matcher(stringValue);
+      if (matcher.matches()) {
+        String paramName = matcher.group(1);
+        Object resolvedValue = resolveParameterReference(paramName, strategyParams);
+        resolved.put(key, resolvedValue);
+      } else if (value instanceof Number) {
+        resolved.put(key, value);
+      } else {
+        // Try to parse as number, otherwise keep as original
+        resolved.put(key, parseValue(stringValue));
+      }
+    }
+
+    return new ResolvedParams(resolved);
   }
 
   private int calculateUnstablePeriod() {

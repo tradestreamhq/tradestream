@@ -212,6 +212,35 @@ public final class RuleRegistry {
           }
         });
 
+    // Constant threshold rules (used in YAML configs with "threshold" parameter)
+    registry.register(
+        "OVER_CONSTANT",
+        (series, indicators, params) -> {
+          String indicatorId = params.getString("indicator");
+          Indicator<Num> indicator = indicators.get(indicatorId);
+
+          if (indicator == null) {
+            throw new IllegalArgumentException("Indicator not found: " + indicatorId);
+          }
+
+          double threshold = params.getDouble("threshold");
+          return new OverIndicatorRule(indicator, threshold);
+        });
+
+    registry.register(
+        "UNDER_CONSTANT",
+        (series, indicators, params) -> {
+          String indicatorId = params.getString("indicator");
+          Indicator<Num> indicator = indicators.get(indicatorId);
+
+          if (indicator == null) {
+            throw new IllegalArgumentException("Indicator not found: " + indicatorId);
+          }
+
+          double threshold = params.getDouble("threshold");
+          return new UnderIndicatorRule(indicator, threshold);
+        });
+
     // Boolean rules
     registry.register(
         "IS_RISING",
