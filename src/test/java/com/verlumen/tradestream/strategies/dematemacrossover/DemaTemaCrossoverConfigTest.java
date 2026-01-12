@@ -76,9 +76,7 @@ public class DemaTemaCrossoverConfigTest {
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(
-            IntegerChromosome.of(5, 30, 12),
-            IntegerChromosome.of(10, 50, 26));
+        ImmutableList.of(IntegerChromosome.of(5, 30, 12), IntegerChromosome.of(10, 50, 26));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
