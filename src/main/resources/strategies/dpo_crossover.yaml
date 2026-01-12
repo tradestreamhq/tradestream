@@ -1,0 +1,42 @@
+name: DPO_CROSSOVER
+description: Detrended Price Oscillator crossover with moving average for cycle identification
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.DpoCrossoverParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: dpo
+    type: DPO
+    input: close
+    params:
+      period: "${dpoPeriod}"
+  - id: dpoMa
+    type: SMA
+    input: dpo
+    params:
+      period: "${maPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: dpo
+    params:
+      crosses: dpoMa
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: dpo
+    params:
+      crosses: dpoMa
+
+parameters:
+  - name: dpoPeriod
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20
+  - name: maPeriod
+    type: INTEGER
+    min: 5
+    max: 15
+    defaultValue: 9
