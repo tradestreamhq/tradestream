@@ -84,6 +84,16 @@ public final class StrategyConfigLoader {
   private StrategyConfigLoader() {}
 
   /**
+   * Normalizes a resource path to be absolute (starting with /).
+   *
+   * @param resourcePath The resource path
+   * @return The normalized path starting with /
+   */
+  private static String normalizeResourcePath(String resourcePath) {
+    return resourcePath.startsWith("/") ? resourcePath : "/" + resourcePath;
+  }
+
+  /**
    * Loads a strategy configuration from a JSON file.
    *
    * @param path The path to the JSON file
@@ -138,7 +148,8 @@ public final class StrategyConfigLoader {
    * @return The loaded strategy configuration
    */
   public static StrategyConfig loadJsonResource(String resourcePath) {
-    try (InputStream is = StrategyConfigLoader.class.getResourceAsStream(resourcePath);
+    String normalizedPath = normalizeResourcePath(resourcePath);
+    try (InputStream is = StrategyConfigLoader.class.getResourceAsStream(normalizedPath);
         Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
       return GSON.fromJson(reader, StrategyConfig.class);
     } catch (IOException | NullPointerException e) {
@@ -153,7 +164,8 @@ public final class StrategyConfigLoader {
    * @return The loaded strategy configuration
    */
   public static StrategyConfig loadYamlResource(String resourcePath) {
-    try (InputStream is = StrategyConfigLoader.class.getResourceAsStream(resourcePath)) {
+    String normalizedPath = normalizeResourcePath(resourcePath);
+    try (InputStream is = StrategyConfigLoader.class.getResourceAsStream(normalizedPath)) {
       if (is == null) {
         throw new RuntimeException("Resource not found: " + resourcePath);
       }
