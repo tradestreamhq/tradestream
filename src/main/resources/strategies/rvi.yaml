@@ -1,0 +1,37 @@
+name: RVI
+description: Relative Vigor Index strategy using RSI as vigor proxy with signal line crossover
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.RviParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: rvi
+    type: RSI
+    input: close
+    params:
+      period: "${period}"
+  - id: rviSignal
+    type: SMA
+    input: rvi
+    params:
+      period: 4
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: rvi
+    params:
+      crosses: rviSignal
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: rvi
+    params:
+      crosses: rviSignal
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 7
+    max: 21
+    defaultValue: 10
