@@ -1,0 +1,44 @@
+name: REGRESSION_CHANNEL
+description: Regression channel mean reversion strategy using Bollinger Bands as channel proxy
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.RegressionChannelParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: middle
+    type: BOLLINGER_MIDDLE
+    input: close
+    params:
+      period: "${period}"
+  - id: upper
+    type: BOLLINGER_UPPER
+    input: close
+    params:
+      period: "${period}"
+      multiplier: 2.0
+  - id: lower
+    type: BOLLINGER_LOWER
+    input: close
+    params:
+      period: "${period}"
+      multiplier: 2.0
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: lower
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: upper
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 15
+    max: 50
+    defaultValue: 20
