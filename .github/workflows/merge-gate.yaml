@@ -34,38 +34,62 @@ jobs:
               'runner / prettier'
             ];
 
-            // Get all check runs for this commit
-            const { data: checkRuns } = await github.rest.checks.listForRef({
-              owner,
-              repo,
-              ref: sha,
-              per_page: 100
-            });
+            // Wait for format checks to complete (with timeout)
+            const maxAttempts = 60; // 30 minutes max wait
+            const delayMs = 30000; // 30 seconds between checks
 
-            console.log('All check runs:', checkRuns.check_runs.map(c => `${c.name}: ${c.status}/${c.conclusion}`));
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+              const { data: checkRuns } = await github.rest.checks.listForRef({
+                owner,
+                repo,
+                ref: sha,
+                per_page: 100
+              });
 
-            // Check each format check
-            for (const checkName of formatChecks) {
-              const check = checkRuns.check_runs.find(c => c.name === checkName);
+              console.log(`Attempt ${attempt}: All check runs:`, checkRuns.check_runs.map(c => `${c.name}: ${c.status}/${c.conclusion}`));
 
-              if (check) {
-                // Check exists, verify it passed
-                if (check.status !== 'completed') {
-                  core.setFailed(`${checkName} is still running`);
-                  return;
+              let allComplete = true;
+              let anyFailed = false;
+              let failedCheck = '';
+
+              // Check each format check
+              for (const checkName of formatChecks) {
+                const check = checkRuns.check_runs.find(c => c.name === checkName);
+
+                if (check) {
+                  // Check exists
+                  if (check.status !== 'completed') {
+                    console.log(`${checkName}: still running`);
+                    allComplete = false;
+                  } else if (check.conclusion !== 'success' && check.conclusion !== 'skipped') {
+                    anyFailed = true;
+                    failedCheck = checkName;
+                    console.log(`${checkName}: FAILED with ${check.conclusion}`);
+                  } else {
+                    console.log(`${checkName}: PASSED`);
+                  }
+                } else {
+                  // Check doesn't exist - this is OK, it means no files of that type were changed
+                  console.log(`${checkName}: SKIPPED (no matching files changed)`);
                 }
-                if (check.conclusion !== 'success' && check.conclusion !== 'skipped') {
-                  core.setFailed(`${checkName} failed with conclusion: ${check.conclusion}`);
-                  return;
-                }
-                console.log(`${checkName}: PASSED`);
-              } else {
-                // Check doesn't exist - this is OK, it means no files of that type were changed
-                console.log(`${checkName}: SKIPPED (no matching files changed)`);
               }
+
+              if (anyFailed) {
+                core.setFailed(`${failedCheck} failed`);
+                return;
+              }
+
+              if (allComplete) {
+                console.log('All format checks passed or skipped!');
+                return;
+              }
+
+              // Not all checks complete yet, wait and retry
+              console.log(`Waiting ${delayMs/1000}s before next check...`);
+              await new Promise(r => setTimeout(r, delayMs));
             }
 
-            console.log('All format checks passed or skipped!');
+            core.setFailed('Timed out waiting for format checks to complete');
 
   # Unit tests must always pass
   unit-tests:
