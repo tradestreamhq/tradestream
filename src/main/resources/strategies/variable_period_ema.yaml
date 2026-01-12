@@ -1,0 +1,46 @@
+name: VARIABLE_PERIOD_EMA
+description: Variable period EMA strategy using KAMA for adaptive moving average crossover
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.VariablePeriodEmaParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: fastKama
+    type: KAMA
+    input: close
+    params:
+      period: "${minPeriod}"
+      fastPeriod: 2
+      slowPeriod: 30
+  - id: slowKama
+    type: KAMA
+    input: close
+    params:
+      period: "${maxPeriod}"
+      fastPeriod: 2
+      slowPeriod: 30
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: fastKama
+    params:
+      crosses: slowKama
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: fastKama
+    params:
+      crosses: slowKama
+
+parameters:
+  - name: minPeriod
+    type: INTEGER
+    min: 5
+    max: 15
+    defaultValue: 10
+  - name: maxPeriod
+    type: INTEGER
+    min: 20
+    max: 50
+    defaultValue: 30
