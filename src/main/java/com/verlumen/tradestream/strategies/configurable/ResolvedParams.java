@@ -80,4 +80,8 @@ public final class ResolvedParams {
   public Object get(String key) {
     return params.get(key);
   }
+
+  public Map<String, Object> asMap() {
+    return Map.copyOf(params);
+  }
 }
