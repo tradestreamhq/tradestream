@@ -1,0 +1,194 @@
+name: Merge Gate
+
+on:
+  pull_request:
+    branches: [main]
+  # Also run on merge queue if enabled
+  merge_group:
+    types: [checks_requested]
+
+# This workflow acts as a single required check that ensures all other CI checks pass.
+# Configure branch protection to require only "Merge Gate" as a status check.
+# This simplifies branch protection configuration while ensuring all checks must pass.
+
+jobs:
+  # Wait for all format checks to complete
+  # These jobs only run when their respective file types are changed
+  format-checks:
+    name: Format Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check format workflow statuses
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const sha = context.payload.pull_request?.head.sha || context.sha;
+
+            // These are the format checks we need to verify
+            const formatChecks = [
+              'runner / google-java-format',
+              'runner / buildifier',
+              'runner / ktlint',
+              'runner / black',
+              'runner / prettier'
+            ];
+
+            // Get all check runs for this commit
+            const { data: checkRuns } = await github.rest.checks.listForRef({
+              owner,
+              repo,
+              ref: sha,
+              per_page: 100
+            });
+
+            console.log('All check runs:', checkRuns.check_runs.map(c => `${c.name}: ${c.status}/${c.conclusion}`));
+
+            // Check each format check
+            for (const checkName of formatChecks) {
+              const check = checkRuns.check_runs.find(c => c.name === checkName);
+
+              if (check) {
+                // Check exists, verify it passed
+                if (check.status !== 'completed') {
+                  core.setFailed(`${checkName} is still running`);
+                  return;
+                }
+                if (check.conclusion !== 'success' && check.conclusion !== 'skipped') {
+                  core.setFailed(`${checkName} failed with conclusion: ${check.conclusion}`);
+                  return;
+                }
+                console.log(`${checkName}: PASSED`);
+              } else {
+                // Check doesn't exist - this is OK, it means no files of that type were changed
+                console.log(`${checkName}: SKIPPED (no matching files changed)`);
+              }
+            }
+
+            console.log('All format checks passed or skipped!');
+
+  # Unit tests must always pass
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check unit test status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const sha = context.payload.pull_request?.head.sha || context.sha;
+
+            // Wait for the unit tests check to complete (with timeout)
+            const maxAttempts = 60; // 30 minutes max wait
+            const delayMs = 30000; // 30 seconds between checks
+
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+              const { data: checkRuns } = await github.rest.checks.listForRef({
+                owner,
+                repo,
+                ref: sha,
+                per_page: 100
+              });
+
+              const unitTestCheck = checkRuns.check_runs.find(c => c.name === 'run-unit-tests');
+
+              if (!unitTestCheck) {
+                console.log(`Attempt ${attempt}: Unit tests check not found yet, waiting...`);
+                await new Promise(r => setTimeout(r, delayMs));
+                continue;
+              }
+
+              if (unitTestCheck.status !== 'completed') {
+                console.log(`Attempt ${attempt}: Unit tests still running...`);
+                await new Promise(r => setTimeout(r, delayMs));
+                continue;
+              }
+
+              if (unitTestCheck.conclusion === 'success') {
+                console.log('Unit tests passed!');
+                return;
+              }
+
+              core.setFailed(`Unit tests failed with conclusion: ${unitTestCheck.conclusion}`);
+              return;
+            }
+
+            core.setFailed('Timed out waiting for unit tests to complete');
+
+  # Helm chart validation must pass
+  helm-validation:
+    name: Helm Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Helm validation status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const sha = context.payload.pull_request?.head.sha || context.sha;
+
+            // Wait for the Helm validation check to complete (with timeout)
+            const maxAttempts = 60; // 30 minutes max wait
+            const delayMs = 30000; // 30 seconds between checks
+
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+              const { data: checkRuns } = await github.rest.checks.listForRef({
+                owner,
+                repo,
+                ref: sha,
+                per_page: 100
+              });
+
+              const helmCheck = checkRuns.check_runs.find(c => c.name === 'Validate Helm Chart');
+
+              if (!helmCheck) {
+                console.log(`Attempt ${attempt}: Helm validation check not found yet, waiting...`);
+                await new Promise(r => setTimeout(r, delayMs));
+                continue;
+              }
+
+              if (helmCheck.status !== 'completed') {
+                console.log(`Attempt ${attempt}: Helm validation still running...`);
+                await new Promise(r => setTimeout(r, delayMs));
+                continue;
+              }
+
+              if (helmCheck.conclusion === 'success') {
+                console.log('Helm validation passed!');
+                return;
+              }
+
+              core.setFailed(`Helm validation failed with conclusion: ${helmCheck.conclusion}`);
+              return;
+            }
+
+            core.setFailed('Timed out waiting for Helm validation to complete');
+
+  # Final gate that depends on all other checks
+  gate:
+    name: Merge Gate
+    runs-on: ubuntu-latest
+    needs: [format-checks, unit-tests, helm-validation]
+    if: always()
+    steps:
+      - name: Check all required checks passed
+        run: |
+          echo "Checking results of all required CI checks..."
+
+          if [[ "${{ needs.format-checks.result }}" != "success" ]]; then
+            echo "Format checks failed or were cancelled"
+            exit 1
+          fi
+
+          if [[ "${{ needs.unit-tests.result }}" != "success" ]]; then
+            echo "Unit tests failed or were cancelled"
+            exit 1
+          fi
+
+          if [[ "${{ needs.helm-validation.result }}" != "success" ]]; then
+            echo "Helm validation failed or were cancelled"
+            exit 1
+          fi
+
+          echo "All required CI checks passed!"
