@@ -1,0 +1,43 @@
+name: VOLUME_SPREAD_ANALYSIS
+description: Volume spread analysis strategy comparing price spread with volume for trend confirmation
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.VolumeSpreadAnalysisParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: volume
+    type: VOLUME
+  - id: volumeEma
+    type: EMA
+    input: volume
+    params:
+      period: "${volumePeriod}"
+  - id: priceEma
+    type: EMA
+    input: close
+    params:
+      period: "${volumePeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: priceEma
+  - type: OVER
+    indicator: volume
+    params:
+      other: volumeEma
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: priceEma
+
+parameters:
+  - name: volumePeriod
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20
