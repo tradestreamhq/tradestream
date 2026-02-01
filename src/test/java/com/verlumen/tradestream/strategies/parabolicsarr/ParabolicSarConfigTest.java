@@ -34,20 +34,13 @@ public class ParabolicSarConfigTest {
     config = StrategyConfigLoader.loadResource("strategies/parabolic_sar.yaml");
     factory = new ConfigurableStrategyFactory(config);
     paramConfig = new ConfigurableParamConfig(config);
-
+    
     series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
     for (int i = 0; i < 100; i++) {
       double price = 100 + Math.sin(i * 0.1) * 20;
-      series.addBar(
-          new BaseBar(
-              Duration.ofMinutes(1),
-              now.plusMinutes(i),
-              price,
-              price + 2,
-              price - 2,
-              price,
-              1000.0));
+      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(i), 
+          price, price + 2, price - 2, price, 1000.0));
     }
   }
 
@@ -75,11 +68,10 @@ public class ParabolicSarConfigTest {
 
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
-    ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(
-            DoubleChromosome.of(0.01, 0.03, 1),
-            DoubleChromosome.of(0.01, 0.03, 1),
-            DoubleChromosome.of(0.15, 0.25, 1));
+    ImmutableList<NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
+        DoubleChromosome.of(0.01, 0.03),
+        DoubleChromosome.of(0.01, 0.03),
+        DoubleChromosome.of(0.15, 0.25));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }

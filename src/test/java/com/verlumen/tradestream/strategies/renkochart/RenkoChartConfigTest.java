@@ -69,7 +69,7 @@ public class RenkoChartConfigTest {
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
-        DoubleChromosome.of(0.5, 3.0, 1));
+        DoubleChromosome.of(0.5, 3.0));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }

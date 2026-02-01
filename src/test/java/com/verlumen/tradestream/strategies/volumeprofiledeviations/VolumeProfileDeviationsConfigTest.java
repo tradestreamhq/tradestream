@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.volatilitystop;
+package com.verlumen.tradestream.strategies.volumeprofiledeviations;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -10,7 +10,6 @@ import com.verlumen.tradestream.strategies.configurable.ConfigurableParamConfig;
 import com.verlumen.tradestream.strategies.configurable.ConfigurableStrategyFactory;
 import com.verlumen.tradestream.strategies.configurable.StrategyConfig;
 import com.verlumen.tradestream.strategies.configurable.StrategyConfigLoader;
-import io.jenetics.DoubleChromosome;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.time.Duration;
@@ -24,7 +23,7 @@ import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
-public class VolatilityStopConfigTest {
+public class VolumeProfileDeviationsConfigTest {
   private StrategyConfig config;
   private ConfigurableStrategyFactory factory;
   private ConfigurableParamConfig paramConfig;
@@ -32,7 +31,7 @@ public class VolatilityStopConfigTest {
 
   @Before
   public void setUp() throws Exception {
-    config = StrategyConfigLoader.loadResource("strategies/volatility_stop.yaml");
+    config = StrategyConfigLoader.loadResource("strategies/volume_profile_deviations.yaml");
     factory = new ConfigurableStrategyFactory(config);
     paramConfig = new ConfigurableParamConfig(config);
 
@@ -48,19 +47,19 @@ public class VolatilityStopConfigTest {
               price + 2,
               price - 2,
               price,
-              1000.0));
+              1000.0 + i * 10));
     }
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() throws Exception {
+  public void createStrategy_returnsValidStrategy() {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     assertThat(strategy).isNotNull();
-    assertThat(strategy.getName()).isEqualTo("VOLATILITY_STOP");
+    assertThat(strategy.getName()).isEqualTo("VOLUME_PROFILE_DEVIATIONS");
   }
 
   @Test
-  public void strategy_canEvaluateSignals() throws Exception {
+  public void strategy_canEvaluateSignals() {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     for (int i = 50; i < series.getBarCount(); i++) {
       strategy.shouldEnter(i);
@@ -71,15 +70,13 @@ public class VolatilityStopConfigTest {
   @Test
   public void chromosomeSpecs_matchParameterCount() {
     ImmutableList<ChromosomeSpec<?>> specs = paramConfig.getChromosomeSpecs();
-    assertThat(specs).hasSize(2);
+    assertThat(specs).hasSize(1);
   }
 
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(
-            IntegerChromosome.of(10, 25),
-            DoubleChromosome.of(1.5, 4.0));
+        ImmutableList.of(IntegerChromosome.of(15, 40, 20));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
