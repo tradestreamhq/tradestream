@@ -7,6 +7,10 @@ on:
   merge_group:
     types: [checks_requested]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # This workflow acts as a single required check that ensures all other CI checks pass.
 # Configure branch protection to require only "Merge Gate" as a status check.
 # This simplifies branch protection configuration while ensuring all checks must pass.
