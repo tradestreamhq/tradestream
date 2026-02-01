@@ -35,13 +35,20 @@ public class SarMfiConfigTest {
     config = StrategyConfigLoader.loadResource("strategies/sar_mfi.yaml");
     factory = new ConfigurableStrategyFactory(config);
     paramConfig = new ConfigurableParamConfig(config);
-    
+
     series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
     for (int i = 0; i < 100; i++) {
       double price = 100 + Math.sin(i * 0.1) * 20;
-      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(i), 
-          price, price + 2, price - 2, price, 1000.0));
+      series.addBar(
+          new BaseBar(
+              Duration.ofMinutes(1),
+              now.plusMinutes(i),
+              price,
+              price + 2,
+              price - 2,
+              price,
+              1000.0));
     }
   }
 
@@ -69,11 +76,12 @@ public class SarMfiConfigTest {
 
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
-    ImmutableList<NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
-        DoubleChromosome.of(0.01, 0.03, 0.02),
-        DoubleChromosome.of(0.01, 0.03, 0.02),
-        DoubleChromosome.of(0.15, 0.25, 0.20),
-        IntegerChromosome.of(10, 20, 14));
+    ImmutableList<NumericChromosome<?, ?>> chromosomes =
+        ImmutableList.of(
+            DoubleChromosome.of(0.01, 0.03, 0.02),
+            DoubleChromosome.of(0.01, 0.03, 0.02),
+            DoubleChromosome.of(0.15, 0.25, 0.20),
+            IntegerChromosome.of(10, 20, 14));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
