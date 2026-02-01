@@ -2,6 +2,9 @@ name: "black-formatter"
 on:
   pull_request:
     paths: ["**/*.py"]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
   pull-requests: write
