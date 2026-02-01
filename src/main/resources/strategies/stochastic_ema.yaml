@@ -1,0 +1,60 @@
+name: STOCHASTIC_EMA
+description: Stochastic oscillator with EMA trend filter for momentum trading
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.StochasticEmaParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: ema
+    type: EMA
+    input: close
+    params:
+      period: "${emaPeriod}"
+  - id: stochK
+    type: STOCHASTIC_K
+    params:
+      period: "${stochasticKPeriod}"
+
+entryConditions:
+  - type: OVER
+    indicator: close
+    params:
+      other: ema
+  - type: UNDER
+    indicator: stochK
+    params:
+      value: "${oversoldThreshold}"
+
+exitConditions:
+  - type: OVER
+    indicator: stochK
+    params:
+      value: "${overboughtThreshold}"
+
+parameters:
+  - name: emaPeriod
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20
+  - name: stochasticKPeriod
+    type: INTEGER
+    min: 10
+    max: 20
+    defaultValue: 14
+  - name: stochasticDPeriod
+    type: INTEGER
+    min: 3
+    max: 5
+    defaultValue: 3
+  - name: overboughtThreshold
+    type: INTEGER
+    min: 75
+    max: 90
+    defaultValue: 80
+  - name: oversoldThreshold
+    type: INTEGER
+    min: 10
+    max: 25
+    defaultValue: 20
