@@ -53,14 +53,14 @@ public class SmaRsiConfigTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     assertThat(strategy).isNotNull();
     assertThat(strategy.getName()).isEqualTo("SMA_RSI");
   }
 
   @Test
-  public void strategy_canEvaluateSignals() {
+  public void strategy_canEvaluateSignals() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     for (int i = 50; i < series.getBarCount(); i++) {
       strategy.shouldEnter(i);
@@ -78,10 +78,10 @@ public class SmaRsiConfigTest {
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
         ImmutableList.of(
-            IntegerChromosome.of(10, 50, 20),
-            IntegerChromosome.of(7, 21, 14),
-            DoubleChromosome.of(70.0, 85.0, 70.0),
-            DoubleChromosome.of(15.0, 30.0, 30.0));
+            IntegerChromosome.of(10, 50),
+            IntegerChromosome.of(7, 21),
+            DoubleChromosome.of(70.0, 85.0),
+            DoubleChromosome.of(15.0, 30.0));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
