@@ -69,6 +69,7 @@ java_library(
 java_library(
     name = "strategy_config_loader",
     srcs = ["StrategyConfigLoader.java"],
+    resources = ["//src/main/resources:strategies"],
     deps = [
         ":config_pojos",
         "//third_party/java:gson",
