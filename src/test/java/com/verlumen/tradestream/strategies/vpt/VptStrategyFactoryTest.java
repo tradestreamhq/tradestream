@@ -26,7 +26,7 @@ public final class VptStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     BarSeries series = createTestBarSeries();
     VptParameters parameters = VptParameters.newBuilder().setPeriod(15).build();
 

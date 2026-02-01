@@ -42,14 +42,14 @@ public class RainbowOscillatorConfigTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     assertThat(strategy).isNotNull();
     assertThat(strategy.getName()).isEqualTo("RAINBOW_OSCILLATOR");
   }
 
   @Test
-  public void strategy_canEvaluateSignals() {
+  public void strategy_canEvaluateSignals() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     for (int i = 50; i < series.getBarCount(); i++) {
       strategy.shouldEnter(i);

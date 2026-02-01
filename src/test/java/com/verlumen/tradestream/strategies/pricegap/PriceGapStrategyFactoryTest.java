@@ -24,7 +24,7 @@ public final class PriceGapStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     // Arrange
     PriceGapParameters parameters = PriceGapParameters.newBuilder().setPeriod(15).build();
 

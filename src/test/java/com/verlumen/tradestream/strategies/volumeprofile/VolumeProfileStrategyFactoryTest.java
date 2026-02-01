@@ -21,7 +21,7 @@ public final class VolumeProfileStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     BarSeries series = new BaseBarSeries();
     VolumeProfileParameters parameters = VolumeProfileParameters.newBuilder().setPeriod(30).build();
 

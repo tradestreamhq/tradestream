@@ -27,7 +27,7 @@ public final class VolumeSpreadAnalysisStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     BarSeries series = createTestBarSeries();
     VolumeSpreadAnalysisParameters parameters =
         VolumeSpreadAnalysisParameters.newBuilder().setVolumePeriod(15).build();

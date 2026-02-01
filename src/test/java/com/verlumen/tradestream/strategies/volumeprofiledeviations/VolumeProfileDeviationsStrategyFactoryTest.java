@@ -22,7 +22,7 @@ public final class VolumeProfileDeviationsStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     BarSeries series = new BaseBarSeries();
     VolumeProfileDeviationsParameters parameters =
         VolumeProfileDeviationsParameters.newBuilder().setPeriod(30).build();

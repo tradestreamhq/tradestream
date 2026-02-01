@@ -28,7 +28,7 @@ public final class KlingerVolumeStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     BarSeries series = createTestBarSeries();
 
     KlingerVolumeParameters parameters =

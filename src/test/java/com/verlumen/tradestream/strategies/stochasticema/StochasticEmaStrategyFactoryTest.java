@@ -16,7 +16,7 @@ public class StochasticEmaStrategyFactoryTest {
   private final StochasticEmaStrategyFactory factory = new StochasticEmaStrategyFactory();
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     // Arrange
     BarSeries barSeries = new org.ta4j.core.BaseBarSeries();
     barSeries.addBar(

@@ -27,7 +27,7 @@ public final class TickVolumeAnalysisStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     BarSeries series = createTestBarSeries();
     TickVolumeAnalysisParameters parameters =
         TickVolumeAnalysisParameters.newBuilder().setTickPeriod(10).build();

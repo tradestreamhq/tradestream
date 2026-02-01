@@ -27,7 +27,7 @@ public final class PriceOscillatorSignalStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     // Create test data
     BarSeries series = createTestBarSeries();
     PriceOscillatorSignalParameters parameters =

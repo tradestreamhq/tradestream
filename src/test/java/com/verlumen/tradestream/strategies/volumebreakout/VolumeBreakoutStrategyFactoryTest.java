@@ -26,7 +26,7 @@ public final class VolumeBreakoutStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     BarSeries series = createTestBarSeries();
     VolumeBreakoutParameters parameters =
         VolumeBreakoutParameters.newBuilder().setVolumeMultiplier(2.5).build();

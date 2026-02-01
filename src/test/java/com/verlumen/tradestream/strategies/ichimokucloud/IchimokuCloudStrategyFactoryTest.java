@@ -39,7 +39,7 @@ public class IchimokuCloudStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     Strategy strategy = factory.createStrategy(series, params);
     assertThat(strategy).isNotNull();
     assertThat(strategy.getName()).contains("ICHIMOKU_CLOUD");

@@ -28,7 +28,7 @@ public final class CmoMfiStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     BarSeries series = createTestBarSeries();
     CmoMfiParameters parameters =
         CmoMfiParameters.newBuilder().setCmoPeriod(10).setMfiPeriod(10).build();

@@ -25,7 +25,7 @@ public final class FibonacciRetracementsStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     // Arrange
     FibonacciRetracementsParameters parameters = factory.getDefaultParameters();
 

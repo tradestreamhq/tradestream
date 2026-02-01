@@ -28,7 +28,7 @@ public final class RainbowOscillatorStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     // Arrange
     BarSeries series = createTestBarSeries();
     RainbowOscillatorParameters parameters = factory.getDefaultParameters();

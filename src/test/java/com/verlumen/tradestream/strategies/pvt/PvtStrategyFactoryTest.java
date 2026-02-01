@@ -26,7 +26,7 @@ public final class PvtStrategyFactoryTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     BarSeries series = createTestBarSeries();
     PvtParameters parameters = PvtParameters.newBuilder().setPeriod(15).build();
 
