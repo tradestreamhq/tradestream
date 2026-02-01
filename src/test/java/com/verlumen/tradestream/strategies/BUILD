@@ -30,16 +30,5 @@ kt_jvm_test(
         "//third_party/java:junit",
         "//third_party/java:test_parameter_injector",
         "//third_party/java:truth",
-
-        # Renkochart tests
-        "//src/test/java/com/verlumen/tradestream/strategies/renkochart:param_config_test",
-        "//src/test/java/com/verlumen/tradestream/strategies/renkochart:strategy_factory_test",
-
-        # Gannswing tests
-        "//src/test/java/com/verlumen/tradestream/strategies/gannswing:param_config_test",
-        "//src/test/java/com/verlumen/tradestream/strategies/gannswing:strategy_factory_test",
-        # Sarmfi tests
-        "//src/test/java/com/verlumen/tradestream/strategies/sarmfi:param_config_test",
-        "//src/test/java/com/verlumen/tradestream/strategies/sarmfi:strategy_factory_test",
     ],
 )
