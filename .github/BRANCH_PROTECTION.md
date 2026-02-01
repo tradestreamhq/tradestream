@@ -10,28 +10,33 @@ The following CI checks should be configured as **required status checks** in Gi
 
 Configure only the `Merge Gate` check as required. This workflow automatically verifies all other checks have passed:
 
-| Check Name    | Description                                    |
-| ------------- | ---------------------------------------------- |
-| `Merge Gate`  | Aggregates all CI checks into a single gate   |
+| Check Name   | Description                                 |
+| ------------ | ------------------------------------------- |
+| `Merge Gate` | Aggregates all CI checks into a single gate |
 
 The Merge Gate workflow (`.github/workflows/merge-gate.yaml`) verifies:
+
 - All format checks (Java, Kotlin, Python, YAML, Starlark)
-- Unit tests (`run-unit-tests`)
+- Unit tests with 90% coverage threshold (`run-unit-tests`)
 - Helm chart validation (`Validate Helm Chart`)
+
+## Coverage Requirements
+
+The `run-unit-tests` check enforces a **minimum 90% line coverage** threshold. PRs that reduce coverage below 90% will fail this check.
 
 ### Option 2: Configure Individual Checks
 
 Alternatively, configure these individual checks as required:
 
-| Check Name                      | Workflow File                    | Triggers On                |
-| ------------------------------- | -------------------------------- | -------------------------- |
-| `run-unit-tests`                | `bazel-test.yaml`                | All PRs                    |
-| `runner / google-java-format`   | `format-java-code.yaml`          | `**/*.java` changes        |
-| `runner / buildifier`           | `format-starlark-code.yaml`      | `*.bzl`, `BUILD*` changes  |
-| `runner / ktlint`               | `format-kotlin-code.yaml`        | `**/*.kt`, `**/*.kts`      |
-| `runner / black`                | `format-python-code.yaml`        | `**/*.py` changes          |
-| `runner / prettier`             | `format-yaml-code.yaml`          | `**/*.yaml`, `**/*.yml`    |
-| `Validate Helm Chart`           | `ci.yaml`                        | All PRs                    |
+| Check Name                    | Workflow File               | Triggers On               |
+| ----------------------------- | --------------------------- | ------------------------- |
+| `run-unit-tests`              | `bazel-test.yaml`           | All PRs                   |
+| `runner / google-java-format` | `format-java-code.yaml`     | `**/*.java` changes       |
+| `runner / buildifier`         | `format-starlark-code.yaml` | `*.bzl`, `BUILD*` changes |
+| `runner / ktlint`             | `format-kotlin-code.yaml`   | `**/*.kt`, `**/*.kts`     |
+| `runner / black`              | `format-python-code.yaml`   | `**/*.py` changes         |
+| `runner / prettier`           | `format-yaml-code.yaml`     | `**/*.yaml`, `**/*.yml`   |
+| `Validate Helm Chart`         | `ci.yaml`                   | All PRs                   |
 
 **Note:** Format checks only run when their respective file types are modified. If using individual checks, consider enabling "Do not require status checks for PRs that don't trigger them" option.
 
@@ -60,6 +65,7 @@ Status checks only appear in branch protection after they have run at least once
 ### Format check not running
 
 Format checks only run when files matching their path filters are modified:
+
 - Java formatter: `**/*.java`
 - Kotlin formatter: `**/*.kt`, `**/*.kts`
 - Python formatter: `**/*.py`

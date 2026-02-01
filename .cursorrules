@@ -14,7 +14,8 @@
 # This project uses Bazel version 7.4.0. All builds, tests, and service execution must be done through Bazel.
 # - To build the entire project: `bazel build //...`
 # - To run all tests: `bazel test //...`
-# - To run unit tests with coverage: `bazel coverage //...` 
+# - To run unit tests with coverage: `bazel coverage //...`
+# - IMPORTANT: A minimum 90% line coverage is enforced by CI. PRs below this threshold will fail. 
 # - To run a specific service, use `bazel run //path/to/service:target`
 # - We use BuildBuddy for remote caching and build analysis. Ensure your configuration in `.bazelrc` points to the correct backend.
 
