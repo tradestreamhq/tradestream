@@ -1,0 +1,43 @@
+name: RANGE_BARS
+description: Range bars strategy using ATR-based volatility breakouts
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.RangeBarsParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: atr
+    type: ATR
+    params:
+      period: 14
+  - id: upperRange
+    type: BOLLINGER_UPPER
+    input: close
+    params:
+      period: 20
+      multiplier: "${rangeSize}"
+  - id: lowerRange
+    type: BOLLINGER_LOWER
+    input: close
+    params:
+      period: 20
+      multiplier: "${rangeSize}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: upperRange
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: lowerRange
+
+parameters:
+  - name: rangeSize
+    type: DOUBLE
+    min: 1.0
+    max: 3.0
+    defaultValue: 2.0
