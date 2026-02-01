@@ -56,6 +56,10 @@ Alternatively, configure these individual checks as required:
 - **Dismiss stale pull request approvals when new commits are pushed**: Ensures reviews are current
 - **Require conversation resolution before merging**: Ensures all review comments are addressed
 
+## Required: Passing Tests
+
+**IMPORTANT:** The `run-unit-tests` check MUST be configured as a required status check. This prevents broken builds from being merged to main. Without this protection, failing tests can be merged and break the main branch for all developers.
+
 ## Troubleshooting
 
 ### Check not appearing in the list
