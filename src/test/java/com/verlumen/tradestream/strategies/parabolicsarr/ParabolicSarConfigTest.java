@@ -68,10 +68,11 @@ public class ParabolicSarConfigTest {
 
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
-    ImmutableList<NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
-        DoubleChromosome.of(0.01, 0.03, 1),
-        DoubleChromosome.of(0.01, 0.03, 1),
-        DoubleChromosome.of(0.15, 0.25, 1));
+    ImmutableList<NumericChromosome<?, ?>> chromosomes =
+        ImmutableList.of(
+            DoubleChromosome.of(0.01, 0.03, 1),
+            DoubleChromosome.of(0.01, 0.03, 1),
+            DoubleChromosome.of(0.15, 0.25, 1));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
