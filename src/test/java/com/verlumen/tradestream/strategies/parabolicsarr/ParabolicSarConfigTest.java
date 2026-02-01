@@ -45,14 +45,14 @@ public class ParabolicSarConfigTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     assertThat(strategy).isNotNull();
     assertThat(strategy.getName()).isEqualTo("PARABOLIC_SAR");
   }
 
   @Test
-  public void strategy_canEvaluateSignals() {
+  public void strategy_canEvaluateSignals() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     for (int i = 50; i < series.getBarCount(); i++) {
       strategy.shouldEnter(i);
@@ -69,9 +69,9 @@ public class ParabolicSarConfigTest {
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
-        DoubleChromosome.of(0.01, 0.03, 0.02),
-        DoubleChromosome.of(0.01, 0.03, 0.02),
-        DoubleChromosome.of(0.15, 0.25, 0.20));
+        DoubleChromosome.of(0.01, 0.03),
+        DoubleChromosome.of(0.01, 0.03),
+        DoubleChromosome.of(0.15, 0.25));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
