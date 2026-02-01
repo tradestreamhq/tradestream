@@ -15,7 +15,7 @@ Each spec has a unique ID in the format `SPEC-XXX` (e.g., `SPEC-001`). When crea
 
 | ID | Capability |
 |----|------------|
-| SPEC-001 | [Configuration-Driven Strategies](config-driven-strategies/SPEC.md) |
+| [SPEC-001](SPEC-001/SPEC.md) | Configuration-Driven Strategies |
 
 ## Creating a New Spec
 
@@ -25,8 +25,8 @@ Each spec has a unique ID in the format `SPEC-XXX` (e.g., `SPEC-001`). When crea
 4. Commit and open for review
 
 ```bash
-cp -r specs/_TEMPLATE specs/my-capability
-# Edit specs/my-capability/SPEC.md
+cp -r specs/_TEMPLATE specs/SPEC-XXX
+# Edit specs/SPEC-XXX/SPEC.md
 ```
 
 ## Lifecycle
