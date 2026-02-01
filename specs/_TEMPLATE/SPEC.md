@@ -1,10 +1,12 @@
 # [Capability Name]
 
+**ID**: SPEC-XXX
+
 ## Goal
-<!-- One sentence: what does this capability achieve for users? -->
+<!-- One sentence: what does this capability achieve for users? Write in present tense. -->
 
 ## Target Behavior
-<!-- Describe how this should work when complete. Be specific. -->
+<!-- Describe how this works. Be specific. Write in present tense as if already implemented. -->
 
 ## Constraints
 <!-- Non-negotiables: performance, reliability, security, compatibility requirements -->

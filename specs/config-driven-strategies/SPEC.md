@@ -1,7 +1,9 @@
 # Configuration-Driven Strategies
 
+**ID**: SPEC-001
+
 ## Goal
-Enable trading strategies to be defined entirely through YAML configuration files, eliminating the need for Java code changes when adding or modifying strategies.
+Trading strategies are defined entirely through YAML configuration files, with no Java code changes required to add or modify strategies.
 
 ## Target Behavior
 
@@ -56,21 +58,23 @@ parameters:
 ```
 
 ### Runtime Discovery
-- Strategies are auto-discovered from the classpath at startup
-- No code changes required to register new strategies
-- `StrategyRegistry` provides unified access to all available strategies
+Strategies are auto-discovered from the classpath at startup. The `StrategyRegistry` provides unified access to all available strategies. No code changes are required to register new strategies.
 
 ### Indicator & Rule Support
-- `IndicatorRegistry` maps 30+ indicator types to Ta4j implementations
-- `RuleRegistry` maps 15+ condition types to Ta4j rule constructors
-- New indicator/rule types can be added to registries without touching strategy configs
+`IndicatorRegistry` maps 30+ indicator types to Ta4j implementations. `RuleRegistry` maps 15+ condition types to Ta4j rule constructors. New indicator/rule types are added to registries without touching strategy configs.
+
+### Supported Indicator Types
+ADX, ATR, Bollinger Bands (upper/middle/lower), CCI, CMO, DEMA, DPO, EMA, HMA, Ichimoku, KAMA, MACD, MFI, OBV, Parabolic SAR, Pivot Points, ROC, RSI, SMA, Stochastic, TEMA, TRIX, Ultimate Oscillator, VWAP, Williams %R, WMA, ZLEMA
+
+### Supported Condition Types
+CROSSED_UP, CROSSED_DOWN, OVER, UNDER, OVER_CONSTANT, UNDER_CONSTANT, IS_RISING, IS_FALLING, AND, OR, NOT, GAIN_THRESHOLD, LOSS_THRESHOLD, STOP_LOSS, STOP_GAIN
 
 ## Constraints
 
-- **Backward Compatibility**: Existing proto parameter messages must continue to work
-- **Performance**: Strategy construction must not add measurable latency to backtesting
-- **Validation**: Invalid configs must fail fast with clear error messages
-- **Type Safety**: Parameter types (INTEGER, DOUBLE) must be validated at load time
+- **Backward Compatibility**: Existing proto parameter messages continue to work
+- **Performance**: Strategy construction adds no measurable latency to backtesting
+- **Validation**: Invalid configs fail fast with clear error messages
+- **Type Safety**: Parameter types (INTEGER, DOUBLE) are validated at load time
 
 ## Non-Goals
 
@@ -82,7 +86,7 @@ parameters:
 ## Acceptance Criteria
 
 - [ ] All 70+ production strategies have YAML config equivalents
-- [ ] `StrategySpecs.kt` static registry is deprecated/removed
+- [ ] `StrategySpecs.kt` static registry is removed
 - [ ] Strategy discovery pipeline uses `StrategyRegistry.fromClasspath()`
 - [ ] Adding a new strategy requires only: YAML file + proto parameter message
 - [ ] All config-based strategies pass existing integration tests
@@ -93,19 +97,7 @@ parameters:
 | Issue | Status | Description |
 |-------|--------|-------------|
 | #1700 | merged | Refactor config strategy enum |
-| TBD   | -      | Migrate remaining ~45 strategies to YAML |
-| TBD   | -      | Update discovery pipeline to use StrategyRegistry |
-| TBD   | -      | Deprecate StrategySpecs.kt |
 
 ## Notes
 
-### Current Progress
-- **25 strategies** already have YAML configs in `/src/main/resources/strategies/`
-- Infrastructure complete: `StrategyConfigLoader`, `ConfigurableStrategyFactory`, `IndicatorRegistry`, `RuleRegistry`
-- Documentation exists at `docs/strategies/adding-new-strategy.md`
-
-### Supported Indicator Types
-ADX, ATR, Bollinger Bands (upper/middle/lower), CCI, CMO, DEMA, DPO, EMA, HMA, Ichimoku, KAMA, MACD, MFI, OBV, Parabolic SAR, Pivot Points, ROC, RSI, SMA, Stochastic, TEMA, TRIX, Ultimate Oscillator, VWAP, Williams %R, WMA, ZLEMA
-
-### Supported Condition Types
-CROSSED_UP, CROSSED_DOWN, OVER, UNDER, OVER_CONSTANT, UNDER_CONSTANT, IS_RISING, IS_FALLING, AND, OR, NOT, GAIN_THRESHOLD, LOSS_THRESHOLD, STOP_LOSS, STOP_GAIN
+Infrastructure is complete: `StrategyConfigLoader`, `ConfigurableStrategyFactory`, `IndicatorRegistry`, `RuleRegistry`. Documentation exists at `docs/strategies/adding-new-strategy.md`.

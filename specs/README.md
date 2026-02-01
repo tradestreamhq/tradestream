@@ -1,6 +1,6 @@
 # Specs
 
-Specs define **target state** for capabilities before implementation begins. They stay ahead of code, serving as north stars for development.
+Specs define **target state** for capabilities. They stay ahead of code, serving as north stars for development. Specs are written in **present tense** as if the target state already exists.
 
 ## Purpose
 
@@ -9,11 +9,20 @@ Specs define **target state** for capabilities before implementation begins. The
 - **Prevent scope creep** with explicit non-goals
 - **Track progress** via acceptance criteria
 
+## Spec IDs
+
+Each spec has a unique ID in the format `SPEC-XXX` (e.g., `SPEC-001`). When creating a new spec, assign the next available ID.
+
+| ID | Capability |
+|----|------------|
+| SPEC-001 | [Configuration-Driven Strategies](config-driven-strategies/SPEC.md) |
+
 ## Creating a New Spec
 
 1. Copy `_TEMPLATE/SPEC.md` to a new directory named for your capability
-2. Fill in each section thoughtfully
-3. Commit and open for review
+2. Assign the next available spec ID
+3. Fill in each section in present tense (describe how it *works*, not how it *will work*)
+4. Commit and open for review
 
 ```bash
 cp -r specs/_TEMPLATE specs/my-capability
