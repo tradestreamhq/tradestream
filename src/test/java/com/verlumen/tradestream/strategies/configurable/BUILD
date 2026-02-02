@@ -83,6 +83,17 @@ java_test(
     ],
 )
 
+java_test(
+    name = "ParameterDefinitionTest",
+    srcs = ["ParameterDefinitionTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.ParameterDefinitionTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//third_party/java:junit",
+        "//third_party/java:truth",
+    ],
+)
+
 test_suite(
     name = "all_tests",
     tests = [
@@ -90,6 +101,7 @@ test_suite(
         ":ConfigurableParamConfigTest",
         ":ConfigurableStrategyFactoryTest",
         ":IndicatorRegistryTest",
+        ":ParameterDefinitionTest",
         ":RuleRegistryTest",
         ":StrategyConfigLoaderTest",
     ],
