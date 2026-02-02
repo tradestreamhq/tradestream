@@ -24,23 +24,26 @@ jobs:
 
     - name: Run coverage
       run: |
-        bazel coverage //...
+        bazel coverage --combined_report=lcov //...
 
     - name: Enforce 90% coverage threshold
       run: |
-        # Search for coverage report in common Bazel locations
-        COVERAGE_FILE=$(find . -path "./bazel-out/*" -name "_coverage_report.dat" -type f 2>/dev/null | head -1)
-        if [ -z "$COVERAGE_FILE" ]; then
+        # The combined LCOV report is always at this location
+        COVERAGE_FILE="bazel-out/_coverage/_coverage_report.dat"
+
+        if [ ! -f "$COVERAGE_FILE" ]; then
+          echo "::warning::Combined report not found at expected location, searching..."
+          # Search for coverage report in common Bazel locations
+          COVERAGE_FILE=$(find . -path "./bazel-out/*" -name "_coverage_report.dat" -type f 2>/dev/null | head -1)
+        fi
+        if [ -z "$COVERAGE_FILE" ] || [ ! -f "$COVERAGE_FILE" ]; then
           # Try alternative location
           COVERAGE_FILE=$(find . -path "./bazel-testlogs/*" -name "coverage.dat" -type f 2>/dev/null | head -1)
         fi
-        if [ -z "$COVERAGE_FILE" ]; then
-          # Try the _coverage directory
-          COVERAGE_FILE=$(find . -path "./bazel-out/_coverage/*" -name "*.dat" -type f 2>/dev/null | head -1)
-        fi
-        if [ -z "$COVERAGE_FILE" ]; then
+        if [ -z "$COVERAGE_FILE" ] || [ ! -f "$COVERAGE_FILE" ]; then
           echo "::warning::No coverage report found, listing bazel-out structure:"
           find . -path "./bazel-*" -name "*.dat" -type f 2>/dev/null | head -20 || true
+          ls -la bazel-out/ 2>/dev/null || true
           echo "::error::No coverage report found"
           exit 1
         fi
