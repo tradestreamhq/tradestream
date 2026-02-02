@@ -10,16 +10,16 @@ indicators:
       period: "${period}"
 
 entryConditions:
-  - type: CROSSED_UP_CONSTANT
+  - type: CROSSED_UP
     indicator: cmf
     params:
-      threshold: 0
+      value: 0
 
 exitConditions:
-  - type: CROSSED_DOWN_CONSTANT
+  - type: CROSSED_DOWN
     indicator: cmf
     params:
-      threshold: 0
+      value: 0
 
 parameters:
   - name: period
