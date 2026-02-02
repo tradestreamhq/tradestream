@@ -19,6 +19,7 @@ java_library(
     srcs = [
         "IndicatorFactory.java",
         "IndicatorRegistry.java",
+        "PreviousValueIndicator.java",
     ],
     deps = [
         ":config_pojos",
