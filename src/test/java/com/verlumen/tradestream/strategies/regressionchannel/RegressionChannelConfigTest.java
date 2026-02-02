@@ -68,8 +68,8 @@ public class RegressionChannelConfigTest {
 
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
-    ImmutableList<NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
-        IntegerChromosome.of(15, 50));
+    ImmutableList<NumericChromosome<?, ?>> chromosomes =
+        ImmutableList.of(IntegerChromosome.of(15, 50));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }

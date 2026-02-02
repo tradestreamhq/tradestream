@@ -68,8 +68,8 @@ public class RviConfigTest {
 
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
-    ImmutableList<NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
-        IntegerChromosome.of(7, 21));
+    ImmutableList<NumericChromosome<?, ?>> chromosomes =
+        ImmutableList.of(IntegerChromosome.of(7, 21));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
