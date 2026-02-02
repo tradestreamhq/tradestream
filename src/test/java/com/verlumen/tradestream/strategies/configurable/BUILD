@@ -83,9 +83,21 @@ java_test(
     ],
 )
 
+java_test(
+    name = "ConditionConfigTest",
+    srcs = ["ConditionConfigTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.ConditionConfigTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//third_party/java:junit",
+        "//third_party/java:truth",
+    ],
+)
+
 test_suite(
     name = "all_tests",
     tests = [
+        ":ConditionConfigTest",
         ":ConfigBasedVsHardcodedValidationTest",
         ":ConfigurableParamConfigTest",
         ":ConfigurableStrategyFactoryTest",
