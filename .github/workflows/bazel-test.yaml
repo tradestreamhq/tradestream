@@ -22,5 +22,51 @@ jobs:
         bazelrc: |
           test --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}
 
-    - run: |
-        bazel coverage //...
+    - name: Run coverage
+      run: |
+        bazel coverage --combined_report=lcov //...
+
+    - name: Enforce 65% coverage threshold
+      run: |
+        # The combined LCOV report is always at this location
+        COVERAGE_FILE="bazel-out/_coverage/_coverage_report.dat"
+
+        if [ ! -f "$COVERAGE_FILE" ]; then
+          echo "::warning::Combined report not found at expected location, searching..."
+          # Search for coverage report in common Bazel locations
+          COVERAGE_FILE=$(find . -path "./bazel-out/*" -name "_coverage_report.dat" -type f 2>/dev/null | head -1)
+        fi
+        if [ -z "$COVERAGE_FILE" ] || [ ! -f "$COVERAGE_FILE" ]; then
+          # Try alternative location
+          COVERAGE_FILE=$(find . -path "./bazel-testlogs/*" -name "coverage.dat" -type f 2>/dev/null | head -1)
+        fi
+        if [ -z "$COVERAGE_FILE" ] || [ ! -f "$COVERAGE_FILE" ]; then
+          echo "::warning::No coverage report found, listing bazel-out structure:"
+          find . -path "./bazel-*" -name "*.dat" -type f 2>/dev/null | head -20 || true
+          ls -la bazel-out/ 2>/dev/null || true
+          echo "::error::No coverage report found"
+          exit 1
+        fi
+
+        echo "Found coverage report: $COVERAGE_FILE"
+
+        # Parse LCOV format and calculate line coverage percentage
+        LINES_FOUND=$(grep -h "^LF:" "$COVERAGE_FILE" | cut -d: -f2 | paste -sd+ | bc)
+        LINES_HIT=$(grep -h "^LH:" "$COVERAGE_FILE" | cut -d: -f2 | paste -sd+ | bc)
+
+        if [ -z "$LINES_FOUND" ] || [ "$LINES_FOUND" -eq 0 ]; then
+          echo "::error::No coverage data found in report"
+          exit 1
+        fi
+
+        COVERAGE=$(echo "scale=2; $LINES_HIT * 100 / $LINES_FOUND" | bc)
+        THRESHOLD=65
+
+        echo "Coverage: ${COVERAGE}% (${LINES_HIT}/${LINES_FOUND} lines)"
+
+        if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+          echo "::error::Coverage ${COVERAGE}% is below the required ${THRESHOLD}% threshold"
+          exit 1
+        fi
+
+        echo "::notice::Coverage ${COVERAGE}% meets the ${THRESHOLD}% threshold"
