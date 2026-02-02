@@ -10,8 +10,8 @@ import org.ta4j.core.num.Num;
  * on changes in the High-Low range. It looks for a "reversal bulge" where the Mass Index rises
  * above 27 and then falls below 26.5.
  *
- * <p>Calculation: 1. High-Low range 2. EMA of High-Low range 3. Double EMA of High-Low range 4.
- * Sum of EMA/Double EMA ratios over the specified period
+ * <p>Calculation: 1. High-Low range 2. EMA of High-Low range 3. Double EMA of High-Low range 4. Sum
+ * of EMA/Double EMA ratios over the specified period
  */
 public final class MassIndexIndicator extends CachedIndicator<Num> {
 
