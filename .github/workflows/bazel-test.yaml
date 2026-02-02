@@ -1,5 +1,5 @@
 name: Run Unit Tests
-# Coverage threshold enforcement
+# Enforces minimum code coverage threshold
 
 on:
   pull_request:
