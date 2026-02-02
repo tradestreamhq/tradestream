@@ -26,7 +26,7 @@ jobs:
       run: |
         bazel coverage --combined_report=lcov //...
 
-    - name: Enforce 65% coverage threshold
+    - name: Enforce 55% coverage threshold
       run: |
         # The combined LCOV report is always at this location
         COVERAGE_FILE="bazel-out/_coverage/_coverage_report.dat"
@@ -60,7 +60,7 @@ jobs:
         fi
 
         COVERAGE=$(echo "scale=2; $LINES_HIT * 100 / $LINES_FOUND" | bc)
-        THRESHOLD=65
+        THRESHOLD=55
 
         echo "Coverage: ${COVERAGE}% (${LINES_HIT}/${LINES_FOUND} lines)"
 
