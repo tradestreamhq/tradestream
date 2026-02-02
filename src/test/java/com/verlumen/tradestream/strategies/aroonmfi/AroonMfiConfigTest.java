@@ -77,10 +77,10 @@ public class AroonMfiConfigTest {
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
         ImmutableList.of(
-            IntegerChromosome.of(15, 35, 25),
-            IntegerChromosome.of(7, 21, 14),
-            IntegerChromosome.of(70, 90, 80),
-            IntegerChromosome.of(10, 30, 20));
+            IntegerChromosome.of(15, 35),
+            IntegerChromosome.of(7, 21),
+            IntegerChromosome.of(70, 90),
+            IntegerChromosome.of(10, 30));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
