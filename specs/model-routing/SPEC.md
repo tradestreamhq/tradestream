@@ -86,6 +86,7 @@ def select_model_for_portfolio_advisor(opportunity_score: float) -> str:
 
 from dataclasses import dataclass
 from typing import Optional
+import asyncio
 
 @dataclass
 class ModelSelection:
@@ -93,15 +94,64 @@ class ModelSelection:
     reason: str
     estimated_cost_per_1k_tokens: float
 
+@dataclass
+class RetryConfig:
+    max_retries: int = 2
+    initial_delay_ms: int = 500
+    max_delay_ms: int = 5000
+    exponential_backoff: bool = True
+
 class ModelRouter:
     def __init__(self, config: dict):
         self.config = config
+        # Fallback chain ordered by cost (cheapest first) to minimize
+        # cost spikes during outages while maintaining capability
         self.fallback_chain = [
-            "anthropic/claude-sonnet-4.5",
-            "openai/gpt-5.2",
-            "google/gemini-3.0-pro",
-            "google/gemini-3.0-flash"
+            "google/gemini-3.0-flash",   # $0.10/$0.40 - ultra cheap
+            "google/gemini-3.0-pro",     # $1.25/$5.00 - cheap
+            "openai/gpt-5.2",            # $1.75/$14.00 - mid-tier
+            "anthropic/claude-sonnet-4.5" # $3.00/$15.00 - premium fallback
         ]
+        self.retry_config = RetryConfig()
+
+    async def call_with_retry(
+        self,
+        model_id: str,
+        call_fn,
+        *args,
+        **kwargs
+    ):
+        """
+        Call model with retry logic before falling back.
+
+        Retry policy:
+        - Retry up to max_retries times on transient failures
+        - Use exponential backoff between retries
+        - Only fall back to next model after exhausting retries
+        """
+        last_error = None
+        delay_ms = self.retry_config.initial_delay_ms
+
+        for attempt in range(self.retry_config.max_retries + 1):
+            try:
+                return await call_fn(model_id, *args, **kwargs)
+            except (RateLimitError, ServiceUnavailableError) as e:
+                last_error = e
+                if attempt < self.retry_config.max_retries:
+                    await asyncio.sleep(delay_ms / 1000)
+                    if self.retry_config.exponential_backoff:
+                        delay_ms = min(delay_ms * 2, self.retry_config.max_delay_ms)
+            except ModelUnavailableError as e:
+                # Don't retry, go straight to fallback
+                last_error = e
+                break
+
+        # Retries exhausted, try fallback
+        fallback = self.get_fallback(model_id)
+        if fallback:
+            return await self.call_with_retry(fallback, call_fn, *args, **kwargs)
+
+        raise last_error
 
     def select_model(
         self,
@@ -179,7 +229,11 @@ class ModelRouter:
         )
 
     def get_fallback(self, failed_model: str) -> Optional[str]:
-        """Get next model in fallback chain."""
+        """
+        Get next model in fallback chain.
+
+        Chain is ordered cheapest-first to minimize cost during outages.
+        """
         try:
             idx = self.fallback_chain.index(failed_model)
             if idx + 1 < len(self.fallback_chain):
@@ -275,16 +329,43 @@ model_routing:
       max_tokens: 2000
       temperature: 0.2
 
+  # Fallback chain ordered by cost (cheapest first)
+  # to minimize cost spikes during outages
   fallback_chain:
-    - "anthropic/claude-sonnet-4.5"
-    - "openai/gpt-5.2"
-    - "google/gemini-3.0-pro"
-    - "google/gemini-3.0-flash"
+    - "google/gemini-3.0-flash"   # $0.10/$0.40
+    - "google/gemini-3.0-pro"     # $1.25/$5.00
+    - "openai/gpt-5.2"            # $1.75/$14.00
+    - "anthropic/claude-sonnet-4.5" # $3.00/$15.00
+
+  # Retry policy before falling back to next model
+  retry:
+    max_retries: 2
+    initial_delay_ms: 500
+    max_delay_ms: 5000
+    exponential_backoff: true
+    # Errors that trigger retry (vs immediate fallback)
+    retryable_errors:
+      - "rate_limit"
+      - "service_unavailable"
+      - "timeout"
 
   budget:
     monthly_limit_usd: 3000
     alert_threshold_pct: 80
-    hard_limit_action: "reduce_frequency"
+    # Explicit degradation tiers when approaching/exceeding budget
+    degradation_tiers:
+      - threshold_pct: 80
+        action: "alert"
+        description: "Send warning notification"
+      - threshold_pct: 90
+        action: "reduce_premium"
+        description: "Disable Opus escalation, cap at Sonnet"
+      - threshold_pct: 95
+        action: "reduce_frequency"
+        description: "Reduce signal frequency from 1-min to 5-min"
+      - threshold_pct: 100
+        action: "emergency_mode"
+        description: "Flash-only mode, 15-min frequency, critical alerts only"
 ```
 
 ## Cost Tracking
@@ -296,6 +377,9 @@ model_routing:
 model_tokens_total{agent, model, direction}  # input/output
 model_cost_usd_total{agent, model}
 model_requests_total{agent, model, status}   # success/failure/fallback
+model_retry_total{agent, model}              # retry attempts before success/fallback
+budget_usage_pct                             # current month budget utilization
+degradation_tier_active{tier}                # which degradation tier is active
 ```
 
 ### Cost Dashboard
@@ -310,12 +394,96 @@ SELECT
 FROM model_usage
 GROUP BY 1, 2, 3
 ORDER BY 1 DESC, cost_usd DESC;
+
+# Hourly cost tracking for real-time budget monitoring
+SELECT
+    date_trunc('hour', timestamp) as hour,
+    SUM(input_tokens * input_price + output_tokens * output_price) as cost_usd,
+    SUM(SUM(input_tokens * input_price + output_tokens * output_price))
+        OVER (ORDER BY date_trunc('hour', timestamp)) as cumulative_cost_usd
+FROM model_usage
+WHERE timestamp >= date_trunc('month', NOW())
+GROUP BY 1
+ORDER BY 1;
+```
+
+### Budget Enforcement
+
+```python
+@dataclass
+class DegradationTier:
+    threshold_pct: int
+    action: str
+    description: str
+
+class BudgetEnforcer:
+    def __init__(self, config: dict):
+        self.limit = config["monthly_limit_usd"]
+        self.tiers = [
+            DegradationTier(**t) for t in config["degradation_tiers"]
+        ]
+        self.current_tier: Optional[DegradationTier] = None
+
+    async def check_and_enforce(self) -> Optional[DegradationTier]:
+        """
+        Check budget and apply degradation tier if needed.
+
+        Returns the newly activated tier, or None if no change.
+        """
+        current_cost = await get_monthly_cost()
+        usage_pct = (current_cost / self.limit) * 100
+
+        # Find the highest applicable tier
+        applicable_tier = None
+        for tier in sorted(self.tiers, key=lambda t: t.threshold_pct, reverse=True):
+            if usage_pct >= tier.threshold_pct:
+                applicable_tier = tier
+                break
+
+        # Apply tier if changed
+        if applicable_tier != self.current_tier:
+            old_tier = self.current_tier
+            self.current_tier = applicable_tier
+
+            if applicable_tier:
+                await self._apply_degradation(applicable_tier)
+                await send_alert(
+                    f"Budget degradation: {applicable_tier.action}",
+                    severity="critical" if applicable_tier.threshold_pct >= 95 else "warning",
+                    details={
+                        "usage_pct": usage_pct,
+                        "tier": applicable_tier.action,
+                        "description": applicable_tier.description
+                    }
+                )
+
+            return applicable_tier
+
+        return None
+
+    async def _apply_degradation(self, tier: DegradationTier):
+        """Apply the degradation action."""
+        if tier.action == "alert":
+            # Just alert, no operational changes
+            pass
+        elif tier.action == "reduce_premium":
+            # Disable Opus, cap escalation at Sonnet
+            await config_service.set("portfolio_advisor.max_model", "anthropic/claude-sonnet-4.5")
+        elif tier.action == "reduce_frequency":
+            # Increase signal interval to reduce API calls
+            await config_service.set("signal_frequency_minutes", 5)
+        elif tier.action == "emergency_mode":
+            # Maximum cost reduction
+            await config_service.set("signal_frequency_minutes", 15)
+            await config_service.set("default_model", "google/gemini-3.0-flash")
+            await config_service.set("escalation_enabled", False)
 ```
 
 ### Budget Alerts
 
 ```python
 async def check_budget():
+    """Legacy check_budget - use BudgetEnforcer for full enforcement."""
     current_month_cost = await get_monthly_cost()
     limit = config.budget.monthly_limit_usd
     threshold = config.budget.alert_threshold_pct / 100
@@ -337,8 +505,11 @@ async def check_budget():
 - [ ] Cost tracking dashboard shows spend by agent and model
 - [ ] Monthly cost within budget
 - [ ] Fallback chain works when primary model fails
+- [ ] Retry logic exhausted before falling back to next model
+- [ ] Fallback chain ordered cheapest-first to minimize outage costs
 - [ ] Budget alerts fire at 80% and 100%
-- [ ] Hard limit action reduces frequency when over budget
+- [ ] Degradation tiers activate automatically at 80%, 90%, 95%, 100%
+- [ ] Emergency mode restricts to Flash-only at 100% budget
 
 ## Implementation Notes
 
@@ -373,16 +544,18 @@ async def log_usage(
     model_id: str,
     input_tokens: int,
     output_tokens: int,
-    success: bool
+    success: bool,
+    retries: int = 0,
+    fallback_used: bool = False
 ):
     """Log model usage for cost tracking."""
     await db.execute(
         """
         INSERT INTO model_usage
-        (agent_type, model_id, input_tokens, output_tokens, success, timestamp)
-        VALUES ($1, $2, $3, $4, $5, NOW())
+        (agent_type, model_id, input_tokens, output_tokens, success, retries, fallback_used, timestamp)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
         """,
-        agent_type, model_id, input_tokens, output_tokens, success
+        agent_type, model_id, input_tokens, output_tokens, success, retries, fallback_used
     )
 
     # Update Prometheus metrics
@@ -392,4 +565,8 @@ async def log_usage(
     metrics.model_tokens_total.labels(
         agent=agent_type, model=model_id, direction="output"
     ).inc(output_tokens)
+    if retries > 0:
+        metrics.model_retry_total.labels(
+            agent=agent_type, model=model_id
+        ).inc(retries)
 ```
