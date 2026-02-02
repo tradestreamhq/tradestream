@@ -14,20 +14,20 @@ indicators:
       period: "${mfiPeriod}"
 
 entryConditions:
-  - type: CROSSED_UP_CONSTANT
+  - type: CROSSED_UP
     indicator: cmo
     params:
-      threshold: 0
+      value: 0
   - type: UNDER_CONSTANT
     indicator: mfi
     params:
       threshold: 20
 
 exitConditions:
-  - type: CROSSED_DOWN_CONSTANT
+  - type: CROSSED_DOWN
     indicator: cmo
     params:
-      threshold: 0
+      value: 0
   - type: OVER_CONSTANT
     indicator: mfi
     params:
