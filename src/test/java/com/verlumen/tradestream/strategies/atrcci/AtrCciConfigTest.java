@@ -76,7 +76,7 @@ public class AtrCciConfigTest {
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(IntegerChromosome.of(7, 21, 14), IntegerChromosome.of(14, 28, 20));
+        ImmutableList.of(IntegerChromosome.of(7, 21), IntegerChromosome.of(14, 28));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }

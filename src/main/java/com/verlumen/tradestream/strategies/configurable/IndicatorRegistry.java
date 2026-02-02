@@ -250,6 +250,11 @@ public final class IndicatorRegistry {
         "STD_DEV",
         (series, input, params) -> new StandardDeviationIndicator(input, params.getInt("period")));
 
+    // Previous value indicator (for comparing with past values)
+    registry.register(
+        "PREVIOUS",
+        (series, input, params) -> new PreviousValueIndicator(input, params.getInt("n", 1)));
+
     // Constant value indicator
     registry.register(
         "CONSTANT",
