@@ -35,25 +35,32 @@ public class LinearRegressionChannelsConfigTest {
     config = StrategyConfigLoader.loadResource("strategies/linear_regression_channels.yaml");
     factory = new ConfigurableStrategyFactory(config);
     paramConfig = new ConfigurableParamConfig(config);
-    
+
     series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
     for (int i = 0; i < 100; i++) {
       double price = 100 + Math.sin(i * 0.1) * 20;
-      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(i), 
-          price, price + 2, price - 2, price, 1000.0));
+      series.addBar(
+          new BaseBar(
+              Duration.ofMinutes(1),
+              now.plusMinutes(i),
+              price,
+              price + 2,
+              price - 2,
+              price,
+              1000.0));
     }
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     assertThat(strategy).isNotNull();
     assertThat(strategy.getName()).isEqualTo("LINEAR_REGRESSION_CHANNELS");
   }
 
   @Test
-  public void strategy_canEvaluateSignals() {
+  public void strategy_canEvaluateSignals() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     for (int i = 50; i < series.getBarCount(); i++) {
       strategy.shouldEnter(i);
@@ -69,9 +76,8 @@ public class LinearRegressionChannelsConfigTest {
 
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
-    ImmutableList<NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
-        IntegerChromosome.of(15, 30, 20),
-        DoubleChromosome.of(1.5, 3.0, 2.0));
+    ImmutableList<NumericChromosome<?, ?>> chromosomes =
+        ImmutableList.of(IntegerChromosome.of(15, 30), DoubleChromosome.of(1.5, 3.0));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
