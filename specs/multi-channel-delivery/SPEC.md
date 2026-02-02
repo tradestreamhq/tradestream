@@ -22,7 +22,7 @@ Deliver trading signals to users wherever they are—web, Telegram, Discord, Sla
 │                           DELIVERY SERVICE                               │
 │                                                                          │
 │  ┌─────────────────────────────────────────────────────────────────┐    │
-│  │ Signal Consumer (Redis: channel:dashboard-signals)              │    │
+│  │ Signal Consumer (Kafka: agent-dashboard-signals)              │    │
 │  └─────────────────────────────────────────────────────────────────┘    │
 │                                    │                                     │
 │                                    ▼                                     │
@@ -82,8 +82,8 @@ Each signal delivery is tracked by a composite key of `signal_id + user_id`. Whe
 
 ```python
 class CrossChannelDeduplicator:
-    def __init__(self, redis: Redis):
-        self.redis = redis
+    def __init__(self, kafka: Kafka):
+        self.kafka = kafka
         self.ttl_seconds = 3600  # 1 hour dedup window
 
     async def should_deliver(
@@ -100,7 +100,7 @@ class CrossChannelDeduplicator:
             # Allow delivery to all channels
             return True
 
-        delivered_channels = await self.redis.smembers(key)
+        delivered_channels = await self.kafka.smembers(key)
 
         if preference == "primary_only":
             # Block if already delivered to any channel
@@ -123,8 +123,8 @@ class CrossChannelDeduplicator:
     ) -> None:
         """Record successful delivery."""
         key = f"dedup:{user_id}:{signal_id}"
-        await self.redis.sadd(key, channel)
-        await self.redis.expire(key, self.ttl_seconds)
+        await self.kafka.sadd(key, channel)
+        await self.kafka.expire(key, self.ttl_seconds)
 ```
 
 ---
@@ -252,8 +252,8 @@ class DeliveryAttempt:
     delivered_at: Optional[datetime] = None
 
 class RetryableDispatcher:
-    def __init__(self, redis: Redis, dlq: DeadLetterQueue):
-        self.redis = redis
+    def __init__(self, kafka: Kafka, dlq: DeadLetterQueue):
+        self.kafka = kafka
         self.dlq = dlq
 
     async def dispatch_with_retry(
@@ -305,7 +305,7 @@ class RetryableDispatcher:
     async def _record_success(self, attempt: DeliveryAttempt) -> None:
         """Record successful delivery for tracking."""
         key = f"delivery:success:{attempt.signal_id}:{attempt.user_id}:{attempt.channel}"
-        await self.redis.setex(key, 86400, attempt.delivered_at.isoformat())
+        await self.kafka.setex(key, 86400, attempt.delivered_at.isoformat())
 ```
 
 ### Dead Letter Queue
@@ -964,8 +964,8 @@ class RateLimiter:
         "push": {"per_hour": 10, "base_limit": 10}
     }
 
-    def __init__(self, redis: Redis, user_service: UserService):
-        self.redis = redis
+    def __init__(self, kafka: Kafka, user_service: UserService):
+        self.kafka = kafka
         self.user_service = user_service
 
     async def is_rate_limited(
@@ -983,12 +983,12 @@ class RateLimiter:
         adjusted_window = int(window_seconds / multiplier)
 
         key = f"ratelimit:{channel}:{user_id}:{symbol}"
-        exists = await self.redis.exists(key)
+        exists = await self.kafka.exists(key)
 
         if exists:
             return True
 
-        await self.redis.setex(key, adjusted_window, "1")
+        await self.kafka.setex(key, adjusted_window, "1")
         return False
 
     async def is_push_rate_limited(self, user_id: str) -> bool:
@@ -998,10 +998,10 @@ class RateLimiter:
         max_per_hour = int(self.DEFAULT_LIMITS["push"]["per_hour"] * multiplier)
 
         key = f"ratelimit:push:{user_id}:hourly"
-        current = await self.redis.incr(key)
+        current = await self.kafka.incr(key)
 
         if current == 1:
-            await self.redis.expire(key, 3600)  # 1 hour TTL
+            await self.kafka.expire(key, 3600)  # 1 hour TTL
 
         return current > max_per_hour
 ```

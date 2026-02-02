@@ -2,7 +2,7 @@
 
 ## Goal
 
-Multiple distinct OpenCode agent instances, each with a well-defined purpose, dedicated tools, and skills. Agents communicate via Redis pub/sub to form a signal processing pipeline.
+Multiple distinct OpenCode agent instances, each with a well-defined purpose, dedicated tools, and skills. Agents communicate via Kafka topics to form a signal processing pipeline (consistent with existing TradeStream messaging infrastructure).
 
 ## Architecture
 
@@ -165,7 +165,7 @@ agents/
   },
   "skills_dir": "./skills",
   "output": {
-    "redis_channel": "channel:raw-signals"
+    "kafka_topic": "agent-signals-raw"
   },
   "limits": {
     "timeout_seconds": 10,
@@ -226,10 +226,10 @@ Return a JSON signal with:
   },
   "skills_dir": "./skills",
   "input": {
-    "redis_channel": "channel:raw-signals"
+    "kafka_topic": "agent-signals-raw"
   },
   "output": {
-    "redis_channel": "channel:scored-signals"
+    "kafka_topic": "agent-signals-scored"
   },
   "limits": {
     "timeout_seconds": 5
@@ -286,11 +286,11 @@ opportunity_score = (
   },
   "skills_dir": "./skills",
   "input": {
-    "redis_channel": "channel:scored-signals",
+    "kafka_topic": "agent-signals-scored",
     "min_opportunity_score": 70
   },
   "output": {
-    "redis_channel": "channel:validated-signals"
+    "kafka_topic": "agent-signals-validated"
   },
   "limits": {
     "timeout_seconds": 5
@@ -339,10 +339,10 @@ Add validation status to signal:
   },
   "skills_dir": "./skills",
   "input": {
-    "redis_channel": "channel:validated-signals"
+    "kafka_topic": "agent-signals-validated"
   },
   "output": {
-    "redis_channel": "channel:dashboard-signals",
+    "kafka_topic": "agent-dashboard-signals",
     "sse_publish": true
   },
   "limits": {
@@ -464,13 +464,13 @@ All must be true:
 
 ## Inter-Agent Communication
 
-### Redis Channels
+### Kafka Topics
 
 ```
-channel:raw-signals        # Signal Generator → Opportunity Scorer
-channel:scored-signals     # Opportunity Scorer → Portfolio Advisor
-channel:validated-signals  # Portfolio Advisor → Report Generator
-channel:dashboard-signals  # Report Generator → SSE Gateway
+agent-signals-raw          # Signal Generator → Opportunity Scorer
+agent-signals-scored       # Opportunity Scorer → Portfolio Advisor
+agent-signals-validated    # Portfolio Advisor → Report Generator
+agent-dashboard-signals    # Report Generator → SSE Gateway
 ```
 
 ### Message Flow
@@ -620,7 +620,7 @@ class RetryPolicy:
             "failed_at": datetime.utcnow().isoformat(),
             "retry_count": self.config.max_retries
         }
-        await redis.lpush("dlq:agent-messages", json.dumps(dlq_message))
+        await kafka.lpush("dlq:agent-messages", json.dumps(dlq_message))
         metrics.increment("dlq_messages")
 ```
 
@@ -630,15 +630,15 @@ Each agent maintains a deduplication cache using `message_id` to ensure exactly-
 
 ```python
 class IdempotencyEnforcer:
-    def __init__(self, redis_client: Redis, ttl_seconds: int = 3600):
-        self.redis = redis_client
+    def __init__(self, kafka_client: Kafka, ttl_seconds: int = 3600):
+        self.kafka = kafka_client
         self.ttl = ttl_seconds
         self.key_prefix = "idempotency"
 
     async def is_duplicate(self, message: Message) -> bool:
         """Check if message was already processed."""
         key = f"{self.key_prefix}:{message.source_agent}:{message.message_id}"
-        return await self.redis.exists(key)
+        return await self.kafka.exists(key)
 
     async def mark_processed(self, message: Message, result: Result):
         """Mark message as processed with result cached."""
@@ -647,7 +647,7 @@ class IdempotencyEnforcer:
             "processed_at": datetime.utcnow().isoformat(),
             "result_hash": hashlib.sha256(json.dumps(result.to_dict(), sort_keys=True).encode()).hexdigest()
         }
-        await self.redis.setex(key, self.ttl, json.dumps(value))
+        await self.kafka.setex(key, self.ttl, json.dumps(value))
 
 class Agent:
     async def process_message(self, message: Message) -> Result | None:
@@ -679,8 +679,8 @@ class StrategyDbLock:
 
     LOCK_KEY = "lock:strategy-db-mcp"
 
-    def __init__(self, redis_client: Redis, agent_name: str):
-        self.redis = redis_client
+    def __init__(self, kafka_client: Kafka, agent_name: str):
+        self.kafka = kafka_client
         self.agent_name = agent_name
         self.lock_ttl = 600  # 10 minute max hold time
 
@@ -690,7 +690,7 @@ class StrategyDbLock:
         start = time.time()
 
         while time.time() - start < timeout_seconds:
-            acquired = await self.redis.set(self.LOCK_KEY, lock_value, nx=True, ex=self.lock_ttl)
+            acquired = await self.kafka.set(self.LOCK_KEY, lock_value, nx=True, ex=self.lock_ttl)
             if acquired:
                 self._lock_value = lock_value
                 logger.info(f"{self.agent_name} acquired strategy-db lock")
@@ -702,13 +702,13 @@ class StrategyDbLock:
     async def release(self):
         """Release lock only if we hold it."""
         script = """
-        if redis.call("get", KEYS[1]) == ARGV[1] then
-            return redis.call("del", KEYS[1])
+        if kafka.call("get", KEYS[1]) == ARGV[1] then
+            return kafka.call("del", KEYS[1])
         else
             return 0
         end
         """
-        await self.redis.eval(script, 1, self.LOCK_KEY, self._lock_value)
+        await self.kafka.eval(script, 1, self.LOCK_KEY, self._lock_value)
 
     async def __aenter__(self):
         if not await self.acquire():
@@ -774,14 +774,14 @@ async def process_with_timeout(agent: Agent, message: Message) -> Result:
 - Each agent runs as a separate process/container
 - Agents must be idempotent (same input = same output)
 - Agents must handle upstream failures gracefully
-- Agents communicate via Redis pub/sub only (no direct calls)
+- Agents communicate via Kafka only (no direct calls)
 - Total pipeline latency < 5 seconds (excluding backtest)
 
 ## Acceptance Criteria
 
 - [ ] 6 distinct OpenCode agent configurations created
 - [ ] Each agent has its own MCP servers and skills
-- [ ] Inter-agent communication via Redis pub/sub works
+- [ ] Inter-agent communication via Kafka works
 - [ ] Signal pipeline processes 20 symbols in < 50 seconds
 - [ ] Failed agent doesn't block the pipeline (timeout + skip)
 - [ ] Error events published to SSE stream
@@ -804,7 +804,7 @@ services:
       context: .
       dockerfile: agents/signal-generator/Dockerfile
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=kafka://kafka:6379
       - POSTGRES_URL=postgresql://...
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
 
@@ -815,7 +815,7 @@ services:
     depends_on:
       - signal-generator
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=kafka://kafka:6379
 
   # ... other agents
 ```
