@@ -69,6 +69,20 @@ java_test(
     ],
 )
 
+java_test(
+    name = "RuleRegistryTest",
+    srcs = ["RuleRegistryTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.RuleRegistryTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:rule_registry",
+        "//third_party/java:guava",
+        "//third_party/java:junit",
+        "//third_party/java:ta4j_core",
+        "//third_party/java:truth",
+    ],
+)
+
 test_suite(
     name = "all_tests",
     tests = [
@@ -76,6 +90,7 @@ test_suite(
         ":ConfigurableParamConfigTest",
         ":ConfigurableStrategyFactoryTest",
         ":IndicatorRegistryTest",
+        ":RuleRegistryTest",
         ":StrategyConfigLoaderTest",
     ],
 )
