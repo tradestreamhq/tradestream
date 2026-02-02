@@ -351,9 +351,9 @@ def get_historical_volatility_percentile(symbol: str, lookback_days: int = 30) -
 ### Opportunity Scorer Agent
 
 The Opportunity Scorer is a dedicated OpenCode agent that:
-1. Subscribes to `channel:raw-signals` (from Signal Generator)
+1. Subscribes to `agent-signals-raw` (from Signal Generator)
 2. Enriches each signal with opportunity score
-3. Publishes scored signals to `channel:scored-signals`
+3. Publishes scored signals to `agent-signals-scored`
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -376,7 +376,7 @@ The Opportunity Scorer is a dedicated OpenCode agent that:
 │  │  - detect-market-regime: Adjust caps dynamically    │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                                                             │
-│  Output: Scored signal -> Redis channel:scored-signals     │
+│  Output: Scored signal -> Kafka agent-signals-scored     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
