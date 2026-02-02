@@ -34,13 +34,20 @@ public class PvtConfigTest {
     config = StrategyConfigLoader.loadResource("strategies/pvt.yaml");
     factory = new ConfigurableStrategyFactory(config);
     paramConfig = new ConfigurableParamConfig(config);
-    
+
     series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
     for (int i = 0; i < 100; i++) {
       double price = 100 + Math.sin(i * 0.1) * 20;
-      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(i), 
-          price, price + 2, price - 2, price, 1000.0));
+      series.addBar(
+          new BaseBar(
+              Duration.ofMinutes(1),
+              now.plusMinutes(i),
+              price,
+              price + 2,
+              price - 2,
+              price,
+              1000.0));
     }
   }
 
