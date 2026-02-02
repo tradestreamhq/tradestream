@@ -18,6 +18,7 @@ import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
 
+/** Tests for RainbowOscillator strategy configuration. */
 @RunWith(JUnit4.class)
 public class RainbowOscillatorConfigTest {
   private StrategyConfig config;
