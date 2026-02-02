@@ -169,11 +169,15 @@ class BaseMCPServer(ABC):
             # Check if result is already an MCPResponse
             if isinstance(result, MCPResponse):
                 result.latency_ms = latency_ms
-                return {"content": [{"type": "text", "text": json.dumps(result.to_dict())}]}
+                return {
+                    "content": [{"type": "text", "text": json.dumps(result.to_dict())}]
+                }
 
             # Wrap raw result
             response = MCPResponse(data=result, latency_ms=latency_ms)
-            return {"content": [{"type": "text", "text": json.dumps(response.to_dict())}]}
+            return {
+                "content": [{"type": "text", "text": json.dumps(response.to_dict())}]
+            }
 
         except MCPError:
             raise

@@ -176,12 +176,14 @@ def init_kafka():
 def health():
     """Health check endpoint."""
     kafka_ok = kafka_pubsub.ping() if kafka_pubsub else False
-    return jsonify({
-        "status": "healthy" if kafka_ok else "degraded",
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-        "kafka": "connected" if kafka_ok else "disconnected",
-        "active_sessions": len(session_manager.sessions),
-    })
+    return jsonify(
+        {
+            "status": "healthy" if kafka_ok else "degraded",
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "kafka": "connected" if kafka_ok else "disconnected",
+            "active_sessions": len(session_manager.sessions),
+        }
+    )
 
 
 @app.route("/api/health/live", methods=["GET"])
@@ -291,11 +293,13 @@ def agent_command():
     )
     session.send_event(ack_event)
 
-    return jsonify({
-        "command_id": command_id,
-        "status": "accepted",
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-    })
+    return jsonify(
+        {
+            "command_id": command_id,
+            "status": "accepted",
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+    )
 
 
 @app.route("/api/agent/sessions", methods=["GET"])
@@ -303,15 +307,19 @@ def list_sessions():
     """List active sessions (admin endpoint)."""
     sessions = []
     for sid, session in session_manager.sessions.items():
-        sessions.append({
-            "session_id": sid,
-            "created_at": session.created_at.isoformat() + "Z",
-            "queue_size": session.queue.qsize(),
-        })
-    return jsonify({
-        "sessions": sessions,
-        "count": len(sessions),
-    })
+        sessions.append(
+            {
+                "session_id": sid,
+                "created_at": session.created_at.isoformat() + "Z",
+                "queue_size": session.queue.qsize(),
+            }
+        )
+    return jsonify(
+        {
+            "sessions": sessions,
+            "count": len(sessions),
+        }
+    )
 
 
 def main():

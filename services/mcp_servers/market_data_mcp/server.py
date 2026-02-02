@@ -51,7 +51,9 @@ class MarketDataMCPServer(BaseMCPServer):
             "INFLUXDB_URL", "http://localhost:8086"
         )
         self.influxdb_token = influxdb_token or os.environ.get("INFLUXDB_TOKEN", "")
-        self.influxdb_org = influxdb_org or os.environ.get("INFLUXDB_ORG", "tradestream")
+        self.influxdb_org = influxdb_org or os.environ.get(
+            "INFLUXDB_ORG", "tradestream"
+        )
         self.influxdb_bucket = influxdb_bucket or os.environ.get(
             "INFLUXDB_BUCKET", "tradestream-data"
         )
@@ -77,7 +79,10 @@ class MarketDataMCPServer(BaseMCPServer):
             parameters={
                 "type": "object",
                 "properties": {
-                    "symbol": {"type": "string", "description": "Trading pair e.g. ETH/USD"},
+                    "symbol": {
+                        "type": "string",
+                        "description": "Trading pair e.g. ETH/USD",
+                    },
                     "timeframe": {
                         "type": "string",
                         "enum": list(TIMEFRAMES.keys()),
@@ -172,7 +177,9 @@ class MarketDataMCPServer(BaseMCPServer):
         if not force_refresh:
             entry = self.cache.get(cache_key)
             if entry:
-                result = paginate(entry.value, offset=offset, limit=limit, max_limit=1000)
+                result = paginate(
+                    entry.value, offset=offset, limit=limit, max_limit=1000
+                )
                 return MCPResponse(
                     data=result.to_dict(),
                     latency_ms=int((time.time() - start_time) * 1000),
@@ -189,7 +196,7 @@ class MarketDataMCPServer(BaseMCPServer):
             range_seconds = duration_seconds * fetch_count
 
             # Build Flux query
-            query = f'''
+            query = f"""
                 from(bucket: "{self.influxdb_bucket}")
                     |> range(start: -{range_seconds}s)
                     |> filter(fn: (r) => r["_measurement"] == "candles")
@@ -197,21 +204,23 @@ class MarketDataMCPServer(BaseMCPServer):
                     |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
                     |> sort(columns: ["_time"], desc: true)
                     |> limit(n: {fetch_count})
-            '''
+            """
 
             tables = self.query_api.query(query)
 
             candles = []
             for table in tables:
                 for record in table.records:
-                    candles.append({
-                        "timestamp": record.get_time().isoformat(),
-                        "open": record.values.get("open"),
-                        "high": record.values.get("high"),
-                        "low": record.values.get("low"),
-                        "close": record.values.get("close"),
-                        "volume": record.values.get("volume"),
-                    })
+                    candles.append(
+                        {
+                            "timestamp": record.get_time().isoformat(),
+                            "open": record.values.get("open"),
+                            "high": record.values.get("high"),
+                            "low": record.values.get("low"),
+                            "close": record.values.get("close"),
+                            "volume": record.values.get("volume"),
+                        }
+                    )
 
             if not candles:
                 raise MCPError(
@@ -273,7 +282,7 @@ class MarketDataMCPServer(BaseMCPServer):
 
         try:
             # Get latest candle
-            query = f'''
+            query = f"""
                 from(bucket: "{self.influxdb_bucket}")
                     |> range(start: -25h)
                     |> filter(fn: (r) => r["_measurement"] == "candles")
@@ -281,18 +290,20 @@ class MarketDataMCPServer(BaseMCPServer):
                     |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
                     |> sort(columns: ["_time"], desc: true)
                     |> limit(n: 25)
-            '''
+            """
 
             tables = self.query_api.query(query)
 
             candles = []
             for table in tables:
                 for record in table.records:
-                    candles.append({
-                        "timestamp": record.get_time(),
-                        "close": record.values.get("close"),
-                        "volume": record.values.get("volume"),
-                    })
+                    candles.append(
+                        {
+                            "timestamp": record.get_time(),
+                            "close": record.values.get("close"),
+                            "volume": record.values.get("volume"),
+                        }
+                    )
 
             if not candles:
                 raise MCPError(
@@ -321,7 +332,9 @@ class MarketDataMCPServer(BaseMCPServer):
                     break
 
             change_1h = ((current_price - price_1h) / price_1h * 100) if price_1h else 0
-            change_24h = ((current_price - price_24h) / price_24h * 100) if price_24h else 0
+            change_24h = (
+                ((current_price - price_24h) / price_24h * 100) if price_24h else 0
+            )
 
             result = {
                 "price": current_price,
@@ -369,7 +382,9 @@ class MarketDataMCPServer(BaseMCPServer):
         symbol = symbol.upper()
 
         # Check cache
-        cache_key = self.cache._make_key("volatility", symbol=symbol, timeframe=timeframe)
+        cache_key = self.cache._make_key(
+            "volatility", symbol=symbol, timeframe=timeframe
+        )
         if not force_refresh:
             entry = self.cache.get(cache_key)
             if entry:
@@ -387,7 +402,7 @@ class MarketDataMCPServer(BaseMCPServer):
             duration_seconds = TIMEFRAMES[timeframe]
             range_seconds = duration_seconds * (periods_needed + 5)
 
-            query = f'''
+            query = f"""
                 from(bucket: "{self.influxdb_bucket}")
                     |> range(start: -{range_seconds}s)
                     |> filter(fn: (r) => r["_measurement"] == "candles")
@@ -395,18 +410,20 @@ class MarketDataMCPServer(BaseMCPServer):
                     |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
                     |> sort(columns: ["_time"], desc: true)
                     |> limit(n: {periods_needed + 5})
-            '''
+            """
 
             tables = self.query_api.query(query)
 
             candles = []
             for table in tables:
                 for record in table.records:
-                    candles.append({
-                        "high": record.values.get("high"),
-                        "low": record.values.get("low"),
-                        "close": record.values.get("close"),
-                    })
+                    candles.append(
+                        {
+                            "high": record.values.get("high"),
+                            "low": record.values.get("low"),
+                            "close": record.values.get("close"),
+                        }
+                    )
 
             if len(candles) < 5:
                 raise MCPError(
@@ -419,7 +436,9 @@ class MarketDataMCPServer(BaseMCPServer):
             returns = []
             for i in range(1, len(candles)):
                 if candles[i]["close"] and candles[i - 1]["close"]:
-                    ret = (candles[i - 1]["close"] - candles[i]["close"]) / candles[i]["close"]
+                    ret = (candles[i - 1]["close"] - candles[i]["close"]) / candles[i][
+                        "close"
+                    ]
                     returns.append(ret)
 
             # Standard deviation of returns
@@ -433,7 +452,9 @@ class MarketDataMCPServer(BaseMCPServer):
             # Calculate ATR
             true_ranges = []
             for i in range(1, len(candles)):
-                if all([candles[i]["high"], candles[i]["low"], candles[i - 1]["close"]]):
+                if all(
+                    [candles[i]["high"], candles[i]["low"], candles[i - 1]["close"]]
+                ):
                     high_low = candles[i]["high"] - candles[i]["low"]
                     high_close = abs(candles[i]["high"] - candles[i - 1]["close"])
                     low_close = abs(candles[i]["low"] - candles[i - 1]["close"])
@@ -443,7 +464,9 @@ class MarketDataMCPServer(BaseMCPServer):
 
             # High-low range (percentage)
             if candles and candles[0]["low"]:
-                high_low_range = (candles[0]["high"] - candles[0]["low"]) / candles[0]["low"] * 100
+                high_low_range = (
+                    (candles[0]["high"] - candles[0]["low"]) / candles[0]["low"] * 100
+                )
             else:
                 high_low_range = 0
 
