@@ -78,9 +78,9 @@ public class BbandWilliamsRConfigTest {
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
         ImmutableList.of(
-            IntegerChromosome.of(10, 30, 20),
-            IntegerChromosome.of(7, 21, 14),
-            DoubleChromosome.of(1.5, 3.0, 2.0));
+            IntegerChromosome.of(10, 30),
+            IntegerChromosome.of(7, 21),
+            DoubleChromosome.of(1.5, 3.0));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
