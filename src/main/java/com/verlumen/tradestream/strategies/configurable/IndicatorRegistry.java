@@ -222,6 +222,12 @@ public final class IndicatorRegistry {
             new ChaikinOscillatorIndicator(
                 series, params.getInt("shortPeriod", 3), params.getInt("longPeriod", 10)));
 
+    registry.register(
+        "KLINGER_VOLUME_OSCILLATOR",
+        (series, input, params) ->
+            new KlingerVolumeOscillatorIndicator(
+                series, params.getInt("shortPeriod", 10), params.getInt("longPeriod", 35)));
+
     registry.register("PVT", (series, input, params) -> new PVIIndicator(series));
 
     registry.register("NVI", (series, input, params) -> new NVIIndicator(series));

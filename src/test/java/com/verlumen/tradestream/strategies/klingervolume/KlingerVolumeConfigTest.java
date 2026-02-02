@@ -77,9 +77,9 @@ public class KlingerVolumeConfigTest {
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
         ImmutableList.of(
-            IntegerChromosome.of(5, 20, 10),
-            IntegerChromosome.of(20, 50, 35),
-            IntegerChromosome.of(5, 15, 10));
+            IntegerChromosome.of(5, 20),
+            IntegerChromosome.of(20, 50),
+            IntegerChromosome.of(5, 15));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
