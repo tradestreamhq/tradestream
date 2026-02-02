@@ -121,7 +121,7 @@ data: {"timestamp":"2025-02-01T12:34:56Z"}
 │                    AGENT GATEWAY                            │
 │                                                             │
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────────┐ │
-│  │ SSE Handler │◄───│ Event Queue │◄───│ Redis Pub/Sub   │ │
+│  │ SSE Handler │◄───│ Event Queue │◄───│ Kafka Consumer  │ │
 │  │ (per client)│    │ (per session)│    │ Subscriber      │ │
 │  └─────────────┘    └─────────────┘    └─────────────────┘ │
 │         │                                      ▲            │
@@ -133,9 +133,9 @@ data: {"timestamp":"2025-02-01T12:34:56Z"}
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
-              Redis Channels: channel:signals
-                             channel:reasoning
-                             channel:tool-events
+              Kafka Topics: agent-signals-raw
+                           agent-signals-scored
+                           agent-dashboard-signals
 ```
 
 ### Session Management
@@ -248,15 +248,15 @@ Response:
 ## Constraints
 
 - Must handle 100+ concurrent SSE connections
-- Event delivery latency < 100ms from Redis publish to client receive
+- Event delivery latency < 100ms from Kafka publish to client receive
 - Heartbeat every 30 seconds to keep connections alive
-- Graceful degradation if Redis unavailable (return cached last signals)
+- Graceful degradation if Kafka unavailable (return cached last signals)
 - No authentication in MVP (add in Phase 2)
 
 ## Dependencies
 
-- Redis 7.x for pub/sub
-- FastAPI with `sse-starlette` for SSE support
+- Kafka (existing cluster used by TradeStream services)
+- Flask with SSE support (consistent with other TradeStream Python services)
 - Existing `strategy_monitor_api` for health checks
 
 ## Configuration
@@ -265,12 +265,13 @@ Response:
 agent_gateway:
   host: 0.0.0.0
   port: 8081
-  redis:
-    url: redis://localhost:6379
-    channels:
-      - channel:signals
-      - channel:reasoning
-      - channel:tool-events
+  kafka:
+    bootstrap_servers: kafka:9092
+    group_id: agent-gateway-group
+    topics:
+      - agent-signals-raw
+      - agent-signals-scored
+      - agent-dashboard-signals
   sse:
     heartbeat_interval_seconds: 30
     max_queue_size: 1000
@@ -293,10 +294,10 @@ agent_gateway:
 
 ## Acceptance Criteria
 
-- [ ] SSE endpoint delivers events within 100ms of Redis publish
+- [ ] SSE endpoint delivers events within 100ms of Kafka publish
 - [ ] Supports 100+ concurrent connections without degradation
 - [ ] Auto-reconnect works across network interruptions (via Last-Event-ID)
-- [ ] Health endpoint reports connection count and Redis status
+- [ ] Health endpoint reports connection count and Kafka status
 - [ ] Command endpoint queues queries and returns request ID
 - [ ] Heartbeat events sent every 30 seconds
 - [ ] Session cleanup after 5 minutes of inactivity
@@ -317,7 +318,7 @@ services/agent_gateway/
 │   ├── command.py       # Command submission endpoint
 │   └── health.py        # Health check endpoint
 ├── services/
-│   ├── redis_subscriber.py  # Redis pub/sub consumer
+│   ├── kafka_subscriber.py  # Kafka consumer
 │   ├── session_manager.py   # SSE session management
 │   ├── event_queue.py       # Per-session event queuing
 │   ├── rate_limiter.py      # IP-based rate limiting
@@ -362,14 +363,14 @@ curl -X POST "http://localhost:8081/api/agent/command" \
 
 ```bash
 curl "http://localhost:8081/api/agent/health"
-# {"status":"healthy","connections":42,"redis":"connected","uptime_seconds":3600}
+# {"status":"healthy","connections":42,"kafka":"connected","uptime_seconds":3600}
 ```
 
 ## Error Handling
 
 | Scenario | Behavior |
 |----------|----------|
-| Redis disconnected | Return cached signals, log warning, attempt reconnect |
+| Kafka disconnected | Return cached signals, log warning, attempt reconnect |
 | Queue overflow | Drop oldest events, log warning |
 | Invalid command | Return 400 with validation errors |
 | Agent timeout | Stream error event, return partial results if available |
@@ -383,7 +384,7 @@ curl "http://localhost:8081/api/agent/health"
 - `agent_gateway_connections_active` - Current SSE connections
 - `agent_gateway_connections_per_ip` - Connections grouped by IP
 - `agent_gateway_events_published_total` - Events sent by type
-- `agent_gateway_event_latency_ms` - Time from Redis to client
+- `agent_gateway_event_latency_ms` - Time from Kafka to client
 - `agent_gateway_commands_total` - Commands received
 - `agent_gateway_errors_total` - Errors by type
 - `agent_gateway_rate_limit_hits_total` - Rate limit rejections by endpoint

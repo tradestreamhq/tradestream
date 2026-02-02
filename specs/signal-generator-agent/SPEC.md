@@ -69,7 +69,7 @@ The Signal Generator Agent is the first stage in the signal pipeline. It runs ev
 │  │  • detect-patterns: Pattern recognition prompts      │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                                                             │
-│  Output: Raw signal → Redis channel:raw-signals            │
+│  Output: Raw signal → Kafka agent-signals-raw            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -82,7 +82,7 @@ The Signal Generator Agent is the first stage in the signal pipeline. It runs ev
    - Count bullish/bearish/neutral signals
    - Calculate confidence based on consensus strength
    - Generate reasoning explaining the decision
-5. **Publish Signal**: Send to Redis `channel:raw-signals`
+5. **Publish Signal**: Send to Kafka `agent-signals-raw`
 
 ### Confidence Calculation
 
@@ -188,9 +188,9 @@ CACHE_CONFIG = {
     "degraded_mode_price_ttl_seconds": 120,      # 2 min fallback for prices
 
     # Cache backend
-    "backend": "redis",
-    "redis_key_prefix": "signal-gen:cache:",
-    "local_fallback_enabled": True,        # In-memory fallback if Redis fails
+    "backend": "kafka",
+    "kafka_key_prefix": "signal-gen:cache:",
+    "local_fallback_enabled": True,        # In-memory fallback if Kafka fails
 }
 ```
 
@@ -201,8 +201,8 @@ from datetime import datetime, timedelta
 from typing import Optional, Any
 
 class SignalCache:
-    def __init__(self, redis_client, config: dict):
-        self.redis = redis_client
+    def __init__(self, kafka_client, config: dict):
+        self.kafka = kafka_client
         self.config = config
         self.local_cache = {}  # In-memory fallback
 
@@ -229,22 +229,22 @@ class SignalCache:
 
     async def set_with_ttl(self, key: str, value: Any, ttl_seconds: int):
         """Cache data with explicit TTL."""
-        full_key = f"{self.config['redis_key_prefix']}{key}"
+        full_key = f"{self.config['kafka_key_prefix']}{key}"
         payload = {
             "value": value,
             "cached_at": datetime.utcnow().isoformat()
         }
         try:
-            await self.redis.setex(full_key, ttl_seconds, json.dumps(payload))
+            await self.kafka.setex(full_key, ttl_seconds, json.dumps(payload))
         except Exception:
             if self.config["local_fallback_enabled"]:
                 self.local_cache[full_key] = payload
 
     async def _get(self, key: str, max_age_seconds: int) -> Optional[Any]:
         """Get from cache if within TTL."""
-        full_key = f"{self.config['redis_key_prefix']}{key}"
+        full_key = f"{self.config['kafka_key_prefix']}{key}"
         try:
-            data = await self.redis.get(full_key)
+            data = await self.kafka.get(full_key)
             if data:
                 payload = json.loads(data)
                 cached_at = datetime.fromisoformat(payload["cached_at"])
@@ -618,7 +618,7 @@ Pattern summary to include in signal reasoning.
 
 - Must complete analysis in < 10 seconds per symbol
 - Must work with any OpenRouter-supported model that supports tool calling
-- Publishes to Redis channel: `channel:raw-signals`
+- Publishes to Kafka channel: `agent-signals-raw`
 - Signal format must match schema exactly
 - Must handle tool failures gracefully (retry, then fallback to cache, then degraded signal)
 
@@ -646,7 +646,7 @@ Pattern summary to include in signal reasoning.
   },
   "skills_dir": "./skills",
   "output": {
-    "redis_channel": "channel:raw-signals"
+    "kafka_channel": "agent-signals-raw"
   },
   "limits": {
     "timeout_seconds": 10,
@@ -676,7 +676,7 @@ Pattern summary to include in signal reasoning.
 ## Acceptance Criteria
 
 - [ ] Agent analyzes symbol using MCP tools (strategy + market data)
-- [ ] Raw signal published to Redis within 10 seconds
+- [ ] Raw signal published to Kafka within 10 seconds
 - [ ] Reasoning includes strategy breakdown with individual signals
 - [ ] Works with Claude, GPT-4, Gemini via OpenRouter (any tool-calling model)
 - [ ] Validates model supports tool calling; falls back to Claude Sonnet if not
