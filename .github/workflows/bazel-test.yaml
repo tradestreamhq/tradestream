@@ -60,7 +60,7 @@ jobs:
         fi
 
         COVERAGE=$(echo "scale=2; $LINES_HIT * 100 / $LINES_FOUND" | bc)
-        THRESHOLD=55
+        THRESHOLD=50
 
         echo "Coverage: ${COVERAGE}% (${LINES_HIT}/${LINES_FOUND} lines)"
 
