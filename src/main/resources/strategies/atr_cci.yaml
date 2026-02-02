@@ -14,8 +14,8 @@ indicators:
       period: "${cciPeriod}"
   - id: previousAtr
     type: PREVIOUS
+    input: atr
     params:
-      indicator: atr
       n: 1
 
 entryConditions:
@@ -23,7 +23,7 @@ entryConditions:
     indicator: cci
     params:
       threshold: -100
-  - type: OVER_INDICATOR
+  - type: OVER
     indicator: atr
     params:
       other: previousAtr
@@ -33,7 +33,7 @@ exitConditions:
     indicator: cci
     params:
       threshold: 100
-  - type: UNDER_INDICATOR
+  - type: UNDER
     indicator: atr
     params:
       other: previousAtr

@@ -1,0 +1,41 @@
+name: VWAP_CROSSOVER
+description: VWAP crossover strategy using price crossing VWAP for intraday trading
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.VwapCrossoverParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: vwap
+    type: VWAP
+    params:
+      period: "${vwapPeriod}"
+  - id: priceMa
+    type: SMA
+    input: close
+    params:
+      period: "${movingAveragePeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: vwap
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: vwap
+
+parameters:
+  - name: vwapPeriod
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20
+  - name: movingAveragePeriod
+    type: INTEGER
+    min: 5
+    max: 20
+    defaultValue: 10

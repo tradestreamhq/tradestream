@@ -1,0 +1,32 @@
+name: PVT
+description: Price Volume Trend strategy using PVT indicator with EMA signal crossover
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.PvtParameters
+
+indicators:
+  - id: pvt
+    type: PVT
+  - id: pvtSignal
+    type: EMA
+    input: pvt
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: pvt
+    params:
+      crosses: pvtSignal
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: pvt
+    params:
+      crosses: pvtSignal
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20

@@ -28,7 +28,7 @@ entryConditions:
       threshold: "${oversoldThreshold}"
 
 exitConditions:
-  - type: OVER_INDICATOR
+  - type: OVER
     indicator: aroonUp
     params:
       other: aroonDown

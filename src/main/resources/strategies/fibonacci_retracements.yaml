@@ -1,0 +1,39 @@
+name: FIBONACCI_RETRACEMENTS
+description: Fibonacci retracement levels for support/resistance trading using price channels
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.FibonacciRetracementsParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: high
+    type: DONCHIAN_UPPER
+    params:
+      period: "${period}"
+  - id: low
+    type: DONCHIAN_LOWER
+    params:
+      period: "${period}"
+  - id: middle
+    type: DONCHIAN_MIDDLE
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: low
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: high
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 20
+    max: 100
+    defaultValue: 50

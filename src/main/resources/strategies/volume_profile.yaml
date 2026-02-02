@@ -1,0 +1,43 @@
+name: VOLUME_PROFILE
+description: Volume profile strategy using OBV with EMA for volume-weighted trend detection
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.VolumeProfileParameters
+
+indicators:
+  - id: obv
+    type: OBV
+  - id: obvEma
+    type: EMA
+    input: obv
+    params:
+      period: "${period}"
+  - id: close
+    type: CLOSE
+  - id: priceEma
+    type: EMA
+    input: close
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: obv
+    params:
+      crosses: obvEma
+  - type: OVER
+    indicator: close
+    params:
+      other: priceEma
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: obv
+    params:
+      crosses: obvEma
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 10
+    max: 30
+    defaultValue: 20
