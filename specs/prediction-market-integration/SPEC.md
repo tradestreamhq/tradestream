@@ -14,32 +14,33 @@ Prediction markets aggregate informed opinions about future events. They can pro
 ## Integration Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│  TRADESTREAM AGENTS                                                 │
-│                                                                     │
-│  Signal Generator Agent                                             │
-│       │                                                             │
-│       ├──► strategy-mcp (internal)                                  │
-│       ├──► market-data-mcp (internal)                               │
-│       └──► SKILL: check-prediction-market-alpha                     │
-│                    │                                                │
-└────────────────────│────────────────────────────────────────────────┘
-                     │
-           ┌─────────┴─────────┐
-           ▼                   ▼
-┌────────────────────┐  ┌────────────────────┐
-│  POLYMARKET        │  │  KALSHI            │
-│  INSIDER TRACKER   │  │  API               │
-│  (separate repo)   │  │  (kalshi.com/api)  │
-│                    │  │                    │
-│  /api/alerts/...   │  │  /markets/...      │
-│  /api/wallets/...  │  │  /events/...       │
-└────────────────────┘  └────────────────────┘
++---------------------------------------------------------------------+
+|  TRADESTREAM AGENTS                                                 |
+|                                                                     |
+|  Signal Generator Agent                                             |
+|       |                                                             |
+|       +---> strategy-mcp (internal)                                 |
+|       +---> market-data-mcp (internal)                              |
+|       +---> SKILL: check-prediction-market-alpha                    |
+|                    |                                                |
++--------------------+------------------------------------------------+
+                     |
+           +---------+---------+
+           v                   v
++--------------------+  +--------------------+
+|  POLYMARKET        |  |  KALSHI            |
+|  INSIDER TRACKER   |  |  API               |
+|  (separate repo)   |  |  (kalshi.com/api)  |
+|  [OPTIONAL]        |  |  [OPTIONAL]        |
+|                    |  |                    |
+|  /api/alerts/...   |  |  /markets/...      |
+|  /api/wallets/...  |  |  /events/...       |
++--------------------+  +--------------------+
 ```
 
 ## Prediction Market Sources
 
-### Polymarket (via polymarket-insider-tracker)
+### Polymarket (via polymarket-insider-tracker) - OPTIONAL
 
 | Endpoint | Purpose | Data |
 |----------|---------|------|
@@ -47,13 +48,17 @@ Prediction markets aggregate informed opinions about future events. They can pro
 | `/api/wallets/watchlist` | Known insider wallets | Wallet addresses, history |
 | `/api/markets/watchlist` | Markets with insider signals | Market IDs, alert counts |
 
-### Kalshi (Official API)
+**Note**: Polymarket integration is optional. The skill operates in degraded mode if polymarket-insider-tracker is unavailable.
+
+### Kalshi (Official API) - OPTIONAL
 
 | Endpoint | Purpose | Data |
 |----------|---------|------|
 | `GET /markets` | List active markets | Tickers, prices, volume |
 | `GET /markets/{ticker}/orderbook` | Current prices + volume | Bid/ask, depth |
 | `GET /events/{event_ticker}` | Event details | Series, settlement dates |
+
+**Note**: Kalshi integration is optional. The skill operates in degraded mode if Kalshi API is unavailable.
 
 ## Why Skill > MCP for This Use Case
 
@@ -89,22 +94,25 @@ correlate with crypto market movements.
 
 ## Workflow
 
-### 1. Polymarket (Insider Signals)
+### 1. Polymarket (Insider Signals) - Optional
 Fetch recent high-confidence insider alerts from polymarket-insider-tracker API:
 - Look for fresh wallet activity, unusual sizing, niche market entries
 - Cross-reference alert categories with current trading symbols
+- If unavailable, use cached data or skip this source
 
-### 2. Kalshi (Market Movements)
+### 2. Kalshi (Market Movements) - Optional
 Check crypto-relevant markets:
 - Fed rate decisions (FED-*)
 - Regulatory events (SEC*, CFTC*)
 - ETF approvals (BTCETF*, ETHETF*)
 - Look for significant price movements (>10% in 24h) or volume spikes
+- If unavailable, use cached data or skip this source
 
 ### 3. Synthesize
 - Identify correlations between prediction market activity and crypto assets
 - Assess timing (how far out is the event?)
 - Generate actionable insight for signal reasoning
+- Include data freshness indicators
 
 ## API Endpoints
 
@@ -122,27 +130,73 @@ GET https://api.elections.kalshi.com/trade-api/v2/markets/{ticker}/orderbook
 
 ## Example Output
 
-```
-📊 PREDICTION MARKET ALPHA CHECK
+### Full Mode (Both Sources Available)
 
-━━━ POLYMARKET (Insider Signals) ━━━
-🚨 Fresh wallet activity on 'Fed Rate Decision March 2026' market
-   Wallet 0x7a3...f91 bought $15k YES @ 7.5¢ (HIGH confidence)
+```
+PREDICTION MARKET ALPHA CHECK
+
+--- DATA FRESHNESS ---
+   Polymarket: LIVE (fetched 3s ago)
+   Kalshi: LIVE (fetched 5s ago)
+
+--- POLYMARKET (Insider Signals) ---
+[!] Fresh wallet activity on 'Fed Rate Decision March 2026' market
+   Wallet 0x7a3...f91 bought $15k YES @ 7.5c (HIGH confidence)
    Implication: Informed money betting on rate cut
 
-📈 KALSHI (Market Prices) ━━━
-   FED-26MAR-T3.50 trading at 72¢ (up from 45¢ last week)
-   BTCETF-26MAR trading at 85¢ (ETF approval expectations high)
+--- KALSHI (Market Prices) ---
+   FED-26MAR-T3.50 trading at 72c (up from 45c last week)
+   BTCETF-26MAR trading at 85c (ETF approval expectations high)
 
-💡 SYNTHESIS
+[*] SYNTHESIS
    Strong consensus across prediction markets for dovish Fed + ETF approval
-   Historical correlation: Fed rate cuts → BTC rallies within 48h
+   Historical correlation: Fed rate cuts -> BTC rallies within 48h
    Recommendation: Increase confidence on BTC BUY signals, reduce on SELL
 ```
 
+### Degraded Mode (Polymarket Unavailable)
+
+```
+PREDICTION MARKET ALPHA CHECK
+
+--- DATA FRESHNESS ---
+   Polymarket: UNAVAILABLE (using cached data from 2m ago)
+   Kalshi: LIVE (fetched 3s ago)
+
+--- POLYMARKET (Insider Signals) ---
+[CACHED] Last known insider activity from 2m ago:
+   Wallet 0x7a3...f91 activity on Fed market (data may be stale)
+
+--- KALSHI (Market Prices) ---
+   FED-26MAR-T3.50 trading at 72c
+   BTCETF-26MAR trading at 85c
+
+[*] SYNTHESIS
+   Kalshi data available; Polymarket data stale.
+   Fed rate cut probability elevated. Limited insider signal confidence.
+```
+
+### Fallback Mode (Both Sources Unavailable)
+
+```
+PREDICTION MARKET ALPHA CHECK
+
+[!!] DATA UNAVAILABLE
+   All prediction market sources are currently unreachable.
+
+[*] RECOMMENDATION
+   Rely on technical analysis and on-chain data for BTC/USD.
+   No event-driven alpha signals available at this time.
+
+   Data freshness: N/A (no data)
+   Sources checked: Polymarket (down), Kalshi (down)
+```
+
 ## Constraints
-- Cache results for 60 seconds (reduce API calls)
-- Fail gracefully if APIs unavailable
+- Cache results using configurable TTL (default 60 seconds, reduce for fast-moving events)
+- Polymarket is optional - skill operates in degraded mode if unavailable
+- Kalshi is optional - skill operates in degraded mode if unavailable
+- Fail gracefully with baseline response if both sources unavailable
 - Only invoke for major crypto assets (BTC, ETH, SOL)
 ```
 
@@ -156,335 +210,65 @@ GET https://api.elections.kalshi.com/trade-api/v2/markets/{ticker}/orderbook
 | **Economic** | Inflation, GDP, employment | Medium - risk appetite |
 | **Crypto-specific** | ETF approvals, exchange regulations | Very High - direct impact |
 
-## Implementation
-
-### Skill Invocation
-
-```python
-# In Signal Generator Agent
-async def analyze_symbol(symbol: str) -> Signal:
-    # Standard analysis
-    strategies = await strategy_mcp.get_top_strategies(symbol)
-    market_data = await market_data_mcp.get_current_price(symbol)
-
-    # Check prediction markets for major assets
-    prediction_context = None
-    if symbol in ["BTC/USD", "ETH/USD", "SOL/USD"]:
-        prediction_context = await invoke_skill(
-            "check-prediction-market-alpha",
-            {"symbol": symbol}
-        )
-
-    # Incorporate into reasoning
-    signal = synthesize_signal(
-        strategies=strategies,
-        market_data=market_data,
-        prediction_context=prediction_context
-    )
-
-    return signal
-```
-
-### API Client for Polymarket Insider Tracker
-
-```python
-# services/prediction_markets/polymarket_client.py
-
-import aiohttp
-from datetime import datetime, timedelta
-
-class PolymarketInsiderClient:
-    def __init__(self, api_url: str):
-        self.api_url = api_url
-        self.cache = {}
-        self.cache_ttl = 60  # seconds
-
-    async def get_recent_alerts(
-        self,
-        min_confidence: str = "HIGH",
-        limit: int = 5
-    ) -> list[dict]:
-        """Fetch recent insider alerts."""
-        cache_key = f"alerts_{min_confidence}_{limit}"
-        if self._is_cached(cache_key):
-            return self.cache[cache_key]["data"]
-
-        async with aiohttp.ClientSession() as session:
-            url = f"{self.api_url}/api/alerts/recent"
-            params = {"min_confidence": min_confidence, "limit": limit}
-
-            async with session.get(url, params=params) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    self._cache(cache_key, data)
-                    return data
-                else:
-                    return []
-
-    async def get_watchlist_markets(self) -> list[dict]:
-        """Get markets with active insider signals."""
-        cache_key = "watchlist_markets"
-        if self._is_cached(cache_key):
-            return self.cache[cache_key]["data"]
-
-        async with aiohttp.ClientSession() as session:
-            url = f"{self.api_url}/api/markets/watchlist"
-            async with session.get(url) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    self._cache(cache_key, data)
-                    return data
-                else:
-                    return []
-
-    def _is_cached(self, key: str) -> bool:
-        if key not in self.cache:
-            return False
-        cached = self.cache[key]
-        return (datetime.now() - cached["timestamp"]).seconds < self.cache_ttl
-
-    def _cache(self, key: str, data: any):
-        self.cache[key] = {"data": data, "timestamp": datetime.now()}
-```
-
-### API Client for Kalshi
-
-```python
-# services/prediction_markets/kalshi_client.py
-
-import aiohttp
-
-class KalshiClient:
-    BASE_URL = "https://api.elections.kalshi.com/trade-api/v2"
-
-    def __init__(self):
-        self.cache = {}
-        self.cache_ttl = 60
-
-    async def get_markets(
-        self,
-        series_ticker: str = None,
-        status: str = "open"
-    ) -> list[dict]:
-        """Get active markets, optionally filtered by series."""
-        cache_key = f"markets_{series_ticker}_{status}"
-        if self._is_cached(cache_key):
-            return self.cache[cache_key]["data"]
-
-        async with aiohttp.ClientSession() as session:
-            url = f"{self.BASE_URL}/markets"
-            params = {"status": status}
-            if series_ticker:
-                params["series_ticker"] = series_ticker
-
-            async with session.get(url, params=params) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    markets = data.get("markets", [])
-                    self._cache(cache_key, markets)
-                    return markets
-                else:
-                    return []
-
-    async def get_orderbook(self, ticker: str) -> dict:
-        """Get current orderbook for a market."""
-        cache_key = f"orderbook_{ticker}"
-        if self._is_cached(cache_key):
-            return self.cache[cache_key]["data"]
-
-        async with aiohttp.ClientSession() as session:
-            url = f"{self.BASE_URL}/markets/{ticker}/orderbook"
-            async with session.get(url) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    self._cache(cache_key, data)
-                    return data
-                else:
-                    return {}
-
-    async def get_crypto_relevant_markets(self) -> list[dict]:
-        """Get markets relevant to crypto trading."""
-        relevant_series = ["FED", "SEC", "BTCETF", "ETHETF", "CRYPTO"]
-        all_markets = []
-
-        for series in relevant_series:
-            markets = await self.get_markets(series_ticker=series)
-            all_markets.extend(markets)
-
-        return all_markets
-
-    # ... caching methods same as PolymarketInsiderClient
-```
-
-### Skill Execution
-
-```python
-# agents/signal-generator/skills/check_prediction_market_alpha.py
-
-async def execute_skill(context: dict) -> str:
-    """Execute the check-prediction-market-alpha skill."""
-    symbol = context.get("symbol", "BTC/USD")
-
-    # Initialize clients
-    polymarket = PolymarketInsiderClient(os.environ["POLYMARKET_API_URL"])
-    kalshi = KalshiClient()
-
-    # Gather data
-    try:
-        alerts = await polymarket.get_recent_alerts(min_confidence="HIGH", limit=5)
-    except Exception as e:
-        alerts = []
-        logger.warning(f"Polymarket API unavailable: {e}")
-
-    try:
-        kalshi_markets = await kalshi.get_crypto_relevant_markets()
-    except Exception as e:
-        kalshi_markets = []
-        logger.warning(f"Kalshi API unavailable: {e}")
-
-    # Format output
-    output = "📊 PREDICTION MARKET ALPHA CHECK\n\n"
-
-    # Polymarket section
-    output += "━━━ POLYMARKET (Insider Signals) ━━━\n"
-    if alerts:
-        for alert in alerts[:3]:
-            output += f"🚨 {alert['description']}\n"
-            output += f"   Wallet {alert['wallet'][:10]}... | {alert['confidence']} confidence\n"
-    else:
-        output += "No significant insider activity detected.\n"
-
-    output += "\n━━━ KALSHI (Market Prices) ━━━\n"
-    if kalshi_markets:
-        for market in kalshi_markets[:3]:
-            price = market.get("yes_price", 0) * 100
-            output += f"   {market['ticker']}: {price:.0f}¢\n"
-    else:
-        output += "Unable to fetch Kalshi data.\n"
-
-    # Synthesis
-    output += "\n💡 SYNTHESIS\n"
-    output += synthesize_implications(alerts, kalshi_markets, symbol)
-
-    return output
-
-def synthesize_implications(
-    alerts: list,
-    kalshi_markets: list,
-    symbol: str
-) -> str:
-    """Generate synthesis of prediction market signals."""
-    implications = []
-
-    # Check for Fed-related signals
-    fed_markets = [m for m in kalshi_markets if "FED" in m.get("ticker", "")]
-    if fed_markets:
-        avg_rate_cut_prob = sum(m.get("yes_price", 0) for m in fed_markets) / len(fed_markets)
-        if avg_rate_cut_prob > 0.6:
-            implications.append("Rate cut probability elevated - historically bullish for BTC")
-        elif avg_rate_cut_prob < 0.3:
-            implications.append("Rate hike/hold likely - may suppress risk assets")
-
-    # Check for ETF-related signals
-    etf_markets = [m for m in kalshi_markets if "ETF" in m.get("ticker", "")]
-    if etf_markets:
-        for market in etf_markets:
-            if market.get("yes_price", 0) > 0.7:
-                implications.append(f"ETF approval expected ({market['ticker']}) - bullish catalyst")
-
-    # Check Polymarket insider alerts
-    high_confidence_alerts = [a for a in alerts if a.get("confidence") == "HIGH"]
-    if high_confidence_alerts:
-        implications.append(f"{len(high_confidence_alerts)} high-confidence insider alerts active")
-
-    if implications:
-        return "   " + "\n   ".join(implications)
-    else:
-        return "   No significant macro signals detected. Rely on technical analysis."
-```
-
-## Use Cases
-
-### 1. Context Enrichment
-
-Before generating a signal, check prediction markets for event-driven alpha:
-
-```
-Agent: "Before recommending BTC, let me check prediction markets..."
-Skill: check-prediction-market-alpha
-Agent: "Fed rate cut probability at 72% on Kalshi + insider activity on Polymarket.
-        Historical correlation suggests BTC upside. Adjusting confidence +10%."
-```
-
-### 2. Opportunity Discovery
-
-Surface prediction market insights alongside crypto signals:
-
-```
-Dashboard shows:
-"🔥 OPPORTUNITY SCORE: 91
- 🟢 BUY BTC/USD
- Prediction Market Context: Kalshi FED-26MAR @ 72¢ (rate cut likely),
- Polymarket insider alert on 'SEC ETF Approval' market"
-```
-
-### 3. Cross-Market Correlation
-
-Learning Agent identifies patterns:
-
-```
-Learning Agent: "Historical analysis: BTC rallies 4.2% avg within 48h of
-                Kalshi rate-cut markets crossing 70¢. Generating new
-                PREDICTION_MARKET_CORRELATED strategy spec."
-```
-
-## Requirements for polymarket-insider-tracker
-
-The separate polymarket-insider-tracker repo needs to expose REST endpoints:
-
-```python
-# polymarket-insider-tracker/src/api/routes.py
-
-from flask import Flask, jsonify, request
-app = Flask(__name__)
-
-@app.route('/api/alerts/recent')
-def get_recent_alerts():
-    """Return recent insider alerts in JSON format."""
-    min_confidence = request.args.get('min_confidence', 'MEDIUM')
-    limit = int(request.args.get('limit', 10))
-
-    alerts = db.query_alerts(
-        min_confidence=min_confidence,
-        limit=limit
-    )
-
-    return jsonify([
-        {
-            "alert_id": a.id,
-            "wallet": a.wallet_address,
-            "market": a.market_title,
-            "description": a.description,
-            "confidence": a.confidence_level,
-            "timestamp": a.created_at.isoformat()
-        }
-        for a in alerts
-    ])
-
-@app.route('/api/markets/watchlist')
-def get_watchlist_markets():
-    """Return markets with active insider signals."""
-    markets = db.get_markets_with_alerts()
-
-    return jsonify([
-        {
-            "market_id": m.id,
-            "title": m.title,
-            "alert_count": m.alert_count,
-            "latest_alert": m.latest_alert.isoformat() if m.latest_alert else None
-        }
-        for m in markets
-    ])
+## Source Availability and Fallback Behavior
+
+Prediction market sources are **optional dependencies**. The skill operates in degraded modes when sources are unavailable:
+
+### Availability Modes
+
+| Mode | Polymarket | Kalshi | Behavior |
+|------|------------|--------|----------|
+| **Full** | Available | Available | Complete analysis with both sources |
+| **Kalshi-only** | Unavailable | Available | Market prices only, no insider signals |
+| **Polymarket-only** | Available | Unavailable | Insider signals only, no market prices |
+| **Degraded** | Unavailable | Unavailable | Return cached data or baseline response |
+
+### Fallback Strategy
+
+1. **Primary**: Fetch live data from each enabled source
+2. **Secondary**: If live fetch fails, use stale cache (up to 5 minutes old)
+3. **Tertiary**: If no cache available, operate without that source
+4. **Baseline**: If all sources unavailable with no cache, return baseline response
+
+## A/B Testing Framework
+
+To validate the alpha contribution of prediction market signals, implement A/B testing:
+
+### Experiment Design
+
+```yaml
+ab_test:
+  name: "prediction_market_alpha_v1"
+  description: "Measure alpha contribution from prediction market signals"
+
+  control_group:
+    name: "no_prediction_markets"
+    behavior: "Generate signals using technical analysis only"
+    allocation: 50%
+
+  treatment_group:
+    name: "with_prediction_markets"
+    behavior: "Generate signals with prediction market context"
+    allocation: 50%
+
+  metrics:
+    primary:
+      - name: "signal_accuracy"
+        definition: "Percentage of signals that moved in predicted direction within 24h"
+      - name: "alpha_bps"
+        definition: "Excess return in basis points vs control"
+    secondary:
+      - name: "confidence_calibration"
+        definition: "Correlation between signal confidence and actual accuracy"
+      - name: "event_timing_accuracy"
+        definition: "Accuracy of event-driven signals around Fed/ETF announcements"
+
+  duration: "30 days minimum"
+  sample_size: "1000 signals per group minimum"
+
+  success_criteria:
+    - "signal_accuracy improvement >= 5% with p-value < 0.05"
+    - "alpha_bps >= 50 with p-value < 0.05"
 ```
 
 ## Configuration
@@ -493,13 +277,17 @@ def get_watchlist_markets():
 prediction_markets:
   polymarket:
     api_url: ${POLYMARKET_INSIDER_API_URL}
-    enabled: true
-    cache_ttl_seconds: 60
+    enabled: true  # Set to false to disable Polymarket integration
+    cache_ttl_seconds: 60  # Configurable: reduce for fast-moving events (e.g., 15-30s during Fed meetings)
+    stale_cache_max_age_seconds: 300  # Max age for fallback cache
+    timeout_seconds: 5.0
 
   kalshi:
     base_url: https://api.elections.kalshi.com/trade-api/v2
-    enabled: true
-    cache_ttl_seconds: 60
+    enabled: true  # Set to false to disable Kalshi integration
+    cache_ttl_seconds: 60  # Configurable: reduce for fast-moving events
+    stale_cache_max_age_seconds: 300
+    timeout_seconds: 5.0
     relevant_series:
       - FED
       - SEC
@@ -512,6 +300,11 @@ prediction_markets:
       - ETH/USD
       - SOL/USD
     invoke_frequency: "on_signal"  # or "daily"
+
+  ab_testing:
+    enabled: true
+    experiment_name: "prediction_market_alpha_v1"
+    control_allocation: 0.5  # 50% control, 50% treatment
 ```
 
 ## Constraints
@@ -520,7 +313,8 @@ prediction_markets:
 - Kalshi rate limits: 10 req/sec (use caching)
 - No code changes required in TradeStream's core Java/Kotlin
 - Skill is the integration point (not MCP)
-- Fail gracefully if prediction market APIs unavailable
+- Polymarket integration is **optional** - system operates without it
+- Kalshi integration is **optional** - system operates without it
 - Both repos deployable independently
 
 ## Acceptance Criteria
@@ -531,8 +325,12 @@ prediction_markets:
 - [ ] Signal Generator invokes skill for major crypto assets
 - [ ] Dashboard shows prediction market context in reasoning panel
 - [ ] Both repos deployable independently
-- [ ] Graceful degradation when prediction market APIs unavailable
-- [ ] 60-second caching reduces API load
+- [ ] Graceful degradation when Polymarket unavailable (Kalshi-only mode)
+- [ ] Graceful degradation when Kalshi unavailable (Polymarket-only mode)
+- [ ] Baseline response when both sources unavailable
+- [ ] Configurable cache TTL per data source
+- [ ] Data freshness indicators in skill output
+- [ ] A/B testing framework deployed to measure alpha contribution
 
 ## File Structure
 
@@ -548,4 +346,10 @@ services/prediction_markets/
 └── tests/
     ├── test_polymarket.py
     └── test_kalshi.py
+
+services/ab_testing/
+├── __init__.py
+├── prediction_market_experiment.py
+└── tests/
+    └── test_experiment.py
 ```
