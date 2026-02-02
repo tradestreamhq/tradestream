@@ -37,11 +37,21 @@ class StrategyMCPServer(BaseMCPServer):
         postgres_password: str = None,
     ):
         # Get config from environment or parameters
-        self.postgres_host = postgres_host or os.environ.get("POSTGRES_HOST", "localhost")
-        self.postgres_port = postgres_port or int(os.environ.get("POSTGRES_PORT", "5432"))
-        self.postgres_database = postgres_database or os.environ.get("POSTGRES_DATABASE", "tradestream")
-        self.postgres_user = postgres_user or os.environ.get("POSTGRES_USERNAME", "postgres")
-        self.postgres_password = postgres_password or os.environ.get("POSTGRES_PASSWORD", "")
+        self.postgres_host = postgres_host or os.environ.get(
+            "POSTGRES_HOST", "localhost"
+        )
+        self.postgres_port = postgres_port or int(
+            os.environ.get("POSTGRES_PORT", "5432")
+        )
+        self.postgres_database = postgres_database or os.environ.get(
+            "POSTGRES_DATABASE", "tradestream"
+        )
+        self.postgres_user = postgres_user or os.environ.get(
+            "POSTGRES_USERNAME", "postgres"
+        )
+        self.postgres_password = postgres_password or os.environ.get(
+            "POSTGRES_PASSWORD", ""
+        )
 
         # Initialize connection pool
         self.pool = psycopg2.pool.ThreadedConnectionPool(
@@ -67,10 +77,17 @@ class StrategyMCPServer(BaseMCPServer):
             parameters={
                 "type": "object",
                 "properties": {
-                    "symbol": {"type": "string", "description": "Trading pair e.g. ETH/USD"},
+                    "symbol": {
+                        "type": "string",
+                        "description": "Trading pair e.g. ETH/USD",
+                    },
                     "limit": {"type": "integer", "default": 5, "maximum": 100},
                     "offset": {"type": "integer", "default": 0},
-                    "metric": {"type": "string", "enum": ["sharpe", "accuracy", "return"], "default": "sharpe"},
+                    "metric": {
+                        "type": "string",
+                        "enum": ["sharpe", "accuracy", "return"],
+                        "default": "sharpe",
+                    },
                     "force_refresh": {"type": "boolean", "default": False},
                 },
                 "required": ["symbol"],
@@ -84,7 +101,10 @@ class StrategyMCPServer(BaseMCPServer):
             parameters={
                 "type": "object",
                 "properties": {
-                    "strategy_id": {"type": "string", "description": "Strategy identifier"},
+                    "strategy_id": {
+                        "type": "string",
+                        "description": "Strategy identifier",
+                    },
                     "symbol": {"type": "string", "description": "Trading pair"},
                     "force_refresh": {"type": "boolean", "default": False},
                 },
@@ -155,7 +175,9 @@ class StrategyMCPServer(BaseMCPServer):
             entry = self.cache.get(cache_key)
             if entry:
                 # Apply pagination to cached results
-                result = paginate(entry.value, offset=offset, limit=limit, max_limit=100)
+                result = paginate(
+                    entry.value, offset=offset, limit=limit, max_limit=100
+                )
                 return MCPResponse(
                     data=result.to_dict(),
                     latency_ms=int((time.time() - start_time) * 1000),
@@ -187,7 +209,9 @@ class StrategyMCPServer(BaseMCPServer):
                 FROM strategies
                 WHERE symbol = %s AND is_active = TRUE
                 ORDER BY {} DESC
-            """.format(order_column)
+            """.format(
+                order_column
+            )
 
             cursor.execute(query, (symbol,))
             rows = cursor.fetchall()
@@ -239,7 +263,9 @@ class StrategyMCPServer(BaseMCPServer):
         symbol = symbol.upper()
 
         # Check cache
-        cache_key = self.cache._make_key("strategy_signal", strategy_id=strategy_id, symbol=symbol)
+        cache_key = self.cache._make_key(
+            "strategy_signal", strategy_id=strategy_id, symbol=symbol
+        )
         if not force_refresh:
             entry = self.cache.get(cache_key)
             if entry:
