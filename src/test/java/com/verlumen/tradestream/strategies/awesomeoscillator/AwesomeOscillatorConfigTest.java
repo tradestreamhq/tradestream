@@ -76,7 +76,7 @@ public class AwesomeOscillatorConfigTest {
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(IntegerChromosome.of(3, 10, 5), IntegerChromosome.of(20, 50, 34));
+        ImmutableList.of(IntegerChromosome.of(3, 10), IntegerChromosome.of(20, 50));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
