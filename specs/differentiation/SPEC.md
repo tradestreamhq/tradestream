@@ -6,27 +6,51 @@ Define what makes TradeStream's agent dashboard uniquely valuable compared to co
 
 ## Competitive Landscape
 
+> **Methodology Note**: Competitor features were assessed based on publicly available documentation, marketing materials, and product demos. Claims should be re-verified periodically as competitor offerings evolve.
+>
+> **Last verified**: January 2026
+
 ### TradeStream vs. Generic AI Trading Bots
 
 | Feature | TradeStream | Clawdbot/OpenClaw | Generic LLM Bots |
 |---------|-------------|-------------------|------------------|
-| **Strategy Library** | 40M+ backtested strategies | None | None |
+| **Strategy Library** | 40M+ backtested strategies* | None observed | None |
 | **Strategy Discovery** | Genetic algorithm evolution | Manual/LLM opinion | LLM opinion only |
 | **Signal Backing** | Proven strategy consensus | LLM reasoning | LLM reasoning |
-| **Opportunity Scoring** | Multi-factor quantitative | None | None |
-| **Strategy Transparency** | Full parameter visibility | Black box | Black box |
-| **Historical Validation** | Forward-tested track record | None | None |
+| **Opportunity Scoring** | Multi-factor quantitative | None observed | None |
+| **Strategy Transparency** | Full parameter visibility | Limited visibility | Black box |
+| **Historical Validation** | Forward-tested track record | None observed | None |
 | **MCP Architecture** | Modular, extensible | Monolithic | Varies |
+
+*See "Strategy Count Methodology" section below for detailed breakdown.
+
+## Strategy Count Methodology
+
+The "40M+ strategies" claim requires context for accurate representation:
+
+| Category | Count | Description |
+|----------|-------|-------------|
+| **Distinct Strategy Types** | 70+ | Unique algorithmic approaches (RSI, MACD, Bollinger, etc.) |
+| **Parameter Variations** | ~500K per type | Different parameter combinations per strategy type |
+| **Symbol Coverage** | 80+ | Trading pairs across crypto, forex, equities |
+| **Total Configurations** | 40M+ | Strategy type x parameters x symbols |
+
+**Clarification for marketing**: When citing "40M strategies," messaging should clarify:
+- "40M+ strategy configurations tested" (most accurate)
+- "70+ strategy types with millions of parameter variations" (clearer)
+- "Millions of backtested strategy instances" (consumer-friendly)
+
+**What makes this meaningful**: Unlike competitors who offer a single LLM opinion, TradeStream evaluates signals against statistically validated configurations. The diversity of parameters and symbols means signals are stress-tested across market conditions.
 
 ## Our Unique Differentiators
 
 ### 1. Millions of Validated Strategies
 
-**What We Have**: 40M+ strategy implementations discovered by genetic algorithms and backtested across multiple market conditions.
+**What We Have**: 70+ distinct strategy types with millions of parameter variations, discovered by genetic algorithms and backtested across 80+ symbols and multiple market conditions.
 
 **Why It Matters**: Every signal is backed by statistical evidence, not just LLM opinion.
 
-**User Value**: "This BUY signal isn't just what an AI thinks—it's what 4 out of 5 top-performing strategies are signaling, strategies with a combined 62% accuracy over 6 months."
+**User Value**: "This BUY signal isn't just what an AI thinks--it's what 4 out of 5 top-performing strategies are signaling, strategies with a combined 62% accuracy over 6 months."
 
 ### 2. Genetic Algorithm Discovery
 
@@ -40,7 +64,7 @@ Define what makes TradeStream's agent dashboard uniquely valuable compared to co
 
 **What We Have**: Multi-factor quantitative scoring combining confidence, expected return, consensus, volatility, and freshness.
 
-**Why It Matters**: Not all signals are equal—users see the best opportunities first.
+**Why It Matters**: Not all signals are equal--users see the best opportunities first.
 
 **User Value**: "A score of 87 means strong consensus, good expected return, and favorable volatility. You're not just guessing which signal to act on."
 
@@ -58,7 +82,7 @@ Define what makes TradeStream's agent dashboard uniquely valuable compared to co
 
 **Why It Matters**: Backtests overfit. Forward tests prove real-world viability.
 
-**User Value**: "This strategy has been generating signals for 6 months with 62% accuracy—not just backtested, actually validated on live data."
+**User Value**: "This strategy has been generating signals for 6 months with 62% accuracy--not just backtested, actually validated on live data."
 
 ## Positioning Statement
 
@@ -132,18 +156,18 @@ Define what makes TradeStream's agent dashboard uniquely valuable compared to co
 ### Feature Comparison Table (for landing page)
 
 ```
-┌─────────────────────────────┬─────────────┬───────────┬──────────────┐
-│ Feature                     │ TradeStream │ Clawdbot  │ Generic Bots │
-├─────────────────────────────┼─────────────┼───────────┼──────────────┤
-│ Strategy Library            │ 40M+        │ ❌        │ ❌           │
-│ Genetic Discovery           │ ✅          │ ❌        │ ❌           │
-│ Opportunity Scoring         │ ✅          │ ❌        │ ❌           │
-│ Strategy Transparency       │ ✅          │ ❌        │ ❌           │
-│ Forward-Test Validation     │ ✅          │ ❌        │ ❌           │
-│ Multi-Channel Alerts        │ ✅          │ ✅        │ ⚠️ Limited   │
-│ Research Mode               │ ✅          │ ⚠️ Basic  │ ❌           │
-│ Custom Views                │ ✅          │ ✅        │ ❌           │
-└─────────────────────────────┴─────────────┴───────────┴──────────────┘
++-----------------------------------------+-------------+-----------+--------------+
+| Feature                                 | TradeStream | Clawdbot  | Generic Bots |
++-----------------------------------------+-------------+-----------+--------------+
+| Strategy Library                        | 40M+        | -         | -            |
+| Genetic Discovery                       | Yes         | -         | -            |
+| Opportunity Scoring                     | Yes         | -         | -            |
+| Strategy Transparency                   | Yes         | -         | -            |
+| Forward-Test Validation                 | Yes         | -         | -            |
+| Multi-Channel Alerts                    | Yes         | Yes       | Limited      |
+| Research Mode                           | Yes         | Basic     | -            |
+| Custom Views                            | Yes         | Yes       | -            |
++-----------------------------------------+-------------+-----------+--------------+
 ```
 
 ## Dashboard Branding Elements
@@ -151,30 +175,30 @@ Define what makes TradeStream's agent dashboard uniquely valuable compared to co
 ### Trust Indicators
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  POWERED BY                                                 │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │ 40,000,000+ │ │    70+      │ │   6 month   │           │
-│  │ Strategies  │ │  Strategy   │ │  Forward    │           │
-│  │ Discovered  │ │   Types     │ │   Testing   │           │
-│  └─────────────┘ └─────────────┘ └─────────────┘           │
-└─────────────────────────────────────────────────────────────┘
++-------------------------------------------------------------+
+|  POWERED BY                                                 |
+|  +-------------+ +-------------+ +-------------+           |
+|  | 40,000,000+ | |    70+      | |   6 month   |           |
+|  | Strategies  | |  Strategy   | |  Forward    |           |
+|  | Discovered  | |   Types     | |   Testing   |           |
+|  +-------------+ +-------------+ +-------------+           |
++-------------------------------------------------------------+
 ```
 
 ### Signal Card Branding
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│ 🔥 OPPORTUNITY SCORE: 87                                   │
-│ 🟢 BUY ETH/USD                                             │
-├─────────────────────────────────────────────────────────────┤
-│ 📊 Strategy Consensus: 4/5 bullish                         │
-│ 📈 Top Strategy: RSI_REVERSAL (62% accuracy, 847 signals)  │
-│ 📉 Expected Return: +3.2% ± 1.5%                           │
-├─────────────────────────────────────────────────────────────┤
-│ 🧬 Powered by genetic strategy discovery                   │
-│    Not just AI opinion—validated strategy consensus        │
-└─────────────────────────────────────────────────────────────┘
++-------------------------------------------------------------+
+| OPPORTUNITY SCORE: 87                                       |
+| BUY ETH/USD                                                 |
++-------------------------------------------------------------+
+| Strategy Consensus: 4/5 bullish                             |
+| Top Strategy: RSI_REVERSAL (62% accuracy, 847 signals)      |
+| Expected Return: +3.2% +/- 1.5%                             |
++-------------------------------------------------------------+
+| Powered by genetic strategy discovery                       |
+| Not just AI opinion--validated strategy consensus           |
++-------------------------------------------------------------+
 ```
 
 ## Roadmap for Differentiation
@@ -211,9 +235,50 @@ Define what makes TradeStream's agent dashboard uniquely valuable compared to co
 ### Do This Instead
 
 1. **Honest Disclosure**: "62% accuracy means 38% of signals don't hit target"
-2. **Visible Uncertainty**: "Expected return: +3.2% ± 1.5% (95% CI)"
+2. **Visible Uncertainty**: "Expected return: +3.2% +/- 1.5% (95% CI)"
 3. **Full Transparency**: "RSI_REVERSAL triggered with parameters {period: 14, oversold: 30}"
 4. **Track Record**: "This strategy: 847 signals since August 2025"
+
+## Compliance Considerations
+
+### Required Disclaimers
+
+All marketing materials and user-facing communications should include appropriate disclaimers:
+
+**Standard Disclaimer** (for website, landing pages, emails):
+> "TradeStream provides trading signals for informational purposes only. Past performance does not guarantee future results. Trading involves substantial risk of loss and is not suitable for all investors. Always do your own research before making investment decisions."
+
+**Signal-Level Disclaimer** (for individual signals):
+> "This signal is based on historical strategy performance. Actual results may vary. Not financial advice."
+
+**Accuracy Claims Disclaimer**:
+> "Reported accuracy metrics are based on backtested and forward-tested data. Future accuracy may differ due to changing market conditions."
+
+### Language Guidelines
+
+| Avoid | Use Instead |
+|-------|-------------|
+| "Guaranteed returns" | "Historical performance of X%" |
+| "Risk-free" | "Validated across multiple market conditions" |
+| "Always profitable" | "X% accuracy over Y signals" |
+| "You will make money" | "Strategy has shown X% accuracy" |
+| "Can't lose" | "Includes confidence intervals" |
+
+### Regulatory Awareness
+
+- **Not financial advice**: TradeStream provides signals and information, not personalized investment recommendations
+- **No guarantees**: All performance metrics are historical and do not guarantee future results
+- **User responsibility**: Users make their own trading decisions based on TradeStream data
+- **Jurisdiction awareness**: Regulations vary by country; marketing should be reviewed for target markets
+
+### Review Checklist
+
+Before publishing any marketing content, verify:
+- [ ] Contains appropriate disclaimer for content type
+- [ ] Avoids prohibited language (guarantees, certainties)
+- [ ] Accuracy claims include time period and sample size
+- [ ] Competitor comparisons are factual and verifiable
+- [ ] Does not constitute personalized financial advice
 
 ## Success Metrics
 
