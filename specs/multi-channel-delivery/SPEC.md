@@ -18,29 +18,562 @@ Deliver trading signals to users wherever they are—web, Telegram, Discord, Sla
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    DELIVERY SERVICE                         │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ Signal Consumer (Redis: channel:dashboard-signals)  │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                              │                              │
-│         ┌────────────────────┼────────────────────┐        │
-│         ▼                    ▼                    ▼        │
-│  ┌────────────┐      ┌────────────┐      ┌────────────┐   │
-│  │ Formatter  │      │ Rate       │      │ User Prefs │   │
-│  │ (per-chan) │      │ Limiter    │      │ Filter     │   │
-│  └────────────┘      └────────────┘      └────────────┘   │
-│         │                    │                    │        │
-│         └────────────────────┼────────────────────┘        │
-│                              ▼                              │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ Channel Dispatchers                                 │   │
-│  │                                                     │   │
-│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐  │   │
-│  │  │Telegram │ │ Discord │ │  Slack  │ │  Push   │  │   │
-│  └──┴─────────┴─┴─────────┴─┴─────────┴─┴─────────┴──┘   │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           DELIVERY SERVICE                               │
+│                                                                          │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │ Signal Consumer (Redis: channel:dashboard-signals)              │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+│                                    │                                     │
+│                                    ▼                                     │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │ Cross-Channel Deduplication (per signal_id + user_id)           │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+│                                    │                                     │
+│         ┌──────────────────────────┼──────────────────────────┐         │
+│         ▼                          ▼                          ▼         │
+│  ┌────────────┐            ┌────────────┐            ┌────────────┐    │
+│  │ Template   │            │ Rate       │            │ User Prefs │    │
+│  │ Engine     │            │ Limiter    │            │ Filter     │    │
+│  └────────────┘            └────────────┘            └────────────┘    │
+│         │                          │                          │         │
+│         └──────────────────────────┼──────────────────────────┘         │
+│                                    ▼                                     │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │ Channel Dispatchers (with retry + exponential backoff)          │    │
+│  │                                                                  │    │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐   │    │
+│  │  │Telegram │ │ Discord │ │  Slack  │ │  Push   │ │ Email   │   │    │
+│  └──┴─────────┴─┴─────────┴─┴─────────┴─┴─────────┴─┴─────────┴───┘    │
+│                                    │                                     │
+│                                    ▼                                     │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │ Delivery Tracker (receipts, confirmations, metrics)             │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+│                                    │                                     │
+│                              ┌─────┴─────┐                              │
+│                              ▼           ▼                              │
+│                     ┌─────────────┐ ┌─────────────┐                     │
+│                     │ Success Log │ │ Dead Letter │                     │
+│                     │             │ │ Queue (DLQ) │                     │
+│                     └─────────────┘ └─────────────┘                     │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Cross-Channel Deduplication
+
+Prevents the same signal from being sent multiple times to a user across different channels when a single notification would suffice.
+
+### Strategy
+
+Each signal delivery is tracked by a composite key of `signal_id + user_id`. When a signal is delivered to any channel, subsequent attempts to deliver the same signal to the same user on other channels are deduplicated based on user preference.
+
+### User Preference Options
+
+| Option | Behavior |
+|--------|----------|
+| `primary_only` | Send to primary channel only (default) |
+| `all_enabled` | Send to all enabled channels (opt-in for power users) |
+| `fallback_chain` | Try primary, fallback to next if failed |
+
+### Implementation
+
+```python
+class CrossChannelDeduplicator:
+    def __init__(self, redis: Redis):
+        self.redis = redis
+        self.ttl_seconds = 3600  # 1 hour dedup window
+
+    async def should_deliver(
+        self,
+        signal_id: str,
+        user_id: str,
+        channel: str,
+        preference: str = "primary_only"
+    ) -> bool:
+        """Check if signal should be delivered to this channel."""
+        key = f"dedup:{user_id}:{signal_id}"
+
+        if preference == "all_enabled":
+            # Allow delivery to all channels
+            return True
+
+        delivered_channels = await self.redis.smembers(key)
+
+        if preference == "primary_only":
+            # Block if already delivered to any channel
+            return len(delivered_channels) == 0
+
+        if preference == "fallback_chain":
+            # Allow only if previous channels failed
+            return all(
+                await self._channel_failed(signal_id, user_id, ch)
+                for ch in delivered_channels
+            )
+
+        return True
+
+    async def mark_delivered(
+        self,
+        signal_id: str,
+        user_id: str,
+        channel: str
+    ) -> None:
+        """Record successful delivery."""
+        key = f"dedup:{user_id}:{signal_id}"
+        await self.redis.sadd(key, channel)
+        await self.redis.expire(key, self.ttl_seconds)
+```
+
+---
+
+## Message Templating System
+
+Provides consistent formatting across all channels while respecting platform-specific constraints.
+
+### Template Structure
+
+```python
+@dataclass
+class SignalTemplate:
+    """Canonical signal data for templating."""
+    signal_id: str
+    symbol: str
+    action: str                    # BUY, SELL, HOLD
+    opportunity_tier: str          # HOT, GOOD, NEUTRAL, LOW
+    opportunity_score: int         # 0-100
+    confidence: float              # 0.0-1.0
+    expected_return: float         # percentage
+    expected_return_std: float     # standard deviation
+    strategies_bullish: int
+    strategies_analyzed: int
+    top_strategy_name: str
+    top_strategy_accuracy: float
+    reasoning: str
+    dashboard_url: str
+```
+
+### Channel Adapters
+
+```python
+class TemplateEngine:
+    """Renders signal templates for each channel."""
+
+    TIER_EMOJI = {"HOT": "fire", "GOOD": "star", "NEUTRAL": "white_circle", "LOW": "small_blue_diamond"}
+    ACTION_EMOJI = {"BUY": "green_circle", "SELL": "red_circle", "HOLD": "white_circle"}
+
+    def render(self, template: SignalTemplate, channel: str) -> str:
+        """Render template for specific channel."""
+        renderer = getattr(self, f"_render_{channel}", self._render_default)
+        return renderer(template)
+
+    def _render_telegram(self, t: SignalTemplate) -> str:
+        return f"""
+{self._emoji(t.opportunity_tier)} {t.opportunity_tier} OPPORTUNITY (Score: {t.opportunity_score})
+{self._emoji(t.action)} {t.action} {t.symbol}
+
+📊 Confidence: {t.confidence * 100:.0f}%
+📈 Expected Return: +{t.expected_return * 100:.1f}% ± {t.expected_return_std * 100:.1f}%
+🎯 Strategy Consensus: {t.strategies_bullish}/{t.strategies_analyzed} bullish
+
+Top Strategy: {t.top_strategy_name}
+├ Accuracy: {t.top_strategy_accuracy * 100:.0f}%
+└ Reason: {t.reasoning[:100]}...
+
+[View Details]({t.dashboard_url})
+"""
+
+    def _render_discord(self, t: SignalTemplate) -> dict:
+        """Returns Discord embed structure."""
+        # ... (existing Discord implementation)
+
+    def _render_slack(self, t: SignalTemplate) -> dict:
+        """Returns Slack blocks structure."""
+        # ... (existing Slack implementation)
+
+    def _render_push(self, t: SignalTemplate) -> dict:
+        """Returns compact push notification payload."""
+        return {
+            "title": f"{t.opportunity_tier} Opportunity",
+            "body": f"{t.action} {t.symbol} - Score: {t.opportunity_score}",
+            "tag": t.signal_id,
+            "data": {"url": t.dashboard_url}
+        }
+
+    def _emoji(self, key: str) -> str:
+        """Platform-agnostic emoji lookup."""
+        mapping = {**self.TIER_EMOJI, **self.ACTION_EMOJI}
+        return mapping.get(key, "")
+```
+
+---
+
+## Retry Strategy and Dead Letter Queue
+
+### Retry with Exponential Backoff
+
+Failed deliveries are retried with exponential backoff before moving to the dead letter queue.
+
+| Attempt | Delay | Cumulative Time |
+|---------|-------|-----------------|
+| 1 | Immediate | 0s |
+| 2 | 1s | 1s |
+| 3 | 2s | 3s |
+| 4 | 4s | 7s |
+| 5 | 8s | 15s |
+| 6 (final) | 16s | 31s |
+
+### Retry Implementation
+
+```python
+import asyncio
+from dataclasses import dataclass
+from enum import Enum
+from typing import Optional
+
+class DeliveryStatus(Enum):
+    PENDING = "pending"
+    DELIVERED = "delivered"
+    RETRYING = "retrying"
+    FAILED = "failed"         # Exhausted retries, moved to DLQ
+
+@dataclass
+class DeliveryAttempt:
+    signal_id: str
+    user_id: str
+    channel: str
+    attempt: int
+    max_attempts: int = 6
+    base_delay_seconds: float = 1.0
+    status: DeliveryStatus = DeliveryStatus.PENDING
+    error_message: Optional[str] = None
+    delivered_at: Optional[datetime] = None
+
+class RetryableDispatcher:
+    def __init__(self, redis: Redis, dlq: DeadLetterQueue):
+        self.redis = redis
+        self.dlq = dlq
+
+    async def dispatch_with_retry(
+        self,
+        signal: Signal,
+        user_id: str,
+        channel: str,
+        dispatcher: ChannelDispatcher
+    ) -> DeliveryAttempt:
+        """Dispatch with exponential backoff retry."""
+        attempt = DeliveryAttempt(
+            signal_id=signal.signal_id,
+            user_id=user_id,
+            channel=channel,
+            attempt=0
+        )
+
+        while attempt.attempt < attempt.max_attempts:
+            attempt.attempt += 1
+
+            try:
+                await dispatcher.send(signal, user_id)
+                attempt.status = DeliveryStatus.DELIVERED
+                attempt.delivered_at = datetime.utcnow()
+                await self._record_success(attempt)
+                return attempt
+
+            except RetryableError as e:
+                attempt.status = DeliveryStatus.RETRYING
+                attempt.error_message = str(e)
+
+                if attempt.attempt >= attempt.max_attempts:
+                    break
+
+                # Exponential backoff: 1s, 2s, 4s, 8s, 16s
+                delay = attempt.base_delay_seconds * (2 ** (attempt.attempt - 1))
+                await asyncio.sleep(delay)
+
+            except PermanentError as e:
+                # Don't retry permanent failures (invalid token, blocked user)
+                attempt.error_message = str(e)
+                break
+
+        # Exhausted retries - move to DLQ
+        attempt.status = DeliveryStatus.FAILED
+        await self.dlq.enqueue(attempt, signal)
+        return attempt
+
+    async def _record_success(self, attempt: DeliveryAttempt) -> None:
+        """Record successful delivery for tracking."""
+        key = f"delivery:success:{attempt.signal_id}:{attempt.user_id}:{attempt.channel}"
+        await self.redis.setex(key, 86400, attempt.delivered_at.isoformat())
+```
+
+### Dead Letter Queue
+
+Messages that fail after all retry attempts are moved to a dead letter queue for manual inspection and potential reprocessing.
+
+```python
+@dataclass
+class DLQEntry:
+    id: str
+    signal_id: str
+    user_id: str
+    channel: str
+    error_message: str
+    attempts: int
+    first_attempt_at: datetime
+    last_attempt_at: datetime
+    signal_payload: dict
+    status: str = "pending"      # pending, reprocessed, discarded
+
+class DeadLetterQueue:
+    def __init__(self, db: Database):
+        self.db = db
+
+    async def enqueue(self, attempt: DeliveryAttempt, signal: Signal) -> str:
+        """Add failed delivery to DLQ."""
+        entry = DLQEntry(
+            id=str(uuid4()),
+            signal_id=attempt.signal_id,
+            user_id=attempt.user_id,
+            channel=attempt.channel,
+            error_message=attempt.error_message,
+            attempts=attempt.attempt,
+            first_attempt_at=datetime.utcnow(),
+            last_attempt_at=datetime.utcnow(),
+            signal_payload=signal.to_dict()
+        )
+
+        await self.db.execute("""
+            INSERT INTO delivery_dlq
+            (id, signal_id, user_id, channel, error_message, attempts,
+             first_attempt_at, last_attempt_at, signal_payload, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        """, entry.id, entry.signal_id, entry.user_id, entry.channel,
+             entry.error_message, entry.attempts, entry.first_attempt_at,
+             entry.last_attempt_at, json.dumps(entry.signal_payload), entry.status)
+
+        return entry.id
+
+    async def get_pending(self, limit: int = 100) -> list[DLQEntry]:
+        """Get pending DLQ entries for review."""
+        rows = await self.db.fetch("""
+            SELECT * FROM delivery_dlq
+            WHERE status = 'pending'
+            ORDER BY last_attempt_at ASC
+            LIMIT $1
+        """, limit)
+        return [DLQEntry(**row) for row in rows]
+
+    async def reprocess(self, entry_id: str) -> bool:
+        """Attempt to reprocess a DLQ entry."""
+        entry = await self._get_entry(entry_id)
+        if not entry:
+            return False
+
+        # Reconstruct signal and retry
+        signal = Signal.from_dict(entry.signal_payload)
+        success = await self._retry_delivery(signal, entry.user_id, entry.channel)
+
+        if success:
+            await self._mark_status(entry_id, "reprocessed")
+        return success
+
+    async def discard(self, entry_id: str, reason: str) -> None:
+        """Mark entry as discarded (won't retry)."""
+        await self.db.execute("""
+            UPDATE delivery_dlq
+            SET status = 'discarded', discard_reason = $2
+            WHERE id = $1
+        """, entry_id, reason)
+```
+
+### DLQ Schema
+
+```sql
+CREATE TABLE delivery_dlq (
+    id UUID PRIMARY KEY,
+    signal_id VARCHAR(255) NOT NULL,
+    user_id UUID NOT NULL,
+    channel VARCHAR(50) NOT NULL,
+    error_message TEXT,
+    attempts INTEGER NOT NULL,
+    first_attempt_at TIMESTAMP NOT NULL,
+    last_attempt_at TIMESTAMP NOT NULL,
+    signal_payload JSONB NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',  -- pending, reprocessed, discarded
+    discard_reason TEXT,
+    reprocessed_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_dlq_status ON delivery_dlq(status);
+CREATE INDEX idx_dlq_channel ON delivery_dlq(channel);
+CREATE INDEX idx_dlq_last_attempt ON delivery_dlq(last_attempt_at);
+```
+
+### DLQ Monitoring API
+
+```
+GET  /api/admin/dlq                  # List pending DLQ entries
+GET  /api/admin/dlq/:id              # Get DLQ entry details
+POST /api/admin/dlq/:id/reprocess    # Retry delivery
+POST /api/admin/dlq/:id/discard      # Discard entry
+GET  /api/admin/dlq/stats            # DLQ statistics by channel
+```
+
+---
+
+## Delivery Confirmation and Receipt Tracking
+
+Track delivery status and confirmations for each message sent.
+
+### Delivery Receipt Schema
+
+```sql
+CREATE TABLE delivery_receipts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    signal_id VARCHAR(255) NOT NULL,
+    user_id UUID NOT NULL,
+    channel VARCHAR(50) NOT NULL,
+    status VARCHAR(20) NOT NULL,         -- pending, sent, delivered, read, failed
+    external_message_id VARCHAR(255),    -- Platform-specific message ID
+    sent_at TIMESTAMP,
+    delivered_at TIMESTAMP,
+    read_at TIMESTAMP,
+    error_message TEXT,
+    retry_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(signal_id, user_id, channel)
+);
+
+CREATE INDEX idx_receipts_user ON delivery_receipts(user_id);
+CREATE INDEX idx_receipts_signal ON delivery_receipts(signal_id);
+CREATE INDEX idx_receipts_status ON delivery_receipts(status);
+```
+
+### Receipt Tracker Implementation
+
+```python
+class DeliveryTracker:
+    def __init__(self, db: Database, metrics: MetricsClient):
+        self.db = db
+        self.metrics = metrics
+
+    async def create_receipt(
+        self,
+        signal_id: str,
+        user_id: str,
+        channel: str
+    ) -> str:
+        """Create pending delivery receipt."""
+        receipt_id = str(uuid4())
+        await self.db.execute("""
+            INSERT INTO delivery_receipts
+            (id, signal_id, user_id, channel, status)
+            VALUES ($1, $2, $3, $4, 'pending')
+            ON CONFLICT (signal_id, user_id, channel) DO NOTHING
+        """, receipt_id, signal_id, user_id, channel)
+        return receipt_id
+
+    async def mark_sent(
+        self,
+        signal_id: str,
+        user_id: str,
+        channel: str,
+        external_id: str
+    ) -> None:
+        """Mark message as sent with external ID."""
+        await self.db.execute("""
+            UPDATE delivery_receipts
+            SET status = 'sent',
+                external_message_id = $4,
+                sent_at = NOW(),
+                updated_at = NOW()
+            WHERE signal_id = $1 AND user_id = $2 AND channel = $3
+        """, signal_id, user_id, channel, external_id)
+
+        self.metrics.increment("delivery.sent", tags={"channel": channel})
+
+    async def mark_delivered(
+        self,
+        signal_id: str,
+        user_id: str,
+        channel: str
+    ) -> None:
+        """Mark message as delivered (confirmed by platform)."""
+        await self.db.execute("""
+            UPDATE delivery_receipts
+            SET status = 'delivered',
+                delivered_at = NOW(),
+                updated_at = NOW()
+            WHERE signal_id = $1 AND user_id = $2 AND channel = $3
+        """, signal_id, user_id, channel)
+
+        self.metrics.increment("delivery.delivered", tags={"channel": channel})
+
+    async def mark_read(
+        self,
+        signal_id: str,
+        user_id: str,
+        channel: str
+    ) -> None:
+        """Mark message as read (if platform supports read receipts)."""
+        await self.db.execute("""
+            UPDATE delivery_receipts
+            SET status = 'read',
+                read_at = NOW(),
+                updated_at = NOW()
+            WHERE signal_id = $1 AND user_id = $2 AND channel = $3
+        """, signal_id, user_id, channel)
+
+        self.metrics.increment("delivery.read", tags={"channel": channel})
+
+    async def mark_failed(
+        self,
+        signal_id: str,
+        user_id: str,
+        channel: str,
+        error: str,
+        retry_count: int
+    ) -> None:
+        """Mark delivery as failed."""
+        await self.db.execute("""
+            UPDATE delivery_receipts
+            SET status = 'failed',
+                error_message = $4,
+                retry_count = $5,
+                updated_at = NOW()
+            WHERE signal_id = $1 AND user_id = $2 AND channel = $3
+        """, signal_id, user_id, channel, error, retry_count)
+
+        self.metrics.increment("delivery.failed", tags={"channel": channel})
+
+    async def get_delivery_stats(
+        self,
+        user_id: str,
+        days: int = 7
+    ) -> dict:
+        """Get delivery statistics for a user."""
+        rows = await self.db.fetch("""
+            SELECT channel, status, COUNT(*) as count
+            FROM delivery_receipts
+            WHERE user_id = $1
+              AND created_at > NOW() - INTERVAL '%s days'
+            GROUP BY channel, status
+        """ % days, user_id)
+
+        return self._aggregate_stats(rows)
+```
+
+### Delivery Status API
+
+```
+GET  /api/user/deliveries                    # User's recent deliveries
+GET  /api/user/deliveries/:signal_id         # Delivery status for specific signal
+GET  /api/user/deliveries/stats              # Delivery success rate by channel
+GET  /api/admin/deliveries/metrics           # System-wide delivery metrics
 ```
 
 ---
@@ -397,19 +930,43 @@ self.addEventListener('push', (event) => {
 
 ### Per-User Limits
 
-| Channel | Limit | Window |
-|---------|-------|--------|
-| Telegram | 1 per symbol | 5 minutes |
-| Discord | 1 per symbol | 5 minutes |
-| Slack | 1 per symbol | 5 minutes |
-| Push | 5 total | 1 hour |
+| Channel | Default Limit | Window | Power User Limit |
+|---------|---------------|--------|------------------|
+| Telegram | 1 per symbol | 5 minutes | 1 per symbol / 2 min |
+| Discord | 1 per symbol | 5 minutes | 1 per symbol / 2 min |
+| Slack | 1 per symbol | 5 minutes | 1 per symbol / 2 min |
+| Push | 10 total | 1 hour | 30 total / 1 hour |
+
+**Note:** Push notification limit increased from 5/hour to 10/hour default, with 30/hour for power users. This ensures high-priority HOT opportunities are not missed while still preventing notification fatigue.
+
+### User Tier Configuration
+
+| Tier | Description | Rate Limit Multiplier |
+|------|-------------|----------------------|
+| `free` | Default tier | 1x (standard limits) |
+| `pro` | Paid subscribers | 2x limits |
+| `power` | High-volume traders | 3x limits |
 
 ### Implementation
 
 ```python
 class RateLimiter:
-    def __init__(self, redis: Redis):
+    TIER_MULTIPLIERS = {
+        "free": 1.0,
+        "pro": 2.0,
+        "power": 3.0
+    }
+
+    DEFAULT_LIMITS = {
+        "telegram": {"per_symbol_seconds": 300, "base_limit": 1},
+        "discord": {"per_symbol_seconds": 300, "base_limit": 1},
+        "slack": {"per_symbol_seconds": 300, "base_limit": 1},
+        "push": {"per_hour": 10, "base_limit": 10}
+    }
+
+    def __init__(self, redis: Redis, user_service: UserService):
         self.redis = redis
+        self.user_service = user_service
 
     async def is_rate_limited(
         self,
@@ -418,14 +975,35 @@ class RateLimiter:
         symbol: str,
         window_seconds: int = 300
     ) -> bool:
+        # Get user tier for rate limit adjustment
+        user_tier = await self.user_service.get_tier(user_id)
+        multiplier = self.TIER_MULTIPLIERS.get(user_tier, 1.0)
+
+        # Adjust window based on tier (shorter window = more messages allowed)
+        adjusted_window = int(window_seconds / multiplier)
+
         key = f"ratelimit:{channel}:{user_id}:{symbol}"
         exists = await self.redis.exists(key)
 
         if exists:
             return True
 
-        await self.redis.setex(key, window_seconds, "1")
+        await self.redis.setex(key, adjusted_window, "1")
         return False
+
+    async def is_push_rate_limited(self, user_id: str) -> bool:
+        """Special rate limiting for push notifications (total count, not per-symbol)."""
+        user_tier = await self.user_service.get_tier(user_id)
+        multiplier = self.TIER_MULTIPLIERS.get(user_tier, 1.0)
+        max_per_hour = int(self.DEFAULT_LIMITS["push"]["per_hour"] * multiplier)
+
+        key = f"ratelimit:push:{user_id}:hourly"
+        current = await self.redis.incr(key)
+
+        if current == 1:
+            await self.redis.expire(key, 3600)  # 1 hour TTL
+
+        return current > max_per_hour
 ```
 
 ---
@@ -440,6 +1018,7 @@ CREATE TABLE user_channel_preferences (
     channel VARCHAR(50) NOT NULL,  -- telegram, discord, slack, push
     channel_id VARCHAR(255),       -- telegram chat_id, slack channel, etc.
     enabled BOOLEAN DEFAULT TRUE,
+    is_primary BOOLEAN DEFAULT FALSE,  -- Primary channel for deduplication
     min_opportunity_score INTEGER DEFAULT 60,
     symbols TEXT[],                -- NULL = all symbols
     actions TEXT[],                -- NULL = all actions
@@ -449,6 +1028,17 @@ CREATE TABLE user_channel_preferences (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     PRIMARY KEY (user_id, channel)
+);
+
+-- User-level delivery preferences
+CREATE TABLE user_delivery_preferences (
+    user_id UUID PRIMARY KEY,
+    dedup_preference VARCHAR(20) DEFAULT 'primary_only',  -- primary_only, all_enabled, fallback_chain
+    primary_channel VARCHAR(50),                          -- User's primary channel
+    fallback_order TEXT[],                                -- Channel order for fallback_chain mode
+    tier VARCHAR(20) DEFAULT 'free',                      -- free, pro, power
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 ```
 
@@ -467,6 +1057,30 @@ DELETE /api/user/channels/telegram   # Disable channel
 
 ```yaml
 delivery:
+  # Retry and DLQ settings
+  retry:
+    max_attempts: 6
+    base_delay_seconds: 1.0
+    max_delay_seconds: 16.0
+    backoff_multiplier: 2.0
+
+  dlq:
+    enabled: true
+    retention_days: 30
+    auto_discard_after_days: 7  # Auto-discard stale entries
+
+  # Cross-channel deduplication
+  deduplication:
+    enabled: true
+    ttl_seconds: 3600           # 1 hour dedup window
+    default_preference: "primary_only"  # primary_only, all_enabled, fallback_chain
+
+  # Delivery tracking
+  tracking:
+    enabled: true
+    retention_days: 30
+
+  # Channel-specific settings
   telegram:
     bot_token: ${TELEGRAM_BOT_TOKEN}
     rate_limit:
@@ -487,27 +1101,60 @@ delivery:
     vapid_private_key: ${VAPID_PRIVATE_KEY}
     vapid_public_key: ${VAPID_PUBLIC_KEY}
     rate_limit:
-      per_hour: 5
+      per_hour: 10              # Increased from 5 for power users
+      power_user_per_hour: 30
+
+  email:
+    provider: sendgrid
+    api_key: ${SENDGRID_API_KEY}
+    from_address: alerts@tradestream.io
 ```
 
 ## Constraints
 
 - Users must opt-in to each channel
-- Rate limits prevent spam
+- Rate limits prevent spam (tiered by user subscription)
 - Configurable minimum opportunity score for alerts
 - Quiet hours support per user
 - Graceful degradation if channel unavailable
+- Cross-channel deduplication prevents duplicate alerts
+- Failed deliveries retry with exponential backoff (max 6 attempts, ~31s total)
+- Permanently failed messages move to DLQ for manual review
+- All delivery attempts tracked for audit and debugging
 
 ## Acceptance Criteria
 
+### Core Functionality
 - [ ] Telegram bot responds to /signals command
 - [ ] Discord webhook posts formatted alerts
 - [ ] Users can configure alert preferences
 - [ ] Rate limiting prevents spam (1 per symbol per 5 min)
 - [ ] Quiet hours respected
 - [ ] Minimum opportunity score filter works
-- [ ] All channels show consistent signal information
-- [ ] Failed delivery logged but doesn't block others
+- [ ] All channels show consistent signal information (via template engine)
+
+### Retry and Error Handling
+- [ ] Failed deliveries retry with exponential backoff
+- [ ] Retries stop after 6 attempts (~31 seconds)
+- [ ] Failed messages move to DLQ after retry exhaustion
+- [ ] DLQ entries can be reprocessed via admin API
+- [ ] Permanent errors (invalid token, blocked user) skip retries
+
+### Cross-Channel Deduplication
+- [ ] Same signal not sent to multiple channels by default
+- [ ] Users can opt-in to receive on all channels
+- [ ] Fallback chain mode tries next channel if primary fails
+
+### Delivery Tracking
+- [ ] All deliveries create receipt records
+- [ ] Receipts track sent/delivered/read status
+- [ ] Users can view their delivery history
+- [ ] Admins can view system-wide delivery metrics
+
+### Rate Limiting
+- [ ] Power users get higher rate limits (3x)
+- [ ] Push notifications allow 10/hour (30 for power users)
+- [ ] Per-symbol limits enforced across messaging channels
 
 ## File Structure
 
@@ -516,11 +1163,19 @@ services/
 ├── delivery/
 │   ├── __init__.py
 │   ├── main.py              # Delivery orchestrator
-│   ├── rate_limiter.py      # Rate limiting
-│   ├── formatters/
-│   │   ├── telegram.py
-│   │   ├── discord.py
-│   │   └── slack.py
+│   ├── rate_limiter.py      # Rate limiting with tier support
+│   ├── retry.py             # Retry with exponential backoff
+│   ├── dlq.py               # Dead letter queue
+│   ├── deduplication.py     # Cross-channel deduplication
+│   ├── tracker.py           # Delivery receipt tracking
+│   ├── templates/
+│   │   ├── __init__.py
+│   │   ├── engine.py        # Template rendering engine
+│   │   └── adapters/
+│   │       ├── telegram.py
+│   │       ├── discord.py
+│   │       ├── slack.py
+│   │       └── push.py
 │   └── preferences.py       # User preferences
 ├── telegram_bot/
 │   ├── main.py
@@ -529,8 +1184,11 @@ services/
 ├── discord_webhook/
 │   ├── main.py
 │   └── Dockerfile
-└── slack_bot/
+├── slack_bot/
+│   ├── main.py
+│   ├── handlers.py
+│   └── Dockerfile
+└── push_service/
     ├── main.py
-    ├── handlers.py
     └── Dockerfile
 ```
