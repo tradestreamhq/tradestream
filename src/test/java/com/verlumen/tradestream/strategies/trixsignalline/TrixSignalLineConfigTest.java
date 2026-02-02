@@ -76,9 +76,7 @@ public class TrixSignalLineConfigTest {
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(
-            IntegerChromosome.of(12, 20),
-            IntegerChromosome.of(5, 12));
+        ImmutableList.of(IntegerChromosome.of(12, 20), IntegerChromosome.of(5, 12));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
