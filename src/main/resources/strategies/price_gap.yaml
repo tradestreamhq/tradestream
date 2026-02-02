@@ -5,7 +5,7 @@ parameterMessageType: com.verlumen.tradestream.strategies.PriceGapParameters
 
 indicators:
   - id: closePrice
-    type: CLOSE_PRICE
+    type: CLOSE
   - id: ema
     type: EMA
     params:
