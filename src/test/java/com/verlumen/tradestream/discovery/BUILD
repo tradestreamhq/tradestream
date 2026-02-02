@@ -1,6 +1,32 @@
 load("@rules_java//java:defs.bzl", "java_test")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 
+java_test(
+    name = "DoubleChromosomeSpecTest",
+    srcs = ["DoubleChromosomeSpecTest.java"],
+    test_class = "com.verlumen.tradestream.discovery.DoubleChromosomeSpecTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
+        "//third_party/java:guava",
+        "//third_party/java:jenetics",
+        "//third_party/java:junit",
+        "//third_party/java:truth",
+    ],
+)
+
+java_test(
+    name = "IntegerChromosomeSpecTest",
+    srcs = ["IntegerChromosomeSpecTest.java"],
+    test_class = "com.verlumen.tradestream.discovery.IntegerChromosomeSpecTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
+        "//third_party/java:guava",
+        "//third_party/java:jenetics",
+        "//third_party/java:junit",
+        "//third_party/java:truth",
+    ],
+)
+
 kt_jvm_test(
     name = "DeserializeStrategyDiscoveryRequestFnTest",
     srcs = ["DeserializeStrategyDiscoveryRequestFnTest.kt"],
