@@ -1,0 +1,72 @@
+name: KST_OSCILLATOR
+description: Know Sure Thing oscillator using weighted ROC indicators with signal line crossover
+complexity: COMPLEX
+parameterMessageType: com.verlumen.tradestream.strategies.KstOscillatorParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: roc1
+    type: ROC
+    input: close
+    params:
+      period: "${rma1Period}"
+  - id: roc2
+    type: ROC
+    input: close
+    params:
+      period: "${rma2Period}"
+  - id: roc3
+    type: ROC
+    input: close
+    params:
+      period: "${rma3Period}"
+  - id: roc4
+    type: ROC
+    input: close
+    params:
+      period: "${rma4Period}"
+  - id: kstSignal
+    type: SMA
+    input: roc1
+    params:
+      period: "${signalPeriod}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: roc1
+    params:
+      crosses: kstSignal
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: roc1
+    params:
+      crosses: kstSignal
+
+parameters:
+  - name: rma1Period
+    type: INTEGER
+    min: 8
+    max: 12
+    defaultValue: 10
+  - name: rma2Period
+    type: INTEGER
+    min: 13
+    max: 17
+    defaultValue: 15
+  - name: rma3Period
+    type: INTEGER
+    min: 18
+    max: 22
+    defaultValue: 20
+  - name: rma4Period
+    type: INTEGER
+    min: 28
+    max: 32
+    defaultValue: 30
+  - name: signalPeriod
+    type: INTEGER
+    min: 7
+    max: 11
+    defaultValue: 9
