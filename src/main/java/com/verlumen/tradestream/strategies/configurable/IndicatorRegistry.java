@@ -222,6 +222,12 @@ public final class IndicatorRegistry {
             new ChaikinOscillatorIndicator(
                 series, params.getInt("shortPeriod", 3), params.getInt("longPeriod", 10)));
 
+    registry.register(
+        "MASS_INDEX",
+        (series, input, params) ->
+            new MassIndexIndicator(
+                series, params.getInt("emaPeriod", 9), params.getInt("sumPeriod", 25)));
+
     registry.register("PVT", (series, input, params) -> new PVIIndicator(series));
 
     registry.register("NVI", (series, input, params) -> new NVIIndicator(series));
