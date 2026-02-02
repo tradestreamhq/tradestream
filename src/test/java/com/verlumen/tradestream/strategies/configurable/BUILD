@@ -83,12 +83,24 @@ java_test(
     ],
 )
 
+java_test(
+    name = "IndicatorConfigTest",
+    srcs = ["IndicatorConfigTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.IndicatorConfigTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//third_party/java:junit",
+        "//third_party/java:truth",
+    ],
+)
+
 test_suite(
     name = "all_tests",
     tests = [
         ":ConfigBasedVsHardcodedValidationTest",
         ":ConfigurableParamConfigTest",
         ":ConfigurableStrategyFactoryTest",
+        ":IndicatorConfigTest",
         ":IndicatorRegistryTest",
         ":RuleRegistryTest",
         ":StrategyConfigLoaderTest",
