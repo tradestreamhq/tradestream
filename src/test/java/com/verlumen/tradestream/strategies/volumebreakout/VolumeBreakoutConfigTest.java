@@ -52,14 +52,14 @@ public class VolumeBreakoutConfigTest {
   }
 
   @Test
-  public void createStrategy_returnsValidStrategy() {
+  public void createStrategy_returnsValidStrategy() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     assertThat(strategy).isNotNull();
     assertThat(strategy.getName()).isEqualTo("VOLUME_BREAKOUT");
   }
 
   @Test
-  public void strategy_canEvaluateSignals() {
+  public void strategy_canEvaluateSignals() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     for (int i = 50; i < series.getBarCount(); i++) {
       strategy.shouldEnter(i);
@@ -76,7 +76,7 @@ public class VolumeBreakoutConfigTest {
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(DoubleChromosome.of(1.5, 3.0, 2.0));
+        ImmutableList.of(DoubleChromosome.of(1.5, 3.0));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
