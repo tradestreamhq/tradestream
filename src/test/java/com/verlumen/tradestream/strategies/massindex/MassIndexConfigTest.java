@@ -75,7 +75,7 @@ public class MassIndexConfigTest {
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(IntegerChromosome.of(5, 15, 9), IntegerChromosome.of(15, 35, 25));
+        ImmutableList.of(IntegerChromosome.of(5, 15), IntegerChromosome.of(15, 35));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
