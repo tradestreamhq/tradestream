@@ -46,6 +46,38 @@ This happens because:
 | **Validated** | ✅ | 6+ months forward test, 100+ signals | "Forward-tested (6 months)" |
 | **Deployed** | 🏆 | Live trading track record | "Live-validated" |
 
+### Validation Status Transition Rules
+
+Strategies can only move forward through validation levels, never backward (except for demotion due to decay):
+
+```
+Candidate ──────► Validated ──────► Deployed
+    │                 │                 │
+    │                 │                 │
+    ▼                 ▼                 ▼
+ [Retire]         [Demote]          [Demote]
+                  to Candidate      to Validated
+```
+
+**Promotion Criteria:**
+
+| Transition | Requirements |
+|------------|--------------|
+| Candidate → Validated | 6+ months forward-test, 100+ signals, accuracy >= 55%, Sharpe >= 1.0 |
+| Validated → Deployed | Manual approval + 50+ live trades, positive P&L, drawdown <= 15% |
+
+**Demotion Criteria:**
+
+| Condition | Action |
+|-----------|--------|
+| Decay trend = DECLINING for 2+ consecutive months | Demote one level |
+| Accuracy drops below 50% (rolling 3-month) | Demote to Candidate |
+| Max drawdown exceeds 20% in live trading | Immediately halt + Demote to Validated |
+
+**Retirement:**
+- Strategies with < 45% accuracy over 6+ months are retired (removed from signal generation)
+- Retired strategies can be re-enabled for research but not user-facing signals
+
 ## Prediction Display Requirements
 
 Every signal must show:
@@ -137,11 +169,28 @@ Recent discoveries have less validation.
 
 Every signal must include appropriate disclaimers:
 
-### Always Shown
+### Always Shown (Prominently Displayed)
+
+Disclaimers must be prominently displayed, not hidden in fine print. They should:
+- Appear in a visible location (not collapsed or scrolled out of view)
+- Use readable font size (minimum 12px)
+- Have sufficient contrast with background
+- Be shown before any "Buy" or "Sell" action buttons
 
 ```
 ⚠️ Past performance does not guarantee future results.
 Trading involves risk of loss. This is not financial advice.
+Maximum historical drawdown: -XX.X% (based on forward-test data).
+```
+
+### Registered Investment Advisor (RIA) Disclaimer
+
+If providing signals that could be construed as investment advice:
+
+```
+TradeStream is not a registered investment advisor. Signals provided are
+for informational purposes only and do not constitute investment advice.
+Consult a licensed financial advisor before making investment decisions.
 ```
 
 ### For Candidate Strategies (Backtest Only)
@@ -282,29 +331,59 @@ async def record_signal_outcome(signal_id: str):
     """
     Record actual outcome for a signal after timeframe elapses.
     Called by scheduled job.
+
+    Edge Case Handling:
+    - Early target hit then reversal: We use "final return at timeframe" not "peak return"
+      to avoid overstating success. A trade that hit +5% then reversed to -2% is recorded as -2%.
+    - This conservative approach better reflects realistic trading outcomes where
+      perfect exit timing is not always possible.
+
+    80% Threshold Rationale:
+    - The 80% threshold for hit_target accounts for slippage, fees, and execution costs
+    - A prediction of +5% that achieves +4% is considered successful (4% >= 5% * 0.8)
+    - This tolerance prevents penalizing strategies for minor execution differences
+    - The threshold is configurable via settings for different risk profiles
     """
     signal = await get_signal(signal_id)
 
-    # Calculate actual return
+    # Get price history during signal timeframe for drawdown calculation
+    price_history = await get_price_history(
+        signal.symbol,
+        start=signal.signal_timestamp,
+        end=signal.signal_timestamp + timedelta(hours=signal.predicted_timeframe_hours)
+    )
+
+    # Calculate actual return at timeframe end (not peak)
     entry_price = signal.market_context.current_price
     current_price = await get_current_price(signal.symbol)
     actual_return = (current_price - entry_price) / entry_price
+
+    # Calculate maximum drawdown during holding period
+    if signal.action == "BUY":
+        max_adverse = min(p.low for p in price_history)
+        max_drawdown = (max_adverse - entry_price) / entry_price
+    else:
+        max_adverse = max(p.high for p in price_history)
+        max_drawdown = (entry_price - max_adverse) / entry_price
 
     # Adjust for direction
     if signal.action == "SELL":
         actual_return = -actual_return
 
     # Did it hit target?
-    hit_target = actual_return >= signal.predicted_return * 0.8  # Within 80% of target
+    # 80% threshold accounts for slippage/fees (configurable)
+    target_threshold = settings.get("target_hit_threshold", 0.8)
+    hit_target = actual_return >= signal.predicted_return * target_threshold
 
     await db.execute("""
         UPDATE signal_outcomes
         SET actual_return = $1,
             actual_duration_hours = $2,
             hit_target = $3,
+            max_drawdown = $4,
             outcome_timestamp = NOW()
-        WHERE signal_id = $4
-    """, actual_return, hours_elapsed, hit_target, signal_id)
+        WHERE signal_id = $5
+    """, actual_return, hours_elapsed, hit_target, max_drawdown, signal_id)
 ```
 
 ## Metrics to Track
@@ -334,13 +413,18 @@ def measure_strategy_decay(strategy_id: str) -> DecayMetrics:
     """
     Measure how strategy performance changes over time.
     Early detection of strategy degradation.
+
+    Uses confidence bounds on slope to avoid false positives from noise.
+    A decay signal is only raised when the slope is significantly negative
+    (i.e., the 95% confidence interval excludes zero).
     """
     # Performance by month since discovery
     monthly_perf = db.query("""
         SELECT
             DATE_TRUNC('month', signal_timestamp) as month,
             AVG(CASE WHEN hit_target THEN 1.0 ELSE 0.0 END) as accuracy,
-            AVG(actual_return) as avg_return
+            AVG(actual_return) as avg_return,
+            COUNT(*) as signal_count
         FROM signal_outcomes
         WHERE strategy_id = $1
           AND outcome_timestamp IS NOT NULL
@@ -348,18 +432,46 @@ def measure_strategy_decay(strategy_id: str) -> DecayMetrics:
         ORDER BY 1
     """, strategy_id)
 
-    # Calculate decay trend
+    # Calculate decay trend with confidence bounds
     accuracies = [m.accuracy for m in monthly_perf]
     if len(accuracies) >= 3:
-        slope, _ = numpy.polyfit(range(len(accuracies)), accuracies, 1)
-        trend = "DECLINING" if slope < -0.02 else "STABLE" if abs(slope) < 0.02 else "IMPROVING"
+        # Fit linear regression with confidence interval on slope
+        x = numpy.array(range(len(accuracies)))
+        y = numpy.array(accuracies)
+
+        # Calculate slope and standard error
+        n = len(accuracies)
+        slope, intercept = numpy.polyfit(x, y, 1)
+        y_pred = slope * x + intercept
+        residuals = y - y_pred
+        mse = numpy.sum(residuals ** 2) / (n - 2)
+        se_slope = numpy.sqrt(mse / numpy.sum((x - x.mean()) ** 2))
+
+        # 95% confidence interval on slope
+        t_value = scipy.stats.t.ppf(0.975, n - 2)
+        slope_ci_lower = slope - t_value * se_slope
+        slope_ci_upper = slope + t_value * se_slope
+
+        # Only flag declining if confidence interval excludes zero
+        # This prevents false alarms from random noise
+        if slope_ci_upper < 0:  # Entire CI is negative
+            trend = "DECLINING"
+        elif slope_ci_lower > 0:  # Entire CI is positive
+            trend = "IMPROVING"
+        else:  # CI includes zero - no significant trend
+            trend = "STABLE"
     else:
         trend = "INSUFFICIENT_DATA"
+        slope = None
+        slope_ci_lower = None
+        slope_ci_upper = None
 
     return DecayMetrics(
         monthly_performance=monthly_perf,
         trend=trend,
-        slope=slope
+        slope=slope,
+        slope_ci_lower=slope_ci_lower,
+        slope_ci_upper=slope_ci_upper
     )
 ```
 
@@ -515,10 +627,13 @@ export function Disclaimer({
 - [ ] Every signal shows expected return with 95% CI
 - [ ] Every signal shows validation status (candidate/validated/deployed)
 - [ ] Historical accuracy calculated from forward-test period only
-- [ ] Standard disclaimers displayed on all signal cards
+- [ ] Standard disclaimers displayed prominently on all signal cards
+- [ ] RIA disclaimer included where applicable
+- [ ] Maximum drawdown disclosed in signal information
 - [ ] Additional warnings for candidate/high-volatility/new strategies
-- [ ] Prediction tracking database records all outcomes
-- [ ] Strategy decay metrics calculated and monitored
+- [ ] Prediction tracking database records all outcomes including max_drawdown
+- [ ] Strategy decay metrics calculated with confidence bounds on slope
+- [ ] Validation status transitions follow defined rules
 - [ ] UI components display all required information
 
 ## File Structure
