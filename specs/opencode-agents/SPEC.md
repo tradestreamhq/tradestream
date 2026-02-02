@@ -508,6 +508,233 @@ channel:dashboard-signals  # Report Generator → SSE Gateway
 }
 ```
 
+### Backpressure Mechanism
+
+Each agent maintains a bounded input queue to prevent memory exhaustion during traffic spikes.
+
+```python
+@dataclass
+class QueueConfig:
+    max_size: int = 1000           # Maximum messages in queue
+    high_watermark: float = 0.8    # 80% triggers slowdown signal
+    low_watermark: float = 0.5     # 50% resumes normal processing
+    drop_policy: str = "oldest"    # oldest | newest | reject
+
+class BoundedMessageQueue:
+    def __init__(self, config: QueueConfig):
+        self.queue = asyncio.Queue(maxsize=config.max_size)
+        self.config = config
+        self.backpressure_active = False
+
+    async def put(self, message: Message) -> bool:
+        """Add message to queue with backpressure handling."""
+        current_fill = self.queue.qsize() / self.config.max_size
+
+        if current_fill >= self.config.high_watermark:
+            self.backpressure_active = True
+            await self.publish_backpressure_signal(active=True)
+
+        if self.queue.full():
+            if self.config.drop_policy == "oldest":
+                try:
+                    self.queue.get_nowait()
+                    metrics.increment("messages_dropped", tags={"policy": "oldest"})
+                except asyncio.QueueEmpty:
+                    pass
+            elif self.config.drop_policy == "newest":
+                metrics.increment("messages_dropped", tags={"policy": "newest"})
+                return False
+            elif self.config.drop_policy == "reject":
+                raise QueueFullError("Queue at capacity")
+
+        await self.queue.put(message)
+        return True
+
+    async def get(self) -> Message:
+        """Get message from queue and manage backpressure."""
+        message = await self.queue.get()
+        current_fill = self.queue.qsize() / self.config.max_size
+
+        if self.backpressure_active and current_fill <= self.config.low_watermark:
+            self.backpressure_active = False
+            await self.publish_backpressure_signal(active=False)
+
+        return message
+```
+
+### Retry Policy
+
+Failed message processing uses exponential backoff with jitter to prevent thundering herd.
+
+```python
+@dataclass
+class RetryConfig:
+    max_retries: int = 3
+    base_delay_ms: int = 100
+    max_delay_ms: int = 10000
+    exponential_base: float = 2.0
+    jitter_factor: float = 0.1    # +/- 10% randomization
+
+class RetryPolicy:
+    def __init__(self, config: RetryConfig):
+        self.config = config
+
+    def calculate_delay(self, attempt: int) -> float:
+        """Calculate delay with exponential backoff and jitter."""
+        delay = min(
+            self.config.base_delay_ms * (self.config.exponential_base ** attempt),
+            self.config.max_delay_ms
+        )
+        jitter = delay * self.config.jitter_factor * (2 * random.random() - 1)
+        return max(0, delay + jitter) / 1000
+
+    async def execute_with_retry(self, func: Callable, message: Message) -> Result | None:
+        """Execute function with retry logic."""
+        last_error = None
+
+        for attempt in range(self.config.max_retries + 1):
+            try:
+                return await func(message)
+            except RetryableError as e:
+                last_error = e
+                if attempt < self.config.max_retries:
+                    delay = self.calculate_delay(attempt)
+                    logger.warning(f"Attempt {attempt + 1} failed, retrying in {delay:.2f}s: {e}")
+                    await asyncio.sleep(delay)
+                    metrics.increment("retry_attempts", tags={"attempt": attempt + 1, "error_type": type(e).__name__})
+            except NonRetryableError as e:
+                logger.error(f"Non-retryable error: {e}")
+                await self.send_to_dlq(message, e)
+                return None
+
+        logger.error(f"All {self.config.max_retries} retries exhausted: {last_error}")
+        await self.send_to_dlq(message, last_error)
+        return None
+
+    async def send_to_dlq(self, message: Message, error: Exception):
+        """Send failed message to dead letter queue."""
+        dlq_message = {
+            "original_message": message.to_dict(),
+            "error": str(error),
+            "error_type": type(error).__name__,
+            "failed_at": datetime.utcnow().isoformat(),
+            "retry_count": self.config.max_retries
+        }
+        await redis.lpush("dlq:agent-messages", json.dumps(dlq_message))
+        metrics.increment("dlq_messages")
+```
+
+### Idempotency Enforcement
+
+Each agent maintains a deduplication cache using `message_id` to ensure exactly-once processing.
+
+```python
+class IdempotencyEnforcer:
+    def __init__(self, redis_client: Redis, ttl_seconds: int = 3600):
+        self.redis = redis_client
+        self.ttl = ttl_seconds
+        self.key_prefix = "idempotency"
+
+    async def is_duplicate(self, message: Message) -> bool:
+        """Check if message was already processed."""
+        key = f"{self.key_prefix}:{message.source_agent}:{message.message_id}"
+        return await self.redis.exists(key)
+
+    async def mark_processed(self, message: Message, result: Result):
+        """Mark message as processed with result cached."""
+        key = f"{self.key_prefix}:{message.source_agent}:{message.message_id}"
+        value = {
+            "processed_at": datetime.utcnow().isoformat(),
+            "result_hash": hashlib.sha256(json.dumps(result.to_dict(), sort_keys=True).encode()).hexdigest()
+        }
+        await self.redis.setex(key, self.ttl, json.dumps(value))
+
+class Agent:
+    async def process_message(self, message: Message) -> Result | None:
+        """Process message with idempotency check."""
+        if await self.idempotency.is_duplicate(message):
+            logger.info(f"Skipping duplicate message: {message.message_id}")
+            metrics.increment("duplicate_messages_skipped")
+            return await self.idempotency.get_cached_result(message)
+
+        result = await self.retry_policy.execute_with_retry(self._do_process, message)
+
+        if result:
+            await self.idempotency.mark_processed(message, result)
+
+        return result
+```
+
+---
+
+## Learning/Janitor Agent Coordination
+
+The Learning and Janitor agents both access `strategy-db-mcp` and could conflict when modifying strategy state.
+
+### Mutual Exclusion via Distributed Lock
+
+```python
+class StrategyDbLock:
+    """Distributed lock for strategy-db-mcp access."""
+
+    LOCK_KEY = "lock:strategy-db-mcp"
+
+    def __init__(self, redis_client: Redis, agent_name: str):
+        self.redis = redis_client
+        self.agent_name = agent_name
+        self.lock_ttl = 600  # 10 minute max hold time
+
+    async def acquire(self, timeout_seconds: int = 30) -> bool:
+        """Attempt to acquire exclusive lock."""
+        lock_value = f"{self.agent_name}:{uuid.uuid4()}"
+        start = time.time()
+
+        while time.time() - start < timeout_seconds:
+            acquired = await self.redis.set(self.LOCK_KEY, lock_value, nx=True, ex=self.lock_ttl)
+            if acquired:
+                self._lock_value = lock_value
+                logger.info(f"{self.agent_name} acquired strategy-db lock")
+                return True
+            await asyncio.sleep(1)
+
+        return False
+
+    async def release(self):
+        """Release lock only if we hold it."""
+        script = """
+        if redis.call("get", KEYS[1]) == ARGV[1] then
+            return redis.call("del", KEYS[1])
+        else
+            return 0
+        end
+        """
+        await self.redis.eval(script, 1, self.LOCK_KEY, self._lock_value)
+
+    async def __aenter__(self):
+        if not await self.acquire():
+            raise LockAcquisitionError(f"{self.agent_name} failed to acquire lock")
+        return self
+
+    async def __aexit__(self, *args):
+        await self.release()
+```
+
+### Schedule Separation
+
+| Agent    | Schedule          | Typical Duration | Notes                          |
+|----------|-------------------|------------------|--------------------------------|
+| Learning | `0 */6 * * *`     | 5-10 minutes     | Every 6 hours (00:00, 06:00, 12:00, 18:00) |
+| Janitor  | `0 3 * * *`       | 10-30 minutes    | Daily at 03:00 UTC (off-peak)  |
+
+### Operation Isolation
+
+| Agent    | Read Operations           | Write Operations                  |
+|----------|---------------------------|-----------------------------------|
+| Learning | Top performers, patterns  | `INSERT` new specs (DRAFT status) |
+| Janitor  | Underperformers, metrics  | `UPDATE` status to RETIRED        |
+
+---
+
 ## Error Handling
 
 ### Agent Failure
@@ -560,6 +787,11 @@ async def process_with_timeout(agent: Agent, message: Message) -> Result:
 - [ ] Error events published to SSE stream
 - [ ] Learning agent generates valid specs
 - [ ] Janitor agent respects CANONICAL protection
+- [ ] Retry policy with exponential backoff implemented for all agents
+- [ ] Backpressure mechanism prevents memory exhaustion under load
+- [ ] Idempotency enforced via message_id deduplication
+- [ ] Learning/Janitor agents coordinate via distributed lock
+- [ ] Resource limits enforced per agent in Kubernetes deployment
 
 ## Deployment
 
@@ -596,6 +828,17 @@ Each agent is a separate Deployment with:
 - ConfigMap for agent config
 - Secret for API keys
 
+### Resource Limits per Agent
+
+| Agent              | CPU Request | CPU Limit | Memory Request | Memory Limit | Max Queue Size |
+|--------------------|-------------|-----------|----------------|--------------|----------------|
+| signal-generator   | 100m        | 500m      | 128Mi          | 512Mi        | 1000           |
+| opportunity-scorer | 100m        | 500m      | 128Mi          | 512Mi        | 500            |
+| portfolio-advisor  | 200m        | 1000m     | 256Mi          | 1Gi          | 200            |
+| report-generator   | 50m         | 250m      | 64Mi           | 256Mi        | 500            |
+| learning           | 500m        | 2000m     | 512Mi          | 2Gi          | N/A (batch)    |
+| janitor            | 200m        | 1000m     | 256Mi          | 1Gi          | N/A (batch)    |
+
 ## Metrics
 
 - `agent_pipeline_duration_ms` - End-to-end pipeline latency
@@ -603,3 +846,11 @@ Each agent is a separate Deployment with:
 - `agent_failures_total` - Failed agent invocations
 - `agent_messages_processed_total` - Messages by agent and channel
 - `agent_model_tokens_total` - Token usage by agent and model
+- `agent_retry_attempts_total` - Retry attempts by agent and error type
+- `agent_dlq_messages_total` - Messages sent to dead letter queue
+- `agent_queue_size` - Current queue size per agent
+- `agent_backpressure_active` - Backpressure state (0/1) per agent
+- `agent_messages_dropped_total` - Messages dropped due to queue overflow
+- `agent_duplicate_messages_skipped_total` - Duplicate messages filtered by idempotency
+- `agent_lock_acquisition_duration_ms` - Time to acquire distributed lock
+- `agent_lock_wait_total` - Lock acquisition attempts (success/failure)
