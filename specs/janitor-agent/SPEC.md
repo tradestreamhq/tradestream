@@ -416,6 +416,476 @@ def is_protected(spec: Spec) -> bool:
 - Historical data preserved for analysis
 - Can be reactivated if market conditions change
 
+## Reactivation Workflow
+
+### When to Reactivate
+
+Retired strategies may be reactivated when:
+1. **Market regime change**: Conditions become favorable for the strategy again
+2. **Strategy update**: Parameters or logic have been improved
+3. **False positive**: Retirement was premature due to data issues
+4. **Manual request**: Human operator requests reactivation for testing
+
+### Reactivation Process
+
+```python
+async def reactivate_implementation(
+    impl_id: str,
+    reason: str,
+    requester: str
+) -> bool:
+    """
+    Reactivate a retired implementation.
+    """
+    # Verify implementation is retired and can be reactivated
+    impl = await get_implementation(impl_id)
+    if impl.status != 'RETIRED':
+        raise ValueError(f"Implementation {impl_id} is not retired")
+
+    retirement_log = await get_retirement_log(impl_id)
+    if not retirement_log.can_reactivate:
+        raise ValueError(f"Implementation {impl_id} is not eligible for reactivation")
+
+    # Update status to VALIDATING (requires fresh validation)
+    await db.execute("""
+        UPDATE strategy_implementations
+        SET status = 'VALIDATING',
+            updated_at = NOW()
+        WHERE impl_id = $1
+    """, impl_id)
+
+    # Log reactivation
+    await db.execute("""
+        INSERT INTO reactivation_log
+        (impl_id, reason, requester, reactivated_at)
+        VALUES ($1, $2, $3, NOW())
+    """, impl_id, reason, requester)
+
+    return True
+```
+
+### Reactivation Criteria
+
+```python
+def can_reactivate(impl_id: str) -> tuple[bool, str]:
+    """
+    Check if an implementation can be reactivated.
+    """
+    impl = get_implementation(impl_id)
+    retirement = get_retirement_log(impl_id)
+
+    # Check reactivation flag
+    if not retirement.can_reactivate:
+        return False, "Implementation marked as non-reactivatable"
+
+    # Limit reactivation attempts
+    reactivation_count = get_reactivation_count(impl_id)
+    if reactivation_count >= 2:
+        return False, "Maximum reactivation attempts (2) exceeded"
+
+    # Cooling off period after retirement
+    days_since_retirement = (now() - retirement.retired_at).days
+    if days_since_retirement < 30:
+        return False, f"Cooling off period: {30 - days_since_retirement} days remaining"
+
+    return True, "Eligible for reactivation"
+```
+
+### Reactivation Database Schema
+
+```sql
+-- Reactivation log for tracking
+CREATE TABLE reactivation_log (
+    log_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    impl_id UUID REFERENCES strategy_implementations(impl_id),
+    reason TEXT NOT NULL,
+    requester VARCHAR(100) NOT NULL,
+    reactivated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_reactivation_log_impl ON reactivation_log(impl_id);
+```
+
+## Market Regime Detection
+
+### Regime Types
+
+```python
+class MarketRegime(Enum):
+    TRENDING_UP = "trending_up"      # Clear uptrend, momentum strategies work
+    TRENDING_DOWN = "trending_down"  # Clear downtrend, reversal strategies work
+    RANGING = "ranging"              # Sideways, mean-reversion works
+    HIGH_VOLATILITY = "high_vol"     # Spikes, volatility strategies work
+    LOW_VOLATILITY = "low_vol"       # Calm, carry/yield strategies work
+```
+
+### Regime Detection Function
+
+```sql
+CREATE OR REPLACE FUNCTION detect_market_regime(
+    p_symbol VARCHAR(20),
+    p_lookback_days INTEGER DEFAULT 30
+)
+RETURNS VARCHAR(20) AS $$
+DECLARE
+    volatility_ratio DECIMAL;
+    trend_strength DECIMAL;
+BEGIN
+    -- Calculate ATR ratio (current vs average) and trend strength
+    SELECT
+        AVG(CASE WHEN rn <= 5 THEN atr END) / NULLIF(AVG(atr), 0),
+        REGR_SLOPE(close_price, row_num)
+    INTO volatility_ratio, trend_strength
+    FROM (
+        SELECT
+            atr,
+            close_price,
+            ROW_NUMBER() OVER (ORDER BY timestamp DESC) as rn,
+            ROW_NUMBER() OVER (ORDER BY timestamp ASC) as row_num
+        FROM market_data
+        WHERE symbol = p_symbol
+          AND timestamp > NOW() - INTERVAL '1 day' * p_lookback_days
+    ) data;
+
+    -- Classify regime
+    IF volatility_ratio > 1.5 THEN
+        RETURN 'high_vol';
+    ELSIF volatility_ratio < 0.5 THEN
+        RETURN 'low_vol';
+    ELSIF ABS(trend_strength) > 0.02 THEN
+        IF trend_strength > 0 THEN
+            RETURN 'trending_up';
+        ELSE
+            RETURN 'trending_down';
+        END IF;
+    ELSE
+        RETURN 'ranging';
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### Regime-Aware Retirement
+
+```python
+def should_retire_with_regime(impl: Implementation) -> tuple[bool, str]:
+    """
+    Consider market regime when evaluating retirement.
+    """
+    # Get strategy's preferred regime
+    strategy_regime = impl.spec.preferred_regime
+
+    # Get current regime for this symbol
+    current_regime = detect_market_regime(impl.symbol)
+
+    # If strategy is regime-specific and regime doesn't match,
+    # defer retirement decision
+    if strategy_regime and strategy_regime != current_regime:
+        return False, f"Deferring: Strategy prefers {strategy_regime}, current is {current_regime}"
+
+    # Otherwise, proceed with normal retirement evaluation
+    return should_retire_implementation(impl)
+```
+
+## Performance Trend Analysis
+
+### Trend Analysis Window Configuration
+
+```python
+class TrendAnalysisConfig:
+    """Configuration for performance trend analysis."""
+
+    # Minimum months of data required for trend analysis
+    MIN_MONTHS_REQUIRED = 3
+
+    # Lookback window for trend calculation (configurable)
+    TREND_LOOKBACK_MONTHS = 6
+
+    # Slope thresholds for classification
+    DECLINING_THRESHOLD = -0.02  # Monthly Sharpe dropping
+    IMPROVING_THRESHOLD = 0.02   # Monthly Sharpe increasing
+```
+
+### Updated Trend Calculation with Configurable Window
+
+```sql
+-- Updated trend calculation with configurable lookback window
+CREATE OR REPLACE FUNCTION calculate_sharpe_trend(
+    p_impl_id UUID,
+    p_lookback_months INTEGER DEFAULT 6
+)
+RETURNS VARCHAR(20) AS $$
+DECLARE
+    trend_slope DECIMAL;
+    month_count INTEGER;
+BEGIN
+    -- Calculate slope of monthly Sharpe ratios over lookback window
+    SELECT
+        regr_slope(sharpe, month_num),
+        COUNT(DISTINCT month_num)
+    INTO trend_slope, month_count
+    FROM (
+        SELECT
+            EXTRACT(MONTH FROM signal_timestamp) +
+            EXTRACT(YEAR FROM signal_timestamp) * 12 as month_num,
+            AVG(return_pct) / NULLIF(STDDEV(return_pct), 0) as sharpe
+        FROM implementation_signals
+        WHERE impl_id = p_impl_id
+          AND signal_type = 'forward_test'
+          AND signal_timestamp > NOW() - INTERVAL '1 month' * p_lookback_months
+        GROUP BY 1
+        ORDER BY 1
+    ) monthly_sharpe;
+
+    -- Require minimum 3 months of data
+    IF month_count < 3 THEN
+        RETURN 'INSUFFICIENT_DATA';
+    END IF;
+
+    IF trend_slope IS NULL THEN
+        RETURN 'INSUFFICIENT_DATA';
+    ELSIF trend_slope < -0.02 THEN
+        RETURN 'DECLINING';
+    ELSIF trend_slope > 0.02 THEN
+        RETURN 'IMPROVING';
+    ELSE
+        RETURN 'STABLE';
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+## Batch Size Limits
+
+### Safety Limits Configuration
+
+```python
+class RetirementLimits:
+    """Safety limits for retirement operations."""
+
+    # Maximum implementations to retire per run
+    MAX_IMPLEMENTATIONS_PER_RUN = 50
+
+    # Maximum specs to retire per run
+    MAX_SPECS_PER_RUN = 10
+
+    # Maximum percentage of active strategies to retire at once
+    MAX_RETIREMENT_PERCENTAGE = 10  # Never retire more than 10%
+
+    # Cooldown between batch retirements (hours)
+    BATCH_COOLDOWN_HOURS = 24
+```
+
+### Batch Enforcement
+
+```python
+async def execute_batch_retirement(candidates: list[Implementation]) -> dict:
+    """
+    Execute retirement with batch limits enforced.
+    """
+    # Get total active implementations
+    total_active = await get_active_implementation_count()
+    max_by_percentage = int(total_active * 0.10)  # 10% limit
+
+    # Apply stricter of absolute or percentage limit
+    effective_limit = min(
+        RetirementLimits.MAX_IMPLEMENTATIONS_PER_RUN,
+        max_by_percentage
+    )
+
+    retired = []
+    skipped = []
+
+    for i, candidate in enumerate(candidates):
+        if i >= effective_limit:
+            skipped.append({
+                'impl_id': candidate.impl_id,
+                'reason': f'Batch limit reached ({effective_limit})'
+            })
+            continue
+
+        success = await execute_retirement(
+            candidate.impl_id,
+            candidate.retirement_reason,
+            candidate.agent_reasoning
+        )
+        if success:
+            retired.append(candidate.impl_id)
+
+    return {
+        'retired': retired,
+        'skipped': skipped,
+        'limit_applied': effective_limit
+    }
+```
+
+## Report Distribution
+
+### Distribution Channels Configuration
+
+```python
+class ReportDistribution:
+    """Configuration for report distribution."""
+
+    # Primary storage location
+    STORAGE_BUCKET = "gs://tradestream-reports/janitor/"
+
+    # Slack notification settings
+    SLACK_CHANNEL = "#strategy-ops"
+    SLACK_WEBHOOK_SECRET = "SLACK_JANITOR_WEBHOOK"
+
+    # Email distribution list
+    EMAIL_RECIPIENTS = ["strategy-ops@tradestream.io"]
+
+    # Report retention period
+    REPORT_RETENTION_DAYS = 90
+```
+
+### Distribution Workflow
+
+```python
+async def distribute_report(report: JanitorReport) -> dict:
+    """
+    Distribute daily janitor report to all channels.
+    """
+    results = {}
+
+    # 1. Store report in GCS (primary storage)
+    report_path = f"{ReportDistribution.STORAGE_BUCKET}{report.date}/report.md"
+    await storage.upload(report_path, report.to_markdown())
+    results['storage'] = report_path
+
+    # 2. Send Slack notification with summary
+    slack_message = {
+        "channel": ReportDistribution.SLACK_CHANNEL,
+        "text": f"*Janitor Report - {report.date}*",
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"*Summary*\n"
+                           f"- Evaluated: {report.evaluated_count}\n"
+                           f"- Retired: {report.retired_count}\n"
+                           f"- Protected: {report.protected_count}"
+                }
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "View Full Report"},
+                        "url": report.public_url
+                    }
+                ]
+            }
+        ]
+    }
+    await slack.post_message(slack_message)
+    results['slack'] = ReportDistribution.SLACK_CHANNEL
+
+    # 3. Send email for significant events only
+    if report.retired_count > 10 or report.has_warnings:
+        await email.send(
+            to=ReportDistribution.EMAIL_RECIPIENTS,
+            subject=f"[Action Required] Janitor Report - {report.date}",
+            body=report.to_html()
+        )
+        results['email'] = ReportDistribution.EMAIL_RECIPIENTS
+
+    return results
+```
+
+### Report Storage Schema
+
+```sql
+-- Store reports for historical analysis
+CREATE TABLE janitor_reports (
+    report_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    report_date DATE NOT NULL UNIQUE,
+    evaluated_count INTEGER NOT NULL,
+    retired_implementations INTEGER NOT NULL,
+    retired_specs INTEGER NOT NULL,
+    protected_count INTEGER NOT NULL,
+    report_markdown TEXT NOT NULL,
+    storage_path VARCHAR(500),
+    distributed_to JSONB,  -- {"slack": "#channel", "email": [...], "storage": "gs://..."}
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_janitor_reports_date ON janitor_reports(report_date DESC);
+```
+
+## Dependent System Notifications
+
+### Notification Events
+
+When strategies are retired, dependent systems must be notified to update their state:
+
+```python
+class RetirementNotifier:
+    """Notify dependent systems of retirement events."""
+
+    DEPENDENT_SYSTEMS = [
+        "signal-router",      # Stop routing signals from retired strategies
+        "portfolio-manager",  # Adjust position allocations
+        "alert-system",       # Update alert configurations
+        "dashboard",          # Refresh UI state
+    ]
+
+    async def notify_retirement(
+        self,
+        impl_id: str,
+        reason: str
+    ) -> dict:
+        """
+        Notify all dependent systems of a retirement.
+        """
+        notification = {
+            "event": "strategy_retired",
+            "impl_id": impl_id,
+            "reason": reason,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+        results = {}
+        for system in self.DEPENDENT_SYSTEMS:
+            try:
+                await self.publish_event(system, notification)
+                results[system] = "notified"
+            except Exception as e:
+                results[system] = f"failed: {str(e)}"
+                # Log but don't fail retirement
+                logger.error(f"Failed to notify {system}: {e}")
+
+        return results
+
+    async def publish_event(self, system: str, notification: dict):
+        """Publish to Pub/Sub topic for the system."""
+        topic = f"projects/tradestream/topics/{system}-events"
+        await pubsub.publish(topic, notification)
+```
+
+### Retirement Event Schema
+
+```json
+{
+  "event": "strategy_retired",
+  "impl_id": "uuid",
+  "spec_id": "uuid",
+  "symbol": "BTC/USD",
+  "reason": "Declining performance, better alternatives exist",
+  "timestamp": "2026-02-01T03:15:00Z",
+  "metadata": {
+    "final_sharpe": 0.23,
+    "final_accuracy": 0.41,
+    "age_days": 245,
+    "signal_count": 234
+  }
+}
+```
+
 ## Acceptance Criteria
 
 - [ ] Retirement criteria prevent premature removal
@@ -427,6 +897,11 @@ def is_protected(spec: Spec) -> bool:
 - [ ] Sharpe trend calculation accurate
 - [ ] Schedule runs daily at 3:00 AM UTC
 - [ ] Max 50 retirements per run (prevent runaway)
+- [ ] Reactivation workflow allows recovery of retired strategies
+- [ ] Market regime detection defers retirement for regime-specific strategies
+- [ ] Batch limits prevent mass retirement events
+- [ ] Report distribution to Slack, email, and GCS storage
+- [ ] Dependent systems notified on retirement events
 
 ## Metrics
 
@@ -435,6 +910,8 @@ def is_protected(spec: Spec) -> bool:
 - `janitor_specs_retired` - Specs retired
 - `janitor_canonical_protected` - CANONICAL specs that would have retired
 - `janitor_run_duration_seconds` - Time per run
+- `janitor_reactivations` - Strategies reactivated
+- `janitor_regime_deferrals` - Retirements deferred due to market regime
 
 ## File Structure
 
@@ -453,5 +930,7 @@ agents/janitor/
 │   └── system.md
 └── tests/
     ├── test_retirement_criteria.py
-    └── test_canonical_protection.py
+    ├── test_canonical_protection.py
+    ├── test_reactivation.py
+    └── test_regime_detection.py
 ```
