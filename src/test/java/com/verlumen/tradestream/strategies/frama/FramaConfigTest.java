@@ -35,13 +35,20 @@ public class FramaConfigTest {
     config = StrategyConfigLoader.loadResource("strategies/frama.yaml");
     factory = new ConfigurableStrategyFactory(config);
     paramConfig = new ConfigurableParamConfig(config);
-    
+
     series = new BaseBarSeries();
     ZonedDateTime now = ZonedDateTime.now();
     for (int i = 0; i < 100; i++) {
       double price = 100 + Math.sin(i * 0.1) * 20;
-      series.addBar(new BaseBar(Duration.ofMinutes(1), now.plusMinutes(i), 
-          price, price + 2, price - 2, price, 1000.0));
+      series.addBar(
+          new BaseBar(
+              Duration.ofMinutes(1),
+              now.plusMinutes(i),
+              price,
+              price + 2,
+              price - 2,
+              price,
+              1000.0));
     }
   }
 
@@ -64,9 +71,12 @@ public class FramaConfigTest {
   @Test
   public void defaultParameters_areWithinBounds() {
     ConfigurableStrategyParameters params = factory.getDefaultParameters();
-    assertThat(params.getDoubleValuesOrDefault("sc", 0.0)).isIn(com.google.common.collect.Range.closed(100.0, 300.0));
-    assertThat(params.getIntValuesOrDefault("fc", 0)).isIn(com.google.common.collect.Range.closed(1, 10));
-    assertThat(params.getDoubleValuesOrDefault("alpha", 0.0)).isIn(com.google.common.collect.Range.closed(0.1, 1.0));
+    assertThat(params.getDoubleValuesOrDefault("sc", 0.0))
+        .isIn(com.google.common.collect.Range.closed(100.0, 300.0));
+    assertThat(params.getIntValuesOrDefault("fc", 0))
+        .isIn(com.google.common.collect.Range.closed(1, 10));
+    assertThat(params.getDoubleValuesOrDefault("alpha", 0.0))
+        .isIn(com.google.common.collect.Range.closed(0.1, 1.0));
   }
 
   @Test
@@ -77,10 +87,11 @@ public class FramaConfigTest {
 
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
-    ImmutableList<NumericChromosome<?, ?>> chromosomes = ImmutableList.of(
-        DoubleChromosome.of(100.0, 300.0),
-        IntegerChromosome.of(1, 10),
-        DoubleChromosome.of(0.1, 1.0));
+    ImmutableList<NumericChromosome<?, ?>> chromosomes =
+        ImmutableList.of(
+            DoubleChromosome.of(100.0, 300.0),
+            IntegerChromosome.of(1, 10),
+            DoubleChromosome.of(0.1, 1.0));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
