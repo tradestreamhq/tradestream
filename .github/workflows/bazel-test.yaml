@@ -28,11 +28,24 @@ jobs:
 
     - name: Enforce 90% coverage threshold
       run: |
-        COVERAGE_FILE=$(find bazel-out -name "_coverage_report.dat" -type f 2>/dev/null | head -1)
+        # Search for coverage report in common Bazel locations
+        COVERAGE_FILE=$(find . -path "./bazel-out/*" -name "_coverage_report.dat" -type f 2>/dev/null | head -1)
         if [ -z "$COVERAGE_FILE" ]; then
+          # Try alternative location
+          COVERAGE_FILE=$(find . -path "./bazel-testlogs/*" -name "coverage.dat" -type f 2>/dev/null | head -1)
+        fi
+        if [ -z "$COVERAGE_FILE" ]; then
+          # Try the _coverage directory
+          COVERAGE_FILE=$(find . -path "./bazel-out/_coverage/*" -name "*.dat" -type f 2>/dev/null | head -1)
+        fi
+        if [ -z "$COVERAGE_FILE" ]; then
+          echo "::warning::No coverage report found, listing bazel-out structure:"
+          find . -path "./bazel-*" -name "*.dat" -type f 2>/dev/null | head -20 || true
           echo "::error::No coverage report found"
           exit 1
         fi
+
+        echo "Found coverage report: $COVERAGE_FILE"
 
         # Parse LCOV format and calculate line coverage percentage
         LINES_FOUND=$(grep -h "^LF:" "$COVERAGE_FILE" | cut -d: -f2 | paste -sd+ | bc)
