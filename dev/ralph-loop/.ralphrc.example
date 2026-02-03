@@ -1,0 +1,33 @@
+# Ralph Wiggum Loop Configuration
+# Copy this file to .ralphrc in your project root and customize
+
+# Claude model to use: sonnet (default), opus (complex), haiku (fast)
+CLAUDE_MODEL=sonnet
+
+# Maximum API calls per hour (rate limiting)
+MAX_RATE_PER_HOUR=100
+
+# Circuit breaker: stop after N iterations with identical errors
+CIRCUIT_BREAKER_THRESHOLD=5
+
+# Circuit breaker: stop after N iterations with no progress
+NO_PROGRESS_THRESHOLD=3
+
+# Session timeout in hours (for context preservation)
+SESSION_TIMEOUT_HOURS=24
+
+# Prompt file names (relative to project root)
+PROMPT_PLAN_FILE=PROMPT_plan.md
+PROMPT_BUILD_FILE=PROMPT_build.md
+
+# Implementation plan file name
+IMPLEMENTATION_PLAN=IMPLEMENTATION_PLAN.md
+
+# Log directory (relative to project root)
+LOG_DIR=.ralph-logs
+
+# Automatically push after commits
+ENABLE_GIT_PUSH=true
+
+# Enable verbose/debug logging
+VERBOSE=false
