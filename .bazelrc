@@ -12,6 +12,13 @@ build --experimental_disk_cache_gc_max_age=1d
 # Enable platform-based toolchain resolution
 build --incompatible_enable_cc_toolchain_resolution
 
+# Fix C++ toolchain detection
+build --action_env=CC=/usr/bin/gcc
+build --action_env=CXX=/usr/bin/g++
+# Disable absolute path check
+build --features=-layering_check
+build --sandbox_add_mount_pair=/usr
+
 build --verbose_failures
 build --sandbox_debug
 
@@ -29,3 +36,22 @@ build --remote_cache=grpcs://remote.buildbuddy.io
 build --remote_timeout=10m
 build --experimental_remote_cache_compression
 build --nolegacy_important_outputs
+
+# Remote Build Execution (RBE) configuration
+build:remote --incompatible_strict_action_env
+build:remote --remote_executor=grpcs://remote.buildbuddy.io
+build:remote --jobs=50
+build:remote --define=EXECUTOR=remote
+# Strategy configuration for RBE with local fallback
+build:remote --spawn_strategy=remote,local
+build:remote --genrule_strategy=remote,local
+build:remote --strategy=Javac=remote,local
+build:remote --strategy=TestRunner=remote,local
+# Allow local fallback for problematic actions
+build:remote --remote_local_fallback=true
+# Set proper Java version for remote execution
+build:remote --java_runtime_version=remotejdk_17
+build:remote --tool_java_runtime_version=remotejdk_17
+
+# For now, don't enable remote by default until we fix the toolchain issues
+# build --config=remote
