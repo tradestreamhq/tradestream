@@ -1,6 +1,18 @@
 load("@rules_java//java:defs.bzl", "java_test")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 
+java_test(
+    name = "ChromosomeSpecTest",
+    srcs = ["ChromosomeSpecTest.java"],
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
+        "//third_party/java:guava",
+        "//third_party/java:jenetics",
+        "//third_party/java:junit",
+        "//third_party/java:truth",
+    ],
+)
+
 kt_jvm_test(
     name = "DeserializeStrategyDiscoveryRequestFnTest",
     srcs = ["DeserializeStrategyDiscoveryRequestFnTest.kt"],
