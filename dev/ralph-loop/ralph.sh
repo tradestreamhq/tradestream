@@ -3,438 +3,436 @@
 # Ralph Wiggum Loop - Autonomous AI Development Loop
 # Based on Geoffrey Huntley's technique: https://ghuntley.com/ralph/
 #
+# The core idea: feed an AI's output (errors and all) back into itself
+# until it dreams up the correct answer. Brute force meets persistence.
+#
 # Usage:
 #   ./ralph.sh              # Build mode, unlimited iterations
 #   ./ralph.sh plan         # Planning mode, unlimited
 #   ./ralph.sh plan 5       # Planning mode, max 5 iterations
 #   ./ralph.sh build 20     # Build mode, max 20 iterations
-#   ./ralph.sh --help       # Show help
 #
+
 set -euo pipefail
 
-# =============================================================================
-# Configuration
-# =============================================================================
+# ============================================================================
+# CONFIGURATION (override via .ralphrc in project root)
+# ============================================================================
 
+CLAUDE_MODEL="${CLAUDE_MODEL:-opus}"
+MAX_RATE_PER_HOUR="${MAX_RATE_PER_HOUR:-100}"
+CIRCUIT_BREAKER_THRESHOLD="${CIRCUIT_BREAKER_THRESHOLD:-5}"
+NO_PROGRESS_THRESHOLD="${NO_PROGRESS_THRESHOLD:-3}"
+ENABLE_GIT_PUSH="${ENABLE_GIT_PUSH:-false}"
+VERBOSE="${VERBOSE:-false}"
+SLEEP_BETWEEN_ITERATIONS="${SLEEP_BETWEEN_ITERATIONS:-5}"
+# CONTINUOUS_MODE: When true, loop runs forever (ignores EXIT_SIGNAL)
+# Used for unattended operation - requires manual stop (Ctrl+C)
+CONTINUOUS_MODE="${CONTINUOUS_MODE:-true}"
+
+# Paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"
+LOG_DIR="${PROJECT_ROOT}/.ralph-logs"
+RATE_LIMIT_FILE="${LOG_DIR}/.rate_limit"
+ERROR_HASH_FILE="${LOG_DIR}/.error_hashes"
+PROGRESS_FILE="${LOG_DIR}/.progress_tracker"
 
-# Load project-specific config if exists
-[[ -f "${PROJECT_ROOT}/.ralphrc" ]] && source "${PROJECT_ROOT}/.ralphrc"
-[[ -f "${SCRIPT_DIR}/.ralphrc" ]] && source "${SCRIPT_DIR}/.ralphrc"
+# ============================================================================
+# COLORS AND LOGGING
+# ============================================================================
 
-# Defaults (can be overridden in .ralphrc)
-: "${CLAUDE_MODEL:=sonnet}"
-: "${MAX_RATE_PER_HOUR:=100}"
-: "${CIRCUIT_BREAKER_THRESHOLD:=5}"
-: "${NO_PROGRESS_THRESHOLD:=3}"
-: "${SESSION_TIMEOUT_HOURS:=24}"
-: "${PROMPT_PLAN_FILE:=PROMPT_plan.md}"
-: "${PROMPT_BUILD_FILE:=PROMPT_build.md}"
-: "${IMPLEMENTATION_PLAN:=IMPLEMENTATION_PLAN.md}"
-: "${LOG_DIR:=${PROJECT_ROOT}/.ralph-logs}"
-: "${ENABLE_GIT_PUSH:=true}"
-: "${VERBOSE:=false}"
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
 
-# =============================================================================
-# State tracking
-# =============================================================================
+log_info()    { echo -e "${BLUE}[INFO]${NC} $*"; }
+log_success() { echo -e "${GREEN}[SUCCESS]${NC} $*"; }
+log_warn()    { echo -e "${YELLOW}[WARN]${NC} $*"; }
+log_error()   { echo -e "${RED}[ERROR]${NC} $*"; }
+log_debug()   { [[ "$VERBOSE" == "true" ]] && echo -e "${CYAN}[DEBUG]${NC} $*" || true; }
 
-ITERATION=0
-CALLS_THIS_HOUR=0
-HOUR_START=$(date +%s)
-CONSECUTIVE_NO_PROGRESS=0
-CONSECUTIVE_SAME_ERROR=0
-LAST_ERROR_HASH=""
-SESSION_ID=""
-
-# =============================================================================
-# Helpers
-# =============================================================================
-
-log() {
-    local level="$1"
-    shift
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    echo "[$timestamp] [$level] $*"
-    [[ -d "$LOG_DIR" ]] && echo "[$timestamp] [$level] $*" >> "${LOG_DIR}/ralph.log"
-}
-
-log_info()  { log "INFO" "$@"; }
-log_warn()  { log "WARN" "$@"; }
-log_error() { log "ERROR" "$@"; }
-log_debug() { [[ "$VERBOSE" == "true" ]] && log "DEBUG" "$@" || true; }
+# ============================================================================
+# BANNER
+# ============================================================================
 
 print_banner() {
+    echo -e "${CYAN}"
     cat << 'EOF'
     ____        __      __       _       ___
    / __ \____ _/ /___  / /_     | |     / (_)___ _____ ___  ______ ___
   / /_/ / __ `/ / __ \/ __ \    | | /| / / / __ `/ __ `/ / / / __ `__ \
  / _, _/ /_/ / / /_/ / / / /    | |/ |/ / / /_/ / /_/ / /_/ / / / / / /
-/_/ |_|\__,_/_/ .___/_/ /_/     |__/|__/_/\__, /\__, /\__,_/_/ /_/ /_/
-             /_/                         /____//____/
-                                                          Loop v1.0
+/_/ |_|\__,_/_/ .___/_/ /_/     |__/|__/_/\__, /\__,_/\__,_/_/ /_/ /_/
+             /_/                         /____/
+
+Loop v1.0
 EOF
-    echo ""
+    echo -e "${NC}"
 }
 
-show_help() {
-    cat << EOF
-Ralph Wiggum Loop - Autonomous AI Development
-
-USAGE:
-    ./ralph.sh [MODE] [MAX_ITERATIONS]
-
-MODES:
-    plan        Run in planning mode (gap analysis, create TODO list)
-    build       Run in build mode (implement tasks from plan) [default]
-
-OPTIONS:
-    MAX_ITERATIONS    Maximum loop iterations (0 = unlimited) [default: 0]
-    --help, -h        Show this help message
-
-EXAMPLES:
-    ./ralph.sh                  # Build mode, unlimited
-    ./ralph.sh plan             # Plan mode, unlimited
-    ./ralph.sh plan 5           # Plan mode, max 5 iterations
-    ./ralph.sh build 20         # Build mode, max 20 iterations
-
-CONFIGURATION:
-    Create a .ralphrc file in your project root to customize settings:
-
-    CLAUDE_MODEL=opus           # Model: sonnet, opus, haiku
-    MAX_RATE_PER_HOUR=100       # Rate limit per hour
-    ENABLE_GIT_PUSH=true        # Auto-push after commits
-    VERBOSE=true                # Enable debug logging
-
-REQUIRED FILES:
-    PROMPT_plan.md              # Planning phase prompt
-    PROMPT_build.md             # Building phase prompt
-
-See: https://ghuntley.com/ralph/ for more information
-EOF
-}
-
-# =============================================================================
-# Rate Limiting & Circuit Breaker
-# =============================================================================
+# ============================================================================
+# RELIABILITY: Rate Limiting
+# ============================================================================
 
 check_rate_limit() {
-    local now=$(date +%s)
-    local elapsed=$((now - HOUR_START))
+    mkdir -p "$LOG_DIR"
+    local current_hour=$(date +%Y%m%d%H)
+    local count=0
 
-    # Reset counter every hour
-    if [[ $elapsed -ge 3600 ]]; then
-        HOUR_START=$now
-        CALLS_THIS_HOUR=0
-        log_debug "Rate limit counter reset"
+    if [[ -f "$RATE_LIMIT_FILE" ]]; then
+        local stored_hour=$(head -1 "$RATE_LIMIT_FILE" 2>/dev/null || echo "")
+        if [[ "$stored_hour" == "$current_hour" ]]; then
+            count=$(tail -1 "$RATE_LIMIT_FILE" 2>/dev/null || echo "0")
+        fi
     fi
 
-    if [[ $CALLS_THIS_HOUR -ge $MAX_RATE_PER_HOUR ]]; then
-        local wait_time=$((3600 - elapsed))
-        log_warn "Rate limit reached ($MAX_RATE_PER_HOUR/hour). Waiting ${wait_time}s..."
-        sleep "$wait_time"
-        HOUR_START=$(date +%s)
-        CALLS_THIS_HOUR=0
+    if (( count >= MAX_RATE_PER_HOUR )); then
+        log_error "Rate limit reached ($MAX_RATE_PER_HOUR/hour). Waiting for next hour..."
+        local minutes_left=$(( 60 - $(date +%M) ))
+        log_info "Sleeping for $minutes_left minutes..."
+        sleep $((minutes_left * 60))
+        count=0
     fi
 
-    ((CALLS_THIS_HOUR++))
+    echo "$current_hour" > "$RATE_LIMIT_FILE"
+    echo "$((count + 1))" >> "$RATE_LIMIT_FILE"
+    log_debug "Rate: $((count + 1))/$MAX_RATE_PER_HOUR this hour"
 }
 
+# ============================================================================
+# RELIABILITY: Circuit Breaker (detect stuck error loops)
+# ============================================================================
+
 check_circuit_breaker() {
-    # Check for repeated identical errors
-    if [[ $CONSECUTIVE_SAME_ERROR -ge $CIRCUIT_BREAKER_THRESHOLD ]]; then
-        log_error "Circuit breaker: $CONSECUTIVE_SAME_ERROR identical errors detected"
-        log_error "Last error hash: $LAST_ERROR_HASH"
+    local error_output="$1"
+    local error_hash=$(echo "$error_output" | grep -i "error\|fail\|exception" | md5sum | cut -d' ' -f1)
+
+    mkdir -p "$LOG_DIR"
+    touch "$ERROR_HASH_FILE"
+
+    local consecutive_same=0
+    if [[ -n "$error_hash" ]] && grep -q "$error_hash" "$ERROR_HASH_FILE" 2>/dev/null; then
+        consecutive_same=$(grep -c "$error_hash" "$ERROR_HASH_FILE" || echo "0")
+    fi
+
+    if (( consecutive_same >= CIRCUIT_BREAKER_THRESHOLD )); then
+        log_error "Circuit breaker triggered: Same error $consecutive_same times"
+        log_error "Error pattern hash: $error_hash"
         return 1
     fi
 
-    # Check for no progress
-    if [[ $CONSECUTIVE_NO_PROGRESS -ge $NO_PROGRESS_THRESHOLD ]]; then
-        log_error "Circuit breaker: $CONSECUTIVE_NO_PROGRESS iterations with no progress"
-        return 1
-    fi
-
+    echo "$error_hash" >> "$ERROR_HASH_FILE"
+    # Keep only last 20 hashes
+    tail -20 "$ERROR_HASH_FILE" > "${ERROR_HASH_FILE}.tmp" && mv "${ERROR_HASH_FILE}.tmp" "$ERROR_HASH_FILE"
     return 0
 }
 
-detect_progress() {
-    local output="$1"
+# ============================================================================
+# RELIABILITY: Progress Detection
+# ============================================================================
 
-    # Check for git commits (strong progress indicator)
-    if git log -1 --oneline 2>/dev/null | grep -q "$(date +%Y-%m-%d)" || \
-       echo "$output" | grep -qiE "(committed|commit.*successfully|pushed|task.*completed|implemented)"; then
-        CONSECUTIVE_NO_PROGRESS=0
-        log_debug "Progress detected: commits or completions"
-        return 0
+track_progress() {
+    mkdir -p "$LOG_DIR"
+
+    # Track git commits
+    local commit_count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+
+    # Track file changes (staged + unstaged)
+    local changed_files=$(git diff --name-only 2>/dev/null | wc -l || echo "0")
+    local staged_files=$(git diff --cached --name-only 2>/dev/null | wc -l || echo "0")
+
+    # Track IMPLEMENTATION_PLAN.md changes
+    local plan_hash=""
+    if [[ -f "${PROJECT_ROOT}/IMPLEMENTATION_PLAN.md" ]]; then
+        plan_hash=$(md5sum "${PROJECT_ROOT}/IMPLEMENTATION_PLAN.md" | cut -d' ' -f1)
     fi
 
-    # Check for file modifications
-    if [[ -n "$(git status --porcelain 2>/dev/null)" ]]; then
-        CONSECUTIVE_NO_PROGRESS=0
-        log_debug "Progress detected: file modifications"
-        return 0
-    fi
+    local current_state="${commit_count}:${changed_files}:${staged_files}:${plan_hash}"
 
-    ((CONSECUTIVE_NO_PROGRESS++))
-    log_warn "No progress detected (count: $CONSECUTIVE_NO_PROGRESS)"
-    return 1
-}
+    if [[ -f "$PROGRESS_FILE" ]]; then
+        local last_state=$(cat "$PROGRESS_FILE")
+        if [[ "$current_state" == "$last_state" ]]; then
+            local no_progress_count=$(cat "${PROGRESS_FILE}.count" 2>/dev/null || echo "0")
+            no_progress_count=$((no_progress_count + 1))
+            echo "$no_progress_count" > "${PROGRESS_FILE}.count"
 
-detect_error_loop() {
-    local output="$1"
-
-    # Extract error messages (filter out JSON false positives)
-    local errors=$(echo "$output" | grep -iE "^(error|fatal|exception|failed):" | head -5 || true)
-
-    if [[ -z "$errors" ]]; then
-        CONSECUTIVE_SAME_ERROR=0
-        LAST_ERROR_HASH=""
-        return 0
-    fi
-
-    local error_hash=$(echo "$errors" | md5sum | cut -d' ' -f1)
-
-    if [[ "$error_hash" == "$LAST_ERROR_HASH" ]]; then
-        ((CONSECUTIVE_SAME_ERROR++))
-        log_warn "Same error repeated (count: $CONSECUTIVE_SAME_ERROR)"
-    else
-        CONSECUTIVE_SAME_ERROR=1
-        LAST_ERROR_HASH="$error_hash"
-    fi
-}
-
-# =============================================================================
-# Exit Detection (Dual-Condition Gate)
-# =============================================================================
-
-detect_completion() {
-    local output="$1"
-    local completion_score=0
-
-    # Completion indicator phrases
-    local -a completion_phrases=(
-        "all tasks completed"
-        "project complete"
-        "implementation complete"
-        "nothing left to implement"
-        "no remaining tasks"
-        "plan is empty"
-        "EXIT_SIGNAL.*true"
-        "RALPH_STATUS.*complete"
-    )
-
-    for phrase in "${completion_phrases[@]}"; do
-        if echo "$output" | grep -qiE "$phrase"; then
-            ((completion_score++))
-            log_debug "Completion indicator found: $phrase"
+            if (( no_progress_count >= NO_PROGRESS_THRESHOLD )); then
+                log_error "No progress detected for $no_progress_count iterations"
+                return 1
+            fi
+            log_warn "No progress detected (${no_progress_count}/${NO_PROGRESS_THRESHOLD})"
+        else
+            echo "0" > "${PROGRESS_FILE}.count"
+            log_success "Progress detected!"
         fi
-    done
-
-    # Require at least 2 indicators for exit
-    if [[ $completion_score -ge 2 ]]; then
-        log_info "Completion detected (score: $completion_score)"
-        return 0
     fi
 
-    return 1
+    echo "$current_state" > "$PROGRESS_FILE"
+    return 0
 }
 
-# =============================================================================
-# Claude Execution
-# =============================================================================
+# ============================================================================
+# EXIT DETECTION (CONTINUOUS_MODE: never exit, for unattended operation)
+# ============================================================================
 
-run_claude() {
-    local prompt_file="$1"
-    local output_file="${LOG_DIR}/iteration_${ITERATION}.log"
+check_exit_conditions() {
+    local output="$1"
 
-    log_info "Executing Claude with prompt: $prompt_file"
+    # In CONTINUOUS_MODE, never exit - loop runs forever for unattended operation
+    if [[ "$CONTINUOUS_MODE" == "true" ]]; then
+        # Log status but DON'T exit
+        if echo "$output" | grep -q "EXIT_SIGNAL"; then
+            log_info "EXIT_SIGNAL detected but CONTINUOUS_MODE=true - ignoring"
+            log_info "Loop will continue for unattended operation (Ctrl+C to stop)"
+        fi
 
-    local claude_args=(
-        "-p"
-        "--dangerously-skip-permissions"
-    )
+        # Check IMPLEMENTATION_PLAN.md status (informational only)
+        if [[ -f "${PROJECT_ROOT}/IMPLEMENTATION_PLAN.md" ]]; then
+            local pending=$(grep -c "^\s*-\s*\[ \]" "${PROJECT_ROOT}/IMPLEMENTATION_PLAN.md" 2>/dev/null || echo "0")
+            local completed=$(grep -c "^\s*-\s*\[x\]" "${PROJECT_ROOT}/IMPLEMENTATION_PLAN.md" 2>/dev/null || echo "0")
+            local blocked=$(grep -c "BLOCKED" "${PROJECT_ROOT}/IMPLEMENTATION_PLAN.md" 2>/dev/null || echo "0")
 
-    # Add model flag if specified
-    [[ -n "$CLAUDE_MODEL" ]] && claude_args+=("--model" "$CLAUDE_MODEL")
+            log_info "Gate status: $completed completed, $pending pending, $blocked blocked"
 
-    # Add session resume if we have one
-    [[ -n "$SESSION_ID" ]] && claude_args+=("--resume" "$SESSION_ID")
+            if (( pending == 0 && completed > 0 )); then
+                log_info "All non-blocked gates completed - starting new verification cycle"
+            fi
+        fi
 
-    # Add verbose flag
-    [[ "$VERBOSE" == "true" ]] && claude_args+=("--verbose")
-
-    # Execute Claude
-    local output
-    if ! output=$(cat "$prompt_file" | claude "${claude_args[@]}" 2>&1 | tee "$output_file"); then
-        log_error "Claude execution failed"
-        echo "$output"
-        return 1
+        return 1  # ALWAYS continue looping in continuous mode
     fi
 
-    # Extract session ID if present (for session continuity)
-    local new_session=$(echo "$output" | grep -oE "session_id[\"': ]+([a-zA-Z0-9_-]+)" | head -1 | grep -oE "[a-zA-Z0-9_-]{20,}" || true)
-    [[ -n "$new_session" ]] && SESSION_ID="$new_session"
+    # Legacy mode (CONTINUOUS_MODE=false): Check for explicit EXIT_SIGNAL
+    if echo "$output" | grep -q "EXIT_SIGNAL"; then
+        log_success "EXIT_SIGNAL detected"
 
-    echo "$output"
+        # Verify completion markers exist too
+        local completion_markers=0
+        echo "$output" | grep -qi "all.*complete\|implementation.*complete\|task.*complete" && ((completion_markers++)) || true
+        echo "$output" | grep -qi "no.*remaining\|nothing.*left\|finished" && ((completion_markers++)) || true
+
+        if (( completion_markers >= 1 )); then
+            log_success "Completion markers confirmed ($completion_markers)"
+            return 0  # Exit the loop
+        else
+            log_warn "EXIT_SIGNAL found but no completion markers - continuing"
+        fi
+    fi
+
+    # Check IMPLEMENTATION_PLAN.md for completion
+    if [[ -f "${PROJECT_ROOT}/IMPLEMENTATION_PLAN.md" ]]; then
+        local pending=$(grep -c "^\s*-\s*\[ \]" "${PROJECT_ROOT}/IMPLEMENTATION_PLAN.md" 2>/dev/null || echo "0")
+        local completed=$(grep -c "^\s*-\s*\[x\]" "${PROJECT_ROOT}/IMPLEMENTATION_PLAN.md" 2>/dev/null || echo "0")
+
+        if (( pending == 0 && completed > 0 )); then
+            log_success "All tasks in IMPLEMENTATION_PLAN.md completed ($completed tasks)"
+            return 0
+        fi
+        log_debug "Tasks: $completed completed, $pending pending"
+    fi
+
+    return 1  # Continue looping
 }
 
-# =============================================================================
-# Git Operations
-# =============================================================================
+# ============================================================================
+# MAIN LOOP
+# ============================================================================
 
-git_push_if_enabled() {
-    if [[ "$ENABLE_GIT_PUSH" != "true" ]]; then
-        log_debug "Git push disabled"
-        return 0
-    fi
+run_loop() {
+    local mode="${1:-build}"
+    local max_iterations="${2:-0}"  # 0 = unlimited
+    local iteration=0
 
-    local current_branch=$(git branch --show-current 2>/dev/null || echo "")
-
-    if [[ -z "$current_branch" ]]; then
-        log_warn "Not in a git repository or no branch"
-        return 0
-    fi
-
-    log_info "Pushing to origin/$current_branch..."
-
-    if ! git push origin "$current_branch" 2>/dev/null; then
-        log_warn "Push failed, trying with -u flag..."
-        git push -u origin "$current_branch" || {
-            log_error "Failed to push to remote"
-            return 1
-        }
-    fi
-
-    log_info "Push successful"
-}
-
-# =============================================================================
-# Main Loop
-# =============================================================================
-
-main() {
-    local mode="build"
-    local max_iterations=0
-    local prompt_file=""
-
-    # Parse arguments
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            plan)
-                mode="plan"
-                shift
-                ;;
-            build)
-                mode="build"
-                shift
-                ;;
-            --help|-h)
-                show_help
-                exit 0
-                ;;
-            [0-9]*)
-                max_iterations="$1"
-                shift
-                ;;
-            *)
-                log_error "Unknown argument: $1"
-                show_help
-                exit 1
-                ;;
-        esac
-    done
-
-    # Set prompt file based on mode
-    if [[ "$mode" == "plan" ]]; then
-        prompt_file="${PROJECT_ROOT}/${PROMPT_PLAN_FILE}"
-    else
-        prompt_file="${PROJECT_ROOT}/${PROMPT_BUILD_FILE}"
-    fi
-
-    # Validation
+    local prompt_file="${PROJECT_ROOT}/PROMPT_${mode}.md"
     if [[ ! -f "$prompt_file" ]]; then
-        log_error "Prompt file not found: $prompt_file"
-        log_error "Create $prompt_file with your project instructions"
+        prompt_file="${SCRIPT_DIR}/PROMPT_${mode}.md"
+    fi
+
+    if [[ ! -f "$prompt_file" ]]; then
+        log_error "Prompt file not found: PROMPT_${mode}.md"
+        log_info "Create it in project root or ${SCRIPT_DIR}/"
         exit 1
     fi
 
-    # Setup
-    mkdir -p "$LOG_DIR"
-    print_banner
+    log_info "Mode: $mode"
+    log_info "Prompt: $prompt_file"
+    log_info "Max iterations: ${max_iterations:-unlimited}"
+    log_info "Model: $CLAUDE_MODEL"
+    log_info "Continuous mode: $CONTINUOUS_MODE"
+    echo ""
 
-    local current_branch=$(git branch --show-current 2>/dev/null || echo "N/A")
+    # Clean up old logs
+    rm -f "${LOG_DIR}/.error_hashes" "${PROGRESS_FILE}.count" 2>/dev/null || true
 
-    cat << EOF
-Configuration:
-  Mode:             $mode
-  Prompt:           $prompt_file
-  Model:            $CLAUDE_MODEL
-  Branch:           $current_branch
-  Max iterations:   $([ "$max_iterations" -eq 0 ] && echo "unlimited" || echo "$max_iterations")
-  Rate limit:       $MAX_RATE_PER_HOUR/hour
-  Git push:         $ENABLE_GIT_PUSH
-  Log directory:    $LOG_DIR
-
-Press Ctrl+C to stop at any time
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-EOF
-
-    # Main loop
     while true; do
+        iteration=$((iteration + 1))
+
         # Check iteration limit
-        if [[ $max_iterations -gt 0 && $ITERATION -ge $max_iterations ]]; then
-            log_info "Reached maximum iterations: $max_iterations"
+        if (( max_iterations > 0 && iteration > max_iterations )); then
+            log_warn "Max iterations ($max_iterations) reached"
             break
         fi
 
-        ((ITERATION++))
         echo ""
-        echo "════════════════════════ ITERATION $ITERATION ════════════════════════"
-        echo ""
+        log_info "========== ITERATION $iteration =========="
 
         # Rate limiting
         check_rate_limit
 
-        # Circuit breaker check
-        if ! check_circuit_breaker; then
-            log_error "Circuit breaker tripped. Stopping loop."
-            log_error "Review logs at: $LOG_DIR"
-            exit 1
+        # Run Claude with the prompt
+        local log_file="${LOG_DIR}/iteration_${iteration}.log"
+        local output=""
+        local exit_code=0
+
+        log_info "Running Claude..."
+
+        # Run claude with stream-json for real-time output
+        # --include-partial-messages streams text chunks as they arrive
+        # --verbose is required for stream-json with --print mode
+        # -j flag joins output without adding newlines between values
+        set +e
+        cat "$prompt_file" | claude -p --dangerously-skip-permissions --model "$CLAUDE_MODEL" \
+            --output-format stream-json --include-partial-messages --verbose 2>&1 | \
+            tee "${log_file}.json" | \
+            jq -j --unbuffered 'select(.type == "stream_event" and .event.type == "content_block_delta") | .event.delta.text // empty' 2>/dev/null | \
+            tee "$log_file"
+        exit_code=${PIPESTATUS[1]}
+        # Add final newline after streaming output
+        echo "" | tee -a "$log_file"
+        set -e
+
+        # Read captured output for exit condition checking
+        output=$(cat "$log_file")
+
+        # Check for Claude CLI errors
+        if (( exit_code != 0 )); then
+            log_error "Claude exited with code $exit_code"
+            if ! check_circuit_breaker "$output"; then
+                log_error "Circuit breaker tripped - stopping loop"
+                exit 1
+            fi
         fi
 
-        # Run Claude
-        local output
-        if ! output=$(run_claude "$prompt_file"); then
-            log_error "Claude execution failed on iteration $ITERATION"
-            detect_error_loop "$output"
-            continue
-        fi
-
-        # Detect errors and progress
-        detect_error_loop "$output"
-        detect_progress "$output"
-
-        # Check for completion
-        if detect_completion "$output"; then
-            log_info "Completion detected. Stopping loop."
+        # Check exit conditions
+        if check_exit_conditions "$output"; then
+            log_success "Exit conditions met - stopping loop"
             break
         fi
 
-        # Push if enabled
-        git_push_if_enabled || true
+        # Track progress
+        if ! track_progress; then
+            log_error "No progress detected - stopping loop"
+            exit 1
+        fi
 
-        # Brief pause between iterations
-        sleep 2
+        # Circuit breaker check
+        if ! check_circuit_breaker "$output"; then
+            log_error "Circuit breaker tripped - stopping loop"
+            exit 1
+        fi
+
+        # Optional: push changes
+        if [[ "$ENABLE_GIT_PUSH" == "true" ]]; then
+            git push 2>/dev/null || true
+        fi
+
+        log_info "Sleeping ${SLEEP_BETWEEN_ITERATIONS}s before next iteration..."
+        sleep "$SLEEP_BETWEEN_ITERATIONS"
     done
 
     echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    log_info "Ralph loop completed after $ITERATION iterations"
-    log_info "Logs available at: $LOG_DIR"
+    log_success "========== LOOP COMPLETE =========="
+    log_info "Total iterations: $iteration"
+    log_info "Logs available in: $LOG_DIR"
 }
 
-# Trap for clean exit
-trap 'echo ""; log_info "Interrupted by user"; exit 130' INT TERM
+# ============================================================================
+# USAGE
+# ============================================================================
 
+usage() {
+    cat << EOF
+Ralph Wiggum Loop - Autonomous AI Development
+
+USAGE:
+    $0 [mode] [max_iterations]
+
+MODES:
+    plan    - Planning phase (uses PROMPT_plan.md)
+    build   - Building phase (uses PROMPT_build.md) [default]
+
+OPTIONS:
+    max_iterations  - Stop after N iterations (default: unlimited)
+
+EXAMPLES:
+    $0                  # Build mode, unlimited
+    $0 plan             # Planning mode, unlimited
+    $0 plan 5           # Planning mode, max 5 iterations
+    $0 build 20         # Build mode, max 20 iterations
+
+CONFIGURATION:
+    Create .ralphrc in project root to override defaults:
+
+    CLAUDE_MODEL=sonnet          # sonnet, opus, or haiku
+    MAX_RATE_PER_HOUR=100        # Rate limit
+    CIRCUIT_BREAKER_THRESHOLD=5  # Stop after N identical errors
+    NO_PROGRESS_THRESHOLD=3      # Stop after N iterations with no progress
+    ENABLE_GIT_PUSH=false        # Auto-push commits
+    VERBOSE=false                # Debug logging
+    SLEEP_BETWEEN_ITERATIONS=5   # Seconds between iterations
+    CONTINUOUS_MODE=true         # Run forever (ignore EXIT_SIGNAL)
+
+FILES:
+    PROMPT_plan.md         - Planning phase prompt
+    PROMPT_build.md        - Building phase prompt
+    IMPLEMENTATION_PLAN.md - Task tracking (managed by Ralph)
+    .ralph-logs/           - Iteration logs
+
+EOF
+}
+
+# ============================================================================
+# MAIN
+# ============================================================================
+
+main() {
+    # Load config if exists
+    if [[ -f "${PROJECT_ROOT}/.ralphrc" ]]; then
+        log_info "Loading config from .ralphrc"
+        source "${PROJECT_ROOT}/.ralphrc"
+    fi
+
+    # Create log directory
+    mkdir -p "$LOG_DIR"
+
+    # Parse args
+    case "${1:-}" in
+        -h|--help|help)
+            usage
+            exit 0
+            ;;
+        plan|build)
+            run_loop "$1" "${2:-0}"
+            ;;
+        "")
+            run_loop "build" "0"
+            ;;
+        *)
+            if [[ "$1" =~ ^[0-9]+$ ]]; then
+                run_loop "build" "$1"
+            else
+                log_error "Unknown mode: $1"
+                usage
+                exit 1
+            fi
+            ;;
+    esac
+}
+
+print_banner
+trap 'echo ""; log_info "Interrupted by user"; exit 130' INT TERM
 main "$@"
