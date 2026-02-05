@@ -1,85 +1,60 @@
-# Implementation Plan
+# Viral Trading Platform - Implementation Plan
 
-> This file is managed by Ralph. It tracks progress across loop iterations.
-> Delete this file and run `./ralph.sh plan` to regenerate.
+## Overview
 
-## Task: Add ChromosomeSpec Unit Tests
+Implementing the viral trading signal platform as specified in `specs/viral-platform/SPEC.md`.
 
-Create comprehensive unit tests for ChromosomeSpec, IntegerChromosomeSpec, and DoubleChromosomeSpec classes.
+## Phase 0: Database Migrations (Foundation)
 
-**Target file:** `src/test/java/com/verlumen/tradestream/discovery/ChromosomeSpecTest.java`
+Reference: `specs/viral-platform/database-migrations/SPEC.md`
 
-## Completed
+- [x] Create V6__add_users.sql - users, email_verification_tokens, password_reset_tokens, refresh_tokens tables
+- [ ] Create V7__add_user_settings.sql - user_settings, user_watchlists, saved_views tables
+- [ ] Create V8__add_notifications.sql - notification_channels, notification_preferences, notification_history tables
 
-### 1. Create test file and BUILD target
-- [x] Create `ChromosomeSpecTest.java` in `src/test/java/com/verlumen/tradestream/discovery/`
-- [x] Add `java_test` target to `src/test/java/com/verlumen/tradestream/discovery/BUILD`
-  - Dependencies: `chromosome_spec`, `guava`, `jenetics`, `junit`, `truth`
+## Phase 1: Backend Services
 
-### 2. Implement ChromosomeSpec static factory method tests
-- [x] Test `ofInteger(min, max)` creates valid IntegerChromosomeSpec
-  - Verify returned object is instanceof IntegerChromosomeSpec
-  - Verify range is correctly set
-- [x] Test `ofDouble(min, max)` creates valid DoubleChromosomeSpec
-  - Verify returned object is instanceof DoubleChromosomeSpec
-  - Verify range is correctly set
+Reference: `specs/viral-platform/gateway-api/SPEC.md`, `specs/viral-platform/auth-service/SPEC.md`
 
-### 3. Implement IntegerChromosomeSpec tests
-- [x] Test `getRange()` returns correct closed range with min/max values
-- [x] Test `createChromosome()` returns IntegerChromosome
-  - Verify type is IntegerChromosome
-  - Verify bounds match the range (lowerEndpoint, upperEndpoint)
-- [x] Test chromosome gene values are within specified range
-  - Create chromosome, check gene values are >= min and <= max
+- [ ] Create services/gateway/ directory structure with main.py, config.py
+- [ ] Implement auth router - /auth/register, /auth/login, /auth/logout endpoints
+- [ ] Implement OAuth router - /auth/oauth/{provider} and callback endpoints
+- [ ] Implement email service with Resend integration
+- [ ] Implement signal SSE endpoint - /api/signals/stream
+- [ ] Implement user settings router - /api/user/settings, /api/user/watchlist
+- [ ] Create Dockerfile for gateway-api
+- [ ] Create requirements.txt for gateway-api
 
-### 4. Implement DoubleChromosomeSpec tests
-- [x] Test `getRange()` returns correct closed range with min/max values
-- [x] Test `createChromosome()` returns DoubleChromosome
-  - Verify type is DoubleChromosome
-  - Verify bounds match the range (lowerEndpoint, upperEndpoint)
-- [x] Test chromosome gene values are within specified range
-  - Create chromosome, check gene values are >= min and <= max
+## Phase 2: Helm Deployment
 
-### 5. Build and verify tests pass
-- [x] Run `bazel build //src/test/java/com/verlumen/tradestream/discovery:ChromosomeSpecTest`
-- [x] Run `bazel test //src/test/java/com/verlumen/tradestream/discovery:ChromosomeSpecTest`
-- [x] Verify all tests pass
+Reference: `specs/viral-platform/helm-deployment/SPEC.md`
 
-## In Progress
+- [ ] Create charts/tradestream/templates/gateway-api.yaml
+- [ ] Create charts/tradestream/templates/auth-secrets.yaml
+- [ ] Create charts/tradestream/templates/oauth-secrets.yaml
+- [ ] Update charts/tradestream/values.yaml with gatewayApi configuration
 
-_No tasks in progress._
+## Phase 3: Frontend Foundation
 
-## Pending (Priority Order)
+Reference: `specs/viral-platform/agent-dashboard/SPEC.md`
 
-_All tasks completed._
+- [ ] Create ui/agent-dashboard/ with Vite + React + TypeScript scaffold
+- [ ] Configure Tailwind CSS and shadcn/ui
+- [ ] Create useAuth hook for authentication state
+- [ ] Create auth API client
+- [ ] Create Landing page component
+- [ ] Create Login page with OAuth buttons
+- [ ] Create Register page with form validation
+- [ ] Create ProtectedRoute component
+- [ ] Create Dashboard layout with header and sidebar
 
-## Test Structure Reference
+## Progress Tracking
 
-Based on existing test patterns (e.g., `GenotypeConverterImplTest.java`):
-- Use JUnit 4 with `@RunWith(JUnit4.class)`
-- Use Google Truth for assertions (`assertThat`)
-- Use static imports for Truth and Guava
-- Follow naming convention: `methodName_condition_expectedResult`
+| Phase | Status | Tasks Done | Tasks Total |
+|-------|--------|------------|-------------|
+| Phase 0: Database | In Progress | 1 | 3 |
+| Phase 1: Backend | Pending | 0 | 8 |
+| Phase 2: Helm | Pending | 0 | 4 |
+| Phase 3: Frontend | Pending | 0 | 9 |
 
-## Dependencies for BUILD target
-
-```python
-java_test(
-    name = "ChromosomeSpecTest",
-    srcs = ["ChromosomeSpecTest.java"],
-    deps = [
-        "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
-        "//third_party/java:guava",
-        "//third_party/java:jenetics",
-        "//third_party/java:junit",
-        "//third_party/java:truth",
-    ],
-)
-```
-
-## Acceptance Criteria
-
-- [x] All tests pass
-- [x] Tests cover static factory methods (`ofInteger`, `ofDouble`)
-- [x] Tests verify range constraints
-- [x] Tests verify chromosome creation and bounds
+Last Updated: 2026-02-05
