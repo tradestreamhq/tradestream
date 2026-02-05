@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.rangebars;
+package com.verlumen.tradestream.strategies.bbandwilliamsr;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -11,6 +11,7 @@ import com.verlumen.tradestream.strategies.configurable.ConfigurableStrategyFact
 import com.verlumen.tradestream.strategies.configurable.StrategyConfig;
 import com.verlumen.tradestream.strategies.configurable.StrategyConfigLoader;
 import io.jenetics.DoubleChromosome;
+import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -23,7 +24,7 @@ import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
-public class RangeBarsConfigTest {
+public class BbandWilliamsRConfigTest {
   private StrategyConfig config;
   private ConfigurableStrategyFactory factory;
   private ConfigurableParamConfig paramConfig;
@@ -31,7 +32,7 @@ public class RangeBarsConfigTest {
 
   @Before
   public void setUp() throws Exception {
-    config = StrategyConfigLoader.loadResource("strategies/range_bars.yaml");
+    config = StrategyConfigLoader.loadResource("strategies/bband_williams_r.yaml");
     factory = new ConfigurableStrategyFactory(config);
     paramConfig = new ConfigurableParamConfig(config);
 
@@ -55,7 +56,7 @@ public class RangeBarsConfigTest {
   public void createStrategy_returnsValidStrategy() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     assertThat(strategy).isNotNull();
-    assertThat(strategy.getName()).isEqualTo("RANGE_BARS");
+    assertThat(strategy.getName()).isEqualTo("BBAND_WILLIAMS_R");
   }
 
   @Test
@@ -70,13 +71,16 @@ public class RangeBarsConfigTest {
   @Test
   public void chromosomeSpecs_matchParameterCount() {
     ImmutableList<ChromosomeSpec<?>> specs = paramConfig.getChromosomeSpecs();
-    assertThat(specs).hasSize(1);
+    assertThat(specs).hasSize(3);
   }
 
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(DoubleChromosome.of(1.0, 3.0));
+        ImmutableList.of(
+            IntegerChromosome.of(10, 30),
+            IntegerChromosome.of(7, 21),
+            DoubleChromosome.of(1.5, 3.0));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
