@@ -1,5 +1,5 @@
 """Gateway API services."""
 
-from . import db
+from . import auth_service, db, email_service, oauth_service
 
-__all__ = ["db"]
+__all__ = ["auth_service", "db", "email_service", "oauth_service"]
