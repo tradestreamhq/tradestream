@@ -16,14 +16,14 @@ Reference: `specs/viral-platform/database-migrations/SPEC.md`
 
 Reference: `specs/viral-platform/gateway-api/SPEC.md`, `specs/viral-platform/auth-service/SPEC.md`
 
-- [ ] Create services/gateway/ directory structure with main.py, config.py
+- [x] Create services/gateway/ directory structure with main.py, config.py
 - [ ] Implement auth router - /auth/register, /auth/login, /auth/logout endpoints
 - [ ] Implement OAuth router - /auth/oauth/{provider} and callback endpoints
 - [ ] Implement email service with Resend integration
 - [ ] Implement signal SSE endpoint - /api/signals/stream
 - [ ] Implement user settings router - /api/user/settings, /api/user/watchlist
-- [ ] Create Dockerfile for gateway-api
-- [ ] Create requirements.txt for gateway-api
+- [x] Create Dockerfile for gateway-api
+- [x] Create requirements.txt for gateway-api
 
 ## Phase 2: Helm Deployment
 
@@ -53,7 +53,7 @@ Reference: `specs/viral-platform/agent-dashboard/SPEC.md`
 | Phase | Status | Tasks Done | Tasks Total |
 |-------|--------|------------|-------------|
 | Phase 0: Database | Complete | 3 | 3 |
-| Phase 1: Backend | Pending | 0 | 8 |
+| Phase 1: Backend | In Progress | 3 | 8 |
 | Phase 2: Helm | Pending | 0 | 4 |
 | Phase 3: Frontend | Pending | 0 | 9 |
 
