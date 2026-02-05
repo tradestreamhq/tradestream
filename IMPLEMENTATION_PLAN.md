@@ -29,10 +29,10 @@ Reference: `specs/viral-platform/gateway-api/SPEC.md`, `specs/viral-platform/aut
 
 Reference: `specs/viral-platform/helm-deployment/SPEC.md`
 
-- [ ] Create charts/tradestream/templates/gateway-api.yaml
-- [ ] Create charts/tradestream/templates/auth-secrets.yaml
-- [ ] Create charts/tradestream/templates/oauth-secrets.yaml
-- [ ] Update charts/tradestream/values.yaml with gatewayApi configuration
+- [x] Create charts/tradestream/templates/gateway-api.yaml
+- [x] Create charts/tradestream/templates/auth-secrets.yaml
+- [x] Create charts/tradestream/templates/oauth-secrets.yaml
+- [x] Update charts/tradestream/values.yaml with gatewayApi configuration
 
 ## Phase 3: Frontend Foundation
 
@@ -54,7 +54,7 @@ Reference: `specs/viral-platform/agent-dashboard/SPEC.md`
 |-------|--------|------------|-------------|
 | Phase 0: Database | Complete | 3 | 3 |
 | Phase 1: Backend | Complete | 8 | 8 |
-| Phase 2: Helm | Pending | 0 | 4 |
+| Phase 2: Helm | Complete | 4 | 4 |
 | Phase 3: Frontend | Pending | 0 | 9 |
 
 Last Updated: 2026-02-05
