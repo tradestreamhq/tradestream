@@ -5,6 +5,7 @@ import { Login } from '@/pages/Login';
 import { Register } from '@/pages/Register';
 import { Dashboard } from '@/pages/Dashboard';
 import { ProtectedRoute } from '@/components/Auth/ProtectedRoute';
+import { DashboardLayout } from '@/components/Dashboard';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,14 +25,22 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
+          {/* Protected routes with Dashboard Layout */}
           <Route
-            path="/dashboard"
             element={
               <ProtectedRoute allowDemo={true}>
-                <Dashboard />
+                <DashboardLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/feed" element={<Dashboard />} />
+            <Route path="/leaderboards" element={<Dashboard />} />
+            <Route path="/achievements" element={<Dashboard />} />
+            <Route path="/referrals" element={<Dashboard />} />
+            <Route path="/settings" element={<Dashboard />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

@@ -46,7 +46,7 @@ Reference: `specs/viral-platform/agent-dashboard/SPEC.md`
 - [x] Create Login page with OAuth buttons
 - [x] Create Register page with form validation
 - [x] Create ProtectedRoute component
-- [ ] Create Dashboard layout with header and sidebar
+- [x] Create Dashboard layout with header and sidebar
 
 ## Progress Tracking
 
@@ -55,6 +55,6 @@ Reference: `specs/viral-platform/agent-dashboard/SPEC.md`
 | Phase 0: Database | Complete | 3 | 3 |
 | Phase 1: Backend | Complete | 8 | 8 |
 | Phase 2: Helm | Complete | 4 | 4 |
-| Phase 3: Frontend | In Progress | 8 | 9 |
+| Phase 3: Frontend | Complete | 9 | 9 |
 
 Last Updated: 2026-02-05
