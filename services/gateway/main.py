@@ -6,9 +6,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routers import auth, health
+from .routers import auth, health, signals, users
 from .middleware.error_handler import add_error_handlers
 from .services.db import init_db, close_db
+from .services.redis_pubsub import close_redis
 
 
 @asynccontextmanager
@@ -19,6 +20,7 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown
     await close_db()
+    await close_redis()
 
 
 app = FastAPI(
@@ -43,10 +45,10 @@ add_error_handlers(app)
 # Routers
 app.include_router(health.router)
 app.include_router(auth.router)
+app.include_router(signals.router)
+app.include_router(users.router)
 
 # Additional routers will be added as they are implemented:
-# app.include_router(signals.router)
-# app.include_router(users.router)
 # app.include_router(providers.router)
 # app.include_router(social.router)
 # app.include_router(leaderboards.router)
