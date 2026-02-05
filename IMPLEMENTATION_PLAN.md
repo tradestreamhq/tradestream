@@ -42,7 +42,7 @@ Reference: `specs/viral-platform/agent-dashboard/SPEC.md`
 - [x] Configure Tailwind CSS and shadcn/ui
 - [x] Create useAuth hook for authentication state
 - [x] Create auth API client
-- [ ] Create Landing page component
+- [x] Create Landing page component
 - [ ] Create Login page with OAuth buttons
 - [ ] Create Register page with form validation
 - [ ] Create ProtectedRoute component
@@ -55,6 +55,6 @@ Reference: `specs/viral-platform/agent-dashboard/SPEC.md`
 | Phase 0: Database | Complete | 3 | 3 |
 | Phase 1: Backend | Complete | 8 | 8 |
 | Phase 2: Helm | Complete | 4 | 4 |
-| Phase 3: Frontend | In Progress | 4 | 9 |
+| Phase 3: Frontend | In Progress | 5 | 9 |
 
 Last Updated: 2026-02-05
