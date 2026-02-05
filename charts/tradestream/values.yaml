@@ -480,8 +480,12 @@ gatewayApi:
     poolSize: 10
 
   urls:
-    api: https://api.tradestream.io
-    frontend: https://tradestream.io
+    # For production, set these to your actual domains:
+    # api: https://api.tradestream.io
+    # frontend: https://tradestream.io
+    # For local development:
+    api: http://localhost:8000
+    frontend: http://localhost:3000
 
   cors:
     origins:
