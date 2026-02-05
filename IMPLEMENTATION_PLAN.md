@@ -20,8 +20,8 @@ Reference: `specs/viral-platform/gateway-api/SPEC.md`, `specs/viral-platform/aut
 - [x] Implement auth router - /auth/register, /auth/login, /auth/logout endpoints
 - [x] Implement OAuth router - /auth/oauth/{provider} and callback endpoints
 - [x] Implement email service with Resend integration
-- [ ] Implement signal SSE endpoint - /api/signals/stream
-- [ ] Implement user settings router - /api/user/settings, /api/user/watchlist
+- [x] Implement signal SSE endpoint - /api/signals/stream
+- [x] Implement user settings router - /api/user/settings, /api/user/watchlist
 - [x] Create Dockerfile for gateway-api
 - [x] Create requirements.txt for gateway-api
 
@@ -53,7 +53,7 @@ Reference: `specs/viral-platform/agent-dashboard/SPEC.md`
 | Phase | Status | Tasks Done | Tasks Total |
 |-------|--------|------------|-------------|
 | Phase 0: Database | Complete | 3 | 3 |
-| Phase 1: Backend | In Progress | 6 | 8 |
+| Phase 1: Backend | Complete | 8 | 8 |
 | Phase 2: Helm | Pending | 0 | 4 |
 | Phase 3: Frontend | Pending | 0 | 9 |
 
