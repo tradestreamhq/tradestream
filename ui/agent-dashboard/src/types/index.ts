@@ -1,21 +1,14 @@
-// User types
+// User types (matches backend API contract with snake_case)
 export interface User {
-  id: string;
+  user_id: string;
   email: string;
-  username?: string;
-  role: 'user' | 'provider' | 'admin';
-  emailVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
+  display_name: string;
+  avatar_url: string | null;
+  is_provider: boolean;
+  email_verified: boolean;
 }
 
 // Auth types
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-}
-
 export interface LoginRequest {
   email: string;
   password: string;
@@ -24,12 +17,19 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  username?: string;
+  display_name: string;
 }
 
 export interface AuthResponse {
   user: User;
-  tokens: AuthTokens;
+  access_token: string;
+  refresh_token?: string;
+  expires_in?: number;
+}
+
+export interface RefreshResponse {
+  access_token: string;
+  expires_in?: number;
 }
 
 // API Error types

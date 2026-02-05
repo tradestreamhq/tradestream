@@ -40,8 +40,8 @@ Reference: `specs/viral-platform/agent-dashboard/SPEC.md`
 
 - [x] Create ui/agent-dashboard/ with Vite + React + TypeScript scaffold
 - [x] Configure Tailwind CSS and shadcn/ui
-- [ ] Create useAuth hook for authentication state
-- [ ] Create auth API client
+- [x] Create useAuth hook for authentication state
+- [x] Create auth API client
 - [ ] Create Landing page component
 - [ ] Create Login page with OAuth buttons
 - [ ] Create Register page with form validation
@@ -55,6 +55,6 @@ Reference: `specs/viral-platform/agent-dashboard/SPEC.md`
 | Phase 0: Database | Complete | 3 | 3 |
 | Phase 1: Backend | Complete | 8 | 8 |
 | Phase 2: Helm | Complete | 4 | 4 |
-| Phase 3: Frontend | In Progress | 2 | 9 |
+| Phase 3: Frontend | In Progress | 4 | 9 |
 
 Last Updated: 2026-02-05
