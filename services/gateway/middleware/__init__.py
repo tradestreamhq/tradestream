@@ -1,5 +1,5 @@
 """Gateway API middleware."""
 
-from . import error_handler
+from . import auth_middleware, error_handler
 
-__all__ = ["error_handler"]
+__all__ = ["auth_middleware", "error_handler"]

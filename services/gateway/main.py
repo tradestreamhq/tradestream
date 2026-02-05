@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routers import health
+from .routers import auth, health
 from .middleware.error_handler import add_error_handlers
 from .services.db import init_db, close_db
 
@@ -40,11 +40,11 @@ app.add_middleware(
 # Error handlers
 add_error_handlers(app)
 
-# Routers - health always included
+# Routers
 app.include_router(health.router)
+app.include_router(auth.router)
 
 # Additional routers will be added as they are implemented:
-# app.include_router(auth.router)
 # app.include_router(signals.router)
 # app.include_router(users.router)
 # app.include_router(providers.router)
