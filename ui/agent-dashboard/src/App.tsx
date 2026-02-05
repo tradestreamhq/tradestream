@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Landing } from '@/pages/Landing';
+import { Login } from '@/pages/Login';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,6 +19,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
