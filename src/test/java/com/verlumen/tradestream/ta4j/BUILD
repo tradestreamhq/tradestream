@@ -11,3 +11,15 @@ java_test(
         "//third_party/java:ta4j_core",
     ],
 )
+
+java_test(
+    name = "RviIndicatorTest",
+    srcs = ["RviIndicatorTest.java"],
+    test_class = "com.verlumen.tradestream.ta4j.RviIndicatorTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/ta4j:rvi_indicator",
+        "//third_party/java:junit",
+        "//third_party/java:ta4j_core",
+        "//third_party/java:truth",
+    ],
+)
