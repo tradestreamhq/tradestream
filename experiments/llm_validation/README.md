@@ -6,6 +6,7 @@ defined in [Issue #1484](https://github.com/tradestreamhq/tradestream/issues/148
 ## Overview
 
 The experiments validate the core thesis:
+
 > An LLM can generate novel, profitable trading strategy specifications when given
 > few-shot examples of production-validated strategies, and genetic algorithms can
 > effectively optimize the parameters of these LLM-generated strategies.
@@ -18,11 +19,13 @@ The experiments validate the core thesis:
 novel, syntactically valid, and logically coherent strategy specifications.
 
 **Success Criteria:**
+
 - ≥80% syntactically valid
 - ≥60% logically coherent
 - ≥70% novel (not direct copies)
 
 **Run:**
+
 ```bash
 cd experiments/llm_validation
 pip install -r requirements.txt
@@ -36,11 +39,13 @@ python llm_generator.py --num-generations 50
 to human-designed strategies in backtests.
 
 **Success Criteria:**
+
 - Median Sharpe of LLM strategies ≥ 80% of human strategies
 - At least 3 LLM strategies in top 20 overall
 - No catastrophic failures (drawdown > 50%)
 
 **Run:**
+
 ```bash
 python run_backtest_experiment.py \
   --strategies-dir ./results/generated_strategies \
@@ -53,22 +58,24 @@ python run_backtest_experiment.py \
 maintain performance on out-of-sample data.
 
 **Success Criteria:**
+
 - OOS Sharpe > 0.5 (mean across strategies)
 - Sharpe Degradation < 50%
 - Approval Rate: 5-20% of strategies pass validation
 
 **Dependencies:**
+
 - #1558 Backtesting Service (COMPLETED)
 - #1560 Walk-Forward Validation (COMPLETED)
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `strategy_schema.py` | Strategy YAML schema validation |
-| `llm_generator.py` | LLM-based strategy generation |
+| File                      | Purpose                          |
+| ------------------------- | -------------------------------- |
+| `strategy_schema.py`      | Strategy YAML schema validation  |
+| `llm_generator.py`        | LLM-based strategy generation    |
 | `test_strategy_schema.py` | Unit tests for schema validation |
-| `requirements.txt` | Python dependencies |
+| `requirements.txt`        | Python dependencies              |
 
 ## Strategy YAML Schema
 
@@ -108,35 +115,44 @@ parameters:
 ## Available Indicator Types
 
 ### Moving Averages
+
 - `SMA`, `EMA`, `DEMA`, `TEMA`
 
 ### Oscillators
+
 - `RSI`, `STOCHASTIC_K`, `CMO`, `WILLIAMS_R`, `CCI`, `ROC`
 - `MACD`, `AWESOME_OSCILLATOR`, `CHAIKIN_OSCILLATOR`
 
 ### Volume
+
 - `OBV`, `CMF`, `MFI`, `KLINGER_VOLUME_OSCILLATOR`
 
 ### Trend
+
 - `ADX`, `PLUS_DI`, `MINUS_DI`, `AROON_UP`, `AROON_DOWN`, `MASS_INDEX`
 
 ### Volatility
+
 - `ATR`, `BOLLINGER_UPPER`, `BOLLINGER_LOWER`
 
 ### Price
+
 - `CLOSE_PRICE`, `HIGH_PRICE`, `LOW_PRICE`, `HIGHEST_HIGH`, `LOWEST_LOW`
 
 ### Utility
+
 - `CONSTANT`, `DIFFERENCE`, `PREVIOUS`
 
 ## Available Condition Types
 
 ### Crossovers
+
 - `CROSSED_UP`, `CROSSED_DOWN`
 - `CROSSED_UP_CONSTANT`, `CROSSED_DOWN_CONSTANT`
 - `CROSSES_ABOVE`, `CROSSES_BELOW`
 
 ### Comparisons
+
 - `OVER_CONSTANT`, `UNDER_CONSTANT`
 - `OVER_INDICATOR`, `UNDER_INDICATOR`
 - `ABOVE`, `BELOW`, `OVER`, `UNDER`
@@ -144,5 +160,6 @@ parameters:
 ## Results
 
 Results are saved to `./results/` directory:
+
 - `experiment_1_results.json` - Experiment 1 metrics and generated strategies
 - `generated_strategies/` - Valid YAML strategies for Experiment 2

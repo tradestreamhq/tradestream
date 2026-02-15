@@ -22,15 +22,15 @@ cp -r specs/_TEMPLATE specs/my-capability
 
 ## Lifecycle
 
-| Stage | Description |
-|-------|-------------|
+| Stage            | Description                            |
+| ---------------- | -------------------------------------- |
 | **Aspirational** | Spec exists, no implementation started |
-| **In Progress** | Issues linked, work underway |
-| **Achieved** | All acceptance criteria met |
+| **In Progress**  | Issues linked, work underway           |
+| **Achieved**     | All acceptance criteria met            |
 
 ## Relationship to GitHub Issues
 
-Specs are not issues. They describe *what* we're building; issues describe *how* we're building it.
+Specs are not issues. They describe _what_ we're building; issues describe _how_ we're building it.
 
 - A single spec may require multiple issues to implement
 - Issues reference their parent spec

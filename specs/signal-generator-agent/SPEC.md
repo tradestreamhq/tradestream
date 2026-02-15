@@ -30,15 +30,15 @@ The Signal Generator Agent is the first stage in the signal pipeline. It runs ev
     }
   },
   "strategy_breakdown": [
-    {"name": "RSI_REVERSAL", "signal": "BUY", "score": 0.89},
-    {"name": "MACD_CROSS", "signal": "BUY", "score": 0.85},
-    {"name": "BOLLINGER_BOUNCE", "signal": "BUY", "score": 0.78},
-    {"name": "EMA_TREND", "signal": "BUY", "score": 0.72},
-    {"name": "VOLUME_BREAKOUT", "signal": "SELL", "score": 0.65}
+    { "name": "RSI_REVERSAL", "signal": "BUY", "score": 0.89 },
+    { "name": "MACD_CROSS", "signal": "BUY", "score": 0.85 },
+    { "name": "BOLLINGER_BOUNCE", "signal": "BUY", "score": 0.78 },
+    { "name": "EMA_TREND", "signal": "BUY", "score": 0.72 },
+    { "name": "VOLUME_BREAKOUT", "signal": "SELL", "score": 0.65 }
   ],
   "reasoning": "Strong consensus among top strategies. RSI shows oversold recovery at 28, MACD just crossed bullish with histogram expanding. 4 of 5 top strategies signal BUY.",
   "market_context": {
-    "current_price": 2450.50,
+    "current_price": 2450.5,
     "price_change_1h": 0.023,
     "volume_ratio": 1.45,
     "volatility_1h": 0.018
@@ -562,19 +562,19 @@ async def _generate_degraded_signal(
 
 ### strategy-mcp
 
-| Tool | Parameters | Returns |
-|------|------------|---------|
-| `get_top_strategies` | `symbol: string, limit: int` | Array of top strategies with scores |
-| `get_strategy_signal` | `strategy_id: string, symbol: string` | Current signal for strategy |
-| `get_strategy_consensus` | `symbol: string` | Aggregated consensus across all strategies |
+| Tool                     | Parameters                            | Returns                                    |
+| ------------------------ | ------------------------------------- | ------------------------------------------ |
+| `get_top_strategies`     | `symbol: string, limit: int`          | Array of top strategies with scores        |
+| `get_strategy_signal`    | `strategy_id: string, symbol: string` | Current signal for strategy                |
+| `get_strategy_consensus` | `symbol: string`                      | Aggregated consensus across all strategies |
 
 ### market-data-mcp
 
-| Tool | Parameters | Returns |
-|------|------------|---------|
-| `get_current_price` | `symbol: string` | Current price and 24h change |
-| `get_candles` | `symbol: string, timeframe: string, limit: int` | OHLCV candles |
-| `get_volatility` | `symbol: string, timeframe: string` | Volatility metrics |
+| Tool                | Parameters                                      | Returns                      |
+| ------------------- | ----------------------------------------------- | ---------------------------- |
+| `get_current_price` | `symbol: string`                                | Current price and 24h change |
+| `get_candles`       | `symbol: string, timeframe: string, limit: int` | OHLCV candles                |
+| `get_volatility`    | `symbol: string, timeframe: string`             | Volatility metrics           |
 
 ## Skills
 
@@ -584,15 +584,18 @@ async def _generate_degraded_signal(
 # Skill: analyze-symbol
 
 ## Purpose
+
 Perform comprehensive analysis of a trading symbol using available MCP tools.
 
 ## Workflow
+
 1. Fetch top 5 strategies for the symbol
 2. Get current signal from each strategy
 3. Gather market context (price, volume, volatility)
 4. Synthesize findings into a trading signal
 
 ## Output Format
+
 Structured JSON signal with confidence and reasoning.
 ```
 
@@ -602,15 +605,18 @@ Structured JSON signal with confidence and reasoning.
 # Skill: detect-patterns
 
 ## Purpose
+
 Identify technical patterns in recent price action.
 
 ## Patterns to Detect
+
 - Trend: Uptrend, Downtrend, Sideways
 - Momentum: Accelerating, Decelerating, Reversal
 - Volume: Breakout confirmation, Divergence
 - Support/Resistance: Near key levels
 
 ## Output
+
 Pattern summary to include in signal reasoning.
 ```
 
@@ -718,15 +724,15 @@ opencode --config agents/signal-generator/.opencode/config.json \
 
 ## Error Handling
 
-| Scenario | Behavior |
-|----------|----------|
-| strategy-mcp unavailable | Retry 3x with backoff, then use cached strategies (5 min TTL), reduce confidence by 20% |
-| market-data-mcp unavailable | Retry 3x, then skip market context, note in reasoning, reduce confidence by 10% |
-| All tools fail | Retry 3x each, then generate HOLD signal with 0.30 confidence |
-| Timeout exceeded | Publish partial signal with available data, log warning |
-| Invalid symbol | Return error event, skip symbol, continue batch |
-| Model lacks tool calling | Automatic fallback to Claude Sonnet, log warning |
-| Rate limited | Exponential backoff with jitter, max 5 second delay |
+| Scenario                    | Behavior                                                                                |
+| --------------------------- | --------------------------------------------------------------------------------------- |
+| strategy-mcp unavailable    | Retry 3x with backoff, then use cached strategies (5 min TTL), reduce confidence by 20% |
+| market-data-mcp unavailable | Retry 3x, then skip market context, note in reasoning, reduce confidence by 10%         |
+| All tools fail              | Retry 3x each, then generate HOLD signal with 0.30 confidence                           |
+| Timeout exceeded            | Publish partial signal with available data, log warning                                 |
+| Invalid symbol              | Return error event, skip symbol, continue batch                                         |
+| Model lacks tool calling    | Automatic fallback to Claude Sonnet, log warning                                        |
+| Rate limited                | Exponential backoff with jitter, max 5 second delay                                     |
 
 ## Metrics
 

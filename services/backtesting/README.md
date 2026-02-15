@@ -5,6 +5,7 @@ High-performance backtesting service using VectorBT for vectorized operations.
 ## Overview
 
 This microservice provides backtesting capabilities optimized for:
+
 - **Genetic Algorithm Optimization**: Fast evaluation of thousands of strategy variants
 - **Vectorized Computations**: 10-100x faster than event-driven backtesting
 - **Full Indicator Coverage**: 40+ indicators matching ta4j functionality
@@ -58,6 +59,7 @@ Run a single backtest.
 ```
 
 Response:
+
 ```json
 {
   "cumulativeReturn": 0.15,
@@ -121,10 +123,10 @@ List available indicators.
 
 Benchmarks (1000 bars, 100 parameter combinations):
 
-| Operation | Time | Speedup vs Event-Driven |
-|-----------|------|------------------------|
-| Single backtest | ~5ms | ~20x |
-| Batch (100 variants) | ~200ms | ~50x |
+| Operation            | Time   | Speedup vs Event-Driven |
+| -------------------- | ------ | ----------------------- |
+| Single backtest      | ~5ms   | ~20x                    |
+| Batch (100 variants) | ~200ms | ~50x                    |
 
 ## Related Issues
 

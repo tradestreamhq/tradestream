@@ -8,24 +8,24 @@ SSE-based backend service that streams agent events to connected frontends, enab
 
 ### Endpoints
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/agent/stream` | GET (SSE) | Real-time event stream for connected clients |
-| `/api/agent/command` | POST | Submit user queries to the agent |
-| `/api/agent/health` | GET | Service health and connection metrics |
+| Endpoint             | Method    | Purpose                                      |
+| -------------------- | --------- | -------------------------------------------- |
+| `/api/agent/stream`  | GET (SSE) | Real-time event stream for connected clients |
+| `/api/agent/command` | POST      | Submit user queries to the agent             |
+| `/api/agent/health`  | GET       | Service health and connection metrics        |
 
 ### Event Types
 
 ```typescript
 type AgentEvent =
-  | { type: 'session_start'; data: SessionStartEvent }
-  | { type: 'signal'; data: TradingSignal }
-  | { type: 'reasoning'; data: ReasoningStep }
-  | { type: 'tool_call'; data: ToolCallEvent }
-  | { type: 'tool_result'; data: ToolResultEvent }
-  | { type: 'error'; data: ErrorEvent }
-  | { type: 'backpressure_warning'; data: BackpressureWarning }
-  | { type: 'heartbeat'; data: { timestamp: string } };
+  | { type: "session_start"; data: SessionStartEvent }
+  | { type: "signal"; data: TradingSignal }
+  | { type: "reasoning"; data: ReasoningStep }
+  | { type: "tool_call"; data: ToolCallEvent }
+  | { type: "tool_result"; data: ToolResultEvent }
+  | { type: "error"; data: ErrorEvent }
+  | { type: "backpressure_warning"; data: BackpressureWarning }
+  | { type: "heartbeat"; data: { timestamp: string } };
 
 interface SessionStartEvent {
   session_id: string;
@@ -35,7 +35,7 @@ interface SessionStartEvent {
 interface TradingSignal {
   signal_id: string;
   symbol: string;
-  action: 'BUY' | 'SELL' | 'HOLD';
+  action: "BUY" | "SELL" | "HOLD";
   confidence: number;
   opportunity_score: number;
   summary: string;
@@ -80,8 +80,8 @@ interface BackpressureWarning {
 
 // All events are wrapped in an envelope with ordering metadata
 interface EventEnvelope<T> {
-  id: string;           // "{session_id}:{sequence_number}" for Last-Event-ID
-  sequence: number;     // Monotonically increasing per session
+  id: string; // "{session_id}:{sequence_number}" for Last-Event-ID
+  sequence: number; // Monotonically increasing per session
   event: T;
 }
 ```
@@ -171,11 +171,13 @@ data: {"timestamp":"2025-02-01T12:34:56Z"}
 ### Connection Limits and Backpressure
 
 #### Per-Client Limits
+
 - Maximum 5 concurrent SSE connections per IP address
 - Exceeding limit returns HTTP 429 Too Many Requests
 - Connection tracking via in-memory LRU cache (10,000 entries max)
 
 #### Backpressure Handling
+
 - **Queue monitoring**: When queue reaches 80% capacity (800 events), emit `backpressure_warning` event
 - **Slow consumer detection**: If queue stays above 80% for 30 seconds, disconnect client with `slow_consumer` error
 - **Graceful degradation**: Under backpressure, reduce event granularity (skip intermediate reasoning steps, keep signals)
@@ -185,13 +187,14 @@ data: {"timestamp":"2025-02-01T12:34:56Z"}
 
 MVP includes basic rate limiting per IP:
 
-| Endpoint | Limit |
-|----------|-------|
-| `/api/agent/stream` | 10 connections/minute per IP |
-| `/api/agent/command` | 60 requests/minute per IP |
-| `/api/agent/health` | 120 requests/minute per IP |
+| Endpoint             | Limit                        |
+| -------------------- | ---------------------------- |
+| `/api/agent/stream`  | 10 connections/minute per IP |
+| `/api/agent/command` | 60 requests/minute per IP    |
+| `/api/agent/health`  | 120 requests/minute per IP   |
 
 Rate limit responses include standard headers:
+
 - `X-RateLimit-Limit`: Requests allowed per window
 - `X-RateLimit-Remaining`: Requests remaining
 - `X-RateLimit-Reset`: Unix timestamp when window resets
@@ -209,12 +212,12 @@ Rate limit responses include standard headers:
 Clients should implement exponential backoff with jitter:
 
 | Attempt | Base Delay | Max Jitter | Max Delay |
-|---------|------------|------------|-----------|
-| 1 | 1s | 0.5s | 1.5s |
-| 2 | 2s | 1s | 3s |
-| 3 | 4s | 2s | 6s |
-| 4 | 8s | 4s | 12s |
-| 5+ | 16s | 8s | 24s |
+| ------- | ---------- | ---------- | --------- |
+| 1       | 1s         | 0.5s       | 1.5s      |
+| 2       | 2s         | 1s         | 3s        |
+| 3       | 4s         | 2s         | 6s        |
+| 4       | 8s         | 4s         | 12s       |
+| 5+      | 16s        | 8s         | 24s       |
 
 - Maximum retry attempts: 10 (then surface error to user)
 - Reset retry counter after 60 seconds of stable connection
@@ -234,6 +237,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "request_id": "req-456",
@@ -367,16 +371,16 @@ curl "http://localhost:8081/api/agent/health"
 
 ## Error Handling
 
-| Scenario | Behavior |
-|----------|----------|
-| Redis disconnected | Return cached signals, log warning, attempt reconnect |
-| Queue overflow | Drop oldest events, log warning |
-| Invalid command | Return 400 with validation errors |
-| Agent timeout | Stream error event, return partial results if available |
-| Missing session_id | Return 400 with `missing_session_id` error |
-| Rate limit exceeded | Return 429 with rate limit headers |
-| Connection limit exceeded | Return 429 with `connection_limit_exceeded` error |
-| Slow consumer detected | Close SSE connection with `slow_consumer` error event |
+| Scenario                  | Behavior                                                |
+| ------------------------- | ------------------------------------------------------- |
+| Redis disconnected        | Return cached signals, log warning, attempt reconnect   |
+| Queue overflow            | Drop oldest events, log warning                         |
+| Invalid command           | Return 400 with validation errors                       |
+| Agent timeout             | Stream error event, return partial results if available |
+| Missing session_id        | Return 400 with `missing_session_id` error              |
+| Rate limit exceeded       | Return 429 with rate limit headers                      |
+| Connection limit exceeded | Return 429 with `connection_limit_exceeded` error       |
+| Slow consumer detected    | Close SSE connection with `slow_consumer` error event   |
 
 ## Metrics to Expose
 

@@ -57,6 +57,7 @@ generation_stats = await strategy_db_mcp.get_generation_stats(source="LLM_GENERA
 ### 2. Analyze Patterns
 
 The agent identifies common patterns across top performers:
+
 - Indicator combinations that work together
 - Entry/exit condition types that correlate with success
 - Parameter ranges that tend to perform well
@@ -66,6 +67,7 @@ The agent identifies common patterns across top performers:
 ### 3. Generate New Specs
 
 Using few-shot prompting with top performers as examples, generate novel specs that:
+
 - Combine successful elements in new ways
 - Explore variations on proven patterns
 - Fill gaps in the strategy library
@@ -87,6 +89,7 @@ You are a quantitative strategy researcher for TradeStream. Your job is to gener
 new trading strategy specifications based on patterns observed in our top performers.
 
 ## Your Context
+
 You have access to our top 10 performing strategy specs, each with their best
 implementations and performance metrics. Use these as examples and inspiration.
 
@@ -94,7 +97,9 @@ You also have feedback on previously generated specs - which ones succeeded in
 GA optimization and which ones failed. Use this to guide your generation.
 
 ## Your Goal
+
 Generate 1-5 NEW strategy specs that:
+
 1. Follow the same structural format as the examples
 2. Are genuinely novel (not duplicates or minor variations)
 3. Build on patterns that work in the top performers
@@ -102,7 +107,9 @@ Generate 1-5 NEW strategy specs that:
 5. Avoid patterns similar to those that have historically failed
 
 ## Output Format
+
 For each new spec, provide:
+
 - Name (unique, descriptive)
 - Description (1-2 sentences)
 - Indicators (list with parameters)
@@ -112,6 +119,7 @@ For each new spec, provide:
 - Reasoning (why this should work, based on what you learned)
 
 ## Constraints
+
 - Only use indicators we support: RSI, MACD, EMA, SMA, Bollinger Bands, ATR, ADX, Stochastic, Volume
 - Keep parameter ranges reasonable (not too wide)
 - Entry/exit conditions must be unambiguous
@@ -126,12 +134,14 @@ For each new spec, provide:
 ranging markets where extreme readings tend to correct.
 
 **Indicators:**
+
 - RSI(period=${rsiPeriod})
 
 **Entry:** RSI < ${oversold}
 **Exit:** RSI > ${overbought}
 
 **Parameters:**
+
 - rsiPeriod: INTEGER, 5-50, default 14
 - oversold: INTEGER, 20-35, default 30
 - overbought: INTEGER, 65-80, default 70
@@ -144,12 +154,14 @@ ranging markets where extreme readings tend to correct.
 expansion, filters out weak signals.
 
 **Indicators:**
+
 - MACD(fast=${fastPeriod}, slow=${slowPeriod}, signal=${signalPeriod})
 
 **Entry:** MACD crosses above signal line AND histogram > 0
 **Exit:** MACD crosses below signal line
 
 **Parameters:**
+
 - fastPeriod: INTEGER, 8-15, default 12
 - slowPeriod: INTEGER, 20-30, default 26
 - signalPeriod: INTEGER, 7-12, default 9
@@ -161,6 +173,7 @@ expansion, filters out weak signals.
 Based on the top-performing specs above, generate 3 new strategy specs.
 
 Consider:
+
 1. What indicator combinations haven't been tried?
 2. Can you combine elements from multiple successful strategies?
 3. Are there variations on the successful patterns worth exploring?
@@ -389,7 +402,7 @@ def _spec_to_description(spec: dict) -> str:
 The Learning Agent uses structured output parsing with retry logic to handle
 malformed LLM responses gracefully.
 
-```python
+````python
 import json
 import re
 import asyncio
@@ -552,7 +565,7 @@ Provide ONLY the corrected JSON array, no explanation:
     )
 
     return response.text
-```
+````
 
 ## Spec Validation
 
@@ -949,14 +962,17 @@ async def check_generation_limits(db) -> tuple[bool, str]:
 # Skill: Few-Shot Spec Generation
 
 ## Purpose
+
 Generate new strategy specifications using top performers as examples.
 
 ## When to Use
+
 - During scheduled Learning Agent runs (every 6 hours)
 - When strategy library needs expansion
 - When GA has exhausted current spec parameter space
 
 ## Workflow
+
 1. Fetch top 10 specs with get_top_specs()
 2. For each spec, get top 5 implementations
 3. Fetch feedback on previously generated specs
@@ -967,9 +983,11 @@ Generate new strategy specifications using top performers as examples.
 8. Submit valid, unique specs
 
 ## Output
+
 New strategy specs in JSON format, ready for database insertion.
 
 ## Constraints
+
 - Only use supported indicators
 - Must include reasoning for each spec
 - Must pass validation before submission
@@ -982,9 +1000,11 @@ New strategy specs in JSON format, ready for database insertion.
 # Skill: Analyze Performance Patterns
 
 ## Purpose
+
 Identify patterns that correlate with strategy success.
 
 ## Analysis Dimensions
+
 1. **Indicator Combinations**: Which indicators appear together in top specs?
 2. **Condition Types**: What entry/exit conditions work best?
 3. **Parameter Ranges**: What ranges tend to produce best results?
@@ -992,6 +1012,7 @@ Identify patterns that correlate with strategy success.
 5. **Generation Source**: How do LLM-generated specs compare to others?
 
 ## Output
+
 Pattern analysis summary to inform spec generation.
 ```
 

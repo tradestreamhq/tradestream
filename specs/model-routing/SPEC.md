@@ -8,23 +8,23 @@ Cost-optimized model selection using 2026 state-of-the-art models for tool use, 
 
 Based on Tau2-bench (Telecom) and internal testing:
 
-| Model | Tau2 Score | MCP Support | Best For | Strengths |
-|-------|-----------|-------------|----------|-----------|
-| **Claude Opus 4.5** | 98.2% | Native | Complex multi-step orchestration | Best-in-class reasoning, handles ambiguity |
-| **GPT-5.2 Thinking** | 94.5% | Native | Agentic tasks, knowledge work | Strong chain-of-thought, reliable |
-| **Claude Sonnet 4.5** | ~90% | Native | Balanced cost/performance | Great value for complex tasks |
-| **Gemini 3.0 Pro** | 85.4% | Native | Speed, multimodal inputs | Fast, good for structured data |
-| **Gemini 3.0 Flash** | ~80% | Native | High volume, cost-sensitive | Extremely fast and cheap |
+| Model                 | Tau2 Score | MCP Support | Best For                         | Strengths                                  |
+| --------------------- | ---------- | ----------- | -------------------------------- | ------------------------------------------ |
+| **Claude Opus 4.5**   | 98.2%      | Native      | Complex multi-step orchestration | Best-in-class reasoning, handles ambiguity |
+| **GPT-5.2 Thinking**  | 94.5%      | Native      | Agentic tasks, knowledge work    | Strong chain-of-thought, reliable          |
+| **Claude Sonnet 4.5** | ~90%       | Native      | Balanced cost/performance        | Great value for complex tasks              |
+| **Gemini 3.0 Pro**    | 85.4%      | Native      | Speed, multimodal inputs         | Fast, good for structured data             |
+| **Gemini 3.0 Flash**  | ~80%       | Native      | High volume, cost-sensitive      | Extremely fast and cheap                   |
 
 ## Pricing (OpenRouter 2026)
 
-| Model | Input/1M tokens | Output/1M tokens | Notes |
-|-------|-----------------|------------------|-------|
-| **Gemini 3.0 Flash** | $0.10 | $0.40 | Best value for volume |
-| **Gemini 3.0 Pro** | $1.25 | $5.00 | Balanced price/perf |
-| **GPT-5.2** | $1.75 | $14.00 | Premium reasoning |
-| **Claude Sonnet 4.5** | $3.00 | $15.00 | Premium balanced |
-| **Claude Opus 4.5** | $15.00 | $75.00 | Mission-critical only |
+| Model                 | Input/1M tokens | Output/1M tokens | Notes                 |
+| --------------------- | --------------- | ---------------- | --------------------- |
+| **Gemini 3.0 Flash**  | $0.10           | $0.40            | Best value for volume |
+| **Gemini 3.0 Pro**    | $1.25           | $5.00            | Balanced price/perf   |
+| **GPT-5.2**           | $1.75           | $14.00           | Premium reasoning     |
+| **Claude Sonnet 4.5** | $3.00           | $15.00           | Premium balanced      |
+| **Claude Opus 4.5**   | $15.00          | $75.00           | Mission-critical only |
 
 ## Model Routing Strategy
 
@@ -247,45 +247,45 @@ class ModelRouter:
 
 ### Per-Cycle Cost (1 minute, 20 symbols)
 
-| Agent | Model | Calls | Tokens/call | Cost/cycle |
-|-------|-------|-------|-------------|------------|
-| Signal Generator | Flash | 20 | ~1,500 | $0.01 |
-| Opportunity Scorer | Pro | 20 | ~800 | $0.02 |
-| Portfolio Advisor | Mixed | ~5 | ~600 | $0.02 |
-| Report Generator | Flash | 20 | ~500 | $0.004 |
-| **Total per cycle** | | | | **~$0.05** |
+| Agent               | Model | Calls | Tokens/call | Cost/cycle |
+| ------------------- | ----- | ----- | ----------- | ---------- |
+| Signal Generator    | Flash | 20    | ~1,500      | $0.01      |
+| Opportunity Scorer  | Pro   | 20    | ~800        | $0.02      |
+| Portfolio Advisor   | Mixed | ~5    | ~600        | $0.02      |
+| Report Generator    | Flash | 20    | ~500        | $0.004     |
+| **Total per cycle** |       |       |             | **~$0.05** |
 
 ### Monthly Cost Projections
 
-| Frequency | Cycles/day | Cost/day | Cost/month |
-|-----------|------------|----------|------------|
-| 1 minute | 1,440 | $72 | **$2,160** |
-| 5 minutes | 288 | $14.40 | **$432** |
-| 15 minutes | 96 | $4.80 | **$144** |
+| Frequency  | Cycles/day | Cost/day | Cost/month |
+| ---------- | ---------- | -------- | ---------- |
+| 1 minute   | 1,440      | $72      | **$2,160** |
+| 5 minutes  | 288        | $14.40   | **$432**   |
+| 15 minutes | 96         | $4.80    | **$144**   |
 
 ### With Learning/Janitor Agents
 
-| Agent | Frequency | Cost/run | Monthly |
-|-------|-----------|----------|---------|
-| Learning | 4x/day | $0.50 | $60 |
-| Janitor | 1x/day | $0.20 | $6 |
+| Agent    | Frequency | Cost/run | Monthly |
+| -------- | --------- | -------- | ------- |
+| Learning | 4x/day    | $0.50    | $60     |
+| Janitor  | 1x/day    | $0.20    | $6      |
 
 ### Total Monthly Budget
 
-| Scenario | Signal Frequency | Total/month |
-|----------|------------------|-------------|
-| Production (1-min) | Every 1 minute | ~$2,300 |
-| Cost-conscious (5-min) | Every 5 minutes | ~$500 |
-| Development (15-min) | Every 15 minutes | ~$200 |
+| Scenario               | Signal Frequency | Total/month |
+| ---------------------- | ---------------- | ----------- |
+| Production (1-min)     | Every 1 minute   | ~$2,300     |
+| Cost-conscious (5-min) | Every 5 minutes  | ~$500       |
+| Development (15-min)   | Every 15 minutes | ~$200       |
 
 ## Models to Avoid
 
-| Model | Issue | Alternative |
-|-------|-------|-------------|
-| DeepSeek V3.x | "Struggles with multi-tool workflows" | Gemini Flash |
-| Claude Haiku 3 | Deprecated | Gemini Flash |
-| GPT-3.5 Turbo | Poor tool use | Gemini Flash |
-| Local LLMs | Inconsistent tool calling | Cloud models |
+| Model          | Issue                                 | Alternative  |
+| -------------- | ------------------------------------- | ------------ |
+| DeepSeek V3.x  | "Struggles with multi-tool workflows" | Gemini Flash |
+| Claude Haiku 3 | Deprecated                            | Gemini Flash |
+| GPT-3.5 Turbo  | Poor tool use                         | Gemini Flash |
+| Local LLMs     | Inconsistent tool calling             | Cloud models |
 
 ## Configuration
 
@@ -332,9 +332,9 @@ model_routing:
   # Fallback chain ordered by cost (cheapest first)
   # to minimize cost spikes during outages
   fallback_chain:
-    - "google/gemini-3.0-flash"   # $0.10/$0.40
-    - "google/gemini-3.0-pro"     # $1.25/$5.00
-    - "openai/gpt-5.2"            # $1.75/$14.00
+    - "google/gemini-3.0-flash" # $0.10/$0.40
+    - "google/gemini-3.0-pro" # $1.25/$5.00
+    - "openai/gpt-5.2" # $1.75/$14.00
     - "anthropic/claude-sonnet-4.5" # $3.00/$15.00
 
   # Retry policy before falling back to next model

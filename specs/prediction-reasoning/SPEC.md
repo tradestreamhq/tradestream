@@ -9,12 +9,14 @@ Ensure credible, transparent prediction reasoning with proper validation, confid
 > "Over 90% of academic strategies fail when implemented with real capital"
 
 This happens because:
+
 - Backtests overfit to historical data
 - Transaction costs and slippage are underestimated
 - Market conditions change over time
 - Survivorship bias in strategy selection
 
 **We must differentiate between:**
+
 - **Backtest performance** - What we historically simulated
 - **Forward test performance** - What we observed in paper trading
 - **Live trading performance** - What actually happened with real capital
@@ -40,11 +42,11 @@ This happens because:
 
 ### Validation Status Badges
 
-| Status | Badge | Requirements | Display |
-|--------|-------|--------------|---------|
-| **Candidate** | ⚠️ | Backtest only | "Backtest only - not yet validated" |
-| **Validated** | ✅ | 6+ months forward test, 100+ signals | "Forward-tested (6 months)" |
-| **Deployed** | 🏆 | Live trading track record | "Live-validated" |
+| Status        | Badge | Requirements                         | Display                             |
+| ------------- | ----- | ------------------------------------ | ----------------------------------- |
+| **Candidate** | ⚠️    | Backtest only                        | "Backtest only - not yet validated" |
+| **Validated** | ✅    | 6+ months forward test, 100+ signals | "Forward-tested (6 months)"         |
+| **Deployed**  | 🏆    | Live trading track record            | "Live-validated"                    |
 
 ### Validation Status Transition Rules
 
@@ -61,20 +63,21 @@ Candidate ──────► Validated ──────► Deployed
 
 **Promotion Criteria:**
 
-| Transition | Requirements |
-|------------|--------------|
+| Transition            | Requirements                                                         |
+| --------------------- | -------------------------------------------------------------------- |
 | Candidate → Validated | 6+ months forward-test, 100+ signals, accuracy >= 55%, Sharpe >= 1.0 |
-| Validated → Deployed | Manual approval + 50+ live trades, positive P&L, drawdown <= 15% |
+| Validated → Deployed  | Manual approval + 50+ live trades, positive P&L, drawdown <= 15%     |
 
 **Demotion Criteria:**
 
-| Condition | Action |
-|-----------|--------|
-| Decay trend = DECLINING for 2+ consecutive months | Demote one level |
-| Accuracy drops below 50% (rolling 3-month) | Demote to Candidate |
-| Max drawdown exceeds 20% in live trading | Immediately halt + Demote to Validated |
+| Condition                                         | Action                                 |
+| ------------------------------------------------- | -------------------------------------- |
+| Decay trend = DECLINING for 2+ consecutive months | Demote one level                       |
+| Accuracy drops below 50% (rolling 3-month)        | Demote to Candidate                    |
+| Max drawdown exceeds 20% in live trading          | Immediately halt + Demote to Validated |
 
 **Retirement:**
+
 - Strategies with < 45% accuracy over 6+ months are retired (removed from signal generation)
 - Retired strategies can be re-enabled for research but not user-facing signals
 
@@ -172,6 +175,7 @@ Every signal must include appropriate disclaimers:
 ### Always Shown (Prominently Displayed)
 
 Disclaimers must be prominently displayed, not hidden in fine print. They should:
+
 - Appear in a visible location (not collapsed or scrolled out of view)
 - Use readable font size (minimum 12px)
 - Have sufficient contrast with background
@@ -493,7 +497,7 @@ export function ReturnDisplay({
   expectedReturn,
   ciLower,
   ciUpper,
-  timeframeHours
+  timeframeHours,
 }: ReturnDisplayProps) {
   const margin = ((expectedReturn - ciLower) * 100).toFixed(1);
 
@@ -501,16 +505,13 @@ export function ReturnDisplay({
     <div className="return-display">
       <div className="return-value">
         <span className="expected">
-          {expectedReturn > 0 ? '+' : ''}{(expectedReturn * 100).toFixed(1)}%
+          {expectedReturn > 0 ? "+" : ""}
+          {(expectedReturn * 100).toFixed(1)}%
         </span>
-        <span className="ci">
-          ± {margin}%
-        </span>
+        <span className="ci">± {margin}%</span>
         <span className="ci-label">(95% CI)</span>
       </div>
-      <div className="timeframe">
-        Timeframe: {timeframeHours} hours
-      </div>
+      <div className="timeframe">Timeframe: {timeframeHours} hours</div>
     </div>
   );
 }
@@ -521,7 +522,7 @@ export function ReturnDisplay({
 ```tsx
 // components/ValidationBadge/ValidationBadge.tsx
 
-type ValidationLevel = 'candidate' | 'validated' | 'deployed';
+type ValidationLevel = "candidate" | "validated" | "deployed";
 
 interface ValidationBadgeProps {
   level: ValidationLevel;
@@ -532,27 +533,28 @@ interface ValidationBadgeProps {
 export function ValidationBadge({
   level,
   forwardTestMonths,
-  signalCount
+  signalCount,
 }: ValidationBadgeProps) {
   const badges = {
     candidate: {
-      icon: '⚠️',
-      label: 'Backtest only',
-      color: 'yellow',
-      tooltip: 'This strategy has not been forward-tested. Backtest results may not reflect real-world performance.'
+      icon: "⚠️",
+      label: "Backtest only",
+      color: "yellow",
+      tooltip:
+        "This strategy has not been forward-tested. Backtest results may not reflect real-world performance.",
     },
     validated: {
-      icon: '✅',
+      icon: "✅",
       label: `Forward-tested (${forwardTestMonths}mo)`,
-      color: 'green',
-      tooltip: `Validated with ${signalCount} signals over ${forwardTestMonths} months of paper trading.`
+      color: "green",
+      tooltip: `Validated with ${signalCount} signals over ${forwardTestMonths} months of paper trading.`,
     },
     deployed: {
-      icon: '🏆',
-      label: 'Live-validated',
-      color: 'gold',
-      tooltip: 'This strategy has been validated with real capital.'
-    }
+      icon: "🏆",
+      label: "Live-validated",
+      color: "gold",
+      tooltip: "This strategy has been validated with real capital.",
+    },
   };
 
   const badge = badges[level];
@@ -581,31 +583,34 @@ interface DisclaimerProps {
 export function Disclaimer({
   validationLevel,
   isHighVolatility,
-  strategyAgeMonths
+  strategyAgeMonths,
 }: DisclaimerProps) {
   return (
     <div className="disclaimer">
       <p className="standard">
-        ⚠️ Past performance does not guarantee future results.
-        Trading involves risk of loss. This is not financial advice.
+        ⚠️ Past performance does not guarantee future results. Trading involves
+        risk of loss. This is not financial advice.
       </p>
 
-      {validationLevel === 'candidate' && (
+      {validationLevel === "candidate" && (
         <p className="warning">
-          ⚠️ <strong>BACKTEST ONLY:</strong> This strategy has not been forward-tested.
-          Backtest results often do not reflect real-world performance.
+          ⚠️ <strong>BACKTEST ONLY:</strong> This strategy has not been
+          forward-tested. Backtest results often do not reflect real-world
+          performance.
         </p>
       )}
 
       {isHighVolatility && (
         <p className="warning">
-          ⚠️ <strong>HIGH VOLATILITY:</strong> Position sizing should account for increased risk.
+          ⚠️ <strong>HIGH VOLATILITY:</strong> Position sizing should account
+          for increased risk.
         </p>
       )}
 
       {strategyAgeMonths && strategyAgeMonths < 3 && (
         <p className="warning">
-          ⚠️ <strong>NEW STRATEGY:</strong> Limited track record ({strategyAgeMonths} months).
+          ⚠️ <strong>NEW STRATEGY:</strong> Limited track record (
+          {strategyAgeMonths} months).
         </p>
       )}
     </div>

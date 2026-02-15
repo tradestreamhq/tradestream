@@ -6,14 +6,14 @@ MCP (Model Context Protocol) servers that provide tools to OpenCode agents, enab
 
 ## MCP Servers Overview
 
-| Server | Purpose | Data Source | Tools |
-|--------|---------|-------------|-------|
-| `strategy-mcp` | Strategy data and signals | PostgreSQL | `get_top_strategies`, `get_strategy_signal`, `get_strategy_consensus` |
-| `market-data-mcp` | Candle and price data | InfluxDB | `get_candles`, `get_current_price`, `get_volatility` |
-| `portfolio-mcp` | Portfolio state | PostgreSQL | `get_positions`, `get_balance`, `validate_trade` |
-| `backtest-mcp` | Backtest execution | gRPC Backtester | `run_backtest`, `get_historical_performance` |
-| `decisions-mcp` | Agent decisions history | PostgreSQL | `get_recent_decisions`, `save_decision` |
-| `strategy-db-mcp` | Strategy specs management | PostgreSQL | `get_top_specs`, `get_implementations`, `submit_new_spec` |
+| Server            | Purpose                   | Data Source     | Tools                                                                 |
+| ----------------- | ------------------------- | --------------- | --------------------------------------------------------------------- |
+| `strategy-mcp`    | Strategy data and signals | PostgreSQL      | `get_top_strategies`, `get_strategy_signal`, `get_strategy_consensus` |
+| `market-data-mcp` | Candle and price data     | InfluxDB        | `get_candles`, `get_current_price`, `get_volatility`                  |
+| `portfolio-mcp`   | Portfolio state           | PostgreSQL      | `get_positions`, `get_balance`, `validate_trade`                      |
+| `backtest-mcp`    | Backtest execution        | gRPC Backtester | `run_backtest`, `get_historical_performance`                          |
+| `decisions-mcp`   | Agent decisions history   | PostgreSQL      | `get_recent_decisions`, `save_decision`                               |
+| `strategy-db-mcp` | Strategy specs management | PostgreSQL      | `get_top_specs`, `get_implementations`, `submit_new_spec`             |
 
 ## Architecture
 
@@ -47,6 +47,7 @@ MCP (Model Context Protocol) servers that provide tools to OpenCode agents, enab
 ## strategy-mcp
 
 ### Purpose
+
 Provide access to strategy performance data and current signals from PostgreSQL.
 
 ### Tools
@@ -60,26 +61,79 @@ Provide access to strategy performance data and current signals from PostgreSQL.
   "parameters": {
     "type": "object",
     "properties": {
-      "symbol": { "type": "string", "description": "Trading pair e.g. ETH/USD" },
-      "limit": { "type": "integer", "default": 5, "maximum": 100, "description": "Number of strategies to return per page" },
-      "offset": { "type": "integer", "default": 0, "description": "Number of strategies to skip for pagination" },
-      "metric": { "type": "string", "enum": ["sharpe", "accuracy", "return"], "default": "sharpe" },
-      "force_refresh": { "type": "boolean", "default": false, "description": "Bypass cache and fetch fresh data" }
+      "symbol": {
+        "type": "string",
+        "description": "Trading pair e.g. ETH/USD"
+      },
+      "limit": {
+        "type": "integer",
+        "default": 5,
+        "maximum": 100,
+        "description": "Number of strategies to return per page"
+      },
+      "offset": {
+        "type": "integer",
+        "default": 0,
+        "description": "Number of strategies to skip for pagination"
+      },
+      "metric": {
+        "type": "string",
+        "enum": ["sharpe", "accuracy", "return"],
+        "default": "sharpe"
+      },
+      "force_refresh": {
+        "type": "boolean",
+        "default": false,
+        "description": "Bypass cache and fetch fresh data"
+      }
     },
     "required": ["symbol"]
   },
   "returns": {
     "type": "object",
     "properties": {
-      "items": { "type": "array", "items": { "type": "object", "properties": { "strategy_id": { "type": "string" }, "name": { "type": "string" }, "score": { "type": "number" }, "sharpe": { "type": "number" }, "accuracy": { "type": "number" }, "signals_count": { "type": "integer" } } } },
-      "pagination": { "type": "object", "properties": { "offset": { "type": "integer" }, "limit": { "type": "integer" }, "total": { "type": "integer" }, "has_more": { "type": "boolean" } } }
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "strategy_id": { "type": "string" },
+            "name": { "type": "string" },
+            "score": { "type": "number" },
+            "sharpe": { "type": "number" },
+            "accuracy": { "type": "number" },
+            "signals_count": { "type": "integer" }
+          }
+        }
+      },
+      "pagination": {
+        "type": "object",
+        "properties": {
+          "offset": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total": { "type": "integer" },
+          "has_more": { "type": "boolean" }
+        }
+      }
     }
   },
   "errors": [
-    { "code": "INVALID_SYMBOL", "description": "Symbol format is invalid or not supported" },
-    { "code": "SYMBOL_NOT_FOUND", "description": "No strategies found for the given symbol" },
-    { "code": "DATABASE_ERROR", "description": "Database connection or query failed" },
-    { "code": "INVALID_METRIC", "description": "Specified metric is not supported" }
+    {
+      "code": "INVALID_SYMBOL",
+      "description": "Symbol format is invalid or not supported"
+    },
+    {
+      "code": "SYMBOL_NOT_FOUND",
+      "description": "No strategies found for the given symbol"
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "description": "Database connection or query failed"
+    },
+    {
+      "code": "INVALID_METRIC",
+      "description": "Specified metric is not supported"
+    }
   ]
 }
 ```
@@ -95,7 +149,11 @@ Provide access to strategy performance data and current signals from PostgreSQL.
     "properties": {
       "strategy_id": { "type": "string", "description": "Strategy identifier" },
       "symbol": { "type": "string", "description": "Trading pair" },
-      "force_refresh": { "type": "boolean", "default": false, "description": "Bypass cache and fetch fresh data" }
+      "force_refresh": {
+        "type": "boolean",
+        "default": false,
+        "description": "Bypass cache and fetch fresh data"
+      }
     },
     "required": ["strategy_id", "symbol"]
   },
@@ -109,10 +167,22 @@ Provide access to strategy performance data and current signals from PostgreSQL.
     }
   },
   "errors": [
-    { "code": "STRATEGY_NOT_FOUND", "description": "Strategy with specified ID does not exist" },
-    { "code": "INVALID_SYMBOL", "description": "Symbol format is invalid or not supported" },
-    { "code": "NO_SIGNAL", "description": "Strategy has no current signal for this symbol" },
-    { "code": "DATABASE_ERROR", "description": "Database connection or query failed" }
+    {
+      "code": "STRATEGY_NOT_FOUND",
+      "description": "Strategy with specified ID does not exist"
+    },
+    {
+      "code": "INVALID_SYMBOL",
+      "description": "Symbol format is invalid or not supported"
+    },
+    {
+      "code": "NO_SIGNAL",
+      "description": "Strategy has no current signal for this symbol"
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "description": "Database connection or query failed"
+    }
   ]
 }
 ```
@@ -127,7 +197,11 @@ Provide access to strategy performance data and current signals from PostgreSQL.
     "type": "object",
     "properties": {
       "symbol": { "type": "string", "description": "Trading pair" },
-      "force_refresh": { "type": "boolean", "default": false, "description": "Bypass cache and fetch fresh data" }
+      "force_refresh": {
+        "type": "boolean",
+        "default": false,
+        "description": "Bypass cache and fetch fresh data"
+      }
     },
     "required": ["symbol"]
   },
@@ -137,14 +211,26 @@ Provide access to strategy performance data and current signals from PostgreSQL.
       "bullish_count": { "type": "integer" },
       "bearish_count": { "type": "integer" },
       "neutral_count": { "type": "integer" },
-      "consensus": { "type": "string", "enum": ["STRONG_BUY", "BUY", "NEUTRAL", "SELL", "STRONG_SELL"] },
+      "consensus": {
+        "type": "string",
+        "enum": ["STRONG_BUY", "BUY", "NEUTRAL", "SELL", "STRONG_SELL"]
+      },
       "confidence": { "type": "number" }
     }
   },
   "errors": [
-    { "code": "INVALID_SYMBOL", "description": "Symbol format is invalid or not supported" },
-    { "code": "NO_ACTIVE_STRATEGIES", "description": "No active strategies found for this symbol" },
-    { "code": "DATABASE_ERROR", "description": "Database connection or query failed" }
+    {
+      "code": "INVALID_SYMBOL",
+      "description": "Symbol format is invalid or not supported"
+    },
+    {
+      "code": "NO_ACTIVE_STRATEGIES",
+      "description": "No active strategies found for this symbol"
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "description": "Database connection or query failed"
+    }
   ]
 }
 ```
@@ -154,6 +240,7 @@ Provide access to strategy performance data and current signals from PostgreSQL.
 ## market-data-mcp
 
 ### Purpose
+
 Provide access to candle data, current prices, and volatility metrics from InfluxDB.
 
 ### Tools
@@ -168,7 +255,11 @@ Provide access to candle data, current prices, and volatility metrics from Influ
     "type": "object",
     "properties": {
       "symbol": { "type": "string" },
-      "timeframe": { "type": "string", "enum": ["1m", "5m", "15m", "1h", "4h", "1d"], "default": "1h" },
+      "timeframe": {
+        "type": "string",
+        "enum": ["1m", "5m", "15m", "1h", "4h", "1d"],
+        "default": "1h"
+      },
       "limit": { "type": "integer", "default": 100, "maximum": 1000 },
       "offset": { "type": "integer", "default": 0 },
       "force_refresh": { "type": "boolean", "default": false }
@@ -178,15 +269,45 @@ Provide access to candle data, current prices, and volatility metrics from Influ
   "returns": {
     "type": "object",
     "properties": {
-      "items": { "type": "array", "items": { "type": "object", "properties": { "timestamp": { "type": "string" }, "open": { "type": "number" }, "high": { "type": "number" }, "low": { "type": "number" }, "close": { "type": "number" }, "volume": { "type": "number" } } } },
-      "pagination": { "type": "object", "properties": { "offset": { "type": "integer" }, "limit": { "type": "integer" }, "total": { "type": "integer" }, "has_more": { "type": "boolean" } } }
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "timestamp": { "type": "string" },
+            "open": { "type": "number" },
+            "high": { "type": "number" },
+            "low": { "type": "number" },
+            "close": { "type": "number" },
+            "volume": { "type": "number" }
+          }
+        }
+      },
+      "pagination": {
+        "type": "object",
+        "properties": {
+          "offset": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total": { "type": "integer" },
+          "has_more": { "type": "boolean" }
+        }
+      }
     }
   },
   "errors": [
-    { "code": "INVALID_SYMBOL", "description": "Symbol format is invalid or not supported" },
-    { "code": "INVALID_TIMEFRAME", "description": "Specified timeframe is not supported" },
+    {
+      "code": "INVALID_SYMBOL",
+      "description": "Symbol format is invalid or not supported"
+    },
+    {
+      "code": "INVALID_TIMEFRAME",
+      "description": "Specified timeframe is not supported"
+    },
     { "code": "NO_DATA", "description": "No candle data available" },
-    { "code": "DATABASE_ERROR", "description": "InfluxDB connection or query failed" }
+    {
+      "code": "DATABASE_ERROR",
+      "description": "InfluxDB connection or query failed"
+    }
   ]
 }
 ```
@@ -216,10 +337,22 @@ Provide access to candle data, current prices, and volatility metrics from Influ
     }
   },
   "errors": [
-    { "code": "INVALID_SYMBOL", "description": "Symbol format is invalid or not supported" },
-    { "code": "SYMBOL_NOT_FOUND", "description": "No price data available for the symbol" },
-    { "code": "STALE_DATA", "description": "Price data is older than acceptable threshold" },
-    { "code": "DATABASE_ERROR", "description": "InfluxDB connection or query failed" }
+    {
+      "code": "INVALID_SYMBOL",
+      "description": "Symbol format is invalid or not supported"
+    },
+    {
+      "code": "SYMBOL_NOT_FOUND",
+      "description": "No price data available for the symbol"
+    },
+    {
+      "code": "STALE_DATA",
+      "description": "Price data is older than acceptable threshold"
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "description": "InfluxDB connection or query failed"
+    }
   ]
 }
 ```
@@ -234,7 +367,11 @@ Provide access to candle data, current prices, and volatility metrics from Influ
     "type": "object",
     "properties": {
       "symbol": { "type": "string" },
-      "timeframe": { "type": "string", "enum": ["1h", "4h", "1d"], "default": "1h" },
+      "timeframe": {
+        "type": "string",
+        "enum": ["1h", "4h", "1d"],
+        "default": "1h"
+      },
       "force_refresh": { "type": "boolean", "default": false }
     },
     "required": ["symbol"]
@@ -242,16 +379,31 @@ Provide access to candle data, current prices, and volatility metrics from Influ
   "returns": {
     "type": "object",
     "properties": {
-      "volatility": { "type": "number", "description": "Standard deviation of returns" },
+      "volatility": {
+        "type": "number",
+        "description": "Standard deviation of returns"
+      },
       "atr": { "type": "number", "description": "Average True Range" },
       "high_low_range": { "type": "number" }
     }
   },
   "errors": [
-    { "code": "INVALID_SYMBOL", "description": "Symbol format is invalid or not supported" },
-    { "code": "INVALID_TIMEFRAME", "description": "Specified timeframe is not supported" },
-    { "code": "INSUFFICIENT_DATA", "description": "Not enough data points to calculate volatility" },
-    { "code": "DATABASE_ERROR", "description": "InfluxDB connection or query failed" }
+    {
+      "code": "INVALID_SYMBOL",
+      "description": "Symbol format is invalid or not supported"
+    },
+    {
+      "code": "INVALID_TIMEFRAME",
+      "description": "Specified timeframe is not supported"
+    },
+    {
+      "code": "INSUFFICIENT_DATA",
+      "description": "Not enough data points to calculate volatility"
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "description": "InfluxDB connection or query failed"
+    }
   ]
 }
 ```
@@ -261,6 +413,7 @@ Provide access to candle data, current prices, and volatility metrics from Influ
 ## portfolio-mcp
 
 ### Purpose
+
 Provide access to portfolio state for position sizing and risk validation.
 
 ### Tools
@@ -274,7 +427,10 @@ Provide access to portfolio state for position sizing and risk validation.
   "parameters": {
     "type": "object",
     "properties": {
-      "symbol": { "type": "string", "description": "Optional filter by symbol" },
+      "symbol": {
+        "type": "string",
+        "description": "Optional filter by symbol"
+      },
       "limit": { "type": "integer", "default": 50, "maximum": 200 },
       "offset": { "type": "integer", "default": 0 }
     }
@@ -282,14 +438,45 @@ Provide access to portfolio state for position sizing and risk validation.
   "returns": {
     "type": "object",
     "properties": {
-      "items": { "type": "array", "items": { "type": "object", "properties": { "symbol": { "type": "string" }, "side": { "type": "string", "enum": ["LONG", "SHORT"] }, "size": { "type": "number" }, "entry_price": { "type": "number" }, "current_price": { "type": "number" }, "unrealized_pnl": { "type": "number" }, "opened_at": { "type": "string" } } } },
-      "pagination": { "type": "object", "properties": { "offset": { "type": "integer" }, "limit": { "type": "integer" }, "total": { "type": "integer" }, "has_more": { "type": "boolean" } } }
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "symbol": { "type": "string" },
+            "side": { "type": "string", "enum": ["LONG", "SHORT"] },
+            "size": { "type": "number" },
+            "entry_price": { "type": "number" },
+            "current_price": { "type": "number" },
+            "unrealized_pnl": { "type": "number" },
+            "opened_at": { "type": "string" }
+          }
+        }
+      },
+      "pagination": {
+        "type": "object",
+        "properties": {
+          "offset": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total": { "type": "integer" },
+          "has_more": { "type": "boolean" }
+        }
+      }
     }
   },
   "errors": [
-    { "code": "INVALID_SYMBOL", "description": "Symbol format is invalid or not supported" },
-    { "code": "UNAUTHORIZED", "description": "Not authorized to access portfolio data" },
-    { "code": "DATABASE_ERROR", "description": "Database connection or query failed" }
+    {
+      "code": "INVALID_SYMBOL",
+      "description": "Symbol format is invalid or not supported"
+    },
+    {
+      "code": "UNAUTHORIZED",
+      "description": "Not authorized to access portfolio data"
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "description": "Database connection or query failed"
+    }
   ]
 }
 ```
@@ -311,9 +498,15 @@ Provide access to portfolio state for position sizing and risk validation.
     }
   },
   "errors": [
-    { "code": "UNAUTHORIZED", "description": "Not authorized to access balance data" },
+    {
+      "code": "UNAUTHORIZED",
+      "description": "Not authorized to access balance data"
+    },
     { "code": "ACCOUNT_NOT_FOUND", "description": "Trading account not found" },
-    { "code": "DATABASE_ERROR", "description": "Database connection or query failed" }
+    {
+      "code": "DATABASE_ERROR",
+      "description": "Database connection or query failed"
+    }
   ]
 }
 ```
@@ -344,11 +537,20 @@ Provide access to portfolio state for position sizing and risk validation.
     }
   },
   "errors": [
-    { "code": "INVALID_SYMBOL", "description": "Symbol format is invalid or not supported" },
+    {
+      "code": "INVALID_SYMBOL",
+      "description": "Symbol format is invalid or not supported"
+    },
     { "code": "INVALID_SIDE", "description": "Trade side must be BUY or SELL" },
     { "code": "INVALID_SIZE", "description": "Trade size must be positive" },
-    { "code": "INSUFFICIENT_BALANCE", "description": "Account balance insufficient for trade" },
-    { "code": "DATABASE_ERROR", "description": "Database connection or query failed" }
+    {
+      "code": "INSUFFICIENT_BALANCE",
+      "description": "Account balance insufficient for trade"
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "description": "Database connection or query failed"
+    }
   ]
 }
 ```
@@ -358,6 +560,7 @@ Provide access to portfolio state for position sizing and risk validation.
 ## backtest-mcp
 
 ### Purpose
+
 Provide access to backtest execution and historical performance data.
 
 ### Tools
@@ -389,12 +592,30 @@ Provide access to backtest execution and historical performance data.
     }
   },
   "errors": [
-    { "code": "STRATEGY_NOT_FOUND", "description": "Strategy with specified ID does not exist" },
-    { "code": "INVALID_SYMBOL", "description": "Symbol format is invalid or not supported" },
-    { "code": "INVALID_DATE_RANGE", "description": "Start date must be before end date" },
-    { "code": "INSUFFICIENT_DATA", "description": "Not enough historical data for the specified range" },
-    { "code": "BACKTEST_TIMEOUT", "description": "Backtest execution exceeded time limit" },
-    { "code": "GRPC_ERROR", "description": "Backtester service connection failed" }
+    {
+      "code": "STRATEGY_NOT_FOUND",
+      "description": "Strategy with specified ID does not exist"
+    },
+    {
+      "code": "INVALID_SYMBOL",
+      "description": "Symbol format is invalid or not supported"
+    },
+    {
+      "code": "INVALID_DATE_RANGE",
+      "description": "Start date must be before end date"
+    },
+    {
+      "code": "INSUFFICIENT_DATA",
+      "description": "Not enough historical data for the specified range"
+    },
+    {
+      "code": "BACKTEST_TIMEOUT",
+      "description": "Backtest execution exceeded time limit"
+    },
+    {
+      "code": "GRPC_ERROR",
+      "description": "Backtester service connection failed"
+    }
   ]
 }
 ```
@@ -410,7 +631,11 @@ Provide access to backtest execution and historical performance data.
     "properties": {
       "strategy_id": { "type": "string" },
       "symbol": { "type": "string" },
-      "period": { "type": "string", "enum": ["1w", "1m", "3m", "6m", "1y"], "default": "3m" },
+      "period": {
+        "type": "string",
+        "enum": ["1w", "1m", "3m", "6m", "1y"],
+        "default": "3m"
+      },
       "force_refresh": { "type": "boolean", "default": false }
     },
     "required": ["strategy_id"]
@@ -426,10 +651,22 @@ Provide access to backtest execution and historical performance data.
     }
   },
   "errors": [
-    { "code": "STRATEGY_NOT_FOUND", "description": "Strategy with specified ID does not exist" },
-    { "code": "INVALID_PERIOD", "description": "Specified period is not supported" },
-    { "code": "NO_PERFORMANCE_DATA", "description": "No performance data available for this strategy" },
-    { "code": "DATABASE_ERROR", "description": "Database connection or query failed" }
+    {
+      "code": "STRATEGY_NOT_FOUND",
+      "description": "Strategy with specified ID does not exist"
+    },
+    {
+      "code": "INVALID_PERIOD",
+      "description": "Specified period is not supported"
+    },
+    {
+      "code": "NO_PERFORMANCE_DATA",
+      "description": "No performance data available for this strategy"
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "description": "Database connection or query failed"
+    }
   ]
 }
 ```
@@ -439,6 +676,7 @@ Provide access to backtest execution and historical performance data.
 ## decisions-mcp
 
 ### Purpose
+
 Provide access to agent decision history for learning and auditing.
 
 ### Tools
@@ -462,14 +700,45 @@ Provide access to agent decision history for learning and auditing.
   "returns": {
     "type": "object",
     "properties": {
-      "items": { "type": "array", "items": { "type": "object", "properties": { "decision_id": { "type": "string" }, "symbol": { "type": "string" }, "action": { "type": "string" }, "confidence": { "type": "number" }, "opportunity_score": { "type": "number" }, "reasoning": { "type": "string" }, "created_at": { "type": "string" } } } },
-      "pagination": { "type": "object", "properties": { "offset": { "type": "integer" }, "limit": { "type": "integer" }, "total": { "type": "integer" }, "has_more": { "type": "boolean" } } }
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "decision_id": { "type": "string" },
+            "symbol": { "type": "string" },
+            "action": { "type": "string" },
+            "confidence": { "type": "number" },
+            "opportunity_score": { "type": "number" },
+            "reasoning": { "type": "string" },
+            "created_at": { "type": "string" }
+          }
+        }
+      },
+      "pagination": {
+        "type": "object",
+        "properties": {
+          "offset": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total": { "type": "integer" },
+          "has_more": { "type": "boolean" }
+        }
+      }
     }
   },
   "errors": [
-    { "code": "INVALID_SYMBOL", "description": "Symbol format is invalid or not supported" },
-    { "code": "INVALID_ACTION", "description": "Action filter must be BUY, SELL, or HOLD" },
-    { "code": "DATABASE_ERROR", "description": "Database connection or query failed" }
+    {
+      "code": "INVALID_SYMBOL",
+      "description": "Symbol format is invalid or not supported"
+    },
+    {
+      "code": "INVALID_ACTION",
+      "description": "Action filter must be BUY, SELL, or HOLD"
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "description": "Database connection or query failed"
+    }
   ]
 }
 ```
@@ -500,11 +769,26 @@ Provide access to agent decision history for learning and auditing.
     }
   },
   "errors": [
-    { "code": "INVALID_SYMBOL", "description": "Symbol format is invalid or not supported" },
-    { "code": "INVALID_ACTION", "description": "Action must be BUY, SELL, or HOLD" },
-    { "code": "INVALID_CONFIDENCE", "description": "Confidence must be between 0 and 1" },
-    { "code": "REASONING_TOO_LONG", "description": "Reasoning exceeds maximum length" },
-    { "code": "DATABASE_ERROR", "description": "Database connection or query failed" }
+    {
+      "code": "INVALID_SYMBOL",
+      "description": "Symbol format is invalid or not supported"
+    },
+    {
+      "code": "INVALID_ACTION",
+      "description": "Action must be BUY, SELL, or HOLD"
+    },
+    {
+      "code": "INVALID_CONFIDENCE",
+      "description": "Confidence must be between 0 and 1"
+    },
+    {
+      "code": "REASONING_TOO_LONG",
+      "description": "Reasoning exceeds maximum length"
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "description": "Database connection or query failed"
+    }
   ]
 }
 ```
@@ -514,6 +798,7 @@ Provide access to agent decision history for learning and auditing.
 ## strategy-db-mcp
 
 ### Purpose
+
 Provide access to strategy specs and implementations for the Learning Agent.
 
 ### Tools
@@ -529,20 +814,50 @@ Provide access to strategy specs and implementations for the Learning Agent.
     "properties": {
       "limit": { "type": "integer", "default": 10, "maximum": 100 },
       "offset": { "type": "integer", "default": 0 },
-      "source": { "type": "string", "enum": ["CANONICAL", "LLM_GENERATED", "ALL"], "default": "ALL" },
+      "source": {
+        "type": "string",
+        "enum": ["CANONICAL", "LLM_GENERATED", "ALL"],
+        "default": "ALL"
+      },
       "force_refresh": { "type": "boolean", "default": false }
     }
   },
   "returns": {
     "type": "object",
     "properties": {
-      "items": { "type": "array", "items": { "type": "object", "properties": { "spec_id": { "type": "string" }, "name": { "type": "string" }, "indicators": { "type": "array" }, "avg_sharpe": { "type": "number" }, "implementations_count": { "type": "integer" } } } },
-      "pagination": { "type": "object", "properties": { "offset": { "type": "integer" }, "limit": { "type": "integer" }, "total": { "type": "integer" }, "has_more": { "type": "boolean" } } }
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "spec_id": { "type": "string" },
+            "name": { "type": "string" },
+            "indicators": { "type": "array" },
+            "avg_sharpe": { "type": "number" },
+            "implementations_count": { "type": "integer" }
+          }
+        }
+      },
+      "pagination": {
+        "type": "object",
+        "properties": {
+          "offset": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total": { "type": "integer" },
+          "has_more": { "type": "boolean" }
+        }
+      }
     }
   },
   "errors": [
-    { "code": "INVALID_SOURCE", "description": "Source filter must be CANONICAL, LLM_GENERATED, or ALL" },
-    { "code": "DATABASE_ERROR", "description": "Database connection or query failed" }
+    {
+      "code": "INVALID_SOURCE",
+      "description": "Source filter must be CANONICAL, LLM_GENERATED, or ALL"
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "description": "Database connection or query failed"
+    }
   ]
 }
 ```
@@ -557,7 +872,11 @@ Provide access to strategy specs and implementations for the Learning Agent.
     "type": "object",
     "properties": {
       "spec_id": { "type": "string" },
-      "status": { "type": "string", "enum": ["CANDIDATE", "VALIDATED", "DEPLOYED", "RETIRED", "ALL"], "default": "VALIDATED" },
+      "status": {
+        "type": "string",
+        "enum": ["CANDIDATE", "VALIDATED", "DEPLOYED", "RETIRED", "ALL"],
+        "default": "VALIDATED"
+      },
       "limit": { "type": "integer", "default": 10, "maximum": 100 },
       "offset": { "type": "integer", "default": 0 },
       "force_refresh": { "type": "boolean", "default": false }
@@ -567,14 +886,41 @@ Provide access to strategy specs and implementations for the Learning Agent.
   "returns": {
     "type": "object",
     "properties": {
-      "items": { "type": "array", "items": { "type": "object", "properties": { "impl_id": { "type": "string" }, "parameters": { "type": "object" }, "symbol": { "type": "string" }, "forward_sharpe": { "type": "number" }, "forward_accuracy": { "type": "number" }, "status": { "type": "string" } } } },
-      "pagination": { "type": "object", "properties": { "offset": { "type": "integer" }, "limit": { "type": "integer" }, "total": { "type": "integer" }, "has_more": { "type": "boolean" } } }
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "impl_id": { "type": "string" },
+            "parameters": { "type": "object" },
+            "symbol": { "type": "string" },
+            "forward_sharpe": { "type": "number" },
+            "forward_accuracy": { "type": "number" },
+            "status": { "type": "string" }
+          }
+        }
+      },
+      "pagination": {
+        "type": "object",
+        "properties": {
+          "offset": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total": { "type": "integer" },
+          "has_more": { "type": "boolean" }
+        }
+      }
     }
   },
   "errors": [
-    { "code": "SPEC_NOT_FOUND", "description": "Strategy spec with specified ID does not exist" },
+    {
+      "code": "SPEC_NOT_FOUND",
+      "description": "Strategy spec with specified ID does not exist"
+    },
     { "code": "INVALID_STATUS", "description": "Status filter is not valid" },
-    { "code": "DATABASE_ERROR", "description": "Database connection or query failed" }
+    {
+      "code": "DATABASE_ERROR",
+      "description": "Database connection or query failed"
+    }
   ]
 }
 ```
@@ -596,7 +942,13 @@ Provide access to strategy specs and implementations for the Learning Agent.
       "parameters": { "type": "array" },
       "reasoning": { "type": "string" }
     },
-    "required": ["name", "indicators", "entry_conditions", "exit_conditions", "parameters"]
+    "required": [
+      "name",
+      "indicators",
+      "entry_conditions",
+      "exit_conditions",
+      "parameters"
+    ]
   },
   "returns": {
     "type": "object",
@@ -607,12 +959,30 @@ Provide access to strategy specs and implementations for the Learning Agent.
     }
   },
   "errors": [
-    { "code": "INVALID_NAME", "description": "Spec name is missing or invalid" },
-    { "code": "DUPLICATE_NAME", "description": "A spec with this name already exists" },
-    { "code": "INVALID_INDICATORS", "description": "One or more indicators are not recognized" },
-    { "code": "INVALID_CONDITIONS", "description": "Entry or exit conditions are malformed" },
-    { "code": "SCHEMA_VALIDATION_ERROR", "description": "Spec does not conform to required schema" },
-    { "code": "DATABASE_ERROR", "description": "Database connection or query failed" }
+    {
+      "code": "INVALID_NAME",
+      "description": "Spec name is missing or invalid"
+    },
+    {
+      "code": "DUPLICATE_NAME",
+      "description": "A spec with this name already exists"
+    },
+    {
+      "code": "INVALID_INDICATORS",
+      "description": "One or more indicators are not recognized"
+    },
+    {
+      "code": "INVALID_CONDITIONS",
+      "description": "Entry or exit conditions are malformed"
+    },
+    {
+      "code": "SCHEMA_VALIDATION_ERROR",
+      "description": "Spec does not conform to required schema"
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "description": "Database connection or query failed"
+    }
   ]
 }
 ```
@@ -638,6 +1008,7 @@ All list operations support pagination via `offset` and `limit` parameters. Resp
 ```
 
 **Pagination Guidelines:**
+
 - Default `limit` varies by endpoint (typically 10-50)
 - Maximum `limit` is capped per endpoint to prevent memory issues
 - Use `has_more` to determine if additional pages exist
@@ -646,6 +1017,7 @@ All list operations support pagination via `offset` and `limit` parameters. Resp
 ### Cache Invalidation
 
 Cached endpoints support a `force_refresh` boolean parameter:
+
 - When `false` (default): Returns cached data if available and not expired
 - When `true`: Bypasses cache and fetches fresh data from the source
 
@@ -696,26 +1068,27 @@ All errors follow a standardized format:
 
 ### Caching
 
-| Tool | Cache TTL | Notes |
-|------|-----------|-------|
-| `get_top_strategies` | 30s | Rankings change infrequently |
-| `get_strategy_signal` | 10s | Signals may update frequently |
-| `get_strategy_consensus` | 30s | Aggregated from multiple strategies |
-| `get_current_price` | 5s | Near real-time price data |
-| `get_candles` | 60s | Historical data, stable |
-| `get_volatility` | 30s | Computed metric |
-| `get_balance` | None | Always fresh for trading decisions |
-| `get_positions` | None | Always fresh for trading decisions |
-| `get_recent_decisions` | 30s | Historical decisions |
-| `get_top_specs` | 60s | Spec rankings |
-| `get_implementations` | 30s | Implementation data |
-| `get_historical_performance` | 5m | Historical metrics, expensive to compute |
+| Tool                         | Cache TTL | Notes                                    |
+| ---------------------------- | --------- | ---------------------------------------- |
+| `get_top_strategies`         | 30s       | Rankings change infrequently             |
+| `get_strategy_signal`        | 10s       | Signals may update frequently            |
+| `get_strategy_consensus`     | 30s       | Aggregated from multiple strategies      |
+| `get_current_price`          | 5s        | Near real-time price data                |
+| `get_candles`                | 60s       | Historical data, stable                  |
+| `get_volatility`             | 30s       | Computed metric                          |
+| `get_balance`                | None      | Always fresh for trading decisions       |
+| `get_positions`              | None      | Always fresh for trading decisions       |
+| `get_recent_decisions`       | 30s       | Historical decisions                     |
+| `get_top_specs`              | 60s       | Spec rankings                            |
+| `get_implementations`        | 30s       | Implementation data                      |
+| `get_historical_performance` | 5m        | Historical metrics, expensive to compute |
 
 ### Connection Pooling
 
 Each MCP server maintains connection pools for its data sources:
 
 **PostgreSQL Connection Pool:**
+
 ```
 min_connections: 2
 max_connections: 10
@@ -724,6 +1097,7 @@ connection_timeout: 5s
 ```
 
 **InfluxDB Connection Pool:**
+
 ```
 max_connections: 5
 idle_timeout: 60s
@@ -731,6 +1105,7 @@ connection_timeout: 3s
 ```
 
 **gRPC Connection Pool (Backtester):**
+
 ```
 max_connections: 3
 keepalive_interval: 30s
