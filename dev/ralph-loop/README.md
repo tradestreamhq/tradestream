@@ -65,7 +65,7 @@ Create `.ralphrc` in your project root:
 
 ```bash
 # Model selection
-CLAUDE_MODEL=opus         # opus (default), sonnet, haiku
+CLAUDE_MODEL=opus         # sonnet (default), opus, haiku
 
 # Rate limiting
 MAX_RATE_PER_HOUR=100     # API calls per hour
@@ -75,45 +75,32 @@ CIRCUIT_BREAKER_THRESHOLD=5   # Stop after N identical errors
 NO_PROGRESS_THRESHOLD=3       # Stop after N loops with no progress
 
 # Git behavior
-ENABLE_GIT_PUSH=false     # Auto-push after commits
+ENABLE_GIT_PUSH=true      # Auto-push after commits
 
 # Debugging
-VERBOSE=false             # Enable detailed logging
-
-# Timing
-SLEEP_BETWEEN_ITERATIONS=5    # Seconds between iterations
-
-# Continuous mode (unattended operation)
-CONTINUOUS_MODE=true      # Run forever, ignore EXIT_SIGNAL
+VERBOSE=true              # Enable detailed logging
 ```
 
 ## Reliability Features
 
 ### Rate Limiting
 - Configurable calls per hour (default: 100)
-- **Persistent across restarts** - state saved to `.ralph-logs/.rate_limit`
-- Automatic waiting when limit reached (sleeps until next hour)
+- Automatic hourly reset
+- Graceful waiting when limit reached
 
 ### Circuit Breaker
-- Detects repeated identical errors (via hash comparison)
-- **Persistent error tracking** - hashes saved to `.ralph-logs/.error_hashes`
+- Detects repeated identical errors
+- Detects lack of progress (no commits/changes)
 - Automatically stops to prevent runaway costs
 
-### Progress Detection
-- Tracks git commit count, file changes, and IMPLEMENTATION_PLAN.md hash
-- **Persistent across restarts** - state saved to `.ralph-logs/.progress_tracker`
-- Stops after N iterations with no detectable progress
+### Exit Detection (Dual-Condition Gate)
+Requires BOTH conditions to stop:
+1. Multiple completion indicators in output
+2. Explicit `EXIT_SIGNAL: true` from Claude
 
-### Continuous Mode
-- When `CONTINUOUS_MODE=true` (default), loop runs forever
-- Ignores EXIT_SIGNAL from Claude output
-- Ideal for unattended operation - requires manual `Ctrl+C` to stop
-- Set `CONTINUOUS_MODE=false` for legacy behavior (stops on completion)
-
-### Real-Time Streaming
-- Uses `--output-format stream-json` for real-time output
-- See Claude's responses as they're generated (not buffered)
-- Full output captured to `.ralph-logs/iteration_N.log`
+### Session Management
+- Context preserved across iterations via session IDs
+- Configurable session timeout
 
 ## Project Structure
 
@@ -129,11 +116,6 @@ your-project/
 │   └── feature-b.md
 ├── src/                     # Your source code
 └── .ralph-logs/             # Iteration logs
-    ├── iteration_1.log      # Text output
-    ├── iteration_1.log.json # Full JSON stream
-    ├── .rate_limit          # Rate limit state
-    ├── .error_hashes        # Error hash history
-    └── .progress_tracker    # Progress state
 ```
 
 ## Writing Good Specs
@@ -153,7 +135,6 @@ Place specification files in `specs/`. Good specs include:
 4. **Trust the loop** - Let Ralph iterate; don't micromanage
 5. **Watch the logs** - Check `.ralph-logs/` if things go wrong
 6. **Regenerate when stuck** - Delete IMPLEMENTATION_PLAN.md and re-plan
-7. **Use continuous mode** - Set `CONTINUOUS_MODE=true` for fire-and-forget
 
 ## Stopping the Loop
 

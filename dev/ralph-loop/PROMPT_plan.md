@@ -4,59 +4,50 @@
 
 0a. Study `specs/*` using parallel subagents to learn project specifications.
 0b. Study @IMPLEMENTATION_PLAN.md to understand current progress and completed work.
-0c. Study the project structure to understand the codebase.
+0c. Study `src/` to understand the application source code structure.
+0d. Study shared utilities in `shared/` or `src/lib/` if they exist.
 
 ## Planning Task
 
-Your job is to create or update IMPLEMENTATION_PLAN.md with a detailed task list.
+1. Using up to 100 parallel subagents, study both the specifications and existing code.
+   Compare them to identify gaps between what's specified and what's implemented.
 
-### Requirements
+2. Create or update @IMPLEMENTATION_PLAN.md with:
+   - A prioritized bullet-point list of tasks
+   - Each task should be atomic and implementable in one iteration
+   - Sort by priority (most critical first)
+   - Include context on WHY each task matters
 
-1. **Analyze the spec files** in `specs/` to understand what needs to be built
-2. **Review existing code** to understand current state
-3. **Create atomic tasks** - each task should be completable in one iteration
-4. **Order tasks by dependency** - things that must be done first go first
-5. **Mark completed tasks** with `[x]` and pending with `[ ]`
+3. For each potential task, CONFIRM via code search that functionality is actually missing.
+   Do NOT assume something is missing - search first.
 
-### Output Format
+## Output Format
 
-Update IMPLEMENTATION_PLAN.md with this structure:
+Update IMPLEMENTATION_PLAN.md with the following structure:
 
 ```markdown
 # Implementation Plan
 
 ## Completed
-
-- [x] Task that was finished (iteration N)
-- [x] Another completed task (iteration M)
+- [x] Task that was completed (brief description)
 
 ## In Progress
-
 - [ ] Current task being worked on
 
-## Pending
-
-- [ ] Next task to do
-- [ ] Following task
-- [ ] etc.
-
-## Blocked
-
-- [ ] Task waiting on external dependency (reason)
+## Pending (Priority Order)
+- [ ] HIGH: Critical task description
+- [ ] HIGH: Another critical task
+- [ ] MEDIUM: Important but not blocking
+- [ ] LOW: Nice to have improvements
 ```
 
-### Rules
+## Critical Rules
 
-1. Tasks must be ATOMIC - one clear action per task
-2. Tasks must be TESTABLE - how do we know it's done?
-3. Tasks must be ORDERED - dependencies resolved
-4. Include test tasks for each feature task
+- **PLAN ONLY** - Do NOT implement any code in this phase
+- **VERIFY FIRST** - Search codebase before assuming functionality is missing
+- **BE SPECIFIC** - Each task should be clear enough for another agent to implement
+- **CAPTURE WHY** - Include reasoning for priority decisions
+- **STAY FOCUSED** - Only plan for what's in the specifications
 
-### Exit Condition
-
-When the plan is complete and ready for building:
-
-1. Write "Planning complete. Ready for build phase."
-2. Write "EXIT_SIGNAL" on its own line
-
-If more planning iterations are needed, do NOT write EXIT_SIGNAL.
+When planning is complete, commit the updated IMPLEMENTATION_PLAN.md with message:
+"chore: update implementation plan"

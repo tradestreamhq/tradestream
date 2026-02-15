@@ -4,61 +4,70 @@
 
 0a. Study `specs/*` using parallel subagents to understand specifications.
 0b. Study @IMPLEMENTATION_PLAN.md to see the current task list and priorities.
-0c. Study the project source code structure.
+0c. Application source code is in `src/`.
+0d. Study any shared utilities in `shared/` or `src/lib/`.
 
 ## Building Task
 
-Your job is to implement the NEXT pending task from IMPLEMENTATION_PLAN.md.
+1. Choose the MOST IMPORTANT incomplete task from @IMPLEMENTATION_PLAN.md
+   - Select the highest priority item that is not marked complete
+   - If blocked, choose the next available task
 
-### Workflow
+2. Before implementing, SEARCH the codebase to confirm the functionality doesn't already exist.
+   - Don't assume something is not implemented
+   - Check for similar patterns or partial implementations
 
-1. **Read IMPLEMENTATION_PLAN.md** to find the next `[ ]` task
-2. **Implement the task** - write code, create files, etc.
-3. **Run tests** to verify the implementation works
-4. **Update IMPLEMENTATION_PLAN.md** - mark task as `[x]` completed
-5. **Commit changes** with a descriptive message
+3. Implement the task according to specifications:
+   - Use up to 50 parallel subagents for reading/research
+   - Use only 1 subagent for actual code changes and tests
+   - Follow existing code patterns and conventions
+   - Keep changes minimal and focused
 
-### Rules
+4. Run tests after implementing:
+   - Execute the project's test suite
+   - If tests fail, fix the issues before proceeding
+   - Add new tests if the feature requires them
 
-1. **ONE TASK PER ITERATION** - do not try to do multiple tasks
-2. **ALWAYS RUN TESTS** - verify before marking complete
-3. **ALWAYS COMMIT** - each iteration should produce a commit
-4. **UPDATE THE PLAN** - mark completed tasks with `[x]`
+5. Update @IMPLEMENTATION_PLAN.md:
+   - Mark the completed task with [x]
+   - Add any new discoveries or follow-up tasks
+   - Update priorities if needed
 
-### Commit Message Format
+6. When tests pass:
+   - Stage relevant files (avoid staging secrets or large binaries)
+   - Commit with a descriptive message
+   - Push to the current branch
+
+## Commit Message Format
 
 ```
-feat/fix/test: Brief description of what was done
+type(scope): brief description
 
-- Detail 1
-- Detail 2
+- Detail about what changed
+- Why it changed
 
-Iteration: N
+Co-Authored-By: Ralph Wiggum <ralph@example.com>
 ```
 
-### Error Handling
+Types: feat, fix, refactor, test, docs, chore
 
-If you encounter an error:
+## Critical Rules
 
-1. Try to fix it in this iteration
-2. If you cannot fix it, document the error in IMPLEMENTATION_PLAN.md
-3. Move on - the next iteration will see the error and can try again
+- **ONE TASK PER ITERATION** - Complete one task fully before stopping
+- **TESTS MUST PASS** - Never commit with failing tests
+- **UPDATE THE PLAN** - Always reflect progress in IMPLEMENTATION_PLAN.md
+- **SEARCH FIRST** - Verify functionality is missing before implementing
+- **SINGLE SOURCE OF TRUTH** - Don't duplicate code or configurations
+- **MINIMAL CHANGES** - Only change what's necessary for the task
 
-### Exit Conditions
+## Completion Signals
 
-When ALL tasks are complete:
+When ALL tasks in IMPLEMENTATION_PLAN.md are complete, output:
 
-1. Verify all tests pass
-2. Write "All tasks complete. Implementation finished."
-3. Write "EXIT_SIGNAL" on its own line
+```
+RALPH_STATUS: complete
+EXIT_SIGNAL: true
+All tasks completed - project implementation finished.
+```
 
-If there are still pending tasks, do NOT write EXIT_SIGNAL.
-
-### Progress Indicators
-
-At the end of each iteration, summarize:
-
-- Task completed: [description]
-- Tests status: PASS/FAIL
-- Remaining tasks: N
-- Next task: [description]
+This signals the loop to stop.
