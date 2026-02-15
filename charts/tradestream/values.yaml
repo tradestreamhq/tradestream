@@ -465,3 +465,83 @@ strategyMonitorUi:
     limits:
       cpu: "200m"
       memory: "256Mi"
+
+# Gateway API Configuration (Viral Platform)
+gatewayApi:
+  enabled: false  # Enable when ready to deploy
+  replicaCount: 2
+
+  image:
+    repository: tradestreamhq/gateway-api
+    tag: v1.0.0
+    pullPolicy: IfNotPresent
+
+  database:
+    poolSize: 10
+
+  urls:
+    # For production, set these to your actual domains:
+    # api: https://api.tradestream.io
+    # frontend: https://tradestream.io
+    # For local development:
+    api: http://localhost:8000
+    frontend: http://localhost:3000
+
+  cors:
+    origins:
+      - https://tradestream.io
+      - https://www.tradestream.io
+      - http://localhost:3000
+
+  rateLimit:
+    perMinute: 60
+
+  service:
+    type: ClusterIP
+    port: 8000
+
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/proxy-body-size: 10m
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    hosts:
+      - host: api.tradestream.io
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: gateway-api-tls
+        hosts:
+          - api.tradestream.io
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Auth Secrets (JWT, Resend API)
+authSecrets:
+  create: true
+  # jwtSecret: ""  # Leave empty to auto-generate
+  resendApiKey: ""  # Required: Set via --set or values file
+
+# OAuth Secrets (Google, GitHub)
+oauthSecrets:
+  create: true
+  google:
+    clientId: ""
+    clientSecret: ""
+  github:
+    clientId: ""
+    clientSecret: ""
