@@ -35,7 +35,7 @@ Create a new YAML file in `src/main/resources/strategies/`:
 
 name: MY_NEW_STRATEGY
 description: Description of what this strategy does
-complexity: SIMPLE  # SIMPLE, MEDIUM, or COMPLEX
+complexity: SIMPLE # SIMPLE, MEDIUM, or COMPLEX
 parameterMessageType: com.verlumen.tradestream.strategies.MyNewStrategyParameters
 
 indicators:
@@ -92,66 +92,66 @@ bazel test //src/test/java/com/verlum/tradestream/strategies:StrategyRegistryTes
 
 ### Required Fields
 
-| Field | Description |
-|-------|-------------|
-| `name` | Unique strategy identifier (UPPER_SNAKE_CASE) |
-| `parameterMessageType` | Fully-qualified proto message class name |
-| `indicators` | List of technical indicators to use |
-| `entryConditions` | Conditions that trigger entry signals |
-| `exitConditions` | Conditions that trigger exit signals |
-| `parameters` | Tunable parameters with ranges |
+| Field                  | Description                                   |
+| ---------------------- | --------------------------------------------- |
+| `name`                 | Unique strategy identifier (UPPER_SNAKE_CASE) |
+| `parameterMessageType` | Fully-qualified proto message class name      |
+| `indicators`           | List of technical indicators to use           |
+| `entryConditions`      | Conditions that trigger entry signals         |
+| `exitConditions`       | Conditions that trigger exit signals          |
+| `parameters`           | Tunable parameters with ranges                |
 
 ### Optional Fields
 
-| Field | Description | Default |
-|-------|-------------|---------|
-| `description` | Human-readable description | Empty |
-| `complexity` | Strategy complexity level | SIMPLE |
+| Field         | Description                | Default |
+| ------------- | -------------------------- | ------- |
+| `description` | Human-readable description | Empty   |
+| `complexity`  | Strategy complexity level  | SIMPLE  |
 
 ### Indicator Types
 
 The following indicator types are supported (from `IndicatorRegistry`):
 
-| Type | Description | Parameters |
-|------|-------------|------------|
-| `SMA` | Simple Moving Average | `period` |
-| `EMA` | Exponential Moving Average | `period` |
-| `DEMA` | Double Exponential Moving Average | `period` |
-| `TEMA` | Triple Exponential Moving Average | `period` |
-| `MACD` | Moving Average Convergence Divergence | `shortPeriod`, `longPeriod` |
-| `RSI` | Relative Strength Index | `period` |
-| `STOCHASTIC_K` | Stochastic Oscillator %K | `period` |
-| `STOCHASTIC_D` | Stochastic Oscillator %D | `period`, `smoothPeriod` |
-| `BOLLINGER_UPPER` | Bollinger Bands Upper | `period`, `deviation` |
-| `BOLLINGER_LOWER` | Bollinger Bands Lower | `period`, `deviation` |
-| `ATR` | Average True Range | `period` |
-| `ADX` | Average Directional Index | `period` |
-| `CCI` | Commodity Channel Index | `period` |
-| `MFI` | Money Flow Index | `period` |
-| `OBV` | On-Balance Volume | (none) |
-| `VWAP` | Volume Weighted Average Price | `period` |
-| `SAR` | Parabolic SAR | `start`, `increment`, `max` |
+| Type              | Description                           | Parameters                  |
+| ----------------- | ------------------------------------- | --------------------------- |
+| `SMA`             | Simple Moving Average                 | `period`                    |
+| `EMA`             | Exponential Moving Average            | `period`                    |
+| `DEMA`            | Double Exponential Moving Average     | `period`                    |
+| `TEMA`            | Triple Exponential Moving Average     | `period`                    |
+| `MACD`            | Moving Average Convergence Divergence | `shortPeriod`, `longPeriod` |
+| `RSI`             | Relative Strength Index               | `period`                    |
+| `STOCHASTIC_K`    | Stochastic Oscillator %K              | `period`                    |
+| `STOCHASTIC_D`    | Stochastic Oscillator %D              | `period`, `smoothPeriod`    |
+| `BOLLINGER_UPPER` | Bollinger Bands Upper                 | `period`, `deviation`       |
+| `BOLLINGER_LOWER` | Bollinger Bands Lower                 | `period`, `deviation`       |
+| `ATR`             | Average True Range                    | `period`                    |
+| `ADX`             | Average Directional Index             | `period`                    |
+| `CCI`             | Commodity Channel Index               | `period`                    |
+| `MFI`             | Money Flow Index                      | `period`                    |
+| `OBV`             | On-Balance Volume                     | (none)                      |
+| `VWAP`            | Volume Weighted Average Price         | `period`                    |
+| `SAR`             | Parabolic SAR                         | `start`, `increment`, `max` |
 
 ### Condition Types
 
 The following condition types are supported (from `RuleRegistry`):
 
-| Type | Description | Parameters |
-|------|-------------|------------|
-| `CROSSED_UP` | Indicator crossed above reference | `crosses` |
-| `CROSSED_DOWN` | Indicator crossed below reference | `crosses` |
-| `OVER` | Indicator is above threshold | `threshold` |
-| `UNDER` | Indicator is below threshold | `threshold` |
-| `BETWEEN` | Indicator is between thresholds | `lower`, `upper` |
-| `INCREASING` | Indicator is increasing | (none) |
-| `DECREASING` | Indicator is decreasing | (none) |
+| Type           | Description                       | Parameters       |
+| -------------- | --------------------------------- | ---------------- |
+| `CROSSED_UP`   | Indicator crossed above reference | `crosses`        |
+| `CROSSED_DOWN` | Indicator crossed below reference | `crosses`        |
+| `OVER`         | Indicator is above threshold      | `threshold`      |
+| `UNDER`        | Indicator is below threshold      | `threshold`      |
+| `BETWEEN`      | Indicator is between thresholds   | `lower`, `upper` |
+| `INCREASING`   | Indicator is increasing           | (none)           |
+| `DECREASING`   | Indicator is decreasing           | (none)           |
 
 ### Parameter Types
 
-| Type | Description | Range Fields |
-|------|-------------|--------------|
-| `INTEGER` | Integer parameter | `min`, `max`, `defaultValue` |
-| `DOUBLE` | Floating-point parameter | `min`, `max`, `defaultValue` |
+| Type      | Description              | Range Fields                 |
+| --------- | ------------------------ | ---------------------------- |
+| `INTEGER` | Integer parameter        | `min`, `max`, `defaultValue` |
+| `DOUBLE`  | Floating-point parameter | `min`, `max`, `defaultValue` |
 
 ## Examples
 

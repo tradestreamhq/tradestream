@@ -21,23 +21,25 @@ database/
 ## Naming Convention
 
 Migrations follow Flyway's versioned naming convention:
+
 ```
 V{version}__{description}.sql
 ```
 
 Examples:
+
 - `V1__baseline_strategies_table.sql`
 - `V2__add_strategy_specs.sql`
 - `V3__add_strategy_performance.sql`
 
 ## Current Migrations
 
-| Version | Description | Tables Created |
-|---------|-------------|----------------|
-| V1 | Baseline | `Strategies` |
-| V2 | Strategy Specs | `strategy_specs`, `strategy_implementations` |
-| V3 | Performance | `strategy_performance` |
-| V4 | Signals | `signals` |
+| Version | Description    | Tables Created                               |
+| ------- | -------------- | -------------------------------------------- |
+| V1      | Baseline       | `Strategies`                                 |
+| V2      | Strategy Specs | `strategy_specs`, `strategy_implementations` |
+| V3      | Performance    | `strategy_performance`                       |
+| V4      | Signals        | `signals`                                    |
 
 ## Running Migrations
 
@@ -50,6 +52,7 @@ helm upgrade --install tradestream ./charts/tradestream
 ```
 
 The migration job:
+
 1. Waits for PostgreSQL to be ready
 2. Runs Flyway with all pending migrations
 3. Deletes itself after successful completion
@@ -77,6 +80,7 @@ flyway -url=jdbc:postgresql://localhost:5432/tradestream \
 ## Adding New Migrations
 
 1. Create a new file in `database/migrations/`:
+
    ```
    V5__your_description.sql
    ```
@@ -93,9 +97,9 @@ Migration configuration is in `charts/tradestream/values.yaml`:
 ```yaml
 databaseMigration:
   enabled: true
-  baselineOnMigrate: "true"  # Creates baseline for existing databases
-  baselineVersion: "0"       # Version to use as baseline
-  connectRetries: 60         # Retries before failing
+  baselineOnMigrate: "true" # Creates baseline for existing databases
+  baselineVersion: "0" # Version to use as baseline
+  connectRetries: 60 # Retries before failing
 ```
 
 ## Rollback
@@ -110,6 +114,7 @@ Flyway Community Edition does not support automatic rollback. For production rol
 ### Migration job fails
 
 Check job logs:
+
 ```bash
 kubectl logs job/tradestream-db-migration -n tradestream
 ```
@@ -117,11 +122,13 @@ kubectl logs job/tradestream-db-migration -n tradestream
 ### Database connection issues
 
 Verify PostgreSQL is running:
+
 ```bash
 kubectl get pods -n tradestream | grep postgresql
 ```
 
 Check connection details:
+
 ```bash
 kubectl describe job/tradestream-db-migration -n tradestream
 ```
@@ -129,6 +136,7 @@ kubectl describe job/tradestream-db-migration -n tradestream
 ### Schema already exists
 
 If running on an existing database, Flyway's `baselineOnMigrate` setting will:
+
 1. Create the `flyway_schema_history` table
 2. Mark all existing migrations as applied
 3. Only run new migrations going forward

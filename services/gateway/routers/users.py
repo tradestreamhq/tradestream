@@ -69,8 +69,13 @@ async def get_settings(user: TokenData = Depends(get_current_user)):
 
     return {
         "risk_tolerance": row["risk_tolerance"],
-        "min_opportunity_score": float(row["min_opportunity_score"]) if row["min_opportunity_score"] else 0.60,
-        "default_action_filter": row["default_action_filter"] or ["BUY", "SELL", "HOLD"],
+        "min_opportunity_score": (
+            float(row["min_opportunity_score"])
+            if row["min_opportunity_score"]
+            else 0.60
+        ),
+        "default_action_filter": row["default_action_filter"]
+        or ["BUY", "SELL", "HOLD"],
         "theme": row["theme"],
         "timezone": row["timezone"],
         "onboarding_completed": row["onboarding_completed"],
@@ -176,7 +181,9 @@ async def get_watchlist(user: TokenData = Depends(get_current_user)):
             "symbol": row["symbol"],
             "notes": row["notes"],
             "alert_enabled": row["alert_enabled"],
-            "position_size": float(row["position_size"]) if row["position_size"] else None,
+            "position_size": (
+                float(row["position_size"]) if row["position_size"] else None
+            ),
             "entry_price": float(row["entry_price"]) if row["entry_price"] else None,
             "added_at": row["added_at"].isoformat() if row["added_at"] else None,
         }

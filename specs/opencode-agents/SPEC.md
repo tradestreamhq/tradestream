@@ -249,11 +249,11 @@ with opportunity scores based on multiple factors.
 
 ## Scoring Formula
 
-opportunity_score = (
-0.25 _ confidence +
+opportunity*score = (
+0.25 * confidence +
 0.30 _ normalize(expected_return) +
-0.20 _ consensus_pct +
-0.15 _ normalize(volatility) +
+0.20 _ consensus*pct +
+0.15 * normalize(volatility) +
 0.10 _ freshness
 ) _ 100
 

@@ -31,12 +31,12 @@ TradeStream is a production-grade algorithmic trading platform that discovers, o
 
 ### Key Capabilities
 
-| Capability | Description |
-|------------|-------------|
-| **Strategy Discovery** | Genetic algorithm optimization discovers optimal trading strategies from 60+ technical indicators |
-| **Real-Time Processing** | Apache Beam on Flink processes market data and strategy signals with sub-second latency |
-| **Production Scale** | 40M+ strategy discoveries, 1000+ candles/minute ingestion, 240+ days continuous operation |
-| **Cloud Native** | Kubernetes-native architecture with Helm charts for reproducible deployments |
+| Capability               | Description                                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------------------- |
+| **Strategy Discovery**   | Genetic algorithm optimization discovers optimal trading strategies from 60+ technical indicators |
+| **Real-Time Processing** | Apache Beam on Flink processes market data and strategy signals with sub-second latency           |
+| **Production Scale**     | 40M+ strategy discoveries, 1000+ candles/minute ingestion, 240+ days continuous operation         |
+| **Cloud Native**         | Kubernetes-native architecture with Helm charts for reproducible deployments                      |
 
 ---
 
@@ -128,13 +128,13 @@ graph TB
 
 ### Services Overview
 
-| Service | Status | Description |
-|---------|--------|-------------|
-| `candle_ingestor` | Production | Ingests OHLCV data from Coinbase WebSocket (1000+ candles/min) |
-| `strategy_discovery_pipeline` | Production | Flink pipeline running genetic algorithm optimization |
-| `strategy_consumer` | Production | Persists discovered strategies to PostgreSQL |
-| `top_crypto_updater` | Production | Maintains active cryptocurrency symbol list via CoinMarketCap |
-| `strategy_monitor_api` | Development | REST API for strategy monitoring and visualization |
+| Service                       | Status      | Description                                                    |
+| ----------------------------- | ----------- | -------------------------------------------------------------- |
+| `candle_ingestor`             | Production  | Ingests OHLCV data from Coinbase WebSocket (1000+ candles/min) |
+| `strategy_discovery_pipeline` | Production  | Flink pipeline running genetic algorithm optimization          |
+| `strategy_consumer`           | Production  | Persists discovered strategies to PostgreSQL                   |
+| `top_crypto_updater`          | Production  | Maintains active cryptocurrency symbol list via CoinMarketCap  |
+| `strategy_monitor_api`        | Development | REST API for strategy monitoring and visualization             |
 
 ---
 
@@ -142,24 +142,24 @@ graph TB
 
 ### Core Technologies
 
-| Category | Technology | Purpose |
-|----------|------------|---------|
-| **Languages** | Java 17, Kotlin 1.9, Python 3.13 | Service implementation |
-| **Build System** | Bazel 7.4 | Reproducible builds and dependency management |
-| **Stream Processing** | Apache Beam + Flink | Distributed real-time data processing |
-| **Genetic Algorithms** | Jenetics | High-performance evolutionary optimization |
-| **Technical Analysis** | TA4J | 60+ technical indicator implementations |
+| Category               | Technology                       | Purpose                                       |
+| ---------------------- | -------------------------------- | --------------------------------------------- |
+| **Languages**          | Java 17, Kotlin 1.9, Python 3.13 | Service implementation                        |
+| **Build System**       | Bazel 7.4                        | Reproducible builds and dependency management |
+| **Stream Processing**  | Apache Beam + Flink              | Distributed real-time data processing         |
+| **Genetic Algorithms** | Jenetics                         | High-performance evolutionary optimization    |
+| **Technical Analysis** | TA4J                             | 60+ technical indicator implementations       |
 
 ### Infrastructure
 
-| Category | Technology | Purpose |
-|----------|------------|---------|
-| **Container Orchestration** | Kubernetes | Production deployment and scaling |
-| **Package Management** | Helm | Kubernetes resource templating |
-| **Message Broker** | Apache Kafka | Event streaming and service communication |
-| **Time-Series DB** | InfluxDB | Market data storage with 365-day retention |
-| **Relational DB** | PostgreSQL | Strategy metadata and configuration |
-| **Caching** | Redis | Real-time state and symbol management |
+| Category                    | Technology   | Purpose                                    |
+| --------------------------- | ------------ | ------------------------------------------ |
+| **Container Orchestration** | Kubernetes   | Production deployment and scaling          |
+| **Package Management**      | Helm         | Kubernetes resource templating             |
+| **Message Broker**          | Apache Kafka | Event streaming and service communication  |
+| **Time-Series DB**          | InfluxDB     | Market data storage with 365-day retention |
+| **Relational DB**           | PostgreSQL   | Strategy metadata and configuration        |
+| **Caching**                 | Redis        | Real-time state and symbol management      |
 
 ---
 
@@ -251,13 +251,13 @@ tradestream/
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [Services README](services/README.md) | Detailed microservices documentation |
-| [Source Code README](src/README.md) | Core Java/Kotlin library documentation |
-| [Helm Charts README](charts/README.md) | Kubernetes deployment guide |
-| [Protocol Buffers README](protos/README.md) | Data contract definitions |
-| [UI README](ui/README.md) | Frontend documentation |
+| Document                                    | Description                            |
+| ------------------------------------------- | -------------------------------------- |
+| [Services README](services/README.md)       | Detailed microservices documentation   |
+| [Source Code README](src/README.md)         | Core Java/Kotlin library documentation |
+| [Helm Charts README](charts/README.md)      | Kubernetes deployment guide            |
+| [Protocol Buffers README](protos/README.md) | Data contract definitions              |
+| [UI README](ui/README.md)                   | Frontend documentation                 |
 
 ---
 
@@ -265,14 +265,14 @@ tradestream/
 
 TradeStream operates in production with verified performance metrics:
 
-| Metric | Value |
-|--------|-------|
-| **Strategy Discoveries** | 40+ million requests processed |
-| **System Uptime** | 240+ days continuous operation |
-| **Market Data Throughput** | 1000+ candles per minute |
-| **Symbol Coverage** | 20 cryptocurrency pairs |
-| **Strategy Types** | 60 technical analysis strategies |
-| **Recovery Resilience** | Automatic restart with catch-up processing |
+| Metric                     | Value                                      |
+| -------------------------- | ------------------------------------------ |
+| **Strategy Discoveries**   | 40+ million requests processed             |
+| **System Uptime**          | 240+ days continuous operation             |
+| **Market Data Throughput** | 1000+ candles per minute                   |
+| **Symbol Coverage**        | 20 cryptocurrency pairs                    |
+| **Strategy Types**         | 60 technical analysis strategies           |
+| **Recovery Resilience**    | Automatic restart with catch-up processing |
 
 ---
 
@@ -280,13 +280,14 @@ TradeStream operates in production with verified performance metrics:
 
 The project uses GitHub Actions for continuous integration:
 
-| Workflow | Purpose |
-|----------|---------|
-| `bazel-test.yaml` | Runs unit and integration tests |
-| `ci.yaml` | Validates Kubernetes deployment |
-| `release.yaml` | Builds and publishes container images |
+| Workflow          | Purpose                               |
+| ----------------- | ------------------------------------- |
+| `bazel-test.yaml` | Runs unit and integration tests       |
+| `ci.yaml`         | Validates Kubernetes deployment       |
+| `release.yaml`    | Builds and publishes container images |
 
 All pull requests must pass:
+
 - Bazel build and test
 - Code formatting checks (google-java-format, ktlint)
 - Container structure tests

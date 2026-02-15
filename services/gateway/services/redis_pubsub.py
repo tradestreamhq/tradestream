@@ -30,7 +30,9 @@ async def close_redis():
         _redis_client = None
 
 
-async def subscribe_signals(channel: str = "scored-signals") -> AsyncGenerator[dict, None]:
+async def subscribe_signals(
+    channel: str = "scored-signals",
+) -> AsyncGenerator[dict, None]:
     """Subscribe to Redis channel and yield signals.
 
     Yields parsed signal dictionaries from the Redis pub/sub channel.
