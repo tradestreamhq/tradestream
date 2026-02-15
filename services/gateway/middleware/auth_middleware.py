@@ -25,7 +25,9 @@ async def get_current_user(
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
     if token_data.is_demo:
-        raise HTTPException(status_code=403, detail="Demo users cannot access this resource")
+        raise HTTPException(
+            status_code=403, detail="Demo users cannot access this resource"
+        )
 
     return token_data
 
@@ -47,7 +49,9 @@ async def get_current_user_or_demo(
 def require_permission(permission: str):
     """Dependency factory for checking specific permissions."""
 
-    async def check_permission(user: TokenData = Depends(get_current_user)) -> TokenData:
+    async def check_permission(
+        user: TokenData = Depends(get_current_user),
+    ) -> TokenData:
         if permission not in user.permissions:
             raise HTTPException(
                 status_code=403,

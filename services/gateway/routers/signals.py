@@ -159,7 +159,9 @@ async def get_signals(
             "symbol": row["symbol"],
             "action": row["action"],
             "confidence": float(row["confidence"]) if row["confidence"] else None,
-            "opportunity_score": float(row["opportunity_score"]) if row["opportunity_score"] else None,
+            "opportunity_score": (
+                float(row["opportunity_score"]) if row["opportunity_score"] else None
+            ),
             "reasoning": row["reasoning"],
             "created_at": row["created_at"].isoformat() if row["created_at"] else None,
         }
@@ -226,7 +228,9 @@ async def get_signal(
         "symbol": row["symbol"],
         "action": row["action"],
         "confidence": float(row["confidence"]) if row["confidence"] else None,
-        "opportunity_score": float(row["opportunity_score"]) if row["opportunity_score"] else None,
+        "opportunity_score": (
+            float(row["opportunity_score"]) if row["opportunity_score"] else None
+        ),
         "reasoning": row["reasoning"],
         "commentary": row["commentary"],
         "created_at": row["created_at"].isoformat() if row["created_at"] else None,

@@ -468,7 +468,7 @@ strategyMonitorUi:
 
 # Gateway API Configuration (Viral Platform)
 gatewayApi:
-  enabled: false  # Enable when ready to deploy
+  enabled: false # Enable when ready to deploy
   replicaCount: 2
 
   image:
@@ -534,7 +534,7 @@ gatewayApi:
 authSecrets:
   create: true
   # jwtSecret: ""  # Leave empty to auto-generate
-  resendApiKey: ""  # Required: Set via --set or values file
+  resendApiKey: "" # Required: Set via --set or values file
 
 # OAuth Secrets (Google, GitHub)
 oauthSecrets:

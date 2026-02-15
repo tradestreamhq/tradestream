@@ -8,9 +8,9 @@ Implementing the viral trading signal platform as specified in `specs/viral-plat
 
 Reference: `specs/viral-platform/database-migrations/SPEC.md`
 
-- [x] Create V6__add_users.sql - users, email_verification_tokens, password_reset_tokens, refresh_tokens tables
-- [x] Create V7__add_user_settings.sql - user_settings, user_watchlists, saved_views tables
-- [x] Create V8__add_notifications.sql - notification_channels, notification_preferences, notification_history tables
+- [x] Create V6\_\_add_users.sql - users, email_verification_tokens, password_reset_tokens, refresh_tokens tables
+- [x] Create V7\_\_add_user_settings.sql - user_settings, user_watchlists, saved_views tables
+- [x] Create V8\_\_add_notifications.sql - notification_channels, notification_preferences, notification_history tables
 
 ## Phase 1: Backend Services
 
@@ -50,11 +50,11 @@ Reference: `specs/viral-platform/agent-dashboard/SPEC.md`
 
 ## Progress Tracking
 
-| Phase | Status | Tasks Done | Tasks Total |
-|-------|--------|------------|-------------|
-| Phase 0: Database | Complete | 3 | 3 |
-| Phase 1: Backend | Complete | 8 | 8 |
-| Phase 2: Helm | Complete | 4 | 4 |
-| Phase 3: Frontend | Complete | 9 | 9 |
+| Phase             | Status   | Tasks Done | Tasks Total |
+| ----------------- | -------- | ---------- | ----------- |
+| Phase 0: Database | Complete | 3          | 3           |
+| Phase 1: Backend  | Complete | 8          | 8           |
+| Phase 2: Helm     | Complete | 4          | 4           |
+| Phase 3: Frontend | Complete | 9          | 9           |
 
 Last Updated: 2026-02-05

@@ -116,7 +116,9 @@ async def login(data: LoginRequest, response: Response):
         data.email,
     )
 
-    if not user or not auth_service.verify_password(data.password, user["password_hash"]):
+    if not user or not auth_service.verify_password(
+        data.password, user["password_hash"]
+    ):
         raise HTTPException(401, "Invalid credentials")
 
     if not user["email_verified"]:
@@ -131,7 +133,9 @@ async def login(data: LoginRequest, response: Response):
         email_verified=user["email_verified"],
     )
 
-    refresh_token, refresh_hash = auth_service.create_refresh_token(str(user["user_id"]))
+    refresh_token, refresh_hash = auth_service.create_refresh_token(
+        str(user["user_id"])
+    )
 
     # Store refresh token
     await pool.execute(
@@ -348,7 +352,9 @@ async def forgot_password(data: PasswordResetRequest):
         )
         await email_service.send_password_reset_email(data.email, token)
 
-    return {"message": "If an account exists with this email, a reset link has been sent."}
+    return {
+        "message": "If an account exists with this email, a reset link has been sent."
+    }
 
 
 @router.post("/reset-password")
@@ -495,7 +501,9 @@ async def oauth_callback(
         email_verified=True,
     )
 
-    refresh_token, refresh_hash = auth_service.create_refresh_token(str(user["user_id"]))
+    refresh_token, refresh_hash = auth_service.create_refresh_token(
+        str(user["user_id"])
+    )
 
     await pool.execute(
         """

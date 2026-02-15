@@ -686,6 +686,7 @@ remote: error.response.data.detail.current_settings
 };
 
 return (
+
 <div className="settings-panel">
 <Section title="Risk Tolerance">
 <RadioGroup
@@ -777,6 +778,7 @@ setDescription('');
 };
 
 return (
+
 <div className="view-selector">
 <Select
 value={activeView}
