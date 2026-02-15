@@ -120,4 +120,5 @@ container_structure_test(
     name = "container_test",
     configs = [":container_structure_test_files"],
     image = ":strategy_monitor_ui",
+    tags = ["requires-docker"],
 )
