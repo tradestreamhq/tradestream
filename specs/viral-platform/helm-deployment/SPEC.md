@@ -10,11 +10,11 @@ New services are deployed as part of the existing `tradestream` Helm chart, foll
 
 ## New Services
 
-| Service | Type | Port | Description |
-|---------|------|------|-------------|
-| gateway-api | Deployment | 8000 | Unified FastAPI backend |
-| agent-dashboard | Deployment | 80 | React frontend |
-| notification-worker | CronJob | - | Push/Telegram notifications |
+| Service             | Type       | Port | Description                 |
+| ------------------- | ---------- | ---- | --------------------------- |
+| gateway-api         | Deployment | 8000 | Unified FastAPI backend     |
+| agent-dashboard     | Deployment | 80   | React frontend              |
+| notification-worker | CronJob    | -    | Push/Telegram notifications |
 
 ## File Structure
 
@@ -635,7 +635,7 @@ agentDashboard:
 # Notification Worker Configuration
 notificationWorker:
   enabled: true
-  schedule: "*/5 * * * *"  # Every 5 minutes
+  schedule: "*/5 * * * *" # Every 5 minutes
 
   image:
     repository: tradestreamhq/notification-worker
@@ -657,7 +657,7 @@ notificationWorker:
 authSecrets:
   create: true
   # jwtSecret: ""  # Leave empty to auto-generate
-  resendApiKey: ""  # Required: Set via --set or values file
+  resendApiKey: "" # Required: Set via --set or values file
 
 # OAuth Secrets
 oauthSecrets:
@@ -674,7 +674,7 @@ notificationSecrets:
   create: true
   vapidPrivateKey: ""
   vapidPublicKey: ""
-  telegramBotToken: ""  # Optional
+  telegramBotToken: "" # Optional
 ```
 
 ## Deployment Commands

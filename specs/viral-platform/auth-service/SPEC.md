@@ -88,40 +88,41 @@ The auth service is part of the gateway-api and handles all authentication flows
 
 ### Registration & Login
 
-| Endpoint | Method | Purpose | Auth |
-|----------|--------|---------|------|
-| `/auth/register` | POST | Create account with email/password | None |
-| `/auth/login` | POST | Login with email/password | None |
-| `/auth/logout` | POST | Revoke refresh token | Required |
-| `/auth/refresh` | POST | Get new access token | Refresh token |
-| `/auth/demo` | POST | Get demo access token | None |
+| Endpoint         | Method | Purpose                            | Auth          |
+| ---------------- | ------ | ---------------------------------- | ------------- |
+| `/auth/register` | POST   | Create account with email/password | None          |
+| `/auth/login`    | POST   | Login with email/password          | None          |
+| `/auth/logout`   | POST   | Revoke refresh token               | Required      |
+| `/auth/refresh`  | POST   | Get new access token               | Refresh token |
+| `/auth/demo`     | POST   | Get demo access token              | None          |
 
 ### Email Verification
 
-| Endpoint | Method | Purpose | Auth |
-|----------|--------|---------|------|
-| `/auth/verify-email` | GET | Verify email with token | None |
-| `/auth/resend-verification` | POST | Resend verification email | Required |
+| Endpoint                    | Method | Purpose                   | Auth     |
+| --------------------------- | ------ | ------------------------- | -------- |
+| `/auth/verify-email`        | GET    | Verify email with token   | None     |
+| `/auth/resend-verification` | POST   | Resend verification email | Required |
 
 ### Password Reset
 
-| Endpoint | Method | Purpose | Auth |
-|----------|--------|---------|------|
-| `/auth/forgot-password` | POST | Request password reset | None |
-| `/auth/reset-password` | POST | Reset password with token | None |
+| Endpoint                | Method | Purpose                   | Auth |
+| ----------------------- | ------ | ------------------------- | ---- |
+| `/auth/forgot-password` | POST   | Request password reset    | None |
+| `/auth/reset-password`  | POST   | Reset password with token | None |
 
 ### OAuth
 
-| Endpoint | Method | Purpose | Auth |
-|----------|--------|---------|------|
-| `/auth/oauth/{provider}` | GET | Initiate OAuth flow | None |
-| `/auth/oauth/{provider}/callback` | GET | Handle OAuth callback | None |
+| Endpoint                          | Method | Purpose               | Auth |
+| --------------------------------- | ------ | --------------------- | ---- |
+| `/auth/oauth/{provider}`          | GET    | Initiate OAuth flow   | None |
+| `/auth/oauth/{provider}/callback` | GET    | Handle OAuth callback | None |
 
 ## Request/Response Schemas
 
 ### POST /auth/register
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -131,6 +132,7 @@ The auth service is part of the gateway-api and handles all authentication flows
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "user_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -142,12 +144,14 @@ The auth service is part of the gateway-api and handles all authentication flows
 ```
 
 **Errors:**
+
 - `400 Bad Request` - Invalid email format or weak password
 - `409 Conflict` - Email already registered
 
 ### POST /auth/login
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -156,6 +160,7 @@ The auth service is part of the gateway-api and handles all authentication flows
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIs...",
@@ -175,6 +180,7 @@ The auth service is part of the gateway-api and handles all authentication flows
 **Note:** Refresh token is set as httpOnly cookie.
 
 **Errors:**
+
 - `401 Unauthorized` - Invalid credentials
 - `403 Forbidden` - Email not verified
 
@@ -183,6 +189,7 @@ The auth service is part of the gateway-api and handles all authentication flows
 **Request:** (Refresh token from httpOnly cookie)
 
 **Response (200 OK):**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIs...",
@@ -192,6 +199,7 @@ The auth service is part of the gateway-api and handles all authentication flows
 ```
 
 **Errors:**
+
 - `401 Unauthorized` - Invalid or expired refresh token
 
 ### POST /auth/demo
@@ -199,6 +207,7 @@ The auth service is part of the gateway-api and handles all authentication flows
 **Request:** (No body required)
 
 **Response (200 OK):**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIs...",
@@ -211,6 +220,7 @@ The auth service is part of the gateway-api and handles all authentication flows
 ### POST /auth/forgot-password
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com"
@@ -218,6 +228,7 @@ The auth service is part of the gateway-api and handles all authentication flows
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "message": "If an account exists with this email, a reset link has been sent."
@@ -229,6 +240,7 @@ The auth service is part of the gateway-api and handles all authentication flows
 ### POST /auth/reset-password
 
 **Request:**
+
 ```json
 {
   "token": "abc123...",
@@ -237,6 +249,7 @@ The auth service is part of the gateway-api and handles all authentication flows
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "message": "Password reset successful. You can now login."
@@ -244,6 +257,7 @@ The auth service is part of the gateway-api and handles all authentication flows
 ```
 
 **Errors:**
+
 - `400 Bad Request` - Token expired or invalid
 - `400 Bad Request` - Password doesn't meet requirements
 
@@ -279,10 +293,7 @@ The auth service is part of the gateway-api and handles all authentication flows
 {
   "sub": "demo",
   "is_demo": true,
-  "permissions": [
-    "read:signals",
-    "read:providers"
-  ],
+  "permissions": ["read:signals", "read:providers"],
   "iat": 1706745600,
   "exp": 1706749200,
   "iss": "tradestream.io",
@@ -292,16 +303,16 @@ The auth service is part of the gateway-api and handles all authentication flows
 
 ### Permission Definitions
 
-| Permission | Description | Demo | Auth |
-|------------|-------------|------|------|
-| `read:signals` | View trading signals | Yes | Yes |
-| `read:providers` | View provider profiles | Yes | Yes |
-| `write:settings` | Update user settings | No | Yes |
-| `write:watchlist` | Manage watchlist | No | Yes |
-| `write:follows` | Follow/unfollow providers | No | Yes |
-| `write:reactions` | Like/comment on signals | No | Yes |
-| `read:achievements` | View own achievements | No | Yes |
-| `write:provider` | Publish signals (providers) | No | Provider |
+| Permission          | Description                 | Demo | Auth     |
+| ------------------- | --------------------------- | ---- | -------- |
+| `read:signals`      | View trading signals        | Yes  | Yes      |
+| `read:providers`    | View provider profiles      | Yes  | Yes      |
+| `write:settings`    | Update user settings        | No   | Yes      |
+| `write:watchlist`   | Manage watchlist            | No   | Yes      |
+| `write:follows`     | Follow/unfollow providers   | No   | Yes      |
+| `write:reactions`   | Like/comment on signals     | No   | Yes      |
+| `read:achievements` | View own achievements       | No   | Yes      |
+| `write:provider`    | Publish signals (providers) | No   | Provider |
 
 ## OAuth Configuration
 
@@ -341,6 +352,7 @@ GITHUB_SCOPES = [
 **Subject:** Verify your TradeStream account
 
 **Body:**
+
 ```html
 <h1>Welcome to TradeStream!</h1>
 <p>Click the button below to verify your email address:</p>
@@ -356,6 +368,7 @@ GITHUB_SCOPES = [
 **Subject:** Reset your TradeStream password
 
 **Body:**
+
 ```html
 <h1>Password Reset Request</h1>
 <p>Click the button below to reset your password:</p>
@@ -1275,12 +1288,12 @@ async def oauth_callback(
 
 ### Rate Limiting
 
-| Endpoint | Limit |
-|----------|-------|
-| `/auth/register` | 5/minute per IP |
-| `/auth/login` | 10/minute per IP |
-| `/auth/forgot-password` | 3/minute per IP |
-| `/auth/oauth/*` | 10/minute per IP |
+| Endpoint                | Limit            |
+| ----------------------- | ---------------- |
+| `/auth/register`        | 5/minute per IP  |
+| `/auth/login`           | 10/minute per IP |
+| `/auth/forgot-password` | 3/minute per IP  |
+| `/auth/oauth/*`         | 10/minute per IP |
 
 ### CORS Configuration
 
@@ -1342,6 +1355,7 @@ await redis.delete(f"oauth_state:{state}")
 ### Account Linking
 
 When a user signs up with email/password and later tries OAuth with the same email:
+
 1. If email matches, link the OAuth provider to existing account
 2. User can then login with either method
 3. Password remains valid for email login
