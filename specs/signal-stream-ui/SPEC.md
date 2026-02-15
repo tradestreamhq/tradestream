@@ -98,7 +98,7 @@ interface SignalStreamProps {
 
 interface SignalFilters {
   symbols?: string[];
-  actions?: ('BUY' | 'SELL' | 'HOLD')[];
+  actions?: ("BUY" | "SELL" | "HOLD")[];
   minConfidence?: number;
   minOpportunityScore?: number;
 }
@@ -106,12 +106,12 @@ interface SignalFilters {
 <SignalStream
   maxSignals={100}
   filters={{
-    symbols: ['ETH/USD', 'BTC/USD'],
-    minOpportunityScore: 60
+    symbols: ["ETH/USD", "BTC/USD"],
+    minOpportunityScore: 60,
   }}
   onSignalClick={(signal) => openReasoningPanel(signal)}
   autoScroll={true}
-/>
+/>;
 ```
 
 ### SignalCard
@@ -131,7 +131,7 @@ interface SignalCardProps {
   isFocused={focusedIndex === index}
   onToggleExpand={() => setExpandedId(signal.signal_id)}
   events={eventsForSignal}
-/>
+/>;
 ```
 
 ### ScoreBreakdown
@@ -145,7 +145,7 @@ interface ScoreBreakdownProps {
 <ScoreBreakdown
   factors={signal.opportunity_factors}
   totalScore={signal.opportunity_score}
-/>
+/>;
 ```
 
 ### ToolCallLog
@@ -155,7 +155,7 @@ interface ToolCallLogProps {
   events: (ToolCallEvent | ToolResultEvent)[];
 }
 
-<ToolCallLog events={toolEvents} />
+<ToolCallLog events={toolEvents} />;
 ```
 
 ## Implementation
@@ -163,12 +163,12 @@ interface ToolCallLogProps {
 ### SignalStream.tsx
 
 ```tsx
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { VariableSizeList as List } from 'react-window';
-import { Signal } from '@/api/types';
-import { SignalCard } from './SignalCard';
-import { SignalStreamErrorBoundary } from './SignalStreamErrorBoundary';
-import { useAgentStream } from '@/hooks/useAgentStream';
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { VariableSizeList as List } from "react-window";
+import { Signal } from "@/api/types";
+import { SignalCard } from "./SignalCard";
+import { SignalStreamErrorBoundary } from "./SignalStreamErrorBoundary";
+import { useAgentStream } from "@/hooks/useAgentStream";
 
 // Row heights for virtualized list
 const COLLAPSED_ROW_HEIGHT = 120;
@@ -208,7 +208,7 @@ export function SignalStream({
     }
     if (filters.minOpportunityScore) {
       result = result.filter(
-        (s) => s.opportunity_score >= filters.minOpportunityScore!
+        (s) => s.opportunity_score >= filters.minOpportunityScore!,
       );
     }
 
@@ -224,7 +224,7 @@ export function SignalStream({
         ? EXPANDED_ROW_HEIGHT
         : COLLAPSED_ROW_HEIGHT;
     },
-    [expandedId, filteredSignals]
+    [expandedId, filteredSignals],
   );
 
   // Reset list measurements when expansion state changes
@@ -245,53 +245,59 @@ export function SignalStream({
   const getEventsForSignal = useCallback(
     (signalId: string) => {
       return events.filter(
-        (e) => 'signal_id' in e.data && e.data.signal_id === signalId
+        (e) => "signal_id" in e.data && e.data.signal_id === signalId,
       );
     },
-    [events]
+    [events],
   );
 
   // Keyboard navigation handler
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
       switch (event.key) {
-        case 'ArrowDown':
+        case "ArrowDown":
           event.preventDefault();
           setFocusedIndex((prev) =>
-            Math.min(prev + 1, filteredSignals.length - 1)
+            Math.min(prev + 1, filteredSignals.length - 1),
           );
           break;
-        case 'ArrowUp':
+        case "ArrowUp":
           event.preventDefault();
           setFocusedIndex((prev) => Math.max(prev - 1, 0));
           break;
-        case 'Enter':
-        case ' ':
+        case "Enter":
+        case " ":
           event.preventDefault();
           if (focusedIndex >= 0 && focusedIndex < filteredSignals.length) {
             const signal = filteredSignals[focusedIndex];
             setExpandedId(
-              expandedId === signal.signal_id ? null : signal.signal_id
+              expandedId === signal.signal_id ? null : signal.signal_id,
             );
             onSignalClick?.(signal);
           }
           break;
-        case 'Escape':
+        case "Escape":
           setExpandedId(null);
           break;
       }
     },
-    [focusedIndex, filteredSignals, expandedId, onSignalClick]
+    [focusedIndex, filteredSignals, expandedId, onSignalClick],
   );
 
   // Scroll focused item into view
   useEffect(() => {
     if (focusedIndex >= 0 && listRef.current) {
-      listRef.current.scrollToItem(focusedIndex, 'smart');
+      listRef.current.scrollToItem(focusedIndex, "smart");
     }
   }, [focusedIndex]);
 
-  const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
+  const Row = ({
+    index,
+    style,
+  }: {
+    index: number;
+    style: React.CSSProperties;
+  }) => {
     const signal = filteredSignals[index];
     const isExpanded = expandedId === signal.signal_id;
     const isFocused = focusedIndex === index;
@@ -355,7 +361,7 @@ export function SignalStream({
 ### SignalStreamErrorBoundary.tsx
 
 ```tsx
-import { Component, ReactNode } from 'react';
+import { Component, ReactNode } from "react";
 
 interface Props {
   children: ReactNode;
@@ -378,7 +384,7 @@ export class SignalStreamErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('SignalStream error:', error, errorInfo);
+    console.error("SignalStream error:", error, errorInfo);
     // Report to error tracking service (e.g., Sentry)
   }
 
@@ -416,12 +422,12 @@ export class SignalStreamErrorBoundary extends Component<Props, State> {
 ### SignalCard.tsx
 
 ```tsx
-import { Signal, AgentEvent } from '@/api/types';
-import { ScoreBreakdown } from './ScoreBreakdown';
-import { ToolCallLog } from './ToolCallLog';
-import { StrategyBreakdown } from './StrategyBreakdown';
-import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { Signal, AgentEvent } from "@/api/types";
+import { ScoreBreakdown } from "./ScoreBreakdown";
+import { ToolCallLog } from "./ToolCallLog";
+import { StrategyBreakdown } from "./StrategyBreakdown";
+import { cn } from "@/lib/utils";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface SignalCardProps {
   signal: Signal;
@@ -445,9 +451,9 @@ export function SignalCard({
   return (
     <article
       className={cn(
-        'rounded-lg border bg-card p-4 transition-all duration-200',
-        isExpanded && 'ring-2 ring-primary',
-        isFocused && 'ring-2 ring-ring ring-offset-2'
+        "rounded-lg border bg-card p-4 transition-all duration-200",
+        isExpanded && "ring-2 ring-primary",
+        isFocused && "ring-2 ring-ring ring-offset-2",
       )}
       aria-label={`${signal.action} signal for ${signal.symbol} with opportunity score ${signal.opportunity_score}`}
       aria-expanded={isExpanded}
@@ -472,10 +478,10 @@ export function SignalCard({
 
       {/* Signal Info */}
       <div className="mt-2 flex items-center gap-4">
-        <span className={cn('text-xl font-bold', actionColor)}>
+        <span className={cn("text-xl font-bold", actionColor)}>
           <span role="img" aria-label={`${signal.action} action`}>
             {getActionIcon(signal.action)}
-          </span>{' '}
+          </span>{" "}
           {signal.action}
         </span>
         <span className="text-lg font-medium">{signal.symbol}</span>
@@ -486,8 +492,10 @@ export function SignalCard({
 
       {/* Summary */}
       <p className="mt-2 text-sm text-muted-foreground">
-        Expected return: +{(signal.opportunity_factors.expected_return.value * 100).toFixed(1)}% |{' '}
-        {signal.strategies_bullish}/{signal.strategies_analyzed} strategies bullish
+        Expected return: +
+        {(signal.opportunity_factors.expected_return.value * 100).toFixed(1)}% |{" "}
+        {signal.strategies_bullish}/{signal.strategies_analyzed} strategies
+        bullish
       </p>
 
       {/* Expand Toggle */}
@@ -537,35 +545,49 @@ export function SignalCard({
 
 function getTierIcon(tier: string): string {
   switch (tier) {
-    case 'HOT': return '🔥';
-    case 'GOOD': return '⭐';
-    case 'NEUTRAL': return '⚪';
-    default: return '🔹';
+    case "HOT":
+      return "🔥";
+    case "GOOD":
+      return "⭐";
+    case "NEUTRAL":
+      return "⚪";
+    default:
+      return "🔹";
   }
 }
 
 function getTierLabel(tier: string): string {
   switch (tier) {
-    case 'HOT': return 'Hot opportunity';
-    case 'GOOD': return 'Good opportunity';
-    case 'NEUTRAL': return 'Neutral opportunity';
-    default: return 'Opportunity';
+    case "HOT":
+      return "Hot opportunity";
+    case "GOOD":
+      return "Good opportunity";
+    case "NEUTRAL":
+      return "Neutral opportunity";
+    default:
+      return "Opportunity";
   }
 }
 
 function getActionIcon(action: string): string {
   switch (action) {
-    case 'BUY': return '🟢';
-    case 'SELL': return '🔴';
-    default: return '⚪';
+    case "BUY":
+      return "🟢";
+    case "SELL":
+      return "🔴";
+    default:
+      return "⚪";
   }
 }
 
 function getActionColor(action: string): string {
   switch (action) {
-    case 'BUY': return 'text-green-500';
-    case 'SELL': return 'text-red-500';
-    default: return 'text-gray-500';
+    case "BUY":
+      return "text-green-500";
+    case "SELL":
+      return "text-red-500";
+    default:
+      return "text-gray-500";
   }
 }
 
@@ -577,7 +599,7 @@ function formatTime(timestamp: string): string {
 ### ScoreBreakdown.tsx
 
 ```tsx
-import { OpportunityFactors } from '@/api/types';
+import { OpportunityFactors } from "@/api/types";
 
 interface ScoreBreakdownProps {
   factors: OpportunityFactors;
@@ -677,25 +699,25 @@ function FactorRow({
 
 ### ARIA Labels and Roles
 
-| Element | Role/Attribute | Purpose |
-|---------|----------------|---------|
-| Signal list container | `role="list"`, `aria-label` | Identifies the signal list for screen readers |
-| Signal card | `role="listitem"`, `aria-posinset`, `aria-setsize` | Position within the list |
-| Signal card article | `aria-label`, `aria-expanded` | Describes signal and expansion state |
-| Expand button | `aria-expanded`, `aria-controls` | Toggle state and controlled element |
-| Progress bars | `role="progressbar"`, `aria-valuenow` | Score factor visualization |
-| Live region | `role="status"`, `aria-live="polite"` | Announces signal count changes |
-| Error boundary | `role="alert"`, `aria-live="assertive"` | Announces errors immediately |
+| Element               | Role/Attribute                                     | Purpose                                       |
+| --------------------- | -------------------------------------------------- | --------------------------------------------- |
+| Signal list container | `role="list"`, `aria-label`                        | Identifies the signal list for screen readers |
+| Signal card           | `role="listitem"`, `aria-posinset`, `aria-setsize` | Position within the list                      |
+| Signal card article   | `aria-label`, `aria-expanded`                      | Describes signal and expansion state          |
+| Expand button         | `aria-expanded`, `aria-controls`                   | Toggle state and controlled element           |
+| Progress bars         | `role="progressbar"`, `aria-valuenow`              | Score factor visualization                    |
+| Live region           | `role="status"`, `aria-live="polite"`              | Announces signal count changes                |
+| Error boundary        | `role="alert"`, `aria-live="assertive"`            | Announces errors immediately                  |
 
 ### Keyboard Navigation
 
-| Key | Action |
-|-----|--------|
-| `Tab` | Move focus to signal list |
-| `Arrow Down` | Move focus to next signal card |
-| `Arrow Up` | Move focus to previous signal card |
+| Key               | Action                                  |
+| ----------------- | --------------------------------------- |
+| `Tab`             | Move focus to signal list               |
+| `Arrow Down`      | Move focus to next signal card          |
+| `Arrow Up`        | Move focus to previous signal card      |
 | `Enter` / `Space` | Toggle expand/collapse for focused card |
-| `Escape` | Collapse any expanded card |
+| `Escape`          | Collapse any expanded card              |
 
 ### Screen Reader Support
 
@@ -714,38 +736,26 @@ function FactorRow({
 
 ### Breakpoints
 
-| Breakpoint | Width | Layout Changes |
-|------------|-------|----------------|
-| `xs` | 320px - 479px | Single column, stacked layout, compact cards |
-| `sm` | 480px - 639px | Single column, slightly larger touch targets |
-| `md` | 640px - 767px | Optional sidebar visible, comfortable spacing |
-| `lg` | 768px - 1023px | Full sidebar, expanded card details inline |
-| `xl` | 1024px+ | Maximum content width, optimal reading width |
+| Breakpoint | Width          | Layout Changes                                |
+| ---------- | -------------- | --------------------------------------------- |
+| `xs`       | 320px - 479px  | Single column, stacked layout, compact cards  |
+| `sm`       | 480px - 639px  | Single column, slightly larger touch targets  |
+| `md`       | 640px - 767px  | Optional sidebar visible, comfortable spacing |
+| `lg`       | 768px - 1023px | Full sidebar, expanded card details inline    |
+| `xl`       | 1024px+        | Maximum content width, optimal reading width  |
 
 ### Mobile-Specific Behavior (< 640px)
 
 ```tsx
 // Responsive styles
 const responsiveClasses = {
-  container: cn(
-    'signal-stream',
-    'px-2 sm:px-4 lg:px-6',
-    'py-2 sm:py-4'
-  ),
-  card: cn(
-    'p-3 sm:p-4',
-    'text-sm sm:text-base'
-  ),
-  header: cn(
-    'flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'
-  ),
-  signalInfo: cn(
-    'flex-wrap gap-2 sm:gap-4',
-    'text-base sm:text-lg'
-  ),
+  container: cn("signal-stream", "px-2 sm:px-4 lg:px-6", "py-2 sm:py-4"),
+  card: cn("p-3 sm:p-4", "text-sm sm:text-base"),
+  header: cn("flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"),
+  signalInfo: cn("flex-wrap gap-2 sm:gap-4", "text-base sm:text-lg"),
   scoreBreakdown: cn(
     // Stack labels and values on mobile
-    'flex-col gap-1 sm:flex-row sm:items-center sm:gap-4'
+    "flex-col gap-1 sm:flex-row sm:items-center sm:gap-4",
   ),
 };
 ```
@@ -794,14 +804,14 @@ The `SignalStreamErrorBoundary` component catches and handles errors in the sign
 ```tsx
 // In useAgentStream hook
 const handleStreamError = (error: Error) => {
-  if (error.name === 'AbortError') {
+  if (error.name === "AbortError") {
     // User navigated away, ignore
     return;
   }
 
-  if (error.message.includes('network')) {
+  if (error.message.includes("network")) {
     // Show reconnection UI
-    setConnectionState('reconnecting');
+    setConnectionState("reconnecting");
     scheduleReconnect();
   } else {
     // Propagate to error boundary
@@ -840,15 +850,15 @@ const handleStreamError = (error: Error) => {
 
 ```tsx
 // stories/SignalCard.stories.tsx
-import type { Meta, StoryObj } from '@storybook/react';
-import { SignalCard } from '../src/components/SignalStream/SignalCard';
-import { mockSignal, mockEvents } from './mocks';
+import type { Meta, StoryObj } from "@storybook/react";
+import { SignalCard } from "../src/components/SignalStream/SignalCard";
+import { mockSignal, mockEvents } from "./mocks";
 
 const meta: Meta<typeof SignalCard> = {
-  title: 'Components/SignalCard',
+  title: "Components/SignalCard",
   component: SignalCard,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
 };
 
@@ -857,7 +867,7 @@ type Story = StoryObj<typeof SignalCard>;
 
 export const BuySignal: Story = {
   args: {
-    signal: mockSignal('BUY', 87),
+    signal: mockSignal("BUY", 87),
     isExpanded: false,
     onToggleExpand: () => {},
   },
@@ -865,7 +875,7 @@ export const BuySignal: Story = {
 
 export const SellSignal: Story = {
   args: {
-    signal: mockSignal('SELL', 74),
+    signal: mockSignal("SELL", 74),
     isExpanded: false,
     onToggleExpand: () => {},
   },
@@ -873,7 +883,7 @@ export const SellSignal: Story = {
 
 export const HoldSignal: Story = {
   args: {
-    signal: mockSignal('HOLD', 52),
+    signal: mockSignal("HOLD", 52),
     isExpanded: false,
     onToggleExpand: () => {},
   },
@@ -881,7 +891,7 @@ export const HoldSignal: Story = {
 
 export const Expanded: Story = {
   args: {
-    signal: mockSignal('BUY', 87),
+    signal: mockSignal("BUY", 87),
     isExpanded: true,
     onToggleExpand: () => {},
     events: mockEvents,
@@ -890,7 +900,7 @@ export const Expanded: Story = {
 
 export const HotOpportunity: Story = {
   args: {
-    signal: mockSignal('BUY', 92),
+    signal: mockSignal("BUY", 92),
     isExpanded: false,
     onToggleExpand: () => {},
   },
@@ -898,7 +908,7 @@ export const HotOpportunity: Story = {
 
 export const Focused: Story = {
   args: {
-    signal: mockSignal('BUY', 87),
+    signal: mockSignal("BUY", 87),
     isExpanded: false,
     isFocused: true,
     onToggleExpand: () => {},
@@ -907,12 +917,12 @@ export const Focused: Story = {
 
 export const MobileView: Story = {
   args: {
-    signal: mockSignal('BUY', 87),
+    signal: mockSignal("BUY", 87),
     isExpanded: false,
     onToggleExpand: () => {},
   },
   parameters: {
-    viewport: { defaultViewport: 'mobile1' },
+    viewport: { defaultViewport: "mobile1" },
   },
 };
 ```

@@ -181,17 +181,21 @@ You are a trading signal analyst for TradeStream. Your job is to analyze trading
 using available tools and generate BUY/SELL/HOLD signals.
 
 ## Available Tools
+
 - strategy-mcp: Get top strategies and their signals
 - market-data-mcp: Get price and volatility data
 
 ## Workflow
+
 1. Fetch top 5 strategies for the symbol
 2. Get current signal from each strategy
 3. Gather market context (price, volatility)
 4. Synthesize findings into a trading signal
 
 ## Output Format
+
 Return a JSON signal with:
+
 - symbol, action, confidence
 - strategy breakdown with individual signals
 - reasoning explaining your decision
@@ -244,15 +248,17 @@ You are an opportunity scoring agent. You receive raw trading signals and enrich
 with opportunity scores based on multiple factors.
 
 ## Scoring Formula
+
 opportunity_score = (
-    0.25 * confidence +
-    0.30 * normalize(expected_return) +
-    0.20 * consensus_pct +
-    0.15 * normalize(volatility) +
-    0.10 * freshness
-) * 100
+0.25 _ confidence +
+0.30 _ normalize(expected_return) +
+0.20 _ consensus_pct +
+0.15 _ normalize(volatility) +
+0.10 _ freshness
+) _ 100
 
 ## Workflow
+
 1. Receive raw signal from Signal Generator
 2. Get historical performance for triggering strategies
 3. Get current volatility
@@ -305,13 +311,16 @@ You are a portfolio advisor agent. You receive high-opportunity signals and vali
 them against portfolio constraints and risk limits.
 
 ## Validation Checks
+
 1. Current exposure to this symbol
 2. Total portfolio risk
 3. Position size limits
 4. Correlation with existing positions
 
 ## Output
+
 Add validation status to signal:
+
 - valid: boolean
 - max_position_size: number
 - risk_warnings: string[]
@@ -358,6 +367,7 @@ You are a report generator agent. You create human-readable summaries of trading
 signals for the dashboard.
 
 ## Output Format
+
 - Clear, concise reasoning (2-3 sentences)
 - Highlight key factors driving the decision
 - Include any warnings or caveats
@@ -400,12 +410,14 @@ You are a learning agent for TradeStream. You analyze top-performing strategies 
 generate new strategy specs that build on successful patterns.
 
 ## Workflow
+
 1. Fetch top 10 performing specs
 2. Analyze common patterns
 3. Generate 1-5 new specs that combine successful elements
 4. Submit specs for GA optimization
 
 ## Constraints
+
 - New specs must be unique (not duplicates)
 - Must follow valid spec schema
 - Include reasoning for why spec should work
@@ -446,7 +458,9 @@ You are a janitor agent for TradeStream. You evaluate strategies for retirement 
 on sustained poor performance.
 
 ## Retirement Criteria
+
 All must be true:
+
 - forward_trades >= 100
 - age_days >= 180
 - forward_sharpe < 0.5
@@ -455,6 +469,7 @@ All must be true:
 - better alternatives exist
 
 ## Constraints
+
 - NEVER retire CANONICAL specs (original 70)
 - Log reasoning for each retirement
 - Generate summary report
@@ -721,17 +736,17 @@ class StrategyDbLock:
 
 ### Schedule Separation
 
-| Agent    | Schedule          | Typical Duration | Notes                          |
-|----------|-------------------|------------------|--------------------------------|
-| Learning | `0 */6 * * *`     | 5-10 minutes     | Every 6 hours (00:00, 06:00, 12:00, 18:00) |
-| Janitor  | `0 3 * * *`       | 10-30 minutes    | Daily at 03:00 UTC (off-peak)  |
+| Agent    | Schedule      | Typical Duration | Notes                                      |
+| -------- | ------------- | ---------------- | ------------------------------------------ |
+| Learning | `0 */6 * * *` | 5-10 minutes     | Every 6 hours (00:00, 06:00, 12:00, 18:00) |
+| Janitor  | `0 3 * * *`   | 10-30 minutes    | Daily at 03:00 UTC (off-peak)              |
 
 ### Operation Isolation
 
-| Agent    | Read Operations           | Write Operations                  |
-|----------|---------------------------|-----------------------------------|
-| Learning | Top performers, patterns  | `INSERT` new specs (DRAFT status) |
-| Janitor  | Underperformers, metrics  | `UPDATE` status to RETIRED        |
+| Agent    | Read Operations          | Write Operations                  |
+| -------- | ------------------------ | --------------------------------- |
+| Learning | Top performers, patterns | `INSERT` new specs (DRAFT status) |
+| Janitor  | Underperformers, metrics | `UPDATE` status to RETIRED        |
 
 ---
 
@@ -823,6 +838,7 @@ services:
 ### Kubernetes (Production)
 
 Each agent is a separate Deployment with:
+
 - Resource limits (CPU, memory)
 - HPA for scaling
 - ConfigMap for agent config
@@ -831,7 +847,7 @@ Each agent is a separate Deployment with:
 ### Resource Limits per Agent
 
 | Agent              | CPU Request | CPU Limit | Memory Request | Memory Limit | Max Queue Size |
-|--------------------|-------------|-----------|----------------|--------------|----------------|
+| ------------------ | ----------- | --------- | -------------- | ------------ | -------------- |
 | signal-generator   | 100m        | 500m      | 128Mi          | 512Mi        | 1000           |
 | opportunity-scorer | 100m        | 500m      | 128Mi          | 512Mi        | 500            |
 | portfolio-advisor  | 200m        | 1000m     | 256Mi          | 1Gi          | 200            |

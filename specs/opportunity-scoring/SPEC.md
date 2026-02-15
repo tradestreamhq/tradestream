@@ -10,13 +10,13 @@ Each signal receives an **opportunity score** (0-100) computed from multiple fac
 
 ### Scoring Factors
 
-| Factor | Weight | Range | Description |
-|--------|--------|-------|-------------|
-| **Confidence** | 25% | 0-1 | Agent's confidence in the signal |
-| **Expected Return** | 30% | 0-5% | Risk-adjusted return of triggering strategies |
-| **Strategy Consensus** | 20% | 0-100% | % of top strategies agreeing |
-| **Volatility Factor** | 15% | 0-3% | Higher volatility = bigger opportunity (regime-adjusted) |
-| **Freshness** | 10% | 0-60 min | More recent signals slightly preferred |
+| Factor                 | Weight | Range    | Description                                              |
+| ---------------------- | ------ | -------- | -------------------------------------------------------- |
+| **Confidence**         | 25%    | 0-1      | Agent's confidence in the signal                         |
+| **Expected Return**    | 30%    | 0-5%     | Risk-adjusted return of triggering strategies            |
+| **Strategy Consensus** | 20%    | 0-100%   | % of top strategies agreeing                             |
+| **Volatility Factor**  | 15%    | 0-3%     | Higher volatility = bigger opportunity (regime-adjusted) |
+| **Freshness**          | 10%    | 0-60 min | More recent signals slightly preferred                   |
 
 ### Opportunity Score Formula
 
@@ -98,11 +98,11 @@ def apply_sharpe_adjustment(expected_return: float, return_stddev: float) -> flo
 
 **Example Impact:**
 
-| Strategy | Avg Return | Stddev | Raw Score | Adjusted Score |
-|----------|-----------|--------|-----------|----------------|
-| Strategy A | 3.0% | 1.0% | 60% | 75% |
-| Strategy B | 3.0% | 3.0% | 60% | 60% |
-| Strategy C | 3.0% | 6.0% | 60% | 52.5% |
+| Strategy   | Avg Return | Stddev | Raw Score | Adjusted Score |
+| ---------- | ---------- | ------ | --------- | -------------- |
+| Strategy A | 3.0%       | 1.0%   | 60%       | 75%            |
+| Strategy B | 3.0%       | 3.0%   | 60%       | 60%            |
+| Strategy C | 3.0%       | 6.0%   | 60%       | 52.5%          |
 
 ### Market Regime Detection and Handling
 
@@ -222,12 +222,12 @@ Signal age:        12m ago            (display only)
 
 ### Score Tiers
 
-| Tier | Score Range | Visual Indicator | Description |
-|------|-------------|------------------|-------------|
-| Hot | 80-100 | :fire: | Exceptional opportunity |
-| Good | 60-79 | :star: | Above-average opportunity |
-| Neutral | 40-59 | :white_circle: | Standard signal |
-| Low | 0-39 | :small_blue_diamond: | Below-average opportunity |
+| Tier    | Score Range | Visual Indicator     | Description               |
+| ------- | ----------- | -------------------- | ------------------------- |
+| Hot     | 80-100      | :fire:               | Exceptional opportunity   |
+| Good    | 60-79       | :star:               | Above-average opportunity |
+| Neutral | 40-59       | :white_circle:       | Standard signal           |
+| Low     | 0-39        | :small_blue_diamond: | Below-average opportunity |
 
 ### Score Breakdown Display
 
@@ -247,16 +247,16 @@ Freshness:         0m   ██████████ +10.0 pts  (cached)
 
 ### Inputs per Signal
 
-| Field | Source | Description |
-|-------|--------|-------------|
-| `confidence` | Signal Generator Agent | Agent's confidence in the signal |
-| `expected_return` | Backtest MCP | Avg return of triggering strategies |
-| `return_stddev` | Backtest MCP | Stddev of returns for Sharpe adjustment |
-| `strategies_bullish` | Signal Generator | Count of bullish strategies |
-| `strategies_analyzed` | Signal Generator | Total strategies checked |
-| `volatility` | Market Data MCP | Recent hourly volatility |
-| `volatility_percentile` | Market Data MCP | 30-day volatility percentile |
-| `timestamp` | Signal Generator | When signal was generated |
+| Field                   | Source                 | Description                             |
+| ----------------------- | ---------------------- | --------------------------------------- |
+| `confidence`            | Signal Generator Agent | Agent's confidence in the signal        |
+| `expected_return`       | Backtest MCP           | Avg return of triggering strategies     |
+| `return_stddev`         | Backtest MCP           | Stddev of returns for Sharpe adjustment |
+| `strategies_bullish`    | Signal Generator       | Count of bullish strategies             |
+| `strategies_analyzed`   | Signal Generator       | Total strategies checked                |
+| `volatility`            | Market Data MCP        | Recent hourly volatility                |
+| `volatility_percentile` | Market Data MCP        | 30-day volatility percentile            |
+| `timestamp`             | Signal Generator       | When signal was generated               |
 
 ### Expected Return Calculation
 
@@ -351,6 +351,7 @@ def get_historical_volatility_percentile(symbol: str, lookback_days: int = 30) -
 ### Opportunity Scorer Agent
 
 The Opportunity Scorer is a dedicated OpenCode agent that:
+
 1. Subscribes to `channel:raw-signals` (from Signal Generator)
 2. Enriches each signal with opportunity score
 3. Publishes scored signals to `channel:scored-signals`
@@ -400,7 +401,7 @@ The Opportunity Scorer is a dedicated OpenCode agent that:
       "risk_adjusted": 0.028,
       "contribution": 30.0
     },
-    "consensus": { "value": 0.80, "contribution": 16.0 },
+    "consensus": { "value": 0.8, "contribution": 16.0 },
     "volatility": {
       "value": 0.021,
       "percentile": 0.65,
@@ -424,10 +425,8 @@ Signals are sorted by opportunity score (highest first) by default.
 
 ```tsx
 const sortedSignals = useMemo(
-  () => [...signals].sort((a, b) =>
-    b.opportunity_score - a.opportunity_score
-  ),
-  [signals]
+  () => [...signals].sort((a, b) => b.opportunity_score - a.opportunity_score),
+  [signals],
 );
 ```
 
@@ -465,7 +464,7 @@ function MarketRegimeIndicator({ regime }: { regime: string }) {
     options={[
       { value: 0, label: "All signals" },
       { value: 60, label: "Good+ (60+)" },
-      { value: 80, label: "Hot only (80+)" }
+      { value: 80, label: "Hot only (80+)" },
     ]}
     onChange={setMinScore}
   />
@@ -533,13 +532,13 @@ opportunity_scoring:
     freshness: 0.10
   normalization:
     # Normal regime caps
-    max_return: 0.05        # 5% = full points
-    max_volatility: 0.03    # 3% hourly = full points
+    max_return: 0.05 # 5% = full points
+    max_volatility: 0.03 # 3% hourly = full points
     freshness_window_min: 60 # Decay over 60 minutes
   regime_detection:
-    extreme_percentile: 0.95    # 95th percentile = extreme
-    high_vol_percentile: 0.80   # 80th percentile = high volatility
-    lookback_days: 30           # Days for percentile calculation
+    extreme_percentile: 0.95 # 95th percentile = extreme
+    high_vol_percentile: 0.80 # 80th percentile = high volatility
+    lookback_days: 30 # Days for percentile calculation
   regime_caps:
     high_volatility:
       max_return: 0.08
@@ -549,17 +548,17 @@ opportunity_scoring:
       max_volatility: 0.10
   sharpe_adjustment:
     enabled: true
-    max_factor: 2.0           # Cap Sharpe factor at 2.0
+    max_factor: 2.0 # Cap Sharpe factor at 2.0
   score_caching:
-    enabled: true             # Cache scores at creation
-    show_age_in_ui: true      # Display actual signal age
+    enabled: true # Cache scores at creation
+    show_age_in_ui: true # Display actual signal age
   tiers:
     hot: 80
     good: 60
     neutral: 40
   defaults:
     expected_return: 0.01
-    return_stddev: 0.0        # Disables Sharpe adjustment if missing
+    return_stddev: 0.0 # Disables Sharpe adjustment if missing
     volatility: 0.015
     market_regime: "normal"
 ```

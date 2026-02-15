@@ -43,62 +43,83 @@ The gateway-api is the single entry point for all frontend requests. It handles 
 
 ### Endpoint Groups
 
-| Prefix | Purpose | Auth |
-|--------|---------|------|
-| `/auth/*` | Authentication flows | None/Required |
-| `/api/signals/*` | Signal streaming and history | Optional (demo allowed) |
-| `/api/user/*` | User settings and preferences | Required |
-| `/api/providers/*` | Provider profiles and stats | Optional |
-| `/api/social/*` | Follows, reactions, comments | Required |
-| `/api/leaderboards/*` | Rankings and leaderboards | Optional |
-| `/api/achievements/*` | Streaks, badges, achievements | Required |
-| `/api/referrals/*` | Referral program | Required |
-| `/health` | Health check | None |
+| Prefix                | Purpose                       | Auth                    |
+| --------------------- | ----------------------------- | ----------------------- |
+| `/auth/*`             | Authentication flows          | None/Required           |
+| `/api/signals/*`      | Signal streaming and history  | Optional (demo allowed) |
+| `/api/user/*`         | User settings and preferences | Required                |
+| `/api/providers/*`    | Provider profiles and stats   | Optional                |
+| `/api/social/*`       | Follows, reactions, comments  | Required                |
+| `/api/leaderboards/*` | Rankings and leaderboards     | Optional                |
+| `/api/achievements/*` | Streaks, badges, achievements | Required                |
+| `/api/referrals/*`    | Referral program              | Required                |
+| `/health`             | Health check                  | None                    |
 
 ## Multi-Asset Signal System
 
 ### Supported Asset Types
 
-| Asset Type | Asset Category | Symbol Format | Example |
-|------------|---------------|---------------|---------|
-| `crypto` | `crypto` | `{SYMBOL}` | `BTC`, `ETH`, `SOL` |
-| `stock` | `equities` | `{TICKER}` | `AAPL`, `NVDA`, `TSLA` |
-| `option` | `equities` | `{UNDERLYING} {STRIKE}{C/P} {EXPIRY}` | `AAPL 195C 3/15` |
-| `etf` | `equities` | `{TICKER}` | `QQQ`, `SPY`, `ARKK` |
-| `forex` | `forex` | `{BASE}/{QUOTE}` | `EUR/USD`, `GBP/USD` |
-| `prediction` | `prediction` | Platform-specific | `Fed Rate Cut March` |
+| Asset Type   | Asset Category | Symbol Format                         | Example                |
+| ------------ | -------------- | ------------------------------------- | ---------------------- |
+| `crypto`     | `crypto`       | `{SYMBOL}`                            | `BTC`, `ETH`, `SOL`    |
+| `stock`      | `equities`     | `{TICKER}`                            | `AAPL`, `NVDA`, `TSLA` |
+| `option`     | `equities`     | `{UNDERLYING} {STRIKE}{C/P} {EXPIRY}` | `AAPL 195C 3/15`       |
+| `etf`        | `equities`     | `{TICKER}`                            | `QQQ`, `SPY`, `ARKK`   |
+| `forex`      | `forex`        | `{BASE}/{QUOTE}`                      | `EUR/USD`, `GBP/USD`   |
+| `prediction` | `prediction`   | Platform-specific                     | `Fed Rate Cut March`   |
 
 ### Asset Categories (for filtering/display)
 
 Categories consolidate asset types for simpler filtering:
 
-| Category | Asset Types | Color |
-|----------|-------------|-------|
-| `crypto` | crypto | Orange |
-| `equities` | stock, option, etf | Purple |
-| `forex` | forex | Blue |
-| `prediction` | prediction | Pink |
+| Category     | Asset Types        | Color  |
+| ------------ | ------------------ | ------ |
+| `crypto`     | crypto             | Orange |
+| `equities`   | stock, option, etf | Purple |
+| `forex`      | forex              | Blue   |
+| `prediction` | prediction         | Pink   |
 
 ### GET /api/assets
 
 List supported asset classes and their metadata.
 
 **Response:**
+
 ```json
 {
   "asset_types": [
-    {"type": "crypto", "category": "crypto", "label": "Crypto", "enabled": true},
-    {"type": "stock", "category": "equities", "label": "Stocks", "enabled": true},
-    {"type": "option", "category": "equities", "label": "Options", "enabled": true},
-    {"type": "etf", "category": "equities", "label": "ETFs", "enabled": true},
-    {"type": "forex", "category": "forex", "label": "Forex", "enabled": true},
-    {"type": "prediction", "category": "prediction", "label": "Predictions", "enabled": true}
+    {
+      "type": "crypto",
+      "category": "crypto",
+      "label": "Crypto",
+      "enabled": true
+    },
+    {
+      "type": "stock",
+      "category": "equities",
+      "label": "Stocks",
+      "enabled": true
+    },
+    {
+      "type": "option",
+      "category": "equities",
+      "label": "Options",
+      "enabled": true
+    },
+    { "type": "etf", "category": "equities", "label": "ETFs", "enabled": true },
+    { "type": "forex", "category": "forex", "label": "Forex", "enabled": true },
+    {
+      "type": "prediction",
+      "category": "prediction",
+      "label": "Predictions",
+      "enabled": true
+    }
   ],
   "categories": [
-    {"id": "crypto", "label": "Crypto", "color": "#f97316"},
-    {"id": "equities", "label": "Equities", "color": "#a855f7"},
-    {"id": "forex", "label": "Forex", "color": "#3b82f6"},
-    {"id": "prediction", "label": "Predictions", "color": "#ec4899"}
+    { "id": "crypto", "label": "Crypto", "color": "#f97316" },
+    { "id": "equities", "label": "Equities", "color": "#a855f7" },
+    { "id": "forex", "label": "Forex", "color": "#3b82f6" },
+    { "id": "prediction", "label": "Predictions", "color": "#ec4899" }
   ]
 }
 ```
@@ -110,18 +131,21 @@ List supported asset classes and their metadata.
 Real-time signal stream via Server-Sent Events.
 
 **Headers:**
+
 ```
 Accept: text/event-stream
 Authorization: Bearer <token>  (optional)
 ```
 
 **Query Parameters (Server-side filtering):**
+
 - `categories` (string, optional) - Comma-separated: `crypto,equities,forex,prediction`
 - `asset_types` (string, optional) - Comma-separated: `crypto,stock,option,etf,forex,prediction`
 - `min_score` (int, optional) - Minimum score 0-100
 - `provider_ids` (string, optional) - Comma-separated provider UUIDs
 
 **Response Stream:**
+
 ```
 event: session_start
 id: sess-123:1
@@ -196,6 +220,7 @@ async def signal_stream(
 Paginated signal history.
 
 **Query Parameters:**
+
 - `limit` (int, default=50, max=100) - Number of signals
 - `offset` (int, default=0) - Pagination offset
 - `symbol` (string, optional) - Filter by symbol
@@ -206,6 +231,7 @@ Paginated signal history.
 - `asset_types` (string, optional) - Comma-separated asset types
 
 **Response:**
+
 ```json
 {
   "signals": [
@@ -314,6 +340,7 @@ Paginated signal history.
 Get detailed signal with full reasoning.
 
 **Response:**
+
 ```json
 {
   "signal_id": "abc123",
@@ -357,10 +384,11 @@ Get detailed signal with full reasoning.
 Get current user settings.
 
 **Response:**
+
 ```json
 {
   "risk_tolerance": "moderate",
-  "min_opportunity_score": 0.60,
+  "min_opportunity_score": 0.6,
   "default_action_filter": ["BUY", "SELL", "HOLD"],
   "theme": "dark",
   "timezone": "America/New_York",
@@ -374,10 +402,11 @@ Get current user settings.
 Update user settings.
 
 **Request:**
+
 ```json
 {
   "risk_tolerance": "aggressive",
-  "min_opportunity_score": 0.70,
+  "min_opportunity_score": 0.7,
   "theme": "dark"
 }
 ```
@@ -387,6 +416,7 @@ Update user settings.
 Get user's watchlist.
 
 **Response:**
+
 ```json
 {
   "watchlist": [
@@ -395,7 +425,7 @@ Get user's watchlist.
       "notes": "Long-term hold",
       "alert_enabled": true,
       "position_size": 0.5,
-      "entry_price": 42000.00,
+      "entry_price": 42000.0,
       "added_at": "2025-01-15T10:00:00Z"
     },
     {
@@ -415,6 +445,7 @@ Get user's watchlist.
 Add symbol to watchlist.
 
 **Request:**
+
 ```json
 {
   "symbol": "SOL/USD",
@@ -436,12 +467,13 @@ Get saved filter views.
 Create new saved view.
 
 **Request:**
+
 ```json
 {
   "name": "High Confidence BUY",
   "filters": {
     "actions": ["BUY"],
-    "minOpportunityScore": 0.80
+    "minOpportunityScore": 0.8
   }
 }
 ```
@@ -453,12 +485,14 @@ Create new saved view.
 List providers with stats.
 
 **Query Parameters:**
+
 - `limit` (int, default=20)
 - `offset` (int)
 - `sort` (string) - `followers`, `win_rate`, `return`, `streak`
 - `verified_only` (bool, default=false)
 
 **Response:**
+
 ```json
 {
   "providers": [
@@ -491,6 +525,7 @@ List providers with stats.
 Get provider profile with recent signals.
 
 **Response:**
+
 ```json
 {
   "user_id": "...",
@@ -535,6 +570,7 @@ Get provider's signal history.
 Apply to become a provider.
 
 **Request:**
+
 ```json
 {
   "display_name": "MyTradingName",
@@ -551,6 +587,7 @@ Apply to become a provider.
 Follow a provider.
 
 **Request:**
+
 ```json
 {
   "notify_on_signal": true
@@ -558,6 +595,7 @@ Follow a provider.
 ```
 
 **Response:**
+
 ```json
 {
   "following": true,
@@ -576,6 +614,7 @@ Unfollow a provider.
 Get list of followed providers.
 
 **Response:**
+
 ```json
 {
   "following": [
@@ -600,6 +639,7 @@ Get list of followed providers.
 Get social feed from followed providers.
 
 **Response:**
+
 ```json
 {
   "signals": [
@@ -626,6 +666,7 @@ Get social feed from followed providers.
 Add reaction to signal.
 
 **Request:**
+
 ```json
 {
   "reaction_type": "fire"
@@ -645,6 +686,7 @@ Get comments for signal.
 Add comment to signal.
 
 **Request:**
+
 ```json
 {
   "content": "Great call! I'm in.",
@@ -659,6 +701,7 @@ Add comment to signal.
 Get leaderboard by type.
 
 **Types:**
+
 - `followers` - Most followed providers
 - `win_rate` - Highest win rate (min 10 signals)
 - `return` - Highest average return
@@ -666,10 +709,12 @@ Get leaderboard by type.
 - `rising` - Fastest growing (follower rate)
 
 **Query Parameters:**
+
 - `limit` (int, default=50, max=100)
 - `period` (string, optional) - `all`, `month`, `week`
 
 **Response:**
+
 ```json
 {
   "leaderboard": "followers",
@@ -699,6 +744,7 @@ Get leaderboard by type.
 Get all achievement definitions.
 
 **Response:**
+
 ```json
 {
   "achievements": [
@@ -720,6 +766,7 @@ Get all achievement definitions.
 Get user's unlocked achievements and progress.
 
 **Response:**
+
 ```json
 {
   "unlocked": [
@@ -749,6 +796,7 @@ Get user's unlocked achievements and progress.
 Get user's current streaks.
 
 **Response:**
+
 ```json
 {
   "streaks": [
@@ -775,6 +823,7 @@ Get user's current streaks.
 Get user's referral dashboard.
 
 **Response:**
+
 ```json
 {
   "referral_code": "KING42",
@@ -782,27 +831,27 @@ Get user's referral dashboard.
   "tier": {
     "id": "silver",
     "name": "Silver",
-    "referrer_reward": 50.00,
-    "referee_reward": 25.00
+    "referrer_reward": 50.0,
+    "referee_reward": 25.0
   },
   "stats": {
     "total_referrals": 7,
     "qualified_referrals": 5,
     "pending_referrals": 2,
-    "total_earned": 250.00,
-    "pending_earnings": 100.00
+    "total_earned": 250.0,
+    "pending_earnings": 100.0
   },
   "next_tier": {
     "id": "gold",
     "name": "Gold",
     "referrals_needed": 3,
-    "referrer_reward": 75.00
+    "referrer_reward": 75.0
   },
   "referrals": [
     {
       "referee_name": "Trader***",
       "status": "qualified",
-      "reward_amount": 50.00,
+      "reward_amount": 50.0,
       "created_at": "2025-01-20T10:00:00Z",
       "qualified_at": "2025-01-21T14:30:00Z"
     }
@@ -815,6 +864,7 @@ Get user's referral dashboard.
 Set custom referral code (premium feature).
 
 **Request:**
+
 ```json
 {
   "code": "CRYPTOKING"
@@ -1208,6 +1258,7 @@ def add_error_handlers(app: FastAPI):
 ### Demo Mode Access
 
 Demo users (with `is_demo: true` JWT) can access:
+
 - `/api/signals/stream` - Full signal stream
 - `/api/signals` - Signal history
 - `/api/providers` - Provider list
@@ -1215,6 +1266,7 @@ Demo users (with `is_demo: true` JWT) can access:
 - `/api/leaderboards/*` - All leaderboards
 
 Demo users cannot access:
+
 - `/api/user/*` - Settings, watchlist
 - `/api/social/*` - Follow, react, comment
 - `/api/achievements/*` - User achievements

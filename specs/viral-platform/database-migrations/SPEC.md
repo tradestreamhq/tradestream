@@ -10,15 +10,15 @@ All migrations follow Flyway naming conventions and are executed automatically d
 
 ## Migration Overview
 
-| Version | File | Purpose |
-|---------|------|---------|
-| V6 | `V6__add_users.sql` | Users, auth tokens, OAuth |
-| V7 | `V7__add_user_settings.sql` | Settings, watchlists, saved views |
-| V8 | `V8__add_notifications.sql` | Notification channels, preferences |
-| V9 | `V9__add_providers.sql` | Providers, follows, reactions |
-| V10 | `V10__add_achievements.sql` | Streaks, badges, achievements |
-| V11 | `V11__add_referrals.sql` | Referral tracking, rewards |
-| V12 | `V12__add_prediction_markets.sql` | Prediction market support (Q2) |
+| Version | File                              | Purpose                            |
+| ------- | --------------------------------- | ---------------------------------- |
+| V6      | `V6__add_users.sql`               | Users, auth tokens, OAuth          |
+| V7      | `V7__add_user_settings.sql`       | Settings, watchlists, saved views  |
+| V8      | `V8__add_notifications.sql`       | Notification channels, preferences |
+| V9      | `V9__add_providers.sql`           | Providers, follows, reactions      |
+| V10     | `V10__add_achievements.sql`       | Streaks, badges, achievements      |
+| V11     | `V11__add_referrals.sql`          | Referral tracking, rewards         |
+| V12     | `V12__add_prediction_markets.sql` | Prediction market support (Q2)     |
 
 ## V6: Users & Authentication
 

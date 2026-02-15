@@ -83,14 +83,15 @@ CREATE INDEX idx_agent_decisions_strategy_breakdown_gin ON agent_decisions USING
 
 To prevent unbounded JSONB growth and ensure predictable query performance:
 
-| Field | Max Size | Enforcement |
-|-------|----------|-------------|
-| `tool_calls` | 100KB | Application-level validation |
-| `strategy_breakdown` | 50KB | Application-level validation |
-| `opportunity_factors` | 10KB | Application-level validation |
-| `market_context` | 10KB | Application-level validation |
+| Field                 | Max Size | Enforcement                  |
+| --------------------- | -------- | ---------------------------- |
+| `tool_calls`          | 100KB    | Application-level validation |
+| `strategy_breakdown`  | 50KB     | Application-level validation |
+| `opportunity_factors` | 10KB     | Application-level validation |
+| `market_context`      | 10KB     | Application-level validation |
 
 **Tool Calls Limits:**
+
 - Maximum 50 tool calls per decision
 - Each tool call result truncated to 5KB if larger
 - Large results should reference external storage (S3/GCS) via URL
@@ -133,8 +134,8 @@ def validate_tool_calls(tool_calls: dict) -> dict:
       },
       "result": {
         "strategies": [
-          {"id": "strat_abc", "name": "RSI_REVERSAL", "score": 0.89},
-          {"id": "strat_def", "name": "MACD_CROSS", "score": 0.85}
+          { "id": "strat_abc", "name": "RSI_REVERSAL", "score": 0.89 },
+          { "id": "strat_def", "name": "MACD_CROSS", "score": 0.85 }
         ]
       },
       "latency_ms": 45,
@@ -176,17 +177,17 @@ def validate_tool_calls(tool_calls: dict) -> dict:
     "value": 0.032,
     "normalized": 0.64,
     "contribution": 19.2,
-    "weight": 0.30
+    "weight": 0.3
   },
   "consensus": {
-    "value": 0.80,
-    "normalized": 0.80,
+    "value": 0.8,
+    "normalized": 0.8,
     "contribution": 16.0,
-    "weight": 0.20
+    "weight": 0.2
   },
   "volatility": {
     "value": 0.021,
-    "normalized": 0.70,
+    "normalized": 0.7,
     "contribution": 10.5,
     "weight": 0.15
   },
@@ -194,7 +195,7 @@ def validate_tool_calls(tool_calls: dict) -> dict:
     "value": 2,
     "normalized": 0.97,
     "contribution": 9.7,
-    "weight": 0.10
+    "weight": 0.1
   },
   "total_score": 75.9
 }
@@ -215,7 +216,7 @@ def validate_tool_calls(tool_calls: dict) -> dict:
       "signal": "BUY",
       "score": 0.89,
       "confidence": 0.85,
-      "parameters": {"rsiPeriod": 14, "oversold": 30}
+      "parameters": { "rsiPeriod": 14, "oversold": 30 }
     },
     {
       "strategy_id": "strat_def",
@@ -233,7 +234,7 @@ def validate_tool_calls(tool_calls: dict) -> dict:
 
 ```json
 {
-  "current_price": 2450.50,
+  "current_price": 2450.5,
   "price_change_1h": 0.023,
   "price_change_24h": 0.045,
   "volume_24h": 15000000000,
@@ -292,6 +293,7 @@ CREATE INDEX idx_decision_outcomes_recorded ON decision_outcomes(recorded_at DES
 ```
 
 **Benefits of Separate Table:**
+
 - Insert-only pattern avoids row locks on agent_decisions
 - Allows multiple outcome snapshots if needed
 - Cleaner separation of concerns (decision vs. outcome)
@@ -316,13 +318,13 @@ CREATE INDEX idx_feedback_decision ON decision_feedback(decision_id);
 
 ### Index Strategy Summary
 
-| Query Pattern | Index Used | Expected Performance |
-|---------------|------------|---------------------|
-| Dashboard (recent + high opportunity) | `idx_agent_decisions_dashboard` | < 10ms |
-| By symbol | `idx_agent_decisions_symbol` | < 5ms |
-| By time range | `idx_agent_decisions_created` | < 20ms |
-| Tool call analysis (JSONB) | `idx_agent_decisions_tool_calls_gin` | < 50ms |
-| Strategy containment queries | `idx_agent_decisions_strategy_breakdown_gin` | < 50ms |
+| Query Pattern                         | Index Used                                   | Expected Performance |
+| ------------------------------------- | -------------------------------------------- | -------------------- |
+| Dashboard (recent + high opportunity) | `idx_agent_decisions_dashboard`              | < 10ms               |
+| By symbol                             | `idx_agent_decisions_symbol`                 | < 5ms                |
+| By time range                         | `idx_agent_decisions_created`                | < 20ms               |
+| Tool call analysis (JSONB)            | `idx_agent_decisions_tool_calls_gin`         | < 50ms               |
+| Strategy containment queries          | `idx_agent_decisions_strategy_breakdown_gin` | < 50ms               |
 
 ### GIN Index Usage Examples
 
@@ -344,7 +346,7 @@ WHERE tool_calls->'calls' @> '[{"tool": "get_strategy_signal"}]';
 
 1. **Always include time bounds** - Partitioning and indexes work best with `created_at` filters
 2. **Use JSONB containment** - `@>` operator uses GIN index, `->>'key'` does not
-3. **Avoid SELECT *** - Fetch only needed columns, especially for large JSONB fields
+3. **Avoid SELECT \*** - Fetch only needed columns, especially for large JSONB fields
 4. **Paginate results** - Use `LIMIT` and cursor-based pagination for large result sets
 
 ## Queries
@@ -620,12 +622,12 @@ async def get_recent_decisions(
 
 ### Data Lifecycle
 
-| Age | Storage | Access Pattern |
-|-----|---------|----------------|
-| 0-30 days | Hot (primary DB) | Real-time queries, dashboards |
-| 30-90 days | Warm (primary DB) | Historical analysis, debugging |
-| 90-365 days | Cold (archive) | Compliance, audits |
-| >365 days | Deleted or long-term archive | Regulatory requirements only |
+| Age         | Storage                      | Access Pattern                 |
+| ----------- | ---------------------------- | ------------------------------ |
+| 0-30 days   | Hot (primary DB)             | Real-time queries, dashboards  |
+| 30-90 days  | Warm (primary DB)            | Historical analysis, debugging |
+| 90-365 days | Cold (archive)               | Compliance, audits             |
+| >365 days   | Deleted or long-term archive | Regulatory requirements only   |
 
 ### Partitioning Strategy
 

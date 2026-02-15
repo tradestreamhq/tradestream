@@ -7,6 +7,7 @@ Build a modern React frontend for the viral trading signal platform with landing
 ## Target Behavior
 
 The agent-dashboard is a single-page application that provides:
+
 - Public landing page with value proposition
 - Auth flows (email, OAuth, demo mode)
 - Real-time signal streaming dashboard
@@ -16,16 +17,16 @@ The agent-dashboard is a single-page application that provides:
 
 ## Technology Stack
 
-| Technology | Purpose |
-|------------|---------|
-| Vite 5.x | Build tool, dev server |
-| React 18 | UI framework |
-| TypeScript | Type safety |
-| Tailwind CSS | Styling |
-| shadcn/ui | Component library |
-| React Query | Server state |
-| React Router | Routing |
-| Zustand | Client state |
+| Technology   | Purpose                |
+| ------------ | ---------------------- |
+| Vite 5.x     | Build tool, dev server |
+| React 18     | UI framework           |
+| TypeScript   | Type safety            |
+| Tailwind CSS | Styling                |
+| shadcn/ui    | Component library      |
+| React Query  | Server state           |
+| React Router | Routing                |
+| Zustand      | Client state           |
 
 ## Project Structure
 
@@ -183,23 +184,23 @@ ui/agent-dashboard/
 
 ## Page Routes
 
-| Route | Component | Auth | Description |
-|-------|-----------|------|-------------|
-| `/` | Landing | No | Public landing page |
-| `/login` | Login | No | Login page |
-| `/register` | Register | No | Registration page |
-| `/verify-email` | VerifyEmail | No | Email verification |
-| `/forgot-password` | ForgotPassword | No | Password reset request |
-| `/reset-password` | ResetPassword | No | Password reset form |
-| `/auth/callback` | AuthCallback | No | OAuth callback |
-| `/dashboard` | Dashboard | Yes/Demo | Main signal stream |
-| `/dashboard/settings` | Settings | Yes | User settings |
-| `/dashboard/profile` | Profile | Yes | User profile |
-| `/dashboard/achievements` | Achievements | Yes | Achievement display |
-| `/dashboard/referrals` | Referrals | Yes | Referral dashboard |
-| `/providers` | Providers | No | Provider list |
-| `/providers/:id` | Provider | No | Provider profile |
-| `/leaderboards` | Leaderboards | No | Leaderboards |
+| Route                     | Component      | Auth     | Description            |
+| ------------------------- | -------------- | -------- | ---------------------- |
+| `/`                       | Landing        | No       | Public landing page    |
+| `/login`                  | Login          | No       | Login page             |
+| `/register`               | Register       | No       | Registration page      |
+| `/verify-email`           | VerifyEmail    | No       | Email verification     |
+| `/forgot-password`        | ForgotPassword | No       | Password reset request |
+| `/reset-password`         | ResetPassword  | No       | Password reset form    |
+| `/auth/callback`          | AuthCallback   | No       | OAuth callback         |
+| `/dashboard`              | Dashboard      | Yes/Demo | Main signal stream     |
+| `/dashboard/settings`     | Settings       | Yes      | User settings          |
+| `/dashboard/profile`      | Profile        | Yes      | User profile           |
+| `/dashboard/achievements` | Achievements   | Yes      | Achievement display    |
+| `/dashboard/referrals`    | Referrals      | Yes      | Referral dashboard     |
+| `/providers`              | Providers      | No       | Provider list          |
+| `/providers/:id`          | Provider       | No       | Provider profile       |
+| `/leaderboards`           | Leaderboards   | No       | Leaderboards           |
 
 ## Landing Page
 
@@ -208,9 +209,9 @@ ui/agent-dashboard/
 ```tsx
 // src/components/Landing/Hero.tsx
 
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Play } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Play } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function Hero() {
   return (
@@ -233,7 +234,7 @@ export function Hero() {
 
           {/* Headline */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 tracking-tight">
-            Trading Signals Backed by{' '}
+            Trading Signals Backed by{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
               Strategy Consensus
             </span>
@@ -296,24 +297,24 @@ export function Hero() {
 export function TrustIndicators() {
   const indicators = [
     {
-      value: '40,000,000+',
-      label: 'Strategies Discovered',
-      description: 'Genetic algorithms finding patterns humans miss',
+      value: "40,000,000+",
+      label: "Strategies Discovered",
+      description: "Genetic algorithms finding patterns humans miss",
     },
     {
-      value: '70+',
-      label: 'Strategy Types',
-      description: 'RSI, MACD, Bollinger, custom indicators',
+      value: "70+",
+      label: "Strategy Types",
+      description: "RSI, MACD, Bollinger, custom indicators",
     },
     {
-      value: '6 months',
-      label: 'Forward Testing',
-      description: 'Every strategy validated in live markets',
+      value: "6 months",
+      label: "Forward Testing",
+      description: "Every strategy validated in live markets",
     },
     {
-      value: '5-factor',
-      label: 'Opportunity Scoring',
-      description: 'Confidence, return, consensus, volatility, freshness',
+      value: "5-factor",
+      label: "Opportunity Scoring",
+      description: "Confidence, return, consensus, volatility, freshness",
     },
   ];
 
@@ -344,33 +345,33 @@ export function TrustIndicators() {
 ```tsx
 // src/components/Landing/HowItWorks.tsx
 
-import { Dna, TestTube, Users, TrendingUp } from 'lucide-react';
+import { Dna, TestTube, Users, TrendingUp } from "lucide-react";
 
 export function HowItWorks() {
   const steps = [
     {
       icon: Dna,
-      title: 'Genetic Discovery',
+      title: "Genetic Discovery",
       description:
-        'Our algorithms evolve 40M+ trading strategies using genetic optimization, finding patterns across 70+ indicator combinations.',
+        "Our algorithms evolve 40M+ trading strategies using genetic optimization, finding patterns across 70+ indicator combinations.",
     },
     {
       icon: TestTube,
-      title: 'Rigorous Validation',
+      title: "Rigorous Validation",
       description:
-        'Every strategy undergoes 6 months of forward testing. Walk-forward analysis ensures no overfitting to historical data.',
+        "Every strategy undergoes 6 months of forward testing. Walk-forward analysis ensures no overfitting to historical data.",
     },
     {
       icon: Users,
-      title: 'Strategy Consensus',
+      title: "Strategy Consensus",
       description:
-        'Signals are generated when top strategies agree. Not one AI opinion—validated consensus from the best performers.',
+        "Signals are generated when top strategies agree. Not one AI opinion—validated consensus from the best performers.",
     },
     {
       icon: TrendingUp,
-      title: 'Opportunity Scoring',
+      title: "Opportunity Scoring",
       description:
-        '5-factor scoring ranks opportunities by confidence, expected return, consensus strength, volatility, and freshness.',
+        "5-factor scoring ranks opportunities by confidence, expected return, consensus strength, volatility, and freshness.",
     },
   ];
 
@@ -458,9 +459,9 @@ export function Disclaimers() {
 ```tsx
 // src/hooks/useAuth.ts
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { authApi } from '@/api/auth';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { authApi } from "@/api/auth";
 
 interface User {
   user_id: string;
@@ -481,7 +482,11 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   loginWithOAuth: (provider: string) => void;
   loginAsDemo: () => Promise<void>;
-  register: (email: string, password: string, displayName: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    displayName: string,
+  ) => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
   setAccessToken: (token: string, user?: User) => void;
@@ -561,14 +566,14 @@ export const useAuth = create<AuthState>()(
       },
     }),
     {
-      name: 'auth-storage',
+      name: "auth-storage",
       partialize: (state) => ({
         accessToken: state.accessToken,
         user: state.user,
         isDemo: state.isDemo,
       }),
-    }
-  )
+    },
+  ),
 );
 ```
 
@@ -577,8 +582,8 @@ export const useAuth = create<AuthState>()(
 ```tsx
 // src/components/Auth/ProtectedRoute.tsx
 
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -611,8 +616,8 @@ export function ProtectedRoute({
 ```tsx
 // src/components/Auth/OAuthButtons.tsx
 
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 export function OAuthButtons() {
   const { loginWithOAuth, isLoading } = useAuth();
@@ -622,7 +627,7 @@ export function OAuthButtons() {
       <Button
         variant="outline"
         className="w-full"
-        onClick={() => loginWithOAuth('google')}
+        onClick={() => loginWithOAuth("google")}
         disabled={isLoading}
       >
         <GoogleIcon className="mr-2 h-4 w-4" />
@@ -632,7 +637,7 @@ export function OAuthButtons() {
       <Button
         variant="outline"
         className="w-full"
-        onClick={() => loginWithOAuth('github')}
+        onClick={() => loginWithOAuth("github")}
         disabled={isLoading}
       >
         <GithubIcon className="mr-2 h-4 w-4" />
@@ -681,12 +686,12 @@ function GithubIcon({ className }: { className?: string }) {
 ```tsx
 // src/components/Layout/AppLayout.tsx
 
-import { Outlet } from 'react-router-dom';
-import { Header } from './Header';
-import { Sidebar } from './Sidebar';
-import { MobileNav } from './MobileNav';
-import { StreakBanner } from '@/components/Gamification/StreakBanner';
-import { useAuth } from '@/hooks/useAuth';
+import { Outlet } from "react-router-dom";
+import { Header } from "./Header";
+import { Sidebar } from "./Sidebar";
+import { MobileNav } from "./MobileNav";
+import { StreakBanner } from "@/components/Gamification/StreakBanner";
+import { useAuth } from "@/hooks/useAuth";
 
 export function AppLayout() {
   const { isDemo, user } = useAuth();
@@ -706,10 +711,10 @@ export function AppLayout() {
           {/* Demo mode banner */}
           {isDemo && (
             <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-500 text-sm">
-              You're in demo mode.{' '}
+              You're in demo mode.{" "}
               <a href="/register" className="underline font-medium">
                 Sign up
-              </a>{' '}
+              </a>{" "}
               to save your settings and unlock all features.
             </div>
           )}
@@ -733,19 +738,19 @@ export function AppLayout() {
 ```tsx
 // src/components/Layout/Header.tsx
 
-import { Link } from 'react-router-dom';
-import { Bell, Settings, LogOut, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Link } from "react-router-dom";
+import { Bell, Settings, LogOut, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useAuth } from '@/hooks/useAuth';
-import { ConnectionStatus } from './ConnectionStatus';
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
+import { ConnectionStatus } from "./ConnectionStatus";
 
 export function Header() {
   const { user, isDemo, logout } = useAuth();
@@ -773,7 +778,10 @@ export function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user.avatar_url || undefined} />
                     <AvatarFallback>{user.display_name[0]}</AvatarFallback>
@@ -787,8 +795,12 @@ export function Header() {
                     <AvatarFallback>{user.display_name[0]}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">{user.display_name}</span>
-                    <span className="text-xs text-muted-foreground">{user.email}</span>
+                    <span className="text-sm font-medium">
+                      {user.display_name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {user.email}
+                    </span>
                   </div>
                 </div>
                 <DropdownMenuSeparator />
@@ -830,8 +842,8 @@ export function Header() {
 ```tsx
 // src/api/client.ts
 
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { useAuth } from '@/hooks/useAuth';
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { useAuth } from "@/hooks/useAuth";
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -862,12 +874,12 @@ api.interceptors.response.use(
       } catch {
         // Refresh failed, redirect to login
         useAuth.getState().logout();
-        window.location.href = '/login';
+        window.location.href = "/login";
       }
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 ```
 
@@ -878,21 +890,21 @@ api.interceptors.response.use(
 ```tsx
 // src/components/Onboarding/OnboardingFlow.tsx
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { WelcomeStep } from './WelcomeStep';
-import { RiskToleranceStep } from './RiskToleranceStep';
-import { SymbolsStep } from './SymbolsStep';
-import { NotificationsStep } from './NotificationsStep';
-import { userApi } from '@/api/user';
-import { Progress } from '@/components/ui/progress';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { WelcomeStep } from "./WelcomeStep";
+import { RiskToleranceStep } from "./RiskToleranceStep";
+import { SymbolsStep } from "./SymbolsStep";
+import { NotificationsStep } from "./NotificationsStep";
+import { userApi } from "@/api/user";
+import { Progress } from "@/components/ui/progress";
 
-const STEPS = ['welcome', 'risk', 'symbols', 'notifications'] as const;
+const STEPS = ["welcome", "risk", "symbols", "notifications"] as const;
 
 export function OnboardingFlow() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
-    riskTolerance: 'moderate',
+    riskTolerance: "moderate",
     symbols: [] as string[],
     enablePush: false,
   });
@@ -927,14 +939,14 @@ export function OnboardingFlow() {
       await userApi.addToWatchlist(symbol);
     }
 
-    navigate('/dashboard');
+    navigate("/dashboard");
   };
 
   const renderStep = () => {
     switch (STEPS[step]) {
-      case 'welcome':
+      case "welcome":
         return <WelcomeStep onNext={handleNext} onSkip={handleSkip} />;
-      case 'risk':
+      case "risk":
         return (
           <RiskToleranceStep
             value={data.riskTolerance}
@@ -943,7 +955,7 @@ export function OnboardingFlow() {
             onBack={handleBack}
           />
         );
-      case 'symbols':
+      case "symbols":
         return (
           <SymbolsStep
             selected={data.symbols}
@@ -952,7 +964,7 @@ export function OnboardingFlow() {
             onBack={handleBack}
           />
         );
-      case 'notifications':
+      case "notifications":
         return (
           <NotificationsStep
             enabled={data.enablePush}
@@ -990,35 +1002,35 @@ export function OnboardingFlow() {
 ### vite.config.ts
 
 ```ts
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import path from 'path';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   server: {
     port: 3000,
     proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
+      "/api": {
+        target: "http://localhost:8000",
         changeOrigin: true,
       },
     },
   },
   build: {
-    outDir: 'dist',
+    outDir: "dist",
     sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'query': ['@tanstack/react-query'],
-          'ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          query: ["@tanstack/react-query"],
+          ui: ["@radix-ui/react-dialog", "@radix-ui/react-dropdown-menu"],
         },
       },
     },
@@ -1031,70 +1043,70 @@ export default defineConfig({
 ```js
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ['class'],
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: ["class"],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     container: {
       center: true,
-      padding: '2rem',
+      padding: "2rem",
       screens: {
-        '2xl': '1400px',
+        "2xl": "1400px",
       },
     },
     extend: {
       colors: {
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
         },
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
         },
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
-        'accordion-down': {
+        "accordion-down": {
           from: { height: 0 },
-          to: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
-        'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
           to: { height: 0 },
         },
       },
       animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require("tailwindcss-animate")],
 };
 ```
 

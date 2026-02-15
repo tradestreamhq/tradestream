@@ -238,12 +238,12 @@ async def update_all_provider_stats(db: asyncpg.Pool):
 
 ### Verification Levels
 
-| Level | Badge | Requirements |
-|-------|-------|--------------|
-| None | - | New provider |
-| Basic | ✓ | 10+ signals, email verified |
-| Pro | ✅ | 50+ signals, 60%+ win rate, 30+ followers |
-| Elite | 👑 | 200+ signals, 65%+ win rate, 500+ followers |
+| Level | Badge | Requirements                                |
+| ----- | ----- | ------------------------------------------- |
+| None  | -     | New provider                                |
+| Basic | ✓     | 10+ signals, email verified                 |
+| Pro   | ✅    | 50+ signals, 60%+ win rate, 30+ followers   |
+| Elite | 👑    | 200+ signals, 65%+ win rate, 500+ followers |
 
 ## Follow System
 
@@ -252,10 +252,10 @@ async def update_all_provider_stats(db: asyncpg.Pool):
 ```tsx
 // ui/agent-dashboard/src/components/Social/FollowButton.tsx
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Bell, BellOff, UserPlus, UserMinus } from 'lucide-react';
-import { useFollow } from '@/hooks/useFollow';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Bell, BellOff, UserPlus, UserMinus } from "lucide-react";
+import { useFollow } from "@/hooks/useFollow";
 
 interface FollowButtonProps {
   providerId: string;
@@ -299,7 +299,7 @@ export function FollowButton({
   return (
     <div className="flex items-center gap-2">
       <Button
-        variant={isFollowing ? 'outline' : 'default'}
+        variant={isFollowing ? "outline" : "default"}
         size="sm"
         onClick={handleFollow}
         disabled={isLoading}
@@ -323,8 +323,8 @@ export function FollowButton({
           variant="ghost"
           size="icon"
           onClick={handleToggleNotify}
-          className={notifyOnSignal ? 'text-primary' : 'text-muted-foreground'}
-          title={notifyOnSignal ? 'Notifications on' : 'Notifications off'}
+          className={notifyOnSignal ? "text-primary" : "text-muted-foreground"}
+          title={notifyOnSignal ? "Notifications on" : "Notifications off"}
         >
           {notifyOnSignal ? (
             <Bell className="h-4 w-4" />
@@ -353,8 +353,8 @@ function formatCount(count: number): string {
 ```tsx
 // ui/agent-dashboard/src/hooks/useFollow.ts
 
-import { useState } from 'react';
-import { socialApi } from '@/api/social';
+import { useState } from "react";
+import { socialApi } from "@/api/social";
 
 export function useFollow() {
   const [isLoading, setIsLoading] = useState(false);
@@ -440,32 +440,27 @@ export function useFollow() {
 ```tsx
 // ui/agent-dashboard/src/components/Social/SocialFeed.tsx
 
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { useInView } from 'react-intersection-observer';
-import { useEffect } from 'react';
-import { FeedSignalCard } from './FeedSignalCard';
-import { socialApi } from '@/api/social';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInView } from "react-intersection-observer";
+import { useEffect } from "react";
+import { FeedSignalCard } from "./FeedSignalCard";
+import { socialApi } from "@/api/social";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function SocialFeed() {
   const { ref, inView } = useInView();
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-  } = useInfiniteQuery({
-    queryKey: ['social-feed'],
-    queryFn: ({ pageParam = 0 }) => socialApi.getFeed({ offset: pageParam }),
-    getNextPageParam: (lastPage) => {
-      if (lastPage.offset + lastPage.limit >= lastPage.total) {
-        return undefined;
-      }
-      return lastPage.offset + lastPage.limit;
-    },
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useInfiniteQuery({
+      queryKey: ["social-feed"],
+      queryFn: ({ pageParam = 0 }) => socialApi.getFeed({ offset: pageParam }),
+      getNextPageParam: (lastPage) => {
+        if (lastPage.offset + lastPage.limit >= lastPage.total) {
+          return undefined;
+        }
+        return lastPage.offset + lastPage.limit;
+      },
+    });
 
   useEffect(() => {
     if (inView && hasNextPage) {
@@ -517,23 +512,30 @@ export function SocialFeed() {
 
 ### Reaction Types
 
-| Reaction | Emoji | Meaning |
-|----------|-------|---------|
-| like | ❤️ | General approval |
-| fire | 🔥 | Hot take |
-| rocket | 🚀 | Bullish sentiment |
-| sad | 😢 | Missed opportunity |
+| Reaction | Emoji | Meaning            |
+| -------- | ----- | ------------------ |
+| like     | ❤️    | General approval   |
+| fire     | 🔥    | Hot take           |
+| rocket   | 🚀    | Bullish sentiment  |
+| sad      | 😢    | Missed opportunity |
 
 ### ReactionBar Component
 
 ```tsx
 // ui/agent-dashboard/src/components/Social/ReactionBar.tsx
 
-import { useState } from 'react';
-import { Heart, Flame, Rocket, Frown, MessageCircle, Share2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { useReaction } from '@/hooks/useReaction';
+import { useState } from "react";
+import {
+  Heart,
+  Flame,
+  Rocket,
+  Frown,
+  MessageCircle,
+  Share2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useReaction } from "@/hooks/useReaction";
 
 interface ReactionBarProps {
   signalId: string;
@@ -543,7 +545,7 @@ interface ReactionBarProps {
     rocket: number;
     sad: number;
   };
-  userReactions: string[];  // Reactions user has made
+  userReactions: string[]; // Reactions user has made
   commentCount: number;
   onComment: () => void;
   onShare: () => void;
@@ -567,11 +569,17 @@ export function ReactionBar({
     if (hasReaction) {
       await removeReaction(type);
       setLocalUserReactions((r) => r.filter((t) => t !== type));
-      setLocalReactions((r) => ({ ...r, [type]: r[type as keyof typeof r] - 1 }));
+      setLocalReactions((r) => ({
+        ...r,
+        [type]: r[type as keyof typeof r] - 1,
+      }));
     } else {
       await addReaction(type);
       setLocalUserReactions((r) => [...r, type]);
-      setLocalReactions((r) => ({ ...r, [type]: r[type as keyof typeof r] + 1 }));
+      setLocalReactions((r) => ({
+        ...r,
+        [type]: r[type as keyof typeof r] + 1,
+      }));
     }
   };
 
@@ -580,54 +588,44 @@ export function ReactionBar({
       <ReactionButton
         icon={Heart}
         count={localReactions.like}
-        active={localUserReactions.includes('like')}
+        active={localUserReactions.includes("like")}
         activeColor="text-red-500"
-        onClick={() => handleReaction('like')}
+        onClick={() => handleReaction("like")}
         disabled={isLoading}
       />
       <ReactionButton
         icon={Flame}
         count={localReactions.fire}
-        active={localUserReactions.includes('fire')}
+        active={localUserReactions.includes("fire")}
         activeColor="text-orange-500"
-        onClick={() => handleReaction('fire')}
+        onClick={() => handleReaction("fire")}
         disabled={isLoading}
       />
       <ReactionButton
         icon={Rocket}
         count={localReactions.rocket}
-        active={localUserReactions.includes('rocket')}
+        active={localUserReactions.includes("rocket")}
         activeColor="text-blue-500"
-        onClick={() => handleReaction('rocket')}
+        onClick={() => handleReaction("rocket")}
         disabled={isLoading}
       />
       <ReactionButton
         icon={Frown}
         count={localReactions.sad}
-        active={localUserReactions.includes('sad')}
+        active={localUserReactions.includes("sad")}
         activeColor="text-yellow-500"
-        onClick={() => handleReaction('sad')}
+        onClick={() => handleReaction("sad")}
         disabled={isLoading}
       />
 
       <div className="mx-2 h-4 w-px bg-border" />
 
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onComment}
-        className="gap-1"
-      >
+      <Button variant="ghost" size="sm" onClick={onComment} className="gap-1">
         <MessageCircle className="h-4 w-4" />
         {commentCount}
       </Button>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onShare}
-        className="gap-1"
-      >
+      <Button variant="ghost" size="sm" onClick={onShare} className="gap-1">
         <Share2 className="h-4 w-4" />
         Share
       </Button>
@@ -656,9 +654,9 @@ function ReactionButton({
       size="sm"
       onClick={onClick}
       disabled={disabled}
-      className={cn('gap-1 px-2', active && activeColor)}
+      className={cn("gap-1 px-2", active && activeColor)}
     >
-      <Icon className={cn('h-4 w-4', active && 'fill-current')} />
+      <Icon className={cn("h-4 w-4", active && "fill-current")} />
       {count > 0 && count}
     </Button>
   );
@@ -672,25 +670,25 @@ function ReactionButton({
 ```tsx
 // ui/agent-dashboard/src/components/Social/CommentThread.tsx
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { socialApi } from '@/api/social';
-import { formatRelativeTime } from '@/lib/utils';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { socialApi } from "@/api/social";
+import { formatRelativeTime } from "@/lib/utils";
 
 interface CommentThreadProps {
   signalId: string;
 }
 
 export function CommentThread({ signalId }: CommentThreadProps) {
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: comments, isLoading } = useQuery({
-    queryKey: ['comments', signalId],
+    queryKey: ["comments", signalId],
     queryFn: () => socialApi.getComments(signalId),
   });
 
@@ -698,8 +696,8 @@ export function CommentThread({ signalId }: CommentThreadProps) {
     mutationFn: (data: { content: string; parentId?: string }) =>
       socialApi.postComment(signalId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['comments', signalId] });
-      setNewComment('');
+      queryClient.invalidateQueries({ queryKey: ["comments", signalId] });
+      setNewComment("");
       setReplyingTo(null);
     },
   });
@@ -725,20 +723,16 @@ export function CommentThread({ signalId }: CommentThreadProps) {
         <Textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          placeholder={replyingTo ? 'Write a reply...' : 'Add a comment...'}
+          placeholder={replyingTo ? "Write a reply..." : "Add a comment..."}
           className="min-h-[60px] resize-none"
         />
         <Button type="submit" disabled={postComment.isPending}>
-          {replyingTo ? 'Reply' : 'Post'}
+          {replyingTo ? "Reply" : "Post"}
         </Button>
       </form>
 
       {replyingTo && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setReplyingTo(null)}
-        >
+        <Button variant="ghost" size="sm" onClick={() => setReplyingTo(null)}>
           Cancel reply
         </Button>
       )}
@@ -767,7 +761,7 @@ function Comment({
   depth?: number;
 }) {
   return (
-    <div className={cn('flex gap-3', depth > 0 && 'ml-8')}>
+    <div className={cn("flex gap-3", depth > 0 && "ml-8")}>
       <Avatar className="h-8 w-8">
         <AvatarImage src={comment.user.avatar_url} />
         <AvatarFallback>{comment.user.display_name[0]}</AvatarFallback>
@@ -843,10 +837,10 @@ function Comment({
 ```tsx
 // ui/agent-dashboard/src/components/Social/WinCard.tsx
 
-import { useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Download, Twitter, Copy, Check } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Download, Twitter, Copy, Check } from "lucide-react";
+import html2canvas from "html2canvas";
 
 interface WinCardProps {
   signal: {
@@ -871,23 +865,23 @@ export function WinCard({ signal, userStreak }: WinCardProps) {
     if (!cardRef.current) return;
 
     const canvas = await html2canvas(cardRef.current, {
-      backgroundColor: '#0f172a',
+      backgroundColor: "#0f172a",
       scale: 2,
     });
 
-    const link = document.createElement('a');
-    link.download = `tradestream-win-${signal.symbol.replace('/', '-')}.png`;
-    link.href = canvas.toDataURL('image/png');
+    const link = document.createElement("a");
+    link.download = `tradestream-win-${signal.symbol.replace("/", "-")}.png`;
+    link.href = canvas.toDataURL("image/png");
     link.click();
   };
 
   const shareToTwitter = async () => {
     const text = encodeURIComponent(
       `Just made +${signal.return_percentage.toFixed(1)}% on ${signal.symbol} with @TradeStreamIO! 🚀\n\n` +
-      `Powered by ${signal.provider.display_name}'s signals.\n\n` +
-      `Join: ${referralUrl}`
+        `Powered by ${signal.provider.display_name}'s signals.\n\n` +
+        `Join: ${referralUrl}`,
     );
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank");
   };
 
   const copyLink = async () => {
@@ -909,11 +903,11 @@ export function WinCard({ signal, userStreak }: WinCardProps) {
           <div className="text-lg text-slate-400 mb-2">{signal.symbol}</div>
           <div
             className={cn(
-              'text-5xl font-bold mb-4',
-              signal.return_percentage > 0 ? 'text-green-400' : 'text-red-400'
+              "text-5xl font-bold mb-4",
+              signal.return_percentage > 0 ? "text-green-400" : "text-red-400",
             )}
           >
-            {signal.return_percentage > 0 ? '+' : ''}
+            {signal.return_percentage > 0 ? "+" : ""}
             {signal.return_percentage.toFixed(1)}%
           </div>
           {userStreak && userStreak >= 3 && (
@@ -964,7 +958,7 @@ export function WinCard({ signal, userStreak }: WinCardProps) {
 ```tsx
 // ui/agent-dashboard/src/api/social.ts
 
-import { api } from './client';
+import { api } from "./client";
 
 export const socialApi = {
   // Follow
@@ -977,16 +971,17 @@ export const socialApi = {
   updateFollow: (providerId: string, options: { notifyOnSignal: boolean }) =>
     api.patch(`/api/social/follow/${providerId}`, options),
 
-  getFollowing: () =>
-    api.get('/api/social/following'),
+  getFollowing: () => api.get("/api/social/following"),
 
   // Feed
   getFeed: (params: { offset?: number; limit?: number }) =>
-    api.get('/api/social/feed', { params }),
+    api.get("/api/social/feed", { params }),
 
   // Reactions
   addReaction: (signalId: string, reactionType: string) =>
-    api.post(`/api/social/signals/${signalId}/react`, { reaction_type: reactionType }),
+    api.post(`/api/social/signals/${signalId}/react`, {
+      reaction_type: reactionType,
+    }),
 
   removeReaction: (signalId: string, reactionType: string) =>
     api.delete(`/api/social/signals/${signalId}/react/${reactionType}`),
@@ -995,8 +990,10 @@ export const socialApi = {
   getComments: (signalId: string) =>
     api.get(`/api/social/signals/${signalId}/comments`),
 
-  postComment: (signalId: string, data: { content: string; parentId?: string }) =>
-    api.post(`/api/social/signals/${signalId}/comments`, data),
+  postComment: (
+    signalId: string,
+    data: { content: string; parentId?: string },
+  ) => api.post(`/api/social/signals/${signalId}/comments`, data),
 };
 ```
 
@@ -1034,6 +1031,7 @@ export const socialApi = {
 Current: Chronological feed from followed providers.
 
 Future enhancements:
+
 - Trending signals (engagement velocity)
 - Similar providers suggestions
 - Discovery feed for new users

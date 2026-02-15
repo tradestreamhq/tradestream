@@ -7,6 +7,7 @@ Drive daily engagement and viral growth through streaks, achievements, badges, l
 ## Target Behavior
 
 Gamification features create multiple engagement loops:
+
 - **Daily**: Login streaks encourage daily visits
 - **Achievement**: Milestones provide satisfaction and sharing moments
 - **Competition**: Leaderboards create aspirational goals
@@ -38,12 +39,12 @@ Gamification features create multiple engagement loops:
 
 ### Streak Types
 
-| Type | Description | Reset Condition |
-|------|-------------|-----------------|
-| Login | Consecutive days visiting platform | Miss a calendar day |
+| Type              | Description                             | Reset Condition        |
+| ----------------- | --------------------------------------- | ---------------------- |
+| Login             | Consecutive days visiting platform      | Miss a calendar day    |
 | Profitable Signal | Consecutive profitable signals followed | Signal results in loss |
-| Analysis Post | Consecutive days posting analysis | Miss a calendar day |
-| Provider Signal | Consecutive days publishing signals | Miss a calendar day |
+| Analysis Post     | Consecutive days posting analysis       | Miss a calendar day    |
+| Provider Signal   | Consecutive days publishing signals     | Miss a calendar day    |
 
 ### Streak Display
 
@@ -261,23 +262,25 @@ class StreakService:
 ```tsx
 // ui/agent-dashboard/src/components/Gamification/StreakBanner.tsx
 
-import { useQuery } from '@tanstack/react-query';
-import { Flame, TrendingUp, AlertTriangle } from 'lucide-react';
-import { achievementsApi } from '@/api/achievements';
-import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
+import { useQuery } from "@tanstack/react-query";
+import { Flame, TrendingUp, AlertTriangle } from "lucide-react";
+import { achievementsApi } from "@/api/achievements";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 export function StreakBanner() {
   const { data: streaks, isLoading } = useQuery({
-    queryKey: ['user-streaks'],
+    queryKey: ["user-streaks"],
     queryFn: achievementsApi.getStreaks,
   });
 
   if (isLoading || !streaks?.length) return null;
 
-  const loginStreak = streaks.find((s) => s.streak_type === 'login');
-  const profitStreak = streaks.find((s) => s.streak_type === 'profitable_signal');
+  const loginStreak = streaks.find((s) => s.streak_type === "login");
+  const profitStreak = streaks.find(
+    (s) => s.streak_type === "profitable_signal",
+  );
 
   // Determine next milestone
   const nextMilestone = getNextMilestone(loginStreak?.current_count || 0);
@@ -344,10 +347,10 @@ export function StreakBanner() {
 
 function getNextMilestone(current: number) {
   const milestones = [
-    { days: 7, name: 'Week Warrior' },
-    { days: 30, name: 'Monthly Dedication' },
-    { days: 100, name: 'Century Club' },
-    { days: 365, name: 'Year of Commitment' },
+    { days: 7, name: "Week Warrior" },
+    { days: 30, name: "Monthly Dedication" },
+    { days: 100, name: "Century Club" },
+    { days: 365, name: "Year of Commitment" },
   ];
 
   return milestones.find((m) => m.days > current);
@@ -357,7 +360,7 @@ function isAtRisk(streak: { last_activity_date: string }) {
   const lastDate = new Date(streak.last_activity_date);
   const today = new Date();
   const diffDays = Math.floor(
-    (today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
+    (today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
   );
   return diffDays === 0; // Activity was today, need to come back tomorrow
 }
@@ -367,23 +370,23 @@ function isAtRisk(streak: { last_activity_date: string }) {
 
 ### Achievement Categories
 
-| Category | Examples | Color |
-|----------|----------|-------|
-| Trading | First win, 10 wins, 100 wins | Green |
-| Engagement | Streak milestones | Orange |
-| Social | Followers milestones | Blue |
-| Provider | First signal, verified | Purple |
-| Special | Early adopter, events | Gold |
+| Category   | Examples                     | Color  |
+| ---------- | ---------------------------- | ------ |
+| Trading    | First win, 10 wins, 100 wins | Green  |
+| Engagement | Streak milestones            | Orange |
+| Social     | Followers milestones         | Blue   |
+| Provider   | First signal, verified       | Purple |
+| Special    | Early adopter, events        | Gold   |
 
 ### Achievement Rarity
 
-| Rarity | Color | % of Users |
-|--------|-------|------------|
-| Common | Gray | 50%+ |
-| Uncommon | Green | 25-50% |
-| Rare | Blue | 10-25% |
-| Epic | Purple | 1-10% |
-| Legendary | Orange/Gold | <1% |
+| Rarity    | Color       | % of Users |
+| --------- | ----------- | ---------- |
+| Common    | Gray        | 50%+       |
+| Uncommon  | Green       | 25-50%     |
+| Rare      | Blue        | 10-25%     |
+| Epic      | Purple      | 1-10%      |
+| Legendary | Orange/Gold | <1%        |
 
 ### Achievement Display
 
@@ -415,14 +418,14 @@ function isAtRisk(streak: { last_activity_date: string }) {
 ```tsx
 // ui/agent-dashboard/src/components/Gamification/AchievementBadge.tsx
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface AchievementBadgeProps {
   achievement: {
@@ -430,17 +433,17 @@ interface AchievementBadgeProps {
     name: string;
     description: string;
     icon: string;
-    rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+    rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
     points: number;
     unlocked_at?: string;
   };
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   showTooltip?: boolean;
 }
 
 export function AchievementBadge({
   achievement,
-  size = 'md',
+  size = "md",
   showTooltip = true,
 }: AchievementBadgeProps) {
   const isUnlocked = !!achievement.unlocked_at;
@@ -448,24 +451,24 @@ export function AchievementBadge({
   const badge = (
     <div
       className={cn(
-        'relative rounded-full flex items-center justify-center transition-all',
+        "relative rounded-full flex items-center justify-center transition-all",
         sizeClasses[size],
         isUnlocked
           ? rarityClasses[achievement.rarity]
-          : 'bg-muted text-muted-foreground opacity-50 grayscale'
+          : "bg-muted text-muted-foreground opacity-50 grayscale",
       )}
     >
-      <span className={cn('text-center', iconSizeClasses[size])}>
+      <span className={cn("text-center", iconSizeClasses[size])}>
         {achievement.icon}
       </span>
 
       {/* Rarity glow for epic/legendary */}
-      {isUnlocked && ['epic', 'legendary'].includes(achievement.rarity) && (
+      {isUnlocked && ["epic", "legendary"].includes(achievement.rarity) && (
         <div
           className={cn(
-            'absolute inset-0 rounded-full animate-pulse',
-            achievement.rarity === 'epic' && 'bg-purple-500/20',
-            achievement.rarity === 'legendary' && 'bg-orange-500/20'
+            "absolute inset-0 rounded-full animate-pulse",
+            achievement.rarity === "epic" && "bg-purple-500/20",
+            achievement.rarity === "legendary" && "bg-orange-500/20",
           )}
         />
       )}
@@ -482,7 +485,12 @@ export function AchievementBadge({
           <div className="space-y-1">
             <div className="font-bold flex items-center gap-2">
               {achievement.name}
-              <span className={cn('text-xs px-1.5 rounded', rarityBadgeClasses[achievement.rarity])}>
+              <span
+                className={cn(
+                  "text-xs px-1.5 rounded",
+                  rarityBadgeClasses[achievement.rarity],
+                )}
+              >
                 {achievement.rarity}
               </span>
             </div>
@@ -505,31 +513,32 @@ export function AchievementBadge({
 }
 
 const sizeClasses = {
-  sm: 'w-8 h-8',
-  md: 'w-12 h-12',
-  lg: 'w-16 h-16',
+  sm: "w-8 h-8",
+  md: "w-12 h-12",
+  lg: "w-16 h-16",
 };
 
 const iconSizeClasses = {
-  sm: 'text-lg',
-  md: 'text-2xl',
-  lg: 'text-3xl',
+  sm: "text-lg",
+  md: "text-2xl",
+  lg: "text-3xl",
 };
 
 const rarityClasses = {
-  common: 'bg-slate-700 text-slate-200 ring-1 ring-slate-600',
-  uncommon: 'bg-green-900 text-green-200 ring-1 ring-green-600',
-  rare: 'bg-blue-900 text-blue-200 ring-1 ring-blue-500',
-  epic: 'bg-purple-900 text-purple-200 ring-2 ring-purple-500',
-  legendary: 'bg-gradient-to-br from-orange-600 to-yellow-500 text-white ring-2 ring-orange-400',
+  common: "bg-slate-700 text-slate-200 ring-1 ring-slate-600",
+  uncommon: "bg-green-900 text-green-200 ring-1 ring-green-600",
+  rare: "bg-blue-900 text-blue-200 ring-1 ring-blue-500",
+  epic: "bg-purple-900 text-purple-200 ring-2 ring-purple-500",
+  legendary:
+    "bg-gradient-to-br from-orange-600 to-yellow-500 text-white ring-2 ring-orange-400",
 };
 
 const rarityBadgeClasses = {
-  common: 'bg-slate-600 text-slate-200',
-  uncommon: 'bg-green-600 text-green-100',
-  rare: 'bg-blue-600 text-blue-100',
-  epic: 'bg-purple-600 text-purple-100',
-  legendary: 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white',
+  common: "bg-slate-600 text-slate-200",
+  uncommon: "bg-green-600 text-green-100",
+  rare: "bg-blue-600 text-blue-100",
+  epic: "bg-purple-600 text-purple-100",
+  legendary: "bg-gradient-to-r from-orange-500 to-yellow-500 text-white",
 };
 ```
 
@@ -538,44 +547,49 @@ const rarityBadgeClasses = {
 ```tsx
 // ui/agent-dashboard/src/components/Gamification/AchievementGrid.tsx
 
-import { useQuery } from '@tanstack/react-query';
-import { AchievementBadge } from './AchievementBadge';
-import { Progress } from '@/components/ui/progress';
-import { achievementsApi } from '@/api/achievements';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useQuery } from "@tanstack/react-query";
+import { AchievementBadge } from "./AchievementBadge";
+import { Progress } from "@/components/ui/progress";
+import { achievementsApi } from "@/api/achievements";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function AchievementGrid() {
   const { data, isLoading } = useQuery({
-    queryKey: ['user-achievements'],
+    queryKey: ["user-achievements"],
     queryFn: achievementsApi.getUserAchievements,
   });
 
   const { data: allAchievements } = useQuery({
-    queryKey: ['all-achievements'],
+    queryKey: ["all-achievements"],
     queryFn: achievementsApi.getAllAchievements,
   });
 
   if (isLoading) return <AchievementGridSkeleton />;
 
-  const unlockedIds = new Set(data?.unlocked.map((a) => a.achievement_id) || []);
+  const unlockedIds = new Set(
+    data?.unlocked.map((a) => a.achievement_id) || [],
+  );
   const totalPoints = data?.total_points || 0;
 
   // Group by category
-  const categories = ['trading', 'engagement', 'social', 'provider', 'special'];
+  const categories = ["trading", "engagement", "social", "provider", "special"];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Achievements</h2>
         <div className="text-sm text-muted-foreground">
-          Total Points: <span className="font-bold text-foreground">{totalPoints}</span>
+          Total Points:{" "}
+          <span className="font-bold text-foreground">{totalPoints}</span>
         </div>
       </div>
 
       <Tabs defaultValue="all">
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="unlocked">Unlocked ({data?.unlocked.length || 0})</TabsTrigger>
+          <TabsTrigger value="unlocked">
+            Unlocked ({data?.unlocked.length || 0})
+          </TabsTrigger>
           <TabsTrigger value="progress">In Progress</TabsTrigger>
         </TabsList>
 
@@ -594,7 +608,7 @@ export function AchievementGrid() {
                       achievement={{
                         ...achievement,
                         unlocked_at: data?.unlocked.find(
-                          (u) => u.achievement_id === achievement.id
+                          (u) => u.achievement_id === achievement.id,
                         )?.unlocked_at,
                       }}
                     />
@@ -608,7 +622,7 @@ export function AchievementGrid() {
           <div className="flex flex-wrap gap-3">
             {data?.unlocked.map((unlock) => {
               const achievement = allAchievements?.find(
-                (a) => a.id === unlock.achievement_id
+                (a) => a.id === unlock.achievement_id,
               );
               if (!achievement) return null;
               return (
@@ -656,28 +670,33 @@ export function AchievementGrid() {
 
 ### Leaderboard Types
 
-| Type | Metric | Period | Update |
-|------|--------|--------|--------|
-| Top Followers | Total followers | All-time | Hourly |
-| Win Rate | Win percentage | All-time | Hourly |
-| Monthly ROI | Average return | Monthly | Daily |
-| Streak Kings | Current streak | Current | Real-time |
-| Rising Stars | Follower growth | Weekly | Daily |
+| Type          | Metric          | Period   | Update    |
+| ------------- | --------------- | -------- | --------- |
+| Top Followers | Total followers | All-time | Hourly    |
+| Win Rate      | Win percentage  | All-time | Hourly    |
+| Monthly ROI   | Average return  | Monthly  | Daily     |
+| Streak Kings  | Current streak  | Current  | Real-time |
+| Rising Stars  | Follower growth | Weekly   | Daily     |
 
 ### Leaderboard Component
 
 ```tsx
 // ui/agent-dashboard/src/components/Gamification/Leaderboard.tsx
 
-import { useQuery } from '@tanstack/react-query';
-import { Trophy, TrendingUp, Flame, Star, Rocket } from 'lucide-react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
-import { leaderboardsApi } from '@/api/leaderboards';
-import { cn } from '@/lib/utils';
+import { useQuery } from "@tanstack/react-query";
+import { Trophy, TrendingUp, Flame, Star, Rocket } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
+import { leaderboardsApi } from "@/api/leaderboards";
+import { cn } from "@/lib/utils";
 
-type LeaderboardType = 'followers' | 'win_rate' | 'return' | 'streak' | 'rising';
+type LeaderboardType =
+  | "followers"
+  | "win_rate"
+  | "return"
+  | "streak"
+  | "rising";
 
 export function Leaderboard() {
   return (
@@ -711,13 +730,19 @@ export function Leaderboard() {
           </TabsTrigger>
         </TabsList>
 
-        {(['followers', 'win_rate', 'return', 'streak', 'rising'] as LeaderboardType[]).map(
-          (type) => (
-            <TabsContent key={type} value={type}>
-              <LeaderboardList type={type} />
-            </TabsContent>
-          )
-        )}
+        {(
+          [
+            "followers",
+            "win_rate",
+            "return",
+            "streak",
+            "rising",
+          ] as LeaderboardType[]
+        ).map((type) => (
+          <TabsContent key={type} value={type}>
+            <LeaderboardList type={type} />
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );
@@ -725,7 +750,7 @@ export function Leaderboard() {
 
 function LeaderboardList({ type }: { type: LeaderboardType }) {
   const { data, isLoading } = useQuery({
-    queryKey: ['leaderboard', type],
+    queryKey: ["leaderboard", type],
     queryFn: () => leaderboardsApi.getLeaderboard(type),
   });
 
@@ -737,18 +762,18 @@ function LeaderboardList({ type }: { type: LeaderboardType }) {
         <div
           key={entry.provider.user_id}
           className={cn(
-            'flex items-center gap-4 p-4',
-            index < 3 && 'bg-gradient-to-r from-yellow-500/5 to-transparent'
+            "flex items-center gap-4 p-4",
+            index < 3 && "bg-gradient-to-r from-yellow-500/5 to-transparent",
           )}
         >
           {/* Rank */}
           <div
             className={cn(
-              'w-8 h-8 rounded-full flex items-center justify-center font-bold',
-              index === 0 && 'bg-yellow-500 text-yellow-950',
-              index === 1 && 'bg-slate-400 text-slate-950',
-              index === 2 && 'bg-orange-600 text-orange-950',
-              index > 2 && 'bg-muted text-muted-foreground'
+              "w-8 h-8 rounded-full flex items-center justify-center font-bold",
+              index === 0 && "bg-yellow-500 text-yellow-950",
+              index === 1 && "bg-slate-400 text-slate-950",
+              index === 2 && "bg-orange-600 text-orange-950",
+              index > 2 && "bg-muted text-muted-foreground",
             )}
           >
             {entry.rank}
@@ -771,17 +796,15 @@ function LeaderboardList({ type }: { type: LeaderboardType }) {
 
           {/* Value */}
           <div className="text-right">
-            <div className="font-bold">
-              {formatValue(type, entry.value)}
-            </div>
+            <div className="font-bold">{formatValue(type, entry.value)}</div>
             {entry.change !== 0 && (
               <div
                 className={cn(
-                  'text-xs',
-                  entry.change > 0 ? 'text-green-500' : 'text-red-500'
+                  "text-xs",
+                  entry.change > 0 ? "text-green-500" : "text-red-500",
                 )}
               >
-                {entry.change > 0 ? '+' : ''}
+                {entry.change > 0 ? "+" : ""}
                 {formatChange(type, entry.change)}
               </div>
             )}
@@ -794,21 +817,21 @@ function LeaderboardList({ type }: { type: LeaderboardType }) {
 
 function formatValue(type: LeaderboardType, value: number): string {
   switch (type) {
-    case 'followers':
+    case "followers":
       return value >= 1000 ? `${(value / 1000).toFixed(1)}K` : value.toString();
-    case 'win_rate':
+    case "win_rate":
       return `${(value * 100).toFixed(1)}%`;
-    case 'return':
-      return `${value > 0 ? '+' : ''}${(value * 100).toFixed(1)}%`;
-    case 'streak':
+    case "return":
+      return `${value > 0 ? "+" : ""}${(value * 100).toFixed(1)}%`;
+    case "streak":
       return `${value} days`;
-    case 'rising':
+    case "rising":
       return `+${value}`;
   }
 }
 
 function formatChange(type: LeaderboardType, change: number): string {
-  if (type === 'followers' || type === 'rising') {
+  if (type === "followers" || type === "rising") {
     return change.toString();
   }
   return `${(change * 100).toFixed(1)}%`;
@@ -819,11 +842,11 @@ function formatChange(type: LeaderboardType, change: number): string {
 
 ### Referral Tiers
 
-| Tier | Referrals | Referrer Reward | Referee Reward | Bonus |
-|------|-----------|-----------------|----------------|-------|
-| Bronze | 1-4 | $25 credit | $25 credit | - |
-| Silver | 5-9 | $50 credit | $25 credit | - |
-| Gold | 10+ | $75 credit | $50 credit | 5% lifetime revenue share |
+| Tier   | Referrals | Referrer Reward | Referee Reward | Bonus                     |
+| ------ | --------- | --------------- | -------------- | ------------------------- |
+| Bronze | 1-4       | $25 credit      | $25 credit     | -                         |
+| Silver | 5-9       | $50 credit      | $25 credit     | -                         |
+| Gold   | 10+       | $75 credit      | $50 credit     | 5% lifetime revenue share |
 
 ### Referral Dashboard
 
@@ -861,26 +884,26 @@ function formatChange(type: LeaderboardType, change: number): string {
 ```tsx
 // ui/agent-dashboard/src/components/Gamification/ReferralDashboard.tsx
 
-import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { Copy, Check, Share2, Gift, Users, DollarSign } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
-import { referralsApi } from '@/api/referrals';
-import { cn } from '@/lib/utils';
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Copy, Check, Share2, Gift, Users, DollarSign } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { referralsApi } from "@/api/referrals";
+import { cn } from "@/lib/utils";
 
 export function ReferralDashboard() {
   const [copied, setCopied] = useState(false);
   const { data, isLoading } = useQuery({
-    queryKey: ['referral-dashboard'],
+    queryKey: ["referral-dashboard"],
     queryFn: referralsApi.getDashboard,
   });
 
   if (isLoading) return <ReferralDashboardSkeleton />;
 
-  const referralUrl = data?.referral_url || '';
+  const referralUrl = data?.referral_url || "";
 
   const copyLink = async () => {
     await navigator.clipboard.writeText(referralUrl);
@@ -891,19 +914,18 @@ export function ReferralDashboard() {
   const share = async () => {
     if (navigator.share) {
       await navigator.share({
-        title: 'Join TradeStream',
-        text: 'Get AI-powered trading signals',
+        title: "Join TradeStream",
+        text: "Get AI-powered trading signals",
         url: referralUrl,
       });
     }
   };
 
-  const tierProgress =
-    data?.next_tier
-      ? ((data.stats.total_referrals) /
-          (data.stats.total_referrals + data.next_tier.referrals_needed)) *
-        100
-      : 100;
+  const tierProgress = data?.next_tier
+    ? (data.stats.total_referrals /
+        (data.stats.total_referrals + data.next_tier.referrals_needed)) *
+      100
+    : 100;
 
   return (
     <div className="space-y-6">
@@ -979,7 +1001,7 @@ export function ReferralDashboard() {
             </div>
             <Progress value={tierProgress} />
             <p className="text-xs text-muted-foreground mt-2">
-              Earn ${data.next_tier.referrer_reward} per referral at{' '}
+              Earn ${data.next_tier.referrer_reward} per referral at{" "}
               {data.next_tier.name} tier
             </p>
           </CardContent>
@@ -1039,20 +1061,24 @@ export function ReferralDashboard() {
   );
 }
 
-function TierBadge({ tier }: { tier?: { id: string; name: string; icon: string } }) {
+function TierBadge({
+  tier,
+}: {
+  tier?: { id: string; name: string; icon: string };
+}) {
   if (!tier) return null;
 
   const tierColors = {
-    bronze: 'bg-orange-600/20 text-orange-500 border-orange-500/50',
-    silver: 'bg-slate-500/20 text-slate-300 border-slate-400/50',
-    gold: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/50',
+    bronze: "bg-orange-600/20 text-orange-500 border-orange-500/50",
+    silver: "bg-slate-500/20 text-slate-300 border-slate-400/50",
+    gold: "bg-yellow-500/20 text-yellow-500 border-yellow-500/50",
   };
 
   return (
     <div
       className={cn(
-        'px-3 py-1 rounded-full border text-sm font-medium',
-        tierColors[tier.id as keyof typeof tierColors]
+        "px-3 py-1 rounded-full border text-sm font-medium",
+        tierColors[tier.id as keyof typeof tierColors],
       )}
     >
       {tier.icon} {tier.name}
@@ -1062,16 +1088,16 @@ function TierBadge({ tier }: { tier?: { id: string; name: string; icon: string }
 
 function StatusBadge({ status }: { status: string }) {
   const statusStyles = {
-    pending: 'bg-yellow-500/20 text-yellow-500',
-    qualified: 'bg-green-500/20 text-green-500',
-    rewarded: 'bg-blue-500/20 text-blue-500',
+    pending: "bg-yellow-500/20 text-yellow-500",
+    qualified: "bg-green-500/20 text-green-500",
+    rewarded: "bg-blue-500/20 text-blue-500",
   };
 
   return (
     <span
       className={cn(
-        'px-2 py-0.5 rounded text-xs',
-        statusStyles[status as keyof typeof statusStyles]
+        "px-2 py-0.5 rounded text-xs",
+        statusStyles[status as keyof typeof statusStyles],
       )}
     >
       {status}
@@ -1093,8 +1119,10 @@ function StatCard({
   return (
     <Card>
       <CardContent className="pt-6">
-        <Icon className={cn('h-5 w-5 mb-2', color || 'text-muted-foreground')} />
-        <div className={cn('text-2xl font-bold', color)}>{value}</div>
+        <Icon
+          className={cn("h-5 w-5 mb-2", color || "text-muted-foreground")}
+        />
+        <div className={cn("text-2xl font-bold", color)}>{value}</div>
         <div className="text-xs text-muted-foreground">{label}</div>
       </CardContent>
     </Card>
@@ -1106,19 +1134,19 @@ function StatCard({
 
 ### Streak Notifications
 
-| Trigger | Message | Timing |
-|---------|---------|--------|
-| Streak at risk | "Don't lose your 14-day streak! Open the app today." | 6 PM local |
-| Streak lost | "Your 14-day streak ended. Start a new one today!" | Next login |
-| Milestone reached | "You reached a 30-day streak! 🔥" | Immediately |
+| Trigger           | Message                                              | Timing      |
+| ----------------- | ---------------------------------------------------- | ----------- |
+| Streak at risk    | "Don't lose your 14-day streak! Open the app today." | 6 PM local  |
+| Streak lost       | "Your 14-day streak ended. Start a new one today!"   | Next login  |
+| Milestone reached | "You reached a 30-day streak! 🔥"                    | Immediately |
 
 ### Achievement Notifications
 
-| Trigger | Message | Channel |
-|---------|---------|---------|
-| Achievement unlocked | "Achievement unlocked: First Win 🏆" | Push, in-app |
-| New badge available | "You're 3 wins away from Consistent Winner!" | Push |
-| Leaderboard movement | "You moved up to #5 on the Win Rate leaderboard!" | In-app |
+| Trigger              | Message                                           | Channel      |
+| -------------------- | ------------------------------------------------- | ------------ |
+| Achievement unlocked | "Achievement unlocked: First Win 🏆"              | Push, in-app |
+| New badge available  | "You're 3 wins away from Consistent Winner!"      | Push         |
+| Leaderboard movement | "You moved up to #5 on the Win Rate leaderboard!" | In-app       |
 
 ## Constraints
 

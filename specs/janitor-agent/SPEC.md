@@ -7,6 +7,7 @@ OpenCode agent that evaluates strategies for retirement based on sustained poor 
 ## Why Not Hard Numbers?
 
 A fixed "remove bottom N" approach doesn't work because:
+
 - Market conditions change (a strategy may recover)
 - New specs need time to prove themselves
 - Some strategies only work in specific market conditions
@@ -154,6 +155,7 @@ LIMIT 100;
 ### 2. Evaluate Each Candidate
 
 For each candidate, the Janitor Agent:
+
 1. Checks all retirement criteria
 2. Verifies better alternatives exist
 3. Reviews performance trend
@@ -200,9 +202,11 @@ async def execute_retirement(
 
 ```markdown
 # Janitor Agent Daily Report
+
 Date: 2026-02-01
 
 ## Summary
+
 - Implementations evaluated: 47
 - Implementations retired: 12
 - Specs retired: 2
@@ -212,27 +216,29 @@ Date: 2026-02-01
 
 ### Implementations Retired
 
-| Spec | Symbol | Sharpe | Accuracy | Signals | Age | Reason |
-|------|--------|--------|----------|---------|-----|--------|
-| RSI_MOMENTUM_v2 | BTC/USD | 0.23 | 41% | 234 | 8mo | Declining performance |
-| MACD_REVERSAL_v3 | ETH/USD | 0.31 | 43% | 189 | 7mo | Better alternatives exist |
+| Spec             | Symbol  | Sharpe | Accuracy | Signals | Age | Reason                    |
+| ---------------- | ------- | ------ | -------- | ------- | --- | ------------------------- |
+| RSI_MOMENTUM_v2  | BTC/USD | 0.23   | 41%      | 234     | 8mo | Declining performance     |
+| MACD_REVERSAL_v3 | ETH/USD | 0.31   | 43%      | 189     | 7mo | Better alternatives exist |
+
 ...
 
 ### Specs Retired
 
-| Spec | Source | Implementations | Reason |
-|------|--------|-----------------|--------|
+| Spec            | Source        | Implementations | Reason                             |
+| --------------- | ------------- | --------------- | ---------------------------------- |
 | RSI_MOMENTUM_v2 | LLM_GENERATED | 3 (all retired) | All implementations underperformed |
-| TRIPLE_EMA_v1 | LLM_GENERATED | 2 (all retired) | Failed to validate |
+| TRIPLE_EMA_v1   | LLM_GENERATED | 2 (all retired) | Failed to validate                 |
 
 ### Protected (CANONICAL)
 
-| Spec | Note |
-|------|------|
-| RSI_REVERSAL | Original spec, some implementations underperforming but protected |
-| MACD_CROSSOVER | Original spec, protected |
+| Spec           | Note                                                              |
+| -------------- | ----------------------------------------------------------------- |
+| RSI_REVERSAL   | Original spec, some implementations underperforming but protected |
+| MACD_CROSSOVER | Original spec, protected                                          |
 
 ## Recommendations
+
 - Consider adjusting RSI_REVERSAL parameters for BTC/USD
 - LLM-generated specs showing 60% retirement rate - may need prompt tuning
 ```
@@ -336,9 +342,11 @@ $$ LANGUAGE plpgsql;
 # Skill: Evaluate Performance
 
 ## Purpose
+
 Evaluate strategy implementation performance for potential retirement.
 
 ## Evaluation Factors
+
 1. **Sharpe Ratio**: Risk-adjusted return (threshold: 0.5)
 2. **Accuracy**: Win rate on signals (threshold: 45%)
 3. **Signal Count**: Minimum 100 forward-test signals
@@ -347,6 +355,7 @@ Evaluate strategy implementation performance for potential retirement.
 6. **Alternatives**: Better options must exist
 
 ## Output
+
 Retirement recommendation with reasoning for each candidate.
 ```
 
@@ -356,15 +365,18 @@ Retirement recommendation with reasoning for each candidate.
 # Skill: Recommend Retirement
 
 ## Purpose
+
 Make nuanced retirement recommendations considering edge cases.
 
 ## Edge Cases to Consider
+
 - Seasonal strategies (may underperform in certain periods)
 - Market regime changes (strategy may recover)
 - Recent parameter changes (need time to evaluate)
 - Symbol-specific issues (may work better on other symbols)
 
 ## Output
+
 Final retirement decision with detailed reasoning.
 ```
 
@@ -374,9 +386,11 @@ Final retirement decision with detailed reasoning.
 # Skill: Generate Retirement Report
 
 ## Purpose
+
 Create daily summary of retirement activities for review.
 
 ## Report Sections
+
 1. Summary statistics
 2. Detailed retirement list with reasons
 3. Protected specs (CANONICAL that would otherwise retire)
@@ -384,6 +398,7 @@ Create daily summary of retirement activities for review.
 5. Metrics trends over time
 
 ## Format
+
 Markdown report suitable for Slack/email distribution.
 ```
 
@@ -421,6 +436,7 @@ def is_protected(spec: Spec) -> bool:
 ### When to Reactivate
 
 Retired strategies may be reactivated when:
+
 1. **Market regime change**: Conditions become favorable for the strategy again
 2. **Strategy update**: Parameters or logic have been improved
 3. **False positive**: Retirement was premature due to data issues

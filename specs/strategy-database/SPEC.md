@@ -242,12 +242,12 @@ $$ LANGUAGE plpgsql;
 
 ### Retention Rules
 
-| Data Type | Hot Storage | Warm Storage | Archive | Delete |
-|-----------|-------------|--------------|---------|--------|
-| Live signals | 6 months | 2 years | 5 years | Never |
-| Forward test signals | 1 year | 3 years | 5 years | After 7 years |
-| Backtest signals | 3 months | 1 year | 3 years | After 5 years |
-| Retired implementations | 6 months | 2 years | 5 years | After 7 years |
+| Data Type               | Hot Storage | Warm Storage | Archive | Delete        |
+| ----------------------- | ----------- | ------------ | ------- | ------------- |
+| Live signals            | 6 months    | 2 years      | 5 years | Never         |
+| Forward test signals    | 1 year      | 3 years      | 5 years | After 7 years |
+| Backtest signals        | 3 months    | 1 year       | 3 years | After 5 years |
+| Retired implementations | 6 months    | 2 years      | 5 years | After 7 years |
 
 ### Archival Process
 
