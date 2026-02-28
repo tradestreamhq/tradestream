@@ -1,4 +1,4 @@
-package com.verlumen.tradestream.strategies.rangebars;
+package com.verlumen.tradestream.strategies.frama;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -11,6 +11,7 @@ import com.verlumen.tradestream.strategies.configurable.ConfigurableStrategyFact
 import com.verlumen.tradestream.strategies.configurable.StrategyConfig;
 import com.verlumen.tradestream.strategies.configurable.StrategyConfigLoader;
 import io.jenetics.DoubleChromosome;
+import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -23,7 +24,7 @@ import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.Strategy;
 
 @RunWith(JUnit4.class)
-public class RangeBarsConfigTest {
+public class FramaConfigTest {
   private StrategyConfig config;
   private ConfigurableStrategyFactory factory;
   private ConfigurableParamConfig paramConfig;
@@ -31,7 +32,7 @@ public class RangeBarsConfigTest {
 
   @Before
   public void setUp() throws Exception {
-    config = StrategyConfigLoader.loadResource("strategies/range_bars.yaml");
+    config = StrategyConfigLoader.loadResource("strategies/frama.yaml");
     factory = new ConfigurableStrategyFactory(config);
     paramConfig = new ConfigurableParamConfig(config);
 
@@ -55,28 +56,42 @@ public class RangeBarsConfigTest {
   public void createStrategy_returnsValidStrategy() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
     assertThat(strategy).isNotNull();
-    assertThat(strategy.getName()).isEqualTo("RANGE_BARS");
+    assertThat(strategy.getName()).isEqualTo("FRAMA");
   }
 
   @Test
   public void strategy_canEvaluateSignals() throws Exception {
     Strategy strategy = factory.createStrategy(series, factory.getDefaultParameters());
-    for (int i = 50; i < series.getBarCount(); i++) {
+    for (int i = 60; i < series.getBarCount(); i++) {
       strategy.shouldEnter(i);
       strategy.shouldExit(i);
     }
   }
 
   @Test
+  public void defaultParameters_areWithinBounds() {
+    ConfigurableStrategyParameters params = factory.getDefaultParameters();
+    assertThat(params.getDoubleValuesOrDefault("sc", 0.0))
+        .isIn(com.google.common.collect.Range.closed(100.0, 300.0));
+    assertThat(params.getIntValuesOrDefault("fc", 0))
+        .isIn(com.google.common.collect.Range.closed(1, 10));
+    assertThat(params.getDoubleValuesOrDefault("alpha", 0.0))
+        .isIn(com.google.common.collect.Range.closed(0.1, 1.0));
+  }
+
+  @Test
   public void chromosomeSpecs_matchParameterCount() {
     ImmutableList<ChromosomeSpec<?>> specs = paramConfig.getChromosomeSpecs();
-    assertThat(specs).hasSize(1);
+    assertThat(specs).hasSize(3);
   }
 
   @Test
   public void createParameters_fromChromosomes_succeeds() throws Exception {
     ImmutableList<NumericChromosome<?, ?>> chromosomes =
-        ImmutableList.of(DoubleChromosome.of(1.0, 3.0));
+        ImmutableList.of(
+            DoubleChromosome.of(100.0, 300.0),
+            IntegerChromosome.of(1, 10),
+            DoubleChromosome.of(0.1, 1.0));
     Any packed = paramConfig.createParameters(chromosomes);
     assertThat(packed.is(ConfigurableStrategyParameters.class)).isTrue();
   }
