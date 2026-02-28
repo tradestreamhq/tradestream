@@ -1,0 +1,44 @@
+name: LINEAR_REGRESSION_CHANNELS
+description: Linear regression channel strategy using Bollinger Bands as channel approximation
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.LinearRegressionChannelsParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: upperChannel
+    type: BOLLINGER_UPPER
+    input: close
+    params:
+      period: "${period}"
+      multiplier: "${multiplier}"
+  - id: lowerChannel
+    type: BOLLINGER_LOWER
+    input: close
+    params:
+      period: "${period}"
+      multiplier: "${multiplier}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: lowerChannel
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: upperChannel
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 15
+    max: 30
+    defaultValue: 20
+  - name: multiplier
+    type: DOUBLE
+    min: 1.5
+    max: 3.0
+    defaultValue: 2.0
