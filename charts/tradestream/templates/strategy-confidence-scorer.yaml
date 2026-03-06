@@ -1,0 +1,73 @@
+{{- if .Values.strategyConfidenceScorer.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-confidence-scorer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: strategy-confidence-scorer
+    release: {{ .Release.Name }}
+spec:
+  schedule: "{{ .Values.strategyConfidenceScorer.schedule }}"
+  {{- if .Values.strategyConfidenceScorer.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.strategyConfidenceScorer.startingDeadlineSeconds }}
+  {{- end }}
+  concurrencyPolicy: "Forbid"
+  failedJobsHistoryLimit: {{ .Values.strategyConfidenceScorer.failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .Values.strategyConfidenceScorer.successfulJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.strategyConfidenceScorer.job.backoffLimit | default 2 }}
+      ttlSecondsAfterFinished: {{ .Values.strategyConfidenceScorer.job.ttlSecondsAfterFinished | default 3600 }}
+      template:
+        metadata:
+          labels:
+            app: {{ include "tradestream.name" . }}
+            component: strategy-confidence-scorer
+            release: {{ .Release.Name }}
+        spec:
+          restartPolicy: {{ .Values.strategyConfidenceScorer.job.restartPolicy | default "OnFailure" }}
+          containers:
+            - name: strategy-confidence-scorer
+              image: "{{ .Values.strategyConfidenceScorer.image.repository }}:{{ .Values.strategyConfidenceScorer.image.tag }}"
+              imagePullPolicy: {{ .Values.strategyConfidenceScorer.image.pullPolicy }}
+              env:
+                # PostgreSQL Configuration
+                - name: POSTGRES_HOST
+                  value: {{ tpl .Values.strategyConfidenceScorer.database.host . | quote }}
+                - name: POSTGRES_PORT
+                  value: {{ .Values.strategyConfidenceScorer.database.port | quote }}
+                - name: POSTGRES_DATABASE
+                  value: "{{ .Values.strategyConfidenceScorer.database.database }}"
+                - name: POSTGRES_USERNAME
+                  value: "{{ .Values.strategyConfidenceScorer.database.username }}"
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ tpl .Values.strategyConfidenceScorer.database.passwordSecret.name . }}
+                      key: {{ .Values.strategyConfidenceScorer.database.passwordSecret.key }}
+                # Scoring Weights
+                - name: PERFORMANCE_WEIGHT
+                  value: {{ .Values.strategyConfidenceScorer.config.performanceWeight | quote }}
+                - name: FREQUENCY_WEIGHT
+                  value: {{ .Values.strategyConfidenceScorer.config.frequencyWeight | quote }}
+                - name: RECENCY_WEIGHT
+                  value: {{ .Values.strategyConfidenceScorer.config.recencyWeight | quote }}
+              args:
+                - "--postgres_host=$(POSTGRES_HOST)"
+                - "--postgres_port=$(POSTGRES_PORT)"
+                - "--postgres_database=$(POSTGRES_DATABASE)"
+                - "--postgres_username=$(POSTGRES_USERNAME)"
+                - "--postgres_password=$(POSTGRES_PASSWORD)"
+                - "--performance_weight=$(PERFORMANCE_WEIGHT)"
+                - "--frequency_weight=$(FREQUENCY_WEIGHT)"
+                - "--recency_weight=$(RECENCY_WEIGHT)"
+              resources:
+                requests:
+                  cpu: "{{ .Values.strategyConfidenceScorer.resources.requests.cpu }}"
+                  memory: "{{ .Values.strategyConfidenceScorer.resources.requests.memory }}"
+                limits:
+                  cpu: "{{ .Values.strategyConfidenceScorer.resources.limits.cpu }}"
+                  memory: "{{ .Values.strategyConfidenceScorer.resources.limits.memory }}"
+{{- end }}
