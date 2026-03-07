@@ -11,20 +11,20 @@ indicators:
       sumPeriod: "${sumPeriod}"
 
 entryConditions:
-  - type: CROSSED_DOWN_CONSTANT
+  - type: CROSSED_DOWN
     indicator: massIndex
     params:
-      threshold: 26.5
+      value: 26.5
 
 exitConditions:
-  - type: CROSSED_UP_CONSTANT
+  - type: CROSSED_UP
     indicator: massIndex
     params:
-      threshold: 27
-  - type: CROSSED_DOWN_CONSTANT
+      value: 27
+  - type: CROSSED_DOWN
     indicator: massIndex
     params:
-      threshold: 25
+      value: 25
 
 parameters:
   - name: emaPeriod

@@ -19,6 +19,7 @@ java_library(
     srcs = [
         "IndicatorFactory.java",
         "IndicatorRegistry.java",
+        "MassIndexIndicator.java",
         "PreviousValueIndicator.java",
     ],
     deps = [
