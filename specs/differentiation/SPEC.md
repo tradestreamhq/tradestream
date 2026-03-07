@@ -12,30 +12,31 @@ Define what makes TradeStream's agent dashboard uniquely valuable compared to co
 
 ### TradeStream vs. Generic AI Trading Bots
 
-| Feature | TradeStream | Clawdbot/OpenClaw | Generic LLM Bots |
-|---------|-------------|-------------------|------------------|
-| **Strategy Library** | 40M+ backtested strategies* | None observed | None |
-| **Strategy Discovery** | Genetic algorithm evolution | Manual/LLM opinion | LLM opinion only |
-| **Signal Backing** | Proven strategy consensus | LLM reasoning | LLM reasoning |
-| **Opportunity Scoring** | Multi-factor quantitative | None observed | None |
-| **Strategy Transparency** | Full parameter visibility | Limited visibility | Black box |
-| **Historical Validation** | Forward-tested track record | None observed | None |
-| **MCP Architecture** | Modular, extensible | Monolithic | Varies |
+| Feature                   | TradeStream                  | Clawdbot/OpenClaw  | Generic LLM Bots |
+| ------------------------- | ---------------------------- | ------------------ | ---------------- |
+| **Strategy Library**      | 40M+ backtested strategies\* | None observed      | None             |
+| **Strategy Discovery**    | Genetic algorithm evolution  | Manual/LLM opinion | LLM opinion only |
+| **Signal Backing**        | Proven strategy consensus    | LLM reasoning      | LLM reasoning    |
+| **Opportunity Scoring**   | Multi-factor quantitative    | None observed      | None             |
+| **Strategy Transparency** | Full parameter visibility    | Limited visibility | Black box        |
+| **Historical Validation** | Forward-tested track record  | None observed      | None             |
+| **MCP Architecture**      | Modular, extensible          | Monolithic         | Varies           |
 
-*See "Strategy Count Methodology" section below for detailed breakdown.
+\*See "Strategy Count Methodology" section below for detailed breakdown.
 
 ## Strategy Count Methodology
 
 The "40M+ strategies" claim requires context for accurate representation:
 
-| Category | Count | Description |
-|----------|-------|-------------|
-| **Distinct Strategy Types** | 70+ | Unique algorithmic approaches (RSI, MACD, Bollinger, etc.) |
-| **Parameter Variations** | ~500K per type | Different parameter combinations per strategy type |
-| **Symbol Coverage** | 80+ | Trading pairs across crypto, forex, equities |
-| **Total Configurations** | 40M+ | Strategy type x parameters x symbols |
+| Category                    | Count          | Description                                                |
+| --------------------------- | -------------- | ---------------------------------------------------------- |
+| **Distinct Strategy Types** | 70+            | Unique algorithmic approaches (RSI, MACD, Bollinger, etc.) |
+| **Parameter Variations**    | ~500K per type | Different parameter combinations per strategy type         |
+| **Symbol Coverage**         | 80+            | Trading pairs across crypto, forex, equities               |
+| **Total Configurations**    | 40M+           | Strategy type x parameters x symbols                       |
 
 **Clarification for marketing**: When citing "40M strategies," messaging should clarify:
+
 - "40M+ strategy configurations tested" (most accurate)
 - "70+ strategy types with millions of parameter variations" (clearer)
 - "Millions of backtested strategy instances" (consumer-friendly)
@@ -95,6 +96,7 @@ The "40M+ strategies" claim requires context for accurate representation:
 **What They Have**: Telegram, Discord, email alerts
 
 **How We Should Implement**:
+
 - Telegram bot with /signals command
 - Discord webhook for community channels
 - Slack integration for teams
@@ -107,6 +109,7 @@ The "40M+ strategies" claim requires context for accurate representation:
 **What They Have**: Natural language queries that generate custom views
 
 **How We Should Implement**:
+
 - "Show me ETH signals from momentum strategies"
 - "Compare RSI_REVERSAL vs MACD_CROSS performance"
 - AI generates custom views on demand
@@ -117,6 +120,7 @@ The "40M+ strategies" claim requires context for accurate representation:
 ### 3. Research Mode (new)
 
 **What To Build**:
+
 - Ad-hoc questions: "Why did RSI_REVERSAL trigger on BTC?"
 - Deep-dive into strategy performance history
 - Compare strategies side-by-side
@@ -127,6 +131,7 @@ The "40M+ strategies" claim requires context for accurate representation:
 ### 4. User Customization (from various)
 
 **What To Build**:
+
 - Define personal strategy filters
 - Set risk tolerance (conservative/moderate/aggressive)
 - Choose symbols to follow
@@ -146,12 +151,12 @@ The "40M+ strategies" claim requires context for accurate representation:
 
 ### Key Messages
 
-| Audience | Pain Point | Our Solution |
-|----------|------------|--------------|
-| Active Traders | "I don't trust AI signals" | "See exactly which strategies triggered and their track record" |
-| Quant-Curious | "I can't build my own strategies" | "40M strategies already discovered and tested" |
-| Risk-Averse | "How do I know this will work?" | "Forward-tested validation with confidence intervals" |
-| Busy Professionals | "I don't have time to analyze" | "Opportunity scores surface the best signals first" |
+| Audience           | Pain Point                        | Our Solution                                                    |
+| ------------------ | --------------------------------- | --------------------------------------------------------------- |
+| Active Traders     | "I don't trust AI signals"        | "See exactly which strategies triggered and their track record" |
+| Quant-Curious      | "I can't build my own strategies" | "40M strategies already discovered and tested"                  |
+| Risk-Averse        | "How do I know this will work?"   | "Forward-tested validation with confidence intervals"           |
+| Busy Professionals | "I don't have time to analyze"    | "Opportunity scores surface the best signals first"             |
 
 ### Feature Comparison Table (for landing page)
 
@@ -204,21 +209,25 @@ The "40M+ strategies" claim requires context for accurate representation:
 ## Roadmap for Differentiation
 
 ### Phase 1: Foundation (Current)
+
 - Strategy-backed signals with transparency
 - Opportunity scoring
 - Basic dashboard
 
 ### Phase 2: Trust Building
+
 - Forward-test metrics prominent
 - Strategy track records visible
 - Confidence intervals on all predictions
 
 ### Phase 3: Engagement
+
 - Multi-channel delivery
 - Research mode
 - User customization
 
 ### Phase 4: Growth
+
 - Strategy marketplace (users share strategies)
 - Leaderboards
 - Social proof (aggregated user performance)
@@ -246,23 +255,26 @@ The "40M+ strategies" claim requires context for accurate representation:
 All marketing materials and user-facing communications should include appropriate disclaimers:
 
 **Standard Disclaimer** (for website, landing pages, emails):
+
 > "TradeStream provides trading signals for informational purposes only. Past performance does not guarantee future results. Trading involves substantial risk of loss and is not suitable for all investors. Always do your own research before making investment decisions."
 
 **Signal-Level Disclaimer** (for individual signals):
+
 > "This signal is based on historical strategy performance. Actual results may vary. Not financial advice."
 
 **Accuracy Claims Disclaimer**:
+
 > "Reported accuracy metrics are based on backtested and forward-tested data. Future accuracy may differ due to changing market conditions."
 
 ### Language Guidelines
 
-| Avoid | Use Instead |
-|-------|-------------|
-| "Guaranteed returns" | "Historical performance of X%" |
-| "Risk-free" | "Validated across multiple market conditions" |
-| "Always profitable" | "X% accuracy over Y signals" |
-| "You will make money" | "Strategy has shown X% accuracy" |
-| "Can't lose" | "Includes confidence intervals" |
+| Avoid                 | Use Instead                                   |
+| --------------------- | --------------------------------------------- |
+| "Guaranteed returns"  | "Historical performance of X%"                |
+| "Risk-free"           | "Validated across multiple market conditions" |
+| "Always profitable"   | "X% accuracy over Y signals"                  |
+| "You will make money" | "Strategy has shown X% accuracy"              |
+| "Can't lose"          | "Includes confidence intervals"               |
 
 ### Regulatory Awareness
 
@@ -274,6 +286,7 @@ All marketing materials and user-facing communications should include appropriat
 ### Review Checklist
 
 Before publishing any marketing content, verify:
+
 - [ ] Contains appropriate disclaimer for content type
 - [ ] Avoids prohibited language (guarantees, certainties)
 - [ ] Accuracy claims include time period and sample size
@@ -282,9 +295,9 @@ Before publishing any marketing content, verify:
 
 ## Success Metrics
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| User Trust | >80% | Survey: "I trust TradeStream's signals" |
-| Strategy Drill-Down | >30% | % of users who expand signal details |
-| Feature Recognition | >70% | Users who cite strategies as differentiator |
-| Retention | >60% | 30-day retention for active users |
+| Metric              | Target | Measurement                                 |
+| ------------------- | ------ | ------------------------------------------- |
+| User Trust          | >80%   | Survey: "I trust TradeStream's signals"     |
+| Strategy Drill-Down | >30%   | % of users who expand signal details        |
+| Feature Recognition | >70%   | Users who cite strategies as differentiator |
+| Retention           | >60%   | 30-day retention for active users           |

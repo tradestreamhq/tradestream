@@ -6,14 +6,14 @@ Deliver trading signals to users wherever they are—web, Telegram, Discord, Sla
 
 ## Channels Overview
 
-| Channel | Use Case | Implementation | Priority |
-|---------|----------|----------------|----------|
-| **Web Dashboard** | Primary interface, full reasoning | React app | P0 |
-| **Telegram Bot** | Mobile alerts, quick commands | python-telegram-bot | P1 |
-| **Discord Webhook** | Community/team alerts | Discord webhook API | P1 |
-| **Slack** | Enterprise team integration | Slack Bolt SDK | P2 |
-| **Push (PWA)** | Mobile web notifications | Web Push API | P2 |
-| **Email Digest** | Daily/weekly summaries | SendGrid | P3 |
+| Channel             | Use Case                          | Implementation      | Priority |
+| ------------------- | --------------------------------- | ------------------- | -------- |
+| **Web Dashboard**   | Primary interface, full reasoning | React app           | P0       |
+| **Telegram Bot**    | Mobile alerts, quick commands     | python-telegram-bot | P1       |
+| **Discord Webhook** | Community/team alerts             | Discord webhook API | P1       |
+| **Slack**           | Enterprise team integration       | Slack Bolt SDK      | P2       |
+| **Push (PWA)**      | Mobile web notifications          | Web Push API        | P2       |
+| **Email Digest**    | Daily/weekly summaries            | SendGrid            | P3       |
 
 ## Architecture
 
@@ -72,11 +72,11 @@ Each signal delivery is tracked by a composite key of `signal_id + user_id`. Whe
 
 ### User Preference Options
 
-| Option | Behavior |
-|--------|----------|
-| `primary_only` | Send to primary channel only (default) |
-| `all_enabled` | Send to all enabled channels (opt-in for power users) |
-| `fallback_chain` | Try primary, fallback to next if failed |
+| Option           | Behavior                                              |
+| ---------------- | ----------------------------------------------------- |
+| `primary_only`   | Send to primary channel only (default)                |
+| `all_enabled`    | Send to all enabled channels (opt-in for power users) |
+| `fallback_chain` | Try primary, fallback to next if failed               |
 
 ### Implementation
 
@@ -216,14 +216,14 @@ Top Strategy: {t.top_strategy_name}
 
 Failed deliveries are retried with exponential backoff before moving to the dead letter queue.
 
-| Attempt | Delay | Cumulative Time |
-|---------|-------|-----------------|
-| 1 | Immediate | 0s |
-| 2 | 1s | 1s |
-| 3 | 2s | 3s |
-| 4 | 4s | 7s |
-| 5 | 8s | 15s |
-| 6 (final) | 16s | 31s |
+| Attempt   | Delay     | Cumulative Time |
+| --------- | --------- | --------------- |
+| 1         | Immediate | 0s              |
+| 2         | 1s        | 1s              |
+| 3         | 2s        | 3s              |
+| 4         | 4s        | 7s              |
+| 5         | 8s        | 15s             |
+| 6 (final) | 16s       | 31s             |
 
 ### Retry Implementation
 
@@ -582,17 +582,17 @@ GET  /api/admin/deliveries/metrics           # System-wide delivery metrics
 
 ### Features
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `/start` | Welcome and setup | Registration flow |
-| `/signals` | Latest signals | Last 5 signals |
-| `/signals ETH` | Symbol filter | ETH signals only |
-| `/signals --hot` | Hot opportunities | Score > 80 only |
-| `/ask <question>` | Research mode | "/ask Why did RSI trigger?" |
-| `/follow BTC ETH` | Set watchlist | Subscribe to symbols |
-| `/unfollow SOL` | Remove from watchlist | Unsubscribe |
-| `/settings` | Configure alerts | Preferences menu |
-| `/help` | Command reference | All commands |
+| Command           | Description           | Example                     |
+| ----------------- | --------------------- | --------------------------- |
+| `/start`          | Welcome and setup     | Registration flow           |
+| `/signals`        | Latest signals        | Last 5 signals              |
+| `/signals ETH`    | Symbol filter         | ETH signals only            |
+| `/signals --hot`  | Hot opportunities     | Score > 80 only             |
+| `/ask <question>` | Research mode         | "/ask Why did RSI trigger?" |
+| `/follow BTC ETH` | Set watchlist         | Subscribe to symbols        |
+| `/unfollow SOL`   | Remove from watchlist | Unsubscribe                 |
+| `/settings`       | Configure alerts      | Preferences menu            |
+| `/help`           | Command reference     | All commands                |
 
 ### Alert Format
 
@@ -873,12 +873,12 @@ class SlackBot:
 // ui/agent-dashboard/src/lib/push-notifications.ts
 
 export async function requestNotificationPermission(): Promise<boolean> {
-  if (!('Notification' in window)) {
+  if (!("Notification" in window)) {
     return false;
   }
 
   const permission = await Notification.requestPermission();
-  return permission === 'granted';
+  return permission === "granted";
 }
 
 export async function subscribeToPush(): Promise<PushSubscription | null> {
@@ -886,40 +886,40 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
 
   const subscription = await registration.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+    applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
   });
 
   // Send subscription to backend
-  await fetch('/api/push/subscribe', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(subscription)
+  await fetch("/api/push/subscribe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(subscription),
   });
 
   return subscription;
 }
 
 // Service Worker
-self.addEventListener('push', (event) => {
+self.addEventListener("push", (event) => {
   const data = event.data?.json();
 
   const options = {
     body: `${data.action} ${data.symbol} - Score: ${data.opportunity_score}`,
-    icon: '/icon-192.png',
-    badge: '/badge-72.png',
+    icon: "/icon-192.png",
+    badge: "/badge-72.png",
     tag: data.signal_id,
     data: { url: `/signal/${data.signal_id}` },
     actions: [
-      { action: 'view', title: 'View Details' },
-      { action: 'dismiss', title: 'Dismiss' }
-    ]
+      { action: "view", title: "View Details" },
+      { action: "dismiss", title: "Dismiss" },
+    ],
   };
 
   event.waitUntil(
     self.registration.showNotification(
       `${data.opportunity_tier} Opportunity`,
-      options
-    )
+      options,
+    ),
   );
 });
 ```
@@ -930,22 +930,22 @@ self.addEventListener('push', (event) => {
 
 ### Per-User Limits
 
-| Channel | Default Limit | Window | Power User Limit |
-|---------|---------------|--------|------------------|
-| Telegram | 1 per symbol | 5 minutes | 1 per symbol / 2 min |
-| Discord | 1 per symbol | 5 minutes | 1 per symbol / 2 min |
-| Slack | 1 per symbol | 5 minutes | 1 per symbol / 2 min |
-| Push | 10 total | 1 hour | 30 total / 1 hour |
+| Channel  | Default Limit | Window    | Power User Limit     |
+| -------- | ------------- | --------- | -------------------- |
+| Telegram | 1 per symbol  | 5 minutes | 1 per symbol / 2 min |
+| Discord  | 1 per symbol  | 5 minutes | 1 per symbol / 2 min |
+| Slack    | 1 per symbol  | 5 minutes | 1 per symbol / 2 min |
+| Push     | 10 total      | 1 hour    | 30 total / 1 hour    |
 
 **Note:** Push notification limit increased from 5/hour to 10/hour default, with 30/hour for power users. This ensures high-priority HOT opportunities are not missed while still preventing notification fatigue.
 
 ### User Tier Configuration
 
-| Tier | Description | Rate Limit Multiplier |
-|------|-------------|----------------------|
-| `free` | Default tier | 1x (standard limits) |
-| `pro` | Paid subscribers | 2x limits |
-| `power` | High-volume traders | 3x limits |
+| Tier    | Description         | Rate Limit Multiplier |
+| ------- | ------------------- | --------------------- |
+| `free`  | Default tier        | 1x (standard limits)  |
+| `pro`   | Paid subscribers    | 2x limits             |
+| `power` | High-volume traders | 3x limits             |
 
 ### Implementation
 
@@ -1067,13 +1067,13 @@ delivery:
   dlq:
     enabled: true
     retention_days: 30
-    auto_discard_after_days: 7  # Auto-discard stale entries
+    auto_discard_after_days: 7 # Auto-discard stale entries
 
   # Cross-channel deduplication
   deduplication:
     enabled: true
-    ttl_seconds: 3600           # 1 hour dedup window
-    default_preference: "primary_only"  # primary_only, all_enabled, fallback_chain
+    ttl_seconds: 3600 # 1 hour dedup window
+    default_preference: "primary_only" # primary_only, all_enabled, fallback_chain
 
   # Delivery tracking
   tracking:
@@ -1101,7 +1101,7 @@ delivery:
     vapid_private_key: ${VAPID_PRIVATE_KEY}
     vapid_public_key: ${VAPID_PUBLIC_KEY}
     rate_limit:
-      per_hour: 10              # Increased from 5 for power users
+      per_hour: 10 # Increased from 5 for power users
       power_user_per_hour: 30
 
   email:
@@ -1125,6 +1125,7 @@ delivery:
 ## Acceptance Criteria
 
 ### Core Functionality
+
 - [ ] Telegram bot responds to /signals command
 - [ ] Discord webhook posts formatted alerts
 - [ ] Users can configure alert preferences
@@ -1134,6 +1135,7 @@ delivery:
 - [ ] All channels show consistent signal information (via template engine)
 
 ### Retry and Error Handling
+
 - [ ] Failed deliveries retry with exponential backoff
 - [ ] Retries stop after 6 attempts (~31 seconds)
 - [ ] Failed messages move to DLQ after retry exhaustion
@@ -1141,17 +1143,20 @@ delivery:
 - [ ] Permanent errors (invalid token, blocked user) skip retries
 
 ### Cross-Channel Deduplication
+
 - [ ] Same signal not sent to multiple channels by default
 - [ ] Users can opt-in to receive on all channels
 - [ ] Fallback chain mode tries next channel if primary fails
 
 ### Delivery Tracking
+
 - [ ] All deliveries create receipt records
 - [ ] Receipts track sent/delivered/read status
 - [ ] Users can view their delivery history
 - [ ] Admins can view system-wide delivery metrics
 
 ### Rate Limiting
+
 - [ ] Power users get higher rate limits (3x)
 - [ ] Push notifications allow 10/hour (30 for power users)
 - [ ] Per-symbol limits enforced across messaging channels

@@ -62,11 +62,11 @@ gh issue list --repo $REPO --label enhancement --state open \
 
 ### Priority Order
 
-| Priority         | Label              | Action         |
-| ---------------- | ------------------ | -------------- |
-| Critical         | `priority-critical`| Fix NOW        |
-| High             | `priority-high`    | Fix this cycle |
-| Enhancement      | `enhancement`      | Queue or close |
+| Priority    | Label               | Action         |
+| ----------- | ------------------- | -------------- |
+| Critical    | `priority-critical` | Fix NOW        |
+| High        | `priority-high`     | Fix this cycle |
+| Enhancement | `enhancement`       | Queue or close |
 
 ## Step 2: Claim the Issue
 
@@ -367,14 +367,14 @@ gh issue close 1234 --repo tradestreamhq/tradestream --reason completed
 
 ### TradeStream Project Structure
 
-| Directory       | Purpose                          |
-| --------------- | -------------------------------- |
-| `src/main/java` | Core Java implementation         |
-| `services/`     | Microservices                    |
-| `charts/`       | Helm deployment charts           |
-| `protos/`       | Protocol Buffer definitions      |
-| `platforms/`    | Platform configurations          |
-| `.github/`      | CI/CD workflows                  |
+| Directory       | Purpose                     |
+| --------------- | --------------------------- |
+| `src/main/java` | Core Java implementation    |
+| `services/`     | Microservices               |
+| `charts/`       | Helm deployment charts      |
+| `protos/`       | Protocol Buffer definitions |
+| `platforms/`    | Platform configurations     |
+| `.github/`      | CI/CD workflows             |
 
 ## Anti-Patterns
 

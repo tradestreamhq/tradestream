@@ -24,7 +24,9 @@ jobs:
 
     - name: Run coverage
       run: |
-        bazel coverage --combined_report=lcov //...
+        # Exclude container tests (requires-docker) as they need Docker daemon compatibility
+        # Container structure tests are tested separately in ci.yaml via minikube deployment
+        bazel coverage --combined_report=lcov --test_tag_filters=-requires-docker //...
 
     - name: Enforce 55% coverage threshold
       run: |

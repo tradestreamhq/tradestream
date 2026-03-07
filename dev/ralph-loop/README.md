@@ -84,21 +84,26 @@ VERBOSE=true              # Enable detailed logging
 ## Reliability Features
 
 ### Rate Limiting
+
 - Configurable calls per hour (default: 100)
 - Automatic hourly reset
 - Graceful waiting when limit reached
 
 ### Circuit Breaker
+
 - Detects repeated identical errors
 - Detects lack of progress (no commits/changes)
 - Automatically stops to prevent runaway costs
 
 ### Exit Detection (Dual-Condition Gate)
+
 Requires BOTH conditions to stop:
+
 1. Multiple completion indicators in output
 2. Explicit `EXIT_SIGNAL: true` from Claude
 
 ### Session Management
+
 - Context preserved across iterations via session IDs
 - Configurable session timeout
 

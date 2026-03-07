@@ -7,6 +7,7 @@ Background service that runs the OpenCode agent pipeline every 1 minute to gener
 ## Target Behavior
 
 The autonomous runner is a scheduled service that:
+
 1. Triggers Signal Generator for all active symbols every 1 minute
 2. Processes symbols in parallel using OpenCode's Task tool
 3. Coordinates the full agent pipeline (Signal -> Score -> Advise -> Report)
@@ -96,6 +97,7 @@ task_calls = [
 ### Subagent Invocation
 
 Each subagent runs the Signal Generator configuration:
+
 - Inherits MCP servers from parent config
 - Has 10-second timeout per symbol
 - Returns structured signal JSON
@@ -117,11 +119,11 @@ To prevent cascading failures when the LLM service or dependencies are degraded,
      +----------------------------------+-----------------------------+
 ```
 
-| State | Behavior |
-|-------|----------|
-| CLOSED | Normal operation, requests allowed |
-| OPEN | All requests rejected, waiting for recovery timeout |
-| HALF_OPEN | Limited test requests allowed to check recovery |
+| State     | Behavior                                            |
+| --------- | --------------------------------------------------- |
+| CLOSED    | Normal operation, requests allowed                  |
+| OPEN      | All requests rejected, waiting for recovery timeout |
+| HALF_OPEN | Limited test requests allowed to check recovery     |
 
 ### Circuit Breaker Implementation
 
@@ -443,13 +445,13 @@ async def process_symbol(symbol: str) -> Optional[Signal]:
 
 ### Overrun Scenarios
 
-| Scenario | Behavior |
-|----------|----------|
-| Previous run still active | Skip locked symbols, log warning |
-| Single slow symbol | Continue with others, timeout slow one |
-| All symbols slow | Partial results published, metrics alert |
-| Redis unavailable | Circuit breaker trips, skip cycle |
-| Process crash with held lock | Heartbeat expires, stale lock recovered |
+| Scenario                     | Behavior                                 |
+| ---------------------------- | ---------------------------------------- |
+| Previous run still active    | Skip locked symbols, log warning         |
+| Single slow symbol           | Continue with others, timeout slow one   |
+| All symbols slow             | Partial results published, metrics alert |
+| Redis unavailable            | Circuit breaker trips, skip cycle        |
+| Process crash with held lock | Heartbeat expires, stale lock recovered  |
 
 ## Adaptive Frequency Mechanisms
 
@@ -607,9 +609,9 @@ async def process_symbols_batched(symbols: list[str]) -> list[Signal]:
 
 ```yaml
 autonomous_runner:
-  schedule: "*/1 * * * *"  # Every minute
+  schedule: "*/1 * * * *" # Every minute
   timezone: "UTC"
-  instance_id: "${HOSTNAME:-runner-1}"  # Unique instance identifier
+  instance_id: "${HOSTNAME:-runner-1}" # Unique instance identifier
   symbols:
     - ETH/USD
     - BTC/USD
@@ -633,11 +635,11 @@ autonomous_runner:
     - FXS/USD
   parallel:
     max_concurrent: 10
-    min_concurrent: 3  # Minimum batch size during high latency
+    min_concurrent: 3 # Minimum batch size during high latency
     batch_delay_ms: 1000
   timeouts:
     symbol_timeout_seconds: 10
-    symbol_timeout_max_seconds: 15  # Extended timeout during high latency
+    symbol_timeout_max_seconds: 15 # Extended timeout during high latency
     total_timeout_seconds: 50
   locks:
     ttl_seconds: 90
@@ -1111,14 +1113,14 @@ groups:
 
 ### Alerting Thresholds Summary
 
-| Metric | Warning | Critical |
-|--------|---------|----------|
-| Cycle delay | > 2 minutes | > 5 minutes |
-| Skip rate | > 30% | > 50% |
-| Circuit breaker open | - | Any duration > 1m |
-| P95 latency | > 8000ms | > 12000ms |
-| Cycle failure rate | > 10% | > 20% |
-| Stale lock recovery | > 0.1/min | > 0.5/min |
+| Metric               | Warning     | Critical          |
+| -------------------- | ----------- | ----------------- |
+| Cycle delay          | > 2 minutes | > 5 minutes       |
+| Skip rate            | > 30%       | > 50%             |
+| Circuit breaker open | -           | Any duration > 1m |
+| P95 latency          | > 8000ms    | > 12000ms         |
+| Cycle failure rate   | > 10%       | > 20%             |
+| Stale lock recovery  | > 0.1/min   | > 0.5/min         |
 
 ## Deployment
 
@@ -1131,16 +1133,16 @@ metadata:
   name: signal-generator
 spec:
   schedule: "*/1 * * * *"
-  concurrencyPolicy: Forbid  # Don't run if previous still running
+  concurrencyPolicy: Forbid # Don't run if previous still running
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
-      activeDeadlineSeconds: 55  # Kill if takes too long
+      activeDeadlineSeconds: 55 # Kill if takes too long
       template:
         spec:
           restartPolicy: Never
-          terminationGracePeriodSeconds: 35  # Allow graceful shutdown
+          terminationGracePeriodSeconds: 35 # Allow graceful shutdown
           containers:
             - name: runner
               image: tradestream/autonomous-runner:latest
@@ -1187,7 +1189,7 @@ kind: Deployment
 metadata:
   name: autonomous-runner
 spec:
-  replicas: 1  # Single instance to avoid duplicate runs
+  replicas: 1 # Single instance to avoid duplicate runs
   selector:
     matchLabels:
       app: autonomous-runner

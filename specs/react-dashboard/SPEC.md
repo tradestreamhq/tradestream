@@ -100,13 +100,13 @@ Instead of importing the full D3 library, use only the required modules:
 
 ```tsx
 // Bad - imports entire D3 library (~500kb)
-import * as d3 from 'd3';
+import * as d3 from "d3";
 
 // Good - imports only needed modules (~50kb)
-import { arc, pie } from 'd3-shape';
-import { scaleLinear } from 'd3-scale';
-import { select } from 'd3-selection';
-import { interpolate } from 'd3-interpolate';
+import { arc, pie } from "d3-shape";
+import { scaleLinear } from "d3-scale";
+import { select } from "d3-selection";
+import { interpolate } from "d3-interpolate";
 ```
 
 ### Lazy Loading for Heavy Components
@@ -115,13 +115,13 @@ The ConfidenceGauge component uses D3.js and should be lazy-loaded:
 
 ```tsx
 // Lazy load D3-dependent components
-const ConfidenceGauge = lazy(() => import('./components/ConfidenceGauge'));
-const ReasoningPanel = lazy(() => import('./components/ReasoningPanel'));
+const ConfidenceGauge = lazy(() => import("./components/ConfidenceGauge"));
+const ReasoningPanel = lazy(() => import("./components/ReasoningPanel"));
 
 // Usage with Suspense
 <Suspense fallback={<GaugeSkeleton />}>
   <ConfidenceGauge value={signal.confidence} />
-</Suspense>
+</Suspense>;
 ```
 
 ### Code Splitting Strategy
@@ -146,7 +146,7 @@ rollupOptions: {
 
 ```tsx
 // src/components/ErrorBoundary/ErrorBoundary.tsx
-import { Component, ReactNode } from 'react';
+import { Component, ReactNode } from "react";
 
 interface Props {
   children: ReactNode;
@@ -166,25 +166,29 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Dashboard error:', error, errorInfo);
+    console.error("Dashboard error:", error, errorInfo);
     // Future: send to error tracking service
   }
 
   render() {
     if (this.state.hasError) {
-      return this.props.fallback || (
-        <div className="p-4 bg-destructive/10 border border-destructive rounded-lg">
-          <h2 className="text-lg font-semibold text-destructive">Something went wrong</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            {this.state.error?.message || 'An unexpected error occurred'}
-          </p>
-          <button
-            onClick={() => this.setState({ hasError: false, error: null })}
-            className="mt-2 text-sm underline"
-          >
-            Try again
-          </button>
-        </div>
+      return (
+        this.props.fallback || (
+          <div className="p-4 bg-destructive/10 border border-destructive rounded-lg">
+            <h2 className="text-lg font-semibold text-destructive">
+              Something went wrong
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {this.state.error?.message || "An unexpected error occurred"}
+            </p>
+            <button
+              onClick={() => this.setState({ hasError: false, error: null })}
+              className="mt-2 text-sm underline"
+            >
+              Try again
+            </button>
+          </div>
+        )
       );
     }
     return this.props.children;
@@ -197,9 +201,7 @@ export class ErrorBoundary extends Component<Props, State> {
 ```tsx
 // src/components/ui/skeleton.tsx
 export function Skeleton({ className }: { className?: string }) {
-  return (
-    <div className={cn('animate-pulse bg-muted rounded', className)} />
-  );
+  return <div className={cn("animate-pulse bg-muted rounded", className)} />;
 }
 
 // Signal card skeleton for loading states
@@ -240,11 +242,11 @@ State is organized into three tiers:
 
 ```tsx
 // src/context/DashboardContext.tsx
-import { createContext, useContext, useReducer, ReactNode } from 'react';
+import { createContext, useContext, useReducer, ReactNode } from "react";
 
 interface FilterState {
   symbols: string[];
-  actions: ('BUY' | 'SELL' | 'HOLD')[];
+  actions: ("BUY" | "SELL" | "HOLD")[];
   minConfidence: number;
 }
 
@@ -252,31 +254,41 @@ interface DashboardState {
   filters: FilterState;
   selectedSignalId: string | null;
   isReasoningPanelOpen: boolean;
-  connectionStatus: 'connected' | 'disconnected' | 'reconnecting';
+  connectionStatus: "connected" | "disconnected" | "reconnecting";
 }
 
 type DashboardAction =
-  | { type: 'SET_FILTERS'; payload: Partial<FilterState> }
-  | { type: 'SELECT_SIGNAL'; payload: string | null }
-  | { type: 'TOGGLE_REASONING_PANEL' }
-  | { type: 'SET_CONNECTION_STATUS'; payload: DashboardState['connectionStatus'] };
+  | { type: "SET_FILTERS"; payload: Partial<FilterState> }
+  | { type: "SELECT_SIGNAL"; payload: string | null }
+  | { type: "TOGGLE_REASONING_PANEL" }
+  | {
+      type: "SET_CONNECTION_STATUS";
+      payload: DashboardState["connectionStatus"];
+    };
 
 const initialState: DashboardState = {
   filters: { symbols: [], actions: [], minConfidence: 0 },
   selectedSignalId: null,
   isReasoningPanelOpen: false,
-  connectionStatus: 'disconnected',
+  connectionStatus: "disconnected",
 };
 
-function dashboardReducer(state: DashboardState, action: DashboardAction): DashboardState {
+function dashboardReducer(
+  state: DashboardState,
+  action: DashboardAction,
+): DashboardState {
   switch (action.type) {
-    case 'SET_FILTERS':
+    case "SET_FILTERS":
       return { ...state, filters: { ...state.filters, ...action.payload } };
-    case 'SELECT_SIGNAL':
-      return { ...state, selectedSignalId: action.payload, isReasoningPanelOpen: true };
-    case 'TOGGLE_REASONING_PANEL':
+    case "SELECT_SIGNAL":
+      return {
+        ...state,
+        selectedSignalId: action.payload,
+        isReasoningPanelOpen: true,
+      };
+    case "TOGGLE_REASONING_PANEL":
       return { ...state, isReasoningPanelOpen: !state.isReasoningPanelOpen };
-    case 'SET_CONNECTION_STATUS':
+    case "SET_CONNECTION_STATUS":
       return { ...state, connectionStatus: action.payload };
     default:
       return state;
@@ -300,7 +312,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 export function useDashboard() {
   const context = useContext(DashboardContext);
   if (!context) {
-    throw new Error('useDashboard must be used within DashboardProvider');
+    throw new Error("useDashboard must be used within DashboardProvider");
   }
   return context;
 }
@@ -308,12 +320,12 @@ export function useDashboard() {
 
 ### When to Use Each Pattern
 
-| State Type | Pattern | Examples |
-|------------|---------|----------|
-| API data | React Query | Signals, historical data, user preferences |
-| Cross-component UI | Context + useReducer | Filters, selected signal, panel visibility |
-| Single component | useState | Input values, local toggles, hover states |
-| Complex local logic | useReducer | Multi-step forms, complex interactions |
+| State Type          | Pattern              | Examples                                   |
+| ------------------- | -------------------- | ------------------------------------------ |
+| API data            | React Query          | Signals, historical data, user preferences |
+| Cross-component UI  | Context + useReducer | Filters, selected signal, panel visibility |
+| Single component    | useState             | Input values, local toggles, hover states  |
+| Complex local logic | useReducer           | Multi-step forms, complex interactions     |
 
 ## Testing Strategy
 
@@ -323,21 +335,21 @@ Unit tests for individual components, hooks, and utilities:
 
 ```tsx
 // __tests__/unit/hooks/useAgentStream.test.ts
-import { renderHook, act } from '@testing-library/react';
-import { useAgentStream } from '@/hooks/useAgentStream';
+import { renderHook, act } from "@testing-library/react";
+import { useAgentStream } from "@/hooks/useAgentStream";
 
-describe('useAgentStream', () => {
-  it('initializes with disconnected state', () => {
+describe("useAgentStream", () => {
+  it("initializes with disconnected state", () => {
     const { result } = renderHook(() => useAgentStream());
     expect(result.current.isConnected).toBe(false);
     expect(result.current.signals).toEqual([]);
   });
 
-  it('handles incoming signals', async () => {
+  it("handles incoming signals", async () => {
     // Mock EventSource and test signal handling
   });
 
-  it('auto-reconnects on connection loss', async () => {
+  it("auto-reconnects on connection loss", async () => {
     // Test reconnection logic
   });
 });
@@ -349,17 +361,17 @@ Test component interactions and data flow:
 
 ```tsx
 // __tests__/integration/SignalStream.test.tsx
-import { render, screen, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DashboardProvider } from '@/context/DashboardContext';
-import { SignalStream } from '@/components/SignalStream';
+import { render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { DashboardProvider } from "@/context/DashboardContext";
+import { SignalStream } from "@/components/SignalStream";
 
-describe('SignalStream integration', () => {
-  it('renders signals and allows selection', async () => {
+describe("SignalStream integration", () => {
+  it("renders signals and allows selection", async () => {
     // Test full signal stream with context and query providers
   });
 
-  it('filters signals based on dashboard context', async () => {
+  it("filters signals based on dashboard context", async () => {
     // Test filter integration
   });
 });
@@ -371,26 +383,26 @@ Full user journey tests:
 
 ```ts
 // __tests__/e2e/dashboard.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Dashboard E2E', () => {
-  test('displays live signals from SSE stream', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.getByRole('main')).toBeVisible();
+test.describe("Dashboard E2E", () => {
+  test("displays live signals from SSE stream", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("main")).toBeVisible();
     // Wait for SSE connection indicator
-    await expect(page.getByTestId('connection-status')).toHaveText('Connected');
+    await expect(page.getByTestId("connection-status")).toHaveText("Connected");
   });
 
-  test('opens reasoning panel on signal click', async ({ page }) => {
-    await page.goto('/');
-    await page.getByTestId('signal-card').first().click();
-    await expect(page.getByTestId('reasoning-panel')).toBeVisible();
+  test("opens reasoning panel on signal click", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("signal-card").first().click();
+    await expect(page.getByTestId("reasoning-panel")).toBeVisible();
   });
 
-  test('filters signals by symbol', async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('combobox', { name: /symbol/i }).click();
-    await page.getByRole('option', { name: 'BTCUSDT' }).click();
+  test("filters signals by symbol", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("combobox", { name: /symbol/i }).click();
+    await page.getByRole("option", { name: "BTCUSDT" }).click();
     // Verify filtered results
   });
 });
@@ -400,24 +412,24 @@ test.describe('Dashboard E2E', () => {
 
 ```ts
 // vitest.config.ts
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
-import path from 'path';
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', 'src/test/'],
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      exclude: ["node_modules/", "src/test/"],
     },
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 });
@@ -456,7 +468,7 @@ The dashboard must meet WCAG 2.1 Level AA standards:
   role="article"
   tabIndex={0}
   aria-label={`${signal.symbol} ${signal.action} signal with ${signal.confidence}% confidence`}
-  onKeyDown={(e) => e.key === 'Enter' && onSelect(signal)}
+  onKeyDown={(e) => e.key === "Enter" && onSelect(signal)}
   className="focus:ring-2 focus:ring-primary focus:outline-none"
 >
   {/* Card content */}
@@ -471,13 +483,9 @@ The dashboard must meet WCAG 2.1 Level AA standards:
 
 ```tsx
 // Real-time signal announcements
-<div
-  role="status"
-  aria-live="polite"
-  aria-atomic="false"
-  className="sr-only"
->
-  {latestSignal && `New ${latestSignal.action} signal for ${latestSignal.symbol}`}
+<div role="status" aria-live="polite" aria-atomic="false" className="sr-only">
+  {latestSignal &&
+    `New ${latestSignal.action} signal for ${latestSignal.symbol}`}
 </div>
 ```
 
@@ -505,7 +513,7 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
 
 ```tsx
 // Focus trap for reasoning panel
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 export function ReasoningPanel({ isOpen, onClose }) {
   const panelRef = useFocusTrap(isOpen);
@@ -531,11 +539,11 @@ export function ReasoningPanel({ isOpen, onClose }) {
 
 ```ts
 // Playwright accessibility test
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
-test('dashboard has no accessibility violations', async ({ page }) => {
-  await page.goto('/');
+test("dashboard has no accessibility violations", async ({ page }) => {
+  await page.goto("/");
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
 });
@@ -546,19 +554,19 @@ test('dashboard has no accessibility violations', async ({ page }) => {
 ### App.tsx - Main Application
 
 ```tsx
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Suspense, lazy } from 'react';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { DashboardProvider } from './context/DashboardContext';
-import { SignalStream } from './components/SignalStream';
-import { ChatInput } from './components/ChatInput';
-import { FilterBar } from './components/FilterBar';
-import { Header } from './components/Layout/Header';
-import { SignalCardSkeleton } from './components/ui/skeleton';
-import { useAgentStream } from './hooks/useAgentStream';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Suspense, lazy } from "react";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { DashboardProvider } from "./context/DashboardContext";
+import { SignalStream } from "./components/SignalStream";
+import { ChatInput } from "./components/ChatInput";
+import { FilterBar } from "./components/FilterBar";
+import { Header } from "./components/Layout/Header";
+import { SignalCardSkeleton } from "./components/ui/skeleton";
+import { useAgentStream } from "./hooks/useAgentStream";
 
 // Lazy load heavy components
-const ReasoningPanel = lazy(() => import('./components/ReasoningPanel'));
+const ReasoningPanel = lazy(() => import("./components/ReasoningPanel"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -578,7 +586,9 @@ function DashboardContent() {
       <main className="container mx-auto p-4" role="main">
         <ChatInput />
         <FilterBar />
-        <ErrorBoundary fallback={<div role="alert">Failed to load signals</div>}>
+        <ErrorBoundary
+          fallback={<div role="alert">Failed to load signals</div>}
+        >
           <Suspense fallback={<SignalCardSkeleton />}>
             <SignalStream signals={signals} />
           </Suspense>
@@ -609,8 +619,8 @@ export function App() {
 ### useAgentStream Hook
 
 ```tsx
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Signal, AgentEvent } from '../api/types';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Signal, AgentEvent } from "../api/types";
 
 interface UseAgentStreamResult {
   signals: Signal[];
@@ -638,24 +648,24 @@ export function useAgentStream(): UseAgentStreamResult {
       setError(null);
     };
 
-    eventSource.addEventListener('signal', (e) => {
+    eventSource.addEventListener("signal", (e) => {
       const signal = JSON.parse(e.data) as Signal;
       setSignals((prev) => [signal, ...prev].slice(0, 100));
     });
 
-    eventSource.addEventListener('reasoning', (e) => {
+    eventSource.addEventListener("reasoning", (e) => {
       const event = JSON.parse(e.data) as AgentEvent;
       setEvents((prev) => [...prev, event]);
     });
 
-    eventSource.addEventListener('tool_call', (e) => {
+    eventSource.addEventListener("tool_call", (e) => {
       const event = JSON.parse(e.data) as AgentEvent;
       setEvents((prev) => [...prev, event]);
     });
 
     eventSource.onerror = () => {
       setIsConnected(false);
-      setError(new Error('Connection lost'));
+      setError(new Error("Connection lost"));
       eventSource.close();
 
       // Auto-reconnect after 3 seconds
@@ -689,10 +699,10 @@ export function useAgentStream(): UseAgentStreamResult {
 export interface Signal {
   signal_id: string;
   symbol: string;
-  action: 'BUY' | 'SELL' | 'HOLD';
+  action: "BUY" | "SELL" | "HOLD";
   confidence: number;
   opportunity_score: number;
-  opportunity_tier: 'HOT' | 'GOOD' | 'NEUTRAL' | 'LOW';
+  opportunity_tier: "HOT" | "GOOD" | "NEUTRAL" | "LOW";
   opportunity_factors: OpportunityFactors;
   strategies_analyzed: number;
   strategies_bullish: number;
@@ -733,11 +743,11 @@ export interface MarketContext {
 }
 
 export type AgentEvent =
-  | { type: 'signal'; data: Signal }
-  | { type: 'reasoning'; data: ReasoningStep }
-  | { type: 'tool_call'; data: ToolCallEvent }
-  | { type: 'tool_result'; data: ToolResultEvent }
-  | { type: 'error'; data: ErrorEvent };
+  | { type: "signal"; data: Signal }
+  | { type: "reasoning"; data: ReasoningStep }
+  | { type: "tool_call"; data: ToolCallEvent }
+  | { type: "tool_result"; data: ToolResultEvent }
+  | { type: "error"; data: ErrorEvent };
 
 export interface ReasoningStep {
   signal_id: string;
@@ -767,35 +777,40 @@ export interface ToolResultEvent {
 ### vite.config.ts
 
 ```ts
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import path from 'path';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   server: {
     port: 3000,
     proxy: {
-      '/api': {
-        target: 'http://localhost:8081',
+      "/api": {
+        target: "http://localhost:8081",
         changeOrigin: true,
       },
     },
   },
   build: {
-    outDir: 'dist',
+    outDir: "dist",
     sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'query': ['@tanstack/react-query'],
-          'd3-charts': ['d3-shape', 'd3-scale', 'd3-selection', 'd3-interpolate'],
+          "react-vendor": ["react", "react-dom"],
+          query: ["@tanstack/react-query"],
+          "d3-charts": [
+            "d3-shape",
+            "d3-scale",
+            "d3-selection",
+            "d3-interpolate",
+          ],
         },
       },
     },
@@ -808,22 +823,22 @@ export default defineConfig({
 ```js
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: 'class',
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: "class",
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        primary: 'hsl(var(--primary))',
-        secondary: 'hsl(var(--secondary))',
-        accent: 'hsl(var(--accent))',
-        muted: 'hsl(var(--muted))',
-        destructive: 'hsl(var(--destructive))',
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: "hsl(var(--primary))",
+        secondary: "hsl(var(--secondary))",
+        accent: "hsl(var(--accent))",
+        muted: "hsl(var(--muted))",
+        destructive: "hsl(var(--destructive))",
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require("tailwindcss-animate")],
 };
 ```
 
