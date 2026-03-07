@@ -5,8 +5,8 @@ version: 0.1.0
 appVersion: "3.0.0"
 dependencies:
   - name: flink-kubernetes-operator
-    version: 1.10.0
-    repository: "https://downloads.apache.org/flink/flink-kubernetes-operator-1.10.0/"
+    version: 1.14.0
+    repository: "https://downloads.apache.org/flink/flink-kubernetes-operator-1.14.0/"
     condition: flink-kubernetes-operator.enabled
   - name: kafka
     version: 32.4.3

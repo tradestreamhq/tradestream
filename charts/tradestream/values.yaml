@@ -465,3 +465,78 @@ strategyMonitorUi:
     limits:
       cpu: "200m"
       memory: "256Mi"
+
+# Strategy Confidence Scorer CronJob configuration
+strategyConfidenceScorer:
+  enabled: true
+  schedule: "*/5 * * * *"
+  startingDeadlineSeconds: 300
+  image:
+    repository: "tradestreamhq/strategy-confidence-scorer"
+    pullPolicy: IfNotPresent
+    tag: "v2.45.97-develop"
+  concurrencyPolicy: "Forbid"
+  failedJobsHistoryLimit: 2
+  successfulJobsHistoryLimit: 3
+  job:
+    backoffLimit: 2
+    ttlSecondsAfterFinished: 3600
+    restartPolicy: "OnFailure"
+  config:
+    performanceWeight: 0.6
+    frequencyWeight: 0.25
+    recencyWeight: 0.15
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# Risk-Adjusted Sizing CronJob configuration
+riskAdjustedSizing:
+  enabled: true
+  schedule: "*/5 * * * *"
+  startingDeadlineSeconds: 300
+  image:
+    repository: "tradestreamhq/risk-adjusted-sizing"
+    pullPolicy: IfNotPresent
+    tag: "v2.45.97-develop"
+  concurrencyPolicy: "Forbid"
+  failedJobsHistoryLimit: 2
+  successfulJobsHistoryLimit: 3
+  job:
+    backoffLimit: 2
+    ttlSecondsAfterFinished: 3600
+    restartPolicy: "OnFailure"
+  config:
+    maxPortfolioRisk: 0.02
+    maxPositionRisk: 0.005
+    kellyFraction: 0.25
+    maxLeverage: 2.0
+    volatilityLookbackDays: 30
+    riskFreeRate: 0.02
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
