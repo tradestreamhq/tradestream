@@ -162,8 +162,14 @@ class PostgresClient:
             return await _execute(c)
 
     async def insert_implementation(
-        self, spec_id: uuid.UUID, parameters: dict, score: float,
-        symbol: str, start_time, end_time, conn=None,
+        self,
+        spec_id: uuid.UUID,
+        parameters: dict,
+        score: float,
+        symbol: str,
+        start_time,
+        end_time,
+        conn=None,
     ) -> uuid.UUID:
         """
         Insert a strategy implementation row linked to a spec.
