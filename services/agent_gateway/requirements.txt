@@ -1,0 +1,16 @@
+# Agent Gateway Dependencies
+
+# Web framework
+flask>=2.3.0
+flask-cors>=4.0.0
+
+# Kafka (consistent with other TradeStream services)
+kafka-python>=2.0.0
+tenacity>=8.0.0
+
+# Configuration
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=7.0.0
+pytest-flask>=1.2.0

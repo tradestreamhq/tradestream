@@ -33,7 +33,7 @@ The autonomous runner is a scheduled service that:
 |  |  3. Get active symbols from config                  |   |
 |  |  4. Spawn parallel subagents per symbol             |   |
 |  |  5. Aggregate results                               |   |
-|  |  6. Publish to Redis                                |   |
+|  |  6. Publish to Kafka                                |   |
 |  +-----------------------------------------------------+   |
 |                              |                              |
 |         +-------------------+-------------------+          |
@@ -46,7 +46,7 @@ The autonomous runner is a scheduled service that:
 |         +-------------------+-------------------+          |
 |                              v                              |
 |  +-----------------------------------------------------+   |
-|  | Redis: channel:raw-signals                          |   |
+|  | Kafka: agent-signals-raw                          |   |
 |  +-----------------------------------------------------+   |
 +-------------------------------------------------------------+
 ```
@@ -58,7 +58,7 @@ Minute 0:00 - Scheduler triggers
 Minute 0:01 - Coordinator checks circuit breaker, acquires lock, fetches symbol list
 Minute 0:02 - Spawns 20 parallel subagents
 Minute 0:03-0:45 - Subagents analyze symbols (10s each, parallel)
-Minute 0:46 - Results aggregated, published to Redis
+Minute 0:46 - Results aggregated, published to Kafka
 Minute 0:47-0:50 - Pipeline continues (Scorer -> Advisor -> Report)
 Minute 0:51 - Signals appear on dashboard
 Minute 1:00 - Next cycle begins
@@ -79,7 +79,7 @@ For each symbol, use the Task tool to spawn a subagent that:
 1. Calls analyze-symbol skill
 2. Returns structured signal
 
-Aggregate all results and publish to Redis.
+Aggregate all results and publish to Kafka.
 """
 
 # OpenCode internally spawns subagents
@@ -245,7 +245,7 @@ autonomous_runner:
       recovery_timeout_seconds: 60
       half_open_max_calls: 3
       success_threshold: 2
-    redis:
+    kafka:
       failure_threshold: 3
       recovery_timeout_seconds: 30
       half_open_max_calls: 2
@@ -254,7 +254,7 @@ autonomous_runner:
 
 ## Overrun Protection
 
-### Redis Lock Per Symbol
+### Kafka Lock Per Symbol
 
 ```python
 LOCK_KEY = "signal:lock:{symbol}"
@@ -268,7 +268,7 @@ async def acquire_lock(symbol: str, instance_id: str) -> bool:
         "acquired_at": time.time(),
         "pid": os.getpid()
     })
-    return await redis.set(
+    return await kafka.set(
         LOCK_KEY.format(symbol=symbol),
         value=lock_value,
         nx=True,  # Only set if not exists
@@ -278,16 +278,16 @@ async def acquire_lock(symbol: str, instance_id: str) -> bool:
 async def release_lock(symbol: str, instance_id: str):
     """Release processing lock only if we own it (using Lua for atomicity)."""
     lua_script = """
-    local lock_data = redis.call('GET', KEYS[1])
+    local lock_data = kafka.call('GET', KEYS[1])
     if lock_data then
         local data = cjson.decode(lock_data)
         if data.instance_id == ARGV[1] then
-            return redis.call('DEL', KEYS[1])
+            return kafka.call('DEL', KEYS[1])
         end
     end
     return 0
     """
-    await redis.eval(lua_script, keys=[LOCK_KEY.format(symbol=symbol)], args=[instance_id])
+    await kafka.eval(lua_script, keys=[LOCK_KEY.format(symbol=symbol)], args=[instance_id])
 ```
 
 ### Stale Lock Recovery
@@ -300,8 +300,8 @@ HEARTBEAT_TTL = 30  # seconds
 HEARTBEAT_INTERVAL = 10  # seconds
 
 class StaleLockRecovery:
-    def __init__(self, redis_client, instance_id: str):
-        self.redis = redis_client
+    def __init__(self, kafka_client, instance_id: str):
+        self.kafka = kafka_client
         self.instance_id = instance_id
         self._heartbeat_task = None
 
@@ -322,7 +322,7 @@ class StaleLockRecovery:
         """Maintain heartbeat to indicate this instance is alive."""
         while True:
             try:
-                await self.redis.set(
+                await self.kafka.set(
                     HEARTBEAT_KEY.format(instance_id=self.instance_id),
                     json.dumps({"timestamp": time.time(), "pid": os.getpid()}),
                     ex=HEARTBEAT_TTL
@@ -330,7 +330,7 @@ class StaleLockRecovery:
                 await asyncio.sleep(HEARTBEAT_INTERVAL)
             except asyncio.CancelledError:
                 # Clean up heartbeat on shutdown
-                await self.redis.delete(HEARTBEAT_KEY.format(instance_id=self.instance_id))
+                await self.kafka.delete(HEARTBEAT_KEY.format(instance_id=self.instance_id))
                 raise
             except Exception as e:
                 logger.error(f"Heartbeat failed: {e}")
@@ -346,7 +346,7 @@ class StaleLockRecovery:
         Returns True if lock was recovered and acquired.
         """
         lock_key = LOCK_KEY.format(symbol=symbol)
-        lock_data = await self.redis.get(lock_key)
+        lock_data = await self.kafka.get(lock_key)
 
         if not lock_data:
             return False  # No lock to recover
@@ -366,7 +366,7 @@ class StaleLockRecovery:
         # Check if owning instance is still alive via heartbeat
         if not should_recover and owner_instance:
             heartbeat_key = HEARTBEAT_KEY.format(instance_id=owner_instance)
-            if not await self.redis.exists(heartbeat_key):
+            if not await self.kafka.exists(heartbeat_key):
                 should_recover = True
                 reason = f"owner {owner_instance} heartbeat missing"
 
@@ -376,16 +376,16 @@ class StaleLockRecovery:
 
             # Atomic delete-and-acquire using Lua script
             lua_script = """
-            local current = redis.call('GET', KEYS[1])
+            local current = kafka.call('GET', KEYS[1])
             if current then
                 local data = cjson.decode(current)
                 if data.instance_id == ARGV[2] then
-                    redis.call('DEL', KEYS[1])
+                    kafka.call('DEL', KEYS[1])
                 end
             end
-            return redis.call('SET', KEYS[1], ARGV[1], 'NX', 'EX', ARGV[3])
+            return kafka.call('SET', KEYS[1], ARGV[1], 'NX', 'EX', ARGV[3])
             """
-            result = await self.redis.eval(
+            result = await self.kafka.eval(
                 lua_script,
                 keys=[lock_key],
                 args=[
@@ -403,10 +403,10 @@ class StaleLockRecovery:
 
 ```python
 class LockManager:
-    def __init__(self, redis_url: str, instance_id: str):
-        self.redis = Redis.from_url(redis_url)
+    def __init__(self, kafka_url: str, instance_id: str):
+        self.kafka = Kafka.from_url(kafka_url)
         self.instance_id = instance_id
-        self.stale_recovery = StaleLockRecovery(self.redis, instance_id)
+        self.stale_recovery = StaleLockRecovery(self.kafka, instance_id)
 
     async def acquire(self, symbol: str) -> bool:
         """Try to acquire lock, recovering stale locks if needed."""
@@ -448,7 +448,7 @@ async def process_symbol(symbol: str) -> Optional[Signal]:
 | Previous run still active | Skip locked symbols, log warning |
 | Single slow symbol | Continue with others, timeout slow one |
 | All symbols slow | Partial results published, metrics alert |
-| Redis unavailable | Circuit breaker trips, skip cycle |
+| Kafka unavailable | Circuit breaker trips, skip cycle |
 | Process crash with held lock | Heartbeat expires, stale lock recovered |
 
 ## Adaptive Frequency Mechanisms
@@ -642,7 +642,7 @@ autonomous_runner:
   locks:
     ttl_seconds: 90
     stale_threshold_seconds: 120
-    redis_key_prefix: "signal:lock:"
+    kafka_key_prefix: "signal:lock:"
   heartbeat:
     ttl_seconds: 30
     interval_seconds: 10
@@ -655,7 +655,7 @@ autonomous_runner:
       recovery_timeout_seconds: 60
       half_open_max_calls: 3
       success_threshold: 2
-    redis:
+    kafka:
       failure_threshold: 3
       recovery_timeout_seconds: 30
   adaptive:
@@ -674,7 +674,7 @@ autonomous_runner:
 ```bash
 # Required
 OPENROUTER_API_KEY=sk-or-...
-REDIS_URL=redis://localhost:6379
+REDIS_URL=kafka://localhost:6379
 POSTGRES_URL=postgresql://...
 INFLUXDB_URL=http://influxdb:8086
 
@@ -854,16 +854,16 @@ from typing import List, Optional, Set
 
 from .lock_manager import LockManager
 from .opencode_client import OpenCodeClient
-from .redis_publisher import RedisPublisher
+from .kafka_publisher import KafkaPublisher
 from .adaptive import LatencyTracker
 
 class SignalCoordinator:
     def __init__(self, config, instance_id: str):
         self.config = config
         self.instance_id = instance_id
-        self.lock_manager = LockManager(config.redis_url, instance_id)
+        self.lock_manager = LockManager(config.kafka_url, instance_id)
         self.opencode = OpenCodeClient(config)
-        self.publisher = RedisPublisher(config.redis_url)
+        self.publisher = KafkaPublisher(config.kafka_url)
         self.latency_tracker = LatencyTracker()
         self._held_locks: Set[str] = set()
 
@@ -889,7 +889,7 @@ class SignalCoordinator:
 
         # Publish all signals
         for signal in results:
-            await self.publisher.publish("channel:raw-signals", signal)
+            await self.publisher.publish("agent-signals-raw", signal)
 
         return results
 
@@ -994,7 +994,7 @@ async def liveness():
 async def readiness():
     """Kubernetes readiness probe - can we accept traffic?"""
     checks = {
-        "redis_connected": await redis.ping(),
+        "kafka_connected": await kafka.ping(),
         "circuit_breaker_closed": llm_circuit_breaker.state == CircuitState.CLOSED,
         "not_in_cooldown": backpressure.cooldown_cycles == 0
     }
@@ -1037,7 +1037,7 @@ async def detailed_health():
             "consecutive_overruns": backpressure.consecutive_overruns,
             "cooldown_cycles_remaining": backpressure.cooldown_cycles
         },
-        "redis_connected": await redis.ping(),
+        "kafka_connected": await kafka.ping(),
         "uptime_seconds": get_uptime()
     }
 ```
@@ -1151,7 +1151,7 @@ spec:
                       name: openrouter-secrets
                       key: api-key
                 - name: REDIS_URL
-                  value: redis://redis:6379
+                  value: kafka://kafka:6379
                 - name: INSTANCE_ID
                   valueFrom:
                     fieldRef:
@@ -1243,7 +1243,7 @@ spec:
 
 - [ ] Signals generated for 20 symbols every 1 minute
 - [ ] Parallel processing via batched subagent invocation
-- [ ] Overrun protection with Redis locks
+- [ ] Overrun protection with Kafka locks
 - [ ] Stale lock recovery via heartbeat mechanism
 - [ ] Circuit breaker prevents cascading failures
 - [ ] Adaptive batch size during high latency periods
@@ -1262,11 +1262,11 @@ services/autonomous_runner/
 |-- main.py                  # Entry point with graceful shutdown
 |-- config.py                # Configuration loading
 |-- coordinator.py           # Signal coordination logic
-|-- lock_manager.py          # Redis lock management with stale recovery
+|-- lock_manager.py          # Kafka lock management with stale recovery
 |-- circuit_breaker.py       # Circuit breaker implementation
 |-- adaptive.py              # Adaptive scheduling and backpressure
 |-- opencode_client.py       # OpenCode invocation
-|-- redis_publisher.py       # Redis pub/sub
+|-- kafka_publisher.py       # Kafka
 |-- metrics.py               # Prometheus metrics
 |-- health.py                # Health check endpoints
 |-- requirements.txt
