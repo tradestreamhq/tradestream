@@ -70,3 +70,11 @@ java_library(
         "//third_party/java:guice",
     ],
 )
+
+java_library(
+    name = "test_bar_series_builder",
+    srcs = ["TestBarSeriesBuilder.java"],
+    deps = [
+        "//third_party/java:ta4j_core",
+    ],
+)
