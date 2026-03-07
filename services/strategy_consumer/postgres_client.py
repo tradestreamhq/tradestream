@@ -6,6 +6,7 @@ Handles connection management and strategy insertion with upsert logic.
 import asyncio
 import json
 import logging
+import uuid
 from datetime import datetime
 from typing import List, Optional
 
@@ -130,6 +131,80 @@ class PostgresClient:
             await conn.execute(create_table_sql)
             logging.info("Strategies table schema verified/created")
 
+    async def ensure_or_get_spec(self, strategy_type: str, conn=None) -> uuid.UUID:
+        """
+        Look up or create a strategy_specs row for the given strategy type.
+        Uses upsert to handle concurrency safely.
+
+        Args:
+            strategy_type: The strategy type name (e.g., "MACD_CROSSOVER")
+            conn: Optional existing connection to reuse
+
+        Returns:
+            The UUID of the strategy spec
+        """
+        upsert_sql = """
+        INSERT INTO strategy_specs (name, indicators, entry_conditions, exit_conditions, parameters, source)
+        VALUES ($1, '[]'::jsonb, '[]'::jsonb, '[]'::jsonb, '[]'::jsonb, 'MIGRATED')
+        ON CONFLICT (name) DO NOTHING
+        """
+        select_sql = "SELECT id FROM strategy_specs WHERE name = $1"
+
+        async def _execute(c):
+            await c.execute(upsert_sql, strategy_type)
+            row = await c.fetchrow(select_sql, strategy_type)
+            return row["id"]
+
+        if conn:
+            return await _execute(conn)
+
+        async with self.pool.acquire() as c:
+            return await _execute(c)
+
+    async def insert_implementation(
+        self,
+        spec_id: uuid.UUID,
+        parameters: dict,
+        score: float,
+        symbol: str,
+        start_time,
+        end_time,
+        conn=None,
+    ) -> uuid.UUID:
+        """
+        Insert a strategy implementation row linked to a spec.
+
+        Returns:
+            The UUID of the new implementation row
+        """
+        backtest_metrics = {
+            "score": score,
+            "symbol": symbol,
+            "discovery_start": start_time.isoformat() if start_time else None,
+            "discovery_end": end_time.isoformat() if end_time else None,
+        }
+
+        insert_sql = """
+        INSERT INTO strategy_implementations (spec_id, parameters, discovered_by, backtest_metrics, status)
+        VALUES ($1, $2, 'GA', $3, 'CANDIDATE')
+        RETURNING id
+        """
+
+        async def _execute(c):
+            row = await c.fetchrow(
+                insert_sql,
+                spec_id,
+                json.dumps(parameters),
+                json.dumps(backtest_metrics),
+            )
+            return row["id"]
+
+        if conn:
+            return await _execute(conn)
+
+        async with self.pool.acquire() as c:
+            return await _execute(c)
+
     async def insert_strategies(self, strategies: List[dict]) -> int:
         """
         Insert or update strategies in the database.
@@ -210,6 +285,25 @@ class PostgresClient:
                         )
 
                         processed_count += 1
+
+                        # Write to V2 model (graceful degradation)
+                        try:
+                            spec_id = await self.ensure_or_get_spec(
+                                strategy_type, conn=conn
+                            )
+                            await self.insert_implementation(
+                                spec_id=spec_id,
+                                parameters=parameters,
+                                score=current_score,
+                                symbol=symbol,
+                                start_time=discovery_start_time,
+                                end_time=discovery_end_time,
+                                conn=conn,
+                            )
+                        except Exception as v2_err:
+                            logging.error(
+                                f"Failed to write V2 model for {strategy_type}: {v2_err}"
+                            )
 
                     except Exception as e:
                         logging.error(
