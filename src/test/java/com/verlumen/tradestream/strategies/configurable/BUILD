@@ -83,6 +83,18 @@ java_test(
     ],
 )
 
+java_test(
+    name = "ResolvedParamsTest",
+    srcs = ["ResolvedParamsTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.ResolvedParamsTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//third_party/java:guava",
+        "//third_party/java:junit",
+        "//third_party/java:truth",
+    ],
+)
+
 test_suite(
     name = "all_tests",
     tests = [
@@ -90,6 +102,7 @@ test_suite(
         ":ConfigurableParamConfigTest",
         ":ConfigurableStrategyFactoryTest",
         ":IndicatorRegistryTest",
+        ":ResolvedParamsTest",
         ":RuleRegistryTest",
         ":StrategyConfigLoaderTest",
     ],
