@@ -145,7 +145,9 @@ class TestMCPServer:
     @pytest.mark.asyncio
     async def test_get_performance_with_environment(self, server, postgres_client):
         """Test get_performance with environment filter."""
-        postgres_client.get_performance.return_value = {"backtest": {"sharpe_ratio": 1.5}}
+        postgres_client.get_performance.return_value = {
+            "backtest": {"sharpe_ratio": 1.5}
+        }
 
         call_tool_handler = server.request_handlers.get("tools/call")
         request = MagicMock()
