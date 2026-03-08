@@ -54,7 +54,7 @@ py_test(
         "--influxdb_url=http://localhost:8086",
         "--influxdb_token=test-token",
         "--influxdb_org=tradestream-org",
-        "--influxdb_bucket=candles",
+        "--influxdb_bucket=tradestream-data",
         "--redis_host=localhost",
         "--redis_port=6379",
     ],

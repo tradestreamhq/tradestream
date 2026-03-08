@@ -61,13 +61,15 @@ class RedisMarketClient:
                 # Fallback: treat entire string as base
                 base = sym_str.upper()
                 quote = "USD"
-            result.append({
-                "id": sym_str,
-                "asset_class": "crypto",
-                "base": base,
-                "quote": quote,
-                "exchange": "multi",
-            })
+            result.append(
+                {
+                    "id": sym_str,
+                    "asset_class": "crypto",
+                    "base": base,
+                    "quote": quote,
+                    "exchange": "multi",
+                }
+            )
         return result
 
     def close(self) -> None:

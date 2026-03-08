@@ -65,7 +65,7 @@ class InfluxDBMarketClient:
         if end is not None:
             range_clause = f"|> range(start: {start}, stop: {end})"
 
-        query = f'''
+        query = f"""
 from(bucket: "{self.bucket}")
   {range_clause}
   |> filter(fn: (r) => r._measurement == "candles")
@@ -74,18 +74,24 @@ from(bucket: "{self.bucket}")
   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
   |> sort(columns: ["_time"])
   |> limit(n: {limit})
-'''
+"""
         records = self._query(query)
         candles = []
         for r in records:
-            candles.append({
-                "timestamp": r.get("_time", "").isoformat() if hasattr(r.get("_time", ""), "isoformat") else str(r.get("_time", "")),
-                "open": r.get("open"),
-                "high": r.get("high"),
-                "low": r.get("low"),
-                "close": r.get("close"),
-                "volume": r.get("volume"),
-            })
+            candles.append(
+                {
+                    "timestamp": (
+                        r.get("_time", "").isoformat()
+                        if hasattr(r.get("_time", ""), "isoformat")
+                        else str(r.get("_time", ""))
+                    ),
+                    "open": r.get("open"),
+                    "high": r.get("high"),
+                    "low": r.get("low"),
+                    "close": r.get("close"),
+                    "volume": r.get("volume"),
+                }
+            )
         return candles
 
     def get_latest_price(self, symbol: str) -> Dict[str, Any]:
@@ -95,7 +101,7 @@ from(bucket: "{self.bucket}")
             Dict with symbol, price, volume_24h, change_24h, timestamp.
         """
         # Get the latest candle
-        latest_query = f'''
+        latest_query = f"""
 from(bucket: "{self.bucket}")
   |> range(start: -1h)
   |> filter(fn: (r) => r._measurement == "candles")
@@ -104,16 +110,22 @@ from(bucket: "{self.bucket}")
   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
   |> sort(columns: ["_time"], desc: true)
   |> limit(n: 1)
-'''
+"""
         latest = self._query(latest_query)
         if not latest:
-            return {"symbol": symbol, "price": None, "volume_24h": None, "change_24h": None, "timestamp": None}
+            return {
+                "symbol": symbol,
+                "price": None,
+                "volume_24h": None,
+                "change_24h": None,
+                "timestamp": None,
+            }
 
         current_price = latest[0].get("close")
         timestamp = latest[0].get("_time", "")
 
         # Get 24h volume and price change
-        summary_query = f'''
+        summary_query = f"""
 from(bucket: "{self.bucket}")
   |> range(start: -24h)
   |> filter(fn: (r) => r._measurement == "candles")
@@ -121,7 +133,7 @@ from(bucket: "{self.bucket}")
   |> filter(fn: (r) => r._field == "close" or r._field == "volume")
   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
   |> sort(columns: ["_time"])
-'''
+"""
         records_24h = self._query(summary_query)
         volume_24h = sum(r.get("volume", 0) or 0 for r in records_24h)
         change_24h = None
@@ -135,7 +147,11 @@ from(bucket: "{self.bucket}")
             "price": current_price,
             "volume_24h": volume_24h,
             "change_24h": round(change_24h, 4) if change_24h is not None else None,
-            "timestamp": timestamp.isoformat() if hasattr(timestamp, "isoformat") else str(timestamp),
+            "timestamp": (
+                timestamp.isoformat()
+                if hasattr(timestamp, "isoformat")
+                else str(timestamp)
+            ),
         }
 
     def get_volatility(self, symbol: str, period_minutes: int = 60) -> Dict[str, Any]:
@@ -148,7 +164,7 @@ from(bucket: "{self.bucket}")
         Returns:
             Dict with symbol, volatility (stddev of returns), atr, period.
         """
-        query = f'''
+        query = f"""
 from(bucket: "{self.bucket}")
   |> range(start: -{period_minutes}m)
   |> filter(fn: (r) => r._measurement == "candles")
@@ -156,10 +172,15 @@ from(bucket: "{self.bucket}")
   |> filter(fn: (r) => r._field == "open" or r._field == "high" or r._field == "low" or r._field == "close")
   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
   |> sort(columns: ["_time"])
-'''
+"""
         records = self._query(query)
         if len(records) < 2:
-            return {"symbol": symbol, "volatility": None, "atr": None, "period": period_minutes}
+            return {
+                "symbol": symbol,
+                "volatility": None,
+                "atr": None,
+                "period": period_minutes,
+            }
 
         # Compute returns for stddev
         closes = [r.get("close") for r in records if r.get("close") is not None]
@@ -172,7 +193,7 @@ from(bucket: "{self.bucket}")
         if returns:
             mean_return = sum(returns) / len(returns)
             variance = sum((r - mean_return) ** 2 for r in returns) / len(returns)
-            volatility = round(variance ** 0.5, 8)
+            volatility = round(variance**0.5, 8)
 
         # Compute ATR (Average True Range)
         true_ranges = []
@@ -200,7 +221,7 @@ from(bucket: "{self.bucket}")
             high_24h, low_24h, vwap.
         """
         # Get 24h candle data
-        query_24h = f'''
+        query_24h = f"""
 from(bucket: "{self.bucket}")
   |> range(start: -24h)
   |> filter(fn: (r) => r._measurement == "candles")
@@ -208,7 +229,7 @@ from(bucket: "{self.bucket}")
   |> filter(fn: (r) => r._field == "open" or r._field == "high" or r._field == "low" or r._field == "close" or r._field == "volume")
   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
   |> sort(columns: ["_time"])
-'''
+"""
         records = self._query(query_24h)
         if not records:
             return {
@@ -240,7 +261,13 @@ from(bucket: "{self.bucket}")
         if total_volume > 0:
             # Use typical price * volume
             vwap_numerator = sum(
-                ((r.get("high", 0) or 0) + (r.get("low", 0) or 0) + (r.get("close", 0) or 0)) / 3 * (r.get("volume", 0) or 0)
+                (
+                    (r.get("high", 0) or 0)
+                    + (r.get("low", 0) or 0)
+                    + (r.get("close", 0) or 0)
+                )
+                / 3
+                * (r.get("volume", 0) or 0)
                 for r in records
             )
             vwap = round(vwap_numerator / total_volume, 8)
@@ -248,7 +275,9 @@ from(bucket: "{self.bucket}")
         # 24h change
         change_24h = None
         if first_close_24h and first_close_24h != 0 and current_price is not None:
-            change_24h = round(((current_price - first_close_24h) / first_close_24h) * 100, 4)
+            change_24h = round(
+                ((current_price - first_close_24h) / first_close_24h) * 100, 4
+            )
 
         # 1h change - find candle closest to 1h ago
         change_1h = None
@@ -256,7 +285,9 @@ from(bucket: "{self.bucket}")
         if one_hour_records and current_price is not None:
             first_close_1h = one_hour_records[0].get("close")
             if first_close_1h and first_close_1h != 0:
-                change_1h = round(((current_price - first_close_1h) / first_close_1h) * 100, 4)
+                change_1h = round(
+                    ((current_price - first_close_1h) / first_close_1h) * 100, 4
+                )
 
         # Volatility (stddev of returns over 24h)
         closes = [r.get("close") for r in records if r.get("close") is not None]
@@ -269,7 +300,7 @@ from(bucket: "{self.bucket}")
             if returns:
                 mean_return = sum(returns) / len(returns)
                 variance = sum((r - mean_return) ** 2 for r in returns) / len(returns)
-                volatility = round(variance ** 0.5, 8)
+                volatility = round(variance**0.5, 8)
 
         return {
             "symbol": symbol,

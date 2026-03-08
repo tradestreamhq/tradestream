@@ -20,7 +20,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string("influxdb_url", "http://localhost:8086", "InfluxDB URL.")
 flags.DEFINE_string("influxdb_token", "", "InfluxDB authentication token.")
 flags.DEFINE_string("influxdb_org", "tradestream-org", "InfluxDB organization.")
-flags.DEFINE_string("influxdb_bucket", "candles", "InfluxDB bucket name.")
+flags.DEFINE_string("influxdb_bucket", "tradestream-data", "InfluxDB bucket name.")
 
 # Redis Configuration Flags
 flags.DEFINE_string("redis_host", "localhost", "Redis host.")
