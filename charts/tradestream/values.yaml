@@ -572,3 +572,31 @@ signalMcp:
     limits:
       cpu: "200m"
       memory: "512Mi"
+
+# Strategy MCP Server configuration
+strategyMcp:
+  enabled: false
+  image:
+    repository: "tradestreamhq/strategy-mcp"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  replicaCount: 1
+  mcpTransport: "stdio"
+  service:
+    type: ClusterIP
+    port: 8080
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"

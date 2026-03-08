@@ -1,0 +1,71 @@
+{{- if .Values.strategyMcp.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-mcp
+spec:
+  replicas: {{ .Values.strategyMcp.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: strategy-mcp
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: strategy-mcp
+    spec:
+      containers:
+        - name: strategy-mcp
+          image: "{{ .Values.strategyMcp.image.repository }}:{{ .Values.strategyMcp.image.tag }}"
+          imagePullPolicy: {{ .Values.strategyMcp.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: mcp
+              containerPort: {{ .Values.strategyMcp.service.port | default 8080 }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_HOST
+              value: {{ tpl .Values.strategyMcp.database.host . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.strategyMcp.database.port | quote }}
+            - name: POSTGRES_DATABASE
+              value: "{{ .Values.strategyMcp.database.database }}"
+            - name: POSTGRES_USERNAME
+              value: "{{ .Values.strategyMcp.database.username }}"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.strategyMcp.database.passwordSecret.name . }}
+                  key: {{ .Values.strategyMcp.database.passwordSecret.key }}
+          args:
+            - "--postgres_host=$(POSTGRES_HOST)"
+            - "--postgres_port=$(POSTGRES_PORT)"
+            - "--postgres_database=$(POSTGRES_DATABASE)"
+            - "--postgres_username=$(POSTGRES_USERNAME)"
+            - "--postgres_password=$(POSTGRES_PASSWORD)"
+            - "--mcp_transport={{ .Values.strategyMcp.mcpTransport | default "stdio" }}"
+            - "--mcp_port={{ .Values.strategyMcp.service.port | default 8080 }}"
+          resources:
+            {{- toYaml .Values.strategyMcp.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-mcp
+spec:
+  type: {{ .Values.strategyMcp.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.strategyMcp.service.port | default 8080 }}
+      targetPort: mcp
+      protocol: TCP
+      name: mcp
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-mcp
+{{- end }}

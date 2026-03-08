@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/strategy_mcp"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "Strategy MCP binary exists"
+    path: "/services/strategy_mcp/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
