@@ -1,0 +1,5 @@
+schemaVersion: "2.0.0"
+fileExistenceTests:
+  - name: "market-mcp binary exists"
+    path: "/services/market_mcp/app"
+    shouldExist: true
