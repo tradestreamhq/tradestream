@@ -5,10 +5,10 @@ strategy_implementations tables.
 """
 
 import json
-import logging
 from typing import Any, Dict, List, Optional
 
 import asyncpg
+from absl import logging
 from tenacity import (
     retry,
     stop_after_attempt,

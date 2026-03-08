@@ -9,6 +9,7 @@ py_library(
     name = "postgres_client_lib",
     srcs = ["postgres_client.py"],
     deps = [
+        "//third_party/python:absl_py",
         "//third_party/python:asyncpg",
         "//third_party/python:tenacity",
     ],

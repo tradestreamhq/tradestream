@@ -40,14 +40,18 @@ spec:
                 secretKeyRef:
                   name: {{ tpl .Values.strategyMcp.database.passwordSecret.name . }}
                   key: {{ .Values.strategyMcp.database.passwordSecret.key }}
+            - name: MCP_TRANSPORT
+              value: "{{ .Values.strategyMcp.config.mcpTransport }}"
+            - name: MCP_PORT
+              value: {{ .Values.strategyMcp.service.port | quote }}
           args:
             - "--postgres_host=$(POSTGRES_HOST)"
             - "--postgres_port=$(POSTGRES_PORT)"
             - "--postgres_database=$(POSTGRES_DATABASE)"
             - "--postgres_username=$(POSTGRES_USERNAME)"
             - "--postgres_password=$(POSTGRES_PASSWORD)"
-            - "--mcp_transport={{ .Values.strategyMcp.mcpTransport | default "stdio" }}"
-            - "--mcp_port={{ .Values.strategyMcp.service.port | default 8080 }}"
+            - "--mcp_transport=$(MCP_TRANSPORT)"
+            - "--mcp_port=$(MCP_PORT)"
           resources:
             {{- toYaml .Values.strategyMcp.resources | nindent 12 }}
 ---
