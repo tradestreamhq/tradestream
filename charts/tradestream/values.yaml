@@ -540,3 +540,33 @@ riskAdjustedSizing:
     limits:
       cpu: "200m"
       memory: "512Mi"
+
+# Market MCP Server configuration
+marketMcp:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "tradestreamhq/market-mcp"
+    pullPolicy: IfNotPresent
+    tag: "v2.45.97-develop"
+  service:
+    type: ClusterIP
+    port: 8080
+  config:
+    mcpTransport: "stdio"
+    influxDbOrg: "tradestream-org"
+    influxDbBucket: "tradestream-data"
+  secrets:
+    influxDb:
+      name: "influxdb-admin-secret"
+      tokenKey: "admin-token"
+  redis:
+    host: '{{ include "tradestream.fullname" . }}-redis-master'
+    port: 6379
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"

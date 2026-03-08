@@ -1,0 +1,10 @@
+schemaVersion: "2.0.0"
+metadataTest:
+  entrypoint: ["/services/market_mcp/app"]
+  workdir: "/services/market_mcp"
+  user: "nobody"
+commandTests:
+  - name: "binary exists"
+    command: "ls"
+    args: ["/services/market_mcp/app"]
+    expectedOutput: ["/services/market_mcp/app"]

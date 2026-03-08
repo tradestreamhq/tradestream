@@ -1,0 +1,74 @@
+{{- if .Values.marketMcp.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-market-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: market-mcp
+spec:
+  replicas: {{ .Values.marketMcp.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: market-mcp
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: market-mcp
+    spec:
+      containers:
+        - name: market-mcp
+          image: "{{ .Values.marketMcp.image.repository }}:{{ .Values.marketMcp.image.tag }}"
+          imagePullPolicy: {{ .Values.marketMcp.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.marketMcp.service.port | default 8080 }}
+              protocol: TCP
+          env:
+            - name: INFLUXDB_URL
+              value: "http://{{ include "tradestream.fullname" . }}-influxdb:80"
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.marketMcp.secrets.influxDb.name }}
+                  key: {{ .Values.marketMcp.secrets.influxDb.tokenKey }}
+            - name: INFLUXDB_ORG
+              value: {{ .Values.marketMcp.config.influxDbOrg | default "tradestream-org" | quote }}
+            - name: INFLUXDB_BUCKET
+              value: {{ .Values.marketMcp.config.influxDbBucket | default "tradestream-data" | quote }}
+            - name: REDIS_HOST
+              value: {{ tpl .Values.marketMcp.redis.host . | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.marketMcp.redis.port | default 6379 | quote }}
+          args:
+            - "--influxdb_url=$(INFLUXDB_URL)"
+            - "--influxdb_token=$(INFLUXDB_TOKEN)"
+            - "--influxdb_org=$(INFLUXDB_ORG)"
+            - "--influxdb_bucket=$(INFLUXDB_BUCKET)"
+            - "--redis_host=$(REDIS_HOST)"
+            - "--redis_port=$(REDIS_PORT)"
+            - "--mcp_transport={{ .Values.marketMcp.config.mcpTransport | default "stdio" }}"
+            - "--mcp_port={{ .Values.marketMcp.service.port | default 8080 }}"
+          resources:
+            {{- toYaml .Values.marketMcp.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-market-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: market-mcp
+spec:
+  type: {{ .Values.marketMcp.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.marketMcp.service.port | default 8080 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: market-mcp
+{{- end }}
