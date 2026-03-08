@@ -45,9 +45,7 @@ class RedisClient:
         channel = f"signals:{symbol}"
         message = json.dumps(signal_data, default=str)
         subscribers = self.client.publish(channel, message)
-        logging.info(
-            f"Published signal to {channel} ({subscribers} subscribers)"
-        )
+        logging.info(f"Published signal to {channel} ({subscribers} subscribers)")
         return subscribers
 
     def close(self) -> None:

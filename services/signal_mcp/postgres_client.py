@@ -193,18 +193,20 @@ class PostgresClient:
                     "signal_id": str(row["signal_id"]),
                     "symbol": row["symbol"],
                     "action": row["action"],
-                    "confidence": float(row["confidence"]) if row["confidence"] else None,
+                    "confidence": (
+                        float(row["confidence"]) if row["confidence"] else None
+                    ),
                     "score": float(row["score"]) if row["score"] else None,
                     "tier": row["tier"],
                     "reasoning": row["reasoning"],
-                    "timestamp": row["timestamp"].isoformat() if row["timestamp"] else None,
+                    "timestamp": (
+                        row["timestamp"].isoformat() if row["timestamp"] else None
+                    ),
                 }
                 for row in rows
             ]
 
-    async def get_paper_pnl(
-        self, symbol: Optional[str] = None
-    ) -> Dict[str, Any]:
+    async def get_paper_pnl(self, symbol: Optional[str] = None) -> Dict[str, Any]:
         """Aggregate simulated P&L from signals table."""
         if not self.pool:
             raise RuntimeError("PostgreSQL connection not established")
@@ -255,9 +257,7 @@ class PostgresClient:
                 "open_positions": open_row["open_count"] or 0,
             }
 
-    async def get_signal_accuracy(
-        self, lookback_hours: int = 24
-    ) -> Dict[str, Any]:
+    async def get_signal_accuracy(self, lookback_hours: int = 24) -> Dict[str, Any]:
         """Compare signal_type vs outcome for signals in lookback window."""
         if not self.pool:
             raise RuntimeError("PostgreSQL connection not established")

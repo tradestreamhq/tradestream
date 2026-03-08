@@ -29,9 +29,7 @@ flags.DEFINE_string("redis_host", "localhost", "Redis host.")
 flags.DEFINE_integer("redis_port", 6379, "Redis port.")
 
 # MCP Configuration Flags
-flags.DEFINE_string(
-    "mcp_transport", "stdio", "MCP transport type (stdio or sse)."
-)
+flags.DEFINE_string("mcp_transport", "stdio", "MCP transport type (stdio or sse).")
 flags.DEFINE_integer("mcp_port", 8080, "MCP server port (for SSE transport).")
 
 
@@ -91,11 +89,14 @@ async def main_async() -> None:
             starlette_app = Starlette(
                 routes=[
                     Route("/sse", endpoint=handle_sse),
-                    Route("/messages", endpoint=sse.handle_post_message, methods=["POST"]),
+                    Route(
+                        "/messages", endpoint=sse.handle_post_message, methods=["POST"]
+                    ),
                 ],
             )
 
             import uvicorn
+
             config = uvicorn.Config(
                 starlette_app,
                 host="0.0.0.0",

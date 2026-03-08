@@ -197,10 +197,12 @@ def create_server(
             }
             redis_client.publish_signal(arguments["symbol"], signal_data)
 
-            return [TextContent(
-                type="text",
-                text=json.dumps({"signal_id": signal_id}),
-            )]
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps({"signal_id": signal_id}),
+                )
+            ]
 
         elif name == "log_decision":
             decision_id = await postgres_client.insert_decision(
@@ -214,10 +216,12 @@ def create_server(
                 tokens_used=arguments["tokens"],
             )
 
-            return [TextContent(
-                type="text",
-                text=json.dumps({"decision_id": decision_id}),
-            )]
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps({"decision_id": decision_id}),
+                )
+            ]
 
         elif name == "get_recent_signals":
             signals = await postgres_client.get_recent_signals(
@@ -226,35 +230,43 @@ def create_server(
                 min_score=arguments.get("min_score"),
             )
 
-            return [TextContent(
-                type="text",
-                text=json.dumps(signals, default=str),
-            )]
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(signals, default=str),
+                )
+            ]
 
         elif name == "get_paper_pnl":
             pnl = await postgres_client.get_paper_pnl(
                 symbol=arguments.get("symbol"),
             )
 
-            return [TextContent(
-                type="text",
-                text=json.dumps(pnl),
-            )]
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(pnl),
+                )
+            ]
 
         elif name == "get_signal_accuracy":
             accuracy = await postgres_client.get_signal_accuracy(
                 lookback_hours=arguments.get("lookback_hours", 24),
             )
 
-            return [TextContent(
-                type="text",
-                text=json.dumps(accuracy),
-            )]
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(accuracy),
+                )
+            ]
 
         else:
-            return [TextContent(
-                type="text",
-                text=json.dumps({"error": f"Unknown tool: {name}"}),
-            )]
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps({"error": f"Unknown tool: {name}"}),
+                )
+            ]
 
     return server
