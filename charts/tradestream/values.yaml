@@ -540,3 +540,35 @@ riskAdjustedSizing:
     limits:
       cpu: "200m"
       memory: "512Mi"
+
+# Signal MCP Server configuration
+signalMcp:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "tradestreamhq/signal-mcp"
+    pullPolicy: IfNotPresent
+    tag: "v2.45.97-develop"
+  service:
+    type: ClusterIP
+    port: 8080
+  config:
+    mcpTransport: "stdio"
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  redis:
+    host: '{{ include "tradestream.fullname" . }}-redis-master'
+    port: 6379
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
