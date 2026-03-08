@@ -11,7 +11,7 @@ from absl import flags
 from absl import logging
 
 from services.strategy_mcp.postgres_client import PostgresClient
-from services.strategy_mcp.server import run_stdio
+from services.strategy_mcp.server import server, _set_postgres_client
 
 FLAGS = flags.FLAGS
 
@@ -71,8 +71,58 @@ async def main_async() -> None:
 
     try:
         await pg_client.connect()
+        _set_postgres_client(pg_client)
         logging.info("Starting MCP server with %s transport", FLAGS.mcp_transport)
-        await run_stdio(pg_client)
+
+        if FLAGS.mcp_transport == "stdio":
+            from mcp.server.stdio import stdio_server
+
+            async with stdio_server() as (read_stream, write_stream):
+                await server.run(
+                    read_stream,
+                    write_stream,
+                    server.create_initialization_options(),
+                )
+        elif FLAGS.mcp_transport == "sse":
+            from mcp.server.sse import SseServerTransport
+            from starlette.applications import Starlette
+            from starlette.routing import Route
+
+            sse = SseServerTransport("/messages")
+
+            async def handle_sse(request):
+                async with sse.connect_sse(
+                    request.scope, request.receive, request._send
+                ) as streams:
+                    await server.run(
+                        streams[0],
+                        streams[1],
+                        server.create_initialization_options(),
+                    )
+
+            starlette_app = Starlette(
+                routes=[
+                    Route("/sse", endpoint=handle_sse),
+                    Route(
+                        "/messages",
+                        endpoint=sse.handle_post_message,
+                        methods=["POST"],
+                    ),
+                ],
+            )
+
+            import uvicorn
+
+            config = uvicorn.Config(
+                starlette_app,
+                host="0.0.0.0",
+                port=FLAGS.mcp_port,
+            )
+            uvicorn_server = uvicorn.Server(config)
+            await uvicorn_server.serve()
+        else:
+            logging.error(f"Unknown transport: {FLAGS.mcp_transport}")
+            sys.exit(1)
     finally:
         await pg_client.close()
 

@@ -8,7 +8,6 @@ import logging
 from typing import Any
 
 from mcp.server import Server
-from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
 from services.strategy_mcp.postgres_client import PostgresClient
@@ -216,12 +215,3 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 type="text", text=json.dumps({"error": f"Unknown tool: {name}"})
             )
         ]
-
-
-async def run_stdio(pg_client: PostgresClient) -> None:
-    """Run the MCP server over stdio transport."""
-    _set_postgres_client(pg_client)
-    async with stdio_server() as (read_stream, write_stream):
-        await server.run(
-            read_stream, write_stream, server.create_initialization_options()
-        )

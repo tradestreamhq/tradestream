@@ -31,6 +31,7 @@ py_binary(
         ":postgres_client_lib",
         ":server_lib",
         "//third_party/python:absl_py",
+        "//third_party/python:mcp",
     ],
 )
 

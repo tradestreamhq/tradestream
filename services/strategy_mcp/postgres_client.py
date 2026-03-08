@@ -101,7 +101,7 @@ class PostgresClient:
             raise RuntimeError("PostgreSQL connection not established")
 
         query = """
-        SELECT
+        SELECT DISTINCT ON (si.id)
             ss.name AS spec_name,
             si.id AS impl_id,
             COALESCE((si.backtest_metrics->>'sharpe_ratio')::double precision, 0) AS score,
@@ -109,14 +109,23 @@ class PostgresClient:
             ss.name AS strategy_type
         FROM strategy_implementations si
         JOIN strategy_specs ss ON si.spec_id = ss.id
+        JOIN Strategies s ON s.strategy_type = ss.name
         WHERE si.status IN ('VALIDATED', 'DEPLOYED')
-          AND COALESCE((si.backtest_metrics->>'sharpe_ratio')::double precision, 0) >= $1
-        ORDER BY COALESCE((si.backtest_metrics->>'sharpe_ratio')::double precision, 0) DESC
-        LIMIT $2
+          AND s.symbol = $1
+          AND COALESCE((si.backtest_metrics->>'sharpe_ratio')::double precision, 0) >= $2
+        ORDER BY si.id, COALESCE((si.backtest_metrics->>'sharpe_ratio')::double precision, 0) DESC
+        """
+
+        # Wrap with outer query to apply proper ORDER BY and LIMIT
+        wrapped_query = f"""
+        SELECT spec_name, impl_id, score, parameters, strategy_type
+        FROM ({query}) sub
+        ORDER BY score DESC
+        LIMIT $3
         """
 
         async with self.pool.acquire() as conn:
-            rows = await conn.fetch(query, min_score, limit)
+            rows = await conn.fetch(wrapped_query, symbol, min_score, limit)
 
             results = []
             for row in rows:
