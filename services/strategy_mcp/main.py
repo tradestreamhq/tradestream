@@ -11,48 +11,20 @@ from absl import flags
 from absl import logging
 
 from services.strategy_mcp.postgres_client import PostgresClient
-from services.strategy_mcp.server import server, _set_postgres_client
+from services.strategy_mcp.server import create_server
 
 FLAGS = flags.FLAGS
 
 # PostgreSQL Configuration Flags
-flags.DEFINE_string(
-    "postgres_host",
-    "localhost",
-    "PostgreSQL host.",
-)
-flags.DEFINE_integer(
-    "postgres_port",
-    5432,
-    "PostgreSQL port.",
-)
-flags.DEFINE_string(
-    "postgres_database",
-    "tradestream",
-    "PostgreSQL database name.",
-)
-flags.DEFINE_string(
-    "postgres_username",
-    "postgres",
-    "PostgreSQL username.",
-)
-flags.DEFINE_string(
-    "postgres_password",
-    "",
-    "PostgreSQL password.",
-)
+flags.DEFINE_string("postgres_host", "localhost", "PostgreSQL host.")
+flags.DEFINE_integer("postgres_port", 5432, "PostgreSQL port.")
+flags.DEFINE_string("postgres_database", "tradestream", "PostgreSQL database name.")
+flags.DEFINE_string("postgres_username", "postgres", "PostgreSQL username.")
+flags.DEFINE_string("postgres_password", "", "PostgreSQL password.")
 
 # MCP Configuration Flags
-flags.DEFINE_string(
-    "mcp_transport",
-    "stdio",
-    "MCP transport type (stdio).",
-)
-flags.DEFINE_integer(
-    "mcp_port",
-    8080,
-    "MCP server port (for future HTTP/SSE transport).",
-)
+flags.DEFINE_string("mcp_transport", "stdio", "MCP transport type (stdio or sse).")
+flags.DEFINE_integer("mcp_port", 8080, "MCP server port (for SSE transport).")
 
 
 async def main_async() -> None:
@@ -61,7 +33,7 @@ async def main_async() -> None:
         logging.error("PostgreSQL password is required")
         sys.exit(1)
 
-    pg_client = PostgresClient(
+    postgres_client = PostgresClient(
         host=FLAGS.postgres_host,
         port=FLAGS.postgres_port,
         database=FLAGS.postgres_database,
@@ -70,18 +42,20 @@ async def main_async() -> None:
     )
 
     try:
-        await pg_client.connect()
-        _set_postgres_client(pg_client)
+        await postgres_client.connect()
+
+        mcp_server = create_server(postgres_client)
+
         logging.info("Starting MCP server with %s transport", FLAGS.mcp_transport)
 
         if FLAGS.mcp_transport == "stdio":
             from mcp.server.stdio import stdio_server
 
             async with stdio_server() as (read_stream, write_stream):
-                await server.run(
+                await mcp_server.run(
                     read_stream,
                     write_stream,
-                    server.create_initialization_options(),
+                    mcp_server.create_initialization_options(),
                 )
         elif FLAGS.mcp_transport == "sse":
             from mcp.server.sse import SseServerTransport
@@ -94,10 +68,10 @@ async def main_async() -> None:
                 async with sse.connect_sse(
                     request.scope, request.receive, request._send
                 ) as streams:
-                    await server.run(
+                    await mcp_server.run(
                         streams[0],
                         streams[1],
-                        server.create_initialization_options(),
+                        mcp_server.create_initialization_options(),
                     )
 
             starlette_app = Starlette(
@@ -124,7 +98,7 @@ async def main_async() -> None:
             logging.error(f"Unknown transport: {FLAGS.mcp_transport}")
             sys.exit(1)
     finally:
-        await pg_client.close()
+        await postgres_client.close()
 
 
 def main(argv):

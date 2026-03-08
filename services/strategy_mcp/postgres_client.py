@@ -5,10 +5,10 @@ strategy_implementations tables.
 """
 
 import json
-import logging
 from typing import Any, Dict, List, Optional
 
 import asyncpg
+from absl import logging
 from tenacity import (
     retry,
     stop_after_attempt,
@@ -101,7 +101,7 @@ class PostgresClient:
             raise RuntimeError("PostgreSQL connection not established")
 
         query = """
-        SELECT DISTINCT ON (si.id)
+        SELECT
             ss.name AS spec_name,
             si.id AS impl_id,
             COALESCE((si.backtest_metrics->>'sharpe_ratio')::double precision, 0) AS score,
@@ -113,19 +113,12 @@ class PostgresClient:
         WHERE si.status IN ('VALIDATED', 'DEPLOYED')
           AND s.symbol = $1
           AND COALESCE((si.backtest_metrics->>'sharpe_ratio')::double precision, 0) >= $2
-        ORDER BY si.id, COALESCE((si.backtest_metrics->>'sharpe_ratio')::double precision, 0) DESC
-        """
-
-        # Wrap with outer query to apply proper ORDER BY and LIMIT
-        wrapped_query = f"""
-        SELECT spec_name, impl_id, score, parameters, strategy_type
-        FROM ({query}) sub
-        ORDER BY score DESC
+        ORDER BY COALESCE((si.backtest_metrics->>'sharpe_ratio')::double precision, 0) DESC
         LIMIT $3
         """
 
         async with self.pool.acquire() as conn:
-            rows = await conn.fetch(wrapped_query, symbol, min_score, limit)
+            rows = await conn.fetch(query, symbol, min_score, limit)
 
             results = []
             for row in rows:

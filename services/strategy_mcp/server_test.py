@@ -4,32 +4,35 @@ Tests for the strategy MCP server.
 
 import json
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
-from services.strategy_mcp.server import (
-    server,
-    call_tool,
-    list_tools,
-    _set_postgres_client,
-)
+from services.strategy_mcp.server import create_server
 
 
 class TestMCPServer:
     """Test cases for the MCP server tools."""
 
     @pytest.fixture
-    def mock_pg(self):
+    def postgres_client(self):
         """Create a mock PostgresClient."""
-        pg = AsyncMock()
-        _set_postgres_client(pg)
-        return pg
+        return AsyncMock()
+
+    @pytest.fixture
+    def server(self, postgres_client):
+        """Create a strategy MCP server instance."""
+        return create_server(postgres_client)
 
     @pytest.mark.asyncio
-    async def test_list_tools_returns_six(self):
+    async def test_list_tools_returns_six(self, server):
         """Test that list_tools returns all 6 tools."""
-        tools = await list_tools()
-        assert len(tools) == 6
-        names = {t.name for t in tools}
+        handlers = server.request_handlers
+        list_tools_handler = handlers.get("tools/list")
+        assert list_tools_handler is not None
+
+        result = await list_tools_handler(MagicMock())
+        assert len(result.tools) == 6
+
+        names = {t.name for t in result.tools}
         assert names == {
             "get_top_strategies",
             "get_spec",
@@ -40,9 +43,9 @@ class TestMCPServer:
         }
 
     @pytest.mark.asyncio
-    async def test_get_top_strategies(self, mock_pg):
+    async def test_get_top_strategies(self, server, postgres_client):
         """Test get_top_strategies tool."""
-        mock_pg.get_top_strategies.return_value = [
+        postgres_client.get_top_strategies.return_value = [
             {
                 "spec_name": "macd",
                 "impl_id": "abc",
@@ -52,33 +55,40 @@ class TestMCPServer:
             }
         ]
 
-        result = await call_tool(
-            "get_top_strategies", {"symbol": "BTC/USD", "limit": 5}
-        )
+        call_tool_handler = server.request_handlers.get("tools/call")
+        request = MagicMock()
+        request.params.name = "get_top_strategies"
+        request.params.arguments = {"symbol": "BTC/USD", "limit": 5}
 
-        assert len(result) == 1
-        data = json.loads(result[0].text)
+        result = await call_tool_handler(request)
+
+        data = json.loads(result.content[0].text)
         assert len(data) == 1
         assert data[0]["spec_name"] == "macd"
-        mock_pg.get_top_strategies.assert_called_once_with(
+        postgres_client.get_top_strategies.assert_called_once_with(
             symbol="BTC/USD", limit=5, min_score=0.0
         )
 
     @pytest.mark.asyncio
-    async def test_get_top_strategies_defaults(self, mock_pg):
+    async def test_get_top_strategies_defaults(self, server, postgres_client):
         """Test get_top_strategies with default parameters."""
-        mock_pg.get_top_strategies.return_value = []
+        postgres_client.get_top_strategies.return_value = []
 
-        result = await call_tool("get_top_strategies", {"symbol": "ETH/USD"})
+        call_tool_handler = server.request_handlers.get("tools/call")
+        request = MagicMock()
+        request.params.name = "get_top_strategies"
+        request.params.arguments = {"symbol": "ETH/USD"}
 
-        mock_pg.get_top_strategies.assert_called_once_with(
+        await call_tool_handler(request)
+
+        postgres_client.get_top_strategies.assert_called_once_with(
             symbol="ETH/USD", limit=10, min_score=0.0
         )
 
     @pytest.mark.asyncio
-    async def test_get_spec_found(self, mock_pg):
+    async def test_get_spec_found(self, server, postgres_client):
         """Test get_spec when spec exists."""
-        mock_pg.get_spec.return_value = {
+        postgres_client.get_spec.return_value = {
             "name": "macd_crossover",
             "indicators": {"macd": {}},
             "entry_conditions": {},
@@ -87,75 +97,106 @@ class TestMCPServer:
             "source": "MIGRATED",
         }
 
-        result = await call_tool("get_spec", {"spec_name": "macd_crossover"})
+        call_tool_handler = server.request_handlers.get("tools/call")
+        request = MagicMock()
+        request.params.name = "get_spec"
+        request.params.arguments = {"spec_name": "macd_crossover"}
 
-        data = json.loads(result[0].text)
+        result = await call_tool_handler(request)
+
+        data = json.loads(result.content[0].text)
         assert data["name"] == "macd_crossover"
 
     @pytest.mark.asyncio
-    async def test_get_spec_not_found(self, mock_pg):
+    async def test_get_spec_not_found(self, server, postgres_client):
         """Test get_spec when spec doesn't exist."""
-        mock_pg.get_spec.return_value = None
+        postgres_client.get_spec.return_value = None
 
-        result = await call_tool("get_spec", {"spec_name": "nonexistent"})
+        call_tool_handler = server.request_handlers.get("tools/call")
+        request = MagicMock()
+        request.params.name = "get_spec"
+        request.params.arguments = {"spec_name": "nonexistent"}
 
-        data = json.loads(result[0].text)
+        result = await call_tool_handler(request)
+
+        data = json.loads(result.content[0].text)
         assert "error" in data
 
     @pytest.mark.asyncio
-    async def test_get_performance(self, mock_pg):
+    async def test_get_performance(self, server, postgres_client):
         """Test get_performance tool."""
-        mock_pg.get_performance.return_value = {
+        postgres_client.get_performance.return_value = {
             "backtest": {"sharpe_ratio": 1.5},
         }
 
-        result = await call_tool("get_performance", {"impl_id": "abc-123"})
+        call_tool_handler = server.request_handlers.get("tools/call")
+        request = MagicMock()
+        request.params.name = "get_performance"
+        request.params.arguments = {"impl_id": "abc-123"}
 
-        data = json.loads(result[0].text)
+        result = await call_tool_handler(request)
+
+        data = json.loads(result.content[0].text)
         assert "backtest" in data
-        mock_pg.get_performance.assert_called_once_with(
+        postgres_client.get_performance.assert_called_once_with(
             impl_id="abc-123", environment=None
         )
 
     @pytest.mark.asyncio
-    async def test_get_performance_with_environment(self, mock_pg):
+    async def test_get_performance_with_environment(self, server, postgres_client):
         """Test get_performance with environment filter."""
-        mock_pg.get_performance.return_value = {"backtest": {"sharpe_ratio": 1.5}}
+        postgres_client.get_performance.return_value = {"backtest": {"sharpe_ratio": 1.5}}
 
-        await call_tool(
-            "get_performance", {"impl_id": "abc-123", "environment": "backtest"}
-        )
+        call_tool_handler = server.request_handlers.get("tools/call")
+        request = MagicMock()
+        request.params.name = "get_performance"
+        request.params.arguments = {"impl_id": "abc-123", "environment": "backtest"}
 
-        mock_pg.get_performance.assert_called_once_with(
+        await call_tool_handler(request)
+
+        postgres_client.get_performance.assert_called_once_with(
             impl_id="abc-123", environment="backtest"
         )
 
     @pytest.mark.asyncio
-    async def test_get_performance_not_found(self, mock_pg):
+    async def test_get_performance_not_found(self, server, postgres_client):
         """Test get_performance when impl doesn't exist."""
-        mock_pg.get_performance.return_value = None
+        postgres_client.get_performance.return_value = None
 
-        result = await call_tool("get_performance", {"impl_id": "nonexistent"})
+        call_tool_handler = server.request_handlers.get("tools/call")
+        request = MagicMock()
+        request.params.name = "get_performance"
+        request.params.arguments = {"impl_id": "nonexistent"}
 
-        data = json.loads(result[0].text)
+        result = await call_tool_handler(request)
+
+        data = json.loads(result.content[0].text)
         assert "error" in data
 
     @pytest.mark.asyncio
-    async def test_list_strategy_types(self, mock_pg):
+    async def test_list_strategy_types(self, server, postgres_client):
         """Test list_strategy_types tool."""
-        mock_pg.list_strategy_types.return_value = ["macd", "rsi"]
+        postgres_client.list_strategy_types.return_value = ["macd", "rsi"]
 
-        result = await call_tool("list_strategy_types", {})
+        call_tool_handler = server.request_handlers.get("tools/call")
+        request = MagicMock()
+        request.params.name = "list_strategy_types"
+        request.params.arguments = {}
 
-        data = json.loads(result[0].text)
+        result = await call_tool_handler(request)
+
+        data = json.loads(result.content[0].text)
         assert data == ["macd", "rsi"]
 
     @pytest.mark.asyncio
-    async def test_create_spec(self, mock_pg):
+    async def test_create_spec(self, server, postgres_client):
         """Test create_spec tool."""
-        mock_pg.create_spec.return_value = {"spec_id": "new-uuid"}
+        postgres_client.create_spec.return_value = {"spec_id": "new-uuid"}
 
-        args = {
+        call_tool_handler = server.request_handlers.get("tools/call")
+        request = MagicMock()
+        request.params.name = "create_spec"
+        request.params.arguments = {
             "name": "test_spec",
             "indicators": {"rsi": {"period": 14}},
             "entry_conditions": {"rsi_below": 30},
@@ -164,11 +205,11 @@ class TestMCPServer:
             "description": "A test strategy",
         }
 
-        result = await call_tool("create_spec", args)
+        result = await call_tool_handler(request)
 
-        data = json.loads(result[0].text)
+        data = json.loads(result.content[0].text)
         assert data["spec_id"] == "new-uuid"
-        mock_pg.create_spec.assert_called_once_with(
+        postgres_client.create_spec.assert_called_once_with(
             name="test_spec",
             indicators={"rsi": {"period": 14}},
             entry_conditions={"rsi_below": 30},
@@ -178,9 +219,9 @@ class TestMCPServer:
         )
 
     @pytest.mark.asyncio
-    async def test_get_walk_forward(self, mock_pg):
+    async def test_get_walk_forward(self, server, postgres_client):
         """Test get_walk_forward tool."""
-        mock_pg.get_walk_forward.return_value = {
+        postgres_client.get_walk_forward.return_value = {
             "validation_status": "APPROVED",
             "sharpe_degradation": 0.15,
             "in_sample_sharpe": 2.0,
@@ -188,26 +229,41 @@ class TestMCPServer:
             "window_results": [],
         }
 
-        result = await call_tool("get_walk_forward", {"impl_id": "abc-123"})
+        call_tool_handler = server.request_handlers.get("tools/call")
+        request = MagicMock()
+        request.params.name = "get_walk_forward"
+        request.params.arguments = {"impl_id": "abc-123"}
 
-        data = json.loads(result[0].text)
+        result = await call_tool_handler(request)
+
+        data = json.loads(result.content[0].text)
         assert data["validation_status"] == "APPROVED"
 
     @pytest.mark.asyncio
-    async def test_get_walk_forward_not_found(self, mock_pg):
+    async def test_get_walk_forward_not_found(self, server, postgres_client):
         """Test get_walk_forward when results don't exist."""
-        mock_pg.get_walk_forward.return_value = None
+        postgres_client.get_walk_forward.return_value = None
 
-        result = await call_tool("get_walk_forward", {"impl_id": "nonexistent"})
+        call_tool_handler = server.request_handlers.get("tools/call")
+        request = MagicMock()
+        request.params.name = "get_walk_forward"
+        request.params.arguments = {"impl_id": "nonexistent"}
 
-        data = json.loads(result[0].text)
+        result = await call_tool_handler(request)
+
+        data = json.loads(result.content[0].text)
         assert "error" in data
 
     @pytest.mark.asyncio
-    async def test_unknown_tool(self, mock_pg):
+    async def test_unknown_tool(self, server, postgres_client):
         """Test calling an unknown tool."""
-        result = await call_tool("unknown_tool", {})
+        call_tool_handler = server.request_handlers.get("tools/call")
+        request = MagicMock()
+        request.params.name = "unknown_tool"
+        request.params.arguments = {}
 
-        data = json.loads(result[0].text)
+        result = await call_tool_handler(request)
+
+        data = json.loads(result.content[0].text)
         assert "error" in data
         assert "Unknown tool" in data["error"]
