@@ -80,7 +80,9 @@ class TestPostgresClient:
             mock_conn.fetch.return_value = [mock_row]
 
             await postgres_client.connect()
-            result = await postgres_client.get_top_strategies("BTC/USD", limit=5, min_score=0.5)
+            result = await postgres_client.get_top_strategies(
+                "BTC/USD", limit=5, min_score=0.5
+            )
 
             assert len(result) == 1
             assert result[0]["spec_name"] == "macd_crossover"
@@ -151,7 +153,9 @@ class TestPostgresClient:
             mock_conn.fetchrow.return_value = mock_row
 
             await postgres_client.connect()
-            result = await postgres_client.get_performance("00000000-0000-0000-0000-000000000001")
+            result = await postgres_client.get_performance(
+                "00000000-0000-0000-0000-000000000001"
+            )
 
             assert result is not None
             assert "backtest" in result
@@ -196,9 +200,13 @@ class TestPostgresClient:
             mock_pool.acquire.return_value.__aenter__.return_value = mock_conn
 
             mock_row1 = MagicMock()
-            mock_row1.__getitem__.side_effect = lambda key: {"name": "macd_crossover"}[key]
+            mock_row1.__getitem__.side_effect = lambda key: {"name": "macd_crossover"}[
+                key
+            ]
             mock_row2 = MagicMock()
-            mock_row2.__getitem__.side_effect = lambda key: {"name": "rsi_mean_reversion"}[key]
+            mock_row2.__getitem__.side_effect = lambda key: {
+                "name": "rsi_mean_reversion"
+            }[key]
             mock_conn.fetch.return_value = [mock_row1, mock_row2]
 
             await postgres_client.connect()
@@ -216,6 +224,7 @@ class TestPostgresClient:
             mock_pool.acquire.return_value.__aenter__.return_value = mock_conn
 
             import uuid
+
             spec_id = uuid.uuid4()
             mock_row = MagicMock()
             mock_row.__getitem__.side_effect = lambda key: {"id": spec_id}[key]
@@ -254,7 +263,9 @@ class TestPostgresClient:
             mock_conn.fetchrow.return_value = mock_row
 
             await postgres_client.connect()
-            result = await postgres_client.get_walk_forward("00000000-0000-0000-0000-000000000001")
+            result = await postgres_client.get_walk_forward(
+                "00000000-0000-0000-0000-000000000001"
+            )
 
             assert result is not None
             assert result["validation_status"] == "APPROVED"
@@ -271,7 +282,9 @@ class TestPostgresClient:
             mock_conn.fetchrow.return_value = None
 
             await postgres_client.connect()
-            result = await postgres_client.get_walk_forward("00000000-0000-0000-0000-000000000001")
+            result = await postgres_client.get_walk_forward(
+                "00000000-0000-0000-0000-000000000001"
+            )
 
             assert result is None
 

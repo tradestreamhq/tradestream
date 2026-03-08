@@ -36,9 +36,20 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "symbol": {"type": "string", "description": "Trading symbol (e.g. BTC/USD)"},
-                    "limit": {"type": "integer", "description": "Max results to return", "default": 10},
-                    "min_score": {"type": "number", "description": "Minimum Sharpe ratio", "default": 0.0},
+                    "symbol": {
+                        "type": "string",
+                        "description": "Trading symbol (e.g. BTC/USD)",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Max results to return",
+                        "default": 10,
+                    },
+                    "min_score": {
+                        "type": "number",
+                        "description": "Minimum Sharpe ratio",
+                        "default": 0.0,
+                    },
                 },
                 "required": ["symbol"],
             },
@@ -49,7 +60,10 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "spec_name": {"type": "string", "description": "Strategy spec name"},
+                    "spec_name": {
+                        "type": "string",
+                        "description": "Strategy spec name",
+                    },
                 },
                 "required": ["spec_name"],
             },
@@ -60,7 +74,10 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "impl_id": {"type": "string", "description": "Strategy implementation UUID"},
+                    "impl_id": {
+                        "type": "string",
+                        "description": "Strategy implementation UUID",
+                    },
                     "environment": {
                         "type": "string",
                         "description": "Filter to specific environment (backtest, paper, live)",
@@ -85,13 +102,35 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "name": {"type": "string", "description": "Unique spec name"},
-                    "indicators": {"type": "object", "description": "Indicator configurations"},
-                    "entry_conditions": {"type": "object", "description": "Entry rule definitions"},
-                    "exit_conditions": {"type": "object", "description": "Exit rule definitions"},
-                    "parameters": {"type": "object", "description": "Parameter definitions with ranges"},
-                    "description": {"type": "string", "description": "Human-readable description"},
+                    "indicators": {
+                        "type": "object",
+                        "description": "Indicator configurations",
+                    },
+                    "entry_conditions": {
+                        "type": "object",
+                        "description": "Entry rule definitions",
+                    },
+                    "exit_conditions": {
+                        "type": "object",
+                        "description": "Exit rule definitions",
+                    },
+                    "parameters": {
+                        "type": "object",
+                        "description": "Parameter definitions with ranges",
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Human-readable description",
+                    },
                 },
-                "required": ["name", "indicators", "entry_conditions", "exit_conditions", "parameters", "description"],
+                "required": [
+                    "name",
+                    "indicators",
+                    "entry_conditions",
+                    "exit_conditions",
+                    "parameters",
+                    "description",
+                ],
             },
         ),
         Tool(
@@ -100,7 +139,10 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "impl_id": {"type": "string", "description": "Strategy implementation UUID"},
+                    "impl_id": {
+                        "type": "string",
+                        "description": "Strategy implementation UUID",
+                    },
                 },
                 "required": ["impl_id"],
             },
@@ -124,7 +166,9 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     elif name == "get_spec":
         result = await pg.get_spec(spec_name=arguments["spec_name"])
         if result is None:
-            return [TextContent(type="text", text=json.dumps({"error": "Spec not found"}))]
+            return [
+                TextContent(type="text", text=json.dumps({"error": "Spec not found"}))
+            ]
         return [TextContent(type="text", text=json.dumps(result, default=str))]
 
     elif name == "get_performance":
@@ -133,7 +177,11 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             environment=arguments.get("environment"),
         )
         if result is None:
-            return [TextContent(type="text", text=json.dumps({"error": "Implementation not found"}))]
+            return [
+                TextContent(
+                    type="text", text=json.dumps({"error": "Implementation not found"})
+                )
+            ]
         return [TextContent(type="text", text=json.dumps(result, default=str))]
 
     elif name == "list_strategy_types":
@@ -154,15 +202,26 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     elif name == "get_walk_forward":
         result = await pg.get_walk_forward(impl_id=arguments["impl_id"])
         if result is None:
-            return [TextContent(type="text", text=json.dumps({"error": "Walk-forward results not found"}))]
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps({"error": "Walk-forward results not found"}),
+                )
+            ]
         return [TextContent(type="text", text=json.dumps(result, default=str))]
 
     else:
-        return [TextContent(type="text", text=json.dumps({"error": f"Unknown tool: {name}"}))]
+        return [
+            TextContent(
+                type="text", text=json.dumps({"error": f"Unknown tool: {name}"})
+            )
+        ]
 
 
 async def run_stdio(pg_client: PostgresClient) -> None:
     """Run the MCP server over stdio transport."""
     _set_postgres_client(pg_client)
     async with stdio_server() as (read_stream, write_stream):
-        await server.run(read_stream, write_stream, server.create_initialization_options())
+        await server.run(
+            read_stream, write_stream, server.create_initialization_options()
+        )

@@ -6,7 +6,12 @@ import json
 import pytest
 from unittest.mock import AsyncMock, patch
 
-from services.strategy_mcp.server import server, call_tool, list_tools, _set_postgres_client
+from services.strategy_mcp.server import (
+    server,
+    call_tool,
+    list_tools,
+    _set_postgres_client,
+)
 
 
 class TestMCPServer:
@@ -38,16 +43,26 @@ class TestMCPServer:
     async def test_get_top_strategies(self, mock_pg):
         """Test get_top_strategies tool."""
         mock_pg.get_top_strategies.return_value = [
-            {"spec_name": "macd", "impl_id": "abc", "score": 1.5, "params": {}, "strategy_type": "macd"}
+            {
+                "spec_name": "macd",
+                "impl_id": "abc",
+                "score": 1.5,
+                "params": {},
+                "strategy_type": "macd",
+            }
         ]
 
-        result = await call_tool("get_top_strategies", {"symbol": "BTC/USD", "limit": 5})
+        result = await call_tool(
+            "get_top_strategies", {"symbol": "BTC/USD", "limit": 5}
+        )
 
         assert len(result) == 1
         data = json.loads(result[0].text)
         assert len(data) == 1
         assert data[0]["spec_name"] == "macd"
-        mock_pg.get_top_strategies.assert_called_once_with(symbol="BTC/USD", limit=5, min_score=0.0)
+        mock_pg.get_top_strategies.assert_called_once_with(
+            symbol="BTC/USD", limit=5, min_score=0.0
+        )
 
     @pytest.mark.asyncio
     async def test_get_top_strategies_defaults(self, mock_pg):
@@ -56,7 +71,9 @@ class TestMCPServer:
 
         result = await call_tool("get_top_strategies", {"symbol": "ETH/USD"})
 
-        mock_pg.get_top_strategies.assert_called_once_with(symbol="ETH/USD", limit=10, min_score=0.0)
+        mock_pg.get_top_strategies.assert_called_once_with(
+            symbol="ETH/USD", limit=10, min_score=0.0
+        )
 
     @pytest.mark.asyncio
     async def test_get_spec_found(self, mock_pg):
@@ -96,16 +113,22 @@ class TestMCPServer:
 
         data = json.loads(result[0].text)
         assert "backtest" in data
-        mock_pg.get_performance.assert_called_once_with(impl_id="abc-123", environment=None)
+        mock_pg.get_performance.assert_called_once_with(
+            impl_id="abc-123", environment=None
+        )
 
     @pytest.mark.asyncio
     async def test_get_performance_with_environment(self, mock_pg):
         """Test get_performance with environment filter."""
         mock_pg.get_performance.return_value = {"backtest": {"sharpe_ratio": 1.5}}
 
-        await call_tool("get_performance", {"impl_id": "abc-123", "environment": "backtest"})
+        await call_tool(
+            "get_performance", {"impl_id": "abc-123", "environment": "backtest"}
+        )
 
-        mock_pg.get_performance.assert_called_once_with(impl_id="abc-123", environment="backtest")
+        mock_pg.get_performance.assert_called_once_with(
+            impl_id="abc-123", environment="backtest"
+        )
 
     @pytest.mark.asyncio
     async def test_get_performance_not_found(self, mock_pg):

@@ -49,8 +49,8 @@ py_test(
     name = "server_test",
     srcs = ["server_test.py"],
     deps = [
-        ":server_lib",
         ":postgres_client_lib",
+        ":server_lib",
         "//third_party/python:mcp",
         "//third_party/python:pytest",
         "//third_party/python:pytest_asyncio",

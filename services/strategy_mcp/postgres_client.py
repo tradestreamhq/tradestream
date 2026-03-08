@@ -120,13 +120,19 @@ class PostgresClient:
 
             results = []
             for row in rows:
-                results.append({
-                    "spec_name": row["spec_name"],
-                    "impl_id": str(row["impl_id"]),
-                    "score": row["score"],
-                    "params": json.loads(row["parameters"]) if isinstance(row["parameters"], str) else row["parameters"],
-                    "strategy_type": row["strategy_type"],
-                })
+                results.append(
+                    {
+                        "spec_name": row["spec_name"],
+                        "impl_id": str(row["impl_id"]),
+                        "score": row["score"],
+                        "params": (
+                            json.loads(row["parameters"])
+                            if isinstance(row["parameters"], str)
+                            else row["parameters"]
+                        ),
+                        "strategy_type": row["strategy_type"],
+                    }
+                )
             return results
 
     async def get_spec(self, spec_name: str) -> Optional[Dict[str, Any]]:
@@ -224,14 +230,32 @@ class PostgresClient:
         RETURNING id
         """
 
-        indicators_json = json.dumps(indicators) if not isinstance(indicators, str) else indicators
-        entry_json = json.dumps(entry_conditions) if not isinstance(entry_conditions, str) else entry_conditions
-        exit_json = json.dumps(exit_conditions) if not isinstance(exit_conditions, str) else exit_conditions
-        params_json = json.dumps(parameters) if not isinstance(parameters, str) else parameters
+        indicators_json = (
+            json.dumps(indicators) if not isinstance(indicators, str) else indicators
+        )
+        entry_json = (
+            json.dumps(entry_conditions)
+            if not isinstance(entry_conditions, str)
+            else entry_conditions
+        )
+        exit_json = (
+            json.dumps(exit_conditions)
+            if not isinstance(exit_conditions, str)
+            else exit_conditions
+        )
+        params_json = (
+            json.dumps(parameters) if not isinstance(parameters, str) else parameters
+        )
 
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
-                query, name, indicators_json, entry_json, exit_json, params_json, description
+                query,
+                name,
+                indicators_json,
+                entry_json,
+                exit_json,
+                params_json,
+                description,
             )
             return {"spec_id": str(row["id"])}
 
