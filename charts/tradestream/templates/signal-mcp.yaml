@@ -1,0 +1,81 @@
+{{- if .Values.signalMcp.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-signal-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: signal-mcp
+spec:
+  replicas: {{ .Values.signalMcp.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: signal-mcp
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: signal-mcp
+    spec:
+      containers:
+        - name: signal-mcp
+          image: "{{ .Values.signalMcp.image.repository }}:{{ .Values.signalMcp.image.tag }}"
+          imagePullPolicy: {{ .Values.signalMcp.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.signalMcp.service.port | default 8080 }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_HOST
+              value: {{ tpl .Values.signalMcp.database.host . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.signalMcp.database.port | quote }}
+            - name: POSTGRES_DATABASE
+              value: "{{ .Values.signalMcp.database.database }}"
+            - name: POSTGRES_USERNAME
+              value: "{{ .Values.signalMcp.database.username }}"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.signalMcp.database.passwordSecret.name . }}
+                  key: {{ .Values.signalMcp.database.passwordSecret.key }}
+            - name: REDIS_HOST
+              value: {{ tpl .Values.signalMcp.redis.host . | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.signalMcp.redis.port | quote }}
+            - name: MCP_TRANSPORT
+              value: "{{ .Values.signalMcp.config.mcpTransport }}"
+            - name: MCP_PORT
+              value: {{ .Values.signalMcp.service.port | quote }}
+          args:
+            - "--postgres_host=$(POSTGRES_HOST)"
+            - "--postgres_port=$(POSTGRES_PORT)"
+            - "--postgres_database=$(POSTGRES_DATABASE)"
+            - "--postgres_username=$(POSTGRES_USERNAME)"
+            - "--postgres_password=$(POSTGRES_PASSWORD)"
+            - "--redis_host=$(REDIS_HOST)"
+            - "--redis_port=$(REDIS_PORT)"
+            - "--mcp_transport=$(MCP_TRANSPORT)"
+            - "--mcp_port=$(MCP_PORT)"
+          resources:
+            {{- toYaml .Values.signalMcp.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-signal-mcp
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: signal-mcp
+spec:
+  type: {{ .Values.signalMcp.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.signalMcp.service.port | default 8080 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: signal-mcp
+{{- end }}

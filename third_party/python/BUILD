@@ -168,3 +168,11 @@ py_library(
         requirement("anthropic"),
     ],
 )
+
+py_library(
+    name = "mcp",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("mcp"),
+    ],
+)
