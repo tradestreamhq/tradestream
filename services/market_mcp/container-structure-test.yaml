@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/market_mcp"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "Market MCP binary exists"
+    path: "/services/market_mcp/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
