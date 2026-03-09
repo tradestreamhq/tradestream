@@ -147,7 +147,7 @@ oci_image_index(
 oci_push(
     name = "push_candle_ingestor_image",
     image = ":images",
-    repository = "tradestreamhq/candle-ingestor",
+    repository = "ghcr.io/tradestreamhq/candle-ingestor",
 )
 
 oci_load(

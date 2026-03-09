@@ -94,7 +94,7 @@ oci_image_index(
 oci_push(
     name = "push_strategy_monitor_ui_image",
     image = ":strategy_monitor_ui_images",
-    repository = "tradestreamhq/strategy-monitor-ui",
+    repository = "ghcr.io/tradestreamhq/strategy-monitor-ui",
 )
 
 # Load target for the UI image
