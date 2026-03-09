@@ -11,11 +11,19 @@ from services.signal_generator_agent.agent import run_agent_for_symbol
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string("openrouter_api_key", None, "OpenRouter API key.")
-flags.DEFINE_string("symbols", "BTC-USD,ETH-USD", "Comma-separated list of symbols to generate signals for.")
-flags.DEFINE_string("mcp_strategy_url", "http://localhost:8080", "Strategy MCP server URL.")
+flags.DEFINE_string(
+    "symbols",
+    "BTC-USD,ETH-USD",
+    "Comma-separated list of symbols to generate signals for.",
+)
+flags.DEFINE_string(
+    "mcp_strategy_url", "http://localhost:8080", "Strategy MCP server URL."
+)
 flags.DEFINE_string("mcp_market_url", "http://localhost:8081", "Market MCP server URL.")
 flags.DEFINE_string("mcp_signal_url", "http://localhost:8082", "Signal MCP server URL.")
-flags.DEFINE_integer("interval_seconds", 60, "Interval between signal generation runs in seconds.")
+flags.DEFINE_integer(
+    "interval_seconds", 60, "Interval between signal generation runs in seconds."
+)
 
 flags.mark_flag_as_required("openrouter_api_key")
 
@@ -46,8 +54,11 @@ def main(argv):
         "signal": FLAGS.mcp_signal_url.rstrip("/"),
     }
 
-    logging.info("Signal Generator Agent started. Symbols: %s, Interval: %ds",
-                 symbols, FLAGS.interval_seconds)
+    logging.info(
+        "Signal Generator Agent started. Symbols: %s, Interval: %ds",
+        symbols,
+        FLAGS.interval_seconds,
+    )
 
     while not _shutdown:
         for symbol in symbols:

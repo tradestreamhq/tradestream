@@ -68,8 +68,16 @@ MCP_TOOLS = [
                 "type": "object",
                 "properties": {
                     "symbol": {"type": "string", "description": "Trading symbol"},
-                    "limit": {"type": "integer", "description": "Max strategies to return", "default": 10},
-                    "min_score": {"type": "number", "description": "Minimum score threshold", "default": 0.0},
+                    "limit": {
+                        "type": "integer",
+                        "description": "Max strategies to return",
+                        "default": 10,
+                    },
+                    "min_score": {
+                        "type": "number",
+                        "description": "Minimum score threshold",
+                        "default": 0.0,
+                    },
                 },
                 "required": ["symbol"],
             },
@@ -98,8 +106,16 @@ MCP_TOOLS = [
                 "type": "object",
                 "properties": {
                     "symbol": {"type": "string", "description": "Trading symbol"},
-                    "timeframe": {"type": "string", "description": "Candle timeframe", "default": "1m"},
-                    "limit": {"type": "integer", "description": "Number of candles", "default": 100},
+                    "timeframe": {
+                        "type": "string",
+                        "description": "Candle timeframe",
+                        "default": "1m",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Number of candles",
+                        "default": 100,
+                    },
                 },
                 "required": ["symbol"],
             },
@@ -114,7 +130,11 @@ MCP_TOOLS = [
                 "type": "object",
                 "properties": {
                     "symbol": {"type": "string", "description": "Trading symbol"},
-                    "limit": {"type": "integer", "description": "Max signals to return", "default": 20},
+                    "limit": {
+                        "type": "integer",
+                        "description": "Max signals to return",
+                        "default": 20,
+                    },
                 },
                 "required": [],
             },
@@ -128,7 +148,10 @@ MCP_TOOLS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "impl_id": {"type": "string", "description": "Strategy implementation ID"},
+                    "impl_id": {
+                        "type": "string",
+                        "description": "Strategy implementation ID",
+                    },
                 },
                 "required": ["impl_id"],
             },
@@ -143,9 +166,19 @@ MCP_TOOLS = [
                 "type": "object",
                 "properties": {
                     "symbol": {"type": "string", "description": "Trading symbol"},
-                    "action": {"type": "string", "enum": ["BUY", "SELL", "HOLD"], "description": "Signal action"},
-                    "confidence": {"type": "number", "description": "Confidence score 0.0-1.0"},
-                    "reasoning": {"type": "string", "description": "Explanation for the signal"},
+                    "action": {
+                        "type": "string",
+                        "enum": ["BUY", "SELL", "HOLD"],
+                        "description": "Signal action",
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "description": "Confidence score 0.0-1.0",
+                    },
+                    "reasoning": {
+                        "type": "string",
+                        "description": "Explanation for the signal",
+                    },
                     "strategy_breakdown": {
                         "type": "array",
                         "items": {
@@ -159,7 +192,13 @@ MCP_TOOLS = [
                         "description": "Per-strategy signal breakdown",
                     },
                 },
-                "required": ["symbol", "action", "confidence", "reasoning", "strategy_breakdown"],
+                "required": [
+                    "symbol",
+                    "action",
+                    "confidence",
+                    "reasoning",
+                    "strategy_breakdown",
+                ],
             },
         },
     },
@@ -205,7 +244,9 @@ def _call_mcp_tool(tool_name, arguments, mcp_urls):
         resp.raise_for_status()
         result = resp.json()
         if "content" in result and isinstance(result["content"], list):
-            texts = [c.get("text", "") for c in result["content"] if c.get("type") == "text"]
+            texts = [
+                c.get("text", "") for c in result["content"] if c.get("type") == "text"
+            ]
             return "\n".join(texts) if texts else json.dumps(result)
         return json.dumps(result)
     except requests.RequestException as e:
@@ -248,7 +289,9 @@ def run_agent_for_symbol(symbol, api_key, mcp_urls):
         messages.append(message.model_dump(exclude_none=True))
 
         if choice.finish_reason == "stop" or not message.tool_calls:
-            logging.info("Symbol %s: agent finished after %d iterations", symbol, iteration + 1)
+            logging.info(
+                "Symbol %s: agent finished after %d iterations", symbol, iteration + 1
+            )
             return message.content
 
         for tool_call in message.tool_calls:
@@ -262,11 +305,13 @@ def run_agent_for_symbol(symbol, api_key, mcp_urls):
 
             result = _call_mcp_tool(fn_name, fn_args, mcp_urls)
 
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": result,
-            })
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": result,
+                }
+            )
 
     logging.warning("Symbol %s: reached max iterations (%d)", symbol, max_iterations)
     return None

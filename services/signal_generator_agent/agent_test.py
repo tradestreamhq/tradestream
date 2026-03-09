@@ -16,11 +16,41 @@ def _make_mcp_response(data):
 
 def _make_strategies():
     return [
-        {"impl_id": "impl_1", "strategy_type": "momentum", "signal": "BUY", "confidence": 0.8, "score": 90},
-        {"impl_id": "impl_2", "strategy_type": "mean_reversion", "signal": "BUY", "confidence": 0.7, "score": 85},
-        {"impl_id": "impl_3", "strategy_type": "breakout", "signal": "SELL", "confidence": 0.6, "score": 80},
-        {"impl_id": "impl_4", "strategy_type": "trend_following", "signal": "BUY", "confidence": 0.75, "score": 75},
-        {"impl_id": "impl_5", "strategy_type": "rsi", "signal": "BUY", "confidence": 0.65, "score": 70},
+        {
+            "impl_id": "impl_1",
+            "strategy_type": "momentum",
+            "signal": "BUY",
+            "confidence": 0.8,
+            "score": 90,
+        },
+        {
+            "impl_id": "impl_2",
+            "strategy_type": "mean_reversion",
+            "signal": "BUY",
+            "confidence": 0.7,
+            "score": 85,
+        },
+        {
+            "impl_id": "impl_3",
+            "strategy_type": "breakout",
+            "signal": "SELL",
+            "confidence": 0.6,
+            "score": 80,
+        },
+        {
+            "impl_id": "impl_4",
+            "strategy_type": "trend_following",
+            "signal": "BUY",
+            "confidence": 0.75,
+            "score": 75,
+        },
+        {
+            "impl_id": "impl_5",
+            "strategy_type": "rsi",
+            "signal": "BUY",
+            "confidence": 0.65,
+            "score": 70,
+        },
     ]
 
 
@@ -37,14 +67,16 @@ def _make_candles(count=50):
     candles = []
     base_price = 50000.0
     for i in range(count):
-        candles.append({
-            "timestamp": f"2024-01-01T00:{i:02d}:00Z",
-            "open": base_price + i * 10,
-            "high": base_price + i * 10 + 50,
-            "low": base_price + i * 10 - 30,
-            "close": base_price + i * 10 + 20,
-            "volume": 100 + i,
-        })
+        candles.append(
+            {
+                "timestamp": f"2024-01-01T00:{i:02d}:00Z",
+                "open": base_price + i * 10,
+                "high": base_price + i * 10 + 50,
+                "low": base_price + i * 10 - 30,
+                "close": base_price + i * 10 + 20,
+                "volume": 100 + i,
+            }
+        )
     return candles
 
 
@@ -79,16 +111,23 @@ class TestCallMcpTool:
     def test_successful_mcp_call(self, mock_post):
         mock_resp = mock.Mock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = _make_mcp_response({"strategies": _make_strategies()})
+        mock_resp.json.return_value = _make_mcp_response(
+            {"strategies": _make_strategies()}
+        )
         mock_resp.raise_for_status.return_value = None
         mock_post.return_value = mock_resp
 
         mcp_urls = {"strategy": "http://strategy:8080"}
-        result = agent._call_mcp_tool("get_top_strategies", {"symbol": "BTC-USD", "limit": 10}, mcp_urls)
+        result = agent._call_mcp_tool(
+            "get_top_strategies", {"symbol": "BTC-USD", "limit": 10}, mcp_urls
+        )
 
         mock_post.assert_called_once_with(
             "http://strategy:8080/call-tool",
-            json={"name": "get_top_strategies", "arguments": {"symbol": "BTC-USD", "limit": 10}},
+            json={
+                "name": "get_top_strategies",
+                "arguments": {"symbol": "BTC-USD", "limit": 10},
+            },
             timeout=30,
         )
         parsed = json.loads(result)
@@ -97,10 +136,13 @@ class TestCallMcpTool:
     @mock.patch("requests.post")
     def test_mcp_call_http_error(self, mock_post):
         import requests as req_lib
+
         mock_post.side_effect = req_lib.RequestException("Connection refused")
 
         mcp_urls = {"strategy": "http://strategy:8080"}
-        result = agent._call_mcp_tool("get_top_strategies", {"symbol": "BTC-USD"}, mcp_urls)
+        result = agent._call_mcp_tool(
+            "get_top_strategies", {"symbol": "BTC-USD"}, mcp_urls
+        )
 
         parsed = json.loads(result)
         assert "error" in parsed
@@ -143,7 +185,16 @@ class TestRunAgentForSymbol:
         msg_1.content = None
         msg_1.model_dump.return_value = {
             "role": "assistant",
-            "tool_calls": [{"id": "tc_1", "function": {"name": "get_top_strategies", "arguments": '{"symbol":"BTC-USD","limit":10}'}, "type": "function"}],
+            "tool_calls": [
+                {
+                    "id": "tc_1",
+                    "function": {
+                        "name": "get_top_strategies",
+                        "arguments": '{"symbol":"BTC-USD","limit":10}',
+                    },
+                    "type": "function",
+                }
+            ],
         }
 
         choice_1 = mock.Mock()
@@ -156,13 +207,17 @@ class TestRunAgentForSymbol:
         # Second LLM call finishes
         msg_2 = mock.Mock()
         msg_2.tool_calls = None
-        msg_2.content = json.dumps({
-            "symbol": "BTC-USD",
-            "action": "BUY",
-            "confidence": 0.75,
-            "reasoning": "Strong consensus",
-            "strategy_breakdown": [{"strategy_type": "momentum", "signal": "BUY", "confidence": 0.8}],
-        })
+        msg_2.content = json.dumps(
+            {
+                "symbol": "BTC-USD",
+                "action": "BUY",
+                "confidence": 0.75,
+                "reasoning": "Strong consensus",
+                "strategy_breakdown": [
+                    {"strategy_type": "momentum", "signal": "BUY", "confidence": 0.8}
+                ],
+            }
+        )
         msg_2.model_dump.return_value = {"role": "assistant", "content": msg_2.content}
 
         choice_2 = mock.Mock()
@@ -177,7 +232,9 @@ class TestRunAgentForSymbol:
         # Mock MCP HTTP response
         mock_http_resp = mock.Mock()
         mock_http_resp.status_code = 200
-        mock_http_resp.json.return_value = _make_mcp_response({"strategies": _make_strategies()})
+        mock_http_resp.json.return_value = _make_mcp_response(
+            {"strategies": _make_strategies()}
+        )
         mock_http_resp.raise_for_status.return_value = None
         mock_requests_post.return_value = mock_http_resp
 
@@ -216,7 +273,16 @@ class TestRunAgentForSymbol:
         msg.content = None
         msg.model_dump.return_value = {
             "role": "assistant",
-            "tool_calls": [{"id": "tc_loop", "function": {"name": "get_top_strategies", "arguments": '{"symbol":"BTC-USD"}'}, "type": "function"}],
+            "tool_calls": [
+                {
+                    "id": "tc_loop",
+                    "function": {
+                        "name": "get_top_strategies",
+                        "arguments": '{"symbol":"BTC-USD"}',
+                    },
+                    "type": "function",
+                }
+            ],
         }
 
         choice = mock.Mock()
@@ -255,7 +321,9 @@ class TestMcpToolDefinitions:
         assert "emit_signal" in tool_names
 
     def test_emit_signal_has_required_params(self):
-        emit_tool = next(t for t in agent.MCP_TOOLS if t["function"]["name"] == "emit_signal")
+        emit_tool = next(
+            t for t in agent.MCP_TOOLS if t["function"]["name"] == "emit_signal"
+        )
         required = emit_tool["function"]["parameters"]["required"]
         assert "symbol" in required
         assert "action" in required
@@ -264,7 +332,9 @@ class TestMcpToolDefinitions:
         assert "strategy_breakdown" in required
 
     def test_get_top_strategies_has_symbol_required(self):
-        tool = next(t for t in agent.MCP_TOOLS if t["function"]["name"] == "get_top_strategies")
+        tool = next(
+            t for t in agent.MCP_TOOLS if t["function"]["name"] == "get_top_strategies"
+        )
         assert "symbol" in tool["function"]["parameters"]["required"]
 
 
