@@ -656,3 +656,21 @@ signalGeneratorAgent:
   config:
     symbols: "BTC-USD,ETH-USD"
     intervalSeconds: 60
+
+# Opportunity Scorer Agent configuration
+opportunityScorerAgent:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/opportunity-scorer-agent"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  secrets:
+    openrouterApiKey:
+      name: "openrouter-api-secret"
+      key: "api-key"
+  mcpUrls:
+    strategy: "http://strategy-mcp.default.svc.cluster.local:8080"
+    market: "http://market-mcp.default.svc.cluster.local:8080"
+    signal: "http://signal-mcp.default.svc.cluster.local:8080"
+  config:
+    pollIntervalSeconds: 10
