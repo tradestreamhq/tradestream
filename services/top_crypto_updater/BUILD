@@ -79,7 +79,7 @@ oci_image_index(
 oci_push(
     name = "push_top_crypto_updater_image",
     image = ":images",
-    repository = "tradestreamhq/top-crypto-updater",
+    repository = "ghcr.io/tradestreamhq/top-crypto-updater",
 )
 
 oci_load(

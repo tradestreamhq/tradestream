@@ -91,7 +91,7 @@ oci_image_index(
 oci_push(
     name = "push_market_mcp_image",
     image = ":images",
-    repository = "tradestreamhq/market-mcp",
+    repository = "ghcr.io/tradestreamhq/market-mcp",
 )
 
 oci_load(
