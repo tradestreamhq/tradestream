@@ -1,93 +1,79 @@
-"""
-Main entry point for the Strategy Proposer Agent.
+"""Entry point for the Strategy Proposer Agent."""
 
-Runs on a configurable interval (default 30 minutes) and proposes novel
-trading strategies by connecting to the strategy MCP server.
-"""
-
-import asyncio
+import signal
 import sys
+import time
 
-from absl import app
-from absl import flags
-from absl import logging
+from absl import app, flags, logging
 
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
-
-from services.strategy_proposer_agent.agent import StrategyProposerAgent
+from services.strategy_proposer_agent.agent import run_proposer
 
 FLAGS = flags.FLAGS
 
+flags.DEFINE_string("openrouter_api_key", None, "OpenRouter API key.")
 flags.DEFINE_string(
-    "openrouter_api_key",
-    "",
-    "OpenRouter API key for LLM access.",
+    "mcp_strategy_url", "http://localhost:8080", "Strategy MCP server URL."
 )
 flags.DEFINE_string(
-    "mcp_strategy_url",
-    "http://localhost:8080",
-    "URL of the strategy MCP server.",
-)
-flags.DEFINE_string(
-    "mcp_market_url",
-    "http://localhost:8081",
-    "URL of the market MCP server.",
+    "mcp_market_url", "http://localhost:8081", "Market MCP server URL."
 )
 flags.DEFINE_integer(
-    "interval_seconds",
-    1800,
-    "Interval between strategy proposal runs in seconds.",
+    "interval_seconds", 1800, "Interval between strategy proposal runs in seconds."
 )
 
+flags.mark_flag_as_required("openrouter_api_key")
 
-async def run_once(agent: StrategyProposerAgent) -> None:
-    """Run a single strategy proposal cycle via MCP stdio client."""
-    server_params = StdioServerParameters(
-        command="python",
-        args=["-m", "services.strategy_mcp.main"],
-    )
-
-    async with stdio_client(server_params) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            result = await agent.run(session)
-            if result:
-                logging.info("Proposal cycle complete: %s", result)
-            else:
-                logging.info("No novel strategy proposed this cycle")
+_shutdown = False
 
 
-async def main_async() -> None:
-    """Main async entry point."""
-    if not FLAGS.openrouter_api_key:
-        logging.error("OpenRouter API key is required (--openrouter_api_key)")
-        sys.exit(1)
-
-    agent = StrategyProposerAgent(
-        openrouter_api_key=FLAGS.openrouter_api_key,
-        mcp_strategy_url=FLAGS.mcp_strategy_url,
-    )
-
-    logging.info("Starting Strategy Proposer Agent (interval=%ds)", FLAGS.interval_seconds)
-
-    while True:
-        try:
-            await run_once(agent)
-        except Exception:
-            logging.exception("Error during strategy proposal cycle")
-
-        if FLAGS.interval_seconds <= 0:
-            break
-        logging.info("Sleeping %d seconds until next cycle...", FLAGS.interval_seconds)
-        await asyncio.sleep(FLAGS.interval_seconds)
+def _handle_shutdown(signum, frame):
+    global _shutdown
+    logging.info("Received signal %d, shutting down...", signum)
+    _shutdown = True
 
 
 def main(argv):
-    """Main function."""
-    del argv  # Unused.
+    del argv
     logging.set_verbosity(logging.INFO)
-    asyncio.run(main_async())
+
+    signal.signal(signal.SIGINT, _handle_shutdown)
+    signal.signal(signal.SIGTERM, _handle_shutdown)
+
+    mcp_urls = {
+        "strategy": FLAGS.mcp_strategy_url.rstrip("/"),
+        "market": FLAGS.mcp_market_url.rstrip("/"),
+    }
+
+    logging.info(
+        "Strategy Proposer Agent started. Interval: %ds",
+        FLAGS.interval_seconds,
+    )
+
+    while not _shutdown:
+        try:
+            logging.info("Running strategy proposal cycle...")
+            result = run_proposer(
+                api_key=FLAGS.openrouter_api_key,
+                mcp_urls=mcp_urls,
+            )
+            if result:
+                logging.info("Proposal result: %s", result[:500])
+            else:
+                logging.warning("No result from proposal cycle")
+        except Exception as e:
+            logging.exception("Error during strategy proposal cycle: %s", e)
+
+        if FLAGS.interval_seconds <= 0:
+            break
+
+        if not _shutdown:
+            logging.info("Sleeping %ds before next run...", FLAGS.interval_seconds)
+            for _ in range(FLAGS.interval_seconds):
+                if _shutdown:
+                    break
+                time.sleep(1)
+
+    logging.info("Strategy Proposer Agent shut down.")
 
 
 if __name__ == "__main__":

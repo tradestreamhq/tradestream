@@ -5,11 +5,15 @@ load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
 
+package(default_visibility = ["//visibility:public"])
+
 py_library(
     name = "agent_lib",
     srcs = ["agent.py"],
     deps = [
+        "//third_party/python:absl_py",
         "//third_party/python:openai",
+        "//third_party/python:requests",
     ],
 )
 
@@ -20,17 +24,17 @@ py_binary(
     deps = [
         ":agent_lib",
         "//third_party/python:absl_py",
-        "//third_party/python:mcp",
     ],
 )
 
 py_test(
     name = "agent_test",
     srcs = ["agent_test.py"],
+    args = [],
     deps = [
         ":agent_lib",
         "//third_party/python:pytest",
-        "//third_party/python:pytest_asyncio",
+        "//third_party/python:requests",
     ],
 )
 
