@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/opportunity_scorer_agent"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "Opportunity Scorer Agent binary exists"
+    path: "/services/opportunity_scorer_agent/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
