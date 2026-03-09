@@ -139,7 +139,7 @@ kafkaUi:
 strategyDiscoveryPipeline:
   enabled: true
   image:
-    repository: tradestreamhq/strategy-discovery-pipeline
+    repository: ghcr.io/tradestreamhq/strategy-discovery-pipeline
     tag: v2.45.97-develop
     pullPolicy: IfNotPresent
   version: v1_18
@@ -186,7 +186,7 @@ candleIngestor:
     ttlSecondsAfterFinished: 3600 # Cleans up finished jobs after 1 hour
     restartPolicy: "OnFailure"
   image:
-    repository: "tradestreamhq/candle-ingestor"
+    repository: "ghcr.io/tradestreamhq/candle-ingestor"
     pullPolicy: IfNotPresent
     tag: "v2.45.97-develop"
   config:
@@ -306,7 +306,7 @@ topCryptoUpdaterCronjob:
   schedule: "*/15 * * * *" # Run every 15 minutes
   startingDeadlineSeconds: 300 # Add deadline to prevent too many missed start times
   image:
-    repository: "tradestreamhq/top-crypto-updater"
+    repository: "ghcr.io/tradestreamhq/top-crypto-updater"
     pullPolicy: IfNotPresent
     tag: "v2.45.97-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
@@ -330,7 +330,7 @@ strategyDiscoveryRequestFactory:
   enabled: true
   schedule: "*/5 * * * *" # Run every 5 minutes instead of every minute
   image:
-    repository: "tradestreamhq/strategy-discovery-request-factory"
+    repository: "ghcr.io/tradestreamhq/strategy-discovery-request-factory"
     pullPolicy: IfNotPresent
     tag: "v2.45.97-develop"
   concurrencyPolicy: "Forbid" # Prevents multiple jobs from running concurrently
@@ -374,7 +374,7 @@ strategyConsumer:
   schedule: "*/5 * * * *" # Run every 5 minutes
   startingDeadlineSeconds: 300 # Add deadline to prevent too many missed start times
   image:
-    repository: "tradestreamhq/strategy-consumer"
+    repository: "ghcr.io/tradestreamhq/strategy-consumer"
     pullPolicy: IfNotPresent
     tag: "v2.45.97-develop"
   concurrencyPolicy: "Forbid" # Prevent multiple instances from running simultaneously
@@ -421,7 +421,7 @@ strategyMonitorApi:
   enabled: true
   replicaCount: 1
   image:
-    repository: "tradestreamhq/strategy-monitor-api"
+    repository: "ghcr.io/tradestreamhq/strategy-monitor-api"
     pullPolicy: IfNotPresent
     tag: "v2.45.97-develop"
   service:
@@ -451,7 +451,7 @@ strategyMonitorUi:
   enabled: true
   replicaCount: 1
   image:
-    repository: "tradestreamhq/strategy-monitor-ui"
+    repository: "ghcr.io/tradestreamhq/strategy-monitor-ui"
     pullPolicy: IfNotPresent
     tag: "v2.45.97-develop"
   service:
@@ -472,7 +472,7 @@ strategyConfidenceScorer:
   schedule: "*/5 * * * *"
   startingDeadlineSeconds: 300
   image:
-    repository: "tradestreamhq/strategy-confidence-scorer"
+    repository: "ghcr.io/tradestreamhq/strategy-confidence-scorer"
     pullPolicy: IfNotPresent
     tag: "v2.45.97-develop"
   concurrencyPolicy: "Forbid"
@@ -508,7 +508,7 @@ riskAdjustedSizing:
   schedule: "*/5 * * * *"
   startingDeadlineSeconds: 300
   image:
-    repository: "tradestreamhq/risk-adjusted-sizing"
+    repository: "ghcr.io/tradestreamhq/risk-adjusted-sizing"
     pullPolicy: IfNotPresent
     tag: "v2.45.97-develop"
   concurrencyPolicy: "Forbid"
@@ -546,7 +546,7 @@ signalMcp:
   enabled: false
   replicaCount: 1
   image:
-    repository: "tradestreamhq/signal-mcp"
+    repository: "ghcr.io/tradestreamhq/signal-mcp"
     pullPolicy: IfNotPresent
     tag: "v2.45.97-develop"
   service:
@@ -578,7 +578,7 @@ marketMcp:
   enabled: false
   replicaCount: 1
   image:
-    repository: "tradestreamhq/market-mcp"
+    repository: "ghcr.io/tradestreamhq/market-mcp"
     pullPolicy: IfNotPresent
     tag: "v2.45.97-develop"
   service:
@@ -609,7 +609,7 @@ strategyMcp:
   enabled: false
   replicaCount: 1
   image:
-    repository: "tradestreamhq/strategy-mcp"
+    repository: "ghcr.io/tradestreamhq/strategy-mcp"
     pullPolicy: IfNotPresent
     tag: "latest"
   service:
