@@ -280,16 +280,12 @@ class TestCallMcpTool:
     def test_call_mcp_tool_success(self, mock_requests, mcp_urls):
         mock_response = mock.MagicMock()
         mock_response.json.return_value = {
-            "content": [
-                {"type": "text", "text": '{"atr": 0.025, "stddev": 0.012}'}
-            ]
+            "content": [{"type": "text", "text": '{"atr": 0.025, "stddev": 0.012}'}]
         }
         mock_response.raise_for_status = mock.MagicMock()
         mock_requests.post.return_value = mock_response
 
-        result = _call_mcp_tool(
-            "get_volatility", {"symbol": "BTC/USD"}, mcp_urls
-        )
+        result = _call_mcp_tool("get_volatility", {"symbol": "BTC/USD"}, mcp_urls)
 
         assert result == {"atr": 0.025, "stddev": 0.012}
         mock_requests.post.assert_called_once_with(

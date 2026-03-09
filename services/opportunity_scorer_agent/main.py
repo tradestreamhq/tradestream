@@ -17,12 +17,8 @@ flags.DEFINE_string("openrouter_api_key", "", "OpenRouter API key")
 flags.DEFINE_string(
     "mcp_strategy_url", "http://localhost:8080", "Strategy MCP server URL"
 )
-flags.DEFINE_string(
-    "mcp_market_url", "http://localhost:8081", "Market MCP server URL"
-)
-flags.DEFINE_string(
-    "mcp_signal_url", "http://localhost:8082", "Signal MCP server URL"
-)
+flags.DEFINE_string("mcp_market_url", "http://localhost:8081", "Market MCP server URL")
+flags.DEFINE_string("mcp_signal_url", "http://localhost:8082", "Signal MCP server URL")
 flags.DEFINE_integer(
     "poll_interval_seconds", 10, "Seconds between polling for new signals"
 )
@@ -48,9 +44,7 @@ def main(argv):
     while True:
         try:
             # Fetch the most recent unscored signal
-            signals = _call_mcp_tool(
-                "get_recent_signals", {"limit": 1}, mcp_urls
-            )
+            signals = _call_mcp_tool("get_recent_signals", {"limit": 1}, mcp_urls)
 
             if signals and isinstance(signals, list) and len(signals) > 0:
                 signal = signals[0]
@@ -59,9 +53,7 @@ def main(argv):
                     signal.get("signal_id", "unknown"),
                     signal.get("symbol", "unknown"),
                 )
-                result = score_signal(
-                    signal, FLAGS.openrouter_api_key, mcp_urls
-                )
+                result = score_signal(signal, FLAGS.openrouter_api_key, mcp_urls)
                 if result:
                     logging.info(
                         "Scored signal %s: score=%s tier=%s",

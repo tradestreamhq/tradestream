@@ -181,8 +181,14 @@ def _call_mcp_tool(tool_name, arguments, mcp_urls):
     return result
 
 
-def compute_score(confidence, sharpe_ratio, strategies_agreeing,
-                  total_strategies, atr_pct, signal_age_minutes):
+def compute_score(
+    confidence,
+    sharpe_ratio,
+    strategies_agreeing,
+    total_strategies,
+    atr_pct,
+    signal_age_minutes,
+):
     """Compute the opportunity score using the weighted formula.
 
     Args:
@@ -199,9 +205,7 @@ def compute_score(confidence, sharpe_ratio, strategies_agreeing,
     confidence_score = confidence * 100
     expected_return_score = min(100, sharpe_ratio * 20)
     consensus_score = (
-        (strategies_agreeing / total_strategies) * 100
-        if total_strategies > 0
-        else 0
+        (strategies_agreeing / total_strategies) * 100 if total_strategies > 0 else 0
     )
     volatility_adj_score = max(0, min(100, 100 - (atr_pct * 10)))
 
@@ -339,6 +343,7 @@ def score_signal(signal, api_key, mcp_urls):
             )
             return result
 
-    logging.warning("Agent reached max iterations for signal %s",
-                    signal.get("signal_id"))
+    logging.warning(
+        "Agent reached max iterations for signal %s", signal.get("signal_id")
+    )
     return None
