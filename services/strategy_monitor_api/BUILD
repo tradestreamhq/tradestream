@@ -63,7 +63,7 @@ oci_image_index(
 oci_push(
     name = "push_strategy_monitor_api_image",
     image = ":images",
-    repository = "tradestreamhq/strategy-monitor-api",
+    repository = "ghcr.io/tradestreamhq/strategy-monitor-api",
 )
 
 oci_load(
