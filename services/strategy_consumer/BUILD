@@ -131,7 +131,7 @@ oci_image_index(
 oci_push(
     name = "push_strategy_consumer_image",
     image = ":images",
-    repository = "tradestreamhq/strategy-consumer",
+    repository = "ghcr.io/tradestreamhq/strategy-consumer",
 )
 
 oci_load(

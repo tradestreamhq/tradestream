@@ -46,7 +46,7 @@ oci_image_index(
 oci_push(
     name = "push_risk_adjusted_sizing_image",
     image = ":images",
-    repository = "tradestreamhq/risk-adjusted-sizing",
+    repository = "ghcr.io/tradestreamhq/risk-adjusted-sizing",
 )
 
 container_structure_test(
