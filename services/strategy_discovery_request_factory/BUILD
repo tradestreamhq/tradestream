@@ -152,7 +152,7 @@ oci_image_index(
 oci_push(
     name = "push_strategy_discovery_request_factory_image",
     image = ":images",
-    repository = "tradestreamhq/strategy-discovery-request-factory",
+    repository = "ghcr.io/tradestreamhq/strategy-discovery-request-factory",
 )
 
 oci_load(
