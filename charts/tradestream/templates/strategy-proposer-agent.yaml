@@ -1,0 +1,41 @@
+{{- if .Values.strategyProposerAgent.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-proposer-agent
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-proposer-agent
+spec:
+  schedule: "*/30 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            {{- include "tradestream.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: strategy-proposer-agent
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: strategy-proposer-agent
+              image: "{{ .Values.strategyProposerAgent.image.repository }}:{{ .Values.strategyProposerAgent.image.tag }}"
+              imagePullPolicy: {{ .Values.strategyProposerAgent.image.pullPolicy | default "IfNotPresent" }}
+              env:
+                - name: OPENROUTER_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.strategyProposerAgent.openrouter.secretName }}
+                      key: {{ .Values.strategyProposerAgent.openrouter.secretKey }}
+              args:
+                - "--openrouter_api_key=$(OPENROUTER_API_KEY)"
+                - "--mcp_strategy_url={{ .Values.strategyProposerAgent.mcpStrategyUrl }}"
+                - "--mcp_market_url={{ .Values.strategyProposerAgent.mcpMarketUrl }}"
+                - "--interval_seconds=0"
+              resources:
+                {{- toYaml .Values.strategyProposerAgent.resources | nindent 16 }}
+{{- end }}

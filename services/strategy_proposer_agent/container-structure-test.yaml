@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/strategy_proposer_agent"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "Strategy Proposer Agent binary exists"
+    path: "/services/strategy_proposer_agent/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"
