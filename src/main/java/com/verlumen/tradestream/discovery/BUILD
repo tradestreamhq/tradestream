@@ -388,7 +388,7 @@ java_library(
 oci_push(
     name = "push_image",
     image = ":index",
-    repository = "tradestreamhq/strategy-discovery-pipeline",
+    repository = "ghcr.io/tradestreamhq/strategy-discovery-pipeline",
 )
 
 filegroup(
