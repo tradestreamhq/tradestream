@@ -83,7 +83,7 @@ oci_image_index(
 oci_push(
     name = "push_strategy_mcp_image",
     image = ":images",
-    repository = "tradestreamhq/strategy-mcp",
+    repository = "ghcr.io/tradestreamhq/strategy-mcp",
 )
 
 oci_load(
