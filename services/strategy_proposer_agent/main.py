@@ -14,9 +14,7 @@ flags.DEFINE_string("openrouter_api_key", None, "OpenRouter API key.")
 flags.DEFINE_string(
     "mcp_strategy_url", "http://localhost:8080", "Strategy MCP server URL."
 )
-flags.DEFINE_string(
-    "mcp_market_url", "http://localhost:8081", "Market MCP server URL."
-)
+flags.DEFINE_string("mcp_market_url", "http://localhost:8081", "Market MCP server URL.")
 flags.DEFINE_integer(
     "interval_seconds", 1800, "Interval between strategy proposal runs in seconds."
 )

@@ -32,16 +32,12 @@ class TestCallMcpTool:
     def test_successful_mcp_call(self, mock_post):
         mock_resp = mock.Mock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = _make_mcp_response(
-            ["macd", "rsi", "bollinger"]
-        )
+        mock_resp.json.return_value = _make_mcp_response(["macd", "rsi", "bollinger"])
         mock_resp.raise_for_status.return_value = None
         mock_post.return_value = mock_resp
 
         mcp_urls = {"strategy": "http://strategy:8080"}
-        result = agent._call_mcp_tool(
-            "list_strategy_types", {}, mcp_urls
-        )
+        result = agent._call_mcp_tool("list_strategy_types", {}, mcp_urls)
 
         mock_post.assert_called_once_with(
             "http://strategy:8080/call-tool",
@@ -58,9 +54,7 @@ class TestCallMcpTool:
         mock_post.side_effect = req_lib.RequestException("Connection refused")
 
         mcp_urls = {"strategy": "http://strategy:8080"}
-        result = agent._call_mcp_tool(
-            "list_strategy_types", {}, mcp_urls
-        )
+        result = agent._call_mcp_tool("list_strategy_types", {}, mcp_urls)
 
         parsed = json.loads(result)
         assert "error" in parsed
@@ -82,7 +76,9 @@ class TestRunProposer:
 
     @mock.patch("requests.post")
     @mock.patch("services.strategy_proposer_agent.agent.OpenAI")
-    def test_agent_completes_with_create_spec(self, mock_openai_cls, mock_requests_post):
+    def test_agent_completes_with_create_spec(
+        self, mock_openai_cls, mock_requests_post
+    ):
         """Test that the agent completes a full workflow ending with create_spec."""
         mock_client = mock.Mock()
         mock_openai_cls.return_value = mock_client
@@ -120,11 +116,13 @@ class TestRunProposer:
         # Second LLM call finishes with final message
         msg_2 = mock.Mock()
         msg_2.tool_calls = None
-        msg_2.content = json.dumps({
-            "status": "created",
-            "name": "adx_cci_trend_reversal",
-            "spec_id": "new-uuid",
-        })
+        msg_2.content = json.dumps(
+            {
+                "status": "created",
+                "name": "adx_cci_trend_reversal",
+                "spec_id": "new-uuid",
+            }
+        )
         msg_2.model_dump.return_value = {"role": "assistant", "content": msg_2.content}
 
         choice_2 = mock.Mock()
@@ -261,9 +259,18 @@ class TestSystemPrompt:
 
     def test_all_indicators_in_catalog(self):
         indicators = [
-            "EMA", "SMA", "RSI", "MACD", "BollingerBands",
-            "ATR", "Stochastic", "ADX", "OBV", "VWAP",
-            "CCI", "Williams%R",
+            "EMA",
+            "SMA",
+            "RSI",
+            "MACD",
+            "BollingerBands",
+            "ATR",
+            "Stochastic",
+            "ADX",
+            "OBV",
+            "VWAP",
+            "CCI",
+            "Williams%R",
         ]
         for ind in indicators:
             assert ind in agent.INDICATOR_CATALOG, f"Missing indicator: {ind}"
