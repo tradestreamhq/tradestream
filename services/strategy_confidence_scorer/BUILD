@@ -61,7 +61,7 @@ oci_image_index(
 oci_push(
     name = "push_strategy_confidence_scorer_image",
     image = ":images",
-    repository = "tradestreamhq/strategy-confidence-scorer",
+    repository = "ghcr.io/tradestreamhq/strategy-confidence-scorer",
 )
 
 container_structure_test(
