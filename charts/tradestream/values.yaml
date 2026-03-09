@@ -656,3 +656,25 @@ signalGeneratorAgent:
   config:
     symbols: "BTC-USD,ETH-USD"
     intervalSeconds: 60
+
+# Strategy Proposer Agent configuration
+strategyProposerAgent:
+  enabled: false
+  schedule: "*/30 * * * *"
+  startingDeadlineSeconds: 60
+  concurrencyPolicy: "Forbid"
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 3
+  image:
+    repository: "ghcr.io/tradestreamhq/strategy-proposer-agent"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  secrets:
+    openrouterApiKey:
+      name: "openrouter-api-secret"
+      key: "api-key"
+  mcpUrls:
+    strategy: "http://strategy-mcp.default.svc.cluster.local:8080"
+    market: "http://market-mcp.default.svc.cluster.local:8080"
+  config:
+    intervalSeconds: 1800

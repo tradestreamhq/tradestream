@@ -1,0 +1,52 @@
+{{- if .Values.strategyProposerAgent.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "tradestream.fullname" . }}-strategy-proposer-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: strategy-proposer-agent
+    release: {{ .Release.Name }}
+spec:
+  schedule: "{{ .Values.strategyProposerAgent.schedule }}"
+  {{- if .Values.strategyProposerAgent.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.strategyProposerAgent.startingDeadlineSeconds }}
+  {{- end }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: strategy-proposer-agent
+              image: "{{ .Values.strategyProposerAgent.image.repository }}:{{ .Values.strategyProposerAgent.image.tag }}"
+              imagePullPolicy: {{ .Values.strategyProposerAgent.image.pullPolicy }}
+              env:
+                - name: OPENROUTER_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.strategyProposerAgent.secrets.openrouterApiKey.name }}
+                      key: {{ .Values.strategyProposerAgent.secrets.openrouterApiKey.key }}
+                - name: MCP_STRATEGY_URL
+                  value: {{ .Values.strategyProposerAgent.mcpUrls.strategy | quote }}
+                - name: MCP_MARKET_URL
+                  value: {{ .Values.strategyProposerAgent.mcpUrls.market | quote }}
+                - name: INTERVAL_SECONDS
+                  value: {{ .Values.strategyProposerAgent.config.intervalSeconds | quote }}
+              args:
+                - "--openrouter_api_key=$(OPENROUTER_API_KEY)"
+                - "--mcp_strategy_url=$(MCP_STRATEGY_URL)"
+                - "--mcp_market_url=$(MCP_MARKET_URL)"
+                - "--interval_seconds=$(INTERVAL_SECONDS)"
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "200m"
+                  memory: "256Mi"
+  concurrencyPolicy: "{{ .Values.strategyProposerAgent.concurrencyPolicy }}"
+  failedJobsHistoryLimit: {{ .Values.strategyProposerAgent.failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .Values.strategyProposerAgent.successfulJobsHistoryLimit }}
+{{- end }}
