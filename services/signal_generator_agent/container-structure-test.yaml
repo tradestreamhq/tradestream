@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/signal_generator_agent"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "Signal Generator Agent binary exists"
+    path: "/services/signal_generator_agent/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"

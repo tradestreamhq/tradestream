@@ -1,0 +1,63 @@
+{{- if .Values.signalGeneratorAgent.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "tradestream.fullname" . }}-signal-generator-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: signal-generator-agent
+    release: {{ .Release.Name }}
+spec:
+  schedule: "{{ .Values.signalGeneratorAgent.schedule }}"
+  {{- if .Values.signalGeneratorAgent.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.signalGeneratorAgent.startingDeadlineSeconds }}
+  {{- end }}
+  concurrencyPolicy: {{ .Values.signalGeneratorAgent.concurrencyPolicy | default "Forbid" | quote }}
+  failedJobsHistoryLimit: {{ .Values.signalGeneratorAgent.failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .Values.signalGeneratorAgent.successfulJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.signalGeneratorAgent.job.backoffLimit | default 2 }}
+      ttlSecondsAfterFinished: {{ .Values.signalGeneratorAgent.job.ttlSecondsAfterFinished | default 3600 }}
+      template:
+        metadata:
+          labels:
+            app: {{ include "tradestream.name" . }}
+            component: signal-generator-agent
+            release: {{ .Release.Name }}
+        spec:
+          restartPolicy: {{ .Values.signalGeneratorAgent.job.restartPolicy | default "OnFailure" }}
+          containers:
+            - name: signal-generator-agent
+              image: "{{ .Values.signalGeneratorAgent.image.repository }}:{{ .Values.signalGeneratorAgent.image.tag }}"
+              imagePullPolicy: {{ .Values.signalGeneratorAgent.image.pullPolicy | default "IfNotPresent" }}
+              env:
+                - name: OPENROUTER_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.signalGeneratorAgent.openrouter.secretName }}
+                      key: {{ .Values.signalGeneratorAgent.openrouter.secretKey }}
+                - name: MCP_STRATEGY_URL
+                  value: {{ .Values.signalGeneratorAgent.mcpStrategyUrl | quote }}
+                - name: MCP_MARKET_URL
+                  value: {{ .Values.signalGeneratorAgent.mcpMarketUrl | quote }}
+                - name: MCP_SIGNAL_URL
+                  value: {{ .Values.signalGeneratorAgent.mcpSignalUrl | quote }}
+                - name: SYMBOLS
+                  value: {{ .Values.signalGeneratorAgent.symbols | quote }}
+              args:
+                - "--openrouter_api_key=$(OPENROUTER_API_KEY)"
+                - "--mcp_strategy_url=$(MCP_STRATEGY_URL)"
+                - "--mcp_market_url=$(MCP_MARKET_URL)"
+                - "--mcp_signal_url=$(MCP_SIGNAL_URL)"
+                - "--symbols=$(SYMBOLS)"
+                - "--interval_seconds=0"
+              resources:
+                requests:
+                  cpu: "{{ .Values.signalGeneratorAgent.resources.requests.cpu }}"
+                  memory: "{{ .Values.signalGeneratorAgent.resources.requests.memory }}"
+                limits:
+                  cpu: "{{ .Values.signalGeneratorAgent.resources.limits.cpu }}"
+                  memory: "{{ .Values.signalGeneratorAgent.resources.limits.memory }}"
+{{- end }}

@@ -604,6 +604,37 @@ marketMcp:
       cpu: "200m"
       memory: "512Mi"
 
+# Signal Generator Agent configuration
+signalGeneratorAgent:
+  enabled: false
+  schedule: "*/1 * * * *"
+  startingDeadlineSeconds: 300
+  image:
+    repository: "ghcr.io/tradestreamhq/signal-generator-agent"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  concurrencyPolicy: "Forbid"
+  failedJobsHistoryLimit: 2
+  successfulJobsHistoryLimit: 3
+  job:
+    backoffLimit: 2
+    ttlSecondsAfterFinished: 3600
+    restartPolicy: "OnFailure"
+  openrouter:
+    secretName: "openrouter-api-key"
+    secretKey: "api-key"
+  mcpStrategyUrl: "http://strategy-mcp.default.svc.cluster.local:8080"
+  mcpMarketUrl: "http://market-mcp.default.svc.cluster.local:8080"
+  mcpSignalUrl: "http://signal-mcp.default.svc.cluster.local:8080"
+  symbols: "BTC-USD,ETH-USD"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
 # Strategy MCP Server configuration
 strategyMcp:
   enabled: false

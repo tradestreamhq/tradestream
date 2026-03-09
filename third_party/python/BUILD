@@ -170,6 +170,14 @@ py_library(
 )
 
 py_library(
+    name = "openai",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("openai"),
+    ],
+)
+
+py_library(
     name = "mcp",
     visibility = ["//visibility:public"],
     deps = [
