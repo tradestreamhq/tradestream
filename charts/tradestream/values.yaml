@@ -656,3 +656,24 @@ signalGeneratorAgent:
   config:
     symbols: "BTC-USD,ETH-USD"
     intervalSeconds: 60
+
+# Opportunity Scorer Agent Deployment configuration
+opportunityScorerAgent:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/opportunity-scorer-agent"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  config:
+    pollIntervalSeconds: 10
+  secrets:
+    openrouterApiKey:
+      name: "openrouter"
+      key: "api-key"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"

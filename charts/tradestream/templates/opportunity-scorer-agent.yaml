@@ -1,0 +1,53 @@
+{{- if .Values.opportunityScorerAgent.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-opportunity-scorer-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: opportunity-scorer-agent
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "tradestream.name" . }}
+      component: opportunity-scorer-agent
+  template:
+    metadata:
+      labels:
+        app: {{ include "tradestream.name" . }}
+        component: opportunity-scorer-agent
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: opportunity-scorer-agent
+          image: "{{ .Values.opportunityScorerAgent.image.repository }}:{{ .Values.opportunityScorerAgent.image.tag }}"
+          imagePullPolicy: {{ .Values.opportunityScorerAgent.image.pullPolicy }}
+          env:
+            - name: OPENROUTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.opportunityScorerAgent.secrets.openrouterApiKey.name }}
+                  key: {{ .Values.opportunityScorerAgent.secrets.openrouterApiKey.key }}
+            - name: MCP_STRATEGY_URL
+              value: "http://{{ include "tradestream.fullname" . }}-strategy-mcp:8080"
+            - name: MCP_MARKET_URL
+              value: "http://{{ include "tradestream.fullname" . }}-market-mcp:8080"
+            - name: MCP_SIGNAL_URL
+              value: "http://{{ include "tradestream.fullname" . }}-signal-mcp:8080"
+          args:
+            - "--openrouter_api_key=$(OPENROUTER_API_KEY)"
+            - "--mcp_strategy_url=$(MCP_STRATEGY_URL)"
+            - "--mcp_market_url=$(MCP_MARKET_URL)"
+            - "--mcp_signal_url=$(MCP_SIGNAL_URL)"
+            - "--poll_interval_seconds={{ .Values.opportunityScorerAgent.config.pollIntervalSeconds }}"
+          resources:
+            requests:
+              cpu: "{{ .Values.opportunityScorerAgent.resources.requests.cpu }}"
+              memory: "{{ .Values.opportunityScorerAgent.resources.requests.memory }}"
+            limits:
+              cpu: "{{ .Values.opportunityScorerAgent.resources.limits.cpu }}"
+              memory: "{{ .Values.opportunityScorerAgent.resources.limits.memory }}"
+{{- end }}
