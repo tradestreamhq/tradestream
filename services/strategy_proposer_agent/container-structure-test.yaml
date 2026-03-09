@@ -1,0 +1,9 @@
+schemaVersion: "2.0.0"
+commandTests:
+  - name: "Strategy Proposer Agent Dry Run Test (help message)"
+    command: "/services/strategy_proposer_agent/app"
+    args: ["--help", "--openrouter_api_key=dummy_key_for_help_test"]
+    exitCode: 1
+    expectedOutput:
+      - "OpenRouter API key."
+      - "Strategy MCP server URL."
