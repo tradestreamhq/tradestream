@@ -1,4 +1,5 @@
 name: Test Kubernetes / Helm Install
+# Flink operator Helm repo URL updated to 1.14.0
 
 on:
   pull_request:
