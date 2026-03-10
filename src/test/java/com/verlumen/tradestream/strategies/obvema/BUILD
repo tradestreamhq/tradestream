@@ -16,3 +16,4 @@ java_test(
         "//third_party/java:truth",
     ],
 )
+
