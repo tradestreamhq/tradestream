@@ -1,0 +1,9 @@
+schemaVersion: "2.0.0"
+commandTests:
+  - name: "Orchestrator Agent Dry Run Test (help message)"
+    command: "/services/orchestrator_agent/app"
+    args: ["--help"]
+    exitCode: 1
+    expectedOutput:
+      - "Strategy MCP server URL."
+      - "Signal Generator agent HTTP URL."

@@ -699,3 +699,30 @@ strategyProposerAgent:
     market: "http://market-mcp.default.svc.cluster.local:8080"
   config:
     intervalSeconds: 1800
+
+# Orchestrator Agent Deployment configuration
+orchestratorAgent:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/orchestrator-agent"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  config:
+    signalIntervalSeconds: 60
+    strategyProposerIntervalSeconds: 1800
+    fallbackSymbols: "BTC-USD,ETH-USD"
+  mcpUrls:
+    strategy: "http://strategy-mcp.default.svc.cluster.local:8080"
+    market: "http://market-mcp.default.svc.cluster.local:8080"
+    signal: "http://signal-mcp.default.svc.cluster.local:8080"
+  agentUrls:
+    signalGenerator: "http://signal-generator-agent:9001"
+    opportunityScorer: "http://opportunity-scorer-agent:9002"
+    strategyProposer: "http://strategy-proposer-agent:9003"
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
