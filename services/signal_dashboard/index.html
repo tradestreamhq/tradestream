@@ -1,1064 +1,1252 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TradeStream — Signal Dashboard</title>
     <style>
-        :root {
-            --bg-primary: #0a0e17;
-            --bg-secondary: #111827;
-            --bg-card: #1a2332;
-            --bg-hover: #243044;
-            --border: #2d3748;
-            --text-primary: #e2e8f0;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --accent-blue: #3b82f6;
-            --accent-green: #10b981;
-            --accent-red: #ef4444;
-            --accent-yellow: #f59e0b;
-            --accent-orange: #f97316;
-            --accent-purple: #8b5cf6;
-            --tier-hot: #ef4444;
-            --tier-warm: #f59e0b;
-            --tier-cold: #3b82f6;
-            --action-buy: #10b981;
-            --action-sell: #ef4444;
-            --action-hold: #f59e0b;
+      :root {
+        --bg-primary: #0a0e17;
+        --bg-secondary: #111827;
+        --bg-card: #1a2332;
+        --bg-hover: #243044;
+        --border: #2d3748;
+        --text-primary: #e2e8f0;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-blue: #3b82f6;
+        --accent-green: #10b981;
+        --accent-red: #ef4444;
+        --accent-yellow: #f59e0b;
+        --accent-orange: #f97316;
+        --accent-purple: #8b5cf6;
+        --tier-hot: #ef4444;
+        --tier-warm: #f59e0b;
+        --tier-cold: #3b82f6;
+        --action-buy: #10b981;
+        --action-sell: #ef4444;
+        --action-hold: #f59e0b;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          "SF Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* Stats Bar */
+      .stats-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 20px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .stats-bar-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .stats-bar-right {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .logo {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--accent-blue);
+        letter-spacing: 1px;
+      }
+
+      .logo span {
+        color: var(--text-muted);
+        font-weight: 400;
+      }
+
+      .connection-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-red);
+        transition: background 0.3s;
+      }
+
+      .status-dot.connected {
+        background: var(--accent-green);
+      }
+      .status-dot.connecting {
+        background: var(--accent-yellow);
+        animation: pulse 1s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
+        50% {
+          opacity: 0.3;
         }
+      }
 
-        /* Stats Bar */
-        .stats-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 20px;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            font-size: 13px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+      .stat-item {
+        color: var(--text-secondary);
+      }
 
-        .stats-bar-left {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
+      .stat-item .stat-value {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
 
-        .stats-bar-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
+      /* Layout */
+      .app-layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        height: calc(100vh - 41px);
+      }
 
-        .logo {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--accent-blue);
-            letter-spacing: 1px;
-        }
-
-        .logo span {
-            color: var(--text-muted);
-            font-weight: 400;
-        }
-
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--accent-red);
-            transition: background 0.3s;
-        }
-
-        .status-dot.connected { background: var(--accent-green); }
-        .status-dot.connecting { background: var(--accent-yellow); animation: pulse 1s infinite; }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .stat-item {
-            color: var(--text-secondary);
-        }
-
-        .stat-item .stat-value {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        /* Layout */
+      @media (max-width: 900px) {
         .app-layout {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            height: calc(100vh - 41px);
+          grid-template-columns: 1fr;
         }
-
-        @media (max-width: 900px) {
-            .app-layout {
-                grid-template-columns: 1fr;
-            }
-            .filter-panel { display: none; }
-        }
-
-        /* Filter Panel */
         .filter-panel {
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border);
-            padding: 16px;
-            overflow-y: auto;
+          display: none;
         }
+      }
 
-        .filter-section {
-            margin-bottom: 20px;
+      /* Filter Panel */
+      .filter-panel {
+        background: var(--bg-secondary);
+        border-right: 1px solid var(--border);
+        padding: 16px;
+        overflow-y: auto;
+      }
+
+      .filter-section {
+        margin-bottom: 20px;
+      }
+
+      .filter-section h3 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+      }
+
+      .filter-input {
+        width: 100%;
+        padding: 8px 12px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+      }
+
+      .filter-input:focus {
+        border-color: var(--accent-blue);
+      }
+
+      .filter-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .filter-chip {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--text-secondary);
+        transition: all 0.2s;
+      }
+
+      .filter-chip:hover {
+        border-color: var(--accent-blue);
+      }
+      .filter-chip.active {
+        background: var(--accent-blue);
+        border-color: var(--accent-blue);
+        color: white;
+      }
+
+      .score-range {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .score-range input[type="range"] {
+        flex: 1;
+        accent-color: var(--accent-blue);
+      }
+
+      .score-range .score-value {
+        font-size: 14px;
+        font-weight: 600;
+        min-width: 30px;
+        text-align: right;
+      }
+
+      /* Signals Summary */
+      .signal-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .summary-card {
+        background: var(--bg-card);
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+      }
+
+      .summary-card .count {
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .summary-card .label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+
+      .summary-card.hot .count {
+        color: var(--tier-hot);
+      }
+      .summary-card.warm .count {
+        color: var(--tier-warm);
+      }
+      .summary-card.cold .count {
+        color: var(--tier-cold);
+      }
+
+      /* Main Content */
+      .main-content {
+        overflow-y: auto;
+        padding: 16px;
+      }
+
+      /* Signal Cards */
+      .signal-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        overflow: hidden;
+      }
+
+      .signal-card:hover {
+        border-color: var(--accent-blue);
+        background: var(--bg-hover);
+      }
+
+      .signal-card.expanded {
+        border-color: var(--accent-blue);
+      }
+
+      .signal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+      }
+
+      .signal-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .tier-badge {
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .tier-badge.hot {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--tier-hot);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .tier-badge.warm {
+        background: rgba(245, 158, 11, 0.15);
+        color: var(--tier-warm);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .tier-badge.cold {
+        background: rgba(59, 130, 246, 0.15);
+        color: var(--tier-cold);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+      }
+
+      .signal-symbol {
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .signal-action {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+
+      .signal-action.buy {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--action-buy);
+      }
+
+      .signal-action.sell {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--action-sell);
+      }
+
+      .signal-action.hold {
+        background: rgba(245, 158, 11, 0.15);
+        color: var(--action-hold);
+      }
+
+      .signal-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 13px;
+      }
+
+      .signal-confidence {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .confidence-bar {
+        width: 60px;
+        height: 4px;
+        background: var(--border);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .confidence-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 0.3s;
+      }
+
+      .signal-score {
+        font-weight: 700;
+        font-size: 16px;
+      }
+
+      .signal-time {
+        color: var(--text-muted);
+        font-size: 11px;
+      }
+
+      /* Signal Summary Row */
+      .signal-summary-text {
+        padding: 0 16px 12px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+
+      /* Reasoning Panel */
+      .reasoning-panel {
+        display: none;
+        border-top: 1px solid var(--border);
+        padding: 16px;
+        background: rgba(0, 0, 0, 0.2);
+      }
+
+      .signal-card.expanded .reasoning-panel {
+        display: block;
+      }
+
+      .reasoning-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+      }
+
+      .reasoning-step {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 10px;
+        padding: 8px 12px;
+        background: var(--bg-secondary);
+        border-radius: 6px;
+        font-size: 13px;
+      }
+
+      .step-number {
+        color: var(--accent-blue);
+        font-weight: 700;
+        min-width: 24px;
+      }
+
+      .step-description {
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+
+      /* Tool Call Items */
+      .tool-call-section {
+        margin-top: 12px;
+      }
+
+      .tool-call-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        background: var(--bg-secondary);
+        border-radius: 6px;
+        margin-bottom: 6px;
+        font-size: 12px;
+      }
+
+      .tool-icon {
+        color: var(--accent-purple);
+        font-weight: 700;
+        font-size: 10px;
+        padding: 2px 6px;
+        background: rgba(139, 92, 246, 0.15);
+        border-radius: 4px;
+      }
+
+      .tool-name {
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .tool-params {
+        color: var(--text-muted);
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .latency-badge {
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .latency-badge.fast {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--accent-green);
+      }
+
+      .latency-badge.medium {
+        background: rgba(245, 158, 11, 0.15);
+        color: var(--accent-yellow);
+      }
+
+      .latency-badge.slow {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--accent-red);
+      }
+
+      /* Empty State */
+      .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: var(--text-muted);
+      }
+
+      .empty-state .icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+      }
+
+      .empty-state h2 {
+        font-size: 18px;
+        margin-bottom: 8px;
+        color: var(--text-secondary);
+      }
+
+      .empty-state p {
+        font-size: 13px;
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
+      }
+
+      /* New signal animation */
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
         }
-
-        .filter-section h3 {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--text-muted);
-            margin-bottom: 10px;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
+      }
 
-        .filter-input {
-            width: 100%;
-            padding: 8px 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 13px;
-            outline: none;
-        }
-
-        .filter-input:focus {
-            border-color: var(--accent-blue);
-        }
-
-        .filter-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .filter-chip {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            color: var(--text-secondary);
-            transition: all 0.2s;
-        }
-
-        .filter-chip:hover { border-color: var(--accent-blue); }
-        .filter-chip.active {
-            background: var(--accent-blue);
-            border-color: var(--accent-blue);
-            color: white;
-        }
-
-        .score-range {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .score-range input[type="range"] {
-            flex: 1;
-            accent-color: var(--accent-blue);
-        }
-
-        .score-range .score-value {
-            font-size: 14px;
-            font-weight: 600;
-            min-width: 30px;
-            text-align: right;
-        }
-
-        /* Signals Summary */
-        .signal-summary {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .summary-card {
-            background: var(--bg-card);
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-        }
-
-        .summary-card .count {
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .summary-card .label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        .summary-card.hot .count { color: var(--tier-hot); }
-        .summary-card.warm .count { color: var(--tier-warm); }
-        .summary-card.cold .count { color: var(--tier-cold); }
-
-        /* Main Content */
-        .main-content {
-            overflow-y: auto;
-            padding: 16px;
-        }
-
-        /* Signal Cards */
-        .signal-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            overflow: hidden;
-        }
-
-        .signal-card:hover {
-            border-color: var(--accent-blue);
-            background: var(--bg-hover);
-        }
-
-        .signal-card.expanded {
-            border-color: var(--accent-blue);
-        }
-
-        .signal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 16px;
-        }
-
-        .signal-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .tier-badge {
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .tier-badge.hot {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--tier-hot);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .tier-badge.warm {
-            background: rgba(245, 158, 11, 0.15);
-            color: var(--tier-warm);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-
-        .tier-badge.cold {
-            background: rgba(59, 130, 246, 0.15);
-            color: var(--tier-cold);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-
-        .signal-symbol {
-            font-size: 15px;
-            font-weight: 700;
-        }
-
-        .signal-action {
-            font-size: 12px;
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 4px;
-        }
-
-        .signal-action.buy {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--action-buy);
-        }
-
-        .signal-action.sell {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--action-sell);
-        }
-
-        .signal-action.hold {
-            background: rgba(245, 158, 11, 0.15);
-            color: var(--action-hold);
-        }
-
-        .signal-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            font-size: 13px;
-        }
-
-        .signal-confidence {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .confidence-bar {
-            width: 60px;
-            height: 4px;
-            background: var(--border);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .confidence-fill {
-            height: 100%;
-            border-radius: 2px;
-            transition: width 0.3s;
-        }
-
-        .signal-score {
-            font-weight: 700;
-            font-size: 16px;
-        }
-
-        .signal-time {
-            color: var(--text-muted);
-            font-size: 11px;
-        }
-
-        /* Signal Summary Row */
-        .signal-summary-text {
-            padding: 0 16px 12px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-
-        /* Reasoning Panel */
-        .reasoning-panel {
-            display: none;
-            border-top: 1px solid var(--border);
-            padding: 16px;
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .signal-card.expanded .reasoning-panel {
-            display: block;
-        }
-
-        .reasoning-title {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-        }
-
-        .reasoning-step {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 10px;
-            padding: 8px 12px;
-            background: var(--bg-secondary);
-            border-radius: 6px;
-            font-size: 13px;
-        }
-
-        .step-number {
-            color: var(--accent-blue);
-            font-weight: 700;
-            min-width: 24px;
-        }
-
-        .step-description {
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-
-        /* Tool Call Items */
-        .tool-call-section {
-            margin-top: 12px;
-        }
-
-        .tool-call-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
-            background: var(--bg-secondary);
-            border-radius: 6px;
-            margin-bottom: 6px;
-            font-size: 12px;
-        }
-
-        .tool-icon {
-            color: var(--accent-purple);
-            font-weight: 700;
-            font-size: 10px;
-            padding: 2px 6px;
-            background: rgba(139, 92, 246, 0.15);
-            border-radius: 4px;
-        }
-
-        .tool-name {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .tool-params {
-            color: var(--text-muted);
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .latency-badge {
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .latency-badge.fast {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--accent-green);
-        }
-
-        .latency-badge.medium {
-            background: rgba(245, 158, 11, 0.15);
-            color: var(--accent-yellow);
-        }
-
-        .latency-badge.slow {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--accent-red);
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            color: var(--text-muted);
-        }
-
-        .empty-state .icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        .empty-state h2 {
-            font-size: 18px;
-            margin-bottom: 8px;
-            color: var(--text-secondary);
-        }
-
-        .empty-state p {
-            font-size: 13px;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-        /* New signal animation */
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .signal-card.new {
-            animation: slideIn 0.3s ease-out;
-        }
+      .signal-card.new {
+        animation: slideIn 0.3s ease-out;
+      }
     </style>
-</head>
-<body>
-
-<!-- Stats Bar -->
-<div class="stats-bar">
-    <div class="stats-bar-left">
+  </head>
+  <body>
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stats-bar-left">
         <div class="logo">TRADESTREAM <span>Signal Dashboard</span></div>
         <div class="connection-status">
-            <div class="status-dot" id="statusDot"></div>
-            <span id="connectionLabel">Disconnected</span>
+          <div class="status-dot" id="statusDot"></div>
+          <span id="connectionLabel">Disconnected</span>
         </div>
+      </div>
+      <div class="stats-bar-right">
+        <div class="stat-item">
+          Events/s: <span class="stat-value" id="eventsPerSec">0</span>
+        </div>
+        <div class="stat-item">
+          Total: <span class="stat-value" id="totalEvents">0</span>
+        </div>
+        <div class="stat-item">
+          Signals: <span class="stat-value" id="totalSignals">0</span>
+        </div>
+      </div>
     </div>
-    <div class="stats-bar-right">
-        <div class="stat-item">Events/s: <span class="stat-value" id="eventsPerSec">0</span></div>
-        <div class="stat-item">Total: <span class="stat-value" id="totalEvents">0</span></div>
-        <div class="stat-item">Signals: <span class="stat-value" id="totalSignals">0</span></div>
-    </div>
-</div>
 
-<!-- App Layout -->
-<div class="app-layout">
-    <!-- Filter Panel -->
-    <div class="filter-panel">
+    <!-- App Layout -->
+    <div class="app-layout">
+      <!-- Filter Panel -->
+      <div class="filter-panel">
         <!-- Summary Cards -->
         <div class="signal-summary">
-            <div class="summary-card hot">
-                <div class="count" id="hotCount">0</div>
-                <div class="label">Hot</div>
-            </div>
-            <div class="summary-card warm">
-                <div class="count" id="warmCount">0</div>
-                <div class="label">Warm</div>
-            </div>
-            <div class="summary-card cold">
-                <div class="count" id="coldCount">0</div>
-                <div class="label">Cold</div>
-            </div>
+          <div class="summary-card hot">
+            <div class="count" id="hotCount">0</div>
+            <div class="label">Hot</div>
+          </div>
+          <div class="summary-card warm">
+            <div class="count" id="warmCount">0</div>
+            <div class="label">Warm</div>
+          </div>
+          <div class="summary-card cold">
+            <div class="count" id="coldCount">0</div>
+            <div class="label">Cold</div>
+          </div>
         </div>
 
         <!-- Symbol Filter -->
         <div class="filter-section">
-            <h3>Symbol</h3>
-            <input type="text" class="filter-input" id="symbolFilter" placeholder="e.g. BTC-USD, ETH-USD">
+          <h3>Symbol</h3>
+          <input
+            type="text"
+            class="filter-input"
+            id="symbolFilter"
+            placeholder="e.g. BTC-USD, ETH-USD"
+          />
         </div>
 
         <!-- Min Score -->
         <div class="filter-section">
-            <h3>Min Score</h3>
-            <div class="score-range">
-                <input type="range" id="scoreFilter" min="0" max="100" value="0">
-                <span class="score-value" id="scoreValue">0</span>
-            </div>
+          <h3>Min Score</h3>
+          <div class="score-range">
+            <input type="range" id="scoreFilter" min="0" max="100" value="0" />
+            <span class="score-value" id="scoreValue">0</span>
+          </div>
         </div>
 
         <!-- Tier Filter -->
         <div class="filter-section">
-            <h3>Tier</h3>
-            <div class="filter-chips">
-                <div class="filter-chip active" data-tier="all">All</div>
-                <div class="filter-chip" data-tier="HOT">Hot</div>
-                <div class="filter-chip" data-tier="WARM">Warm</div>
-                <div class="filter-chip" data-tier="COLD">Cold</div>
-            </div>
+          <h3>Tier</h3>
+          <div class="filter-chips">
+            <div class="filter-chip active" data-tier="all">All</div>
+            <div class="filter-chip" data-tier="HOT">Hot</div>
+            <div class="filter-chip" data-tier="WARM">Warm</div>
+            <div class="filter-chip" data-tier="COLD">Cold</div>
+          </div>
         </div>
 
         <!-- Action Filter -->
         <div class="filter-section">
-            <h3>Action</h3>
-            <div class="filter-chips">
-                <div class="filter-chip active" data-action="all">All</div>
-                <div class="filter-chip" data-action="BUY">Buy</div>
-                <div class="filter-chip" data-action="SELL">Sell</div>
-                <div class="filter-chip" data-action="HOLD">Hold</div>
-            </div>
+          <h3>Action</h3>
+          <div class="filter-chips">
+            <div class="filter-chip active" data-action="all">All</div>
+            <div class="filter-chip" data-action="BUY">Buy</div>
+            <div class="filter-chip" data-action="SELL">Sell</div>
+            <div class="filter-chip" data-action="HOLD">Hold</div>
+          </div>
         </div>
 
         <!-- Event Type Filter -->
         <div class="filter-section">
-            <h3>Event Types</h3>
-            <div class="filter-chips">
-                <div class="filter-chip active" data-event="all">All</div>
-                <div class="filter-chip active" data-event="signal">Signals</div>
-                <div class="filter-chip active" data-event="reasoning">Reasoning</div>
-                <div class="filter-chip active" data-event="tool_call">Tool Calls</div>
+          <h3>Event Types</h3>
+          <div class="filter-chips">
+            <div class="filter-chip active" data-event="all">All</div>
+            <div class="filter-chip active" data-event="signal">Signals</div>
+            <div class="filter-chip active" data-event="reasoning">
+              Reasoning
             </div>
+            <div class="filter-chip active" data-event="tool_call">
+              Tool Calls
+            </div>
+          </div>
         </div>
 
         <!-- Connection -->
         <div class="filter-section">
-            <h3>Gateway URL</h3>
-            <input type="text" class="filter-input" id="gatewayUrl" placeholder="/events" value="/events">
+          <h3>Gateway URL</h3>
+          <input
+            type="text"
+            class="filter-input"
+            id="gatewayUrl"
+            placeholder="/events"
+            value="/events"
+          />
         </div>
-        <button class="filter-chip active" id="connectBtn" style="width:100%;text-align:center;margin-top:8px;padding:10px;">Connect</button>
-    </div>
+        <button
+          class="filter-chip active"
+          id="connectBtn"
+          style="
+            width: 100%;
+            text-align: center;
+            margin-top: 8px;
+            padding: 10px;
+          "
+        >
+          Connect
+        </button>
+      </div>
 
-    <!-- Main Content -->
-    <div class="main-content" id="signalFeed">
+      <!-- Main Content -->
+      <div class="main-content" id="signalFeed">
         <div class="empty-state" id="emptyState">
-            <div class="icon">&#x26A1;</div>
-            <h2>No signals yet</h2>
-            <p>Connect to the Agent Gateway to start receiving trading signals.</p>
+          <div class="icon">&#x26A1;</div>
+          <h2>No signals yet</h2>
+          <p>
+            Connect to the Agent Gateway to start receiving trading signals.
+          </p>
         </div>
+      </div>
     </div>
-</div>
 
-<script>
-(function() {
-    'use strict';
+    <script>
+      (function () {
+        "use strict";
 
-    // State
-    const state = {
-        signals: new Map(),
-        reasoningSteps: new Map(),
-        toolCalls: new Map(),
-        eventSource: null,
-        lastEventId: null,
-        totalEvents: 0,
-        eventTimestamps: [],
-        filters: {
-            symbol: '',
+        // State
+        const state = {
+          signals: new Map(),
+          reasoningSteps: new Map(),
+          toolCalls: new Map(),
+          eventSource: null,
+          lastEventId: null,
+          totalEvents: 0,
+          eventTimestamps: [],
+          filters: {
+            symbol: "",
             minScore: 0,
-            tier: 'all',
-            action: 'all',
-            eventTypes: new Set(['signal', 'reasoning', 'tool_call'])
-        }
-    };
+            tier: "all",
+            action: "all",
+            eventTypes: new Set(["signal", "reasoning", "tool_call"]),
+          },
+        };
 
-    // DOM elements
-    const els = {
-        statusDot: document.getElementById('statusDot'),
-        connectionLabel: document.getElementById('connectionLabel'),
-        eventsPerSec: document.getElementById('eventsPerSec'),
-        totalEvents: document.getElementById('totalEvents'),
-        totalSignals: document.getElementById('totalSignals'),
-        hotCount: document.getElementById('hotCount'),
-        warmCount: document.getElementById('warmCount'),
-        coldCount: document.getElementById('coldCount'),
-        signalFeed: document.getElementById('signalFeed'),
-        emptyState: document.getElementById('emptyState'),
-        symbolFilter: document.getElementById('symbolFilter'),
-        scoreFilter: document.getElementById('scoreFilter'),
-        scoreValue: document.getElementById('scoreValue'),
-        gatewayUrl: document.getElementById('gatewayUrl'),
-        connectBtn: document.getElementById('connectBtn')
-    };
+        // DOM elements
+        const els = {
+          statusDot: document.getElementById("statusDot"),
+          connectionLabel: document.getElementById("connectionLabel"),
+          eventsPerSec: document.getElementById("eventsPerSec"),
+          totalEvents: document.getElementById("totalEvents"),
+          totalSignals: document.getElementById("totalSignals"),
+          hotCount: document.getElementById("hotCount"),
+          warmCount: document.getElementById("warmCount"),
+          coldCount: document.getElementById("coldCount"),
+          signalFeed: document.getElementById("signalFeed"),
+          emptyState: document.getElementById("emptyState"),
+          symbolFilter: document.getElementById("symbolFilter"),
+          scoreFilter: document.getElementById("scoreFilter"),
+          scoreValue: document.getElementById("scoreValue"),
+          gatewayUrl: document.getElementById("gatewayUrl"),
+          connectBtn: document.getElementById("connectBtn"),
+        };
 
-    // SSE Connection
-    function connect() {
-        if (state.eventSource) {
+        // SSE Connection
+        function connect() {
+          if (state.eventSource) {
             state.eventSource.close();
-        }
+          }
 
-        const url = els.gatewayUrl.value || '/events';
-        setConnectionStatus('connecting');
+          const url = els.gatewayUrl.value || "/events";
+          setConnectionStatus("connecting");
 
-        const headers = {};
-        if (state.lastEventId) {
-            headers['Last-Event-ID'] = state.lastEventId;
-        }
+          const headers = {};
+          if (state.lastEventId) {
+            headers["Last-Event-ID"] = state.lastEventId;
+          }
 
-        state.eventSource = new EventSource(url);
+          state.eventSource = new EventSource(url);
 
-        state.eventSource.onopen = function() {
-            setConnectionStatus('connected');
-        };
+          state.eventSource.onopen = function () {
+            setConnectionStatus("connected");
+          };
 
-        state.eventSource.onerror = function() {
-            setConnectionStatus('disconnected');
+          state.eventSource.onerror = function () {
+            setConnectionStatus("disconnected");
             // EventSource auto-reconnects; update UI
-            setTimeout(function() {
-                if (state.eventSource && state.eventSource.readyState === EventSource.CONNECTING) {
-                    setConnectionStatus('connecting');
-                }
+            setTimeout(function () {
+              if (
+                state.eventSource &&
+                state.eventSource.readyState === EventSource.CONNECTING
+              ) {
+                setConnectionStatus("connecting");
+              }
             }, 1000);
-        };
+          };
 
-        // Listen for specific event types
-        state.eventSource.addEventListener('signal', function(e) {
+          // Listen for specific event types
+          state.eventSource.addEventListener("signal", function (e) {
             state.lastEventId = e.lastEventId;
             handleSignalEvent(JSON.parse(e.data));
-        });
+          });
 
-        state.eventSource.addEventListener('reasoning', function(e) {
+          state.eventSource.addEventListener("reasoning", function (e) {
             state.lastEventId = e.lastEventId;
             handleReasoningEvent(JSON.parse(e.data));
-        });
+          });
 
-        state.eventSource.addEventListener('tool_call', function(e) {
+          state.eventSource.addEventListener("tool_call", function (e) {
             state.lastEventId = e.lastEventId;
             handleToolCallEvent(JSON.parse(e.data));
-        });
+          });
 
-        state.eventSource.addEventListener('tool_result', function(e) {
+          state.eventSource.addEventListener("tool_result", function (e) {
             state.lastEventId = e.lastEventId;
             handleToolResultEvent(JSON.parse(e.data));
-        });
+          });
 
-        state.eventSource.addEventListener('heartbeat', function(e) {
+          state.eventSource.addEventListener("heartbeat", function (e) {
             state.lastEventId = e.lastEventId;
             handleHeartbeatEvent(JSON.parse(e.data));
-        });
+          });
 
-        // Fallback for unnamed events
-        state.eventSource.onmessage = function(e) {
+          // Fallback for unnamed events
+          state.eventSource.onmessage = function (e) {
             state.lastEventId = e.lastEventId;
             recordEvent();
-        };
-    }
+          };
+        }
 
-    function disconnect() {
-        if (state.eventSource) {
+        function disconnect() {
+          if (state.eventSource) {
             state.eventSource.close();
             state.eventSource = null;
+          }
+          setConnectionStatus("disconnected");
         }
-        setConnectionStatus('disconnected');
-    }
 
-    function setConnectionStatus(status) {
-        els.statusDot.className = 'status-dot ' + status;
-        var labels = { connected: 'Connected', connecting: 'Connecting...', disconnected: 'Disconnected' };
-        els.connectionLabel.textContent = labels[status] || 'Unknown';
-    }
+        function setConnectionStatus(status) {
+          els.statusDot.className = "status-dot " + status;
+          var labels = {
+            connected: "Connected",
+            connecting: "Connecting...",
+            disconnected: "Disconnected",
+          };
+          els.connectionLabel.textContent = labels[status] || "Unknown";
+        }
 
-    function recordEvent() {
-        state.totalEvents++;
-        state.eventTimestamps.push(Date.now());
-        els.totalEvents.textContent = state.totalEvents;
-    }
+        function recordEvent() {
+          state.totalEvents++;
+          state.eventTimestamps.push(Date.now());
+          els.totalEvents.textContent = state.totalEvents;
+        }
 
-    // Event handlers
-    function handleSignalEvent(data) {
-        recordEvent();
-        var signalId = data.signal_id || data.id || ('sig-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6));
-        data._id = signalId;
-        data._timestamp = new Date().toISOString();
-        state.signals.set(signalId, data);
+        // Event handlers
+        function handleSignalEvent(data) {
+          recordEvent();
+          var signalId =
+            data.signal_id ||
+            data.id ||
+            "sig-" + Date.now() + "-" + Math.random().toString(36).substr(2, 6);
+          data._id = signalId;
+          data._timestamp = new Date().toISOString();
+          state.signals.set(signalId, data);
 
-        if (!state.reasoningSteps.has(signalId)) {
+          if (!state.reasoningSteps.has(signalId)) {
             state.reasoningSteps.set(signalId, []);
-        }
-        if (!state.toolCalls.has(signalId)) {
+          }
+          if (!state.toolCalls.has(signalId)) {
             state.toolCalls.set(signalId, []);
+          }
+
+          updateCounts();
+          renderSignals();
         }
 
-        updateCounts();
-        renderSignals();
-    }
-
-    function handleReasoningEvent(data) {
-        recordEvent();
-        var signalId = data.signal_id;
-        if (signalId && state.reasoningSteps.has(signalId)) {
+        function handleReasoningEvent(data) {
+          recordEvent();
+          var signalId = data.signal_id;
+          if (signalId && state.reasoningSteps.has(signalId)) {
             state.reasoningSteps.get(signalId).push(data);
             updateReasoningPanel(signalId);
+          }
         }
-    }
 
-    function handleToolCallEvent(data) {
-        recordEvent();
-        var signalId = data.signal_id;
-        if (signalId && state.toolCalls.has(signalId)) {
+        function handleToolCallEvent(data) {
+          recordEvent();
+          var signalId = data.signal_id;
+          if (signalId && state.toolCalls.has(signalId)) {
             state.toolCalls.get(signalId).push(data);
             updateToolCallPanel(signalId);
+          }
         }
-    }
 
-    function handleToolResultEvent(data) {
-        recordEvent();
-        // Tool results can be attached to existing tool calls
-        var signalId = data.signal_id;
-        if (signalId && state.toolCalls.has(signalId)) {
+        function handleToolResultEvent(data) {
+          recordEvent();
+          // Tool results can be attached to existing tool calls
+          var signalId = data.signal_id;
+          if (signalId && state.toolCalls.has(signalId)) {
             var calls = state.toolCalls.get(signalId);
             for (var i = calls.length - 1; i >= 0; i--) {
-                if (calls[i].tool_call_id === data.tool_call_id) {
-                    calls[i].result = data.result;
-                    calls[i].latency_ms = data.latency_ms || calls[i].latency_ms;
-                    break;
-                }
+              if (calls[i].tool_call_id === data.tool_call_id) {
+                calls[i].result = data.result;
+                calls[i].latency_ms = data.latency_ms || calls[i].latency_ms;
+                break;
+              }
             }
             updateToolCallPanel(signalId);
+          }
         }
-    }
 
-    function handleHeartbeatEvent(data) {
-        recordEvent();
-        // Heartbeats may include server-side stats
-        if (data.active_connections !== undefined) {
+        function handleHeartbeatEvent(data) {
+          recordEvent();
+          // Heartbeats may include server-side stats
+          if (data.active_connections !== undefined) {
             // Could display these if wanted
+          }
         }
-    }
 
-    // Counts
-    function updateCounts() {
-        var hot = 0, warm = 0, cold = 0;
-        state.signals.forEach(function(s) {
-            var tier = (s.tier || '').toUpperCase();
-            if (tier === 'HOT') hot++;
-            else if (tier === 'WARM') warm++;
-            else if (tier === 'COLD') cold++;
-        });
-        els.hotCount.textContent = hot;
-        els.warmCount.textContent = warm;
-        els.coldCount.textContent = cold;
-        els.totalSignals.textContent = state.signals.size;
-    }
+        // Counts
+        function updateCounts() {
+          var hot = 0,
+            warm = 0,
+            cold = 0;
+          state.signals.forEach(function (s) {
+            var tier = (s.tier || "").toUpperCase();
+            if (tier === "HOT") hot++;
+            else if (tier === "WARM") warm++;
+            else if (tier === "COLD") cold++;
+          });
+          els.hotCount.textContent = hot;
+          els.warmCount.textContent = warm;
+          els.coldCount.textContent = cold;
+          els.totalSignals.textContent = state.signals.size;
+        }
 
-    // Filtering
-    function matchesFilters(signal) {
-        var f = state.filters;
-        if (f.symbol) {
-            var sym = (signal.symbol || '').toUpperCase();
-            var filterSyms = f.symbol.toUpperCase().split(',').map(function(s) { return s.trim(); });
-            var match = filterSyms.some(function(fs) { return fs && sym.indexOf(fs) !== -1; });
+        // Filtering
+        function matchesFilters(signal) {
+          var f = state.filters;
+          if (f.symbol) {
+            var sym = (signal.symbol || "").toUpperCase();
+            var filterSyms = f.symbol
+              .toUpperCase()
+              .split(",")
+              .map(function (s) {
+                return s.trim();
+              });
+            var match = filterSyms.some(function (fs) {
+              return fs && sym.indexOf(fs) !== -1;
+            });
             if (!match) return false;
+          }
+          if (f.minScore > 0 && (signal.score || 0) < f.minScore) return false;
+          if (f.tier !== "all" && (signal.tier || "").toUpperCase() !== f.tier)
+            return false;
+          if (
+            f.action !== "all" &&
+            (signal.action || "").toUpperCase() !== f.action
+          )
+            return false;
+          return true;
         }
-        if (f.minScore > 0 && (signal.score || 0) < f.minScore) return false;
-        if (f.tier !== 'all' && (signal.tier || '').toUpperCase() !== f.tier) return false;
-        if (f.action !== 'all' && (signal.action || '').toUpperCase() !== f.action) return false;
-        return true;
-    }
 
-    // Rendering
-    function renderSignals() {
-        var signals = Array.from(state.signals.values())
+        // Rendering
+        function renderSignals() {
+          var signals = Array.from(state.signals.values())
             .filter(matchesFilters)
-            .sort(function(a, b) {
-                return (b._timestamp || '').localeCompare(a._timestamp || '');
+            .sort(function (a, b) {
+              return (b._timestamp || "").localeCompare(a._timestamp || "");
             });
 
-        if (signals.length === 0) {
-            els.emptyState.style.display = 'block';
+          if (signals.length === 0) {
+            els.emptyState.style.display = "block";
             // Remove signal cards but keep empty state
-            var cards = els.signalFeed.querySelectorAll('.signal-card');
-            cards.forEach(function(c) { c.remove(); });
-            return;
-        }
-
-        els.emptyState.style.display = 'none';
-
-        // Build new HTML
-        var html = '';
-        signals.forEach(function(signal) {
-            html += renderSignalCard(signal);
-        });
-        els.signalFeed.innerHTML = html;
-
-        // Add click handlers
-        els.signalFeed.querySelectorAll('.signal-card').forEach(function(card) {
-            card.addEventListener('click', function() {
-                card.classList.toggle('expanded');
+            var cards = els.signalFeed.querySelectorAll(".signal-card");
+            cards.forEach(function (c) {
+              c.remove();
             });
-        });
-    }
+            return;
+          }
 
-    function renderSignalCard(signal) {
-        var tier = (signal.tier || 'COLD').toUpperCase();
-        var tierClass = tier.toLowerCase();
-        var action = (signal.action || 'HOLD').toUpperCase();
-        var actionClass = action.toLowerCase();
-        var confidence = signal.confidence || 0;
-        var confidencePct = Math.round(confidence * 100);
-        var score = signal.score || 0;
-        var symbol = signal.symbol || 'UNKNOWN';
-        var summary = signal.reasoning_summary || '';
-        var id = signal._id;
+          els.emptyState.style.display = "none";
 
-        var confidenceColor = confidencePct >= 70 ? 'var(--accent-green)' :
-                              confidencePct >= 40 ? 'var(--accent-yellow)' : 'var(--accent-red)';
+          // Build new HTML
+          var html = "";
+          signals.forEach(function (signal) {
+            html += renderSignalCard(signal);
+          });
+          els.signalFeed.innerHTML = html;
 
-        var scoreColor = score >= 70 ? 'var(--accent-green)' :
-                         score >= 40 ? 'var(--accent-yellow)' : 'var(--accent-red)';
+          // Add click handlers
+          els.signalFeed
+            .querySelectorAll(".signal-card")
+            .forEach(function (card) {
+              card.addEventListener("click", function () {
+                card.classList.toggle("expanded");
+              });
+            });
+        }
 
-        var time = signal._timestamp ? formatTime(signal._timestamp) : '';
+        function renderSignalCard(signal) {
+          var tier = (signal.tier || "COLD").toUpperCase();
+          var tierClass = tier.toLowerCase();
+          var action = (signal.action || "HOLD").toUpperCase();
+          var actionClass = action.toLowerCase();
+          var confidence = signal.confidence || 0;
+          var confidencePct = Math.round(confidence * 100);
+          var score = signal.score || 0;
+          var symbol = signal.symbol || "UNKNOWN";
+          var summary = signal.reasoning_summary || "";
+          var id = signal._id;
 
-        var reasoningHtml = renderReasoningSteps(id);
-        var toolCallsHtml = renderToolCalls(id);
+          var confidenceColor =
+            confidencePct >= 70
+              ? "var(--accent-green)"
+              : confidencePct >= 40
+                ? "var(--accent-yellow)"
+                : "var(--accent-red)";
 
-        return '<div class="signal-card new" data-id="' + escapeHtml(id) + '">' +
+          var scoreColor =
+            score >= 70
+              ? "var(--accent-green)"
+              : score >= 40
+                ? "var(--accent-yellow)"
+                : "var(--accent-red)";
+
+          var time = signal._timestamp ? formatTime(signal._timestamp) : "";
+
+          var reasoningHtml = renderReasoningSteps(id);
+          var toolCallsHtml = renderToolCalls(id);
+
+          return (
+            '<div class="signal-card new" data-id="' +
+            escapeHtml(id) +
+            '">' +
             '<div class="signal-header">' +
-                '<div class="signal-left">' +
-                    '<span class="tier-badge ' + tierClass + '">' + tier + '</span>' +
-                    '<span class="signal-symbol">' + escapeHtml(symbol) + '</span>' +
-                    '<span class="signal-action ' + actionClass + '">' + action + '</span>' +
-                '</div>' +
-                '<div class="signal-right">' +
-                    '<div class="signal-confidence">' +
-                        '<div class="confidence-bar"><div class="confidence-fill" style="width:' + confidencePct + '%;background:' + confidenceColor + '"></div></div>' +
-                        '<span>' + confidencePct + '%</span>' +
-                    '</div>' +
-                    '<span class="signal-score" style="color:' + scoreColor + '">' + score + '</span>' +
-                    '<span class="signal-time">' + time + '</span>' +
-                '</div>' +
-            '</div>' +
-            (summary ? '<div class="signal-summary-text">' + escapeHtml(summary) + '</div>' : '') +
+            '<div class="signal-left">' +
+            '<span class="tier-badge ' +
+            tierClass +
+            '">' +
+            tier +
+            "</span>" +
+            '<span class="signal-symbol">' +
+            escapeHtml(symbol) +
+            "</span>" +
+            '<span class="signal-action ' +
+            actionClass +
+            '">' +
+            action +
+            "</span>" +
+            "</div>" +
+            '<div class="signal-right">' +
+            '<div class="signal-confidence">' +
+            '<div class="confidence-bar"><div class="confidence-fill" style="width:' +
+            confidencePct +
+            "%;background:" +
+            confidenceColor +
+            '"></div></div>' +
+            "<span>" +
+            confidencePct +
+            "%</span>" +
+            "</div>" +
+            '<span class="signal-score" style="color:' +
+            scoreColor +
+            '">' +
+            score +
+            "</span>" +
+            '<span class="signal-time">' +
+            time +
+            "</span>" +
+            "</div>" +
+            "</div>" +
+            (summary
+              ? '<div class="signal-summary-text">' +
+                escapeHtml(summary) +
+                "</div>"
+              : "") +
             '<div class="reasoning-panel">' +
-                '<div class="reasoning-title">Reasoning Trace</div>' +
-                '<div class="reasoning-steps" id="reasoning-' + escapeHtml(id) + '">' + reasoningHtml + '</div>' +
-                '<div class="tool-call-section">' +
-                    '<div class="reasoning-title" style="margin-top:16px">Tool Calls</div>' +
-                    '<div class="tool-calls" id="tools-' + escapeHtml(id) + '">' + toolCallsHtml + '</div>' +
-                '</div>' +
-            '</div>' +
-        '</div>';
-    }
+            '<div class="reasoning-title">Reasoning Trace</div>' +
+            '<div class="reasoning-steps" id="reasoning-' +
+            escapeHtml(id) +
+            '">' +
+            reasoningHtml +
+            "</div>" +
+            '<div class="tool-call-section">' +
+            '<div class="reasoning-title" style="margin-top:16px">Tool Calls</div>' +
+            '<div class="tool-calls" id="tools-' +
+            escapeHtml(id) +
+            '">' +
+            toolCallsHtml +
+            "</div>" +
+            "</div>" +
+            "</div>" +
+            "</div>"
+          );
+        }
 
-    function renderReasoningSteps(signalId) {
-        var steps = state.reasoningSteps.get(signalId) || [];
-        if (steps.length === 0) {
+        function renderReasoningSteps(signalId) {
+          var steps = state.reasoningSteps.get(signalId) || [];
+          if (steps.length === 0) {
             return '<div style="color:var(--text-muted);font-size:12px;">No reasoning steps received yet.</div>';
+          }
+          return steps
+            .map(function (step, i) {
+              return (
+                '<div class="reasoning-step">' +
+                '<span class="step-number">' +
+                (step.step || i + 1) +
+                "</span>" +
+                '<span class="step-description">' +
+                escapeHtml(step.description || "") +
+                "</span>" +
+                "</div>"
+              );
+            })
+            .join("");
         }
-        return steps.map(function(step, i) {
-            return '<div class="reasoning-step">' +
-                '<span class="step-number">' + (step.step || (i + 1)) + '</span>' +
-                '<span class="step-description">' + escapeHtml(step.description || '') + '</span>' +
-            '</div>';
-        }).join('');
-    }
 
-    function renderToolCalls(signalId) {
-        var calls = state.toolCalls.get(signalId) || [];
-        if (calls.length === 0) {
+        function renderToolCalls(signalId) {
+          var calls = state.toolCalls.get(signalId) || [];
+          if (calls.length === 0) {
             return '<div style="color:var(--text-muted);font-size:12px;">No tool calls recorded.</div>';
-        }
-        return calls.map(function(tc) {
-            var latency = tc.latency_ms || 0;
-            var latencyClass = latency < 200 ? 'fast' : latency < 1000 ? 'medium' : 'slow';
-            var params = tc.params ? JSON.stringify(tc.params) : '';
-            return '<div class="tool-call-item">' +
+          }
+          return calls
+            .map(function (tc) {
+              var latency = tc.latency_ms || 0;
+              var latencyClass =
+                latency < 200 ? "fast" : latency < 1000 ? "medium" : "slow";
+              var params = tc.params ? JSON.stringify(tc.params) : "";
+              return (
+                '<div class="tool-call-item">' +
                 '<span class="tool-icon">MCP</span>' +
-                '<span class="tool-name">' + escapeHtml(tc.tool || tc.name || '') + '</span>' +
-                '<span class="tool-params">' + escapeHtml(params) + '</span>' +
-                (latency ? '<span class="latency-badge ' + latencyClass + '">' + latency + 'ms</span>' : '') +
-            '</div>';
-        }).join('');
-    }
+                '<span class="tool-name">' +
+                escapeHtml(tc.tool || tc.name || "") +
+                "</span>" +
+                '<span class="tool-params">' +
+                escapeHtml(params) +
+                "</span>" +
+                (latency
+                  ? '<span class="latency-badge ' +
+                    latencyClass +
+                    '">' +
+                    latency +
+                    "ms</span>"
+                  : "") +
+                "</div>"
+              );
+            })
+            .join("");
+        }
 
-    function updateReasoningPanel(signalId) {
-        var el = document.getElementById('reasoning-' + signalId);
-        if (el) {
+        function updateReasoningPanel(signalId) {
+          var el = document.getElementById("reasoning-" + signalId);
+          if (el) {
             el.innerHTML = renderReasoningSteps(signalId);
+          }
         }
-    }
 
-    function updateToolCallPanel(signalId) {
-        var el = document.getElementById('tools-' + signalId);
-        if (el) {
+        function updateToolCallPanel(signalId) {
+          var el = document.getElementById("tools-" + signalId);
+          if (el) {
             el.innerHTML = renderToolCalls(signalId);
+          }
         }
-    }
 
-    // Utilities
-    function escapeHtml(str) {
-        var div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
+        // Utilities
+        function escapeHtml(str) {
+          var div = document.createElement("div");
+          div.textContent = str;
+          return div.innerHTML;
+        }
 
-    function formatTime(iso) {
-        try {
+        function formatTime(iso) {
+          try {
             var d = new Date(iso);
-            return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        } catch (e) {
-            return '';
+            return d.toLocaleTimeString("en-US", {
+              hour12: false,
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            });
+          } catch (e) {
+            return "";
+          }
         }
-    }
 
-    // Events per second counter
-    setInterval(function() {
-        var now = Date.now();
-        state.eventTimestamps = state.eventTimestamps.filter(function(t) { return now - t < 1000; });
-        els.eventsPerSec.textContent = state.eventTimestamps.length;
-    }, 500);
+        // Events per second counter
+        setInterval(function () {
+          var now = Date.now();
+          state.eventTimestamps = state.eventTimestamps.filter(function (t) {
+            return now - t < 1000;
+          });
+          els.eventsPerSec.textContent = state.eventTimestamps.length;
+        }, 500);
 
-    // Filter bindings
-    els.symbolFilter.addEventListener('input', function() {
-        state.filters.symbol = this.value;
-        renderSignals();
-    });
+        // Filter bindings
+        els.symbolFilter.addEventListener("input", function () {
+          state.filters.symbol = this.value;
+          renderSignals();
+        });
 
-    els.scoreFilter.addEventListener('input', function() {
-        state.filters.minScore = parseInt(this.value, 10);
-        els.scoreValue.textContent = this.value;
-        renderSignals();
-    });
+        els.scoreFilter.addEventListener("input", function () {
+          state.filters.minScore = parseInt(this.value, 10);
+          els.scoreValue.textContent = this.value;
+          renderSignals();
+        });
 
-    // Tier chips
-    document.querySelectorAll('[data-tier]').forEach(function(chip) {
-        chip.addEventListener('click', function() {
-            document.querySelectorAll('[data-tier]').forEach(function(c) { c.classList.remove('active'); });
-            chip.classList.add('active');
+        // Tier chips
+        document.querySelectorAll("[data-tier]").forEach(function (chip) {
+          chip.addEventListener("click", function () {
+            document.querySelectorAll("[data-tier]").forEach(function (c) {
+              c.classList.remove("active");
+            });
+            chip.classList.add("active");
             state.filters.tier = chip.dataset.tier;
             renderSignals();
+          });
         });
-    });
 
-    // Action chips
-    document.querySelectorAll('[data-action]').forEach(function(chip) {
-        chip.addEventListener('click', function() {
-            document.querySelectorAll('[data-action]').forEach(function(c) { c.classList.remove('active'); });
-            chip.classList.add('active');
+        // Action chips
+        document.querySelectorAll("[data-action]").forEach(function (chip) {
+          chip.addEventListener("click", function () {
+            document.querySelectorAll("[data-action]").forEach(function (c) {
+              c.classList.remove("active");
+            });
+            chip.classList.add("active");
             state.filters.action = chip.dataset.action;
             renderSignals();
+          });
         });
-    });
 
-    // Event type chips
-    document.querySelectorAll('[data-event]').forEach(function(chip) {
-        chip.addEventListener('click', function() {
+        // Event type chips
+        document.querySelectorAll("[data-event]").forEach(function (chip) {
+          chip.addEventListener("click", function () {
             var type = chip.dataset.event;
-            if (type === 'all') {
-                var allActive = chip.classList.contains('active');
-                document.querySelectorAll('[data-event]').forEach(function(c) {
-                    if (allActive) c.classList.remove('active');
-                    else c.classList.add('active');
-                });
-                if (!allActive) {
-                    state.filters.eventTypes = new Set(['signal', 'reasoning', 'tool_call']);
-                } else {
-                    state.filters.eventTypes.clear();
-                }
+            if (type === "all") {
+              var allActive = chip.classList.contains("active");
+              document.querySelectorAll("[data-event]").forEach(function (c) {
+                if (allActive) c.classList.remove("active");
+                else c.classList.add("active");
+              });
+              if (!allActive) {
+                state.filters.eventTypes = new Set([
+                  "signal",
+                  "reasoning",
+                  "tool_call",
+                ]);
+              } else {
+                state.filters.eventTypes.clear();
+              }
             } else {
-                chip.classList.toggle('active');
-                if (chip.classList.contains('active')) {
-                    state.filters.eventTypes.add(type);
-                } else {
-                    state.filters.eventTypes.delete(type);
-                }
-                // Update "All" chip state
-                var allChip = document.querySelector('[data-event="all"]');
-                if (state.filters.eventTypes.size === 3) {
-                    allChip.classList.add('active');
-                } else {
-                    allChip.classList.remove('active');
-                }
+              chip.classList.toggle("active");
+              if (chip.classList.contains("active")) {
+                state.filters.eventTypes.add(type);
+              } else {
+                state.filters.eventTypes.delete(type);
+              }
+              // Update "All" chip state
+              var allChip = document.querySelector('[data-event="all"]');
+              if (state.filters.eventTypes.size === 3) {
+                allChip.classList.add("active");
+              } else {
+                allChip.classList.remove("active");
+              }
             }
             renderSignals();
+          });
         });
-    });
 
-    // Connect button
-    els.connectBtn.addEventListener('click', function() {
-        if (state.eventSource && state.eventSource.readyState !== EventSource.CLOSED) {
+        // Connect button
+        els.connectBtn.addEventListener("click", function () {
+          if (
+            state.eventSource &&
+            state.eventSource.readyState !== EventSource.CLOSED
+          ) {
             disconnect();
-            els.connectBtn.textContent = 'Connect';
-        } else {
+            els.connectBtn.textContent = "Connect";
+          } else {
             connect();
-            els.connectBtn.textContent = 'Disconnect';
-        }
-    });
-})();
-</script>
-</body>
+            els.connectBtn.textContent = "Disconnect";
+          }
+        });
+      })();
+    </script>
+  </body>
 </html>
