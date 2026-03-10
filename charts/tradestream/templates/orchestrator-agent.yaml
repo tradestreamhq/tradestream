@@ -1,0 +1,44 @@
+{{- if .Values.orchestratorAgent.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-orchestrator-agent
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: orchestrator-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: orchestrator-agent
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: orchestrator-agent
+    spec:
+      containers:
+        - name: orchestrator-agent
+          image: "{{ .Values.orchestratorAgent.image.repository }}:{{ .Values.orchestratorAgent.image.tag }}"
+          imagePullPolicy: {{ .Values.orchestratorAgent.image.pullPolicy | default "IfNotPresent" }}
+          env:
+            - name: MCP_STRATEGY_URL
+              value: "http://{{ include "tradestream.fullname" . }}-strategy-mcp:8080"
+            - name: MCP_MARKET_URL
+              value: "http://{{ include "tradestream.fullname" . }}-market-mcp:8080"
+            - name: MCP_SIGNAL_URL
+              value: "http://{{ include "tradestream.fullname" . }}-signal-mcp:8080"
+          args:
+            - "--mcp_strategy_url=$(MCP_STRATEGY_URL)"
+            - "--mcp_market_url=$(MCP_MARKET_URL)"
+            - "--mcp_signal_url=$(MCP_SIGNAL_URL)"
+            - "--signal_generator_url={{ .Values.orchestratorAgent.agentUrls.signalGenerator }}"
+            - "--opportunity_scorer_url={{ .Values.orchestratorAgent.agentUrls.opportunityScorer }}"
+            - "--strategy_proposer_url={{ .Values.orchestratorAgent.agentUrls.strategyProposer }}"
+            - "--signal_interval_seconds={{ .Values.orchestratorAgent.config.signalIntervalSeconds }}"
+            - "--strategy_proposer_interval_seconds={{ .Values.orchestratorAgent.config.strategyProposerIntervalSeconds }}"
+            - "--fallback_symbols={{ .Values.orchestratorAgent.config.fallbackSymbols }}"
+          resources:
+            {{- toYaml .Values.orchestratorAgent.resources | nindent 12 }}
+{{- end }}
