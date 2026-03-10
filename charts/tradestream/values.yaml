@@ -785,10 +785,34 @@ signalDashboard:
   service:
     type: ClusterIP
     port: 8080
+
+# Notification Service - multi-channel signal delivery (Telegram, Discord)
+notificationService:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/notification-service"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  config:
+    redisHost: '{{ include "tradestream.fullname" . }}-redis-master'
+    redisPort: "6379"
+    minScore: "0.7"
+    tiers: ""
+    symbols: ""
+  secrets:
+    telegramBotToken:
+      name: "notification-secrets"
+      key: "telegram-bot-token"
+    telegramChatId:
+      name: "notification-secrets"
+      key: "telegram-chat-id"
+    discordWebhookUrl:
+      name: "notification-secrets"
+      key: "discord-webhook-url"
   resources:
     requests:
       cpu: "50m"
       memory: "64Mi"
     limits:
-      cpu: "100m"
-      memory: "128Mi"
+      cpu: "200m"
+      memory: "256Mi"

@@ -1,0 +1,67 @@
+{{- if .Values.notificationService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-notification-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "tradestream.name" . }}
+    component: notification-service
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "tradestream.name" . }}
+      component: notification-service
+  template:
+    metadata:
+      labels:
+        app: {{ include "tradestream.name" . }}
+        component: notification-service
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: notification-service
+          image: "{{ .Values.notificationService.image.repository }}:{{ .Values.notificationService.image.tag }}"
+          imagePullPolicy: {{ .Values.notificationService.image.pullPolicy }}
+          env:
+            - name: REDIS_HOST
+              value: {{ tpl .Values.notificationService.config.redisHost . | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.notificationService.config.redisPort | quote }}
+            - name: MIN_SCORE
+              value: {{ .Values.notificationService.config.minScore | quote }}
+            - name: TIERS
+              value: {{ .Values.notificationService.config.tiers | quote }}
+            - name: SYMBOLS
+              value: {{ .Values.notificationService.config.symbols | quote }}
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.notificationService.secrets.telegramBotToken.name }}
+                  key: {{ .Values.notificationService.secrets.telegramBotToken.key }}
+                  optional: true
+            - name: TELEGRAM_CHAT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.notificationService.secrets.telegramChatId.name }}
+                  key: {{ .Values.notificationService.secrets.telegramChatId.key }}
+                  optional: true
+            - name: DISCORD_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.notificationService.secrets.discordWebhookUrl.name }}
+                  key: {{ .Values.notificationService.secrets.discordWebhookUrl.key }}
+                  optional: true
+          args:
+            - "--redis_host=$(REDIS_HOST)"
+            - "--redis_port=$(REDIS_PORT)"
+          resources:
+            requests:
+              cpu: {{ .Values.notificationService.resources.requests.cpu | quote }}
+              memory: {{ .Values.notificationService.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.notificationService.resources.limits.cpu | quote }}
+              memory: {{ .Values.notificationService.resources.limits.memory | quote }}
+{{- end }}

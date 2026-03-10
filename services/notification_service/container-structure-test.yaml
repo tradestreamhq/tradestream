@@ -1,0 +1,8 @@
+schemaVersion: "2.0.0"
+commandTests:
+  - name: "Notification Service Dry Run Test (help message)"
+    command: "/services/notification_service/app"
+    args: ["--help"]
+    exitCode: 1
+    expectedOutput:
+      - "Redis host"

@@ -92,6 +92,9 @@ jobs:
           - name: agent-gateway
             target: "//services/agent_gateway:agent_gateway_tarball"
             repo: agent-gateway
+          - name: notification-service
+            target: "//services/notification_service:notification_service_tarball"
+            repo: notification-service
 
     steps:
       - name: Checkout Code
@@ -141,6 +144,9 @@ jobs:
               ;;
             "agent-gateway")
               cp bazel-bin/services/agent_gateway/load_agent_gateway_image/tarball.tar images/agent-gateway.tar
+              ;;
+            "notification-service")
+              cp bazel-bin/services/notification_service/load_notification_service_image/tarball.tar images/notification-service.tar
               ;;
             *)
               echo "❌ Unknown matrix name: ${{ matrix.name }}"
