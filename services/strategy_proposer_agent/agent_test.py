@@ -306,16 +306,30 @@ class TestSystemPrompt:
 
     def test_all_indicators_referenced(self):
         indicators = [
-            "EMA", "SMA", "RSI", "MACD", "BollingerBands", "ATR",
-            "Stochastic", "ADX", "OBV", "VWAP", "CCI", "Williams%R",
+            "EMA",
+            "SMA",
+            "RSI",
+            "MACD",
+            "BollingerBands",
+            "ATR",
+            "Stochastic",
+            "ADX",
+            "OBV",
+            "VWAP",
+            "CCI",
+            "Williams%R",
         ]
         for ind in indicators:
             assert ind in agent.SYSTEM_PROMPT, f"Indicator {ind} not in system prompt"
 
     def test_model_is_sonnet(self):
         # Verify the agent uses Claude 3.5 Sonnet, not Haiku
-        assert "anthropic/claude-3-5-sonnet" in agent.run_proposer_agent.__code__.co_consts or True
+        assert (
+            "anthropic/claude-3-5-sonnet" in agent.run_proposer_agent.__code__.co_consts
+            or True
+        )
         # Check by inspecting the source directly
         import inspect
+
         source = inspect.getsource(agent.run_proposer_agent)
         assert "claude-3-5-sonnet" in source
