@@ -12,6 +12,7 @@ py_library(
     deps = [
         "//third_party/python:asyncpg",
         "//third_party/python:fastapi",
+        "//third_party/python:httpx",
         "//third_party/python:redis",
         "//third_party/python:sse_starlette",
         "//third_party/python:uvicorn",

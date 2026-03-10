@@ -173,11 +173,10 @@ class SignalDashboardTest(unittest.TestCase):
         self.assertIn("escapeHtml", self.html_content)
 
     def test_read_only(self):
-        """Dashboard should not have any form submission or action triggers."""
-        # No form submit, no POST requests, no action buttons
+        """Dashboard should not have form submissions or trade-triggering actions."""
+        # No HTML form submit or action buttons (chat fetch is read-only query)
         self.assertNotIn('method="POST"', self.html_content)
         self.assertNotIn(".submit()", self.html_content)
-        self.assertNotIn("fetch(", self.html_content)
 
     # ---- Gateway URL Tests ----
 
@@ -231,6 +230,117 @@ class NginxConfigTest(unittest.TestCase):
     def test_health_check(self):
         """Health check endpoint should exist."""
         self.assertIn("/healthz", self.config)
+
+    def test_chat_proxy(self):
+        """Nginx should proxy /chat to agent gateway."""
+        self.assertIn("location /chat", self.config)
+        self.assertIn("agent-gateway:8080/chat", self.config)
+
+    def test_chat_proxy_no_buffering(self):
+        """Chat proxy should disable buffering for streaming."""
+        # Find the chat location block and verify proxy_buffering off
+        chat_idx = self.config.index("location /chat")
+        healthz_idx = self.config.index("location /healthz")
+        chat_block = self.config[chat_idx:healthz_idx]
+        self.assertIn("proxy_buffering off", chat_block)
+
+
+class ChatPanelTest(unittest.TestCase):
+    """Tests for the Ask Agent chat panel."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Load the HTML file content."""
+        html_path = os.path.join(os.path.dirname(__file__), "index.html")
+        with open(html_path, "r") as f:
+            cls.html_content = f.read()
+
+    # ---- Chat Panel Structure ----
+
+    def test_chat_toggle_button_exists(self):
+        """Chat toggle button should exist."""
+        self.assertIn("chatToggle", self.html_content)
+        self.assertIn("chat-toggle", self.html_content)
+
+    def test_chat_drawer_exists(self):
+        """Chat drawer panel should exist."""
+        self.assertIn("chatDrawer", self.html_content)
+        self.assertIn("chat-drawer", self.html_content)
+
+    def test_chat_header(self):
+        """Chat drawer should have a header with title and close button."""
+        self.assertIn("chat-header", self.html_content)
+        self.assertIn("Ask Agent", self.html_content)
+        self.assertIn("chatClose", self.html_content)
+
+    def test_chat_messages_container(self):
+        """Chat messages container should exist."""
+        self.assertIn("chatMessages", self.html_content)
+        self.assertIn("chat-messages", self.html_content)
+
+    def test_chat_input_area(self):
+        """Chat input area with text input and send button should exist."""
+        self.assertIn("chatInput", self.html_content)
+        self.assertIn("chatSend", self.html_content)
+        self.assertIn("chat-input-area", self.html_content)
+
+    # ---- Example Question Chips ----
+
+    def test_example_question_chips(self):
+        """Quick-select example question chips should exist."""
+        self.assertIn("data-question", self.html_content)
+        self.assertIn("chat-chip", self.html_content)
+
+    def test_example_questions_content(self):
+        """Example questions should include relevant trading queries."""
+        self.assertIn("ETH/USD", self.html_content)
+        self.assertIn("strategies", self.html_content)
+        self.assertIn("signals", self.html_content)
+
+    # ---- Chat Styling ----
+
+    def test_chat_message_styles(self):
+        """Chat should have styles for user and assistant messages."""
+        self.assertIn("chat-msg", self.html_content)
+        self.assertIn(".chat-msg.user", self.html_content)
+        self.assertIn(".chat-msg.assistant", self.html_content)
+
+    def test_chat_error_style(self):
+        """Chat should have an error message style."""
+        self.assertIn(".chat-msg.error", self.html_content)
+
+    def test_chat_typewriter_cursor(self):
+        """Chat should have a blinking cursor for streaming effect."""
+        self.assertIn("chat-cursor", self.html_content)
+        self.assertIn("blink", self.html_content)
+
+    def test_chat_dark_theme(self):
+        """Chat panel should use the dark trading theme."""
+        self.assertIn("chat-drawer", self.html_content)
+        # Chat drawer should use theme variables
+        self.assertIn("var(--bg-secondary)", self.html_content)
+
+    # ---- Chat Functionality ----
+
+    def test_chat_sends_fetch_request(self):
+        """Chat should use fetch to send questions to /chat."""
+        self.assertIn('"/chat"', self.html_content)
+        self.assertIn("fetch(", self.html_content)
+
+    def test_chat_streams_response(self):
+        """Chat should stream response using ReadableStream."""
+        self.assertIn("getReader", self.html_content)
+        self.assertIn("TextDecoder", self.html_content)
+
+    def test_chat_keyboard_support(self):
+        """Chat should support Enter key to send."""
+        self.assertIn("Enter", self.html_content)
+        self.assertIn("keydown", self.html_content)
+
+    def test_chat_send_disables_during_streaming(self):
+        """Send button should be disabled during streaming."""
+        self.assertIn("chatSend.disabled", self.html_content)
+        self.assertIn("chatSending", self.html_content)
 
 
 if __name__ == "__main__":

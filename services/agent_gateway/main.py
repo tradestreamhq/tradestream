@@ -3,7 +3,8 @@ Agent Gateway Service
 
 FastAPI application that streams agent events (signals, reasoning, tool calls)
 via Server-Sent Events (SSE). Reads from agent_decisions table and uses Redis
-pub/sub for real-time event streaming.
+pub/sub for real-time event streaming. Also provides a chat endpoint for
+natural language queries about signals and agent activity.
 """
 
 import asyncio
@@ -16,18 +17,33 @@ from decimal import Decimal
 from typing import AsyncGenerator, Optional
 
 import asyncpg
+import httpx
 import redis.asyncio as aioredis
 import uvicorn
 from fastapi import FastAPI, Query
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 REDIS_CHANNEL = "agent_events"
+OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
+CHAT_MODEL = os.environ.get("CHAT_MODEL", "google/gemini-2.0-flash-001")
+CHAT_MAX_CONTEXT_EVENTS = 50
 
 app = FastAPI(title="Agent Gateway", version="1.0.0")
+
+
+class ChatRequest(BaseModel):
+    """Request body for the /chat endpoint."""
+
+    question: str = Field(..., min_length=1, max_length=2000)
+    context_window: int = Field(
+        default=50, ge=1, le=200, description="Number of recent events to include"
+    )
+
 
 # Connection pools (initialized on startup)
 _db_pool: Optional[asyncpg.Pool] = None
@@ -224,6 +240,135 @@ async def publish_event(event: dict):
     """Publish an event to Redis pub/sub (used by agents to push events)."""
     if _redis:
         await _redis.publish(REDIS_CHANNEL, json.dumps(event))
+
+
+async def _gather_chat_context(context_window: int) -> str:
+    """Gather recent signals and agent activity for chat context."""
+    query = """
+        SELECT agent_name, decision_type, score, tier, reasoning,
+               tool_calls, model_used, latency_ms, success, error_message,
+               created_at
+        FROM agent_decisions
+        ORDER BY created_at DESC
+        LIMIT $1
+    """
+    async with _db_pool.acquire() as conn:
+        rows = await conn.fetch(query, min(context_window, CHAT_MAX_CONTEXT_EVENTS))
+
+    if not rows:
+        return "No recent agent activity found."
+
+    lines = []
+    for row in rows:
+        row_dict = _serialize_row(row)
+        parts = []
+        if row_dict.get("created_at"):
+            parts.append(f"[{row_dict['created_at']}]")
+        if row_dict.get("agent_name"):
+            parts.append(f"agent={row_dict['agent_name']}")
+        if row_dict.get("tier"):
+            parts.append(f"tier={row_dict['tier']}")
+        if row_dict.get("score") is not None:
+            parts.append(f"score={row_dict['score']}")
+        if row_dict.get("decision_type"):
+            parts.append(f"type={row_dict['decision_type']}")
+        if row_dict.get("success") is not None:
+            parts.append(f"success={row_dict['success']}")
+        if row_dict.get("reasoning"):
+            reasoning = row_dict["reasoning"][:200]
+            parts.append(f"reasoning={reasoning}")
+        lines.append(" | ".join(parts))
+
+    return "\n".join(lines)
+
+
+CHAT_SYSTEM_PROMPT = """You are a trading assistant for TradeStream, an AI-powered \
+crypto trading platform. You answer questions about recent signals, agent activity, \
+strategies, and market conditions based on the context provided.
+
+Rules:
+- Only answer based on the context provided. If you don't have enough data, say so.
+- You are READ-ONLY: never suggest executing trades or modifying system state.
+- Be concise and use trading terminology appropriately.
+- When discussing signals, reference their tier (HOT/WARM/COLD), score, and agent name.
+- Format numbers clearly (percentages, scores, timestamps).
+"""
+
+
+@app.post("/chat")
+async def chat(request: ChatRequest):
+    """Answer natural language questions about signals and agent activity via SSE."""
+    api_key = os.environ.get("OPENROUTER_API_KEY", "")
+    if not api_key:
+        return JSONResponse(
+            status_code=503,
+            content={"error": "Chat service not configured (missing API key)"},
+        )
+
+    try:
+        context = await _gather_chat_context(request.context_window)
+    except Exception as e:
+        logger.error("Failed to gather chat context: %s", e)
+        context = "Unable to fetch recent activity."
+
+    messages = [
+        {"role": "system", "content": CHAT_SYSTEM_PROMPT},
+        {
+            "role": "system",
+            "content": f"Recent agent activity:\n{context}",
+        },
+        {"role": "user", "content": request.question},
+    ]
+
+    async def generate():
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            async with client.stream(
+                "POST",
+                OPENROUTER_API_URL,
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": CHAT_MODEL,
+                    "messages": messages,
+                    "stream": True,
+                    "max_tokens": 1024,
+                },
+            ) as response:
+                if response.status_code != 200:
+                    body = await response.aread()
+                    yield {
+                        "event": "chat_error",
+                        "data": json.dumps(
+                            {"error": f"LLM API error: {response.status_code}"}
+                        ),
+                    }
+                    return
+
+                async for line in response.aiter_lines():
+                    if not line.startswith("data: "):
+                        continue
+                    payload = line[6:]
+                    if payload.strip() == "[DONE]":
+                        yield {
+                            "event": "chat_done",
+                            "data": json.dumps({"done": True}),
+                        }
+                        return
+                    try:
+                        chunk = json.loads(payload)
+                        delta = chunk["choices"][0].get("delta", {})
+                        content = delta.get("content", "")
+                        if content:
+                            yield {
+                                "event": "chat_response",
+                                "data": json.dumps({"content": content}),
+                            }
+                    except (json.JSONDecodeError, KeyError, IndexError):
+                        continue
+
+    return EventSourceResponse(generate())
 
 
 def main():

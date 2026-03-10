@@ -11,6 +11,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from services.agent_gateway.main import (
+    ChatRequest,
+    _gather_chat_context,
     _row_to_event,
     _serialize_row,
     app,
@@ -391,3 +393,188 @@ class TestStreamEndpoint:
 
         assert response.status_code == 200
         assert "text/event-stream" in response.headers.get("content-type", "")
+
+
+class TestChatRequest:
+    """Tests for the ChatRequest model."""
+
+    def test_valid_request(self):
+        req = ChatRequest(question="What signals are hot?")
+        assert req.question == "What signals are hot?"
+        assert req.context_window == 50
+
+    def test_custom_context_window(self):
+        req = ChatRequest(question="test", context_window=100)
+        assert req.context_window == 100
+
+    def test_empty_question_rejected(self):
+        with pytest.raises(Exception):
+            ChatRequest(question="")
+
+    def test_context_window_bounds(self):
+        with pytest.raises(Exception):
+            ChatRequest(question="test", context_window=0)
+        with pytest.raises(Exception):
+            ChatRequest(question="test", context_window=201)
+
+
+class TestChatEndpoint:
+    """Tests for the /chat endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_chat_endpoint_exists(self):
+        """Verify the chat endpoint is registered."""
+        routes = [route.path for route in app.routes]
+        assert "/chat" in routes
+
+    @pytest.mark.asyncio
+    async def test_chat_returns_503_without_api_key(self):
+        from httpx import ASGITransport, AsyncClient
+
+        mock_pool = MagicMock()
+        mock_redis = AsyncMock()
+
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
+            patch.dict("os.environ", {"OPENROUTER_API_KEY": ""}, clear=False),
+        ):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                response = await client.post(
+                    "/chat",
+                    json={"question": "What is hot?"},
+                )
+
+        assert response.status_code == 503
+        data = response.json()
+        assert "not configured" in data["error"]
+
+    @pytest.mark.asyncio
+    async def test_chat_rejects_empty_question(self):
+        from httpx import ASGITransport, AsyncClient
+
+        mock_pool = MagicMock()
+        mock_redis = AsyncMock()
+
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
+        ):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                response = await client.post(
+                    "/chat",
+                    json={"question": ""},
+                )
+
+        assert response.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_chat_streams_sse_response(self):
+        from httpx import ASGITransport, AsyncClient
+
+        mock_pool = MagicMock()
+        mock_conn = AsyncMock()
+        mock_conn.fetch = AsyncMock(return_value=[])
+        mock_cm = AsyncMock()
+        mock_cm.__aenter__ = AsyncMock(return_value=mock_conn)
+        mock_cm.__aexit__ = AsyncMock(return_value=None)
+        mock_pool.acquire.return_value = mock_cm
+        mock_redis = AsyncMock()
+
+        # Mock httpx.AsyncClient.stream to return a streaming response
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+
+        async def mock_aiter_lines():
+            yield 'data: {"choices":[{"delta":{"content":"Hello"}}]}'
+            yield "data: [DONE]"
+
+        mock_response.aiter_lines = mock_aiter_lines
+        mock_stream_cm = AsyncMock()
+        mock_stream_cm.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_stream_cm.__aexit__ = AsyncMock(return_value=None)
+
+        mock_http_client = AsyncMock()
+        mock_http_client.stream.return_value = mock_stream_cm
+        mock_http_client_cm = AsyncMock()
+        mock_http_client_cm.__aenter__ = AsyncMock(return_value=mock_http_client)
+        mock_http_client_cm.__aexit__ = AsyncMock(return_value=None)
+
+        with (
+            patch(f"{_MODULE}._db_pool", mock_pool),
+            patch(f"{_MODULE}._redis", mock_redis),
+            patch.dict("os.environ", {"OPENROUTER_API_KEY": "test-key"}, clear=False),
+            patch(f"{_MODULE}.httpx.AsyncClient", return_value=mock_http_client_cm),
+        ):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                response = await client.post(
+                    "/chat",
+                    json={"question": "What signals are trending?"},
+                )
+
+        assert response.status_code == 200
+        assert "text/event-stream" in response.headers.get("content-type", "")
+
+
+class TestGatherChatContext:
+    """Tests for _gather_chat_context."""
+
+    @pytest.mark.asyncio
+    async def test_returns_no_activity_when_empty(self):
+        mock_pool = MagicMock()
+        mock_conn = AsyncMock()
+        mock_conn.fetch = AsyncMock(return_value=[])
+        mock_cm = AsyncMock()
+        mock_cm.__aenter__ = AsyncMock(return_value=mock_conn)
+        mock_cm.__aexit__ = AsyncMock(return_value=None)
+        mock_pool.acquire.return_value = mock_cm
+
+        with patch(f"{_MODULE}._db_pool", mock_pool):
+            result = await _gather_chat_context(50)
+
+        assert result == "No recent agent activity found."
+
+    @pytest.mark.asyncio
+    async def test_formats_context_from_rows(self):
+        mock_rows = [
+            FakeRecord(
+                {
+                    "agent_name": "signal-gen",
+                    "decision_type": "analysis",
+                    "score": Decimal("0.85"),
+                    "tier": "HOT",
+                    "reasoning": "Strong uptrend detected",
+                    "tool_calls": None,
+                    "model_used": "gpt-4",
+                    "latency_ms": 150,
+                    "success": True,
+                    "error_message": None,
+                    "created_at": datetime(2026, 1, 15, 10, 0, 0, tzinfo=timezone.utc),
+                }
+            )
+        ]
+
+        mock_pool = MagicMock()
+        mock_conn = AsyncMock()
+        mock_conn.fetch = AsyncMock(return_value=mock_rows)
+        mock_cm = AsyncMock()
+        mock_cm.__aenter__ = AsyncMock(return_value=mock_conn)
+        mock_cm.__aexit__ = AsyncMock(return_value=None)
+        mock_pool.acquire.return_value = mock_cm
+
+        with patch(f"{_MODULE}._db_pool", mock_pool):
+            result = await _gather_chat_context(50)
+
+        assert "signal-gen" in result
+        assert "HOT" in result
+        assert "0.85" in result
+        assert "Strong uptrend detected" in result
