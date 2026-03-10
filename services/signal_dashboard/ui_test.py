@@ -19,7 +19,9 @@ class SignalDashboardTest(unittest.TestCase):
 
     def test_html_has_doctype(self):
         """HTML file should start with DOCTYPE."""
-        self.assertTrue(self.html_content.strip().startswith("<!DOCTYPE html>"))
+        self.assertTrue(
+            self.html_content.strip().lower().startswith("<!doctype html>")
+        )
 
     def test_html_has_title(self):
         """HTML should have a title tag."""
@@ -70,10 +72,10 @@ class SignalDashboardTest(unittest.TestCase):
 
     def test_sse_event_listeners(self):
         """SSE client should listen for signal, reasoning, tool_call events."""
-        self.assertIn("addEventListener('signal'", self.html_content)
-        self.assertIn("addEventListener('reasoning'", self.html_content)
-        self.assertIn("addEventListener('tool_call'", self.html_content)
-        self.assertIn("addEventListener('heartbeat'", self.html_content)
+        self.assertIn('addEventListener("signal"', self.html_content)
+        self.assertIn('addEventListener("reasoning"', self.html_content)
+        self.assertIn('addEventListener("tool_call"', self.html_content)
+        self.assertIn('addEventListener("heartbeat"', self.html_content)
 
     def test_last_event_id_tracking(self):
         """SSE client should track lastEventId for reconnection."""

@@ -20,6 +20,7 @@ filegroup(
         "*.html",
         "*.js",
         "*.css",
+        "*.conf",
         "*.md",
         "*.sh",
     ]),
