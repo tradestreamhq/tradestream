@@ -334,13 +334,9 @@ public final class IndicatorRegistry {
       for (int i = 1; i <= index; i++) {
         Num force = calculateForce(i);
         shortEma =
-            force
-                .multipliedBy(numOf(shortMult))
-                .plus(shortEma.multipliedBy(numOf(1 - shortMult)));
+            force.multipliedBy(numOf(shortMult)).plus(shortEma.multipliedBy(numOf(1 - shortMult)));
         longEma =
-            force
-                .multipliedBy(numOf(longMult))
-                .plus(longEma.multipliedBy(numOf(1 - longMult)));
+            force.multipliedBy(numOf(longMult)).plus(longEma.multipliedBy(numOf(1 - longMult)));
       }
       return shortEma.minus(longEma);
     }
