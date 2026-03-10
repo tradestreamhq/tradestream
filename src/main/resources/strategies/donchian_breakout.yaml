@@ -5,13 +5,13 @@ parameterMessageType: com.verlumen.tradestream.strategies.DonchianBreakoutParame
 
 indicators:
   - id: closePrice
-    type: CLOSE_PRICE
+    type: CLOSE
   - id: upperChannel
-    type: HIGHEST_HIGH
+    type: DONCHIAN_UPPER
     params:
       period: "${donchianPeriod}"
   - id: lowerChannel
-    type: LOWEST_LOW
+    type: DONCHIAN_LOWER
     params:
       period: "${donchianPeriod}"
 

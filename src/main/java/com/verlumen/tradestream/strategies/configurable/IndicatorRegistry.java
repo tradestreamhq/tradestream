@@ -109,6 +109,14 @@ public final class IndicatorRegistry {
     registry.register(
         "DPO", (series, input, params) -> new DPOIndicator(input, params.getInt("period")));
 
+    registry.register(
+        "AWESOME_OSCILLATOR",
+        (series, input, params) ->
+            new AwesomeOscillatorIndicator(
+                new MedianPriceIndicator(series),
+                params.getInt("shortPeriod", 5),
+                params.getInt("longPeriod", 34)));
+
     // Trend Indicators
     registry.register(
         "ADX", (series, input, params) -> new ADXIndicator(series, params.getInt("period")));
@@ -245,6 +253,20 @@ public final class IndicatorRegistry {
 
     registry.register("MEDIAN_PRICE", (series, input, params) -> new MedianPriceIndicator(series));
 
+    // Klinger Volume Oscillator
+    registry.register(
+        "KLINGER_VOLUME_OSCILLATOR",
+        (series, input, params) ->
+            new KlingerVolumeOscillatorIndicator(
+                series, params.getInt("shortPeriod", 10), params.getInt("longPeriod", 35)));
+
+    // Mass Index
+    registry.register(
+        "MASS_INDEX",
+        (series, input, params) ->
+            new MassIndexIndicator(
+                series, params.getInt("emaPeriod", 9), params.getInt("sumPeriod", 25)));
+
     // Statistical
     registry.register(
         "STD_DEV",
@@ -279,5 +301,122 @@ public final class IndicatorRegistry {
 
   public boolean hasIndicator(String type) {
     return factories.containsKey(type.toUpperCase());
+  }
+
+  /** Klinger Volume Oscillator indicator implementation. */
+  private static class KlingerVolumeOscillatorIndicator extends CachedIndicator<Num> {
+    private final ClosePriceIndicator closePrice;
+    private final HighPriceIndicator highPrice;
+    private final LowPriceIndicator lowPrice;
+    private final VolumeIndicator volume;
+    private final int shortPeriod;
+    private final int longPeriod;
+
+    KlingerVolumeOscillatorIndicator(BarSeries series, int shortPeriod, int longPeriod) {
+      super(series);
+      this.closePrice = new ClosePriceIndicator(series);
+      this.highPrice = new HighPriceIndicator(series);
+      this.lowPrice = new LowPriceIndicator(series);
+      this.volume = new VolumeIndicator(series);
+      this.shortPeriod = shortPeriod;
+      this.longPeriod = longPeriod;
+    }
+
+    @Override
+    protected Num calculate(int index) {
+      if (index < Math.max(shortPeriod, longPeriod)) {
+        return numOf(0);
+      }
+      Num shortEma = numOf(0);
+      Num longEma = numOf(0);
+      double shortMult = 2.0 / (shortPeriod + 1);
+      double longMult = 2.0 / (longPeriod + 1);
+      for (int i = 1; i <= index; i++) {
+        Num force = calculateForce(i);
+        shortEma =
+            force
+                .multipliedBy(numOf(shortMult))
+                .plus(shortEma.multipliedBy(numOf(1 - shortMult)));
+        longEma =
+            force
+                .multipliedBy(numOf(longMult))
+                .plus(longEma.multipliedBy(numOf(1 - longMult)));
+      }
+      return shortEma.minus(longEma);
+    }
+
+    private Num calculateForce(int index) {
+      if (index < 1) {
+        return numOf(0);
+      }
+      Num high = highPrice.getValue(index);
+      Num low = lowPrice.getValue(index);
+      Num range = high.minus(low);
+      if (range.isZero()) {
+        return numOf(0);
+      }
+      Num close = closePrice.getValue(index);
+      Num prevClose = closePrice.getValue(index - 1);
+      Num priceChange = close.minus(prevClose);
+      return volume.getValue(index).multipliedBy(priceChange).dividedBy(range);
+    }
+
+    @Override
+    public int getUnstableBars() {
+      return Math.max(shortPeriod, longPeriod);
+    }
+  }
+
+  /** Mass Index indicator implementation. */
+  private static class MassIndexIndicator extends CachedIndicator<Num> {
+    private final EMAIndicator ema;
+    private final EMAIndicator doubleEma;
+    private final int sumPeriod;
+
+    MassIndexIndicator(BarSeries series, int emaPeriod, int sumPeriod) {
+      super(series);
+      HighLowRangeIndicator highLow = new HighLowRangeIndicator(series);
+      this.ema = new EMAIndicator(highLow, emaPeriod);
+      this.doubleEma = new EMAIndicator(ema, emaPeriod);
+      this.sumPeriod = sumPeriod;
+    }
+
+    @Override
+    protected Num calculate(int index) {
+      if (index < sumPeriod - 1) {
+        return numOf(0);
+      }
+      Num sum = numOf(0);
+      for (int i = Math.max(0, index - sumPeriod + 1); i <= index; i++) {
+        Num doubleEmaVal = doubleEma.getValue(i);
+        if (!doubleEmaVal.isZero()) {
+          sum = sum.plus(ema.getValue(i).dividedBy(doubleEmaVal));
+        }
+      }
+      return sum;
+    }
+
+    @Override
+    public int getUnstableBars() {
+      return sumPeriod + ema.getUnstableBars() * 2;
+    }
+  }
+
+  /** High-Low Range indicator. */
+  private static class HighLowRangeIndicator extends CachedIndicator<Num> {
+    HighLowRangeIndicator(BarSeries series) {
+      super(series);
+    }
+
+    @Override
+    protected Num calculate(int index) {
+      org.ta4j.core.Bar bar = getBarSeries().getBar(index);
+      return bar.getHighPrice().minus(bar.getLowPrice());
+    }
+
+    @Override
+    public int getUnstableBars() {
+      return 0;
+    }
   }
 }
