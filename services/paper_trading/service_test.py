@@ -146,9 +146,7 @@ class TestExecuteTradeEndpoint:
 
     @patch("services.paper_trading.service._get_current_price")
     @patch("services.paper_trading.service._call_mcp_tool")
-    def test_execute_trade_price_unavailable(
-        self, mock_mcp, mock_price, client
-    ):
+    def test_execute_trade_price_unavailable(self, mock_mcp, mock_price, client):
         mock_mcp.return_value = [
             {
                 "signal_id": "sig-123",
@@ -281,9 +279,7 @@ class TestMcpToolCall:
 
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = {
-            "content": [{"text": '{"price": 50000}'}]
-        }
+        mock_resp.json.return_value = {"content": [{"text": '{"price": 50000}'}]}
         mock_resp.raise_for_status = MagicMock()
         mock_post.return_value = mock_resp
 

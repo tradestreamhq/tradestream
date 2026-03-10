@@ -35,16 +35,16 @@ def _call_mcp_tool(tool_name: str, arguments: dict, mcp_url: str) -> dict:
 
 def _get_current_price(symbol: str, market_mcp_url: str) -> Optional[float]:
     """Fetch the latest price for a symbol from market-mcp."""
-    result = _call_mcp_tool(
-        "get_latest_price", {"symbol": symbol}, market_mcp_url
-    )
+    result = _call_mcp_tool("get_latest_price", {"symbol": symbol}, market_mcp_url)
     price = result.get("price") or result.get("close")
     if price is not None:
         return float(price)
     return None
 
 
-def create_app(pg_client: PostgresClient, market_mcp_url: str, signal_mcp_url: str) -> Flask:
+def create_app(
+    pg_client: PostgresClient, market_mcp_url: str, signal_mcp_url: str
+) -> Flask:
     """Create the Flask application with all paper trading endpoints."""
     app = Flask(__name__)
     loop = asyncio.new_event_loop()
@@ -141,9 +141,7 @@ def create_app(pg_client: PostgresClient, market_mcp_url: str, signal_mcp_url: s
             for pos in positions:
                 price = _get_current_price(pos["symbol"], market_mcp_url)
                 if price is not None:
-                    run_async(
-                        pg_client.update_unrealized_pnl(pos["symbol"], price)
-                    )
+                    run_async(pg_client.update_unrealized_pnl(pos["symbol"], price))
                     pos["current_price"] = price
                     pos["unrealized_pnl"] = round(
                         pos["quantity"] * (price - pos["avg_entry_price"]), 8

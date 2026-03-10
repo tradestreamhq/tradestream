@@ -233,9 +233,7 @@ class PostgresClient:
                 for row in rows
             ]
 
-    async def update_unrealized_pnl(
-        self, symbol: str, current_price: float
-    ) -> None:
+    async def update_unrealized_pnl(self, symbol: str, current_price: float) -> None:
         """Update unrealized P&L for a portfolio position."""
         if not self.pool:
             raise RuntimeError("PostgreSQL connection not established")
@@ -297,19 +295,21 @@ class PostgresClient:
                     "symbol": row["symbol"],
                     "side": row["side"],
                     "entry_price": float(row["entry_price"]),
-                    "exit_price": float(row["exit_price"]) if row["exit_price"] else None,
+                    "exit_price": (
+                        float(row["exit_price"]) if row["exit_price"] else None
+                    ),
                     "quantity": float(row["quantity"]),
                     "pnl": float(row["pnl"]) if row["pnl"] else None,
                     "opened_at": row["opened_at"].isoformat(),
-                    "closed_at": row["closed_at"].isoformat() if row["closed_at"] else None,
+                    "closed_at": (
+                        row["closed_at"].isoformat() if row["closed_at"] else None
+                    ),
                     "status": row["status"],
                 }
                 for row in rows
             ]
 
-    async def get_pnl_summary(
-        self, symbol: Optional[str] = None
-    ) -> Dict[str, Any]:
+    async def get_pnl_summary(self, symbol: Optional[str] = None) -> Dict[str, Any]:
         """Get aggregated P&L summary from closed trades."""
         if not self.pool:
             raise RuntimeError("PostgreSQL connection not established")
@@ -349,9 +349,7 @@ class PostgresClient:
 
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(query, *params)
-            open_row = await conn.fetchrow(
-                open_query, *([symbol] if symbol else [])
-            )
+            open_row = await conn.fetchrow(open_query, *([symbol] if symbol else []))
 
             total = row["total_trades"] or 0
             wins = row["winning_trades"] or 0
