@@ -231,7 +231,7 @@ jobs:
           MAX_RETRIES=3
           for i in $(seq 1 $MAX_RETRIES); do
             echo "Attempt $i/$MAX_RETRIES: Adding Flink Helm repo..."
-            helm repo add flink-operator https://downloads.apache.org/flink/flink-kubernetes-operator-1.10.0/ || true
+            helm repo add flink-operator https://downloads.apache.org/flink/flink-kubernetes-operator-1.14.0/ || true
             if helm repo update 2>&1 | tee /tmp/helm-update.log; then
               echo "✅ Helm repo update succeeded"
               break
