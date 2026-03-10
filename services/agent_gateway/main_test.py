@@ -16,6 +16,8 @@ from services.agent_gateway.main import (
     app,
 )
 
+_MODULE = "services.agent_gateway.main"
+
 
 class FakeRecord(dict):
     """Mimics asyncpg.Record for testing."""
@@ -186,7 +188,9 @@ class TestHealthEndpoint:
         mock_redis = AsyncMock()
         mock_redis.ping = AsyncMock(return_value=True)
 
-        with patch("services.agent_gateway.main._db_pool", mock_pool), patch("services.agent_gateway.main._redis", mock_redis):
+        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
+            f"{_MODULE}._redis", mock_redis
+        ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
                 transport=transport, base_url="http://test"
@@ -212,7 +216,9 @@ class TestHealthEndpoint:
         mock_redis = AsyncMock()
         mock_redis.ping = AsyncMock(return_value=True)
 
-        with patch("services.agent_gateway.main._db_pool", mock_pool), patch("services.agent_gateway.main._redis", mock_redis):
+        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
+            f"{_MODULE}._redis", mock_redis
+        ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
                 transport=transport, base_url="http://test"
@@ -266,7 +272,9 @@ class TestRecentEventsEndpoint:
 
         mock_redis = AsyncMock()
 
-        with patch("services.agent_gateway.main._db_pool", mock_pool), patch("services.agent_gateway.main._redis", mock_redis):
+        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
+            f"{_MODULE}._redis", mock_redis
+        ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
                 transport=transport, base_url="http://test"
@@ -293,7 +301,9 @@ class TestRecentEventsEndpoint:
 
         mock_redis = AsyncMock()
 
-        with patch("services.agent_gateway.main._db_pool", mock_pool), patch("services.agent_gateway.main._redis", mock_redis):
+        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
+            f"{_MODULE}._redis", mock_redis
+        ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
                 transport=transport, base_url="http://test"
@@ -323,7 +333,9 @@ class TestRecentEventsEndpoint:
 
         mock_redis = AsyncMock()
 
-        with patch("services.agent_gateway.main._db_pool", mock_pool), patch("services.agent_gateway.main._redis", mock_redis):
+        with patch(f"{_MODULE}._db_pool", mock_pool), patch(
+            f"{_MODULE}._redis", mock_redis
+        ):
             transport = ASGITransport(app=app)
             async with AsyncClient(
                 transport=transport, base_url="http://test"
@@ -370,7 +382,7 @@ class TestStreamEndpoint:
         mock_pubsub.aclose = AsyncMock()
         mock_redis.pubsub.return_value = mock_pubsub
 
-        with patch("services.agent_gateway.main._redis", mock_redis):
+        with patch(f"{_MODULE}._redis", mock_redis):
             transport = ASGITransport(app=app)
             async with AsyncClient(
                 transport=transport, base_url="http://test"
