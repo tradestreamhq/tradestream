@@ -1,8 +1,8 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
-    name = "MassIndexConfigTest",
-    srcs = ["MassIndexConfigTest.java"],
+    name = "ParabolicSarConfigTest",
+    srcs = ["ParabolicSarConfigTest.java"],
     resources = ["//src/main/resources:strategies"],
     deps = [
         "//protos:strategies_java_proto",
