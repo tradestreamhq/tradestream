@@ -700,7 +700,6 @@ strategyProposerAgent:
   config:
     intervalSeconds: 1800
 
-
 # Orchestrator Agent Deployment configuration
 orchestratorAgent:
   enabled: false
