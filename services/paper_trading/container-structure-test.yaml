@@ -1,0 +1,11 @@
+schemaVersion: 2.0.0
+
+metadataTest:
+  workdir: "/services/paper_trading"
+  user: "nobody"
+
+fileExistenceTests:
+  - name: "Paper Trading binary exists"
+    path: "/services/paper_trading/app"
+    shouldExist: true
+    permissions: "-rwxr-xr-x"

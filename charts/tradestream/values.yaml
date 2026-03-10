@@ -719,6 +719,24 @@ orchestratorAgent:
     signalGenerator: "http://signal-generator-agent:9001"
     opportunityScorer: "http://opportunity-scorer-agent:9002"
     strategyProposer: "http://strategy-proposer-agent:9003"
+
+# Paper Trading evaluation service configuration
+paperTrading:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/paper-trading"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  config:
+    port: 8090
+    postgresHost: '{{ include "tradestream.fullname" . }}-postgresql'
+    postgresPort: 5432
+    postgresDatabase: "tradestream"
+    postgresUsername: "postgres"
+  secrets:
+    postgresPassword:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
   resources:
     requests:
       cpu: "100m"
