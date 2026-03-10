@@ -19,9 +19,7 @@ class SignalDashboardTest(unittest.TestCase):
 
     def test_html_has_doctype(self):
         """HTML file should start with DOCTYPE."""
-        self.assertTrue(
-            self.html_content.strip().lower().startswith("<!doctype html>")
-        )
+        self.assertTrue(self.html_content.strip().lower().startswith("<!doctype html>"))
 
     def test_html_has_title(self):
         """HTML should have a title tag."""
