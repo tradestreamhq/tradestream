@@ -1,0 +1,65 @@
+{{- if .Values.signalDashboard.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-signal-dashboard
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: signal-dashboard
+spec:
+  replicas: {{ .Values.signalDashboard.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: signal-dashboard
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: signal-dashboard
+    spec:
+      containers:
+        - name: signal-dashboard
+          image: "{{ .Values.signalDashboard.image.repository }}:{{ .Values.signalDashboard.image.tag }}"
+          imagePullPolicy: {{ .Values.signalDashboard.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.signalDashboard.service.port | default 8080 }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.signalDashboard.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-signal-dashboard
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: signal-dashboard
+spec:
+  type: {{ .Values.signalDashboard.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.signalDashboard.service.port | default 8080 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: signal-dashboard
+{{- end }}
