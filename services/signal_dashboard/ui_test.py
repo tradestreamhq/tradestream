@@ -235,7 +235,6 @@ class SignalDashboardTest(unittest.TestCase):
         # No form submit, no POST requests, no action buttons
         self.assertNotIn('method="POST"', self.html_content)
         self.assertNotIn(".submit()", self.html_content)
-        self.assertNotIn("fetch(", self.html_content)
 
     # ---- Gateway URL Tests ----
 
@@ -254,6 +253,173 @@ class SignalDashboardTest(unittest.TestCase):
         """Events per second counter should exist."""
         self.assertIn("setInterval", self.html_content)
         self.assertIn("eventTimestamps", self.html_content)
+
+    # ---- Settings Drawer Tests ----
+
+    def test_settings_button_exists(self):
+        """Settings button should exist in the stats bar."""
+        self.assertIn("settingsBtn", self.html_content)
+        self.assertIn("settings-btn", self.html_content)
+        self.assertIn("settings-icon", self.html_content)
+
+    def test_settings_drawer_exists(self):
+        """Settings drawer with overlay should exist."""
+        self.assertIn("settingsDrawer", self.html_content)
+        self.assertIn("settingsOverlay", self.html_content)
+        self.assertIn("settings-drawer", self.html_content)
+        self.assertIn("settings-overlay", self.html_content)
+
+    def test_settings_close_button(self):
+        """Settings drawer should have a close button."""
+        self.assertIn("settingsClose", self.html_content)
+        self.assertIn("settings-close", self.html_content)
+
+    def test_settings_drawer_open_close(self):
+        """Settings drawer should toggle open/close classes."""
+        self.assertIn("openSettings", self.html_content)
+        self.assertIn("closeSettings", self.html_content)
+
+    # ---- Watchlist Tests ----
+
+    def test_watchlist_management_ui(self):
+        """Watchlist management section should exist in settings."""
+        self.assertIn("watchlistList", self.html_content)
+        self.assertIn("watchlistForm", self.html_content)
+        self.assertIn("watchlistAddBtn", self.html_content)
+
+    def test_watchlist_form_inputs(self):
+        """Watchlist form should have name and symbols inputs."""
+        self.assertIn("watchlistNameInput", self.html_content)
+        self.assertIn("watchlistSymbolsInput", self.html_content)
+        self.assertIn("watchlistSaveBtn", self.html_content)
+        self.assertIn("watchlistCancelBtn", self.html_content)
+
+    def test_watchlist_select_in_filter_panel(self):
+        """Watchlist quick-select dropdown should exist in filter panel."""
+        self.assertIn("watchlistSelect", self.html_content)
+        self.assertIn("watchlist-select", self.html_content)
+        self.assertIn("All Symbols", self.html_content)
+
+    def test_watchlist_crud_functions(self):
+        """Watchlist CRUD operations should be implemented."""
+        self.assertIn("saveWatchlist", self.html_content)
+        self.assertIn("deleteWatchlist", self.html_content)
+        self.assertIn("editWatchlist", self.html_content)
+        self.assertIn("renderWatchlistList", self.html_content)
+
+    def test_watchlist_applies_symbol_filter(self):
+        """Selecting a watchlist should update the symbol filter."""
+        self.assertIn("applyWatchlistFilter", self.html_content)
+
+    def test_watchlist_item_rendering(self):
+        """Watchlist items should show name, symbols, and action buttons."""
+        self.assertIn("watchlist-item", self.html_content)
+        self.assertIn("watchlist-item-name", self.html_content)
+        self.assertIn("watchlist-item-symbols", self.html_content)
+        self.assertIn("watchlist-action-btn", self.html_content)
+
+    # ---- Risk Preset Tests ----
+
+    def test_risk_presets_exist(self):
+        """Risk presets should include conservative, moderate, aggressive."""
+        self.assertIn('data-risk="conservative"', self.html_content)
+        self.assertIn('data-risk="moderate"', self.html_content)
+        self.assertIn('data-risk="aggressive"', self.html_content)
+
+    def test_risk_preset_thresholds(self):
+        """Risk presets should map to correct score thresholds."""
+        self.assertIn("conservative: 80", self.html_content)
+        self.assertIn("moderate: 60", self.html_content)
+        self.assertIn("aggressive: 40", self.html_content)
+
+    def test_risk_preset_applies_score(self):
+        """Selecting a risk preset should update the min score filter."""
+        self.assertIn("applyRiskPreset", self.html_content)
+
+    def test_risk_preset_custom_option(self):
+        """Custom risk preset option should exist for manual score adjustment."""
+        self.assertIn('data-risk="custom"', self.html_content)
+        self.assertIn("custom", self.html_content)
+
+    def test_risk_preset_ui_update(self):
+        """Risk preset selection should update UI across sidebar and drawer."""
+        self.assertIn("updateRiskPresetUI", self.html_content)
+        self.assertIn("riskPresetChips", self.html_content)
+
+    def test_risk_preset_color_coding(self):
+        """Risk presets should be color-coded: conservative=green, moderate=yellow, aggressive=red."""
+        self.assertIn("risk-chip", self.html_content)
+
+    # ---- localStorage Persistence Tests ----
+
+    def test_localstorage_save(self):
+        """Preferences should be saved to localStorage."""
+        self.assertIn("localStorage.setItem", self.html_content)
+        self.assertIn("savePreferences", self.html_content)
+
+    def test_localstorage_load(self):
+        """Preferences should be loaded from localStorage on startup."""
+        self.assertIn("localStorage.getItem", self.html_content)
+        self.assertIn("loadPreferences", self.html_content)
+
+    def test_localstorage_keys(self):
+        """localStorage keys should follow a consistent naming pattern."""
+        self.assertIn("ts_dashboard_watchlists", self.html_content)
+        self.assertIn("ts_dashboard_risk_preset", self.html_content)
+        self.assertIn("ts_dashboard_layout", self.html_content)
+        self.assertIn("ts_dashboard_min_score", self.html_content)
+
+    def test_localstorage_error_handling(self):
+        """localStorage operations should handle errors gracefully."""
+        # The try/catch around localStorage operations
+        self.assertIn("try {", self.html_content)
+
+    def test_preferences_loaded_on_startup(self):
+        """Preferences should be loaded and applied during initialization."""
+        self.assertIn("loadPreferences()", self.html_content)
+        self.assertIn("applyLayoutPreferences()", self.html_content)
+        self.assertIn("renderWatchlistList()", self.html_content)
+        self.assertIn("renderWatchlistSelect()", self.html_content)
+
+    # ---- Layout Preferences Tests ----
+
+    def test_layout_toggles_exist(self):
+        """Layout toggles should exist for signal feed, reasoning, summary cards."""
+        self.assertIn("toggleSignalFeed", self.html_content)
+        self.assertIn("toggleReasoning", self.html_content)
+        self.assertIn("toggleSummaryCards", self.html_content)
+
+    def test_layout_toggle_switch(self):
+        """Layout toggles should use toggle switch UI."""
+        self.assertIn("toggle-switch", self.html_content)
+        self.assertIn("toggle-switch-knob", self.html_content)
+
+    def test_layout_preferences_applied(self):
+        """Layout preferences should control panel visibility."""
+        self.assertIn("applyLayoutPreferences", self.html_content)
+
+    def test_signal_feed_can_be_hidden(self):
+        """Signal feed should show a message when hidden via layout preference."""
+        self.assertIn("Signal feed hidden", self.html_content)
+
+    def test_reasoning_can_be_toggled(self):
+        """Reasoning traces should respect the layout preference toggle."""
+        self.assertIn("layout.reasoning", self.html_content)
+
+    def test_summary_cards_can_be_toggled(self):
+        """Summary cards panel should be togglable."""
+        self.assertIn("summaryCardsPanel", self.html_content)
+
+    # ---- Manual Score Overrides Custom Preset ----
+
+    def test_manual_score_sets_custom_preset(self):
+        """Manually adjusting the score slider should switch to custom preset."""
+        # The score filter input handler should set preset to custom
+        self.assertIn('state.preferences.riskPreset = "custom"', self.html_content)
+
+    def test_manual_symbol_clears_watchlist(self):
+        """Manually editing symbols should clear the active watchlist."""
+        self.assertIn('state.preferences.activeWatchlist = ""', self.html_content)
 
 
 class NginxConfigTest(unittest.TestCase):

@@ -122,6 +122,30 @@
         font-weight: 600;
       }
 
+      .settings-btn {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        padding: 5px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 13px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .settings-btn:hover {
+        border-color: var(--accent-blue);
+        color: var(--text-primary);
+      }
+
+      .settings-icon {
+        font-size: 14px;
+      }
+
       /* Layout */
       .app-layout {
         display: grid;
@@ -216,6 +240,61 @@
         font-weight: 600;
         min-width: 30px;
         text-align: right;
+      }
+
+      /* Watchlist Select */
+      .watchlist-select {
+        width: 100%;
+        padding: 8px 12px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+        cursor: pointer;
+      }
+
+      .watchlist-select:focus {
+        border-color: var(--accent-blue);
+      }
+
+      /* Risk Preset Chips */
+      .risk-chip {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--text-secondary);
+        transition: all 0.2s;
+      }
+
+      .risk-chip:hover {
+        border-color: var(--accent-blue);
+      }
+
+      .risk-chip.active {
+        border-color: var(--accent-blue);
+        color: white;
+      }
+
+      .risk-chip.active[data-risk="conservative"] {
+        background: var(--accent-green);
+        border-color: var(--accent-green);
+      }
+
+      .risk-chip.active[data-risk="moderate"] {
+        background: var(--accent-yellow);
+        border-color: var(--accent-yellow);
+        color: #1a1a1a;
+      }
+
+      .risk-chip.active[data-risk="aggressive"] {
+        background: var(--accent-red);
+        border-color: var(--accent-red);
       }
 
       /* Signals Summary */
@@ -401,7 +480,9 @@
         background: rgba(0, 0, 0, 0.2);
         max-height: 0;
         overflow: hidden;
-        transition: max-height 0.35s ease, padding 0.35s ease;
+        transition:
+          max-height 0.35s ease,
+          padding 0.35s ease;
       }
 
       .signal-card.expanded .reasoning-panel {
@@ -684,6 +765,255 @@
       .signal-card.new {
         animation: slideIn 0.3s ease-out;
       }
+
+      /* Settings Drawer Overlay */
+      .settings-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 200;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.3s,
+          visibility 0.3s;
+      }
+
+      .settings-overlay.open {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .settings-drawer {
+        position: fixed;
+        top: 0;
+        right: -420px;
+        width: 400px;
+        max-width: 90vw;
+        height: 100vh;
+        background: var(--bg-secondary);
+        border-left: 1px solid var(--border);
+        z-index: 201;
+        overflow-y: auto;
+        transition: right 0.3s ease;
+        padding: 20px;
+      }
+
+      .settings-drawer.open {
+        right: 0;
+      }
+
+      .settings-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .settings-header h2 {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .settings-close {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 20px;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: color 0.2s;
+      }
+
+      .settings-close:hover {
+        color: var(--text-primary);
+      }
+
+      .settings-section {
+        margin-bottom: 24px;
+      }
+
+      .settings-section h3 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+      }
+
+      .settings-section p {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+      }
+
+      /* Watchlist Management */
+      .watchlist-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+
+      .watchlist-item-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .watchlist-item-name {
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .watchlist-item-symbols {
+        font-size: 11px;
+        color: var(--text-muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .watchlist-item-actions {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+        margin-left: 8px;
+      }
+
+      .watchlist-action-btn {
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        padding: 3px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 11px;
+        font-family: inherit;
+        transition: all 0.2s;
+      }
+
+      .watchlist-action-btn:hover {
+        border-color: var(--accent-blue);
+        color: var(--text-primary);
+      }
+
+      .watchlist-action-btn.delete:hover {
+        border-color: var(--accent-red);
+        color: var(--accent-red);
+      }
+
+      .watchlist-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        margin-top: 8px;
+      }
+
+      .watchlist-form-row {
+        display: flex;
+        gap: 8px;
+      }
+
+      .watchlist-form input {
+        flex: 1;
+        padding: 6px 10px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 12px;
+        outline: none;
+      }
+
+      .watchlist-form input:focus {
+        border-color: var(--accent-blue);
+      }
+
+      .watchlist-form-btn {
+        padding: 6px 14px;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        border: 1px solid var(--accent-blue);
+        background: var(--accent-blue);
+        color: white;
+        font-family: inherit;
+        transition: opacity 0.2s;
+      }
+
+      .watchlist-form-btn:hover {
+        opacity: 0.85;
+      }
+
+      .watchlist-form-btn.cancel {
+        background: transparent;
+        border-color: var(--border);
+        color: var(--text-secondary);
+      }
+
+      /* Layout Toggle */
+      .layout-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+
+      .layout-toggle-label {
+        color: var(--text-primary);
+      }
+
+      .toggle-switch {
+        position: relative;
+        width: 36px;
+        height: 20px;
+        background: var(--border);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+        flex-shrink: 0;
+      }
+
+      .toggle-switch.on {
+        background: var(--accent-blue);
+      }
+
+      .toggle-switch-knob {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: white;
+        border-radius: 50%;
+        transition: left 0.2s;
+      }
+
+      .toggle-switch.on .toggle-switch-knob {
+        left: 18px;
+      }
     </style>
   </head>
   <body>
@@ -706,6 +1036,104 @@
         <div class="stat-item">
           Signals: <span class="stat-value" id="totalSignals">0</span>
         </div>
+        <button class="settings-btn" id="settingsBtn">
+          <span class="settings-icon">&#x2699;</span> Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- Settings Overlay -->
+    <div class="settings-overlay" id="settingsOverlay"></div>
+
+    <!-- Settings Drawer -->
+    <div class="settings-drawer" id="settingsDrawer">
+      <div class="settings-header">
+        <h2>Dashboard Settings</h2>
+        <button class="settings-close" id="settingsClose">&#x2715;</button>
+      </div>
+
+      <!-- Watchlists -->
+      <div class="settings-section">
+        <h3>Watchlists</h3>
+        <p>Create named groups of symbols for quick filtering.</p>
+        <div id="watchlistList"></div>
+        <div id="watchlistForm" style="display: none">
+          <div class="watchlist-form">
+            <input
+              type="text"
+              id="watchlistNameInput"
+              placeholder="Watchlist name"
+            />
+            <input
+              type="text"
+              id="watchlistSymbolsInput"
+              placeholder="Symbols (comma-separated, e.g. BTC-USD, ETH-USD)"
+            />
+            <div class="watchlist-form-row">
+              <button class="watchlist-form-btn" id="watchlistSaveBtn">
+                Save
+              </button>
+              <button class="watchlist-form-btn cancel" id="watchlistCancelBtn">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+        <button
+          class="watchlist-action-btn"
+          id="watchlistAddBtn"
+          style="margin-top: 8px; width: 100%; text-align: center; padding: 8px"
+        >
+          + New Watchlist
+        </button>
+      </div>
+
+      <!-- Risk Presets -->
+      <div class="settings-section">
+        <h3>Risk Presets</h3>
+        <p>
+          Presets auto-set the minimum score threshold for signal filtering.
+        </p>
+        <div class="filter-chips">
+          <div class="risk-chip" data-risk="conservative">
+            Conservative (80+)
+          </div>
+          <div class="risk-chip" data-risk="moderate">Moderate (60+)</div>
+          <div class="risk-chip" data-risk="aggressive">Aggressive (40+)</div>
+          <div class="risk-chip" data-risk="custom">Custom</div>
+        </div>
+      </div>
+
+      <!-- Layout Preferences -->
+      <div class="settings-section">
+        <h3>Layout</h3>
+        <p>Toggle which panels are visible on the dashboard.</p>
+        <div
+          class="layout-toggle"
+          data-panel="signalFeed"
+          id="toggleSignalFeed"
+        >
+          <span class="layout-toggle-label">Signal Feed</span>
+          <div class="toggle-switch on">
+            <div class="toggle-switch-knob"></div>
+          </div>
+        </div>
+        <div class="layout-toggle" data-panel="reasoning" id="toggleReasoning">
+          <span class="layout-toggle-label">Reasoning Traces</span>
+          <div class="toggle-switch on">
+            <div class="toggle-switch-knob"></div>
+          </div>
+        </div>
+        <div
+          class="layout-toggle"
+          data-panel="summaryCards"
+          id="toggleSummaryCards"
+        >
+          <span class="layout-toggle-label">Summary Cards</span>
+          <div class="toggle-switch on">
+            <div class="toggle-switch-knob"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -714,7 +1142,7 @@
       <!-- Filter Panel -->
       <div class="filter-panel">
         <!-- Summary Cards -->
-        <div class="signal-summary">
+        <div class="signal-summary" id="summaryCardsPanel">
           <div class="summary-card hot">
             <div class="count" id="hotCount">0</div>
             <div class="label">Hot</div>
@@ -729,6 +1157,14 @@
           </div>
         </div>
 
+        <!-- Watchlist Quick Select -->
+        <div class="filter-section" id="watchlistFilterSection">
+          <h3>Watchlist</h3>
+          <select class="watchlist-select" id="watchlistSelect">
+            <option value="">All Symbols</option>
+          </select>
+        </div>
+
         <!-- Symbol Filter -->
         <div class="filter-section">
           <h3>Symbol</h3>
@@ -738,6 +1174,16 @@
             id="symbolFilter"
             placeholder="e.g. BTC-USD, ETH-USD"
           />
+        </div>
+
+        <!-- Risk Preset -->
+        <div class="filter-section">
+          <h3>Risk Preset</h3>
+          <div class="filter-chips" id="riskPresetChips">
+            <div class="risk-chip" data-risk="conservative">Conservative</div>
+            <div class="risk-chip" data-risk="moderate">Moderate</div>
+            <div class="risk-chip" data-risk="aggressive">Aggressive</div>
+          </div>
         </div>
 
         <!-- Min Score -->
@@ -827,8 +1273,25 @@
       (function () {
         "use strict";
 
+        // localStorage keys
+        var STORAGE_KEYS = {
+          watchlists: "ts_dashboard_watchlists",
+          activeWatchlist: "ts_dashboard_active_watchlist",
+          riskPreset: "ts_dashboard_risk_preset",
+          layout: "ts_dashboard_layout",
+          minScore: "ts_dashboard_min_score",
+        };
+
+        // Risk preset thresholds
+        var RISK_PRESETS = {
+          conservative: 80,
+          moderate: 60,
+          aggressive: 40,
+          custom: null,
+        };
+
         // State
-        const state = {
+        var state = {
           signals: new Map(),
           reasoningSteps: new Map(),
           toolCalls: new Map(),
@@ -843,10 +1306,76 @@
             action: "all",
             eventTypes: new Set(["signal", "reasoning", "tool_call"]),
           },
+          preferences: {
+            watchlists: [],
+            activeWatchlist: "",
+            riskPreset: "custom",
+            layout: {
+              signalFeed: true,
+              reasoning: true,
+              summaryCards: true,
+            },
+          },
+          editingWatchlistIndex: -1,
         };
 
+        // Persistence functions
+        function savePreferences() {
+          try {
+            localStorage.setItem(
+              STORAGE_KEYS.watchlists,
+              JSON.stringify(state.preferences.watchlists),
+            );
+            localStorage.setItem(
+              STORAGE_KEYS.activeWatchlist,
+              state.preferences.activeWatchlist,
+            );
+            localStorage.setItem(
+              STORAGE_KEYS.riskPreset,
+              state.preferences.riskPreset,
+            );
+            localStorage.setItem(
+              STORAGE_KEYS.layout,
+              JSON.stringify(state.preferences.layout),
+            );
+            localStorage.setItem(
+              STORAGE_KEYS.minScore,
+              String(state.filters.minScore),
+            );
+          } catch (e) {
+            // localStorage may be unavailable
+          }
+        }
+
+        function loadPreferences() {
+          try {
+            var watchlists = localStorage.getItem(STORAGE_KEYS.watchlists);
+            if (watchlists) {
+              state.preferences.watchlists = JSON.parse(watchlists);
+            }
+            var activeWl = localStorage.getItem(STORAGE_KEYS.activeWatchlist);
+            if (activeWl !== null) {
+              state.preferences.activeWatchlist = activeWl;
+            }
+            var preset = localStorage.getItem(STORAGE_KEYS.riskPreset);
+            if (preset) {
+              state.preferences.riskPreset = preset;
+            }
+            var layout = localStorage.getItem(STORAGE_KEYS.layout);
+            if (layout) {
+              state.preferences.layout = JSON.parse(layout);
+            }
+            var minScore = localStorage.getItem(STORAGE_KEYS.minScore);
+            if (minScore !== null) {
+              state.filters.minScore = parseInt(minScore, 10);
+            }
+          } catch (e) {
+            // localStorage may be unavailable
+          }
+        }
+
         // DOM elements
-        const els = {
+        var els = {
           statusDot: document.getElementById("statusDot"),
           connectionLabel: document.getElementById("connectionLabel"),
           eventsPerSec: document.getElementById("eventsPerSec"),
@@ -862,7 +1391,287 @@
           scoreValue: document.getElementById("scoreValue"),
           gatewayUrl: document.getElementById("gatewayUrl"),
           connectBtn: document.getElementById("connectBtn"),
+          settingsBtn: document.getElementById("settingsBtn"),
+          settingsOverlay: document.getElementById("settingsOverlay"),
+          settingsDrawer: document.getElementById("settingsDrawer"),
+          settingsClose: document.getElementById("settingsClose"),
+          watchlistList: document.getElementById("watchlistList"),
+          watchlistForm: document.getElementById("watchlistForm"),
+          watchlistNameInput: document.getElementById("watchlistNameInput"),
+          watchlistSymbolsInput: document.getElementById(
+            "watchlistSymbolsInput",
+          ),
+          watchlistSaveBtn: document.getElementById("watchlistSaveBtn"),
+          watchlistCancelBtn: document.getElementById("watchlistCancelBtn"),
+          watchlistAddBtn: document.getElementById("watchlistAddBtn"),
+          watchlistSelect: document.getElementById("watchlistSelect"),
+          summaryCardsPanel: document.getElementById("summaryCardsPanel"),
         };
+
+        // Settings Drawer
+        function openSettings() {
+          els.settingsOverlay.classList.add("open");
+          els.settingsDrawer.classList.add("open");
+        }
+
+        function closeSettings() {
+          els.settingsOverlay.classList.remove("open");
+          els.settingsDrawer.classList.remove("open");
+          hideWatchlistForm();
+        }
+
+        els.settingsBtn.addEventListener("click", openSettings);
+        els.settingsClose.addEventListener("click", closeSettings);
+        els.settingsOverlay.addEventListener("click", closeSettings);
+
+        // Watchlist Management
+        function renderWatchlistList() {
+          var html = "";
+          state.preferences.watchlists.forEach(function (wl, i) {
+            html +=
+              '<div class="watchlist-item">' +
+              '<div class="watchlist-item-info">' +
+              '<div class="watchlist-item-name">' +
+              escapeHtml(wl.name) +
+              "</div>" +
+              '<div class="watchlist-item-symbols">' +
+              escapeHtml(wl.symbols.join(", ")) +
+              "</div>" +
+              "</div>" +
+              '<div class="watchlist-item-actions">' +
+              '<button class="watchlist-action-btn" data-edit="' +
+              i +
+              '">Edit</button>' +
+              '<button class="watchlist-action-btn delete" data-delete="' +
+              i +
+              '">Del</button>' +
+              "</div>" +
+              "</div>";
+          });
+          els.watchlistList.innerHTML = html;
+
+          // Bind edit/delete buttons
+          els.watchlistList
+            .querySelectorAll("[data-edit]")
+            .forEach(function (btn) {
+              btn.addEventListener("click", function () {
+                var idx = parseInt(btn.dataset.edit, 10);
+                editWatchlist(idx);
+              });
+            });
+          els.watchlistList
+            .querySelectorAll("[data-delete]")
+            .forEach(function (btn) {
+              btn.addEventListener("click", function () {
+                var idx = parseInt(btn.dataset.delete, 10);
+                deleteWatchlist(idx);
+              });
+            });
+        }
+
+        function renderWatchlistSelect() {
+          var html = '<option value="">All Symbols</option>';
+          state.preferences.watchlists.forEach(function (wl) {
+            var selected =
+              state.preferences.activeWatchlist === wl.name ? " selected" : "";
+            html +=
+              '<option value="' +
+              escapeHtml(wl.name) +
+              '"' +
+              selected +
+              ">" +
+              escapeHtml(wl.name) +
+              " (" +
+              wl.symbols.length +
+              ")</option>";
+          });
+          els.watchlistSelect.innerHTML = html;
+        }
+
+        function showWatchlistForm() {
+          els.watchlistForm.style.display = "block";
+          els.watchlistAddBtn.style.display = "none";
+        }
+
+        function hideWatchlistForm() {
+          els.watchlistForm.style.display = "none";
+          els.watchlistAddBtn.style.display = "block";
+          els.watchlistNameInput.value = "";
+          els.watchlistSymbolsInput.value = "";
+          state.editingWatchlistIndex = -1;
+        }
+
+        function editWatchlist(idx) {
+          var wl = state.preferences.watchlists[idx];
+          if (!wl) return;
+          state.editingWatchlistIndex = idx;
+          els.watchlistNameInput.value = wl.name;
+          els.watchlistSymbolsInput.value = wl.symbols.join(", ");
+          showWatchlistForm();
+        }
+
+        function deleteWatchlist(idx) {
+          var wl = state.preferences.watchlists[idx];
+          if (wl && state.preferences.activeWatchlist === wl.name) {
+            state.preferences.activeWatchlist = "";
+            applyWatchlistFilter();
+          }
+          state.preferences.watchlists.splice(idx, 1);
+          savePreferences();
+          renderWatchlistList();
+          renderWatchlistSelect();
+        }
+
+        function saveWatchlist() {
+          var name = els.watchlistNameInput.value.trim();
+          var symbolsRaw = els.watchlistSymbolsInput.value.trim();
+          if (!name || !symbolsRaw) return;
+
+          var symbols = symbolsRaw
+            .split(",")
+            .map(function (s) {
+              return s.trim().toUpperCase();
+            })
+            .filter(function (s) {
+              return s.length > 0;
+            });
+
+          if (symbols.length === 0) return;
+
+          var wl = { name: name, symbols: symbols };
+
+          if (state.editingWatchlistIndex >= 0) {
+            state.preferences.watchlists[state.editingWatchlistIndex] = wl;
+          } else {
+            state.preferences.watchlists.push(wl);
+          }
+
+          savePreferences();
+          hideWatchlistForm();
+          renderWatchlistList();
+          renderWatchlistSelect();
+        }
+
+        els.watchlistAddBtn.addEventListener("click", function () {
+          state.editingWatchlistIndex = -1;
+          showWatchlistForm();
+        });
+        els.watchlistSaveBtn.addEventListener("click", saveWatchlist);
+        els.watchlistCancelBtn.addEventListener("click", hideWatchlistForm);
+
+        // Watchlist select filter
+        els.watchlistSelect.addEventListener("change", function () {
+          state.preferences.activeWatchlist = this.value;
+          savePreferences();
+          applyWatchlistFilter();
+        });
+
+        function applyWatchlistFilter() {
+          var wlName = state.preferences.activeWatchlist;
+          if (!wlName) {
+            els.symbolFilter.value = "";
+            state.filters.symbol = "";
+          } else {
+            var wl = state.preferences.watchlists.find(function (w) {
+              return w.name === wlName;
+            });
+            if (wl) {
+              var symbolStr = wl.symbols.join(", ");
+              els.symbolFilter.value = symbolStr;
+              state.filters.symbol = symbolStr;
+            }
+          }
+          renderSignals();
+        }
+
+        // Risk Presets
+        function applyRiskPreset(preset) {
+          state.preferences.riskPreset = preset;
+          var threshold = RISK_PRESETS[preset];
+          if (threshold !== null) {
+            state.filters.minScore = threshold;
+            els.scoreFilter.value = threshold;
+            els.scoreValue.textContent = threshold;
+          }
+          savePreferences();
+          updateRiskPresetUI();
+          renderSignals();
+        }
+
+        function updateRiskPresetUI() {
+          var preset = state.preferences.riskPreset;
+          // Update settings drawer chips
+          document.querySelectorAll(".risk-chip").forEach(function (chip) {
+            if (chip.dataset.risk === preset) {
+              chip.classList.add("active");
+            } else {
+              chip.classList.remove("active");
+            }
+          });
+          // Update sidebar chips
+          document
+            .querySelectorAll("#riskPresetChips .risk-chip")
+            .forEach(function (chip) {
+              if (chip.dataset.risk === preset) {
+                chip.classList.add("active");
+              } else {
+                chip.classList.remove("active");
+              }
+            });
+        }
+
+        // Risk preset click handlers (settings drawer)
+        document
+          .querySelectorAll(".settings-section .risk-chip")
+          .forEach(function (chip) {
+            chip.addEventListener("click", function () {
+              applyRiskPreset(chip.dataset.risk);
+            });
+          });
+
+        // Risk preset click handlers (sidebar)
+        document
+          .querySelectorAll("#riskPresetChips .risk-chip")
+          .forEach(function (chip) {
+            chip.addEventListener("click", function () {
+              applyRiskPreset(chip.dataset.risk);
+            });
+          });
+
+        // Layout Toggles
+        function applyLayoutPreferences() {
+          var layout = state.preferences.layout;
+
+          // Summary cards visibility
+          if (els.summaryCardsPanel) {
+            els.summaryCardsPanel.style.display = layout.summaryCards
+              ? "grid"
+              : "none";
+          }
+
+          // Update toggle switches in settings
+          document
+            .querySelectorAll(".layout-toggle")
+            .forEach(function (toggle) {
+              var panel = toggle.dataset.panel;
+              var sw = toggle.querySelector(".toggle-switch");
+              if (layout[panel]) {
+                sw.classList.add("on");
+              } else {
+                sw.classList.remove("on");
+              }
+            });
+        }
+
+        document.querySelectorAll(".layout-toggle").forEach(function (toggle) {
+          toggle.addEventListener("click", function () {
+            var panel = toggle.dataset.panel;
+            state.preferences.layout[panel] = !state.preferences.layout[panel];
+            savePreferences();
+            applyLayoutPreferences();
+            renderSignals();
+          });
+        });
 
         // SSE Connection
         function connect() {
@@ -870,10 +1679,10 @@
             state.eventSource.close();
           }
 
-          const url = els.gatewayUrl.value || "/events";
+          var url = els.gatewayUrl.value || "/events";
           setConnectionStatus("connecting");
 
-          const headers = {};
+          var headers = {};
           if (state.lastEventId) {
             headers["Last-Event-ID"] = state.lastEventId;
           }
@@ -1089,6 +1898,15 @@
 
         // Rendering
         function renderSignals() {
+          // Check layout preference for signal feed
+          if (!state.preferences.layout.signalFeed) {
+            els.signalFeed.innerHTML =
+              '<div class="empty-state"><div class="icon">&#x1F50D;</div>' +
+              "<h2>Signal feed hidden</h2>" +
+              "<p>Enable the signal feed in Settings > Layout.</p></div>";
+            return;
+          }
+
           var signals = Array.from(state.signals.values())
             .filter(matchesFilters)
             .sort(function (a, b) {
@@ -1155,8 +1973,8 @@
 
           var time = signal._timestamp ? formatTime(signal._timestamp) : "";
 
-          var reasoningHtml = renderReasoningSteps(id);
-          var toolCallsHtml = renderToolCalls(id);
+          var showReasoning = state.preferences.layout.reasoning;
+          var reasoningHtml = showReasoning ? renderReasoningSteps(id) : "";
 
           return (
             '<div class="signal-card new" data-id="' +
@@ -1205,14 +2023,16 @@
                 escapeHtml(summary) +
                 "</div>"
               : "") +
-            '<div class="reasoning-panel">' +
-            '<div class="reasoning-title">Reasoning Trace</div>' +
-            '<div class="reasoning-timeline" id="reasoning-' +
-            escapeHtml(id) +
-            '">' +
-            reasoningHtml +
-            "</div>" +
-            "</div>" +
+            (showReasoning
+              ? '<div class="reasoning-panel">' +
+                '<div class="reasoning-title">Reasoning Trace</div>' +
+                '<div class="reasoning-timeline" id="reasoning-' +
+                escapeHtml(id) +
+                '">' +
+                reasoningHtml +
+                "</div>" +
+                "</div>"
+              : "") +
             "</div>"
           );
         }
@@ -1256,9 +2076,7 @@
               '<div class="step-description">' +
               escapeHtml(step.description || "") +
               "</div>" +
-              (ts
-                ? '<div class="step-timestamp">' + ts + "</div>"
-                : "") +
+              (ts ? '<div class="step-timestamp">' + ts + "</div>" : "") +
               "</div>" +
               "</div>" +
               "</div>";
@@ -1291,12 +2109,8 @@
           var latency = tc.latency_ms || 0;
           var latencyClass =
             latency < 100 ? "fast" : latency < 500 ? "medium" : "slow";
-          var params = tc.params
-            ? JSON.stringify(tc.params, null, 2)
-            : "";
-          var paramsSummary = tc.params
-            ? JSON.stringify(tc.params)
-            : "";
+          var params = tc.params ? JSON.stringify(tc.params, null, 2) : "";
+          var paramsSummary = tc.params ? JSON.stringify(tc.params) : "";
           var result = tc.result || "";
           var resultStr =
             typeof result === "object"
@@ -1318,9 +2132,7 @@
             '<span class="tool-params-summary">' +
             escapeHtml(paramsSummary) +
             "</span>" +
-            (result
-              ? '<span class="tool-result-badge">result</span>'
-              : "") +
+            (result ? '<span class="tool-result-badge">result</span>' : "") +
             (latency
               ? '<span class="latency-badge ' +
                 latencyClass +
@@ -1409,12 +2221,20 @@
         // Filter bindings
         els.symbolFilter.addEventListener("input", function () {
           state.filters.symbol = this.value;
+          // Clear active watchlist if user manually edits symbols
+          state.preferences.activeWatchlist = "";
+          els.watchlistSelect.value = "";
+          savePreferences();
           renderSignals();
         });
 
         els.scoreFilter.addEventListener("input", function () {
           state.filters.minScore = parseInt(this.value, 10);
           els.scoreValue.textContent = this.value;
+          // Switch to custom preset when manually adjusting
+          state.preferences.riskPreset = "custom";
+          updateRiskPresetUI();
+          savePreferences();
           renderSignals();
         });
 
@@ -1493,6 +2313,18 @@
             els.connectBtn.textContent = "Disconnect";
           }
         });
+
+        // Initialize preferences on load
+        loadPreferences();
+
+        // Apply loaded preferences to UI
+        els.scoreFilter.value = state.filters.minScore;
+        els.scoreValue.textContent = state.filters.minScore;
+        updateRiskPresetUI();
+        applyLayoutPreferences();
+        renderWatchlistList();
+        renderWatchlistSelect();
+        applyWatchlistFilter();
       })();
     </script>
   </body>
