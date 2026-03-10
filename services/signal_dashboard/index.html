@@ -396,14 +396,17 @@
 
       /* Reasoning Panel */
       .reasoning-panel {
-        display: none;
         border-top: 1px solid var(--border);
-        padding: 16px;
+        padding: 0 16px;
         background: rgba(0, 0, 0, 0.2);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.35s ease, padding 0.35s ease;
       }
 
       .signal-card.expanded .reasoning-panel {
-        display: block;
+        max-height: 2000px;
+        padding: 16px;
       }
 
       .reasoning-title {
@@ -414,25 +417,94 @@
         margin-bottom: 12px;
       }
 
+      /* Expand indicator */
+      .expand-indicator {
+        color: var(--text-muted);
+        font-size: 12px;
+        transition: transform 0.25s ease;
+        display: inline-block;
+      }
+
+      .signal-card.expanded .expand-indicator {
+        transform: rotate(90deg);
+      }
+
+      /* Vertical Timeline */
+      .reasoning-timeline {
+        position: relative;
+        padding-left: 28px;
+      }
+
+      .reasoning-timeline::before {
+        content: "";
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--border);
+      }
+
+      .timeline-node {
+        position: relative;
+        margin-bottom: 4px;
+      }
+
+      .timeline-node:last-child {
+        margin-bottom: 0;
+      }
+
+      .timeline-dot {
+        position: absolute;
+        left: -22px;
+        top: 12px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--accent-blue);
+        border: 2px solid var(--bg-card);
+        z-index: 1;
+      }
+
+      .timeline-dot.tool {
+        background: var(--accent-purple);
+        width: 8px;
+        height: 8px;
+        left: -21px;
+        top: 13px;
+      }
+
       .reasoning-step {
         display: flex;
         gap: 12px;
-        margin-bottom: 10px;
         padding: 8px 12px;
         background: var(--bg-secondary);
         border-radius: 6px;
         font-size: 13px;
+        align-items: flex-start;
       }
 
       .step-number {
         color: var(--accent-blue);
         font-weight: 700;
         min-width: 24px;
+        flex-shrink: 0;
+      }
+
+      .step-body {
+        flex: 1;
+        min-width: 0;
       }
 
       .step-description {
         color: var(--text-secondary);
         line-height: 1.5;
+      }
+
+      .step-timestamp {
+        color: var(--text-muted);
+        font-size: 10px;
+        margin-top: 2px;
       }
 
       /* Tool Call Items */
@@ -447,8 +519,22 @@
         padding: 8px 12px;
         background: var(--bg-secondary);
         border-radius: 6px;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
         font-size: 12px;
+        cursor: pointer;
+        transition: background 0.15s;
+        flex-wrap: wrap;
+      }
+
+      .tool-call-item:hover {
+        background: var(--bg-hover);
+      }
+
+      .tool-call-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
       }
 
       .tool-icon {
@@ -458,14 +544,16 @@
         padding: 2px 6px;
         background: rgba(139, 92, 246, 0.15);
         border-radius: 4px;
+        flex-shrink: 0;
       }
 
       .tool-name {
         font-weight: 600;
         color: var(--text-primary);
+        flex-shrink: 0;
       }
 
-      .tool-params {
+      .tool-params-summary {
         color: var(--text-muted);
         flex: 1;
         overflow: hidden;
@@ -473,11 +561,59 @@
         white-space: nowrap;
       }
 
+      .tool-details {
+        width: 100%;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.25s ease;
+      }
+
+      .tool-call-item.details-open .tool-details {
+        max-height: 400px;
+      }
+
+      .tool-details-inner {
+        padding: 8px 0 4px;
+        border-top: 1px solid var(--border);
+        margin-top: 8px;
+      }
+
+      .tool-detail-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+      }
+
+      .tool-detail-content {
+        font-size: 11px;
+        color: var(--text-secondary);
+        background: var(--bg-primary);
+        padding: 6px 8px;
+        border-radius: 4px;
+        white-space: pre-wrap;
+        word-break: break-all;
+        max-height: 150px;
+        overflow-y: auto;
+        margin-bottom: 8px;
+      }
+
+      .tool-result-badge {
+        font-size: 10px;
+        padding: 1px 6px;
+        border-radius: 3px;
+        background: rgba(59, 130, 246, 0.15);
+        color: var(--accent-blue);
+        flex-shrink: 0;
+      }
+
       .latency-badge {
         padding: 2px 8px;
         border-radius: 10px;
         font-size: 11px;
         font-weight: 600;
+        flex-shrink: 0;
       }
 
       .latency-badge.fast {
@@ -843,7 +979,12 @@
         function handleReasoningEvent(data) {
           recordEvent();
           var signalId = data.signal_id;
-          if (signalId && state.reasoningSteps.has(signalId)) {
+          if (signalId) {
+            if (!state.reasoningSteps.has(signalId)) {
+              state.reasoningSteps.set(signalId, []);
+            }
+            data._received = new Date().toISOString();
+            if (!data.timestamp) data.timestamp = data._received;
             state.reasoningSteps.get(signalId).push(data);
             updateReasoningPanel(signalId);
           }
@@ -852,7 +993,10 @@
         function handleToolCallEvent(data) {
           recordEvent();
           var signalId = data.signal_id;
-          if (signalId && state.toolCalls.has(signalId)) {
+          if (signalId) {
+            if (!state.toolCalls.has(signalId)) {
+              state.toolCalls.set(signalId, []);
+            }
             state.toolCalls.get(signalId).push(data);
             updateToolCallPanel(signalId);
           }
@@ -860,16 +1004,32 @@
 
         function handleToolResultEvent(data) {
           recordEvent();
-          // Tool results can be attached to existing tool calls
           var signalId = data.signal_id;
-          if (signalId && state.toolCalls.has(signalId)) {
+          if (signalId) {
+            if (!state.toolCalls.has(signalId)) {
+              state.toolCalls.set(signalId, []);
+            }
             var calls = state.toolCalls.get(signalId);
+            var matched = false;
             for (var i = calls.length - 1; i >= 0; i--) {
-              if (calls[i].tool_call_id === data.tool_call_id) {
+              if (
+                calls[i].tool_call_id === data.tool_call_id ||
+                (!data.tool_call_id && calls[i].tool === data.tool)
+              ) {
                 calls[i].result = data.result;
                 calls[i].latency_ms = data.latency_ms || calls[i].latency_ms;
+                matched = true;
                 break;
               }
+            }
+            if (!matched) {
+              // Store as standalone tool result
+              calls.push({
+                tool: data.tool || "unknown",
+                result: data.result,
+                latency_ms: data.latency_ms,
+                step: data.step,
+              });
             }
             updateToolCallPanel(signalId);
           }
@@ -958,9 +1118,12 @@
           els.signalFeed
             .querySelectorAll(".signal-card")
             .forEach(function (card) {
-              card.addEventListener("click", function () {
+              card.addEventListener("click", function (e) {
+                // Don't toggle card if clicking inside a tool-call-item
+                if (e.target.closest(".tool-call-item")) return;
                 card.classList.toggle("expanded");
               });
+              bindToolCallExpanders(card);
             });
         }
 
@@ -1034,6 +1197,7 @@
             '<span class="signal-time">' +
             time +
             "</span>" +
+            '<span class="expand-indicator">&#x25B6;</span>' +
             "</div>" +
             "</div>" +
             (summary
@@ -1043,18 +1207,10 @@
               : "") +
             '<div class="reasoning-panel">' +
             '<div class="reasoning-title">Reasoning Trace</div>' +
-            '<div class="reasoning-steps" id="reasoning-' +
+            '<div class="reasoning-timeline" id="reasoning-' +
             escapeHtml(id) +
             '">' +
             reasoningHtml +
-            "</div>" +
-            '<div class="tool-call-section">' +
-            '<div class="reasoning-title" style="margin-top:16px">Tool Calls</div>' +
-            '<div class="tool-calls" id="tools-' +
-            escapeHtml(id) +
-            '">' +
-            toolCallsHtml +
-            "</div>" +
             "</div>" +
             "</div>" +
             "</div>"
@@ -1063,70 +1219,161 @@
 
         function renderReasoningSteps(signalId) {
           var steps = state.reasoningSteps.get(signalId) || [];
-          if (steps.length === 0) {
+          var calls = state.toolCalls.get(signalId) || [];
+
+          if (steps.length === 0 && calls.length === 0) {
             return '<div style="color:var(--text-muted);font-size:12px;">No reasoning steps received yet.</div>';
           }
-          return steps
-            .map(function (step, i) {
-              return (
-                '<div class="reasoning-step">' +
-                '<span class="step-number">' +
-                (step.step || i + 1) +
-                "</span>" +
-                '<span class="step-description">' +
-                escapeHtml(step.description || "") +
-                "</span>" +
-                "</div>"
-              );
-            })
-            .join("");
+
+          // Build tool calls grouped by step number
+          var toolsByStep = {};
+          var ungroupedTools = [];
+          calls.forEach(function (tc) {
+            var s = tc.step;
+            if (s !== undefined && s !== null) {
+              if (!toolsByStep[s]) toolsByStep[s] = [];
+              toolsByStep[s].push(tc);
+            } else {
+              ungroupedTools.push(tc);
+            }
+          });
+
+          var html = "";
+
+          // Render each reasoning step with its linked tool calls
+          steps.forEach(function (step, i) {
+            var stepNum = step.step || i + 1;
+            var ts = step.timestamp ? formatTime(step.timestamp) : "";
+
+            html +=
+              '<div class="timeline-node">' +
+              '<div class="timeline-dot"></div>' +
+              '<div class="reasoning-step">' +
+              '<span class="step-number">' +
+              stepNum +
+              "</span>" +
+              '<div class="step-body">' +
+              '<div class="step-description">' +
+              escapeHtml(step.description || "") +
+              "</div>" +
+              (ts
+                ? '<div class="step-timestamp">' + ts + "</div>"
+                : "") +
+              "</div>" +
+              "</div>" +
+              "</div>";
+
+            // Render tool calls linked to this step
+            var linkedTools = toolsByStep[stepNum] || [];
+            linkedTools.forEach(function (tc) {
+              html += renderToolCallNode(tc);
+            });
+          });
+
+          // Render ungrouped tool calls at the end
+          if (ungroupedTools.length > 0) {
+            ungroupedTools.forEach(function (tc) {
+              html += renderToolCallNode(tc);
+            });
+          }
+
+          // If no steps but there are tool calls, show them all
+          if (steps.length === 0 && calls.length > 0) {
+            calls.forEach(function (tc) {
+              html += renderToolCallNode(tc);
+            });
+          }
+
+          return html;
         }
 
-        function renderToolCalls(signalId) {
-          var calls = state.toolCalls.get(signalId) || [];
-          if (calls.length === 0) {
-            return '<div style="color:var(--text-muted);font-size:12px;">No tool calls recorded.</div>';
-          }
-          return calls
-            .map(function (tc) {
-              var latency = tc.latency_ms || 0;
-              var latencyClass =
-                latency < 200 ? "fast" : latency < 1000 ? "medium" : "slow";
-              var params = tc.params ? JSON.stringify(tc.params) : "";
-              return (
-                '<div class="tool-call-item">' +
-                '<span class="tool-icon">MCP</span>' +
-                '<span class="tool-name">' +
-                escapeHtml(tc.tool || tc.name || "") +
-                "</span>" +
-                '<span class="tool-params">' +
-                escapeHtml(params) +
-                "</span>" +
-                (latency
-                  ? '<span class="latency-badge ' +
-                    latencyClass +
-                    '">' +
-                    latency +
-                    "ms</span>"
+        function renderToolCallNode(tc) {
+          var latency = tc.latency_ms || 0;
+          var latencyClass =
+            latency < 100 ? "fast" : latency < 500 ? "medium" : "slow";
+          var params = tc.params
+            ? JSON.stringify(tc.params, null, 2)
+            : "";
+          var paramsSummary = tc.params
+            ? JSON.stringify(tc.params)
+            : "";
+          var result = tc.result || "";
+          var resultStr =
+            typeof result === "object"
+              ? JSON.stringify(result, null, 2)
+              : String(result);
+          var hasDetails = params || result;
+
+          return (
+            '<div class="timeline-node">' +
+            '<div class="timeline-dot tool"></div>' +
+            '<div class="tool-call-item" data-expandable="' +
+            (hasDetails ? "true" : "false") +
+            '">' +
+            '<div class="tool-call-row">' +
+            '<span class="tool-icon">MCP</span>' +
+            '<span class="tool-name">' +
+            escapeHtml(tc.tool || tc.name || "") +
+            "</span>" +
+            '<span class="tool-params-summary">' +
+            escapeHtml(paramsSummary) +
+            "</span>" +
+            (result
+              ? '<span class="tool-result-badge">result</span>'
+              : "") +
+            (latency
+              ? '<span class="latency-badge ' +
+                latencyClass +
+                '">' +
+                latency +
+                "ms</span>"
+              : "") +
+            "</div>" +
+            (hasDetails
+              ? '<div class="tool-details">' +
+                '<div class="tool-details-inner">' +
+                (params
+                  ? '<div class="tool-detail-label">Parameters</div>' +
+                    '<div class="tool-detail-content">' +
+                    escapeHtml(params) +
+                    "</div>"
                   : "") +
+                (result
+                  ? '<div class="tool-detail-label">Result</div>' +
+                    '<div class="tool-detail-content">' +
+                    escapeHtml(resultStr) +
+                    "</div>"
+                  : "") +
+                "</div>" +
                 "</div>"
-              );
-            })
-            .join("");
+              : "") +
+            "</div>" +
+            "</div>"
+          );
         }
 
         function updateReasoningPanel(signalId) {
           var el = document.getElementById("reasoning-" + signalId);
           if (el) {
             el.innerHTML = renderReasoningSteps(signalId);
+            bindToolCallExpanders(el);
           }
         }
 
         function updateToolCallPanel(signalId) {
-          var el = document.getElementById("tools-" + signalId);
-          if (el) {
-            el.innerHTML = renderToolCalls(signalId);
-          }
+          // Tool calls are now rendered in the unified timeline
+          updateReasoningPanel(signalId);
+        }
+
+        function bindToolCallExpanders(container) {
+          container
+            .querySelectorAll('.tool-call-item[data-expandable="true"]')
+            .forEach(function (item) {
+              item.addEventListener("click", function (e) {
+                e.stopPropagation();
+                item.classList.toggle("details-open");
+              });
+            });
         }
 
         // Utilities
