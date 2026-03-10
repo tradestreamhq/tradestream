@@ -241,6 +241,72 @@ public final class RuleRegistry {
           return new UnderIndicatorRule(indicator, threshold);
         });
 
+    // Crossed up/down constant threshold rules
+    registry.register(
+        "CROSSED_UP_CONSTANT",
+        (series, indicators, params) -> {
+          String indicatorId = params.getString("indicator");
+          Indicator<Num> indicator = indicators.get(indicatorId);
+
+          if (indicator == null) {
+            throw new IllegalArgumentException("Indicator not found: " + indicatorId);
+          }
+
+          double threshold = params.getDouble("threshold");
+          return new CrossedUpIndicatorRule(indicator, threshold);
+        });
+
+    registry.register(
+        "CROSSED_DOWN_CONSTANT",
+        (series, indicators, params) -> {
+          String indicatorId = params.getString("indicator");
+          Indicator<Num> indicator = indicators.get(indicatorId);
+
+          if (indicator == null) {
+            throw new IllegalArgumentException("Indicator not found: " + indicatorId);
+          }
+
+          double threshold = params.getDouble("threshold");
+          return new CrossedDownIndicatorRule(indicator, threshold);
+        });
+
+    // Indicator comparison rules
+    registry.register(
+        "OVER_INDICATOR",
+        (series, indicators, params) -> {
+          String indicatorId = params.getString("indicator");
+          Indicator<Num> indicator = indicators.get(indicatorId);
+
+          if (indicator == null) {
+            throw new IllegalArgumentException("Indicator not found: " + indicatorId);
+          }
+
+          String otherId = params.getString("other");
+          Indicator<Num> other = indicators.get(otherId);
+          if (other == null) {
+            throw new IllegalArgumentException("Indicator not found: " + otherId);
+          }
+          return new OverIndicatorRule(indicator, other);
+        });
+
+    registry.register(
+        "UNDER_INDICATOR",
+        (series, indicators, params) -> {
+          String indicatorId = params.getString("indicator");
+          Indicator<Num> indicator = indicators.get(indicatorId);
+
+          if (indicator == null) {
+            throw new IllegalArgumentException("Indicator not found: " + indicatorId);
+          }
+
+          String otherId = params.getString("other");
+          Indicator<Num> other = indicators.get(otherId);
+          if (other == null) {
+            throw new IllegalArgumentException("Indicator not found: " + otherId);
+          }
+          return new UnderIndicatorRule(indicator, other);
+        });
+
     // Boolean rules
     registry.register(
         "IS_RISING",
