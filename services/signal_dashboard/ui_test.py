@@ -166,6 +166,64 @@ class SignalDashboardTest(unittest.TestCase):
         self.assertIn("medium", self.html_content)
         self.assertIn("slow", self.html_content)
 
+    # ---- Reasoning Expansion Tests ----
+
+    def test_vertical_timeline(self):
+        """Reasoning panel should use a vertical timeline layout."""
+        self.assertIn("reasoning-timeline", self.html_content)
+        self.assertIn("timeline-node", self.html_content)
+        self.assertIn("timeline-dot", self.html_content)
+
+    def test_expand_collapse_animation(self):
+        """Reasoning panel should animate open/close with max-height transition."""
+        self.assertIn("max-height", self.html_content)
+        self.assertIn("transition", self.html_content)
+        # Panel uses max-height for smooth animation
+        self.assertIn("max-height: 0", self.html_content)
+        self.assertIn("max-height: 2000px", self.html_content)
+
+    def test_expand_indicator(self):
+        """Signal cards should show an expand/collapse indicator."""
+        self.assertIn("expand-indicator", self.html_content)
+
+    def test_tool_call_expandable_details(self):
+        """Tool calls should have expandable params and results."""
+        self.assertIn("tool-details", self.html_content)
+        self.assertIn("tool-details-inner", self.html_content)
+        self.assertIn("tool-detail-label", self.html_content)
+        self.assertIn("tool-detail-content", self.html_content)
+        self.assertIn("details-open", self.html_content)
+
+    def test_tool_calls_linked_to_steps(self):
+        """Tool calls should be grouped by reasoning step number."""
+        self.assertIn("toolsByStep", self.html_content)
+        self.assertIn("tc.step", self.html_content)
+
+    def test_reasoning_step_timestamps(self):
+        """Reasoning steps should display timestamps."""
+        self.assertIn("step-timestamp", self.html_content)
+        self.assertIn("step.timestamp", self.html_content)
+
+    def test_latency_thresholds(self):
+        """Latency thresholds: <100ms fast, <500ms medium, >=500ms slow."""
+        # Check the JS thresholds
+        self.assertIn("latency < 100", self.html_content)
+        self.assertIn("latency < 500", self.html_content)
+
+    def test_tool_result_badge(self):
+        """Tool calls with results should show a result badge."""
+        self.assertIn("tool-result-badge", self.html_content)
+
+    def test_tool_call_click_does_not_toggle_card(self):
+        """Clicking tool calls should not toggle the signal card."""
+        self.assertIn("tool-call-item", self.html_content)
+        self.assertIn("stopPropagation", self.html_content)
+
+    def test_reasoning_events_before_signal(self):
+        """Reasoning events should be stored even before signal arrives."""
+        # The handler should init the map if signal_id not present
+        self.assertIn("reasoningSteps.set(signalId, [])", self.html_content)
+
     # ---- Security Tests ----
 
     def test_html_escaping(self):
