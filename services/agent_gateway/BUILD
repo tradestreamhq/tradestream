@@ -1,7 +1,7 @@
 # --- OCI Image Rules ---
 load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_load", "oci_push")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 
 package(default_visibility = ["//visibility:public"])
@@ -65,6 +65,18 @@ oci_push(
     name = "push_agent_gateway_image",
     image = ":images",
     repository = "ghcr.io/tradestreamhq/agent-gateway",
+)
+
+oci_load(
+    name = "load_agent_gateway_image",
+    image = ":image",
+    repo_tags = ["agent-gateway:latest"],
+)
+
+filegroup(
+    name = "agent_gateway_tarball",
+    srcs = [":load_agent_gateway_image"],
+    output_group = "tarball",
 )
 
 container_structure_test(
