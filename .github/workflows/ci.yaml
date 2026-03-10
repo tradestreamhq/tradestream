@@ -56,7 +56,10 @@ jobs:
             --set strategyConsumer.enabled=true \
             --set strategyMonitorApi.enabled=true \
             --set strategyMonitorUi.enabled=true \
-            --set influxdb.enabled=true
+            --set influxdb.enabled=true \
+            --set agentGateway.enabled=true \
+            --set agentGateway.image.repository=agent-gateway \
+            --set agentGateway.image.tag=latest
 
   build-and-export-images:
     name: Build & Export Images
@@ -86,6 +89,9 @@ jobs:
           - name: strategy-monitor-ui
             target: "//ui/strategy-monitor:strategy_monitor_ui_tarball"
             repo: strategy-monitor-ui
+          - name: agent-gateway
+            target: "//services/agent_gateway:agent_gateway_tarball"
+            repo: agent-gateway
 
     steps:
       - name: Checkout Code
@@ -132,6 +138,9 @@ jobs:
               ;;
             "strategy-monitor-ui")
               cp bazel-bin/ui/strategy-monitor/load_strategy_monitor_ui_image/tarball.tar images/strategy-monitor-ui.tar
+              ;;
+            "agent-gateway")
+              cp bazel-bin/services/agent_gateway/load_agent_gateway_image/tarball.tar images/agent-gateway.tar
               ;;
             *)
               echo "❌ Unknown matrix name: ${{ matrix.name }}"
@@ -193,7 +202,7 @@ jobs:
 
           # Verify images were loaded
           echo "=== VERIFYING LOADED IMAGES ==="
-          minikube image ls | grep -E "(candle-ingestor|top-crypto-updater|strategy-discovery|strategy-consumer|strategy-monitor)"
+          minikube image ls | grep -E "(candle-ingestor|top-crypto-updater|strategy-discovery|strategy-consumer|strategy-monitor|agent-gateway)"
 
       - name: Create Namespace and Secrets
         run: |
@@ -318,6 +327,9 @@ jobs:
             --set strategyMonitorApi.image.tag=latest \
             --set strategyMonitorUi.image.repository=strategy-monitor-ui \
             --set strategyMonitorUi.image.tag=latest \
+            --set agentGateway.image.repository=agent-gateway \
+            --set agentGateway.image.tag=latest \
+            --set agentGateway.enabled=true \
             --set redis.enabled=true \
             --set postgresql.enabled=true \
             --set topCryptoUpdaterCronjob.enabled=true \

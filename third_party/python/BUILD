@@ -184,3 +184,35 @@ py_library(
         requirement("openai"),
     ],
 )
+
+py_library(
+    name = "fastapi",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("fastapi"),
+    ],
+)
+
+py_library(
+    name = "uvicorn",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("uvicorn"),
+    ],
+)
+
+py_library(
+    name = "sse_starlette",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("sse-starlette"),
+    ],
+)
+
+py_library(
+    name = "httpx",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("httpx"),
+    ],
+)
