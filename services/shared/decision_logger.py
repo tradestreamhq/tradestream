@@ -104,9 +104,11 @@ class DecisionLogger:
                         datetime.now(timezone.utc),
                         agent_name,
                         decision_type,
-                        json.dumps(input_context)
-                        if input_context is not None
-                        else None,
+                        (
+                            json.dumps(input_context)
+                            if input_context is not None
+                            else None
+                        ),
                         json.dumps(output) if output is not None else None,
                         success,
                         error_message,
