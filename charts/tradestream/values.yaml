@@ -744,3 +744,33 @@ paperTrading:
     limits:
       cpu: "500m"
       memory: "512Mi"
+
+# Agent Gateway configuration
+agentGateway:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/tradestreamhq/agent-gateway"
+    pullPolicy: IfNotPresent
+    tag: "v2.45.97-develop"
+  service:
+    type: ClusterIP
+    port: 8080
+  database:
+    host: '{{ include "tradestream.fullname" . }}-postgresql'
+    port: 5432
+    database: "tradestream"
+    username: "postgres"
+    passwordSecret:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+      key: "postgres-password"
+  redis:
+    host: '{{ include "tradestream.fullname" . }}-redis-master'
+    port: 6379
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"

@@ -1,0 +1,87 @@
+{{- if .Values.agentGateway.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tradestream.fullname" . }}-agent-gateway
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: agent-gateway
+spec:
+  replicas: {{ .Values.agentGateway.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: agent-gateway
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: agent-gateway
+    spec:
+      containers:
+        - name: agent-gateway
+          image: "{{ .Values.agentGateway.image.repository }}:{{ .Values.agentGateway.image.tag }}"
+          imagePullPolicy: {{ .Values.agentGateway.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.agentGateway.service.port | default 8080 }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_HOST
+              value: "{{ include "tradestream.fullname" . }}-postgresql"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DATABASE
+              value: "tradestream"
+            - name: POSTGRES_USERNAME
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "tradestream.fullname" . }}-postgresql"
+                  key: "postgres-password"
+            - name: REDIS_HOST
+              value: "{{ include "tradestream.fullname" . }}-redis-master"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: API_PORT
+              value: "{{ .Values.agentGateway.service.port | default 8080 }}"
+            - name: API_HOST
+              value: "0.0.0.0"
+          resources:
+            {{- toYaml .Values.agentGateway.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tradestream.fullname" . }}-agent-gateway
+  labels:
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: agent-gateway
+spec:
+  type: {{ .Values.agentGateway.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.agentGateway.service.port | default 8080 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tradestream.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: agent-gateway
+{{- end }}
