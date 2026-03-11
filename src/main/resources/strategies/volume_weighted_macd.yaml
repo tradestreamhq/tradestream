@@ -1,45 +1,56 @@
 name: VOLUME_WEIGHTED_MACD
-description: Volume Weighted MACD - enters when MACD line crosses above signal line, exits when it crosses below
-complexity: MODERATE
+description: Volume Weighted MACD crosses Signal Line
+complexity: SIMPLE
 parameterMessageType: com.verlumen.tradestream.strategies.VolumeWeightedMacdParameters
 
 indicators:
-  - id: macdLine
-    type: VOLUME_WEIGHTED_MACD
+  - id: shortEma
+    type: EMA
+    input: close
+    params:
+      period: "${shortPeriod}"
+  - id: longEma
+    type: EMA
+    input: close
+    params:
+      period: "${longPeriod}"
+  - id: macd
+    type: MACD
+    input: close
     params:
       shortPeriod: "${shortPeriod}"
       longPeriod: "${longPeriod}"
-  - id: signalLine
+  - id: signal
     type: EMA
+    input: macd
     params:
       period: "${signalPeriod}"
-      source: macdLine
 
 entryConditions:
   - type: CROSSED_UP
-    indicator: macdLine
+    indicator: macd
     params:
-      crosses: signalLine
+      crosses: signal
 
 exitConditions:
   - type: CROSSED_DOWN
-    indicator: macdLine
+    indicator: macd
     params:
-      crosses: signalLine
+      crosses: signal
 
 parameters:
   - name: shortPeriod
     type: INTEGER
-    min: 5
-    max: 20
+    min: 8
+    max: 16
     defaultValue: 12
   - name: longPeriod
     type: INTEGER
-    min: 15
-    max: 50
+    min: 20
+    max: 32
     defaultValue: 26
   - name: signalPeriod
     type: INTEGER
     min: 5
-    max: 15
+    max: 12
     defaultValue: 9

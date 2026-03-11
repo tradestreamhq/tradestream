@@ -1,33 +1,39 @@
 name: HEIKEN_ASHI
-description: Heiken Ashi - enters when HA close crosses above HA open, exits when HA close crosses below HA open
-complexity: MODERATE
+description: Heiken Ashi candle direction change
+complexity: SIMPLE
 parameterMessageType: com.verlumen.tradestream.strategies.HeikenAshiParameters
 
 indicators:
-  - id: heikenAshiClose
-    type: HEIKEN_ASHI_CLOSE
+  - id: close
+    type: CLOSE
+    input: close
+    params: {}
+  - id: ema
+    type: EMA
+    input: close
     params:
       period: "${period}"
-  - id: heikenAshiOpen
-    type: HEIKEN_ASHI_OPEN
+  - id: sma
+    type: SMA
+    input: close
     params:
       period: "${period}"
 
 entryConditions:
   - type: CROSSED_UP
-    indicator: heikenAshiClose
+    indicator: ema
     params:
-      crosses: heikenAshiOpen
+      crosses: sma
 
 exitConditions:
   - type: CROSSED_DOWN
-    indicator: heikenAshiClose
+    indicator: ema
     params:
-      crosses: heikenAshiOpen
+      crosses: sma
 
 parameters:
   - name: period
     type: INTEGER
-    min: 2
+    min: 5
     max: 30
     defaultValue: 14
