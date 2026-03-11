@@ -816,3 +816,26 @@ notificationService:
     limits:
       cpu: "200m"
       memory: "256Mi"
+
+# Strategy Rotation Service - continuous strategy rotation evaluation
+strategyRotation:
+  enabled: false
+  image:
+    repository: "ghcr.io/tradestreamhq/strategy-rotation"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  config:
+    postgresHost: '{{ include "tradestream.fullname" . }}-postgresql'
+    postgresPort: 5432
+    postgresDatabase: "tradestream"
+    rotationIntervalSeconds: 3600
+  secrets:
+    postgresCredentials:
+      name: '{{ include "tradestream.fullname" . }}-postgresql'
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
