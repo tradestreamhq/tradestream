@@ -111,6 +111,7 @@ py_test(
         ":health_monitor_lib",
         ":orchestrator_lib",
         ":scheduler_lib",
+        "//services/shared:mcp_client",
         "//third_party/python:pytest",
         "//third_party/python:requests",
     ],

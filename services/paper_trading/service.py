@@ -16,17 +16,11 @@ from services.shared.auth import flask_auth_middleware
 from services.shared.mcp_client import call_mcp_tool
 
 
-def _call_mcp_tool(tool_name: str, arguments: dict, mcp_url: str) -> dict:
-    """Call an MCP server tool via HTTP."""
-    result = call_mcp_tool(tool_name, arguments, mcp_url, timeout=10)
-    if isinstance(result, dict):
-        return result
-    return {}
-
-
 def _get_current_price(symbol: str, market_mcp_url: str) -> Optional[float]:
     """Fetch the latest price for a symbol from market-mcp."""
-    result = _call_mcp_tool("get_latest_price", {"symbol": symbol}, market_mcp_url)
+    result = call_mcp_tool("get_latest_price", {"symbol": symbol}, market_mcp_url, timeout=10)
+    if not isinstance(result, dict):
+        return None
     price = result.get("price") or result.get("close")
     if price is not None:
         return float(price)
@@ -75,10 +69,11 @@ def create_app(
             return jsonify({"error": "quantity must be positive"}), 400
 
         # Fetch signal details from signal-mcp
-        signals = _call_mcp_tool(
+        signals = call_mcp_tool(
             "get_recent_signals",
             {"limit": 50},
             signal_mcp_url,
+            timeout=10,
         )
 
         signal_data = None
