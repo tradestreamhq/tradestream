@@ -83,14 +83,69 @@ java_test(
     ],
 )
 
+java_test(
+    name = "ParameterDefinitionTest",
+    srcs = ["ParameterDefinitionTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.ParameterDefinitionTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//third_party/java:junit",
+    ],
+)
+
+java_test(
+    name = "ConditionConfigTest",
+    srcs = ["ConditionConfigTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.ConditionConfigTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//third_party/java:junit",
+    ],
+)
+
+java_test(
+    name = "ResolvedParamsTest",
+    srcs = ["ResolvedParamsTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.ResolvedParamsTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//third_party/java:junit",
+    ],
+)
+
+java_test(
+    name = "IndicatorConfigTest",
+    srcs = ["IndicatorConfigTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.IndicatorConfigTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//third_party/java:junit",
+    ],
+)
+
+java_test(
+    name = "StrategyConfigTest",
+    srcs = ["StrategyConfigTest.java"],
+    test_class = "com.verlumen.tradestream.strategies.configurable.StrategyConfigTest",
+    deps = [
+        "//src/main/java/com/verlumen/tradestream/strategies/configurable:config_pojos",
+        "//third_party/java:junit",
+    ],
+)
+
 test_suite(
     name = "all_tests",
     tests = [
+        ":ConditionConfigTest",
         ":ConfigBasedVsHardcodedValidationTest",
         ":ConfigurableParamConfigTest",
         ":ConfigurableStrategyFactoryTest",
+        ":IndicatorConfigTest",
         ":IndicatorRegistryTest",
+        ":ParameterDefinitionTest",
+        ":ResolvedParamsTest",
         ":RuleRegistryTest",
         ":StrategyConfigLoaderTest",
+        ":StrategyConfigTest",
     ],
 )
