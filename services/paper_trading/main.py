@@ -81,7 +81,8 @@ def main(argv):
     signal.signal(signal.SIGTERM, shutdown_handler)
 
     logging.info("Paper Trading service starting on port %d", FLAGS.port)
-    flask_app.run(host="0.0.0.0", port=FLAGS.port)
+    host = os.environ.get("HOST", "127.0.0.1")
+    flask_app.run(host=host, port=FLAGS.port)
 
 
 if __name__ == "__main__":

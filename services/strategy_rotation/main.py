@@ -143,7 +143,8 @@ class HealthHandler(BaseHTTPRequestHandler):
 
 def _start_health_server(port: int) -> HTTPServer:
     """Start HTTP health check server in a background thread."""
-    server = HTTPServer(("0.0.0.0", port), HealthHandler)
+    host = os.environ.get("HOST", "127.0.0.1")
+    server = HTTPServer((host, port), HealthHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     logging.info("Health endpoint listening on port %d", port)
