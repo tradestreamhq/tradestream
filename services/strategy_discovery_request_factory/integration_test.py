@@ -68,7 +68,9 @@ class StatelessIntegrationTest(unittest.TestCase):
             default_population_size=40,
         )
 
-        kafka_publisher = KafkaPublisher("test:9092", "test-topic")
+        kafka_publisher = KafkaPublisher(
+            "test:9092", "test-topic", security_protocol="PLAINTEXT"
+        )
 
         # Generate requests using stateless processor
         currency_pair = "BTC/USD"
@@ -103,7 +105,9 @@ class StatelessIntegrationTest(unittest.TestCase):
             default_population_size=50,
         )
 
-        kafka_publisher = KafkaPublisher("test:9092", "test-topic")
+        kafka_publisher = KafkaPublisher(
+            "test:9092", "test-topic", security_protocol="PLAINTEXT"
+        )
 
         # Generate requests for multiple currency pairs
         currency_pairs = ["BTC/USD", "ETH/USD", "ADA/USD"]
@@ -150,7 +154,9 @@ class StatelessIntegrationTest(unittest.TestCase):
             default_population_size=200,
         )
 
-        kafka_publisher = KafkaPublisher("test:9092", "test-topic")
+        kafka_publisher = KafkaPublisher(
+            "test:9092", "test-topic", security_protocol="PLAINTEXT"
+        )
 
         end_time = datetime.now(timezone.utc)
         fibonacci_windows = [60]
@@ -237,7 +243,9 @@ class StatelessIntegrationTest(unittest.TestCase):
             default_population_size=30,
         )
 
-        kafka_publisher = KafkaPublisher("test:9092", "test-topic")
+        kafka_publisher = KafkaPublisher(
+            "test:9092", "test-topic", security_protocol="PLAINTEXT"
+        )
 
         end_time = datetime.now(timezone.utc)
         fibonacci_windows = [45]
@@ -273,7 +281,9 @@ class StatelessIntegrationTest(unittest.TestCase):
         # Mock Kafka producer to fail on send
         self.mock_producer_instance.send.side_effect = Exception("Kafka send failed")
 
-        kafka_publisher = KafkaPublisher("test:9092", "test-topic")
+        kafka_publisher = KafkaPublisher(
+            "test:9092", "test-topic", security_protocol="PLAINTEXT"
+        )
 
         end_time = datetime.now(timezone.utc)
         fibonacci_windows = [30]
@@ -304,7 +314,9 @@ class StatelessIntegrationTest(unittest.TestCase):
             default_population_size=100,
         )
 
-        kafka_publisher = KafkaPublisher("test:9092", "test-topic")
+        kafka_publisher = KafkaPublisher(
+            "test:9092", "test-topic", security_protocol="PLAINTEXT"
+        )
 
         end_time = datetime.now(timezone.utc)
         fibonacci_windows = [60]
@@ -346,7 +358,9 @@ class StatelessIntegrationTest(unittest.TestCase):
             default_population_size=20,
         )
 
-        kafka_publisher = KafkaPublisher("test:9092", "test-topic")
+        kafka_publisher = KafkaPublisher(
+            "test:9092", "test-topic", security_protocol="PLAINTEXT"
+        )
 
         # Use components
         end_time = datetime.now(timezone.utc)
