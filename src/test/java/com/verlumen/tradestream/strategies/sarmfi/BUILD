@@ -23,6 +23,7 @@ java_test(
     deps = [
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/discovery:chromosome_spec",
+        "//src/main/java/com/verlumen/tradestream/discovery:param_config",
         "//src/main/java/com/verlumen/tradestream/strategies/sarmfi:param_config",
         "//third_party/java:guava",
         "//third_party/java:jenetics",
