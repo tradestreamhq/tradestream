@@ -245,7 +245,9 @@ class TestAlphaBeta:
         alpha, beta = runner._calc_alpha_beta(strategy_returns, benchmark_returns)
 
         # Manually verify: beta = cov / var
-        expected_beta = strategy_returns.cov(benchmark_returns) / benchmark_returns.var()
+        expected_beta = (
+            strategy_returns.cov(benchmark_returns) / benchmark_returns.var()
+        )
         assert abs(beta - expected_beta) < 1e-10
 
         # Verify alpha direction

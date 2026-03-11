@@ -489,10 +489,13 @@ class VectorBTRunner:
 
             # Annualized alpha: (mean excess return per bar) * bars_per_year
             rf_per_bar = self._risk_free_rate / self._bars_per_year
-            alpha = float(
-                (strategy_returns.mean() - rf_per_bar)
-                - beta * (benchmark_returns.mean() - rf_per_bar)
-            ) * self._bars_per_year
+            alpha = (
+                float(
+                    (strategy_returns.mean() - rf_per_bar)
+                    - beta * (benchmark_returns.mean() - rf_per_bar)
+                )
+                * self._bars_per_year
+            )
 
             return alpha, beta
         except Exception:
