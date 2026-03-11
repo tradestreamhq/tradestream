@@ -21,7 +21,7 @@ class DecisionLogger:
             decision_type="signal_emission",
             input_context={"symbol": "BTC-USD", "strategies": [...]},
             output={"action": "BUY", "confidence": 0.8},
-            model_used="claude-3-5-haiku",
+            model_used="anthropic/claude-haiku-4-5",
         )
 
         # Context manager for automatic latency/success tracking
@@ -29,7 +29,7 @@ class DecisionLogger:
             ctx.input_context = {"symbol": "BTC-USD"}
             result = do_work()
             ctx.output = result
-            ctx.model_used = "claude-3-5-haiku"
+            ctx.model_used = "anthropic/claude-haiku-4-5"
             ctx.tokens_used = 1500
     """
 
@@ -267,7 +267,7 @@ class DecisionLogger:
                 ctx.input_context = {"symbol": "BTC-USD"}
                 result = do_work()
                 ctx.output = result
-                ctx.model_used = "claude-3-5-haiku"
+                ctx.model_used = "anthropic/claude-haiku-4-5"
                 ctx.tokens_used = 1500
         """
         ctx = _TrackingContext(agent_name, decision_type, parent_decision_id)

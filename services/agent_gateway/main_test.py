@@ -91,7 +91,7 @@ class TestRowToEvent:
             "decision_type": None,
             "score": None,
             "tier": None,
-            "model_used": "claude-3",
+            "model_used": "anthropic/claude-sonnet-4-6",
             "latency_ms": 200,
             "tokens_used": 800,
             "success": True,
