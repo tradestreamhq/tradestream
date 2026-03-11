@@ -12,9 +12,7 @@ OPENROUTER_BASE_URL = os.environ.get(
 )
 
 # Primary model for complex reasoning tasks (strategy proposal, orchestration)
-MODEL_PRIMARY = os.environ.get(
-    "LLM_MODEL_PRIMARY", "anthropic/claude-sonnet-4-6"
-)
+MODEL_PRIMARY = os.environ.get("LLM_MODEL_PRIMARY", "anthropic/claude-sonnet-4-6")
 
 # Lightweight model for high-volume tasks (signal generation, opportunity scoring)
 MODEL_LIGHTWEIGHT = os.environ.get(

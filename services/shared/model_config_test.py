@@ -3,8 +3,6 @@
 import os
 from unittest import mock
 
-import pytest
-
 
 class TestModelConfig:
     """Tests for model_config module."""
@@ -12,8 +10,10 @@ class TestModelConfig:
     def test_default_primary_model(self):
         """Primary model defaults to claude-sonnet-4-6."""
         env = {
-            k: v for k, v in os.environ.items()
-            if k not in ("LLM_MODEL_PRIMARY", "LLM_MODEL_LIGHTWEIGHT", "OPENROUTER_BASE_URL")
+            k: v
+            for k, v in os.environ.items()
+            if k
+            not in ("LLM_MODEL_PRIMARY", "LLM_MODEL_LIGHTWEIGHT", "OPENROUTER_BASE_URL")
         }
         with mock.patch.dict(os.environ, env, clear=True):
             # Re-import to pick up fresh env
@@ -25,8 +25,10 @@ class TestModelConfig:
     def test_default_lightweight_model(self):
         """Lightweight model defaults to claude-haiku-4-5."""
         env = {
-            k: v for k, v in os.environ.items()
-            if k not in ("LLM_MODEL_PRIMARY", "LLM_MODEL_LIGHTWEIGHT", "OPENROUTER_BASE_URL")
+            k: v
+            for k, v in os.environ.items()
+            if k
+            not in ("LLM_MODEL_PRIMARY", "LLM_MODEL_LIGHTWEIGHT", "OPENROUTER_BASE_URL")
         }
         with mock.patch.dict(os.environ, env, clear=True):
             import importlib
@@ -37,8 +39,10 @@ class TestModelConfig:
     def test_default_openrouter_base_url(self):
         """OpenRouter base URL has correct default."""
         env = {
-            k: v for k, v in os.environ.items()
-            if k not in ("LLM_MODEL_PRIMARY", "LLM_MODEL_LIGHTWEIGHT", "OPENROUTER_BASE_URL")
+            k: v
+            for k, v in os.environ.items()
+            if k
+            not in ("LLM_MODEL_PRIMARY", "LLM_MODEL_LIGHTWEIGHT", "OPENROUTER_BASE_URL")
         }
         with mock.patch.dict(os.environ, env, clear=True):
             import importlib
