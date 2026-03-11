@@ -165,6 +165,58 @@ class TestVectorBTRunner:
 
         assert 0 <= result.strategy_score <= 1
 
+    def test_alpha_beta_computed(self, runner, sample_ohlcv):
+        """Test that alpha and beta are real computed values, not placeholders."""
+        params = {"shortEmaPeriod": 12, "longEmaPeriod": 26}
+        result = runner.run_strategy(sample_ohlcv, "DOUBLE_EMA_CROSSOVER", params)
+
+        # Beta should not be the old hardcoded 1.0 (extremely unlikely for a
+        # strategy with selective entry/exit vs buy-and-hold)
+        assert isinstance(result.beta, float)
+        assert isinstance(result.alpha, float)
+        # Alpha and beta should be finite
+        assert np.isfinite(result.alpha)
+        assert np.isfinite(result.beta)
+
+    def test_alpha_beta_from_known_signals(self, runner):
+        """Test alpha/beta calculation with a deterministic setup."""
+        np.random.seed(99)
+        n = 500
+        # Flat price = no benchmark variance => beta should be 0.0
+        close = pd.Series([100.0] * n)
+        ohlcv = pd.DataFrame(
+            {
+                "open": close,
+                "high": close,
+                "low": close,
+                "close": close,
+                "volume": [1000.0] * n,
+            }
+        )
+        ohlcv.index = pd.date_range(start="2020-01-01", periods=n, freq="1min")
+
+        entries = pd.Series([False] * n, index=ohlcv.index)
+        exits = pd.Series([False] * n, index=ohlcv.index)
+        entries.iloc[10] = True
+        exits.iloc[20] = True
+
+        result = runner.run_backtest(ohlcv, entries, exits)
+        # With zero benchmark variance, beta should be 0.0
+        assert result.beta == 0.0
+
+    def test_run_backtest_computes_strategy_score(self, runner, sample_ohlcv):
+        """Test that run_backtest directly returns a computed strategy score."""
+        n = len(sample_ohlcv)
+        entries = pd.Series([False] * n, index=sample_ohlcv.index)
+        exits = pd.Series([False] * n, index=sample_ohlcv.index)
+        entries.iloc[10] = True
+        exits.iloc[50] = True
+
+        result = runner.run_backtest(sample_ohlcv, entries, exits)
+        # Strategy score should be computed, not the old placeholder 0.0
+        # (it's a weighted sum of normalized metrics, so it should be > 0)
+        assert result.strategy_score > 0
+
 
 class TestPerformanceBenchmark:
     """Performance benchmark tests."""

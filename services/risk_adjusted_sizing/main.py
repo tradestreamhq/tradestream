@@ -99,43 +99,119 @@ class RiskAdjustedSizer:
             await self.pool.close()
             logging.info("Database connection closed")
 
+    # Conservative defaults used when no historical data is available.
+    _DEFAULT_VOLATILITY = 0.25
+    _DEFAULT_SHARPE_RATIO = 0.0
+    _DEFAULT_MAX_DRAWDOWN = 0.20
+    _DEFAULT_WIN_RATE = 0.50
+    _DEFAULT_PROFIT_FACTOR = 1.0
+
     async def get_strategies_with_risk_metrics(self) -> List[RiskMetrics]:
-        """Get strategies with calculated risk metrics."""
+        """Get strategies with risk metrics from historical performance data.
+
+        Queries the strategy_performance table (joined via strategy_specs and
+        strategy_implementations) for the most recent metrics per strategy.
+        Falls back to conservative defaults when no historical data exists.
+        """
+        # Query that joins strategies → strategy_specs (via strategy_type=name)
+        # → strategy_implementations → strategy_performance to get real metrics.
+        # Uses DISTINCT ON to pick the most recent performance record per strategy,
+        # preferring LIVE > PAPER > BACKTEST environments.
         query = """
-        SELECT 
-            strategy_id,
-            symbol,
-            strategy_type,
-            current_score,
-            -- Placeholder risk metrics (would come from actual calculations)
-            0.15 as volatility,
-            1.2 as sharpe_ratio,
-            0.05 as max_drawdown,
-            0.65 as win_rate,
-            1.8 as profit_factor
-        FROM strategies 
-        WHERE is_active = TRUE
-        AND current_score >= 0.6
-        ORDER BY current_score DESC
+        SELECT
+            s.strategy_id,
+            s.symbol,
+            s.strategy_type,
+            s.current_score,
+            sp.volatility,
+            sp.sharpe_ratio,
+            sp.max_drawdown,
+            sp.win_rate,
+            sp.profit_factor
+        FROM strategies s
+        LEFT JOIN LATERAL (
+            SELECT
+                perf.volatility,
+                perf.sharpe_ratio,
+                perf.max_drawdown,
+                perf.win_rate,
+                perf.profit_factor
+            FROM strategy_specs ss
+            JOIN strategy_implementations si ON si.spec_id = ss.id
+            JOIN strategy_performance perf ON perf.implementation_id = si.id
+            WHERE ss.name = s.strategy_type
+              AND perf.instrument = s.symbol
+              AND perf.total_trades >= 10
+            ORDER BY
+                CASE perf.environment
+                    WHEN 'LIVE' THEN 1
+                    WHEN 'PAPER' THEN 2
+                    WHEN 'BACKTEST' THEN 3
+                END,
+                perf.period_end DESC
+            LIMIT 1
+        ) sp ON TRUE
+        WHERE s.is_active = TRUE
+          AND s.current_score >= 0.6
+        ORDER BY s.current_score DESC
         """
 
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(query)
 
             risk_metrics = []
+            default_count = 0
             for row in rows:
+                has_data = row["volatility"] is not None
+                if not has_data:
+                    default_count += 1
+
                 risk_metrics.append(
                     RiskMetrics(
                         strategy_id=row["strategy_id"],
                         symbol=row["symbol"],
                         strategy_type=row["strategy_type"],
                         current_score=row["current_score"],
-                        volatility=row["volatility"],
-                        sharpe_ratio=row["sharpe_ratio"],
-                        max_drawdown=row["max_drawdown"],
-                        win_rate=row["win_rate"],
-                        profit_factor=row["profit_factor"],
+                        volatility=(
+                            float(row["volatility"])
+                            if has_data
+                            else self._DEFAULT_VOLATILITY
+                        ),
+                        sharpe_ratio=(
+                            float(row["sharpe_ratio"])
+                            if has_data
+                            else self._DEFAULT_SHARPE_RATIO
+                        ),
+                        max_drawdown=(
+                            float(row["max_drawdown"])
+                            if has_data
+                            else self._DEFAULT_MAX_DRAWDOWN
+                        ),
+                        win_rate=(
+                            float(row["win_rate"])
+                            if has_data
+                            else self._DEFAULT_WIN_RATE
+                        ),
+                        profit_factor=(
+                            float(row["profit_factor"])
+                            if has_data
+                            else self._DEFAULT_PROFIT_FACTOR
+                        ),
                     )
+                )
+
+            if default_count > 0:
+                logging.warning(
+                    "%d of %d strategies have no historical performance data; "
+                    "using conservative defaults (volatility=%.2f, sharpe=%.1f, "
+                    "max_dd=%.2f, win_rate=%.2f, pf=%.1f)",
+                    default_count,
+                    len(rows),
+                    self._DEFAULT_VOLATILITY,
+                    self._DEFAULT_SHARPE_RATIO,
+                    self._DEFAULT_MAX_DRAWDOWN,
+                    self._DEFAULT_WIN_RATE,
+                    self._DEFAULT_PROFIT_FACTOR,
                 )
 
             return risk_metrics
