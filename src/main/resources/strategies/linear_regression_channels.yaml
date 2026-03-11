@@ -1,0 +1,42 @@
+name: LINEAR_REGRESSION_CHANNELS
+description: Linear regression channel breakout strategy with standard deviation bands
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.LinearRegressionChannelsParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: linreg
+    type: LINEAR_REGRESSION
+    input: close
+    params:
+      period: "${period}"
+  - id: stddev
+    type: STANDARD_DEVIATION
+    input: close
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: linreg
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: linreg
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 10
+    max: 50
+    defaultValue: 20
+  - name: multiplier
+    type: DOUBLE
+    min: 1.0
+    max: 3.0
+    defaultValue: 2.0
