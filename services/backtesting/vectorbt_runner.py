@@ -469,9 +469,7 @@ class VectorBTRunner:
         except Exception:
             return 0.0
 
-    def _calc_beta(
-        self, returns: pd.Series, benchmark_returns: pd.Series
-    ) -> float:
+    def _calc_beta(self, returns: pd.Series, benchmark_returns: pd.Series) -> float:
         """Calculate beta (systematic risk) relative to benchmark.
 
         Beta = Cov(strategy, benchmark) / Var(benchmark)
