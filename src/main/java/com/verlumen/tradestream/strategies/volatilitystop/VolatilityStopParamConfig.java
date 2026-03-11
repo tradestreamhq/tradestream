@@ -9,6 +9,7 @@ import io.jenetics.DoubleChromosome;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public final class VolatilityStopParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
