@@ -17,6 +17,7 @@ import org.ta4j.core.indicators.helpers.VolumeIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
+@Deprecated
 public class ChaikinOscillatorStrategyFactory
     implements StrategyFactory<ChaikinOscillatorParameters> {
   @Override
