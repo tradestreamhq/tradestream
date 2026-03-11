@@ -36,7 +36,6 @@ kt_jvm_library(
         ":backtesting_service_module",
         "//third_party/java:argparse4j",
         "//third_party/java:flogger",
-        "//third_party/java:grpc_netty_shaded",
         "//third_party/java:grpc_services",
         "//third_party/java:guice",
     ],
@@ -48,5 +47,6 @@ java_binary(
     runtime_deps = [
         ":backtest_service_server_lib",
         ":backtesting_service_module",
+        "//third_party/java:grpc_netty_shaded",
     ],
 )

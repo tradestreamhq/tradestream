@@ -52,6 +52,9 @@ kt_jvm_library(
 kt_jvm_library(
     name = "remote_backtest_runner",
     srcs = ["RemoteBacktestRunner.kt"],
+    runtime_deps = [
+        "//third_party/java:grpc_netty_shaded",
+    ],
     deps = [
         ":backtest_runner",
         "//protos:backtesting_java_grpc",

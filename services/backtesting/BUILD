@@ -89,6 +89,16 @@ py_test(
     ],
 )
 
+py_test(
+    name = "test_grpc_tls",
+    size = "small",
+    srcs = ["tests/test_grpc_tls.py"],
+    deps = [
+        ":backtesting_service_lib",
+        "//third_party/python:grpcio",
+    ],
+)
+
 # --- OCI Image Rules ---
 py_image_layer(
     name = "layers",
