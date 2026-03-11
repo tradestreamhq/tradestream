@@ -242,14 +242,17 @@ async def main():
     )
     parser.add_argument(
         "--password",
-        default="tradestream123",
-        help="Database password (default: tradestream123)",
+        default=None,
+        help="Database password (required)",
     )
     parser.add_argument(
         "--no-parameters", action="store_true", help="Hide parameter details"
     )
 
     args = parser.parse_args()
+
+    if not args.password:
+        parser.error("--password is required")
 
     # Database configuration
     db_config = {
