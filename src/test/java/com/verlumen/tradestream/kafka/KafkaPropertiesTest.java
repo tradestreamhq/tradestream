@@ -95,7 +95,8 @@ public class KafkaPropertiesTest {
             "org.apache.kafka.common.serialization.ByteArraySerializer",
             "SASL_SSL",
             "SCRAM-SHA-256",
-            "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"user\" password=\"pass\";",
+            "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"user\""
+                + " password=\"pass\";",
             "all",
             50,
             5);
@@ -106,8 +107,7 @@ public class KafkaPropertiesTest {
     // Assert
     assertThat(kafkaProps.getProperty("security.protocol")).isEqualTo("SASL_SSL");
     assertThat(kafkaProps.getProperty("sasl.mechanism")).isEqualTo("SCRAM-SHA-256");
-    assertThat(kafkaProps.getProperty("sasl.jaas.config"))
-        .contains("ScramLoginModule");
+    assertThat(kafkaProps.getProperty("sasl.jaas.config")).contains("ScramLoginModule");
   }
 
   @Test

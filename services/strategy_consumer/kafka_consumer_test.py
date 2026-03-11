@@ -13,7 +13,10 @@ from google.protobuf import any_pb2
 from google.protobuf import timestamp_pb2
 import datetime
 
-from services.strategy_consumer.kafka_consumer import StrategyKafkaConsumer, _parse_jaas_config
+from services.strategy_consumer.kafka_consumer import (
+    StrategyKafkaConsumer,
+    _parse_jaas_config,
+)
 
 
 class TestStrategyKafkaConsumer:
@@ -267,7 +270,10 @@ class TestStrategyKafkaConsumer:
         assert consumer.sasl_mechanism == "SCRAM-SHA-256"
         assert "user" in consumer.sasl_jaas_config
 
-    @patch.dict("os.environ", {"KAFKA_SECURITY_PROTOCOL": "SASL_SSL", "KAFKA_SASL_MECHANISM": "PLAIN"})
+    @patch.dict(
+        "os.environ",
+        {"KAFKA_SECURITY_PROTOCOL": "SASL_SSL", "KAFKA_SASL_MECHANISM": "PLAIN"},
+    )
     def test_init_security_from_env(self):
         """Test consumer picks up security settings from environment."""
         consumer = StrategyKafkaConsumer(

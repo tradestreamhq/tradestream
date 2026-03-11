@@ -65,17 +65,12 @@ class StrategyKafkaConsumer:
         self.max_poll_interval_ms = max_poll_interval_ms
 
         # Security settings: use explicit params, then env vars, then defaults
-        self.security_protocol = (
-            security_protocol
-            or os.environ.get("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
+        self.security_protocol = security_protocol or os.environ.get(
+            "KAFKA_SECURITY_PROTOCOL", "PLAINTEXT"
         )
-        self.sasl_mechanism = (
-            sasl_mechanism
-            or os.environ.get("KAFKA_SASL_MECHANISM")
-        )
-        self.sasl_jaas_config = (
-            sasl_jaas_config
-            or os.environ.get("KAFKA_SASL_JAAS_CONFIG")
+        self.sasl_mechanism = sasl_mechanism or os.environ.get("KAFKA_SASL_MECHANISM")
+        self.sasl_jaas_config = sasl_jaas_config or os.environ.get(
+            "KAFKA_SASL_JAAS_CONFIG"
         )
 
         self.consumer: Optional[KafkaConsumer] = None

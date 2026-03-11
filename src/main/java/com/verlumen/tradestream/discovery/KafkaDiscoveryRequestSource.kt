@@ -35,19 +35,22 @@ class KafkaDiscoveryRequestSource
             // Apply security settings from environment variables
             val securityProtocol = System.getenv("KAFKA_SECURITY_PROTOCOL")
             if (!securityProtocol.isNullOrEmpty()) {
-                kafkaRead = kafkaRead.updateConsumerProperties(
+                kafkaRead =
+                    kafkaRead.updateConsumerProperties(
                     mapOf("security.protocol" to securityProtocol) as Map<String, Any>
                 )
             }
             val saslMechanism = System.getenv("KAFKA_SASL_MECHANISM")
             if (!saslMechanism.isNullOrEmpty()) {
-                kafkaRead = kafkaRead.updateConsumerProperties(
+                kafkaRead =
+                    kafkaRead.updateConsumerProperties(
                     mapOf("sasl.mechanism" to saslMechanism) as Map<String, Any>
                 )
             }
             val saslJaasConfig = System.getenv("KAFKA_SASL_JAAS_CONFIG")
             if (!saslJaasConfig.isNullOrEmpty()) {
-                kafkaRead = kafkaRead.updateConsumerProperties(
+                kafkaRead =
+                    kafkaRead.updateConsumerProperties(
                     mapOf("sasl.jaas.config" to saslJaasConfig) as Map<String, Any>
                 )
             }
