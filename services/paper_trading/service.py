@@ -6,6 +6,7 @@ tracking hypothetical P&L without executing real trades.
 
 import asyncio
 import json
+import threading
 from typing import Optional
 
 from absl import logging
@@ -30,19 +31,42 @@ def _get_current_price(symbol: str, market_mcp_url: str) -> Optional[float]:
 
 
 def create_app(
-    pg_client: PostgresClient, market_mcp_url: str, signal_mcp_url: str
+    pg_client: PostgresClient,
+    market_mcp_url: str,
+    signal_mcp_url: str,
+    event_loop: Optional[asyncio.AbstractEventLoop] = None,
 ) -> Flask:
-    """Create the Flask application with all paper trading endpoints."""
+    """Create the Flask application with all paper trading endpoints.
+
+    Args:
+        pg_client: Async PostgreSQL client (pool bound to *event_loop*).
+        market_mcp_url: URL of the Market MCP service.
+        signal_mcp_url: URL of the Signal MCP service.
+        event_loop: The event loop that owns the asyncpg pool.  When
+            ``None`` a new background loop is created automatically.
+    """
     app = Flask(__name__)
     flask_auth_middleware(app)
+
+    # Use the caller-supplied loop or spin up a dedicated background loop.
+    # The asyncpg pool is bound to the loop where ``connect()`` was awaited,
+    # so all coroutines must be dispatched to that same loop.
+    if event_loop is None:
+        event_loop = asyncio.new_event_loop()
+        _thread = threading.Thread(
+            target=event_loop.run_forever, daemon=True, name="paper-trading-loop"
+        )
+        _thread.start()
 
     def run_async(coro):
         """Run an async coroutine from a sync Flask handler.
 
-        Uses asyncio.run() per call to avoid sharing a single event loop
-        across Flask's request-handling threads.
+        Dispatches the coroutine to the dedicated background event loop
+        that owns the asyncpg connection pool, then blocks until the
+        result is ready.  This is safe to call from any Flask worker thread.
         """
-        return asyncio.run(coro)
+        future = asyncio.run_coroutine_threadsafe(coro, event_loop)
+        return future.result()
 
     @app.route("/health", methods=["GET"])
     def health():
