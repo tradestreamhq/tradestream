@@ -100,6 +100,8 @@ async def main_async() -> None:
                         server.create_initialization_options(),
                     )
 
+            from services.shared.auth import starlette_auth_middleware
+
             starlette_app = Starlette(
                 routes=[
                     Route("/sse", endpoint=handle_sse),
@@ -110,6 +112,7 @@ async def main_async() -> None:
                     ),
                 ],
             )
+            starlette_auth_middleware(starlette_app)
 
             import uvicorn
 
