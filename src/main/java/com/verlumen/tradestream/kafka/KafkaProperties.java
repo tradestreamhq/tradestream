@@ -26,8 +26,8 @@ public record KafkaProperties(
         KafkaDefaults.KEY_SERIALIZER,
         KafkaDefaults.VALUE_SERIALIZER,
         KafkaDefaults.SECURITY_PROTOCOL,
-        "",
-        "",
+        KafkaDefaults.SASL_MECHANISM,
+        KafkaDefaults.SASL_JAAS_CONFIG,
         KafkaDefaults.ACKS,
         KafkaDefaults.LINGER_MS,
         KafkaDefaults.RETRIES);
@@ -45,8 +45,12 @@ public record KafkaProperties(
     kafkaProperties.setProperty("key.serializer", keySerializer);
     kafkaProperties.setProperty("value.serializer", valueSerializer);
     kafkaProperties.setProperty("security.protocol", securityProtocol);
-    kafkaProperties.setProperty("sasl.mechanism", saslMechanism);
-    kafkaProperties.setProperty("sasl.jaas.config", saslJaasConfig);
+    if (!saslMechanism.isEmpty()) {
+      kafkaProperties.setProperty("sasl.mechanism", saslMechanism);
+    }
+    if (!saslJaasConfig.isEmpty()) {
+      kafkaProperties.setProperty("sasl.jaas.config", saslJaasConfig);
+    }
     return kafkaProperties;
   }
 }

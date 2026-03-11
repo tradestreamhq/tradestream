@@ -82,4 +82,57 @@ public class KafkaPropertiesTest {
     assertThat(kafkaProps.getProperty("retries")).isEqualTo("5");
     assertThat(kafkaProps.getProperty("linger.ms")).isEqualTo("50");
   }
+
+  @Test
+  public void kafkaProperties_withSaslSsl_includesSaslProperties() {
+    // Arrange
+    KafkaProperties supplier =
+        new KafkaProperties(
+            16384,
+            "kafka.example.com:9093",
+            33554432,
+            "org.apache.kafka.common.serialization.StringSerializer",
+            "org.apache.kafka.common.serialization.ByteArraySerializer",
+            "SASL_SSL",
+            "SCRAM-SHA-256",
+            "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"user\""
+                + " password=\"pass\";",
+            "all",
+            50,
+            5);
+
+    // Act
+    Properties kafkaProps = supplier.get();
+
+    // Assert
+    assertThat(kafkaProps.getProperty("security.protocol")).isEqualTo("SASL_SSL");
+    assertThat(kafkaProps.getProperty("sasl.mechanism")).isEqualTo("SCRAM-SHA-256");
+    assertThat(kafkaProps.getProperty("sasl.jaas.config")).contains("ScramLoginModule");
+  }
+
+  @Test
+  public void kafkaProperties_withPlaintext_omitsSaslProperties() {
+    // Arrange
+    KafkaProperties supplier =
+        new KafkaProperties(
+            16384,
+            "localhost:9092",
+            33554432,
+            "org.apache.kafka.common.serialization.StringSerializer",
+            "org.apache.kafka.common.serialization.ByteArraySerializer",
+            "PLAINTEXT",
+            "",
+            "",
+            "all",
+            50,
+            5);
+
+    // Act
+    Properties kafkaProps = supplier.get();
+
+    // Assert
+    assertThat(kafkaProps.getProperty("security.protocol")).isEqualTo("PLAINTEXT");
+    assertThat(kafkaProps.containsKey("sasl.mechanism")).isFalse();
+    assertThat(kafkaProps.containsKey("sasl.jaas.config")).isFalse();
+  }
 }

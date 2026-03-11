@@ -6,6 +6,7 @@ Reads discovered strategies from the Kafka topic and processes them.
 import asyncio
 import json
 import logging
+import os
 import time
 from typing import List, Optional, Callable, Awaitable
 
@@ -48,6 +49,9 @@ class StrategyKafkaConsumer:
         heartbeat_interval_ms: int = 3000,
         max_poll_records: int = 500,
         max_poll_interval_ms: int = 300000,
+        security_protocol: Optional[str] = None,
+        sasl_mechanism: Optional[str] = None,
+        sasl_jaas_config: Optional[str] = None,
     ):
         self.bootstrap_servers = bootstrap_servers
         self.topic = topic
@@ -59,6 +63,15 @@ class StrategyKafkaConsumer:
         self.heartbeat_interval_ms = heartbeat_interval_ms
         self.max_poll_records = max_poll_records
         self.max_poll_interval_ms = max_poll_interval_ms
+
+        # Security settings: use explicit params, then env vars, then defaults
+        self.security_protocol = security_protocol or os.environ.get(
+            "KAFKA_SECURITY_PROTOCOL", "PLAINTEXT"
+        )
+        self.sasl_mechanism = sasl_mechanism or os.environ.get("KAFKA_SASL_MECHANISM")
+        self.sasl_jaas_config = sasl_jaas_config or os.environ.get(
+            "KAFKA_SASL_JAAS_CONFIG"
+        )
 
         self.consumer: Optional[KafkaConsumer] = None
         self.is_running = False
@@ -72,8 +85,7 @@ class StrategyKafkaConsumer:
         try:
             logging.info(f"Connecting to Kafka at {self.bootstrap_servers}")
 
-            self.consumer = KafkaConsumer(
-                self.topic,
+            consumer_kwargs = dict(
                 bootstrap_servers=self.bootstrap_servers,
                 group_id=self.group_id,
                 auto_offset_reset=self.auto_offset_reset,
@@ -83,8 +95,25 @@ class StrategyKafkaConsumer:
                 heartbeat_interval_ms=self.heartbeat_interval_ms,
                 max_poll_records=self.max_poll_records,
                 max_poll_interval_ms=self.max_poll_interval_ms,
-                # Remove UTF-8 deserializers - we'll handle binary data directly
+                security_protocol=self.security_protocol,
                 consumer_timeout_ms=1000,  # 1 second timeout for polling
+            )
+
+            # Add SASL settings when using SASL_SSL or SASL_PLAINTEXT
+            if self.security_protocol in ("SASL_SSL", "SASL_PLAINTEXT"):
+                if self.sasl_mechanism:
+                    consumer_kwargs["sasl_mechanism"] = self.sasl_mechanism
+                if self.sasl_jaas_config:
+                    # Parse JAAS config to extract username/password for kafka-python
+                    username, password = _parse_jaas_config(self.sasl_jaas_config)
+                    if username:
+                        consumer_kwargs["sasl_plain_username"] = username
+                    if password:
+                        consumer_kwargs["sasl_plain_password"] = password
+
+            self.consumer = KafkaConsumer(
+                self.topic,
+                **consumer_kwargs,
             )
 
             logging.info(f"Successfully connected to Kafka topic: {self.topic}")
@@ -345,3 +374,26 @@ class StrategyKafkaConsumer:
         except Exception as e:
             logging.error(f"Failed to get topic info: {e}")
             return {"topic": self.topic, "error": str(e)}
+
+
+def _parse_jaas_config(jaas_config: str) -> tuple:
+    """Parse a JAAS config string to extract username and password.
+
+    Expects format like:
+    org.apache.kafka.common.security.plain.PlainLoginModule required
+    username="user" password="pass";
+
+    Returns:
+        Tuple of (username, password), either may be None.
+    """
+    username = None
+    password = None
+    import re
+
+    username_match = re.search(r'username="([^"]*)"', jaas_config)
+    password_match = re.search(r'password="([^"]*)"', jaas_config)
+    if username_match:
+        username = username_match.group(1)
+    if password_match:
+        password = password_match.group(1)
+    return username, password

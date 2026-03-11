@@ -32,7 +32,16 @@ public final class KafkaDefaults {
       "org.apache.kafka.common.serialization.ByteArraySerializer";
 
   /** Protocol used to communicate with brokers (e.g., PLAINTEXT, SASL_SSL) */
-  public static final String SECURITY_PROTOCOL = "PLAINTEXT";
+  public static final String SECURITY_PROTOCOL =
+      System.getenv().getOrDefault("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT");
+
+  /** SASL mechanism (e.g., PLAIN, SCRAM-SHA-256, SCRAM-SHA-512) */
+  public static final String SASL_MECHANISM =
+      System.getenv().getOrDefault("KAFKA_SASL_MECHANISM", "");
+
+  /** SASL JAAS configuration string */
+  public static final String SASL_JAAS_CONFIG =
+      System.getenv().getOrDefault("KAFKA_SASL_JAAS_CONFIG", "");
 
   // Private constructor to prevent instantiation
   private KafkaDefaults() {
