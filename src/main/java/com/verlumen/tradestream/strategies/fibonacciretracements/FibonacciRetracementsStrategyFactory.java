@@ -9,6 +9,7 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
+@Deprecated
 public final class FibonacciRetracementsStrategyFactory
     implements StrategyFactory<FibonacciRetracementsParameters> {
 
