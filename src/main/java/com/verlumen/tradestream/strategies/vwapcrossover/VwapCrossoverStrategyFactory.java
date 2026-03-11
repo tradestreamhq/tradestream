@@ -14,6 +14,7 @@ import org.ta4j.core.indicators.volume.VWAPIndicator;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
+@Deprecated
 public final class VwapCrossoverStrategyFactory
     implements StrategyFactory<VwapCrossoverParameters> {
   @Override
