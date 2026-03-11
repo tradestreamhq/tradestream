@@ -8,6 +8,7 @@ import com.verlumen.tradestream.strategies.GannSwingParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public final class GannSwingParamConfig implements ParamConfig {
   private static final int MIN_GANN_PERIOD = 2;
   private static final int MAX_GANN_PERIOD = 100;
