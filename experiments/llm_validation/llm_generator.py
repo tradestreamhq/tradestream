@@ -178,7 +178,7 @@ class StrategyGenerator:
     """Generates trading strategies using Claude API."""
 
     def __init__(
-        self, api_key: str | None = None, model: str = "claude-sonnet-4-20250514"
+        self, api_key: str | None = None, model: str = "claude-sonnet-4-6"
     ):
         """
         Initialize the generator.
