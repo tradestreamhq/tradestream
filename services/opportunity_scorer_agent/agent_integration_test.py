@@ -20,6 +20,7 @@ from services.opportunity_scorer_agent.agent import (
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def mcp_urls():
     return {
@@ -38,9 +39,24 @@ def sample_signal():
         "confidence": 0.85,
         "timestamp": "2026-03-09T12:00:00Z",
         "strategy_breakdown": [
-            {"strategy_type": "momentum", "signal": "BUY", "confidence": 0.9, "impl_id": "impl-1"},
-            {"strategy_type": "mean_reversion", "signal": "BUY", "confidence": 0.8, "impl_id": "impl-2"},
-            {"strategy_type": "trend_following", "signal": "SELL", "confidence": 0.6, "impl_id": "impl-3"},
+            {
+                "strategy_type": "momentum",
+                "signal": "BUY",
+                "confidence": 0.9,
+                "impl_id": "impl-1",
+            },
+            {
+                "strategy_type": "mean_reversion",
+                "signal": "BUY",
+                "confidence": 0.8,
+                "impl_id": "impl-2",
+            },
+            {
+                "strategy_type": "trend_following",
+                "signal": "SELL",
+                "confidence": 0.6,
+                "impl_id": "impl-3",
+            },
         ],
     }
 
@@ -48,6 +64,7 @@ def sample_signal():
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _mock_tool_call(call_id, name, arguments):
     tc = mock.Mock()
@@ -80,6 +97,7 @@ def _final_response(content, tokens=80):
 # Multi-step workflow tests
 # ---------------------------------------------------------------------------
 
+
 class TestScorerMultiStepWorkflow:
     """Test the full multi-step LLM loop for opportunity scoring."""
 
@@ -93,31 +111,49 @@ class TestScorerMultiStepWorkflow:
         mock_openai_cls.return_value = mock_client
 
         # Step 1: LLM requests volatility
-        resp1 = _tool_response([
-            _mock_tool_call("tc1", "get_volatility", {"symbol": "BTC/USD"}),
-        ])
+        resp1 = _tool_response(
+            [
+                _mock_tool_call("tc1", "get_volatility", {"symbol": "BTC/USD"}),
+            ]
+        )
 
         # Step 2: LLM requests batch performance
-        resp2 = _tool_response([
-            _mock_tool_call("tc2", "get_performance_batch", {"impl_ids": ["impl-1", "impl-2", "impl-3"]}),
-        ])
+        resp2 = _tool_response(
+            [
+                _mock_tool_call(
+                    "tc2",
+                    "get_performance_batch",
+                    {"impl_ids": ["impl-1", "impl-2", "impl-3"]},
+                ),
+            ]
+        )
 
         # Step 3: LLM logs decision
-        resp3 = _tool_response([
-            _mock_tool_call("tc3", "log_decision", {
-                "signal_id": "sig-int-001",
-                "score": 71.5,
-                "tier": "GOOD",
-                "reasoning": "Strong consensus, moderate volatility",
-                "tool_calls": [],
-                "model_used": "anthropic/claude-haiku-4-5",
-                "latency_ms": 2100,
-                "tokens": 300,
-            }),
-        ])
+        resp3 = _tool_response(
+            [
+                _mock_tool_call(
+                    "tc3",
+                    "log_decision",
+                    {
+                        "signal_id": "sig-int-001",
+                        "score": 71.5,
+                        "tier": "GOOD",
+                        "reasoning": "Strong consensus, moderate volatility",
+                        "tool_calls": [],
+                        "model_used": "anthropic/claude-haiku-4-5",
+                        "latency_ms": 2100,
+                        "tokens": 300,
+                    },
+                ),
+            ]
+        )
 
         # Step 4: LLM produces final answer
-        final = {"score": 71.5, "tier": "GOOD", "reasoning": "Strong consensus, moderate volatility"}
+        final = {
+            "score": 71.5,
+            "tier": "GOOD",
+            "reasoning": "Strong consensus, moderate volatility",
+        }
         resp4 = _final_response(final)
 
         mock_client.chat.completions.create.side_effect = [resp1, resp2, resp3, resp4]
@@ -155,10 +191,16 @@ class TestScorerMultiStepWorkflow:
         mock_openai_cls.return_value = mock_client
 
         # LLM issues two concurrent tool calls
-        resp1 = _tool_response([
-            _mock_tool_call("tc-vol", "get_volatility", {"symbol": "BTC/USD"}),
-            _mock_tool_call("tc-perf", "get_performance_batch", {"impl_ids": ["impl-1", "impl-2"]}),
-        ])
+        resp1 = _tool_response(
+            [
+                _mock_tool_call("tc-vol", "get_volatility", {"symbol": "BTC/USD"}),
+                _mock_tool_call(
+                    "tc-perf",
+                    "get_performance_batch",
+                    {"impl_ids": ["impl-1", "impl-2"]},
+                ),
+            ]
+        )
 
         final = {"score": 68.0, "tier": "GOOD", "reasoning": "Concurrent data fetch"}
         resp2 = _final_response(final)
@@ -189,12 +231,20 @@ class TestScorerMultiStepWorkflow:
         mock_client = mock.MagicMock()
         mock_openai_cls.return_value = mock_client
 
-        resp1 = _tool_response([
-            _mock_tool_call("tc-vol", "get_volatility", {"symbol": "BTC/USD"}),
-            _mock_tool_call("tc-perf", "get_performance_batch", {"impl_ids": ["impl-1"]}),
-        ])
+        resp1 = _tool_response(
+            [
+                _mock_tool_call("tc-vol", "get_volatility", {"symbol": "BTC/USD"}),
+                _mock_tool_call(
+                    "tc-perf", "get_performance_batch", {"impl_ids": ["impl-1"]}
+                ),
+            ]
+        )
 
-        final = {"score": 40.0, "tier": "NEUTRAL", "reasoning": "Partial data available"}
+        final = {
+            "score": 40.0,
+            "tier": "NEUTRAL",
+            "reasoning": "Partial data available",
+        }
         resp2 = _final_response(final)
 
         mock_client.chat.completions.create.side_effect = [resp1, resp2]
@@ -224,7 +274,9 @@ class TestScorerResponseParsing:
 
     @mock.patch("services.opportunity_scorer_agent.agent.OpenAI")
     @mock.patch("services.opportunity_scorer_agent.agent.resolve_and_call")
-    def test_json_embedded_in_text(self, mock_mcp, mock_openai_cls, mcp_urls, sample_signal):
+    def test_json_embedded_in_text(
+        self, mock_mcp, mock_openai_cls, mcp_urls, sample_signal
+    ):
         """LLM wraps JSON in prose text; parser should extract it."""
         mock_client = mock.MagicMock()
         mock_openai_cls.return_value = mock_client
@@ -330,9 +382,11 @@ class TestScorerErrorHandling:
         mock_client = mock.MagicMock()
         mock_openai_cls.return_value = mock_client
 
-        resp1 = _tool_response([
-            _mock_tool_call("tc1", "get_volatility", {"symbol": "BTC/USD"}),
-        ])
+        resp1 = _tool_response(
+            [
+                _mock_tool_call("tc1", "get_volatility", {"symbol": "BTC/USD"}),
+            ]
+        )
         final = {"score": 25.0, "tier": "LOW", "reasoning": "No data available"}
         resp2 = _final_response(final)
 
@@ -379,7 +433,9 @@ class TestScorerModelConfiguration:
 
     @mock.patch("services.opportunity_scorer_agent.agent.OpenAI")
     @mock.patch("services.opportunity_scorer_agent.agent.resolve_and_call")
-    def test_uses_lightweight_model(self, mock_mcp, mock_openai_cls, mcp_urls, sample_signal):
+    def test_uses_lightweight_model(
+        self, mock_mcp, mock_openai_cls, mcp_urls, sample_signal
+    ):
         """Opportunity scorer must use MODEL_LIGHTWEIGHT for high-volume tasks."""
         from services.shared.model_config import MODEL_LIGHTWEIGHT
 

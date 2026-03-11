@@ -17,6 +17,7 @@ from services.strategy_proposer_agent import agent
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_mcp_response(data):
     return {"content": [{"type": "text", "text": json.dumps(data)}]}
 
@@ -99,6 +100,7 @@ def _mock_assistant_stop(content):
 # Multi-step workflow tests
 # ---------------------------------------------------------------------------
 
+
 class TestProposerMultiStepWorkflow:
     """Test the full multi-step LLM loop for strategy proposal."""
 
@@ -110,14 +112,20 @@ class TestProposerMultiStepWorkflow:
         mock_openai_cls.return_value = mock_client
 
         # Step 1: LLM calls list_strategy_types
-        resp1 = _mock_assistant_with_tools([
-            _mock_tool_call("tc1", "list_strategy_types", {}),
-        ])
+        resp1 = _mock_assistant_with_tools(
+            [
+                _mock_tool_call("tc1", "list_strategy_types", {}),
+            ]
+        )
 
         # Step 2: LLM calls get_top_strategies
-        resp2 = _mock_assistant_with_tools([
-            _mock_tool_call("tc2", "get_top_strategies", {"symbol": "BTC-USD", "limit": 5}),
-        ])
+        resp2 = _mock_assistant_with_tools(
+            [
+                _mock_tool_call(
+                    "tc2", "get_top_strategies", {"symbol": "BTC-USD", "limit": 5}
+                ),
+            ]
+        )
 
         # Step 3: LLM calls create_spec
         spec_args = {
@@ -131,9 +139,11 @@ class TestProposerMultiStepWorkflow:
             "parameters": {"adx_period": 14, "cci_period": 20},
             "description": "Trend strategy using ADX for strength and CCI for momentum",
         }
-        resp3 = _mock_assistant_with_tools([
-            _mock_tool_call("tc3", "create_spec", spec_args),
-        ])
+        resp3 = _mock_assistant_with_tools(
+            [
+                _mock_tool_call("tc3", "create_spec", spec_args),
+            ]
+        )
 
         # Step 4: LLM produces final response
         final_content = {
@@ -190,29 +200,46 @@ class TestProposerMultiStepWorkflow:
         mock_client = mock.Mock()
         mock_openai_cls.return_value = mock_client
 
-        resp1 = _mock_assistant_with_tools([
-            _mock_tool_call("tc1", "list_strategy_types", {}),
-        ])
-        resp2 = _mock_assistant_with_tools([
-            _mock_tool_call("tc2", "get_top_strategies", {"symbol": "BTC-USD", "limit": 100, "min_score": -999.0}),
-        ])
-        resp3 = _mock_assistant_with_tools([
-            _mock_tool_call("tc3", "get_performance", {"impl_id": "impl_0"}),
-        ])
-        resp4 = _mock_assistant_stop({
-            "name": "ema_obv_volume_trend",
-            "indicators": {"EMA": {"period": 50}, "OBV": {}},
-            "entry_conditions": {"long": "OBV rising AND price > EMA(50)"},
-            "exit_conditions": {"stop_loss": "price < EMA(50)", "take_profit": "OBV divergence"},
-            "parameters": {"ema_period": 50},
-            "description": "Volume-confirmed trend following",
-        })
+        resp1 = _mock_assistant_with_tools(
+            [
+                _mock_tool_call("tc1", "list_strategy_types", {}),
+            ]
+        )
+        resp2 = _mock_assistant_with_tools(
+            [
+                _mock_tool_call(
+                    "tc2",
+                    "get_top_strategies",
+                    {"symbol": "BTC-USD", "limit": 100, "min_score": -999.0},
+                ),
+            ]
+        )
+        resp3 = _mock_assistant_with_tools(
+            [
+                _mock_tool_call("tc3", "get_performance", {"impl_id": "impl_0"}),
+            ]
+        )
+        resp4 = _mock_assistant_stop(
+            {
+                "name": "ema_obv_volume_trend",
+                "indicators": {"EMA": {"period": 50}, "OBV": {}},
+                "entry_conditions": {"long": "OBV rising AND price > EMA(50)"},
+                "exit_conditions": {
+                    "stop_loss": "price < EMA(50)",
+                    "take_profit": "OBV divergence",
+                },
+                "parameters": {"ema_period": 50},
+                "description": "Volume-confirmed trend following",
+            }
+        )
 
         mock_client.chat.completions.create.side_effect = [resp1, resp2, resp3, resp4]
 
         mcp_responses = {
             "list_strategy_types": _make_mcp_response(_strategy_types()),
-            "get_top_strategies": _make_mcp_response(_top_strategies(count=10, min_score=-999)),
+            "get_top_strategies": _make_mcp_response(
+                _top_strategies(count=10, min_score=-999)
+            ),
             "get_performance": _make_mcp_response(_performance_data()),
         }
 
@@ -247,10 +274,21 @@ class TestProposerMessageHistory:
 
         captured_messages = []
 
-        resp1 = _mock_assistant_with_tools([
-            _mock_tool_call("tc1", "list_strategy_types", {}),
-        ])
-        resp2 = _mock_assistant_stop({"name": "test", "indicators": {}, "entry_conditions": {}, "exit_conditions": {"stop_loss": "x", "take_profit": "y"}, "parameters": {}, "description": "test"})
+        resp1 = _mock_assistant_with_tools(
+            [
+                _mock_tool_call("tc1", "list_strategy_types", {}),
+            ]
+        )
+        resp2 = _mock_assistant_stop(
+            {
+                "name": "test",
+                "indicators": {},
+                "entry_conditions": {},
+                "exit_conditions": {"stop_loss": "x", "take_profit": "y"},
+                "parameters": {},
+                "description": "test",
+            }
+        )
 
         def capture_create(**kwargs):
             # Snapshot the messages list at each call
@@ -284,14 +322,26 @@ class TestProposerErrorHandling:
         mock_client = mock.Mock()
         mock_openai_cls.return_value = mock_client
 
-        resp1 = _mock_assistant_with_tools([
-            _mock_tool_call("tc1", "list_strategy_types", {}),
-        ])
-        resp2 = _mock_assistant_stop({"name": "fallback", "indicators": {}, "entry_conditions": {}, "exit_conditions": {"stop_loss": "x", "take_profit": "y"}, "parameters": {}, "description": "fallback"})
+        resp1 = _mock_assistant_with_tools(
+            [
+                _mock_tool_call("tc1", "list_strategy_types", {}),
+            ]
+        )
+        resp2 = _mock_assistant_stop(
+            {
+                "name": "fallback",
+                "indicators": {},
+                "entry_conditions": {},
+                "exit_conditions": {"stop_loss": "x", "take_profit": "y"},
+                "parameters": {},
+                "description": "fallback",
+            }
+        )
 
         mock_client.chat.completions.create.side_effect = [resp1, resp2]
 
         import requests as req_lib
+
         mock_http.side_effect = req_lib.RequestException("Connection refused")
 
         mcp_urls = {"strategy": "http://strategy:8080"}
@@ -317,7 +367,13 @@ class TestProposerErrorHandling:
         msg.content = None
         msg.model_dump.return_value = {
             "role": "assistant",
-            "tool_calls": [{"id": "tc1", "function": {"name": "list_strategy_types", "arguments": "{}"}, "type": "function"}],
+            "tool_calls": [
+                {
+                    "id": "tc1",
+                    "function": {"name": "list_strategy_types", "arguments": "{}"},
+                    "type": "function",
+                }
+            ],
         }
         choice = mock.Mock()
         choice.finish_reason = "tool_calls"
@@ -325,7 +381,16 @@ class TestProposerErrorHandling:
         resp1 = mock.Mock()
         resp1.choices = [choice]
 
-        resp2 = _mock_assistant_stop({"name": "test", "indicators": {}, "entry_conditions": {}, "exit_conditions": {"stop_loss": "x", "take_profit": "y"}, "parameters": {}, "description": "test"})
+        resp2 = _mock_assistant_stop(
+            {
+                "name": "test",
+                "indicators": {},
+                "entry_conditions": {},
+                "exit_conditions": {"stop_loss": "x", "take_profit": "y"},
+                "parameters": {},
+                "description": "test",
+            }
+        )
 
         mock_client.chat.completions.create.side_effect = [resp1, resp2]
 
@@ -367,10 +432,21 @@ class TestProposerErrorHandling:
         mock_client = mock.Mock()
         mock_openai_cls.return_value = mock_client
 
-        resp1 = _mock_assistant_with_tools([
-            _mock_tool_call("tc1", "nonexistent_tool", {"foo": "bar"}),
-        ])
-        resp2 = _mock_assistant_stop({"name": "test", "indicators": {}, "entry_conditions": {}, "exit_conditions": {"stop_loss": "x", "take_profit": "y"}, "parameters": {}, "description": "test"})
+        resp1 = _mock_assistant_with_tools(
+            [
+                _mock_tool_call("tc1", "nonexistent_tool", {"foo": "bar"}),
+            ]
+        )
+        resp2 = _mock_assistant_stop(
+            {
+                "name": "test",
+                "indicators": {},
+                "entry_conditions": {},
+                "exit_conditions": {"stop_loss": "x", "take_profit": "y"},
+                "parameters": {},
+                "description": "test",
+            }
+        )
 
         mock_client.chat.completions.create.side_effect = [resp1, resp2]
 
@@ -393,7 +469,16 @@ class TestProposerModelConfiguration:
         mock_client = mock.Mock()
         mock_openai_cls.return_value = mock_client
 
-        resp = _mock_assistant_stop({"name": "x", "indicators": {}, "entry_conditions": {}, "exit_conditions": {"stop_loss": "a", "take_profit": "b"}, "parameters": {}, "description": "x"})
+        resp = _mock_assistant_stop(
+            {
+                "name": "x",
+                "indicators": {},
+                "entry_conditions": {},
+                "exit_conditions": {"stop_loss": "a", "take_profit": "b"},
+                "parameters": {},
+                "description": "x",
+            }
+        )
         mock_client.chat.completions.create.return_value = resp
 
         mcp_urls = {"strategy": "http://strategy:8080"}
@@ -409,7 +494,16 @@ class TestProposerModelConfiguration:
         mock_client = mock.Mock()
         mock_openai_cls.return_value = mock_client
 
-        resp = _mock_assistant_stop({"name": "x", "indicators": {}, "entry_conditions": {}, "exit_conditions": {"stop_loss": "a", "take_profit": "b"}, "parameters": {}, "description": "x"})
+        resp = _mock_assistant_stop(
+            {
+                "name": "x",
+                "indicators": {},
+                "entry_conditions": {},
+                "exit_conditions": {"stop_loss": "a", "take_profit": "b"},
+                "parameters": {},
+                "description": "x",
+            }
+        )
         mock_client.chat.completions.create.return_value = resp
 
         mcp_urls = {"strategy": "http://strategy:8080"}
