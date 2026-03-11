@@ -21,7 +21,11 @@ FLAGS = flags.FLAGS
 # PostgreSQL Configuration Flags
 flags.DEFINE_string("postgres_host", "localhost", "PostgreSQL host.")
 flags.DEFINE_integer("postgres_port", 5432, "PostgreSQL port.")
-flags.DEFINE_string("postgres_database", os.environ.get("POSTGRES_DATABASE", ""), "PostgreSQL database name.")
+flags.DEFINE_string(
+    "postgres_database",
+    os.environ.get("POSTGRES_DATABASE", ""),
+    "PostgreSQL database name.",
+)
 flags.DEFINE_string("postgres_username", "postgres", "PostgreSQL username.")
 flags.DEFINE_string("postgres_password", "", "PostgreSQL password.")
 

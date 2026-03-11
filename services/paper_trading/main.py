@@ -15,8 +15,16 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string("postgres_host", "localhost", "PostgreSQL host")
 flags.DEFINE_integer("postgres_port", 5432, "PostgreSQL port")
-flags.DEFINE_string("postgres_database", os.environ.get("POSTGRES_DATABASE", ""), "PostgreSQL database name")
-flags.DEFINE_string("postgres_username", os.environ.get("POSTGRES_USERNAME", "postgres"), "PostgreSQL username")
+flags.DEFINE_string(
+    "postgres_database",
+    os.environ.get("POSTGRES_DATABASE", ""),
+    "PostgreSQL database name",
+)
+flags.DEFINE_string(
+    "postgres_username",
+    os.environ.get("POSTGRES_USERNAME", "postgres"),
+    "PostgreSQL username",
+)
 flags.DEFINE_string("postgres_password", "", "PostgreSQL password")
 flags.DEFINE_string("mcp_market_url", "http://localhost:8081", "Market MCP server URL")
 flags.DEFINE_string("mcp_signal_url", "http://localhost:8082", "Signal MCP server URL")

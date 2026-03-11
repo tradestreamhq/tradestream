@@ -24,7 +24,5 @@ def validate_env_vars(required: List[str]) -> None:
     """
     missing = [name for name in required if not os.environ.get(name)]
     if missing:
-        logger.error(
-            "Missing required environment variables: %s", ", ".join(missing)
-        )
+        logger.error("Missing required environment variables: %s", ", ".join(missing))
         sys.exit(1)

@@ -236,7 +236,9 @@ async def main():
         "--port", type=int, default=5432, help="Database port (default: 5432)"
     )
     parser.add_argument(
-        "--database", default=os.environ.get("POSTGRES_DATABASE", ""), help="Database name (from POSTGRES_DATABASE env var)"
+        "--database",
+        default=os.environ.get("POSTGRES_DATABASE", ""),
+        help="Database name (from POSTGRES_DATABASE env var)",
     )
     parser.add_argument(
         "--username", default="postgres", help="Database username (default: postgres)"

@@ -20,8 +20,12 @@ FLAGS = flags.FLAGS
 # InfluxDB Configuration Flags
 flags.DEFINE_string("influxdb_url", "http://localhost:8086", "InfluxDB URL.")
 flags.DEFINE_string("influxdb_token", "", "InfluxDB authentication token.")
-flags.DEFINE_string("influxdb_org", os.environ.get("INFLUXDB_ORG", ""), "InfluxDB organization.")
-flags.DEFINE_string("influxdb_bucket", os.environ.get("INFLUXDB_BUCKET", ""), "InfluxDB bucket name.")
+flags.DEFINE_string(
+    "influxdb_org", os.environ.get("INFLUXDB_ORG", ""), "InfluxDB organization."
+)
+flags.DEFINE_string(
+    "influxdb_bucket", os.environ.get("INFLUXDB_BUCKET", ""), "InfluxDB bucket name."
+)
 
 # Redis Configuration Flags
 flags.DEFINE_string("redis_host", "localhost", "Redis host.")
