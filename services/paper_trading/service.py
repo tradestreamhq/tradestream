@@ -39,10 +39,14 @@ def create_app(
     """Create the Flask application with all paper trading endpoints."""
     app = Flask(__name__)
     flask_auth_middleware(app)
-    loop = asyncio.new_event_loop()
 
     def run_async(coro):
-        return loop.run_until_complete(coro)
+        """Run an async coroutine from a sync Flask handler.
+
+        Uses asyncio.run() per call to avoid sharing a single event loop
+        across Flask's request-handling threads.
+        """
+        return asyncio.run(coro)
 
     @app.route("/health", methods=["GET"])
     def health():
