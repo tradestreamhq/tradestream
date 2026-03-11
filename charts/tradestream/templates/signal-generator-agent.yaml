@@ -1,58 +1,73 @@
 {{- if .Values.signalGeneratorAgent.enabled }}
-apiVersion: batch/v1
-kind: CronJob
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: {{ include "tradestream.fullname" . }}-signal-generator-agent
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ include "tradestream.name" . }}
-    component: signal-generator-agent
-    release: {{ .Release.Name }}
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: signal-generator-agent
 spec:
-  schedule: "{{ .Values.signalGeneratorAgent.schedule }}"
-  {{- if .Values.signalGeneratorAgent.startingDeadlineSeconds }}
-  startingDeadlineSeconds: {{ .Values.signalGeneratorAgent.startingDeadlineSeconds }}
-  {{- end }}
-  jobTemplate:
+  replicas: {{ .Values.signalGeneratorAgent.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: signal-generator-agent
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: signal-generator-agent
     spec:
-      template:
-        spec:
-          restartPolicy: OnFailure
-          containers:
-            - name: signal-generator-agent
-              image: "{{ .Values.signalGeneratorAgent.image.repository }}:{{ .Values.signalGeneratorAgent.image.tag }}"
-              imagePullPolicy: {{ .Values.signalGeneratorAgent.image.pullPolicy }}
-              env:
-                - name: OPENROUTER_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: {{ .Values.signalGeneratorAgent.secrets.openrouterApiKey.name }}
-                      key: {{ .Values.signalGeneratorAgent.secrets.openrouterApiKey.key }}
-                - name: MCP_STRATEGY_URL
-                  value: {{ .Values.signalGeneratorAgent.mcpUrls.strategy | quote }}
-                - name: MCP_MARKET_URL
-                  value: {{ .Values.signalGeneratorAgent.mcpUrls.market | quote }}
-                - name: MCP_SIGNAL_URL
-                  value: {{ .Values.signalGeneratorAgent.mcpUrls.signal | quote }}
-                - name: SYMBOLS
-                  value: {{ .Values.signalGeneratorAgent.config.symbols | quote }}
-                - name: INTERVAL_SECONDS
-                  value: {{ .Values.signalGeneratorAgent.config.intervalSeconds | quote }}
-              args:
-                - "--openrouter_api_key=$(OPENROUTER_API_KEY)"
-                - "--mcp_strategy_url=$(MCP_STRATEGY_URL)"
-                - "--mcp_market_url=$(MCP_MARKET_URL)"
-                - "--mcp_signal_url=$(MCP_SIGNAL_URL)"
-                - "--symbols=$(SYMBOLS)"
-                - "--interval_seconds=$(INTERVAL_SECONDS)"
-              resources:
-                requests:
-                  cpu: "100m"
-                  memory: "128Mi"
-                limits:
-                  cpu: "200m"
-                  memory: "256Mi"
-  concurrencyPolicy: "{{ .Values.signalGeneratorAgent.concurrencyPolicy }}"
-  failedJobsHistoryLimit: {{ .Values.signalGeneratorAgent.failedJobsHistoryLimit }}
-  successfulJobsHistoryLimit: {{ .Values.signalGeneratorAgent.successfulJobsHistoryLimit }}
+      containers:
+        - name: signal-generator-agent
+          image: "{{ .Values.signalGeneratorAgent.image.repository }}:{{ .Values.signalGeneratorAgent.image.tag }}"
+          imagePullPolicy: {{ .Values.signalGeneratorAgent.image.pullPolicy }}
+          ports:
+            - name: health
+              containerPort: {{ .Values.signalGeneratorAgent.healthPort | default 8080 }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: OPENROUTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.signalGeneratorAgent.secrets.openrouterApiKey.name }}
+                  key: {{ .Values.signalGeneratorAgent.secrets.openrouterApiKey.key }}
+            - name: MCP_STRATEGY_URL
+              value: {{ .Values.signalGeneratorAgent.mcpUrls.strategy | quote }}
+            - name: MCP_MARKET_URL
+              value: {{ .Values.signalGeneratorAgent.mcpUrls.market | quote }}
+            - name: MCP_SIGNAL_URL
+              value: {{ .Values.signalGeneratorAgent.mcpUrls.signal | quote }}
+            - name: SYMBOLS
+              value: {{ .Values.signalGeneratorAgent.config.symbols | quote }}
+            - name: INTERVAL_SECONDS
+              value: {{ .Values.signalGeneratorAgent.config.intervalSeconds | quote }}
+          args:
+            - "--openrouter_api_key=$(OPENROUTER_API_KEY)"
+            - "--mcp_strategy_url=$(MCP_STRATEGY_URL)"
+            - "--mcp_market_url=$(MCP_MARKET_URL)"
+            - "--mcp_signal_url=$(MCP_SIGNAL_URL)"
+            - "--symbols=$(SYMBOLS)"
+            - "--interval_seconds=$(INTERVAL_SECONDS)"
+            - "--health_port={{ .Values.signalGeneratorAgent.healthPort | default 8080 }}"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
 {{- end }}

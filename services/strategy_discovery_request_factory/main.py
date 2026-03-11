@@ -1,21 +1,17 @@
-"""
-Strategy Discovery Request Factory - Stateless Orchestration Service
+"""Strategy Discovery Request Factory - Long-lived Service.
 
-This service runs as a cron job to:
-1. Read "latest actual data timestamp" for each currency pair from InfluxDBLastProcessedTracker
-   (populated by external services like candle ingestor)
-2. Use the tracker to maintain its own state about which end_time it has processed for idempotency
-3. Generate strategy discovery requests using the stateless processor for specific timepoints
-4. Publish requests to Kafka
-
-The InfluxPoller component has been removed - this service is now purely orchestrational.
+Runs as a proper service with health checks and graceful shutdown.
+Periodically orchestrates strategy discovery request generation:
+1. Reads latest data timestamps from InfluxDBLastProcessedTracker
+2. Generates strategy discovery requests using the stateless processor
+3. Publishes requests to Kafka
 """
 
 import os
 import sys
-import time
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List
+
 from absl import app, flags, logging
 
 from services.strategy_discovery_request_factory.config import (
@@ -30,6 +26,7 @@ from services.strategy_discovery_request_factory.strategy_discovery_processor im
     StrategyDiscoveryProcessor,
 )
 from services.strategy_discovery_request_factory.kafka_publisher import KafkaPublisher
+from services.shared.service_runner import ServiceRunner
 from shared.persistence.influxdb_last_processed_tracker import (
     InfluxDBLastProcessedTracker,
 )
@@ -92,6 +89,12 @@ flags.DEFINE_integer(
     "default_population_size", DEFAULT_POPULATION_SIZE, "GA population"
 )
 
+# Service flags
+flags.DEFINE_integer(
+    "interval_seconds", 300, "Interval between runs in seconds (default 5 min)."
+)
+flags.DEFINE_integer("health_port", 8080, "Port for health check HTTP server.")
+
 FLAGS = flags.FLAGS
 
 
@@ -105,13 +108,11 @@ class StrategyDiscoveryService:
         self.fibonacci_windows_config: List[int] = []
 
     def _validate_configuration(self) -> None:
-        """Validate all configuration parameters."""
         if not FLAGS.influxdb_token:
             raise ValueError("InfluxDB token is required (--influxdb_token)")
         if not FLAGS.influxdb_org:
             raise ValueError("InfluxDB organization is required (--influxdb_org)")
 
-        # Validate processing parameters
         fibonacci_windows = [int(x) for x in FLAGS.fibonacci_windows_minutes]
         if not validate_fibonacci_windows(fibonacci_windows):
             raise ValueError(f"Invalid fibonacci windows: {fibonacci_windows}")
@@ -127,7 +128,6 @@ class StrategyDiscoveryService:
             raise ValueError("Minimum processing advance minutes must be non-negative")
 
     def _get_currency_pairs_from_redis(self) -> List[str]:
-        """Get currency pairs from Redis, same as candle ingestor."""
         try:
             redis_client = RedisCryptoClient(
                 host=FLAGS.redis_host,
@@ -138,9 +138,8 @@ class StrategyDiscoveryService:
             symbols = redis_client.get_top_crypto_pairs_from_redis(
                 FLAGS.redis_key_crypto_symbols
             )
-            logging.info(f"Retrieved {len(symbols)} symbols from Redis: {symbols}")
+            logging.info("Retrieved %d symbols from Redis: %s", len(symbols), symbols)
 
-            # Convert symbols (like "btcusd") to currency pairs (like "BTC/USD")
             currency_pairs = []
             for symbol in symbols:
                 if symbol.endswith("usd"):
@@ -151,8 +150,7 @@ class StrategyDiscoveryService:
             return currency_pairs
 
         except Exception as e:
-            logging.error(f"Failed to get currency pairs from Redis: {e}")
-            # Fallback to a basic list
+            logging.error("Failed to get currency pairs from Redis: %s", e)
             return ["BTC/USD", "ETH/USD", "ADA/USD", "SOL/USD", "DOGE/USD"]
 
     def _connect_kafka(self) -> None:
@@ -160,7 +158,7 @@ class StrategyDiscoveryService:
         ssl_cafile = os.environ.get("KAFKA_SSL_CA_LOCATION")
         ssl_certfile = os.environ.get("KAFKA_SSL_CERT_LOCATION")
         ssl_keyfile = os.environ.get("KAFKA_SSL_KEY_LOCATION")
-        security_protocol = os.environ.get("KAFKA_SECURITY_PROTOCOL", "SSL")
+        security_protocol = os.environ.get("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
 
         self.kafka_publisher = KafkaPublisher(
             bootstrap_servers=FLAGS.kafka_bootstrap_servers,
@@ -175,7 +173,6 @@ class StrategyDiscoveryService:
         logging.info("Connected to Kafka")
 
     def _initialize_tracker(self) -> None:
-        """Initialize the InfluxDB timestamp tracker."""
         self.timestamp_tracker = InfluxDBLastProcessedTracker(
             url=FLAGS.influxdb_url,
             token=FLAGS.influxdb_token,
@@ -189,7 +186,6 @@ class StrategyDiscoveryService:
         logging.info("Connected to InfluxDB for timestamp tracking")
 
     def _initialize_processor(self) -> None:
-        """Initialize the stateless strategy discovery processor."""
         fibonacci_windows = [int(x) for x in FLAGS.fibonacci_windows_minutes]
         self.fibonacci_windows_config = fibonacci_windows
 
@@ -201,42 +197,38 @@ class StrategyDiscoveryService:
         logging.info("Initialized stateless strategy discovery processor")
 
     def _get_sdrf_processed_tracker_key(self, currency_pair: str) -> str:
-        """Get the tracker key for this service's processed end timestamp for a currency pair."""
         return f"{FLAGS.tracker_service_name}_{currency_pair.replace('/', '_')}_sdrf_processed_end_ts"
 
     def _get_ingested_data_tracker_item_id(self, currency_pair: str) -> str:
-        """Get the tracker item ID for the latest ingested data timestamp for a currency pair."""
         return f"{currency_pair.replace('/', '_')}_latest_ingested_ts"
 
-    def run(self) -> None:
-        """Run the main cron job logic."""
+    def run_once(self) -> None:
+        """Run a single iteration of strategy discovery request generation."""
+        self._validate_configuration()
+
+        currency_pairs = self._get_currency_pairs_from_redis()
+        if not currency_pairs:
+            logging.warning("No currency pairs found. Skipping iteration.")
+            return
+
+        logging.info(
+            "Processing %d currency pairs: %s", len(currency_pairs), currency_pairs
+        )
+
+        self._connect_kafka()
+        self._initialize_tracker()
+        self._initialize_processor()
+
+        total_requests = 0
+        successful_pairs = 0
+        failed_pairs = 0
+
         try:
-            self._validate_configuration()
-
-            currency_pairs = self._get_currency_pairs_from_redis()
-            if not currency_pairs:
-                logging.warning("No currency pairs found. Exiting.")
-                return
-
-            logging.info(
-                f"Processing {len(currency_pairs)} currency pairs: {currency_pairs}"
-            )
-
-            # Connect to all services
-            self._connect_kafka()
-            self._initialize_tracker()
-            self._initialize_processor()
-
-            total_requests_published_all_pairs = 0
-            successful_pairs_count = 0
-            failed_pairs_count = 0
-
             for currency_pair in currency_pairs:
-                pair_requests_published_this_run = 0
+                pair_requests = 0
                 try:
-                    logging.info(f"Starting processing for {currency_pair}...")
+                    logging.info("Starting processing for %s...", currency_pair)
 
-                    # Get the latest actual data timestamp from global tracker (set by external services)
                     ingested_ts_item_id = self._get_ingested_data_tracker_item_id(
                         currency_pair
                     )
@@ -249,16 +241,16 @@ class StrategyDiscoveryService:
 
                     if actual_latest_data_ts_ms is None:
                         logging.warning(
-                            f"No 'latest ingested data timestamp' found in tracker for {currency_pair} under key ({FLAGS.global_status_tracker_service_name}, {ingested_ts_item_id}). This is normal if upstream data ingestion hasn't started yet. Skipping."
+                            "No 'latest ingested data timestamp' found for %s. Skipping.",
+                            currency_pair,
                         )
-                        successful_pairs_count += 1
+                        successful_pairs += 1
                         continue
 
                     window_end_time_utc = datetime.fromtimestamp(
                         actual_latest_data_ts_ms / 1000, tz=timezone.utc
                     )
 
-                    # Get this service's last processed end timestamp for the pair
                     sdrf_tracker_key = self._get_sdrf_processed_tracker_key(
                         currency_pair
                     )
@@ -267,9 +259,8 @@ class StrategyDiscoveryService:
                             FLAGS.tracker_service_name, sdrf_tracker_key
                         )
                         or 0
-                    )  # Default to 0 if no prior processing
+                    )
 
-                    # Check if there's sufficient advance to warrant processing
                     min_advance_required_ms = (
                         FLAGS.min_processing_advance_minutes * 60 * 1000
                     )
@@ -277,17 +268,16 @@ class StrategyDiscoveryService:
                         actual_latest_data_ts_ms - sdrf_last_processed_end_ts_ms
                     ) < min_advance_required_ms:
                         logging.info(
-                            f"Data for {currency_pair} (ends {window_end_time_utc.isoformat()}) has not advanced sufficiently "
-                            f"beyond last processed point ({datetime.fromtimestamp(sdrf_last_processed_end_ts_ms / 1000, tz=timezone.utc).isoformat() if sdrf_last_processed_end_ts_ms > 0 else 'never'}). Skipping."
+                            "Data for %s has not advanced sufficiently. Skipping.",
+                            currency_pair,
                         )
-                        successful_pairs_count += (
-                            1  # Count as success if no work needed due to idempotency
-                        )
+                        successful_pairs += 1
                         continue
 
-                    # Generate strategy discovery requests for this timepoint
                     logging.info(
-                        f"Generating requests for {currency_pair} with window ending at {window_end_time_utc.isoformat()}."
+                        "Generating requests for %s with window ending at %s.",
+                        currency_pair,
+                        window_end_time_utc.isoformat(),
                     )
                     discovery_requests = (
                         self.strategy_processor.generate_requests_for_timepoint(
@@ -297,12 +287,10 @@ class StrategyDiscoveryService:
                         )
                     )
 
-                    # Publish all generated requests
                     for request in discovery_requests:
                         self.kafka_publisher.publish_request(request, currency_pair)
-                        pair_requests_published_this_run += 1
+                        pair_requests += 1
 
-                    # Update tracker only if new requests were generated
                     if discovery_requests:
                         self.timestamp_tracker.update_last_processed_timestamp(
                             FLAGS.tracker_service_name,
@@ -310,81 +298,61 @@ class StrategyDiscoveryService:
                             actual_latest_data_ts_ms,
                         )
                         logging.info(
-                            f"Published {pair_requests_published_this_run} requests for {currency_pair} and updated SDRF tracker to {window_end_time_utc.isoformat()}."
+                            "Published %d requests for %s.",
+                            pair_requests,
+                            currency_pair,
                         )
                     else:
-                        logging.info(
-                            f"No new requests were generated by the processor for {currency_pair} ending at {window_end_time_utc.isoformat()}."
-                        )
+                        logging.info("No new requests generated for %s.", currency_pair)
 
-                    successful_pairs_count += 1
-                    total_requests_published_all_pairs += (
-                        pair_requests_published_this_run
-                    )
+                    successful_pairs += 1
+                    total_requests += pair_requests
 
                 except Exception as e:
                     logging.exception(
-                        f"Error processing currency pair {currency_pair}: {e}"
+                        "Error processing currency pair %s: %s", currency_pair, e
                     )
-                    failed_pairs_count += 1
-                    # Continue to the next pair
+                    failed_pairs += 1
 
             logging.info(
-                f"Cron job completed. Total requests: {total_requests_published_all_pairs}, "
-                f"Successful pairs: {successful_pairs_count}, Failed pairs: {failed_pairs_count}"
+                "Iteration completed. Total requests: %d, Successful pairs: %d, Failed pairs: %d",
+                total_requests,
+                successful_pairs,
+                failed_pairs,
             )
-            if failed_pairs_count > 0 and successful_pairs_count == 0:
-                raise Exception(
-                    "All currency pairs failed to process in StrategyDiscoveryService."
-                )
+            if failed_pairs > 0 and successful_pairs == 0:
+                raise Exception("All currency pairs failed to process.")
 
-        except Exception as e:
-            logging.exception(f"StrategyDiscoveryService run failed: {e}")
-            raise
+        finally:
+            self.close()
 
     def close(self) -> None:
-        """Clean up all connections."""
         if self.kafka_publisher:
             self.kafka_publisher.close()
+            self.kafka_publisher = None
         if self.timestamp_tracker:
             self.timestamp_tracker.close()
-        logging.info("All connections closed")
+            self.timestamp_tracker = None
+        logging.info("Connections closed")
+
+
+# Module-level instance reused across iterations.
+_service = StrategyDiscoveryService()
 
 
 def main(argv):
-    """Main entry point."""
     if len(argv) > 1:
         raise app.UsageError("Too many command-line arguments")
 
     logging.set_verbosity(logging.INFO)
-    logging.info(
-        "Starting Strategy Discovery Request Factory Cron Job (Stateless Orchestration)"
-    )
 
-    # Log configuration
-    logging.info("Configuration:")
-    logging.info(f"  InfluxDB URL: {FLAGS.influxdb_url}")
-    logging.info(f"  Kafka servers: {FLAGS.kafka_bootstrap_servers}")
-    logging.info(f"  Kafka topic: {FLAGS.kafka_topic}")
-    logging.info(f"  Tracker service name: {FLAGS.tracker_service_name}")
-    logging.info(
-        f"  Global status service name: {FLAGS.global_status_tracker_service_name}"
+    runner = ServiceRunner(
+        service_name="strategy_discovery_request_factory",
+        interval_seconds=FLAGS.interval_seconds,
+        task_fn=_service.run_once,
+        health_port=FLAGS.health_port,
     )
-    logging.info(
-        f"  Min processing advance (minutes): {FLAGS.min_processing_advance_minutes}"
-    )
-    logging.info(f"  Fibonacci windows: {FLAGS.fibonacci_windows_minutes}")
-
-    service = StrategyDiscoveryService()
-
-    try:
-        service.run()
-        logging.info("Strategy Discovery Request Factory completed successfully")
-    except Exception as e:
-        logging.exception(f"Service failed: {e}")
-        sys.exit(1)
-    finally:
-        service.close()
+    runner.run()
 
 
 if __name__ == "__main__":

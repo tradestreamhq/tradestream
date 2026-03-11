@@ -1,7 +1,7 @@
-"""
-Modified main.py to use CCXT instead of Tiingo while maintaining all existing functionality.
-Drop-in replacement for the original Tiingo-based candle ingestor with symbol filtering.
-Added global status tracker updates for strategy discovery factory integration.
+"""Candle Ingestor service.
+
+Runs as a long-lived service with health checks and graceful shutdown,
+periodically ingesting OHLCV candle data from exchanges via CCXT.
 """
 
 import os
@@ -22,6 +22,7 @@ from services.candle_ingestor.ccxt_client import (
 from services.candle_ingestor.ingestion_helpers import (
     parse_backfill_start_date,
 )
+from services.shared.service_runner import ServiceRunner
 from shared.cryptoclient.redis_crypto_client import RedisCryptoClient
 from shared.persistence.influxdb_last_processed_tracker import (
     InfluxDBLastProcessedTracker,
@@ -107,6 +108,12 @@ flags.DEFINE_integer(
     None,
     "Maximum number of tickers to process in dry run mode. If not specified, uses default limit.",
 )
+
+# Service flags
+flags.DEFINE_integer(
+    "interval_seconds", 60, "Interval between ingestion cycles in seconds."
+)
+flags.DEFINE_integer("health_port", 8080, "Port for health check HTTP server.")
 
 DRY_RUN_PROCESSING_LIMIT_DEFAULT = 2
 SERVICE_IDENTIFIER = "candle_ingestor"
@@ -841,280 +848,201 @@ def run_catch_up(
     logging.info("Catch-up candle processing completed.")
 
 
-def main(argv):
-    del argv
-    logging.set_verbosity(logging.INFO)
+class CandleIngestorService:
+    """Manages candle ingestor state across iterations."""
 
-    redis_manager = None
+    def __init__(self):
+        self._initialized = False
+        self._backfill_done = False
+        self.strategy = None
+        self.primary_exchange = None
+        self.exchanges_to_use = None
+        self.effective_min_required = None
+        self.ccxt_client = None
+        self.influx_manager = None
+        self.state_tracker = None
+        self.redis_manager = None
+        self.tiingo_tickers = []
+        self.last_processed_candle_timestamps = {}
 
-    if FLAGS.run_mode == "wet":
-        if not FLAGS.influxdb_token:
-            logging.error("INFLUXDB_TOKEN is required. Set via env var or flag.")
-            sys.exit(1)
-        if not FLAGS.influxdb_org:
-            logging.error("INFLUXDB_ORG is required. Set via env var or flag.")
-            sys.exit(1)
-        if not FLAGS.redis_host:
-            logging.error("REDIS_HOST is required. Set via env var or flag.")
-            sys.exit(1)
+    def _initialize(self):
+        """Initialize connections and validate config (once)."""
+        if self._initialized:
+            return
 
-    logging.info(
-        f"Starting candle ingestor script (Python) in {FLAGS.run_mode} mode with CCXT..."
-    )
-    logging.info("Configuration:")
-    logging.info(f"  Exchanges: {FLAGS.exchanges}")
-    logging.info(f"  Min exchanges required: {FLAGS.min_exchanges_required}")
-    for flag_name in FLAGS:
-        if flag_name not in [
-            "exchanges",
-            "min_exchanges_required",
-        ]:  # Already logged above
-            logging.info(f"  {flag_name}: {FLAGS[flag_name].value}")
+        if FLAGS.run_mode == "wet":
+            if not FLAGS.influxdb_token:
+                raise ValueError("INFLUXDB_TOKEN is required.")
+            if not FLAGS.influxdb_org:
+                raise ValueError("INFLUXDB_ORG is required.")
+            if not FLAGS.redis_host:
+                raise ValueError("REDIS_HOST is required.")
 
-    # Validate CCXT configuration and determine strategy
-    try:
-        strategy, primary_exchange, exchanges_to_use, effective_min_required = (
-            validate_and_determine_ccxt_strategy()
-        )
-    except ValueError as e:
-        logging.error(f"CCXT configuration error: {e}")
-        sys.exit(1)
+        (
+            self.strategy,
+            self.primary_exchange,
+            self.exchanges_to_use,
+            self.effective_min_required,
+        ) = validate_and_determine_ccxt_strategy()
 
-    logging.info(f"CCXT Strategy: {strategy}")
-    logging.info(f"Primary Exchange: {primary_exchange}")
-    logging.info(f"Exchanges to use: {exchanges_to_use}")
+        logging.info("CCXT Strategy: %s", self.strategy)
+        logging.info("Primary Exchange: %s", self.primary_exchange)
 
-    # Initialize CCXT client
-    ccxt_client = None
-    if FLAGS.run_mode == "wet":
-        try:
-            if strategy == "single":
-                ccxt_client = CCXTCandleClient(primary_exchange)
-                logging.info(f"Initialized single exchange client: {primary_exchange}")
-            else:  # strategy == "multi"
-                ccxt_client = MultiExchangeCandleClient(
-                    exchanges=exchanges_to_use,
-                    min_exchanges_required=effective_min_required,
+        if FLAGS.run_mode == "wet":
+            if self.strategy == "single":
+                self.ccxt_client = CCXTCandleClient(self.primary_exchange)
+            else:
+                self.ccxt_client = MultiExchangeCandleClient(
+                    exchanges=self.exchanges_to_use,
+                    min_exchanges_required=self.effective_min_required,
                 )
-                logging.info(
-                    f"Initialized multi-exchange client with {len(exchanges_to_use)} exchanges: {exchanges_to_use}"
-                )
-        except Exception as e:
-            logging.error(f"Failed to initialize CCXT client: {e}")
-            sys.exit(1)
 
-    influx_manager = None
-    state_tracker = None
-    if FLAGS.run_mode == "wet":
-        influx_manager = InfluxDBManager(
-            url=FLAGS.influxdb_url,
-            token=FLAGS.influxdb_token,
-            org=FLAGS.influxdb_org,
-            bucket=FLAGS.influxdb_bucket,
-        )
-        if not influx_manager.get_client():
-            logging.error("Failed to connect to InfluxDB after retries. Exiting.")
-            sys.exit(1)
+            self.influx_manager = InfluxDBManager(
+                url=FLAGS.influxdb_url,
+                token=FLAGS.influxdb_token,
+                org=FLAGS.influxdb_org,
+                bucket=FLAGS.influxdb_bucket,
+            )
+            if not self.influx_manager.get_client():
+                raise ConnectionError("Failed to connect to InfluxDB.")
 
-        state_tracker = InfluxDBLastProcessedTracker(
-            url=FLAGS.influxdb_url,
-            token=FLAGS.influxdb_token,
-            org=FLAGS.influxdb_org,
-            bucket=FLAGS.influxdb_bucket,
-        )
-        if not state_tracker.client:
-            logging.error("Failed to initialize state tracker. Exiting.")
-            if influx_manager:
-                influx_manager.close()
-            sys.exit(1)
+            self.state_tracker = InfluxDBLastProcessedTracker(
+                url=FLAGS.influxdb_url,
+                token=FLAGS.influxdb_token,
+                org=FLAGS.influxdb_org,
+                bucket=FLAGS.influxdb_bucket,
+            )
+            if not self.state_tracker.client:
+                raise ConnectionError("Failed to initialize state tracker.")
 
-        try:
-            redis_manager = RedisCryptoClient(
+            self.redis_manager = RedisCryptoClient(
                 host=FLAGS.redis_host,
                 port=FLAGS.redis_port,
                 password=FLAGS.redis_password,
             )
-            if not redis_manager.client:
-                logging.error("Failed to connect to Redis. Exiting.")
-                if influx_manager:
-                    influx_manager.close()
-                if state_tracker:
-                    state_tracker.close()
-                sys.exit(1)
-        except redis.exceptions.RedisError as e:
-            logging.error(f"Failed to initialize Redis client: {e}. Exiting.")
-            if influx_manager:
-                influx_manager.close()
-            if state_tracker:
-                state_tracker.close()
-            sys.exit(1)
-
-    else:  # Dry run
-        logging.info("DRY RUN: Skipping InfluxDB, Redis, and CCXT connections.")
-
-        class DryRunRedisClient:
-            def get_top_crypto_pairs_from_redis(self, key):
-                logging.info(f"DRY RUN: Simulating fetch from Redis for key '{key}'")
-                return ["btcusd-dry", "ethusd-dry"]
-
-            def close(self):
-                logging.info("DRY RUN: Simulating Redis client close.")
-
-        redis_manager = DryRunRedisClient()
-
-    tiingo_tickers = []
-    if redis_manager:
-        try:
-            logging.info(
-                f"Fetching top crypto symbols from Redis key '{FLAGS.redis_key_crypto_symbols}'..."
-            )
-            tiingo_tickers = redis_manager.get_top_crypto_pairs_from_redis(
-                FLAGS.redis_key_crypto_symbols
-            )
-            if not tiingo_tickers:
-                logging.warning(
-                    "No symbols fetched from Redis. Will not process any candles."
-                )
-            else:
-                logging.info(f"Fetched symbols from Redis: {tiingo_tickers}")
-        except Exception as e:
-            logging.error(f"Failed to fetch symbols from Redis: {e}. Exiting.")
-            if influx_manager:
-                influx_manager.close()
-            if state_tracker:
-                state_tracker.close()
-            if redis_manager and FLAGS.run_mode == "wet":
-                redis_manager.close()
-            sys.exit(1)
-
-    if not tiingo_tickers and FLAGS.run_mode == "wet":
-        logging.error("No symbols available to process. Exiting.")
-        if influx_manager:
-            influx_manager.close()
-        if state_tracker:
-            state_tracker.close()
-        if redis_manager and FLAGS.run_mode == "wet":
-            redis_manager.close()
-        sys.exit(1)
-
-    if not tiingo_tickers and FLAGS.run_mode == "dry":
-        logging.warning(
-            "DRY RUN: No symbols returned from dummy Redis, using fixed list for dry run."
-        )
-        tiingo_tickers = ["btcusd-dry", "ethusd-dry"]
-
-    # Validate symbol availability across exchanges (only in wet mode)
-    if FLAGS.run_mode == "wet" and tiingo_tickers and ccxt_client:
-        logging.info("Validating symbol availability across exchanges...")
-        original_count = len(tiingo_tickers)
-
-        tiingo_tickers = validate_symbol_availability(
-            ccxt_client=ccxt_client,
-            symbols=tiingo_tickers,
-            strategy=strategy,
-            min_exchanges_required=effective_min_required,
-        )
-
-        filtered_count = len(tiingo_tickers)
-        if filtered_count == 0:
-            logging.error(
-                "No symbols available across the required number of exchanges. Exiting."
-            )
-            if influx_manager:
-                influx_manager.close()
-            if state_tracker:
-                state_tracker.close()
-            if redis_manager:
-                redis_manager.close()
-            sys.exit(1)
-        elif filtered_count < original_count:
-            logging.info(
-                f"Filtered symbols: {original_count} → {filtered_count} symbols will be processed"
-            )
+            if not self.redis_manager.client:
+                raise ConnectionError("Failed to connect to Redis.")
         else:
-            logging.info(f"All {original_count} symbols are available for processing")
+            logging.info("DRY RUN: Skipping InfluxDB, Redis, and CCXT connections.")
 
-    last_processed_candle_timestamps = {}
+            class DryRunRedisClient:
+                def get_top_crypto_pairs_from_redis(self, key):
+                    logging.info(
+                        "DRY RUN: Simulating fetch from Redis for key '%s'", key
+                    )
+                    return ["btcusd-dry", "ethusd-dry"]
 
-    try:
-        if FLAGS.backfill_start_date.lower() != "skip":
+                def close(self):
+                    logging.info("DRY RUN: Simulating Redis client close.")
+
+            self.redis_manager = DryRunRedisClient()
+
+        self._initialized = True
+
+    def _refresh_symbols(self):
+        """Fetch current symbols from Redis."""
+        self.tiingo_tickers = self.redis_manager.get_top_crypto_pairs_from_redis(
+            FLAGS.redis_key_crypto_symbols
+        )
+
+        if not self.tiingo_tickers and FLAGS.run_mode == "dry":
+            self.tiingo_tickers = ["btcusd-dry", "ethusd-dry"]
+
+        if not self.tiingo_tickers:
+            logging.warning("No symbols available to process.")
+            return
+
+        if FLAGS.run_mode == "wet" and self.ccxt_client:
+            self.tiingo_tickers = validate_symbol_availability(
+                ccxt_client=self.ccxt_client,
+                symbols=self.tiingo_tickers,
+                strategy=self.strategy,
+                min_exchanges_required=self.effective_min_required,
+            )
+
+        logging.info(
+            "Processing %d symbols: %s", len(self.tiingo_tickers), self.tiingo_tickers
+        )
+
+    def _get_dry_run_limit(self):
+        if FLAGS.dry_run_limit is not None:
+            return FLAGS.dry_run_limit
+        if FLAGS.run_mode == "dry":
+            return DRY_RUN_PROCESSING_LIMIT_DEFAULT
+        return None
+
+    def run_once(self):
+        """Run a single ingestion cycle."""
+        self._initialize()
+        self._refresh_symbols()
+
+        if not self.tiingo_tickers:
+            return
+
+        # Run backfill only on first iteration
+        if not self._backfill_done and FLAGS.backfill_start_date.lower() != "skip":
             run_backfill(
-                influx_manager=influx_manager,
-                state_tracker=state_tracker,
-                tiingo_tickers=tiingo_tickers,
-                ccxt_client=ccxt_client,
+                influx_manager=self.influx_manager,
+                state_tracker=self.state_tracker,
+                tiingo_tickers=self.tiingo_tickers,
+                ccxt_client=self.ccxt_client,
                 backfill_start_date_str=FLAGS.backfill_start_date,
                 candle_granularity_minutes=FLAGS.candle_granularity_minutes,
                 api_call_delay_seconds=FLAGS.api_call_delay_seconds,
-                last_processed_timestamps=last_processed_candle_timestamps,
+                last_processed_timestamps=self.last_processed_candle_timestamps,
                 run_mode=FLAGS.run_mode,
-                dry_run_processing_limit=(
-                    FLAGS.dry_run_limit
-                    if FLAGS.dry_run_limit is not None
-                    else (
-                        DRY_RUN_PROCESSING_LIMIT_DEFAULT
-                        if FLAGS.run_mode == "dry"
-                        else None
-                    )
-                ),
+                dry_run_processing_limit=self._get_dry_run_limit(),
             )
-        else:
-            logging.info(
-                "Skipping historical backfill as per 'backfill_start_date' flag."
-            )
-            if FLAGS.run_mode == "wet" and state_tracker:
-                for ticker in tiingo_tickers:
-                    ts_catch_up = state_tracker.get_last_processed_timestamp(
+            self._backfill_done = True
+        elif not self._backfill_done:
+            logging.info("Skipping historical backfill as per flag.")
+            if FLAGS.run_mode == "wet" and self.state_tracker:
+                for ticker in self.tiingo_tickers:
+                    ts_catch_up = self.state_tracker.get_last_processed_timestamp(
                         SERVICE_IDENTIFIER, f"{ticker}-catch_up"
                     )
                     if ts_catch_up:
-                        last_processed_candle_timestamps[ticker] = ts_catch_up
+                        self.last_processed_candle_timestamps[ticker] = ts_catch_up
                     else:
-                        ts_backfill = state_tracker.get_last_processed_timestamp(
+                        ts_backfill = self.state_tracker.get_last_processed_timestamp(
                             SERVICE_IDENTIFIER, f"{ticker}-backfill"
                         )
                         if ts_backfill:
-                            last_processed_candle_timestamps[ticker] = ts_backfill
+                            self.last_processed_candle_timestamps[ticker] = ts_backfill
+            self._backfill_done = True
 
         run_catch_up(
-            influx_manager=influx_manager,
-            state_tracker=state_tracker,
-            tiingo_tickers=tiingo_tickers,
-            ccxt_client=ccxt_client,
+            influx_manager=self.influx_manager,
+            state_tracker=self.state_tracker,
+            tiingo_tickers=self.tiingo_tickers,
+            ccxt_client=self.ccxt_client,
             candle_granularity_minutes=FLAGS.candle_granularity_minutes,
             api_call_delay_seconds=FLAGS.api_call_delay_seconds,
             initial_catch_up_days=FLAGS.catch_up_initial_days,
-            last_processed_timestamps=last_processed_candle_timestamps,
+            last_processed_timestamps=self.last_processed_candle_timestamps,
             run_mode=FLAGS.run_mode,
-            dry_run_processing_limit=(
-                FLAGS.dry_run_limit
-                if FLAGS.dry_run_limit is not None
-                else (
-                    DRY_RUN_PROCESSING_LIMIT_DEFAULT
-                    if FLAGS.run_mode == "dry"
-                    else None
-                )
-            ),
+            dry_run_processing_limit=self._get_dry_run_limit(),
         )
 
-    except Exception as e:
-        logging.exception(f"Critical error in main execution: {e}")
-        sys.exit(1)
-    finally:
-        logging.info(
-            "Main processing finished. Ensuring connections are closed if opened."
-        )
-        if influx_manager and influx_manager.get_client():
-            influx_manager.close()
-        if state_tracker:
-            state_tracker.close()
-        if redis_manager and hasattr(redis_manager, "client") and redis_manager.client:
-            redis_manager.close()
-        elif FLAGS.run_mode == "dry" and redis_manager:
-            redis_manager.close()
 
-    logging.info("Candle ingestor script completed successfully.")
-    sys.exit(0)
+_service = CandleIngestorService()
+
+
+def main(argv):
+    del argv
+    logging.set_verbosity(logging.INFO)
+
+    logging.info(
+        "Starting candle ingestor service in %s mode with CCXT...", FLAGS.run_mode
+    )
+
+    runner = ServiceRunner(
+        service_name="candle_ingestor",
+        interval_seconds=FLAGS.interval_seconds,
+        task_fn=_service.run_once,
+        health_port=FLAGS.health_port,
+    )
+    runner.run()
 
 
 if __name__ == "__main__":

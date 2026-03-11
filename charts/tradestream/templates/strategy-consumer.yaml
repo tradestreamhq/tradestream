@@ -1,125 +1,132 @@
 {{- if .Values.strategyConsumer.enabled }}
-apiVersion: batch/v1
-kind: CronJob
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: {{ include "tradestream.fullname" . }}-strategy-consumer
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ include "tradestream.name" . }}
-    component: strategy-consumer
-    release: {{ .Release.Name }}
+    {{- include "tradestream.labels" . | nindent 4 }}
+    app.kubernetes.io/component: strategy-consumer
 spec:
-  schedule: "{{ .Values.strategyConsumer.schedule }}"
-  {{- if .Values.strategyConsumer.startingDeadlineSeconds }}
-  startingDeadlineSeconds: {{ .Values.strategyConsumer.startingDeadlineSeconds }}
-  {{- end }}
-  concurrencyPolicy: "{{ .Values.strategyConsumer.concurrencyPolicy }}"
-  failedJobsHistoryLimit: {{ .Values.strategyConsumer.failedJobsHistoryLimit }}
-  successfulJobsHistoryLimit: {{ .Values.strategyConsumer.successfulJobsHistoryLimit }}
-  jobTemplate:
+  replicas: {{ .Values.strategyConsumer.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "tradestream.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: strategy-consumer
+  template:
+    metadata:
+      labels:
+        {{- include "tradestream.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: strategy-consumer
     spec:
-      backoffLimit: {{ .Values.strategyConsumer.job.backoffLimit | default 2 }}
-      ttlSecondsAfterFinished: {{ .Values.strategyConsumer.job.ttlSecondsAfterFinished | default 3600 }}
-      template:
-        metadata:
-          labels: # These labels apply to the Pods created by the Job
-            app: {{ include "tradestream.name" . }}
-            component: strategy-consumer
-            release: {{ .Release.Name }}
-        spec:
-          restartPolicy: {{ .Values.strategyConsumer.job.restartPolicy | default "OnFailure" }}
+      {{- if .Values.kafkaSsl.enabled }}
+      volumes:
+        - name: kafka-ssl-certs
+          secret:
+            secretName: {{ tpl .Values.kafkaSsl.secretName . }}
+      {{- end }}
+      containers:
+        - name: strategy-consumer
+          image: "{{ .Values.strategyConsumer.image.repository }}:{{ .Values.strategyConsumer.image.tag }}"
+          imagePullPolicy: {{ .Values.strategyConsumer.image.pullPolicy }}
+          ports:
+            - name: health
+              containerPort: {{ .Values.strategyConsumer.healthPort | default 8080 }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            # Kafka Configuration
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: {{ tpl .Values.strategyConsumer.config.kafkaBootstrapServers . | quote }}
+            - name: KAFKA_TOPIC
+              value: "{{ .Values.strategyConsumer.config.kafkaTopic }}"
+            - name: KAFKA_GROUP_ID
+              value: "{{ .Values.strategyConsumer.config.kafkaGroupId }}"
+            - name: KAFKA_AUTO_OFFSET_RESET
+              value: "{{ .Values.strategyConsumer.config.kafkaAutoOffsetReset }}"
+            # PostgreSQL Configuration
+            - name: POSTGRES_HOST
+              value: {{ tpl .Values.strategyConsumer.database.host . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.strategyConsumer.database.port | quote }}
+            - name: POSTGRES_DATABASE
+              value: "{{ .Values.strategyConsumer.database.database }}"
+            - name: POSTGRES_USERNAME
+              value: "{{ .Values.strategyConsumer.database.username }}"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.strategyConsumer.database.passwordSecret.name . }}
+                  key: {{ .Values.strategyConsumer.database.passwordSecret.key }}
+            # Processing Configuration
+            - name: BATCH_SIZE
+              value: {{ .Values.strategyConsumer.config.batchSize | quote }}
+            - name: POLL_TIMEOUT_MS
+              value: {{ .Values.strategyConsumer.config.pollTimeoutMs | quote }}
+            - name: IDLE_TIMEOUT_SECONDS
+              value: {{ .Values.strategyConsumer.config.idleTimeoutSeconds | quote }}
+            - name: MAX_PROCESSING_TIME_SECONDS
+              value: {{ .Values.strategyConsumer.config.maxProcessingTimeSeconds | quote }}
+            # Connection Configuration
+            - name: POSTGRES_MIN_CONNECTIONS
+              value: {{ .Values.strategyConsumer.config.postgresMinConnections | quote }}
+            - name: POSTGRES_MAX_CONNECTIONS
+              value: {{ .Values.strategyConsumer.config.postgresMaxConnections | quote }}
+            # Kafka SSL Configuration
+            - name: KAFKA_SECURITY_PROTOCOL
+              value: {{ if .Values.kafkaSsl.enabled }}"SSL"{{ else }}"PLAINTEXT"{{ end }}
+            {{- if .Values.kafkaSsl.enabled }}
+            - name: KAFKA_SSL_CA_LOCATION
+              value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.caFile }}"
+            - name: KAFKA_SSL_CERT_LOCATION
+              value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.certFile }}"
+            - name: KAFKA_SSL_KEY_LOCATION
+              value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.keyFile }}"
+            {{- end }}
           {{- if .Values.kafkaSsl.enabled }}
-          volumes:
+          volumeMounts:
             - name: kafka-ssl-certs
-              secret:
-                secretName: {{ tpl .Values.kafkaSsl.secretName . }}
+              mountPath: {{ .Values.kafkaSsl.mountPath }}
+              readOnly: true
           {{- end }}
-          containers:
-            - name: strategy-consumer
-              image: "{{ .Values.strategyConsumer.image.repository }}:{{ .Values.strategyConsumer.image.tag }}"
-              imagePullPolicy: {{ .Values.strategyConsumer.image.pullPolicy }}
-              env:
-                # Kafka Configuration
-                - name: KAFKA_BOOTSTRAP_SERVERS
-                  value: {{ tpl .Values.strategyConsumer.config.kafkaBootstrapServers . | quote }}
-                - name: KAFKA_TOPIC
-                  value: "{{ .Values.strategyConsumer.config.kafkaTopic }}"
-                - name: KAFKA_GROUP_ID
-                  value: "{{ .Values.strategyConsumer.config.kafkaGroupId }}"
-                - name: KAFKA_AUTO_OFFSET_RESET
-                  value: "{{ .Values.strategyConsumer.config.kafkaAutoOffsetReset }}"
-                # PostgreSQL Configuration
-                - name: POSTGRES_HOST
-                  value: {{ tpl .Values.strategyConsumer.database.host . | quote }}
-                - name: POSTGRES_PORT
-                  value: {{ .Values.strategyConsumer.database.port | quote }}
-                - name: POSTGRES_DATABASE
-                  value: "{{ .Values.strategyConsumer.database.database }}"
-                - name: POSTGRES_USERNAME
-                  value: "{{ .Values.strategyConsumer.database.username }}"
-                - name: POSTGRES_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: {{ tpl .Values.strategyConsumer.database.passwordSecret.name . }}
-                      key: {{ .Values.strategyConsumer.database.passwordSecret.key }}
-                # Processing Configuration
-                - name: BATCH_SIZE
-                  value: {{ .Values.strategyConsumer.config.batchSize | quote }}
-                - name: POLL_TIMEOUT_MS
-                  value: {{ .Values.strategyConsumer.config.pollTimeoutMs | quote }}
-                - name: IDLE_TIMEOUT_SECONDS
-                  value: {{ .Values.strategyConsumer.config.idleTimeoutSeconds | quote }}
-                - name: MAX_PROCESSING_TIME_SECONDS
-                  value: {{ .Values.strategyConsumer.config.maxProcessingTimeSeconds | quote }}
-                # Connection Configuration
-                - name: POSTGRES_MIN_CONNECTIONS
-                  value: {{ .Values.strategyConsumer.config.postgresMinConnections | quote }}
-                - name: POSTGRES_MAX_CONNECTIONS
-                  value: {{ .Values.strategyConsumer.config.postgresMaxConnections | quote }}
-                # Kafka SSL Configuration
-                - name: KAFKA_SECURITY_PROTOCOL
-                  value: {{ if .Values.kafkaSsl.enabled }}"SSL"{{ else }}"PLAINTEXT"{{ end }}
-                {{- if .Values.kafkaSsl.enabled }}
-                - name: KAFKA_SSL_CA_LOCATION
-                  value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.caFile }}"
-                - name: KAFKA_SSL_CERT_LOCATION
-                  value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.certFile }}"
-                - name: KAFKA_SSL_KEY_LOCATION
-                  value: "{{ .Values.kafkaSsl.mountPath }}/{{ .Values.kafkaSsl.keyFile }}"
-                {{- end }}
-              {{- if .Values.kafkaSsl.enabled }}
-              volumeMounts:
-                - name: kafka-ssl-certs
-                  mountPath: {{ .Values.kafkaSsl.mountPath }}
-                  readOnly: true
-              {{- end }}
-              args:
-                - "--kafka_bootstrap_servers=$(KAFKA_BOOTSTRAP_SERVERS)"
-                - "--kafka_topic=$(KAFKA_TOPIC)"
-                - "--kafka_group_id=$(KAFKA_GROUP_ID)"
-                - "--kafka_auto_offset_reset=$(KAFKA_AUTO_OFFSET_RESET)"
-                - "--kafka_security_protocol=$(KAFKA_SECURITY_PROTOCOL)"
-                {{- if .Values.kafkaSsl.enabled }}
-                - "--kafka_ssl_cafile=$(KAFKA_SSL_CA_LOCATION)"
-                - "--kafka_ssl_certfile=$(KAFKA_SSL_CERT_LOCATION)"
-                - "--kafka_ssl_keyfile=$(KAFKA_SSL_KEY_LOCATION)"
-                {{- end }}
-                - "--postgres_host=$(POSTGRES_HOST)"
-                - "--postgres_port=$(POSTGRES_PORT)"
-                - "--postgres_database=$(POSTGRES_DATABASE)"
-                - "--postgres_username=$(POSTGRES_USERNAME)"
-                - "--postgres_password=$(POSTGRES_PASSWORD)"
-                - "--batch_size=$(BATCH_SIZE)"
-                - "--poll_timeout_ms=$(POLL_TIMEOUT_MS)"
-                - "--idle_timeout_seconds=$(IDLE_TIMEOUT_SECONDS)"
-                - "--max_processing_time_seconds=$(MAX_PROCESSING_TIME_SECONDS)"
-                - "--postgres_min_connections=$(POSTGRES_MIN_CONNECTIONS)"
-                - "--postgres_max_connections=$(POSTGRES_MAX_CONNECTIONS)"
-              resources:
-                requests:
-                  cpu: "{{ .Values.strategyConsumer.resources.requests.cpu }}"
-                  memory: "{{ .Values.strategyConsumer.resources.requests.memory }}"
-                limits:
-                  cpu: "{{ .Values.strategyConsumer.resources.limits.cpu }}"
-                  memory: "{{ .Values.strategyConsumer.resources.limits.memory }}"
+          args:
+            - "--kafka_bootstrap_servers=$(KAFKA_BOOTSTRAP_SERVERS)"
+            - "--kafka_topic=$(KAFKA_TOPIC)"
+            - "--kafka_group_id=$(KAFKA_GROUP_ID)"
+            - "--kafka_auto_offset_reset=$(KAFKA_AUTO_OFFSET_RESET)"
+            - "--kafka_security_protocol=$(KAFKA_SECURITY_PROTOCOL)"
+            {{- if .Values.kafkaSsl.enabled }}
+            - "--kafka_ssl_cafile=$(KAFKA_SSL_CA_LOCATION)"
+            - "--kafka_ssl_certfile=$(KAFKA_SSL_CERT_LOCATION)"
+            - "--kafka_ssl_keyfile=$(KAFKA_SSL_KEY_LOCATION)"
+            {{- end }}
+            - "--postgres_host=$(POSTGRES_HOST)"
+            - "--postgres_port=$(POSTGRES_PORT)"
+            - "--postgres_database=$(POSTGRES_DATABASE)"
+            - "--postgres_username=$(POSTGRES_USERNAME)"
+            - "--postgres_password=$(POSTGRES_PASSWORD)"
+            - "--batch_size=$(BATCH_SIZE)"
+            - "--poll_timeout_ms=$(POLL_TIMEOUT_MS)"
+            - "--idle_timeout_seconds=$(IDLE_TIMEOUT_SECONDS)"
+            - "--max_processing_time_seconds=$(MAX_PROCESSING_TIME_SECONDS)"
+            - "--postgres_min_connections=$(POSTGRES_MIN_CONNECTIONS)"
+            - "--postgres_max_connections=$(POSTGRES_MAX_CONNECTIONS)"
+          resources:
+            requests:
+              cpu: "{{ .Values.strategyConsumer.resources.requests.cpu }}"
+              memory: "{{ .Values.strategyConsumer.resources.requests.memory }}"
+            limits:
+              cpu: "{{ .Values.strategyConsumer.resources.limits.cpu }}"
+              memory: "{{ .Values.strategyConsumer.resources.limits.memory }}"
 {{- end }}

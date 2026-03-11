@@ -1,15 +1,17 @@
-"""
-Main application for the strategy consumer service.
-Consumes discovered strategies from Kafka and stores them in PostgreSQL.
-Runs as a cron job that processes messages and winds down when no work is available.
+"""Strategy Consumer service.
+
+Long-lived service that continuously consumes discovered strategies from Kafka
+and stores them in PostgreSQL. Includes health checks and graceful shutdown.
 """
 
 import asyncio
 import os
 import signal
 import sys
+import threading
 import time
-from typing import List
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from typing import List, Optional
 
 from absl import app
 from absl import flags
@@ -126,6 +128,38 @@ flags.DEFINE_integer(
 # Service Configuration
 SERVICE_NAME = "strategy_consumer"
 
+flags.DEFINE_integer("health_port", 8080, "Port for health check HTTP server.")
+
+
+class _HealthHandler(BaseHTTPRequestHandler):
+    """HTTP handler for health check endpoints."""
+
+    service_ref = None
+
+    def do_GET(self):
+        if self.path == "/healthz" or self.path == "/livez":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"status":"ok"}')
+        elif self.path == "/readyz":
+            if self.service_ref and self.service_ref.is_running:
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"status":"ready"}')
+            else:
+                self.send_response(503)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"status":"not_ready"}')
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def log_message(self, format, *args):
+        pass
+
 
 class StrategyConsumerService:
     """Main service class for consuming and storing strategies."""
@@ -136,10 +170,24 @@ class StrategyConsumerService:
         self.is_running = False
         self.processed_count = 0
         self.start_time = None
+        self._health_server: Optional[HTTPServer] = None
+
+    def _start_health_server(self, port: int) -> None:
+        """Start HTTP health check server in a background thread."""
+        handler = type("_BoundHandler", (_HealthHandler,), {"service_ref": self})
+        try:
+            self._health_server = HTTPServer(("0.0.0.0", port), handler)
+            t = threading.Thread(target=self._health_server.serve_forever, daemon=True)
+            t.start()
+            logging.info("Health check server started on port %d", port)
+        except OSError as e:
+            logging.warning("Could not start health server: %s", e)
 
     async def initialize(self) -> None:
         """Initialize Kafka consumer and PostgreSQL client."""
         logging.info("Initializing strategy consumer service")
+
+        self._start_health_server(FLAGS.health_port)
 
         # Initialize PostgreSQL client
         self.postgres_client = PostgresClient(
@@ -244,6 +292,9 @@ class StrategyConsumerService:
 
         logging.info("Cleaning up resources")
 
+        if self._health_server:
+            self._health_server.shutdown()
+
         if self.kafka_consumer:
             self.kafka_consumer.stop()
             self.kafka_consumer.close()
@@ -253,8 +304,8 @@ class StrategyConsumerService:
 
         if self.start_time:
             runtime = time.time() - self.start_time
-            logging.info(f"Service runtime: {runtime:.2f} seconds")
-            logging.info(f"Total strategies processed: {self.processed_count}")
+            logging.info("Service runtime: %.2f seconds", runtime)
+            logging.info("Total strategies processed: %d", self.processed_count)
 
     def stop(self) -> None:
         """Stop the service."""

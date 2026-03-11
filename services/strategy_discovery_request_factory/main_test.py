@@ -128,7 +128,7 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         service.strategy_processor = self.mock_processor_instance
         service.fibonacci_windows_config = [60, 120]
 
-        service.run()
+        service.run_once()
 
         # Should skip processing and log warning
         self.mock_processor_instance.generate_requests_for_timepoint.assert_not_called()
@@ -155,7 +155,7 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         service.strategy_processor = self.mock_processor_instance
         service.fibonacci_windows_config = [60, 120]
 
-        service.run()
+        service.run_once()
 
         # Should skip processing due to insufficient advance (less than 1 minute)
         self.mock_processor_instance.generate_requests_for_timepoint.assert_not_called()
@@ -188,7 +188,7 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         service.strategy_processor = self.mock_processor_instance
         service.fibonacci_windows_config = [60, 120]
 
-        service.run()
+        service.run_once()
 
         # Should generate and publish requests
         self.assertEqual(
@@ -225,7 +225,7 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         service.strategy_processor = self.mock_processor_instance
         service.fibonacci_windows_config = [60, 120]
 
-        service.run()
+        service.run_once()
 
         # Should not publish anything or update tracker
         self.mock_kafka_instance.publish_request.assert_not_called()
@@ -258,7 +258,7 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         service.strategy_processor = self.mock_processor_instance
         service.fibonacci_windows_config = [60]
 
-        service.run()
+        service.run_once()
 
         # Should process since it's first time (None gets converted to 0)
         self.mock_processor_instance.generate_requests_for_timepoint.assert_called()
@@ -298,7 +298,7 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         service.fibonacci_windows_config = [60]
 
         # Should not raise exception despite first pair failing
-        service.run()
+        service.run_once()
 
         # Should still process second pair
         self.mock_processor_instance.generate_requests_for_timepoint.assert_called()
@@ -317,7 +317,7 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         service.fibonacci_windows_config = [60]
 
         with self.assertRaises(Exception) as cm:
-            service.run()
+            service.run_once()
         self.assertIn("All currency pairs failed to process", str(cm.exception))
 
     def test_close_cleans_up_resources(self):
@@ -331,24 +331,16 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         self.mock_kafka_instance.close.assert_called_once()
         self.mock_tracker_instance.close.assert_called_once()
 
-    @patch("services.strategy_discovery_request_factory.main.sys.exit")
-    def test_main_entry_point_success(self, mock_exit):
-        """Test main entry point with successful execution."""
-        with patch.object(main.StrategyDiscoveryService, "run") as mock_run:
-            main.main([])
-            mock_run.assert_called_once()
-            mock_exit.assert_not_called()
+    @patch("services.strategy_discovery_request_factory.main.ServiceRunner")
+    def test_main_entry_point_success(self, mock_runner_cls):
+        """Test main entry point creates ServiceRunner."""
+        mock_runner = Mock()
+        mock_runner_cls.return_value = mock_runner
 
-    @patch("services.strategy_discovery_request_factory.main.sys.exit")
-    def test_main_entry_point_failure(self, mock_exit):
-        """Test main entry point with execution failure."""
-        with patch.object(main.StrategyDiscoveryService, "run") as mock_run:
-            mock_run.side_effect = Exception("Service failed")
+        main.main([])
 
-            main.main([])
-
-            mock_run.assert_called_once()
-            mock_exit.assert_called_once_with(1)
+        mock_runner_cls.assert_called_once()
+        mock_runner.run.assert_called_once()
 
     def test_main_entry_point_too_many_args(self):
         """Test main entry point with too many arguments."""
@@ -367,7 +359,7 @@ class StatelessMainTest(absltest.TestCase):  # Changed from unittest.TestCase
         # Mock no data available
         self.mock_tracker_instance.get_last_processed_timestamp.return_value = None
 
-        service.run()
+        service.run_once()
 
         # Verify logging calls
         mock_logging.info.assert_called()
