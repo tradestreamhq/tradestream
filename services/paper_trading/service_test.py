@@ -320,3 +320,35 @@ class TestGetCurrentPrice:
 
         mock_mcp.return_value = {}
         assert _get_current_price("BTC-USD", "http://market:8080") is None
+
+
+class TestRunAsyncThreadSafety:
+    """Verify that run_async uses asyncio.run() instead of a shared event loop."""
+
+    def test_run_async_does_not_share_event_loop(self, client, pg_client):
+        """Concurrent requests should not fail due to a shared event loop."""
+        import concurrent.futures
+
+        pg_client.get_pnl_summary.return_value = {
+            "total_pnl": 0.0,
+            "total_trades": 0,
+            "winning_trades": 0,
+            "losing_trades": 0,
+            "breakeven_trades": 0,
+            "win_rate": 0.0,
+            "avg_pnl": 0.0,
+            "best_trade": 0.0,
+            "worst_trade": 0.0,
+            "open_positions": 0,
+            "total_unrealized_pnl": 0.0,
+        }
+
+        def make_request():
+            with client.application.test_client() as c:
+                return c.get("/paper/pnl-summary").status_code
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+            futures = [pool.submit(make_request) for _ in range(4)]
+            results = [f.result() for f in futures]
+
+        assert all(status == 200 for status in results)

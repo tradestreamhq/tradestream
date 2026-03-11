@@ -37,9 +37,8 @@ def main(argv):
         password=FLAGS.postgres_password,
     )
 
-    loop = asyncio.new_event_loop()
     try:
-        loop.run_until_complete(pg_client.connect())
+        asyncio.run(pg_client.connect())
     except Exception as e:
         logging.error("Failed to connect to PostgreSQL: %s", e)
         sys.exit(1)
@@ -52,7 +51,7 @@ def main(argv):
 
     def shutdown_handler(signum, frame):
         logging.info("Received signal %d, shutting down...", signum)
-        loop.run_until_complete(pg_client.close())
+        asyncio.run(pg_client.close())
         sys.exit(0)
 
     signal.signal(signal.SIGINT, shutdown_handler)
