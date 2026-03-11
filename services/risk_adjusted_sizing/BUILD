@@ -2,7 +2,7 @@
 load("@aspect_rules_py//py:defs.bzl", "py_image_layer")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
-load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -21,6 +21,17 @@ py_binary(
     main = "main.py",
     deps = [
         ":risk_adjusted_sizing_lib",
+    ],
+)
+
+py_test(
+    name = "risk_adjusted_sizing_test",
+    srcs = ["main_test.py"],
+    main = "main_test.py",
+    deps = [
+        ":risk_adjusted_sizing_lib",
+        "//third_party/python:absl_py",
+        "//third_party/python:pytest",
     ],
 )
 
