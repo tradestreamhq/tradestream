@@ -166,6 +166,101 @@ class TestVectorBTRunner:
         assert 0 <= result.strategy_score <= 1
 
 
+class TestRiskMetricCalculations:
+    """Tests for alpha, beta, and other risk metric calculations."""
+
+    def test_beta_calculation(self, runner):
+        """Test beta calculation with known correlated returns."""
+        np.random.seed(42)
+        n = 1000
+        benchmark = pd.Series(np.random.randn(n) * 0.01)
+        # Strategy returns = 1.5 * benchmark + noise (beta ~1.5)
+        strategy = 1.5 * benchmark + pd.Series(np.random.randn(n) * 0.002)
+
+        beta = runner._calc_beta(strategy, benchmark)
+        assert 1.3 < beta < 1.7, f"Expected beta near 1.5, got {beta}"
+
+    def test_beta_zero_variance_benchmark(self, runner):
+        """Test beta returns 0 when benchmark has zero variance."""
+        strategy = pd.Series([0.01, -0.02, 0.03])
+        benchmark = pd.Series([0.0, 0.0, 0.0])
+
+        beta = runner._calc_beta(strategy, benchmark)
+        assert beta == 0.0
+
+    def test_beta_identical_returns(self, runner):
+        """Test beta is 1.0 when strategy equals benchmark."""
+        returns = pd.Series([0.01, -0.02, 0.03, -0.01, 0.02])
+        beta = runner._calc_beta(returns, returns)
+        assert abs(beta - 1.0) < 0.01
+
+    def test_alpha_outperforming_strategy(self, runner):
+        """Test alpha is positive when strategy outperforms."""
+        np.random.seed(42)
+        n = 1000
+        benchmark = pd.Series(np.random.randn(n) * 0.001)
+        # Strategy has consistent positive excess returns
+        strategy = benchmark + 0.001
+
+        beta = runner._calc_beta(strategy, benchmark)
+        alpha = runner._calc_alpha(strategy, benchmark, beta, n)
+        assert alpha > 0, f"Expected positive alpha, got {alpha}"
+
+    def test_alpha_underperforming_strategy(self, runner):
+        """Test alpha is negative when strategy underperforms."""
+        np.random.seed(42)
+        n = 1000
+        benchmark = pd.Series(np.random.randn(n) * 0.001 + 0.001)
+        # Strategy consistently underperforms
+        strategy = benchmark - 0.002
+
+        beta = runner._calc_beta(strategy, benchmark)
+        alpha = runner._calc_alpha(strategy, benchmark, beta, n)
+        assert alpha < 0, f"Expected negative alpha, got {alpha}"
+
+    def test_alpha_zero_bars(self, runner):
+        """Test alpha returns 0 with zero-length data."""
+        strategy = pd.Series([], dtype=float)
+        benchmark = pd.Series([], dtype=float)
+        alpha = runner._calc_alpha(strategy, benchmark, 1.0, 0)
+        assert alpha == 0.0
+
+    def test_backtest_computes_alpha_beta(self, runner, sample_ohlcv):
+        """Test that run_backtest returns computed (non-placeholder) alpha and beta."""
+        n = len(sample_ohlcv)
+        entries = pd.Series([False] * n, index=sample_ohlcv.index)
+        exits = pd.Series([False] * n, index=sample_ohlcv.index)
+        entries.iloc[10] = True
+        exits.iloc[20] = True
+
+        result = runner.run_backtest(sample_ohlcv, entries, exits)
+
+        # Alpha and beta should be real numbers, not the old placeholders
+        assert isinstance(result.alpha, float)
+        assert isinstance(result.beta, float)
+        # Beta should not be exactly 1.0 (the old placeholder) for a strategy
+        # that only trades once vs buy-and-hold
+        assert result.beta != 1.0 or result.alpha != 0.0
+
+    def test_backtest_with_custom_benchmark(self, runner, sample_ohlcv):
+        """Test run_backtest accepts custom benchmark returns."""
+        n = len(sample_ohlcv)
+        entries = pd.Series([False] * n, index=sample_ohlcv.index)
+        exits = pd.Series([False] * n, index=sample_ohlcv.index)
+        entries.iloc[10] = True
+        exits.iloc[20] = True
+
+        # Use flat benchmark (zero returns)
+        flat_benchmark = pd.Series(0.0, index=sample_ohlcv.index)
+        result = runner.run_backtest(
+            sample_ohlcv, entries, exits, benchmark_returns=flat_benchmark
+        )
+
+        assert isinstance(result.alpha, float)
+        # With zero-variance benchmark, beta should be 0
+        assert result.beta == 0.0
+
+
 class TestPerformanceBenchmark:
     """Performance benchmark tests."""
 

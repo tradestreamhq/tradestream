@@ -48,6 +48,7 @@ class VectorBTRunner:
         ohlcv: pd.DataFrame,
         entry_signal: pd.Series,
         exit_signal: pd.Series,
+        benchmark_returns: Optional[pd.Series] = None,
     ) -> BacktestMetrics:
         """
         Run a backtest with given entry/exit signals.
@@ -56,6 +57,8 @@ class VectorBTRunner:
             ohlcv: DataFrame with columns [open, high, low, close, volume]
             entry_signal: Boolean series for entry signals
             exit_signal: Boolean series for exit signals
+            benchmark_returns: Optional benchmark return series for alpha/beta.
+                If None, uses buy-and-hold of the same asset as benchmark.
 
         Returns:
             BacktestMetrics with performance results
@@ -73,6 +76,13 @@ class VectorBTRunner:
         # Extract metrics
         returns = portfolio.returns()
 
+        # Use buy-and-hold returns as benchmark if none provided
+        if benchmark_returns is None:
+            benchmark_returns = ohlcv["close"].pct_change().fillna(0.0)
+
+        beta = self._calc_beta(returns, benchmark_returns)
+        alpha = self._calc_alpha(returns, benchmark_returns, beta, len(ohlcv))
+
         return BacktestMetrics(
             cumulative_return=self._calc_cumulative_return(portfolio),
             annualized_return=self._calc_annualized_return(portfolio, len(ohlcv)),
@@ -84,8 +94,8 @@ class VectorBTRunner:
             profit_factor=self._calc_profit_factor(portfolio),
             number_of_trades=self._calc_num_trades(portfolio),
             average_trade_duration=self._calc_avg_trade_duration(portfolio),
-            alpha=0.0,  # Placeholder - requires benchmark
-            beta=1.0,  # Placeholder - requires benchmark
+            alpha=alpha,
+            beta=beta,
             strategy_score=0.0,  # Calculated after other metrics
         )
 
@@ -456,6 +466,56 @@ class VectorBTRunner:
                 return 0.0
             durations = trades["Exit Index"] - trades["Entry Index"]
             return float(durations.mean())
+        except Exception:
+            return 0.0
+
+    def _calc_beta(
+        self, returns: pd.Series, benchmark_returns: pd.Series
+    ) -> float:
+        """Calculate beta (systematic risk) relative to benchmark.
+
+        Beta = Cov(strategy, benchmark) / Var(benchmark)
+        """
+        try:
+            # Align series by index
+            aligned = pd.concat(
+                [returns.rename("strategy"), benchmark_returns.rename("benchmark")],
+                axis=1,
+            ).dropna()
+            if len(aligned) < 2:
+                return 0.0
+            benchmark_var = aligned["benchmark"].var()
+            if benchmark_var == 0:
+                return 0.0
+            covariance = aligned["strategy"].cov(aligned["benchmark"])
+            return float(covariance / benchmark_var)
+        except Exception:
+            return 0.0
+
+    def _calc_alpha(
+        self,
+        returns: pd.Series,
+        benchmark_returns: pd.Series,
+        beta: float,
+        num_bars: int,
+    ) -> float:
+        """Calculate Jensen's alpha (annualized).
+
+        Alpha = annualized(strategy return) - [Rf + beta * (annualized(benchmark return) - Rf)]
+        """
+        try:
+            years = num_bars / self._bars_per_year
+            if years <= 0:
+                return 0.0
+
+            strategy_total = (1 + returns).prod() - 1
+            benchmark_total = (1 + benchmark_returns).prod() - 1
+
+            strategy_ann = (1 + strategy_total) ** (1 / years) - 1
+            benchmark_ann = (1 + benchmark_total) ** (1 / years) - 1
+
+            rf = self._risk_free_rate
+            return float(strategy_ann - (rf + beta * (benchmark_ann - rf)))
         except Exception:
             return 0.0
 
