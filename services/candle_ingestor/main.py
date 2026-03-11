@@ -45,14 +45,14 @@ flags.DEFINE_integer(
 # InfluxDB Flags (unchanged)
 default_influx_url = os.getenv(
     "INFLUXDB_URL",
-    "http://influxdb.tradestream-namespace.svc.cluster.local:8086",
+    "http://localhost:8086",
 )
 flags.DEFINE_string("influxdb_url", default_influx_url, "InfluxDB URL.")
 flags.DEFINE_string("influxdb_token", os.getenv("INFLUXDB_TOKEN"), "InfluxDB Token.")
 flags.DEFINE_string("influxdb_org", os.getenv("INFLUXDB_ORG"), "InfluxDB Organization.")
 flags.DEFINE_string(
     "influxdb_bucket",
-    os.getenv("INFLUXDB_BUCKET", "tradestream-data"),
+    os.getenv("INFLUXDB_BUCKET", ""),
     "InfluxDB Bucket for candles and state.",
 )
 

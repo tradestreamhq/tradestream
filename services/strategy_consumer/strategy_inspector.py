@@ -9,6 +9,7 @@ Usage:
 
 import argparse
 import json
+import os
 import sys
 from typing import List, Optional
 
@@ -235,7 +236,9 @@ async def main():
         "--port", type=int, default=5432, help="Database port (default: 5432)"
     )
     parser.add_argument(
-        "--database", default="tradestream", help="Database name (default: tradestream)"
+        "--database",
+        default=os.environ.get("POSTGRES_DATABASE", ""),
+        help="Database name (from POSTGRES_DATABASE env var)",
     )
     parser.add_argument(
         "--username", default="postgres", help="Database username (default: postgres)"

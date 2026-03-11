@@ -4,6 +4,7 @@ Configurable via absl flags for PostgreSQL and MCP transport settings.
 """
 
 import asyncio
+import os
 import sys
 
 from absl import app
@@ -28,7 +29,7 @@ flags.DEFINE_integer(
 )
 flags.DEFINE_string(
     "postgres_database",
-    "tradestream",
+    os.environ.get("POSTGRES_DATABASE", ""),
     "PostgreSQL database name.",
 )
 flags.DEFINE_string(

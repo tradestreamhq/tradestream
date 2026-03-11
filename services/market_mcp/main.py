@@ -4,6 +4,7 @@ Connects to InfluxDB and Redis, then serves MCP tools via stdio or SSE.
 """
 
 import asyncio
+import os
 import sys
 
 from absl import app
@@ -19,8 +20,12 @@ FLAGS = flags.FLAGS
 # InfluxDB Configuration Flags
 flags.DEFINE_string("influxdb_url", "http://localhost:8086", "InfluxDB URL.")
 flags.DEFINE_string("influxdb_token", "", "InfluxDB authentication token.")
-flags.DEFINE_string("influxdb_org", "tradestream-org", "InfluxDB organization.")
-flags.DEFINE_string("influxdb_bucket", "tradestream-data", "InfluxDB bucket name.")
+flags.DEFINE_string(
+    "influxdb_org", os.environ.get("INFLUXDB_ORG", ""), "InfluxDB organization."
+)
+flags.DEFINE_string(
+    "influxdb_bucket", os.environ.get("INFLUXDB_BUCKET", ""), "InfluxDB bucket name."
+)
 
 # Redis Configuration Flags
 flags.DEFINE_string("redis_host", "localhost", "Redis host.")
@@ -33,6 +38,17 @@ flags.DEFINE_integer("mcp_port", 8080, "MCP server port (for SSE transport).")
 
 async def main_async() -> None:
     """Main async function."""
+    missing = [
+        name
+        for name, val in [
+            ("INFLUXDB_ORG", FLAGS.influxdb_org),
+            ("INFLUXDB_BUCKET", FLAGS.influxdb_bucket),
+        ]
+        if not val
+    ]
+    if missing:
+        logging.error("Missing required config: %s", ", ".join(missing))
+        sys.exit(1)
     if not FLAGS.influxdb_token:
         logging.error("InfluxDB token is required")
         sys.exit(1)

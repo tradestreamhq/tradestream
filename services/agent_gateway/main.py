@@ -108,7 +108,7 @@ _redis: Optional[aioredis.Redis] = None
 def _get_db_dsn() -> str:
     host = os.environ.get("POSTGRES_HOST", "localhost")
     port = os.environ.get("POSTGRES_PORT", "5432")
-    database = os.environ.get("POSTGRES_DATABASE", "tradestream")
+    database = os.environ.get("POSTGRES_DATABASE", "")
     username = os.environ.get("POSTGRES_USERNAME", "postgres")
     password = os.environ.get("POSTGRES_PASSWORD", "")
     return f"postgresql://{username}:{password}@{host}:{port}/{database}"
