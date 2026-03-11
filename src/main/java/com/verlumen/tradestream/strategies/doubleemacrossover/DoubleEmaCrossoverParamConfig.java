@@ -8,6 +8,7 @@ import com.verlumen.tradestream.strategies.DoubleEmaCrossoverParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public final class DoubleEmaCrossoverParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
