@@ -42,15 +42,11 @@ class TestModelConfig:
             from services.shared import model_config
 
             importlib.reload(model_config)
-            assert (
-                model_config.OPENROUTER_BASE_URL == "https://openrouter.ai/api/v1"
-            )
+            assert model_config.OPENROUTER_BASE_URL == "https://openrouter.ai/api/v1"
 
     def test_env_override_primary(self):
         """Primary model can be overridden via environment variable."""
-        with mock.patch.dict(
-            os.environ, {"LLM_MODEL_PRIMARY": "openai/gpt-4o"}
-        ):
+        with mock.patch.dict(os.environ, {"LLM_MODEL_PRIMARY": "openai/gpt-4o"}):
             import importlib
 
             from services.shared import model_config
