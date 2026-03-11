@@ -1,0 +1,39 @@
+name: HEIKEN_ASHI
+description: Heiken Ashi candlestick strategy using smoothed open/close crossovers
+complexity: SIMPLE
+parameterMessageType: com.verlumen.tradestream.strategies.HeikenAshiParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: open
+    type: OPEN
+  - id: haClose
+    type: SMA
+    input: close
+    params:
+      period: "${period}"
+  - id: haOpen
+    type: SMA
+    input: open
+    params:
+      period: "${period}"
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: haClose
+    params:
+      crosses: haOpen
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: haClose
+    params:
+      crosses: haOpen
+
+parameters:
+  - name: period
+    type: INTEGER
+    min: 2
+    max: 30
+    defaultValue: 14

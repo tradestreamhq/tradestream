@@ -1,4 +1,3 @@
-# src/test/java/com/verlumen/tradestream/strategies/rvi/BUILD
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
