@@ -131,9 +131,9 @@ class StrategyConsumerService:
             max_connections=FLAGS.postgres_max_connections,
         )
 
-        # Connect to PostgreSQL
+        # Connect to PostgreSQL and verify schema (managed by Alembic migrations)
         await self.postgres_client.connect()
-        await self.postgres_client.ensure_table_exists()
+        await self.postgres_client.verify_schema()
 
         # Initialize Kafka consumer
         self.kafka_consumer = StrategyKafkaConsumer(

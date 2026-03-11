@@ -65,20 +65,35 @@ class TestPostgresClient:
             mock_pool.close.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_ensure_table_exists(self, postgres_client):
-        """Test table creation."""
+    async def test_verify_schema_success(self, postgres_client):
+        """Test schema verification when table exists."""
         with patch("asyncpg.create_pool") as mock_create_pool:
             mock_pool = AsyncMock()
             mock_create_pool.return_value = mock_pool
 
             mock_conn = AsyncMock()
             mock_pool.acquire.return_value.__aenter__.return_value = mock_conn
+            mock_conn.fetchval.return_value = 1
 
             await postgres_client.connect()
-            await postgres_client.ensure_table_exists()
+            await postgres_client.verify_schema()
 
-            # Verify that execute was called (table creation SQL)
-            assert mock_conn.execute.called
+            assert mock_conn.fetchval.called
+
+    @pytest.mark.asyncio
+    async def test_verify_schema_missing_table(self, postgres_client):
+        """Test schema verification when table is missing."""
+        with patch("asyncpg.create_pool") as mock_create_pool:
+            mock_pool = AsyncMock()
+            mock_create_pool.return_value = mock_pool
+
+            mock_conn = AsyncMock()
+            mock_pool.acquire.return_value.__aenter__.return_value = mock_conn
+            mock_conn.fetchval.return_value = 0
+
+            await postgres_client.connect()
+            with pytest.raises(RuntimeError, match="Strategies table not found"):
+                await postgres_client.verify_schema()
 
     @pytest.mark.asyncio
     async def test_insert_strategies_success(self, postgres_client):

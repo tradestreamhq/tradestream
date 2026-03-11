@@ -5,11 +5,95 @@ Tests actual database operations with a real PostgreSQL instance.
 
 import asyncio
 import json
+import os
 import pytest
 import testing.postgresql
 from datetime import datetime, timezone
 
 from services.strategy_consumer.postgres_client import PostgresClient
+
+
+# Read the baseline migration SQL for test setup
+_MIGRATION_SQL_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "..",
+    "..",
+    "database",
+    "alembic",
+    "versions",
+    "001_baseline_schema.py",
+)
+
+
+async def _apply_schema(pool):
+    """Apply the baseline schema to a test database using raw DDL.
+
+    In production, Alembic manages schema. In tests, we apply the same SQL
+    directly to avoid requiring Alembic infrastructure.
+    """
+    # Inline the Strategies table DDL (matches V1 baseline migration)
+    create_sql = """
+    CREATE TABLE IF NOT EXISTS Strategies (
+        strategy_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        symbol VARCHAR NOT NULL,
+        strategy_type VARCHAR NOT NULL,
+        parameters JSONB NOT NULL,
+        first_discovered_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        last_evaluated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        current_score DOUBLE PRECISION NOT NULL,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        strategy_hash VARCHAR UNIQUE NOT NULL,
+        discovery_symbol VARCHAR,
+        discovery_start_time TIMESTAMP,
+        discovery_end_time TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_strategies_symbol ON Strategies(symbol);
+    CREATE INDEX IF NOT EXISTS idx_strategies_strategy_type ON Strategies(strategy_type);
+    CREATE INDEX IF NOT EXISTS idx_strategies_current_score ON Strategies(current_score);
+    CREATE INDEX IF NOT EXISTS idx_strategies_is_active ON Strategies(is_active);
+    CREATE INDEX IF NOT EXISTS idx_strategies_discovery_symbol ON Strategies(discovery_symbol);
+    CREATE INDEX IF NOT EXISTS idx_strategies_created_at ON Strategies(created_at);
+
+    CREATE TABLE IF NOT EXISTS strategy_specs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name VARCHAR(255) UNIQUE NOT NULL,
+        version INTEGER DEFAULT 1,
+        description TEXT,
+        complexity VARCHAR(50),
+        indicators JSONB NOT NULL,
+        entry_conditions JSONB NOT NULL,
+        exit_conditions JSONB NOT NULL,
+        parameters JSONB NOT NULL,
+        source VARCHAR(50) NOT NULL,
+        source_citation TEXT,
+        parent_spec_id UUID REFERENCES strategy_specs(id),
+        tags TEXT[],
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS strategy_implementations (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        spec_id UUID NOT NULL REFERENCES strategy_specs(id) ON DELETE CASCADE,
+        parameters JSONB NOT NULL,
+        discovered_by VARCHAR(50) NOT NULL,
+        generation INTEGER,
+        backtest_metrics JSONB,
+        paper_metrics JSONB,
+        live_metrics JSONB,
+        status VARCHAR(20) NOT NULL DEFAULT 'CANDIDATE',
+        deployed_at TIMESTAMP,
+        retired_at TIMESTAMP,
+        notes TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+    """
+    async with pool.acquire() as conn:
+        await conn.execute(create_sql)
 
 
 class TestPostgresClientIntegration:
@@ -34,10 +118,11 @@ class TestPostgresClientIntegration:
         )
 
     @pytest.mark.asyncio
-    async def test_connect_and_create_table(self, postgres_client):
-        """Test connecting to PostgreSQL and creating the strategies table."""
+    async def test_connect_and_verify_schema(self, postgres_client):
+        """Test connecting to PostgreSQL and verifying schema after migration."""
         await postgres_client.connect()
-        await postgres_client.ensure_table_exists()
+        await _apply_schema(postgres_client.pool)
+        await postgres_client.verify_schema()
 
         # Verify the table was created
         async with postgres_client.pool.acquire() as conn:
@@ -47,12 +132,19 @@ class TestPostgresClientIntegration:
             assert result == 1
 
     @pytest.mark.asyncio
+    async def test_verify_schema_fails_without_migration(self, postgres_client):
+        """Test that verify_schema raises error when tables are missing."""
+        await postgres_client.connect()
+        with pytest.raises(RuntimeError, match="Strategies table not found"):
+            await postgres_client.verify_schema()
+
+    @pytest.mark.asyncio
     async def test_insert_strategies_with_timezone_aware_datetimes(
         self, postgres_client
     ):
         """Test inserting strategies with timezone-aware datetime strings."""
         await postgres_client.connect()
-        await postgres_client.ensure_table_exists()
+        await _apply_schema(postgres_client.pool)
 
         # Test data with timezone-aware datetime strings (like what we get from protobuf)
         strategies = [
@@ -113,7 +205,7 @@ class TestPostgresClientIntegration:
     async def test_insert_strategies_with_null_timestamps(self, postgres_client):
         """Test inserting strategies with null timestamp values."""
         await postgres_client.connect()
-        await postgres_client.ensure_table_exists()
+        await _apply_schema(postgres_client.pool)
 
         strategies = [
             {
@@ -145,7 +237,7 @@ class TestPostgresClientIntegration:
     async def test_upsert_logic(self, postgres_client):
         """Test that upsert logic works correctly (insert then update)."""
         await postgres_client.connect()
-        await postgres_client.ensure_table_exists()
+        await _apply_schema(postgres_client.pool)
 
         # Insert initial strategy
         initial_strategy = {
@@ -193,7 +285,7 @@ class TestPostgresClientIntegration:
     async def test_get_strategy_count(self, postgres_client):
         """Test getting the total strategy count."""
         await postgres_client.connect()
-        await postgres_client.ensure_table_exists()
+        await _apply_schema(postgres_client.pool)
 
         # Insert some test strategies
         strategies = [
@@ -223,7 +315,7 @@ class TestPostgresClientIntegration:
     async def test_get_strategies_by_symbol(self, postgres_client):
         """Test getting strategies by symbol."""
         await postgres_client.connect()
-        await postgres_client.ensure_table_exists()
+        await _apply_schema(postgres_client.pool)
 
         # Insert test strategies
         strategies = [
@@ -259,7 +351,7 @@ class TestPostgresClientIntegration:
     async def test_error_handling_invalid_json(self, postgres_client):
         """Test error handling when parameters contain invalid JSON."""
         await postgres_client.connect()
-        await postgres_client.ensure_table_exists()
+        await _apply_schema(postgres_client.pool)
 
         # This should not crash the entire batch
         strategies = [
@@ -280,7 +372,7 @@ class TestPostgresClientIntegration:
     async def test_error_handling_missing_required_fields(self, postgres_client):
         """Test error handling when required fields are missing."""
         await postgres_client.connect()
-        await postgres_client.ensure_table_exists()
+        await _apply_schema(postgres_client.pool)
 
         # Strategy missing required fields should be skipped
         strategies = [

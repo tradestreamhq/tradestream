@@ -216,3 +216,11 @@ py_library(
         requirement("httpx"),
     ],
 )
+
+py_library(
+    name = "alembic",
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("alembic"),
+    ],
+)
