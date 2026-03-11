@@ -1,9 +1,20 @@
 package com.verlumen.tradestream.strategies.gannswing;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.verlumen.tradestream.strategies.GannSwingParameters;
 import com.verlumen.tradestream.strategies.StrategyFactory;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseStrategy;
+import org.ta4j.core.Rule;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.indicators.helpers.HighPriceIndicator;
+import org.ta4j.core.indicators.helpers.HighestValueIndicator;
+import org.ta4j.core.indicators.helpers.LowPriceIndicator;
+import org.ta4j.core.indicators.helpers.LowestValueIndicator;
+import org.ta4j.core.rules.OverIndicatorRule;
+import org.ta4j.core.rules.UnderIndicatorRule;
 
 public final class GannSwingStrategyFactory implements StrategyFactory<GannSwingParameters> {
   @Override
@@ -13,71 +24,30 @@ public final class GannSwingStrategyFactory implements StrategyFactory<GannSwing
 
   @Override
   public Strategy createStrategy(BarSeries series, GannSwingParameters parameters) {
-    // TODO: Implement the actual Gann Swing strategy logic using TA4J or custom indicators.
-    // For now, return a dummy Strategy implementation.
-    return new Strategy() {
-      @Override
-      public boolean shouldEnter(int index) {
-        return false;
-      }
+    checkArgument(parameters.getGannPeriod() > 0, "Gann period must be positive");
 
-      @Override
-      public boolean shouldExit(int index) {
-        return false;
-      }
+    ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
 
-      @Override
-      public String getName() {
-        return "GannSwingDummy";
-      }
+    // Swing high: highest high over the Gann period
+    HighPriceIndicator highPrice = new HighPriceIndicator(series);
+    HighestValueIndicator swingHigh =
+        new HighestValueIndicator(highPrice, parameters.getGannPeriod());
 
-      @Override
-      public boolean isUnstableAt(int index) {
-        return false;
-      }
+    // Swing low: lowest low over the Gann period
+    LowPriceIndicator lowPrice = new LowPriceIndicator(series);
+    LowestValueIndicator swingLow =
+        new LowestValueIndicator(lowPrice, parameters.getGannPeriod());
 
-      @Override
-      public int getUnstableBars() {
-        return 0;
-      }
+    // Entry: price breaks above swing high (bullish breakout)
+    Rule entryRule = new OverIndicatorRule(closePrice, swingHigh);
 
-      @Override
-      public void setUnstableBars(int unstableBars) {}
+    // Exit: price breaks below swing low (bearish breakdown)
+    Rule exitRule = new UnderIndicatorRule(closePrice, swingLow);
 
-      @Override
-      public Strategy opposite() {
-        return this;
-      }
-
-      @Override
-      public Strategy or(String name, Strategy other, int unstablePeriod) {
-        return this;
-      }
-
-      @Override
-      public Strategy and(String name, Strategy other, int unstablePeriod) {
-        return this;
-      }
-
-      @Override
-      public Strategy or(Strategy other) {
-        return this;
-      }
-
-      @Override
-      public Strategy and(Strategy other) {
-        return this;
-      }
-
-      @Override
-      public org.ta4j.core.Rule getEntryRule() {
-        return null;
-      }
-
-      @Override
-      public org.ta4j.core.Rule getExitRule() {
-        return null;
-      }
-    };
+    return new BaseStrategy(
+        String.format("%s (Period: %d)", "GANN_SWING", parameters.getGannPeriod()),
+        entryRule,
+        exitRule,
+        parameters.getGannPeriod());
   }
 }

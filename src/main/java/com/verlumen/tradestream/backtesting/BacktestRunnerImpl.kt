@@ -67,9 +67,10 @@ class BacktestRunnerImpl
             val sharpeRatio = calculateSharpeRatio(cumulativeReturn, volatility)
             val sortinoRatio = calculateSortinoRatio(series, tradingRecord)
 
-            // Alpha/Beta (simplified calculation)
-            val alpha = 0.0 // TODO: Implement when benchmark data is available
-            val beta = 1.0 // TODO: Implement when benchmark data is available
+            // Alpha and beta require benchmark data (e.g. market index returns) which is
+            // not available in the current backtest scope. Default to neutral values.
+            val alpha = 0.0
+            val beta = 1.0
 
             val score = calculateScore(sharpeRatio, maxDrawdown, winRate, annualizedReturn, profitFactor)
 

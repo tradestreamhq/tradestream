@@ -20,6 +20,7 @@ java_library(
         ":param_config",
         "//protos:strategies_java_proto",
         "//src/main/java/com/verlumen/tradestream/strategies:strategy_factory",
+        "//third_party/java:guava",
         "//third_party/java:ta4j_core",
     ],
 )
