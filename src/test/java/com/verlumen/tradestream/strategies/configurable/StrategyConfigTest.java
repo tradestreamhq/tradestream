@@ -13,8 +13,7 @@ public class StrategyConfigTest {
 
   @Test
   public void builder_createsCorrectConfig() {
-    ParameterDefinition param =
-        new ParameterDefinition("period", ParameterType.INTEGER, 5, 50, 20);
+    ParameterDefinition param = new ParameterDefinition("period", ParameterType.INTEGER, 5, 50, 20);
     IndicatorConfig indicator =
         new IndicatorConfig("sma", "SMA", "close", Map.of("period", "${period}"));
     ConditionConfig entry = new ConditionConfig("CROSSOVER", "sma", Map.of());
@@ -109,10 +108,8 @@ public class StrategyConfigTest {
 
   @Test
   public void equals_differentName_returnsFalse() {
-    StrategyConfig a =
-        StrategyConfig.builder().name("test1").indicators(List.of()).build();
-    StrategyConfig b =
-        StrategyConfig.builder().name("test2").indicators(List.of()).build();
+    StrategyConfig a = StrategyConfig.builder().name("test1").indicators(List.of()).build();
+    StrategyConfig b = StrategyConfig.builder().name("test2").indicators(List.of()).build();
     assertNotEquals(a, b);
   }
 
