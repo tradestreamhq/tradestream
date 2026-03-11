@@ -1246,31 +1246,87 @@ def fetch_strategy_by_id(strategy_id: str) -> Optional[Dict]:
         conn.close()
 
 
-def fetch_distinct_symbols() -> List[str]:
-    """Fetch distinct non-stablecoin symbols from active strategies."""
+def fetch_distinct_symbols(
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+) -> tuple:
+    """Fetch distinct non-stablecoin symbols from active strategies with pagination.
+
+    Returns (symbols_list, total_count).
+    """
+    limit, offset = clamp_pagination(limit, offset)
     conn = get_db_connection()
 
     try:
         cursor = conn.cursor()
+
+        # Build stablecoin exclusion list with a safety cap
         cursor.execute(
-            "SELECT DISTINCT symbol FROM Strategies WHERE is_active = TRUE ORDER BY symbol"
+            "SELECT DISTINCT symbol FROM Strategies WHERE is_active = TRUE LIMIT 10000"
         )
         all_symbols = [row[0] for row in cursor.fetchall()]
-        return [s for s in all_symbols if not is_stablecoin(s)]
+        stablecoin_symbols = [s for s in all_symbols if is_stablecoin(s)]
+
+        # Build WHERE clause excluding stablecoins
+        if stablecoin_symbols:
+            placeholders = ",".join(["%s"] * len(stablecoin_symbols))
+            exclusion_clause = f" AND symbol NOT IN ({placeholders})"
+            exclusion_params = tuple(stablecoin_symbols)
+        else:
+            exclusion_clause = ""
+            exclusion_params = ()
+
+        # Count query
+        cursor.execute(
+            "SELECT COUNT(DISTINCT symbol) FROM Strategies WHERE is_active = TRUE"
+            + exclusion_clause,
+            exclusion_params,
+        )
+        total_count = cursor.fetchone()[0]
+
+        # Paginated data query
+        cursor.execute(
+            "SELECT DISTINCT symbol FROM Strategies WHERE is_active = TRUE"
+            + exclusion_clause
+            + " ORDER BY symbol LIMIT %s OFFSET %s",
+            exclusion_params + (limit, offset),
+        )
+        symbols = [row[0] for row in cursor.fetchall()]
+
+        return symbols, total_count
     finally:
         conn.close()
 
 
-def fetch_distinct_strategy_types() -> List[str]:
-    """Fetch distinct strategy types from active strategies."""
+def fetch_distinct_strategy_types(
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+) -> tuple:
+    """Fetch distinct strategy types from active strategies with pagination.
+
+    Returns (strategy_types_list, total_count).
+    """
+    limit, offset = clamp_pagination(limit, offset)
     conn = get_db_connection()
 
     try:
         cursor = conn.cursor()
+
+        # Count query
         cursor.execute(
-            "SELECT DISTINCT strategy_type FROM Strategies WHERE is_active = TRUE ORDER BY strategy_type"
+            "SELECT COUNT(DISTINCT strategy_type) FROM Strategies WHERE is_active = TRUE"
         )
-        return [row[0] for row in cursor.fetchall()]
+        total_count = cursor.fetchone()[0]
+
+        # Paginated data query
+        cursor.execute(
+            "SELECT DISTINCT strategy_type FROM Strategies WHERE is_active = TRUE"
+            " ORDER BY strategy_type LIMIT %s OFFSET %s",
+            (limit, offset),
+        )
+        strategy_types = [row[0] for row in cursor.fetchall()]
+
+        return strategy_types, total_count
     finally:
         conn.close()
 
@@ -1282,8 +1338,8 @@ def fetch_strategy_metrics() -> Dict:
     try:
         cursor = conn.cursor()
 
-        # Get all symbols to filter out stablecoins
-        cursor.execute("SELECT DISTINCT symbol FROM Strategies WHERE is_active = TRUE")
+        # Get all symbols to filter out stablecoins (safety cap)
+        cursor.execute("SELECT DISTINCT symbol FROM Strategies WHERE is_active = TRUE LIMIT 10000")
         all_symbols = [row[0] for row in cursor.fetchall()]
         non_stablecoin_symbols = [s for s in all_symbols if not is_stablecoin(s)]
 
@@ -1490,11 +1546,10 @@ def get_symbols():
         limit = request.args.get("limit", type=int)
         offset = request.args.get("offset", default=0, type=int)
 
-        symbols = fetch_distinct_symbols()
-
-        total_count = len(symbols)
         applied_limit, applied_offset = clamp_pagination(limit, offset)
-        symbols = symbols[applied_offset : applied_offset + applied_limit]
+        symbols, total_count = fetch_distinct_symbols(
+            limit=applied_limit, offset=applied_offset
+        )
 
         return jsonify(
             {
@@ -1519,11 +1574,10 @@ def get_strategy_types():
         limit = request.args.get("limit", type=int)
         offset = request.args.get("offset", default=0, type=int)
 
-        strategy_types = fetch_distinct_strategy_types()
-
-        total_count = len(strategy_types)
         applied_limit, applied_offset = clamp_pagination(limit, offset)
-        strategy_types = strategy_types[applied_offset : applied_offset + applied_limit]
+        strategy_types, total_count = fetch_distinct_strategy_types(
+            limit=applied_limit, offset=applied_offset
+        )
 
         return jsonify(
             {

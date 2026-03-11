@@ -622,7 +622,7 @@ class TestAPIEndpoints(unittest.TestCase):
     def test_symbols_endpoint_success(self, mock_fetch):
         """Test symbols endpoint with successful fetch."""
         # Arrange
-        mock_fetch.return_value = ["BTC/USD", "ETH/USD"]
+        mock_fetch.return_value = (["BTC/USD", "ETH/USD"], 2)
 
         # Act
         response = self.client.get("/api/symbols")
@@ -635,6 +635,7 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertIn("count", data)
         self.assertEqual(data["count"], 2)
         self.assertIn("total_count", data)
+        self.assertEqual(data["total_count"], 2)
         self.assertIn("limit", data)
         self.assertIn("offset", data)
 
@@ -642,7 +643,7 @@ class TestAPIEndpoints(unittest.TestCase):
     def test_strategy_types_endpoint_success(self, mock_fetch):
         """Test strategy types endpoint with successful fetch."""
         # Arrange
-        mock_fetch.return_value = ["RSI_EMA_CROSSOVER", "SMA_EMA_CROSSOVER"]
+        mock_fetch.return_value = (["RSI_EMA_CROSSOVER", "SMA_EMA_CROSSOVER"], 2)
 
         # Act
         response = self.client.get("/api/strategy-types")
@@ -655,6 +656,7 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertIn("count", data)
         self.assertEqual(data["count"], 2)
         self.assertIn("total_count", data)
+        self.assertEqual(data["total_count"], 2)
         self.assertIn("limit", data)
         self.assertIn("offset", data)
 
@@ -752,7 +754,9 @@ class TestPaginatedEndpoints(unittest.TestCase):
     @patch("main.fetch_distinct_symbols")
     def test_symbols_pagination(self, mock_fetch):
         """Test symbols endpoint pagination."""
-        mock_fetch.return_value = [f"SYM{i}" for i in range(100)]
+        # DB-level pagination now returns only the requested page
+        page_data = [f"SYM{i}" for i in range(5, 15)]
+        mock_fetch.return_value = (page_data, 100)
 
         response = self.client.get("/api/symbols?limit=10&offset=5")
 
@@ -763,11 +767,15 @@ class TestPaginatedEndpoints(unittest.TestCase):
         self.assertEqual(data["offset"], 5)
         self.assertEqual(len(data["symbols"]), 10)
         self.assertEqual(data["symbols"][0], "SYM5")
+        # Verify fetch was called with pagination params
+        mock_fetch.assert_called_once_with(limit=10, offset=5)
 
     @patch("main.fetch_distinct_strategy_types")
     def test_strategy_types_pagination(self, mock_fetch):
         """Test strategy types endpoint pagination."""
-        mock_fetch.return_value = [f"TYPE_{i}" for i in range(60)]
+        # DB-level pagination now returns only the requested page
+        page_data = [f"TYPE_{i}" for i in range(10, 30)]
+        mock_fetch.return_value = (page_data, 60)
 
         response = self.client.get("/api/strategy-types?limit=20&offset=10")
 
@@ -777,6 +785,125 @@ class TestPaginatedEndpoints(unittest.TestCase):
         self.assertEqual(data["limit"], 20)
         self.assertEqual(data["offset"], 10)
         self.assertEqual(len(data["strategy_types"]), 20)
+        # Verify fetch was called with pagination params
+        mock_fetch.assert_called_once_with(limit=20, offset=10)
+
+
+class TestDatabasePagination(unittest.TestCase):
+    """Test that database fetch functions push pagination to SQL."""
+
+    def setUp(self):
+        import main
+
+        main.DB_CONFIG = {
+            "host": "localhost",
+            "port": 5432,
+            "database": "test",
+            "username": "test",
+            "password": "test",
+        }
+
+    def tearDown(self):
+        import main
+
+        main.DB_CONFIG = {}
+
+    @patch("main.get_db_connection")
+    @patch("main.is_stablecoin")
+    def test_fetch_distinct_symbols_uses_sql_pagination(
+        self, mock_is_stablecoin, mock_get_connection
+    ):
+        """Test that fetch_distinct_symbols pushes LIMIT/OFFSET to SQL."""
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.side_effect = [
+            [("BTC/USD",), ("ETH/USD",)],  # stablecoin lookup
+            [("BTC/USD",), ("ETH/USD",)],  # paginated results
+        ]
+        mock_cursor.fetchone.return_value = (2,)  # count
+
+        mock_connection = MagicMock()
+        mock_connection.cursor.return_value = mock_cursor
+        mock_get_connection.return_value = mock_connection
+        mock_is_stablecoin.return_value = False
+
+        symbols, total_count = fetch_distinct_symbols(limit=10, offset=0)
+
+        self.assertEqual(total_count, 2)
+        self.assertEqual(symbols, ["BTC/USD", "ETH/USD"])
+        # Verify SQL was called with LIMIT and OFFSET params
+        calls = mock_cursor.execute.call_args_list
+        # The paginated data query should contain LIMIT
+        last_query = calls[-1][0][0]
+        self.assertIn("LIMIT", last_query)
+        self.assertIn("OFFSET", last_query)
+
+    @patch("main.get_db_connection")
+    def test_fetch_distinct_strategy_types_uses_sql_pagination(
+        self, mock_get_connection
+    ):
+        """Test that fetch_distinct_strategy_types pushes LIMIT/OFFSET to SQL."""
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = (5,)  # count
+        mock_cursor.fetchall.return_value = [
+            ("SMA_EMA_CROSSOVER",),
+            ("RSI_EMA",),
+        ]
+
+        mock_connection = MagicMock()
+        mock_connection.cursor.return_value = mock_cursor
+        mock_get_connection.return_value = mock_connection
+
+        types, total_count = fetch_distinct_strategy_types(limit=10, offset=0)
+
+        self.assertEqual(total_count, 5)
+        self.assertEqual(types, ["SMA_EMA_CROSSOVER", "RSI_EMA"])
+        # Verify SQL was called with LIMIT and OFFSET params
+        calls = mock_cursor.execute.call_args_list
+        last_query = calls[-1][0][0]
+        self.assertIn("LIMIT", last_query)
+        self.assertIn("OFFSET", last_query)
+
+    @patch("main.get_db_connection")
+    def test_fetch_distinct_strategy_types_returns_tuple(self, mock_get_connection):
+        """Test that fetch_distinct_strategy_types returns (list, count) tuple."""
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = (3,)
+        mock_cursor.fetchall.return_value = [("TYPE_A",), ("TYPE_B",), ("TYPE_C",)]
+
+        mock_connection = MagicMock()
+        mock_connection.cursor.return_value = mock_cursor
+        mock_get_connection.return_value = mock_connection
+
+        result = fetch_distinct_strategy_types()
+
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 2)
+        types, count = result
+        self.assertIsInstance(types, list)
+        self.assertEqual(count, 3)
+
+    @patch("main.get_db_connection")
+    @patch("main.is_stablecoin")
+    def test_fetch_distinct_symbols_returns_tuple(
+        self, mock_is_stablecoin, mock_get_connection
+    ):
+        """Test that fetch_distinct_symbols returns (list, count) tuple."""
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.side_effect = [
+            [("BTC/USD",)],  # stablecoin lookup
+            [("BTC/USD",)],  # paginated results
+        ]
+        mock_cursor.fetchone.return_value = (1,)
+
+        mock_connection = MagicMock()
+        mock_connection.cursor.return_value = mock_cursor
+        mock_get_connection.return_value = mock_connection
+        mock_is_stablecoin.return_value = False
+
+        result = fetch_distinct_symbols()
+
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 2)
 
 
 class TestConfigurationAndInitialization(unittest.TestCase):
