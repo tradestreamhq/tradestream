@@ -43,9 +43,8 @@ py_binary(
     name = "strategy_inspector",
     srcs = ["strategy_inspector.py"],
     deps = [
-        "//protos:strategies_py_proto",
+        "//services/shared:strategy_parameter_registry",
         "//third_party/python:asyncpg",
-        "//third_party/python:protobuf",
     ],
 )
 

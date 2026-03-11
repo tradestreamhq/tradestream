@@ -45,6 +45,7 @@ py_library(
         "//protos:backtesting_py_proto",
         "//protos:marketdata_py_proto",
         "//protos:strategies_py_proto",
+        "//services/shared:strategy_parameter_registry",
         "//third_party/python:grpcio",
         "//third_party/python:numpy",
         "//third_party/python:pandas",
