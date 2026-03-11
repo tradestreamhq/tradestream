@@ -13,6 +13,7 @@ import org.ta4j.core.indicators.adx.ADXIndicator;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
+@Deprecated
 public final class AdxStochasticStrategyFactory
     implements StrategyFactory<AdxStochasticParameters> {
   @Override

@@ -8,6 +8,7 @@ import com.verlumen.tradestream.strategies.ChaikinOscillatorParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public class ChaikinOscillatorParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(
