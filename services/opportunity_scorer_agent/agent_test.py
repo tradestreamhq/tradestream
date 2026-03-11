@@ -274,6 +274,7 @@ class TestCallMcpTool:
         assert TOOL_TO_MCP_SERVER["get_recent_signals"] == "signal"
         assert TOOL_TO_MCP_SERVER["get_volatility"] == "market"
         assert TOOL_TO_MCP_SERVER["get_performance"] == "strategy"
+        assert TOOL_TO_MCP_SERVER["get_performance_batch"] == "strategy"
         assert TOOL_TO_MCP_SERVER["log_decision"] == "signal"
 
     @mock.patch("services.opportunity_scorer_agent.agent.requests")
@@ -427,6 +428,74 @@ class TestScoreSignal:
         mock_mcp.assert_called_once_with(
             "get_volatility", {"symbol": "BTC/USD"}, mcp_urls
         )
+
+    @mock.patch("services.opportunity_scorer_agent.agent.OpenAI")
+    @mock.patch("services.opportunity_scorer_agent.agent._call_mcp_tool")
+    def test_score_signal_concurrent_tool_calls(
+        self, mock_mcp, mock_openai_cls, mcp_urls, sample_signal
+    ):
+        """Test that multiple tool calls in one response are executed concurrently."""
+        mock_client = mock.MagicMock()
+        mock_openai_cls.return_value = mock_client
+
+        # First response: two tool calls at once (volatility + batch performance)
+        tc_vol = mock.MagicMock()
+        tc_vol.id = "call-vol"
+        tc_vol.function.name = "get_volatility"
+        tc_vol.function.arguments = json.dumps({"symbol": "BTC/USD"})
+
+        tc_batch = mock.MagicMock()
+        tc_batch.id = "call-batch"
+        tc_batch.function.name = "get_performance_batch"
+        tc_batch.function.arguments = json.dumps(
+            {"impl_ids": ["impl-1", "impl-2", "impl-3"]}
+        )
+
+        tool_message = mock.MagicMock()
+        tool_message.tool_calls = [tc_vol, tc_batch]
+
+        tool_response = mock.MagicMock()
+        tool_response.choices = [mock.MagicMock(message=tool_message)]
+        tool_response.usage = mock.MagicMock(total_tokens=50)
+
+        # Final response
+        final_json = {
+            "score": 72.5,
+            "tier": "GOOD",
+            "reasoning": "Batched performance data",
+        }
+        final_message = mock.MagicMock()
+        final_message.tool_calls = None
+        final_message.content = json.dumps(final_json)
+
+        final_response = mock.MagicMock()
+        final_response.choices = [mock.MagicMock(message=final_message)]
+        final_response.usage = mock.MagicMock(total_tokens=80)
+
+        mock_client.chat.completions.create.side_effect = [
+            tool_response,
+            final_response,
+        ]
+
+        def mcp_side_effect(name, args, urls):
+            if name == "get_volatility":
+                return {"atr": 0.025, "stddev": 0.012}
+            elif name == "get_performance_batch":
+                return {
+                    "impl-1": {"backtest": {"sharpe_ratio": 1.5}},
+                    "impl-2": {"backtest": {"sharpe_ratio": 2.0}},
+                    "impl-3": {"backtest": {"sharpe_ratio": 0.8}},
+                }
+            return {}
+
+        mock_mcp.side_effect = mcp_side_effect
+
+        result = score_signal(sample_signal, "test-key", mcp_urls)
+
+        assert result is not None
+        assert result["score"] == 72.5
+        # Both tools should have been called
+        assert mock_mcp.call_count == 2
 
     @mock.patch("services.opportunity_scorer_agent.agent.OpenAI")
     @mock.patch("services.opportunity_scorer_agent.agent._call_mcp_tool")

@@ -25,15 +25,16 @@ class TestMCPServer:
         return pg
 
     @pytest.mark.asyncio
-    async def test_list_tools_returns_six(self):
-        """Test that list_tools returns all 6 tools."""
+    async def test_list_tools_returns_seven(self):
+        """Test that list_tools returns all 7 tools."""
         tools = await list_tools()
-        assert len(tools) == 6
+        assert len(tools) == 7
         names = {t.name for t in tools}
         assert names == {
             "get_top_strategies",
             "get_spec",
             "get_performance",
+            "get_performance_batch",
             "list_strategy_types",
             "create_spec",
             "get_walk_forward",
@@ -139,6 +140,41 @@ class TestMCPServer:
 
         data = json.loads(result[0].text)
         assert "error" in data
+
+    @pytest.mark.asyncio
+    async def test_get_performance_batch(self, mock_pg):
+        """Test get_performance_batch tool."""
+        mock_pg.get_performance_batch.return_value = {
+            "impl-1": {"backtest": {"sharpe_ratio": 1.5}},
+            "impl-2": {"backtest": {"sharpe_ratio": 2.0}},
+        }
+
+        result = await call_tool(
+            "get_performance_batch", {"impl_ids": ["impl-1", "impl-2"]}
+        )
+
+        data = json.loads(result[0].text)
+        assert "impl-1" in data
+        assert "impl-2" in data
+        mock_pg.get_performance_batch.assert_called_once_with(
+            impl_ids=["impl-1", "impl-2"], environment=None
+        )
+
+    @pytest.mark.asyncio
+    async def test_get_performance_batch_with_environment(self, mock_pg):
+        """Test get_performance_batch with environment filter."""
+        mock_pg.get_performance_batch.return_value = {
+            "impl-1": {"backtest": {"sharpe_ratio": 1.5}},
+        }
+
+        await call_tool(
+            "get_performance_batch",
+            {"impl_ids": ["impl-1"], "environment": "backtest"},
+        )
+
+        mock_pg.get_performance_batch.assert_called_once_with(
+            impl_ids=["impl-1"], environment="backtest"
+        )
 
     @pytest.mark.asyncio
     async def test_list_strategy_types(self, mock_pg):

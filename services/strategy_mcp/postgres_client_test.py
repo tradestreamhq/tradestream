@@ -191,6 +191,101 @@ class TestPostgresClient:
             assert "paper" not in result
 
     @pytest.mark.asyncio
+    async def test_get_performance_batch(self, postgres_client):
+        """Test getting performance metrics for multiple implementations."""
+        with patch("asyncpg.create_pool") as mock_create_pool:
+            mock_pool = AsyncMock()
+            mock_create_pool.return_value = mock_pool
+            mock_conn = AsyncMock()
+            mock_pool.acquire.return_value.__aenter__.return_value = mock_conn
+
+            impl_id_1 = "00000000-0000-0000-0000-000000000001"
+            impl_id_2 = "00000000-0000-0000-0000-000000000002"
+
+            mock_row1 = MagicMock()
+            row1_data = {
+                "id": impl_id_1,
+                "backtest_metrics": {"sharpe_ratio": 1.5},
+                "paper_metrics": None,
+                "live_metrics": None,
+            }
+            mock_row1.__getitem__.side_effect = lambda key: row1_data[key]
+            mock_row1.get = lambda key: row1_data.get(key)
+
+            mock_row2 = MagicMock()
+            row2_data = {
+                "id": impl_id_2,
+                "backtest_metrics": {"sharpe_ratio": 2.0},
+                "paper_metrics": {"sharpe_ratio": 1.8},
+                "live_metrics": None,
+            }
+            mock_row2.__getitem__.side_effect = lambda key: row2_data[key]
+            mock_row2.get = lambda key: row2_data.get(key)
+
+            mock_conn.fetch.return_value = [mock_row1, mock_row2]
+
+            await postgres_client.connect()
+            result = await postgres_client.get_performance_batch([impl_id_1, impl_id_2])
+
+            assert impl_id_1 in result
+            assert impl_id_2 in result
+            assert "backtest" in result[impl_id_1]
+            assert "backtest" in result[impl_id_2]
+            assert "paper" in result[impl_id_2]
+
+    @pytest.mark.asyncio
+    async def test_get_performance_batch_empty(self, postgres_client):
+        """Test batch with empty list returns empty dict."""
+        with patch("asyncpg.create_pool") as mock_create_pool:
+            mock_pool = AsyncMock()
+            mock_create_pool.return_value = mock_pool
+            mock_conn = AsyncMock()
+            mock_pool.acquire.return_value.__aenter__.return_value = mock_conn
+
+            await postgres_client.connect()
+            result = await postgres_client.get_performance_batch([])
+
+            assert result == {}
+
+    @pytest.mark.asyncio
+    async def test_get_performance_batch_missing_impl(self, postgres_client):
+        """Test batch with some missing implementations returns None for missing."""
+        with patch("asyncpg.create_pool") as mock_create_pool:
+            mock_pool = AsyncMock()
+            mock_create_pool.return_value = mock_pool
+            mock_conn = AsyncMock()
+            mock_pool.acquire.return_value.__aenter__.return_value = mock_conn
+
+            impl_id_1 = "00000000-0000-0000-0000-000000000001"
+            impl_id_missing = "00000000-0000-0000-0000-000000000099"
+
+            mock_row1 = MagicMock()
+            row1_data = {
+                "id": impl_id_1,
+                "backtest_metrics": {"sharpe_ratio": 1.5},
+                "paper_metrics": None,
+                "live_metrics": None,
+            }
+            mock_row1.__getitem__.side_effect = lambda key: row1_data[key]
+            mock_row1.get = lambda key: row1_data.get(key)
+
+            mock_conn.fetch.return_value = [mock_row1]
+
+            await postgres_client.connect()
+            result = await postgres_client.get_performance_batch(
+                [impl_id_1, impl_id_missing]
+            )
+
+            assert result[impl_id_1] is not None
+            assert result[impl_id_missing] is None
+
+    @pytest.mark.asyncio
+    async def test_get_performance_batch_not_connected(self, postgres_client):
+        """Test batch raises when not connected."""
+        with pytest.raises(RuntimeError, match="PostgreSQL connection not established"):
+            await postgres_client.get_performance_batch(["impl-1"])
+
+    @pytest.mark.asyncio
     async def test_list_strategy_types(self, postgres_client):
         """Test listing strategy types."""
         with patch("asyncpg.create_pool") as mock_create_pool:

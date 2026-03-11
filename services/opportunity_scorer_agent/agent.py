@@ -2,6 +2,7 @@
 
 import json
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 from openai import OpenAI
@@ -36,11 +37,13 @@ Map the computed score to a tier:
 ## Workflow
 1. You will receive a signal to score
 2. Call get_volatility for the signal's symbol to get ATR data
-3. Call get_performance for each strategy in the signal's strategy_breakdown to get Sharpe ratios
+3. Call get_performance_batch with all impl_ids from the signal's strategy_breakdown to get Sharpe ratios in a single call
 4. Apply /score-signal to compute the score using the formula above
 5. Apply /assign-tier to map the score to a tier
 6. Call log_decision to record the score, tier, and reasoning
 7. Respond with a JSON object: {"score": <number>, "tier": "<string>", "reasoning": "<string>"}
+
+IMPORTANT: Always use get_performance_batch instead of calling get_performance individually for each strategy. This reduces latency by fetching all performance data in one request.
 
 Always respond with a single JSON object as your final answer. Do not include markdown formatting."""
 
@@ -70,14 +73,15 @@ TOOLS = [
     {
         "type": "function",
         "function": {
-            "name": "get_performance",
-            "description": "Get performance metrics for a strategy implementation",
+            "name": "get_performance_batch",
+            "description": "Get performance metrics for multiple strategy implementations in one call. Use this instead of calling get_performance for each strategy individually.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "impl_id": {
-                        "type": "string",
-                        "description": "Strategy implementation UUID",
+                    "impl_ids": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of strategy implementation UUIDs",
                     },
                     "environment": {
                         "type": "string",
@@ -85,7 +89,7 @@ TOOLS = [
                         "description": "Filter to specific environment",
                     },
                 },
-                "required": ["impl_id"],
+                "required": ["impl_ids"],
             },
         },
     },
@@ -151,6 +155,7 @@ TOOL_TO_MCP_SERVER = {
     "get_recent_signals": "signal",
     "get_volatility": "market",
     "get_performance": "strategy",
+    "get_performance_batch": "strategy",
     "log_decision": "signal",
 }
 
@@ -258,8 +263,8 @@ def score_signal(signal, api_key, mcp_urls):
             "role": "user",
             "content": (
                 f"Score this signal:\n{signal_json}\n\n"
-                "Follow the workflow: get volatility, get performance for "
-                "each strategy, compute score, assign tier, log decision."
+                "Follow the workflow: get volatility, get performance batch "
+                "for all strategies, compute score, assign tier, log decision."
             ),
         },
     ]
@@ -279,24 +284,56 @@ def score_signal(signal, api_key, mcp_urls):
 
         if message.tool_calls:
             messages.append(message)
-            for tool_call in message.tool_calls:
+
+            # Execute multiple tool calls concurrently
+            tool_results = {}
+            if len(message.tool_calls) > 1:
+                with ThreadPoolExecutor(
+                    max_workers=len(message.tool_calls)
+                ) as executor:
+                    futures = {}
+                    for tool_call in message.tool_calls:
+                        fn_name = tool_call.function.name
+                        fn_args = json.loads(tool_call.function.arguments)
+                        logging.info("Tool call: %s(%s)", fn_name, json.dumps(fn_args))
+                        all_tool_calls.append({"name": fn_name, "arguments": fn_args})
+                        future = executor.submit(
+                            _call_mcp_tool, fn_name, fn_args, mcp_urls
+                        )
+                        futures[future] = tool_call
+
+                    for future in as_completed(futures):
+                        tc = futures[future]
+                        try:
+                            tool_results[tc.id] = future.result()
+                        except Exception as e:
+                            tool_results[tc.id] = {"error": str(e)}
+                            logging.error(
+                                "MCP call failed: %s - %s",
+                                tc.function.name,
+                                e,
+                            )
+            else:
+                tool_call = message.tool_calls[0]
                 fn_name = tool_call.function.name
                 fn_args = json.loads(tool_call.function.arguments)
-
                 logging.info("Tool call: %s(%s)", fn_name, json.dumps(fn_args))
                 all_tool_calls.append({"name": fn_name, "arguments": fn_args})
-
                 try:
-                    result = _call_mcp_tool(fn_name, fn_args, mcp_urls)
+                    tool_results[tool_call.id] = _call_mcp_tool(
+                        fn_name, fn_args, mcp_urls
+                    )
                 except Exception as e:
-                    result = {"error": str(e)}
+                    tool_results[tool_call.id] = {"error": str(e)}
                     logging.error("MCP call failed: %s - %s", fn_name, e)
 
+            # Append tool results in the original order
+            for tool_call in message.tool_calls:
                 messages.append(
                     {
                         "role": "tool",
                         "tool_call_id": tool_call.id,
-                        "content": json.dumps(result),
+                        "content": json.dumps(tool_results[tool_call.id]),
                     }
                 )
         else:
