@@ -9,6 +9,7 @@ import io.jenetics.DoubleChromosome;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public final class AtrTrailingStopParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(

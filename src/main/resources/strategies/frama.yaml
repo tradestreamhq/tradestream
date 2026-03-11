@@ -1,0 +1,49 @@
+name: FRAMA
+description: Fractal Adaptive Moving Average strategy using KAMA as fractal-responsive indicator
+complexity: MEDIUM
+parameterMessageType: com.verlumen.tradestream.strategies.FramaParameters
+
+indicators:
+  - id: close
+    type: CLOSE
+  - id: frama
+    type: KAMA
+    input: close
+    params:
+      period: "${fc}"
+      fastPeriod: 2
+      slowPeriod: 30
+  - id: slowMa
+    type: EMA
+    input: close
+    params:
+      period: 50
+
+entryConditions:
+  - type: CROSSED_UP
+    indicator: close
+    params:
+      crosses: frama
+
+exitConditions:
+  - type: CROSSED_DOWN
+    indicator: close
+    params:
+      crosses: frama
+
+parameters:
+  - name: sc
+    type: DOUBLE
+    min: 100.0
+    max: 300.0
+    defaultValue: 200.0
+  - name: fc
+    type: INTEGER
+    min: 1
+    max: 10
+    defaultValue: 4
+  - name: alpha
+    type: DOUBLE
+    min: 0.1
+    max: 1.0
+    defaultValue: 0.5
