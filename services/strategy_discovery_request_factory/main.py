@@ -41,7 +41,7 @@ flags.DEFINE_string(
 )
 flags.DEFINE_string("influxdb_token", os.getenv("INFLUXDB_TOKEN"), "InfluxDB token")
 flags.DEFINE_string("influxdb_org", os.getenv("INFLUXDB_ORG"), "InfluxDB organization")
-flags.DEFINE_string("influxdb_bucket_tracker", "tradestream-data", "Tracker bucket")
+flags.DEFINE_string("influxdb_bucket_tracker", os.getenv("INFLUXDB_BUCKET", ""), "Tracker bucket")
 flags.DEFINE_string(
     "tracker_service_name",
     "strategy_discovery",

@@ -5,6 +5,7 @@ Runs as a cron job that processes messages and winds down when no work is availa
 """
 
 import asyncio
+import os
 import signal
 import sys
 import time
@@ -74,7 +75,7 @@ flags.DEFINE_integer(
 )
 flags.DEFINE_string(
     "postgres_database",
-    "tradestream",
+    os.environ.get("POSTGRES_DATABASE", ""),
     "PostgreSQL database name.",
 )
 flags.DEFINE_string(

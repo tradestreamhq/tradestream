@@ -23,7 +23,7 @@ def get_url():
     password = os.environ.get("POSTGRES_PASSWORD", "")
     host = os.environ.get("POSTGRES_HOST", "localhost")
     port = os.environ.get("POSTGRES_PORT", "5432")
-    db = os.environ.get("POSTGRES_DB", "tradestream")
+    db = os.environ.get("POSTGRES_DB", "")
     return f"postgresql://{user}:{password}@{host}:{port}/{db}"
 
 
