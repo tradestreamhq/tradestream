@@ -8,6 +8,7 @@ import com.verlumen.tradestream.strategies.CmfZeroLineParameters;
 import io.jenetics.IntegerChromosome;
 import io.jenetics.NumericChromosome;
 
+@Deprecated
 public class CmfZeroLineParamConfig implements ParamConfig {
   private static final ImmutableList<ChromosomeSpec<?>> SPECS =
       ImmutableList.of(

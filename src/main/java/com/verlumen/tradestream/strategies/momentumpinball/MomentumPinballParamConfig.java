@@ -17,6 +17,7 @@ import java.util.logging.Logger;
  * opportunities. It enters when long momentum is positive and short momentum crosses above a
  * threshold, and exits when long momentum is negative and short momentum crosses below a threshold.
  */
+@Deprecated
 public class MomentumPinballParamConfig implements ParamConfig {
 
   private static final Logger logger = Logger.getLogger(MomentumPinballParamConfig.class.getName());

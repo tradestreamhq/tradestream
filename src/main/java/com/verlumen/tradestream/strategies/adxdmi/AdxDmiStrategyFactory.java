@@ -15,6 +15,7 @@ import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 import org.ta4j.core.rules.OverIndicatorRule;
 
+@Deprecated
 public class AdxDmiStrategyFactory implements StrategyFactory<AdxDmiParameters> {
   @Override
   public Strategy createStrategy(BarSeries series, AdxDmiParameters params) {

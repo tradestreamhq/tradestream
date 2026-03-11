@@ -16,6 +16,7 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
 import org.ta4j.core.rules.OverIndicatorRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
+@Deprecated
 public final class RsiEmaCrossoverStrategyFactory
     implements StrategyFactory<RsiEmaCrossoverParameters> {
   @Override

@@ -16,6 +16,7 @@ import java.util.logging.Logger;
  * It uses the High-Low range, EMA of the High-Low range, Double EMA of the High-Low range, and sums
  * the ratio of the EMA to the Double EMA.
  */
+@Deprecated
 public final class MassIndexParamConfig implements ParamConfig {
 
   private static final Logger logger = Logger.getLogger(MassIndexParamConfig.class.getName());
