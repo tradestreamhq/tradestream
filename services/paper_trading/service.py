@@ -8,29 +8,20 @@ import asyncio
 import json
 from typing import Optional
 
-import requests
 from absl import logging
 from flask import Flask, jsonify, request
 
 from services.paper_trading.postgres_client import PostgresClient
+from services.shared.auth import flask_auth_middleware
+from services.shared.mcp_client import call_mcp_tool
 
 
 def _call_mcp_tool(tool_name: str, arguments: dict, mcp_url: str) -> dict:
     """Call an MCP server tool via HTTP."""
-    try:
-        resp = requests.post(
-            f"{mcp_url}/call-tool",
-            json={"name": tool_name, "arguments": arguments},
-            timeout=10,
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        if isinstance(data.get("content"), list) and data["content"]:
-            return json.loads(data["content"][0].get("text", "{}"))
-        return data
-    except Exception as e:
-        logging.error("MCP tool call %s failed: %s", tool_name, e)
-        return {}
+    result = call_mcp_tool(tool_name, arguments, mcp_url, timeout=10)
+    if isinstance(result, dict):
+        return result
+    return {}
 
 
 def _get_current_price(symbol: str, market_mcp_url: str) -> Optional[float]:
@@ -47,6 +38,7 @@ def create_app(
 ) -> Flask:
     """Create the Flask application with all paper trading endpoints."""
     app = Flask(__name__)
+    flask_auth_middleware(app)
     loop = asyncio.new_event_loop()
 
     def run_async(coro):

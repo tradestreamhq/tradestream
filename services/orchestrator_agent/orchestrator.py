@@ -10,6 +10,7 @@ from services.orchestrator_agent import config
 from services.orchestrator_agent.health_monitor import HealthMonitor
 from services.orchestrator_agent.retry_handler import retry_with_backoff
 from services.orchestrator_agent.scheduler import Scheduler
+from services.shared.mcp_client import resolve_and_call
 
 # MCP tool to server mapping (for fetching symbols)
 TOOL_TO_SERVER = {
@@ -20,31 +21,9 @@ TOOL_TO_SERVER = {
 
 def _call_mcp_tool(tool_name, arguments, mcp_urls):
     """Call an MCP tool by dispatching to the correct MCP server via HTTP."""
-    server_key = TOOL_TO_SERVER.get(tool_name)
-    if not server_key:
-        return {"error": f"Unknown tool: {tool_name}"}
-
-    base_url = mcp_urls.get(server_key)
-    if not base_url:
-        return {"error": f"No URL configured for MCP server: {server_key}"}
-
-    url = f"{base_url}/call-tool"
-    payload = {"name": tool_name, "arguments": arguments or {}}
-
-    resp = requests.post(url, json=payload, timeout=30)
-    resp.raise_for_status()
-    result = resp.json()
-
-    if "content" in result and isinstance(result["content"], list):
-        texts = [
-            c.get("text", "") for c in result["content"] if c.get("type") == "text"
-        ]
-        combined = "\n".join(texts) if texts else json.dumps(result)
-        try:
-            return json.loads(combined)
-        except (json.JSONDecodeError, TypeError):
-            return {"raw": combined}
-    return result
+    return resolve_and_call(
+        tool_name, arguments, TOOL_TO_SERVER, mcp_urls, return_type="parsed"
+    )
 
 
 def fetch_active_symbols(mcp_urls):

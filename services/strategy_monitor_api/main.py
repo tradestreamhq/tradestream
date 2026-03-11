@@ -23,6 +23,10 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend access
 
+from services.shared.auth import flask_auth_middleware
+
+flask_auth_middleware(app)
+
 FLAGS = flags.FLAGS
 
 # Global database configuration

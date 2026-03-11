@@ -10,6 +10,7 @@ py_library(
     name = "agent_gateway_lib",
     srcs = ["main.py"],
     deps = [
+        "//services/shared:auth",
         "//third_party/python:asyncpg",
         "//third_party/python:fastapi",
         "//third_party/python:redis",

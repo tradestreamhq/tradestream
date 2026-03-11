@@ -15,11 +15,54 @@ py_library(
     ],
 )
 
+py_library(
+    name = "mcp_client",
+    srcs = [
+        "__init__.py",
+        "mcp_client.py",
+    ],
+    deps = [
+        "//third_party/python:requests",
+    ],
+)
+
+py_library(
+    name = "auth",
+    srcs = [
+        "__init__.py",
+        "auth.py",
+    ],
+    deps = [
+        "//third_party/python:fastapi",
+        "//third_party/python:flask",
+    ],
+)
+
 py_test(
     name = "decision_logger_test",
     srcs = ["decision_logger_test.py"],
     deps = [
         ":decision_logger",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "mcp_client_test",
+    srcs = ["mcp_client_test.py"],
+    deps = [
+        ":mcp_client",
+        "//third_party/python:pytest",
+        "//third_party/python:requests",
+    ],
+)
+
+py_test(
+    name = "auth_test",
+    srcs = ["auth_test.py"],
+    deps = [
+        ":auth",
+        "//third_party/python:flask",
         "//third_party/python:pytest",
     ],
 )

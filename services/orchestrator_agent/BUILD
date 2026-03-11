@@ -47,6 +47,7 @@ py_library(
         ":health_monitor_lib",
         ":retry_handler_lib",
         ":scheduler_lib",
+        "//services/shared:mcp_client",
         "//third_party/python:absl_py",
         "//third_party/python:requests",
     ],

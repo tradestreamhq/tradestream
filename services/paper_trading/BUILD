@@ -19,6 +19,8 @@ py_library(
     srcs = ["service.py"],
     deps = [
         ":postgres_client_lib",
+        "//services/shared:auth",
+        "//services/shared:mcp_client",
         "//third_party/python:absl_py",
         "//third_party/python:flask",
         "//third_party/python:requests",
