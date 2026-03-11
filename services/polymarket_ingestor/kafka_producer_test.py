@@ -64,9 +64,7 @@ class PolymarketKafkaProducerTest(absltest.TestCase):
         )
         producer.publish("test-topic", b"msg")
 
-        mock_producer.send.assert_called_once_with(
-            "test-topic", value=b"msg", key=None
-        )
+        mock_producer.send.assert_called_once_with("test-topic", value=b"msg", key=None)
 
     @mock.patch("kafka.KafkaProducer")
     def test_close_flushes_and_closes(self, mock_kafka_cls):

@@ -106,8 +106,8 @@ class PolymarketApiClientTest(absltest.TestCase):
 
     @mock.patch("requests.Session.get")
     def test_get_markets_raises_on_http_error(self, mock_get):
-        self.mock_response.raise_for_status.side_effect = (
-            requests.exceptions.HTTPError("404")
+        self.mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            "404"
         )
         mock_get.return_value = self.mock_response
 

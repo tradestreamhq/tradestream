@@ -255,9 +255,7 @@ def _ingest_orderbooks(
                     )
                 published_count += 1
             except Exception as e:
-                logging.warning(
-                    f"Failed to fetch orderbook for token {token_id}: {e}"
-                )
+                logging.warning(f"Failed to fetch orderbook for token {token_id}: {e}")
 
     logging.info(f"Published {published_count} orderbook snapshots to Kafka.")
     return published_count
@@ -294,7 +292,9 @@ def run():
         # Phase 2: Ingest order book snapshots for active markets
         if not _shutdown_requested:
             markets = api_client.get_all_active_markets(max_pages=FLAGS.max_pages)
-            active_markets = [m for m in markets if m.get("active") and not m.get("closed")]
+            active_markets = [
+                m for m in markets if m.get("active") and not m.get("closed")
+            ]
             # Limit orderbook fetching to avoid API rate limits
             orderbook_markets = active_markets[:50]
             _ingest_orderbooks(api_client, orderbook_markets, kafka_producer)
