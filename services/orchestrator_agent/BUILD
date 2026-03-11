@@ -61,6 +61,7 @@ py_binary(
         ":health_monitor_lib",
         ":orchestrator_lib",
         ":scheduler_lib",
+        "//services/shared:structured_logger",
         "//third_party/python:absl_py",
     ],
 )

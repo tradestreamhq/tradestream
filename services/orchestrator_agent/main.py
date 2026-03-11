@@ -8,6 +8,7 @@ from absl import app, flags, logging
 from services.orchestrator_agent.health_monitor import HealthMonitor
 from services.orchestrator_agent.orchestrator import run_orchestrator_loop
 from services.orchestrator_agent.scheduler import Scheduler
+from services.shared.structured_logger import StructuredLogger
 
 FLAGS = flags.FLAGS
 
@@ -49,10 +50,12 @@ flags.DEFINE_string(
 
 _shutdown = False
 
+_log = StructuredLogger(service_name="orchestrator_agent")
+
 
 def _handle_shutdown(signum, frame):
     global _shutdown
-    logging.info("Received signal %d, shutting down...", signum)
+    _log.info("Received shutdown signal", signum=signum)
     _shutdown = True
 
 
@@ -62,6 +65,8 @@ def main(argv):
 
     signal.signal(signal.SIGINT, _handle_shutdown)
     signal.signal(signal.SIGTERM, _handle_shutdown)
+
+    _log.new_correlation_id()
 
     mcp_urls = {
         "strategy": FLAGS.mcp_strategy_url.rstrip("/"),
@@ -85,11 +90,10 @@ def main(argv):
     )
     health_monitor = HealthMonitor()
 
-    logging.info(
-        "Orchestrator Agent started. Signal interval: %ds, "
-        "Strategy proposer interval: %ds",
-        FLAGS.signal_interval_seconds,
-        FLAGS.strategy_proposer_interval_seconds,
+    _log.info(
+        "Orchestrator Agent started",
+        signal_interval_seconds=FLAGS.signal_interval_seconds,
+        strategy_proposer_interval_seconds=FLAGS.strategy_proposer_interval_seconds,
     )
 
     run_orchestrator_loop(
@@ -101,7 +105,7 @@ def main(argv):
         fallback_symbols=fallback_symbols,
     )
 
-    logging.info("Orchestrator Agent shut down.")
+    _log.info("Orchestrator Agent shut down.")
 
 
 if __name__ == "__main__":

@@ -37,6 +37,7 @@ py_library(
         ":config_lib",
         ":discord_sender_lib",
         ":telegram_sender_lib",
+        "//services/shared:structured_logger",
         "//third_party/python:absl_py",
         "//third_party/python:redis",
     ],

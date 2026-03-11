@@ -7,6 +7,7 @@ import time
 from absl import app, flags, logging
 
 from services.signal_generator_agent.agent import run_agent_for_symbol
+from services.shared.structured_logger import StructuredLogger
 
 FLAGS = flags.FLAGS
 
@@ -29,10 +30,12 @@ flags.mark_flag_as_required("openrouter_api_key")
 
 _shutdown = False
 
+_log = StructuredLogger(service_name="signal_generator_agent")
+
 
 def _handle_shutdown(signum, frame):
     global _shutdown
-    logging.info("Received signal %d, shutting down...", signum)
+    _log.info("Received shutdown signal", signum=signum)
     _shutdown = True
 
 
@@ -45,7 +48,7 @@ def main(argv):
 
     symbols = [s.strip() for s in FLAGS.symbols.split(",") if s.strip()]
     if not symbols:
-        logging.error("No symbols configured.")
+        _log.error("No symbols configured.")
         sys.exit(1)
 
     mcp_urls = {
@@ -54,38 +57,46 @@ def main(argv):
         "signal": FLAGS.mcp_signal_url.rstrip("/"),
     }
 
-    logging.info(
-        "Signal Generator Agent started. Symbols: %s, Interval: %ds",
-        symbols,
-        FLAGS.interval_seconds,
+    _log.info(
+        "Signal Generator Agent started",
+        symbols=symbols,
+        interval_seconds=FLAGS.interval_seconds,
     )
 
     while not _shutdown:
+        _log.new_correlation_id()
         for symbol in symbols:
             if _shutdown:
                 break
             try:
-                logging.info("Generating signal for %s", symbol)
+                _log.info("Generating signal", symbol=symbol)
                 result = run_agent_for_symbol(
                     symbol=symbol,
                     api_key=FLAGS.openrouter_api_key,
                     mcp_urls=mcp_urls,
                 )
                 if result:
-                    logging.info("Signal result for %s: %s", symbol, result[:500])
+                    _log.info(
+                        "Signal result",
+                        symbol=symbol,
+                        result=result[:500],
+                    )
                 else:
-                    logging.warning("No result for %s", symbol)
+                    _log.warning("No result", symbol=symbol)
             except Exception as e:
-                logging.exception("Error generating signal for %s: %s", symbol, e)
+                _log.exception("Error generating signal", symbol=symbol, error=str(e))
 
         if not _shutdown:
-            logging.info("Sleeping %ds before next run...", FLAGS.interval_seconds)
+            _log.info(
+                "Sleeping before next run",
+                interval_seconds=FLAGS.interval_seconds,
+            )
             for _ in range(FLAGS.interval_seconds):
                 if _shutdown:
                     break
                 time.sleep(1)
 
-    logging.info("Signal Generator Agent shut down.")
+    _log.info("Signal Generator Agent shut down.")
 
 
 if __name__ == "__main__":

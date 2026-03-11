@@ -14,6 +14,7 @@ from absl import app, flags, logging
 from services.notification_service.config import get_config
 from services.notification_service.discord_sender import DiscordSender
 from services.notification_service.telegram_sender import TelegramSender
+from services.shared.structured_logger import StructuredLogger
 
 FLAGS = flags.FLAGS
 
@@ -22,10 +23,12 @@ flags.DEFINE_integer("redis_port", None, "Redis port (overrides REDIS_PORT env v
 
 _shutdown = False
 
+_log = StructuredLogger(service_name="notification_service")
+
 
 def _handle_shutdown(signum, frame):
     global _shutdown
-    logging.info("Received signal %d, shutting down...", signum)
+    _log.info("Received shutdown signal", signum=signum)
     _shutdown = True
 
 
@@ -48,6 +51,8 @@ def main(argv):
     signal.signal(signal.SIGINT, _handle_shutdown)
     signal.signal(signal.SIGTERM, _handle_shutdown)
 
+    _log.new_correlation_id()
+
     config = get_config()
 
     redis_host = FLAGS.redis_host or config["redis_host"]
@@ -61,18 +66,18 @@ def main(argv):
         senders.append(
             TelegramSender(config["telegram_bot_token"], config["telegram_chat_id"])
         )
-        logging.info("Telegram sender enabled.")
+        _log.info("Telegram sender enabled.")
     else:
-        logging.info("Telegram not configured, skipping.")
+        _log.info("Telegram not configured, skipping.")
 
     if config["discord_webhook_url"]:
         senders.append(DiscordSender(config["discord_webhook_url"]))
-        logging.info("Discord sender enabled.")
+        _log.info("Discord sender enabled.")
     else:
-        logging.info("Discord not configured, skipping.")
+        _log.info("Discord not configured, skipping.")
 
     if not senders:
-        logging.warning("No notification channels configured. Exiting.")
+        _log.warning("No notification channels configured. Exiting.")
         sys.exit(0)
 
     symbols = [s.strip() for s in config["symbols"].split(",") if s.strip()]
@@ -81,16 +86,16 @@ def main(argv):
     else:
         channels = ["signals:*"]
 
-    logging.info(
-        "Connecting to Redis at %s:%d, subscribing to %s",
-        redis_host,
-        redis_port,
-        channels,
+    _log.info(
+        "Connecting to Redis",
+        host=redis_host,
+        port=redis_port,
+        channels=channels,
     )
 
     client = redis.Redis(host=redis_host, port=redis_port, decode_responses=True)
     client.ping()
-    logging.info("Connected to Redis.")
+    _log.info("Connected to Redis.")
 
     pubsub = client.pubsub()
     if "signals:*" in channels:
@@ -98,7 +103,7 @@ def main(argv):
     else:
         pubsub.subscribe(*channels)
 
-    logging.info("Notification service started. Listening for signals...")
+    _log.info("Notification service started. Listening for signals.")
 
     while not _shutdown:
         message = pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
@@ -112,34 +117,38 @@ def main(argv):
         try:
             signal_data = json.loads(data)
         except json.JSONDecodeError:
-            logging.warning("Failed to parse signal JSON: %s", data[:200])
+            _log.warning("Failed to parse signal JSON", raw=data[:200])
             continue
 
         if not _passes_filter(signal_data, min_score, tiers):
-            logging.info(
-                "Signal filtered out: %s %s (confidence=%.2f)",
-                signal_data.get("action"),
-                signal_data.get("symbol"),
-                signal_data.get("confidence", 0),
+            _log.info(
+                "Signal filtered out",
+                action=signal_data.get("action"),
+                symbol=signal_data.get("symbol"),
+                confidence=signal_data.get("confidence", 0),
             )
             continue
 
-        logging.info(
-            "Forwarding signal: %s %s (confidence=%.2f)",
-            signal_data.get("action"),
-            signal_data.get("symbol"),
-            signal_data.get("confidence", 0),
+        _log.info(
+            "Forwarding signal",
+            action=signal_data.get("action"),
+            symbol=signal_data.get("symbol"),
+            confidence=signal_data.get("confidence", 0),
         )
 
         for sender in senders:
             try:
                 sender.send_signal(signal_data)
             except Exception as e:
-                logging.error("Sender %s failed: %s", type(sender).__name__, e)
+                _log.error(
+                    "Sender failed",
+                    sender=type(sender).__name__,
+                    error=str(e),
+                )
 
     pubsub.close()
     client.close()
-    logging.info("Notification service shut down.")
+    _log.info("Notification service shut down.")
 
 
 if __name__ == "__main__":
