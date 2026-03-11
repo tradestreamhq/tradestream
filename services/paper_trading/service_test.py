@@ -1,6 +1,8 @@
 """Tests for the Paper Trading service."""
 
+import asyncio
 import json
+import threading
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -24,11 +26,24 @@ def pg_client():
 
 
 @pytest.fixture
-def app(pg_client):
+def event_loop():
+    """Provide a background event loop for the test suite."""
+    loop = asyncio.new_event_loop()
+    thread = threading.Thread(target=loop.run_forever, daemon=True)
+    thread.start()
+    yield loop
+    loop.call_soon_threadsafe(loop.stop)
+    thread.join(timeout=2)
+    loop.close()
+
+
+@pytest.fixture
+def app(pg_client, event_loop):
     flask_app = create_app(
         pg_client=pg_client,
         market_mcp_url="http://market-mcp:8080",
         signal_mcp_url="http://signal-mcp:8080",
+        event_loop=event_loop,
     )
     flask_app.config["TESTING"] = True
     return flask_app
@@ -327,10 +342,10 @@ class TestGetCurrentPrice:
 
 
 class TestRunAsyncThreadSafety:
-    """Verify that run_async uses asyncio.run() instead of a shared event loop."""
+    """Verify that run_async dispatches to a dedicated background event loop."""
 
-    def test_run_async_does_not_share_event_loop(self, client, pg_client):
-        """Concurrent requests should not fail due to a shared event loop."""
+    def test_run_async_handles_concurrent_requests(self, client, pg_client):
+        """Concurrent requests should safely dispatch to the shared loop."""
         import concurrent.futures
 
         pg_client.get_pnl_summary.return_value = {

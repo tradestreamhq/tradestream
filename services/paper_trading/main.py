@@ -3,6 +3,7 @@
 import asyncio
 import signal
 import sys
+import threading
 
 from absl import app, flags, logging
 
@@ -29,6 +30,15 @@ def main(argv):
         logging.error("--postgres_password is required")
         sys.exit(1)
 
+    # Create a dedicated event loop for async work (asyncpg pool).
+    # This loop runs in a daemon thread; Flask handler threads dispatch
+    # coroutines to it via asyncio.run_coroutine_threadsafe().
+    loop = asyncio.new_event_loop()
+    loop_thread = threading.Thread(
+        target=loop.run_forever, daemon=True, name="paper-trading-loop"
+    )
+    loop_thread.start()
+
     pg_client = PostgresClient(
         host=FLAGS.postgres_host,
         port=FLAGS.postgres_port,
@@ -38,7 +48,8 @@ def main(argv):
     )
 
     try:
-        asyncio.run(pg_client.connect())
+        future = asyncio.run_coroutine_threadsafe(pg_client.connect(), loop)
+        future.result()
     except Exception as e:
         logging.error("Failed to connect to PostgreSQL: %s", e)
         sys.exit(1)
@@ -47,11 +58,14 @@ def main(argv):
         pg_client=pg_client,
         market_mcp_url=FLAGS.mcp_market_url,
         signal_mcp_url=FLAGS.mcp_signal_url,
+        event_loop=loop,
     )
 
     def shutdown_handler(signum, frame):
         logging.info("Received signal %d, shutting down...", signum)
-        asyncio.run(pg_client.close())
+        future = asyncio.run_coroutine_threadsafe(pg_client.close(), loop)
+        future.result(timeout=5)
+        loop.call_soon_threadsafe(loop.stop)
         sys.exit(0)
 
     signal.signal(signal.SIGINT, shutdown_handler)
