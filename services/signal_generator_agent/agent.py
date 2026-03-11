@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 from absl import logging
 from openai import OpenAI
 
+from services.shared.model_config import MODEL_LIGHTWEIGHT, OPENROUTER_BASE_URL
+
 
 SYSTEM_PROMPT = """You are a trading signal generator agent. You analyze market data, strategy signals, and recent signals to produce BUY, SELL, or HOLD recommendations.
 
@@ -240,7 +242,7 @@ def run_agent_for_symbol(symbol, api_key, mcp_urls):
     """
     client = OpenAI(
         api_key=api_key,
-        base_url="https://openrouter.ai/api/v1",
+        base_url=OPENROUTER_BASE_URL,
     )
 
     messages = [
@@ -256,7 +258,7 @@ def run_agent_for_symbol(symbol, api_key, mcp_urls):
         logging.info("Symbol %s: LLM iteration %d", symbol, iteration + 1)
 
         response = client.chat.completions.create(
-            model="anthropic/claude-3-5-haiku",
+            model=MODEL_LIGHTWEIGHT,
             messages=messages,
             tools=MCP_TOOLS,
             tool_choice="auto",

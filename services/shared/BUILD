@@ -38,6 +38,14 @@ py_library(
     ],
 )
 
+py_library(
+    name = "model_config",
+    srcs = [
+        "__init__.py",
+        "model_config.py",
+    ],
+)
+
 py_test(
     name = "decision_logger_test",
     srcs = ["decision_logger_test.py"],
@@ -63,6 +71,15 @@ py_test(
     deps = [
         ":auth",
         "//third_party/python:flask",
+        "//third_party/python:pytest",
+    ],
+)
+
+py_test(
+    name = "model_config_test",
+    srcs = ["model_config_test.py"],
+    deps = [
+        ":model_config",
         "//third_party/python:pytest",
     ],
 )

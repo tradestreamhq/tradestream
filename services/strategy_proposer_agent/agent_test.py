@@ -322,14 +322,11 @@ class TestSystemPrompt:
         for ind in indicators:
             assert ind in agent.SYSTEM_PROMPT, f"Indicator {ind} not in system prompt"
 
-    def test_model_is_sonnet(self):
-        # Verify the agent uses Claude 3.5 Sonnet, not Haiku
-        assert (
-            "anthropic/claude-3-5-sonnet" in agent.run_proposer_agent.__code__.co_consts
-            or True
-        )
-        # Check by inspecting the source directly
+    def test_model_is_primary(self):
+        # Verify the agent uses the primary model from centralized config
+        from services.shared.model_config import MODEL_PRIMARY
+
         import inspect
 
         source = inspect.getsource(agent.run_proposer_agent)
-        assert "claude-3-5-sonnet" in source
+        assert "MODEL_PRIMARY" in source
