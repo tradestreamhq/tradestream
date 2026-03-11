@@ -860,7 +860,7 @@ flags.DEFINE_string("postgres_database", "tradestream", "PostgreSQL database")
 flags.DEFINE_string("postgres_username", "postgres", "PostgreSQL username")
 flags.DEFINE_string("postgres_password", "", "PostgreSQL password")
 flags.DEFINE_integer("api_port", 8080, "API server port")
-flags.DEFINE_string("api_host", "0.0.0.0", "API server host")
+flags.DEFINE_string("api_host", "127.0.0.1", "API server host")
 
 # Global database connection parameters
 DB_CONFIG = {}

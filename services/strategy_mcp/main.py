@@ -53,6 +53,11 @@ flags.DEFINE_integer(
     8080,
     "MCP server port (for future HTTP/SSE transport).",
 )
+flags.DEFINE_string(
+    "mcp_host",
+    "127.0.0.1",
+    "MCP server host.",
+)
 
 
 async def main_async() -> None:
@@ -115,7 +120,7 @@ async def main_async() -> None:
 
             config = uvicorn.Config(
                 starlette_app,
-                host="0.0.0.0",
+                host=FLAGS.mcp_host,
                 port=FLAGS.mcp_port,
             )
             uvicorn_server = uvicorn.Server(config)

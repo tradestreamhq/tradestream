@@ -29,6 +29,7 @@ flags.DEFINE_integer("redis_port", 6379, "Redis port.")
 # MCP Configuration Flags
 flags.DEFINE_string("mcp_transport", "stdio", "MCP transport type (stdio or sse).")
 flags.DEFINE_integer("mcp_port", 8080, "MCP server port (for SSE transport).")
+flags.DEFINE_string("mcp_host", "127.0.0.1", "MCP server host.")
 
 
 async def main_async() -> None:
@@ -96,7 +97,7 @@ async def main_async() -> None:
 
             config = uvicorn.Config(
                 starlette_app,
-                host="0.0.0.0",
+                host=FLAGS.mcp_host,
                 port=FLAGS.mcp_port,
             )
             server = uvicorn.Server(config)

@@ -55,6 +55,7 @@ spec:
             - "--redis_port=$(REDIS_PORT)"
             - "--mcp_transport=$(MCP_TRANSPORT)"
             - "--mcp_port=$(MCP_PORT)"
+            - "--mcp_host=0.0.0.0"
           resources:
             {{- toYaml .Values.marketMcp.resources | nindent 12 }}
 ---

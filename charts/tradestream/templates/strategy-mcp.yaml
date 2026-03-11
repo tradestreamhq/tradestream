@@ -48,6 +48,7 @@ spec:
             - "--postgres_password=$(POSTGRES_PASSWORD)"
             - "--mcp_transport={{ .Values.strategyMcp.mcpTransport | default "stdio" }}"
             - "--mcp_port={{ .Values.strategyMcp.service.port | default 8080 }}"
+            - "--mcp_host=0.0.0.0"
           resources:
             {{- toYaml .Values.strategyMcp.resources | nindent 12 }}
 ---
