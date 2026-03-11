@@ -393,8 +393,7 @@ def main(argv):
         try:
             await rotator.connect()
             logging.info(
-                "Strategy rotation service started. "
-                "Evaluating every %d seconds.",
+                "Strategy rotation service started. Evaluating every %d seconds.",
                 FLAGS.rotation_interval_seconds,
             )
 
