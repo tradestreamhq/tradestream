@@ -50,9 +50,7 @@ class StrategyInspector:
             for field in param_class.DESCRIPTOR.fields:
                 value = getattr(param_class, field.name)
                 if field.type == field.TYPE_ENUM:
-                    result[field.name] = field.enum_type.values_by_number[
-                        value
-                    ].name
+                    result[field.name] = field.enum_type.values_by_number[value].name
                 else:
                     result[field.name] = value
             return result

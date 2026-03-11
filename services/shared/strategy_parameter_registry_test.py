@@ -46,9 +46,7 @@ class TestParameterRegistry:
 
 class TestGetParameterClass:
     def test_known_type(self):
-        cls = get_parameter_class(
-            "type.googleapis.com/strategies.SmaRsiParameters"
-        )
+        cls = get_parameter_class("type.googleapis.com/strategies.SmaRsiParameters")
         assert cls is strategies_pb2.SmaRsiParameters
 
     def test_unknown_type_returns_none(self):
