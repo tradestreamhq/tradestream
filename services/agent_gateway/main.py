@@ -10,7 +10,6 @@ for monitoring active agents, recent decisions, and signal activity.
 import asyncio
 import json
 import logging
-import os
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -25,12 +24,16 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
+from services.shared.auth import fastapi_auth_middleware
+from services.shared.credentials import PostgresConfig, RedisConfig
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 REDIS_CHANNEL = "agent_events"
 
-from services.shared.auth import fastapi_auth_middleware
+_pg_config = PostgresConfig()
+_redis_config = RedisConfig()
 
 app = FastAPI(
     title="Agent Gateway",
@@ -105,26 +108,11 @@ _db_pool: Optional[asyncpg.Pool] = None
 _redis: Optional[aioredis.Redis] = None
 
 
-def _get_db_dsn() -> str:
-    host = os.environ.get("POSTGRES_HOST", "localhost")
-    port = os.environ.get("POSTGRES_PORT", "5432")
-    database = os.environ.get("POSTGRES_DATABASE", "tradestream")
-    username = os.environ.get("POSTGRES_USERNAME", "postgres")
-    password = os.environ.get("POSTGRES_PASSWORD", "")
-    return f"postgresql://{username}:{password}@{host}:{port}/{database}"
-
-
-def _get_redis_url() -> str:
-    host = os.environ.get("REDIS_HOST", "localhost")
-    port = os.environ.get("REDIS_PORT", "6379")
-    return f"redis://{host}:{port}/0"
-
-
 @app.on_event("startup")
 async def startup():
     global _db_pool, _redis
-    _db_pool = await asyncpg.create_pool(dsn=_get_db_dsn(), min_size=2, max_size=10)
-    _redis = aioredis.from_url(_get_redis_url(), decode_responses=True)
+    _db_pool = await asyncpg.create_pool(dsn=_pg_config.dsn, min_size=2, max_size=10)
+    _redis = aioredis.from_url(_redis_config.url, decode_responses=True)
     logger.info("Agent Gateway started")
 
 

@@ -2,14 +2,16 @@
 Alembic environment configuration for TradeStream database migrations.
 
 Supports both online (connected) and offline (SQL generation) migration modes.
-Connection parameters are read from environment variables.
+Connection parameters are read from environment variables via the shared
+credentials module.
 """
 
-import os
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import create_engine, pool
+
+from services.shared.credentials import PostgresConfig
 
 config = context.config
 
@@ -18,13 +20,9 @@ if config.config_file_name is not None:
 
 
 def get_url():
-    """Build database URL from environment variables."""
-    user = os.environ.get("POSTGRES_USER", "postgres")
-    password = os.environ.get("POSTGRES_PASSWORD", "")
-    host = os.environ.get("POSTGRES_HOST", "localhost")
-    port = os.environ.get("POSTGRES_PORT", "5432")
-    db = os.environ.get("POSTGRES_DB", "tradestream")
-    return f"postgresql://{user}:{password}@{host}:{port}/{db}"
+    """Build database URL from the shared credentials module."""
+    pg = PostgresConfig()
+    return pg.dsn
 
 
 def run_migrations_offline():

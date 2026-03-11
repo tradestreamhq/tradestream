@@ -2,12 +2,15 @@
 
 import os
 
+from services.shared.credentials import RedisConfig
+
 
 def get_config():
     """Load configuration from environment variables."""
+    redis_config = RedisConfig()
     return {
-        "redis_host": os.environ.get("REDIS_HOST", "localhost"),
-        "redis_port": int(os.environ.get("REDIS_PORT", "6379")),
+        "redis_host": redis_config.host,
+        "redis_port": redis_config.port,
         "telegram_bot_token": os.environ.get("TELEGRAM_BOT_TOKEN", ""),
         "telegram_chat_id": os.environ.get("TELEGRAM_CHAT_ID", ""),
         "discord_webhook_url": os.environ.get("DISCORD_WEBHOOK_URL", ""),

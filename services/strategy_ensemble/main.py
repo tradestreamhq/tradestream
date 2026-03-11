@@ -22,14 +22,9 @@ from collections import defaultdict
 
 import asyncpg
 
-FLAGS = flags.FLAGS
+from services.shared.credentials import PostgresConfig
 
-# Database Configuration
-flags.DEFINE_string("postgres_host", "localhost", "PostgreSQL host")
-flags.DEFINE_integer("postgres_port", 5432, "PostgreSQL port")
-flags.DEFINE_string("postgres_database", "tradestream", "PostgreSQL database")
-flags.DEFINE_string("postgres_username", "postgres", "PostgreSQL username")
-flags.DEFINE_string("postgres_password", "", "PostgreSQL password")
+FLAGS = flags.FLAGS
 
 # Ensemble Configuration
 flags.DEFINE_integer(
@@ -315,18 +310,15 @@ def main(argv):
 
     logging.set_verbosity(logging.INFO)
 
-    if not FLAGS.postgres_password:
-        logging.error("--postgres_password is required")
-        sys.exit(1)
     logging.info("Starting Strategy Ensemble Builder")
 
-    # Database configuration
+    pg_config = PostgresConfig()
     db_config = {
-        "host": FLAGS.postgres_host,
-        "port": FLAGS.postgres_port,
-        "database": FLAGS.postgres_database,
-        "user": FLAGS.postgres_username,
-        "password": FLAGS.postgres_password,
+        "host": pg_config.host,
+        "port": pg_config.port,
+        "database": pg_config.database,
+        "user": pg_config.username,
+        "password": pg_config.password,
     }
 
     ensemble_builder = StrategyEnsembleBuilder(db_config)

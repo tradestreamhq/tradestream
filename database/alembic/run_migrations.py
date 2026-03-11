@@ -7,8 +7,8 @@ Usage:
 Environment variables:
     POSTGRES_HOST     (default: localhost)
     POSTGRES_PORT     (default: 5432)
-    POSTGRES_DB       (default: tradestream)
-    POSTGRES_USER     (default: postgres)
+    POSTGRES_DATABASE (default: tradestream)
+    POSTGRES_USERNAME (default: postgres)
     POSTGRES_PASSWORD (required)
 """
 

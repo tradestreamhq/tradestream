@@ -9,14 +9,10 @@ from absl import app, flags, logging
 
 from services.paper_trading.postgres_client import PostgresClient
 from services.paper_trading.service import create_app
+from services.shared.credentials import PostgresConfig
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("postgres_host", "localhost", "PostgreSQL host")
-flags.DEFINE_integer("postgres_port", 5432, "PostgreSQL port")
-flags.DEFINE_string("postgres_database", "tradestream", "PostgreSQL database name")
-flags.DEFINE_string("postgres_username", "tradestream", "PostgreSQL username")
-flags.DEFINE_string("postgres_password", "", "PostgreSQL password")
 flags.DEFINE_string("mcp_market_url", "http://localhost:8081", "Market MCP server URL")
 flags.DEFINE_string("mcp_signal_url", "http://localhost:8082", "Signal MCP server URL")
 flags.DEFINE_integer("port", 8090, "HTTP server port")
@@ -26,9 +22,7 @@ def main(argv):
     del argv
     logging.set_verbosity(logging.INFO)
 
-    if not FLAGS.postgres_password:
-        logging.error("--postgres_password is required")
-        sys.exit(1)
+    pg_config = PostgresConfig()
 
     # Create a dedicated event loop for async work (asyncpg pool).
     # This loop runs in a daemon thread; Flask handler threads dispatch
@@ -40,11 +34,11 @@ def main(argv):
     loop_thread.start()
 
     pg_client = PostgresClient(
-        host=FLAGS.postgres_host,
-        port=FLAGS.postgres_port,
-        database=FLAGS.postgres_database,
-        username=FLAGS.postgres_username,
-        password=FLAGS.postgres_password,
+        host=pg_config.host,
+        port=pg_config.port,
+        database=pg_config.database,
+        username=pg_config.username,
+        password=pg_config.password,
     )
 
     try:
