@@ -43,8 +43,8 @@ public final class RangeBarsStrategyFactory implements StrategyFactory<RangeBars
   }
 
   /**
-   * Calculates the midpoint of recent price range, adjusted by the configured range size.
-   * When price is above the midpoint, it indicates an upward breakout.
+   * Calculates the midpoint of recent price range, adjusted by the configured range size. When
+   * price is above the midpoint, it indicates an upward breakout.
    */
   private static class RangeMidpointIndicator extends CachedIndicator<Num> {
     private final HighPriceIndicator highPrice;

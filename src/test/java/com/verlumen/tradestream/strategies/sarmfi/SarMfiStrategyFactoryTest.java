@@ -56,8 +56,7 @@ public final class SarMfiStrategyFactoryTest {
             .setAccelerationFactorMax(0.2)
             .setMfiPeriod(0)
             .build();
-    assertThrows(
-        IllegalArgumentException.class, () -> factory.createStrategy(series, params));
+    assertThrows(IllegalArgumentException.class, () -> factory.createStrategy(series, params));
   }
 
   private static BaseBarSeries createTestSeries() {

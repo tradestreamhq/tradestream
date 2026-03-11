@@ -46,10 +46,8 @@ public final class RangeBarsStrategyFactoryTest {
   @Test
   public void testCreateStrategy_invalidRangeSize_throws() {
     BaseBarSeries series = createTestSeries();
-    RangeBarsParameters params =
-        RangeBarsParameters.newBuilder().setRangeSize(0).build();
-    assertThrows(
-        IllegalArgumentException.class, () -> factory.createStrategy(series, params));
+    RangeBarsParameters params = RangeBarsParameters.newBuilder().setRangeSize(0).build();
+    assertThrows(IllegalArgumentException.class, () -> factory.createStrategy(series, params));
   }
 
   private static BaseBarSeries createTestSeries() {

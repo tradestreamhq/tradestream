@@ -11,8 +11,6 @@ import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.ParabolicSarIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
-import org.ta4j.core.indicators.helpers.HighPriceIndicator;
-import org.ta4j.core.indicators.helpers.LowPriceIndicator;
 import org.ta4j.core.indicators.helpers.TypicalPriceIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.OverIndicatorRule;
@@ -54,13 +52,11 @@ public final class SarMfiStrategyFactory implements StrategyFactory<SarMfiParame
 
     // Entry: price above SAR (uptrend) and MFI below 20 (oversold)
     Rule entryRule =
-        new OverIndicatorRule(closePrice, psar)
-            .and(new UnderIndicatorRule(mfi, series.numOf(20)));
+        new OverIndicatorRule(closePrice, psar).and(new UnderIndicatorRule(mfi, series.numOf(20)));
 
     // Exit: price below SAR (downtrend) and MFI above 80 (overbought)
     Rule exitRule =
-        new UnderIndicatorRule(closePrice, psar)
-            .and(new OverIndicatorRule(mfi, series.numOf(80)));
+        new UnderIndicatorRule(closePrice, psar).and(new OverIndicatorRule(mfi, series.numOf(80)));
 
     return new BaseStrategy(
         String.format(

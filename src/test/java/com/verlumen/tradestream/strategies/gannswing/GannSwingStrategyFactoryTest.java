@@ -46,10 +46,8 @@ public final class GannSwingStrategyFactoryTest {
   @Test
   public void testCreateStrategy_invalidPeriod_throws() {
     BaseBarSeries series = createTestSeries();
-    GannSwingParameters params =
-        GannSwingParameters.newBuilder().setGannPeriod(0).build();
-    assertThrows(
-        IllegalArgumentException.class, () -> factory.createStrategy(series, params));
+    GannSwingParameters params = GannSwingParameters.newBuilder().setGannPeriod(0).build();
+    assertThrows(IllegalArgumentException.class, () -> factory.createStrategy(series, params));
   }
 
   private static BaseBarSeries createTestSeries() {

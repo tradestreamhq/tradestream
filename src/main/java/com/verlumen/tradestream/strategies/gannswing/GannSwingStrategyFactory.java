@@ -35,8 +35,7 @@ public final class GannSwingStrategyFactory implements StrategyFactory<GannSwing
 
     // Swing low: lowest low over the Gann period
     LowPriceIndicator lowPrice = new LowPriceIndicator(series);
-    LowestValueIndicator swingLow =
-        new LowestValueIndicator(lowPrice, parameters.getGannPeriod());
+    LowestValueIndicator swingLow = new LowestValueIndicator(lowPrice, parameters.getGannPeriod());
 
     // Entry: price breaks above swing high (bullish breakout)
     Rule entryRule = new OverIndicatorRule(closePrice, swingHigh);
