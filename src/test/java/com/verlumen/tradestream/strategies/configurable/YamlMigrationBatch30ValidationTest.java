@@ -12,8 +12,8 @@ import org.ta4j.core.Strategy;
 
 /**
  * Validation tests for YAML migration batch 30: CMF_ZERO_LINE, DEMA_TEMA_CROSSOVER,
- * DOUBLE_EMA_CROSSOVER, ELDER_RAY_MA, MOMENTUM_SMA_CROSSOVER. Verifies YAML configs load
- * correctly and produce valid strategies.
+ * DOUBLE_EMA_CROSSOVER, ELDER_RAY_MA, MOMENTUM_SMA_CROSSOVER. Verifies YAML configs load correctly
+ * and produce valid strategies.
  */
 public class YamlMigrationBatch30ValidationTest {
 
