@@ -73,7 +73,10 @@ class VectorBTRunner:
         # Extract metrics
         returns = portfolio.returns()
 
-        return BacktestMetrics(
+        # Compute buy-and-hold benchmark returns for alpha/beta
+        benchmark_returns = ohlcv["close"].pct_change().fillna(0.0)
+
+        metrics = BacktestMetrics(
             cumulative_return=self._calc_cumulative_return(portfolio),
             annualized_return=self._calc_annualized_return(portfolio, len(ohlcv)),
             sharpe_ratio=self._calc_sharpe_ratio(returns),
@@ -84,10 +87,12 @@ class VectorBTRunner:
             profit_factor=self._calc_profit_factor(portfolio),
             number_of_trades=self._calc_num_trades(portfolio),
             average_trade_duration=self._calc_avg_trade_duration(portfolio),
-            alpha=0.0,  # Placeholder - requires benchmark
-            beta=1.0,  # Placeholder - requires benchmark
-            strategy_score=0.0,  # Calculated after other metrics
+            alpha=self._calc_alpha(returns, benchmark_returns),
+            beta=self._calc_beta(returns, benchmark_returns),
+            strategy_score=0.0,
         )
+
+        return self._with_strategy_score(metrics)
 
     def run_strategy(
         self, ohlcv: pd.DataFrame, strategy_name: str, parameters: Dict[str, Any]
@@ -108,13 +113,7 @@ class VectorBTRunner:
             ohlcv, strategy_name, parameters
         )
 
-        # Run backtest
-        metrics = self.run_backtest(ohlcv, entry_signal, exit_signal)
-
-        # Calculate strategy score
-        metrics = self._with_strategy_score(metrics)
-
-        return metrics
+        return self.run_backtest(ohlcv, entry_signal, exit_signal)
 
     def run_batch(
         self,
@@ -448,6 +447,37 @@ class VectorBTRunner:
             return int(portfolio.trades.count())
         except Exception:
             return 0
+
+    def _calc_beta(
+        self, strategy_returns: pd.Series, benchmark_returns: pd.Series
+    ) -> float:
+        """Calculate beta relative to buy-and-hold benchmark."""
+        try:
+            if len(strategy_returns) < 2 or benchmark_returns.var() == 0:
+                return 0.0
+            covariance = strategy_returns.cov(benchmark_returns)
+            return float(covariance / benchmark_returns.var())
+        except Exception:
+            return 0.0
+
+    def _calc_alpha(
+        self, strategy_returns: pd.Series, benchmark_returns: pd.Series
+    ) -> float:
+        """Calculate Jensen's alpha relative to buy-and-hold benchmark."""
+        try:
+            if len(strategy_returns) < 2:
+                return 0.0
+            beta = self._calc_beta(strategy_returns, benchmark_returns)
+            rf_per_bar = self._risk_free_rate / self._bars_per_year
+            strategy_mean = strategy_returns.mean()
+            benchmark_mean = benchmark_returns.mean()
+            # Annualize: alpha per bar * bars_per_year
+            alpha_per_bar = strategy_mean - (
+                rf_per_bar + beta * (benchmark_mean - rf_per_bar)
+            )
+            return float(alpha_per_bar * self._bars_per_year)
+        except Exception:
+            return 0.0
 
     def _calc_avg_trade_duration(self, portfolio: vbt.Portfolio) -> float:
         try:
